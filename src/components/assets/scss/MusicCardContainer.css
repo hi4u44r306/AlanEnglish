@@ -4,13 +4,13 @@
   justify-content: center;
   align-items: center;
   overflow-y: auto;
-  height: 80vh;
+  height: 70vh;
 }
 .music-card-container .music-card {
   display: flex;
   flex-flow: column;
   align-items: center;
-  padding: 10px;
+  padding: 50px;
   flex-basis: 15%;
 }
 .music-card-container .music-card .music-card-cover {
