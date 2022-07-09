@@ -2,7 +2,7 @@ let musicDB = [
   {
       id: 0,
       name: "Shakedown",
-      img: "shakedown.jpg",
+      img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
@@ -32,7 +32,7 @@ let musicDB = [
   {
       id: 2,
       name: "習1 P.26",
-      img: "over-my-head-1602154826-mOiKzOJDe6.jpg",
+      img: "notAvailable.jpg",
       lang: "習作本1",
       type: "1",
       timesPlayed: 0,
@@ -47,7 +47,7 @@ let musicDB = [
   {
       id: 3,
       name: "習1 P.27",
-      img: "want-you-feat-sara-skinner-1586956276-s4lOrfrHQj.jpg",
+      img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
@@ -62,7 +62,7 @@ let musicDB = [
   {
       id: 4,
       name: "習1 P.28",
-      img: "apocalypse-1600776027-tsCmgK4gEU.jpg",
+      img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
@@ -77,7 +77,7 @@ let musicDB = [
   {
       id: 5,
       name: "習1 P.25",
-      img: "alive.jpg",
+      img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
@@ -122,7 +122,7 @@ let musicDB = [
   {
       id: 8,
       name: "習2 P.3",
-      img: "ignite-1600419626-nHn4WXY79q.jpg",
+      img: "notAvailable.jpg",
       lang: "習作本2",
       timesPlayed: 0,
       type: "2",
@@ -152,7 +152,7 @@ let musicDB = [
   {
     id: 10,
     name: "習2 P.5",
-    img: "shakedown.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本2",
     timesPlayed: 0,
     type: "2",
@@ -182,7 +182,7 @@ let musicDB = [
 {
     id: 12,
     name: "習3 P.2",
-    img: "over-my-head-1602154826-mOiKzOJDe6.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本3",
     type: "3",
     timesPlayed: 0,
@@ -197,7 +197,7 @@ let musicDB = [
 {
     id: 13,
     name: "習3 P.3",
-    img: "want-you-feat-sara-skinner-1586956276-s4lOrfrHQj.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本3",
     timesPlayed: 0,
     type: "3",
@@ -212,7 +212,7 @@ let musicDB = [
 {
     id: 14,
     name: "習3 P.4",
-    img: "apocalypse-1600776027-tsCmgK4gEU.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本3",
     timesPlayed: 0,
     type: "3",
@@ -227,7 +227,7 @@ let musicDB = [
 {
     id: 15,
     name: "習3 P.5",
-    img: "alive.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本3",
     timesPlayed: 0,
     type: "3",
@@ -272,7 +272,7 @@ let musicDB = [
 {
     id: 18,
     name: "習4 P.3",
-    img: "ignite-1600419626-nHn4WXY79q.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本4",
     timesPlayed: 0,
     type: "4",
@@ -302,7 +302,7 @@ let musicDB = [
 {
     id: 20,
     name: "習4 P.5",
-    img: "alive.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本4",
     timesPlayed: 0,
     type: "4",
@@ -347,7 +347,7 @@ let musicDB = [
 {
     id: 23,
     name: "習5 P.3",
-    img: "ignite-1600419626-nHn4WXY79q.jpg",
+    img: "notAvailable.jpg",
     lang: "習作本5",
     timesPlayed: 0,
     type: "5",
