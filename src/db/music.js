@@ -1,7 +1,7 @@
 let musicDB = [
   {
       id: 0,
-      name: "Shakedown",
+      name: "習1 P.1",
       img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
@@ -16,7 +16,7 @@ let musicDB = [
   },
   {
       id: 1,
-      name: "習1 P.25",
+      name: "習1 P.2",
       img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
@@ -31,7 +31,7 @@ let musicDB = [
   },
   {
       id: 2,
-      name: "習1 P.26",
+      name: "習1 P.3",
       img: "notAvailable.jpg",
       lang: "習作本1",
       type: "1",
@@ -46,7 +46,7 @@ let musicDB = [
   },
   {
       id: 3,
-      name: "習1 P.27",
+      name: "習1 P.4",
       img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
@@ -61,7 +61,7 @@ let musicDB = [
   },
   {
       id: 4,
-      name: "習1 P.28",
+      name: "習1 P.5",
       img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
@@ -76,7 +76,7 @@ let musicDB = [
   },
   {
       id: 5,
-      name: "習1 P.25",
+      name: "習1 P.6",
       img: "notAvailable.jpg",
       lang: "習作本1",
       timesPlayed: 0,
