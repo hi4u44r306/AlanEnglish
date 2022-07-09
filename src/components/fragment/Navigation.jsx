@@ -1,12 +1,12 @@
 import React, {useContext, useState} from "react";
 import '../assets/scss/Navigation.scss';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
-import DropDownClassList from "./DropDownClassList";
+// import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+// import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+// import DropDownClassList from "./DropDownClassList";
 import SearchBar from "./SearchBar";
 import Brand from "./Brand";
-import DropDownProfile from "./DropDownProfile";
-import {Avatar, Button} from "@material-ui/core";
+// import DropDownProfile from "./DropDownProfile";
+// import {Avatar, Button} from "@material-ui/core";
 import {ThemeContext} from "../../api/Theme";
 import Logout from "./Logout";
 
@@ -16,11 +16,11 @@ function Navigation() {
     const [isOpenProfile, setOpenProfile] = useState(false);
 
 
-    function handleOpenLanguageList() {
-        if (isOpenProfile === true)
-            setOpenProfile(!isOpenProfile);
-        setLangList(!isLanguageListOpen);
-    }
+    // function handleOpenLanguageList() {
+    //     if (isOpenProfile === true)
+    //         setOpenProfile(!isOpenProfile);
+    //     setLangList(!isLanguageListOpen);
+    // }
 
     function handleOpenProfile() {
         if (isLanguageListOpen === true)
