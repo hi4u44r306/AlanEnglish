@@ -2,7 +2,7 @@ let musicDB = [
   {
       id: 0,
       name: "習1 P.1",
-      img: "headphone.png",
+      img: "headphone1.png",
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
@@ -17,7 +17,7 @@ let musicDB = [
   {
       id: 1,
       name: "習1 P.2",
-      img: "headphone.png",
+      img: "headphone1.png",
       lang: "習作本1",
       timesPlayed: 0,
       type:"1",
@@ -32,7 +32,7 @@ let musicDB = [
   {
       id: 2,
       name: "習1 P.3",
-      img: "headphone.png",
+      img: "headphone1.png",
       lang: "習作本1",
       type: "1",
       timesPlayed: 0,
@@ -47,7 +47,7 @@ let musicDB = [
   {
       id: 3,
       name: "習1 P.4",
-      img: "headphone.png",
+      img: "headphone1.png",
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
@@ -62,7 +62,7 @@ let musicDB = [
   {
       id: 4,
       name: "習1 P.5",
-      img: "headphone.png",
+      img: "headphone1.png",
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
