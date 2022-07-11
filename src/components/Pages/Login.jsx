@@ -52,6 +52,7 @@ class Login extends React.Component{
                     </div>
                     <div className="main-row">
                         <div className="main-row-img">
+                            {/* <img className="head-phone-img" src={HeadPhone} alt=""/> */}
                             <img className="head-phone-img" src={HeadPhone} alt=""/>
                         </div>
                         <div className="main-row-text">
