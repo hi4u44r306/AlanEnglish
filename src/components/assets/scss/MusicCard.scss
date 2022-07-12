@@ -1,12 +1,12 @@
 .music-card {
   width: fit-content;
-  padding: 35px;
+  padding: 30px;
   .music-card-cover {
     position: relative;
     display: flex;
     img {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
     }
     .play-circle {
       position: absolute;
@@ -17,7 +17,7 @@
       align-items: center;
       justify-content: center;
       .MuiSvgIcon-root{
-        font-size: 2rem;
+        font-size: 1.3rem;
       }
     }
 
@@ -34,7 +34,7 @@
     // }
 
     .play-circle {
-      color: rgb(255, 200, 87);
+      color: rgb(249, 42, 27);
       visibility: visible;
     }
   }
@@ -44,8 +44,8 @@
   .music-card {
     .music-card-cover {
       img{
-        width: 150px;
-        height: 150px;
+        width: 120px;
+        height: 120px;
       }
     }
   }

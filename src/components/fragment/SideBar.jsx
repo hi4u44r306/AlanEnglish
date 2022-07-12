@@ -12,9 +12,9 @@ function SideBar() {
                 {/* <p className={"p1"}>
                     <span>Library</span>
                 </p> */}
-                <SideBarOptions className={"lib-sub"} Icon={HomeOutlined} href={"/home"} title={"首頁"} />
-                <SideBarOptions className={"lib-sub"} Icon={ExploreOutlined} href={"/home/about"}  title={"關於"}/>
+                <SideBarOptions className={"lib-sub"} Icon={HomeOutlined} href={"/home"} title={"首頁"} style={{ fontSize: 50 }} />
                 <SideBarOptions className={"lib-sub"} Icon={SearchOutlined} href={"/home/search"}  title={"搜尋"}/>
+                <SideBarOptions className={"lib-sub"} Icon={ExploreOutlined} href={"/home/about"}  title={"關於"}/>
                 {/* {/*<SideBarOptions className={"lib-sub"} Icon={AlbumIcon} href={"/home/album"}  title={"Album"}/> */}
                 {/* <SideBarOptions className={"lib-sub"} Icon={EmojiPeopleIcon} href={"/home/artist"}  title={"Artist"}/>*/}
             </div>
