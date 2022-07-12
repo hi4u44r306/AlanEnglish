@@ -6,13 +6,8 @@ let musicDB = [
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
-      musicName: "Clarx - Shakedown [NCS Release].mp3",
-      attribution: {
-          song: "Clarx - Shakedown [NCS Release]",
-          musicBy: "NoCopyrightSounds",
-          download: "http://ncs.io/Shakedown",
-          stream: "http://youtu.be/qJT0mc3q6Lg"
-      }
+      musicName: "Clarx - Shakedown [NCS Release].mp3"
+     
   },
   {
       id: 1,
@@ -21,13 +16,8 @@ let musicDB = [
       lang: "習作本1",
       timesPlayed: 0,
       type:"1",
-      musicName: "mixkit-games-worldbeat-466.mp3",
-      attribution: {
-          song: "Games Worldbeat",
-          musicBy: "mixkit",
-          download: null,
-          stream: null
-      }
+      musicName: "mixkit-games-worldbeat-466.mp3"
+     
   },
   {
       id: 2,
@@ -36,13 +26,8 @@ let musicDB = [
       lang: "習作本1",
       type: "1",
       timesPlayed: 0,
-      musicName: "ROY KNOX -  Over My Head (Feat. Mike Robert) [NCS Release].mp3",
-      attribution: {
-          song: "ROY KNOX - Over My Head (Feat. Mike Robert) [NCS Release]",
-          musicBy: "NoCopyrightSounds",
-          download: "http://ncs.io/OverMyHead",
-          stream: null
-      }
+      musicName: "ROY KNOX -  Over My Head (Feat. Mike Robert) [NCS Release].mp3"
+     
   },
   {
       id: 3,
@@ -51,13 +36,8 @@ let musicDB = [
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
-      musicName: "Subtact - Want You (feat. Sara Skinner) [NCS Release].mp3",
-      attribution: {
-          song: "Subtact - Want You (feat. Sara Skinner) [NCS Release]",
-          musicBy: "NoCopyrightSounds",
-          download: "http://ncs.io/WantYou",
-          stream: "http://youtu.be/Pww31vN_1QY"
-      }
+      musicName: "Subtact - Want You (feat. Sara Skinner) [NCS Release].mp3"
+      
   },
   {
       id: 4,
@@ -66,13 +46,8 @@ let musicDB = [
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
-      musicName: "Midranger - Apocalypse [NCS Release].mp3",
-      attribution: {
-          song: "Midranger - Apocalypse [NCS Release]",
-          musicBy: "NoCopyrightSounds",
-          download: "http://ncs.io/Apocalypse",
-          stream: "http://youtu.be/Whw1sWDpAvE"
-      }
+      musicName: "Midranger - Apocalypse [NCS Release].mp3"
+      
   },
   {
       id: 5,
@@ -81,13 +56,8 @@ let musicDB = [
       lang: "習作本1",
       timesPlayed: 0,
       type: "1",
-      musicName: "N3WPORT - Alive (feat. Neoni) [NCS Release].mp3",
-      attribution: {
-          song: "N3WPORT - Alive (feat. Neoni) [NCS Release]",
-          musicBy: "NoCopyrightSounds",
-          download: "http://ncs.io/NAlive",
-          stream: "http://youtu.be/vJAcXd_UtWQ"
-      }
+      musicName: "N3WPORT - Alive (feat. Neoni) [NCS Release].mp3"
+      
   },
   {
       id: 6,
@@ -96,13 +66,8 @@ let musicDB = [
       lang: "習作本2",
       timesPlayed: 0,
       type:"2",
-      musicName: "impact.mp3",
-      attribution: {
-          song: "Impact Moderato",
-          musicBy: "Kevin MacLeod",
-          download: null,
-          stream: null
-      }
+      musicName: "impact.mp3"
+      
   },
   {
       id: 7,
@@ -111,13 +76,8 @@ let musicDB = [
       lang: "習作本2",
       timesPlayed: 0,
       type:"2",
-      musicName: "impact2.mp3",
-      attribution: {
-          song: "Impact Moderato",
-          musicBy: "Kevin MacLeod",
-          download: null,
-          stream: null
-      }
+      musicName: "impact2.mp3"
+      
   },
   {
       id: 8,
@@ -126,13 +86,8 @@ let musicDB = [
       lang: "習作本2",
       timesPlayed: 0,
       type: "2",
-      musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3",
-      attribution: {
-          song: "Heuse & Tom Wilson - Ignite [NCS Release]",
-          musicBy: "NoCopyrightSounds",
-          download: "http://ncs.io/Ignite",
-          stream: "http://youtu.be/zbqgv0mMfwk"
-      }
+      musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
+     
   },
   {
     id: 9,
@@ -141,13 +96,8 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "2",
-    musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3",
-    attribution: {
-        song: "Heuse & Tom Wilson - Ignite [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/Ignite",
-        stream: "http://youtu.be/zbqgv0mMfwk"
-    }
+    musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
+    
   },
   {
     id: 10,
@@ -156,13 +106,8 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "2",
-    musicName: "Clarx - Shakedown [NCS Release].mp3",
-    attribution: {
-        song: "Clarx - Shakedown [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/Shakedown",
-        stream: "http://youtu.be/qJT0mc3q6Lg"
-    }
+    musicName: "Clarx - Shakedown [NCS Release].mp3"
+   
 },
 {
     id: 11,
@@ -171,13 +116,8 @@ let musicDB = [
     lang: "習作本3",
     timesPlayed: 0,
     type:"3",
-    musicName: "mixkit-games-worldbeat-466.mp3",
-    attribution: {
-        song: "Games Worldbeat",
-        musicBy: "mixkit",
-        download: null,
-        stream: null
-    }
+    musicName: "mixkit-games-worldbeat-466.mp3"
+  
 },
 {
     id: 12,
@@ -186,13 +126,7 @@ let musicDB = [
     lang: "習作本3",
     type: "3",
     timesPlayed: 0,
-    musicName: "ROY KNOX -  Over My Head (Feat. Mike Robert) [NCS Release].mp3",
-    attribution: {
-        song: "ROY KNOX - Over My Head (Feat. Mike Robert) [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/OverMyHead",
-        stream: null
-    }
+    musicName: "ROY KNOX -  Over My Head (Feat. Mike Robert) [NCS Release].mp3"
 },
 {
     id: 13,
@@ -201,13 +135,7 @@ let musicDB = [
     lang: "習作本3",
     timesPlayed: 0,
     type: "3",
-    musicName: "Subtact - Want You (feat. Sara Skinner) [NCS Release].mp3",
-    attribution: {
-        song: "Subtact - Want You (feat. Sara Skinner) [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/WantYou",
-        stream: "http://youtu.be/Pww31vN_1QY"
-    }
+    musicName: "Subtact - Want You (feat. Sara Skinner) [NCS Release].mp3"
 },
 {
     id: 14,
@@ -216,13 +144,7 @@ let musicDB = [
     lang: "習作本3",
     timesPlayed: 0,
     type: "3",
-    musicName: "Midranger - Apocalypse [NCS Release].mp3",
-    attribution: {
-        song: "Midranger - Apocalypse [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/Apocalypse",
-        stream: "http://youtu.be/Whw1sWDpAvE"
-    }
+    musicName: "Midranger - Apocalypse [NCS Release].mp3"
 },
 {
     id: 15,
@@ -231,13 +153,7 @@ let musicDB = [
     lang: "習作本3",
     timesPlayed: 0,
     type: "3",
-    musicName: "N3WPORT - Alive (feat. Neoni) [NCS Release].mp3",
-    attribution: {
-        song: "N3WPORT - Alive (feat. Neoni) [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/NAlive",
-        stream: "http://youtu.be/vJAcXd_UtWQ"
-    }
+    musicName: "N3WPORT - Alive (feat. Neoni) [NCS Release].mp3"
 },
 {
     id: 16,
@@ -246,13 +162,7 @@ let musicDB = [
     lang: "習作本4",
     timesPlayed: 0,
     type:"4",
-    musicName: "impact.mp3",
-    attribution: {
-        song: "Impact Moderato",
-        musicBy: "Kevin MacLeod",
-        download: null,
-        stream: null
-    }
+    musicName: "impact.mp3"
 },
 {
     id: 17,
@@ -261,13 +171,7 @@ let musicDB = [
     lang: "習作本4",
     timesPlayed: 0,
     type:"4",
-    musicName: "impact2.mp3",
-    attribution: {
-        song: "Impact Moderato",
-        musicBy: "Kevin MacLeod",
-        download: null,
-        stream: null
-    }
+    musicName: "impact2.mp3"
 },
 {
     id: 18,
@@ -276,13 +180,7 @@ let musicDB = [
     lang: "習作本4",
     timesPlayed: 0,
     type: "4",
-    musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3",
-    attribution: {
-        song: "Heuse & Tom Wilson - Ignite [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/Ignite",
-        stream: "http://youtu.be/zbqgv0mMfwk"
-    }
+    musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
 },
 {
   id: 19,
@@ -291,13 +189,7 @@ let musicDB = [
   lang: "習作本4",
   timesPlayed: 0,
   type: "4",
-  musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3",
-  attribution: {
-      song: "Heuse & Tom Wilson - Ignite [NCS Release]",
-      musicBy: "NoCopyrightSounds",
-      download: "http://ncs.io/Ignite",
-      stream: "http://youtu.be/zbqgv0mMfwk"
-  }
+  musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
 },
 {
     id: 20,
@@ -306,13 +198,7 @@ let musicDB = [
     lang: "習作本4",
     timesPlayed: 0,
     type: "4",
-    musicName: "N3WPORT - Alive (feat. Neoni) [NCS Release].mp3",
-    attribution: {
-        song: "N3WPORT - Alive (feat. Neoni) [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/NAlive",
-        stream: "http://youtu.be/vJAcXd_UtWQ"
-    }
+    musicName: "N3WPORT - Alive (feat. Neoni) [NCS Release].mp3"
 },
 {
     id: 21,
@@ -321,13 +207,7 @@ let musicDB = [
     lang: "習作本5",
     timesPlayed: 0,
     type:"5",
-    musicName: "impact.mp3",
-    attribution: {
-        song: "Impact Moderato",
-        musicBy: "Kevin MacLeod",
-        download: null,
-        stream: null
-    }
+    musicName: "impact.mp3"
 },
 {
     id: 22,
@@ -336,13 +216,7 @@ let musicDB = [
     lang: "習作本5",
     timesPlayed: 0,
     type:"5",
-    musicName: "impact2.mp3",
-    attribution: {
-        song: "Impact Moderato",
-        musicBy: "Kevin MacLeod",
-        download: null,
-        stream: null
-    }
+    musicName: "impact2.mp3"
 },
 {
     id: 23,
@@ -351,13 +225,7 @@ let musicDB = [
     lang: "習作本5",
     timesPlayed: 0,
     type: "5",
-    musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3",
-    attribution: {
-        song: "Heuse & Tom Wilson - Ignite [NCS Release]",
-        musicBy: "NoCopyrightSounds",
-        download: "http://ncs.io/Ignite",
-        stream: "http://youtu.be/zbqgv0mMfwk"
-    }
+    musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
 },
 {
   id: 24,
@@ -366,13 +234,7 @@ let musicDB = [
   lang: "習作本5",
   timesPlayed: 0,
   type: "5",
-  musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3",
-  attribution: {
-      song: "Heuse & Tom Wilson - Ignite [NCS Release]",
-      musicBy: "NoCopyrightSounds",
-      download: "http://ncs.io/Ignite",
-      stream: "http://youtu.be/zbqgv0mMfwk"
-  }
+  musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
 },
 {
   id: 25,
@@ -381,13 +243,7 @@ let musicDB = [
   lang: "習作本5",
   timesPlayed: 0,
   type: "5",
-  musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3",
-  attribution: {
-      song: "Heuse & Tom Wilson - Ignite [NCS Release]",
-      musicBy: "NoCopyrightSounds",
-      download: "http://ncs.io/Ignite",
-      stream: "http://youtu.be/zbqgv0mMfwk"
-  }
+  musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
 }
 ];
 

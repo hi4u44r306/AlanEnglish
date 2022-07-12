@@ -29,12 +29,12 @@
   .music-card-cover:hover {
     cursor: pointer;
 
-    img {
-      filter: brightness(0.34);
-    }
+    // img {
+    //   filter: brightness(0.9);
+    // }
 
     .play-circle {
-      color: #fff;
+      color: rgb(255, 200, 87);
       visibility: visible;
     }
   }

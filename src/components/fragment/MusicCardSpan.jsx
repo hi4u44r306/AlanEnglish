@@ -9,7 +9,6 @@ function MusicCardSpan({music}) {
                 <img src={require("../assets/img/"+music.img)} alt=""/>
                 <div className="detail">
                     <h4>{music.name}</h4>
-                    <p>{music.author_name}</p>
                 </div>
             </div>
             <div className="play">
