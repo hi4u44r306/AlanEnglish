@@ -25,7 +25,7 @@ class Login extends React.Component{
             window.location = "/home";
         }).catch((err)=>{
             console.log(err)
-            alert("Email or Password incorrect")
+            alert("帳號密碼錯誤請再輸入一次...")
         })
     }
 
