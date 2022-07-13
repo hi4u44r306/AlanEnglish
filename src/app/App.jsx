@@ -8,6 +8,7 @@ import musicDB from "../db/music";
 import {useDispatch, useSelector} from "react-redux";
 import {setPlaylist} from "../actions/actions";
 
+
 const App = () => {
 
     const {language} = useSelector(state => state.musicReducer);
@@ -31,6 +32,7 @@ const App = () => {
         <ThemeContext.Provider value={themes.light}>
             <>
                 <Router>
+                    
                     <Switch>
                         <Route path="/" exact component={Login}/>
                         <Route path="/home" component={Home}/>
