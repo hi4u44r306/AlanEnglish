@@ -1,7 +1,7 @@
 #main {
   font-family: Consolas, sans-serif;
   background: #794141;
-  background: linear-gradient(110deg, #eb4559 50%, #f78259 50%);
+  background: linear-gradient(110deg, #f78259 50%, #eb4559 50%);
   height: 100vh;
   text-align: center;
   display: flex;
@@ -11,9 +11,15 @@
     display: flex;
     font-size: 1.3rem;
     .navbar-brand {
-      font-family: 'Pacifico', cursive;
-      color: #f8eeee;
-      font-size: 3rem;
+      // font-family: 'Pacifico', cursive;
+      font-family: 'Playball', cursive;
+      color: #ffffff;
+      font-size: 2rem;
+      // display: flex;
+      // flex-flow: column wrap;
+      // justify-content: center;
+      // align-items: center;
+      // flex-basis: 50%;
     }
   }
   .main-row {

@@ -43,12 +43,11 @@ class Login extends React.Component{
                     </div>
                     <div className="main-row">
                         <div className="main-row-img">
-                            {/* <img className="head-phone-img" src={HeadPhone} alt=""/> */}
                             <img className="head-phone-img" src={HeadPhone} alt=""/>
                         </div>
                         <div className="main-row-text">
                             <h1>Alan English</h1>
-                            <p>The Most Effective English Learning</p>
+                            <p>主題式教學 | 口語化 | 全方位 </p>
                             <label>帳號</label>
                             <input
                                 name="email" 
