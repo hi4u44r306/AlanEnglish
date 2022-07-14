@@ -13,7 +13,9 @@ const Search = () => {
     const [searchResult, setSearchResult] = useState([]);
     useEffect(() => {
         setSearchResult(playlists.filter((i) => (
-            (i.name.toLowerCase().startsWith(search))
+            (i.bookname.toLowerCase().startsWith(search))
+            ||
+            (i.page.toLowerCase().startsWith(search))
             ||
             (i.musicName.toLowerCase().startsWith(search))
             ||
@@ -39,7 +41,7 @@ const Search = () => {
                             searchResult.length === 0
                                 ?
                                 <div className={"Search-fallback"}>
-                                    No result found.
+                                   找不到此音軌...
                                 </div>
                                 :
                                 searchResult.map((item) => (

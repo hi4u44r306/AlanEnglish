@@ -8,7 +8,7 @@ import {Skeleton} from "@material-ui/lab";
 import Box from "@material-ui/core/Box";
 
 function MusicCard(props) {
-    const {name, img} = props.music;
+    const {bookname , page , img} = props.music;
 
     const [isHovered, setHovered] = useState(false);
 
@@ -43,14 +43,14 @@ function MusicCard(props) {
                     :
                     <>
                         <div onClick={handlePlay}  className={"music-card-cover"} onMouseOver={handleResponse}>
-                            <img src={require("../assets/img/" + img).default} alt={name}/>
+                            <img src={require("../assets/img/" + img).default} alt={bookname}/>
                             <div className="play-circle">
                                 <PlayCircleFilledWhiteIcon/>
                             </div>
                         </div>
                         <React.Fragment>
-                            <Name name={name} className={"song-name"} length={name.length}/>
-                            {/* <Name name={author_name} className={"author-name"} length={author_name.length}/> */}
+                            <Name name={bookname} className={"song-name"} length={bookname.length}/>
+                            <Name name={page} className={"song-name"} length={page.length}/>
                         </React.Fragment>
                     </>
             }
