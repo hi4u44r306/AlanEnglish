@@ -39,9 +39,17 @@ function Profile() {
                     <div className="profile-detail">
                         <span className={"profile-playlist"}>
                             <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay}
-                                            href={"/home/playlist/instrumental"} title={"Instrumental"}/>
-                            <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/electronic"}
-                                            title={"Electronic"}/>
+                                            href={"/home/playlist/1"} title={"習作本1"}/>
+                            <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} 
+                                            href={"/home/playlist/2"} title={"習作本2"}/>
+                            <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay}
+                                            href={"/home/playlist/3"} title={"習作本3"}/>
+                            <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} 
+                                            href={"/home/playlist/4"} title={"習作本4"}/>
+                            <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay}
+                                            href={"/home/playlist/5"} title={"習作本5"}/>
+                            <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} 
+                                            href={"/home/playlist/6"} title={"習作本6"}/>
                         </span>
                     </div>
                 </div>
