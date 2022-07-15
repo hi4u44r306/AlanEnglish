@@ -68,23 +68,23 @@ let musicDB = [
   {
       id: 6,
       bookname: "習作本2",
-      page:"P.1",
+      page:"P.4",
       img: "headphone2.png",
       lang: "習作本2",
       timesPlayed: 0,
       type:"2",
-      musicName: "impact.mp3"
+      musicName: "習作本2 P4.mp3"
       
   },
   {
       id: 7,
       bookname: "習作本2",
-      page:"P.2",
+      page:"P.6",
       img: "headphone2.png",
       lang: "習作本2",
       timesPlayed: 0,
       type:"2",
-      musicName: "impact2.mp3"
+      musicName: "習作本2 P6.mp3"
       
   },
   {
@@ -101,23 +101,23 @@ let musicDB = [
   {
     id: 9,
     bookname: "習作本2",
-    page:"P.4",
+    page:"P.",
     img: "headphone2.png",
     lang: "習作本2",
     timesPlayed: 0,
     type: "2",
-    musicName: "Heuse & Tom Wilson - Ignite [NCS Release].mp3"
+    musicName: "習作本2 P4.mp3"
     
   },
   {
     id: 10,
     bookname: "習作本2",
-    page:"P.5",
+    page:"P.",
     img: "headphone2.png",
     lang: "習作本2",
     timesPlayed: 0,
     type: "2",
-    musicName: "Clarx - Shakedown [NCS Release].mp3"
+    musicName: "習作本2 P6.mp3"
    
 },
 {

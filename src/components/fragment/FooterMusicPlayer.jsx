@@ -19,7 +19,7 @@ import Button from "@material-ui/core/Button";
 
 function FooterMusicPlayer({music}) {
 
-    const [{id, name, img, musicName}, setCurrTrack] = useState(music);
+    const [{id, bookname, page , img, musicName}, setCurrTrack] = useState(music);
     const [isRepeatClicked, setRepeatClick] = useState(false);
     const [isPrevClicked, setPrevClicked] = useState(false);
     const [isNextClicked, setNextClicked] = useState(false);
@@ -145,12 +145,12 @@ function FooterMusicPlayer({music}) {
                 }
             </div>
             <Button
-                    startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={name}/>}
+                    startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
                     onClick={handleBannerToggle}
                     className="curr-music-container">
                 <div className="curr-music-details">
-                    <Name name={name} className={"song-name"} length={name.length}/>
-                    
+                    <Name name={bookname} className={"song-name"} length={bookname.length}/>
+                    <Name name={page} className={"song-name"} length={page.length}/>
                 </div>
             </Button>
             <div className="playback-controls">

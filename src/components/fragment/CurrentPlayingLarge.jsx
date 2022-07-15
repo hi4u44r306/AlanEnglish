@@ -5,7 +5,7 @@ import {useSelector} from "react-redux";
 function CurrentPlayingLarge() {
 
     const {playing} = useSelector(state => state.musicReducer);
-    const [{img,name,author_name},setCurrPlaying] = useState(playing);
+    const [{img,bookname,page},setCurrPlaying] = useState(playing);
     useEffect(()=>{
         setCurrPlaying(playing);
     },[playing]);
@@ -18,8 +18,8 @@ function CurrentPlayingLarge() {
                 <div className="wrapper">
                     <img className={"music-cover"} src={require("../assets/img/"+img).default} alt=""/>
                     <div className="detail">
-                        <h3>{name}</h3>
-                        <p>{author_name}</p>
+                        <h3>{bookname}</h3>
+                        <p>{page}</p>
                     </div>
                 </div>
             </div>
