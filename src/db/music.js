@@ -104,6 +104,46 @@ let musicDB = [
     timesPlayed: 0,
     type: "2",
     musicName: "習作本2 P34.mp3"
+},
+{
+    id: 10,
+    bookname: "習作本2",
+    page:"P.36",
+    img: "headphone2.png",
+    lang: "習作本2",
+    timesPlayed: 0,
+    type: "2",
+    musicName: "習作本2 P36.mp3"
+},
+{
+    id: 11,
+    bookname: "習作本2",
+    page:"P.38",
+    img: "headphone2.png",
+    lang: "習作本2",
+    timesPlayed: 0,
+    type: "2",
+    musicName: "習作本2 P38.mp3"
+},
+{
+    id: 12,
+    bookname: "習作本2",
+    page:"P.40",
+    img: "headphone2.png",
+    lang: "習作本2",
+    timesPlayed: 0,
+    type: "2",
+    musicName: "習作本2 P40.mp3"
+},
+{
+    id: 13,
+    bookname: "習作本2",
+    page:"P.46",
+    img: "headphone2.png",
+    lang: "習作本2",
+    timesPlayed: 0,
+    type: "2",
+    musicName: "習作本2 P46.mp3"
 }
 ];
 
