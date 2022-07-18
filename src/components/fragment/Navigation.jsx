@@ -31,11 +31,11 @@ function Navigation() {
     return (
         <nav style={useStyle.component}>
             <Brand/>
-            <div className={"navigation"}>
+            {/* <div className={"navigation"}> */}
                {/* <NavigationButton href={"/home"} name={"Home"}/>*/}
                {/* <NavigationButton href={"/home/about"} name={"About"}/>*/}
                 {/*<NavigationButton href={"/home/add"} name={"Add"}/>*/}
-            </div>
+            {/* </div> */}
             <SearchBar/>
             {/* <div className={"language"} onClick={handleOpenLanguageList}>
                 <Button className={"Dropdown-btn"}

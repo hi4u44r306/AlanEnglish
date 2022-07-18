@@ -1,4 +1,5 @@
 .aside-bar {
+  background-color: #005b7f !important;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11,22 +12,34 @@
     padding: 15px;
     font-weight: bolder;
     user-select: none;
+
   }
   .lib-sub {
-    padding: 5px;
-    margin: 15px;
+    font-family: 'Time New Roman';
+    font-weight: 900;
+    color: #f6edba;
+    padding: 10px;
+    margin: 5px;
     display: flex;
     justify-content: flex-start;
     align-items: center;
     .MuiButton-startIcon{
       font-size: 200px;
-      color: #ff8427;
+      color: #f6edba;
     }
   }
   .aside-bar-container {
     display: flex;
     flex-flow: column;
     width: 100%;
+    .lib-sub:hover{
+      background-color: #f6edba;
+      color: #005b7f;
+      transition-delay: .5s ease-in-out;
+      .MuiButton-startIcon{
+        color: #005b7f;
+      }
+    }
   }
   .playlist{
     flex: 1;
@@ -34,7 +47,12 @@
       border-top: 1px solid #e0e0e0;
     }
     .lib-sub:hover{
-      background-color: #a2d5f2;
+      background-color: #f6edba;
+      color: #005b7f;
+      transition-delay: .5s ease-in-out;
+      .MuiButton-startIcon{
+        color: #005b7f;
+      }
     }
   }
 }

@@ -19,7 +19,7 @@ function SideBar() {
                 <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/5"}  title={"習作本5"}/>
                 <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/6"}  title={"習作本6"}/>
             </div>
-            <div className="aside-bar-container">
+            <div className="aside-bar-container down">
                 {/* <p className={"p1"}>
                     <span>Library</span>
                 </p> */}

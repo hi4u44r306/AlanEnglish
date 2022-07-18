@@ -1,11 +1,10 @@
 .Playlist{
   h3{
-    // background: -webkit-linear-gradient(132deg, rgb(255, 164, 60), rgb(255, 255, 255));
-    // background: linear-gradient(132deg, rgb(255, 164, 60), rgb(255, 255, 255));
-    background-color: rgb(255, 164, 60);
+    background-color: #005b7f !important;
     padding: 10px;
-    color: #ffffff;
+    color: #f6edba;
     text-transform: uppercase;
+    text-align: center;
   }
   .Playlist-container{
     display: flex;
