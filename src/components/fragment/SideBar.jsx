@@ -2,7 +2,7 @@ import React, {useContext} from "react";
 import "../assets/scss/SideBar.scss";
 import SideBarOptions from "./SideBarOptions";
 import {ThemeContext} from "../../api/Theme";
-import {ExploreOutlined, HomeOutlined, PlaylistPlay, SearchOutlined} from "@material-ui/icons";
+import {ExploreOutlined,  PlaylistPlay } from "@material-ui/icons";
 
 function SideBar() {
     const useStyle = useContext(ThemeContext);
