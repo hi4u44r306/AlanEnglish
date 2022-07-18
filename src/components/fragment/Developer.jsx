@@ -18,10 +18,6 @@ const Developer = () => {
                     </div>
                 </div>
                 <div className="Developer-profileDetails">
-                    <p>Type something here later~~~Type something here later~~~Type something here later~~~</p>
-                    <p>Type something here later~~~</p>
-                    <p>Type something here later~~~</p>
-                    <p>Type something here later~~~</p>
                     <p>Type something here later~~~</p>
                     <p>Type something here later~~~</p>
                     <p>Type something here later~~~</p>
