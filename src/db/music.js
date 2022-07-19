@@ -144,6 +144,26 @@ let musicDB = [
     timesPlayed: 0,
     type: "2",
     musicName: "習作本2 P46.mp3"
+},
+{
+    id: 14,
+    bookname: "習作本2",
+    page:"P.48",
+    img: "headphone2.png",
+    lang: "習作本2",
+    timesPlayed: 0,
+    type: "2",
+    musicName: "習作本2 P48.mp3"
+},
+{
+    id: 15,
+    bookname: "習作本2",
+    page:"P.50",
+    img: "headphone2.png",
+    lang: "習作本2",
+    timesPlayed: 0,
+    type: "2",
+    musicName: "習作本2 P50.mp3"
 }
 ];
 

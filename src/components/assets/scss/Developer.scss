@@ -3,14 +3,14 @@
 
   .Developer-head {
     text-transform: uppercase;
-    background-color: rgb(255, 164, 60);
-    color: #fff;
+    background-color: #005b7f !important;
+    color: #f6edba;
     font-size: 1.5rem;
     padding: 10px;
-    display: flex;
+    // display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
+    text-align: center;
 
     span {
       display: flex;
@@ -23,6 +23,7 @@
     flex-flow: row wrap;
     background-color: #bbe1fa;
     padding: 5px;
+    
     .Developer-profileCard {
       background-color: rgba(255, 255, 255, 0.75);
       text-align: center;
