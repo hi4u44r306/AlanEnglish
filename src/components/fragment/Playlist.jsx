@@ -10,7 +10,7 @@ const Playlist = () => {
     return (
         <Container>
             <div  className={"Playlist"}>
-                <h3>習作本 {typeOfPlaylist} </h3>
+                <h3> {typeOfPlaylist} </h3>
                 <div className="Playlist-container">
                     {
                         playlists.map((item)=>(

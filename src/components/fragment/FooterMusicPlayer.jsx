@@ -25,7 +25,7 @@ function FooterMusicPlayer({music}) {
     const [isNextClicked, setNextClicked] = useState(false);
     const [isPlaying, setPlayPauseClicked] = useState(false);
     const [isVolumeClicked, setVolumeClicked] = useState(false);
-    const [volume, setVolume] = useState(50);
+    const [volume, setVolume] = useState(100);
     const [seekTime, setSeekTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [currTime, setCurrTime] = useState(0);

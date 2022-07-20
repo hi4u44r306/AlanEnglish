@@ -12,12 +12,16 @@ function SideBar() {
                 {/* <p className={"p1"}>
                     <span>MY PLAYLIST</span>
                 </p> */}
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/1"}  title={"習作本1"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/2"}  title={"習作本2"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/3"}  title={"習作本3"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/4"}  title={"習作本4"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/5"}  title={"習作本5"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/6"}  title={"習作本6"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_1"}  title={"習作本1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_2"}  title={"習作本2"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_3"}  title={"習作本3"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_4"}  title={"習作本4"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_5"}  title={"習作本5"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_6"}  title={"習作本6"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SER_1"}  title={"Super Easy Reading 3e 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/STEAM_1"}  title={"Steam Reading 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SARC_1"}  title={"Short Articles Reading 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Reading_Lamp_1"}  title={"Reading Lamp 1"}/>
             </div>
             <div className="aside-bar-container down">
                 {/* <p className={"p1"}>
