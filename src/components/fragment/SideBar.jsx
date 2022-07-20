@@ -18,10 +18,10 @@ function SideBar() {
                 <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_4"}  title={"習作本4"}/>
                 <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_5"}  title={"習作本5"}/>
                 <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Workbook_6"}  title={"習作本6"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SER_1"}  title={"Super Easy Reading 3e 1"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/STEAM_1"}  title={"Steam Reading 1"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SARC_1"}  title={"Short Articles Reading 1"}/>
-                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/Reading_Lamp_1"}  title={"Reading Lamp 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SER1"}  title={"Super Easy Reading 3e 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/STEAM1"}  title={"Steam Reading 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SARC1"}  title={"Short Articles Reading 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/RL1"}  title={"Reading Lamp 1"}/>
             </div>
             <div className="aside-bar-container down">
                 {/* <p className={"p1"}>
