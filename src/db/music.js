@@ -1,48 +1,13 @@
 let musicDB = [
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    ////////////////////////////////////       Super Easy Reading 1     ////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ////////////////////////////////////Super Easy Reading 1////////////////////////////////////////////
     {
         id: 0,
         bookname: "Super Easy Reading 1",
         page:"Track 2",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 1,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track02.mp3"
     },
     {
@@ -50,9 +15,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 3",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track03.mp3"
     }
     ,
@@ -61,9 +26,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 4",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track04.mp3"
     },
     {
@@ -71,9 +36,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 5",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track05.mp3"
     },
     {
@@ -81,9 +46,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 6",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track06.mp3"
     },
     {
@@ -91,9 +56,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 7",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track07.mp3"
     },
     {
@@ -101,9 +66,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 8",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track08.mp3"
     },
     {
@@ -111,9 +76,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 9",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track09.mp3"
     },
     {
@@ -121,9 +86,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 10",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track10.mp3"
     },
     {
@@ -131,9 +96,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 11",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track11.mp3"
     },
     {
@@ -141,9 +106,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 12",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track12.mp3"
     },
     {
@@ -151,9 +116,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 13",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track13.mp3"
     },
     {
@@ -161,9 +126,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 14",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track14.mp3"
     },
     {
@@ -171,9 +136,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 15",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track15.mp3"
     },
     {
@@ -181,9 +146,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 16",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track16.mp3"
     },
     {
@@ -191,9 +156,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 17",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track17.mp3"
     },
     {
@@ -201,9 +166,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 18",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track18.mp3"
     },
     {
@@ -211,9 +176,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 19",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track19.mp3"
     },
     {
@@ -221,9 +186,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 20",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track20.mp3"
     },
     {
@@ -231,9 +196,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 21",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track21.mp3"
     },
     {
@@ -241,9 +206,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 22",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track22.mp3"
     },
     {
@@ -251,9 +216,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 23",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track23.mp3"
     },
     {
@@ -261,9 +226,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 24",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track24.mp3"
     },
     {
@@ -271,9 +236,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 25",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track25.mp3"
     },
     {
@@ -281,9 +246,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 26",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track26.mp3"
     },
     {
@@ -291,9 +256,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 27",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track27.mp3"
     },
     {
@@ -301,9 +266,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 28",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track28.mp3"
     },
     {
@@ -311,9 +276,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 29",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track29.mp3"
     },
     {
@@ -321,9 +286,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 30",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track30.mp3"
     },
     {
@@ -331,9 +296,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 31",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track31.mp3"
     },
     {
@@ -341,9 +306,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 32",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track32.mp3"
     },
     {
@@ -351,9 +316,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 33",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track33.mp3"
     },
     {
@@ -361,9 +326,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 34",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track34.mp3"
     },
     {
@@ -371,9 +336,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 35",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track35.mp3"
     },
     {
@@ -381,9 +346,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 36",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track36.mp3"
     },
     {
@@ -391,9 +356,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 37",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track37.mp3"
     },
     {
@@ -401,9 +366,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 38",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track38.mp3"
     },
     {
@@ -411,9 +376,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 39",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track39.mp3"
     },
     {
@@ -421,9 +386,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 40",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track40.mp3"
     },
     {
@@ -431,9 +396,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 41",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track41.mp3"
     },
     {
@@ -441,9 +406,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 42",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track42.mp3"
     },
     {
@@ -451,9 +416,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 43",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track43.mp3"
     },
     {
@@ -461,9 +426,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 44",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track44.mp3"
     },
     {
@@ -471,9 +436,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 45",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track45.mp3"
     },
     {
@@ -481,9 +446,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 46",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track46.mp3"
     },
     {
@@ -491,9 +456,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 47",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track47.mp3"
     },
     {
@@ -501,9 +466,9 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 48",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track48.mp3"
     },
     {
@@ -511,53 +476,20 @@ let musicDB = [
         bookname: "Super Easy Reading 1",
         page:"Track 49",
         img: "headphone.png",
-        lang: "Super Easy Reading 1",
+        lang: "SuperEasyReading1",
         timesPlayed: 0,
-        type: "SER_1",
+        type: "SER1",
         musicName: "SER1track49.mp3"
     },
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    /////////////////////////////////////  Steam Reading Elementary 1  ////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /////////////////////////////////////Steam Reading Elementary 1////////////////////////////////////////
     {
         id: 48,
         bookname: "Steam Reading 1",
-        page:"Track 2",
+        page:"Track 1",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 1.mp3"
     },
     {
@@ -565,9 +497,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 2",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 2.mp3"
     },
     {
@@ -575,9 +507,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 3",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 3.mp3"
     },
     {
@@ -585,9 +517,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 4",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 4.mp3"
     },
     {
@@ -595,9 +527,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 5",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 5.mp3"
     },
     {
@@ -605,9 +537,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 6",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 6.mp3"
     },
     {
@@ -615,9 +547,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 7",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 7.mp3"
     },
     {
@@ -625,9 +557,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 8",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 8.mp3"
     },
     {
@@ -635,9 +567,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 9",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 9.mp3"
     },
     {
@@ -645,9 +577,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 10",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 10.mp3"
     },
     {
@@ -655,9 +587,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 11",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 11.mp3"
     },
     {
@@ -665,9 +597,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 12",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 12.mp3"
     },
     {
@@ -675,9 +607,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 13",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 13.mp3"
     },
     {
@@ -685,9 +617,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 14",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 14.mp3"
     },
     {
@@ -695,9 +627,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 15",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 15.mp3"
     },
     {
@@ -705,9 +637,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 16",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 16.mp3"
     },
     {
@@ -715,9 +647,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 17",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 17.mp3"
     },
     {
@@ -725,9 +657,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 18",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 18.mp3"
     },
     {
@@ -735,9 +667,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 19",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 19.mp3"
     },
     {
@@ -745,9 +677,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 20",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 20.mp3"
     },
     {
@@ -755,9 +687,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 21",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 21.mp3"
     },
     {
@@ -765,9 +697,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 22",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 22.mp3"
     },
     {
@@ -775,9 +707,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 23",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 23.mp3"
     },
     {
@@ -785,9 +717,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 24",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 24.mp3"
     },
     {
@@ -795,9 +727,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 25",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 25.mp3"
     },
     {
@@ -805,9 +737,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 26",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 26.mp3"
     },
     {
@@ -815,9 +747,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 27",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 27.mp3"
     },
     {
@@ -825,9 +757,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 28",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 28.mp3"
     },
     {
@@ -835,9 +767,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 29",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 29.mp3"
     },
     {
@@ -845,9 +777,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 30",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 30.mp3"
     },
     {
@@ -855,9 +787,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 31",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 31.mp3"
     },
     {
@@ -865,9 +797,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 32",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 32.mp3"
     },
     {
@@ -875,9 +807,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 33",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 33.mp3"
     },
     {
@@ -885,9 +817,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 34",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 34.mp3"
     },
     {
@@ -895,9 +827,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 35",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 35.mp3"
     },
     {
@@ -905,9 +837,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 36",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 36.mp3"
     },
     {
@@ -915,9 +847,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 37",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 37.mp3"
     },
     {
@@ -925,9 +857,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 38",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 38.mp3"
     },
     {
@@ -935,9 +867,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 39",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 39.mp3"
     },
     {
@@ -945,9 +877,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 40",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 40.mp3"
     },
     {
@@ -955,9 +887,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 41",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 41.mp3"
     },
     {
@@ -965,9 +897,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 42",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 42.mp3"
     },
     {
@@ -975,9 +907,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 43",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 43.mp3"
     },
     {
@@ -985,9 +917,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 44",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 44.mp3"
     },
     {
@@ -995,9 +927,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 45",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 45.mp3"
     },
     {
@@ -1005,9 +937,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 46",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 46.mp3"
     },
     {
@@ -1015,9 +947,9 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 47",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 47.mp3"
     },
     {
@@ -1025,78 +957,50 @@ let musicDB = [
         bookname: "Steam Reading 1",
         page:"Track 48",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "SteamReadingElementary1",
         timesPlayed: 0,
-        type: "STEAM_1",
+        type: "STEAM1",
         musicName: "steamreadingelementary1/Track 48.mp3"
     },
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////   Short Articles for Reading Comprehension 1     ////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/////////////////////////////////////   Shor Articles 1 ////////////////////////////////////
     {
         id: 95,
         bookname: "Short Articles 1",
-        page:"Track 1",
+        page:"Track1",
         img: "headphone.png",
-        lang: "Short Articles 1",
+        lang: "ShortArticles1",
         timesPlayed: 0,
-        type: "SARC_1",
+        type: "SARC1",
         musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track01.mp3"
     },
     {
         id: 96,
         bookname: "Short Articles 1",
-        page:"Track 2",
+        page:"Track2",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "ShortArticles1",
         timesPlayed: 0,
-        type: "SARC_1",
+        type: "SARC1",
         musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track02.mp3"
     },
     {
         id: 97,
         bookname: "Short Articles 1",
-        page:"Track 3",
+        page:"Track3",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "ShortArticles1",
         timesPlayed: 0,
-        type: "SARC_1",
+        type: "SARC1",
         musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track03.mp3"
     },
     {
         id: 98,
         bookname: "Short Articles 1",
-        page:"Track 4",
+        page:"Track4",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "ShortArticles1",
         timesPlayed: 0,
-        type: "SARC_1",
+        type: "SARC1",
         musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track04.mp3"
     },
     {
@@ -1104,9 +1008,9 @@ let musicDB = [
         bookname: "Short Articles 1",
         page:"Track 5",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "ShortArticles1",
         timesPlayed: 0,
-        type: "SARC_1",
+        type: "SARC1",
         musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track05.mp3"
     },
     {
@@ -1114,11 +1018,51 @@ let musicDB = [
         bookname: "Short Articles 1",
         page:"Track 6",
         img: "headphone.png",
-        lang: "Steam Reading Elementary 1",
+        lang: "ShortArticles1",
         timesPlayed: 0,
-        type: "SARC_1",
+        type: "SARC1",
         musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track06.mp3"
     },
+    {
+        id: 101,
+        bookname: "Short Articles 1",
+        page:"Track 7",
+        img: "headphone.png",
+        lang: "ShortArticles1",
+        timesPlayed: 0,
+        type: "SARC1",
+        musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track07.mp3"
+    },
+    {
+        id: 102,
+        bookname: "Short Articles 1",
+        page:"Track 8",
+        img: "headphone.png",
+        lang: "ShortArticles1",
+        timesPlayed: 0,
+        type: "SARC1",
+        musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track08.mp3"
+    },
+    {
+        id: 103,
+        bookname: "Short Articles 1",
+        page:"Track 9",
+        img: "headphone.png",
+        lang: "ShortArticles1",
+        timesPlayed: 0,
+        type: "SARC1",
+        musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track09.mp3",
+    },
+    {
+        id: 104,
+        bookname: "Short Articles 1",
+        page:"Track 10",
+        img: "headphone.png",
+        lang: "ShortArticles1",
+        timesPlayed: 0,
+        type: "SARC1",
+        musicName: "Short Articles for Reading Comprehension 1/SARC_2E_1/Track10.mp3",
+    }
     ///////////////////////////////////////// 習作本2 //////////////////////////////
 //     {
 //       id: 2,
