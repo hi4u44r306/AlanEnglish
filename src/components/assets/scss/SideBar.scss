@@ -12,14 +12,20 @@
     padding: 15px;
     font-weight: bolder;
     user-select: none;
-
   }
   .lib-sub {
+    --c: #054c9e; /* the color */
+  
+    color: #0000;
+    background: 
+      linear-gradient(90deg,#f6ab28 50%,var(--c) 0) calc(100% - var(--_p,0%))/200% 100%,
+      linear-gradient(var(--c) 0 0) 0% 100%/var(--_p,0%) 100% no-repeat;
+    -webkit-background-clip: text,padding-box;
+            background-clip: text,padding-box;
+    transition: 0.8s;
     font-family: 'Time New Roman';
     font-weight: 900;
-    color: #054c9e;
     padding: 10px;
-    margin: 5px;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -28,16 +34,19 @@
       color: #054c9e;
     }
   }
+  .lib-sub:hover{
+    --_p: 100%
+  }
   .aside-bar-container {
     display: flex;
     flex-flow: column;
     width: 100%;
     .lib-sub:hover{
-      background-color: #054c9e;
-      color: #f6ab28;
-      transition-delay: 1s ease-in-out;
+      // background-color: #054c9e;
+      // color: #f6ab28;
+      // transition-delay: 10s ease-in-out;
       .MuiButton-startIcon{
-        color: #f6ab28;
+        // color: #f6ab28;
       }
     }
   }
@@ -47,11 +56,11 @@
       border-top: 1px solid #e0e0e0;
     }
     .lib-sub:hover{
-      background-color: #054c9e;
-      color: #f6ab28;
-      transition-delay: .5s ease-in-out;
+      // background-color: #054c9e;
+      // color: #f6ab28;
+      // transition-delay: 10s ease-in-out;
       .MuiButton-startIcon{
-        color: #f6ab28;
+        // color: #f6ab28;
       }
     }
   }
@@ -61,4 +70,20 @@
   .aside-bar {
     display: none;
   }
+}
+
+
+.hover {
+  --c: #054c9e; /* the color */
+  
+  color: #0000;
+  background: 
+    linear-gradient(90deg,#f6ab28 50%,var(--c) 0) calc(100% - var(--_p,0%))/200% 100%,
+    linear-gradient(var(--c) 0 0) 0% 100%/var(--_p,0%) 100% no-repeat;
+  -webkit-background-clip: text,padding-box;
+          background-clip: text,padding-box;
+  transition: 0.5s;
+}
+.hover:hover {
+  --_p: 100%
 }

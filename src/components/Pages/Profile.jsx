@@ -50,6 +50,10 @@ function Profile() {
                                             href={"/home/playlist/5"} title={"習作本5"}/>
                             <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} 
                                             href={"/home/playlist/6"} title={"習作本6"}/>
+                                            <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SER1"}  title={"Super Easy Reading 3e 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/STEAM1"}  title={"Steam Reading 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/SARC1"}  title={"Short Articles Reading 1"}/>
+                <SideBarOptions className={"lib-sub"} Icon={PlaylistPlay} href={"/home/playlist/RL1"}  title={"Reading Lamp 1"}/>
                         </span>
                     </div>
                 </div>

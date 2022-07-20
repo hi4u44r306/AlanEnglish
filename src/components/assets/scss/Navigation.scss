@@ -10,10 +10,9 @@ nav {
   background: linear-gradient(48deg, rgb(69, 105, 144), rgb(255, 255, 255));
   height: 10vh;
   display: flex;
-  // background-color: #f6f6f6;
   user-select: none;
   border-bottom: 1px solid #e0e0e0;
-  padding-right: 10px;
+  padding-left: 10px;
 
   div {
     @include flexBox;
