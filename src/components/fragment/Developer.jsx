@@ -14,12 +14,12 @@ const Developer = () => {
                     <div className={"Card-details"}>
                         <h3>Alan Hsu</h3>
                         <p>English Teacher</p>
-                        <p>Graduate From 輔仁大學英語系</p>
+                        <p>Graduated From 輔仁大學英語系</p>
                     </div>
                 </div>
                 <div className="Developer-profileDetails">
-                    <p>Type something here later~~~</p>
-                    <p>Type something here later~~~</p>
+                    <p>英文日文雙主修</p>
+                    <p>英國劍橋大學師資訓練</p>
                     <p>Type something here later~~~</p>
                     <p>Type something here later~~~</p>
                     <div className="Card-btn">

@@ -1,7 +1,7 @@
 #main {
   font-family: Consolas, sans-serif;
   background: #794141;
-  background: linear-gradient(110deg, #f78259 50%, #eb4559 50%);
+  background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #eb4559 50%);
   height: 100vh;
   text-align: center;
   display: flex;
@@ -42,10 +42,12 @@
       align-items: center;
       flex-basis: 50%;
       flex-grow: 1;
+      
       h1 {
-        font-family: "Bungee", cursive;
+        font-family: 'Poppins', sans-serif;
         font-size: 3rem;
         color: white;
+        -webkit-text-stroke: 2px rgb(46, 148, 33);
       }
       p {
         color: #f8eeee;

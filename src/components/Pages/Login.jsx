@@ -47,7 +47,7 @@ class Login extends React.Component{
                         </div>
                         <div className="main-row-text">
                             <h1>Alan English</h1>
-                            <p>主題式教學 | 口語化 | 全方位 </p>
+                            <p>系統化 | 口語化 | 聽力導向 </p>
                             <label>帳號</label>
                             <input
                                 name="email" 
