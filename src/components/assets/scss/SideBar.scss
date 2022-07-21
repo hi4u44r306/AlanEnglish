@@ -13,9 +13,8 @@
     font-weight: bolder;
     user-select: none;
   }
-  .lib-sub {
+  .lib-sub  {
     --c: #054c9e; /* the color */
-  
     color: #0000;
     background: 
       linear-gradient(90deg,#f6ab28 50%,var(--c) 0) calc(100% - var(--_p,0%))/200% 100%,
@@ -30,7 +29,6 @@
     justify-content: flex-start;
     align-items: center;
     .MuiButton-startIcon{
-      font-size: 200px;
       color: #054c9e;
     }
   }
