@@ -21,7 +21,7 @@
       linear-gradient(var(--c) 0 0) 0% 100%/var(--_p,0%) 100% no-repeat;
     -webkit-background-clip: text,padding-box;
             background-clip: text,padding-box;
-    transition: 0.5s;
+    transition: 0.3s;
     font-family: 'Noto Sans TC', sans-serif;
     font-weight: 900;
     padding: 10px;
@@ -33,20 +33,15 @@
     }
   }
   .lib-sub:hover{
-    --_p: 100%
+    --_p: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .aside-bar-container {
     display: flex;
     flex-flow: column;
     width: 100%;
-    .lib-sub:hover{
-      // background-color: #054c9e;
-      // color: #f6ab28;
-      // transition-delay: 10s ease-in-out;
-      .MuiButton-startIcon{
-        // color: #f6ab28;
-      }
-    }
   }
   .playlist{
     flex: 1;
