@@ -21,8 +21,8 @@
       linear-gradient(var(--c) 0 0) 0% 100%/var(--_p,0%) 100% no-repeat;
     -webkit-background-clip: text,padding-box;
             background-clip: text,padding-box;
-    transition: 0.8s;
-    font-family: 'Time New Roman';
+    transition: 0.5s;
+    font-family: 'Noto Sans TC', sans-serif;
     font-weight: 900;
     padding: 10px;
     display: flex;
@@ -71,17 +71,3 @@
 }
 
 
-.hover {
-  --c: #054c9e; /* the color */
-  
-  color: #0000;
-  background: 
-    linear-gradient(90deg,#f6ab28 50%,var(--c) 0) calc(100% - var(--_p,0%))/200% 100%,
-    linear-gradient(var(--c) 0 0) 0% 100%/var(--_p,0%) 100% no-repeat;
-  -webkit-background-clip: text,padding-box;
-          background-clip: text,padding-box;
-  transition: 0.5s;
-}
-.hover:hover {
-  --_p: 100%
-}
