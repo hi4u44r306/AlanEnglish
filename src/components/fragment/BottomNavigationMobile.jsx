@@ -13,25 +13,25 @@ function BottomNavigationMobile() {
             id: 0,
             icon: <HomeOutlinedIcon/>,
             href: "/home",
-            label: "Home"
+            label: "首頁"
         },
         {
             id: 1,
             icon: <SearchIcon/>,
             href: "/home/search",
-            label: "Search"
+            label: "搜尋"
         },
         {
             id: 2,
             icon: <AccountCircleOutlinedIcon/>,
             href: "/home/profile",
-            label: "Profile"
+            label: "播放列表"
         },
         {
             id: 3,
             icon: <ExploreOutlinedIcon/>,
             href: "/home/about",
-            label: "About"
+            label: "關於"
         }
     ]);
     let currPath = window.location.pathname;
