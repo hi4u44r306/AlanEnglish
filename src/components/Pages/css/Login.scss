@@ -1,7 +1,7 @@
 #main {
   font-family: Consolas, sans-serif;
   background: #794141;
-  background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #eb4559 50%);
+  background: linear-gradient(90deg, rgb(46, 148, 33) 50%, #eb4559 50%);
   height: 100vh;
   text-align: center;
   display: flex;
@@ -11,15 +11,14 @@
     display: flex;
     font-size: 1.3rem;
     .navbar-brand {
-      // font-family: 'Pacifico', cursive;
       font-family: 'Playball', cursive;
       color: #ffffff;
       font-size: 2rem;
-      // display: flex;
-      // flex-flow: column wrap;
-      // justify-content: center;
-      // align-items: center;
-      // flex-basis: 50%;
+      text-align: center;
+      display: flex;
+      flex-flow: column wrap;
+      justify-content: center;
+      flex-basis: 50%;
     }
   }
   .main-row {
@@ -32,7 +31,15 @@
       flex-basis: 50%;
       flex-grow: 1;
       .head-phone-img {
-        width: 60%;
+        width: 30%;
+      }
+      .english-method{
+        color: rgb(255, 255, 255);
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        margin: 20px;
+        text-align: left;
       }
     }
     .main-row-text{
@@ -82,7 +89,7 @@
         color: rgb(0, 0, 0);
         font-size: 1.1rem;
         text-transform: uppercase;
-        margin: 10px 10px;
+        margin: 25px 10px;
         padding: 10px 20px;
         border-radius: 5px;
       }
@@ -94,8 +101,25 @@
   }
 }
 
-@media only screen and (max-width: 400px) {
+
+
+@media only screen and (max-width: 500px) {
   h1{
     font-size: 1rem;
   }
+  .head-phone-img{
+    display: none;
+  }
+  #main{
+    background:  rgb(46, 148, 33) ;
+  }
 }
+
+@media only screen and (max-width: 500px) {
+  .english-method{
+    font-size: 15px;
+    padding: auto;
+    margin: auto;
+  }
+}
+

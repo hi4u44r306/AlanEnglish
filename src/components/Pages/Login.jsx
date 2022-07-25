@@ -44,7 +44,18 @@ class Login extends React.Component{
                     <div className="main-row">
                         <div className="main-row-img">
                             <img className="head-phone-img" src={HeadPhone} alt=""/>
+                            <div className="english-method">
+                                <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
+                                <br/>
+                                <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
+                                <br/>
+                                <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
+                                    才能有效地背誦並牢記單字！
+                                </p>
+                            </div>
+                           
                         </div>
+                       
                         <div className="main-row-text">
                             <h1>Alan English</h1>
                             <p>系統化 | 口語化 | 聽力導向 </p>
