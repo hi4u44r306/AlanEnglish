@@ -1,7 +1,7 @@
 #main {
   font-family: Consolas, sans-serif;
   background: #794141;
-  background: linear-gradient(90deg, rgb(46, 148, 33) 50%, #eb4559 50%);
+  background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #eb4559 50%);
   height: 100vh;
   text-align: center;
   display: flex;
@@ -31,13 +31,13 @@
       flex-basis: 50%;
       flex-grow: 1;
       .head-phone-img {
-        width: 30%;
+        width: 40%;
       }
       .english-method{
         color: rgb(255, 255, 255);
         font-family: 'Poppins', sans-serif;
         font-weight: 700;
-        font-size: 18px;
+        font-size: 20px;
         margin: 20px;
         text-align: left;
       }
@@ -110,9 +110,9 @@
   .head-phone-img{
     display: none;
   }
-  #main{
-    background:  rgb(46, 148, 33) ;
-  }
+  // #main{
+  //   background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #eb4559 50%);
+  // }
 }
 
 @media only screen and (max-width: 500px) {

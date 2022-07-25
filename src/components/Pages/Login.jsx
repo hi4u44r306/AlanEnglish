@@ -43,7 +43,7 @@ class Login extends React.Component{
                     </div>
                     <div className="main-row">
                         <div className="main-row-img">
-                            <img className="head-phone-img" src={HeadPhone} alt=""/>
+                            
                             <div className="english-method">
                                 <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
                                 <br/>
@@ -53,7 +53,7 @@ class Login extends React.Component{
                                     才能有效地背誦並牢記單字！
                                 </p>
                             </div>
-                           
+                            <img className="head-phone-img" src={HeadPhone} alt=""/>
                         </div>
                        
                         <div className="main-row-text">
