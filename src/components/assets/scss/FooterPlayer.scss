@@ -89,12 +89,12 @@
   }
 }
 
-@media only screen and (max-width: 500px) {
-  .footer-player {
-    .curr-music-details {
-      display: none;
+@media only screen and (max-width: 200px) {
+  .curr-music-container {
+    .curr-music-cover{
+      display: none !important;
     }
-  }
+}
 }
 
 /*
