@@ -59,6 +59,7 @@
       p {
         color: #f8eeee;
         font-size: 1.2rem;
+        font-weight: 700;
       }
       label{
         display: block;
@@ -103,23 +104,26 @@
 
 
 
-@media only screen and (max-width: 500px) {
+@media only screen and (max-width: 698px) {
   h1{
-    font-size: 1rem;
+    font-size: 2rem !important;
+  }
+  p{
+    font-size: 0.9rem !important;
   }
   .head-phone-img{
     display: none;
   }
-  // #main{
-  //   background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #eb4559 50%);
-  // }
+  #main{
+    background: linear-gradient(90deg, rgb(46, 148, 33) 50%, #eb4559 50%);
+  }
 }
 
 @media only screen and (max-width: 500px) {
   .english-method{
-    font-size: 15px;
-    padding: auto;
-    margin: auto;
+    font-size: 15px !important;
+    padding: auto !important;
+    margin: auto !important;
   }
 }
 

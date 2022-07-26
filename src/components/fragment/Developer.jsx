@@ -18,10 +18,20 @@ const Developer = () => {
                     </div>
                 </div>
                 <div className="Developer-profileDetails">
-                    <p>英文日文雙主修</p>
-                    <p>英國劍橋大學師資訓練</p>
-                    <p>Type something here later~~~</p>
-                    <p>Type something here later~~~</p>
+                    <h3>師資: </h3>
+                    <p>1. 輔仁大學英日文系雙主修</p>
+                    <p>2. 英國劍橋大學TESOL師資培訓</p>
+                    <p>3. 公立國中合格英語教師資格</p>
+                    <p>4. 全民英檢中高級通過</p>
+                    <p>5. 戊類所長班培訓</p>
+                    <p>6. 合格保育人員訓練</p>
+                    <h3>著作: </h3>
+                    <p>1. Phonics</p>
+                    <p>2. K.K音標Book1&Book2</p>
+                    <p>3. 入門英語</p>
+                    <p>4. Vocabulary單字本 : Level 1~5</p>
+                    <p>5. Reading   閱讀本 : ~15</p>
+                    <p>6. 更多教材陸續編排中</p>
                     <div className="Card-btn">
                         <IconButton target={"_blank"}  href={"#"} title={"Alan Hsu"}>
                             <Facebook/>
