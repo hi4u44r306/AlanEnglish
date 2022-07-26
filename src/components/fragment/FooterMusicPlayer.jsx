@@ -29,7 +29,7 @@ function FooterMusicPlayer({music}) {
     const [seekTime, setSeekTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [currTime, setCurrTime] = useState(0);
-    // const [bannerToggle,setBannerToggle] = useState(false);
+    const [bannerToggle,setBannerToggle] = useState(false);
 
     const audioElement = useRef();
     const dispatch = useDispatch();
@@ -65,14 +65,14 @@ function FooterMusicPlayer({music}) {
     const handleVolumeChange = (event, newValue) => {
         setVolume(newValue);
     };
-    // const handleBannerToggle = ()=> {
-    //     setBannerToggle(!bannerToggle);
-    // };
+    const handleBannerToggle = ()=> {
+        setBannerToggle(!bannerToggle);
+    };
 
 
-    // useEffect(()=>{
-    //     dispatch(setBannerOpen(bannerToggle));
-    // },[dispatch,bannerToggle]);
+    useEffect(()=>{
+        dispatch(setBannerOpen(bannerToggle));
+    },[dispatch,bannerToggle]);
 
 
     useEffect(() => {
@@ -146,7 +146,7 @@ function FooterMusicPlayer({music}) {
             </div>
             <Button
                     startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
-                    // onClick={handleBannerToggle}
+                    onClick={handleBannerToggle}
                     className="curr-music-container">
                 <div className="curr-music-details">
                     <Name name={bookname} className={"song-name"} length={bookname.length}/>
