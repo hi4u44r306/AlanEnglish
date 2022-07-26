@@ -146,7 +146,7 @@ function FooterMusicPlayer({music}) {
             </div>
             <Button
                     startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
-                    onClick={handleBannerToggle}
+                    // onClick={handleBannerToggle}
                     className="curr-music-container">
                 <div className="curr-music-details">
                     <Name name={bookname} className={"song-name"} length={bookname.length}/>
