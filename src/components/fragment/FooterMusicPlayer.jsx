@@ -29,7 +29,7 @@ function FooterMusicPlayer({music}) {
     const [seekTime, setSeekTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [currTime, setCurrTime] = useState(0);
-    const [bannerToggle,setBannerToggle] = useState(false);
+    // const [bannerToggle,setBannerToggle] = useState(false);
 
     const audioElement = useRef();
     const dispatch = useDispatch();
@@ -70,9 +70,9 @@ function FooterMusicPlayer({music}) {
     // };
 
 
-    useEffect(()=>{
-        dispatch(setBannerOpen(bannerToggle));
-    },[dispatch,bannerToggle]);
+    // useEffect(()=>{
+    //     dispatch(setBannerOpen(bannerToggle));
+    // },[dispatch,bannerToggle]);
 
 
     useEffect(() => {
