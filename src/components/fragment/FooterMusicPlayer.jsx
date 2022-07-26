@@ -65,9 +65,9 @@ function FooterMusicPlayer({music}) {
     const handleVolumeChange = (event, newValue) => {
         setVolume(newValue);
     };
-    const handleBannerToggle = ()=> {
-        setBannerToggle(!bannerToggle);
-    };
+    // const handleBannerToggle = ()=> {
+    //     setBannerToggle(!bannerToggle);
+    // };
 
 
     useEffect(()=>{
