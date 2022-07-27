@@ -29,6 +29,7 @@ h1{
   font-family: 'Poppins', sans-serif;
   font-weight: 900;
   letter-spacing: 2px;
+  
   cursor: pointer;
 }
 h1 span{
@@ -74,13 +75,17 @@ h1 span:nth-child(12){
   color:#4062bb;
 }
 
-@media only screen and (max-width: 450px) {
-  h1{
-    font-size: 20px;
-  }
+@media only screen and (max-width: 350px) {
   .btn{
     font-size: 0.5rem;
   }
+  h1{
+    font-size: 5px !important;
+  }
+  span{
+    font-size: 5px !important;
+  }
+
 }
 
 @media only screen and (max-width: 350px) {
@@ -89,3 +94,12 @@ h1 span:nth-child(12){
   }
 }
 
+@media only screen and (max-width: 700px) {
+  h1{
+    font-size: 20px !important;
+  }
+  span{
+    font-size: 20px !important;
+  }
+
+}

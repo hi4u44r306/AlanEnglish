@@ -97,7 +97,9 @@
 }
 }
 
-/*
-.MuiBottomNavigationAction-root.Mui-selected,.MuiSlider-root{
-  color: #1abc9c !important;
-}*/
+@media only screen and (max-width: 968px) {
+  .playback{
+    position: absolute;
+    top: -22px;
+  }
+}

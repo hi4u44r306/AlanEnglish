@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import '../assets/scss/BottomNavigation.scss';
 import HomeOutlinedIcon from '@material-ui/icons/HomeOutlined';
-import AccountCircleOutlinedIcon from '@material-ui/icons/AccountCircleOutlined';
+import { PlaylistPlay } from "@material-ui/icons";
 import SearchIcon from '@material-ui/icons/Search';
 import ExploreOutlinedIcon from '@material-ui/icons/ExploreOutlined';
 import Button from "@material-ui/core/Button";
@@ -23,7 +23,7 @@ function BottomNavigationMobile() {
         },
         {
             id: 2,
-            icon: <AccountCircleOutlinedIcon/>,
+            icon: <PlaylistPlay/>,
             href: "/home/profile",
             label: "播放列表"
         },

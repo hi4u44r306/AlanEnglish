@@ -18,7 +18,7 @@
       display: flex;
       flex-flow: column wrap;
       justify-content: center;
-      flex-basis: 50%;
+      flex-basis: 100%;
     }
   }
   .main-row {
@@ -115,7 +115,10 @@
     display: none;
   }
   #main{
-    background: linear-gradient(90deg, rgb(46, 148, 33) 50%, #eb4559 50%);
+    background: linear-gradient(180deg, rgb(46, 148, 33) 40%, #eb4559 40%);
+  }
+  .main-row-img{
+    flex-basis: 51% !important;
   }
 }
 
