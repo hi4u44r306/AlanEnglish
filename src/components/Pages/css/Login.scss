@@ -105,6 +105,13 @@
 
 
 @media only screen and (max-width: 698px) {
+  .main-row-text{
+    h1{
+      color:  #2e9421 !important;
+      -webkit-text-stroke: #ffffff !important;
+      margin: 20px;
+    }
+  }
   h1{
     font-size: 2rem !important;
   }
@@ -125,8 +132,7 @@
 @media only screen and (max-width: 500px) {
   .english-method{
     font-size: 15px !important;
-    padding: auto !important;
-    margin: auto !important;
+    margin: 20px !important;
   }
 }
 
