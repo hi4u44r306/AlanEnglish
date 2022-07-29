@@ -98,7 +98,7 @@ function FooterMusicPlayer({music}) {
 
 
     useEffect(() => {
-        setSeekTime((currTime) / (duration / 100))
+        setSeekTime((currTime+1) / (duration / 100))
     }, [currTime, duration]);
 
 
