@@ -27,9 +27,7 @@ class Logout extends React.Component {
                         Logout
                     </h1>
                 </Link> */}
-                 <div className="btn-group">
-                    <button className="btn" onClick={this.logout}>登出</button>
-                </div>
+                <button className="logoutbtn" onClick={this.logout}>登出</button>
             </div>
         );
     }

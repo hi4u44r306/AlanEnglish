@@ -41,7 +41,7 @@ const Search = () => {
                             searchResult.length === 0
                                 ?
                                 <div className={"Search-fallback"}>
-                                   找不到此音軌...
+                                   找不到此音軌 或是 建構中... 
                                 </div>
                                 :
                                 searchResult.map((item) => (

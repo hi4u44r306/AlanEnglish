@@ -35,6 +35,8 @@
         width: 200px;
       }
       .Card-details {
+        font-family: 'Poppins';
+        font-weight: 400;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -46,6 +48,8 @@
           text-transform: uppercase;
         }
         h3 {
+          font-family: 'Poppins';
+          font-weight: 900;
           color: white;
           font-size: 1.3rem;
         }
@@ -56,6 +60,8 @@
     }
 
     .Developer-profileDetails {
+      font-family: 'Poppins';
+      font-weight: 600;
       flex-grow: 1;
       display: flex;
       flex-direction: column;

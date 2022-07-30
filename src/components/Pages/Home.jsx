@@ -1,10 +1,7 @@
 import React, {useContext, useEffect, useState} from "react";
 import './css/Home.scss';
 import Navigation from "../fragment/Navigation";
-import MobileTopNavigation from "../fragment/MobileTopNavigation";
-import SideBar from "../fragment/SideBar";
 import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
-import BottomNavigationMobile from "../fragment/BottomNavigationMobile";
 import MusicCardContainer from "../fragment/MusicCardContainer";
 import {useSelector} from "react-redux";
 import {ThemeContext} from "../../api/Theme";
@@ -83,15 +80,9 @@ function Home() {
                     </div>
                     :
                     <>
-                        {
-                            screenSize <= 970 ?
-                                <MobileTopNavigation/> :
-                                <Navigation/>
-                        }
+                        <Navigation/>
                         <section className={"home-music-container"}>
-                            <div className="sidebar-home">
-                                <SideBar/>
-                            </div>
+                            
                             <div className="main-home">
                                 {
                                     Page
@@ -112,9 +103,6 @@ function Home() {
                                     <FooterMusicPlayer music={currMusic}/>
                                     :
                                     <FooterSelectMusic/>
-                            }
-                            {
-                                screenSize <= 970 && <BottomNavigationMobile/>
                             }
                         </React.Fragment>
                     </>

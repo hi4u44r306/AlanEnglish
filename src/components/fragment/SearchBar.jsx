@@ -1,10 +1,9 @@
 import React, {useEffect, useRef, useState} from "react";
-import SearchSharpIcon from "@material-ui/icons/SearchSharp";
-import CancelIcon from "@material-ui/icons/Cancel";
 import '../assets/scss/SearchBar.scss';
 import {useDispatch} from "react-redux";
 import {setSearch} from "../../actions/actions";
 import {Link} from "react-router-dom";
+import Form from 'react-bootstrap/Form';
 
 const SearchBar = () => {
     const [isSearchBarOpen, setSearchBarOpen] = useState(false);
@@ -34,11 +33,11 @@ const SearchBar = () => {
     return (
         <div className={`${isSearchBarOpen ? "SearchBar  open" : "SearchBar"}`}>
             <form onSubmit={handleSearch} className={"search-container"}>
-                {
+                {/* {
                     isSearchBarOpen &&
                     <>
                         <Link to={"/home/search"} ref={searchLink}/>
-                        <SearchSharpIcon style={{color: "grey"}} className="search-icon" fontSize="small"/>
+                        <SearchSharpIcon  className="search-icon" fontSize="small"/>
                         <input id={"search-input"}
                                name={"searchQuery"}
                                value={searchQuery}
@@ -46,15 +45,40 @@ const SearchBar = () => {
                                placeholder={"搜尋音軌..."}
                                type="text"
                                ref={searchRef}
+                               className="me-2 my-2"
                         />
+                        <Form.Control
+                            id={"search-input"}
+                            name={"searchQuery"}
+                            value={searchQuery}
+                            onChange={handleSearchQuery}
+                            ref={searchRef}
+                            type="search"
+                            placeholder="搜尋音軌..."
+                            className="me-2 my-2"
+                            aria-label="Search"
+                        />
+                        
                     </>
-                }
+                } */}
+                <Link to={"/home/search"} ref={searchLink}/>
+                        <Form.Control
+                            id={"search-input"}
+                            name={"searchQuery"}
+                            value={searchQuery}
+                            onChange={handleSearchQuery}
+                            ref={searchRef}
+                            type="search"
+                            placeholder="搜尋音軌..."
+                            className="searchbar"
+                            aria-label="Search"
+                        />
             </form>
-            {
+            {/* {
                 !isSearchBarOpen &&
                 <div className={"SearchBar-customPlaceholderOpen"}
                      onClick={handleSearchBarOpen}>
-                    <SearchSharpIcon style={{color: "grey"}} className="search-icon" fontSize="small"/>
+                    <SearchSharpIcon sclassName="search-icon" fontSize="small"/>
                     <p className={"hide"}>&nbsp;搜尋音軌</p>
                 </div>
             }
@@ -62,11 +86,11 @@ const SearchBar = () => {
                 isSearchBarOpen &&
                 <div className={"SearchBar-customPlaceholderClose"}
                      onClick={handleSearchBarOpen}>
-                    {/*
-                    <p>Close&nbsp;</p>*/}
-                    <CancelIcon style={{color: "grey"}} className="cancel hide" fontSize="small"/>
+                    
+                    <p>Close&nbsp;</p>
+                    <CancelIcon className="cancel hide" fontSize="small"/>
                 </div>
-            }
+            } */}
 
 
         </div>

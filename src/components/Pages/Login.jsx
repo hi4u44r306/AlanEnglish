@@ -79,7 +79,7 @@ class Login extends React.Component{
                                     value={this.state.password}
                                 />
 
-                            <Link onClick={this.login} className="btn">
+                            <Link onClick={this.login} className="loginbtn">
                                 登入
                             </Link>
                         </div>
