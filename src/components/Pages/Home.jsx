@@ -37,7 +37,7 @@ function getCurrPage(pathName) {
 function Home() {
 
 
-    const [screenSize, setScreenSize] = useState(undefined);
+    // const [screenSize, setScreenSize] = useState(undefined);
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
 
@@ -46,16 +46,16 @@ function Home() {
         setCurrPage(getCurrPage(pathname))
     }, [pathname]);
 
-    window.addEventListener("resize", handleResize);
+    // window.addEventListener("resize", handleResize);
 
-    function handleResize() {
-        setScreenSize(window.innerWidth);
-    }
+    // // function handleResize() {
+    // //     setScreenSize(window.innerWidth);
+    // // }
 
-    useEffect(() => {
-        handleResize();
-        return () => window.removeEventListener("resize", handleResize);
-    });
+    // useEffect(() => {
+    //     handleResize();
+    //     return () => window.removeEventListener("resize", handleResize);
+    // });
 
     const useStyle = useContext(ThemeContext);
     const {playing, bannerOpen} = useSelector(state => state.musicReducer);

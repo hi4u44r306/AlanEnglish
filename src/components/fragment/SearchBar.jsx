@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, { useRef, useState} from "react";
 import '../assets/scss/SearchBar.scss';
 import {useDispatch} from "react-redux";
 import {setSearch} from "../../actions/actions";
@@ -6,20 +6,20 @@ import {Link} from "react-router-dom";
 import Form from 'react-bootstrap/Form';
 
 const SearchBar = () => {
-    const [isSearchBarOpen, setSearchBarOpen] = useState(false);
-    const handleSearchBarOpen = () => {
-        setSearchBarOpen(!isSearchBarOpen);
-    };
+    // const [isSearchBarOpen, setSearchBarOpen] = useState(false);
+    // const handleSearchBarOpen = () => {
+    //     setSearchBarOpen(!isSearchBarOpen);
+    // };
     const [searchQuery, setSearchQuery] = useState("");
     const handleSearchQuery = (e) => {
         setSearchQuery(e.target.value);
     };
     const searchRef = useRef();
-    useEffect(() => {
-        if (isSearchBarOpen === true) {
-            searchRef.current.focus();
-        }
-    });
+    // useEffect(() => {
+    //     if (isSearchBarOpen === true) {
+    //         searchRef.current.focus();
+    //     }
+    // });
 
     const dispatch = useDispatch();
     const searchLink = useRef();
@@ -31,7 +31,7 @@ const SearchBar = () => {
     };
 
     return (
-        <div className={`${isSearchBarOpen ? "SearchBar  open" : "SearchBar"}`}>
+        <div >
             <form onSubmit={handleSearch} className={"search-container"}>
                 {/* {
                     isSearchBarOpen &&

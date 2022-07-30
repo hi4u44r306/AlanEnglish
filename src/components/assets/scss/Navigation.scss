@@ -46,7 +46,7 @@
   margin-right: 2px;
 }
 .brand span:nth-child(5){
-  
+  display: space;
 }
 .brand span:nth-child(6){
   color:#2d7dd2;
@@ -68,5 +68,11 @@
 }
 .brand span:nth-child(12){
   color:#4062bb;
+}
+
+@media only screen and (max-width: 470px) {
+  .brand {
+    font-size: 20px;
+  }
 }
 
