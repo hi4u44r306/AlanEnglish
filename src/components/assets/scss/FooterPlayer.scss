@@ -8,10 +8,10 @@
   .playback {
     position: absolute;
     top: -14px;
-    z-index: 99999999;
-    left: 0;
-    width: 100%;
-    overflow: hidden;
+    z-index: 999;
+    left: 5%;
+    width: 90%;
+    // overflow: hidden;
     .playback-completed{
       width: 100%;
     }

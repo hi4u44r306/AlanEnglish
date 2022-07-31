@@ -1,17 +1,39 @@
 .navbackground{
-  background-color: rgb(139, 212, 129);
+  background-color: rgb(246, 246, 246);
   height: 10vh;
 }
 
 .navlink{
+  color: black;
   font-size: 20px;
   font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-weight: 900;
 
   &:hover{
     color: rgb(255, 0, 0);
   }
+}
+
+.subnavlink{
+    --c: #f6ab28; /* the color */
+    background: 
+      linear-gradient(90deg,#ffffff 50%,var(--c) 0) calc(100% - var(--_p,0%))/200% 100%,
+      linear-gradient(var(--c) 0 0) 0% 100%/var(--_p,0%) 100% no-repeat;
+    -webkit-background-clip: text,padding-box;
+            background-clip: text,padding-box;
+    transition: 0.3s;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 700;
+    padding: 10px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+.subnavlink:hover{
+  --_p: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .brand{

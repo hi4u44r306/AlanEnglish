@@ -1,5 +1,6 @@
 .Developer {
   background-color: whitesmoke;
+  font-family: 'Poppins';
 
   .Developer-head {
     text-transform: uppercase;
@@ -7,7 +8,6 @@
     color: #f6edba;
     font-size: 1.5rem;
     padding: 10px;
-    // display: flex;
     flex-wrap: wrap;
     align-items: center;
     text-align: center;
@@ -60,12 +60,16 @@
     }
 
     .Developer-profileDetails {
-      font-family: 'Poppins';
       font-weight: 600;
       flex-grow: 1;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      h3{
+        font-family: 'Poppins' !important;
+        font-weight: 900;
+        padding: 10px;
+      }
       p {
         color: black;
         padding: 10px;
@@ -117,3 +121,4 @@
   }
 
 }
+
