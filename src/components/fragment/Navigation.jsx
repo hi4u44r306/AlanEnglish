@@ -54,8 +54,7 @@ function Navigation() {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-2 flex-grow-1 pe-3 pt-2">
-                  <Nav.Link href="/home" className="navlink">首頁</Nav.Link>
-                  <Nav.Link href="/home/about" className="navlink">關於</Nav.Link>
+                  
 
                   {/*                                    習作本                                     */}
                   <NavDropdown
@@ -82,12 +81,12 @@ function Navigation() {
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                    <NavDropdown.Item href="/home/playlist/Workbook_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
                   </NavDropdown>
 
 
@@ -102,6 +101,9 @@ function Navigation() {
                     <NavDropdown.Item href="/home/playlist/SARC1" className="subnavlink">Short Articles Reading 1"</NavDropdown.Item>
                     <NavDropdown.Item href="/home/playlist/RL1" className="subnavlink">Reading Lamp 1</NavDropdown.Item>
                   </NavDropdown>
+
+                  <Nav.Link href="/home/about" className="navlink">關於</Nav.Link>
+                  <Nav.Link href="/home/contact" className="navlink">聯絡我們</Nav.Link>
 
                 </Nav>
                 

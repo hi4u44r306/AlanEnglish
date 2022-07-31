@@ -1,11 +1,11 @@
 .searchbar{
   padding: 10px;
   margin: 10px;
-  width: 300px;
+  width: 250px;
 }
 
 .searchbar:focus{
   border: 2px;
-  border-color: #FF0000 !important;
-  box-shadow: inset 15px 15px 15px rgba(0, 0, 0, 0.075), 0 0 10px rgba(255, 0, 0, 0.6) !important;
+  border-color: #f1c40f !important;
+  box-shadow: inset 15px 15px 15px rgba(0, 0, 0, 0.075), 0 0 10px  #f1c40f !important;
 }

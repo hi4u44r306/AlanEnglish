@@ -6,13 +6,13 @@ import MusicCardContainer from "../fragment/MusicCardContainer";
 import {useSelector} from "react-redux";
 import {ThemeContext} from "../../api/Theme";
 import Profile from "./Profile";
-import AddMusic from "../fragment/AddMusic";
 import FooterSelectMusic from "../fragment/FooterSelectMusic";
 import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
 import About from "./About";
 import Playlist from "../fragment/Playlist";
 import {Skeleton} from "@material-ui/lab";
+import Contact from "./Contact";
 
 function getCurrPage(pathName) {
     switch (pathName) {
@@ -22,10 +22,10 @@ function getCurrPage(pathName) {
             return <Search/>
         case "/home/profile":
             return <Profile/>
-        case "/home/add":
-            return <AddMusic/>
         case "/home/about":
             return <About/>
+        case "/home/contact":
+            return <Contact/>
         default:
             if (pathName.startsWith("/home/playlist/")) {
                 return <Playlist/>

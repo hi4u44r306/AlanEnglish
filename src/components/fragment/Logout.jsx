@@ -21,14 +21,7 @@ class Logout extends React.Component {
     }
     render() {
         return (
-            <div className={"brand"}>
-                {/* <Link onClick={this.logout}>
-                    <h1>
-                        Logout
-                    </h1>
-                </Link> */}
                 <button className="logoutbtn" onClick={this.logout}>Logout</button>
-            </div>
         );
     }
 }

@@ -1,7 +1,7 @@
-.Developer {
+.Contact {
   font-family: 'Poppins', sans-serif;
 
-  .Developer-head {
+  .Contact-head {
     text-transform: uppercase;
     background-color: #005b7f !important;
     font-family: 'Poppins', sans-serif;
@@ -19,25 +19,24 @@
     }
   }
 
-  .Developer-profile {
+  .Contact-profile {
     display: flex;
     flex-flow: row wrap;
     background-color: #efdaae;
     padding: 5px;
     
-    .Developer-profileCard{
+    .Contact-profileCard{
       // text-align: center;
-      flex: 1 1 1 400px;
+      flex: 1 1 400px;
       padding: 2.8vh;
       img {
         border: 1px solid #000;
         border-radius: 20px;
         padding: 2px;
-        width: 23vw;
+        width: 48.3vw;
       }
       .Card-details {
         border-radius: 20px;
-        font-family: 'Poppins';
         font-weight: 400;
         display: flex;
         flex-direction: column;
@@ -60,38 +59,15 @@
         }
       }
     }
-
-    
-    .Developer-profileDetails-1 {
-      color: #188345;
-      margin: 20px;
-      font-weight: 600;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      // justify-content: space-between;
-      h3{
-        font-family: 'Poppins' !important;
-        font-weight: 900;
-        padding: 10px;
-      }
-      p {
-        padding: 10px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-    }
-
   }
 
-    .Developer-profileDetails-2 {
+    .Contact-profileDetails {
       color: #188345;
       margin: 20px;
       font-weight: 600;
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       h3{
         font-family: 'Poppins' !important;
         font-weight: 900;
