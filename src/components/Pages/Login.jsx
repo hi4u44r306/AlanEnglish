@@ -1,5 +1,6 @@
 import React from "react";
 import HeadPhone from '../assets/img/headphones.svg';
+// import HeadPhone from '../assets/img/小乖.png';
 import './css/Login.scss';
 import {Link} from "react-router-dom";
 import fire from "./fire";

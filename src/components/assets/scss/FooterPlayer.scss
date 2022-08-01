@@ -29,7 +29,7 @@
     padding-left: 10px;
   }
   .curr-music-details {
-    text-align: left;
+    // text-align: left;
     padding-left: 20px;
     p:nth-child(1) {
       font-weight: bolder;
@@ -85,6 +85,9 @@
 
     .playback-widgets {
       display: none;
+    }
+    a{
+      line-height: 20vh;
     }
   }
 }

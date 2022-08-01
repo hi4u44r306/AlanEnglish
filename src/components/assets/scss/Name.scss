@@ -7,3 +7,12 @@
   font-weight: lighter;
   color: gray;
 }
+
+@media only screen and (max-width: 968px) {
+  .song-name{
+    font-size: 0.7rem;
+  }
+  .author-name{
+    font-size: 0.7rem;
+  }
+}

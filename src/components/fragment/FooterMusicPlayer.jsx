@@ -156,13 +156,13 @@ function FooterMusicPlayer({music}) {
             <div className="playback-controls">
 
                 <ControlsToggleButton style={pointer} type={"repeat"}
-                                      defaultIcon={<RepeatIcon fontSize={"large"}/>}
-                                      changeIcon={<RepeatOneIcon fontSize={"large"}/>}
+                                      defaultIcon={<RepeatIcon fontSize={"medium"}/>}
+                                      changeIcon={<RepeatOneIcon fontSize={"medium"}/>}
                                       onClicked={handleToggle}/>
 
                 <ControlsToggleButton style={pointer} type={"prev"}
-                                      defaultIcon={<SkipPreviousIcon fontSize={"large"}/>}
-                                      changeIcon={<SkipPreviousIcon fontSize={"large"}/>}
+                                      defaultIcon={<SkipPreviousIcon fontSize={"medium"}/>}
+                                      changeIcon={<SkipPreviousIcon fontSize={"medium"}/>}
                                       onClicked={handleToggle}/>
 
                 <audio ref={audioElement} src={require("../assets/music/" + musicName).default} preload={"metadata"}/>
@@ -174,8 +174,8 @@ function FooterMusicPlayer({music}) {
 
 
                 <ControlsToggleButton style={pointer} type={"next"}
-                                      defaultIcon={<SkipNextIcon fontSize={"large"}/>}
-                                      changeIcon={<SkipNextIcon fontSize={"large"}/>}
+                                      defaultIcon={<SkipNextIcon fontSize={"medium"}/>}
+                                      changeIcon={<SkipNextIcon fontSize={"medium"}/>}
                                       onClicked={handleToggle}/>
             </div>
             <div className="playback-widgets">
