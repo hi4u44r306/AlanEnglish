@@ -9,7 +9,7 @@ function FooterSelectMusic() {
     return (
         <div style={{backgroundColor:useStyle.subTheme}} className={"Footer_Select_Music"}>
             <Link to={"/home"}>
-                選擇想聽的音軌
+                點選這裡，顯示所有音軌
             </Link>
         </div>
     );

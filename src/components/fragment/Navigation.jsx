@@ -9,6 +9,7 @@ import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
 
+
 function Navigation() {
     
   return (
@@ -54,25 +55,28 @@ function Navigation() {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-2 flex-grow-1 pe-3 pt-2">
-                  
+                
+                  <Nav.Link href="/home/about" className="navlink">關於</Nav.Link>
+                  <Nav.Link href="/home/contact" className="navlink">聯絡我們</Nav.Link>  
 
-                  {/*                                    習作本                                     */}
-                  <NavDropdown
+                  {/*                                    習作本                                   */}
+                  <NavDropdown 
                     title="習作本"
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                    <NavDropdown.Item href="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">習作本3 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_5" className="subnavlink">習作本5 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Workbook_6" className="subnavlink">習作本6 建構中...</NavDropdown.Item>
-                    <NavDropdown.Divider />
-                    <NavDropdown.Item href="#" className="navlink">
-                      持續編輯中....
-                    </NavDropdown.Item>
+                        <NavDropdown.Item href="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item href="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
+                        <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">習作本3 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item href="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item href="/home/playlist/Workbook_5" className="subnavlink">習作本5 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item href="/home/playlist/Workbook_6" className="subnavlink">習作本6 建構中...</NavDropdown.Item>
+                        <NavDropdown.Divider />
+                        <NavDropdown.Item href="#" className="navlink">
+                            持續編輯中....
+                        </NavDropdown.Item>
                   </NavDropdown>
+
 
 
                   {/*                                    聽力本                                     */}
@@ -81,18 +85,147 @@ function Navigation() {
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                    <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                    {/*                              習作本 1                                   */}
+                    {['end'].map((direction) => (
+                            <NavDropdown 
+                              className="navlink"
+                              key={direction}
+                              // id={`dropdown-button-drop-${direction}`}
+                              drop={direction}
+                              // variant="secondary"
+                              title={` 習作本1專用聽力本 `}
+                            >
+                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                        
+                            </NavDropdown>
+                            
+
+                            
+                          ))}
+                   {/*                             習作本 2                                  */}
+                   {['end'].map((direction) => (
+                            <NavDropdown 
+                              className="navlink"
+                              key={direction}
+                              // id={`dropdown-button-drop-${direction}`}
+                              drop={direction}
+                              // variant="secondary"
+                              title={` 習作本2專用聽力本 `}
+                            >
+                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                        
+                            </NavDropdown>
+                            
+
+                            
+                          ))}
+
+                   {/*                             習作本 3                                  */}
+                   {['end'].map((direction) => (
+                            <NavDropdown 
+                              className="navlink"
+                              key={direction}
+                              // id={`dropdown-button-drop-${direction}`}
+                              drop={direction}
+                              // variant="secondary"
+                              title={` 習作本3專用聽力本 `}
+                            >
+                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                        
+                            </NavDropdown>
+                            
+
+                            
+                          ))}
+
+                  {/*                              習作本 4                                  */}
+                  {['end'].map((direction) => (
+                            <NavDropdown 
+                              className="navlink"
+                              key={direction}
+                              // id={`dropdown-button-drop-${direction}`}
+                              drop={direction}
+                              // variant="secondary"
+                              title={` 習作本4專用聽力本 `}
+                            >
+                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                        
+                            </NavDropdown>
+                            
+
+                            
+                          ))}
+                  {/*                              習作本 5                                  */}
+                  {['end'].map((direction) => (
+                            <NavDropdown 
+                              className="navlink"
+                              key={direction}
+                              // id={`dropdown-button-drop-${direction}`}
+                              drop={direction}
+                              // variant="secondary"
+                              title={` 習作本5專用聽力本 `}
+                            >
+                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                        
+                            </NavDropdown>
+                            
+
+                            
+                          ))}
+                  {/*                              習作本 6                                  */}
+                  {['end'].map((direction) => (
+                            <NavDropdown 
+                              className="navlink"
+                              key={direction}
+                              // id={`dropdown-button-drop-${direction}`}
+                              drop={direction}
+                              // variant="secondary"
+                              title={` 習作本6專用聽力本 `}
+                            >
+                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                        
+                            </NavDropdown>
+                            
+
+                            
+                          ))}
+                  
                   </NavDropdown>
+                  
 
-
-                  {/*                                    課外聽力                                     */}
+                  {/*                                    閱讀聽力                                     */}
                   <NavDropdown
-                    title="課外聽力"
+                    title="閱讀&聽力"
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
@@ -102,8 +235,7 @@ function Navigation() {
                     <NavDropdown.Item href="/home/playlist/RL1" className="subnavlink">Reading Lamp 1</NavDropdown.Item>
                   </NavDropdown>
 
-                  <Nav.Link href="/home/about" className="navlink">關於</Nav.Link>
-                  <Nav.Link href="/home/contact" className="navlink">聯絡我們</Nav.Link>
+
 
                 </Nav>
                 

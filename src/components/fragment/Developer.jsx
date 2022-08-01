@@ -1,8 +1,8 @@
 import React from 'react';
 import '../assets/scss/Developer.scss';
-import {IconButton} from "@material-ui/core";
+// import {IconButton} from "@material-ui/core";
 import AvatarImage from "../assets/img/avatar.jpg";
-import {Facebook, Instagram, LinkedIn, Portrait, Twitter} from "@material-ui/icons";
+// import {Facebook, Instagram, LinkedIn, Portrait, Twitter} from "@material-ui/icons";
 
 const Developer = () => {
     return (
@@ -19,9 +19,8 @@ const Developer = () => {
                     <p> 3. 輔仁大學英日文系雙主修</p>
                     <p> 4. 英國劍橋大學TESOL師資培訓</p>
                     <p> 5. 公立國中合格英語教師資格</p>
-                    <p> 6. 全民英檢中高級通過</p>
-                    <p> 7. 戊類所長班培訓</p>
-                    <p> 8. 合格保育人員訓練</p>
+                    <p> 6. 戊類所長班培訓</p>
+                    <p> 7. 合格保育人員</p>
                 </div>
                 <div className="Developer-profileDetails-2">
                     
@@ -32,7 +31,7 @@ const Developer = () => {
                     <p>4. Vocabulary單字本 : Level 1~5</p>
                     <p>5. Reading   閱讀本 : ~15</p>
                     <p>6. 更多教材陸續編排中...</p>
-                    <div className="Card-btn">
+                    {/* <div className="Card-btn">
                         <IconButton target={"_blank"}  href={"#"} title={"Alan Hsu"}>
                             <Facebook/>
                         </IconButton>
@@ -48,7 +47,7 @@ const Developer = () => {
                         <IconButton target={"_blank"} href={"#"}  title={"Alan Hsu"}>
                             <Portrait/>
                         </IconButton>
-                    </div>
+                    </div> */}
                 </div>
 
             </div>
