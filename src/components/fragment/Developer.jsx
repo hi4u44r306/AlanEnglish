@@ -25,12 +25,11 @@ const Developer = () => {
                 <div className="Developer-profileDetails-2">
                     
                     <h3>著作: </h3>
-                    <p>1. Phonics</p>
-                    <p>2. K.K音標Book1&Book2</p>
-                    <p>3. 入門英語</p>
-                    <p>4. Vocabulary單字本 : Level 1~5</p>
-                    <p>5. Reading   閱讀本 : ~15</p>
-                    <p>6. 更多教材陸續編排中...</p>
+                    <p>1. Phonics K.K</p>
+                    <p>2. Alan English 習作本 & 聽力本</p>
+                    <p>3. 發明速算尺</p>
+                    <p>4. 編輯速算尺講義</p>
+                    <p>5. 更多教材陸續編排中...</p>
                     {/* <div className="Card-btn">
                         <IconButton target={"_blank"}  href={"#"} title={"Alan Hsu"}>
                             <Facebook/>

@@ -13,12 +13,7 @@ const Contact = () => {
             <div className="Contact-profileDetails">
                 
                 <h3>Contact Us</h3>
-                <p>1. Phonics</p>
-                <p>2. K.K音標Book1&Book2</p>
-                <p>3. 入門英語</p>
-                <p>4. Vocabulary單字本 : Level 1~5</p>
-                <p>5. Reading   閱讀本 : ~15</p>
-                <p>6. 更多教材陸續編排中...</p>
+
             </div>
 
         </div>
