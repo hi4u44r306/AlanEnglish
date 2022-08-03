@@ -10,6 +10,7 @@ import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
 
 
+
 function Navigation() {
     
   return (
@@ -54,12 +55,12 @@ function Navigation() {
                 </Offcanvas.Title>
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
-                <Nav className="justify-content-end mx-2 flex-grow-1 pe-3 pt-2">
+                <Nav className="justify-content-center mx-2 flex-grow-1 d-flex align-items-center">
                 
                   <Nav.Link href="/home/about" className="navlink">
-                    關於 About
+                    關於 
                   </Nav.Link>
-                  <Nav.Link href="/home/contact" className="navlink">聯絡我們 Contact</Nav.Link>  
+                  <Nav.Link href="/home/contact" className="navlink">聯絡我們</Nav.Link>  
 
                   {/*                                    習作本                                   */}
                   <NavDropdown 
@@ -242,7 +243,7 @@ function Navigation() {
                 </Nav>
                 
                 {/*                                     搜尋欄位                         */}
-                <Form className="d-flex">
+                <Form className="d-flex align-items-center">
                    <SearchBar/>
                 </Form> 
                 {/*                                     登出                         */}

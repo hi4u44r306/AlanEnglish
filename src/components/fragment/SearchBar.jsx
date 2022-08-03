@@ -4,6 +4,7 @@ import {useDispatch} from "react-redux";
 import {setSearch} from "../../actions/actions";
 import {Link} from "react-router-dom";
 import Form from 'react-bootstrap/Form';
+import SearchIcon from '@mui/icons-material/Search';
 
 const SearchBar = () => {
 
@@ -24,20 +25,21 @@ const SearchBar = () => {
     };
 
     return (
-        <div >
+        <div className="searchbarcontainer">
+            <SearchIcon/>
             <form onSubmit={handleSearch} className={"search-container"}>
                 <Link to={"/home/search"} ref={searchLink}/>
-                        <Form.Control
-                            id={"search-input"}
-                            name={"searchQuery"}
-                            value={searchQuery}
-                            onChange={handleSearchQuery}
-                            ref={searchRef}
-                            type="search"
-                            placeholder="搜尋音軌..."
-                            className="searchbar border border-dark"
-                            aria-label="Search"
-                        />
+                    <Form.Control
+                        id={"search-input"}
+                        name={"searchQuery"}
+                        value={searchQuery}
+                        onChange={handleSearchQuery}
+                        ref={searchRef}
+                        type="search"
+                        placeholder="搜尋音軌..."
+                        className="searchbar"
+                        aria-label="Search"
+                    />
             </form>
         </div>
     );

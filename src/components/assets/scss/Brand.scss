@@ -1,6 +1,10 @@
+.logoutcontainer{
+  display: flex;
+  align-items: center;
+}
 .logoutbtn {
-  margin: 13px 20px;
-  padding: 10px 20px;
+  // margin: 13px 20px;
+  padding: 5px 10px;
   font-size: 0.8rem;
   letter-spacing: 1px;
   border-radius: 10px;
