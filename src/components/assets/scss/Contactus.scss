@@ -22,13 +22,14 @@
   .Contact-profile {
     display: flex;
     flex-flow: row wrap;
-    background-color: #efdaae;
+    // background-color: #efdaae;
+    background-color: #ffffff;
     padding: 5px;
     
     .Contact-profileCard{
-      // text-align: center;
-      flex: 1  400px;
-      padding: 2.8vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       img {
         border: 1px solid #000;
         border-radius: 20px;
@@ -60,7 +61,6 @@
       }
     }
   }
-
     .Contact-profileDetails {
       color: #188345;
       margin: 20px;
@@ -78,46 +78,96 @@
         letter-spacing: 1px;
         text-transform: uppercase;
       }
-      .Card-btn {
-        border-radius: 20px;
-        padding: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-        background-color: rgba(255, 255, 255, 0.593);
-        a {
-          padding: 15px;
-          color: white;
-          text-transform: lowercase;
-        }
-
-        a:hover {
-          opacity: 0.8;
-        }
-
-        a:nth-child(1) {
-          background: #3B5998;
-        }
-
-        a:nth-child(2) {
-          background: #55ACEE;
-        }
-
-        a:nth-child(3) {
-          background: #125688;
-        }
-
-        a:nth-child(4) {
-          background: #007bb5;
-        }
-
-        a:nth-child(5) {
-          background: #e74e6d;
-        }
-      }
-
     }
-
   }
+
+.input-field{
+  outline: #000;
+  display: flex;
+  max-width: 450px;
+  width: 100%;
+  height: 55px;
+  background-color: #f5dd9e;
+  margin: 30px 10px;
+  border-radius: 55px 0 0 55px ;
+  display:grid;
+  grid-template-columns: 30% 70%;
+  padding: 0 .4rem;
+}
+
+.input-field input{
+    // // background-color: #f5dd9e;
+    // background:none;
+    outline:none;
+    border:none;
+    // border-radius: 55px;
+    line-height: 1;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+}
+.input-field label{
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  padding: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+
+.input-field input::placeholder{
+  color: rgb(76, 76, 76);
+  background-color: none;
+  font-weight: 500;
+}
+.btn{
+  width: 150px;
+  height: 50px;
+  border: none;
+  outline: none;
+  border-radius: 49px;
+  background-color: #5995fd;
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 10px 0;
+  transition: .5s;
+}
+
+.btn:hover{
+  background-color: #ffffff;
+}
+
+@media screen and (max-width: 430px) {
+  .input-field{
+    display: flex;
+    max-width: 270px;
+    width: 100%;
+    height: 55px;
+    background-color: #f0f0f0;
+    margin: 30px 10px;
+    border-radius: 55px;
+    display:grid;
+    grid-template-columns: 30% 70%;
+    padding: 0 .4rem;
+  }
+  .input-field label{
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    padding: 10px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: #333;
+  }
+}
+@media screen and (max-width: 968px) {
+  .Contact-profileCard{
+  img {
+      display: none;
+    }
+  }
+}
 
 

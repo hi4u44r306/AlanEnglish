@@ -56,8 +56,10 @@ function Navigation() {
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-2 flex-grow-1 pe-3 pt-2">
                 
-                  <Nav.Link href="/home/about" className="navlink">關於</Nav.Link>
-                  <Nav.Link href="/home/contact" className="navlink">聯絡我們</Nav.Link>  
+                  <Nav.Link href="/home/about" className="navlink">
+                    關於 About
+                  </Nav.Link>
+                  <Nav.Link href="/home/contact" className="navlink">聯絡我們 Contact</Nav.Link>  
 
                   {/*                                    習作本                                   */}
                   <NavDropdown 
