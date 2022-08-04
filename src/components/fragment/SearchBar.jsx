@@ -30,6 +30,7 @@ const SearchBar = () => {
             <form onSubmit={handleSearch} className={"search-container"}>
                 <Link to={"/home/search"} ref={searchLink}/>
                     <Form.Control
+                        onSubmit={handleSearch} 
                         id={"search-input"}
                         name={"searchQuery"}
                         value={searchQuery}

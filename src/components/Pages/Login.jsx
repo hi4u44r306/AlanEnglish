@@ -2,7 +2,6 @@ import React from "react";
 import HeadPhone from '../assets/img/headphones.svg';
 // import HeadPhone from '../assets/img/小乖.png';
 import './css/Login.scss';
-import {Link} from "react-router-dom";
 import fire from "./fire";
 
 class Login extends React.Component{
@@ -93,9 +92,9 @@ class Login extends React.Component{
                                     value={this.state.password}
                                 />
 
-                            <Link onClick={this.login} className="loginbtn">
+                            <button onClick={this.login} className="loginbtn">
                                 登入
-                            </Link>
+                            </button>
                         </div>
                     </div>
             </section>
