@@ -55,7 +55,7 @@ function Navigation() {
                 </Offcanvas.Title>
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
-                <Nav className="justify-content-center mx-2 flex-grow-1 d-flex align-items-center">
+                <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
                 
                   <Nav.Link href="/home/about" className="navlink">
                     關於 

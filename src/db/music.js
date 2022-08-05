@@ -43,7 +43,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 1,
         type: "SER1",
-        musicName: "SER1track02.mp3"
+        musicName: "super easy reading 1/SER1track02.mp3"
     },
     {
         id: 1,
@@ -53,7 +53,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track03.mp3"
+        musicName: "super easy reading 1/SER1track03.mp3"
     }
     ,
     {
@@ -64,7 +64,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track04.mp3"
+        musicName: "super easy reading 1/SER1track04.mp3"
     },
     {
         id: 3,
@@ -74,7 +74,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track05.mp3"
+        musicName: "super easy reading 1/SER1track05.mp3"
     },
     {
         id: 4,
@@ -84,7 +84,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track06.mp3"
+        musicName: "super easy reading 1/SER1track06.mp3"
     },
     {
         id: 5,
@@ -94,7 +94,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track07.mp3"
+        musicName: "super easy reading 1/SER1track07.mp3"
     },
     {
         id: 6,
@@ -104,7 +104,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track08.mp3"
+        musicName: "super easy reading 1/SER1track08.mp3"
     },
     {
         id: 7,
@@ -114,7 +114,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track09.mp3"
+        musicName: "super easy reading 1/SER1track09.mp3"
     },
     {
         id: 8,
@@ -124,7 +124,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track10.mp3"
+        musicName: "super easy reading 1/SER1track10.mp3"
     },
     {
         id: 9,
@@ -134,7 +134,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track11.mp3"
+        musicName: "super easy reading 1/SER1track11.mp3"
     },
     {
         id: 10,
@@ -144,7 +144,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track12.mp3"
+        musicName: "super easy reading 1/SER1track12.mp3"
     },
     {
         id: 11,
@@ -154,7 +154,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track13.mp3"
+        musicName: "super easy reading 1/SER1track13.mp3"
     },
     {
         id: 12,
@@ -164,7 +164,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track14.mp3"
+        musicName: "super easy reading 1/SER1track14.mp3"
     },
     {
         id: 13,
@@ -174,7 +174,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track15.mp3"
+        musicName: "super easy reading 1/SER1track15.mp3"
     },
     {
         id: 14,
@@ -184,7 +184,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track16.mp3"
+        musicName: "super easy reading 1/SER1track16.mp3"
     },
     {
         id: 15,
@@ -194,7 +194,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track17.mp3"
+        musicName: "super easy reading 1/SER1track17.mp3"
     },
     {
         id: 16,
@@ -204,7 +204,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track18.mp3"
+        musicName: "super easy reading 1/SER1track18.mp3"
     },
     {
         id: 17,
@@ -214,7 +214,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track19.mp3"
+        musicName: "super easy reading 1/SER1track19.mp3"
     },
     {
         id: 18,
@@ -224,7 +224,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track20.mp3"
+        musicName: "super easy reading 1/SER1track20.mp3"
     },
     {
         id: 19,
@@ -234,7 +234,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track21.mp3"
+        musicName: "super easy reading 1/SER1track21.mp3"
     },
     {
         id: 20,
@@ -244,7 +244,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track22.mp3"
+        musicName: "super easy reading 1/SER1track22.mp3"
     },
     {
         id: 21,
@@ -254,7 +254,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track23.mp3"
+        musicName: "super easy reading 1/SER1track23.mp3"
     },
     {
         id: 22,
@@ -264,7 +264,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track24.mp3"
+        musicName: "super easy reading 1/SER1track24.mp3"
     },
     {
         id: 23,
@@ -274,7 +274,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track25.mp3"
+        musicName: "super easy reading 1/SER1track25.mp3"
     },
     {
         id: 24,
@@ -284,7 +284,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track26.mp3"
+        musicName: "super easy reading 1/SER1track26.mp3"
     },
     {
         id: 25,
@@ -294,7 +294,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track27.mp3"
+        musicName: "super easy reading 1/SER1track27.mp3"
     },
     {
         id: 26,
@@ -304,7 +304,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track28.mp3"
+        musicName: "super easy reading 1/SER1track28.mp3"
     },
     {
         id: 27,
@@ -314,7 +314,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track29.mp3"
+        musicName: "super easy reading 1/SER1track29.mp3"
     },
     {
         id: 28,
@@ -324,7 +324,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track30.mp3"
+        musicName: "super easy reading 1/SER1track30.mp3"
     },
     {
         id: 29,
@@ -334,7 +334,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track31.mp3"
+        musicName: "super easy reading 1/SER1track31.mp3"
     },
     {
         id: 30,
@@ -344,7 +344,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track32.mp3"
+        musicName: "super easy reading 1/SER1track32.mp3"
     },
     {
         id: 31,
@@ -354,7 +354,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track33.mp3"
+        musicName: "super easy reading 1/SER1track33.mp3"
     },
     {
         id: 32,
@@ -364,7 +364,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track34.mp3"
+        musicName: "super easy reading 1/SER1track34.mp3"
     },
     {
         id: 33,
@@ -374,7 +374,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track35.mp3"
+        musicName: "super easy reading 1/SER1track35.mp3"
     },
     {
         id: 34,
@@ -384,7 +384,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track36.mp3"
+        musicName: "super easy reading 1/SER1track36.mp3"
     },
     {
         id: 35,
@@ -394,7 +394,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track37.mp3"
+        musicName: "super easy reading 1/SER1track37.mp3"
     },
     {
         id: 36,
@@ -404,7 +404,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track38.mp3"
+        musicName: "super easy reading 1/SER1track38.mp3"
     },
     {
         id: 37,
@@ -414,7 +414,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track39.mp3"
+        musicName: "super easy reading 1/SER1track39.mp3"
     },
     {
         id: 38,
@@ -424,7 +424,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track40.mp3"
+        musicName: "super easy reading 1/SER1track40.mp3"
     },
     {
         id: 39,
@@ -434,7 +434,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track41.mp3"
+        musicName: "super easy reading 1/SER1track41.mp3"
     },
     {
         id: 40,
@@ -444,7 +444,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track42.mp3"
+        musicName: "super easy reading 1/SER1track42.mp3"
     },
     {
         id: 41,
@@ -454,7 +454,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track43.mp3"
+        musicName: "super easy reading 1/SER1track43.mp3"
     },
     {
         id: 42,
@@ -464,7 +464,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track44.mp3"
+        musicName: "super easy reading 1/SER1track44.mp3"
     },
     {
         id: 43,
@@ -474,7 +474,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track45.mp3"
+        musicName: "super easy reading 1/SER1track45.mp3"
     },
     {
         id: 44,
@@ -484,7 +484,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track46.mp3"
+        musicName: "super easy reading 1/SER1track46.mp3"
     },
     {
         id: 45,
@@ -494,7 +494,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track47.mp3"
+        musicName: "super easy reading 1/SER1track47.mp3"
     },
     {
         id: 46,
@@ -504,7 +504,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track48.mp3"
+        musicName: "super easy reading 1/SER1track48.mp3"
     },
     {
         id: 47,
@@ -514,7 +514,7 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "SER1track49.mp3"
+        musicName: "super easy reading 1/SER1track49.mp3"
     },
 
 
@@ -1777,7 +1777,7 @@ let musicDB = [
       lang: "習作本2",
       timesPlayed: 0,
       type:"Workbook_2",
-      musicName: "習作本2 P4.mp3"
+      musicName: "習作本2/習作本2 P4.mp3"
       
   },
   {
@@ -1788,7 +1788,7 @@ let musicDB = [
       lang: "習作本2",
       timesPlayed: 0,
       type:"Workbook_2",
-      musicName: "習作本2 P6.mp3"
+      musicName: "習作本2/習作本2 P6.mp3"
       
   },
   {
@@ -1799,7 +1799,7 @@ let musicDB = [
       lang: "習作本2",
       timesPlayed: 0,
       type:"Workbook_2",
-      musicName: "習作本2 P8.mp3"
+      musicName: "習作本2/習作本2 P8.mp3"
      
   },
   {
@@ -1810,7 +1810,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P10.mp3"
+    musicName: "習作本2/習作本2 P10.mp3"
     
   },
   {
@@ -1821,7 +1821,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P14.mp3"
+    musicName: "習作本2/習作本2 P14.mp3"
    
 },
 {
@@ -1832,7 +1832,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P16.mp3"
+    musicName: "習作本2/習作本2 P16.mp3"
   
 },
 {
@@ -1843,7 +1843,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P18.mp3"
+    musicName: "習作本2/習作本2 P18.mp3"
 },
 {
     id: 163,
@@ -1853,7 +1853,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P20.mp3"
+    musicName: "習作本2/習作本2 P20.mp3"
 },
 {
     id: 164,
@@ -1863,7 +1863,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P21.mp3"
+    musicName: "習作本2/習作本2 P21.mp3"
 },
 {
     id: 165,
@@ -1873,7 +1873,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P24.mp3"
+    musicName: "習作本2/習作本2 P24.mp3"
 },
 {
     id: 166,
@@ -1883,7 +1883,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P26.mp3"
+    musicName: "習作本2/習作本2 P26.mp3"
 },
 {
     id: 167,
@@ -1893,7 +1893,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P28.mp3"
+    musicName: "習作本2/習作本2 P28.mp3"
 },
 {
     id: 168,
@@ -1903,7 +1903,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P31.mp3"
+    musicName: "習作本2/習作本2 P30.mp3"
 },
 {
     id: 169,
@@ -1913,7 +1913,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P31.mp3"
+    musicName: "習作本2/習作本2 P31.mp3"
 },
 {
     id: 170,
@@ -1923,7 +1923,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P34.mp3"
+    musicName: "習作本2/習作本2 P34.mp3"
 },
 {
     id: 171,
@@ -1933,7 +1933,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P36.mp3"
+    musicName: "習作本2/習作本2 P36.mp3"
 },
 {
     id: 172,
@@ -1943,7 +1943,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P38.mp3"
+    musicName: "習作本2/習作本2 P38.mp3"
 },
 {
     id: 173,
@@ -1953,7 +1953,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P40.mp3"
+    musicName: "習作本2/習作本2 P40.mp3"
 },
 {
     id: 174,
@@ -1963,7 +1963,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P42.mp3"
+    musicName: "習作本2/習作本2 P42.mp3"
 },
 {
     id: 175,
@@ -1973,7 +1973,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P43.mp3"
+    musicName: "習作本2/習作本2 P43.mp3"
 },
 {
     id: 176,
@@ -1983,7 +1983,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type:"Workbook_2",
-    musicName: "習作本2 P46.mp3"
+    musicName: "習作本2/習作本2 P46.mp3"
 },
 {
     id: 177,
@@ -1993,7 +1993,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P48.mp3"
+    musicName: "習作本2/習作本2 P48.mp3"
 },
 {
     id: 178,
@@ -2003,7 +2003,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P50.mp3"
+    musicName: "習作本2/習作本2 P50.mp3"
 },
 {
     id: 179,
@@ -2013,7 +2013,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P52.mp3"
+    musicName: "習作本2/習作本2 P52.mp3"
 },
 {
     id: 180,
@@ -2023,7 +2023,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P53.mp3"
+    musicName: "習作本2/習作本2 P53.mp3"
 },
 {
     id: 181,
@@ -2033,7 +2033,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P56.mp3"
+    musicName: "習作本2/習作本2 P56.mp3"
 },
 {
     id: 182,
@@ -2043,7 +2043,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P58.mp3"
+    musicName: "習作本2/習作本2 P58.mp3"
 },
 {
     id: 183,
@@ -2053,7 +2053,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P60.mp3"
+    musicName: "習作本2/習作本2 P60.mp3"
 },
 {
     id: 184,
@@ -2063,7 +2063,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P62.mp3"
+    musicName: "習作本2/習作本2 P62.mp3"
 },
 {
     id: 185,
@@ -2073,7 +2073,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P64.mp3"
+    musicName: "習作本2/習作本2 P64.mp3"
 },
 {
     id: 186,
@@ -2083,7 +2083,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P65.mp3"
+    musicName: "習作本2/習作本2 P65.mp3"
 },
 {
     id: 187,
@@ -2093,7 +2093,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P68.mp3"
+    musicName: "習作本2/習作本2 P68.mp3"
 },
 {
     id: 188,
@@ -2103,7 +2103,7 @@ let musicDB = [
     lang: "習作本2",
     type:"Workbook_2",
     timesPlayed: 0,
-    musicName: "習作本2 P69.mp3"
+    musicName: "習作本2/習作本2 P69.mp3"
 },
 {
     id: 189,
@@ -2113,7 +2113,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P70.mp3"
+    musicName: "習作本2/習作本2 P70.mp3"
 },
 {
     id: 190,
@@ -2123,7 +2123,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P72.mp3"
+    musicName: "習作本2/習作本2 P72.mp3"
 },
 {
     id: 191,
@@ -2133,7 +2133,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P76.mp3"
+    musicName: "習作本2/習作本2 P76.mp3"
 },
 {
     id: 192,
@@ -2143,7 +2143,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P78.mp3"
+    musicName: "習作本2/習作本2 P78.mp3"
 },
 {
     id: 193,
@@ -2153,7 +2153,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P80.mp3"
+    musicName: "習作本2/習作本2 P80.mp3"
 },
 {
     id: 194,
@@ -2163,7 +2163,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P82.mp3"
+    musicName: "習作本2/習作本2 P82.mp3"
 },
 {
     id: 195,
@@ -2173,7 +2173,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P84.mp3"
+    musicName: "習作本2/習作本2 P84.mp3"
 },
 {
     id: 196,
@@ -2183,7 +2183,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P86.mp3"
+    musicName: "習作本2/習作本2 P86.mp3"
 },
 {
     id: 197,
@@ -2193,7 +2193,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P88.mp3"
+    musicName: "習作本2/習作本2 P88.mp3"
 },
 {
     id: 198,
@@ -2203,7 +2203,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P92.mp3"
+    musicName: "習作本2/習作本2 P92.mp3"
 },
 {
     id: 199,
@@ -2213,7 +2213,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P93.mp3"
+    musicName: "習作本2/習作本2 P93.mp3"
 },
 {
     id: 200,
@@ -2223,7 +2223,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P94.mp3"
+    musicName: "習作本2/習作本2 P94.mp3"
 },
 {
     id: 201,
@@ -2233,7 +2233,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P96.mp3"
+    musicName: "習作本2/習作本2 P96.mp3"
 },
 {
     id: 202,
@@ -2243,7 +2243,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P98.mp3"
+    musicName: "習作本2/習作本2 P98.mp3"
 },
 {
     id: 203,
@@ -2253,7 +2253,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P100.mp3"
+    musicName: "習作本2/習作本2 P100.mp3"
 },
 {
     id: 204,
@@ -2263,7 +2263,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P102.mp3"
+    musicName: "習作本2/習作本2 P102.mp3"
 },
 {
     id: 205,
@@ -2273,7 +2273,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P103.mp3"
+    musicName: "習作本2/習作本2 P103.mp3"
 },
 {
     id: 206,
@@ -2283,7 +2283,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P104.mp3"
+    musicName: "習作本2/習作本2 P104.mp3"
 },
 {
     id: 207,
@@ -2293,7 +2293,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P106.mp3"
+    musicName: "習作本2/習作本2 P106.mp3"
 },
 {
     id: 208,
@@ -2303,7 +2303,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P108.mp3"
+    musicName: "習作本2/習作本2 P108.mp3"
 },
 {
     id: 209,
@@ -2313,7 +2313,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P110.mp3"
+    musicName: "習作本2/習作本2 P110.mp3"
 },
 {
     id: 210,
@@ -2323,7 +2323,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P114.mp3"
+    musicName: "習作本2/習作本2 P114.mp3"
 },
 {
     id: 211,
@@ -2333,7 +2333,7 @@ let musicDB = [
     lang: "習作本2",
     timesPlayed: 0,
     type: "Workbook_2",
-    musicName: "習作本2 P115.mp3"
+    musicName: "習作本2/習作本2 P115.mp3"
 }
 
 
