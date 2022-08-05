@@ -29,19 +29,19 @@ const Contact = () => {
                 <div className="Contact-profileDetails">
                 <h3 className='mx-auto'>聯絡我們</h3>
                     <form ref={form} onSubmit={sendEmail}>
-                            <div className="md-3 mx-auto input-field">
+                            <div className="md-3 mx-auto border border-primary input-field">
                                 <label>姓名</label>
                                 <input type="text" name="name" placeholder="輸入姓名"/>
                             </div>
-                            <div className="md-3 mx-auto form-group input-field">
+                            <div className="md-3 mx-auto border border-primary input-field">
                                 <label>Email</label>
                                 <input type="email" name="email" placeholder="輸入Email"/>
                             </div>
-                            <div className="md-3 mx-auto input-field">
+                            <div className="md-3 mx-auto border border-primary input-field">
                                 <label>連絡電話</label>
                                 <input type="phone" name="phone" placeholder="輸入電話號碼"/>
                             </div>
-                            <div className="md-3 mx-auto input-field">
+                            <div className="md-3 mx-auto border border-primary input-field">
                                 <label>留言</label>
                                 <input type="text" name="message" placeholder="輸入文字"/>
                             </div>
