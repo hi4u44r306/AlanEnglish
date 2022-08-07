@@ -27,11 +27,10 @@ const SearchBar = () => {
     return (
         <div className="searchbarcontainer">
             <SearchIcon/>
-            <form onSubmit={handleSearch} className={"search-container"}>
+            <form onSubmit={handleSearch}>
                 <Link to={"/home/search"} ref={searchLink}/>
                     <Form.Control
                         onSubmit={handleSearch} 
-                        id={"search-input"}
                         name={"searchQuery"}
                         value={searchQuery}
                         onChange={handleSearchQuery}
@@ -39,7 +38,7 @@ const SearchBar = () => {
                         type="search"
                         placeholder="搜尋音軌..."
                         className="searchbar"
-                        aria-label="Search"
+                        // aria-label="Search"
                     />
             </form>
         </div>

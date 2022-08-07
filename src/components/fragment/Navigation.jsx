@@ -243,7 +243,7 @@ function Navigation() {
                 </Nav>
                 
                 {/*                                     搜尋欄位                         */}
-                <Form className="d-flex align-items-center">
+                <Form className="justify-content-center d-flex align-items-center">
                    <SearchBar/>
                 </Form> 
                 {/*                                     登出                         */}

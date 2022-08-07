@@ -10,9 +10,13 @@
   height: 50px;
 }
 
+.searchbar::placeholder{
+  font-weight: 600;
+}
+
 .searchbar:focus{
   border: 2px;
   border-color: transparent;
-  // box-shadow: inset 15px 15px 15px rgba(0, 0, 0, 0.075), 0 0 10px  #0fa6f1 !important;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.075), 0 0 5px  #0fa6f1 !important;
   box-shadow: none;
 }

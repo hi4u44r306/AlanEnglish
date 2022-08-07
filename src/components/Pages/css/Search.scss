@@ -6,10 +6,10 @@
   position: relative;
   .Search-img{
     img{
-      width: 240px;
+      width: 400px;
       position: absolute;
-      top: 70%;
-      left: 50%;
+      top: 100%;
+      left: 80%;
       transform: translateX(-50%) translateY(-50%);
     }
     .Rotate-img{
@@ -21,7 +21,7 @@
     }
     .Arrow{
       top: 20%;
-      left: 60%;
+      left: 90%;
       transform: translateX(-60%) translateY(-50%)  rotate(70deg) ;
       width: 100px;
     }
