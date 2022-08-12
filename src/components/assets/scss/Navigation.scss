@@ -2,14 +2,9 @@
   background-color: rgb(246, 246, 246);
   height: 10vh;
 }
-// .navlinkcontainer{
-//   display: grid;
-//   align-items: center;
-//   justify-items: center;
-//   padding: 10px;
-// }
+
 .toggle{
-  background-color: #e1eefb;
+  background-color: #ff0000;
 }
 
 .navlink{
@@ -21,7 +16,6 @@
 }
 .navlink:hover{
   transition: 0.7s ;
-  // background-color: rgb(0, 136, 255);
   color:  rgb(0, 136, 255);
   border-radius: 5px;
 }

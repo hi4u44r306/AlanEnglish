@@ -1,8 +1,6 @@
 import React from 'react';
 import '../assets/scss/Developer.scss';
-// import {IconButton} from "@material-ui/core";
 import AvatarImage from "../assets/img/avatar.jpg";
-// import {Facebook, Instagram, LinkedIn, Portrait, Twitter} from "@material-ui/icons";
 
 const Developer = () => {
     return (
@@ -30,23 +28,6 @@ const Developer = () => {
                     <p>3. 發明速算尺</p>
                     <p>4. 編輯速算尺講義</p>
                     <p>5. 更多教材陸續編排中...</p>
-                    {/* <div className="Card-btn">
-                        <IconButton target={"_blank"}  href={"#"} title={"Alan Hsu"}>
-                            <Facebook/>
-                        </IconButton>
-                        <IconButton target={"_blank"} href={"#"}  title={"Alan Hsu"}>
-                            <Twitter/>
-                        </IconButton>
-                        <IconButton target={"_blank"} href={"#"}  title={"Alan Hsu"}>
-                            <LinkedIn/>
-                        </IconButton>
-                        <IconButton target={"_blank"} href={"#"}  title={"Alan Hsu"}>
-                            <Instagram/>
-                        </IconButton>
-                        <IconButton target={"_blank"} href={"#"}  title={"Alan Hsu"}>
-                            <Portrait/>
-                        </IconButton>
-                    </div> */}
                 </div>
 
             </div>

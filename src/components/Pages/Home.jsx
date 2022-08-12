@@ -6,7 +6,6 @@ import MusicCardContainer from "../fragment/MusicCardContainer";
 import {useSelector} from "react-redux";
 import {ThemeContext} from "../../api/Theme";
 import Profile from "./Profile";
-import FooterSelectMusic from "../fragment/FooterSelectMusic";
 import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
 import About from "./About";
@@ -36,8 +35,6 @@ function getCurrPage(pathName) {
 
 function Home() {
 
-
-    // const [screenSize, setScreenSize] = useState(undefined);
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
 
@@ -45,17 +42,6 @@ function Home() {
     useEffect(() => {
         setCurrPage(getCurrPage(pathname))
     }, [pathname]);
-
-    // window.addEventListener("resize", handleResize);
-
-    // // function handleResize() {
-    // //     setScreenSize(window.innerWidth);
-    // // }
-
-    // useEffect(() => {
-    //     handleResize();
-    //     return () => window.removeEventListener("resize", handleResize);
-    // });
 
     const useStyle = useContext(ThemeContext);
     const {playing, bannerOpen} = useSelector(state => state.musicReducer);
@@ -99,10 +85,8 @@ function Home() {
                         <React.Fragment>
                             {
                                 currMusic
-                                    ?
+                                    &&
                                     <FooterMusicPlayer music={currMusic}/>
-                                    :
-                                    <FooterSelectMusic/>
                             }
                         </React.Fragment>
                     </>

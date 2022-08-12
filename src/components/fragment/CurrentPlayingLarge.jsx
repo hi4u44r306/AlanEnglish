@@ -12,7 +12,6 @@ function CurrentPlayingLarge() {
 
     return (
         <div  className={"CurrentPlayingLarge"}>
-            {/* <img className={"banner"} src={require("../assets/img/"+img).default} alt=""/> */}
             <img className={"banner"} alt=""/>
             <div className="music-left">
                 <div className="wrapper">
@@ -23,20 +22,6 @@ function CurrentPlayingLarge() {
                     </div>
                 </div>
             </div>
-            {/*
-            <div className="music-right">
-
-                <div className={"music-card-span"}>
-                    {
-                        playlists
-                            .filter(i=>i.id !== id)
-                            .map(i=>(
-                                <MusicCardSpan key={i.id} music={i} />
-                            ))
-                    }
-                </div>
-            </div>
-*/}
         </div>
     );
 }

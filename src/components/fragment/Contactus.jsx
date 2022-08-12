@@ -1,8 +1,6 @@
 import React, { useRef } from 'react';
 import '../assets/scss/Contactus.scss';
 import SchoolImage from "../assets/img/school.jpg";
-// import Button from 'react-bootstrap/Button';
-// import Form from 'react-bootstrap/Form';
 import emailjs from '@emailjs/browser';
 
 
@@ -55,10 +53,6 @@ const Contact = () => {
                 </div>
             </div>
         </div>
-  
-   
-            
-        
     );
 }
 
