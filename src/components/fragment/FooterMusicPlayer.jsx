@@ -26,7 +26,7 @@ function FooterMusicPlayer({music}) {
     const [isPlaying, setPlayPauseClicked] = useState(false);
     const [isVolumeClicked, setVolumeClicked] = useState(false);
     const [volume, setVolume] = useState(100);
-    const [seekTime, setSeekTime] = useState(0);
+    const [seekTime, setSeekTime] = useState(1);
     const [duration, setDuration] = useState(0);
     const [currTime, setCurrTime] = useState(0);
     const [bannerToggle,setBannerToggle] = useState(false);
@@ -144,6 +144,7 @@ function FooterMusicPlayer({music}) {
                             value={seekTime} onChange={handleSeekChange}/>
                 }
             </div>
+            {/* 音樂播放器縮圖 */}
             <Button
                     startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
                     onClick={handleBannerToggle}
@@ -153,6 +154,7 @@ function FooterMusicPlayer({music}) {
                     <Name name={page} className={"song-name"} length={page.length}/>
                 </div>
             </Button>
+            {/* 控制鈕 */}
             <div className="playback-controls">
 
                 <ControlsToggleButton style={pointer} type={"repeat"}

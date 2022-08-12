@@ -70,7 +70,7 @@ function Navigation() {
                   >
                         <NavDropdown.Item href="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
                         <NavDropdown.Item href="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">習作本3 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">習作本3</NavDropdown.Item>
                         <NavDropdown.Item href="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>
                         <NavDropdown.Item href="/home/playlist/Workbook_5" className="subnavlink">習作本5 建構中...</NavDropdown.Item>
                         <NavDropdown.Item href="/home/playlist/Workbook_6" className="subnavlink">習作本6 建構中...</NavDropdown.Item>
