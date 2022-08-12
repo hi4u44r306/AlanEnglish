@@ -139,26 +139,20 @@ function FooterMusicPlayer({music}) {
     //         setPrevClicked(false);
     //     }
     // },[dispatch, id, NextClicked, PrevClicked, playlists]);
-    const [currTrackId, setTrackIndex] = React.useState(0)
+    // const [currTrackId, setTrackIndex] = React.useState(0)
     const handleClickNext = () => {
         console.log('click next')
         let currTrackId = (id+1) % playlists.length;
-          setTrackIndex((currTrackId) =>
-          currTrackId < playlists.length - 1 ? currTrackId + 1 : 0
-          );
-          dispatch(setCurrentPlaying(playlists[currTrackId]));
+        dispatch(setCurrentPlaying(playlists[currTrackId]));
       };
     const handleEnd = () => {
         console.log('end')
         let currTrackId = (id-1) % playlists.length;
-        setTrackIndex((currTrackId) =>
-        currTrackId < playlists.length - 1 ? currTrackId + 1 : 0
-            );
         if ((id-1)<=-1){
             currTrackId = playlists.length - 1;
         }
         dispatch(setCurrentPlaying(playlists[currTrackId]));
-      }
+    }
 
 
     return (
