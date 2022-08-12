@@ -144,15 +144,13 @@ function FooterMusicPlayer({music}) {
 
 
     return (
-        <div  className={"footer-player"}>
+        <div className={"footer-player"}>
             <audio ref={audioElement} src={require("../assets/music/" + musicName).default} preload={"metadata"}/>
             <AudioPlayer
                 autoPlay
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
-                // preload={"metadata"}
-                layout="horizontal-reverse"
                 showSkipControls={true}
                 onClickNext={NextClicked}
                 onEnded={PrevClicked}
