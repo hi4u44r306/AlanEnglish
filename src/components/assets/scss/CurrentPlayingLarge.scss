@@ -1,5 +1,5 @@
 .CurrentPlayingLarge{
-  height: 90vh;
+  height: 85vh;
   display: flex;
   position: relative;
   z-index: 9999999;
@@ -47,6 +47,6 @@
 
 @media only screen and (max-width: 970px) {
   .CurrentPlayingLarge{
-    height: 80vh !important;
+    height: 77vh !important;
   }
 }

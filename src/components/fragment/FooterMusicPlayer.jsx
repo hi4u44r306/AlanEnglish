@@ -1,5 +1,5 @@
 import 'react-h5-audio-player/lib/styles.css';
-import AudioPlayer from 'react-h5-audio-player'
+import AudioPlayer, { RHAP_UI } from 'react-h5-audio-player'
 // import React, {useContext, useEffect, useRef, useState} from "react";
 import React, {useRef, useState, useEffect} from "react";
 import '../assets/scss/FooterPlayer.scss';
@@ -107,8 +107,6 @@ function FooterMusicPlayer({music}) {
     // }
   
     const [{ id, bookname, page , img, musicName}, setCurrTrack] = useState(music);
-    const [PrevClicked, setPrevClicked] = useState(false);
-    const [NextClicked, setNextClicked] = useState(false);
     const [bannerToggle,setBannerToggle] = useState(false);
     const audioElement = useRef();
     const dispatch = useDispatch();
@@ -126,21 +124,41 @@ function FooterMusicPlayer({music}) {
         setCurrTrack(music);
     }, [music]);
 
-    useEffect(()=>{
-        if (NextClicked){
-            let currTrackId = (id+1) % playlists.length;
-            dispatch(setCurrentPlaying(playlists[currTrackId]));
-            setNextClicked(false);
+    // useEffect(()=>{
+    //     if (NextClicked){
+    //         let currTrackId = (id+1) % playlists.length;
+    //         dispatch(setCurrentPlaying(playlists[currTrackId]));
+    //         setNextClicked(false);
+    //     }
+    //     if (PrevClicked){
+    //         let currTrackId = (id-1) % playlists.length;
+    //         if ((id-1)<0){
+    //             currTrackId = playlists.length - 1;
+    //         }
+    //         dispatch(setCurrentPlaying(playlists[currTrackId]));
+    //         setPrevClicked(false);
+    //     }
+    // },[dispatch, id, NextClicked, PrevClicked, playlists]);
+    const [currTrackId, setTrackIndex] = React.useState(0)
+    const handleClickNext = () => {
+        console.log('click next')
+        let currTrackId = (id+1) % playlists.length;
+          setTrackIndex((currTrackId) =>
+          currTrackId < playlists.length - 1 ? currTrackId + 1 : 0
+          );
+          dispatch(setCurrentPlaying(playlists[currTrackId]));
+      };
+    const handleEnd = () => {
+        console.log('end')
+        let currTrackId = (id-1) % playlists.length;
+        setTrackIndex((currTrackId) =>
+        currTrackId < playlists.length - 1 ? currTrackId + 1 : 0
+            );
+        if ((id-1)<=-1){
+            currTrackId = playlists.length - 1;
         }
-        if (PrevClicked){
-            let currTrackId = (id-1) % playlists.length;
-            if ((id-1)<0){
-                currTrackId = playlists.length - 1;
-            }
-            dispatch(setCurrentPlaying(playlists[currTrackId]));
-            setPrevClicked(false);
-        }
-    },[dispatch, id, NextClicked, PrevClicked, playlists]);
+        dispatch(setCurrentPlaying(playlists[currTrackId]));
+      }
 
 
     return (
@@ -148,80 +166,30 @@ function FooterMusicPlayer({music}) {
             <audio ref={audioElement} src={require("../assets/music/" + musicName).default} preload={"metadata"}/>
             <AudioPlayer
                 autoPlay
+                volume="0.5"
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
                 showSkipControls={true}
-                onClickNext={NextClicked}
-                onEnded={PrevClicked}
-                customAdditionalControls={
+                showJumpControls={false}
+                onClickNext={handleClickNext}
+                onEnded={handleEnd}
+                customControlsSection={
                     [
-                    <Button
-                        startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
-                        onClick={handleBannerToggle}
-                        className="curr-music-container">
-                    <div className="curr-music-details">
-                        <Name name={bookname} className={"song-name"} length={bookname.length}/>
-                        <Name name={page} className={"song-name"} length={page.length}/>
-                    </div> 
-                    </Button>
+                        RHAP_UI.MAIN_CONTROLS,
+                        <Button
+                            startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
+                            onClick={handleBannerToggle}
+                            className="curr-music-container">
+                            <div className="curr-music-details">
+                                <Name name={bookname} className={"song-name"} length={bookname.length}/>
+                                <Name name={page} className={"song-name"} length={page.length}/>
+                            </div> 
+                        </Button>,
+                        RHAP_UI.VOLUME_CONTROLS,
                     ]
-                  }
-            />
-            
-            
-            {/* <div className="playback">
-            
-                {
-                    !isNaN(seekTime) &&
-                    <Slider style={{color: useStyle.theme}}
-                            className={"playback-completed"}
-                            value={seekTime} onChange={handleSeekChange}/>
                 }
-            </div> */}
-            
-            {/* 控制鈕 */}
-            {/* <div className="playback-controls">
-
-                <ControlsToggleButton style={pointer} type={"repeat"}
-                                      defaultIcon={<RepeatIcon fontSize={"medium"}/>}
-                                      changeIcon={<RepeatOneIcon fontSize={"medium"}/>}
-                                      onClicked={handleToggle}/>
-
-                <ControlsToggleButton style={pointer} type={"prev"}
-                                      defaultIcon={<SkipPreviousIcon fontSize={"medium"}/>}
-                                      changeIcon={<SkipPreviousIcon fontSize={"medium"}/>}
-                                      onClicked={handleToggle}/>
-
-                {/* <audio ref={audioElement} src={require("../assets/music/" + musicName).default} preload={"metadata"}/> */}
-
-                {/* <ControlsToggleButton style={pointer} type={"play-pause"}
-                                      defaultIcon={<PlayArrowIcon fontSize={"large"}/>}
-                                      changeIcon={<PauseIcon fontSize={"large"}/>}
-                                      onClicked={handleToggle}/>
-
-
-                <ControlsToggleButton style={pointer} type={"next"}
-                                      defaultIcon={<SkipNextIcon fontSize={"medium"}/>}
-                                      changeIcon={<SkipNextIcon fontSize={"medium"}/>}
-                                      onClicked={handleToggle}/> */}
-            {/* </div>  */}
-            {/* <div className="playback-widgets"> */}
-                {/* <div className="timer">
-                    <p>
-                        <span>{formatTime(currTime)}</span>
-                        /
-                        <span>{formatTime(duration)}</span>
-                    </p>
-                </div>
-                <div className={"slider"}>
-                    <Slider style={{color: useStyle.theme}} value={volume} onChange={handleVolumeChange}/>
-                </div>
-                <ControlsToggleButton style={pointer} type={"volume"}
-                                      defaultIcon={<VolumeUpIcon/>}
-                                      changeIcon={<VolumeOffIcon/>}
-                                      onClicked={handleToggle}/> */}
-            {/* </div> */}
+            />          
         </div>
 
     );
