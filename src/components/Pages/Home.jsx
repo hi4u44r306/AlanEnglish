@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useState} from "react";
 import './css/Home.scss';
 import Navigation from "../fragment/Navigation";
 import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
+import FooterSelectMusic from "../fragment/FooterSelectMusic";
 import MusicCardContainer from "../fragment/MusicCardContainer";
 import {useSelector} from "react-redux";
 import {ThemeContext} from "../../api/Theme";
@@ -85,8 +86,10 @@ function Home() {
                         <React.Fragment>
                             {
                                 currMusic
-                                    &&
+                                    ?
                                     <FooterMusicPlayer music={currMusic}/>
+                                    :
+                                    <FooterSelectMusic/>
                             }
                         </React.Fragment>
                     </>

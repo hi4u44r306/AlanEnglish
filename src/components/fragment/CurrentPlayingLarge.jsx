@@ -17,7 +17,7 @@ function CurrentPlayingLarge() {
                 <div className="wrapper">
                     <img className={"music-cover"} src={require("../assets/img/"+img).default} alt=""/>
                     <div className="detail">
-                        <h3>{bookname}</h3>
+                        <h5>{bookname}</h5>
                         <p>{page}</p>
                     </div>
                 </div>

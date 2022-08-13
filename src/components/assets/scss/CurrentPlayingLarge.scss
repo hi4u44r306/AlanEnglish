@@ -13,6 +13,9 @@
     .wrapper{
       display: flex;
       flex-direction: column;
+      h5,p{
+        font-weight: 900;
+      }
     }
     .music-cover{
       width: 100%;
