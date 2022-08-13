@@ -6,7 +6,6 @@ import FooterSelectMusic from "../fragment/FooterSelectMusic";
 import MusicCardContainer from "../fragment/MusicCardContainer";
 import {useSelector} from "react-redux";
 import {ThemeContext} from "../../api/Theme";
-import Profile from "./Profile";
 import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
 import About from "./About";
@@ -20,8 +19,6 @@ function getCurrPage(pathName) {
             return <MusicCardContainer/>
         case "/home/search":
             return <Search/>
-        case "/home/profile":
-            return <Profile/>
         case "/home/about":
             return <About/>
         case "/home/contact":

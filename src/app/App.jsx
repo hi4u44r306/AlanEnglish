@@ -32,7 +32,6 @@ const App = () => {
         <ThemeContext.Provider value={themes.light}>
             <>
                 <Router>
-                    
                     <Switch>
                         <Route path="/" exact component={Login}/>
                         <Route path="/home" component={Home}/>
