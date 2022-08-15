@@ -5,7 +5,7 @@ import AvatarImage from "../assets/img/avatar.jpg";
 const Developer = () => {
     return (
         <div className={"Developer"}>
-            <h3 className={"Developer-head"}>Meet the teacher</h3>
+            {/* <h3 className={"Developer-head"}>Meet the teacher</h3> */}
             <div className="Developer-profile">
                 <div className="Developer-profileCard">
                     <img src={AvatarImage} alt="Profile"/>
