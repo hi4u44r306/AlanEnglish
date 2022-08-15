@@ -2711,9 +2711,76 @@ let musicDB = [
     type: "Workbook_3",
     musicName: "習作本3/習作本3 P73.mp3"
 },
-
-
-
+{
+    id: 247,
+    bookname: "習作本3",
+    page:"P.77",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P77.mp3"
+},
+{
+    id: 248,
+    bookname: "習作本3",
+    page:"P.79",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P79.mp3"
+},
+{
+    id: 249,
+    bookname: "習作本3",
+    page:"P.81",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P81.mp3"
+},
+{
+    id: 250,
+    bookname: "習作本3",
+    page:"P.83",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P83.mp3"
+},
+{
+    id: 251,
+    bookname: "習作本3",
+    page:"P.84",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P84.mp3"
+},
+{
+    id: 252,
+    bookname: "習作本3",
+    page:"P.85",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P85.mp3"
+},
+{
+    id: 253,
+    bookname: "習作本3",
+    page:"P.87",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P87.mp3"
+},
 
 
 

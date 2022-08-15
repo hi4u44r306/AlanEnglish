@@ -28,8 +28,6 @@ class Login extends React.Component{
         })
     }
 
-
-
     handleChange(e){
         this.setState({
             [e.target.name] : e.target.value
@@ -43,7 +41,6 @@ class Login extends React.Component{
                     </div>
                     <div className="main-row">
                         <div className="main-row-img">
-                            
                             <div className="english-method">
                                 <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
                                 <br/>
