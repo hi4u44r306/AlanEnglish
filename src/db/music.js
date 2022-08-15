@@ -2701,7 +2701,16 @@ let musicDB = [
     type: "Workbook_3",
     musicName: "習作本3/習作本3 P71.mp3"
 },
-
+{
+    id: 246,
+    bookname: "習作本3",
+    page:"P.73",
+    img: "headphone3.png",
+    lang: "習作本3",
+    timesPlayed: 0,
+    type: "Workbook_3",
+    musicName: "習作本3/習作本3 P73.mp3"
+},
 
 
 
