@@ -10,6 +10,7 @@ const Contact = () => {
 
     const form = useRef();
     const [visible, setVisible] = useState(false)
+    
 
     function sendEmail(e){
         
@@ -33,11 +34,11 @@ const Contact = () => {
                     <form ref={form} onSubmit={sendEmail}>
                             <div className="md-3 mx-auto border border-primary input-field">
                                 <label>姓名</label>
-                                <input id="message" type="text" name="name" placeholder="輸入姓名"/>
+                                <input id="message" type="text" name="name" placeholder="輸入姓名" />
                             </div>
                             <div className="md-3 mx-auto border border-primary input-field">
                                 <label>Email</label>
-                                <input id="message" type="email" name="email" placeholder="輸入Email"/>
+                                <input id="message" type="email" name="email" placeholder="輸入Email" />
                             </div>
                             <div className="md-3 mx-auto border border-primary input-field">
                                 <label>連絡電話</label>
@@ -56,7 +57,9 @@ const Contact = () => {
                     <img src={SchoolImage} alt="Profile"/>
                 </div>
             </div>
+            
         </div>
+        
     );
 }
 

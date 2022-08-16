@@ -136,6 +136,10 @@
 .submitalert{
   display: inline-block;
   vertical-align: top;
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 // .btn{
 //   width: 150px;

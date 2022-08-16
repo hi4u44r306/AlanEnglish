@@ -39,6 +39,7 @@ const App = () => {
                 </Router>
             </>
         </ThemeContext.Provider>
+        
     );
 }
 
