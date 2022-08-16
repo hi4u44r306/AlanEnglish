@@ -1,5 +1,8 @@
 .Developer {
   font-family: 'Poppins', sans-serif;
+  background-color: white;
+  display: flex;
+  justify-content: center;
 
   .Developer-head {
     text-transform: uppercase;
@@ -21,16 +24,13 @@
 
   .Developer-profile {
     display: flex;
-    // flex-flow: row wrap;
-    // background-color: #efdaae;
     background-color: #ffffff;
     padding: 5px;
     height: 78vh;
     overflow-y:scroll;
     align-items: center;
     .Developer-profileCard{
-      // text-align: center;
-      flex: 1 1 100px;
+      // flex: 1 1 200px;
       padding: 2.8vh;
       img {
         border: 1px solid #000;
@@ -69,7 +69,7 @@
       color: #188345;
       margin: 20px;
       font-weight: 600;
-      flex-grow: 0;
+      // flex-grow: 0;
       display: flex;
       flex-direction: column;
       // justify-content: space-between;

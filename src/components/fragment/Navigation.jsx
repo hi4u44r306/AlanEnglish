@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Logout from "./Logout";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
@@ -8,10 +9,21 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
+import firebase from 'firebase';
+
 
 
 
 function Navigation() {
+
+  const [currentuser, setcurrentUser] = useState();
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged((user) => {
+      setcurrentUser(user)
+    })
+  },[])
+
     
   return (
     <>
@@ -32,6 +44,7 @@ function Navigation() {
                     <span>S</span>
                     <span>H</span>
                 </Navbar.Brand>
+                
             <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`} />
             <Navbar.Offcanvas
               id={`offcanvasNavbar-expand-${expand}`}
@@ -56,9 +69,12 @@ function Navigation() {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
-                
+                {currentuser && <Nav.Link className="navlink">Welcome : {currentuser.email}</Nav.Link>}
                   <Nav.Link href="/home/about" className="navlink">
                     關於 
+                  </Nav.Link>
+                  <Nav.Link href="/home/userinfo" className="navlink">
+                    學生檔案
                   </Nav.Link>
                   <Nav.Link href="/home/contact" className="navlink">聯絡我們</Nav.Link>  
 
