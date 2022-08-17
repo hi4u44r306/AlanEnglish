@@ -82,7 +82,7 @@ function Navigation(user) {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
-                  <p className="navlink">Welcome : </p>
+                  <p className="navlabel">Welcome : </p>
                   <Nav.Link className="navlink" id="navusername">
                   {user.name}
                   </Nav.Link>

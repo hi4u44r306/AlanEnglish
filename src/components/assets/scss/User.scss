@@ -87,22 +87,16 @@
       padding: 0 .4rem;
   }
     .userinfo label{
+      width: 100px;
       display: flex;
       align-items: center;
       justify-content: left;
       padding: 10px;
       font-weight: 600;
-      font-size: 0.5rem;
+      font-size: 1rem;
       color: #333;
     }
   }
-  @media screen and (max-width: 968px) {
-    .User-profileCard{
-    img {
-        display: none;
-      }
-    }
-  }
-  
+
   
   
