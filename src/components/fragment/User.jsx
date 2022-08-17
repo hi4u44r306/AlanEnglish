@@ -1,38 +1,52 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import firebase from 'firebase';
+import '../assets/scss/User.scss';
 
-const User = () => {
+const User = (user) => {
 
     const db = firebase.firestore();
-    const [currentuser, setcurrentUser] = useState();
-
-    useEffect(() => {
-        firebase.auth().onAuthStateChanged((user) => {
-          setcurrentUser(user)
-        })
-    },[])
-
-    db.collection('student').get().then((snapshot)=>{
-        snapshot.docs.forEach(doc => {
-            console.log(doc.data())
-        })
+    firebase.auth().onAuthStateChanged(user => {
+        if(user){
+            db.collection('student').onSnapshot(snapshot =>{
+                getUserInfo(user);
+            }, err =>{
+                console.log(err.message);
+            });
+        }else{
+            getUserInfo();
+        }
     })
+    
+    const getUserInfo = (user) =>{
+        if(user){
+            db.collection('student').doc(user.uid).get().then( doc => {
+                document.getElementById("username").innerHTML = doc.data().name;
+                document.getElementById("useremail").innerHTML = doc.data().email;
+                document.getElementById("userclass").innerHTML = doc.data().class;
+            })
+        }else{
+
+        }
+    }    
    
   return (
-    <div className={"Contact"}>
-            <div className="Contact-profile">
-                <div className="Contact-profileDetails">
-                <h3 className='mx-auto'>學生資料</h3>
+    <div className={"User"}>
+            <div className="User-profile">
+                <div className="User-profileDetails">
+                <h3 className='mx-auto User-profile-title'>學生資料</h3>
                     <form>
-                            <div className="d-flex md-3 mx-auto border border-primary input-field">
-                                {currentuser &&<p>姓名{currentuser.displayName} </p>}
-                            </div>
-                            <div className="d-flex md-3 mx-auto  border border-primary input-field">
-                                {currentuser &&<label>Email :{currentuser.email} </label>}
-                            </div>
-                            <div className="d-flex md-3 mx-auto border border-primary input-field">
-                                {currentuser &&<p>班別{currentuser.displayName} </p>}
-                            </div>
+                        <div className="d-flex md-3 mx-auto border border-primary userinfo">
+                           <label>姓名:</label>
+                           <p id="username">{user.name}</p>
+                        </div>
+                        <div className="d-flex md-3 mx-auto  border border-primary userinfo">
+                            <label>Email:</label>
+                            <p id="useremail">{user.email}</p>
+                        </div>
+                        <div className="d-flex md-3 mx-auto border border-primary userinfo">
+                            <label>班別:</label>
+                            <p id="userclass">{user.class}</p>
+                        </div>
                     </form>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React from "react";
 import Logout from "./Logout";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
@@ -12,17 +12,30 @@ import SearchBar from "./SearchBar";
 import firebase from 'firebase';
 
 
+function Navigation(user) {
 
-
-function Navigation() {
-
-  const [currentuser, setcurrentUser] = useState();
-
-  useEffect(() => {
-    firebase.auth().onAuthStateChanged((user) => {
-      setcurrentUser(user)
+  const db = firebase.firestore();
+    firebase.auth().onAuthStateChanged(user => {
+        if(user){
+            db.collection('student').onSnapshot(snapshot =>{
+                getUserInfo(user);
+            }, err =>{
+                console.log(err.message);
+            });
+        }else{
+            getUserInfo();
+        }
     })
-  },[])
+    
+    const getUserInfo = (user) =>{
+        if(user){
+            db.collection('student').doc(user.uid).get().then( doc => {
+                document.getElementById("navusername").innerHTML = doc.data().name;
+            })
+        }else{
+
+        }
+    }    
 
     
   return (
@@ -69,7 +82,10 @@ function Navigation() {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
-                {currentuser && <Nav.Link className="navlink">Welcome : {currentuser.email}</Nav.Link>}
+                  <p className="navlink">Welcome : </p>
+                  <Nav.Link className="navlink" id="navusername">
+                  {user.name}
+                  </Nav.Link>
                   <Nav.Link href="/home/about" className="navlink">
                     關於 
                   </Nav.Link>
