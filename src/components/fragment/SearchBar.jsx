@@ -3,7 +3,7 @@ import '../assets/scss/SearchBar.scss';
 import {useDispatch} from "react-redux";
 import {setSearch} from "../../actions/actions";
 import {Link} from "react-router-dom";
-import Form from 'react-bootstrap/Form';
+// import Form from 'react-bootstrap/Form';
 import SearchIcon from '@mui/icons-material/Search';
 
 const SearchBar = () => {
@@ -29,7 +29,7 @@ const SearchBar = () => {
             <SearchIcon/>
             <form onSubmit={handleSearch}>
                 <Link to={"/home/search"} ref={searchLink}/>
-                    <Form.Control
+                    <input
                         onSubmit={handleSearch} 
                         name={"searchQuery"}
                         value={searchQuery}
@@ -37,7 +37,7 @@ const SearchBar = () => {
                         ref={searchRef}
                         type="search"
                         placeholder="搜尋音軌..."
-                        className="searchbar"
+                        className="searchbar form-control"
                         // aria-label="Search"
                     />
             </form>

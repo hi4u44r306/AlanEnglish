@@ -1,20 +1,34 @@
 import React from "react";
+import firebase from 'firebase/app';
+import 'firebase/firestore';
 import Logout from "./Logout";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
-import Form from 'react-bootstrap/Form';
+// import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
-import firebase from 'firebase';
+
 
 
 function Navigation(user) {
 
   const db = firebase.firestore();
+  const getUserInfo = (user) =>{
+    if(user){
+        db.collection('student').doc(user.uid).get().then( doc => {
+            document.getElementById("navusername").innerHTML = doc.data().name;
+        }, err =>{
+            console.log(err.message);
+        });
+    }else{
+
+    }
+}    
+
     firebase.auth().onAuthStateChanged(user => {
         if(user){
             db.collection('student').onSnapshot(snapshot =>{
@@ -27,16 +41,7 @@ function Navigation(user) {
         }
     })
     
-    const getUserInfo = (user) =>{
-        if(user){
-            db.collection('student').doc(user.uid).get().then( doc => {
-                document.getElementById("navusername").innerHTML = doc.data().name;
-            })
-        }else{
-
-        }
-    }    
-
+    
     
   return (
     <>
@@ -86,13 +91,6 @@ function Navigation(user) {
                   <Nav.Link className="navlink" id="navusername">
                   {user.name}
                   </Nav.Link>
-                  <Nav.Link href="/home/about" className="navlink">
-                    關於 
-                  </Nav.Link>
-                  <Nav.Link href="/home/userinfo" className="navlink">
-                    學生檔案
-                  </Nav.Link>
-                  <Nav.Link href="/home/contact" className="navlink">聯絡我們</Nav.Link>  
 
                   {/*                                    習作本                                   */}
                   <NavDropdown 
@@ -270,14 +268,23 @@ function Navigation(user) {
                     <NavDropdown.Item href="/home/playlist/RL1" className="subnavlink">Reading Lamp 1</NavDropdown.Item>
                   </NavDropdown>
 
-
+                    {/*                                    更多                                   */}
+                  <NavDropdown 
+                    title="更多"
+                    id={`offcanvasNavbarDropdown-expand-${expand}`}
+                    className="navlink"
+                  >
+                      <NavDropdown.Item href="/home/about" className="subnavlink">關於</NavDropdown.Item>
+                      <NavDropdown.Item href="/home/userinfo" className="subnavlink">學生檔案</NavDropdown.Item>
+                      <NavDropdown.Item href="/home/contact" className="subnavlink">聯絡我們</NavDropdown.Item>
+                  </NavDropdown>
 
                 </Nav>
                 
                 {/*                                     搜尋欄位                         */}
-                <Form className="justify-content-center d-flex align-items-center">
+                <div className="justify-content-center d-flex align-items-center">
                    <SearchBar/>
-                </Form> 
+                </div> 
                 {/*                                     登出                         */}
                 <Logout/>
 
