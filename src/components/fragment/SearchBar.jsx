@@ -38,7 +38,6 @@ const SearchBar = () => {
                         type="search"
                         placeholder="搜尋音軌..."
                         className="searchbar form-control"
-                        // aria-label="Search"
                     />
             </form>
         </div>

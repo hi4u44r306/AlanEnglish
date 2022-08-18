@@ -1,6 +1,7 @@
 import React from 'react';
 import '../assets/scss/Developer.scss';
-import AvatarImage from "../assets/img/avatar.jpg";
+import AlanImage from "../assets/img/avatar.jpg";
+import VictorImage from "../assets/img/victor.jpg";
 
 const Developer = () => {
     return (
@@ -8,7 +9,7 @@ const Developer = () => {
             {/* <h3 className={"Developer-head"}>Meet the teacher</h3> */}
             <div className="Developer-profile">
                 <div className="Developer-profileCard">
-                    <img src={AvatarImage} alt="Profile"/>
+                    <img src={AlanImage} alt="Profile"/>
                 </div>
                 <div className="Developer-profileDetails-1">
                     <h3>Alan Hsu</h3>
@@ -29,7 +30,9 @@ const Developer = () => {
                     <p>4. 編輯速算尺講義</p>
                     <p>5. 更多教材陸續編排中...</p>
                 </div>
-
+                <div className="Developer-profileCard">
+                    <img src={VictorImage} alt="Profile"/>
+                </div>
             </div>
         </div>
     );

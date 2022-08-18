@@ -21,9 +21,12 @@ const User = (user) => {
     const getUserInfo = (user) =>{
         if(user){
             db.collection('student').doc(user.uid).get().then( doc => {
-                document.getElementById("username").innerHTML = doc.data().name;
-                document.getElementById("useremail").innerHTML = doc.data().email;
-                document.getElementById("userclass").innerHTML = doc.data().class;
+                const username = document.getElementById("username")
+                username.textContent = doc.data().name;
+                const useremail = document.getElementById("useremail")
+                useremail.textContent = doc.data().email;
+                const userclass = document.getElementById("userclass")
+                userclass.textContent = doc.data().class;
             })
         }else{
 

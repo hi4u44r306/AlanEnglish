@@ -11,10 +11,19 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
+// import React, { useState, useEffect } from "react";
 
 
 
-function Navigation(user) {
+function Navigation() {
+
+  // const [curruser, setcurrUser] = useState();
+
+  // useEffect(() => {
+  //   firebase.auth().onAuthStateChanged((user) =>{
+  //     setcurrUser(user);
+  //   })
+  // })
 
   const db = firebase.firestore();
   const getUserInfo = (user) =>{
@@ -44,7 +53,7 @@ function Navigation(user) {
     
     
   return (
-    <>
+    <div>
       {['xl'].map((expand) => (
         <Navbar key={expand} expand={expand} className="navbackground">
           <Container fluid>
@@ -88,8 +97,10 @@ function Navigation(user) {
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
                   <p className="navlabel">Welcome : </p>
+                  {/* <Nav.Link className="navlink">
+                  {curruser && <p>{curruser.email}</p>}
+                  </Nav.Link> */}
                   <Nav.Link className="navlink" id="navusername">
-                  {user.name}
                   </Nav.Link>
 
                   {/*                                    習作本                                   */}
@@ -293,7 +304,7 @@ function Navigation(user) {
           </Container>
         </Navbar>
       ))}
-    </>
+    </div>
   );
 }
 
