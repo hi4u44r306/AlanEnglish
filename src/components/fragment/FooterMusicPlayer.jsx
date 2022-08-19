@@ -59,6 +59,7 @@ function FooterMusicPlayer({music}) {
                 customControlsSection=
                 {
                     [
+                        RHAP_UI.ADDITIONAL_CONTROLS,
                         RHAP_UI.MAIN_CONTROLS,
                         <Button
                             startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
@@ -69,6 +70,7 @@ function FooterMusicPlayer({music}) {
                                 <Name name={page} className={"song-name"} length={page.length}/>
                             </div> 
                         </Button>,
+                        
                         RHAP_UI.VOLUME_CONTROLS,
                     ]
                 }

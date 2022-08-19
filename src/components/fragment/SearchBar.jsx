@@ -4,7 +4,9 @@ import {useDispatch} from "react-redux";
 import {setSearch} from "../../actions/actions";
 import {Link} from "react-router-dom";
 // import Form from 'react-bootstrap/Form';
-import SearchIcon from '@mui/icons-material/Search';
+// import SearchIcon from '@mui/icons-material/Search';
+import SearchIcon from "@material-ui/icons/SearchOutlined";
+
 
 const SearchBar = () => {
 

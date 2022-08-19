@@ -12,6 +12,12 @@
   width: 60px;
   height: 60px;
 }
+.rhap_additional-controls{
+  flex: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center
+}
 .rhap_main-controls{
   flex: 1 0;
   display: flex;
