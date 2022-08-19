@@ -49,7 +49,7 @@ const User = (user) => {
                 loading ?
                     (
                         <HashLoader 
-                        color={"#2279ff"} 
+                        color={"#fc0303"} 
                         loading={loading} 
                         size={150} 
                         />)

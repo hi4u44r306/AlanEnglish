@@ -2,12 +2,26 @@ import React, { useRef } from 'react';
 import '../assets/scss/Contactus.scss';
 import SchoolImage from "../assets/img/school.jpg";
 import emailjs from '@emailjs/browser';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 const Contact = () => {
 
     const form = useRef();
-    
+
+    const notify = () =>  {
+    toast.success('😻Send Successfully😻',{
+        position: "top-center",
+        autoClose: 2500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        });
+    };
+
 
     function sendEmail(e){
         
@@ -21,6 +35,15 @@ const Contact = () => {
           });
           e.target.reset();
     };
+
+    function inputEmpty(e){
+        var x;
+        x = document.getElementById("message").ariaValueMax;
+        if(x === " "){
+            alert("Enter message");
+            return false;
+        }
+    }
 
     return (
         <div className={"Contact"}>
@@ -45,6 +68,23 @@ const Contact = () => {
                                 <input id="message" type="text" name="message" placeholder="輸入文字"/>
                             </div>
                             <div className="row mx-auto d-flex justify-content-center">
+                                <button 
+                                className='submitbtn' 
+                                onClick={event => {
+                                    notify();
+                                    inputEmpty();
+                                }}>傳送</button>
+                                <ToastContainer
+                                position="top-center"
+                                autoClose={2500}
+                                hideProgressBar={false}
+                                newestOnTop={false}
+                                closeOnClick
+                                rtl={false}
+                                pauseOnFocusLoss
+                                draggable
+                                pauseOnHover
+                                />
                             </div>
                     </form>
                 </div>

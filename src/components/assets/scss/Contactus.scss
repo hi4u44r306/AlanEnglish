@@ -123,21 +123,22 @@
   // padding: 10px;
 }
 .submitbtn{
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #3182ec;
+  color: white;
+  border: white;
   width: 150px;
   height: 50px;
-  border-radius: 49px;
+  border-radius: 50px;
   transition: .5s;
 }
-.submitalert{
-  display: inline-block;
-  vertical-align: top;
-  position: absolute;
-  top: 18%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.submitbtn:hover{
+  background-color: #2a76da;
 }
 
 @media screen and (max-width: 500px) {
