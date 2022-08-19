@@ -4,26 +4,16 @@ import 'firebase/firestore';
 import Logout from "./Logout";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
-// import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
-// import React, { useState, useEffect } from "react";
 
 
 
 function Navigation() {
-
-  // const [curruser, setcurrUser] = useState();
-
-  // useEffect(() => {
-  //   firebase.auth().onAuthStateChanged((user) =>{
-  //     setcurrUser(user);
-  //   })
-  // })
 
   const db = firebase.firestore();
   const getUserInfo = (user) =>{

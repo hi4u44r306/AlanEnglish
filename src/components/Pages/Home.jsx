@@ -63,7 +63,7 @@ function Home() {
             {
                 !loaded ?
                     <div className="Home-skeleton">
-                        <Skeleton animation={"wave"} variant={"rect"} height={"100vh"}/>
+                        <Skeleton variant={"rect"} height={"100vh"}/>
                     </div>
                     :
                     <>

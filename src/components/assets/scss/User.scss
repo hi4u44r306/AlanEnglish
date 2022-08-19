@@ -1,9 +1,18 @@
 .User {
     font-family: 'Varela Round', sans-serif;
 }
+.loader{
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+
+}
   
 .User-profile {
     display: flex;
+    align-items: center;
+    justify-content: center;
     flex-flow: row wrap;
     background-color: #ffffff;
     padding: 5px;
