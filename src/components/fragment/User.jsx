@@ -56,25 +56,24 @@ const User = (user) => {
                                 :
                                 (
             <div className="User-profileDetails">
-            
                 <h3 className='mx-auto User-profile-title'>學生資料</h3>
                     <form>
-                        
-                                        <div className="d-flex md-3 mx-auto border border-primary userinfo">
-                                        <label>姓名:</label>
-                                        <p id="username">{user.name}</p>
-                                        </div>
-                                        <div className="d-flex md-3 mx-auto  border border-primary userinfo">
-                                            <label>Email:</label>
-                                            <p id="useremail">{user.email}</p>
-                                        </div>
-                                            <div className="d-flex md-3 mx-auto border border-primary userinfo">                                            <label>班別:</label>
-                                            <p id="userclass">{user.class}</p>
-                                        </div>
+                        <div className="d-flex md-3 mx-auto border border-primary userinfo">
+                            <label>姓名:</label>
+                            <p id="username">{user.name}</p>
+                        </div>
+                        <div className="d-flex md-3 mx-auto  border border-primary userinfo">
+                            <label>Email:</label>
+                            <p id="useremail">{user.email}</p>
+                        </div>
+                        <div className="d-flex md-3 mx-auto border border-primary userinfo">                                            
+                            <label>班別:</label>
+                            <p id="userclass">{user.class}</p>
+                        </div>
                 </form>
             </div>
             )
-            }
+        }
         </div>
     </div>
 

@@ -19,7 +19,7 @@ function Navigation() {
   const getUserInfo = (user) =>{
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
-            document.getElementById("navusername").innerHTML = doc.data().name;
+            document.getElementById("navusername").textContent = doc.data().name;
         }, err =>{
             console.log(err.message);
         });
@@ -87,9 +87,6 @@ function Navigation() {
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
                   <p className="navlabel">Welcome : </p>
-                  {/* <Nav.Link className="navlink">
-                  {curruser && <p>{curruser.email}</p>}
-                  </Nav.Link> */}
                   <Nav.Link className="navlink" id="navusername">
                   </Nav.Link>
 
