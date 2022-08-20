@@ -1,4 +1,5 @@
 .rhap_container {
+  width: 100vw;
   padding: 5px 15px !important;
 }
 .rhap_time{
@@ -32,6 +33,10 @@
 .rhap_volume-indicator{
   background-color: rgb(255, 0, 0) !important;
 }
+// 重複鍵顏色
+.rhap_repeat-button{
+  color: rgb(255, 0, 0) !important;
+}
 .rhap_progress-filled{
   background-color: rgb(255, 0, 0) !important;
 }
@@ -47,8 +52,8 @@
 
 .footer-player {
   border-top: 1px solid #e0e0e0;
-  position: relative;
-  height: 9vh;
+  position: absolute;
+  bottom: 0;
   display: flex;
   flex-direction: row;
   align-items: center;

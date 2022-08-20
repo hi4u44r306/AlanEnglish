@@ -7,14 +7,20 @@ import HashLoader from "react-spinners/HashLoader";
 const User = (user) => {
 
     const [loading, setLoading] = useState(false);
-        
+    const db = firebase.firestore();
+    const [username, setUsername] = useState();
+    const [useremail, setUseremail] = useState();
+    const [userclass, setUserclass] = useState();
+
+
     useEffect(()=>{
         setLoading(true)
         setTimeout(() =>{
             setLoading(false);
         }, 2000)
     }, [])
-    const db = firebase.firestore();
+
+    
     firebase.auth().onAuthStateChanged(user => {
         if(user){
             db.collection('student').onSnapshot(snapshot =>{
@@ -30,12 +36,9 @@ const User = (user) => {
     const getUserInfo = (user) =>{
         if(user){
             db.collection('student').doc(user.uid).get().then( doc => {
-                const username = document.getElementById("username")
-                username.textContent = doc.data().name;
-                const useremail = document.getElementById("useremail")
-                useremail.textContent = doc.data().email;
-                const userclass = document.getElementById("userclass")
-                userclass.textContent = doc.data().class;
+                setUsername(doc.data().name);
+                setUseremail(doc.data().email);
+                setUserclass(doc.data().class);
             })
         }else{
 
@@ -51,7 +54,7 @@ const User = (user) => {
                         <HashLoader 
                         color={"#fc0303"} 
                         loading={loading} 
-                        size={150} 
+                        size={100} 
                         />)
                                 :
                                 (
@@ -60,15 +63,15 @@ const User = (user) => {
                     <form>
                         <div className="d-flex md-3 mx-auto border border-primary userinfo">
                             <label>姓名:</label>
-                            <p id="username">{user.name}</p>
+                            <p>{username}</p>
                         </div>
                         <div className="d-flex md-3 mx-auto  border border-primary userinfo">
                             <label>Email:</label>
-                            <p id="useremail">{user.email}</p>
+                            <p>{useremail}</p>
                         </div>
                         <div className="d-flex md-3 mx-auto border border-primary userinfo">                                            
                             <label>班別:</label>
-                            <p id="userclass">{user.class}</p>
+                            <p>{userclass}</p>
                         </div>
                 </form>
             </div>

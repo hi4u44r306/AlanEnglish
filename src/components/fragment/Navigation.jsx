@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import Logout from "./Logout";
@@ -10,16 +10,28 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
+import RiseLoader from "react-spinners/RiseLoader";
+
 
 
 
 function Navigation() {
 
   const db = firebase.firestore();
-  const getUserInfo = (user) =>{
+  const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(()=>{
+    setLoading(true)
+    setTimeout(() =>{
+        setLoading(false);
+    }, 2000)
+}, [])
+
+  const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
-            document.getElementById("navusername").textContent = doc.data().name;
+            setnavUsername(doc.data().name)
         }, err =>{
             console.log(err.message);
         });
@@ -86,9 +98,22 @@ function Navigation() {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
-                  <p className="navlabel">Welcome : </p>
-                  <Nav.Link className="navlink" id="navusername">
-                  </Nav.Link>
+                <Nav.Link className="navlinklabel">Welcome : </Nav.Link>
+                {
+                loading ?
+                    (
+                    <RiseLoader 
+                    color={"#fc0303"} 
+                    loading={loading} 
+                    size={11} 
+                    />)
+                    :
+                    (
+                        <Nav.Link className="navlink">
+                          {navusername}
+                        </Nav.Link>
+                    )}
+                  
 
                   {/*                                    習作本                                   */}
                   <NavDropdown 
