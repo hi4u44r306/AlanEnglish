@@ -3,8 +3,11 @@ import HeadPhone from '../assets/img/headphones.svg';
 // import HeadPhone from '../assets/img/小乖.png';
 import './css/Login.scss';
 import fire from "./fire";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class Login extends React.Component{
+
     constructor(props)
     {
         super(props)
@@ -15,16 +18,41 @@ class Login extends React.Component{
             password:""
         }
     }
+    
+    success = () =>  {
+        toast.success('😻Welcome😻',{
+            position: "top-center",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
+            setTimeout(function(){window.location = "/home";} , 1200); 
+            
+        };
+
+    error = () =>  {
+        toast.error('🙀帳號密碼錯誤🙀',{
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
+        };
 
     login(e){
         e.preventDefault();
         fire.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
-        .then((u)=>{
-            console.log(u);
-            window.location = "/home";
-        }).catch((err)=>{
-            console.log(err)
-            alert("帳號密碼錯誤請再輸入一次...")
+        .then(()=>{
+            this.success();
+            
+        }).catch(()=>{
+            this.error();
         })
     }
 
@@ -33,6 +61,7 @@ class Login extends React.Component{
             [e.target.name] : e.target.value
         })
     }
+    
     render() {
         return(
             <section id="main">
@@ -91,6 +120,17 @@ class Login extends React.Component{
 
                             <button onClick={this.login} className="loginbtn">
                                 登入
+                                <ToastContainer
+                                position="top-center"
+                                autoClose={2000}
+                                hideProgressBar={false}
+                                newestOnTop={false}
+                                closeOnClick
+                                rtl={false}
+                                pauseOnFocusLoss
+                                draggable
+                                pauseOnHover
+                                />
                             </button>
                         </div>
                     </div>
