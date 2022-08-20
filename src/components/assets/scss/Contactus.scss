@@ -105,6 +105,7 @@
     color: #333;
 }
 .input-field label{
+  color: #188345;
   width: 200px;
   display: flex;
   align-items: center;
@@ -112,7 +113,6 @@
   padding: 10px;
   font-weight: 600;
   font-size: 1rem;
-  color: #333;
 }
 
 .input-field input::placeholder{
@@ -160,20 +160,20 @@
     line-height: 1;
     background: none;
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     width: 200px;
     color: #333;
     padding: 0 .4rem;
 }
   .input-field label{
+    color: #188345;
     width: 200px;
     display: flex;
     align-items: center;
     justify-content: left;
     padding: 10px;
     font-weight: 600;
-    font-size: 0.8rem;
-    color: #333;
+    font-size: 0.9rem;
   }
 }
 @media screen and (max-width: 968px) {
