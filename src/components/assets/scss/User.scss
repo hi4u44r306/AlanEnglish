@@ -80,17 +80,16 @@
       display:grid;
       grid-template-columns: 30% 70%;
       padding: 0 .4rem;
-    }
-     p{
-      outline:none;
-      border:none;
-      line-height: 1;
-      background: none;
-      font-weight: 600;
-      font-size: 0.7rem;
-      width: 200px;
-      color: #333;
-      padding: 0 .6rem;
+      .userinfo p{
+        outline:none;
+        border:none;
+        line-height: 1;
+        background: none;
+        font-weight: 600;
+        font-size: 0.7rem;
+        width: 200px;
+        padding: 0 .6rem;
+      }
   }
     .userinfo label{
       width: 100px;

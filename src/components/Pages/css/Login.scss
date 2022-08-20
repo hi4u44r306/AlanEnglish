@@ -185,6 +185,7 @@
     .main-row-img{
       .english-method{
         p{
+          color: #ffffff;
           font-size: 15px !important;
         } 
       }
@@ -206,10 +207,5 @@
   }
 }
 
-@media only screen and (max-width: 500px) {
-  .english-method{
-    font-size: 15px !important;
-    margin: 20px !important;
-  }
-}
+
 
