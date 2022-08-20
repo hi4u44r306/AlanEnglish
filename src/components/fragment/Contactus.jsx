@@ -9,8 +9,43 @@ import 'react-toastify/dist/ReactToastify.css';
 const Contact = () => {
 
     const form = useRef();
+    const inputname = useRef();
+    const inputemail = useRef();
+    const inputphone = useRef();
+    const inputmessage = useRef();
+    
+    function inputValidate(e){
+        e.preventDefault();
+        if(inputname.current.value === "" || inputemail.current.value === "" || inputphone.current.value === ""|| inputmessage.current.value === ""){
+            error();
+        }else{
+            sendEmail();
+            success();
+            clear();
+        }
+    }
 
-    const notify = () =>  {
+    const clear = () => {
+        inputname.current.value = '';
+        inputemail.current.value = '';
+        inputphone.current.value = '';
+        inputmessage.current.value = '';
+    }
+    
+
+    const error = () =>  {
+        toast.error('🙀欄位不能空白🙀',{
+            position: "top-center",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
+        };
+
+    const success = () =>  {
     toast.success('😻Send Successfully😻',{
         position: "top-center",
         autoClose: 2500,
@@ -22,61 +57,44 @@ const Contact = () => {
         });
     };
 
-
-    function sendEmail(e){
+    function sendEmail(){
         
-        e.preventDefault();
-
         emailjs.sendForm('service_dgvbyle', 'Alan_English_Template', form.current, 'We6SlHIMVHI0rIZrp')
           .then((result) => {
               console.log(result.text);
           }, (error) => {
               console.log(error.text);
           });
-          e.target.reset();
     };
 
-    function inputEmpty(e){
-        var x;
-        x = document.getElementById("message").ariaValueMax;
-        if(x === " "){
-            alert("Enter message");
-            return false;
-        }
-    }
 
     return (
         <div className={"Contact"}>
             <div className="Contact-profile">
                 <div className="Contact-profileDetails">
                 <h3 className='mx-auto'>聯絡我們</h3>
-                    <form ref={form} onSubmit={sendEmail}>
+                    <form ref={form} onSubmit={inputValidate}>
                             <div className="md-3 mx-auto border border-primary input-field">
                                 <label>姓名</label>
-                                <input id="message" type="text" name="name" placeholder="輸入姓名" />
+                                <input ref={inputname} id="message" type="text" name="name" placeholder="輸入姓名" />
                             </div>
                             <div className="md-3 mx-auto border border-primary input-field">
                                 <label>Email</label>
-                                <input id="message" type="email" name="email" placeholder="輸入Email" />
+                                <input ref={inputemail} id="message" type="email" name="email" placeholder="輸入Email" />
                             </div>
                             <div className="md-3 mx-auto border border-primary input-field">
                                 <label>連絡電話</label>
-                                <input id="message" type="phone" name="phone" placeholder="輸入電話號碼"/>
+                                <input ref={inputphone} id="message" type="phone" name="phone" placeholder="輸入電話號碼"/>
                             </div>
                             <div className="md-3 mx-auto border border-primary input-field">
                                 <label>留言</label>
-                                <input id="message" type="text" name="message" placeholder="輸入文字"/>
+                                <input ref={inputmessage} id="message" type="text" name="message" placeholder="輸入文字"/>
                             </div>
                             <div className="row mx-auto d-flex justify-content-center">
-                                <button 
-                                className='submitbtn' 
-                                onClick={event => {
-                                    notify();
-                                    inputEmpty();
-                                }}>傳送</button>
+                                <button className='submitbtn' onClick={inputValidate}>傳送</button>
                                 <ToastContainer
                                 position="top-center"
-                                autoClose={2500}
+                                autoClose={2000}
                                 hideProgressBar={false}
                                 newestOnTop={false}
                                 closeOnClick

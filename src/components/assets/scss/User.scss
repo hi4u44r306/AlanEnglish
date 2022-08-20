@@ -1,5 +1,5 @@
 .User {
-    font-family: 'Varela Round', sans-serif;
+  font-family: 'Varela Round', sans-serif;
 }
 .loader{
   display: flex;
@@ -38,7 +38,7 @@
     display: flex;
     max-width: 500px;
     width: 100%;
-    height: 50px;
+    height: 60px;
     background-color: #f5dd9e;
     margin: 35px 10px;
     border-radius: 55px ;
@@ -48,15 +48,12 @@
 }
   
 .userinfo p{
-      display: flex;
-      align-items: center;
-      background:none;
-      outline:none;
-      border:none;
-      line-height: 1;
-      font-weight: 600;
-      font-size: 1rem;
-      color: #333;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #333;
 }
 
 .userinfo label{
@@ -84,7 +81,7 @@
       grid-template-columns: 30% 70%;
       padding: 0 .4rem;
     }
-    .userinfo p{
+     p{
       outline:none;
       border:none;
       line-height: 1;

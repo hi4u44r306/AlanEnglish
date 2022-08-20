@@ -30,13 +30,11 @@
     overflow-y:scroll;
     align-items: center;
     .Developer-profileCard{
-      // flex: 1 1 200px;
       padding: 2.8vh;
       img {
-        border: 1px solid #000;
         border-radius: 20px;
         padding: 2px;
-        width: 23vw;
+        width: 25vw;
       }
       .Card-details {
         border-radius: 20px;
@@ -67,19 +65,16 @@
     
     .Developer-profileDetails-1 {
       color: #188345;
-      margin: 20px;
       font-weight: 600;
-      // flex-grow: 0;
       display: flex;
       flex-direction: column;
-      // justify-content: space-between;
       h3{
         font-family: 'Poppins' !important;
         font-weight: 900;
         padding: 10px;
       }
       p {
-        padding: 10px;
+        padding: 5px;
         letter-spacing: 1px;
         text-transform: uppercase;
       }
@@ -89,7 +84,6 @@
 
     .Developer-profileDetails-2 {
       color: #188345;
-      margin: 20px;
       font-weight: 600;
       flex-grow: 1;
       display: flex;
@@ -101,7 +95,7 @@
         padding: 10px;
       }
       p {
-        padding: 10px;
+        padding: 5px;
         letter-spacing: 1px;
         text-transform: uppercase;
       }
