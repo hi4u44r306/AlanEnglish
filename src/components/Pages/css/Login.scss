@@ -27,7 +27,7 @@
     flex-flow: row wrap;
     justify-content: space-between;
     align-items: center;
-    height: 85vh;
+    height: 80vh;
     .main-row-img{
       flex-basis: 50%;
       flex-grow: 1;
@@ -52,12 +52,12 @@
       flex-grow: 1;
 
       .loginbrand{
-        padding: 10px;
-        font-size: 60px;
         font-family: 'Varela Round', sans-serif;
+        font-size: 60px;
         font-weight: 900;
-        letter-spacing: 5px;
+        letter-spacing: 3px;
         cursor: pointer;
+
       }
       
       .loginbrand span:nth-child(1){
@@ -139,7 +139,7 @@
       }
     }
     .loginbtn {
-      margin: 9px 0px;
+      margin: 10px 0px;
       padding: 10px 20px;
       font-size: 1rem;
       letter-spacing: 5px;
@@ -168,14 +168,17 @@
 
 @media only screen and (max-width: 789px) {
   .loginbrand{
-    font-size: 1.8rem !important;
+    span{
+      font-size: 2rem;
+    }
   }
   .main-row-text{
     label{
-      font-size: 15px !important;
+      font-size: 20px !important;
     }
     input{
       font-size: 15px !important;
+      width: 70% !important;
     }
   }
   .main-row {
