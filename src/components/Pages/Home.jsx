@@ -66,9 +66,8 @@ function Home() {
                     </div>
                     :
                     <>
-                        <Navigation/>
                         <section className={"home-music-container"}>
-                            
+                            <Navigation/>
                             <div className="main-home">
                                 {
                                     Page

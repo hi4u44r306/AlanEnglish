@@ -27,11 +27,15 @@ const SearchBar = () => {
     };
 
     return (
-        <div className="searchbarcontainer">
-            <SearchIcon/>
+        <div>
             <form onSubmit={handleSearch}>
                 <Link to={"/home/search"} ref={searchLink}/>
-                    <input
+                <div className="searchcontainer">
+                    <div className="searchimg">
+                    <SearchIcon/>
+                    </div>
+                    <div className="serachinput">
+                         <input
                         onSubmit={handleSearch} 
                         name={"searchQuery"}
                         value={searchQuery}
@@ -41,6 +45,9 @@ const SearchBar = () => {
                         placeholder="搜尋音軌..."
                         className="searchbar form-control"
                     />
+                    </div>
+                   
+                </div>
             </form>
         </div>
     );

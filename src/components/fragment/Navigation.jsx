@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from "react";
+import { Link } from 'react-router-dom';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import Logout from "./Logout";
@@ -51,15 +52,15 @@ function Navigation() {
             getUserInfo();
         }
     })
-    
-    
+
+ 
     
   return (
     <div>
       {['xl'].map((expand) => (
         <Navbar key={expand} expand={expand} className="navbackground">
           <Container fluid>
-                <Navbar.Brand href="/home" className="brand">
+                <Navbar.Brand as={Link} to="/home" className="brand">
                     <span>A</span>
                     <span>L</span>
                     <span>A</span>
@@ -81,7 +82,7 @@ function Navigation() {
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`} className="brand" href="/home">
+                <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`} className="brand" as={Link} to="/home">
                     <span>A</span>
                     <span>L</span>
                     <span>A</span>
@@ -121,14 +122,14 @@ function Navigation() {
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                        <NavDropdown.Item href="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">習作本3</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_5" className="subnavlink">習作本5 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_6" className="subnavlink">習作本6 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_3" className="subnavlink">習作本3</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_5" className="subnavlink">習作本5 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_6" className="subnavlink">習作本6 建構中...</NavDropdown.Item>
                         <NavDropdown.Divider />
-                        <NavDropdown.Item href="#" className="navlink">
+                        <NavDropdown.Item as={Link} to="#" className="navlink">
                             持續編輯中....
                         </NavDropdown.Item>
                   </NavDropdown>
@@ -151,12 +152,12 @@ function Navigation() {
                               // variant="secondary"
                               title={` 習作本1專用聽力本 `}
                             >
-                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
                         
                             </NavDropdown>
                             
@@ -173,12 +174,12 @@ function Navigation() {
                               // variant="secondary"
                               title={` 習作本2專用聽力本 `}
                             >
-                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
                         
                             </NavDropdown>
                             
@@ -196,12 +197,12 @@ function Navigation() {
                               // variant="secondary"
                               title={` 習作本3專用聽力本 `}
                             >
-                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
                         
                             </NavDropdown>
                             
@@ -219,12 +220,12 @@ function Navigation() {
                               // variant="secondary"
                               title={` 習作本4專用聽力本 `}
                             >
-                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
                         
                             </NavDropdown>
                             
@@ -241,12 +242,12 @@ function Navigation() {
                               // variant="secondary"
                               title={` 習作本5專用聽力本 `}
                             >
-                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
                         
                             </NavDropdown>
                             
@@ -263,12 +264,12 @@ function Navigation() {
                               // variant="secondary"
                               title={` 習作本6專用聽力本 `}
                             >
-                             <NavDropdown.Item href="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
-                             <NavDropdown.Item href="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">聽力本1 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">聽力本2 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">聽力本3 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">聽力本4 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">聽力本5 建構中...</NavDropdown.Item>
+                             <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">聽力本6 建構中...</NavDropdown.Item>
                         
                             </NavDropdown>
                             
@@ -285,10 +286,10 @@ function Navigation() {
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                    <NavDropdown.Item href="/home/playlist/SER1" className="subnavlink">Super Easy Reading 3e 1</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/STEAM1" className="subnavlink">Steam Reading 1</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/SARC1" className="subnavlink">Short Articles Reading 1"</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/RL1" className="subnavlink">Reading Lamp 1</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/SER1" className="subnavlink">Super Easy Reading 3e 1</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/STEAM1" className="subnavlink">Steam Reading 1</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/SARC1" className="subnavlink">Short Articles Reading 1"</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/RL1" className="subnavlink">Reading Lamp 1</NavDropdown.Item>
                   </NavDropdown>
 
                     {/*                                    更多                                   */}
@@ -297,9 +298,9 @@ function Navigation() {
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                      <NavDropdown.Item href="/home/about" className="subnavlink">關於</NavDropdown.Item>
-                      <NavDropdown.Item href="/home/userinfo" className="subnavlink">學生檔案</NavDropdown.Item>
-                      <NavDropdown.Item href="/home/contact" className="subnavlink">聯絡我們</NavDropdown.Item>
+                      <NavDropdown.Item as={Link} to="/home/about" className="subnavlink">關於</NavDropdown.Item>
+                      <NavDropdown.Item as={Link} to="/home/userinfo" className="subnavlink">學生檔案</NavDropdown.Item>
+                      <NavDropdown.Item as={Link} to="/home/contact" className="subnavlink">聯絡我們</NavDropdown.Item>
                   </NavDropdown>
 
                 </Nav>
