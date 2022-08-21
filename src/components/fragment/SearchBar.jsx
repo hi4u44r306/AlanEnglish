@@ -35,7 +35,7 @@ const SearchBar = () => {
                     <SearchIcon/>
                     </div>
                     <div className="serachinput">
-                         <input
+                        <input
                         onSubmit={handleSearch} 
                         name={"searchQuery"}
                         value={searchQuery}

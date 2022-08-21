@@ -12,6 +12,7 @@ import Button from "@material-ui/core/Button";
 function FooterMusicPlayer({music}) {
 
     const [{ id, bookname, page , img, musicName}, setCurrTrack] = useState(music);
+    const musicsrc = require("../assets/music/" + musicName).default;
     const [bannerToggle,setBannerToggle] = useState(false);
     const audioElement = useRef();
     const dispatch = useDispatch();
@@ -34,7 +35,7 @@ function FooterMusicPlayer({music}) {
         let currTrackId = (id+1) % playlists.length;
         dispatch(setCurrentPlaying(playlists[currTrackId]));
       };
-    const handleClickEnd = () => {
+    const handleClickPrev = () => {
         console.log('end')
         let currTrackId = (id-1) % playlists.length;
         if ((id-1)<=-1){
@@ -42,6 +43,11 @@ function FooterMusicPlayer({music}) {
         }
         dispatch(setCurrentPlaying(playlists[currTrackId]));
     };
+    const handleEnd = () =>{
+        console.log('end')
+        let currTrackId = (id+1) % playlists.length;
+        dispatch(setCurrentPlaying(playlists[currTrackId]));
+    }
 
 
     return (
@@ -52,11 +58,12 @@ function FooterMusicPlayer({music}) {
                 progressUpdateInterval={50}
                 volume={0.5}
                 ref={audioElement}
-                src={require("../assets/music/" + musicName).default}
+                src={musicsrc}
                 showSkipControls={true}
                 showJumpControls={false}
                 onClickNext={handleClickNext}
-                onClickPrevious={handleClickEnd}
+                onClickPrevious={handleClickPrev}
+                onEnded={handleEnd}
                 customControlsSection=
                 {
                     [
