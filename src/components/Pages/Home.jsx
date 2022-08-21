@@ -1,10 +1,10 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, { useEffect, useState} from "react";
 import './css/Home.scss';
 import Navigation from "../fragment/Navigation";
+import NavigationMobile from "../fragment/NavigationMobile";
 import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
 import MusicCardContainer from "../fragment/MusicCardContainer";
 import {useSelector} from "react-redux";
-import {ThemeContext} from "../../api/Theme";
 import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
 import About from "./About";
@@ -35,15 +35,21 @@ function getCurrPage(pathName) {
 
 function Home() {
 
+    const [screenSize, setScreenSize] = useState(undefined);
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
+
+    window.addEventListener("resize", handleResize);
+
+    function handleResize() {
+        setScreenSize(window.innerWidth);
+    }
 
     let pathname = window.location.pathname;
     useEffect(() => {
         setCurrPage(getCurrPage(pathname))
     }, [pathname]);
 
-    const useStyle = useContext(ThemeContext);
     const {playing, bannerOpen} = useSelector(state => state.musicReducer);
 
 
@@ -58,7 +64,7 @@ function Home() {
 
 
     return (
-        <div style={useStyle.component} className={"home-container"}>
+        <div className={"home-container"}>
             {
                 !loaded ?
                     <div className="Home-skeleton">
@@ -66,8 +72,12 @@ function Home() {
                     </div>
                     :
                     <>
+                        {
+                            screenSize <= 1200 ?
+                                <NavigationMobile/> :
+                                <Navigation/>
+                        }
                         <section className={"home-music-container"}>
-                            <Navigation/>
                             <div className="main-home">
                                 {
                                     Page
