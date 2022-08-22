@@ -24,7 +24,7 @@ function FooterEmpty() {
                             <Button
                             className="curr-music-container">
                             <div className="curr-music-details">
-                                <Name name={"no music yet"} className={"nomusicname"}/>
+                                <Name name={"no music yet"} className={"emptysong-name"}/>
                             </div> 
                             </Button>,
                     RHAP_UI.VOLUME_CONTROLS,

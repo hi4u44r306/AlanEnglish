@@ -7,6 +7,12 @@
   font-weight: lighter;
   color: gray;
 }
+.emptysong-name{
+  font-weight: bolder;
+  font-size: 1rem;
+  text-align: center;
+  color: red;
+}
 
 @media only screen and (max-width: 968px) {
   .song-name{
@@ -14,5 +20,13 @@
   }
   .author-name{
     font-size: 0.7rem;
+  }
+}
+@media only screen and (max-width: 500px) {
+  .emptysong-name{
+    font-weight: bolder;
+    font-size: 0.5rem;
+    text-align: center;
+    color: red;
   }
 }

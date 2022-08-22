@@ -1,7 +1,7 @@
 .navbackground{
   // background-color: rgb(246, 246, 246);
   background-color: rgb(255, 227, 200);
-  height: 10vh;
+  height: 9vh;
 }
 
 .toggle{
@@ -142,3 +142,14 @@
   }
 }
 
+@media only screen and (max-width: 360px) {
+  .brand {
+    font-size: 22px;
+  }
+}
+
+@media only screen and (max-width: 320px) {
+  .brand {
+    font-size: 18px;
+  }
+}
