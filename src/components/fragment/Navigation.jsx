@@ -57,8 +57,7 @@ function Navigation() {
     
   return (
     <div>
-      {['xl'].map((expand) => (
-        <Navbar collapseOnSelect key={expand} expand={expand} className="navbackground">
+        <Navbar collapseOnSelect className="navbackground">
           <Container fluid>
                 <Navbar.Brand as={Link} to="/home" className="brand">
                     <span>A</span>
@@ -75,14 +74,14 @@ function Navigation() {
                     <span>H</span>
                 </Navbar.Brand>
                 
-            <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`} />
+            <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand`} />
             <Navbar.Offcanvas
-              id={`offcanvasNavbar-expand-${expand}`}
-              aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
+              id={`offcanvasNavbar-expand`}
+              aria-labelledby={`offcanvasNavbarLabel-expand`}
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`} className="brand" as={Link} to="/home">
+                <Offcanvas.Title id={`offcanvasNavbarLabel-expand`} className="brand" as={Link} to="/home">
                     <span>A</span>
                     <span>L</span>
                     <span>A</span>
@@ -119,7 +118,7 @@ function Navigation() {
                   {/*                                    習作本                                   */}
                   <NavDropdown 
                     title="習作本"
-                    id={`offcanvasNavbarDropdown-expand-${expand}`}
+                    id={`offcanvasNavbarDropdown-expand`}
                     className="navlink"
                   >
                         <NavDropdown.Item as={Link} to="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
@@ -139,7 +138,7 @@ function Navigation() {
                   {/*                                    聽力本                                     */}
                   <NavDropdown
                     title="聽力本"
-                    id={`offcanvasNavbarDropdown-expand-${expand}`}
+                    id={`offcanvasNavbarDropdown-expand`}
                     className="navlink"
                   >
                     {/*                              習作本 1                                   */}
@@ -283,7 +282,7 @@ function Navigation() {
                   {/*                                    閱讀聽力                                     */}
                   <NavDropdown
                     title="閱讀&聽力"
-                    id={`offcanvasNavbarDropdown-expand-${expand}`}
+                    id={`offcanvasNavbarDropdown-expand`}
                     className="navlink"
                   >
                     <NavDropdown.Item as={Link} to="/home/playlist/SER1" className="subnavlink">Super Easy Reading 3e 1</NavDropdown.Item>
@@ -295,7 +294,7 @@ function Navigation() {
                     {/*                                    更多                                   */}
                   <NavDropdown 
                     title="更多"
-                    id={`offcanvasNavbarDropdown-expand-${expand}`}
+                    id={`offcanvasNavbarDropdown-expand`}
                     className="navlink"
                   >
                       <NavDropdown.Item as={Link} to="/home/about" className="subnavlink">關於</NavDropdown.Item>
@@ -316,7 +315,6 @@ function Navigation() {
             </Navbar.Offcanvas>
           </Container>
         </Navbar>
-      ))}
     </div>
   );
 }
