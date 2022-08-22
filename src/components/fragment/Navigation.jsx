@@ -58,7 +58,7 @@ function Navigation() {
   return (
     <div>
       {['xl'].map((expand) => (
-        <Navbar key={expand} expand={expand} className="navbackground">
+        <Navbar collapseOnSelect key={expand} expand={expand} className="navbackground">
           <Container fluid>
                 <Navbar.Brand as={Link} to="/home" className="brand">
                     <span>A</span>
@@ -98,7 +98,7 @@ function Navigation() {
                 </Offcanvas.Title>
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
-                <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
+                <Nav className="justify-content-end mx-3 flex-grow-1 pe-3 d-flex align-items-center">
                 <Nav.Link className="navlinklabel">Welcome : </Nav.Link>
                 {
                 loading ?

@@ -35,7 +35,7 @@ function getCurrPage(pathName) {
 
 function Home() {
 
-    const [screenSize, setScreenSize] = useState(undefined);
+    const [screenSize, setScreenSize] = useState(true);
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
 
@@ -73,8 +73,10 @@ function Home() {
                     :
                     <>
                         {
-                            screenSize <= 1200 ?
-                                <NavigationMobile/> :
+                            screenSize <= 1200 
+                                ?
+                                <NavigationMobile/> 
+                                :
                                 <Navigation/>
                         }
                         <section className={"home-music-container"}>

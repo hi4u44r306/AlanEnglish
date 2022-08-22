@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from "react";
-// import { Link } from 'react-router-dom';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import Logout from "./Logout";
@@ -57,23 +56,22 @@ function NavigationMobile() {
   return (
     <div>
       {['xl'].map((expand) => (
-        <Navbar key={expand} expand={expand} className="navbackground">
+        <Navbar collapseOnSelect key={expand} expand={expand} className="navbackground">
           <Container fluid>
-                <Navbar.Brand href="/home" className="brand">
-                    <span>A</span>
-                    <span>L</span>
-                    <span>A</span>
-                    <span>N</span>
-                    <span> </span>
-                    <span>E</span>
-                    <span>N</span>
-                    <span>G</span>
-                    <span>L</span>
-                    <span>I</span>
-                    <span>S</span>
-                    <span>H</span>
-                </Navbar.Brand>
-                
+            <Navbar.Brand href="/home" className="brand">
+              <span>A</span>
+              <span>L</span>
+              <span>A</span>
+              <span>N</span>
+              <span> </span>
+              <span>E</span>
+              <span>N</span>
+              <span>G</span>
+              <span>L</span>
+              <span>I</span>
+              <span>S</span>
+              <span>H</span>
+            </Navbar.Brand>
             <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`} />
             <Navbar.Offcanvas
               id={`offcanvasNavbar-expand-${expand}`}
@@ -81,23 +79,23 @@ function NavigationMobile() {
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title id={`offcanvasNavbarLabel-expand-${expand}`} className="brand" href="/home">
-                    <span>A</span>
-                    <span>L</span>
-                    <span>A</span>
-                    <span>N</span>
-                    <span> </span>
-                    <span>E</span>
-                    <span>N</span>
-                    <span>G</span>
-                    <span>L</span>
-                    <span>I</span>
-                    <span>S</span>
-                    <span>H</span>
+                <Offcanvas.Title className="brand" href="/home" id={`offcanvasNavbarLabel-expand-${expand}`}>
+                  <span>A</span>
+                  <span>L</span>
+                  <span>A</span>
+                  <span>N</span>
+                  <span> </span>
+                  <span>E</span>
+                  <span>N</span>
+                  <span>G</span>
+                  <span>L</span>
+                  <span>I</span>
+                  <span>S</span>
+                  <span>H</span>
                 </Offcanvas.Title>
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
-                <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
+                <Nav className="d-flex align-items-center justify-content-end flex-grow-1 pe-3">
                 <Nav.Link className="navlinklabel">Welcome : </Nav.Link>
                 {
                 loading ?
@@ -113,28 +111,23 @@ function NavigationMobile() {
                           {navusername}
                         </Nav.Link>
                     )}
-                  
-
                   {/*                                    習作本                                   */}
-                  <NavDropdown 
+                  <NavDropdown
                     title="習作本"
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                        <NavDropdown.Item href="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">習作本3</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_5" className="subnavlink">習作本5 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item href="/home/playlist/Workbook_6" className="subnavlink">習作本6 建構中...</NavDropdown.Item>
-                        <NavDropdown.Divider />
-                        <NavDropdown.Item href="#" className="navlink">
-                            持續編輯中....
-                        </NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Workbook_3" className="subnavlink">習作本3</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Workbook_5" className="subnavlink">習作本5 建構中...</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/Workbook_6" className="subnavlink">習作本6 建構中...</NavDropdown.Item>
+                    <NavDropdown.Divider />
+                    <NavDropdown.Item href="#" className="navlink">
+                        持續編輯中....
+                    </NavDropdown.Item>
                   </NavDropdown>
-
-
-
                   {/*                                    聽力本                                     */}
                   <NavDropdown
                     title="聽力本"
@@ -277,8 +270,6 @@ function NavigationMobile() {
                           ))}
                   
                   </NavDropdown>
-                  
-
                   {/*                                    閱讀聽力                                     */}
                   <NavDropdown
                     title="閱讀&聽力"
@@ -301,16 +292,13 @@ function NavigationMobile() {
                       <NavDropdown.Item href="/home/userinfo" className="subnavlink">學生檔案</NavDropdown.Item>
                       <NavDropdown.Item href="/home/contact" className="subnavlink">聯絡我們</NavDropdown.Item>
                   </NavDropdown>
-
                 </Nav>
-                
-                {/*                                     搜尋欄位                         */}
-                <div className="justify-content-center d-flex align-items-center">
+                 {/*                                     搜尋欄位                         */}
+                 <div className="justify-content-center d-flex align-items-center">
                    <SearchBar/>
                 </div> 
                 {/*                                     登出                         */}
                 <Logout/>
-
               </Offcanvas.Body>
             </Navbar.Offcanvas>
           </Container>
