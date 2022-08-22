@@ -1,9 +1,9 @@
 .Container{
-  height: 75vh;
+  height: 77vh;
   overflow-y:scroll
 }
-// @media only screen and (max-width: 970px) {
-//   .Container {
-//     height: 90vh;
-//   }
-// }
+@media only screen and (max-width: 970px) {
+  .Container {
+    height: 70vh;
+  }
+}
