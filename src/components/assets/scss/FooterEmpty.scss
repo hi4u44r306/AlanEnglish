@@ -1,9 +1,10 @@
 .rhap_container {
+  visibility: visible;
   width: 100vw;
-  padding: 9px 30px !important;
+  padding: 9px 30px;
 }
 .rhap_time{
-  font-weight: 900 !important;
+  font-weight: 900;
 }
 .rhap_main-controls-button{
   margin: 0 15px;
@@ -49,7 +50,12 @@
 .rhap_additional-controls{
   color: rgb(0, 145, 255) !important;
 }
-
+.nomusicname{
+  font-weight: bolder;
+  font-size: 1.2rem;
+  color: rgb(255, 0, 0);
+  text-align: center;
+}
 .footer-player {
   height: 15vh;
   position: absolute;

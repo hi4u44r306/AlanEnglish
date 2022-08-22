@@ -25,9 +25,7 @@
   .Developer-profile {
     display: flex;
     background-color: #ffffff;
-    padding: 5px;
     height: 75vh;
-    overflow-y:scroll;
     align-items: center;
     .Developer-profileCard{
       padding: 2.8vh;
@@ -105,7 +103,6 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: space-evenly;
-        background-color: rgba(255, 255, 255, 0.593);
         a {
           padding: 15px;
           color: white;

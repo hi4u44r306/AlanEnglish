@@ -12,6 +12,7 @@ import Playlist from "../fragment/Playlist";
 import {Skeleton} from "@material-ui/lab";
 import Contact from "./Contact";
 import UserInfo from "./UserInfo";
+import FooterEmpty from "../fragment/FooterEmpty";
 
 function getCurrPage(pathName) {
     switch (pathName) {
@@ -99,7 +100,7 @@ function Home() {
                                     ?
                                     <FooterMusicPlayer music={currMusic}/>
                                     :
-                                    <></>
+                                    <FooterEmpty/>
                             }
                         </React.Fragment>
                     </>
