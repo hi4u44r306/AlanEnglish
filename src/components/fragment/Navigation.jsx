@@ -109,7 +109,7 @@ function Navigation() {
                     />)
                     :
                     (
-                        <Nav.Link as={Link} to="/home/userinfo" className="navlink">
+                        <Nav.Link as={Link} to="/home/userinfo" className="navusername">
                           {navusername}
                         </Nav.Link>
                     )}

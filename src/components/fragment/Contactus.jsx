@@ -36,7 +36,7 @@ const Contact = () => {
     const error = () =>  {
         toast.error('🙀欄位不能空白🙀',{
             position: "top-center",
-            autoClose: 1000,
+            autoClose: 2500,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: false,

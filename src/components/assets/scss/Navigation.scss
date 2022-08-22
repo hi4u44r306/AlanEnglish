@@ -1,7 +1,6 @@
 .navbackground{
-  // background-color: rgb(246, 246, 246);
   background-color: rgb(255, 227, 200);
-  height: 9vh;
+  height: 10vh;
 }
 
 .toggle{
@@ -11,11 +10,25 @@
 .dropdown-menu{
   width: 300px !important;
 }
+.dropdown-toggle{
+  color: #005b7f;
+}
+.dropdown-toggle:hover{
+  color: #2d7dd2;
+  border-bottom: 4px solid #2d7dd2;
+}
+.navusername{
+  color: #005b7f;
+}
+.navusername:hover{
+  color: #2d7dd2;
+  border-bottom: 4px solid #2d7dd2;
+}
 
 .navlabel{
   padding: auto;
   color: #2d7dd2;
-  font-size: 20px;
+  font-size: 18px;
   font-family: 'Varela Round', sans-serif;
   font-weight: 900;
   cursor: pointer;
@@ -23,11 +36,11 @@
 .navlink{
   padding: auto;
   color: black !important;
-  font-size: 20px;
+  font-size: 18px;
   font-family: 'Varela Round', sans-serif;
   font-weight: 900;
 }
-.navlink:hover{
+.navlink:hover{ 
   transition: 0.7s ;
   color:  rgb(0, 136, 255);
   border-radius: 5px;
@@ -35,7 +48,7 @@
 .navlinklabel{
   padding: auto;
   color: rgb(0, 140, 255) !important;
-  font-size: 20px;
+  font-size: 18px;
   font-family: 'Varela Round', sans-serif;
   font-weight: 900;
 }
