@@ -1,6 +1,5 @@
 .User {
   font-family: 'Varela Round', sans-serif;
-
 }
 .loader{
   display: flex;
@@ -76,6 +75,11 @@
 
   
   @media screen and (max-width: 500px) {
+    .User-Image{
+      img{
+        display: none;
+      }
+    }
     .userinfo{
       display: flex;
       max-width: 350px;

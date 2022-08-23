@@ -1,5 +1,5 @@
 import React from "react";
-import "../assets/scss/Brand.scss";
+import "../assets/scss/Logout.scss";
 import fire from "../Pages/fire";
 
 class Logout extends React.Component {
