@@ -3,6 +3,7 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import '../assets/scss/User.scss';
 import HashLoader from "react-spinners/HashLoader";
+import UserImage1 from "../assets/img/User-Image1.png";
 
 const User = (user) => {
 
@@ -48,6 +49,9 @@ const User = (user) => {
   return (
     <div className={"User"}>
         <div className="User-profile">
+            <div className="User-Image">
+                <img src={UserImage1} alt=""/>
+            </div>
         {
                 loading ?
                     (
@@ -59,17 +63,17 @@ const User = (user) => {
                                 :
                                 (
             <div className="User-profileDetails">
-                <h3 className='mx-auto User-profile-title'>學生資料</h3>
+                <h3 className='User-profile-title'>學生資料</h3>
                     <form>
-                        <div className="d-flex md-3 mx-auto border border-primary userinfo">
+                        <div className="userinfo">
                             <label>姓名:</label>
                             <p>{username}</p>
                         </div>
-                        <div className="d-flex md-3 mx-auto  border border-primary userinfo">
+                        <div className="userinfo">
                             <label>Email:</label>
                             <p>{useremail}</p>
                         </div>
-                        <div className="d-flex md-3 mx-auto border border-primary userinfo">                                            
+                        <div className="userinfo">                                            
                             <label>班別:</label>
                             <p>{userclass}</p>
                         </div>
@@ -77,6 +81,9 @@ const User = (user) => {
             </div>
             )
         }
+            <div className="User-Image">
+                <img src={UserImage1} alt="Profile"/>
+            </div>
         </div>
     </div>
 

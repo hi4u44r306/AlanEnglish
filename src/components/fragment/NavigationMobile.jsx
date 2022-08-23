@@ -103,7 +103,7 @@ function NavigationMobile() {
                     <RiseLoader 
                     color={"#fc0303"} 
                     loading={loading} 
-                    size={11} 
+                    size={10} 
                     />)
                     :
                     (
@@ -277,7 +277,7 @@ function NavigationMobile() {
                     className="navlink"
                   >
                     <NavDropdown.Item href="/home/playlist/SER1" className="subnavlink">Super Easy Reading 3e 1</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/STEAM1" className="subnavlink">Steam Reading 1</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/STEAM1" className="subnavlink">Steam Reading E1</NavDropdown.Item>
                     <NavDropdown.Item href="/home/playlist/SARC1" className="subnavlink">Short Articles Reading 1"</NavDropdown.Item>
                     <NavDropdown.Item href="/home/playlist/RL1" className="subnavlink">Reading Lamp 1</NavDropdown.Item>
                   </NavDropdown>

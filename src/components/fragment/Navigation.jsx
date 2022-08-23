@@ -105,14 +105,14 @@ function Navigation() {
                     <RiseLoader 
                     color={"#fc0303"} 
                     loading={loading} 
-                    size={11} 
+                    size={10} 
                     />)
                     :
                     (
                         <Nav.Link as={Link} to="/home/userinfo" className="navusername">
                           {navusername}
                         </Nav.Link>
-                    )}
+                )}
                   
 
                   {/*                                    習作本                                   */}
@@ -286,7 +286,7 @@ function Navigation() {
                     className="navlink"
                   >
                     <NavDropdown.Item as={Link} to="/home/playlist/SER1" className="subnavlink">Super Easy Reading 3e 1</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/STEAM1" className="subnavlink">Steam Reading 1</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/STEAM1" className="subnavlink">Steam Reading E1</NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/home/playlist/SARC1" className="subnavlink">Short Articles Reading 1"</NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/home/playlist/RL1" className="subnavlink">Reading Lamp 1</NavDropdown.Item>
                   </NavDropdown>

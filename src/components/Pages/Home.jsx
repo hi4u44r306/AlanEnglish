@@ -87,6 +87,9 @@ function Home() {
                                 }
                             </div>
                         </section>
+                        <section className={"copyright-container"}>
+                            <div className="copyright">© 2022 AlanEnglish Inc.</div>
+                        </section>
                         {
                             bannerOpen
                             &&
@@ -102,8 +105,8 @@ function Home() {
                                     :
                                     <FooterEmpty/>
                             }
-                        </React.Fragment>
-                    </>
+                        </React.Fragment> 
+                    </>  
             }
         </div>
     );

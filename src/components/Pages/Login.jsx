@@ -1,6 +1,6 @@
 import React from "react";
-import HeadPhone from '../assets/img/headphones.svg';
-// import HeadPhone from '../assets/img/小乖.png';
+// import HeadPhone from '../assets/img/headphones.svg';
+import HeadPhone from '../assets/img/User-Image1.png';
 import './css/Login.scss';
 import fire from "./fire";
 import { ToastContainer, toast } from 'react-toastify';
@@ -65,9 +65,6 @@ class Login extends React.Component{
     render() {
         return(
             <section id="main">
-                    <div className="nav-item">
-                        <a className="navbar-brand" href="/">Alan English</a>
-                    </div>
                     <div className="main-row">
                         <div className="main-row-img">
                             <div className="english-method">
@@ -83,57 +80,71 @@ class Login extends React.Component{
                         </div>
                        
                         <div className="main-row-text">
-                            <div className="loginbrand">
-                                <span>A</span>
-                                <span>L</span>
-                                <span>A</span>
-                                <span>N</span>
-                                <span> </span>
-                                <span>E</span>
-                                <span>N</span>
-                                <span>G</span>
-                                <span>L</span>
-                                <span>I</span>
-                                <span>S</span>
-                                <span>H</span>
-                            </div>
-                            <p>系統化 | 口語化 | 聽力導向 </p>
-                            <label>帳號</label>
-                            <input
-                                name="email" 
-                                type="email" 
-                                id="email" 
-                                placeholder="輸入電子郵件或帳號..." 
-                                onChange={this.handleChange} 
-                                value={this.state.email}
-                                />
-
-                            <label>密碼</label>
-                                <input 
-                                    name="password"
-                                    type="password" 
-                                    id="password" 
-                                    placeholder="輸入密碼..." 
+                            <div className="loginsection">
+                                <div className="loginbrand">
+                                    <div className="loginbrandword">
+                                        <span>A</span>
+                                        <span>L</span>
+                                        <span>A</span>
+                                        <span>N</span>
+                                        <span> </span>
+                                        <span>E</span>
+                                        <span>N</span>
+                                        <span>G</span>
+                                        <span>L</span>
+                                        <span>I</span>
+                                        <span>S</span>
+                                        <span>H</span>
+                                    </div>
+                                    <div className="loginbrandbottom">
+                                        <p>系統化 | 口語化 | 聽力導向 </p>
+                                    </div>
+                                </div>
+                                
+                                <label>帳號</label>
+                                <input
+                                    name="email" 
+                                    type="email" 
+                                    id="email" 
+                                    placeholder="輸入電子郵件或帳號..." 
                                     onChange={this.handleChange} 
-                                    value={this.state.password}
-                                />
+                                    value={this.state.email}
+                                    />
 
-                            <button onClick={this.login} className="loginbtn">
-                                登入
-                                <ToastContainer
-                                position="top-center"
-                                autoClose={2000}
-                                hideProgressBar={false}
-                                newestOnTop={false}
-                                closeOnClick
-                                rtl={false}
-                                pauseOnFocusLoss
-                                draggable
-                                pauseOnHover
-                                />
-                            </button>
+                                <label>密碼</label>
+                                    <input 
+                                        name="password"
+                                        type="password" 
+                                        id="password" 
+                                        placeholder="輸入密碼..." 
+                                        onChange={this.handleChange} 
+                                        value={this.state.password}
+                                    />
+
+                                <button onClick={this.login} className="loginbtn">
+                                    登入
+                                    <ToastContainer
+                                    position="top-center"
+                                    autoClose={2000}
+                                    hideProgressBar={false}
+                                    newestOnTop={false}
+                                    closeOnClick
+                                    rtl={false}
+                                    pauseOnFocusLoss
+                                    draggable
+                                    pauseOnHover
+                                    />
+                                </button>
+                                <div className="nav-item">
+                                    <span className="logincopyright" href="/">Copyright © 2022 Alan English Inc.</span>
+                                </div>
+                            </div>
+                            
+                          
                         </div>
+                        
                     </div>
+                    
             </section>
         );
     }

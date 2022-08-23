@@ -1,8 +1,8 @@
 #main {
   font-family: 'Poppins', sans-serif;
   // background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #eb4559 50%);
-  background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #ffffff 50%);
-
+  // background: linear-gradient(110deg, rgb(46, 148, 33) 50%, #ffffff 50%);
+  background-color: #ffffff;
   height: 100vh;
   text-align: center;
   display: flex;
@@ -11,10 +11,10 @@
     height: 10vh;
     display: flex;
     font-size: 1.3rem;
-    .navbar-brand {
-      font-family: 'Playball', cursive;
-      color: #ffffff;
-      font-size: 2rem;
+    .logincopyright {
+      font-family: 'Varela Round', sans-serif;
+      color: #000000;
+      font-size: 1rem;
       text-align: center;
       display: flex;
       flex-flow: column wrap;
@@ -27,19 +27,23 @@
     flex-flow: row wrap;
     justify-content: space-between;
     align-items: center;
-    height: 90vh;
+    height: 100vh;
     .main-row-img{
       flex-basis: 50%;
       flex-grow: 1;
       .head-phone-img {
-        width: 40%;
+        width: 50%;
       }
       .english-method{
+        background-color: rgb(46, 148, 33);
+        border: 8px solid rgb(255, 221, 0);
         color: rgb(255, 255, 255);
         font-family: 'Poppins', sans-serif;
         font-weight: 700;
         font-size: 20px;
-        margin: 20px;
+        margin: 10px;
+        padding: 20px;
+        border-radius: 20px;
         text-align: left;
       }
     }
@@ -50,14 +54,24 @@
       align-items: center;
       flex-basis: 50%;
       flex-grow: 1;
-
+      .loginsection{
+        // background-color: #acd1fb;
+        background-color: #ffe37d;
+        padding: 30px;
+        border-radius: 20px;
+        display: flex;
+        flex-flow: column wrap;
+        justify-content: center;
+        align-items: center;
       .loginbrand{
+        background-color: white;
+        padding: 10px;
+        border-radius: 20px;
         font-family: 'Varela Round', sans-serif;
         font-size: 60px;
         font-weight: 900;
         letter-spacing: 3px;
         cursor: pointer;
-
       }
       
       .loginbrand span:nth-child(1){
@@ -127,11 +141,11 @@
       }
       input{
         height: 40px;
-        width: 40%;
+        width: 70%;
         padding: 5px 10px;
         font-size: 20px;
         border-radius: 5px;
-        border: 2px solid #D4AA7D;
+        border: 3px solid rgb(46, 148, 33);
       }
       input::placeholder{
         color: #aaa;
@@ -145,7 +159,7 @@
       letter-spacing: 5px;
       border-radius: 10px;
       font-family: 'Noto Sans TC', sans-serif;
-      border-color: #f1c40f;
+      border: 3px solid rgb(46, 148, 33);
       color: rgb(0, 0, 0);
       background-color: rgb(255, 255, 255);
       background: {
@@ -161,41 +175,57 @@
       }
     }
   }
+  }
 }
 
 
 @media only screen and (max-width: 789px) {
-  .loginbrand{
-    span{
-      font-size: 2rem;
-    }
-  }
-  .main-row-text{
-    label{
-      font-size: 20px !important;
-    }
-    input{
-      font-size: 15px !important;
-      width: 70% !important;
-    }
-  }
+  
+  
   .main-row {
+    display: flex;
+    align-content: center;
     .main-row-img{
       .english-method{
         p{
           color: #ffffff;
-          font-size: 15px !important;
+          font-size: 10px;
         } 
       }
     }
+    .main-row-text{
+      .loginsection{
+        padding: 20px !important;
+        .loginbrand{
+          .loginbrandword{
+            display: flex;
+          }
+          
+          p{
+            font-size: 15px !important;
+          }
+          span{
+            font-size: 1.5rem;
+          }
+      }
+    }
+      label{
+        font-size: 20px !important;
+      }
+      input{
+        font-size: 15px !important;
+        width: 100% !important;
+      }
+    }
+    
   }
   .head-phone-img{
     display: none;
   }
-  #main{
+  // #main{
     // background: linear-gradient(180deg, rgb(46, 148, 33) 40%, #eb4559 40%);
-    background: linear-gradient(180deg, rgb(46, 148, 33) 45%, #ffffff 45%);
-  }
+    // background: linear-gradient(180deg, rgb(46, 148, 33) 30%, #ffffff 30%);
+  // }
   .main-row-img{
     flex-basis: 51% !important;
   }
