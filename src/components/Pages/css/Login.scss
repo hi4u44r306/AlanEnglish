@@ -46,6 +46,8 @@
         padding: 20px;
         border-radius: 20px;
         text-align: left;
+        cursor: pointer;
+        box-shadow: 5px 5px #888888;
       }
     }
     .main-row-text{
@@ -56,7 +58,7 @@
       flex-basis: 50%;
       flex-grow: 1;
       .loginsection{
-        // background-color: #acd1fb;
+        box-shadow: 5px 5px #888888;
         background-color: #ffe37d;
         padding: 30px;
         border-radius: 20px;
