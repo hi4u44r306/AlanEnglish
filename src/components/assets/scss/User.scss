@@ -42,8 +42,7 @@
 .userinfo{
     display: flex;
     border: 2px solid rgb(0, 132, 255);
-    max-width: 400px;
-    width: 100%;
+    width: 30vw;
     height: 60px;
     background-color: #f5dd9e;
     margin: 35px 10px;
@@ -76,14 +75,12 @@
   
   @media screen and (max-width: 500px) {
     .User-Image{
-      img{
-        display: none;
-      }
+      display: none;
     }
     .userinfo{
       display: flex;
-      max-width: 350px;
-      width: 100%;
+      // max-width: 350px;
+      width: 90vw;
       height: 60px;
       background-color: #f5dd9e;
       margin: 30px 10px;

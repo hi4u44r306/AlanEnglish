@@ -1,6 +1,7 @@
 import React from "react";
 // import HeadPhone from '../assets/img/headphones.svg';
-import HeadPhone from '../assets/img/User-Image1.png';
+// import HeadPhone from '../assets/img/User-Image1.png';
+import HeadPhone from '../assets/img/Login2.png';
 import './css/Login.scss';
 import fire from "./fire";
 import { ToastContainer, toast } from 'react-toastify';

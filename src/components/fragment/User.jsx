@@ -4,6 +4,7 @@ import 'firebase/firestore';
 import '../assets/scss/User.scss';
 import HashLoader from "react-spinners/HashLoader";
 import UserImage1 from "../assets/img/User-Image1.png";
+import UserImage2 from "../assets/img/Login.png";
 
 const User = (user) => {
 
@@ -82,7 +83,7 @@ const User = (user) => {
             )
         }
             <div className="User-Image">
-                <img src={UserImage1} alt="Profile"/>
+                <img src={UserImage2} alt="Profile"/>
             </div>
         </div>
     </div>
