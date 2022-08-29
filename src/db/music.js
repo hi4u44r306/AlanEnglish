@@ -1305,7 +1305,7 @@ let musicDB = [
 
 
 
-///////////////////////////// Reading Lamp 1 Student Book /////////////////////////////////
+///////////////////////////// Reading Lamp 2 Student Book /////////////////////////////////
 
 
 
@@ -1330,403 +1330,203 @@ let musicDB = [
 
     {
         id: 116,
-        bookname: "Reading Lamp 1",
-        page:"Track 1",
+        bookname: "Reading Lamp 2",
+        page:"Unit 1",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 01.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 1.mp3",
     },
     {
         id: 117,
-        bookname: "Reading Lamp 1",
-        page:"Track 2",
+        bookname: "Reading Lamp 2",
+        page:"Unit 2",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 02.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 2.mp3",
     },
     {
         id: 118,
-        bookname: "Reading Lamp 1",
-        page:"Track 3",
+        bookname: "Reading Lamp 2",
+        page:"Unit 3",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 03.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 3.mp3",
     },
     {
         id: 119,
-        bookname: "Reading Lamp 1",
-        page:"Track 4",
+        bookname: "Reading Lamp 2",
+        page:"Unit 4",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 04.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 4.mp3",
     },
     {
         id: 120,
-        bookname: "Reading Lamp 1",
-        page:"Track 5",
+        bookname: "Reading Lamp 2",
+        page:"Unit 5",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 05.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 5.mp3",
     },
     {
         id: 121,
-        bookname: "Reading Lamp 1",
-        page:"Track 6",
+        bookname: "Reading Lamp 2",
+        page:"Unit 6",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 06.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 6.mp3",
     },
     {
         id: 122,
-        bookname: "Reading Lamp 1",
-        page:"Track 7",
+        bookname: "Reading Lamp 2",
+        page:"Unit 7",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 07.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 7.mp3",
     },
     {
         id: 123,
-        bookname: "Reading Lamp 1",
-        page:"Track 8",
+        bookname: "Reading Lamp 2",
+        page:"Unit 8",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 08.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 8.mp3",
     },
     {
         id: 124,
-        bookname: "Reading Lamp 1",
-        page:"Track 9",
+        bookname: "Reading Lamp 2",
+        page:"Unit 9",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 09.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 9.mp3",
     },
     {
         id: 125,
-        bookname: "Reading Lamp 1",
-        page:"Track 10",
+        bookname: "Reading Lamp 2",
+        page:"Unit 10",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 10.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 10.mp3",
     },
     {
         id: 126,
-        bookname: "Reading Lamp 1",
-        page:"Track 11",
+        bookname: "Reading Lamp 2",
+        page:"Unit 11",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 11.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 11.mp3",
     },
     {
         id: 127,
-        bookname: "Reading Lamp 1",
-        page:"Track 12",
+        bookname: "Reading Lamp 2",
+        page:"Unit 12",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 12.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 12.mp3",
     },
     {
         id: 128,
-        bookname: "Reading Lamp 1",
-        page:"Track 13",
+        bookname: "Reading Lamp 2",
+        page:"Unit 13",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 13.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 14.mp3",
     },
     {
         id: 129,
-        bookname: "Reading Lamp 1",
-        page:"Track 14",
+        bookname: "Reading Lamp 2",
+        page:"Unit 14",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 14.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 14.mp3",
     },
     {
         id: 130,
-        bookname: "Reading Lamp 1",
-        page:"Track 15",
+        bookname: "Reading Lamp 2",
+        page:"Unit 15",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 15.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 15.mp3",
     },
     {
         id: 131,
-        bookname: "Reading Lamp 1",
-        page:"Track 16",
+        bookname: "Reading Lamp 2",
+        page:"Unit 16",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 16.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 17.mp3",
     },
     {
         id: 132,
-        bookname: "Reading Lamp 1",
-        page:"Track 17",
+        bookname: "Reading Lamp 2",
+        page:"Unit 17",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 17.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 17.mp3",
     },
     {
         id: 133,
-        bookname: "Reading Lamp 1",
-        page:"Track 18",
+        bookname: "Reading Lamp 2",
+        page:"Unit 18",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 18.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 18.mp3",
     },
     {
         id: 134,
-        bookname: "Reading Lamp 1",
-        page:"Track 19",
+        bookname: "Reading Lamp 2",
+        page:"Unit 19",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 19.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 19.mp3",
     },
     {
         id: 135,
-        bookname: "Reading Lamp 1",
-        page:"Track 20",
+        bookname: "Reading Lamp 2",
+        page:"Unit 20",
         img: "headphone.png",
-        lang: "ReadingLamp1",
+        lang: "ReadingLamp2",
         timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 20.mp3",
-    },
-    {
-        id: 136,
-        bookname: "Reading Lamp 1",
-        page:"Track 21",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 21.mp3",
-    },
-    {
-        id: 137,
-        bookname: "Reading Lamp 1",
-        page:"Track 22",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 22.mp3",
-    },
-    {
-        id: 138,
-        bookname: "Reading Lamp 1",
-        page:"Track 23",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 23.mp3",
-    },
-    {
-        id: 139,
-        bookname: "Reading Lamp 1",
-        page:"Track 24",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 24.mp3",
-    },
-    {
-        id: 140,
-        bookname: "Reading Lamp 1",
-        page:"Track 25",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 25.mp3",
-    },
-    {
-        id: 141,
-        bookname: "Reading Lamp 1",
-        page:"Track 26",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 26.mp3",
-    },
-    {
-        id: 142,
-        bookname: "Reading Lamp 1",
-        page:"Track 27",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 27.mp3",
-    },
-    {
-        id: 143,
-        bookname: "Reading Lamp 1",
-        page:"Track 28",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 28.mp3",
-    },
-    {
-        id: 144,
-        bookname: "Reading Lamp 1",
-        page:"Track 29",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 29.mp3",
-    },
-    {
-        id: 145,
-        bookname: "Reading Lamp 1",
-        page:"Track 30",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 30.mp3",
-    },
-    {
-        id: 146,
-        bookname: "Reading Lamp 1",
-        page:"Track 31",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 31.mp3",
-    },
-    {
-        id: 147,
-        bookname: "Reading Lamp 1",
-        page:"Track 32",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 32.mp3",
-    },
-    {
-        id: 148,
-        bookname: "Reading Lamp 1",
-        page:"Track 33",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 33.mp3",
-    },
-    {
-        id: 149,
-        bookname: "Reading Lamp 1",
-        page:"Track 34",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 34.mp3",
-    },
-    {
-        id: 150,
-        bookname: "Reading Lamp 1",
-        page:"Track 35",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 35.mp3",
-    },
-    {
-        id: 151,
-        bookname: "Reading Lamp 1",
-        page:"Track 36",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 36.mp3",
-    },
-    {
-        id: 152,
-        bookname: "Reading Lamp 1",
-        page:"Track 37",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 37.mp3",
-    },
-    {
-        id: 153,
-        bookname: "Reading Lamp 1",
-        page:"Track 38",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 38.mp3",
-    },
-    {
-        id: 154,
-        bookname: "Reading Lamp 1",
-        page:"Track 39",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 39.mp3",
-    },
-    {
-        id: 155,
-        bookname: "Reading Lamp 1",
-        page:"Track 40",
-        img: "headphone.png",
-        lang: "ReadingLamp1",
-        timesPlayed: 0,
-        type: "RL1",
-        musicName: "Reading Lamp 1_Student Book/Reading Lamp 1 - Track 40.mp3",
+        type: "RL2",
+        musicName: "Reading Lamp 2_Reading/Unit 20.mp3",
     },
 
 
@@ -1770,7 +1570,7 @@ let musicDB = [
 
 
     {
-      id: 156,
+      id: 136,
       bookname: "習作本2",
       page:"P.4",
       img: "headphone2.png",
@@ -1781,7 +1581,7 @@ let musicDB = [
       
   },
   {
-      id: 157,
+      id: 137,
       bookname: "習作本2",
       page:"P.6",
       img: "headphone2.png",
@@ -1792,7 +1592,7 @@ let musicDB = [
       
   },
   {
-      id: 158,
+      id: 138,
       bookname: "習作本2",
       page:"P.8",
       img: "headphone2.png",
@@ -1803,7 +1603,7 @@ let musicDB = [
      
   },
   {
-    id: 159,
+    id: 139,
     bookname: "習作本2",
     page:"P.10",
     img: "headphone2.png",
@@ -1814,7 +1614,7 @@ let musicDB = [
     
   },
   {
-    id: 160,
+    id: 140,
     bookname: "習作本2",
     page:"P.14",
     img: "headphone2.png",
@@ -1825,7 +1625,7 @@ let musicDB = [
    
 },
 {
-    id: 161,
+    id: 141,
     bookname: "習作本2",
     page:"P.16",
     img: "headphone2.png",
@@ -1836,7 +1636,7 @@ let musicDB = [
   
 },
 {
-    id: 162,
+    id: 142,
     bookname: "習作本2",
     page:"P.18",
     img: "headphone2.png",
@@ -1846,7 +1646,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P18.mp3"
 },
 {
-    id: 163,
+    id: 143,
     bookname: "習作本2",
     page:"P.20",
     img: "headphone2.png",
@@ -1856,7 +1656,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P20.mp3"
 },
 {
-    id: 164,
+    id: 144,
     bookname: "習作本2",
     page:"P.21",
     img: "headphone2.png",
@@ -1866,7 +1666,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P21.mp3"
 },
 {
-    id: 165,
+    id: 145,
     bookname: "習作本2",
     page:"P.24",
     img: "headphone2.png",
@@ -1876,7 +1676,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P24.mp3"
 },
 {
-    id: 166,
+    id: 146,
     bookname: "習作本2",
     page:"P.26",
     img: "headphone2.png",
@@ -1886,7 +1686,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P26.mp3"
 },
 {
-    id: 167,
+    id: 147,
     bookname: "習作本2",
     page:"P.28",
     img: "headphone2.png",
@@ -1896,7 +1696,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P28.mp3"
 },
 {
-    id: 168,
+    id: 148,
     bookname: "習作本2",
     page:"P.30",
     img: "headphone2.png",
@@ -1906,7 +1706,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P30.mp3"
 },
 {
-    id: 169,
+    id: 149,
     bookname: "習作本2",
     page:"P.31",
     img: "headphone2.png",
@@ -1916,7 +1716,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P31.mp3"
 },
 {
-    id: 170,
+    id: 150,
     bookname: "習作本2",
     page:"P.34",
     img: "headphone2.png",
@@ -1926,7 +1726,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P34.mp3"
 },
 {
-    id: 171,
+    id: 151,
     bookname: "習作本2",
     page:"P.36",
     img: "headphone2.png",
@@ -1936,7 +1736,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P36.mp3"
 },
 {
-    id: 172,
+    id: 152,
     bookname: "習作本2",
     page:"P.38",
     img: "headphone2.png",
@@ -1946,7 +1746,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P38.mp3"
 },
 {
-    id: 173,
+    id: 153,
     bookname: "習作本2",
     page:"P.40",
     img: "headphone2.png",
@@ -1956,7 +1756,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P40.mp3"
 },
 {
-    id: 174,
+    id: 154,
     bookname: "習作本2",
     page:"P.42",
     img: "headphone2.png",
@@ -1966,7 +1766,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P42.mp3"
 },
 {
-    id: 175,
+    id: 155,
     bookname: "習作本2",
     page:"P.43",
     img: "headphone2.png",
@@ -1976,7 +1776,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P43.mp3"
 },
 {
-    id: 176,
+    id: 156,
     bookname: "習作本2",
     page:"P.46",
     img: "headphone2.png",
@@ -1986,7 +1786,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P46.mp3"
 },
 {
-    id: 177,
+    id: 157,
     bookname: "習作本2",
     page:"P.48",
     img: "headphone2.png",
@@ -1996,7 +1796,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P48.mp3"
 },
 {
-    id: 178,
+    id: 158,
     bookname: "習作本2",
     page:"P.50",
     img: "headphone2.png",
@@ -2006,7 +1806,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P50.mp3"
 },
 {
-    id: 179,
+    id: 159,
     bookname: "習作本2",
     page:"P.52",
     img: "headphone2.png",
@@ -2016,7 +1816,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P52.mp3"
 },
 {
-    id: 180,
+    id: 160,
     bookname: "習作本2",
     page:"P.53",
     img: "headphone2.png",
@@ -2026,7 +1826,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P53.mp3"
 },
 {
-    id: 181,
+    id: 161,
     bookname: "習作本2",
     page:"P.56",
     img: "headphone2.png",
@@ -2036,7 +1836,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P56.mp3"
 },
 {
-    id: 182,
+    id: 162,
     bookname: "習作本2",
     page:"P.58",
     img: "headphone2.png",
@@ -2046,7 +1846,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P58.mp3"
 },
 {
-    id: 183,
+    id: 163,
     bookname: "習作本2",
     page:"P.60",
     img: "headphone2.png",
@@ -2056,7 +1856,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P60.mp3"
 },
 {
-    id: 184,
+    id: 164,
     bookname: "習作本2",
     page:"P.62",
     img: "headphone2.png",
@@ -2066,7 +1866,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P62.mp3"
 },
 {
-    id: 185,
+    id: 165,
     bookname: "習作本2",
     page:"P.64",
     img: "headphone2.png",
@@ -2076,7 +1876,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P64.mp3"
 },
 {
-    id: 186,
+    id: 166,
     bookname: "習作本2",
     page:"P.65",
     img: "headphone2.png",
@@ -2086,7 +1886,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P65.mp3"
 },
 {
-    id: 187,
+    id: 167,
     bookname: "習作本2",
     page:"P.68",
     img: "headphone2.png",
@@ -2096,7 +1896,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P68.mp3"
 },
 {
-    id: 188,
+    id: 168,
     bookname: "習作本2",
     page:"P.69",
     img: "headphone2.png",
@@ -2106,7 +1906,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P69.mp3"
 },
 {
-    id: 189,
+    id: 169,
     bookname: "習作本2",
     page:"P.70",
     img: "headphone2.png",
@@ -2116,7 +1916,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P70.mp3"
 },
 {
-    id: 190,
+    id: 170,
     bookname: "習作本2",
     page:"P.72",
     img: "headphone2.png",
@@ -2126,7 +1926,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P72.mp3"
 },
 {
-    id: 191,
+    id: 171,
     bookname: "習作本2",
     page:"P.76",
     img: "headphone2.png",
@@ -2136,7 +1936,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P76.mp3"
 },
 {
-    id: 192,
+    id: 172,
     bookname: "習作本2",
     page:"P.78",
     img: "headphone2.png",
@@ -2146,7 +1946,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P78.mp3"
 },
 {
-    id: 193,
+    id: 173,
     bookname: "習作本2",
     page:"P.80",
     img: "headphone2.png",
@@ -2156,7 +1956,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P80.mp3"
 },
 {
-    id: 194,
+    id: 174,
     bookname: "習作本2",
     page:"P.82",
     img: "headphone2.png",
@@ -2166,7 +1966,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P82.mp3"
 },
 {
-    id: 195,
+    id: 175,
     bookname: "習作本2",
     page:"P.84",
     img: "headphone2.png",
@@ -2176,7 +1976,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P84.mp3"
 },
 {
-    id: 196,
+    id: 176,
     bookname: "習作本2",
     page:"P.86",
     img: "headphone2.png",
@@ -2186,7 +1986,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P86.mp3"
 },
 {
-    id: 197,
+    id: 177,
     bookname: "習作本2",
     page:"P.88",
     img: "headphone2.png",
@@ -2196,7 +1996,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P88.mp3"
 },
 {
-    id: 198,
+    id: 178,
     bookname: "習作本2",
     page:"P.92",
     img: "headphone2.png",
@@ -2206,7 +2006,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P92.mp3"
 },
 {
-    id: 199,
+    id: 179,
     bookname: "習作本2",
     page:"P.93",
     img: "headphone2.png",
@@ -2216,7 +2016,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P93.mp3"
 },
 {
-    id: 200,
+    id: 180,
     bookname: "習作本2",
     page:"P.94",
     img: "headphone2.png",
@@ -2226,7 +2026,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P94.mp3"
 },
 {
-    id: 201,
+    id: 181,
     bookname: "習作本2",
     page:"P.96",
     img: "headphone2.png",
@@ -2236,7 +2036,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P96.mp3"
 },
 {
-    id: 202,
+    id: 182,
     bookname: "習作本2",
     page:"P.98",
     img: "headphone2.png",
@@ -2246,7 +2046,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P98.mp3"
 },
 {
-    id: 203,
+    id: 183,
     bookname: "習作本2",
     page:"P.100",
     img: "headphone2.png",
@@ -2256,7 +2056,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P100.mp3"
 },
 {
-    id: 204,
+    id: 184,
     bookname: "習作本2",
     page:"P.102",
     img: "headphone2.png",
@@ -2266,7 +2066,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P102.mp3"
 },
 {
-    id: 205,
+    id: 185,
     bookname: "習作本2",
     page:"P.103",
     img: "headphone2.png",
@@ -2276,7 +2076,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P103.mp3"
 },
 {
-    id: 206,
+    id: 186,
     bookname: "習作本2",
     page:"P.104",
     img: "headphone2.png",
@@ -2286,7 +2086,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P104.mp3"
 },
 {
-    id: 207,
+    id: 187,
     bookname: "習作本2",
     page:"P.106",
     img: "headphone2.png",
@@ -2296,7 +2096,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P106.mp3"
 },
 {
-    id: 208,
+    id: 188,
     bookname: "習作本2",
     page:"P.108",
     img: "headphone2.png",
@@ -2306,7 +2106,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P108.mp3"
 },
 {
-    id: 209,
+    id: 189,
     bookname: "習作本2",
     page:"P.110",
     img: "headphone2.png",
@@ -2316,7 +2116,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P110.mp3"
 },
 {
-    id: 210,
+    id: 190,
     bookname: "習作本2",
     page:"P.114",
     img: "headphone2.png",
@@ -2326,7 +2126,7 @@ let musicDB = [
     musicName: "習作本2/習作本2 P114.mp3"
 },
 {
-    id: 211,
+    id: 191,
     bookname: "習作本2",
     page:"P.115",
     img: "headphone2.png",
@@ -2362,7 +2162,7 @@ let musicDB = [
 
 
 {
-    id: 212,
+    id: 192,
     bookname: "習作本3",
     page:"P.4",
     img: "headphone3.png",
@@ -2372,7 +2172,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P4.mp3"
 },
 {
-    id: 213,
+    id: 193,
     bookname: "習作本3",
     page:"P.5",
     img: "headphone3.png",
@@ -2382,7 +2182,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P5.mp3"
 },
 {
-    id: 214,
+    id: 194,
     bookname: "習作本3",
     page:"P.6",
     img: "headphone3.png",
@@ -2392,7 +2192,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P6.mp3"
 },
 {
-    id: 215,
+    id: 195,
     bookname: "習作本3",
     page:"P.9",
     img: "headphone3.png",
@@ -2402,7 +2202,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P9.mp3"
 },
 {
-    id: 216,
+    id: 196,
     bookname: "習作本3",
     page:"P.11",
     img: "headphone3.png",
@@ -2412,7 +2212,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P11.mp3"
 },
 {
-    id: 217,
+    id: 197,
     bookname: "習作本3",
     page:"P.15",
     img: "headphone3.png",
@@ -2422,7 +2222,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P15.mp3"
 },
 {
-    id: 218,
+    id: 198,
     bookname: "習作本3",
     page:"P.17",
     img: "headphone3.png",
@@ -2432,7 +2232,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P17.mp3"
 },
 {
-    id: 219,
+    id: 199,
     bookname: "習作本3",
     page:"P.20",
     img: "headphone3.png",
@@ -2442,7 +2242,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P20.mp3"
 },
 {
-    id: 220,
+    id: 200,
     bookname: "習作本3",
     page:"P.22",
     img: "headphone3.png",
@@ -2452,7 +2252,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P22.mp3"
 },
 {
-    id: 221,
+    id: 201,
     bookname: "習作本3",
     page:"P.23",
     img: "headphone3.png",
@@ -2462,7 +2262,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P23.mp3"
 },
 {
-    id: 222,
+    id: 202,
     bookname: "習作本3",
     page:"P.26",
     img: "headphone3.png",
@@ -2472,7 +2272,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P26.mp3"
 },
 {
-    id: 223,
+    id: 203,
     bookname: "習作本3",
     page:"P.28",
     img: "headphone3.png",
@@ -2482,7 +2282,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P28.mp3"
 },
 {
-    id: 224,
+    id: 204,
     bookname: "習作本3",
     page:"P.30",
     img: "headphone3.png",
@@ -2492,7 +2292,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P30.mp3"
 },
 {
-    id: 225,
+    id: 205,
     bookname: "習作本3",
     page:"P.32",
     img: "headphone3.png",
@@ -2502,7 +2302,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P32.mp3"
 },
 {
-    id: 226,
+    id: 206,
     bookname: "習作本3",
     page:"P.36",
     img: "headphone3.png",
@@ -2512,7 +2312,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P36.mp3"
 },
 {
-    id: 227,
+    id: 207,
     bookname: "習作本3",
     page:"P.38",
     img: "headphone3.png",
@@ -2522,7 +2322,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P38.mp3"
 },
 {
-    id: 228,
+    id: 208,
     bookname: "習作本3",
     page:"P.40",
     img: "headphone3.png",
@@ -2532,7 +2332,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P40.mp3"
 },
 {
-    id: 229,
+    id: 209,
     bookname: "習作本3",
     page:"P.42",
     img: "headphone3.png",
@@ -2542,7 +2342,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P42.mp3"
 },
 {
-    id: 230,
+    id: 210,
     bookname: "習作本3",
     page:"P.43",
     img: "headphone3.png",
@@ -2552,7 +2352,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P43.mp3"
 },
 {
-    id: 231,
+    id: 211,
     bookname: "習作本3",
     page:"P.46",
     img: "headphone3.png",
@@ -2562,7 +2362,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P46.mp3"
 },
 {
-    id: 232,
+    id: 212,
     bookname: "習作本3",
     page:"P.48",
     img: "headphone3.png",
@@ -2572,7 +2372,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P48.mp3"
 },
 {
-    id: 233,
+    id: 213,
     bookname: "習作本3",
     page:"P.49",
     img: "headphone3.png",
@@ -2582,7 +2382,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P49.mp3"
 },
 {
-    id: 234,
+    id: 214,
     bookname: "習作本3",
     page:"P.51",
     img: "headphone3.png",
@@ -2592,7 +2392,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P51.mp3"
 },
 {
-    id: 235,
+    id: 215,
     bookname: "習作本3",
     page:"P.52",
     img: "headphone3.png",
@@ -2602,7 +2402,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P52.mp3"
 },
 {
-    id: 236,
+    id: 216,
     bookname: "習作本3",
     page:"P.53",
     img: "headphone3.png",
@@ -2612,7 +2412,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P53.mp3"
 },
 {
-    id: 237,
+    id: 217,
     bookname: "習作本3",
     page:"P.54",
     img: "headphone3.png",
@@ -2622,7 +2422,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P54.mp3"
 },
 {
-    id: 238,
+    id: 218,
     bookname: "習作本3",
     page:"P.55",
     img: "headphone3.png",
@@ -2632,7 +2432,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P55.mp3"
 },
 {
-    id: 239,
+    id: 219,
     bookname: "習作本3",
     page:"P.56",
     img: "headphone3.png",
@@ -2642,7 +2442,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P56.mp3"
 },
 {
-    id: 240,
+    id: 220,
     bookname: "習作本3",
     page:"P.59",
     img: "headphone3.png",
@@ -2652,7 +2452,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P59.mp3"
 },
 {
-    id: 241,
+    id: 221,
     bookname: "習作本3",
     page:"P.61",
     img: "headphone3.png",
@@ -2662,7 +2462,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P61.mp3"
 },
 {
-    id: 242,
+    id: 222,
     bookname: "習作本3",
     page:"P.63",
     img: "headphone3.png",
@@ -2672,7 +2472,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P63.mp3"
 },
 {
-    id: 243,
+    id: 223,
     bookname: "習作本3",
     page:"P.67",
     img: "headphone3.png",
@@ -2682,7 +2482,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P67.mp3"
 },
 {
-    id: 244,
+    id: 224,
     bookname: "習作本3",
     page:"P.69",
     img: "headphone3.png",
@@ -2692,7 +2492,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P69.mp3"
 },
 {
-    id: 245,
+    id: 225,
     bookname: "習作本3",
     page:"P.71",
     img: "headphone3.png",
@@ -2702,7 +2502,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P71.mp3"
 },
 {
-    id: 246,
+    id: 226,
     bookname: "習作本3",
     page:"P.73",
     img: "headphone3.png",
@@ -2712,7 +2512,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P73.mp3"
 },
 {
-    id: 247,
+    id: 227,
     bookname: "習作本3",
     page:"P.77",
     img: "headphone3.png",
@@ -2722,7 +2522,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P77.mp3"
 },
 {
-    id: 248,
+    id: 228,
     bookname: "習作本3",
     page:"P.79",
     img: "headphone3.png",
@@ -2732,7 +2532,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P79.mp3"
 },
 {
-    id: 249,
+    id: 229,
     bookname: "習作本3",
     page:"P.81",
     img: "headphone3.png",
@@ -2742,7 +2542,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P81.mp3"
 },
 {
-    id: 250,
+    id: 230,
     bookname: "習作本3",
     page:"P.83",
     img: "headphone3.png",
@@ -2752,7 +2552,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P83.mp3"
 },
 {
-    id: 251,
+    id: 231,
     bookname: "習作本3",
     page:"P.84",
     img: "headphone3.png",
@@ -2762,7 +2562,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P84.mp3"
 },
 {
-    id: 252,
+    id: 232,
     bookname: "習作本3",
     page:"P.85",
     img: "headphone3.png",
@@ -2772,7 +2572,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P85.mp3"
 },
 {
-    id: 253,
+    id: 233,
     bookname: "習作本3",
     page:"P.87",
     img: "headphone3.png",
@@ -2782,7 +2582,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P87.mp3"
 },
 {
-    id: 254,
+    id: 234,
     bookname: "習作本3",
     page:"P.91",
     img: "headphone3.png",
@@ -2792,7 +2592,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P91.mp3"
 },
 {
-    id: 255,
+    id: 235,
     bookname: "習作本3",
     page:"P.93",
     img: "headphone3.png",
@@ -2802,7 +2602,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P93.mp3"
 },
 {
-    id: 256,
+    id: 236,
     bookname: "習作本3",
     page:"P.95",
     img: "headphone3.png",
@@ -2812,7 +2612,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P95.mp3"
 },
 {
-    id: 257,
+    id: 237,
     bookname: "習作本3",
     page:"P.97",
     img: "headphone3.png",
@@ -2822,7 +2622,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P97.mp3"
 },
 {
-    id: 258,
+    id: 238,
     bookname: "習作本3",
     page:"P.99",
     img: "headphone3.png",
@@ -2832,7 +2632,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P99.mp3"
 },
 {
-    id: 259,
+    id: 239,
     bookname: "習作本3",
     page:"P.100",
     img: "headphone3.png",
@@ -2842,7 +2642,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P100.mp3"
 },
 {
-    id: 260,
+    id: 240,
     bookname: "習作本3",
     page:"P.101",
     img: "headphone3.png",
@@ -2852,7 +2652,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P101.mp3"
 },
 {
-    id: 261,
+    id: 241,
     bookname: "習作本3",
     page:"P.105",
     img: "headphone3.png",
@@ -2862,7 +2662,7 @@ let musicDB = [
     musicName: "習作本3/習作本3 P105.mp3"
 },
 {
-    id: 262,
+    id: 242,
     bookname: "習作本3",
     page:"P.106",
     img: "headphone3.png",
