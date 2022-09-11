@@ -22,6 +22,7 @@ class Login extends React.Component{
     
     success = () =>  {
         toast.success('😻Welcome😻',{
+            className:"notification",
             position: "top-center",
             autoClose: 1000,
             hideProgressBar: false,
@@ -36,6 +37,7 @@ class Login extends React.Component{
 
     error = () =>  {
         toast.error('🙀帳號密碼錯誤🙀',{
+            className:"notification",
             position: "top-center",
             autoClose: 3000,
             hideProgressBar: false,
