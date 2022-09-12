@@ -121,7 +121,7 @@ function Navigation() {
                     id={`offcanvasNavbarDropdown-expand`}
                     className="navlink"
                   >
-                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_1" className="subnavlink">習作本1 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Workbook_1" className="subnavlink">習作本1</NavDropdown.Item>
                         <NavDropdown.Item as={Link} to="/home/playlist/Workbook_2" className="subnavlink">習作本2</NavDropdown.Item>
                         <NavDropdown.Item as={Link} to="/home/playlist/Workbook_3" className="subnavlink">習作本3</NavDropdown.Item>
                         <NavDropdown.Item as={Link} to="/home/playlist/Workbook_4" className="subnavlink">習作本4 建構中...</NavDropdown.Item>

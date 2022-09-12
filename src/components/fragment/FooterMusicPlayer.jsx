@@ -56,7 +56,6 @@ function FooterMusicPlayer({music}) {
             <AudioPlayer
                 autoPlay
                 progressUpdateInterval={50}
-                volume={0.5}
                 ref={audioElement}
                 src={musicsrc}
                 showSkipControls={true}
