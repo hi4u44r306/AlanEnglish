@@ -289,6 +289,9 @@ function Navigation() {
                     <NavDropdown.Item as={Link} to="/home/playlist/STEAM1" className="subnavlink">Steam Reading E1</NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/home/playlist/SARC1" className="subnavlink">Short Articles Reading 1"</NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/home/playlist/RL2" className="subnavlink">Reading Lamp 2</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/Skyline1" className="subnavlink">Skyline1</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/Skyline2" className="subnavlink">Skyline2</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/home/playlist/Skyline3" className="subnavlink">Skyline3</NavDropdown.Item>
                   </NavDropdown>
 
                     {/*                                    更多                                   */}
