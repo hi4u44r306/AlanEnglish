@@ -12,7 +12,6 @@ import Button from "@material-ui/core/Button";
 function FooterMusicPlayer({music}) {
 
     const [{ id, bookname, page , img, musicName}, setCurrTrack] = useState(music);
-    const musicsrc = require("../assets/music/" + musicName).default;
     const [bannerToggle,setBannerToggle] = useState(false);
     const audioElement = useRef();
     const dispatch = useDispatch();
@@ -52,12 +51,11 @@ function FooterMusicPlayer({music}) {
 
     return (
         <div className={"footer-player"}>
-            <audio ref={audioElement} src={require("../assets/music/" + musicName).default} preload={"metadata"}/>
             <AudioPlayer
                 autoPlay
                 progressUpdateInterval={50}
                 ref={audioElement}
-                src={musicsrc}
+                src={require("../assets/music/" + musicName).default}
                 showSkipControls={true}
                 showJumpControls={false}
                 onClickNext={handleClickNext}
