@@ -13,6 +13,7 @@ import {Skeleton} from "@material-ui/lab";
 import Contact from "./Contact";
 import UserInfo from "./UserInfo";
 import FooterEmpty from "../fragment/FooterEmpty";
+import AddMusic from "./AddMusic";
 
 function getCurrPage(pathName) {
     switch (pathName) {
@@ -26,6 +27,8 @@ function getCurrPage(pathName) {
             return <Contact/>
         case "/home/userinfo":
             return <UserInfo/>
+        case "/home/addmusic":
+            return <AddMusic/>
         default:
             if (pathName.startsWith("/home/playlist/")) {
                 return <Playlist/>

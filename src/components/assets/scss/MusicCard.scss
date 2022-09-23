@@ -1,3 +1,31 @@
+.timesplayedcontainer{
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.timesplayedlabel{
+  font-weight: bolder;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.timesplayednumber{
+  font-weight: bolder;
+  font-size: 0.8rem;
+  text-align: center;
+  color: red;
+}
+.complete {
+  color: gray;
+  font-weight: bolder;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.notcomplete {
+  color: black;
+  font-weight: bolder;
+  font-size: 0.8rem;
+  text-align: center;
+}
 .music-card {
   width: fit-content;
   padding: 15px;

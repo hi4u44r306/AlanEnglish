@@ -16,7 +16,7 @@ let musicDB = [
 
 
 
-    ////////////////////////////////////Super Easy Reading 1////////////////////////////////////////////
+//     ////////////////////////////////////Super Easy Reading 1////////////////////////////////////////////
 
 
 
@@ -41,7 +41,7 @@ let musicDB = [
         page:"Track 2",
         img: "headphone.png",
         lang: "SuperEasyReading1",
-        timesPlayed: 1,
+        timesPlayed: 10,
         type: "SER1",
         musicName: "super easy reading 1/SER1track02.mp3"
     },

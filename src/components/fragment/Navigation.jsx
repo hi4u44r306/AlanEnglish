@@ -16,6 +16,7 @@ import RiseLoader from "react-spinners/RiseLoader";
 
 
 
+
 function Navigation() {
 
   const db = firebase.firestore();
@@ -40,6 +41,17 @@ function Navigation() {
 
     }
 }    
+  // const getviewersip = () =>{
+  //   fetch('https://api.ipify.org?format=json?callback=?',{
+  //     method: 'GET',
+  //     headers: {},
+  //   })
+  //   .then(res => {
+  //     return res.text()
+  //   }).then(ip => {
+  //     console.log("ip", ip);
+  //   })
+  // }
 
     firebase.auth().onAuthStateChanged(user => {
         if(user){

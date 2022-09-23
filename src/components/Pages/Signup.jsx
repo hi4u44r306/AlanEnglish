@@ -1,22 +1,22 @@
 import React from "react";
-// import HeadPhone from '../assets/img/headphones.svg';
-// import HeadPhone from '../assets/img/User-Image1.png';
-import HeadPhone from '../assets/img/Login2.png';
 import './css/Login.scss';
 import firebase from "./firebase";
+import db from './firebase';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-class Login extends React.Component{
+class Signup extends React.Component{
 
     constructor(props)
     {
         super(props)
-        this.login = this.login.bind(this);
+        this.signupuser = this.signupuser.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.state={
             email:"",
-            password:""
+            password:"",
+            name : "",
+            classtype: "",
         }
     }
     
@@ -31,7 +31,6 @@ class Login extends React.Component{
             draggable: true,
             progress: undefined,
             });
-            setTimeout(function(){window.location = "/home";} , 1200); 
             
         };
 
@@ -48,11 +47,24 @@ class Login extends React.Component{
             });
         };
 
-    login(e){
+    // signupuser(e){
+    //     e.preventDefault();
+    //     firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password)
+    //     .then(()=>{
+    //         this.success();
+            
+    //     }).catch(()=>{
+    //         this.error();
+    //     })
+    // }
+    signupuser(e){
         e.preventDefault();
-        firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
-        .then(()=>{
-            this.success();
+        firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password)
+        .then(cred=>{
+            return db.collection('users').doc(cred.user.uid).set({
+                name: this.state.name,
+                classtype : this.state.classtype,
+            })
             
         }).catch(()=>{
             this.error();
@@ -69,38 +81,11 @@ class Login extends React.Component{
         return(
             <section id="main">
                     <div className="main-row">
-                        <div className="main-row-img">
-                            <div className="english-method">
-                                <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
-                                <br/>
-                                <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
-                                <br/>
-                                <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
-                                    才能有效地背誦並牢記單字！
-                                </p>
-                            </div>
-                            <img className="head-phone-img" src={HeadPhone} alt=""/>
-                        </div>
-                       
                         <div className="main-row-text">
                             <div className="loginsection">
                                 <div className="loginbrand">
                                     <div className="loginbrandword">
-                                        <span>A</span>
-                                        <span>L</span>
-                                        <span>A</span>
-                                        <span>N</span>
-                                        <span> </span>
-                                        <span>E</span>
-                                        <span>N</span>
-                                        <span>G</span>
-                                        <span>L</span>
-                                        <span>I</span>
-                                        <span>S</span>
-                                        <span>H</span>
-                                    </div>
-                                    <div className="loginbrandbottom">
-                                        <p>系統化 | 口語化 | 聽力導向 </p>
+                                        <span>Add User</span>
                                     </div>
                                 </div>
                                 
@@ -124,8 +109,28 @@ class Login extends React.Component{
                                         value={this.state.password}
                                     />
 
-                                <button onClick={this.login} className="loginbtn">
-                                    登入
+                                <label>English Name</label>
+                                    <input 
+                                        name="name"
+                                        type="name" 
+                                        id="name" 
+                                        placeholder="輸入姓名..." 
+                                        onChange={this.handleChange} 
+                                        value={this.state.name}
+                                    />
+
+                                 <label>ClassType</label>
+                                    <input 
+                                        name="classtype"
+                                        type="classtype" 
+                                        id="classtype" 
+                                        placeholder="輸入Class..." 
+                                        onChange={this.handleChange} 
+                                        value={this.state.classtype}
+                                    />
+
+                                <button onClick={this.signupuser} className="loginbtn">
+                                    創建User
                                     <ToastContainer
                                     position="top-center"
                                     autoClose={2000}
@@ -153,4 +158,4 @@ class Login extends React.Component{
     }
 }
 
-export default Login;
+export default Signup;

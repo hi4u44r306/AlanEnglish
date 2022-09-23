@@ -5,7 +5,7 @@ import '../assets/scss/FooterPlayer.scss';
 import {Avatar} from "@material-ui/core";
 import Name from "./Name";
 import {useDispatch, useSelector} from "react-redux";
-import {setBannerOpen, setCurrentPlaying} from "../../actions/actions";
+import {setBannerOpen, setCurrentPlaying, increaseTimesPlayed} from "../../actions/actions";
 import Button from "@material-ui/core/Button";
 
 
@@ -45,7 +45,7 @@ function FooterMusicPlayer({music}) {
     const handleEnd = () =>{
         console.log('end')
         let currTrackId = (id+1) % playlists.length;
-        dispatch(setCurrentPlaying(playlists[currTrackId]));
+        dispatch(setCurrentPlaying(playlists[currTrackId]), increaseTimesPlayed(music.id));
     }
 
 

@@ -3,6 +3,7 @@ import './App.scss';
 import Home from "../components/Pages/Home";
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import Login from "../components/Pages/Login";
+import Signup from "../components/Pages/Signup";
 import {ThemeContext, themes} from "../api/Theme";
 import musicDB from "../db/music";
 import {useDispatch, useSelector} from "react-redux";
@@ -34,6 +35,7 @@ const App = () => {
                 <Router>
                     <Switch>
                         <Route path="/" exact component={Login}/>
+                        <Route path="/home/signup" exact component={Signup}/>
                         <Route path="/home" component={Home}/>
                     </Switch>
                 </Router>

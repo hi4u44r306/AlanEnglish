@@ -1,6 +1,6 @@
 import React from "react";
 import "../assets/scss/Logout.scss";
-import fire from "../Pages/fire";
+import firebase from "../Pages/firebase";
 
 class Logout extends React.Component {
     constructor(props)
@@ -11,7 +11,7 @@ class Logout extends React.Component {
         }
     }
     logout(){
-        fire.auth().signOut()
+        firebase.auth().signOut()
         .then((u)=>{
             console.log(u);
             window.location = "/";
