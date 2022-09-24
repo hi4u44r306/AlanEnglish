@@ -21,30 +21,31 @@ class Signup extends React.Component{
     }
     
     success = () =>  {
-        toast.success('😻Welcome😻',{
-            className:"notification",
-            position: "top-center",
-            autoClose: 1000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            });
-            
+        // toast.success('創建成功',{
+        //     className:"notification",
+        //     position: "top-center",
+        //     autoClose: 1000,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: false,
+        //     draggable: true,
+        //     progress: undefined,
+        //     });
+        alert("成功")
         };
 
     error = () =>  {
-        toast.error('🙀帳號密碼錯誤🙀',{
-            className:"notification",
-            position: "top-center",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            });
+        // toast.error('有些地方錯誤',{
+        //     className:"notification",
+        //     position: "top-center",
+        //     autoClose: 3000,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: false,
+        //     draggable: true,
+        //     progress: undefined,
+        //     });
+        alert('error')
         };
 
     // signupuser(e){
@@ -57,18 +58,29 @@ class Signup extends React.Component{
     //         this.error();
     //     })
     // }
+    // const ref = firebase.database().ref();
+    // ref.on('value', function (snapshot) {
+    //     document.getElementById('content').textContent = JSON.stringify(snapshot.val(), null, 3);
+    // })
+
+
     signupuser(e){
         e.preventDefault();
-        firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password)
-        .then(cred=>{
-            return db.collection('users').doc(cred.user.uid).set({
-                name: this.state.name,
-                classtype : this.state.classtype,
+        firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password).then((Credentials)=>{ 
+            const useruid = Credentials.user.uid; 
+
+            const db = firebase.firestore();
+
+            db.collection('student').doc(useruid).set({
+                name : this.state.name,
+                class : this.state.classtype,
+                email: this.state.email,
             })
-            
+            this.success();
+
         }).catch(()=>{
             this.error();
-        })
+        });
     }
 
     handleChange(e){
@@ -126,12 +138,13 @@ class Signup extends React.Component{
                                         id="classtype" 
                                         placeholder="輸入Class..." 
                                         onChange={this.handleChange} 
-                                        value={this.state.classtype}
+                                        value={this.state.classtype} 
                                     />
-
+                                       
+                                
                                 <button onClick={this.signupuser} className="loginbtn">
                                     創建User
-                                    <ToastContainer
+                                    {/* <ToastContainer
                                     position="top-center"
                                     autoClose={2000}
                                     hideProgressBar={false}
@@ -141,7 +154,7 @@ class Signup extends React.Component{
                                     pauseOnFocusLoss
                                     draggable
                                     pauseOnHover
-                                    />
+                                    /> */}
                                 </button>
                                 <div className="nav-item">
                                     <span className="logincopyright" href="/">Copyright © 2022 Alan English Inc.</span>

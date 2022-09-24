@@ -10,15 +10,15 @@ import PlayCircleFilledWhiteIcon from "@material-ui/icons/PlayCircleFilledWhite"
 
 
 
-export default function Todo({ todo, user }) {
+export default function Todo({ todo }) {
   const [count, setCount] = useState(todo.count);
 
   const deleteTodo = () => {
-    const todoRef = firebase.database().ref('User').child('Music').child(todo.id);
+    const todoRef = firebase.database().ref('User').child(todo.id);
     todoRef.remove();
   };
   const updateCount = () => {
-    const todoRef = firebase.database().ref('User').child('Music').child(todo.id);
+    const todoRef = firebase.database().ref('User').child(todo.id);
       todoRef.update({
         count:count,
       });
@@ -70,7 +70,7 @@ export default function Todo({ todo, user }) {
                         </div>
                         <React.Fragment>
                           <div className='d-flex align-items-center'>
-                            <h6 className={"song-name"}>聆聽次數:</h6>
+                            <h6 className={"song-name"}>播放次數:</h6>
                             <Name name={todo.count} className={"song-name"}/>
                           </div>
                           <Name name={todo.bookname} className={"song-name"}/>

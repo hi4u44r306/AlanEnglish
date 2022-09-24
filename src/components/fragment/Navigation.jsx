@@ -17,11 +17,13 @@ import RiseLoader from "react-spinners/RiseLoader";
 
 
 
-function Navigation() {
+function Navigation(user) {
 
   const db = firebase.firestore();
   const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
   const [loading, setLoading] = useState(false);
+
+
 
   useEffect(()=>{
     setLoading(true)

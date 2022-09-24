@@ -32,21 +32,21 @@ export default function Form() {
   };
 
   const createRealtimeUsers = () => {
-    createUser();
+    // createUser();
     createMusicinUser();
   }
 
-  const createUser = () => {
-    const UserRef = firebase.database().ref('Users').child('User').child('UserID');
-    const user = {
-      realtimeuid: "YY6Muy2CwtYqs9JO3jA4XrxGzk43",
-    };
-    UserRef.push(user);
-  }
+  // const createUser = () => {
+  //   const UserRef = firebase.database().ref('Users').child('User');
+  //   const user = {
+  //     realtimeuid: "YY6Muy2CwtYqs9JO3jA4XrxGzk43",
+  //   };
+  //   UserRef.push(user);
+  // }
 
 
   const createMusicinUser = () => {
-    const todoRef = firebase.database().ref('Users').child('User').child('Musics').child('EachMusic');
+    const todoRef = firebase.database().ref('Users');
     const todo = {
       bookname : bookname,
       page : "P."+page,

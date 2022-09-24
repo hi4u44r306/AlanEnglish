@@ -28,6 +28,8 @@ function NavigationMobile() {
     }, 2000)
 }, [])
 
+
+
   const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
