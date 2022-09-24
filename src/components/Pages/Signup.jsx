@@ -1,8 +1,6 @@
 import React from "react";
 import './css/Login.scss';
 import firebase from "./firebase";
-import db from './firebase';
-import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 class Signup extends React.Component{

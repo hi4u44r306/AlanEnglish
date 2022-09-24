@@ -7,60 +7,8 @@ import Name from "./Name";
 import {Skeleton} from "@material-ui/lab";
 import Box from "@material-ui/core/Box";
 
-import firebase from '../Pages/firebase'
-import TodoList from './testMusicList';
-
 function MusicCard(props) {
     const {bookname , page , img} = props.music;
-    const [timesplayed, setTimesPlayed] = useState();
-    const [count, setCount] = useState(0);
-
-///////////////////////////////////////////////////////////
-    // const db = firebase.firestore();
-
-
-    // const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
-    //     if(user){
-    //         db.collection('student').doc(user.uid).get().then( doc => {
-    //             setTimesPlayed(user.uid);
-    //             // checkfirestoreandrealtimeid(user.uid);
-    //         }, err =>{
-    //             console.log(err.message);
-    //         });
-    //     }else{
-
-    //     }
-    // }    
-    // const counter = () => {
-    //     setCount(count+1);
-    //     console.log(count);
-    // };
-
-    // const updateCount = (user) => {
-    //     if(user){
-    //         db.collection('student').doc(user.uid).update({
-    //             timesplayed : count,
-    //         })
-    //     }else{
-
-    //     }
-    // }
-    // firebase.auth().onAuthStateChanged(user => {
-    //     if(user){
-    //         db.collection('student').onSnapshot(snapshot =>{
-    //             getUserInfo(user);
-    //             updateCount(user);
-    //         }, err =>{
-    //             console.log(err.message);
-    //         });
-    //     }else{
-    //         getUserInfo();
-    //     }
-    // })
-    
-
-////////////////////////////////////////////////////////////
-
     const [isHovered, setHovered] = useState(false);
 
     function handleResponse() {
@@ -71,7 +19,7 @@ function MusicCard(props) {
 
     function handlePlay() {
         dispatch(setCurrentPlaying(props.music))
-        // dispatch(increaseTimesPlayed(props.music.id));
+        dispatch(increaseTimesPlayed(props.music.id));
     }
 
     const [loaded,setLoaded] = useState(false);
@@ -98,18 +46,10 @@ function MusicCard(props) {
                             <div className="play-circle">
                                 <PlayCircleFilledWhiteIcon/>
                             </div>
-                            {/* <div className="play-circle" onClick={counter}>
-                                <PlayCircleFilledWhiteIcon/>
-                            </div> */}
                         </div>
                         <React.Fragment>
                             <Name name={bookname} className={"song-name"} length={bookname.length}/>
                             <Name name={page} className={"song-name"} length={page.length}/>
-                            {/* <div className='timesplayedcontainer'>
-                                <h6 className={"timesplayedlabel"}>播放次數:</h6>
-                                <h6 className={"timesplayednumber"}>{timesplayed}</h6>
-                                <h6>{count}</h6>
-                            </div> */}
                         </React.Fragment>
                     </>
             }
