@@ -66,8 +66,6 @@ function Navigation(user) {
             getUserInfo();
         }
     })
-
- 
     
   return (
     <div>
