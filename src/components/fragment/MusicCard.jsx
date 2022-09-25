@@ -2,14 +2,57 @@ import React, {useEffect, useState} from 'react';
 import '../assets/scss/MusicCard.scss';
 import PlayCircleFilledWhiteIcon from "@material-ui/icons/PlayCircleFilledWhite";
 import {useDispatch} from "react-redux";
-import {increaseTimesPlayed, setCurrentPlaying} from "../../actions/actions";
+import {setCurrentPlaying} from "../../actions/actions";
 import Name from "./Name";
 import {Skeleton} from "@material-ui/lab";
 import Box from "@material-ui/core/Box";
+import firebase from 'firebase/app';
 
 function MusicCard(props) {
-    const {bookname , page , img} = props.music;
+    const {id, bookname , page , img} = props.music;
     const [isHovered, setHovered] = useState(false);
+    const db = firebase.firestore();
+    const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
+
+    firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
+        if(user){
+            db.collection('student').onSnapshot(snapshot =>{
+                getUserInfo(user);
+            });
+        }else{
+            getUserInfo();
+        }
+    })
+
+    const checkmusicidmatch = (music, user) =>{ //接收到從getUserInfo()中的(music,user)資料，去比對Local database 與 Firestore database 中的musicid 是否吻合
+        const localmusicid = "'" + props.music.id + "'"
+        const firestoremusicid = "'" + music.id + "'"
+        console.log('loacalmusicid',localmusicid);
+        console.log('firestoremusicid',firestoremusicid);
+        if(localmusicid === firestoremusicid){
+            console.log('match')
+            db.collection("student").doc(user.uid).collection('Musics').doc(music.id).onSnapshot(doc =>{
+                setnavUsername(doc.data().timeplayed);
+            })
+        }else{
+            // setnavUsername("")
+        }
+    }
+    const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid中的'Musics'documents, 並且傳送資料到checkmusicidmatch
+        if(user){
+            db.collection("student").doc(user.uid).collection('Musics').get()
+            .then((querySnapshot) => {
+                querySnapshot.forEach((music) => {
+                    checkmusicidmatch(music, user);
+                });
+            })
+            .catch((error) => {
+                console.log("Error getting documents: ", error);
+            });
+        }else{
+            console.log('no data');
+        }
+    }   
 
     function handleResponse() {
         setHovered(!isHovered);
@@ -19,7 +62,6 @@ function MusicCard(props) {
 
     function handlePlay() {
         dispatch(setCurrentPlaying(props.music))
-        dispatch(increaseTimesPlayed(props.music.id));
     }
 
     const [loaded,setLoaded] = useState(false);
@@ -48,8 +90,13 @@ function MusicCard(props) {
                             </div>
                         </div>
                         <React.Fragment>
+                            <Name name={"ID : " + id} className={"song-name"} />
                             <Name name={bookname} className={"song-name"} length={bookname.length}/>
                             <Name name={page} className={"song-name"} length={page.length}/>
+                            <div className="timesplayedcontainer">
+                                <Name name={"播放次數 : "} className={"song-name"}/>
+                                <Name name={navusername} className={"song-name"}/>
+                            </div>
                         </React.Fragment>
                     </>
             }

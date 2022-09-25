@@ -1,6 +1,7 @@
 import React from "react";
 import './css/Login.scss';
 import firebase from "./firebase";
+import { toast, ToastContainer} from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
 
 class Signup extends React.Component{
@@ -19,31 +20,29 @@ class Signup extends React.Component{
     }
     
     success = () =>  {
-        // toast.success('創建成功',{
-        //     className:"notification",
-        //     position: "top-center",
-        //     autoClose: 1000,
-        //     hideProgressBar: false,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //     progress: undefined,
-        //     });
-        alert("成功")
+        toast.success('創建成功',{
+            className:"notification",
+            position: "top-center",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
         };
 
     error = () =>  {
-        // toast.error('有些地方錯誤',{
-        //     className:"notification",
-        //     position: "top-center",
-        //     autoClose: 3000,
-        //     hideProgressBar: false,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //     progress: undefined,
-        //     });
-        alert('error')
+        toast.error('失敗',{
+            className:"notification",
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
         };
 
     // signupuser(e){
@@ -66,20 +65,28 @@ class Signup extends React.Component{
         e.preventDefault();
         firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password).then((Credentials)=>{ 
             const useruid = Credentials.user.uid; 
-
             const db = firebase.firestore();
-
             db.collection('student').doc(useruid).set({
                 name : this.state.name,
                 class : this.state.classtype,
                 email: this.state.email,
             })
             this.success();
-
+            this.clear();
         }).catch(()=>{
             this.error();
         });
     }
+
+    // deleteuser(e){
+    //     e.preventDefault();
+    //     const db = firebase.firestore();
+    //     db.collection("student").doc(this.state.email).delete().then(() => {
+    //         this.success("Delete successfully");
+    //     }).catch((error) => {
+    //         this.error();
+    //     });
+    // }
 
     handleChange(e){
         this.setState({
@@ -93,12 +100,7 @@ class Signup extends React.Component{
                     <div className="main-row">
                         <div className="main-row-text">
                             <div className="loginsection">
-                                <div className="loginbrand">
-                                    <div className="loginbrandword">
-                                        <span>Add User</span>
-                                    </div>
-                                </div>
-                                
+                                <span>Add User</span>
                                 <label>帳號</label>
                                 <input
                                     name="email" 
@@ -141,8 +143,8 @@ class Signup extends React.Component{
                                        
                                 
                                 <button onClick={this.signupuser} className="loginbtn">
-                                    創建User
-                                    {/* <ToastContainer
+                                    創建
+                                    <ToastContainer
                                     position="top-center"
                                     autoClose={2000}
                                     hideProgressBar={false}
@@ -152,8 +154,22 @@ class Signup extends React.Component{
                                     pauseOnFocusLoss
                                     draggable
                                     pauseOnHover
-                                    /> */}
+                                    />
                                 </button>
+                                {/* <button onClick={this.deleteuser} className="loginbtn">
+                                    刪除
+                                    <ToastContainer
+                                    position="top-center"
+                                    autoClose={2000}
+                                    hideProgressBar={false}
+                                    newestOnTop={false}
+                                    closeOnClick
+                                    rtl={false}
+                                    pauseOnFocusLoss
+                                    draggable
+                                    pauseOnHover
+                                    />
+                                </button> */}
                                 <div className="nav-item">
                                     <span className="logincopyright" href="/">Copyright © 2022 Alan English Inc.</span>
                                 </div>

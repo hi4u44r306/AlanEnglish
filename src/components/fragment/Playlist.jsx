@@ -7,6 +7,7 @@ import Container from "./Container";
 const Playlist = () => {
     const typeOfPlaylist = window.location.pathname.substring(15);
     const {playlists} = useSelector(state=>state.musicReducer);
+
     return (
         <Container>
             <div  className={"Playlist"}>
