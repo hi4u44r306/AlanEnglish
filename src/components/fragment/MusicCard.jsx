@@ -34,12 +34,9 @@ function MusicCard(props) {
     })
 
     const checkmusicidmatch = (music, user) =>{ //接收到從getUserInfo()中的(music,user)資料，去比對Local database 與 Firestore database 中的musicid 是否吻合
-        const localmusicid = "'" + props.music.id + "'"
-        const firestoremusicid = "'" + music.id + "'"
-        console.log('loacalmusicid',localmusicid);
-        console.log('firestoremusicid',firestoremusicid);
+        const localmusicid = "'" + props.music.id + "'";
+        const firestoremusicid = music.id;
         if(localmusicid === firestoremusicid){
-            console.log('match')
             db.collection("student").doc(user.uid).collection('Musics').doc(music.id).onSnapshot(doc =>{
                 setTimesplayed(doc.data().timeplayed);
             });

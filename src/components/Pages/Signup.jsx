@@ -44,7 +44,12 @@ class Signup extends React.Component{
             progress: undefined,
             });
         };
-
+    test = () => {
+        for(let i=0; i<10;i++){
+            let j = "'"+i+"'"
+            console.log(j);
+        }
+    }
 
     signupuser(e){
         e.preventDefault();
@@ -56,9 +61,12 @@ class Signup extends React.Component{
                 class : this.state.classtype,
                 email: this.state.email,
             })
-            db.collection('student').doc(useruid).collection('Musics').doc('0').set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
-                timeplayed : 20,
-            })
+            for(let i=0; i<1000;i++){
+                let j = "'"+i+"'"
+                db.collection('student').doc(useruid).collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+                    timeplayed : "0",
+                })
+            }
             
             this.success();
             this.clear();
