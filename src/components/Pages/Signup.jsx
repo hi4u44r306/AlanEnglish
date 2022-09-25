@@ -45,32 +45,21 @@ class Signup extends React.Component{
             });
         };
 
-    // signupuser(e){
-    //     e.preventDefault();
-    //     firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password)
-    //     .then(()=>{
-    //         this.success();
-            
-    //     }).catch(()=>{
-    //         this.error();
-    //     })
-    // }
-    // const ref = firebase.database().ref();
-    // ref.on('value', function (snapshot) {
-    //     document.getElementById('content').textContent = JSON.stringify(snapshot.val(), null, 3);
-    // })
-
 
     signupuser(e){
         e.preventDefault();
         firebase.auth().createUserWithEmailAndPassword(this.state.email,this.state.password).then((Credentials)=>{ 
             const useruid = Credentials.user.uid; 
             const db = firebase.firestore();
-            db.collection('student').doc(useruid).set({
+            db.collection('student').doc(useruid).set({ // 設定名稱,Email,classtype
                 name : this.state.name,
                 class : this.state.classtype,
                 email: this.state.email,
             })
+            db.collection('student').doc(useruid).collection('Musics').doc('0').set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+                timeplayed : 20,
+            })
+            
             this.success();
             this.clear();
         }).catch(()=>{
@@ -78,15 +67,6 @@ class Signup extends React.Component{
         });
     }
 
-    // deleteuser(e){
-    //     e.preventDefault();
-    //     const db = firebase.firestore();
-    //     db.collection("student").doc(this.state.email).delete().then(() => {
-    //         this.success("Delete successfully");
-    //     }).catch((error) => {
-    //         this.error();
-    //     });
-    // }
 
     handleChange(e){
         this.setState({

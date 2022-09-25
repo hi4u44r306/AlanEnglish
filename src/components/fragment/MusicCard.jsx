@@ -9,10 +9,10 @@ import Box from "@material-ui/core/Box";
 import firebase from 'firebase/app';
 
 function MusicCard(props) {
-    const {id, bookname , page , img} = props.music;
+    const { bookname , page , img} = props.music;
     const [isHovered, setHovered] = useState(false);
     const db = firebase.firestore();
-    const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
+    const [timeplayed, setTimesplayed] = useState();//避免使用innerHTML, textContext 所以用useState();
 
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
         if(user){
@@ -32,10 +32,10 @@ function MusicCard(props) {
         if(localmusicid === firestoremusicid){
             console.log('match')
             db.collection("student").doc(user.uid).collection('Musics').doc(music.id).onSnapshot(doc =>{
-                setnavUsername(doc.data().timeplayed);
-            })
+                setTimesplayed(doc.data().timeplayed);
+            });
         }else{
-            // setnavUsername("")
+
         }
     }
     const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid中的'Musics'documents, 並且傳送資料到checkmusicidmatch
@@ -90,12 +90,13 @@ function MusicCard(props) {
                             </div>
                         </div>
                         <React.Fragment>
-                            <Name name={"ID : " + id} className={"song-name"} />
                             <Name name={bookname} className={"song-name"} length={bookname.length}/>
                             <Name name={page} className={"song-name"} length={page.length}/>
                             <div className="timesplayedcontainer">
-                                <Name name={"播放次數 : "} className={"song-name"}/>
-                                <Name name={navusername} className={"song-name"}/>
+                                <Name name={"播放次數:  "} className={"song-name"}/>
+                                <Name name={timeplayed} className={"timeplayed"}/>
+                                <Name name={"次"} className={"song-name"}/>
+
                             </div>
                         </React.Fragment>
                     </>
