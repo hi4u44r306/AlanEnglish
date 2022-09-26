@@ -6,50 +6,50 @@ import {setCurrentPlaying} from "../../actions/actions";
 import Name from "./Name";
 import {Skeleton} from "@material-ui/lab";
 import Box from "@material-ui/core/Box";
-import firebase from 'firebase/app';
-import ClipLoader from "react-spinners/ClipLoader";
+// import firebase from 'firebase/app';
+// import ClipLoader from "react-spinners/ClipLoader";
 
 function MusicCard(props) {
     const { bookname , page , img} = props.music;
     const [isHovered, setHovered] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const db = firebase.firestore();
-    const [timeplayed, setTimesplayed] = useState();//避免使用innerHTML, textContext 所以用useState();
+    // const [loading, setLoading] = useState(false);
+    // const db = firebase.firestore();
+    // const [timeplayed, setTimesplayed] = useState();//避免使用innerHTML, textContext 所以用useState();
 
-    useEffect(()=>{
-        setLoading(true)
-        setTimeout(() =>{
-            setLoading(false);
-        }, 2000)
-    }, [])
+    // useEffect(()=>{
+    //     setLoading(true)
+    //     setTimeout(() =>{
+    //         setLoading(false);
+    //     }, 2000)
+    // }, [])
 
-    firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
-        if(user){
-            db.collection('student').onSnapshot(snapshot =>{
-                getUserInfo(user);
-            });
-        }else{
-            getUserInfo();
-        }
-    })
+    // firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
+    //     if(user){
+    //         db.collection('student').onSnapshot(snapshot =>{
+    //             getUserInfo(user);
+    //         });
+    //     }else{
+    //         getUserInfo();
+    //     }
+    // })
 
-    const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid中的'Musics'documents, 並且傳送資料到checkmusicidmatch
-        if(user){
-            db.collection("student").doc(user.uid).collection('Musics').get()
-            .then((querySnapshot) => {
-                querySnapshot.forEach((music) => {
-                    db.collection("student").doc(user.uid).collection('Musics').doc(music.id).onSnapshot(doc =>{
-                        setTimesplayed(doc.data().timeplayed);
-                    });
-                });
-            })
-            .catch((error) => {
-                console.log("Error getting documents: ", error);
-            });
-        }else{
-            console.log('no data');
-        }
-    }   
+    // const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid中的'Musics'documents, 並且傳送資料到checkmusicidmatch
+    //     if(user){
+    //         db.collection("student").doc(user.uid).collection('Musics').get()
+    //         .then((querySnapshot) => {
+    //             querySnapshot.forEach((music) => {
+    //                 db.collection("student").doc(user.uid).collection('Musics').doc(music.id).onSnapshot(doc =>{
+    //                     setTimesplayed(doc.data().timeplayed);
+    //                 });
+    //             });
+    //         })
+    //         .catch((error) => {
+    //             console.log("Error getting documents: ", error);
+    //         });
+    //     }else{
+    //         console.log('no data');
+    //     }
+    // }   
 
     function handleResponse() {
         setHovered(!isHovered);
@@ -90,7 +90,7 @@ function MusicCard(props) {
                             <Name name={bookname} className={"song-name"} length={bookname.length}/>
                             <Name name={page} className={"song-name"} length={page.length}/>
                         
-                            <div className="timesplayedcontainer">
+                            {/* <div className="timesplayedcontainer">
                                 <Name name={"播放次數:  "} className={"song-name"}/>
                                 {
                             loading ?
@@ -107,7 +107,7 @@ function MusicCard(props) {
                             )
                             }
                                 <Name name={"次"} className={"song-name"}/>
-                            </div>
+                            </div> */}
 
                         </React.Fragment>
                     </>
