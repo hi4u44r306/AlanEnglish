@@ -5,15 +5,21 @@
   font-size: 0.8rem;
   text-align: center;
   justify-content: space-around;
+  cursor: default;
+  user-select: none;
 }
 .song-name{
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
+  cursor: default;
+  user-select: none;
 }
 .author-name{
   font-weight: lighter;
   color: gray;
+  cursor: default;
+  user-select: none;
 }
 .emptysong-name{
   font-family: 'Varela Round', sans-serif;

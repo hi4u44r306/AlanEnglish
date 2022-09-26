@@ -18,7 +18,7 @@ import AddMusic from "./AddMusic";
 function getCurrPage(pathName) {
     switch (pathName) {
         case "/home":
-            return <MusicCardContainer/>
+            return <Playlist/>
         case "/home/search":
             return <Search/>
         case "/home/about":

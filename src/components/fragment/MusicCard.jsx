@@ -33,23 +33,14 @@ function MusicCard(props) {
         }
     })
 
-    const checkmusicidmatch = (music, user) =>{ //接收到從getUserInfo()中的(music,user)資料，去比對Local database 與 Firestore database 中的musicid 是否吻合
-        const localmusicid = "'" + props.music.id + "'";
-        const firestoremusicid = music.id;
-        if(localmusicid === firestoremusicid){
-            db.collection("student").doc(user.uid).collection('Musics').doc(music.id).onSnapshot(doc =>{
-                setTimesplayed(doc.data().timeplayed);
-            });
-        }else{
-
-        }
-    }
     const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid中的'Musics'documents, 並且傳送資料到checkmusicidmatch
         if(user){
             db.collection("student").doc(user.uid).collection('Musics').get()
             .then((querySnapshot) => {
                 querySnapshot.forEach((music) => {
-                    checkmusicidmatch(music, user);
+                    db.collection("student").doc(user.uid).collection('Musics').doc(music.id).onSnapshot(doc =>{
+                        setTimesplayed(doc.data().timeplayed);
+                    });
                 });
             })
             .catch((error) => {

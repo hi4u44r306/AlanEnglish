@@ -7,6 +7,7 @@ import Name from "./Name";
 import {useDispatch, useSelector} from "react-redux";
 import {setBannerOpen, setCurrentPlaying, increaseTimesPlayed} from "../../actions/actions";
 import Button from "@material-ui/core/Button";
+// import firebase from 'firebase/app';
 
 
 function FooterMusicPlayer({music}) {
@@ -16,6 +17,7 @@ function FooterMusicPlayer({music}) {
     const audioElement = useRef();
     const dispatch = useDispatch();
     const {playlists} = useSelector(state => state.musicReducer);
+    // const db = firebase.firestore();
 
     const handleBannerToggle = ()=> {
         setBannerToggle(!bannerToggle);
@@ -28,6 +30,24 @@ function FooterMusicPlayer({music}) {
     useEffect(() => {
         setCurrTrack(music);
     }, [music]);
+
+    // firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
+    //     if(user){
+    //         db.collection('student').onSnapshot(snapshot =>{
+    //             increaseTimesPlayedToFirestore(user);
+    //         });
+    //     }else{
+    //         increaseTimesPlayedToFirestore();
+    //     }
+    // })
+
+
+    // const increaseTimesPlayedToFirestore = (user) => {
+    //     const test = "'" + id + "'";
+    //     db.collection("student").doc(user.uid).collection('Musics').doc(test).set({
+    //         timeplayed : "1",
+    //     });
+    // }
 
     const handleClickNext = () => {
         console.log('click next')
@@ -44,6 +64,7 @@ function FooterMusicPlayer({music}) {
     };
     const handleEnd = () =>{
         console.log('end')
+        // increaseTimesPlayedToFirestore();
         let currTrackId = (id+1) % playlists.length;
         dispatch(setCurrentPlaying(playlists[currTrackId]), increaseTimesPlayed(music.id));
     }
