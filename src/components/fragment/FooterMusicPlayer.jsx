@@ -5,19 +5,48 @@ import '../assets/scss/FooterPlayer.scss';
 import {Avatar} from "@material-ui/core";
 import Name from "./Name";
 import {useDispatch, useSelector} from "react-redux";
-import {setBannerOpen, setCurrentPlaying, increaseTimesPlayed} from "../../actions/actions";
+import {setBannerOpen, setCurrentPlaying} from "../../actions/actions";
+import { toast, ToastContainer} from "react-toastify"
 import Button from "@material-ui/core/Button";
-// import firebase from 'firebase/app';
+import firebase from 'firebase/app';
 
 
 function FooterMusicPlayer({music}) {
 
     const [{ id, bookname, page , img, musicName}, setCurrTrack] = useState(music);
     const [bannerToggle,setBannerToggle] = useState(false);
+    const [currentuser,setCurrUser] = useState();
     const audioElement = useRef();
     const dispatch = useDispatch();
     const {playlists} = useSelector(state => state.musicReducer);
-    // const db = firebase.firestore();
+    const db = firebase.firestore();
+    const currplayingmusicid = "'" + id + "'";
+
+
+    const success = () =>  {
+        toast.success('太棒了 聽力次數+1',{
+            className:"musicnotification",
+            position: "top-center",
+            autoClose: 2500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
+        };
+    const secondsuccess = () =>  {
+        toast.info('再多聽幾次可以跟老師換禮物喔!!',{
+            className:"musicnotification",
+            position: "top-center",
+            autoClose: 2500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
+        };
 
     const handleBannerToggle = ()=> {
         setBannerToggle(!bannerToggle);
@@ -31,23 +60,38 @@ function FooterMusicPlayer({music}) {
         setCurrTrack(music);
     }, [music]);
 
-    // firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
-    //     if(user){
-    //         db.collection('student').onSnapshot(snapshot =>{
-    //             increaseTimesPlayedToFirestore(user);
-    //         });
-    //     }else{
-    //         increaseTimesPlayedToFirestore();
-    //     }
-    // })
-
-
-    // const increaseTimesPlayedToFirestore = (user) => {
-    //     const test = "'" + id + "'";
-    //     db.collection("student").doc(user.uid).collection('Musics').doc(test).set({
-    //         timeplayed : "1",
-    //     });
-    // }
+    firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
+        if(user){
+            db.collection('student').onSnapshot(snapshot =>{
+                setCurrUser(user.uid);
+            });
+        }else{
+            updatetimeplayedtofirestore();
+        }
+    })
+    
+    
+    const updatetimeplayedtofirestore = () => {
+        if(currplayingmusicid){
+            db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
+                const aa = doc.data().timeplayed;
+                const bb = parseInt(aa)+1;
+                db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).set({
+                    timeplayed: bb,
+                })
+                .then(() => {
+                    console.log("Document successfully written!");
+                })
+                .catch((error) => {
+                    console.error("Error writing document: ", error);
+                });
+            }).catch((err)=>{
+                console.log(err.message);
+            })
+        }else{
+            console.log("update currplayingmusicid failed");
+        }
+    }
 
     const handleClickNext = () => {
         console.log('click next')
@@ -64,9 +108,12 @@ function FooterMusicPlayer({music}) {
     };
     const handleEnd = () =>{
         console.log('end')
-        // increaseTimesPlayedToFirestore();
+        const currplayingmusicid = "'" + id + "'";
+        updatetimeplayedtofirestore(currplayingmusicid);
+        success();
+        secondsuccess();
         let currTrackId = (id+1) % playlists.length;
-        dispatch(setCurrentPlaying(playlists[currTrackId]), increaseTimesPlayed(music.id));
+        dispatch(setCurrentPlaying(playlists[currTrackId]));
     }
 
 
@@ -100,7 +147,20 @@ function FooterMusicPlayer({music}) {
                         RHAP_UI.VOLUME_CONTROLS,
                     ]
                 }
-            />          
+            />   
+            <div>
+                <ToastContainer
+                position="top-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                />
+            </div>       
         </div>
 
     );

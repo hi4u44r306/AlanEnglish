@@ -61,10 +61,10 @@ class Signup extends React.Component{
                 class : this.state.classtype,
                 email: this.state.email,
             })
-            for(let i=0; i<1000;i++){
+            for(let i=0; i<700;i++){
                 let j = "'"+i+"'"
                 db.collection('student').doc(useruid).collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
-                    timeplayed : "0",
+                    timeplayed : 0,
                 })
             }
             
@@ -144,20 +144,6 @@ class Signup extends React.Component{
                                     pauseOnHover
                                     />
                                 </button>
-                                {/* <button onClick={this.deleteuser} className="loginbtn">
-                                    刪除
-                                    <ToastContainer
-                                    position="top-center"
-                                    autoClose={2000}
-                                    hideProgressBar={false}
-                                    newestOnTop={false}
-                                    closeOnClick
-                                    rtl={false}
-                                    pauseOnFocusLoss
-                                    draggable
-                                    pauseOnHover
-                                    />
-                                </button> */}
                                 <div className="nav-item">
                                     <span className="logincopyright" href="/">Copyright © 2022 Alan English Inc.</span>
                                 </div>

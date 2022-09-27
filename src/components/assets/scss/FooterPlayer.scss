@@ -1,3 +1,12 @@
+.musicnotification{
+  font-family: 'Varela Round', sans-serif;
+  font-weight: 900;
+  color: #000000;
+  font-size: 1rem;
+  text-align: center;
+  align-items: center;
+  display: flex;
+}
 .rhap_container {
   visibility: visible;
   width: 100vw;
@@ -23,7 +32,8 @@
 .rhap_main-controls{
   flex: 1 0;
   display: flex;
-  justify-content: center;
+  justify-content: ce
+  nter;
   align-items: center
 }
 // 時間軸點點顏色
