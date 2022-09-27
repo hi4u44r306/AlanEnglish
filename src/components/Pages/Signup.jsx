@@ -36,7 +36,7 @@ class Signup extends React.Component{
         toast.error('失敗',{
             className:"notification",
             position: "top-center",
-            autoClose: 3000,
+            autoClose: 1000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: false,
