@@ -1,27 +1,24 @@
-import 'react-h5-audio-player/lib/styles.css';
 import AudioPlayer, { RHAP_UI } from 'react-h5-audio-player'
 import React, {useRef, useState, useEffect} from "react";
-import '../assets/scss/FooterPlayer.scss';
-import {Avatar} from "@material-ui/core";
-import Name from "./Name";
 import {useDispatch, useSelector} from "react-redux";
-import {setBannerOpen, setCurrentPlaying} from "../../actions/actions";
+import {setCurrentPlaying} from "../../actions/actions";
 import { toast, ToastContainer} from "react-toastify"
-import Button from "@material-ui/core/Button";
+import Marquee from "react-fast-marquee";
 import firebase from 'firebase/app';
+import Name from "./Name";
+import '../assets/scss/FooterPlayer.scss';
+import 'react-h5-audio-player/lib/styles.css';
 
 
 function FooterMusicPlayer({music}) {
 
-    const [{ id, bookname, page , img, musicName}, setCurrTrack] = useState(music);
-    const [bannerToggle,setBannerToggle] = useState(false);
-    const [currentuser,setCurrUser] = useState();
-    const audioElement = useRef();
-    const dispatch = useDispatch();
+    const [{ id, bookname, page , musicName}, setCurrTrack] = useState(music);
     const {playlists} = useSelector(state => state.musicReducer);
-    const db = firebase.firestore();
+    const [currentuser,setCurrUser] = useState();
     const currplayingmusicid = "'" + id + "'";
-
+    const db = firebase.firestore();
+    const dispatch = useDispatch();
+    const audioElement = useRef();
 
     const success = () =>  {
         toast.success('太棒了 聽力次數+1',{
@@ -35,6 +32,7 @@ function FooterMusicPlayer({music}) {
             progress: undefined,
             });
         };
+
     const secondsuccess = () =>  {
         toast.info('再多聽幾次可以跟老師換禮物喔!!',{
             className:"musicnotification",
@@ -48,18 +46,10 @@ function FooterMusicPlayer({music}) {
             });
         };
 
-    const handleBannerToggle = ()=> {
-        setBannerToggle(!bannerToggle);
-    };
-
-    useEffect(()=>{
-        dispatch(setBannerOpen(bannerToggle));
-    },[dispatch,bannerToggle]);
-
     useEffect(() => {
         setCurrTrack(music);
     }, [music]);
-
+        
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
         if(user){
             db.collection('student').onSnapshot(snapshot =>{
@@ -68,8 +58,7 @@ function FooterMusicPlayer({music}) {
         }else{
             updatetimeplayedtofirestore();
         }
-    })
-    
+    });
     
     const updatetimeplayedtofirestore = () => {
         if(currplayingmusicid){
@@ -91,13 +80,14 @@ function FooterMusicPlayer({music}) {
         }else{
             console.log("update currplayingmusicid failed");
         }
-    }
-
+    };
+    
     const handleClickNext = () => {
         console.log('click next')
         let currTrackId = (id+1) % playlists.length;
         dispatch(setCurrentPlaying(playlists[currTrackId]));
-      };
+    };
+
     const handleClickPrev = () => {
         console.log('end')
         let currTrackId = (id-1) % playlists.length;
@@ -106,6 +96,7 @@ function FooterMusicPlayer({music}) {
         }
         dispatch(setCurrentPlaying(playlists[currTrackId]));
     };
+
     const handleEnd = () =>{
         console.log('end')
         const currplayingmusicid = "'" + id + "'";
@@ -115,12 +106,14 @@ function FooterMusicPlayer({music}) {
         let currTrackId = (id+1) % playlists.length;
         dispatch(setCurrentPlaying(playlists[currTrackId]));
     }
-
-
+    
+    
     return (
         <div className={"footer-player"}>
             <AudioPlayer
                 autoPlay
+                onPlay={(e)=>{console.log("Play")}}
+                onPause={(e)=>{console.log("Pause")}}
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
@@ -129,23 +122,32 @@ function FooterMusicPlayer({music}) {
                 onClickNext={handleClickNext}
                 onClickPrevious={handleClickPrev}
                 onEnded={handleEnd}
-                customControlsSection=
-                {
+                customProgressBarSection={
                     [
-                        RHAP_UI.ADDITIONAL_CONTROLS,
-                        RHAP_UI.MAIN_CONTROLS,
-                        <Button
-                            startIcon={<Avatar variant="square" src={require("../assets/img/" + img).default} alt={bookname}/>}
-                            onClick={handleBannerToggle}
-                            className="curr-music-container">
-                            <div className="curr-music-details">
-                                <Name name={bookname} className={"song-name"} length={bookname.length}/>
-                                <Name name={page} className={"song-name"} length={page.length}/>
-                            </div> 
-                        </Button>,
+                        RHAP_UI.CURRENT_TIME,
+                        <Marquee 
+                        pauseOnHover={true}
+                        gradient={true}
+                        gradientWidth={40}
+                        direction='right'
+                    speed={60}
+                    >
+                        <div>
+                            <Name name={"正在收聽的是 : "} className={"marqueenamelabel"} length={bookname.length}/>
+                        </div>
+                        <div>
+                            <Name name={bookname} className={"marqueename"} length={bookname.length}/>
+                        </div>
+                        <div>
+                            <Name name={page} className={"marqueename"} length={page.length}/>
+                        </div>
+                        <div>
+                            <Name name={"請專心聆聽"} className={"marqueenamelabel"} length={page.length}/>
+                        </div>
                         
-                        RHAP_UI.VOLUME_CONTROLS,
-                    ]
+                    </Marquee>,
+                    RHAP_UI.DURATION,
+                ]
                 }
             />   
             <div>

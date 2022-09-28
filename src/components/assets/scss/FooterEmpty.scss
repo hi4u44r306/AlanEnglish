@@ -1,94 +1,101 @@
-.rhap_container {
-  visibility: visible;
-  width: 100vw;
-  padding: 5px 15px;
-}
-.rhap_time{
-  font-weight: 900;
-}
-.rhap_main-controls-button{
-  margin: 0 5px;
-}
-.rhap_play-pause-button {
-  font-size: 50px;
-  width: 50px;
-  height: 50px;
-}
-.rhap_additional-controls{
-  flex: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center
-}
-.rhap_main-controls{
-  flex: 1 0;
-  display: flex;
-  justify-content: center;
-  align-items: center
-}
-// 時間軸點點顏色
-.rhap_progress-indicator {
-  background-color: rgb(255, 0, 0) !important;
-}
-// 音量點點顏色
-.rhap_volume-indicator{
-  background-color: rgb(255, 0, 0) !important;
-}
-// 重複鍵顏色
-.rhap_repeat-button{
-  color: rgb(255, 0, 0) !important;
-}
-.rhap_progress-filled{
-  background-color: rgb(255, 0, 0) !important;
-}
-.rhap_volume-button{
-  color: rgb(255, 0, 0) !important;
-}
-.rhap_main-controls > button{
-  color: rgb(255, 0, 0) !important;
-}
-.rhap_additional-controls{
-  color: rgb(0, 145, 255) !important;
-}
-.nomusicname{
-  font-weight: bolder;
-  font-size: 0.7rem;
-  color: rgb(255, 0, 0);
-  text-align: center;
-}
-.footer-player {
-  border-top: 1px solid #e0e0e0;
-  height: 10vh;
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-.MuiButton-label{
-  width: 100%;
-  display: inherit;
-  align-items: inherit;
-  justify-content: inherit;
-}
-.music-container{
-  width: 500px;
-  display: flex;
-  flex: 1 0 auto;
-  align-items: center;
-  .music-detail {
+.marquee{
+    flex: none !important;
+    min-width: 50%;
+    min-height: 100%;
+    overflow: hidden;
+    gap: 20px;
+  }
+  .musicnotification{
+    font-family: 'Varela Round', sans-serif;
+    font-weight: 900;
+    color: #000000;
+    font-size: 1rem;
+    text-align: center;
+    align-items: center;
     display: flex;
   }
-}
-@media only screen and (max-width: 675px) {
-    .rhap_volume-container{
-      display: none;
-    }
-    .rhap_main-controls{
-      font-size: 50px;
-      flex: 5 0;
+  .rhap_container {
+    visibility: visible;
+    width: 100vw;
+    padding: 5px 15px;
+  }
+  .rhap_progress-section{
+    height: 5vh;
+  }
+  .rhap_time{
+    font-size: 0.85rem;
+    font-weight: 900;
+  }
+  .rhap_play-pause-button {
+    font-size: 50px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  // 時間軸點點顏色
+  .rhap_progress-indicator {
+    background-color: rgb(255, 0, 0) !important;
+  }
+  // 音量點點顏色
+  .rhap_volume-indicator{
+    background-color: rgb(255, 0, 0) !important;
+  }
+  // 重複鍵顏色
+  .rhap_repeat-button{
+    color: rgb(255, 0, 0) !important;
+  }
+  .rhap_progress-filled{
+    background-color: rgb(255, 0, 0) !important;
+  }
+  .rhap_volume-button{
+    color: rgb(255, 0, 0) !important;
+  }
+  .rhap_main-controls > button{
+    color: rgb(255, 0, 0) !important;
+  }
+  .rhap_additional-controls{
+    color: rgb(0, 145, 255) !important;
+  }
+  .nomusicname{
+    font-weight: bolder;
+    font-size: 0.7rem;
+    color: rgb(255, 0, 0);
+    text-align: center;
+  }
+  .footer-player {
+    border-top: 1px solid #e0e0e0;
+    height: 10vh;
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  .MuiButton-label{
+    width: 100%;
+    display: inherit;
+    align-items: inherit;
+    justify-content: inherit;
+  }
+  .music-container{
+    width: 500px;
+    display: flex;
+    flex: 1 0 auto;
+    align-items: center;
+    .music-detail {
       display: flex;
-      justify-content: center;
-      align-items: center
     }
-}
-
+  }
+  @media only screen and (max-width: 675px) {
+      .rhap_volume-container{
+        display: none;
+      }
+      .rhap_main-controls{
+        font-size: 50px;
+        flex: 5 0;
+        display: flex;
+        justify-content: center;
+        align-items: center
+      }
+  }
+  
+  

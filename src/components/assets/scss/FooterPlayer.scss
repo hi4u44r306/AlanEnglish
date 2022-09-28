@@ -1,3 +1,10 @@
+.marquee{
+  flex: none !important;
+  min-width: 50%;
+  min-height: 100%;
+  overflow: hidden;
+  gap: 20px;
+}
 .musicnotification{
   font-family: 'Varela Round', sans-serif;
   font-weight: 900;
@@ -12,30 +19,19 @@
   width: 100vw;
   padding: 5px 15px;
 }
-.rhap_time{
-  font-weight: 900;
+.rhap_progress-section{
+  height: 5vh;
 }
-.rhap_main-controls-button{
-  margin: 0 5px;
+.rhap_time{
+  font-size: 0.85rem;
+  font-weight: 900;
 }
 .rhap_play-pause-button {
   font-size: 50px;
   width: 50px;
   height: 50px;
 }
-.rhap_additional-controls{
-  flex: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center
-}
-.rhap_main-controls{
-  flex: 1 0;
-  display: flex;
-  justify-content: ce
-  nter;
-  align-items: center
-}
+
 // 時間軸點點顏色
 .rhap_progress-indicator {
   background-color: rgb(255, 0, 0) !important;
