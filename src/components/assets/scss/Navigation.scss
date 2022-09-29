@@ -2,7 +2,17 @@
   background-color: rgb(255, 227, 200);
   height: 10vh;
 }
-
+h3{
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 25px;
+  font-weight: 900;
+  padding: 5px;
+  color: #005b7f;
+  text-align: center;
+  font-family: 'Varela Round', sans-serif;
+}
 .toggle{
   background-color: rgb(255, 255, 255)
 }

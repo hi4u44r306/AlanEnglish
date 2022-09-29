@@ -61,6 +61,29 @@ function FooterMusicPlayer({music}) {
     });
     
     const updatetimeplayedtofirestore = () => {
+        console.log("normal timeplayed updated")
+        if(currplayingmusicid){
+            db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
+                const aa = doc.data().timeplayed;
+                const bb = parseInt(aa)+1;
+                db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).set({
+                    timeplayed: bb,
+                })
+                .then(() => {
+                    console.log("Document successfully written!");
+                })
+                .catch((error) => {
+                    console.error("Error writing document: ", error);
+                });
+            }).catch((err)=>{
+                console.log(err.message);
+            })
+        }else{
+            console.log("update currplayingmusicid failed");
+        }
+    };
+
+    const update_repeat_timeplayed = () => {
         console.log("repeat timeplayed updated")
         if(currplayingmusicid){
             db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
@@ -113,9 +136,7 @@ function FooterMusicPlayer({music}) {
         <div className={"footer-player"}>
             <AudioPlayer
                 autoPlay
-                onPlay={(e)=>{console.log("Play")}}
-                onPause={(e)=>{console.log("Pause")}}
-                onSeeked={updatetimeplayedtofirestore}
+                onSeeked={update_repeat_timeplayed}
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
