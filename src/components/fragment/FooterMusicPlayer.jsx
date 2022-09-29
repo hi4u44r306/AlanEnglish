@@ -115,6 +115,7 @@ function FooterMusicPlayer({music}) {
                 autoPlay
                 onPlay={(e)=>{console.log("Play")}}
                 onPause={(e)=>{console.log("Pause")}}
+                onSeeked={updatetimeplayedtofirestore}
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
