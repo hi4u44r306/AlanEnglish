@@ -60,7 +60,9 @@ function FooterMusicPlayer({music}) {
         }
     });
     
+    
     const updatetimeplayedtofirestore = () => {
+        console.log("repeat timeplayed updated")
         if(currplayingmusicid){
             db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
                 const aa = doc.data().timeplayed;
@@ -114,6 +116,7 @@ function FooterMusicPlayer({music}) {
                 autoPlay
                 onPlay={(e)=>{console.log("Play")}}
                 onPause={(e)=>{console.log("Pause")}}
+                onCanPlayThrough={updatetimeplayedtofirestore}
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}

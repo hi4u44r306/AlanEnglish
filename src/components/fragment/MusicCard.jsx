@@ -11,7 +11,7 @@ function MusicCard(props) {
     const db = firebase.firestore();
     const [timeplayed, setTimesplayed] = useState();//避免使用innerHTML, textContext 所以用useState();
     const dispatch = useDispatch();
-
+    
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
         if(user){
             db.collection('student').onSnapshot(snapshot =>{
@@ -22,13 +22,13 @@ function MusicCard(props) {
         }
     })
 
-
     const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid中的'Musics'documents, 並且傳送資料到checkmusicidmatch
         if(user){
             const convertmusicid = "'" + props.music.id + "'";
             db.collection('student').doc(user.uid).collection('Musics').doc(convertmusicid).get().then((doc)=>{
                 setTimesplayed(doc.data().timeplayed);
             })
+
             .catch((err)=>{
                 console.log("There no data for some ID", err)
             })
@@ -36,8 +36,6 @@ function MusicCard(props) {
             console.log('no data');
         }
     }   
-
-
 
     function handlePlay() {
         dispatch(setCurrentPlaying(props.music))
