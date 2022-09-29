@@ -1456,7 +1456,7 @@ let musicDB = [
         lang: "ReadingLamp2",
         timesPlayed: 0,
         type: "RL2",
-        musicName: "Reading Lamp 2_Reading/Unit 14.mp3",
+        musicName: "Reading Lamp 2_Reading/Unit 13.mp3",
     },
     {
         id: 129,
@@ -1486,7 +1486,7 @@ let musicDB = [
         lang: "ReadingLamp2",
         timesPlayed: 0,
         type: "RL2",
-        musicName: "Reading Lamp 2_Reading/Unit 17.mp3",
+        musicName: "Reading Lamp 2_Reading/Unit 16.mp3",
     },
     {
         id: 132,
