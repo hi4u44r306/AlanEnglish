@@ -60,7 +60,6 @@ function FooterMusicPlayer({music}) {
         }
     });
     
-    
     const updatetimeplayedtofirestore = () => {
         console.log("repeat timeplayed updated")
         if(currplayingmusicid){
@@ -116,7 +115,6 @@ function FooterMusicPlayer({music}) {
                 autoPlay
                 onPlay={(e)=>{console.log("Play")}}
                 onPause={(e)=>{console.log("Pause")}}
-                onCanPlayThrough={updatetimeplayedtofirestore}
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
