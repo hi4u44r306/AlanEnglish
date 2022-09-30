@@ -21,7 +21,7 @@ function FooterMusicPlayer({music}) {
     const audioElement = useRef();
 
     const success = () =>  {
-        toast.success('太棒了 聽力次數+1',{
+        toast.success('太棒了 聽力次數+1 請刷新頁面更新聆聽次數',{
             className:"musicnotification",
             position: "top-center",
             autoClose: 2500,
@@ -46,6 +46,19 @@ function FooterMusicPlayer({music}) {
             });
         };
 
+    const repeattimesuccess = () =>  {
+        toast.success('重播次數+1 請刷新頁面更新聆聽次數',{
+            className:"musicnotification",
+            position: "bottom-left",
+            autoClose: 2500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            });
+        };
+
     useEffect(() => {
         setCurrTrack(music);
     }, [music]);
@@ -61,7 +74,6 @@ function FooterMusicPlayer({music}) {
     });
     
     const updatetimeplayedtofirestore = () => {
-        console.log("normal timeplayed updated")
         if(currplayingmusicid){
             db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
                 const aa = doc.data().timeplayed;
@@ -84,7 +96,6 @@ function FooterMusicPlayer({music}) {
     };
 
     const update_repeat_timeplayed = () => {
-        console.log("repeat timeplayed updated")
         if(currplayingmusicid){
             db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
                 const aa = doc.data().timeplayed;
@@ -93,6 +104,7 @@ function FooterMusicPlayer({music}) {
                     timeplayed: bb,
                 })
                 .then(() => {
+                    repeattimesuccess();
                     console.log("Document successfully written!");
                 })
                 .catch((error) => {
@@ -149,11 +161,11 @@ function FooterMusicPlayer({music}) {
                     [
                         RHAP_UI.CURRENT_TIME,
                         <Marquee 
-                        pauseOnHover={true}
+                        pauseOnHover={false}
                         gradient={true}
                         gradientWidth={40}
                         direction='right'
-                    speed={60}
+                        speed={60}
                     >
                         <div>
                             <Name name={"正在收聽的是 : "} className={"marqueenamelabel"} length={bookname.length}/>
