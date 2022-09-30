@@ -1,4 +1,29 @@
+.leaderboardcontainer{
+    display: flex;
+}
+.leaderboardname{
+    display: flex;
+    justify-content: space-around;
+}
+.leaderboardtitle{
+    // position: sticky;
+    // top: 0;
+    z-index: 1;
+    font-size: 25px;
+    font-weight: 900;
+    background-color: #005b7f !important;
+    padding: 5px;
+    color: #f6edba;
+    text-align: center;
+    font-family: 'Varela Round', sans-serif;
+}
+.firstpart{
+    flex-basis: 50%;
+}
+.secondpart{
+    flex-basis: 50%;
+}
 .leaderboardimg{
-    width: 25%;
-    height: 25%;
+    display: flex;
+    width: 350px;
 }

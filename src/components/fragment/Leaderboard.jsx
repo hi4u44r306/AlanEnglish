@@ -7,13 +7,31 @@ const Leaderboard = () => {
   return (
     <Container>
         <div>
-            <h1>September Timeplayed LeaderBoard</h1>
-            <div>
-                <div>victor</div>
-                <div>victor123</div>
-                <div>victor456</div>
+          <div className='leaderboardcontainer'>
+            <div className='firstpart'>
+              <h3 className='leaderboardtitle'>Timeplayed LeaderBoard</h3>
+              <div className='leaderboardname'>
+                  <div>victor</div>
+                  <div>victor123</div>
+                  <div>victor456</div>
+              </div>
+              <div>
                 <img className="leaderboardimg" src={LeaderBoard} alt=""/>
+              </div>
             </div>
+            <div className='secondpart'>
+            <h3>Timeplayed LeaderBoard</h3>
+              <div className='leaderboardname'>
+                  <div>victor</div>
+                  <div>victor123</div>
+                  <div>victor456</div>
+              </div>
+              <div>
+                <img className="leaderboardimg" src={LeaderBoard} alt=""/>
+              </div>
+            </div>
+
+          </div>
         </div>
     </Container>
   )

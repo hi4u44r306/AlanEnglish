@@ -5956,6 +5956,60 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     type: "Workbook_1",
     musicName: "習作本1/習作本1 P24.mp3"
 },
+{
+    id: 523,
+    bookname: "習作本1",
+    page:"P.25",
+    img: "headphone1.png",
+    lang: "習作本1",
+    timesPlayed: 0,
+    type: "Workbook_1",
+    musicName: "習作本1/習作本1 P25.mp3"
+},
+{
+    id: 524,
+    bookname: "習作本1",
+    page:"P.26",
+    img: "headphone1.png",
+    lang: "習作本1",
+    timesPlayed: 0,
+    type: "Workbook_1",
+    musicName: "習作本1/習作本1 P26.mp3"
+},
+{
+    id: 525,
+    bookname: "習作本1",
+    page:"P.29",
+    img: "headphone1.png",
+    lang: "習作本1",
+    timesPlayed: 0,
+    type: "Workbook_1",
+    musicName: "習作本1/習作本1 P29.mp3"
+},
+{
+    id: 526,
+    bookname: "習作本1",
+    page:"P.31",
+    img: "headphone1.png",
+    lang: "習作本1",
+    timesPlayed: 0,
+    type: "Workbook_1",
+    musicName: "習作本1/習作本1 P31.mp3"
+},
+{
+    id: 527,
+    bookname: "習作本1",
+    page:"P.32",
+    img: "headphone1.png",
+    lang: "習作本1",
+    timesPlayed: 0,
+    type: "Workbook_1",
+    musicName: "習作本1/習作本1 P32.mp3"
+},
+
+
+
+
 
 
 
