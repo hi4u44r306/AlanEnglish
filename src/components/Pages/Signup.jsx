@@ -60,8 +60,9 @@ class Signup extends React.Component{
                 name : this.state.name,
                 class : this.state.classtype,
                 email: this.state.email,
+                totaltimeplayed : 0,
             })
-            for(let i=0; i<700;i++){
+            for(let i=0; i<2000;i++){
                 let j = "'"+i+"'"
                 db.collection('student').doc(useruid).collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
                     timeplayed : 0,

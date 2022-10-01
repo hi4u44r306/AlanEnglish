@@ -4,6 +4,8 @@
   min-height: 100%;
   overflow: hidden;
   gap: 20px;
+  cursor: default;
+  user-select: none;
 }
 .musicnotification{
   font-family: 'Varela Round', sans-serif;
@@ -15,6 +17,11 @@
   display: flex;
 }
 .rhap_container {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
   visibility: visible;
   width: 100vw;
   padding: 5px 15px;
@@ -63,6 +70,10 @@
   text-align: center;
 }
 .footer-player {
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
   border-top: 1px solid #e0e0e0;
   height: 10vh;
   position: absolute;

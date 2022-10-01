@@ -87,6 +87,10 @@ h3{
 }
 
 .brand{
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
   text-shadow: 0 0 10px white,
                0 0 20px white,
                0 0 40px white;
