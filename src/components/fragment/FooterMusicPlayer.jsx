@@ -76,10 +76,10 @@ function FooterMusicPlayer({music}) {
     const updatetimeplayedtofirestore = () => {
         if(currplayingmusicid){
             db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
-                const aa = doc.data().timeplayed;
-                const bb = parseInt(aa)+1;
+                const a = doc.data().timeplayed;
+                const b = parseInt(a)+1;
                 db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).set({
-                    timeplayed: bb,
+                    timeplayed: b,
                 })
                 .then(() => {
                     console.log("Document successfully written!");
@@ -90,6 +90,14 @@ function FooterMusicPlayer({music}) {
             }).catch((err)=>{
                 console.log(err.message);
             })
+            db.collection('student').doc(currentuser).get().then((doc)=>{
+                console.log(doc.data().totaltimeplayed);
+                const c = doc.data().totaltimeplayed;
+                const d = parseInt(c)+1;
+                db.collection('student').doc(currentuser).update({
+                    totaltimeplayed: d,
+                })
+            })
         }else{
             console.log("update currplayingmusicid failed");
         }
@@ -98,10 +106,10 @@ function FooterMusicPlayer({music}) {
     const update_repeat_timeplayed = () => {
         if(currplayingmusicid){
             db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
-                const aa = doc.data().timeplayed;
-                const bb = parseInt(aa)+1;
+                const a = doc.data().timeplayed;
+                const b = parseInt(a)+1;
                 db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).set({
-                    timeplayed: bb,
+                    timeplayed: b,
                 })
                 .then(() => {
                     repeattimesuccess();
@@ -112,6 +120,14 @@ function FooterMusicPlayer({music}) {
                 });
             }).catch((err)=>{
                 console.log(err.message);
+            })
+            db.collection('student').doc(currentuser).get().then((doc)=>{
+                console.log(doc.data().totaltimeplayed);
+                const c = doc.data().totaltimeplayed;
+                const d = parseInt(c)+1;
+                db.collection('student').doc(currentuser).update({
+                    totaltimeplayed: d,
+                });
             })
         }else{
             console.log("update currplayingmusicid failed");
