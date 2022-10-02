@@ -50,7 +50,7 @@ class Leaderboard extends React.Component{
                   </div>  
                   <div className='coltitle'>
                     <div style={{width:'35%'}}>🏆 Rank</div>
-                    <div style={{width:'35%'}}>👦 Name 👩</div>
+                    <div style={{width:'40%'}}>👦 Name 👩</div>
                     <div style={{width:'35%'}}>🎧 Timeplayed</div>
                     {/* <th className='test' scope="col" style={{width:'30%'}}>🏆 Rank</th>
                     <th className='test' scope="col" style={{width:'35%'}}>👦 Name 👩</th>
@@ -60,7 +60,7 @@ class Leaderboard extends React.Component{
                 <table className='table table-borderless'>
                   <thead>
                     <th scope="col" style={{width:'35%'}}></th>
-                    <th scope="col" style={{width:'35%'}}></th>
+                    <th scope="col" style={{width:'31%'}}></th>
                     <th scope="col" style={{width:'35%'}}></th>
                   </thead>
                   <tbody>
