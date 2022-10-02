@@ -24,14 +24,14 @@ class Login extends React.Component{
         toast.success('😻Welcome😻',{
             className:"notification",
             position: "top-center",
-            autoClose: 1000,
+            autoClose: 500,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: false,
             draggable: true,
             progress: undefined,
             });
-            setTimeout(function(){window.location = "/home/playlist/Workbook_1";} , 1200); 
+            setTimeout(function(){window.location = "/home/playlist/Workbook_1";} , 1000); 
             
         };
 

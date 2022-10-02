@@ -71,7 +71,7 @@ function Navigation(user) {
     <div>
         <Navbar collapseOnSelect className="navbackground">
           <Container fluid>
-                <Navbar.Brand as={Link} to="/home" className="brand">
+                <Navbar.Brand as={Link} to="/home/leaderboard" className="brand">
                     <span>A</span>
                     <span>L</span>
                     <span>A</span>

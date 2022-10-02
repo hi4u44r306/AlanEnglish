@@ -8,6 +8,8 @@ import {ThemeContext, themes} from "../api/Theme";
 import musicDB from "../db/music";
 import {useDispatch, useSelector} from "react-redux";
 import {setPlaylist} from "../actions/actions";
+import Leaderboard from "../components/fragment/Leaderboard";
+import NavigationMobile from "../components/fragment/NavigationMobile";
 
 
 const App = () => {
@@ -36,6 +38,10 @@ const App = () => {
                     <Switch>
                         <Route path="/" exact component={Login}/>
                         <Route path="/home/signup" exact component={Signup}/>
+                        <Route path="/home/leaderboard">
+                            <NavigationMobile/>
+                            <Leaderboard/>
+                        </Route>
                         <Route path="/home" component={Home}/>
                     </Switch>
                 </Router>

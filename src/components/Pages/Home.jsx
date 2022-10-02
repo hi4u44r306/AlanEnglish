@@ -14,14 +14,10 @@ import Contact from "./Contact";
 import UserInfo from "./UserInfo";
 import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
-import Leaderboard from "../fragment/Leaderboard";
-
 function getCurrPage(pathName) {
     switch (pathName) {
         case "/home":
             return <Playlist/>
-        case "/home/leaderboard":
-            return <Leaderboard/>
         case "/home/search":
             return <Search/>
         case "/home/about":

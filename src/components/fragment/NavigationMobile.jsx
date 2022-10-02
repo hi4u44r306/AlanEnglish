@@ -60,7 +60,7 @@ function NavigationMobile() {
       {['xl'].map((expand) => (
         <Navbar collapseOnSelect key={expand} expand={expand} className="navbackground">
           <Container fluid>
-            <Navbar.Brand href="/home" className="brand">
+            <Navbar.Brand href="/home/leaderboard" className="brand">
               <span>A</span>
               <span>L</span>
               <span>A</span>
