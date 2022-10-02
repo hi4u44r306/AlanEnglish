@@ -2,6 +2,7 @@ import React from 'react'
 import '../assets/scss/Leaderboard.scss';
 import firebase from 'firebase/app';
 import loudspeaker from '../assets/img/loudspeaker.png'
+import CountdownTimer from './CountdownTimer';
 
 class Leaderboard extends React.Component{
 
@@ -36,23 +37,31 @@ class Leaderboard extends React.Component{
                       <img className='loudspeaker2' src={loudspeaker} alt='#'/>
                     </div>
                   </div>
+                  <div className='countdown'>
+                    <div className='countdownlabel'>
+                      10月結算倒數  
+                    </div>
+                    <CountdownTimer countdownTimestampMs={1667231999000}/>
+                  </div>
                   <div className='prize'>
-                    <div>🥇第一名 : 麥當勞</div>
-                    <div>🥈第二名 : 薯條一份</div>
-                    <div>🥉第三名 : 飲料一杯</div>
+                    <div>🥇 1st : 麥當勞</div>
+                    <div>🥈 2nd : 薯條一份</div>
+                    <div>🥉 3rd : 飲料一杯</div>
                   </div>  
+                  <div className='coltitle'>
+                    <div style={{width:'35%'}}>🏆 Rank</div>
+                    <div style={{width:'35%'}}>👦 Name 👩</div>
+                    <div style={{width:'35%'}}>🎧 Timeplayed</div>
+                    {/* <th className='test' scope="col" style={{width:'30%'}}>🏆 Rank</th>
+                    <th className='test' scope="col" style={{width:'35%'}}>👦 Name 👩</th>
+                    <th className='test' scope="col" style={{width:'35%'}}>🎧 Timeplayed</th> */}
+                    {/* <th scope="col" style={{width:'40%'}}>Time Online</th> */}
+                  </div>
                 <table className='table table-borderless'>
-                  <col style={{width:'30%'}}/>
-                  <col style={{width:'30%'}}/>
-                  <col style={{width:'40%'}}/>
-                  {/* <col style={{width:'20%'}}/> */}
                   <thead>
-                    <tr className='coltitle'>
-                      <th scope="col">🏆Rank</th>
-                      <th scope="col">👦👩Name</th>
-                      <th scope="col">🎧Timeplayed</th>
-                      {/* <th scope="col">Time Online</th> */}
-                    </tr>
+                    <th scope="col" style={{width:'35%'}}></th>
+                    <th scope="col" style={{width:'35%'}}></th>
+                    <th scope="col" style={{width:'35%'}}></th>
                   </thead>
                   <tbody>
                   {
@@ -60,18 +69,23 @@ class Leaderboard extends React.Component{
                       this.state.students.map((students, index) =>{
                         return(
                           <tr>
-                            <td className='border-0'><b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>{index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}</b></td>
+                            <td className='border-0 d-flex justify-content-center' key={index}><b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>{index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}</b></td>
                             <td className='border-0'>
-                              <div className='d-flex'>
+                              <div className='d-flex justify-content-center'>
                                 <div className="align-self-center pl-3">
-                                  <b><span className='font-weight-bold'>{students.name}</span></b>
+                                  <b><span className='font-weight-bold' key={students.name}>{students.name}</span></b>
                                 </div>
                               </div>
                             </td>
                             <td>
-                              <b>
+                              <div className='d-flex justify-content-center'>
+                                <div className="align-self-center pl-3">
+                                  <b><span className='font-weight-bold' key={students.totaltimeplayed}>{students.totaltimeplayed}次</span></b>
+                                </div>
+                              </div>
+                              {/* <b key={students.totaltimeplayed}>
                               {students.totaltimeplayed}次
-                              </b>
+                              </b> */}
                             </td>
                           </tr>
                           )

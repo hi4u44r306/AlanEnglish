@@ -1,11 +1,22 @@
+.leaderboard{
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.countdown{
+    font-size: 30px;
+    font-weight: 900;
+    color: #005b7f;
+    text-align: center;
+    align-items: center;
+    .countdownlabel{
+        color: #f65050e7;
+    }
+}
 .card{
     background-color: #fbf7ddb1;
     height: 90vh;
-}
-.score-body{
-    flex: 1 1 auto;
-    padding: 30px;
-    border: solid #ffdd00b1 10px;
 }
 .loudspeaker1{
     width:90px;
@@ -26,9 +37,9 @@
     justify-content: space-around;
     font-size: 25px;
     font-weight: 900;
-    background-color: rgb(255, 66, 66) !important;
-    padding: 5px;
-    color: #f6edba;
+    background-color: #f65050e7 !important;
+    padding: 10px;
+    color: #000000;
     text-align: center;
     align-items: center;
     align-content: center;
@@ -36,18 +47,24 @@
 .leaderboardtitle{
     display: flex;
     justify-content: space-evenly;
-    font-size: 50px;
+    font-size: 45px;
     font-weight: 900;
     color: #005b7f;
     text-align: center;
     align-items: center;
 }
 .coltitle{
+    padding: 10px;
+    display: flex;
+    justify-content: space-evenly;
+    font-size: 30px;
+    font-weight: 900;
     color: #005b7f;
-    font-size: 25px;
+    text-align: center;
+    align-items: center;
 }
 
-@media only screen and (max-width: 545px) {
+@media only screen and (max-width: 700px) {
     tbody{
         font-size: 10px;
     }
@@ -70,5 +87,8 @@
     }
     .coltitle{
         font-size: 10px;
+    }
+    .countdown{
+        font-size: 15px;
     }
 }

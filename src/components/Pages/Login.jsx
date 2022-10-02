@@ -31,7 +31,7 @@ class Login extends React.Component{
             draggable: true,
             progress: undefined,
             });
-            setTimeout(function(){window.location = "/home/playlist/Workbook_1";} , 1000); 
+            setTimeout(function(){window.location = "/home/leaderboard";} , 1000); 
             
         };
 

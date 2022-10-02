@@ -1,0 +1,23 @@
+.countdown-timer {
+    font-family: 'Varela Round', sans-serif;
+    font-size: 25px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.countdown-timer span {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.two-numbers {
+    width: 2ch;
+}
+
+@media only screen and (max-width: 700px) {
+    .countdown-timer {
+        font-size: 15px;
+    }
+}
