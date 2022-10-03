@@ -14,7 +14,8 @@ h3{
   font-family: 'Varela Round', sans-serif;
 }
 .toggle{
-  background-color: rgb(255, 255, 255)
+  background-color: rgb(255, 255, 255);
+  font-size: 15px;
 }
 
 .dropdown-menu{
@@ -101,7 +102,7 @@ h3{
   text-shadow: 0 0 10px white,
                0 0 20px white,
                0 0 40px white;
-  font-size: 35px;
+  font-size: 25px;
   font-family: 'Varela Round', sans-serif;
   font-weight: 900;
   letter-spacing: 2px;
@@ -167,13 +168,13 @@ h3{
 
 @media only screen and (max-width: 1210px) {
   .brand {
-    font-size: 30px;
+    font-size: 25px;
   }
 }
 
 @media only screen and (max-width: 470px) {
   .brand {
-    font-size: 26px;
+    font-size: 20px;
   }
 }
 

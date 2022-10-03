@@ -15,11 +15,8 @@ table{
     align-items: center;
     .countdownlabel{
         color: #f65050e7;
+        font-size: 20px;
     }
-}
-.card{
-    background-color: #fbf7ddb1;
-    height: 90vh;
 }
 .loudspeaker1{
     width:80px;
@@ -38,11 +35,11 @@ table{
     font-family: 'Varela Round', sans-serif;
     display: flex;
     justify-content: space-around;
-    font-size: 25px;
+    font-size: 20px;
     font-weight: 900;
     background-color: #f65050e7 !important;
     padding: 10px;
-    color: #000000;
+    color: #ffffff;
     text-align: center;
     align-items: center;
     align-content: center;
@@ -50,7 +47,7 @@ table{
 .leaderboardtitle{
     display: flex;
     justify-content: space-evenly;
-    font-size: 40px;
+    font-size: 30px;
     font-weight: 900;
     color: #005b7f;
     text-align: center;
@@ -60,7 +57,7 @@ table{
     padding: 10px;
     display: flex;
     justify-content: space-evenly;
-    font-size: 25px;
+    font-size: 20px;
     font-weight: 900;
     color: #005b7f;
     text-align: center;
@@ -70,9 +67,6 @@ table{
 @media only screen and (max-width: 700px) {
     tbody{
         font-size: 10px;
-    }
-    .score-body{
-        padding: 0px;
     }
     .loudspeaker1{
         width:40px;
@@ -93,5 +87,8 @@ table{
     }
     .countdown{
         font-size: 15px;
+    }
+    .card{
+        height: 100%;
     }
 }
