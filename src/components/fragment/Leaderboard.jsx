@@ -13,7 +13,7 @@ class Leaderboard extends React.Component{
   
   componentDidMount() {
     const db = firebase.firestore();
-    db.collection("student").where("totaltimeplayed", ">", 99).orderBy('totaltimeplayed', 'desc').get().then((snapshot) => {
+    db.collection("student").where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').get().then((snapshot) => {
       const students = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
