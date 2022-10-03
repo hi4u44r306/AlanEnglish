@@ -13,7 +13,7 @@ class Leaderboard extends React.Component{
   
   componentDidMount() {
     const db = firebase.firestore();
-    db.collection("student").where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').get().then((snapshot) => {
+    db.collection("student").where("totaltimeplayed", ">", 99).orderBy('totaltimeplayed', 'desc').get().then((snapshot) => {
       const students = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
@@ -39,14 +39,15 @@ class Leaderboard extends React.Component{
                   </div>
                   <div className='countdown'>
                     <div className='countdownlabel'>
-                      10月結算倒數  
+                      播放總次數大於100才會上榜!! 10月結算倒數  
                     </div>
                     <CountdownTimer countdownTimestampMs={1667231999000}/>
                   </div>
                   <div className='prize'>
-                    <div>🥇 1st : 麥當勞</div>
-                    <div>🥈 2nd : 薯條一份</div>
-                    <div>🥉 3rd : 飲料一杯</div>
+                    <div>前三名獎品</div>
+                    <div>🥇 1st : 待定</div>
+                    <div>🥈 2nd : 待定</div>
+                    <div>🥉 3rd : 待定</div>
                   </div>  
                   <div className='coltitle'>
                     <div style={{width:'35%'}}>🏆 Rank</div>
