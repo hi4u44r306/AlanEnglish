@@ -39,15 +39,15 @@ class Leaderboard extends React.Component{
                   </div>
                   <div className='countdown'>
                     <div className='countdownlabel'>
-                      播放總次數大於100才會上榜!! 10月結算倒數  
+                      10月31日結算  
                     </div>
                     <CountdownTimer countdownTimestampMs={1667231999000}/>
                   </div>
                   <div className='prize'>
-                    <div>前三名獎品</div>
-                    <div>🥇 1st : 待定</div>
+                    <div>前十名獎品待定</div>
+                    {/* <div>🥇 1st : 待定</div>
                     <div>🥈 2nd : 待定</div>
-                    <div>🥉 3rd : 待定</div>
+                    <div>🥉 3rd : 待定</div> */}
                   </div>  
                   <div className='coltitle'>
                     <div style={{width:'35%'}}>🏆 Rank</div>
