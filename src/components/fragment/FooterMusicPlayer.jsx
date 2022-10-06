@@ -20,6 +20,9 @@ function FooterMusicPlayer({music}) {
     const dispatch = useDispatch();
     const audioElement = useRef();
 
+    // const currentDate = new Date().toJSON().slice(0, 10);
+
+
     const success = () =>  {
         toast.success('太棒了 聽力次數+1 請刷新頁面更新聆聽次數',{
             className:"musicnotification",
@@ -46,18 +49,18 @@ function FooterMusicPlayer({music}) {
             });
         };
 
-    const repeattimesuccess = () =>  {
-        toast.success('重播次數+1 請刷新頁面更新聆聽次數',{
-            className:"musicnotification",
-            position: "bottom-left",
-            autoClose: 2500,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            });
-        };
+    // const repeattimesuccess = () =>  {
+    //     toast.success('重播次數+1 請刷新頁面更新聆聽次數',{
+    //         className:"musicnotification",
+    //         position: "bottom-left",
+    //         autoClose: 2500,
+    //         hideProgressBar: false,
+    //         closeOnClick: true,
+    //         pauseOnHover: false,
+    //         draggable: true,
+    //         progress: undefined,
+    //         });
+    //     };
 
     useEffect(() => {
         setCurrTrack(music);
@@ -72,26 +75,70 @@ function FooterMusicPlayer({music}) {
             updatetimeplayedtofirestore();
         }
     });
+
     
     const updatetimeplayedtofirestore = () => {
         if(currplayingmusicid){
-            db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
+            ////當前音軌次數增加////
+            const userRef = db.collection('student').doc(currentuser);   
+            userRef.collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
                 const a = doc.data().timeplayed;
                 const b = parseInt(a)+1;
-                db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).set({
+                userRef.collection('Musics').doc(currplayingmusicid).set({
                     timeplayed: b,
                 })
-                .then(() => {
-                    console.log("Document successfully written!");
-                })
-                .catch((error) => {
-                    console.error("Error writing document: ", error);
-                });
+                console.log('normal timeplayed increase');
             }).catch((err)=>{
                 console.log(err.message);
             })
-            db.collection('student').doc(currentuser).get().then((doc)=>{
-                console.log(doc.data().totaltimeplayed);
+
+            ////記錄檔中的當前音軌當天次數增加////
+            // const logfileRef = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
+            // logfileRef.get().then((doc)=>{
+            //     console.log(doc.data().timeplayed);
+            //     const a = doc.data().timeplayed;
+            //     const b = parseInt(a)+1;   
+            //     logfileRef.update({
+            //         timeplayed: b,
+            //     }).then(() => {
+            //         console.log('Today time played update');
+            //     })
+            // })
+            // const newdaytimeplayed = 0;
+            // logfileRef.set({timeplayed: newdaytimeplayed});
+           
+            ////結束////
+
+
+            /////////////////////////////////////////////////////////////////////////
+
+
+            ////當天總次數統計////
+            // const bb = userRef.collection('Logfile').doc(currentDate).get().then((doc)=>{
+            //     console.log(doc.data().newdaytotaltimeplayed);
+            // });
+            // if(bb === true){
+            //     userRef.collection('Logfile').doc(currentDate).get().then((doc)=>{
+            //         const c = doc.data().newdaytotaltimeplayed;
+            //         const d = parseInt(c)+1;
+            //         userRef.collection('Logfile').doc(currentDate).update({
+            //             newdaytotaltimeplayed: d
+            //         })
+            //     });
+            // }else{
+            //     const newdaytotaltimeplayed = 0;
+            //     userRef.collection('Logfile').doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid).set({
+            //         timeplayed: newdaytotaltimeplayed,
+            //     })
+            // }
+            ////當天總次數統計 結束////
+
+
+            /////////////////////////////////////////////////////////////////////////
+
+
+            ////所有音軌總次數增加////
+            userRef.get().then((doc)=>{  
                 const c = doc.data().totaltimeplayed;
                 const d = parseInt(c)+1;
                 db.collection('student').doc(currentuser).update({
@@ -103,36 +150,36 @@ function FooterMusicPlayer({music}) {
         }
     };
 
-    const update_repeat_timeplayed = () => {
-        if(currplayingmusicid){
-            db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
-                const a = doc.data().timeplayed;
-                const b = parseInt(a)+1;
-                db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid).set({
-                    timeplayed: b,
-                })
-                .then(() => {
-                    repeattimesuccess();
-                    console.log("Document successfully written!");
-                })
-                .catch((error) => {
-                    console.error("Error writing document: ", error);
-                });
-            }).catch((err)=>{
-                console.log(err.message);
-            })
-            db.collection('student').doc(currentuser).get().then((doc)=>{
-                console.log(doc.data().totaltimeplayed);
-                const c = doc.data().totaltimeplayed;
-                const d = parseInt(c)+1;
-                db.collection('student').doc(currentuser).update({
-                    totaltimeplayed: d,
-                });
-            })
-        }else{
-            console.log("update currplayingmusicid failed");
-        }
-    };
+    // const update_repeat_timeplayed = () => {
+    //     if(currplayingmusicid){
+    //         const userRef = db.collection('student').doc(currentuser);
+    //         userRef.collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
+    //             const a = doc.data().timeplayed;
+    //             const b = parseInt(a)+1;
+    //             userRef.collection('Musics').doc(currplayingmusicid).set({
+    //                 timeplayed: b,
+    //             })
+    //             .then(() => {
+    //                 repeattimesuccess();
+    //                 console.log("Document successfully written!");
+    //             })
+    //             .catch((error) => {
+    //                 console.error("Error writing document: ", error);
+    //             });
+    //         }).catch((err)=>{
+    //             console.log(err.message);
+    //         })
+    //         userRef.get().then((doc)=>{
+    //             const c = doc.data().totaltimeplayed;
+    //             const d = parseInt(c)+1;
+    //             db.collection('student').doc(currentuser).update({
+    //                 totaltimeplayed: d,
+    //             });
+    //         })
+    //     }else{
+    //         console.log("update currplayingmusicid failed");
+    //     }
+    // };
     
     const handleClickNext = () => {
         console.log('click next')
@@ -164,7 +211,8 @@ function FooterMusicPlayer({music}) {
         <div className={"footer-player"}>
             <AudioPlayer
                 autoPlay
-                onSeeked={update_repeat_timeplayed}
+                loop={null}
+                // onSeeked={update_repeat_timeplayed}
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
@@ -200,6 +248,10 @@ function FooterMusicPlayer({music}) {
                     RHAP_UI.DURATION,
                 ]
                 }
+                customControlsSection={[
+                    RHAP_UI.MAIN_CONTROLS,
+                    RHAP_UI.VOLUME_CONTROLS,
+                ]}
             />   
             <div>
                 <ToastContainer

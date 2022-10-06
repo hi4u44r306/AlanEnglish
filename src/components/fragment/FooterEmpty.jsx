@@ -1,6 +1,6 @@
 import React from 'react';
 import 'react-h5-audio-player/lib/styles.css';
-import AudioPlayer from 'react-h5-audio-player'
+import AudioPlayer, { RHAP_UI } from 'react-h5-audio-player'
 import Name from "./Name";
 import '../assets/scss/FooterEmpty.scss';
 import Marquee from "react-fast-marquee";
@@ -26,7 +26,11 @@ function FooterEmpty() {
                     <Name name={"No Music"} className={"emptysong-name"}/>
                 </Marquee>,
             ]
-        }
+            }
+            customControlsSection={[
+                RHAP_UI.MAIN_CONTROLS,
+                RHAP_UI.VOLUME_CONTROLS,
+            ]}
         />          
     </div>
     );

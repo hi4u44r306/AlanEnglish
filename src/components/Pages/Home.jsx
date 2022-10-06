@@ -1,6 +1,6 @@
 import React, { useEffect, useState} from "react";
 import './css/Home.scss';
-import Navigation from "../fragment/Navigation";
+// import Navigation from "../fragment/Navigation";
 import NavigationMobile from "../fragment/NavigationMobile";
 import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
 import MusicCardContainer from "../fragment/MusicCardContainer";
@@ -38,15 +38,15 @@ function getCurrPage(pathName) {
 
 function Home() {
 
-    const [screenSize, setScreenSize] = useState(true);
+    // const [screenSize, setScreenSize] = useState(true);
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
 
-    window.addEventListener("resize", handleResize);
+    // window.addEventListener("resize", handleResize);
 
-    function handleResize() {
-        setScreenSize(window.innerWidth);
-    }
+    // function handleResize() {
+    //     setScreenSize(window.innerWidth);
+    // }
 
     let pathname = window.location.pathname;
     useEffect(() => {
@@ -75,13 +75,7 @@ function Home() {
                     </div>
                     :
                     <>
-                        {
-                            screenSize <= 1200 
-                                ?
-                                <NavigationMobile/> 
-                                :
-                                <Navigation/>
-                        }
+                        <NavigationMobile/>
                         <section className={"home-music-container"}>
                             <div className="main-home">
                                 {
