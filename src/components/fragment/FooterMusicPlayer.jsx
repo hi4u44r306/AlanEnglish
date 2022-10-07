@@ -20,7 +20,7 @@ function FooterMusicPlayer({music}) {
     const dispatch = useDispatch();
     const audioElement = useRef();
 
-    // const currentDate = new Date().toJSON().slice(0, 10);
+    const currentDate = new Date().toJSON().slice(0, 10);
 
 
     const success = () =>  {
@@ -79,6 +79,7 @@ function FooterMusicPlayer({music}) {
     
     const updatetimeplayedtofirestore = () => {
         if(currplayingmusicid){
+            
             ////當前音軌次數增加////
             const userRef = db.collection('student').doc(currentuser);   
             userRef.collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
@@ -87,25 +88,36 @@ function FooterMusicPlayer({music}) {
                 userRef.collection('Musics').doc(currplayingmusicid).set({
                     timeplayed: b,
                 })
-                console.log('normal timeplayed increase');
+                console.log('timeplayed + 1');
             }).catch((err)=>{
                 console.log(err.message);
             })
+            ////結束////
+
 
             ////記錄檔中的當前音軌當天次數增加////
-            // const logfileRef = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
-            // logfileRef.get().then((doc)=>{
-            //     console.log(doc.data().timeplayed);
-            //     const a = doc.data().timeplayed;
-            //     const b = parseInt(a)+1;   
-            //     logfileRef.update({
-            //         timeplayed: b,
-            //     }).then(() => {
-            //         console.log('Today time played update');
-            //     })
-            // })
-            // const newdaytimeplayed = 0;
-            // logfileRef.set({timeplayed: newdaytimeplayed});
+            const logfileRef = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
+            const test = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate)
+            if(test !== null){
+                logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
+                    const a = doc.data().timeplayed;
+                    const b = parseInt(a)+1;   
+                    logfileRef.update({
+                        timeplayed: b,
+                    }).then(() => {
+                        console.log(currentDate, " id: ", currplayingmusicid , 'time played update', b);
+                    })
+                }).catch(() => { ///如果Firebase 中沒有這筆資料則新增///
+                    const newdaytimeplayed = 1;
+                    logfileRef.set({
+                        timeplayed: newdaytimeplayed
+                    }).then(() =>{
+                        console.log(currentDate, "id :", currplayingmusicid ,'new update');
+                    })
+                });
+            }else{
+
+            }
            
             ////結束////
 
@@ -197,7 +209,7 @@ function FooterMusicPlayer({music}) {
     };
 
     const handleEnd = () =>{
-        console.log('end')
+        console.log('track end')
         const currplayingmusicid = "'" + id + "'";
         updatetimeplayedtofirestore(currplayingmusicid);
         success();
