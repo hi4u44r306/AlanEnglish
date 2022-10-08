@@ -98,7 +98,7 @@ function NavigationMobile() {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="d-flex align-items-center justify-content-end flex-grow-1 pe-3">
-                <Nav.Link className="navlinklabel">Welcome : </Nav.Link>
+                <Nav.Link className="navlinklabel"></Nav.Link>
                 {
                 loading ?
                     (

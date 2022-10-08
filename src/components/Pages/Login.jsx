@@ -59,6 +59,13 @@ class Login extends React.Component{
         })
     }
 
+    handleKeypress(e){
+        //it triggers by pressing the enter key
+      if (e.keyCode === 13) {
+        this.btn.click();
+      }
+    };
+
     handleChange(e){
         this.setState({
             [e.target.name] : e.target.value
@@ -111,6 +118,7 @@ class Login extends React.Component{
                                     id="email" 
                                     placeholder="輸入電子郵件或帳號..." 
                                     onChange={this.handleChange} 
+                                    onKeyPress={this.handleKeypress}
                                     value={this.state.email}
                                     />
 
@@ -121,10 +129,16 @@ class Login extends React.Component{
                                         id="password" 
                                         placeholder="輸入密碼..." 
                                         onChange={this.handleChange} 
+                                        onKeyPress={this.handleKeypress}
                                         value={this.state.password}
                                     />
 
-                                <button onClick={this.login} className="loginbtn">
+                                <button 
+                                    onClick={this.login} 
+                                    className="loginbtn" 
+                                    ref={node => (this.btn = node)} 
+                                    type="submit"
+                                >
                                     登入
                                     <ToastContainer
                                     position="top-center"

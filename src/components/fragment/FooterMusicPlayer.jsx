@@ -92,62 +92,64 @@ function FooterMusicPlayer({music}) {
             }).catch((err)=>{
                 console.log(err.message);
             })
-            ////結束////
+            /////////////////////////// 結束 /////////////////////////////////
 
-
+            
             ////記錄檔中的當前音軌當天次數增加////
             const logfileRef = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
-            const test = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate)
-            if(test !== null){
-                logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
-                    const a = doc.data().timeplayed;
-                    const b = parseInt(a)+1;   
-                    logfileRef.update({
-                        timeplayed: b,
-                    }).then(() => {
-                        console.log(currentDate, " id: ", currplayingmusicid , 'time played update', b);
-                    })
-                }).catch(() => { ///如果Firebase 中沒有這筆資料則新增///
-                    const newdaytimeplayed = 1;
-                    logfileRef.set({
-                        timeplayed: newdaytimeplayed
-                    }).then(() =>{
-                        console.log(currentDate, "id :", currplayingmusicid ,'new update');
-                    })
-                });
-            }else{
+            //// 記錄檔中當天總次數計算 ////
+            const victor = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate);
+            victor.get().then((doc)=>{
+                const abc = doc.data().todaytotaltimeplayed;
+                const efg = parseInt(abc)+1;
+                victor.update({
+                    todaytotaltimeplayed : efg,
+                })
+            }).catch(()=>{
+                victor.set({
+                todaytotaltimeplayed : 1,
+                })
+            })
+             //// 結束 ////
+            logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
+                const a = doc.data().timeplayed;
+                const b = parseInt(a)+1;  
+                logfileRef.update({
+                    timeplayed: b,
+                }).then(() => {
+                    console.log(currentDate, " id: ", currplayingmusicid , 'time played update', b);
+                })
+            }).catch(() => { ///如果Firebase 中沒有這筆資料則新增///
+                const newdaytimeplayed = 1;
+                logfileRef.set({
+                    timeplayed: newdaytimeplayed
+                }).then(() =>{
+                    console.log(currentDate, "id :", currplayingmusicid ,'new update');
+                })
+            });
+            /////////////////////////// 結束 /////////////////////////////////
+            
 
-            }
-           
-            ////結束////
-
-
-            /////////////////////////////////////////////////////////////////////////
-
-
-            ////當天總次數統計////
-            // const bb = userRef.collection('Logfile').doc(currentDate).get().then((doc)=>{
-            //     console.log(doc.data().newdaytotaltimeplayed);
-            // });
-            // if(bb === true){
-            //     userRef.collection('Logfile').doc(currentDate).get().then((doc)=>{
-            //         const c = doc.data().newdaytotaltimeplayed;
-            //         const d = parseInt(c)+1;
-            //         userRef.collection('Logfile').doc(currentDate).update({
-            //             newdaytotaltimeplayed: d
-            //         })
-            //     });
-            // }else{
-            //     const newdaytotaltimeplayed = 0;
-            //     userRef.collection('Logfile').doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid).set({
-            //         timeplayed: newdaytotaltimeplayed,
+            //// 記錄檔中當天總次數計算 ////
+            // const tttplayed = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate)
+            // tttplayed.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
+            //     const a = doc.data().timeplayed;
+            //     const b = parseInt(a)+1;  
+            //     tttplayed.update({
+            //         timeplayed: b,
+            //     }).then(() => {
+            //         console.log(currentDate, " id: ", currplayingmusicid , 'time played update', b);
             //     })
-            // }
-            ////當天總次數統計 結束////
-
-
-            /////////////////////////////////////////////////////////////////////////
-
+            // }).catch(() => { ///如果Firebase 中沒有這筆資料則新增///
+            //     const newdaytimeplayed = 1;
+            //     tttplayed.set({
+            //         timeplayed: newdaytimeplayed
+            //     }).then(() =>{
+            //         console.log(currentDate, "id :", currplayingmusicid ,'new update');
+            //     })
+            // });
+            // /////////////////////////// 結束 /////////////////////////////////
+            
 
             ////所有音軌總次數增加////
             userRef.get().then((doc)=>{  
