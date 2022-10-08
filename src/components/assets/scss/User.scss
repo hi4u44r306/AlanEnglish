@@ -25,7 +25,6 @@
 }
 .User-profileDetails {
   color: #188345;
-  width: 40vw;
   font-weight: 600;
   display: flex;
   flex-direction: column;
@@ -35,6 +34,7 @@
 
 .User-profile-title {
   font-family: "Poppins" !important;
+  font-size: 40px;
   font-weight: 900;
   padding: 10px;
 }
@@ -48,28 +48,26 @@
   margin: 35px 10px;
   border-radius: 55px;
   display: grid;
-  grid-template-columns: 25% 70%;
+  grid-template-columns: 75% 25%;
   padding: 0 0.4rem;
-}
-
-.userinfo p {
-  display: flex;
-  align-items: center;
-  line-height: 1;
-  font-weight: 600;
-  font-size: 1rem;
-  color: #333;
-}
-
-.userinfo label {
-  width: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: left;
-  padding: 10px;
-  font-weight: 900;
-  font-size: 1rem;
-  color: #188345;
+  p {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+  }
+  label {
+    width: fit-content;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    padding: 10px;
+    font-weight: 900;
+    font-size: 1rem;
+    color: #188345;
+  }
 }
 
 @media screen and (max-width: 800px) {
@@ -78,33 +76,33 @@
   }
   .userinfo {
     display: flex;
-    width: 80vw;
+    width: 90vw;
     height: 60px;
     background-color: #f5dd9e;
     margin: 30px 10px;
     border-radius: 55px;
     display: grid;
-    grid-template-columns: 30% 70%;
+    grid-template-columns: 70% 30%;
     padding: 0 0.4rem;
-    .userinfo p {
+    p {
       outline: none;
       border: none;
       line-height: 1;
       background: none;
       font-weight: 600;
-      font-size: 0.7rem;
+      font-size: 0.9rem;
       width: 200px;
       padding: 0 0.6rem;
     }
-  }
-  .userinfo label {
-    width: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: left;
-    padding: 10px;
-    font-weight: 600;
-    font-size: 1rem;
-    color: #188344;
+    label {
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      justify-content: left;
+      padding: 10px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #188344;
+    }
   }
 }

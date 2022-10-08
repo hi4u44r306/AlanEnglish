@@ -11,9 +11,9 @@ const User = (user) => {
     const [loading, setLoading] = useState(false);
     const db = firebase.firestore();
     const [username, setUsername] = useState();
-    const [useremail, setUseremail] = useState();
-    const [userclass, setUserclass] = useState();
-
+    const [dailytimeplayed, setDailyTimeplayed] = useState();
+    const [totaltimeplayed, setTotaltimeplayed] = useState();
+    const currentDate = new Date().toJSON().slice(0, 10);
 
     useEffect(()=>{
         setLoading(true)
@@ -34,14 +34,18 @@ const User = (user) => {
             getUserInfo();
         }
     })
+
+
     
     const getUserInfo = (user) =>{
         if(user){
             db.collection('student').doc(user.uid).get().then( doc => {
                 setUsername(doc.data().name);
-                setUseremail(doc.data().email);
-                setUserclass(doc.data().class);
+                setTotaltimeplayed(doc.data().totaltimeplayed);
             })
+            db.collection('student').doc(user.uid).collection('Logfile').doc(currentDate).get().then((doc)=>{
+                setDailyTimeplayed(doc.data().todaytotaltimeplayed)
+            }) 
         }else{
 
         }
@@ -65,19 +69,27 @@ const User = (user) => {
                                 (
             <div className="User-profileDetails">
                 <h3 className='User-profile-title'>學生資料</h3>
-                    <form>
-                        <div className="userinfo">
-                            <label>姓名:</label>
-                            <p>{username}</p>
-                        </div>
-                        <div className="userinfo">
-                            <label>Email:</label>
-                            <p>{useremail}</p>
-                        </div>
-                        <div className="userinfo">                                            
-                            <label>班別:</label>
-                            <p>{userclass}</p>
-                        </div>
+                <form>
+                    <div className="userinfo">
+                        <label>👦👧 姓名:</label>
+                        <p>{username}</p>
+                    </div>
+                    {/* <div className="userinfo">
+                        <label>Email:</label>
+                        <p>{useremail}</p>
+                    </div>
+                    <div className="userinfo">                                            
+                        <label>班別:</label>
+                        <p>{userclass}</p>
+                    </div> */}
+                    <div className="userinfo">
+                        <label>🎧 {currentDate} 聽力次數:</label>
+                        <p> {dailytimeplayed}次</p>
+                    </div>
+                    <div className="userinfo">
+                        <label>🏆 總聽力次數:</label>
+                        <p>{totaltimeplayed}次</p>
+                    </div>
                 </form>
             </div>
             )
