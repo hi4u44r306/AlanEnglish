@@ -7,11 +7,8 @@ import MusicCardContainer from "../fragment/MusicCardContainer";
 import {useSelector} from "react-redux";
 import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
-import About from "./About";
 import Playlist from "../fragment/Playlist";
 import {Skeleton} from "@material-ui/lab";
-import Contact from "./Contact";
-import UserInfo from "./UserInfo";
 import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
 function getCurrPage(pathName) {
@@ -20,12 +17,6 @@ function getCurrPage(pathName) {
             return <Playlist/>
         case "/home/search":
             return <Search/>
-        case "/home/about":
-            return <About/>
-        case "/home/contact":
-            return <Contact/>
-        case "/home/userinfo":
-            return <UserInfo/>
         case "/home/addmusic":
             return <AddMusic/>
         default:

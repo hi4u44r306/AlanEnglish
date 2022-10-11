@@ -1,13 +1,13 @@
 import React from 'react';
 import './css/UserInfo.scss';
-import Container from "../fragment/Container";
+import Containerfull from "../fragment/Containerfull";
 import User from "../fragment/User";
 
 const UserInfo = () => {
     return (
-        <Container>
+        <Containerfull>
             <User/>
-        </Container>
+        </Containerfull>
     );
 }
 

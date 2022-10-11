@@ -10,8 +10,10 @@ import {useDispatch, useSelector} from "react-redux";
 import {setPlaylist} from "../actions/actions";
 import Leaderboard from "../components/fragment/Leaderboard";
 import NavigationMobile from "../components/fragment/NavigationMobile";
-import FooterEmpty from "../components/fragment/FooterEmpty";
 import Copyright from "../components/fragment/Copyright";
+import UserInfo from "../components/Pages/UserInfo";
+import Contact from "../components/Pages/Contact";
+import About from "../components/Pages/About";
 
 
 const App = () => {
@@ -44,7 +46,21 @@ const App = () => {
                             <NavigationMobile/>
                             <Leaderboard/>
                             <Copyright/>
-                            <FooterEmpty/>
+                        </Route>
+                        <Route path="/home/userinfo">
+                            <NavigationMobile/>
+                            <UserInfo/>
+                            <Copyright/>
+                        </Route>
+                        <Route path="/home/contact">
+                            <NavigationMobile/>
+                            <Contact/>
+                            <Copyright/>
+                        </Route>
+                        <Route path="/home/about">
+                            <NavigationMobile/>
+                            <About/>
+                            <Copyright/>
                         </Route>
                         <Route path="/home" component={Home}/>
                     </Switch>

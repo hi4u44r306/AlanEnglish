@@ -1,10 +1,10 @@
 .Contact {
-  font-family: 'Poppins', sans-serif;
-  
+  font-family: "Poppins", sans-serif;
+
   .Contact-head {
     text-transform: uppercase;
     background-color: #005b7f !important;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
     letter-spacing: 2px;
     color: #f6edba;
     font-size: 1.5rem;
@@ -23,11 +23,11 @@
     display: flex;
     flex-flow: row wrap;
     // background-color: #efdaae;
-    background-color: #ffffff;
+    background-color: #fcf8ec;
     padding: 5px;
-    height: 75vh;
-    overflow-y:scroll;
-    .Contact-profileCard{
+    height: 83vh;
+    overflow-y: scroll;
+    .Contact-profileCard {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -46,66 +46,67 @@
         align-items: center;
         padding: 10px;
         background-color: #1e56a0;
-        h3, p {
+        h3,
+        p {
           padding: 10px;
           text-transform: uppercase;
         }
         h3 {
-          font-family: 'Poppins';
+          font-family: "Poppins";
           font-weight: 900;
           color: white;
           font-size: 1.3rem;
         }
-        p{
+        p {
           color: gainsboro;
         }
       }
     }
   }
-    .Contact-profileDetails {
-      color: #188345;
-      margin: 20px;
-      font-weight: 600;
-      flex-grow: 1;
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      h3{
-        font-family: 'Poppins' !important;
-        font-weight: 900;
-        padding: 10px;
-      }
-      p {
-        padding: 10px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
+  .Contact-profileDetails {
+    color: #188345;
+    margin: 20px;
+    font-weight: 600;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    h3 {
+      font-family: "Poppins" !important;
+      font-weight: 900;
+      padding: 10px;
+    }
+    p {
+      padding: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
   }
+}
 
-.input-field{
+.input-field {
   display: flex;
   max-width: 500px;
   width: 100%;
   height: 60px;
   background-color: #f5dd9e;
   margin: 25px 10px;
-  border-radius: 55px ;
-  display:grid;
+  border-radius: 55px;
+  display: grid;
   grid-template-columns: 25% 70%;
-  padding: 0 .4rem;
+  padding: 0 0.4rem;
 }
 
-.input-field input{
-    background:none;
-    outline:none;
-    border:none;
-    line-height: 1;
-    font-weight: 600;
-    font-size: 1rem;
-    color: #333;
+.input-field input {
+  background: none;
+  outline: none;
+  border: none;
+  line-height: 1;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
 }
-.input-field label{
+.input-field label {
   color: #188345;
   width: 200px;
   display: flex;
@@ -116,15 +117,15 @@
   font-size: 1rem;
 }
 
-.input-field input::placeholder{
-  font-family: 'Poppins', sans-serif;
+.input-field input::placeholder {
+  font-family: "Poppins", sans-serif;
   color: rgb(76, 76, 76);
   background-color: none;
   font-weight: 600;
   // padding: 10px;
 }
-.submitbtn{
-  font-family: 'Poppins', sans-serif;
+.submitbtn {
+  font-family: "Poppins", sans-serif;
   font-weight: 600;
   letter-spacing: 5px;
   display: flex;
@@ -136,14 +137,14 @@
   width: 150px;
   height: 50px;
   border-radius: 50px;
-  transition: .5s;
+  transition: 0.5s;
 }
-.submitbtn:hover{
+.submitbtn:hover {
   background-color: #2a76da;
 }
 
 @media screen and (max-width: 500px) {
-  .input-field{
+  .input-field {
     display: flex;
     max-width: 350px;
     width: 100%;
@@ -151,22 +152,22 @@
     background-color: #f5dd9e;
     margin: 30px 10px;
     border-radius: 55px;
-    display:grid;
+    display: grid;
     grid-template-columns: 30% 70%;
-    padding: 0 .4rem;
+    padding: 0 0.4rem;
   }
-  .input-field input{
-    outline:none;
-    border:none;
+  .input-field input {
+    outline: none;
+    border: none;
     line-height: 1;
     background: none;
     font-weight: 600;
     font-size: 0.9rem;
     width: 200px;
     color: #333;
-    padding: 0 .4rem;
-}
-  .input-field label{
+    padding: 0 0.4rem;
+  }
+  .input-field label {
     color: #188345;
     width: 200px;
     display: flex;
@@ -178,11 +179,9 @@
   }
 }
 @media screen and (max-width: 1035px) {
-  .Contact-profileCard{
-  img {
+  .Contact-profileCard {
+    img {
       display: none;
     }
   }
 }
-
-

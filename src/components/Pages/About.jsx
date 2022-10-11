@@ -1,15 +1,15 @@
 import React from 'react';
 import './css/About.scss';
-import Container from "../fragment/Container";
+import Containerfull from "../fragment/Containerfull";
 import Developer from "../fragment/Developer";
 
 const About = () => {
     return (
-        <Container>
+        <Containerfull>
             <div className={"About"}>
                 <Developer/>
             </div>
-        </Container>
+        </Containerfull>
     );
 }
 

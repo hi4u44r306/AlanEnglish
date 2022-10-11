@@ -3,7 +3,7 @@ import '../assets/scss/Leaderboard.scss';
 import firebase from 'firebase/app';
 import loudspeaker from '../assets/img/loudspeaker.png'
 import CountdownTimer from './CountdownTimer';
-import Container from './Container';
+import Containerfull from './Containerfull';
 
 class Leaderboard extends React.Component{
 
@@ -14,7 +14,7 @@ class Leaderboard extends React.Component{
   
   
   componentDidMount() {
-    const db = firebase.firestore();
+    const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量
     db.collection("student").where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(20).get().then((snapshot) => {
       const students = [];
       snapshot.forEach((doc)=>{
@@ -27,7 +27,7 @@ class Leaderboard extends React.Component{
   
   render(){
     return(
-      <Container>
+      <Containerfull>
           <div className='leaderboard'>
             <div className='leaderboardtitle'>
               <div>
@@ -84,7 +84,7 @@ class Leaderboard extends React.Component{
               </tbody>
             </table>
           </div>            
-      </Container>
+      </Containerfull>
       )
   }
 }

@@ -1,13 +1,13 @@
 import React from 'react';
 import './css/Contact.scss';
-import Container from "../fragment/Container";
+import Containerfull from "../fragment/Containerfull";
 import Contactus from "../fragment/Contactus";
 
 const Contact = () => {
     return (
-        <Container>
+        <Containerfull>
             <Contactus/>
-        </Container>
+        </Containerfull>
     );
 }
 

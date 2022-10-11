@@ -6,12 +6,11 @@ import VictorImage from "../assets/img/victor.jpg";
 const Developer = () => {
     return (
         <div className={"Developer"}>
-            {/* <h3 className={"Developer-head"}>Meet the teacher</h3> */}
             <div className="Developer-profile">
                 <div className="Developer-profileCard">
                     <img src={AlanImage} alt="Profile"/>
                 </div>
-                <div className="Developer-profileDetails-1">
+                <div className="Developer-profileDetails">
                     <h3>Alan Hsu</h3>
                     <p> 1. 桃園課後照顧中心班主任</p>
                     <p> 2. Alan English 創辦人</p>
@@ -21,7 +20,7 @@ const Developer = () => {
                     <p> 6. 戊類所長班培訓</p>
                     <p> 7. 合格保育人員</p>
                 </div>
-                <div className="Developer-profileDetails-2">
+                <div className="Developer-profileDetails">
                     
                     <h3>著作: </h3>
                     <p>1. Phonics K.K</p>

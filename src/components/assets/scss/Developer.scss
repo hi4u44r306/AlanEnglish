@@ -1,13 +1,13 @@
 .Developer {
-  font-family: 'Poppins', sans-serif;
-  background-color: white;
+  font-family: "Poppins", sans-serif;
+  background-color: #fcf8ec;
   display: flex;
   justify-content: center;
 
   .Developer-head {
     text-transform: uppercase;
     background-color: #005b7f !important;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
     letter-spacing: 2px;
     color: #f6edba;
     font-size: 1.5rem;
@@ -24,50 +24,25 @@
 
   .Developer-profile {
     display: flex;
-    background-color: #ffffff;
-    height: 75vh;
+    background-color: #fcf8ec;
+    height: 83vh;
     align-items: center;
-    .Developer-profileCard{
+    .Developer-profileCard {
       padding: 2.8vh;
       img {
         border-radius: 20px;
         padding: 2px;
         width: 23vw;
       }
-      .Card-details {
-        border-radius: 20px;
-        font-family: 'Poppins';
-        font-weight: 400;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 10px;
-        background-color: #1e56a0;
-        h3, p {
-          padding: 10px;
-          text-transform: uppercase;
-        }
-        h3 {
-          font-family: 'Poppins';
-          font-weight: 900;
-          color: white;
-          font-size: 1.3rem;
-        }
-        p{
-          color: gainsboro;
-        }
-      }
     }
 
-    
-    .Developer-profileDetails-1 {
+    .Developer-profileDetails {
       color: #188345;
       font-weight: 600;
       display: flex;
       flex-direction: column;
-      h3{
-        font-family: 'Poppins' !important;
+      h3 {
+        font-family: "Poppins" !important;
         font-weight: 900;
         padding: 10px;
       }
@@ -77,71 +52,11 @@
         text-transform: uppercase;
       }
     }
-
-  }
-
-    .Developer-profileDetails-2 {
-      color: #188345;
-      font-weight: 600;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      // justify-content: space-between;
-      h3{
-        font-family: 'Poppins' !important;
-        font-weight: 900;
-        padding: 10px;
-      }
-      p {
-        padding: 5px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-      .Card-btn {
-        border-radius: 20px;
-        padding: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-        a {
-          padding: 15px;
-          color: white;
-          text-transform: lowercase;
-        }
-
-        a:hover {
-          opacity: 0.8;
-        }
-
-        a:nth-child(1) {
-          background: #3B5998;
-        }
-
-        a:nth-child(2) {
-          background: #55ACEE;
-        }
-
-        a:nth-child(3) {
-          background: #125688;
-        }
-
-        a:nth-child(4) {
-          background: #007bb5;
-        }
-
-        a:nth-child(5) {
-          background: #e74e6d;
-        }
-      }
-
-    }
-
-  }
-
-@media screen and (max-width: 960px) {
-  .Developer-profileCard{
-    display: none;
   }
 }
 
-
+@media screen and (max-width: 960px) {
+  .Developer-profileCard {
+    display: none;
+  }
+}
