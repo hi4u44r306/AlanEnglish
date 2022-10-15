@@ -79,6 +79,10 @@ function FooterMusicPlayer({music}) {
     
     const updatetimeplayedtofirestore = () => {
         if(currplayingmusicid){
+
+            db.collection('student').doc(currentuser).update({
+                onlinetime : currentDate,
+            })
             
             ////當前音軌次數增加////
             const userRef = db.collection('student').doc(currentuser);   

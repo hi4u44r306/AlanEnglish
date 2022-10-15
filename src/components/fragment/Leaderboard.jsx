@@ -33,7 +33,7 @@ class Leaderboard extends React.Component{
               <div>
                 <img className='loudspeaker1' src={loudspeaker} alt='#'/>
               </div>
-              🎧播放次數排行榜🎧
+              🎧 播放次數排行榜 🎧
               <div>
                 <img className='loudspeaker2' src={loudspeaker} alt='#'/>
               </div>
@@ -48,22 +48,24 @@ class Leaderboard extends React.Component{
               <div>前十名獎品待定</div>
             </div>  
             <div className='coltitle'>
-              <div style={{width:'35%'}}>🏆 Rank</div>
-              <div style={{width:'40%'}}>👦 Name 👩</div>
+              <div style={{width:'28%'}}>🏆 Rank</div>
+              <div style={{width:'30%'}}>👦 Name 👩</div>
               <div style={{width:'35%'}}>🎧 Timeplayed</div>
+              <div style={{width:'35%'}}>✨ 最後上線時間</div>
             </div>
-            <table className='table table-borderless'>
+            <table className='table table-border'>
               <tbody>
-                <th scope="col" style={{width:'35%'}}></th>
+                <th scope="col" style={{width:'23%'}}></th>
+                <th scope="col" style={{width:'22%'}}></th>
+                <th scope="col" style={{width:'30%'}}></th>
                 <th scope="col" style={{width:'31%'}}></th>
-                <th scope="col" style={{width:'35%'}}></th>
               {
                   this.state.students &&
                   this.state.students.map((students, index) =>{
                     return(
                       <tr>
-                        <td className='border-0 d-flex justify-content-center' key={index}><b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>{index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}</b></td>
-                        <td className='border-0' key={students.name}>
+                        <td className='d-flex justify-content-center' key={index}><b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>{index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}</b></td>
+                        <td key={students.name}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b><span className='font-weight-bold'>{students.name}</span></b>
@@ -74,6 +76,13 @@ class Leaderboard extends React.Component{
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b><span className='font-weight-bold' >{students.totaltimeplayed}次</span></b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={students.onlinetime}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b><span className='font-weight-bold' >{students.onlinetime || '近期無上線'}</span></b>
                             </div>
                           </div>
                         </td>
