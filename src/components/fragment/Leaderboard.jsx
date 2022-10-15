@@ -55,16 +55,20 @@ class Leaderboard extends React.Component{
             </div>
             <table className='table table-border'>
               <tbody>
-                <th scope="col" style={{width:'23%'}}></th>
-                <th scope="col" style={{width:'22%'}}></th>
-                <th scope="col" style={{width:'30%'}}></th>
-                <th scope="col" style={{width:'31%'}}></th>
+                <tr>
+                  <th scope="col" style={{width:'23%'}}></th>
+                  <th scope="col" style={{width:'22%'}}></th>
+                  <th scope="col" style={{width:'30%'}}></th>
+                  <th scope="col" style={{width:'31%'}}></th>
+                </tr>
               {
                   this.state.students &&
                   this.state.students.map((students, index) =>{
                     return(
-                      <tr>
-                        <td className='d-flex justify-content-center' key={index}><b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>{index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}</b></td>
+                      <tr key={index}>
+                        <td className='d-flex justify-content-center' key={index}>
+                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>{index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}</b>
+                        </td>
                         <td key={students.name}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
