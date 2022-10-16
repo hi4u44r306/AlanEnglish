@@ -50,8 +50,8 @@ class Leaderboard extends React.Component{
             <div className='coltitle'>
               <div style={{width:'28%'}}>🏆 Rank</div>
               <div style={{width:'30%'}}>👦 Name 👩</div>
-              <div style={{width:'35%'}}>🎧 Timeplayed</div>
-              <div style={{width:'35%'}}>✨ 最後上線時間</div>
+              <div style={{width:'35%'}}>🎧 Times</div>
+              <div style={{width:'35%'}}>✨ 最後上線日期</div>
             </div>
             <table className='table table-border'>
               <tbody>

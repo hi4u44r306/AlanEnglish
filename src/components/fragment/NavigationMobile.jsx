@@ -110,7 +110,7 @@ function NavigationMobile() {
                     :
                     (
                         <Nav.Link href="/home/userinfo" className="navlink">
-                          {navusername}
+                          {navusername || '----'}
                         </Nav.Link>
                     )}
                      
