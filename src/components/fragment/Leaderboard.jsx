@@ -51,7 +51,7 @@ class Leaderboard extends React.Component{
               <div style={{width:'28%'}}>🏆 Rank</div>
               <div style={{width:'30%'}}>👦 Name 👩</div>
               <div style={{width:'35%'}}>🎧 Times</div>
-              <div style={{width:'35%'}}>✨ 最後上線日期</div>
+              <div style={{width:'35%'}}>✨ 最後上線日、當日次數</div>
             </div>
             <table className='table table-border'>
               <tbody>
@@ -86,7 +86,19 @@ class Leaderboard extends React.Component{
                         <td key={students.onlinetime}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
-                              <b><span className='font-weight-bold' >{students.onlinetime || '近期無上線'}</span></b>
+                              <b>
+                                <span className='font-weight-bold' >
+                                  <span>
+                                    {students.onlinetime || '近期無上線'}
+                                  </span>
+                                  <span>
+                                     / 
+                                  </span>
+                                  <span>
+                                    {students.currdatetimeplayed || '0'}次
+                                  </span>
+                                </span>
+                              </b>
                             </div>
                           </div>
                         </td>

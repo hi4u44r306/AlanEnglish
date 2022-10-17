@@ -100,11 +100,11 @@ const User = (user) => {
                         </div>
                         <div className="userinfo">
                             <label>🎧 {currentDate} 聽力次數:</label>
-                            <p>{dailytimeplayed || '無聽力次數'}次</p>
+                            <p>{dailytimeplayed || '0'}次</p>
                         </div>
                         <div className="userinfo">
                             <label>🏆 總聽力次數:</label>
-                            <p>{totaltimeplayed || '無總聽力次數'}次</p>
+                            <p>{totaltimeplayed || '0'}次</p>
                         </div>
                     </form>
                 </div>

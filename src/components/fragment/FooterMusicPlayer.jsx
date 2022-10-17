@@ -80,9 +80,30 @@ function FooterMusicPlayer({music}) {
     const updatetimeplayedtofirestore = () => {
         if(currplayingmusicid){
 
-            db.collection('student').doc(currentuser).update({
+            ///當使用者聽完一個音軌 推送Timestamp到firebase///
+            db.collection('student').doc(currentuser).update({ 
                 onlinetime : currentDate,
             })
+            /////////////////////////// 結束 /////////////////////////////////
+          
+
+            //// Check 當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增///
+            const test123 = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate)
+            if(test123 === true){
+                console.log('no test123');
+            }else{
+                test123.get().then((doc)=>{
+                    console.log(doc.data().todaytotaltimeplayed);
+                    const aaa = doc.data().todaytotaltimeplayed
+                    const bbb = parseInt(aaa)+1; ////+1 是因為非同步 舉例:在logfile中總播放次數是2 但是在用戶資料中播放次數是1 所以要同步的話要+1
+                    db.collection('student').doc(currentuser).set({
+                        currdatetimeplayed: bbb,
+                    }, {merge: true})
+                })
+                .catch((err) => err.message)
+            }
+            /////////////////////////// 結束 /////////////////////////////////
+
             
             ////當前音軌次數增加////
             const userRef = db.collection('student').doc(currentuser);   
@@ -114,7 +135,8 @@ function FooterMusicPlayer({music}) {
                 todaytotaltimeplayed : 1,
                 })
             })
-             //// 結束 ////
+            /////////////////////////// 結束 /////////////////////////////////
+
             logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
                 const a = doc.data().timeplayed;
                 const b = parseInt(a)+1;  
