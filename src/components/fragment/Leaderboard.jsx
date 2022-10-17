@@ -48,26 +48,22 @@ class Leaderboard extends React.Component{
               <div>前十名獎品待定</div>
             </div>  
             <div className='coltitle'>
-              <div style={{width:'28%'}}>🏆 Rank</div>
-              <div style={{width:'30%'}}>👦 Name 👩</div>
-              <div style={{width:'35%'}}>🎧 Times</div>
+              <div style={{width:'15%'}}>🏆 Rank</div>
+              <div style={{width:'35%'}}>👦 Name 👩</div>
+              <div style={{width:'15%'}}>🎧 Times</div>
               <div style={{width:'35%'}}>✨ 最後上線日、當日次數</div>
             </div>
             <table className='table table-border'>
               <tbody>
-                <tr>
-                  <th scope="col" style={{width:'23%'}}></th>
-                  <th scope="col" style={{width:'22%'}}></th>
-                  <th scope="col" style={{width:'30%'}}></th>
-                  <th scope="col" style={{width:'31%'}}></th>
-                </tr>
               {
                   this.state.students &&
                   this.state.students.map((students, index) =>{
                     return(
                       <tr key={index}>
                         <td className='d-flex justify-content-center' key={index}>
-                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>{index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}</b>
+                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
+                          </b>
                         </td>
                         <td key={students.name}>
                           <div className='d-flex justify-content-center'>
@@ -94,7 +90,7 @@ class Leaderboard extends React.Component{
                                   <span>
                                      / 
                                   </span>
-                                  <span>
+                                  <span className='text-danger'>
                                     {students.currdatetimeplayed || '0'}次
                                   </span>
                                 </span>

@@ -15,11 +15,11 @@ function FooterMusicPlayer({music}) {
     const [{ id, bookname, page , musicName}, setCurrTrack] = useState(music);
     const {playlists} = useSelector(state => state.musicReducer);
     const [currentuser,setCurrUser] = useState();
+    const [totaltimeplayed,setTotaltimeplayed] = useState();
     const currplayingmusicid = "'" + id + "'";
     const db = firebase.firestore();
     const dispatch = useDispatch();
     const audioElement = useRef();
-
     const currentDate = new Date().toJSON().slice(0, 10);
 
 
@@ -36,6 +36,7 @@ function FooterMusicPlayer({music}) {
             });
         };
 
+
     const secondsuccess = () =>  {
         toast.info('再多聽幾次可以跟老師換禮物喔!!',{
             className:"musicnotification",
@@ -49,23 +50,12 @@ function FooterMusicPlayer({music}) {
             });
         };
 
-    // const repeattimesuccess = () =>  {
-    //     toast.success('重播次數+1 請刷新頁面更新聆聽次數',{
-    //         className:"musicnotification",
-    //         position: "bottom-left",
-    //         autoClose: 2500,
-    //         hideProgressBar: false,
-    //         closeOnClick: true,
-    //         pauseOnHover: false,
-    //         draggable: true,
-    //         progress: undefined,
-    //         });
-    //     };
 
     useEffect(() => {
         setCurrTrack(music);
     }, [music]);
         
+
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
         if(user){
             db.collection('student').onSnapshot(snapshot =>{
@@ -80,6 +70,44 @@ function FooterMusicPlayer({music}) {
     const updatetimeplayedtofirestore = () => {
         if(currplayingmusicid){
 
+            /// 小遊戲 ///
+            // const game = db.collection('student').doc(currentuser)
+            // game.get().then((doc)=>{
+            //     setTotaltimeplayed(doc.data().totaltimeplayed)
+            // })
+
+            
+            // if(totaltimeplayed % 10 === 0){
+            //     alert('game time')
+            // }else{
+            //     alert('go listening')
+            // }
+
+            /// 結束 ///
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             ///當使用者聽完一個音軌 推送Timestamp到firebase///
             db.collection('student').doc(currentuser).update({ 
                 onlinetime : currentDate,
@@ -93,7 +121,6 @@ function FooterMusicPlayer({music}) {
                 console.log('no test123');
             }else{
                 test123.get().then((doc)=>{
-                    console.log(doc.data().todaytotaltimeplayed);
                     const aaa = doc.data().todaytotaltimeplayed
                     const bbb = parseInt(aaa)+1; ////+1 是因為非同步 舉例:在logfile中總播放次數是2 但是在用戶資料中播放次數是1 所以要同步的話要+1
                     db.collection('student').doc(currentuser).set({
@@ -113,7 +140,6 @@ function FooterMusicPlayer({music}) {
                 userRef.collection('Musics').doc(currplayingmusicid).set({
                     timeplayed: b,
                 })
-                console.log('timeplayed + 1');
             }).catch((err)=>{
                 console.log(err.message);
             })
@@ -169,36 +195,6 @@ function FooterMusicPlayer({music}) {
         }
     };
 
-    // const update_repeat_timeplayed = () => {
-    //     if(currplayingmusicid){
-    //         const userRef = db.collection('student').doc(currentuser);
-    //         userRef.collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
-    //             const a = doc.data().timeplayed;
-    //             const b = parseInt(a)+1;
-    //             userRef.collection('Musics').doc(currplayingmusicid).set({
-    //                 timeplayed: b,
-    //             })
-    //             .then(() => {
-    //                 repeattimesuccess();
-    //                 console.log("Document successfully written!");
-    //             })
-    //             .catch((error) => {
-    //                 console.error("Error writing document: ", error);
-    //             });
-    //         }).catch((err)=>{
-    //             console.log(err.message);
-    //         })
-    //         userRef.get().then((doc)=>{
-    //             const c = doc.data().totaltimeplayed;
-    //             const d = parseInt(c)+1;
-    //             db.collection('student').doc(currentuser).update({
-    //                 totaltimeplayed: d,
-    //             });
-    //         })
-    //     }else{
-    //         console.log("update currplayingmusicid failed");
-    //     }
-    // };
     
     const handleClickNext = () => {
         console.log('click next')
@@ -231,7 +227,6 @@ function FooterMusicPlayer({music}) {
             <AudioPlayer
                 autoPlay
                 loop={null}
-                // onSeeked={update_repeat_timeplayed}
                 progressUpdateInterval={50}
                 ref={audioElement}
                 src={require("../assets/music/" + musicName).default}
