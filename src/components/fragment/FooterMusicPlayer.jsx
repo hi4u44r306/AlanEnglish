@@ -71,17 +71,17 @@ function FooterMusicPlayer({music}) {
         if(currplayingmusicid){
 
             /// 小遊戲 ///
-            // const game = db.collection('student').doc(currentuser)
-            // game.get().then((doc)=>{
-            //     setTotaltimeplayed(doc.data().totaltimeplayed)
-            // })
+            const game = db.collection('student').doc(currentuser)
+            game.get().then((doc)=>{
+                setTotaltimeplayed(doc.data().totaltimeplayed)
+            })
 
             
-            // if(totaltimeplayed % 10 === 0){
-            //     alert('game time')
-            // }else{
-            //     alert('go listening')
-            // }
+            if(totaltimeplayed % 10 === 0){
+                // alert('game time')
+            }else{
+                // alert('go listening')
+            }
 
             /// 結束 ///
 
