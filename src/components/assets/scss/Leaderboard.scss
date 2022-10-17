@@ -1,6 +1,9 @@
 table {
   font-size: 15px;
 }
+tbody {
+  font-size: 18px;
+}
 .leaderboard {
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -54,8 +57,7 @@ table {
   align-items: center;
 }
 .coltitle {
-  padding: 10px;
-  display: flex;
+  padding: 15px;
   justify-content: space-evenly;
   font-size: 20px;
   font-weight: 900;
@@ -66,7 +68,10 @@ table {
 
 @media only screen and (max-width: 700px) {
   tbody {
-    font-size: 10px;
+    font-size: 5px;
+  }
+  table {
+    font-size: 5px;
   }
   .loudspeaker1 {
     width: 40px;
@@ -90,8 +95,5 @@ table {
   }
   .card {
     height: 100%;
-  }
-  table {
-    font-size: 8px;
   }
 }
