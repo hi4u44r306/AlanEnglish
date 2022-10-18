@@ -9,19 +9,46 @@ class Leaderboard extends React.Component{
 
   
   state ={
-    students:null,
+    studentsA:null,
+    studentsB:null,
+    studentsC:null,
+    studentsD:null,
   }
   
   
   componentDidMount() {
     const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量
-    db.collection("student").where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(20).get().then((snapshot) => {
-      const students = [];
+    db.collection("student").where('class', '==', 'A').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+      const studentsA = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
-        students.push(data);
+        studentsA.push(data);
       })
-      this.setState({students: students});
+      this.setState({studentsA: studentsA});
+    });
+    db.collection("student").where('class', '==', 'B').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+      const studentsB = [];
+      snapshot.forEach((doc)=>{
+        const data = doc.data();
+        studentsB.push(data);
+      })
+      this.setState({studentsB: studentsB});
+    });
+    db.collection("student").where('class', '==', 'C').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+      const studentsC = [];
+      snapshot.forEach((doc)=>{
+        const data = doc.data();
+        studentsC.push(data);
+      })
+      this.setState({studentsC: studentsC});
+    });
+    db.collection("student").where('class', '==', 'D').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+      const studentsD = [];
+      snapshot.forEach((doc)=>{
+        const data = doc.data();
+        studentsD.push(data);
+      })
+      this.setState({studentsD: studentsD});
     });
   }
   
@@ -45,8 +72,11 @@ class Leaderboard extends React.Component{
               <CountdownTimer countdownTimestampMs={1667231999000}/>  {/* 到期日10/31 */}
             </div>
             <div className='prize'>
-              <div>前十名獎品待定</div>
+              <div>各班前七名獎品待定</div>
             </div>  
+
+            {/* A班 */}
+            <div className='classtitle'>A班</div>
             <table className='table table-border'>
               <thead>
                 <tr>
@@ -57,19 +87,10 @@ class Leaderboard extends React.Component{
                   <th className='coltitle'>✨ 當日次數</th>
                 </tr>
               </thead>
-              {/* <thead>
-                <tr>
-                  <th className='coltitle'><button className='button-64'>All</button></th>
-                  <th className='coltitle'><button>A班</button></th>
-                  <th className='coltitle'><button>B班</button></th>
-                  <th className='coltitle'><button>C班</button></th>
-                  <th className='coltitle'><button>D班</button></th>
-                </tr>
-              </thead> */}
               <tbody>
               {
-                  this.state.students &&
-                  this.state.students.map((students, index) =>{
+                  this.state.studentsA &&
+                  this.state.studentsA.map((studentsA, index) =>{
                     return(
                       <tr key={index}>
                         <td className='d-flex justify-content-center'>
@@ -77,42 +98,42 @@ class Leaderboard extends React.Component{
                             {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
                           </b>
                         </td>
-                        <td key={students.name}>
+                        <td key={studentsA.name}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
-                              <b><span className='font-weight-bold'>{students.name}</span></b>
+                              <b><span className='font-weight-bold'>{studentsA.name}</span></b>
                             </div>
                           </div>
                         </td>
-                        <td key={students.totaltimeplayed}>
+                        <td key={studentsA.totaltimeplayed}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
-                                <span className='font-weight-bold' >{students.totaltimeplayed}次</span>
+                                <span className='font-weight-bold' >{studentsA.totaltimeplayed}次</span>
                               </b>
                             </div>
                           </div>
                         </td>
-                        <td key={students.onlinetime}>
+                        <td key={studentsA.onlinetime}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
                                 <span className='font-weight-bold'>
-                                  <span className={students.onlinetime?'text-success' || '':'text-danger'}>
-                                    {students.onlinetime || '近期無上線'}
+                                  <span className={studentsA.onlinetime?'text-success' || '':'text-danger'}>
+                                    {studentsA.onlinetime || '近期無上線'}
                                   </span>
                                 </span>
                               </b>
                             </div>
                           </div>
                         </td>
-                        <td key={students.currdatetimeplayed}>
+                        <td key={studentsA.currdatetimeplayed}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
                                 <span className='font-weight-bold' >
-                                  <span className={students.currdatetimeplayed?'text-success' || '':'text-danger'}>
-                                    {students.currdatetimeplayed || '0'}次
+                                  <span className={studentsA.currdatetimeplayed?'text-success' || '':'text-danger'}>
+                                    {studentsA.currdatetimeplayed || '0'}次
                                   </span>
                                 </span>
                               </b>
@@ -126,10 +147,241 @@ class Leaderboard extends React.Component{
               </tbody>
               <tfoot>
                 <tr>
-                  <td className='coltitle' colSpan="5">!!這是最後一筆資料了!!</td>
+                  <td className='coltitle' colSpan="5">!!這是A班最後一筆資料了!!</td>
                 </tr>
               </tfoot>
             </table>
+
+              {/* B班 */}
+              <div className='classtitle'>B班</div>
+              <table className='table table-border'>
+                <thead>
+                  <tr>
+                    <th className='coltitle'>🏆 Rank</th>
+                    <th className='coltitle'>👦 Name 👩</th>
+                    <th className='coltitle'>🎧 Times</th>
+                    <th className='coltitle'>✨ 最後上線日</th>
+                    <th className='coltitle'>✨ 當日次數</th>
+                  </tr>
+                </thead>
+              <tbody>
+              {
+                  this.state.studentsB &&
+                  this.state.studentsB.map((studentsB, index) =>{
+                    return(
+                      <tr key={index}>
+                        <td className='d-flex justify-content-center'>
+                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
+                          </b>
+                        </td>
+                        <td key={studentsB.name}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b><span className='font-weight-bold'>{studentsB.name}</span></b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsB.totaltimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >{studentsB.totaltimeplayed}次</span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsB.onlinetime}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold'>
+                                  <span className={studentsB.onlinetime?'text-success' || '':'text-danger'}>
+                                    {studentsB.onlinetime || '近期無上線'}
+                                  </span>
+                                </span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsB.currdatetimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >
+                                  <span className={studentsB.currdatetimeplayed?'text-success' || '':'text-danger'}>
+                                    {studentsB.currdatetimeplayed || '0'}次
+                                  </span>
+                                </span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      )
+                    })
+                  }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td className='coltitle' colSpan="5">!!這是B班最後一筆資料了!!</td>
+                </tr>
+              </tfoot>
+            </table>
+
+              {/* C班 */}
+              <div className='classtitle'>C班</div>
+              <table className='table table-border'>
+                <thead>
+                  <tr>
+                    <th className='coltitle'>🏆 Rank</th>
+                    <th className='coltitle'>👦 Name 👩</th>
+                    <th className='coltitle'>🎧 Times</th>
+                    <th className='coltitle'>✨ 最後上線日</th>
+                    <th className='coltitle'>✨ 當日次數</th>
+                  </tr>
+                </thead>
+              <tbody>
+              {
+                  this.state.studentsC &&
+                  this.state.studentsC.map((studentsC, index) =>{
+                    return(
+                      <tr key={index}>
+                        <td className='d-flex justify-content-center'>
+                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
+                          </b>
+                        </td>
+                        <td key={studentsC.name}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b><span className='font-weight-bold'>{studentsC.name}</span></b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsC.totaltimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >{studentsC.totaltimeplayed}次</span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsC.onlinetime}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold'>
+                                  <span className={studentsC.onlinetime?'text-success' || '':'text-danger'}>
+                                    {studentsC.onlinetime || '近期無上線'}
+                                  </span>
+                                </span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsC.currdatetimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >
+                                  <span className={studentsC.currdatetimeplayed?'text-success' || '':'text-danger'}>
+                                    {studentsC.currdatetimeplayed || '0'}次
+                                  </span>
+                                </span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      )
+                    })
+                  }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td className='coltitle' colSpan="5">!!這是C班最後一筆資料了!!</td>
+                </tr>
+              </tfoot>
+              </table>
+
+              {/* D班 */}
+              <div className='classtitle'>D班</div>
+              <table className='table table-border'>
+                <thead>
+                  <tr>
+                    <th className='coltitle'>🏆 Rank</th>
+                    <th className='coltitle'>👦 Name 👩</th>
+                    <th className='coltitle'>🎧 Times</th>
+                    <th className='coltitle'>✨ 最後上線日</th>
+                    <th className='coltitle'>✨ 當日次數</th>
+                  </tr>
+                </thead>
+              <tbody>
+              {
+                  this.state.studentsD &&
+                  this.state.studentsD.map((studentsD, index) =>{
+                    return(
+                      <tr key={index}>
+                        <td className='d-flex justify-content-center'>
+                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
+                          </b>
+                        </td>
+                        <td key={studentsD.name}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b><span className='font-weight-bold'>{studentsD.name}</span></b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsD.totaltimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >{studentsD.totaltimeplayed}次</span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsD.onlinetime}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold'>
+                                  <span className={studentsD.onlinetime?'text-success' || '':'text-danger'}>
+                                    {studentsD.onlinetime || '近期無上線'}
+                                  </span>
+                                </span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsD.currdatetimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >
+                                  <span className={studentsD.currdatetimeplayed?'text-success' || '':'text-danger'}>
+                                    {studentsD.currdatetimeplayed || '0'}次
+                                  </span>
+                                </span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      )
+                    })
+                  }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td className='coltitle' colSpan="5">!!這是D班最後一筆資料了!!</td>
+                </tr>
+              </tfoot>
+              </table>
           </div>            
       </Containerfull>
       )
