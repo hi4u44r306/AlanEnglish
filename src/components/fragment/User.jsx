@@ -106,6 +106,10 @@ const User = (user) => {
                             <label>🏆 總聽力次數:</label>
                             <p>{totaltimeplayed || '0'}次</p>
                         </div>
+                        <div className="userinfo">
+                            <label>💰 金幣:</label>
+                            <p>{totaltimeplayed || '0'}個</p>
+                        </div>
                     </form>
                 </div>
             </div>

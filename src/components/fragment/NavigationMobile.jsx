@@ -19,6 +19,7 @@ function NavigationMobile() {
 
   const db = firebase.firestore();
   const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
+  const [coin, setCoin] = useState();
   const [loading, setLoading] = useState(false);
 
   useEffect(()=>{
@@ -34,6 +35,7 @@ function NavigationMobile() {
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
             setnavUsername(doc.data().name)
+            setCoin(doc.data().totaltimeplayed)
         }, err =>{
             console.log(err.message);
         });
@@ -110,7 +112,12 @@ function NavigationMobile() {
                     :
                     (
                         <Nav.Link href="/home/userinfo" className="navlink">
-                          {navusername || '----'}
+                          <label>
+                            💰 {coin || '----'}
+                          </label>
+                          <p>
+                            {navusername || '----'}
+                          </p>
                         </Nav.Link>
                     )}
                      
