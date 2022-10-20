@@ -113,10 +113,10 @@ function NavigationMobile() {
                     (
                         <Nav.Link href="/home/userinfo" className="navlink">
                           <label>
-                            💰 {coin || '----'}
+                            💰 {coin || '----'} 💰
                           </label>
                           <p>
-                            {navusername || '----'}
+                          🧒 {navusername || '----'} 👦
                           </p>
                         </Nav.Link>
                     )}

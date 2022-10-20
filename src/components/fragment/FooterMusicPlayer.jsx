@@ -67,46 +67,32 @@ function FooterMusicPlayer({music}) {
     });
 
     
+    function ShowGame() {
+        // var x = document.getElementById("gamesection");
+        // if (x.style.display === "none") {
+        //     x.style.display = "block";
+        // } else {
+        //     x.style.display = "none";
+        // }
+        
+    }
+    
     const updatetimeplayedtofirestore = () => {
+        
+        /// 小遊戲 ///
+        const game = db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid)
+        game.get().then((doc)=>{
+            setTotaltimeplayed(doc.data().timeplayed)
+        })
+        if(totaltimeplayed % 10 === 9){
+            ShowGame();
+        }else{
+            alert('go listening')
+        }
+        /// 結束 ///
+
+
         if(currplayingmusicid){
-
-            /// 小遊戲 ///
-            const game = db.collection('student').doc(currentuser)
-            game.get().then((doc)=>{
-                setTotaltimeplayed(doc.data().totaltimeplayed)
-            })
-
-            
-            if(totaltimeplayed % 10 === 0){
-                // alert('game time')
-            }else{
-                // alert('go listening')
-            }
-
-            /// 結束 ///
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             ///當使用者聽完一個音軌 推送Timestamp到firebase///
             db.collection('student').doc(currentuser).update({ 

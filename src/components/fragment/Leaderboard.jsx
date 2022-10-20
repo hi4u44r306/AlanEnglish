@@ -82,9 +82,9 @@ class Leaderboard extends React.Component{
                 <tr>
                   <th className='coltitle'>🏆 Rank</th>
                   <th className='coltitle'>👦 Name 👩</th>
-                  <th className='coltitle'>🎧 Times</th>
-                  <th className='coltitle'>✨ 最後上線日</th>
-                  <th className='coltitle'>✨ 當日次數</th>
+                  <th className='coltitle'>✨ 最新上線日期</th>
+                  <th className='coltitle'>✨ 當日播放次數</th>
+                  <th className='coltitle'>🎧 本月累積次數</th>
                 </tr>
               </thead>
               <tbody>
@@ -102,15 +102,6 @@ class Leaderboard extends React.Component{
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b><span className='font-weight-bold'>{studentsA.name}</span></b>
-                            </div>
-                          </div>
-                        </td>
-                        <td key={studentsA.totaltimeplayed}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold' >{studentsA.totaltimeplayed}次</span>
-                              </b>
                             </div>
                           </div>
                         </td>
@@ -140,6 +131,15 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
+                        <td key={studentsA.totaltimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >{studentsA.totaltimeplayed}次</span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
                       )
                     })
@@ -159,9 +159,9 @@ class Leaderboard extends React.Component{
                   <tr>
                     <th className='coltitle'>🏆 Rank</th>
                     <th className='coltitle'>👦 Name 👩</th>
-                    <th className='coltitle'>🎧 Times</th>
-                    <th className='coltitle'>✨ 最後上線日</th>
-                    <th className='coltitle'>✨ 當日次數</th>
+                    <th className='coltitle'>✨ 最新上線日期</th>
+                    <th className='coltitle'>✨ 當日播放次數</th>
+                    <th className='coltitle'>🎧 本月累積次數</th>
                   </tr>
                 </thead>
               <tbody>
@@ -179,15 +179,6 @@ class Leaderboard extends React.Component{
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b><span className='font-weight-bold'>{studentsB.name}</span></b>
-                            </div>
-                          </div>
-                        </td>
-                        <td key={studentsB.totaltimeplayed}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold' >{studentsB.totaltimeplayed}次</span>
-                              </b>
                             </div>
                           </div>
                         </td>
@@ -217,6 +208,15 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
+                        <td key={studentsB.totaltimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >{studentsB.totaltimeplayed}次</span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
                       )
                     })
@@ -236,9 +236,9 @@ class Leaderboard extends React.Component{
                   <tr>
                     <th className='coltitle'>🏆 Rank</th>
                     <th className='coltitle'>👦 Name 👩</th>
-                    <th className='coltitle'>🎧 Times</th>
-                    <th className='coltitle'>✨ 最後上線日</th>
-                    <th className='coltitle'>✨ 當日次數</th>
+                    <th className='coltitle'>✨ 最新上線日期</th>
+                    <th className='coltitle'>✨ 當日播放次數</th>
+                    <th className='coltitle'>🎧 本月累積次數</th>
                   </tr>
                 </thead>
               <tbody>
@@ -256,15 +256,6 @@ class Leaderboard extends React.Component{
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b><span className='font-weight-bold'>{studentsC.name}</span></b>
-                            </div>
-                          </div>
-                        </td>
-                        <td key={studentsC.totaltimeplayed}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold' >{studentsC.totaltimeplayed}次</span>
-                              </b>
                             </div>
                           </div>
                         </td>
@@ -294,6 +285,15 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
+                        <td key={studentsC.totaltimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >{studentsC.totaltimeplayed}次</span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
                       )
                     })
@@ -313,9 +313,9 @@ class Leaderboard extends React.Component{
                   <tr>
                     <th className='coltitle'>🏆 Rank</th>
                     <th className='coltitle'>👦 Name 👩</th>
-                    <th className='coltitle'>🎧 Times</th>
-                    <th className='coltitle'>✨ 最後上線日</th>
-                    <th className='coltitle'>✨ 當日次數</th>
+                    <th className='coltitle'>✨ 最新上線日期</th>
+                    <th className='coltitle'>✨ 當日播放次數</th>
+                    <th className='coltitle'>🎧 本月累積次數</th>
                   </tr>
                 </thead>
               <tbody>
@@ -333,15 +333,6 @@ class Leaderboard extends React.Component{
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b><span className='font-weight-bold'>{studentsD.name}</span></b>
-                            </div>
-                          </div>
-                        </td>
-                        <td key={studentsD.totaltimeplayed}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold' >{studentsD.totaltimeplayed}次</span>
-                              </b>
                             </div>
                           </div>
                         </td>
@@ -367,6 +358,15 @@ class Leaderboard extends React.Component{
                                     {studentsD.currdatetimeplayed || '0'}次
                                   </span>
                                 </span>
+                              </b>
+                            </div>
+                          </div>
+                        </td>
+                        <td key={studentsD.totaltimeplayed}>
+                          <div className='d-flex justify-content-center'>
+                            <div className="align-self-center pl-3">
+                              <b>
+                                <span className='font-weight-bold' >{studentsD.totaltimeplayed}次</span>
                               </b>
                             </div>
                           </div>
