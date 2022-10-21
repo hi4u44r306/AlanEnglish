@@ -21,27 +21,15 @@ function FooterMusicPlayer({music}) {
     const dispatch = useDispatch();
     const audioElement = useRef();
     const currentDate = new Date().toJSON().slice(0, 10);
+    const currentMonth = new Date().toJSON().slice(0, 7);
+    const firstdayofmonth = currentMonth + '-1';
 
 
     const success = () =>  {
-        toast.success('太棒了 聽力次數+1 請刷新頁面更新聆聽次數',{
+        toast.success('太棒了! 聽力次數+1',{
             className:"musicnotification",
             position: "top-center",
-            autoClose: 2500,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            });
-        };
-
-
-    const secondsuccess = () =>  {
-        toast.info('再多聽幾次可以跟老師換禮物喔!!',{
-            className:"musicnotification",
-            position: "top-center",
-            autoClose: 2500,
+            autoClose: 1500,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: false,
@@ -67,17 +55,20 @@ function FooterMusicPlayer({music}) {
     });
 
     
-    function ShowGame() {
-        // var x = document.getElementById("gamesection");
-        // if (x.style.display === "none") {
-        //     x.style.display = "block";
-        // } else {
-        //     x.style.display = "none";
-        // }
-        
-    }
     
     const updatetimeplayedtofirestore = () => {
+        if (currentDate === firstdayofmonth){
+            db.collection('student').doc(currentuser).set({
+                totaltimeplayed : 0,
+            },{merge: true})
+            for(let i = 0; i < 2000; i++){      
+                let j = "'"+i+"'"
+                db.collection('student').doc(currentuser).collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+                    timeplayed : 0,
+                })        
+            }
+        }else{
+        }
         
         /// 小遊戲 ///
         const game = db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid)
@@ -85,9 +76,9 @@ function FooterMusicPlayer({music}) {
             setTotaltimeplayed(doc.data().timeplayed)
         })
         if(totaltimeplayed % 10 === 9){
-            ShowGame();
+            
         }else{
-            alert('go listening')
+
         }
         /// 結束 ///
 
@@ -102,7 +93,7 @@ function FooterMusicPlayer({music}) {
           
 
             //// Check 當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增///
-            const test123 = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate)
+            const test123 = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate)
             if(test123 === true){
                 console.log('no test123');
             }else{
@@ -132,10 +123,22 @@ function FooterMusicPlayer({music}) {
             /////////////////////////// 結束 /////////////////////////////////
 
             
-            ////記錄檔中的當前音軌當天次數增加////
-            const logfileRef = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
+            /// 記錄檔中當月總次數 ///
+            const sunny = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth)
+            sunny.get().then((doc)=>{
+                const abc = doc.data().currentMonthTotalTimes;
+                const efg = parseInt(abc)+1;
+                sunny.update({
+                    currentMonthTotalTimes : efg,
+                })
+            }).catch(()=>{
+                sunny.set({
+                    currentMonthTotalTimes : 1,
+                })
+            })
+            
             //// 記錄檔中當天總次數計算 ////
-            const victor = db.collection('student').doc(currentuser).collection('Logfile').doc(currentDate);
+            const victor = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate);
             victor.get().then((doc)=>{
                 const abc = doc.data().todaytotaltimeplayed;
                 const efg = parseInt(abc)+1;
@@ -144,11 +147,13 @@ function FooterMusicPlayer({music}) {
                 })
             }).catch(()=>{
                 victor.set({
-                todaytotaltimeplayed : 1,
+                    todaytotaltimeplayed : 1,
                 })
             })
             /////////////////////////// 結束 /////////////////////////////////
-
+            
+            ////記錄檔中的當前音軌當天次數增加////
+            const logfileRef = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
             logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
                 const a = doc.data().timeplayed;
                 const b = parseInt(a)+1;  
@@ -202,7 +207,7 @@ function FooterMusicPlayer({music}) {
         const currplayingmusicid = "'" + id + "'";
         updatetimeplayedtofirestore(currplayingmusicid);
         success();
-        secondsuccess();
+        // secondsuccess();
         let currTrackId = (id+1) % playlists.length;
         dispatch(setCurrentPlaying(playlists[currTrackId]));
     }

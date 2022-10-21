@@ -1,17 +1,19 @@
 import React from 'react'
-import '../assets/scss/Game.scss'
-import ReactDom from 'react-dom';
+import { useState } from 'react';
+import Containerfull from './Containerfull';
+import Gamesetting from './Gamesetting';
 
-export default function Game({open, children, onClose}){
-    if(!open) return null
-  return ReactDom.createPortal(
-    <>
-        <div className='Overlay'/>
-        <div className='Game'>
-            <button onClick={onClose}>Close Game</button>
-            {children}
-        </div>
-    </>,
-    document.getElementById('portal')
+const Game = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Containerfull>
+        <button onClick={()=>setIsOpen(true)}>open</button>
+        <Gamesetting open={isOpen} onClose={()=>setIsOpen(false)}>
+            <div>Test</div>
+        </Gamesetting>
+    </Containerfull>
   )
 }
+
+export default Game

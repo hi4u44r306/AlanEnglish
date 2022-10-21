@@ -14,6 +14,7 @@ import Copyright from "../components/fragment/Copyright";
 import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
+import Game from "../components/fragment/Game";
 
 
 const App = () => {
@@ -60,6 +61,11 @@ const App = () => {
                         <Route path="/home/about">
                             <NavigationMobile/>
                             <About/>
+                            <Copyright/>
+                        </Route>
+                        <Route path="/home/game">
+                            <NavigationMobile/>
+                            <Game/>
                             <Copyright/>
                         </Route>
                         <Route path="/home" component={Home}/>
