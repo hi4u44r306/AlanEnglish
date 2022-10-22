@@ -15,7 +15,7 @@ function FooterMusicPlayer({music}) {
     const [{ id, bookname, page , musicName}, setCurrTrack] = useState(music);
     const {playlists} = useSelector(state => state.musicReducer);
     const [currentuser,setCurrUser] = useState();
-    const [totaltimeplayed,setTotaltimeplayed] = useState();
+    // const [totaltimeplayed,setTotaltimeplayed] = useState();
     const currplayingmusicid = "'" + id + "'";
     const db = firebase.firestore();
     const dispatch = useDispatch();
@@ -78,15 +78,15 @@ function FooterMusicPlayer({music}) {
 //============================================================================================//
         
         // 小遊戲 //
-        const game = userRef.collection('Musics').doc(currplayingmusicid)
-        game.get().then((doc)=>{
-            setTotaltimeplayed(doc.data().timeplayed)
-        })
-        if(totaltimeplayed % 10 === 9){
-            
-        }else{
+        // const game = userRef.collection('Musics').doc(currplayingmusicid)
+        // game.get().then((doc)=>{
+        //     setTotaltimeplayed(doc.data().timeplayed)
+        // })
+        // if(totaltimeplayed){
+        //     setTimeout(function(){window.location = "/home/game";} ,1000); 
+        // }else{
 
-        }
+        // }
         // 小遊戲 結束//
 
 //============================================================================================//
