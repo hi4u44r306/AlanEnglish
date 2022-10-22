@@ -57,6 +57,8 @@ function FooterMusicPlayer({music}) {
     
     
     const updatetimeplayedtofirestore = () => {
+
+        // 如果日期是每個月1號 將所以音軌的播放次數歸0 //
         if (currentDate === firstdayofmonth){
             db.collection('student').doc(currentuser).set({
                 totaltimeplayed : 0,
@@ -68,9 +70,13 @@ function FooterMusicPlayer({music}) {
                 })        
             }
         }else{
+
         }
+        // 如果日期是每個月1號 將所以音軌的播放次數歸0 結束//
+
+//============================================================================================//
         
-        /// 小遊戲 ///
+        // 小遊戲 //
         const game = db.collection('student').doc(currentuser).collection('Musics').doc(currplayingmusicid)
         game.get().then((doc)=>{
             setTotaltimeplayed(doc.data().timeplayed)
@@ -80,24 +86,27 @@ function FooterMusicPlayer({music}) {
         }else{
 
         }
-        /// 結束 ///
+        // 小遊戲 結束//
+
+//============================================================================================//
 
 
         if(currplayingmusicid){
 
-            ///當使用者聽完一個音軌 推送Timestamp到firebase///
+            // 當使用者聽完一個音軌 推送Timestamp到firebase //
             db.collection('student').doc(currentuser).update({ 
                 onlinetime : currentDate,
             })
-            /////////////////////////// 結束 /////////////////////////////////
-          
+            // 當使用者聽完一個音軌 推送Timestamp到firebase 結束 //
 
-            //// Check 當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增///
-            const test123 = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate)
-            if(test123 === true){
-                console.log('no test123');
+//============================================================================================//
+
+            // 檢查當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增 //
+            const checklisten = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate)
+            if(checklisten === true){
+                console.log('no checklisten');
             }else{
-                test123.get().then((doc)=>{
+                checklisten.get().then((doc)=>{
                     const aaa = doc.data().todaytotaltimeplayed
                     const bbb = parseInt(aaa)+1; ////+1 是因為非同步 舉例:在logfile中總播放次數是2 但是在用戶資料中播放次數是1 所以要同步的話要+1
                     db.collection('student').doc(currentuser).set({
@@ -106,10 +115,11 @@ function FooterMusicPlayer({music}) {
                 })
                 .catch((err) => err.message)
             }
-            /////////////////////////// 結束 /////////////////////////////////
+            // 檢查當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增 結束 //
 
+//============================================================================================//
             
-            ////當前音軌次數增加////
+            // 當前音軌次數增加 //
             const userRef = db.collection('student').doc(currentuser);   
             userRef.collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
                 const a = doc.data().timeplayed;
@@ -120,39 +130,45 @@ function FooterMusicPlayer({music}) {
             }).catch((err)=>{
                 console.log(err.message);
             })
-            /////////////////////////// 結束 /////////////////////////////////
+            // 當前音軌次數增加 結束 //
 
+//============================================================================================//
             
             /// 記錄檔中當月總次數 ///
-            const sunny = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth)
-            sunny.get().then((doc)=>{
+            const usermonthlytimes = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth)
+            usermonthlytimes.get().then((doc)=>{
                 const abc = doc.data().currentMonthTotalTimes;
                 const efg = parseInt(abc)+1;
-                sunny.update({
+                usermonthlytimes.update({
                     currentMonthTotalTimes : efg,
                 })
             }).catch(()=>{
-                sunny.set({
+                usermonthlytimes.set({
                     currentMonthTotalTimes : 1,
                 })
             })
+            /// 記錄檔中當月總次數 結束 ///
+
+//============================================================================================//
             
-            //// 記錄檔中當天總次數計算 ////
-            const victor = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate);
-            victor.get().then((doc)=>{
+            // 記錄檔中當天總次數計算 //
+            const userdailytimes = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate);
+            userdailytimes.get().then((doc)=>{
                 const abc = doc.data().todaytotaltimeplayed;
                 const efg = parseInt(abc)+1;
-                victor.update({
+                userdailytimes.update({
                     todaytotaltimeplayed : efg,
                 })
             }).catch(()=>{
-                victor.set({
+                userdailytimes.set({
                     todaytotaltimeplayed : 1,
                 })
             })
-            /////////////////////////// 結束 /////////////////////////////////
+            // 記錄檔中當天總次數計算 結束 //
+
+//============================================================================================//
             
-            ////記錄檔中的當前音軌當天次數增加////
+            // 記錄檔中的當前音軌當天次數增加 //
             const logfileRef = db.collection('student').doc(currentuser).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
             logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
                 const a = doc.data().timeplayed;
@@ -170,10 +186,11 @@ function FooterMusicPlayer({music}) {
                     console.log(currentDate, "id :", currplayingmusicid ,'new update');
                 })
             });
-            /////////////////////////// 結束 /////////////////////////////////
+            // 記錄檔中的當前音軌當天次數增加 結束 //
                        
+//============================================================================================//
 
-            ////所有音軌總次數增加////
+            // 所有音軌總次數增加 //
             userRef.get().then((doc)=>{  
                 const c = doc.data().totaltimeplayed;
                 const d = parseInt(c)+1;
@@ -181,9 +198,13 @@ function FooterMusicPlayer({music}) {
                     totaltimeplayed: d,
                 })
             })
+            // 所有音軌總次數增加 結束 //
+
+//============================================================================================//
         }else{
             console.log("update currplayingmusicid failed");
         }
+
     };
 
     

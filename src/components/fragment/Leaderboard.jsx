@@ -67,7 +67,7 @@ class Leaderboard extends React.Component{
             </div>
             <div className='countdown'>
               <div className='countdownlabel'>
-                10月31日結算  
+                10月31日結算 / 11月1日自動歸 0
               </div>
               <CountdownTimer countdownTimestampMs={1667231999000}/>  {/* 到期日10/31 */}
             </div>
@@ -83,7 +83,7 @@ class Leaderboard extends React.Component{
                   <th className='coltitle'>🏆 Rank</th>
                   <th className='coltitle'>👦 Name 👩</th>
                   <th className='coltitle'>✨ 最新上線日期</th>
-                  <th className='coltitle'>✨ 當日播放次數</th>
+                  <th className='coltitle'>🎵 當日播放次數</th>
                   <th className='coltitle'>🎧 本月累積次數</th>
                 </tr>
               </thead>
@@ -160,7 +160,7 @@ class Leaderboard extends React.Component{
                     <th className='coltitle'>🏆 Rank</th>
                     <th className='coltitle'>👦 Name 👩</th>
                     <th className='coltitle'>✨ 最新上線日期</th>
-                    <th className='coltitle'>✨ 當日播放次數</th>
+                    <th className='coltitle'>🎵 當日播放次數</th>
                     <th className='coltitle'>🎧 本月累積次數</th>
                   </tr>
                 </thead>
@@ -237,7 +237,7 @@ class Leaderboard extends React.Component{
                     <th className='coltitle'>🏆 Rank</th>
                     <th className='coltitle'>👦 Name 👩</th>
                     <th className='coltitle'>✨ 最新上線日期</th>
-                    <th className='coltitle'>✨ 當日播放次數</th>
+                    <th className='coltitle'>🎵 當日播放次數</th>
                     <th className='coltitle'>🎧 本月累積次數</th>
                   </tr>
                 </thead>
@@ -314,7 +314,7 @@ class Leaderboard extends React.Component{
                     <th className='coltitle'>🏆 Rank</th>
                     <th className='coltitle'>👦 Name 👩</th>
                     <th className='coltitle'>✨ 最新上線日期</th>
-                    <th className='coltitle'>✨ 當日播放次數</th>
+                    <th className='coltitle'>🎵 當日播放次數</th>
                     <th className='coltitle'>🎧 本月累積次數</th>
                   </tr>
                 </thead>
