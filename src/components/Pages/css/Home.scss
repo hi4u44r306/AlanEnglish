@@ -1,9 +1,9 @@
-.Home-skeleton{
+.Home-skeleton {
   height: 100vh;
   width: 100vw;
 }
 
-.copyright-container{
+.copyright {
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
@@ -11,21 +11,12 @@
   background-color: #fcf8ec;
   display: flex;
   justify-content: center;
-  align-items: left;
-  left: 20px;
-  font-family: 'Varela Round', sans-serif;
+  font-family: "Varela Round", sans-serif;
   font-size: 18px;
   font-weight: 700;
-  width: 100vw;
   height: 7vh;
 }
-.copyright{
-  display: flex;
-  align-items: center;
-  // position: absolute;
-  // left: 1%;
-}
-.current-large-banner{
+.current-large-banner {
   position: absolute;
   top: 0;
   left: 0;

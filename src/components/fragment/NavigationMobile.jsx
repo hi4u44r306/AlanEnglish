@@ -10,7 +10,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
-import RiseLoader from "react-spinners/RiseLoader";
+import ScaleLoader from "react-spinners/ScaleLoader";
 
 
 
@@ -104,7 +104,7 @@ function NavigationMobile() {
                 {
                 loading ?
                     (
-                    <RiseLoader 
+                    <ScaleLoader 
                     color={"#fc0303"} 
                     loading={loading} 
                     size={10} 
@@ -112,9 +112,9 @@ function NavigationMobile() {
                     :
                     (
                         <Nav.Link href="/home/userinfo" className="navlink">
-                          <label>
+                          <p>
                             💰 {coin || '0' } 💰
-                          </label>
+                          </p>
                           <p>
                           🧒 {navusername || '----'} 👦
                           </p>

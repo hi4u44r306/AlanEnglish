@@ -72,10 +72,8 @@ function Home() {
                                 {
                                     Page
                                 }
+                                <div className={"copyright"}>© 2022 AlanEnglish Inc.</div>
                             </div>
-                        </section>
-                        <section className={"copyright-container"}>
-                            <div className="copyright">© 2022 AlanEnglish Inc.</div>
                         </section>
                         {
                             bannerOpen
