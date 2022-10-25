@@ -3,7 +3,7 @@ import '../assets/scss/Game.scss'
 import ReactDom from 'react-dom';
 
 export default function Gamesetting({open, children, onClose}){
-    if(!open) return null
+  if(!open) return null
   return ReactDom.createPortal(
     <>
         <div className='Overlay'/>
