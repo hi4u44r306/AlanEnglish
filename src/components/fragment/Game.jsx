@@ -80,48 +80,49 @@ export default function Game(){
     const [savedNotes, setSavedNotes] = useState([]);
     
     useEffect(()=>{
-      handleListen()
-    },)
-    
-    const handleListen = () => {
-      if(isListening){
-        mic.start();
-        mic.onend = () => {
-          console.log('continue...')
+      const handleListen = () => {
+        if(isListening){
           mic.start();
+          mic.onend = () => {
+            console.log('continue...')
+            mic.start();
+          }
+        }else{
+          mic.stop();
+          mic.onend = () => {
+            console.log('Stopped MIc on Click')
+          }
         }
-      }else{
-        mic.stop();
-        mic.onend = () => {
-          console.log('Stopped MIc on Click')
+        mic.onstart = () => {
+          console.log("Mics on")
+        }
+        
+        mic.onresult = event =>{
+          const transcript = Array.from(event.results)
+          .map(result => result[0])
+          .map(result => result.transcript)
+          .join('')
+          console.log(transcript);
+          setNote(transcript);
+          mic.onerror = event => {
+            console.log(event.error)
+          }
         }
       }
-      mic.onstart = () => {
-        console.log("Mics on")
-      }
-      
-      mic.onresult = event =>{
-        const transcript = Array.from(event.results)
-        .map(result => result[0])
-        .map(result => result.transcript)
-        .join('')
-        console.log(transcript);
-        setNote(transcript);
-        mic.onerror = event => {
-          console.log(event.error)
-        }
-      }
-    }
+      handleListen()
+    },[isListening])
+    
 
     const handleSaveNote = () => {
       setSavedNotes([...savedNotes, note])
       setNote('')
     }
-
   return (
     <>
-    <h1>Game Section</h1>
+
       <Containerfull>
+        <h3 className='gametitle'>測驗環節</h3>
+        
         {/* <div className='gamecontainer'>
             {showScore ? (
             <div className='score-section'>
@@ -143,19 +144,23 @@ export default function Game(){
             </>
           )}
         </div> */}
-        <div className='box'>
-          <h2>Your answer</h2>
-          {isListening ? <span>🎤</span>: <span>🛑🎤</span>}
-          <button onClick={handleSaveNote} disabled={!note}>Save Note</button>
-          <button onClick={() => setIsListening(prevState => !prevState)}>Start / Stop</button>
-          <p>{note}</p>
-        </div>
-        <div className='box'>
-          <h2>Notes</h2>
-          {savedNotes.map(n => (
-            <p key={n}>{n}</p>
-          ))}
-        </div>
+          <div className='gamebox'>
+            <div>
+              <h2>Try to read this</h2>
+              {isListening ? <span>🎤</span>: <span>🛑🎤</span>}
+              <button onClick={handleSaveNote} disabled={!note}>Save Note</button>
+              <button onClick={() => setIsListening(prevState => !prevState)}>Start / Stop</button>
+              <p className='notes'>{note}</p>
+            </div>
+          </div>
+          <div className='gamebox'>
+            <div>
+              <h2>Your answer</h2>
+              {savedNotes.map(n => (
+                <p className='notes' key={n}>{n}</p>
+              ))}
+            </div>
+          </div>
       </Containerfull>
     </>
   )

@@ -1,3 +1,36 @@
+.gametitle {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 30px;
+  font-weight: 700;
+  background-color: #005b7f !important;
+  padding: 5px;
+  color: #f6edba;
+  text-align: center;
+  font-family: "Varela Round", sans-serif;
+}
+.gamecontainer {
+  margin: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.gamebox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  box-shadow: -4px 10px 35px -1px rgba(0, 0, 0, 0.75);
+  height: 20vh;
+  margin: 30px;
+  padding: 20px;
+  border-radius: 5px;
+}
+.notes {
+  color: #ff0000;
+  font-weight: 600;
+  font-size: 25px;
+}
 .Overlay {
   position: fixed;
   top: 0;

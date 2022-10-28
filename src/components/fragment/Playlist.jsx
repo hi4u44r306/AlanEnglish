@@ -10,7 +10,7 @@ const Playlist = () => {
 
     return (
         <Container>
-            <div  className={"Playlist"}>
+            <div className={"Playlist"}>
                 <h3> {typeOfPlaylist} </h3>
                 <div className="Playlist-container">
                     {
