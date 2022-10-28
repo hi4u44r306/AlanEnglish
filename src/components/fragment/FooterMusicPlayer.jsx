@@ -24,7 +24,7 @@ function FooterMusicPlayer({music}) {
     const currentMonth = new Date().toJSON().slice(0, 7);
     const firstdayofmonth = currentMonth + '-1';
     const userRef = db.collection('student').doc(currentuser); 
-    const [game, setGame] = useState();//避免使用innerHTML, textContext 所以用useState();
+    // const [game, setGame] = useState();//避免使用innerHTML, textContext 所以用useState();
 
 
 
