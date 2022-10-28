@@ -24,6 +24,8 @@ function FooterMusicPlayer({music}) {
     const currentMonth = new Date().toJSON().slice(0, 7);
     const firstdayofmonth = currentMonth + '-1';
     const userRef = db.collection('student').doc(currentuser); 
+    const [game, setGame] = useState();//避免使用innerHTML, textContext 所以用useState();
+
 
 
     const success = () =>  {
@@ -126,8 +128,13 @@ function FooterMusicPlayer({music}) {
                 const b = parseInt(a)+1;
                 userRef.collection('Musics').doc(currplayingmusicid).set({
                     timeplayed: b,
+                    // gamescore: 100,
                 })
+                setTimeout(function(){window.location = "/home/game";} ,500)
             }).catch((err)=>{
+                // userRef.collection('Musics').doc(currplayingmusicid).set({
+                //     gamescore: 0,
+                // })
                 console.log(err.message);
             })
             // 當前音軌次數增加 結束 //
@@ -175,13 +182,16 @@ function FooterMusicPlayer({music}) {
                 const b = parseInt(a)+1;  
                 logfileRef.update({
                     timeplayed: b,
+                    gamescore : 100,
                 }).then(() => {
                     console.log(currentDate, " id: ", currplayingmusicid , 'time played update', b);
                 })
             }).catch(() => { ///如果Firebase 中沒有這筆資料則新增///
                 const newdaytimeplayed = 1;
+                const newgamescore = 0;
                 logfileRef.set({
-                    timeplayed: newdaytimeplayed
+                    timeplayed: newdaytimeplayed,
+                    gamescore: newgamescore,
                 }).then(() =>{
                     console.log(currentDate, "id :", currplayingmusicid ,'new update');
                 })

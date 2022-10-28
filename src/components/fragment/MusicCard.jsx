@@ -10,6 +10,7 @@ function MusicCard(props) {
     const {bookname , page , img} = props.music;
     const db = firebase.firestore();
     const [timeplayed, setTimesplayed] = useState();//避免使用innerHTML, textContext 所以用useState();
+    const [gamescore, setGamescore] = useState();//避免使用innerHTML, textContext 所以用useState();
     const dispatch = useDispatch();
     
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
@@ -27,6 +28,9 @@ function MusicCard(props) {
             const convertmusicid = "'" + props.music.id + "'";
             db.collection('student').doc(user.uid).collection('Musics').doc(convertmusicid).get().then((doc)=>{
                 setTimesplayed(doc.data().timeplayed);
+            })
+            db.collection('student').doc(user.uid).collection('Musics').doc(convertmusicid).get().then((doc)=>{
+                setGamescore(doc.data().gamescore);
             })
 
             .catch((err)=>{
@@ -60,6 +64,11 @@ function MusicCard(props) {
                         <Name name={"播放次數:  "} className={"song-name"}/>
                         <Name name={timeplayed} className={"timeplayed"}/>
                         <Name name={"次"} className={"song-name"}/>
+                    </div>
+                    <div className="timesplayedcontainer">
+                        <Name name={"測驗分數:  "} className={"song-name"}/>
+                        <Name name={gamescore||"no score"} className={"timeplayed"}/>
+                        <Name name={"分"} className={"song-name"}/>
                     </div>
                 </React.Fragment>
             </>
