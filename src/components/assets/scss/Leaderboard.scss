@@ -1,5 +1,6 @@
 .classtitle {
   font-family: "Varela Round", sans-serif;
+  border-radius: 30px;
   display: flex;
   justify-content: space-around;
   font-size: 20px;
@@ -49,6 +50,8 @@ tbody {
 }
 .prize {
   font-family: "Varela Round", sans-serif;
+  border: solid 5px #ffd000;
+  border-radius: 30px;
   display: flex;
   justify-content: space-around;
   font-size: 20px;
