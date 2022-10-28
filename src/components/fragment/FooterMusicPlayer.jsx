@@ -130,7 +130,7 @@ function FooterMusicPlayer({music}) {
                     timeplayed: b,
                     // gamescore: 100,
                 })
-                setTimeout(function(){window.location = "/home/game";} ,500)
+                // setTimeout(function(){window.location = "/home/game";} ,500)
             }).catch((err)=>{
                 // userRef.collection('Musics').doc(currplayingmusicid).set({
                 //     gamescore: 0,

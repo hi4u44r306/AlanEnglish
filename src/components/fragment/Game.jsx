@@ -75,14 +75,14 @@ export default function Game(){
 
     
     
-    const [isListening, setIsListening ] = useState(false);
     const [note, setNote] = useState(null);
+    const [isListening, setIsListening ] = useState(false);
     const [savedNotes, setSavedNotes] = useState([]);
-
+    
     useEffect(()=>{
       handleListen()
     },)
-
+    
     const handleListen = () => {
       if(isListening){
         mic.start();
@@ -99,7 +99,7 @@ export default function Game(){
       mic.onstart = () => {
         console.log("Mics on")
       }
-
+      
       mic.onresult = event =>{
         const transcript = Array.from(event.results)
         .map(result => result[0])
