@@ -78,6 +78,7 @@ export default function Game(){
     const [note, setNote] = useState(null);
     const [isListening, setIsListening ] = useState(false);
     const [savedNotes, setSavedNotes] = useState([]);
+    const [score, setScore] = useState();
     
     useEffect(()=>{
       const handleListen = () => {
@@ -90,7 +91,7 @@ export default function Game(){
         }else{
           mic.stop();
           mic.onend = () => {
-            console.log('Stopped MIc on Click')
+            console.log('Stopped Mic on Click')
           }
         }
         mic.onstart = () => {
@@ -103,6 +104,10 @@ export default function Game(){
           .map(result => result.transcript)
           .join('')
           console.log(transcript);
+          const stringSimilarity = require("string-similarity");
+          const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, "My name is.")*100);
+          setScore(similarity);
+          console.log(similarity);
           setNote(transcript);
           mic.onerror = event => {
             console.log(event.error)
@@ -114,7 +119,7 @@ export default function Game(){
     
 
     const handleSaveNote = () => {
-      setSavedNotes([...savedNotes, note])
+      setSavedNotes([...savedNotes, score])
       setNote('')
     }
   return (
@@ -146,19 +151,13 @@ export default function Game(){
         </div> */}
           <div className='gamebox'>
             <div>
-              <h2>Try to read this</h2>
+              <h5 className='boxtitle'>My name is</h5>
               {isListening ? <span className='notes'> 🛑開始錄音 </span> : <span className='notes'> 停止錄音 </span>}
-              <button className='recordbtn' onClick={handleSaveNote} disabled={!note}>儲存答案</button>
+              <button className='recordbtn' onClick={handleSaveNote} disabled={!note}>提交答案</button>
               <button className='recordbtn' onClick={() => setIsListening(prevState => !prevState)}>開始錄音 / 停止錄音</button>
-              <p className='notes'>{note}</p>
-            </div>
-          </div>
-          <div className='gamebox'>
-            <div>
-              <h2>Your answer</h2>
-              {savedNotes.slice(0).reverse().map(n => (
-                <p className='notes' key={n}>{n}</p>
-              ))}
+              <p className='gamenote'>{note}</p>
+              <h5 className='boxtitle'>Your Score</h5>
+              <p className='gamenote' key={savedNotes}>{savedNotes}</p>
             </div>
           </div>
       </Containerfull>
