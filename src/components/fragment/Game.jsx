@@ -147,16 +147,16 @@ export default function Game(){
           <div className='gamebox'>
             <div>
               <h2>Try to read this</h2>
-              {isListening ? <span>🎤</span>: <span>🛑🎤</span>}
-              <button onClick={handleSaveNote} disabled={!note}>Save Note</button>
-              <button onClick={() => setIsListening(prevState => !prevState)}>Start / Stop</button>
+              {isListening ? <span className='notes'> 🛑開始錄音 </span> : <span className='notes'> 停止錄音 </span>}
+              <button className='recordbtn' onClick={handleSaveNote} disabled={!note}>儲存答案</button>
+              <button className='recordbtn' onClick={() => setIsListening(prevState => !prevState)}>開始錄音 / 停止錄音</button>
               <p className='notes'>{note}</p>
             </div>
           </div>
           <div className='gamebox'>
             <div>
               <h2>Your answer</h2>
-              {savedNotes.map(n => (
+              {savedNotes.slice(0).reverse().map(n => (
                 <p className='notes' key={n}>{n}</p>
               ))}
             </div>
