@@ -15,11 +15,53 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-.recordbtn {
+.computer-btncontainer {
+  display: flex;
+  font-size: 20px;
+}
+.mobile-btncontainer {
+  display: none;
+  font-size: 20px;
+}
+.submitanswerbtn {
+  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  background-color: #69b469;
   color: #000000;
   border-radius: 20px;
-  margin: 10px;
-  padding: 10px;
+  margin: 20px;
+  padding: 20px;
+  font-family: "Varela Round", sans-serif;
+  font-weight: 600;
+}
+.recordingbtn {
+  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  background-color: #0095ff;
+  color: #000000;
+  border-radius: 20px;
+  border: 3px solid #000000;
+  margin: 20px;
+  padding: 20px;
+  font-family: "Varela Round", sans-serif;
+  font-weight: 600;
+}
+.stoprecordbtn {
+  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  background-color: #f4542c;
+  color: #000000;
+  border-radius: 20px;
+  border: 3px solid #000000;
+  margin: 20px;
+  padding: 20px;
+  font-family: "Varela Round", sans-serif;
+  font-weight: 600;
+}
+.nextquestionbtn {
+  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  background-color: #ff894e;
+  color: #000000;
+  border-radius: 20px;
+  margin: 20px;
+  padding: 20px;
   font-family: "Varela Round", sans-serif;
   font-weight: 600;
 }
@@ -30,7 +72,7 @@
   align-content: center;
   box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
   height: fit-content;
-  margin: 30px;
+  margin: 15px;
   padding: 20px;
   border-radius: 5px;
 }
@@ -47,14 +89,14 @@
 .gamenote {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   align-content: center;
   box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
   height: fit-content;
-  margin: 30px;
+  margin: 15px;
   padding: 20px;
   border-radius: 5px;
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 700;
   color: #005b7f;
   text-align: center;
@@ -179,4 +221,19 @@
 
 .gamebtn svg {
   margin-right: 5px;
+}
+
+@media screen and (max-width: 695px) {
+  .boxtitle {
+    font-size: 20px;
+  }
+  .computer-btncontainer {
+    display: none;
+  }
+  .mobile-btncontainer {
+    display: flex;
+  }
+  // .recordingbtn .submitanswerbtn .stoprecordbtn .nextquestionbtn {
+  //   margin: 5px;
+  // }
 }

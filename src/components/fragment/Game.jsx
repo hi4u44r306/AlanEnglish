@@ -8,77 +8,49 @@ mic.interimResults = true
 mic.lang = 'en-US'
 
 export default function Game(){
-    // const questions = [
-    //   {
-    //     questionText: 'ABC',
-    //     answerOptions: [
-    //       { answerText: 'New York', isCorrect: false },
-    //       { answerText: 'London', isCorrect: false },
-    //       { answerText: 'Paris', isCorrect: true },
-    //       { answerText: 'Dublin', isCorrect: false },
-    //     ],
-    //   },
-    //   {
-    //     questionText: 'What is the capital of France?',
-    //     answerOptions: [
-    //       { answerText: 'New York', isCorrect: false },
-    //       { answerText: 'London', isCorrect: false },
-    //       { answerText: 'Paris', isCorrect: true },
-    //       { answerText: 'Dublin', isCorrect: false },
-    //     ],
-    //   },
-    //   {
-    //     questionText: 'Who is CEO of Tesla?',
-    //     answerOptions: [
-    //       { answerText: 'Jeff Bezos', isCorrect: false },
-    //       { answerText: 'Elon Musk', isCorrect: true },
-    //       { answerText: 'Bill Gates', isCorrect: false },
-    //       { answerText: 'Tony Stark', isCorrect: false },
-    //     ],
-    //   },
-    //   {
-    //     questionText: 'The iPhone was created by which company?',
-    //     answerOptions: [
-    //       { answerText: 'Apple', isCorrect: true },
-    //       { answerText: 'Intel', isCorrect: false },
-    //       { answerText: 'Amazon', isCorrect: false },
-    //       { answerText: 'Microsoft', isCorrect: false },
-    //     ],
-    //   },
-    //   {
-    //     questionText: 'How many Harry Potter books are there?',
-    //     answerOptions: [
-    //       { answerText: '1', isCorrect: false },
-    //       { answerText: '4', isCorrect: false },
-    //       { answerText: '6', isCorrect: false },
-    //       { answerText: '7', isCorrect: true },
-    //     ],
-    //   },
-    // ];
+    const questions = [
+      {
+        questionText: 'Apple.',
+      },
+      {
+        questionText: 'Banana.',
+      },
+      {
+        questionText: 'Car.',
+      },
+      {
+        questionText: 'Dog.',
+      },
+      {
+        questionText: 'Elephant.',
+      },
+    ];
   
-    // const [currentQuestion, setCurrentQuestion] = useState(0);
-    // const [showScore, setShowScore] = useState(false);
-    // const [score, setScore] = useState(0);
-  
-    // const handleAnswerOptionClick = (isCorrect) => {
-    //   if (isCorrect) {
-    //     setScore(score + 1);
-    //   }
-  
-    //   const nextQuestion = currentQuestion + 1;
-    //   if (nextQuestion < questions.length) {
-    //     setCurrentQuestion(nextQuestion);
-    //   } else {
-    //     // setShowScore(true);
-    //   }
-    // };
-
-    
-    
+    const [currentQuestion, setCurrentQuestion] = useState(0);
     const [note, setNote] = useState(null);
     const [isListening, setIsListening ] = useState(false);
     const [savedNotes, setSavedNotes] = useState([]);
     const [score, setScore] = useState();
+    const [nextbtn, setNextbtn] = useState(true);
+  
+    const handleAnswerOptionClick = () => {
+      if (score >= 80) {
+        setNextbtn(false);
+        mic.stop();
+        setSavedNotes(' ')
+        const nextQuestion = currentQuestion + 1;
+        if (nextQuestion < questions.length) {
+          setCurrentQuestion(nextQuestion);
+          setNextbtn(true)
+        } else {
+        }
+      }else{
+        alert('再試一次')
+      }
+  
+    };
+
+    
     
     useEffect(()=>{
       const handleListen = () => {
@@ -86,7 +58,6 @@ export default function Game(){
           mic.start();
           mic.onend = () => {
             console.log('continue...')
-            mic.start();
           }
         }else{
           mic.stop();
@@ -97,6 +68,9 @@ export default function Game(){
         mic.onstart = () => {
           console.log("Mics on")
         }
+        mic.onerror = event => {
+          console.log(event.error)
+        }
         
         mic.onresult = event =>{
           const transcript = Array.from(event.results)
@@ -105,7 +79,8 @@ export default function Game(){
           .join('')
           console.log(transcript);
           const stringSimilarity = require("string-similarity");
-          const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, "My name is.")*100);
+          const question = questions[currentQuestion].questionText
+          const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, question)*100);
           setScore(similarity);
           console.log(similarity);
           setNote(transcript);
@@ -115,11 +90,15 @@ export default function Game(){
         }
       }
       handleListen()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[isListening])
     
 
     const handleSaveNote = () => {
-      setSavedNotes([...savedNotes, score])
+      setSavedNotes(score);
+      mic.stop();
+      setIsListening(false);
+      setNextbtn(false)
       setNote('')
     }
   return (
@@ -127,37 +106,37 @@ export default function Game(){
 
       <Containerfull>
         <h3 className='gametitle'>測驗環節</h3>
-        
-        {/* <div className='gamecontainer'>
-            {showScore ? (
-            <div className='score-section'>
-              總題數 {questions.length}題 / 你答對了 {score} 題
-            </div>
-          ) : (
-            <>
-              <div className='question-section'>
-                <div className='question-count'>
-                  <span>第 {currentQuestion + 1} 題</span> / {questions.length}
-                </div>
-                <div className='question-text'>{questions[currentQuestion].questionText}</div>
-              </div>
-              <div className='answer-section'>
-                {questions[currentQuestion].answerOptions.map((answerOption) => (
-                  <button className='gamebtn' onClick={() => handleAnswerOptionClick(answerOption.isCorrect)}>{answerOption.answerText}</button>
-                ))}
-              </div>
-            </>
-          )}
-        </div> */}
           <div className='gamebox'>
             <div>
-              <h5 className='boxtitle'>My name is</h5>
-              {isListening ? <span className='notes'> 🛑開始錄音 </span> : <span className='notes'> 停止錄音 </span>}
-              <button className='recordbtn' onClick={handleSaveNote} disabled={!note}>提交答案</button>
-              <button className='recordbtn' onClick={() => setIsListening(prevState => !prevState)}>開始錄音 / 停止錄音</button>
-              <p className='gamenote'>{note}</p>
-              <h5 className='boxtitle'>Your Score</h5>
-              <p className='gamenote' key={savedNotes}>{savedNotes}</p>
+              <div className='boxtitle'>
+                <span>第 {currentQuestion + 1} 題</span> / 共{questions.length}題
+              </div>
+              <div className='boxtitle'>念念看 : {questions[currentQuestion].questionText}</div>
+              {/* 電腦版顯示 */}
+                <div className="computer-btncontainer">
+                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>提交答案 ✅</button>
+                  {isListening ? 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡暫停 🟥 </button> 
+                    : 
+                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡開始錄音 🎙️</button>
+                  }
+                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>下一題 ⏭️</button>
+                </div>
+
+              {/* 手機版顯示 */}
+                <div className="mobile-btncontainer">
+                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>✅</button>
+                  {isListening ? 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}>🟥 </button> 
+                    : 
+                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}>🎙️</button>
+                  }
+                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>⏭️</button>
+                </div>
+
+
+                <div className='gamenote'>你的回答 : {note}</div>
+                <div className='gamenote' key={savedNotes}>分數 : {savedNotes}</div>
             </div>
           </div>
       </Containerfull>
