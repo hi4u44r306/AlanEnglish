@@ -30,6 +30,7 @@ class Login extends React.Component{
             pauseOnHover: false,
             draggable: true,
             progress: undefined,
+            theme: "colored",
             });
             setTimeout(function(){window.location = "/home/leaderboard";} ,500); 
             
@@ -45,6 +46,7 @@ class Login extends React.Component{
             pauseOnHover: false,
             draggable: true,
             progress: undefined,
+            theme: "colored",
             });
         };
 

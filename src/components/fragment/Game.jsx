@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Containerfull from './Containerfull';
 import '../assets/scss/Game.scss';
+import { toast, ToastContainer} from "react-toastify"
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
 const mic = new SpeechRecognition()
 mic.continous = true
@@ -33,8 +34,35 @@ export default function Game(){
     const [score, setScore] = useState();
     const [nextbtn, setNextbtn] = useState(true);
   
+    const success = () =>  {
+      toast.success('太棒了',{
+        className:"notification",
+        position: "bottom-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        });
+      };
+    const error = () =>  {
+      toast.error('分數未達80分，再試一次',{
+        className:"notification",
+        position: "bottom-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        });
+      };
     const handleAnswerOptionClick = () => {
       if (score >= 80) {
+        success();
         setNextbtn(false);
         mic.stop();
         setSavedNotes(' ')
@@ -45,7 +73,7 @@ export default function Game(){
         } else {
         }
       }else{
-        alert('再試一次')
+        error();
       }
   
     };
@@ -58,6 +86,7 @@ export default function Game(){
           mic.start();
           mic.onend = () => {
             console.log('continue...')
+            mic.start();
           }
         }else{
           mic.stop();
@@ -111,6 +140,19 @@ export default function Game(){
               <div className='boxtitle'>
                 <span>第 {currentQuestion + 1} 題</span> / 共{questions.length}題
               </div>
+              <div>
+                <ToastContainer
+                position="top-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                />
+              </div>    
               <div className='boxtitle'>念念看 : {questions[currentQuestion].questionText}</div>
               {/* 電腦版顯示 */}
                 <div className="computer-btncontainer">

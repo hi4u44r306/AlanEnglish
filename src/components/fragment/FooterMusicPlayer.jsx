@@ -38,6 +38,7 @@ function FooterMusicPlayer({music}) {
             pauseOnHover: false,
             draggable: true,
             progress: undefined,
+            theme: "colored",
             });
         };
 
