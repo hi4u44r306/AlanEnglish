@@ -15,10 +15,17 @@ class Leaderboard extends React.Component{
     studentsD:null,
   }
   
-  
+  currentMonth = new Date().toJSON().slice(0, 7);
+  firstdayofmonth = this.currentMonth + '-01';
+
   componentDidMount() {
     const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量
-    db.collection("student").where('class', '==', 'A').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+    db.collection("student")
+    .where('class', '==', 'A')
+    .where('onlinetime', '>', this.firstdayofmonth)
+    // .where("totaltimeplayed", ">", 0)
+    // .orderBy('totaltimeplayed', 'desc')
+    .limit(7).get().then((snapshot) => {
       const studentsA = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
@@ -26,7 +33,7 @@ class Leaderboard extends React.Component{
       })
       this.setState({studentsA: studentsA});
     });
-    db.collection("student").where('class', '==', 'B').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+    db.collection("student").where('class', '==', 'B').where('onlinetime', '>', this.firstdayofmonth).limit(7).get().then((snapshot) => {
       const studentsB = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
@@ -34,7 +41,7 @@ class Leaderboard extends React.Component{
       })
       this.setState({studentsB: studentsB});
     });
-    db.collection("student").where('class', '==', 'C').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+    db.collection("student").where('class', '==', 'C').where('onlinetime', '>', this.firstdayofmonth).limit(7).get().then((snapshot) => {
       const studentsC = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
@@ -42,7 +49,7 @@ class Leaderboard extends React.Component{
       })
       this.setState({studentsC: studentsC});
     });
-    db.collection("student").where('class', '==', 'D').where("totaltimeplayed", ">", 0).orderBy('totaltimeplayed', 'desc').limit(7).get().then((snapshot) => {
+    db.collection("student").where('class', '==', 'D').where('onlinetime', '>', this.firstdayofmonth).limit(7).get().then((snapshot) => {
       const studentsD = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();

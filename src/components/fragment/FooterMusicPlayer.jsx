@@ -22,7 +22,6 @@ function FooterMusicPlayer({music}) {
     const audioElement = useRef();
     const currentDate = new Date().toJSON().slice(0, 10);
     const currentMonth = new Date().toJSON().slice(0, 7);
-    const firstdayofmonth = currentMonth + '-1';
     const userRef = db.collection('student').doc(currentuser); 
     // const [game, setGame] = useState();//避免使用innerHTML, textContext 所以用useState();
 
@@ -59,24 +58,41 @@ function FooterMusicPlayer({music}) {
     });
 
     
-    
-    const updatetimeplayedtofirestore = () => {
-
-        // 如果日期是每個月1號 將所以音軌的播放次數歸0 //
-        if (currentDate === firstdayofmonth){
+    userRef.get().then((doc) =>{
+        if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
             userRef.set({
                 totaltimeplayed : 0,
+                Resetallmusic : currentMonth+'alreadyupdated',
             },{merge: true})
-            for(let i = 0; i < 2000; i++){      
+            for(let i = 0; i < 601; i++){      
                 let j = "'"+i+"'"
                 userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
                     timeplayed : 0,
                 })        
             }
+            console.log('finish reset')
         }else{
-
+            console.log('this account is alreadyreset')
         }
-        // 如果日期是每個月1號 將所以音軌的播放次數歸0 結束//
+    }).catch(() =>{
+        userRef.set({
+            totaltimeplayed : 0,
+            Resetallmusic : currentMonth + 'alreadyupdated',
+        },{merge: true})
+        for(let i = 0; i < 601; i++){      
+            let j = "'"+i+"'"
+            userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+                timeplayed : 0,
+            })        
+        }
+        console.log('finish reset')
+    })
+
+    
+    
+    
+    const updatetimeplayedtofirestore = () => {
+
 
 //============================================================================================//
         
