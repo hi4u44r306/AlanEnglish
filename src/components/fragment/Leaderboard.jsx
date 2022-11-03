@@ -14,17 +14,31 @@ class Leaderboard extends React.Component{
     studentsC:null,
     studentsD:null,
   }
-  
   currentMonth = new Date().toJSON().slice(0, 7);
+  currentMonth2 = new Date().toJSON().slice(5, 7);
+  currentYear = new Date().toJSON().slice(0,4);
+  getFirstDayOfNextMonth() {
+    const date = new Date();
+  
+    return new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  }
+  nextMonth = new Date().getMonth()+3;
+
   firstdayofmonth = this.currentMonth + '-01';
+  lastday = function(y,m){
+    return  new Date(y, m +1, 0).getDate();
+  }
+  lastdayofmonth = this.lastday(this.currentYear,new Date().toJSON().slice(5, 7))
+  resetDate = this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth;
+  resetDateToMs = new Date(this.currentYear + '-' +this.currentMonth2 + '-' + this.lastdayofmonth);
 
   componentDidMount() {
     const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量
     db.collection("student")
     .where('class', '==', 'A')
-    .where('onlinetime', '>', this.firstdayofmonth)
-    // .where("totaltimeplayed", ">", 0)
-    // .orderBy('totaltimeplayed', 'desc')
+    .where('onlinemonth', '==', this.currentMonth)
+    .where('totaltimeplayed', '>', 0)
+    .orderBy('totaltimeplayed', 'desc')
     .limit(7).get().then((snapshot) => {
       const studentsA = [];
       snapshot.forEach((doc)=>{
@@ -33,7 +47,12 @@ class Leaderboard extends React.Component{
       })
       this.setState({studentsA: studentsA});
     });
-    db.collection("student").where('class', '==', 'B').where('onlinetime', '>', this.firstdayofmonth).limit(7).get().then((snapshot) => {
+    db.collection("student")
+    .where('class', '==', 'B')
+    .where('onlinemonth', '==', this.currentMonth)
+    .where('totaltimeplayed', '>', 0)
+    .orderBy('totaltimeplayed', 'desc')
+    .limit(7).get().then((snapshot) => {
       const studentsB = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
@@ -41,7 +60,12 @@ class Leaderboard extends React.Component{
       })
       this.setState({studentsB: studentsB});
     });
-    db.collection("student").where('class', '==', 'C').where('onlinetime', '>', this.firstdayofmonth).limit(7).get().then((snapshot) => {
+    db.collection("student")
+    .where('class', '==', 'C')
+    .where('onlinemonth', '==', this.currentMonth)
+    .where('totaltimeplayed', '>', 0)
+    .orderBy('totaltimeplayed', 'desc')
+    .limit(7).get().then((snapshot) => {
       const studentsC = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
@@ -49,7 +73,12 @@ class Leaderboard extends React.Component{
       })
       this.setState({studentsC: studentsC});
     });
-    db.collection("student").where('class', '==', 'D').where('onlinetime', '>', this.firstdayofmonth).limit(7).get().then((snapshot) => {
+    db.collection("student")
+    .where('class', '==', 'D')
+    .where('onlinemonth', '==', this.currentMonth)
+    .where('totaltimeplayed', '>', 0)
+    .orderBy('totaltimeplayed', 'desc')
+    .limit(7).get().then((snapshot) => {
       const studentsD = [];
       snapshot.forEach((doc)=>{
         const data = doc.data();
@@ -74,13 +103,13 @@ class Leaderboard extends React.Component{
             </div>
             <div className='countdown'>
               <div className='countdownlabel'>
-                10月31日結算 / 11月1日自動歸 0
+                {this.resetDate}日結算
               </div>
-              <CountdownTimer countdownTimestampMs={1667231999000}/>  {/* 到期日10/31 */}
+              <CountdownTimer countdownTimestampMs={this.resetDateToMs}/> 
             </div>
-            <div className='prize'>
+            {/* <div className='prize'>
               <div>各班前七名獎品待定</div>
-            </div>  
+            </div>   */}
 
             {/* A班 */}
             <div className='classtitle'>A班</div>
@@ -142,7 +171,7 @@ class Leaderboard extends React.Component{
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
-                                <span className='font-weight-bold' >{studentsA.totaltimeplayed}次</span>
+                                <span className='font-weight-bold'>{studentsA.totaltimeplayed}次</span>
                               </b>
                             </div>
                           </div>

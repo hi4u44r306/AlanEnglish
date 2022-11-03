@@ -70,22 +70,22 @@ function FooterMusicPlayer({music}) {
                     timeplayed : 0,
                 })        
             }
-            console.log('finish reset')
+            console.log('First time reset')
         }else{
             console.log('this account is alreadyreset')
         }
     }).catch(() =>{
-        userRef.set({
-            totaltimeplayed : 0,
-            Resetallmusic : currentMonth + 'alreadyupdated',
-        },{merge: true})
-        for(let i = 0; i < 601; i++){      
-            let j = "'"+i+"'"
-            userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
-                timeplayed : 0,
-            })        
-        }
-        console.log('finish reset')
+        // userRef.set({
+        //     totaltimeplayed : 0,
+        //     Resetallmusic : currentMonth + 'alreadyupdated',
+        // },{merge: true})
+        // for(let i = 0; i < 601; i++){      
+        //     let j = "'"+i+"'"
+        //     userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+        //         timeplayed : 0,
+        //     })        
+        // }
+        // console.log('This account is first time updated')
     })
 
     
@@ -116,6 +116,7 @@ function FooterMusicPlayer({music}) {
             // 當使用者聽完一個音軌 推送Timestamp到firebase //
             userRef.update({ 
                 onlinetime : currentDate,
+                onlinemonth : currentMonth,
             })
             // 當使用者聽完一個音軌 推送Timestamp到firebase 結束 //
 

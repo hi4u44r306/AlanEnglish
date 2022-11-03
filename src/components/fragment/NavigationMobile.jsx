@@ -19,8 +19,9 @@ function NavigationMobile() {
 
   const db = firebase.firestore();
   const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
-  const [coin, setCoin] = useState();
+  const [updated, setUpdated] = useState();
   const [loading, setLoading] = useState(false);
+  const currentMonth = new Date().toJSON().slice(0, 7);
 
   useEffect(()=>{
     setLoading(true)
@@ -35,7 +36,11 @@ function NavigationMobile() {
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
             setnavUsername(doc.data().name)
-            setCoin(doc.data().totaltimeplayed)
+            if(doc.data().Resetallmusic === currentMonth+'alreadyupdated'){
+              setUpdated('次數已歸零')
+            }else{
+              setUpdated('尚未歸零')
+            }
         }, err =>{
             console.log(err.message);
         });
@@ -113,11 +118,12 @@ function NavigationMobile() {
                     (
                         <Nav.Link href="/home/userinfo" className="navlink">
                           <p>
-                            💰 {coin || '0' } 💰
+                            💰 {updated || '----'} 💰
                           </p>
                           <p>
                           🧒 {navusername || '----'} 👦
                           </p>
+                          
                         </Nav.Link>
                     )}
                      
