@@ -31,7 +31,7 @@ class Leaderboard extends React.Component{
   }
   lastdayofmonth = this.lastday(this.currentYear,new Date().toJSON().slice(5, 7))
   resetDate = this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth;
-  resetDateToMs = new Date(this.currentYear + '-' +this.currentMonth2 + '-' + this.lastdayofmonth);
+  resetDateToMs = new Date(this.currentYear + '-' +this.currentMonth2 + '-' + this.lastdayofmonth).getTime()
 
   componentDidMount() {
     const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量

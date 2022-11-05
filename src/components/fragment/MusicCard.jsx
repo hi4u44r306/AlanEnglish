@@ -47,9 +47,10 @@ function MusicCard(props) {
         dispatch(setCurrentPlaying(props.music))
     }
     const [isOpen, setIsOpen] = useState(false);
-    
+
     return (
         <div className={"music-card"}>
+            
             {
                 <>
                 <div onClick={handlePlay} className={"music-card-cover"} >
@@ -60,11 +61,12 @@ function MusicCard(props) {
                 </div>
                 <div onClick=
                 {
-                ()=> 
+                    ()=> 
                     {
-                        if(questions==='')
+                        if(questions === undefined)
                         {
-                            setIsOpen(false); alert('not yet')
+                            setIsOpen(false); 
+                            alert('目前未開放')
                         }
                         else{
                             setIsOpen(true);

@@ -106,7 +106,7 @@
 }
 .gamebox {
   box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
-  height: fit-content;
+  height: 78vh;
   margin: 15px;
   padding: 20px;
   border-radius: 5px;
@@ -272,7 +272,13 @@
   }
   .mobile-btncontainer {
     display: flex;
-    justify-content: center;
+    justify-content: space-evenly;
+
+    button {
+      width: 150px;
+      height: 90px;
+      font-size: 35px;
+    }
   }
   // .recordingbtn .submitanswerbtn .stoprecordbtn .nextquestionbtn {
   //   margin: 5px;

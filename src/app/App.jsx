@@ -15,6 +15,7 @@ import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Game from "../components/fragment/Game";
+import Dashboard from "../components/fragment/Dashboard";
 
 
 const App = () => {
@@ -66,6 +67,11 @@ const App = () => {
                         <Route path="/home/game">
                             <NavigationMobile/>
                             <Game/>
+                            <Copyright/>
+                        </Route>
+                        <Route path="/home/dashboard">
+                            <NavigationMobile/>
+                            <Dashboard/>
                             <Copyright/>
                         </Route>
                         <Route path="/home" component={Home}/>
