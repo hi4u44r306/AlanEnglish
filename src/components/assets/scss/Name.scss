@@ -1,18 +1,18 @@
-.marqueenamelabel{
-  font-family: 'Varela Round', sans-serif;
+.marqueenamelabel {
+  font-family: "Varela Round", sans-serif;
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
 }
-.marqueename{
-  font-family: 'Varela Round', sans-serif;
+.marqueename {
+  font-family: "Varela Round", sans-serif;
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
   color: red;
 }
-.timeplayed{
-  font-family: 'Varela Round', sans-serif;
+.timeplayed {
+  font-family: "Varela Round", sans-serif;
   display: flex;
   color: red;
   font-weight: 900;
@@ -22,21 +22,28 @@
   cursor: default;
   user-select: none;
 }
-.song-name{
+.game-name {
+  font-weight: bolder;
+  font-size: 1.3rem;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+}
+.song-name {
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
   cursor: default;
   user-select: none;
 }
-.author-name{
+.author-name {
   font-weight: lighter;
   color: gray;
   cursor: default;
   user-select: none;
 }
-.emptysong-name{
-  font-family: 'Varela Round', sans-serif;
+.emptysong-name {
+  font-family: "Varela Round", sans-serif;
   font-weight: bolder;
   font-size: 1.2rem;
   text-align: center;
@@ -44,15 +51,15 @@
 }
 
 @media only screen and (max-width: 968px) {
-  .song-name{
+  .song-name {
     font-size: 0.7rem;
   }
-  .author-name{
+  .author-name {
     font-size: 0.7rem;
   }
 }
 @media only screen and (max-width: 500px) {
-  .emptysong-name{
+  .emptysong-name {
     font-weight: bolder;
     font-size: 1rem;
     text-align: center;

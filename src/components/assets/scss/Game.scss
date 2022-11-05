@@ -1,3 +1,32 @@
+.questionbox {
+  padding: 20px;
+  margin: 10px;
+  border-radius: 20px;
+  background-color: #edf7ff;
+}
+.questiontext {
+  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  background-color: #5cbbff;
+  color: #000000;
+  border-radius: 20px;
+  margin: 10px;
+  padding: 10px;
+  font-family: "Varela Round", sans-serif;
+  font-weight: 600;
+}
+.questionindex {
+  background-color: #ff5c5c;
+  font-size: 20px;
+  padding: 10px;
+  color: #000000;
+  border-radius: 20px;
+  font-family: "Varela Round", sans-serif;
+  font-weight: 600;
+}
 .gametitle {
   position: sticky;
   top: 0;
@@ -18,58 +47,64 @@
 .computer-btncontainer {
   display: flex;
   font-size: 20px;
+  justify-content: center;
 }
 .mobile-btncontainer {
   display: none;
   font-size: 20px;
 }
+.closebtn {
+  position: fixed;
+  right: 40px;
+  cursor: pointer;
+}
 .submitanswerbtn {
-  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #69b469;
   color: #000000;
   border-radius: 20px;
-  margin: 20px;
-  padding: 20px;
+  margin: 10px;
+  height: fit-content;
+  padding: 10px;
   font-family: "Varela Round", sans-serif;
   font-weight: 600;
 }
 .recordingbtn {
-  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #0095ff;
   color: #000000;
   border-radius: 20px;
   border: 3px solid #000000;
-  margin: 20px;
-  padding: 20px;
+  margin: 10px;
+  height: fit-content;
+  padding: 10px;
   font-family: "Varela Round", sans-serif;
   font-weight: 600;
 }
 .stoprecordbtn {
-  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #f4542c;
   color: #000000;
   border-radius: 20px;
   border: 3px solid #000000;
-  margin: 20px;
-  padding: 20px;
+  margin: 10px;
+  height: fit-content;
+  padding: 10px;
   font-family: "Varela Round", sans-serif;
   font-weight: 600;
 }
 .nextquestionbtn {
-  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #ff894e;
   color: #000000;
   border-radius: 20px;
-  margin: 20px;
-  padding: 20px;
+  margin: 10px;
+  height: fit-content;
+  padding: 10px;
   font-family: "Varela Round", sans-serif;
   font-weight: 600;
 }
 .gamebox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-content: center;
   box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
   height: fit-content;
   margin: 15px;
@@ -79,6 +114,7 @@
 .boxtitle {
   top: 0;
   z-index: 1;
+  margin: 10px;
   font-size: 30px;
   font-weight: 700;
   padding: 5px;
@@ -89,16 +125,16 @@
 .gamenote {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   align-content: center;
-  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   height: fit-content;
   margin: 15px;
   padding: 20px;
   border-radius: 5px;
-  font-size: 20px;
+  font-size: 25px;
   font-weight: 700;
-  color: #005b7f;
+  color: #ff3d3d;
   text-align: center;
   font-family: "Varela Round", sans-serif;
 }
@@ -236,6 +272,7 @@
   }
   .mobile-btncontainer {
     display: flex;
+    justify-content: center;
   }
   // .recordingbtn .submitanswerbtn .stoprecordbtn .nextquestionbtn {
   //   margin: 5px;

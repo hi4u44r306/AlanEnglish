@@ -43,7 +43,24 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 10,
         type: "SER1",
-        musicName: "super easy reading 1/SER1track02.mp3"
+        musicName: "super easy reading 1/SER1track02.mp3",
+        questions : [
+            {
+                questionText : "Test.",
+            },
+            {
+                questionText : "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
     },
     {
         id: 1,
@@ -53,7 +70,25 @@ let musicDB = [
         lang: "SuperEasyReading1",
         timesPlayed: 0,
         type: "SER1",
-        musicName: "super easy reading 1/SER1track03.mp3"
+        musicName: "super easy reading 1/SER1track03.mp3",
+        questions : [
+            {
+                questionText : "Test.",
+            },
+            {
+                questionText : "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+      
     }
     ,
     {
@@ -5924,7 +5959,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P19.mp3"
+    musicName: "習作本1/習作本1 P19.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 520,
@@ -5934,7 +5986,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P20.mp3"
+    musicName: "習作本1/習作本1 P20.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 521,
@@ -5944,7 +6013,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P21.mp3"
+    musicName: "習作本1/習作本1 P21.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 522,
@@ -5954,7 +6040,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P24.mp3"
+    musicName: "習作本1/習作本1 P24.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 523,
@@ -5964,7 +6067,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P25.mp3"
+    musicName: "習作本1/習作本1 P25.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 524,
@@ -5974,7 +6094,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P26.mp3"
+    musicName: "習作本1/習作本1 P26.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 525,
@@ -5984,7 +6121,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P29.mp3"
+    musicName: "習作本1/習作本1 P29.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 526,
@@ -5994,7 +6148,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P31.mp3"
+    musicName: "習作本1/習作本1 P31.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 527,
@@ -6004,7 +6175,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P32.mp3"
+    musicName: "習作本1/習作本1 P32.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 528,
@@ -6014,7 +6202,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P38.mp3"
+    musicName: "習作本1/習作本1 P38.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 529,
@@ -6024,7 +6229,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P39.mp3"
+    musicName: "習作本1/習作本1 P39.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 530,
@@ -6034,7 +6256,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P43.mp3"
+    musicName: "習作本1/習作本1 P43.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 531,
@@ -6044,7 +6283,24 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     lang: "習作本1",
     timesPlayed: 0,
     type: "Workbook_1",
-    musicName: "習作本1/習作本1 P44.mp3"
+    musicName: "習作本1/習作本1 P44.mp3",
+    questions : [
+        {
+            questionText : "Test.",
+        },
+        {
+            questionText : "Victor.",
+        },
+        // {
+        //     questionText : "hello",
+        // },
+        // {
+        //     questionText : "mouse",
+        // },
+        // {
+        //     questionText : "mice",
+        // },
+    ]
 },
 {
     id: 532,

@@ -62,6 +62,7 @@ function FooterMusicPlayer({music}) {
         if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
             userRef.set({
                 totaltimeplayed : 0,
+                currdatetimeplayed : 0,
                 Resetallmusic : currentMonth+'alreadyupdated',
             },{merge: true})
             for(let i = 0; i < 601; i++){      

@@ -36,17 +36,17 @@ tbody {
   }
 }
 .loudspeaker1 {
-  width: 80px;
-  height: 80px;
-}
-.loudspeaker2 {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   -moz-transform: scale(-1, 1);
   -webkit-transform: scale(-1, 1);
   -o-transform: scale(-1, 1);
   -ms-transform: scale(-1, 1);
   transform: scale(-1, 1);
+}
+.loudspeaker2 {
+  width: 120px;
+  height: 120px;
 }
 .prize {
   font-family: "Varela Round", sans-serif;
@@ -66,7 +66,7 @@ tbody {
 .leaderboardtitle {
   display: flex;
   justify-content: space-evenly;
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 900;
   color: #005b7f;
   text-align: center;

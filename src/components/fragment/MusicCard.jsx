@@ -1,13 +1,15 @@
 import React, {useState} from 'react';
 import '../assets/scss/MusicCard.scss';
 import PlayCircleFilledWhiteIcon from "@material-ui/icons/PlayCircleFilledWhite";
+import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import {useDispatch} from "react-redux";
 import {setCurrentPlaying} from "../../actions/actions";
 import Name from "./Name";
+import Game from "./Game";
 import firebase from 'firebase/app';
 
 function MusicCard(props) {
-    const {bookname , page , img} = props.music;
+    const {bookname , page , img, questions} = props.music;
     const db = firebase.firestore();
     const [timeplayed, setTimesplayed] = useState();//避免使用innerHTML, textContext 所以用useState();
     const [gamescore, setGamescore] = useState();//避免使用innerHTML, textContext 所以用useState();
@@ -44,19 +46,39 @@ function MusicCard(props) {
     function handlePlay() {
         dispatch(setCurrentPlaying(props.music))
     }
-
-
+    const [isOpen, setIsOpen] = useState(false);
+    
     return (
         <div className={"music-card"}>
             {
                 <>
-                <div onClick={handlePlay}  className={"music-card-cover"} >
+                <div onClick={handlePlay} className={"music-card-cover"} >
                     <img src={require("../assets/img/" + img).default} alt={bookname}/>
                     <div className="play-circle">
                         <PlayCircleFilledWhiteIcon/>
                     </div>
                 </div>
+                <div onClick=
+                {
+                ()=> 
+                    {
+                        if(questions==='')
+                        {
+                            setIsOpen(false); alert('not yet')
+                        }
+                        else{
+                            setIsOpen(true);
+                        }
+                    }
+                } className={"music-card-cover"} >
+                    <div className='testbutton'>
+                        {page} 小測驗 <PlayCircleOutlineIcon className="circleicon"/>
+                    </div>
+                </div>
                 <React.Fragment>
+                    <div className='gamesection'>
+                        <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} onClose={()=>setIsOpen(false)}></Game>
+                    </div>
                     <Name name={bookname} className={"song-name"} length={bookname.length}/>
                     <Name name={page} className={"song-name"} length={page.length}/>
                 

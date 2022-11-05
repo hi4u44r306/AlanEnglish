@@ -1,7 +1,8 @@
 import React from 'react'
 import '../assets/scss/Leaderboard.scss';
 import firebase from 'firebase/app';
-import loudspeaker from '../assets/img/loudspeaker.png'
+// import loudspeaker from '../assets/img/loudspeaker.png'
+import loudspeaker from '../assets/img/mic.png'
 import CountdownTimer from './CountdownTimer';
 import Containerfull from './Containerfull';
 
@@ -96,7 +97,7 @@ class Leaderboard extends React.Component{
               <div>
                 <img className='loudspeaker1' src={loudspeaker} alt='#'/>
               </div>
-              🎧 播放次數排行榜 🎧
+                播放次數排行榜
               <div>
                 <img className='loudspeaker2' src={loudspeaker} alt='#'/>
               </div>
@@ -154,7 +155,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
-                        <td key={studentsA.currdatetimeplayed}>
+                        <td key={studentsA.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -231,7 +232,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
-                        <td key={studentsB.currdatetimeplayed}>
+                        <td key={studentsB.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -308,7 +309,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
-                        <td key={studentsC.currdatetimeplayed}>
+                        <td key={studentsC.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -385,7 +386,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
-                        <td key={studentsD.currdatetimeplayed}>
+                        <td key={studentsD.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>

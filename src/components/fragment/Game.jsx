@@ -2,84 +2,42 @@ import React, { useState, useEffect } from 'react';
 import Containerfull from './Containerfull';
 import '../assets/scss/Game.scss';
 import { toast, ToastContainer} from "react-toastify"
+import Name from './Name';
+
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
 const mic = new SpeechRecognition()
 mic.continous = true
 mic.interimResults = true
 mic.lang = 'en-US'
 
-export default function Game(){
-    const questions = [
-      {
-        questionText: 'Apple.',
-      },
-      {
-        questionText: 'Banana.',
-      },
-      {
-        questionText: 'Car.',
-      },
-      {
-        questionText: 'Dog.',
-      },
-      {
-        questionText: 'Elephant.',
-      },
-    ];
-  
+export default function Game({open, onClose, bookname, pagename, questionsinmusic}){
+
+    const questions = [questionsinmusic]
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [note, setNote] = useState(null);
     const [isListening, setIsListening ] = useState(false);
-    const [savedNotes, setSavedNotes] = useState([]);
     const [score, setScore] = useState();
     const [nextbtn, setNextbtn] = useState(true);
   
-    const success = () =>  {
-      toast.success('太棒了',{
-        className:"notification",
-        position: "bottom-center",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-        });
-      };
-    const error = () =>  {
-      toast.error('分數未達80分，再試一次',{
-        className:"notification",
-        position: "bottom-center",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-        });
-      };
-    const handleAnswerOptionClick = () => {
-      if (score >= 80) {
-        success();
-        setNextbtn(false);
-        mic.stop();
-        setSavedNotes(' ')
-        const nextQuestion = currentQuestion + 1;
-        if (nextQuestion < questions.length) {
-          setCurrentQuestion(nextQuestion);
-          setNextbtn(true)
-        } else {
-        }
-      }else{
-        error();
-      }
-  
-    };
 
     
-    
+    const finishnotification = () =>  {
+      toast.success('恭喜你完成測驗 測驗視窗即將關閉',{
+        className:"notification",
+        position: "bottom-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      setTimeout(() => {
+        onClose();
+      }, 2500);
+    };
+
     useEffect(()=>{
       const handleListen = () => {
         if(isListening){
@@ -108,7 +66,7 @@ export default function Game(){
           .join('')
           console.log(transcript);
           const stringSimilarity = require("string-similarity");
-          const question = questions[currentQuestion].questionText
+          const question = questions[0][currentQuestion].questionText
           const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, question)*100);
           setScore(similarity);
           console.log(similarity);
@@ -122,24 +80,67 @@ export default function Game(){
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[isListening])
     
+    const success = () =>  {
+      toast.success('太棒了',{
+        className:"notification",
+        position: "bottom-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        });
+      };
+    const error = () =>  {
+      toast.error('分數未達80分，再試一次',{
+        className:"notification",
+        position: "bottom-center",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        });
+      };
+    const handleAnswerOptionClick = () => {
+      const nextQuestion = currentQuestion + 1;
+      if (score >= 80 && nextQuestion === questions[0].length) {
+        finishnotification();
+      }else{
+        if (score >= 80) {
+          success();
+          setNextbtn(false);
+          mic.stop();
+          setScore('')
+          if (nextQuestion < questions[0].length) {
+            setCurrentQuestion(nextQuestion);
+            setNextbtn(true)
+          } else {
+          }
+        }else{
+          error();
+        }
+      }
+  
+    };
 
     const handleSaveNote = () => {
-      setSavedNotes(score);
       mic.stop();
       setIsListening(false);
       setNextbtn(false)
       setNote('')
     }
-  return (
-    <>
+    if (!open) return null
 
+    return (
+      <>
       <Containerfull>
-        <h3 className='gametitle'>測驗環節</h3>
           <div className='gamebox'>
             <div>
-              <div className='boxtitle'>
-                <span>第 {currentQuestion + 1} 題</span> / 共{questions.length}題
-              </div>
               <div>
                 <ToastContainer
                 position="top-center"
@@ -152,38 +153,44 @@ export default function Game(){
                 draggable
                 pauseOnHover
                 />
-              </div>    
-              <div className='boxtitle'>念念看 : {questions[currentQuestion].questionText}</div>
-              {/* 電腦版顯示 */}
-                <div className="computer-btncontainer">
-                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>提交答案 ✅</button>
-                  {isListening ? 
-                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡暫停 🟥 </button> 
-                    : 
-                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡開始錄音 🎙️</button>
-                  }
-                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>下一題 ⏭️</button>
-                </div>
+              </div> 
+              <div className='boxtitle'>
+                <span className='closebtn' onClick={onClose}>❌</span>
+                <Name name={bookname} className={"game-name"}/>
+                <Name name={pagename} className={"game-name"}/>
+                <div className="questionindex">第 {currentQuestion + 1} 題 / 共{questions[0].length}題</div>
+              </div>
+              <div className='questionbox'>
+                <div className='questiontext'>題目 : {questions[0][currentQuestion].questionText}</div>
+                {/* 電腦版顯示 */}
+                  <div className="computer-btncontainer">
+                    <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>提交答案 ✅</button>
+                    {isListening ? 
+                      <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡暫停 🟥 </button> 
+                      : 
+                      <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡開始錄音 🎙️</button>
+                    }
+                    <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>下一題 ⏭️</button>
+                  </div>
 
-              {/* 手機版顯示 */}
-                <div className="mobile-btncontainer">
-                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>✅</button>
-                  {isListening ? 
-                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}>🟥 </button> 
-                    : 
-                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}>🎙️</button>
-                  }
-                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>⏭️</button>
-                </div>
+                {/* 手機版顯示 */}
+                  <div className="mobile-btncontainer">
+                    <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>✅</button>
+                    {isListening ? 
+                      <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}>🟥 </button> 
+                      : 
+                      <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}>🎙️</button>
+                    }
+                    <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>⏭️</button>
+                  </div>
 
 
-                <div className='gamenote'>你的回答 : {note}</div>
-                <div className='gamenote' key={savedNotes}>分數 : {savedNotes}</div>
+                  {/* <div className='gamenote'>你的回答 : {note}</div> */}
+                  <div className='gamenote' key={score}>準確度 : {score}</div>
+              </div>   
             </div>
           </div>
       </Containerfull>
     </>
   )
 }
-
-

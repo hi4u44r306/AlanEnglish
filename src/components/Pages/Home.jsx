@@ -29,15 +29,8 @@ function getCurrPage(pathName) {
 
 function Home() {
 
-    // const [screenSize, setScreenSize] = useState(true);
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
-
-    // window.addEventListener("resize", handleResize);
-
-    // function handleResize() {
-    //     setScreenSize(window.innerWidth);
-    // }
 
     let pathname = window.location.pathname;
     useEffect(() => {
@@ -45,7 +38,6 @@ function Home() {
     }, [pathname]);
 
     const {playing, bannerOpen} = useSelector(state => state.musicReducer);
-
 
     useEffect(() => {
         setCurrMusic(playing)

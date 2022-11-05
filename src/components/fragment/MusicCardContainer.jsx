@@ -12,8 +12,8 @@ function MusicCardContainer() {
                 {
                     playlists.map(item => (
                         <MusicCard key={item.id} music={item}/>
-                    ))
-                }
+                        ))
+                    }
             </div>
         </Container>
     );

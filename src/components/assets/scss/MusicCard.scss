@@ -1,14 +1,42 @@
-.timesplayedcontainer{
+.gamesection {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  width: 100vw;
+  height: fit-content;
+}
+.testbutton {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: "Varela Round", sans-serif;
+  border: solid 2px rgba(0, 0, 0, 0.534);
+  background-color: bisque;
+  border-radius: 50px;
+  margin: 10px;
+  padding: 10px;
+  cursor: pointer;
+}
+.testbutton:hover {
+  box-shadow: 0 0 15px rgba(0, 132, 255, 0.629);
+  transition: 200ms;
+}
+.circleicon {
+  color: rgb(0, 132, 255);
+}
+.timesplayedcontainer {
   display: flex;
   align-items: center;
   justify-content: space-around;
 }
-.timesplayedlabel{
+.timesplayedlabel {
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
 }
-.timesplayednumber{
+.timesplayednumber {
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
@@ -35,6 +63,9 @@
   .music-card-cover {
     position: relative;
     display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
     img {
       width: 70px;
       height: 70px;
@@ -49,7 +80,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      .MuiSvgIcon-root{
+      .MuiSvgIcon-root {
         font-size: 1.3rem;
       }
     }
@@ -77,7 +108,7 @@
   .music-card {
     padding: 0;
     .music-card-cover {
-      img{
+      img {
         width: 80px;
         height: 80px;
       }
