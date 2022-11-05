@@ -94,7 +94,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
         });
       };
     const error = () =>  {
-      toast.error('分數未達80分，再試一次',{
+      toast.error('準確度未超過80%，再試一次',{
         className:"notification",
         position: "bottom-center",
         autoClose: 1500,
@@ -186,7 +186,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
 
 
                   {/* <div className='gamenote'>你的回答 : {note}</div> */}
-                  <div className='gamenote' key={score}>準確度 : {score}</div>
+                  <div className='gamenote' key={score}>準確度 : {score}%</div>
               </div>   
             </div>
           </div>
