@@ -46,11 +46,11 @@ let musicDB = [
         musicName: "super easy reading 1/SER1track02.mp3",
         questions : [
             {
-                questionText : "Test.",
+                questionText : "0.",
             },
-            {
-                questionText : "Victor.",
-            },
+            // {
+            //     questionText : "Victor.",
+            // },
             // {
             //     questionText : "hello",
             // },
@@ -73,11 +73,11 @@ let musicDB = [
         musicName: "super easy reading 1/SER1track03.mp3",
         questions : [
             {
-                questionText : "Test.",
+                questionText : "1.",
             },
-            {
-                questionText : "Victor.",
-            },
+            // {
+            //     questionText : "Victor.",
+            // },
             // {
             //     questionText : "hello",
             // },

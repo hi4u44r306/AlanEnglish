@@ -1,4 +1,4 @@
-.marquee{
+.marquee {
   flex: none !important;
   min-width: 100%;
   min-height: 100%;
@@ -7,8 +7,8 @@
   cursor: default;
   user-select: none;
 }
-.musicnotification{
-  font-family: 'Varela Round', sans-serif;
+.musicnotification {
+  font-family: "Varela Round", sans-serif;
   font-weight: 900;
   color: #000000;
   font-size: 1rem;
@@ -24,12 +24,12 @@
   cursor: default;
   visibility: visible;
   width: 100vw;
-  padding: 5px 15px;
+  padding: 0px 15px;
 }
-.rhap_progress-section{
+.rhap_progress-section {
   height: 5vh;
 }
-.rhap_time{
+.rhap_time {
   font-size: 0.85rem;
   font-weight: 900;
 }
@@ -44,26 +44,26 @@
   background-color: rgb(255, 0, 0) !important;
 }
 // 音量點點顏色
-.rhap_volume-indicator{
+.rhap_volume-indicator {
   background-color: rgb(255, 0, 0) !important;
 }
 // 重複鍵顏色
-.rhap_repeat-button{
+.rhap_repeat-button {
   color: rgb(255, 0, 0) !important;
 }
-.rhap_progress-filled{
+.rhap_progress-filled {
   background-color: rgb(255, 0, 0) !important;
 }
-.rhap_volume-button{
+.rhap_volume-button {
   color: rgb(255, 0, 0) !important;
 }
-.rhap_main-controls > button{
+.rhap_main-controls > button {
   color: rgb(255, 0, 0) !important;
 }
-.rhap_additional-controls{
+.rhap_additional-controls {
   color: rgb(0, 145, 255) !important;
 }
-.nomusicname{
+.nomusicname {
   font-weight: bolder;
   font-size: 0.7rem;
   color: rgb(255, 0, 0);
@@ -81,13 +81,13 @@
   flex-direction: row;
   align-items: center;
 }
-.MuiButton-label{
+.MuiButton-label {
   width: 100%;
   display: inherit;
   align-items: inherit;
   justify-content: inherit;
 }
-.music-container{
+.music-container {
   width: 500px;
   display: flex;
   flex: 1 0 auto;
@@ -97,15 +97,14 @@
   }
 }
 @media only screen and (max-width: 675px) {
-    .rhap_volume-container{
-      display: none;
-    }
-    .rhap_main-controls{
-      font-size: 50px;
-      flex: 5 0;
-      display: flex;
-      justify-content: center;
-      align-items: center
-    }
+  .rhap_volume-container {
+    display: none;
+  }
+  .rhap_main-controls {
+    font-size: 50px;
+    flex: 5 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
-

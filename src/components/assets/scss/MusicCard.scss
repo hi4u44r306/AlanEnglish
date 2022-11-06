@@ -20,7 +20,7 @@
   cursor: pointer;
 }
 .testbutton:hover {
-  box-shadow: 0 0 15px rgba(0, 132, 255, 0.629);
+  // box-shadow: 0 0 15px rgba(0, 132, 255, 0.629);
   transition: 200ms;
 }
 .circleicon {
@@ -55,11 +55,11 @@
   text-align: center;
 }
 .music-card {
-  // width: fit-content;
+  border-radius: 20px;
   width: 230px;
   padding: 5px;
   margin: 5px;
-  background-color: rgba(255, 255, 255, 0.712);
+  background-color: rgb(255, 255, 255);
   .music-card-cover {
     position: relative;
     display: flex;
@@ -84,7 +84,6 @@
         font-size: 1.3rem;
       }
     }
-
     .hover-img {
       visibility: visible;
     }
@@ -92,16 +91,15 @@
 
   .music-card-cover:hover {
     cursor: pointer;
-
-    // img {
-    //   filter: brightness(0.9);
-    // }
-
     .play-circle {
       color: rgb(249, 42, 27);
       visibility: visible;
     }
   }
+}
+.music-card:hover {
+  transition: 0.3s ease-in-out;
+  box-shadow: 0 0 20px 3px rgba(168, 168, 168, 0.681);
 }
 
 @media only screen and (max-width: 545px) {

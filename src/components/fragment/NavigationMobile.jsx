@@ -11,6 +11,10 @@ import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
 import ScaleLoader from "react-spinners/ScaleLoader";
+import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import Star from '../assets/img/star.png';
+
 
 
 
@@ -22,6 +26,11 @@ function NavigationMobile() {
   const [updated, setUpdated] = useState();
   const [loading, setLoading] = useState(false);
   const currentMonth = new Date().toJSON().slice(0, 7);
+
+  const [dailytimeplayed, setDailyTimeplayed] = useState();
+  const percentage = dailytimeplayed*100/20;
+  const custompathColor = `#89aae6`
+
 
   useEffect(()=>{
     setLoading(true)
@@ -36,6 +45,7 @@ function NavigationMobile() {
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
             setnavUsername(doc.data().name)
+            setDailyTimeplayed(doc.data().currdatetimeplayed)
             if(doc.data().Resetallmusic === currentMonth+'alreadyupdated'){
               setUpdated('次數已歸零')
             }else{
@@ -47,7 +57,7 @@ function NavigationMobile() {
     }else{
 
     }
-}    
+  }    
 
     firebase.auth().onAuthStateChanged(user => {
         if(user){
@@ -88,7 +98,7 @@ function NavigationMobile() {
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title className="brand" href="/home" id={`offcanvasNavbarLabel-expand-${expand}`}>
+                <Offcanvas.Title className="brand" href="/home/menu" id={`offcanvasNavbarLabel-expand-${expand}`}>
                   <span>A</span>
                   <span>L</span>
                   <span>A</span>
@@ -105,6 +115,24 @@ function NavigationMobile() {
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
                 <Nav className="d-flex align-items-center justify-content-end flex-grow-1 pe-3">
+                <div className='navcurrentdaycircle'>
+                  <CircularProgressbarWithChildren value={percentage || 'Loading...'} 
+                      background
+                      styles={buildStyles({
+                          backgroundColor: 'white',
+                          textColor: "red",
+                          pathColor: "gold",
+                          trailColor: `${custompathColor}`
+                          })}
+                      >
+                      <img
+                      style={{ width: 20, marginTop: -5 }}
+                      src={Star}
+                      alt="star"
+                      />
+                      <div className={dailytimeplayed >= 20?'navdailycircletextcomplete':'navdailycircletextnotcomplete'}> X {dailytimeplayed || '0'} </div>
+                  </CircularProgressbarWithChildren>
+                </div>
                 <Nav.Link className="navlinklabel"></Nav.Link>
                 {
                 loading ?

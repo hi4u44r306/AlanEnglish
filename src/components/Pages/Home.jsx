@@ -11,6 +11,7 @@ import Playlist from "../fragment/Playlist";
 import {Skeleton} from "@material-ui/lab";
 import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
+import Copyright from "../fragment/Copyright";
 function getCurrPage(pathName) {
     switch (pathName) {
         case "/home":
@@ -64,7 +65,8 @@ function Home() {
                                 {
                                     Page
                                 }
-                                <div className={"copyright"}>© 2022 AlanEnglish Inc.</div>
+                                <Copyright/>
+                                {/* <div className={"copyright"}>© 2022 AlanEnglish Inc.</div> */}
                             </div>
                         </section>
                         {
@@ -77,10 +79,10 @@ function Home() {
                         <React.Fragment>
                             {
                                 currMusic
-                                    ?
-                                    <FooterMusicPlayer music={currMusic}/>
-                                    :
-                                    <FooterEmpty/>
+                                ?
+                                <FooterMusicPlayer music={currMusic}/>
+                                :
+                                <FooterEmpty/>
                             }
                         </React.Fragment> 
                     </>  

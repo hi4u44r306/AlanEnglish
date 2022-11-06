@@ -23,12 +23,9 @@ function FooterMusicPlayer({music}) {
     const currentDate = new Date().toJSON().slice(0, 10);
     const currentMonth = new Date().toJSON().slice(0, 7);
     const userRef = db.collection('student').doc(currentuser); 
-    // const [game, setGame] = useState();//避免使用innerHTML, textContext 所以用useState();
-
-
 
     const success = () =>  {
-        toast.success('太棒了! 聽力次數+1',{
+        toast.success(`聽力次數 + 1`,{
             className:"musicnotification",
             position: "top-center",
             autoClose: 1500,
@@ -40,7 +37,6 @@ function FooterMusicPlayer({music}) {
             theme: "colored",
             });
         };
-
 
     useEffect(() => {
         setCurrTrack(music);
@@ -76,41 +72,11 @@ function FooterMusicPlayer({music}) {
             console.log('this account is alreadyreset')
         }
     }).catch(() =>{
-        // userRef.set({
-        //     totaltimeplayed : 0,
-        //     Resetallmusic : currentMonth + 'alreadyupdated',
-        // },{merge: true})
-        // for(let i = 0; i < 601; i++){      
-        //     let j = "'"+i+"'"
-        //     userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
-        //         timeplayed : 0,
-        //     })        
-        // }
-        // console.log('This account is first time updated')
     })
-
-    
-    
     
     const updatetimeplayedtofirestore = () => {
 
-
 //============================================================================================//
-        
-        // 小遊戲 //
-        // const game = userRef.collection('Musics').doc(currplayingmusicid)
-        // game.get().then((doc)=>{
-        //     setTotaltimeplayed(doc.data().timeplayed)
-        // })
-        // if(totaltimeplayed){
-        //     setTimeout(function(){window.location = "/home/game";} ,1000); 
-        // }else{
-
-        // }
-        // 小遊戲 結束//
-
-//============================================================================================//
-
 
         if(currplayingmusicid){
 

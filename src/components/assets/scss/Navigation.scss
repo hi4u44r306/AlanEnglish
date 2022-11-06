@@ -1,5 +1,29 @@
+.navcurrentdaycircle {
+  font-family: "Varela Round", sans-serif;
+  font-weight: 900;
+  width: 60px;
+  height: 60px;
+}
+.navdailycircletextcomplete {
+  font-family: "Varela Round", sans-serif;
+  display: flex;
+  justify-content: center;
+  font-weight: 900;
+  align-items: center;
+  color: #fc3434;
+  font-size: 15px;
+}
+.navdailycircletextnotcomplete {
+  font-family: "Varela Round", sans-serif;
+  display: flex;
+  justify-content: center;
+  font-weight: 900;
+  align-items: center;
+  color: #000000;
+  font-size: 15px;
+}
 .navbackground {
-  background-color: rgb(255, 227, 200);
+  background-color: rgb(255, 233, 213);
   height: 10vh;
 }
 h3 {

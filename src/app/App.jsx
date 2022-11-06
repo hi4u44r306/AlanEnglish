@@ -1,4 +1,5 @@
 import React, {useEffect} from "react";
+// import firebase from 'firebase/app';
 import './App.scss';
 import Home from "../components/Pages/Home";
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
@@ -16,11 +17,38 @@ import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Game from "../components/fragment/Game";
 import Dashboard from "../components/fragment/Dashboard";
+// import { useState } from "react";
+// import Menu from "../components/fragment/Menu";
+
 
 
 const App = () => {
 
     const {language} = useSelector(state => state.musicReducer);
+    // const [userid, setuserID] = useState();
+    // const db = firebase.firestore();
+    // const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
+    //     if(user){
+    //         db.collection('student').doc(user.uid).get().then( doc => {
+    //             setuserID(doc.id)
+    //         }, err =>{
+    //             console.log(err.message);
+    //         });
+    //     }else{
+    
+    //     }
+    //   }    
+    // firebase.auth().onAuthStateChanged(user => {
+    //     if(user){
+    //         db.collection('student').onSnapshot(snapshot =>{
+    //             getUserInfo(user);
+    //         }, err =>{
+    //             console.log(err.message);
+    //         });
+    //     }else{
+    //         getUserInfo();
+    //     }
+    // })
 
     const dispatch = useDispatch();
     useEffect(()=>{
@@ -36,6 +64,8 @@ const App = () => {
             dispatch(setPlaylist(x))
         }
     },[dispatch, language]);
+    // const refresh = window.location.protocol + "//" + window.location.host +  window.location.pathname + `?id=${userid||''}` ;    
+    // window.history.replaceState({ path: refresh }, '', refresh); 
 
     return (
         <ThemeContext.Provider value={themes.light}>
@@ -44,6 +74,11 @@ const App = () => {
                     <Switch>
                         <Route path="/" exact component={Login}/>
                         <Route path="/home/signup" exact component={Signup}/>
+                        {/* <Route path="/home/menu">
+                            <NavigationMobile/>
+                            <Menu/>
+                            <Copyright/>
+                        </Route> */}
                         <Route path="/home/leaderboard">
                             <NavigationMobile/>
                             <Leaderboard/>

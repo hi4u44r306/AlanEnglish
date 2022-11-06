@@ -88,7 +88,7 @@ class Leaderboard extends React.Component{
       this.setState({studentsD: studentsD});
     });
   }
-  
+
   render(){
     return(
       <Containerfull>
@@ -106,7 +106,7 @@ class Leaderboard extends React.Component{
               <div className='countdownlabel'>
                 {this.resetDate}日結算
               </div>
-              <CountdownTimer countdownTimestampMs={this.resetDateToMs}/> 
+              <CountdownTimer countdownTimestampMs={1669852800000}/> 
             </div>
             {/* <div className='prize'>
               <div>各班前七名獎品待定</div>

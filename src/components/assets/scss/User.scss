@@ -1,3 +1,87 @@
+.userinfo {
+  display: flex;
+  justify-content: flex-start;
+  gap: 20px;
+}
+// Container
+.userinfocontainer {
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  padding: 20px;
+  margin: 20px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
+  justify-content: center;
+  gap: 20px;
+}
+.dailycirclecontainer {
+  display: flex;
+  height: 150px;
+  padding: 20px;
+  margin: 20px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
+  justify-content: center;
+  gap: 20px;
+}
+.currentdaycircle {
+  font-family: "Varela Round", sans-serif;
+  font-weight: 900;
+  width: 100px;
+  height: 100px;
+}
+.dailycircle {
+  width: 60px;
+  height: 60px;
+}
+.abc {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+.dailycircletext {
+  font-family: "Varela Round", sans-serif;
+  display: flex;
+  justify-content: center;
+  font-weight: 900;
+  align-items: center;
+  color: #3fa7d6;
+  gap: 10px;
+}
+.dailycircletext1 {
+  font-family: "Varela Round", sans-serif;
+  display: flex;
+  justify-content: center;
+  font-weight: 900;
+  align-items: center;
+  color: #fc3434;
+  font-size: 25px;
+}
+.dailycircletext2 {
+  font-family: "Varela Round", sans-serif;
+  display: flex;
+  justify-content: center;
+  font-weight: 900;
+  align-items: center;
+  color: #3fa7d6;
+  font-size: 15px;
+}
+.complete {
+  display: flex;
+  justify-content: center;
+  font-weight: 900;
+  align-items: center;
+  color: #fc3434;
+  font-size: 25px;
+}
+.notcomplete {
+  display: none;
+}
 .User {
   font-family: "Varela Round", sans-serif;
 }
@@ -7,103 +91,95 @@
   justify-content: center;
   align-items: center;
 }
+.howtouseicon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background-color: gold;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+.howtouseicontext {
+  font-size: 15px;
+  visibility: hidden;
+  width: 250px;
+  background-color: rgb(255, 131, 131);
+  color: black;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
 
+  /* Position the howtouseicontext */
+  position: absolute;
+  bottom: 50px;
+  left: -15px;
+  z-index: 1;
+}
+.howtouseicon:hover .howtouseicontext {
+  visibility: visible;
+  box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
+}
 .User-profile {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-flow: row wrap;
   background-color: #fcf8ec;
   height: 80vh;
 }
-.User-Image {
-  img {
-    border-radius: 20px;
-    padding: 2px;
-    width: 25vw;
-  }
-}
 .User-profileDetails {
-  color: #188345;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: -4px 10px 35px -1px #3fa6d648;
+  // box-shadow: -4px 10px 35px -1px rgba(102, 102, 102, 0.75);
   font-weight: 600;
+  padding: 25px;
   display: flex;
   flex-direction: column;
   align-items: center;
   align-content: center;
-  overflow: auto;
 }
 
 .User-profile-title {
-  font-family: "Poppins" !important;
-  font-size: 40px;
-  font-weight: 900;
-  padding: 10px;
-}
-
-.userinfo {
+  color: #3fa7d6;
   display: flex;
-  border: 2px solid rgb(0, 132, 255);
-  width: 40vw;
-  height: 60px;
-  background-color: #f5dd9e;
-  margin: 35px 10px;
-  border-radius: 55px;
-  display: grid;
-  grid-template-columns: 75% 25%;
-  padding: 0 0.4rem;
-  p {
-    display: flex;
-    align-items: center;
-    line-height: 1;
-    font-weight: 600;
-    font-size: 1rem;
-    color: #333;
-  }
-  label {
-    width: fit-content;
-    display: flex;
-    align-items: center;
-    justify-content: left;
-    padding: 10px;
-    font-weight: 900;
-    font-size: 1rem;
-    color: #188345;
-  }
+  font-family: "Varela Round", sans-serif;
+  font-size: 55px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+.User-profile-today {
+  font-family: "Varela Round", sans-serif;
+  color: #fe4a49;
+  font-size: 20px;
+  font-weight: 900;
 }
 
 @media screen and (max-width: 800px) {
+  .howtouseicon {
+    font-size: 10px;
+    width: 30px;
+    height: 30px;
+  }
+  .dailycircletext {
+    font-size: 10px;
+  }
+  .dailycirclecontainer {
+    gap: 10px;
+    height: 110px;
+  }
+  .currentdaycircle {
+    width: 70px;
+    height: 70px;
+  }
+  .dailycircle {
+    width: 40px;
+    height: 40px;
+  }
   .User-Image {
     display: none;
-  }
-  .userinfo {
-    display: flex;
-    width: 90vw;
-    height: 60px;
-    background-color: #f5dd9e;
-    margin: 30px 10px;
-    border-radius: 55px;
-    display: grid;
-    grid-template-columns: 70% 30%;
-    padding: 0 0.4rem;
-    p {
-      outline: none;
-      border: none;
-      line-height: 1;
-      background: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      width: 200px;
-      padding: 0 0.6rem;
-    }
-    label {
-      width: fit-content;
-      display: flex;
-      align-items: center;
-      justify-content: left;
-      padding: 10px;
-      font-weight: 600;
-      font-size: 0.8rem;
-      color: #188344;
-    }
   }
 }
