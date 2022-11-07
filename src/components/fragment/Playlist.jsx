@@ -11,7 +11,7 @@ const Playlist = () => {
     return (
         <Container>
             <div className={"Playlist"}>
-                <h3> {typeOfPlaylist} </h3>
+                <div className='playlisttitle'> {typeOfPlaylist} </div>
                 <div className="Playlist-container">
                     {
                         playlists.map((item)=>(

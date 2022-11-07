@@ -23,7 +23,7 @@
     "grade-js": "^1.0.10",
     "ipify": "^6.0.0",
     "node-sass": "^6.0.1",
-    "react": "^16.13.1",
+    "react": "^17.0.2",
     "react-bootstrap": "^2.4.0",
     "react-circular-progressbar": "^2.1.0",
     "react-dom": "^16.13.1",

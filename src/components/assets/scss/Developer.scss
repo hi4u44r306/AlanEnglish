@@ -1,53 +1,44 @@
 .Developer {
-  font-family: "Poppins", sans-serif;
+  font-family: "Varela Round", sans-serif;
   background-color: #fcf8ec;
   display: flex;
   justify-content: center;
-
-  .Developer-head {
-    text-transform: uppercase;
-    background-color: #005b7f !important;
-    font-family: "Poppins", sans-serif;
-    letter-spacing: 2px;
-    color: #f6edba;
-    font-size: 1.5rem;
-    padding: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    text-align: center;
-
-    span {
-      display: flex;
-      align-items: center;
-    }
-  }
-
   .Developer-profile {
     display: flex;
     background-color: #fcf8ec;
     height: 83vh;
     align-items: center;
     .Developer-profileCard {
-      padding: 2.8vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 5vh;
+      .Developer-title {
+        color: #0d5d82;
+        font-size: 25px;
+        font-weight: 900;
+        padding: 15px;
+      }
       img {
         border-radius: 20px;
         padding: 2px;
-        width: 23vw;
+        width: 300px;
       }
     }
-
     .Developer-profileDetails {
-      color: #188345;
+      background-color: #c0d8e0;
+      padding: 15px;
+      border-radius: 20px;
       font-weight: 600;
       display: flex;
       flex-direction: column;
-      h3 {
-        font-family: "Poppins" !important;
+      .Developer-title {
+        color: #0d5d82;
+        font-size: 25px;
         font-weight: 900;
-        padding: 10px;
       }
       p {
-        padding: 5px;
+        color: #cc2936;
         letter-spacing: 1px;
         text-transform: uppercase;
       }
@@ -56,7 +47,16 @@
 }
 
 @media screen and (max-width: 960px) {
-  .Developer-profileCard {
-    display: none;
+  .Developer-profileDetails {
+    h3 {
+      font-size: 15px;
+    }
+    p {
+      font-size: 15px;
+    }
+  }
+  .Developer .Developer-profile {
+    display: flex;
+    flex-direction: column;
   }
 }

@@ -1,19 +1,18 @@
-.Playlist{
-  h3{
+.Playlist {
+  .playlisttitle {
     position: sticky;
     top: 0;
     z-index: 1;
     font-size: 25px;
-    font-weight: 500;
-    // background-color: #ffe3c8;
-    background-color: #005b7f !important;
+    font-weight: 700;
+    background-color: #005b7f;
     padding: 5px;
     color: #f6edba;
     // color: #005b7f;
     text-align: center;
-    font-family: 'Varela Round', sans-serif;
+    font-family: "Varela Round", sans-serif;
   }
-  .Playlist-container{
+  .Playlist-container {
     // background-color: #fcf8ec;
     background-image: rul("");
     display: flex;
