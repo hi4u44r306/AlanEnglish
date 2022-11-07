@@ -96,15 +96,15 @@
     display: flex;
   }
 }
-@media only screen and (max-width: 675px) {
-  .rhap_volume-container {
-    display: none;
-  }
-  .rhap_main-controls {
-    font-size: 50px;
-    flex: 5 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-}
+// @media only screen and (max-width: 675px) {
+//   // .rhap_volume-container {
+//   //   display: none;
+//   // }
+//   .rhap_main-controls {
+//     font-size: 50px;
+//     flex: 5 0;
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//   }
+// }
