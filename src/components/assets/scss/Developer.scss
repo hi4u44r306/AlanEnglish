@@ -15,21 +15,23 @@
       padding: 5vh;
       .Developer-title {
         color: #0d5d82;
-        font-size: 25px;
+        font-size: 20px;
         font-weight: 900;
         padding: 15px;
       }
-      img {
+      .Developer-img {
         border-radius: 20px;
         padding: 2px;
         width: 300px;
+        box-shadow: 0 0 20px 3px rgba(153, 153, 153, 0.681);
       }
     }
     .Developer-profileDetails {
       background-color: #c0d8e0;
+      font-weight: 600;
+      font-size: 20px;
       padding: 15px;
       border-radius: 20px;
-      font-weight: 600;
       display: flex;
       flex-direction: column;
       .Developer-title {
@@ -46,14 +48,9 @@
   }
 }
 
-@media screen and (max-width: 960px) {
+@media screen and (max-width: 1080px) {
   .Developer-profileDetails {
-    h3 {
-      font-size: 15px;
-    }
-    p {
-      font-size: 15px;
-    }
+    font-size: 15px;
   }
   .Developer .Developer-profile {
     display: flex;

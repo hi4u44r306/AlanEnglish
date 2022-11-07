@@ -9,7 +9,7 @@ const Developer = () => {
             <div className="Developer-profile">
                 <div className="Developer-profileCard">
                     <div className='Developer-title'>AlanEnglish 創辦人</div>
-                    <img src={AlanImage} alt="Profile"/>
+                    <img className='Developer-img' src={AlanImage} alt="Profile"/>
                     <div className='Developer-title'>Alan Hsu</div>
                 </div>
                 <div className="Developer-profileDetails">
@@ -32,17 +32,9 @@ const Developer = () => {
                     <p>4. 編輯速算尺講義</p>
                     <p>5. 更多教材陸續編排中...</p>
                 </div>
-                {/* <div className="Developer-profileDetails">
-                    <h3>著作: </h3>
-                    <p>1. Phonics K.K</p>
-                    <p>2. Alan English 習作本 & 聽力本</p>
-                    <p>3. 發明速算尺</p>
-                    <p>4. 編輯速算尺講義</p>
-                    <p>5. 更多教材陸續編排中...</p>
-                </div> */}
                 <div className="Developer-profileCard">
                     <div className='Developer-title'>AlanEnglish 網站開發人員</div>
-                    <img src={VictorImage} alt="Profile"/>
+                    <img className='Developer-img' src={VictorImage} alt="Profile"/>
                     <div className='Developer-title'>Victor Hsu</div>
                 </div>
             </div>
