@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState} from "react";
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import Logout from "./Logout";
@@ -10,7 +10,6 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
-import ScaleLoader from "react-spinners/ScaleLoader";
 import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import Star from '../assets/img/star.png';
@@ -24,28 +23,16 @@ function NavigationMobile() {
   const db = firebase.firestore();
   const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
   const [updated, setUpdated] = useState();
-  const [loading, setLoading] = useState(false);
+  const currentDate = new Date().toJSON().slice(0, 10);
   const currentMonth = new Date().toJSON().slice(0, 7);
-
   const [dailytimeplayed, setDailyTimeplayed] = useState();
   const percentage = dailytimeplayed*100/20;
   const custompathColor = `#89aae6`
-
-
-  useEffect(()=>{
-    setLoading(true)
-    setTimeout(() =>{
-        setLoading(false);
-    }, 2000)
-}, [])
-
-
 
   const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
             setnavUsername(doc.data().name)
-            setDailyTimeplayed(doc.data().currdatetimeplayed)
             if(doc.data().Resetallmusic === currentMonth+'alreadyupdated'){
               setUpdated('次數已歸零')
             }else{
@@ -54,6 +41,11 @@ function NavigationMobile() {
         }, err =>{
             console.log(err.message);
         });
+        db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc)=>{
+          setDailyTimeplayed(doc.data().todaytotaltimeplayed);
+        }).catch(()=>{
+            setDailyTimeplayed("0")
+        })
     }else{
 
     }
@@ -76,7 +68,7 @@ function NavigationMobile() {
     <div>
       {['xl'].map((expand) => (
         <Navbar collapseOnSelect key={expand} expand={expand} className="navbackground">
-          <Container fluid>
+          <Container fluid className="containerfluid">
             <Navbar.Brand href="/home/leaderboard" className="brand">
               <span>A</span>
               <span>L</span>
@@ -134,27 +126,16 @@ function NavigationMobile() {
                   </CircularProgressbarWithChildren>
                 </div>
                 <Nav.Link className="navlinklabel"></Nav.Link>
-                {
-                loading ?
-                    (
-                    <ScaleLoader 
-                    color={"#fc0303"} 
-                    loading={loading} 
-                    size={10} 
-                    />)
-                    :
-                    (
-                        <Nav.Link href="/home/userinfo" className="navlink">
-                          <p>
-                            💰 {updated || '----'} 💰
-                          </p>
-                          <p>
-                          🧒 {navusername || '----'} 👦
-                          </p>
-                          
-                        </Nav.Link>
-                    )}
-                     
+                  <Nav.Link href="/home/userinfo" className="navlink">
+                    <div className="d-flex flex-column align-items-center">
+                      <p>
+                        💰 {updated || '----'} 💰
+                      </p>
+                      <p>
+                      🧒 {navusername || '----'} 👦
+                      </p>
+                    </div>
+                  </Nav.Link>
                   <Nav.Link href="/home/leaderboard" className="navlinkscoreboard">
                   🏆排行榜
                   </Nav.Link>

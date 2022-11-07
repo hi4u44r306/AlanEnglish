@@ -17,43 +17,47 @@ const User = () => {
     const [dailytimeplayed, setDailyTimeplayed] = useState();
     const [totaltimeplayed, setTotaltimeplayed] = useState();
     const currentDate = new Date().toJSON().slice(0, 10);
-    // const currentMonth = new Date().toJSON().slice(0, 7);
-    const percentage = dailytimeplayed*100/20;
+    const currentMonth = new Date().toJSON().slice(0, 7);
     const custompathColor = `#89aae6`
-
-
+    const percentage = dailytimeplayed*100/20;
+    
+    const getUserInfo = (user) =>{
+        if(user){
+            db.collection('student').doc(user.uid).get().then( doc => {
+                setUsername(doc.data().name);
+                setTotaltimeplayed(doc.data().totaltimeplayed);
+            }).catch(()=>{
+                setTotaltimeplayed(0);
+            })
+            db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc)=>{
+                setDailyTimeplayed(doc.data().todaytotaltimeplayed);
+            }).catch(()=>{
+                setDailyTimeplayed("0")
+            })
+        }else{
+            
+        }
+    }    
+    
     firebase.auth().onAuthStateChanged(user => {
         if(user){
-            db.collection('student').onSnapshot(snapshot =>{
+            db.collection('student').onSnapshot(() =>{
                 getUserInfo(user);
-            }, err =>{
+            }, () =>{
                 // console.log(err.message);
             });
         }else{
             getUserInfo();
         }
     })
+    
 
-    const getUserInfo = (user) =>{
-        if(user){
-            db.collection('student').doc(user.uid).get().then( doc => {
-                setUsername(doc.data().name);
-                setTotaltimeplayed(doc.data().totaltimeplayed);
-                setDailyTimeplayed(doc.data().currdatetimeplayed)
-            }).catch(()=>{
-                setTotaltimeplayed(0);
-                setDailyTimeplayed(0)
-            })
-        }else{
-
-        }
-    }    
     // const weekday = new Date(currentDate).getDay();
     // const weekdayarray = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     // console.log(weekdayarray[weekday]);
 
   return (
-    <div className={"User"}>
+      <div className={"User"}>
         <div className="User-profile">
             <div className="User-profileDetails">
                 <div className='User-profile-title'>

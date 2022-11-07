@@ -25,6 +25,9 @@
 .navbackground {
   background-color: rgb(255, 233, 213);
   height: 10vh;
+  // display: flex;
+  align-items: center;
+  align-content: center;
 }
 h3 {
   position: sticky;
@@ -114,8 +117,8 @@ h3 {
   justify-content: center;
   align-items: center;
 }
-
 .brand {
+  display: flex;
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
@@ -185,13 +188,13 @@ h3 {
 
 @media only screen and (max-width: 1210px) {
   .brand {
-    font-size: 25px;
+    font-size: 35px;
   }
 }
 
 @media only screen and (max-width: 470px) {
   .brand {
-    font-size: 20px;
+    font-size: 30px;
   }
 }
 

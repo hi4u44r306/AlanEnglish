@@ -39,6 +39,7 @@
 }
 .abc {
   display: flex;
+  gap: 10px;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -72,6 +73,7 @@
   font-size: 15px;
 }
 .complete {
+  font-family: "Varela Round", sans-serif;
   display: flex;
   justify-content: center;
   font-weight: 900;
@@ -107,6 +109,7 @@
   font-size: 15px;
   visibility: hidden;
   width: 250px;
+  height: 40px;
   background-color: rgb(255, 131, 131);
   color: black;
   text-align: center;
@@ -115,11 +118,15 @@
 
   /* Position the howtouseicontext */
   position: absolute;
-  bottom: 50px;
-  left: -15px;
+  bottom: 65px;
+  left: 0px;
   z-index: 1;
 }
 .howtouseicon:hover .howtouseicontext {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
   visibility: visible;
   box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
 }
@@ -159,21 +166,47 @@
 }
 
 @media screen and (max-width: 800px) {
+  .userinfocontainer {
+    display: flex;
+    flex-direction: column;
+    width: 80vw;
+    height: fit-content;
+    padding: 20px;
+    margin: 20px;
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
+    justify-content: center;
+    gap: 20px;
+  }
   .howtouseicon {
-    font-size: 10px;
-    width: 30px;
-    height: 30px;
+    font-size: 25px;
+    width: 50px;
+    height: 50px;
+  }
+  .complete {
+    font-size: 18px;
   }
   .dailycircletext {
     font-size: 10px;
   }
+  .dailycircletext1 {
+    font-size: 10px;
+  }
+  .dailycircletext2 {
+    font-size: 10px;
+  }
   .dailycirclecontainer {
-    gap: 10px;
-    height: 110px;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    gap: 30px;
+    height: 130px;
+    width: 80vw;
   }
   .currentdaycircle {
-    width: 70px;
-    height: 70px;
+    width: 80px;
+    height: 80px;
   }
   .dailycircle {
     width: 40px;
