@@ -20,7 +20,7 @@ class Login extends React.Component{
         }
     }
     
-    success = () =>  {
+    success = (userCredential) =>  {
         toast.success('😻Welcome😻',{
             className:"notification",
             position: "top-center",
@@ -49,13 +49,41 @@ class Login extends React.Component{
             theme: "colored",
             });
         };
+    expire = () =>  {
+        toast.error('此帳號已註銷',{
+            className:"notification",
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+            });
+        };
 
     login(e){
+        function subtractDays(numOfDays, date = new Date()) {
+            const dateCopy = new Date(date.getTime());
+            dateCopy.setDate(dateCopy.getDate() - numOfDays);
+            return dateCopy;
+        }
+        
+        const date = new Date('2022-11-07');
+        const result = subtractDays(7, date);
+        const calculateaccountexpiretime = result.toJSON().slice(0,10)
         e.preventDefault();
         firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
-        .then(()=>{
-            this.success();
-            
+        .then((userCredential)=>{
+            // 檢查次帳號試用期是否已到 //
+            firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
+                if(doc.data().accountcreatetime === calculateaccountexpiretime){
+                    this.expire();
+                }else{
+                    this.success();
+                }
+            })
         }).catch(()=>{
             this.error();
         })
@@ -142,18 +170,18 @@ class Login extends React.Component{
                                     type="submit"
                                 >
                                     登入
-                                    <ToastContainer
-                                    position="top-center"
-                                    autoClose={2000}
-                                    hideProgressBar={false}
-                                    newestOnTop={false}
-                                    closeOnClick
-                                    rtl={false}
-                                    pauseOnFocusLoss
-                                    draggable
-                                    pauseOnHover
-                                    />
                                 </button>
+                                <ToastContainer
+                                position="top-center"
+                                autoClose={2000}
+                                hideProgressBar={false}
+                                newestOnTop={false}
+                                closeOnClick
+                                rtl={false}
+                                pauseOnFocusLoss
+                                draggable
+                                pauseOnHover
+                                />
                                 <div className="nav-item">
                                     <span className="logincopyright" href="/">Copyright © 2022 Alan English Inc.</span>
                                 </div>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState} from "react";
 import './css/Home.scss';
-// import Navigation from "../fragment/Navigation";
 import NavigationMobile from "../fragment/NavigationMobile";
 import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
 import MusicCardContainer from "../fragment/MusicCardContainer";
@@ -58,7 +57,7 @@ function Home() {
                         <Skeleton variant={"rect"} height={"100vh"}/>
                     </div>
                     :
-                    <>
+                    <div>
                         <NavigationMobile/>
                         <section className={"home-music-container"}>
                             <div className="main-home">
@@ -85,7 +84,7 @@ function Home() {
                                 <FooterEmpty/>
                             }
                         </React.Fragment> 
-                    </>  
+                    </div>  
             }
         </div>
     );

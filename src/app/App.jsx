@@ -5,7 +5,6 @@ import Home from "../components/Pages/Home";
 import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
-import {ThemeContext, themes} from "../api/Theme";
 import musicDB from "../db/music";
 import {useDispatch, useSelector} from "react-redux";
 import {setPlaylist} from "../actions/actions";
@@ -68,52 +67,50 @@ const App = () => {
     // window.history.replaceState({ path: refresh }, '', refresh); 
 
     return (
-        <ThemeContext.Provider value={themes.light}>
-            <>
-                <Router>
-                    <Switch>
-                        <Route path="/" exact component={Login}/>
-                        <Route path="/home/signup" exact component={Signup}/>
-                        {/* <Route path="/home/menu">
-                            <NavigationMobile/>
-                            <Menu/>
-                            <Copyright/>
-                        </Route> */}
-                        <Route path="/home/leaderboard">
-                            <NavigationMobile/>
-                            <Leaderboard/>
-                            <Copyright/>
-                        </Route>
-                        <Route path="/home/userinfo">
-                            <NavigationMobile/>
-                            <UserInfo/>
-                            <Copyright/>
-                        </Route>
-                        <Route path="/home/contact">
-                            <NavigationMobile/>
-                            <Contact/>
-                            <Copyright/>
-                        </Route>
-                        <Route path="/home/about">
-                            <NavigationMobile/>
-                            <About/>
-                            <Copyright/>
-                        </Route>
-                        <Route path="/home/game">
-                            <NavigationMobile/>
-                            <Game/>
-                            <Copyright/>
-                        </Route>
-                        <Route path="/home/dashboard">
-                            <NavigationMobile/>
-                            <Dashboard/>
-                            <Copyright/>
-                        </Route>
-                        <Route path="/home" component={Home}/>
-                    </Switch>
-                </Router>
-            </>
-        </ThemeContext.Provider>
+        <>
+            <Router>
+                <Switch>
+                    <Route path="/" exact component={Login}/>
+                    <Route path="/home/signup" exact component={Signup}/>
+                    {/* <Route path="/home/menu">
+                        <NavigationMobile/>
+                        <Menu/>
+                        <Copyright/>
+                    </Route> */}
+                    <Route path="/home/leaderboard">
+                        <NavigationMobile/>
+                        <Leaderboard/>
+                        <Copyright/>
+                    </Route>
+                    <Route path="/home/userinfo">
+                        <NavigationMobile/>
+                        <UserInfo/>
+                        <Copyright/>
+                    </Route>
+                    <Route path="/home/contact">
+                        <NavigationMobile/>
+                        <Contact/>
+                        <Copyright/>
+                    </Route>
+                    <Route path="/home/about">
+                        <NavigationMobile/>
+                        <About/>
+                        <Copyright/>
+                    </Route>
+                    <Route path="/home/game">
+                        <NavigationMobile/>
+                        <Game/>
+                        <Copyright/>
+                    </Route>
+                    <Route path="/home/dashboard">
+                        <NavigationMobile/>
+                        <Dashboard/>
+                        <Copyright/>
+                    </Route>
+                    <Route path="/home" component={Home}/>
+                </Switch>
+            </Router>
+        </>
         
     );
 }
