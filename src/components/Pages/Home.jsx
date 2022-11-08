@@ -11,6 +11,9 @@ import {Skeleton} from "@material-ui/lab";
 import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
 import Copyright from "../fragment/Copyright";
+import firebase from "./firebase";
+import Redirectpage from "../fragment/Redirectpage";
+
 function getCurrPage(pathName) {
     switch (pathName) {
         case "/home":
@@ -31,6 +34,17 @@ function Home() {
 
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
+    const [auth, setAuth] = useState(false);
+
+    firebase.auth().onAuthStateChanged((user) => {
+        if(user) {
+          // 使用者已登入，可以取得資料
+          setAuth(true)
+        } else {
+          // 使用者未登入
+          setAuth(false)
+        }
+      });
 
     let pathname = window.location.pathname;
     useEffect(() => {
@@ -49,6 +63,11 @@ function Home() {
     }, []);
 
 
+
+
+
+
+    if(!auth) return <Redirectpage/>
     return (
         <div className={"home-container"}>
             {

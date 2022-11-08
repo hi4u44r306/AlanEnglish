@@ -104,14 +104,12 @@ class Login extends React.Component{
     
     render() {
         return(
-            <section id="main">
-                    <div className="main-row">
-                        <div className="main-row-img">
+            <section className="Login">
+                    <div className="Logincontainer">
+                        <div className="Left">
                             <div className="english-method">
                                 <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
-                                <br/>
                                 <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
-                                <br/>
                                 <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
                                     才能有效地背誦並牢記單字！
                                 </p>
@@ -119,30 +117,31 @@ class Login extends React.Component{
                             <img className="head-phone-img" src={HeadPhone} alt=""/>
                         </div>
                        
-                        <div className="main-row-text">
-                            <div className="loginsection">
-                                <div className="loginbrand">
-                                    <div className="loginbrandword">
-                                        <span>A</span>
-                                        <span>L</span>
-                                        <span>A</span>
-                                        <span>N</span>
-                                        <span> </span>
-                                        <span>E</span>
-                                        <span>N</span>
-                                        <span>G</span>
-                                        <span>L</span>
-                                        <span>I</span>
-                                        <span>S</span>
-                                        <span>H</span>
-                                    </div>
-                                    <div className="loginbrandbottom">
-                                        <p>系統化 | 口語化 | 聽力導向 </p>
-                                    </div>
+                        <div className="Right">
+                            <div className="loginbrand">
+                                <div className="loginbrandword">
+                                    <span>A</span>
+                                    <span>L</span>
+                                    <span>A</span>
+                                    <span>N</span>
+                                    <span> </span>
+                                    <span>E</span>
+                                    <span>N</span>
+                                    <span>G</span>
+                                    <span>L</span>
+                                    <span>I</span>
+                                    <span>S</span>
+                                    <span>H</span>
                                 </div>
+                                <div className="loginbrandbottom">
+                                    <div className="loginbrandbottomtext">系統化 | 口語化 | 聽力導向 </div>
+                                </div>
+                            </div>
+                            <div className="loginsection">
                                 
                                 <label>帳號</label>
                                 <input
+                                    className="rightinput"
                                     name="email" 
                                     type="email" 
                                     id="email" 
@@ -154,6 +153,7 @@ class Login extends React.Component{
 
                                 <label>密碼</label>
                                     <input 
+                                        className="rightinput"
                                         name="password"
                                         type="password" 
                                         id="password" 
@@ -182,7 +182,7 @@ class Login extends React.Component{
                                 draggable
                                 pauseOnHover
                                 />
-                                <div className="nav-item">
+                                <div className="logincopyrightcontainer">
                                     <span className="logincopyright" href="/">Copyright © 2022 Alan English Inc.</span>
                                 </div>
                             </div>

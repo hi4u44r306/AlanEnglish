@@ -59,11 +59,16 @@
   cursor: pointer;
 }
 .navlink {
-  padding: auto;
+  // padding: auto;
   color: black !important;
-  font-size: 16px;
+  font-size: 10px;
   font-family: "Varela Round", sans-serif;
   font-weight: 900;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
 }
 .navlink:hover {
   transition: 0.7s;
