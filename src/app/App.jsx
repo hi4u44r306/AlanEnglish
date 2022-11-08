@@ -14,7 +14,6 @@ import Copyright from "../components/fragment/Copyright";
 import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
-import Game from "../components/fragment/Game";
 import Dashboard from "../components/fragment/Dashboard";
 // import { useState } from "react";
 // import Menu from "../components/fragment/Menu";
