@@ -1,11 +1,19 @@
 .Redirectcontainer{
-    background-color: bisque;
+    /* background-color: rgb(255, 228, 196); */
     display: flex;
     justify-content: center;
     flex-direction: column;
     align-items: center;
     width: 100vw;
     height: 100vh;
+}
+.loading{
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    width: 40vw;
+    height: 40vh;
 }
 .rocketicon{
     font-size: 50px;

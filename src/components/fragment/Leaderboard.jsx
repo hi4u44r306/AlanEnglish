@@ -47,7 +47,10 @@ class Leaderboard extends React.Component{
         studentsA.push(data);
       })
       this.setState({studentsA: studentsA});
-    });
+    }).catch(()=>{
+      window.location = "/"
+    })
+
     db.collection("student")
     .where('class', '==', 'B')
     .where('onlinemonth', '==', this.currentMonth)
@@ -60,7 +63,10 @@ class Leaderboard extends React.Component{
         studentsB.push(data);
       })
       this.setState({studentsB: studentsB});
-    });
+    }).catch(()=>{
+      window.location = "/"
+    })
+
     db.collection("student")
     .where('class', '==', 'C')
     .where('onlinemonth', '==', this.currentMonth)
@@ -73,7 +79,10 @@ class Leaderboard extends React.Component{
         studentsC.push(data);
       })
       this.setState({studentsC: studentsC});
-    });
+    }).catch(()=>{
+      window.location = "/"
+    })
+
     db.collection("student")
     .where('class', '==', 'D')
     .where('onlinemonth', '==', this.currentMonth)
@@ -86,7 +95,10 @@ class Leaderboard extends React.Component{
         studentsD.push(data);
       })
       this.setState({studentsD: studentsD});
-    });
+    }).catch(()=>{
+        window.location = "/"
+    })
+    
   }
 
   render(){

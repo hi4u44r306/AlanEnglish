@@ -8,12 +8,14 @@ import '../assets/scss/User.scss';
 import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import Star from '../assets/img/star.png';
+import Redirectpage from './Redirectpage';
 
 
 const User = () => {
 
     const db = firebase.firestore();
     const [username, setUsername] = useState();
+    const [auth, setAuth] = useState(false);
     const [dailytimeplayed, setDailyTimeplayed] = useState();
     const [totaltimeplayed, setTotaltimeplayed] = useState();
     const currentDate = new Date().toJSON().slice(0, 10);
@@ -43,11 +45,13 @@ const User = () => {
         if(user){
             db.collection('student').onSnapshot(() =>{
                 getUserInfo(user);
+                setAuth(true);
             }, () =>{
                 // console.log(err.message);
             });
         }else{
             getUserInfo();
+            setAuth(false);
         }
     })
     
@@ -56,6 +60,7 @@ const User = () => {
     // const weekdayarray = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     // console.log(weekdayarray[weekday]);
 
+    if(!auth) return <Redirectpage/>
   return (
       <div className={"User"}>
         <div className="User-profile">

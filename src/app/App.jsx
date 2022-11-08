@@ -97,11 +97,11 @@ const App = () => {
                         <About/>
                         <Copyright/>
                     </Route>
-                    <Route path="/home/game">
+                    {/* <Route path="/home/game">
                         <NavigationMobile/>
                         <Game/>
                         <Copyright/>
-                    </Route>
+                    </Route> */}
                     <Route path="/home/dashboard">
                         <NavigationMobile/>
                         <Dashboard/>

@@ -12,6 +12,7 @@ import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
 import Copyright from "../fragment/Copyright";
 import firebase from "./firebase";
+import Redirectpage from "../fragment/Redirectpage";
 
 function getCurrPage(pathName) {
     switch (pathName) {
@@ -62,8 +63,8 @@ function Home() {
     }, []);
 
 
-    // if(!auth) return <Redirectpage/>
-    if(!auth) return null
+    if(!auth) return <Redirectpage/>
+    // if(!auth) return null
     return (
         <div className={"home-container"}>
             {
