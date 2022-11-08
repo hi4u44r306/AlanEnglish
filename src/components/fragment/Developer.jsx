@@ -16,21 +16,21 @@ const Developer = () => {
                     <div className='d-flex justify-content-center'>
                         <div className='Developer-title'>Alan Hsu</div>
                     </div>
-                    <p> 1. 桃園課後照顧中心班主任</p>
-                    <p> 2. Alan English 創辦人</p>
-                    <p> 3. 輔仁大學英日文系雙主修</p>
-                    <p> 4. 英國劍橋大學TESOL師資培訓</p>
-                    <p> 5. 公立國中合格英語教師資格</p>
-                    <p> 6. 戊類所長班培訓</p>
-                    <p> 7. 合格保育人員</p>
+                    <div className='Developer-text'> 1. 桃園課後照顧中心班主任</div>
+                    <div className='Developer-text'> 2. Alan English 創辦人</div>
+                    <div className='Developer-text'> 3. 輔仁大學英日文系雙主修</div>
+                    <div className='Developer-text'> 4. 英國劍橋大學TESOL師資培訓</div>
+                    <div className='Developer-text'> 5. 公立國中合格英語教師資格</div>
+                    <div className='Developer-text'> 6. 戊類所長班培訓</div>
+                    <div className='Developer-text'> 7. 合格保育人員</div>
                     <div className='d-flex justify-content-center'>
                         <div className='Developer-title'>著作: </div>   
                     </div>
-                    <p>1. Phonics K.K</p>
-                    <p>2. Alan English 習作本 & 聽力本</p>
-                    <p>3. 發明速算尺</p>
-                    <p>4. 編輯速算尺講義</p>
-                    <p>5. 更多教材陸續編排中...</p>
+                    <div className='Developer-text'>1. Phonics K.K</div>
+                    <div className='Developer-text'>2. Alan English 習作本 & 聽力本</div>
+                    <div className='Developer-text'>3. 發明速算尺</div>
+                    <div className='Developer-text'>4. 編輯速算尺講義</div>
+                    <div className='Developer-text'>5. 更多教材陸續編排中...</div>
                 </div>
                 <div className="Developer-profileCard">
                     <div className='Developer-title'>AlanEnglish 網站開發人員</div>

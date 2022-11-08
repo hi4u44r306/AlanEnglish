@@ -59,6 +59,12 @@ function MusicCard(props) {
                         <PlayCircleFilledWhiteIcon/>
                     </div>
                 </div>
+                
+                <div onClick={handlePlay} className={"music-card-cover"} >
+                <div onClick={handlePlay} className='testbutton'>
+                        播放此音軌 <PlayCircleOutlineIcon className="playicon"/>
+                    </div>
+                </div>
                 <div onClick=
                 {
                     ()=> 

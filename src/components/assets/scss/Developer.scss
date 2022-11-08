@@ -27,10 +27,10 @@
       }
     }
     .Developer-profileDetails {
-      background-color: #bcd3ff;
+      background-color: #d2e2ff;
       font-weight: 600;
       font-size: 20px;
-      padding: 25px;
+      padding: 15px;
       border-radius: 20px;
       display: flex;
       flex-direction: column;
@@ -39,9 +39,8 @@
         font-size: 25px;
         font-weight: 900;
       }
-      p {
-        color: #f15946;
-        letter-spacing: 1px;
+      .Developer-text {
+        // letter-spacing: 1px;
         text-transform: uppercase;
       }
     }
@@ -50,7 +49,11 @@
 
 @media screen and (max-width: 1080px) {
   .Developer-profileDetails {
-    font-size: 15px;
+    .Developer-text {
+      font-size: 18px;
+      // letter-spacing: 1px;
+      text-transform: uppercase;
+    }
   }
   .Developer .Developer-profile {
     display: flex;

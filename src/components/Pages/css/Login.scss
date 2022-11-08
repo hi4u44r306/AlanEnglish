@@ -117,6 +117,7 @@
     text-shadow: 1px 0px 0px #4062bb;
   }
   .loginbrandbottomtext {
+    font-family: "Varela Round", sans-serif;
     // color: #f8eeee;
     color: rgb(46, 148, 33);
     font-size: 1.2rem;
@@ -200,7 +201,8 @@
     display: flex;
     align-content: center;
     .loginbrandbottomtext {
-      font-size: 10px;
+      font-family: "Varela Round", sans-serif;
+      font-size: 15px;
     }
     .Left {
       display: none;

@@ -23,6 +23,13 @@
   // box-shadow: 0 0 15px rgba(0, 132, 255, 0.629);
   transition: 200ms;
 }
+.playicon {
+  color: rgb(249, 42, 27);
+}
+.playicon:hover {
+  // transform-origin: 50% 50%;
+  animation: jump 0.5s linear alternate infinite;
+}
 .circleicon {
   color: rgb(0, 132, 255);
 }

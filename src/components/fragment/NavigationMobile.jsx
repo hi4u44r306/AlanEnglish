@@ -22,7 +22,7 @@ function NavigationMobile() {
 
   const db = firebase.firestore();
   const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
-  const [updated, setUpdated] = useState();
+  // const [updated, setUpdated] = useState();
   const currentDate = new Date().toJSON().slice(0, 10);
   const currentMonth = new Date().toJSON().slice(0, 7);
   const [dailytimeplayed, setDailyTimeplayed] = useState();
@@ -33,11 +33,11 @@ function NavigationMobile() {
     if(user){
         db.collection('student').doc(user.uid).get().then( doc => {
             setnavUsername(doc.data().name)
-            if(doc.data().Resetallmusic === currentMonth+'alreadyupdated'){
-              setUpdated('次數已歸零')
-            }else{
-              setUpdated('尚未歸零')
-            }
+            // if(doc.data().Resetallmusic === currentMonth+'alreadyupdated'){
+              // setUpdated(`${currentMonth}'月次數已歸零'`)
+            // }else{
+              // setUpdated('尚未歸零')
+            // }
         }, err =>{
             console.log(err.message);
         });
@@ -128,9 +128,9 @@ function NavigationMobile() {
                 <Nav.Link className="navlinklabel"></Nav.Link>
                   <Nav.Link href="/home/userinfo" className="navlink">
                     <div className="d-flex flex-column align-items-center">
-                      <p>
+                      {/* <p>
                         💰 {updated || '----'} 💰
-                      </p>
+                      </p> */}
                       <p>
                       🧒 {navusername || '----'} 👦
                       </p>
