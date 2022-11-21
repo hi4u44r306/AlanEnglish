@@ -128,11 +128,8 @@ function NavigationMobile() {
                 <Nav.Link className="navlinklabel"></Nav.Link>
                   <Nav.Link href="/home/userinfo" className="navlink">
                     <div className="d-flex flex-column align-items-center">
-                      {/* <p>
-                        💰 {updated || '----'} 💰
-                      </p> */}
                       <p>
-                      🧒 {navusername || '----'} 👦
+                       {navusername || '----'} 
                       </p>
                     </div>
                   </Nav.Link>

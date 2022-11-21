@@ -31,8 +31,12 @@
 }
 
 .toggle {
-  background-color: rgb(255, 255, 255);
-  font-size: 15px;
+  // background-color: rgb(255, 255, 255);
+  border: none;
+  font-weight: 900;
+}
+.navbar-toggler-icon {
+  font-size: 23px;
 }
 
 .dropdown-menu {

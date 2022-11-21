@@ -1,35 +1,39 @@
-.Redirectcontainer{
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-    width: 100vw;
-    height: 80vh;
+.Redirectcontainer {
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  height: 80vh;
 }
-.loading{
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    align-items: center;
-    width: 40vw;
-    height: 40vh;
+.loading {
+  /* display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center; */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50vw;
+  height: 50vh;
 }
-.rocketicon{
-    font-size: 50px;
+.rocketicon {
+  font-size: 50px;
 }
-.alertmessage{
-    font-family: "Varela Round", sans-serif;
-    font-size: 30px;
-    font-weight: 900;
-    margin: 20px;
+.alertmessage {
+  font-family: "Varela Round", sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  margin: 20px;
 }
-.redirectbtn{
-    font-family: "Varela Round", sans-serif;
-    border: solid 3px rgb(254, 91, 91);
-    border-radius: 20px;
-    padding: 20px 40px;
-    font-size: 25px;
-    font-weight: 900;
-    margin: 20px;
+.redirectbtn {
+  font-family: "Varela Round", sans-serif;
+  border: solid 3px rgb(254, 91, 91);
+  border-radius: 20px;
+  padding: 20px 40px;
+  font-size: 25px;
+  font-weight: 900;
+  margin: 20px;
 }

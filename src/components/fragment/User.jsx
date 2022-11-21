@@ -8,6 +8,7 @@ import '../assets/scss/User.scss';
 import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import Star from '../assets/img/star.png';
+import Notice from '../assets/img/warning.png'; 
 import Redirectpage from './Redirectpage';
 
 
@@ -71,7 +72,11 @@ const User = () => {
                 <div className='User-profile-today'>Today : {currentDate}</div>
                 <div className='dailycirclecontainer'>
                 <span className='howtouseicon'>
-                    📢 
+                        <img
+                        style={{ width: 40, marginTop: -5 }}
+                        src={Notice}
+                        alt="notice"
+                        />
                     <span className='howtouseicontext'>每天至少聽20次，聽一次加一顆星</span>
                 </span>
                     <div className='currentdaycircle'>
@@ -103,11 +108,11 @@ const User = () => {
                 <div className='userinfocontainer'>
                     <div className="userinfo">
                         <label>👦 姓名:</label>
-                        <p>{username || 'Loading...'}</p>
+                        <p className='userinfoptag'>{username || 'Loading...'}</p>
                     </div>
                     <div className="userinfo">
                         <label>🏆 本月聽力總次數:</label>
-                        <p>{totaltimeplayed || '0'}次</p>
+                        <p className='userinfoptag'>{totaltimeplayed || '0'}次</p>
                     </div>
                 </div>
                 {/* <div>Days Learned</div> */}
