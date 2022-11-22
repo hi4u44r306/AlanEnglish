@@ -82,8 +82,9 @@ function Home() {
                                 {
                                     Page
                                 }
-                                <Copyright/>
-                                {/* <div className={"copyright"}>© 2022 AlanEnglish Inc.</div> */}
+                                <div className="main-home-copyright">
+                                    <Copyright/>
+                                </div>
                             </div>
                         </section>
                         <section className={"home-musicplayer"}>

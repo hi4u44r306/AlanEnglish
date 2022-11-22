@@ -2,9 +2,25 @@
   height: 100vh;
   width: 100vw;
 }
+.main-home-copyright {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-color: #fcf8ec;
+  justify-content: center;
+  font-family: "Varela Round", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  height: 7vh;
+  width: 100vw;
+  align-items: center;
+  position: fixed;
+  top: 80%;
+}
 .home-musicplayer {
   position: fixed;
-  top: 87%;
+  top: 88%;
 }
 .copyright {
   -moz-user-select: none;
