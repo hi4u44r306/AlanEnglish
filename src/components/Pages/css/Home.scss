@@ -12,15 +12,11 @@
   font-family: "Varela Round", sans-serif;
   font-size: 18px;
   font-weight: 700;
-  height: 7vh;
+  height: 5vh;
   width: 100vw;
   align-items: center;
   position: fixed;
-  top: 80%;
-}
-.home-musicplayer {
-  position: fixed;
-  top: 88%;
+  bottom: 12%;
 }
 .copyright {
   -moz-user-select: none;
@@ -31,10 +27,14 @@
   display: flex;
   justify-content: center;
   font-family: "Varela Round", sans-serif;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  height: 7vh;
+  height: 4vh;
   align-items: center;
+}
+.home-musicplayer {
+  position: fixed;
+  bottom: 12%;
 }
 .current-large-banner {
   position: absolute;
