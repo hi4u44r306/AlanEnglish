@@ -1,5 +1,5 @@
-// import React, {useState, useEffect} from "react";
-// import { Link } from 'react-router-dom';
+// import React, {useState} from "react";
+// import { Link } from "react-router-dom";
 // import firebase from 'firebase/app';
 // import 'firebase/firestore';
 // import Logout from "./Logout";
@@ -11,7 +11,10 @@
 // import Offcanvas from 'react-bootstrap/Offcanvas';
 // import '../assets/scss/Navigation.scss';
 // import SearchBar from "./SearchBar";
-// import RiseLoader from "react-spinners/RiseLoader";
+// import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
+// import 'react-circular-progressbar/dist/styles.css';
+// import Star from '../assets/img/star.png';
+
 
 
 
@@ -19,53 +22,47 @@
 
 // function Navigation(user) {
 
-//   const db = firebase.firestore();
-//   const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
-//   const [loading, setLoading] = useState(false);
-
-
-
-//   useEffect(()=>{
-//     setLoading(true)
-//     setTimeout(() =>{
-//         setLoading(false);
-//     }, 2000)
-// }, [])
-
-//   const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
-//     if(user){
-//         db.collection('student').doc(user.uid).get().then( doc => {
-//             setnavUsername(doc.data().name)
-//         }, err =>{
-//             console.log(err.message);
-//         });
-//     }else{
-
-//     }
-// }    
-//   // const getviewersip = () =>{
-//   //   fetch('https://api.ipify.org?format=json?callback=?',{
-//   //     method: 'GET',
-//   //     headers: {},
-//   //   })
-//   //   .then(res => {
-//   //     return res.text()
-//   //   }).then(ip => {
-//   //     console.log("ip", ip);
-//   //   })
-//   // }
-
-//     firebase.auth().onAuthStateChanged(user => {
+//     const db = firebase.firestore();
+//     const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
+//     // const [updated, setUpdated] = useState();
+//     const currentDate = new Date().toJSON().slice(0, 10);
+//     const currentMonth = new Date().toJSON().slice(0, 7);
+//     const [dailytimeplayed, setDailyTimeplayed] = useState();
+//     const percentage = dailytimeplayed*100/20;
+//     const custompathColor = `#89aae6`
+//     const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
 //         if(user){
-//             db.collection('student').onSnapshot(snapshot =>{
-//                 getUserInfo(user);
+//             db.collection('student').doc(user.uid).get().then( doc => {
+//                 setnavUsername(doc.data().name)
+//                 // if(doc.data().Resetallmusic === currentMonth+'alreadyupdated'){
+//                   // setUpdated(`${currentMonth}'月次數已歸零'`)
+//                 // }else{
+//                   // setUpdated('尚未歸零')
+//                 // }
 //             }, err =>{
 //                 console.log(err.message);
 //             });
+//             db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc)=>{
+//               setDailyTimeplayed(doc.data().todaytotaltimeplayed);
+//             }).catch(()=>{
+//                 setDailyTimeplayed("0")
+//             })
 //         }else{
-//             getUserInfo();
+    
 //         }
-//     })
+//       }    
+    
+//         firebase.auth().onAuthStateChanged(user => {
+//             if(user){
+//                 db.collection('student').onSnapshot(snapshot =>{
+//                     getUserInfo(user);
+//                 }, err =>{
+//                     console.log(err.message);
+//                 });
+//             }else{
+//                 getUserInfo();
+//             }
+//         })
     
 //   return (
 //     <div>
@@ -109,22 +106,33 @@
 //                 </Offcanvas.Title>
 //               </Offcanvas.Header>
 //               <Offcanvas.Body className="navbackground">
-//                 <Nav className="justify-content-end mx-3 flex-grow-1 pe-3 d-flex align-items-center">
-//                 <Nav.Link className="navlinklabel">Welcome : </Nav.Link>
-//                 {
-//                 loading ?
-//                     (
-//                     <RiseLoader 
-//                     color={"#fc0303"} 
-//                     loading={loading} 
-//                     size={10} 
-//                     />)
-//                     :
-//                     (
-//                         <Nav.Link as={Link} to="/home/userinfo" className="navusername">
-//                           {navusername}
-//                         </Nav.Link>
-//                 )}
+//                 <Nav className="justify-content-end mx-3 flex-grow-1 d-flex align-items-center">
+//                 Web
+//                 <div className='navcurrentdaycircle'>
+//                   <CircularProgressbarWithChildren value={percentage || 'Loading...'} 
+//                       background
+//                       styles={buildStyles({
+//                           backgroundColor: 'white',
+//                           textColor: "red",
+//                           pathColor: "gold",
+//                           trailColor: `${custompathColor}`
+//                           })}
+//                       >
+//                       <img
+//                       style={{ width: 20, marginTop: -5 }}
+//                       src={Star}
+//                       alt="star"
+//                       />
+//                       <div className={dailytimeplayed >= 20?'navdailycircletextcomplete':'navdailycircletextnotcomplete'}> X {dailytimeplayed || '0'} </div>
+//                   </CircularProgressbarWithChildren>
+//                 </div>
+//                     <Nav.Link href="/home/userinfo" className="navlink">
+//                     <div className="d-flex flex-column align-items-center">
+//                       <p>
+//                        {navusername || '----'} 
+//                       </p>
+//                     </div>
+//                   </Nav.Link>
                   
 //                   <Nav.Link as={Link} to="/home/leaderboard" className="navlinkscoreboard">
 //                   🏆排行榜

@@ -124,8 +124,7 @@ function NavigationMobile() {
                       />
                       <div className={dailytimeplayed >= 20?'navdailycircletextcomplete':'navdailycircletextnotcomplete'}> X {dailytimeplayed || '0'} </div>
                   </CircularProgressbarWithChildren>
-                </div>
-                <Nav.Link className="navlinklabel"></Nav.Link>
+                 </div>
                   <Nav.Link href="/home/userinfo" className="navlink">
                     <div className="d-flex flex-column align-items-center">
                       <p>

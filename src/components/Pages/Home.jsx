@@ -35,6 +35,7 @@ function Home() {
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
     const [auth, setAuth] = useState(false);
+    const [screenSize, setScreenSize] = useState(undefined);
 
     firebase.auth().onAuthStateChanged((user) => {
         if(user) {
@@ -50,6 +51,17 @@ function Home() {
     useEffect(() => {
         setCurrPage(getCurrPage(pathname))
     }, [pathname]);
+
+    window.addEventListener("resize", handleResize);
+
+    function handleResize() {
+        setScreenSize(window.innerWidth);
+    }
+
+    useEffect(() => {
+        handleResize();
+        return () => window.removeEventListener("resize", handleResize);
+    });
 
     const {playing, bannerOpen} = useSelector(state => state.musicReducer);
 
@@ -74,7 +86,9 @@ function Home() {
                     </div>
                     :
                     <div>
+                        
                         <NavigationMobile/>
+                        {/* <Navigation/> */}
                         <section className={"home-music-container"}>
                             <div className="main-home">
                                 {
@@ -84,15 +98,17 @@ function Home() {
                                 {/* <div className={"copyright"}>© 2022 AlanEnglish Inc.</div> */}
                             </div>
                         </section>
-                        <React.Fragment>
-                            {
-                                currMusic
-                                ?
-                                <FooterMusicPlayer music={currMusic}/>
-                                :
-                                <FooterEmpty/>
-                            }
-                        </React.Fragment> 
+                        <section className={"home-musicplayer"}>
+                            <React.Fragment>
+                                {
+                                    currMusic
+                                    ?
+                                    <FooterMusicPlayer music={currMusic}/>
+                                    :
+                                    <FooterEmpty/>
+                                }
+                            </React.Fragment> 
+                        </section>
                         {
                             bannerOpen
                             &&
