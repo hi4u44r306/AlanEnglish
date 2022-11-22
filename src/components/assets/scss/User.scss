@@ -111,7 +111,7 @@
 .howtouseicontext {
   font-size: 15px;
   visibility: hidden;
-  width: 250px;
+  width: 300px;
   height: 40px;
   background-color: rgb(255, 131, 131);
   color: black;
@@ -122,7 +122,7 @@
   /* Position the howtouseicontext */
   position: absolute;
   bottom: 65px;
-  left: 0px;
+  left: -22px;
   z-index: 1;
 }
 .howtouseicon:hover .howtouseicontext {
@@ -146,6 +146,7 @@
   box-shadow: -4px 10px 35px -1px #3fa6d648;
   // box-shadow: -4px 10px 35px -1px rgba(102, 102, 102, 0.75);
   font-weight: 600;
+  width: 50%;
   padding: 25px;
   display: flex;
   flex-direction: column;
@@ -169,6 +170,9 @@
 }
 
 @media screen and (max-width: 800px) {
+  .User-profileDetails {
+    width: 90%;
+  }
   .userinfocontainer {
     display: flex;
     flex-direction: column;

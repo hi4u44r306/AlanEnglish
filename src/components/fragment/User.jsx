@@ -73,7 +73,7 @@ const User = () => {
                 <div className='dailycirclecontainer'>
                 <span className='howtouseicon'>
                         <img
-                        style={{ width: 40, marginTop: -5 }}
+                        style={{ width: 30, marginTop: -5 }}
                         src={Notice}
                         alt="notice"
                         />

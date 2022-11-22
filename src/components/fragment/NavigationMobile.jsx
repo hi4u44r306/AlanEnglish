@@ -106,7 +106,7 @@ function NavigationMobile() {
                 </Offcanvas.Title>
               </Offcanvas.Header>
               <Offcanvas.Body className="navbackground">
-                <Nav className="d-flex align-items-center justify-content-end flex-grow-1 pe-3">
+                <Nav className="d-flex align-items-center justify-content-end flex-grow-1">
                 <div className='navcurrentdaycircle'>
                   <CircularProgressbarWithChildren value={percentage || 'Loading...'} 
                       background

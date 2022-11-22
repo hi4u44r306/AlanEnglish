@@ -43,11 +43,11 @@
   width: 300px !important;
 }
 .dropdown-toggle {
-  color: #005b7f;
+  color: #000000;
 }
 .dropdown-toggle:hover {
   color: #2d7dd2;
-  border-bottom: 4px solid #2d7dd2;
+  border-bottom: 2px solid #2d7dd2;
 }
 .navusername {
   color: #005b7f;
@@ -65,19 +65,17 @@
 .navlink {
   // padding: auto;
   color: black !important;
-  font-size: 10px;
   font-family: "Varela Round", sans-serif;
   font-weight: 900;
-}
-.nav-link {
   display: flex;
   align-items: center;
   font-size: 15px;
 }
+
 .navlink:hover {
   transition: 0.7s;
   color: rgb(0, 136, 255);
-  border-radius: 5px;
+  border-radius: 2px;
 }
 .navlinkscoreboard {
   padding: auto;
