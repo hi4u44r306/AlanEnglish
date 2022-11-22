@@ -35,7 +35,6 @@ function Home() {
     const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer/>);
     const [auth, setAuth] = useState(false);
-    const [screenSize, setScreenSize] = useState(undefined);
 
     firebase.auth().onAuthStateChanged((user) => {
         if(user) {
@@ -52,16 +51,6 @@ function Home() {
         setCurrPage(getCurrPage(pathname))
     }, [pathname]);
 
-    window.addEventListener("resize", handleResize);
-
-    function handleResize() {
-        setScreenSize(window.innerWidth);
-    }
-
-    useEffect(() => {
-        handleResize();
-        return () => window.removeEventListener("resize", handleResize);
-    });
 
     const {playing, bannerOpen} = useSelector(state => state.musicReducer);
 
@@ -88,7 +77,6 @@ function Home() {
                     <div>
                         
                         <NavigationMobile/>
-                        {/* <Navigation/> */}
                         <section className={"home-music-container"}>
                             <div className="main-home">
                                 {

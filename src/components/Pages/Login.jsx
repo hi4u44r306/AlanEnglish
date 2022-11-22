@@ -6,7 +6,6 @@ import './css/Login.scss';
 import firebase from "./firebase";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Loginbtn from "../fragment/Loginbtn";
 
 class Login extends React.Component{
 
@@ -172,7 +171,6 @@ class Login extends React.Component{
                                 >
                                     登入
                                 </button>
-                                {/* <Loginbtn onClick={this.login}/> */}
                                 <ToastContainer
                                 position="top-center"
                                 autoClose={2000}
