@@ -54,25 +54,25 @@ function FooterMusicPlayer({music}) {
     });
 
     
-    userRef.get().then((doc) =>{
-        if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
-            userRef.set({
-                totaltimeplayed : 0,
-                currdatetimeplayed : 0,
-                Resetallmusic : currentMonth+'alreadyupdated',
-            },{merge: true})
-            for(let i = 0; i < 601; i++){      
-                let j = "'"+i+"'"
-                userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
-                    timeplayed : 0,
-                })        
-            }
-            console.log('First time reset')
-        }else{
-            console.log('this account is alreadyreset')
-        }
-    }).catch(() =>{
-    })
+    // userRef.get().then((doc) =>{
+    //     if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
+    //         userRef.set({
+    //             totaltimeplayed : 0,
+    //             currdatetimeplayed : 0,
+    //             Resetallmusic : currentMonth+'alreadyupdated',
+    //         },{merge: true})
+    //         for(let i = 0; i < 601; i++){      
+    //             let j = "'"+i+"'"
+    //             userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+    //                 timeplayed : 0,
+    //             })        
+    //         }
+    //         console.log('First time reset')
+    //     }else{
+    //         console.log('this account is alreadyreset')
+    //     }
+    // }).catch(() =>{
+    // })
     
     const updatetimeplayedtofirestore = () => {
 

@@ -301,9 +301,15 @@ function NavigationMobile() {
                     className="navlink"
                   >
                     <NavDropdown.Item href="/home/playlist/SER1" className="subnavlink">📚 Super Easy Reading 3e 1</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/SER2" className="subnavlink">📚 Super Easy Reading 3e 2</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/SER3" className="subnavlink">📚 Super Easy Reading 3e 3</NavDropdown.Item>
                     <NavDropdown.Item href="/home/playlist/STEAM1" className="subnavlink">📚 Steam Reading E1</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/SARC1" className="subnavlink">📚 Short Articles Reading 1"</NavDropdown.Item>
-                    <NavDropdown.Item href="/home/playlist/RL2" className="subnavlink">📚 Reading Lamp 2</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/STEAM2" className="subnavlink">📚 Steam Reading E2</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/STEAM3" className="subnavlink">📚 Steam Reading E3</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/SARC1" className="subnavlink">📚 Short Articles Reading 1</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/RL2Reading" className="subnavlink">📚 Reading Lamp 2 Reading</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/ReadingLamp2StudentBook" className="subnavlink">📚 Reading Lamp 2 Student Book</NavDropdown.Item>
+                    <NavDropdown.Item href="/home/playlist/ReadingLamp3StudentBook" className="subnavlink">📚 Reading Lamp 3 Student Book</NavDropdown.Item>
                     <NavDropdown.Item href="/home/playlist/Skyline1" className="subnavlink">📚 Skyline1</NavDropdown.Item>
                     <NavDropdown.Item href="/home/playlist/Skyline2" className="subnavlink">📚 Skyline2</NavDropdown.Item>
                     <NavDropdown.Item href="/home/playlist/Skyline3" className="subnavlink">📚 Skyline3</NavDropdown.Item>
