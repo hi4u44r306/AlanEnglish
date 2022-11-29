@@ -1,3 +1,11 @@
+.icons {
+  svg {
+    color: rgb(81, 204, 43);
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+  }
+}
 .offcanvas-header {
   padding: 20px 20px;
 }
@@ -71,6 +79,10 @@
   font-family: "Varela Round", sans-serif;
   font-weight: 900;
   font-size: 15px;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
 }
 .dropdown-menu {
   background-color: #f7edce;
