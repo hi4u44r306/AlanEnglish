@@ -24,7 +24,27 @@ let musicDB = [
 
 
 
+// {
+//     SuperEasyReading : [
+//         {
+//             SuperEasyReading1 : [
 
+//             ]
+//         },
+//         {
+//             SuperEasyReading2 : [
+
+//             ]
+//         },
+//         {
+//             SuperEasyReading3 : [
+
+//             ]
+//         },
+
+//     ]
+
+// },
 
 
 
@@ -48,18 +68,6 @@ let musicDB = [
             {
                 questionText : "0.",
             },
-            // {
-            //     questionText : "Victor.",
-            // },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
         ]
     },
     {
@@ -75,20 +83,7 @@ let musicDB = [
             {
                 questionText : "1.",
             },
-            // {
-            //     questionText : "Victor.",
-            // },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
         ]
-      
     }
     ,
     {
