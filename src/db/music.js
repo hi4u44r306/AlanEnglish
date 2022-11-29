@@ -6607,7 +6607,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 
 
 
-///////////////////////////// Reading Lamp 2 Student Book /////////////////////////////////
+///////////////////////////// Reading Lamp 1 Reading /////////////////////////////////
 
 
 
@@ -6631,941 +6631,486 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 
 {
     id: 556,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 1",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 01.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 1.mp3",
 },
 {
     id: 557,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 2",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 02.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 2.mp3",
 },
 {
     id: 558,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 3",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 03.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 3.mp3",
 },
 {
     id: 559,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 4",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 04.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 4.mp3",
 },
 {
     id: 560,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 5",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 05.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 5.mp3",
 },
 {
     id: 561,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 6",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 06.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 6.mp3",
 },
 {
     id: 562,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 7",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 07.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 7.mp3",
 },
 {
     id: 563,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 8",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 08.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 8.mp3",
 },
 {
     id: 564,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 9",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 09.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 9.mp3",
 },
 {
     id: 565,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 10",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 10.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 10.mp3",
 },
 {
     id: 566,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 11",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 11.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 11.mp3",
 },
 {
     id: 567,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 12",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 12.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 12.mp3",
 },
 {
     id: 568,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 13",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 13.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 13.mp3",
 },
 {
     id: 569,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 14",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 14.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 14.mp3",
 },
 {
     id: 570,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 15",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 15.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 15.mp3",
 },
 {
     id: 571,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 16",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 16.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 16.mp3",
 },
 {
     id: 572,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 17",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 17.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 17.mp3",
 },
 {
     id: 573,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 18",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 18.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 18.mp3",
 },
 {
     id: 574,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 19",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 19.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 19.mp3",
 },
 {
     id: 575,
-    bookname: "Reading Lamp 2 Student Book",
+    bookname: "Reading Lamp 1",
     page:"Unit 20",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 20.mp3",
+    type: "RL1Reading",
+    musicName: "Reading Lamp 1_Reading/Unit 20.mp3",
 },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/// Reading Lamp 3 Reading ///
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {
     id: 576,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 21",
+    bookname: "Reading Lamp 3",
+    page:"Unit 1",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 21.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 1.mp3",
 },
 {
     id: 577,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 22",
+    bookname: "Reading Lamp 3",
+    page:"Unit 2",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 22.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 2.mp3",
 },
 {
     id: 578,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 23",
+    bookname: "Reading Lamp 3",
+    page:"Unit 3",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 23.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 3.mp3",
 },
 {
     id: 579,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 24",
+    bookname: "Reading Lamp 3",
+    page:"Unit 4",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 24.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 4.mp3",
 },
 {
     id: 580,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 25",
+    bookname: "Reading Lamp 3",
+    page:"Unit 5",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 25.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 5.mp3",
 },
 {
     id: 581,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 26",
+    bookname: "Reading Lamp 3",
+    page:"Unit 6",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 26.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 6.mp3",
 },
 {
     id: 582,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 27",
+    bookname: "Reading Lamp 3",
+    page:"Unit 7",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 27.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 7.mp3",
 },
 {
     id: 583,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 28",
+    bookname: "Reading Lamp 3",
+    page:"Unit 8",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 28.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 8.mp3",
 },
 {
     id: 584,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 29",
+    bookname: "Reading Lamp 3",
+    page:"Unit 9",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 29.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 9.mp3",
 },
 {
     id: 585,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 30",
+    bookname: "Reading Lamp 3",
+    page:"Unit 10",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 30.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 10.mp3",
 },
 {
     id: 586,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 31",
+    bookname: "Reading Lamp 3",
+    page:"Unit 11",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 31.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 11.mp3",
 },
 {
     id: 587,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 32",
+    bookname: "Reading Lamp 3",
+    page:"Unit 12",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 32.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 12.mp3",
 },
 {
     id: 588,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 33",
+    bookname: "Reading Lamp 3",
+    page:"Unit 13",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 33.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 13.mp3",
 },
 {
     id: 589,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 34",
+    bookname: "Reading Lamp 3",
+    page:"Unit 14",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 34.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 14.mp3",
 },
 {
     id: 590,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 35",
+    bookname: "Reading Lamp 3",
+    page:"Unit 15",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 35.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 15.mp3",
 },
 {
     id: 591,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 36",
+    bookname: "Reading Lamp 3",
+    page:"Unit 16",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 36.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 16.mp3",
 },
 {
     id: 592,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 37",
+    bookname: "Reading Lamp 3",
+    page:"Unit 17",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 37.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 17.mp3",
 },
 {
     id: 593,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 38",
+    bookname: "Reading Lamp 3",
+    page:"Unit 18",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 38.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 18.mp3",
 },
 {
     id: 594,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 39",
+    bookname: "Reading Lamp 3",
+    page:"Unit 19",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 39.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 19.mp3",
 },
 {
     id: 595,
-    bookname: "Reading Lamp 2 Student Book",
-    page:"Unit 40",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp2StudentBook",
-    musicName: "Reading Lamp 2_Student Book/Reading Lamp 2 - 40.mp3",
-},
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////////// Reading Lamp 3 Student Book /////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{
-    id: 596,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 1",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 01.mp3",
-},
-{
-    id: 597,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 2",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 02.mp3",
-},
-{
-    id: 598,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 3",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 03.mp3",
-},
-{
-    id: 599,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 4",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 04.mp3",
-},
-{
-    id: 600,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 5",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 05.mp3",
-},
-{
-    id: 601,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 6",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 06.mp3",
-},
-{
-    id: 602,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 7",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 07.mp3",
-},
-{
-    id: 603,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 8",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 08.mp3",
-},
-{
-    id: 604,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 9",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 09.mp3",
-},
-{
-    id: 605,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 10",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 10.mp3",
-},
-{
-    id: 606,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 11",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 11.mp3",
-},
-{
-    id: 607,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 12",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 12.mp3",
-},
-{
-    id: 608,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 13",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 13.mp3",
-},
-{
-    id: 609,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 14",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 14.mp3",
-},
-{
-    id: 610,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 15",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 15.mp3",
-},
-{
-    id: 611,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 16",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 16.mp3",
-},
-{
-    id: 612,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 17",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 17.mp3",
-},
-{
-    id: 613,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 18",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 18.mp3",
-},
-{
-    id: 614,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 19",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 19.mp3",
-},
-{
-    id: 615,
-    bookname: "Reading Lamp 3 Student Book",
+    bookname: "Reading Lamp 3",
     page:"Unit 20",
     img: "headphone.png",
-    lang: "ReadingLamp2",
+    lang: "ReadingLamp1",
     timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 20.mp3",
+    type: "RL3Reading",
+    musicName: "Reading Lamp 3_Reading/Unit 20.mp3",
 },
-{
-    id: 616,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 21",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 21.mp3",
-},
-{
-    id: 617,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 22",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 22.mp3",
-},
-{
-    id: 618,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 23",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 23.mp3",
-},
-{
-    id: 619,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 24",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 24.mp3",
-},
-{
-    id: 620,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 25",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 25.mp3",
-},
-{
-    id: 621,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 26",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 26.mp3",
-},
-{
-    id: 622,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 27",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 27.mp3",
-},
-{
-    id: 623,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 28",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 28.mp3",
-},
-{
-    id: 624,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 29",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 29.mp3",
-},
-{
-    id: 625,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 30",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 30.mp3",
-},
-{
-    id: 626,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 31",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 31.mp3",
-},
-{
-    id: 627,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 32",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 32.mp3",
-},
-{
-    id: 628,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 33",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 33.mp3",
-},
-{
-    id: 629,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 34",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 34.mp3",
-},
-{
-    id: 630,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 35",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 35.mp3",
-},
-{
-    id: 631,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 36",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 36.mp3",
-},
-{
-    id: 632,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 37",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 37.mp3",
-},
-{
-    id: 633,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 38",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 38.mp3",
-},
-{
-    id: 634,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 39",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 39.mp3",
-},
-{
-    id: 635,
-    bookname: "Reading Lamp 3 Student Book",
-    page:"Unit 40",
-    img: "headphone.png",
-    lang: "ReadingLamp2",
-    timesPlayed: 0,
-    type: "ReadingLamp3StudentBook",
-    musicName: "Reading Lamp 3_Student Book/Reading Lamp 3 - 40.mp3",
-},
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -7627,7 +7172,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 
 
  {
-    id: 636,
+    id: 596,
     bookname: "Steam Reading 2",
     page:"Track 1",
     img: "headphone.png",
@@ -7637,7 +7182,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 1.mp3"
 },
 {
-    id: 637,
+    id: 597,
     bookname: "Steam Reading 2",
     page:"Track 2",
     img: "headphone.png",
@@ -7647,7 +7192,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 2.mp3"
 },
 {
-    id: 638,
+    id: 598,
     bookname: "Steam Reading 2",
     page:"Track 3",
     img: "headphone.png",
@@ -7657,7 +7202,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 3.mp3"
 },
 {
-    id: 639,
+    id: 599,
     bookname: "Steam Reading 2",
     page:"Track 4",
     img: "headphone.png",
@@ -7667,7 +7212,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 4.mp3"
 },
 {
-    id: 640,
+    id: 600,
     bookname: "Steam Reading 2",
     page:"Track 5",
     img: "headphone.png",
@@ -7677,7 +7222,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 5.mp3"
 },
 {
-    id: 641,
+    id: 601,
     bookname: "Steam Reading 2",
     page:"Track 6",
     img: "headphone.png",
@@ -7687,7 +7232,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 6.mp3"
 },
 {
-    id: 642,
+    id: 602,
     bookname: "Steam Reading 2",
     page:"Track 7",
     img: "headphone.png",
@@ -7697,7 +7242,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 7.mp3"
 },
 {
-    id: 643,
+    id: 603,
     bookname: "Steam Reading 2",
     page:"Track 8",
     img: "headphone.png",
@@ -7707,7 +7252,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 8.mp3"
 },
 {
-    id: 644,
+    id: 604,
     bookname: "Steam Reading 2",
     page:"Track 9",
     img: "headphone.png",
@@ -7717,7 +7262,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 9.mp3"
 },
 {
-    id: 645,
+    id: 605,
     bookname: "Steam Reading 2",
     page:"Track 10",
     img: "headphone.png",
@@ -7727,7 +7272,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 10.mp3"
 },
 {
-    id: 646,
+    id: 606,
     bookname: "Steam Reading 2",
     page:"Track 11",
     img: "headphone.png",
@@ -7737,7 +7282,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 11.mp3"
 },
 {
-    id: 647,
+    id: 607,
     bookname: "Steam Reading 2",
     page:"Track 12",
     img: "headphone.png",
@@ -7747,7 +7292,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 12.mp3"
 },
 {
-    id: 648,
+    id: 608,
     bookname: "Steam Reading 2",
     page:"Track 13",
     img: "headphone.png",
@@ -7757,7 +7302,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 13.mp3"
 },
 {
-    id: 649,
+    id: 609,
     bookname: "Steam Reading 2",
     page:"Track 14",
     img: "headphone.png",
@@ -7767,7 +7312,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 14.mp3"
 },
 {
-    id: 650,
+    id: 610,
     bookname: "Steam Reading 2",
     page:"Track 15",
     img: "headphone.png",
@@ -7777,7 +7322,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 15.mp3"
 },
 {
-    id: 651,
+    id: 611,
     bookname: "Steam Reading 2",
     page:"Track 16",
     img: "headphone.png",
@@ -7787,7 +7332,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 16.mp3"
 },
 {
-    id: 652,
+    id: 612,
     bookname: "Steam Reading 2",
     page:"Track 17",
     img: "headphone.png",
@@ -7797,7 +7342,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 17.mp3"
 },
 {
-    id: 653,
+    id: 613,
     bookname: "Steam Reading 2",
     page:"Track 18",
     img: "headphone.png",
@@ -7807,7 +7352,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 18.mp3"
 },
 {
-    id: 654,
+    id: 614,
     bookname: "Steam Reading 2",
     page:"Track 19",
     img: "headphone.png",
@@ -7817,7 +7362,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 19.mp3"
 },
 {
-    id: 655,
+    id: 615,
     bookname: "Steam Reading 2",
     page:"Track 20",
     img: "headphone.png",
@@ -7827,7 +7372,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 20.mp3"
 },
 {
-    id: 656,
+    id: 616,
     bookname: "Steam Reading 2",
     page:"Track 21",
     img: "headphone.png",
@@ -7837,7 +7382,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 21.mp3"
 },
 {
-    id: 657,
+    id: 617,
     bookname: "Steam Reading 2",
     page:"Track 22",
     img: "headphone.png",
@@ -7847,7 +7392,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 22.mp3"
 },
 {
-    id: 658,
+    id: 618,
     bookname: "Steam Reading 2",
     page:"Track 23",
     img: "headphone.png",
@@ -7857,7 +7402,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 23.mp3"
 },
 {
-    id: 659,
+    id: 619,
     bookname: "Steam Reading 2",
     page:"Track 24",
     img: "headphone.png",
@@ -7867,7 +7412,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 24.mp3"
 },
 {
-    id: 660,
+    id: 620,
     bookname: "Steam Reading 2",
     page:"Track 25",
     img: "headphone.png",
@@ -7877,7 +7422,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 25.mp3"
 },
 {
-    id: 661,
+    id: 621,
     bookname: "Steam Reading 2",
     page:"Track 26",
     img: "headphone.png",
@@ -7887,7 +7432,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 26.mp3"
 },
 {
-    id: 662,
+    id: 622,
     bookname: "Steam Reading 2",
     page:"Track 27",
     img: "headphone.png",
@@ -7897,7 +7442,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 27.mp3"
 },
 {
-    id: 663,
+    id: 623,
     bookname: "Steam Reading 2",
     page:"Track 28",
     img: "headphone.png",
@@ -7907,7 +7452,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 28.mp3"
 },
 {
-    id: 664,
+    id: 624,
     bookname: "Steam Reading 2",
     page:"Track 29",
     img: "headphone.png",
@@ -7917,7 +7462,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 29.mp3"
 },
 {
-    id: 665,
+    id: 625,
     bookname: "Steam Reading 2",
     page:"Track 30",
     img: "headphone.png",
@@ -7927,7 +7472,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 30.mp3"
 },
 {
-    id: 666,
+    id: 626,
     bookname: "Steam Reading 2",
     page:"Track 31",
     img: "headphone.png",
@@ -7937,7 +7482,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 31.mp3"
 },
 {
-    id: 667,
+    id: 627,
     bookname: "Steam Reading 2",
     page:"Track 32",
     img: "headphone.png",
@@ -7947,7 +7492,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 32.mp3"
 },
 {
-    id: 668,
+    id: 628,
     bookname: "Steam Reading 2",
     page:"Track 33",
     img: "headphone.png",
@@ -7957,7 +7502,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 33.mp3"
 },
 {
-    id: 669,
+    id: 629,
     bookname: "Steam Reading 2",
     page:"Track 34",
     img: "headphone.png",
@@ -7967,7 +7512,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 34.mp3"
 },
 {
-    id: 670,
+    id: 630,
     bookname: "Steam Reading 2",
     page:"Track 35",
     img: "headphone.png",
@@ -7977,7 +7522,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 35.mp3"
 },
 {
-    id: 671,
+    id: 631,
     bookname: "Steam Reading 2",
     page:"Track 36",
     img: "headphone.png",
@@ -7987,7 +7532,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 36.mp3"
 },
 {
-    id: 672,
+    id: 632,
     bookname: "Steam Reading 2",
     page:"Track 37",
     img: "headphone.png",
@@ -7997,7 +7542,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 37.mp3"
 },
 {
-    id: 673,
+    id: 633,
     bookname: "Steam Reading 2",
     page:"Track 38",
     img: "headphone.png",
@@ -8007,7 +7552,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 38.mp3"
 },
 {
-    id: 674,
+    id: 634,
     bookname: "Steam Reading 2",
     page:"Track 39",
     img: "headphone.png",
@@ -8017,7 +7562,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 39.mp3"
 },
 {
-    id: 675,
+    id: 635,
     bookname: "Steam Reading 2",
     page:"Track 40",
     img: "headphone.png",
@@ -8027,7 +7572,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 40.mp3"
 },
 {
-    id: 676,
+    id: 636,
     bookname: "Steam Reading 2",
     page:"Track 41",
     img: "headphone.png",
@@ -8037,7 +7582,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 41.mp3"
 },
 {
-    id: 677,
+    id: 637,
     bookname: "Steam Reading 2",
     page:"Track 42",
     img: "headphone.png",
@@ -8047,7 +7592,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 42.mp3"
 },
 {
-    id: 678,
+    id: 638,
     bookname: "Steam Reading 2",
     page:"Track 43",
     img: "headphone.png",
@@ -8057,7 +7602,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 43.mp3"
 },
 {
-    id: 679,
+    id: 639,
     bookname: "Steam Reading 2",
     page:"Track 44",
     img: "headphone.png",
@@ -8067,7 +7612,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 44.mp3"
 },
 {
-    id: 680,
+    id: 640,
     bookname: "Steam Reading 2",
     page:"Track 45",
     img: "headphone.png",
@@ -8077,7 +7622,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 45.mp3"
 },
 {
-    id: 681,
+    id: 641,
     bookname: "Steam Reading 2",
     page:"Track 46",
     img: "headphone.png",
@@ -8087,7 +7632,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 46.mp3"
 },
 {
-    id: 682,
+    id: 642,
     bookname: "Steam Reading 2",
     page:"Track 47",
     img: "headphone.png",
@@ -8097,7 +7642,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary2/Track 47.mp3"
 },
 {
-    id: 683,
+    id: 643,
     bookname: "Steam Reading 2",
     page:"Track 48",
     img: "headphone.png",
@@ -8231,7 +7776,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 
 
  {
-    id: 684,
+    id: 644,
     bookname: "Steam Reading 3",
     page:"Track 1",
     img: "headphone.png",
@@ -8241,7 +7786,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 1.mp3"
 },
 {
-    id: 685,
+    id: 645,
     bookname: "Steam Reading 3",
     page:"Track 2",
     img: "headphone.png",
@@ -8251,7 +7796,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 2.mp3"
 },
 {
-    id: 686,
+    id: 646,
     bookname: "Steam Reading 3",
     page:"Track 3",
     img: "headphone.png",
@@ -8261,7 +7806,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 3.mp3"
 },
 {
-    id: 687,
+    id: 647,
     bookname: "Steam Reading 3",
     page:"Track 4",
     img: "headphone.png",
@@ -8271,7 +7816,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 4.mp3"
 },
 {
-    id: 688,
+    id: 648,
     bookname: "Steam Reading 3",
     page:"Track 5",
     img: "headphone.png",
@@ -8281,7 +7826,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 5.mp3"
 },
 {
-    id: 689,
+    id: 649,
     bookname: "Steam Reading 3",
     page:"Track 6",
     img: "headphone.png",
@@ -8291,7 +7836,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 6.mp3"
 },
 {
-    id: 690,
+    id: 650,
     bookname: "Steam Reading 3",
     page:"Track 7",
     img: "headphone.png",
@@ -8301,7 +7846,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 7.mp3"
 },
 {
-    id: 691,
+    id: 651,
     bookname: "Steam Reading 3",
     page:"Track 8",
     img: "headphone.png",
@@ -8311,7 +7856,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 8.mp3"
 },
 {
-    id: 692,
+    id: 652,
     bookname: "Steam Reading 3",
     page:"Track 9",
     img: "headphone.png",
@@ -8321,7 +7866,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 9.mp3"
 },
 {
-    id: 693,
+    id: 653,
     bookname: "Steam Reading 3",
     page:"Track 10",
     img: "headphone.png",
@@ -8331,7 +7876,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 10.mp3"
 },
 {
-    id: 694,
+    id: 654,
     bookname: "Steam Reading 3",
     page:"Track 11",
     img: "headphone.png",
@@ -8341,7 +7886,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 11.mp3"
 },
 {
-    id: 695,
+    id: 655,
     bookname: "Steam Reading 3",
     page:"Track 12",
     img: "headphone.png",
@@ -8351,7 +7896,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 12.mp3"
 },
 {
-    id: 696,
+    id: 656,
     bookname: "Steam Reading 3",
     page:"Track 13",
     img: "headphone.png",
@@ -8361,7 +7906,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 13.mp3"
 },
 {
-    id: 697,
+    id: 657,
     bookname: "Steam Reading 3",
     page:"Track 14",
     img: "headphone.png",
@@ -8371,7 +7916,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 14.mp3"
 },
 {
-    id: 698,
+    id: 658,
     bookname: "Steam Reading 3",
     page:"Track 15",
     img: "headphone.png",
@@ -8381,7 +7926,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 15.mp3"
 },
 {
-    id: 699,
+    id: 659,
     bookname: "Steam Reading 3",
     page:"Track 16",
     img: "headphone.png",
@@ -8391,7 +7936,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 16.mp3"
 },
 {
-    id: 700,
+    id: 660,
     bookname: "Steam Reading 3",
     page:"Track 17",
     img: "headphone.png",
@@ -8401,7 +7946,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 17.mp3"
 },
 {
-    id: 701,
+    id: 661,
     bookname: "Steam Reading 3",
     page:"Track 18",
     img: "headphone.png",
@@ -8411,7 +7956,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 18.mp3"
 },
 {
-    id: 702,
+    id: 662,
     bookname: "Steam Reading 3",
     page:"Track 19",
     img: "headphone.png",
@@ -8421,7 +7966,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 19.mp3"
 },
 {
-    id: 703,
+    id: 663,
     bookname: "Steam Reading 3",
     page:"Track 20",
     img: "headphone.png",
@@ -8431,7 +7976,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 20.mp3"
 },
 {
-    id: 704,
+    id: 664,
     bookname: "Steam Reading 3",
     page:"Track 21",
     img: "headphone.png",
@@ -8441,7 +7986,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 21.mp3"
 },
 {
-    id: 705,
+    id: 665,
     bookname: "Steam Reading 3",
     page:"Track 22",
     img: "headphone.png",
@@ -8451,7 +7996,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 22.mp3"
 },
 {
-    id: 706,
+    id: 666,
     bookname: "Steam Reading 3",
     page:"Track 23",
     img: "headphone.png",
@@ -8461,7 +8006,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 23.mp3"
 },
 {
-    id: 707,
+    id: 667,
     bookname: "Steam Reading 3",
     page:"Track 24",
     img: "headphone.png",
@@ -8471,7 +8016,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 24.mp3"
 },
 {
-    id: 708,
+    id: 668,
     bookname: "Steam Reading 3",
     page:"Track 25",
     img: "headphone.png",
@@ -8481,7 +8026,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 25.mp3"
 },
 {
-    id: 709,
+    id: 669,
     bookname: "Steam Reading 3",
     page:"Track 26",
     img: "headphone.png",
@@ -8491,7 +8036,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 26.mp3"
 },
 {
-    id: 710,
+    id: 670,
     bookname: "Steam Reading 3",
     page:"Track 27",
     img: "headphone.png",
@@ -8501,7 +8046,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 27.mp3"
 },
 {
-    id: 711,
+    id: 671,
     bookname: "Steam Reading 3",
     page:"Track 28",
     img: "headphone.png",
@@ -8511,7 +8056,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 28.mp3"
 },
 {
-    id: 712,
+    id: 672,
     bookname: "Steam Reading 3",
     page:"Track 29",
     img: "headphone.png",
@@ -8521,7 +8066,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 29.mp3"
 },
 {
-    id: 713,
+    id: 673,
     bookname: "Steam Reading 3",
     page:"Track 30",
     img: "headphone.png",
@@ -8531,7 +8076,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 30.mp3"
 },
 {
-    id: 714,
+    id: 674,
     bookname: "Steam Reading 3",
     page:"Track 31",
     img: "headphone.png",
@@ -8541,7 +8086,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 31.mp3"
 },
 {
-    id: 715,
+    id: 675,
     bookname: "Steam Reading 3",
     page:"Track 32",
     img: "headphone.png",
@@ -8551,7 +8096,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 32.mp3"
 },
 {
-    id: 716,
+    id: 676,
     bookname: "Steam Reading 3",
     page:"Track 33",
     img: "headphone.png",
@@ -8561,7 +8106,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 33.mp3"
 },
 {
-    id: 717,
+    id: 677,
     bookname: "Steam Reading 3",
     page:"Track 34",
     img: "headphone.png",
@@ -8571,7 +8116,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 34.mp3"
 },
 {
-    id: 718,
+    id: 678,
     bookname: "Steam Reading 3",
     page:"Track 35",
     img: "headphone.png",
@@ -8581,7 +8126,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 35.mp3"
 },
 {
-    id: 719,
+    id: 679,
     bookname: "Steam Reading 3",
     page:"Track 36",
     img: "headphone.png",
@@ -8591,7 +8136,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 36.mp3"
 },
 {
-    id: 720,
+    id: 680,
     bookname: "Steam Reading 3",
     page:"Track 37",
     img: "headphone.png",
@@ -8601,7 +8146,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 37.mp3"
 },
 {
-    id: 721,
+    id: 681,
     bookname: "Steam Reading 3",
     page:"Track 38",
     img: "headphone.png",
@@ -8611,7 +8156,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 38.mp3"
 },
 {
-    id: 722,
+    id: 682,
     bookname: "Steam Reading 3",
     page:"Track 39",
     img: "headphone.png",
@@ -8621,7 +8166,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 39.mp3"
 },
 {
-    id: 723,
+    id: 683,
     bookname: "Steam Reading 3",
     page:"Track 40",
     img: "headphone.png",
@@ -8631,7 +8176,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 40.mp3"
 },
 {
-    id: 724,
+    id: 684,
     bookname: "Steam Reading 3",
     page:"Track 41",
     img: "headphone.png",
@@ -8641,7 +8186,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 41.mp3"
 },
 {
-    id: 725,
+    id: 685,
     bookname: "Steam Reading 3",
     page:"Track 42",
     img: "headphone.png",
@@ -8651,7 +8196,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 42.mp3"
 },
 {
-    id: 726,
+    id: 686,
     bookname: "Steam Reading 3",
     page:"Track 43",
     img: "headphone.png",
@@ -8661,7 +8206,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 43.mp3"
 },
 {
-    id: 727,
+    id: 687,
     bookname: "Steam Reading 3",
     page:"Track 44",
     img: "headphone.png",
@@ -8671,7 +8216,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 44.mp3"
 },
 {
-    id: 728,
+    id: 688,
     bookname: "Steam Reading 3",
     page:"Track 45",
     img: "headphone.png",
@@ -8681,7 +8226,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 45.mp3"
 },
 {
-    id: 729,
+    id: 689,
     bookname: "Steam Reading 3",
     page:"Track 46",
     img: "headphone.png",
@@ -8691,7 +8236,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 46.mp3"
 },
 {
-    id: 730,
+    id: 690,
     bookname: "Steam Reading 3",
     page:"Track 47",
     img: "headphone.png",
@@ -8701,7 +8246,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "steamreadingelementary3/Track 47.mp3"
 },
 {
-    id: 731,
+    id: 691,
     bookname: "Steam Reading 3",
     page:"Track 48",
     img: "headphone.png",
@@ -8924,7 +8469,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 
 
 {
-    id: 732,
+    id: 692,
     bookname: "Super Easy Reading 2",
     page:"Track 2",
     img: "headphone.png",
@@ -8934,7 +8479,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track02.mp3",
 },
 {
-    id: 733,
+    id: 693,
     bookname: "Super Easy Reading 2",
     page:"Track 3",
     img: "headphone.png",
@@ -8945,7 +8490,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 }
 ,
 {
-    id: 734,
+    id: 694,
     bookname: "Super Easy Reading 2",
     page:"Track 4",
     img: "headphone.png",
@@ -8955,7 +8500,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track04.mp3"
 },
 {
-    id: 735,
+    id: 695,
     bookname: "Super Easy Reading 2",
     page:"Track 5",
     img: "headphone.png",
@@ -8965,7 +8510,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track05.mp3"
 },
 {
-    id: 736,
+    id: 696,
     bookname: "Super Easy Reading 2",
     page:"Track 6",
     img: "headphone.png",
@@ -8975,7 +8520,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track06.mp3"
 },
 {
-    id: 737,
+    id: 697,
     bookname: "Super Easy Reading 2",
     page:"Track 7",
     img: "headphone.png",
@@ -8985,7 +8530,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track07.mp3"
 },
 {
-    id: 738,
+    id: 698,
     bookname: "Super Easy Reading 2",
     page:"Track 8",
     img: "headphone.png",
@@ -8995,7 +8540,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track08.mp3"
 },
 {
-    id: 739,
+    id: 699,
     bookname: "Super Easy Reading 2",
     page:"Track 9",
     img: "headphone.png",
@@ -9005,7 +8550,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track09.mp3"
 },
 {
-    id: 740,
+    id: 700,
     bookname: "Super Easy Reading 2",
     page:"Track 10",
     img: "headphone.png",
@@ -9015,7 +8560,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track10.mp3"
 },
 {
-    id: 741,
+    id: 701,
     bookname: "Super Easy Reading 2",
     page:"Track 11",
     img: "headphone.png",
@@ -9025,7 +8570,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track11.mp3"
 },
 {
-    id: 742,
+    id: 702,
     bookname: "Super Easy Reading 2",
     page:"Track 12",
     img: "headphone.png",
@@ -9035,7 +8580,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track12.mp3"
 },
 {
-    id: 743,
+    id: 703,
     bookname: "Super Easy Reading 2",
     page:"Track 13",
     img: "headphone.png",
@@ -9045,7 +8590,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track13.mp3"
 },
 {
-    id: 744,
+    id: 704,
     bookname: "Super Easy Reading 2",
     page:"Track 14",
     img: "headphone.png",
@@ -9055,7 +8600,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track14.mp3"
 },
 {
-    id: 745,
+    id: 705,
     bookname: "Super Easy Reading 2",
     page:"Track 15",
     img: "headphone.png",
@@ -9065,7 +8610,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track15.mp3"
 },
 {
-    id: 746,
+    id: 706,
     bookname: "Super Easy Reading 2",
     page:"Track 16",
     img: "headphone.png",
@@ -9075,7 +8620,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track16.mp3"
 },
 {
-    id: 747,
+    id: 707,
     bookname: "Super Easy Reading 2",
     page:"Track 17",
     img: "headphone.png",
@@ -9085,7 +8630,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track17.mp3"
 },
 {
-    id: 748,
+    id: 708,
     bookname: "Super Easy Reading 2",
     page:"Track 18",
     img: "headphone.png",
@@ -9095,7 +8640,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track18.mp3"
 },
 {
-    id: 749,
+    id: 709,
     bookname: "Super Easy Reading 2",
     page:"Track 19",
     img: "headphone.png",
@@ -9105,7 +8650,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track19.mp3"
 },
 {
-    id: 750,
+    id: 710,
     bookname: "Super Easy Reading 2",
     page:"Track 20",
     img: "headphone.png",
@@ -9115,7 +8660,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track20.mp3"
 },
 {
-    id: 751,
+    id: 711,
     bookname: "Super Easy Reading 2",
     page:"Track 21",
     img: "headphone.png",
@@ -9125,7 +8670,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track21.mp3"
 },
 {
-    id: 752,
+    id: 712,
     bookname: "Super Easy Reading 2",
     page:"Track 22",
     img: "headphone.png",
@@ -9135,7 +8680,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track22.mp3"
 },
 {
-    id: 753,
+    id: 713,
     bookname: "Super Easy Reading 2",
     page:"Track 23",
     img: "headphone.png",
@@ -9145,7 +8690,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track23.mp3"
 },
 {
-    id: 754,
+    id: 714,
     bookname: "Super Easy Reading 2",
     page:"Track 24",
     img: "headphone.png",
@@ -9155,7 +8700,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track24.mp3"
 },
 {
-    id: 755,
+    id: 715,
     bookname: "Super Easy Reading 2",
     page:"Track 25",
     img: "headphone.png",
@@ -9165,7 +8710,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track25.mp3"
 },
 {
-    id: 756,
+    id: 716,
     bookname: "Super Easy Reading 2",
     page:"Track 26",
     img: "headphone.png",
@@ -9175,7 +8720,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track26.mp3"
 },
 {
-    id: 757,
+    id: 717,
     bookname: "Super Easy Reading 2",
     page:"Track 27",
     img: "headphone.png",
@@ -9185,7 +8730,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track27.mp3"
 },
 {
-    id: 758,
+    id: 718,
     bookname: "Super Easy Reading 2",
     page:"Track 28",
     img: "headphone.png",
@@ -9195,7 +8740,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track28.mp3"
 },
 {
-    id: 759,
+    id: 719,
     bookname: "Super Easy Reading 2",
     page:"Track 29",
     img: "headphone.png",
@@ -9205,7 +8750,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track29.mp3"
 },
 {
-    id: 760,
+    id: 720,
     bookname: "Super Easy Reading 2",
     page:"Track 30",
     img: "headphone.png",
@@ -9215,7 +8760,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track30.mp3"
 },
 {
-    id: 761,
+    id: 721,
     bookname: "Super Easy Reading 2",
     page:"Track 31",
     img: "headphone.png",
@@ -9225,7 +8770,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track31.mp3"
 },
 {
-    id: 762,
+    id: 722,
     bookname: "Super Easy Reading 2",
     page:"Track 32",
     img: "headphone.png",
@@ -9235,7 +8780,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track32.mp3"
 },
 {
-    id: 763,
+    id: 723,
     bookname: "Super Easy Reading 2",
     page:"Track 33",
     img: "headphone.png",
@@ -9245,7 +8790,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track33.mp3"
 },
 {
-    id: 764,
+    id: 724,
     bookname: "Super Easy Reading 2",
     page:"Track 34",
     img: "headphone.png",
@@ -9255,7 +8800,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track34.mp3"
 },
 {
-    id: 765,
+    id: 725,
     bookname: "Super Easy Reading 2",
     page:"Track 35",
     img: "headphone.png",
@@ -9265,7 +8810,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track35.mp3"
 },
 {
-    id: 766,
+    id: 726,
     bookname: "Super Easy Reading 2",
     page:"Track 36",
     img: "headphone.png",
@@ -9275,7 +8820,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track36.mp3"
 },
 {
-    id: 767,
+    id: 727,
     bookname: "Super Easy Reading 2",
     page:"Track 37",
     img: "headphone.png",
@@ -9285,7 +8830,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track37.mp3"
 },
 {
-    id: 768,
+    id: 728,
     bookname: "Super Easy Reading 2",
     page:"Track 38",
     img: "headphone.png",
@@ -9295,7 +8840,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track38.mp3"
 },
 {
-    id: 769,
+    id: 729,
     bookname: "Super Easy Reading 2",
     page:"Track 39",
     img: "headphone.png",
@@ -9305,7 +8850,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track39.mp3"
 },
 {
-    id: 770,
+    id: 730,
     bookname: "Super Easy Reading 2",
     page:"Track 40",
     img: "headphone.png",
@@ -9315,7 +8860,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track40.mp3"
 },
 {
-    id: 771,
+    id: 731,
     bookname: "Super Easy Reading 2",
     page:"Track 41",
     img: "headphone.png",
@@ -9325,7 +8870,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track41.mp3"
 },
 {
-    id: 772,
+    id: 732,
     bookname: "Super Easy Reading 2",
     page:"Track 42",
     img: "headphone.png",
@@ -9335,7 +8880,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track42.mp3"
 },
 {
-    id: 773,
+    id: 733,
     bookname: "Super Easy Reading 2",
     page:"Track 43",
     img: "headphone.png",
@@ -9345,7 +8890,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track43.mp3"
 },
 {
-    id: 774,
+    id: 734,
     bookname: "Super Easy Reading 2",
     page:"Track 44",
     img: "headphone.png",
@@ -9355,7 +8900,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track44.mp3"
 },
 {
-    id: 775,
+    id: 735,
     bookname: "Super Easy Reading 2",
     page:"Track 45",
     img: "headphone.png",
@@ -9365,7 +8910,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track45.mp3"
 },
 {
-    id: 776,
+    id: 736,
     bookname: "Super Easy Reading 2",
     page:"Track 46",
     img: "headphone.png",
@@ -9375,7 +8920,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track46.mp3"
 },
 {
-    id: 777,
+    id: 737,
     bookname: "Super Easy Reading 2",
     page:"Track 47",
     img: "headphone.png",
@@ -9385,7 +8930,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track47.mp3"
 },
 {
-    id: 778,
+    id: 738,
     bookname: "Super Easy Reading 2",
     page:"Track 48",
     img: "headphone.png",
@@ -9395,7 +8940,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 2/Track48.mp3"
 },
 {
-    id: 779,
+    id: 739,
     bookname: "Super Easy Reading 2",
     page:"Track 49",
     img: "headphone.png",
@@ -9619,7 +9164,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 
 
 {
-    id: 780,
+    id: 740,
     bookname: "Super Easy Reading 3",
     page:"Track 2",
     img: "headphone.png",
@@ -9629,7 +9174,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track02.mp3",
 },
 {
-    id: 781,
+    id: 741,
     bookname: "Super Easy Reading 3",
     page:"Track 3",
     img: "headphone.png",
@@ -9640,7 +9185,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
 }
 ,
 {
-    id: 782,
+    id: 742,
     bookname: "Super Easy Reading 3",
     page:"Track 4",
     img: "headphone.png",
@@ -9650,7 +9195,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track04.mp3"
 },
 {
-    id: 783,
+    id: 743,
     bookname: "Super Easy Reading 3",
     page:"Track 5",
     img: "headphone.png",
@@ -9660,7 +9205,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track05.mp3"
 },
 {
-    id: 784,
+    id: 744,
     bookname: "Super Easy Reading 3",
     page:"Track 6",
     img: "headphone.png",
@@ -9670,7 +9215,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track06.mp3"
 },
 {
-    id: 785,
+    id: 745,
     bookname: "Super Easy Reading 3",
     page:"Track 7",
     img: "headphone.png",
@@ -9680,7 +9225,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track07.mp3"
 },
 {
-    id: 786,
+    id: 746,
     bookname: "Super Easy Reading 3",
     page:"Track 8",
     img: "headphone.png",
@@ -9690,7 +9235,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track08.mp3"
 },
 {
-    id: 787,
+    id: 747,
     bookname: "Super Easy Reading 3",
     page:"Track 9",
     img: "headphone.png",
@@ -9700,7 +9245,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track09.mp3"
 },
 {
-    id: 788,
+    id: 748,
     bookname: "Super Easy Reading 3",
     page:"Track 10",
     img: "headphone.png",
@@ -9710,7 +9255,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track10.mp3"
 },
 {
-    id: 789,
+    id: 749,
     bookname: "Super Easy Reading 3",
     page:"Track 11",
     img: "headphone.png",
@@ -9720,7 +9265,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track11.mp3"
 },
 {
-    id: 790,
+    id: 750,
     bookname: "Super Easy Reading 3",
     page:"Track 12",
     img: "headphone.png",
@@ -9730,7 +9275,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track12.mp3"
 },
 {
-    id: 791,
+    id: 751,
     bookname: "Super Easy Reading 3",
     page:"Track 13",
     img: "headphone.png",
@@ -9740,7 +9285,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track13.mp3"
 },
 {
-    id: 792,
+    id: 752,
     bookname: "Super Easy Reading 3",
     page:"Track 14",
     img: "headphone.png",
@@ -9750,7 +9295,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track14.mp3"
 },
 {
-    id: 793,
+    id: 753,
     bookname: "Super Easy Reading 3",
     page:"Track 15",
     img: "headphone.png",
@@ -9760,7 +9305,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track15.mp3"
 },
 {
-    id: 794,
+    id: 754,
     bookname: "Super Easy Reading 3",
     page:"Track 16",
     img: "headphone.png",
@@ -9770,7 +9315,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track16.mp3"
 },
 {
-    id: 795,
+    id: 755,
     bookname: "Super Easy Reading 3",
     page:"Track 17",
     img: "headphone.png",
@@ -9780,7 +9325,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track17.mp3"
 },
 {
-    id: 796,
+    id: 756,
     bookname: "Super Easy Reading 3",
     page:"Track 18",
     img: "headphone.png",
@@ -9790,7 +9335,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track18.mp3"
 },
 {
-    id: 797,
+    id: 757,
     bookname: "Super Easy Reading 3",
     page:"Track 19",
     img: "headphone.png",
@@ -9800,7 +9345,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track19.mp3"
 },
 {
-    id: 798,
+    id: 758,
     bookname: "Super Easy Reading 3",
     page:"Track 20",
     img: "headphone.png",
@@ -9810,7 +9355,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track20.mp3"
 },
 {
-    id: 799,
+    id: 759,
     bookname: "Super Easy Reading 3",
     page:"Track 21",
     img: "headphone.png",
@@ -9820,7 +9365,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track21.mp3"
 },
 {
-    id: 800,
+    id: 760,
     bookname: "Super Easy Reading 3",
     page:"Track 22",
     img: "headphone.png",
@@ -9830,7 +9375,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track22.mp3"
 },
 {
-    id: 801,
+    id: 761,
     bookname: "Super Easy Reading 3",
     page:"Track 23",
     img: "headphone.png",
@@ -9840,7 +9385,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track23.mp3"
 },
 {
-    id: 802,
+    id: 762,
     bookname: "Super Easy Reading 3",
     page:"Track 24",
     img: "headphone.png",
@@ -9850,7 +9395,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track24.mp3"
 },
 {
-    id: 803,
+    id: 763,
     bookname: "Super Easy Reading 3",
     page:"Track 25",
     img: "headphone.png",
@@ -9860,7 +9405,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track25.mp3"
 },
 {
-    id: 804,
+    id: 764,
     bookname: "Super Easy Reading 3",
     page:"Track 26",
     img: "headphone.png",
@@ -9870,7 +9415,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track26.mp3"
 },
 {
-    id: 805,
+    id: 765,
     bookname: "Super Easy Reading 3",
     page:"Track 27",
     img: "headphone.png",
@@ -9880,7 +9425,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track27.mp3"
 },
 {
-    id: 806,
+    id: 766,
     bookname: "Super Easy Reading 3",
     page:"Track 28",
     img: "headphone.png",
@@ -9890,7 +9435,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track28.mp3"
 },
 {
-    id: 807,
+    id: 767,
     bookname: "Super Easy Reading 3",
     page:"Track 29",
     img: "headphone.png",
@@ -9900,7 +9445,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track29.mp3"
 },
 {
-    id: 808,
+    id: 768,
     bookname: "Super Easy Reading 3",
     page:"Track 30",
     img: "headphone.png",
@@ -9910,7 +9455,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track30.mp3"
 },
 {
-    id: 809,
+    id: 769,
     bookname: "Super Easy Reading 3",
     page:"Track 31",
     img: "headphone.png",
@@ -9920,7 +9465,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track31.mp3"
 },
 {
-    id: 810,
+    id: 770,
     bookname: "Super Easy Reading 3",
     page:"Track 32",
     img: "headphone.png",
@@ -9930,7 +9475,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track32.mp3"
 },
 {
-    id: 811,
+    id: 771,
     bookname: "Super Easy Reading 3",
     page:"Track 33",
     img: "headphone.png",
@@ -9940,7 +9485,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track33.mp3"
 },
 {
-    id: 812,
+    id: 772,
     bookname: "Super Easy Reading 3",
     page:"Track 34",
     img: "headphone.png",
@@ -9950,7 +9495,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track34.mp3"
 },
 {
-    id: 813,
+    id: 773,
     bookname: "Super Easy Reading 3",
     page:"Track 35",
     img: "headphone.png",
@@ -9960,7 +9505,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track35.mp3"
 },
 {
-    id: 814,
+    id: 774,
     bookname: "Super Easy Reading 3",
     page:"Track 36",
     img: "headphone.png",
@@ -9970,7 +9515,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track36.mp3"
 },
 {
-    id: 815,
+    id: 775,
     bookname: "Super Easy Reading 3",
     page:"Track 37",
     img: "headphone.png",
@@ -9980,7 +9525,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track37.mp3"
 },
 {
-    id: 816,
+    id: 776,
     bookname: "Super Easy Reading 3",
     page:"Track 38",
     img: "headphone.png",
@@ -9990,7 +9535,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track38.mp3"
 },
 {
-    id: 817,
+    id: 777,
     bookname: "Super Easy Reading 3",
     page:"Track 39",
     img: "headphone.png",
@@ -10000,7 +9545,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track39.mp3"
 },
 {
-    id: 818,
+    id: 778,
     bookname: "Super Easy Reading 3",
     page:"Track 40",
     img: "headphone.png",
@@ -10010,7 +9555,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track40.mp3"
 },
 {
-    id: 819,
+    id: 779,
     bookname: "Super Easy Reading 3",
     page:"Track 41",
     img: "headphone.png",
@@ -10020,7 +9565,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track41.mp3"
 },
 {
-    id: 820,
+    id: 780,
     bookname: "Super Easy Reading 3",
     page:"Track 42",
     img: "headphone.png",
@@ -10030,7 +9575,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track42.mp3"
 },
 {
-    id: 821,
+    id: 781,
     bookname: "Super Easy Reading 3",
     page:"Track 43",
     img: "headphone.png",
@@ -10040,7 +9585,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track43.mp3"
 },
 {
-    id: 822,
+    id: 782,
     bookname: "Super Easy Reading 3",
     page:"Track 44",
     img: "headphone.png",
@@ -10050,7 +9595,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track44.mp3"
 },
 {
-    id: 823,
+    id: 783,
     bookname: "Super Easy Reading 3",
     page:"Track 45",
     img: "headphone.png",
@@ -10060,7 +9605,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track45.mp3"
 },
 {
-    id: 824,
+    id: 784,
     bookname: "Super Easy Reading 3",
     page:"Track 46",
     img: "headphone.png",
@@ -10070,7 +9615,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track46.mp3"
 },
 {
-    id: 825,
+    id: 785,
     bookname: "Super Easy Reading 3",
     page:"Track 47",
     img: "headphone.png",
@@ -10080,7 +9625,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track47.mp3"
 },
 {
-    id: 826,
+    id: 786,
     bookname: "Super Easy Reading 3",
     page:"Track 48",
     img: "headphone.png",
@@ -10090,7 +9635,7 @@ musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
     musicName: "super easy reading 3e 3/Track48.mp3"
 },
 {
-    id: 827 ,
+    id: 787 ,
     bookname: "Super Easy Reading 3",
     page:"Track 49",
     img: "headphone.png",
