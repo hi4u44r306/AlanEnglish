@@ -21,6 +21,7 @@ import ThumbUp from '../assets/img/thumbup.png';
 import Search from '../assets/img/search.png';
 import File from '../assets/img/file.png';
 import Mail from '../assets/img/mail.png';
+import Trophy from '../assets/img/trophy.png';
 import { Link } from "react-router-dom";
 import Brand from "./Brand";
 
@@ -130,7 +131,10 @@ function NavigationMobile() {
 
                   {/* 排行榜 */}
                   <Nav.Link as={Link} to="/home/leaderboard" className="navlinkscoreboard">
-                  🏆排行榜
+                  <img style={{ width: 18, marginRight: 4 }} 
+                      src={Trophy} 
+                      alt="bluebook"
+                  />排行榜
                   </Nav.Link>
                   
                   {/* 聽力本 */}
