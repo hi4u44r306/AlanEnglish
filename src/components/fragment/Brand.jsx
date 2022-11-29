@@ -1,13 +1,12 @@
 import React from "react";
 import {Link} from "react-router-dom";
-import "../assets/scss/Brand.scss";
+import "../assets/scss/Brand.css";
 
 class Brand extends React.Component {
     render() {
         return (
             <div className={"brand"}>
-                <Link to={"/home"}>
-                <h1>
+                <div as={Link} to={"/home"}>
                     <span>A</span>
                     <span>L</span>
                     <span>A</span>
@@ -20,8 +19,7 @@ class Brand extends React.Component {
                     <span>I</span>
                     <span>S</span>
                     <span>H</span>
-                </h1>
-                </Link>
+                </div>
             </div>
         );
     }
