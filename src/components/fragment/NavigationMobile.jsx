@@ -13,7 +13,7 @@ import SearchBar from "./SearchBar";
 import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import Star from '../assets/img/star.png';
-import GreenBook from '../assets/img/green book.png';
+// import GreenBook from '../assets/img/green book.png';
 import BlueBook from '../assets/img/blue book.png';
 import OrangeBook from '../assets/img/orange book.png';
 import Books from '../assets/img/books.png';
