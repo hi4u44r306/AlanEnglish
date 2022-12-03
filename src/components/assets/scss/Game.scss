@@ -1,7 +1,7 @@
 .questionbox {
-  padding: 20px;
+  padding: 20 0 20 0;
   margin: 10px;
-  border-radius: 20px;
+  width: 90vw;
   background-color: #edf7ff;
 }
 .questiontext {
@@ -14,7 +14,7 @@
   color: #000000;
   border-radius: 20px;
   margin: 10px;
-  padding: 10px;
+  padding: 15px;
   font-family: "Varela Round", sans-serif;
   font-weight: 600;
 }
@@ -24,6 +24,12 @@
   padding: 10px;
   color: #000000;
   border-radius: 20px;
+  font-family: "Varela Round", sans-serif;
+  font-weight: 600;
+}
+.題目 {
+  display: flex;
+  justify-content: center;
   font-family: "Varela Round", sans-serif;
   font-weight: 600;
 }
@@ -55,8 +61,8 @@
 }
 .closebtn {
   position: fixed;
-  right: 35px;
-  top: 100px;
+  right: 20px;
+  top: 20px;
   cursor: pointer;
 }
 .submitanswerbtn {
@@ -106,16 +112,25 @@
   font-weight: 600;
 }
 .gamebox {
-  box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
-  height: 78vh;
-  margin: 15px;
+  // box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
+  // margin: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 75vh;
+  width: 90vw;
+  border-radius: 20px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #edf7ff;
   padding: 20px;
-  border-radius: 5px;
+  z-index: 1000;
 }
 .boxtitle {
   top: 0;
-  z-index: 1;
-  margin: 10px;
   font-size: 30px;
   font-weight: 700;
   padding: 5px;
@@ -276,9 +291,9 @@
     justify-content: space-evenly;
 
     button {
-      width: 150px;
-      height: 90px;
-      font-size: 35px;
+      width: 60px;
+      height: 60px;
+      font-size: 25px;
     }
   }
   // .recordingbtn .submitanswerbtn .stoprecordbtn .nextquestionbtn {

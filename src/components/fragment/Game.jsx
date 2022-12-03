@@ -135,62 +135,62 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
       setNote('')
     }
     if (!open) return null
-    return (
+    return(
       <>
-      <Containerfull>
+        <Containerfull>
+          <div className='Overlay'/>
           <div className='gamebox'>
             <div>
-              <div>
-                <ToastContainer
-                position="top-center"
-                autoClose={2000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                />
-              </div> 
-              <div className='boxtitle'>
-                <span className='closebtn' onClick={onClose}>❌</span>
-                <Name name={bookname} className={"game-name"}/>
-                <Name name={pagename} className={"game-name"}/>
-                <div className="questionindex">第 {currentQuestion + 1} 題 / 共{questions[0].length}題</div>
-              </div>
-              <div className='questionbox'>
-                <div className='questiontext'>題目 : {questions[0][currentQuestion].questionText}</div>
-                {/* 電腦版顯示 */}
-                  <div className="computer-btncontainer">
-                    <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>提交答案 ✅</button>
-                    {isListening ? 
-                      <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡暫停 🟥 </button> 
-                      : 
-                      <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡開始錄音 🎙️</button>
-                    }
-                    <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>下一題 ⏭️</button>
-                  </div>
-
-                {/* 手機版顯示 */}
-                  <div className="mobile-btncontainer">
-                    <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>✅</button>
-                    {isListening ? 
-                      <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}>🟥 </button> 
-                      : 
-                      <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}>🎙️</button>
-                    }
-                    <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>⏭️</button>
-                  </div>
-
-
-                  {/* <div className='gamenote'>你的回答 : {note}</div> */}
-                  <div className='gamenote' key={score}>準確度 : {score}%</div>
-              </div>   
+              <ToastContainer
+              position="top-center"
+              autoClose={2000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              />
+            </div> 
+            <div className='boxtitle'>
+              <span className='closebtn' onClick={onClose}>❌</span>
+              <Name name={bookname} className={"game-name"}/>
+              <Name name={pagename} className={"game-name"}/>
+              <div className="questionindex">第 {currentQuestion + 1} 題 / 共{questions[0].length}題</div>
             </div>
+            <div className='questionbox'>
+              <div className='題目'>題目 :</div>
+              <div className='questiontext'> {questions[0][currentQuestion].questionText}</div>
+              {/* 電腦版顯示 */}
+                <div className="computer-btncontainer">
+                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>提交答案 ✅</button>
+                  {isListening ? 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡暫停 🟥 </button> 
+                    : 
+                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡開始錄音 🎙️</button>
+                  }
+                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>下一題 ⏭️</button>
+                </div>
+
+              {/* 手機版顯示 */}
+                <div className="mobile-btncontainer">
+                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>✅</button>
+                  {isListening ? 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}>🟥 </button> 
+                    : 
+                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}>🎙️</button>
+                  }
+                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>⏭️</button>
+                </div>
+
+
+                {/* <div className='gamenote'>你的回答 : {note}</div> */}
+                <div className='gamenote' key={score}>正確率 : {score}%</div>
+            </div>   
           </div>
-      </Containerfull>
-    </>
+        </Containerfull>
+      </>
   )
 }
 

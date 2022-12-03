@@ -10,9 +10,9 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import SearchBar from "./SearchBar";
-import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
+// import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import Star from '../assets/img/star.png';
+// import Star from '../assets/img/star.png';
 // import GreenBook from '../assets/img/green book.png';
 import BlueBook from '../assets/img/blue book.png';
 import OrangeBook from '../assets/img/orange book.png';
@@ -33,11 +33,11 @@ function NavigationMobile() {
   const db = firebase.firestore();
   const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
   // const [updated, setUpdated] = useState();
-  const currentDate = new Date().toJSON().slice(0, 10);
-  const currentMonth = new Date().toJSON().slice(0, 7);
-  const [dailytimeplayed, setDailyTimeplayed] = useState();
-  const percentage = dailytimeplayed*100/20;
-  const custompathColor = `#89aae6`
+  // const currentDate = new Date().toJSON().slice(0, 10);
+  // const currentMonth = new Date().toJSON().slice(0, 7);
+  // const [dailytimeplayed, setDailyTimeplayed] = useState();
+  // const percentage = dailytimeplayed*100/20;
+  // const custompathColor = `#89aae6`
 
   const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
     if(user){
@@ -51,11 +51,11 @@ function NavigationMobile() {
         }, err =>{
             console.log(err.message);
         });
-        db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc)=>{
-          setDailyTimeplayed(doc.data().todaytotaltimeplayed);
-        }).catch(()=>{
-            setDailyTimeplayed("0")
-        })
+        // db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc)=>{
+        //   setDailyTimeplayed(doc.data().todaytotaltimeplayed);
+        // }).catch(()=>{
+        //     setDailyTimeplayed("0")
+        // })
     }else{
 
     }
@@ -101,7 +101,7 @@ function NavigationMobile() {
                 <Nav className="d-flex align-items-center justify-content-end flex-grow-1">
 
                   {/* 星星圓形 */}
-                  <div className='navcurrentdaycircle'>
+                  {/* <div className='navcurrentdaycircle'>
                     <CircularProgressbarWithChildren value={percentage || 'Loading...'} 
                         background
                         styles={buildStyles({
@@ -118,11 +118,11 @@ function NavigationMobile() {
                         />
                         <div className={dailytimeplayed >= 20?'navdailycircletextcomplete':'navdailycircletextnotcomplete'}> X {dailytimeplayed || '0'} </div>
                     </CircularProgressbarWithChildren>
-                  </div>
+                  </div> */}
 
                   {/* 用戶資料 */}
                   <Nav.Link as={Link} to="/home/userinfo" className="navlinkscoreboard">
-                    <div className="d-flex flex-column align-items-center">
+                    <div className="username">
                       <p>
                        {navusername || '----'} 
                       </p>
