@@ -40,7 +40,28 @@ function FooterMusicPlayer({music}) {
 
     useEffect(() => {
         setCurrTrack(music);
-    }, [music]);
+        // 每月1號重置所有播放次數//
+        userRef.get().then((doc) =>{
+            if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
+                userRef.set({
+                    totaltimeplayed : 0,
+                    currdatetimeplayed : 0,
+                    Resetallmusic : currentMonth+'alreadyupdated',
+                },{merge: true})
+                for(let i = 0; i < 601; i++){      
+                    let j = "'"+i+"'"
+                    userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+                        timeplayed : 0,
+                    })        
+                }
+                console.log('First time reset')
+            }else{
+                console.log('this account is alreadyreset')
+            }
+        }).catch(() =>{
+        })
+        console.log('footermusicplayerlog')
+    }, [currentMonth, music, userRef]);
         
 
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
@@ -54,25 +75,6 @@ function FooterMusicPlayer({music}) {
     });
 
     
-    // userRef.get().then((doc) =>{
-    //     if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
-    //         userRef.set({
-    //             totaltimeplayed : 0,
-    //             currdatetimeplayed : 0,
-    //             Resetallmusic : currentMonth+'alreadyupdated',
-    //         },{merge: true})
-    //         for(let i = 0; i < 601; i++){      
-    //             let j = "'"+i+"'"
-    //             userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
-    //                 timeplayed : 0,
-    //             })        
-    //         }
-    //         console.log('First time reset')
-    //     }else{
-    //         console.log('this account is alreadyreset')
-    //     }
-    // }).catch(() =>{
-    // })
     
     const updatetimeplayedtofirestore = () => {
 

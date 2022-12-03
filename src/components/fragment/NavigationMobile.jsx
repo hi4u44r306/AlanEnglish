@@ -77,7 +77,7 @@ function NavigationMobile() {
   return (
     <div>
       {['xl'].map((expand) => (
-        <Navbar collapseOnSelect key={expand} expand={expand} className="navbackground">
+        <Navbar collapseOnSelect={true} key={expand} expand={expand} className="navbackground">
           <Container fluid className="containerfluid">
 
             <Navbar.Brand as={Link} to="/home/leaderboard" className="brand">
