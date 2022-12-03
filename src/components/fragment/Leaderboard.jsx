@@ -23,9 +23,10 @@ class Leaderboard extends React.Component{
   
     return new Date(date.getFullYear(), date.getMonth() + 1, 1);
   }
-  nextMonth = new Date().getMonth()+3;
 
+  nextMonth = new Date().getMonth()+3;
   firstdayofmonth = this.currentMonth + '-01';
+
   lastday = function(y,m){
     return  new Date(y, m +1, 0).getDate();
   }
@@ -118,7 +119,7 @@ class Leaderboard extends React.Component{
               <div className='countdownlabel'>
                 {this.resetDate}日結算
               </div>
-              <CountdownTimer countdownTimestampMs={1669852800000}/> 
+              <CountdownTimer countdownTimestampMs={1672416000000}/> 
             </div>
             {/* <div className='prize'>
               <div>各班前七名獎品待定</div>
