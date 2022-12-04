@@ -1,3 +1,7 @@
+@font-face {
+  font-family: "Gotham Rounded";
+  src: url("https://fonts.cdnfonts.com/css/gotham-rounded");
+}
 .brand {
   display: flex;
   -moz-user-select: none;
