@@ -62,7 +62,7 @@
     font-family: "Nunito", sans-serif;
     font-size: 60px;
     font-weight: 700;
-    letter-spacing: 5px;
+    letter-spacing: 4px;
     cursor: pointer;
   }
 
@@ -87,6 +87,7 @@
   }
   .loginbrand span:nth-child(5) {
     display: space;
+    margin: 6px;
   }
   .loginbrand span:nth-child(6) {
     color: #2d7dd2;
