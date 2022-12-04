@@ -8,8 +8,8 @@
   font-size: 25px;
   font-family: "Nunito", sans-serif;
   /* font-family: "Varela Round", sans-serif; */
-  font-weight: 900;
-  /* letter-spacing: 2px; */
+  font-weight: 500;
+  letter-spacing: 2px;
   cursor: pointer;
 
   span {
