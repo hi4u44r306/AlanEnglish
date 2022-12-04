@@ -1,7 +1,7 @@
 .Login {
   // cursor: url("https://www.google.com/url?sa=i&url=https%3A%2F%2Fblog.tcea.org%2Fcopyright-free-images-2%2F&psig=AOvVaw3vYuvtdYCSRp_gOPIjjlAk&ust=1667921830393000&source=images&cd=vfe&ved=0CA0QjRxqFwoTCNj225OznPsCFQAAAAAdAAAAABAE"),
   //   auto;
-  font-family: "Poppins", sans-serif;
+  font-family: "Gotham Rounded";
   background-color: #ffffff;
   height: 100vh;
   text-align: center;
@@ -14,7 +14,7 @@
   display: flex;
   font-size: 1.3rem;
   .logincopyright {
-    font-family: "Varela Round", sans-serif;
+    font-family: "Gotham Rounded";
     font-weight: 600;
     color: #ff0000;
     font-size: 0.9rem;
@@ -40,7 +40,7 @@
     border: 10px solid rgb(255, 191, 63);
     // box-shadow: 5px 5px rgb(255, 191, 63);
     color: rgb(255, 255, 255);
-    font-family: "Poppins", sans-serif;
+    font-family: "Gotham Rounded";
     font-weight: 700;
     font-size: 20px;
     margin: 10px;
@@ -59,7 +59,7 @@
   .loginbrand {
     padding: 30px;
     border-radius: 20px;
-    font-family: "Varela Round", sans-serif;
+    font-family: "Gotham Rounded";
     font-size: 60px;
     font-weight: 900;
     letter-spacing: 3px;
@@ -117,7 +117,7 @@
     text-shadow: 1px 0px 0px #4062bb;
   }
   .loginbrandbottomtext {
-    font-family: "Varela Round", sans-serif;
+    font-family: "Gotham Rounded";
     // color: #f8eeee;
     color: rgb(46, 148, 33);
     font-size: 1.2rem;
@@ -194,7 +194,7 @@
   }
 }
 .notification {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Gotham Rounded";
 }
 
 @media only screen and (max-width: 900px) {
@@ -202,7 +202,7 @@
     display: flex;
     align-content: center;
     .loginbrandbottomtext {
-      font-family: "Varela Round", sans-serif;
+      font-family: "Gotham Rounded";
       font-size: 15px;
     }
     .Left {
