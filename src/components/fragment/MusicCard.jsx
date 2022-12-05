@@ -59,30 +59,6 @@ function MusicCard(props) {
                         <PlayCircleFilledWhiteIcon/>
                     </div>
                 </div>
-                
-                <div onClick={handlePlay} className={"music-card-cover"} >
-                <div onClick={handlePlay} className='testbutton'>
-                        播放此音軌 <PlayCircleOutlineIcon className="playicon"/>
-                    </div>
-                </div>
-                <div onClick=
-                {
-                    ()=> 
-                    {
-                        if(questions === undefined)
-                        {
-                            setIsOpen(false); 
-                            alert('目前未開放')
-                        }
-                        else{
-                            setIsOpen(true);
-                        }
-                    }
-                } className={"music-card-cover"} >
-                    <div className='testbutton'>
-                        {page} 小測驗 <PlayCircleOutlineIcon className="circleicon"/>
-                    </div>
-                </div>
                 <React.Fragment>
                     <div className='gamesection'>
                         <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} onClose={()=>setIsOpen(false)}></Game>
@@ -101,6 +77,34 @@ function MusicCard(props) {
                         <Name name={"分"} className={"song-name"}/>
                     </div>
                 </React.Fragment>
+                <div className='d-flex justify-content-center'>
+                    <div onClick={handlePlay} className={"music-card-cover"} >
+                        <div onClick={handlePlay} className='testbutton'>
+                            <span>播放</span>
+                            <PlayCircleOutlineIcon className="playicon"/>
+                        </div>
+                    </div>
+                    <div onClick=
+                    {
+                        ()=> 
+                        {
+                            if(questions === undefined)
+                            {
+                                setIsOpen(false); 
+                                alert('目前未開放')
+                            }
+                            else{
+                                setIsOpen(true);
+                            }
+                        }
+                    } className={"music-card-cover"} >
+                        <div className='testbutton'>
+                            <span>小測驗</span>
+                            <PlayCircleOutlineIcon className="circleicon"/>
+                        </div>
+                    </div>
+                </div>
+                
             </>
             }
         </div>

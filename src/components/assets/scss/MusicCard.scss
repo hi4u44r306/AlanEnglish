@@ -9,15 +9,21 @@
   height: fit-content;
 }
 .testbutton {
+  display: flex;
+  align-items: center;
+  align-content: center;
   font-size: 15px;
-  font-weight: 900;
-  font-family: "Varela Round", sans-serif;
+  font-weight: 800;
+  font-family: "Nunito", sans-serif;
   // border: solid 2px rgba(0, 0, 0, 0.534);
   background-color: bisque;
   border-radius: 50px;
   margin: 10px;
   padding: 10px;
   cursor: pointer;
+}
+.testbutton > span {
+  margin-right: 5px;
 }
 .testbutton:hover {
   // box-shadow: 0 0 15px rgba(0, 132, 255, 0.629);

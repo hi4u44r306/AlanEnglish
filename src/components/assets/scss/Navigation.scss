@@ -15,25 +15,25 @@
   padding: 20px 20px;
 }
 .navcurrentdaycircle {
-  font-family: "Varela Round", sans-serif;
-  font-weight: 900;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
   width: 60px;
   height: 60px;
 }
 .navdailycircletextcomplete {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
-  font-weight: 900;
+  font-weight: 700;
   align-items: center;
   color: #fc3434;
   font-size: 15px;
 }
 .navdailycircletextnotcomplete {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
-  font-weight: 900;
+  font-weight: 700;
   align-items: center;
   color: #000000;
   font-size: 15px;
@@ -49,7 +49,7 @@
 .toggle {
   // background-color: rgb(255, 255, 255);
   border: none;
-  font-weight: 900;
+  font-weight: 700;
 }
 .navbar-toggler-icon {
   font-size: 23px;
@@ -75,14 +75,14 @@
   padding: auto;
   color: #2d7dd2;
   font-size: 18px;
-  font-family: "Varela Round", sans-serif;
-  font-weight: 900;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
   cursor: pointer;
 }
 .navlink {
   color: black !important;
-  font-family: "Varela Round", sans-serif;
-  font-weight: 900;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
   font-size: 15px;
 }
 .nav-link {
@@ -102,15 +102,15 @@
   padding: auto;
   color: rgb(255, 0, 0) !important;
   font-size: 16px;
-  font-family: "Varela Round", sans-serif;
-  font-weight: 900;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
 }
 // .navlinklabel {
 //   padding: auto;
 //   color: rgb(0, 140, 255) !important;
 //   font-size: 16px;
-//   font-family: "Varela Round", sans-serif;
-//   font-weight: 900;
+//   font-family: "Nunito", sans-serif;
+//   font-weight: 700;
 // }
 
 .subnavlink {
@@ -121,7 +121,7 @@
   -webkit-background-clip: text, padding-box;
   background-clip: text, padding-box;
   transition: 0.3s;
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: 700;
   font-size: 16px;
   padding: 10px;

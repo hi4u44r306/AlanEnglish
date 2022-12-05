@@ -1,5 +1,5 @@
 .classtitle {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   border-radius: 30px;
   display: flex;
   justify-content: space-around;
@@ -26,13 +26,14 @@ tbody {
 }
 .countdown {
   font-size: 30px;
-  font-weight: 900;
+  font-weight: 800;
   color: #005b7f;
   text-align: center;
   align-items: center;
   .countdownlabel {
     color: #f65050e7;
     font-size: 20px;
+    font-family: "Nunito", sans-serif;
   }
 }
 .loudspeaker1 {
@@ -49,7 +50,7 @@ tbody {
   height: 120px;
 }
 .prize {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   border: solid 5px #ffd000;
   border-radius: 30px;
   display: flex;

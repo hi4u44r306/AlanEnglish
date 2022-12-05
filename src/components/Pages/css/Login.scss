@@ -15,7 +15,7 @@
   font-size: 1.3rem;
   .logincopyright {
     font-family: "Nunito", sans-serif;
-    font-weight: 600;
+    font-weight: 800;
     color: #ff0000;
     font-size: 0.9rem;
     text-align: center;
@@ -61,7 +61,7 @@
     border-radius: 20px;
     font-family: "Nunito", sans-serif;
     font-size: 60px;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 4px;
     cursor: pointer;
   }
@@ -163,10 +163,11 @@
         font-size: 20px;
         border-radius: 5px;
         border: 3.5px solid rgb(46, 148, 33);
+        font-weight: 700;
       }
       input::placeholder {
         color: #aaa;
-        font-weight: 200;
+        font-weight: 700;
       }
     }
     .loginbtn {

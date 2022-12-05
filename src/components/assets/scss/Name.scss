@@ -1,21 +1,21 @@
 .marqueenamelabel {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
 }
 .marqueename {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
   color: red;
 }
 .timeplayed {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   color: red;
-  font-weight: 900;
+  font-weight: 700;
   font-size: 0.8rem;
   text-align: center;
   justify-content: space-around;
@@ -23,8 +23,8 @@
   user-select: none;
 }
 .game-name {
-  font-family: "Varela Round", sans-serif;
-  font-weight: bolder;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
   font-size: 1.1rem;
   text-align: center;
   cursor: default;
@@ -32,22 +32,22 @@
   margin: 10px;
 }
 .song-name {
-  font-family: "Varela Round", sans-serif;
-  font-weight: bolder;
+  font-family: "Nunito";
+  font-weight: 700;
   font-size: 0.8rem;
   text-align: center;
   cursor: default;
   user-select: none;
 }
 .author-name {
-  font-family: "Varela Round", sans-serif;
-  font-weight: lighter;
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
   color: gray;
   cursor: default;
   user-select: none;
 }
 .emptysong-name {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: bolder;
   font-size: 1.2rem;
   text-align: center;

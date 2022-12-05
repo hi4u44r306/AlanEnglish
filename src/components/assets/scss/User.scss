@@ -2,6 +2,7 @@
   display: flex;
   justify-content: flex-start;
   gap: 20px;
+  font-weight: 800;
 }
 .userinfoptag {
   color: #fc3434;
@@ -31,7 +32,7 @@
   gap: 20px;
 }
 .currentdaycircle {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   font-weight: 900;
   width: 100px;
   height: 100px;
@@ -49,7 +50,7 @@
   align-content: center;
 }
 .dailycircletext {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
   font-weight: 900;
@@ -58,7 +59,7 @@
   gap: 10px;
 }
 .dailycircletext1 {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
   font-weight: 900;
@@ -67,7 +68,7 @@
   font-size: 25px;
 }
 .dailycircletext2 {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
   font-weight: 900;
@@ -76,7 +77,7 @@
   font-size: 15px;
 }
 .complete {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
   font-weight: 900;
@@ -88,7 +89,7 @@
   display: none;
 }
 .User {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
 }
 .loader {
   display: flex;
@@ -157,16 +158,16 @@
 .User-profile-title {
   color: #3fa7d6;
   display: flex;
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   font-size: 55px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 3px;
 }
 .User-profile-today {
-  font-family: "Varela Round", sans-serif;
+  font-family: "Nunito", sans-serif;
   color: #fe4a49;
   font-size: 20px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 @media screen and (max-width: 800px) {

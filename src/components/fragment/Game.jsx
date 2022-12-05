@@ -157,7 +157,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
               <span className='closebtn' onClick={onClose}>❌</span>
               <Name name={bookname} className={"game-name"}/>
               <Name name={pagename} className={"game-name"}/>
-              <div className="questionindex">第 {currentQuestion + 1} 題 / 共{questions[0].length}題</div>
+              <div className="questionindex">第 {currentQuestion + 1} 題 / 共 {questions[0].length} 題</div>
             </div>
             <div className='questionbox'>
               <div className='題目'>題目 :</div>

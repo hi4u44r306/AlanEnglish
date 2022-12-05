@@ -1,19 +1,26 @@
-*{
+* {
   box-sizing: border-box;
+  font-family: "Nunito", sans-serif;
 }
-body{
-  font-family: Consolas,sans-serif;
+body {
+  font-family: Consolas, sans-serif;
   padding: 0;
   margin: 0;
 }
-h1,h2,h3,h4,h5,h6,p{
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
   margin: 0;
   padding: 0;
 }
-a{
+a {
   text-decoration: none;
 }
-button{
+button {
   text-transform: capitalize !important;
 }
 /* width */
@@ -24,7 +31,6 @@ button{
 /* Track */
 ::-webkit-scrollbar-track {
   background: #fafafa;
-
 }
 
 /* Handle */
