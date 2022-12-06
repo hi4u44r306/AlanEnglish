@@ -28,6 +28,12 @@ tbody {
   // border: solid 10px rgb(255, 32, 32);
   padding: 10px;
 }
+.leaderboard > table > thead > tr > th > span > img {
+  width: 20px;
+}
+tbody > tr > td > b > span > img {
+  width: 20px;
+}
 .leaderboardmaintitle {
   background-color: #ffd000;
   border-radius: 20px;
@@ -98,6 +104,12 @@ tbody {
   }
   table {
     font-size: 11px;
+  }
+  .leaderboard > table > thead > tr > th > span > img {
+    width: 13px;
+  }
+  tbody > tr > td > b > span > img {
+    width: 13px;
   }
   .loudspeaker1 {
     width: 40px;

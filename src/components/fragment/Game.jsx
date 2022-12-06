@@ -23,8 +23,8 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
     
     const finishnotification = () =>  {
       toast.success('恭喜你完成測驗 測驗視窗即將關閉',{
-        className:"notification",
-        position: "bottom-center",
+        className:"gamenotification",
+        position: "top-center",
         autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
@@ -82,8 +82,8 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
     
     const success = () =>  {
       toast.success('太棒了',{
-        className:"notification",
-        position: "bottom-center",
+        className:"gamenotification",
+        position: "top-center",
         autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
@@ -94,9 +94,9 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
         });
       };
     const error = () =>  {
-      toast.error('準確度未超過80%，再試一次',{
-        className:"notification",
-        position: "bottom-center",
+      toast.error('正確率未超過80%，再試一次',{
+        className:"gamenotification",
+        position: "top-center",
         autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
@@ -142,7 +142,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
           <div className='gamebox'>
             <div>
               <ToastContainer
-              position="top-center"
+              position="bottom-center"
               autoClose={2000}
               hideProgressBar={false}
               newestOnTop={false}
