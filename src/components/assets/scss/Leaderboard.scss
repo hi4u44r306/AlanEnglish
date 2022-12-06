@@ -5,8 +5,10 @@
   justify-content: space-around;
   font-size: 20px;
   font-weight: 900;
-  background-color: #5098f6e7 !important;
+  background-color: #2ba84a;
+  // background-color: #5098f6e7;
   padding: 10px;
+  margin: 5px;
   color: #ffffff;
   text-align: center;
   align-items: center;
@@ -23,15 +25,21 @@ tbody {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  // border: solid 10px rgb(255, 32, 32);
+  padding: 10px;
+}
+.leaderboardmaintitle {
+  background-color: #ffd000;
+  border-radius: 20px;
 }
 .countdown {
+  padding: 10px;
   font-size: 30px;
   font-weight: 800;
   color: #005b7f;
   text-align: center;
   align-items: center;
   .countdownlabel {
-    color: #f65050e7;
     font-size: 20px;
     font-family: "Nunito", sans-serif;
   }
@@ -65,9 +73,10 @@ tbody {
   align-content: center;
 }
 .leaderboardtitle {
+  text-shadow: -2px 0 white, 0 2px white, 2px 0 white, 0 -2px white;
   display: flex;
   justify-content: space-evenly;
-  font-size: 40px;
+  font-size: 45px;
   font-weight: 900;
   color: #005b7f;
   text-align: center;
@@ -99,7 +108,7 @@ tbody {
     height: 40px;
   }
   .leaderboardtitle {
-    font-size: 20px;
+    font-size: 30px;
   }
   .prize {
     font-size: 10px;
@@ -110,7 +119,7 @@ tbody {
   .coltitle {
     font-size: 10px;
   }
-  .countdown {
+  .countdown > .countdownlabel {
     font-size: 15px;
   }
   .card {

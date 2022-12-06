@@ -25,14 +25,15 @@ const CountdownTimer = ({countdownTimestampMs}) => {
 
     return(
         <div className="countdown-timer">
+            <span>結算倒數 : </span>
             <span>{remainingTime.days}</span>
-            <span>days</span>
+            <span>天</span>
             <span className="two-numbers">{remainingTime.hours}</span>
-            <span>hours</span>
+            <span>小時</span>
             <span className="two-numbers">{remainingTime.minutes}</span>
-            <span>minutes</span>
-            <span className="two-numbers">{remainingTime.seconds}</span>
-            <span>seconds</span>
+            <span>分鐘</span>
+            {/* <span className="two-numbers">{remainingTime.seconds}</span>
+            <span>秒</span> */}
         </div>
     );
 }

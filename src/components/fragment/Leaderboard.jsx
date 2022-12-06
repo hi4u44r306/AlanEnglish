@@ -2,9 +2,16 @@ import React from 'react'
 import '../assets/scss/Leaderboard.scss';
 import firebase from 'firebase/app';
 // import loudspeaker from '../assets/img/loudspeaker.png'
-import loudspeaker from '../assets/img/mic.png'
+// import loudspeaker from '../assets/img/mic.png'
 import CountdownTimer from './CountdownTimer';
 import Containerfull from './Containerfull';
+import first from '../assets/img/firstplace.png';
+import second from '../assets/img/secondplace.png';
+import third from '../assets/img/thirdplace.png';
+import Trophy from '../assets/img/trophy.png';
+import Sun from '../assets/img/sun.png';
+import Sparkles from '../assets/img/sparkles.png';
+import Headphone from '../assets/img/leaderboardheadphone.png';
 
 class Leaderboard extends React.Component{
 
@@ -106,35 +113,33 @@ class Leaderboard extends React.Component{
     return(
       <Containerfull>
           <div className='leaderboard'>
-            <div className='leaderboardtitle'>
-              <div>
-                <img className='loudspeaker1' src={loudspeaker} alt='#'/>
+            <div className='leaderboardmaintitle'>
+              <div className='leaderboardtitle'>
+                {/* <div>
+                  <img className='loudspeaker1' src={loudspeaker} alt='#'/>
+                </div> */}
+                  Leaderboard
+                {/* <div>
+                  <img className='loudspeaker2' src={loudspeaker} alt='#'/>
+                </div> */}
               </div>
-                播放次數排行榜
-              <div>
-                <img className='loudspeaker2' src={loudspeaker} alt='#'/>
+              <div className='countdown'>
+                <div className='countdownlabel'>
+                  {this.resetDate}日結算
+                </div>
+                <CountdownTimer countdownTimestampMs={1672416000000}/> 
               </div>
             </div>
-            <div className='countdown'>
-              <div className='countdownlabel'>
-                {this.resetDate}日結算
-              </div>
-              <CountdownTimer countdownTimestampMs={1672416000000}/> 
-            </div>
-            {/* <div className='prize'>
-              <div>各班前七名獎品待定</div>
-            </div>   */}
-
             {/* A班 */}
-            <div className='classtitle'>A班</div>
+            <div className='classtitle'>A 班</div>
             <table className='table table-border'>
               <thead>
                 <tr>
-                  <th className='coltitle'>🏆 Rank</th>
-                  <th className='coltitle'>👦 Name 👩</th>
-                  <th className='coltitle'>✨ 最新上線日期</th>
-                  <th className='coltitle'>🎵 當日播放次數</th>
-                  <th className='coltitle'>🎧 本月累積次數</th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                  {/* <th className='coltitle'>🎵 當日播放次數</th> */}
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -143,9 +148,32 @@ class Leaderboard extends React.Component{
                   this.state.studentsA.map((studentsA, index) =>{
                     return(
                       <tr key={index}>
-                        <td className='d-flex justify-content-center'>
-                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
-                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
+                        <td>
+                         <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                            {index + 1===1? 
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={first} 
+                                alt="1st"/>
+                                 1st
+                              </span>
+                              : 
+                              index+1===2?
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={second} 
+                                alt="2nd"/>
+                                 2nd
+                              </span>
+                              : 
+                              index+1===3?
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={third} 
+                                alt="3rd"/>
+                                 3rd
+                              </span>
+                              : index+1}
                           </b>
                         </td>
                         <td key={studentsA.name}>
@@ -168,7 +196,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
-                        <td key={studentsA.index}>
+                        {/* <td key={studentsA.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -180,7 +208,7 @@ class Leaderboard extends React.Component{
                               </b>
                             </div>
                           </div>
-                        </td>
+                        </td> */}
                         <td key={studentsA.totaltimeplayed}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
@@ -197,21 +225,21 @@ class Leaderboard extends React.Component{
               </tbody>
               <tfoot>
                 <tr>
-                  <td className='coltitle' colSpan="5">!!這是A班最後一筆資料了!!</td>
+                  <td className='coltitle' colSpan="5">!! 這是A班最後一筆資料了 !!</td>
                 </tr>
               </tfoot>
             </table>
 
               {/* B班 */}
-              <div className='classtitle'>B班</div>
+              <div className='classtitle'>B 班</div>
               <table className='table table-border'>
                 <thead>
                   <tr>
-                    <th className='coltitle'>🏆 Rank</th>
-                    <th className='coltitle'>👦 Name 👩</th>
-                    <th className='coltitle'>✨ 最新上線日期</th>
-                    <th className='coltitle'>🎵 當日播放次數</th>
-                    <th className='coltitle'>🎧 本月累積次數</th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                    {/* <th className='coltitle'>🎵 當日播放次數</th> */}
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
                   </tr>
                 </thead>
               <tbody>
@@ -221,8 +249,31 @@ class Leaderboard extends React.Component{
                     return(
                       <tr key={index}>
                         <td className='d-flex justify-content-center'>
-                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
-                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
+                        <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                            {index + 1===1? 
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={first} 
+                                alt="1st"/>
+                                 1st
+                              </span>
+                              : 
+                              index+1===2?
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={second} 
+                                alt="2nd"/>
+                                 2nd
+                              </span>
+                              : 
+                              index+1===3?
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={third} 
+                                alt="3rd"/>
+                                 3rd
+                              </span>
+                              : index+1}
                           </b>
                         </td>
                         <td key={studentsB.name}>
@@ -245,7 +296,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
-                        <td key={studentsB.index}>
+                        {/* <td key={studentsB.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -257,7 +308,7 @@ class Leaderboard extends React.Component{
                               </b>
                             </div>
                           </div>
-                        </td>
+                        </td> */}
                         <td key={studentsB.totaltimeplayed}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
@@ -274,23 +325,23 @@ class Leaderboard extends React.Component{
               </tbody>
               <tfoot>
                 <tr>
-                  <td className='coltitle' colSpan="5">!!這是B班最後一筆資料了!!</td>
+                  <td className='coltitle' colSpan="5">!! 這是B班最後一筆資料了 !!</td>
                 </tr>
               </tfoot>
             </table>
 
               {/* C班 */}
-              <div className='classtitle'>C班</div>
+              <div className='classtitle'>C 班</div>
               <table className='table table-border'>
-                <thead>
-                  <tr>
-                    <th className='coltitle'>🏆 Rank</th>
-                    <th className='coltitle'>👦 Name 👩</th>
-                    <th className='coltitle'>✨ 最新上線日期</th>
-                    <th className='coltitle'>🎵 當日播放次數</th>
-                    <th className='coltitle'>🎧 本月累積次數</th>
-                  </tr>
-                </thead>
+              <thead>
+                <tr>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                  {/* <th className='coltitle'>🎵 當日播放次數</th> */}
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
+                </tr>
+              </thead>
               <tbody>
               {
                   this.state.studentsC &&
@@ -298,8 +349,31 @@ class Leaderboard extends React.Component{
                     return(
                       <tr key={index}>
                         <td className='d-flex justify-content-center'>
-                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
-                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
+                        <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                            {index + 1===1? 
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={first} 
+                                alt="1st"/>
+                                 1st
+                              </span>
+                              : 
+                              index+1===2?
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={second} 
+                                alt="2nd"/>
+                                 2nd
+                              </span>
+                              : 
+                              index+1===3?
+                              <span>
+                                <img style={{ width: 20, marginRight: 7 }} 
+                                src={third} 
+                                alt="3rd"/>
+                                 3rd
+                              </span>
+                              : index+1}
                           </b>
                         </td>
                         <td key={studentsC.name}>
@@ -322,7 +396,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td>
-                        <td key={studentsC.index}>
+                        {/* <td key={studentsC.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -334,7 +408,7 @@ class Leaderboard extends React.Component{
                               </b>
                             </div>
                           </div>
-                        </td>
+                        </td> */}
                         <td key={studentsC.totaltimeplayed}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
@@ -351,86 +425,109 @@ class Leaderboard extends React.Component{
               </tbody>
               <tfoot>
                 <tr>
-                  <td className='coltitle' colSpan="5">!!這是C班最後一筆資料了!!</td>
+                  <td className='coltitle' colSpan="5">!! 這是C班最後一筆資料了 !!</td>
                 </tr>
               </tfoot>
               </table>
 
               {/* D班 */}
-              <div className='classtitle'>D班</div>
+              <div className='classtitle'>D 班</div>
               <table className='table table-border'>
-                <thead>
-                  <tr>
-                    <th className='coltitle'>🏆 Rank</th>
-                    <th className='coltitle'>👦 Name 👩</th>
-                    <th className='coltitle'>✨ 最新上線日期</th>
-                    <th className='coltitle'>🎵 當日播放次數</th>
-                    <th className='coltitle'>🎧 本月累積次數</th>
-                  </tr>
-                </thead>
-              <tbody>
-              {
-                  this.state.studentsD &&
-                  this.state.studentsD.map((studentsD, index) =>{
-                    return(
-                      <tr key={index}>
-                        <td className='d-flex justify-content-center'>
-                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
-                            {index + 1===1?'🥇1st': index+1===2?'🥈2nd': index+1===3?'🥉3rd': index+1}
-                          </b>
-                        </td>
-                        <td key={studentsD.name}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b><span className='font-weight-bold'>{studentsD.name}</span></b>
-                            </div>
-                          </div>
-                        </td>
-                        <td key={studentsD.onlinetime}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold'>
-                                  <span className={studentsD.onlinetime?'text-success' || '':'text-danger'}>
-                                    {studentsD.onlinetime || '近期無上線'}
-                                  </span>
-                                </span>
-                              </b>
-                            </div>
-                          </div>
-                        </td>
-                        <td key={studentsD.index}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold' >
-                                  <span className={studentsD.currdatetimeplayed?'text-success' || '':'text-danger'}>
-                                    {studentsD.currdatetimeplayed || '0'}次
-                                  </span>
-                                </span>
-                              </b>
-                            </div>
-                          </div>
-                        </td>
-                        <td key={studentsD.totaltimeplayed}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold' >{studentsD.totaltimeplayed}次</span>
-                              </b>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                      )
-                    })
-                  }
-              </tbody>
-              <tfoot>
+              <thead>
                 <tr>
-                  <td className='coltitle' colSpan="5">!!這是D班最後一筆資料了!!</td>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                  {/* <th className='coltitle'>🎵 當日播放次數</th> */}
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{width: 20, marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
                 </tr>
-              </tfoot>
+              </thead>
+                <tbody>
+                {
+                    this.state.studentsD &&
+                    this.state.studentsD.map((studentsD, index) =>{
+                      return(
+                        <tr key={index}>
+                          <td className='d-flex justify-content-center'>
+                            <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
+                              {index + 1===1? 
+                                <span>
+                                  <img style={{ width: 20, marginRight: 7 }} 
+                                  src={first} 
+                                  alt="1st"/>
+                                  1st
+                                </span>
+                                : 
+                                index+1===2?
+                                <span>
+                                  <img style={{ width: 20, marginRight: 7 }} 
+                                  src={second} 
+                                  alt="2nd"/>
+                                  2nd
+                                </span>
+                                : 
+                                index+1===3?
+                                <span>
+                                  <img style={{ width: 20, marginRight: 7 }} 
+                                  src={third} 
+                                  alt="3rd"/>
+                                  3rd
+                                </span>
+                                : index+1}
+                            </b>
+                          </td>
+                          <td key={studentsD.name}>
+                            <div className='d-flex justify-content-center'>
+                              <div className="align-self-center pl-3">
+                                <b><span className='font-weight-bold'>{studentsD.name}</span></b>
+                              </div>
+                            </div>
+                          </td>
+                          <td key={studentsD.onlinetime}>
+                            <div className='d-flex justify-content-center'>
+                              <div className="align-self-center pl-3">
+                                <b>
+                                  <span className='font-weight-bold'>
+                                    <span className={studentsD.onlinetime?'text-success' || '':'text-danger'}>
+                                      {studentsD.onlinetime || '近期無上線'}
+                                    </span>
+                                  </span>
+                                </b>
+                              </div>
+                            </div>
+                          </td>
+                          {/* <td key={studentsD.index}>
+                            <div className='d-flex justify-content-center'>
+                              <div className="align-self-center pl-3">
+                                <b>
+                                  <span className='font-weight-bold' >
+                                    <span className={studentsD.currdatetimeplayed?'text-success' || '':'text-danger'}>
+                                      {studentsD.currdatetimeplayed || '0'}次
+                                    </span>
+                                  </span>
+                                </b>
+                              </div>
+                            </div>
+                          </td> */}
+                          <td key={studentsD.totaltimeplayed}>
+                            <div className='d-flex justify-content-center'>
+                              <div className="align-self-center pl-3">
+                                <b>
+                                  <span className='font-weight-bold' >{studentsD.totaltimeplayed}次</span>
+                                </b>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        )
+                      })
+                    }
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td className='coltitle' colSpan="5">!! 這是D班最後一筆資料了 !!</td>
+                  </tr>
+                </tfoot>
               </table>
           </div>            
       </Containerfull>
