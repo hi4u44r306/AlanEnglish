@@ -77,7 +77,7 @@ class Login extends React.Component{
         firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
         .then((userCredential)=>{
             firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
-                const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 1000));
+                const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 500));
                 toast.promise(
                     resolveAfter1SecSuccess,
                     {
@@ -89,12 +89,13 @@ class Login extends React.Component{
                         success:{
                             render(){
                                 return <div className="notification">Hello {doc.data().name}</div>
-                            }
+                            },
+                            
                         }
-                    }
+                    },
+                    setTimeout(function(){window.location = "/home/leaderboard";}) 
                 );
             })
-            setTimeout(function(){window.location = "/home/leaderboard";} ,1500); 
             
 
             
@@ -108,7 +109,7 @@ class Login extends React.Component{
             // })
         }).catch(()=>{
             const resolveAfter3Sec = new Promise((resolve, reject) =>{
-                setTimeout(reject, 1000);
+                setTimeout(reject, 2500);
             });
             toast.promise(resolveAfter3Sec,{
                 pending: 'Loading...',
