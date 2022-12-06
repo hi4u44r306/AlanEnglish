@@ -20,24 +20,24 @@ class Login extends React.Component{
         }
     }
     
-    success = (userCredential) =>  {
-        toast.success('😻Welcome😻',{
-            className:"notification",
-            position: "top-center",
-            autoClose: 500,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-            });
-            setTimeout(function(){window.location = "/home/leaderboard";} ,500); 
+    // success = (userCredential) =>  {
+    //     toast.success('😻Welcome😻',{
+    //         className:"notification",
+    //         position: "top-center",
+    //         autoClose: 500,
+    //         hideProgressBar: false,
+    //         closeOnClick: true,
+    //         pauseOnHover: false,
+    //         draggable: true,
+    //         progress: undefined,
+    //         theme: "colored",
+    //         });
+    //         setTimeout(function(){window.location = "/home/leaderboard";} ,500); 
             
-        };
+    //     };
 
     error = () =>  {
-        toast.error('🙀帳號密碼錯誤🙀',{
+        toast.error('帳號密碼錯誤 🤯',{
             className:"notification",
             position: "top-center",
             autoClose: 3000,
@@ -64,28 +64,72 @@ class Login extends React.Component{
         };
 
     login(e){
-        function subtractDays(numOfDays, date = new Date()) {
-            const dateCopy = new Date(date.getTime());
-            dateCopy.setDate(dateCopy.getDate() - numOfDays);
-            return dateCopy;
-        }
+        // function subtractDays(numOfDays, date = new Date()) {
+        //     const dateCopy = new Date(date.getTime());
+        //     dateCopy.setDate(dateCopy.getDate() - numOfDays);
+        //     return dateCopy;
+        // }
         
-        const date = new Date('2022-11-07');
-        const result = subtractDays(7, date);
-        const calculateaccountexpiretime = result.toJSON().slice(0,10)
-        e.preventDefault();
+        // const date = new Date('2022-11-07');
+        // const result = subtractDays(7, date);
+        // const calculateaccountexpiretime = result.toJSON().slice(0,10)
+        // e.preventDefault();
         firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
         .then((userCredential)=>{
-            // 檢查次帳號試用期是否已到 //
             firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
-                if(doc.data().accountcreatetime === calculateaccountexpiretime){
-                    this.expire();
-                }else{
-                    this.success();
+                const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 1000));
+                toast.promise(
+                    resolveAfter1SecSuccess,
+                    {
+                        pending: {
+                            render(){
+                              return "Loading...";
+                            },
+                          },
+                        success:{
+                            render(){
+                                return <div className="notification">Hello {doc.data().name}</div>
+                            }
+                        }
+                    }
+                );
+            })
+            setTimeout(function(){window.location = "/home/leaderboard";} ,1500); 
+            
+
+            
+            // 檢查次帳號試用期是否已到 //
+            // firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
+            //     if(doc.data().accountcreatetime === calculateaccountexpiretime){
+            //         this.expire();
+            //     }else{
+            //         this.success();
+            //     }
+            // })
+        }).catch(()=>{
+            const resolveAfter3Sec = new Promise((resolve, reject) =>{
+                setTimeout(reject, 1000);
+            });
+            toast.promise(resolveAfter3Sec,{
+                pending: 'Loading...',
+                success: 'Promise resolved 👌',
+                error:{
+                    render(){
+                        return <div className="notification">帳號密碼錯誤 🤯</div>
+                    }
                 }
             })
-        }).catch(()=>{
-            this.error();
+            // toast.promise('帳號密碼錯誤 🤯',{
+            //     className:"notification",
+            //     position: "top-center",
+            //     autoClose: 3000,
+            //     hideProgressBar: false,
+            //     closeOnClick: true,
+            //     pauseOnHover: false,
+            //     draggable: true,
+            //     progress: undefined,
+            //     theme: "colored",
+            // });
         })
     }
 
@@ -174,6 +218,7 @@ class Login extends React.Component{
                                 <ToastContainer
                                 position="top-center"
                                 autoClose={2000}
+                                limit={1}
                                 hideProgressBar={false}
                                 newestOnTop={false}
                                 closeOnClick
