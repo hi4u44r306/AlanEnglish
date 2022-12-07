@@ -135,14 +135,14 @@ class Leaderboard extends React.Component{
             <table className='table table-border'>
               <thead>
                 <tr>
-                  <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
-                  <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 
-                  <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
 
                   {/* <th className='coltitle'>🎵 當日播放次數</th> */}
-                  <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -238,14 +238,14 @@ class Leaderboard extends React.Component{
               <table className='table table-border'>
               <thead>
                 <tr>
-                  <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
-                  <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 
-                  <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
 
                   {/* <th className='coltitle'>🎵 當日播放次數</th> */}
-                  <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
+                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -341,14 +341,14 @@ class Leaderboard extends React.Component{
               <table className='table table-border'>
                 <thead>
                   <tr>
-                    <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
-                    <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 
-                    <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
 
                     {/* <th className='coltitle'>🎵 當日播放次數</th> */}
-                    <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
                   </tr>
                 </thead>
               <tbody>
@@ -357,7 +357,7 @@ class Leaderboard extends React.Component{
                   this.state.studentsC.map((studentsC, index) =>{
                     return(
                       <tr key={index}>
-                        <td className='d-flex justify-content-center w-20' >
+                        <td className='d-flex justify-content-center ' >
                         <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
                             {index + 1===1? 
                               <span>
@@ -385,14 +385,14 @@ class Leaderboard extends React.Component{
                               : index+1}
                           </b>
                         </td>
-                        <td key={studentsC.name} className='w-20'>
+                        <td key={studentsC.name} className=''>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b><span className='font-weight-bold'>{studentsC.name}</span></b>
                             </div>
                           </div>
                         </td>
-                        <td key={studentsC.onlinetime} className='w-30'>
+                        <td key={studentsC.onlinetime} className=' '>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -418,7 +418,7 @@ class Leaderboard extends React.Component{
                             </div>
                           </div>
                         </td> */}
-                        <td key={studentsC.totaltimeplayed} className='w-30'>
+                        <td key={studentsC.totaltimeplayed} className=' '>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
@@ -444,14 +444,14 @@ class Leaderboard extends React.Component{
               <table className='table table-border'>
                 <thead>
                   <tr>
-                    <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
-                    <th className='coltitle w-20'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 
-                    <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名'/>最後上線日</span></th>
 
                     {/* <th className='coltitle'>🎵 當日播放次數</th> */}
-                    <th className='coltitle w-30'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
+                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名'/>本月累積次數</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -460,7 +460,7 @@ class Leaderboard extends React.Component{
                     this.state.studentsD.map((studentsD, index) =>{
                       return(
                         <tr key={index}>
-                          <td className='d-flex justify-content-center w-20'>
+                          <td className='d-flex justify-content-center '>
                             <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
                               {index + 1===1? 
                                 <span>
@@ -488,14 +488,14 @@ class Leaderboard extends React.Component{
                                 : index+1}
                             </b>
                           </td>
-                          <td key={studentsD.name} className='w-20'>
+                          <td key={studentsD.name} className=''>
                             <div className='d-flex justify-content-center'>
                               <div className="align-self-center pl-3">
                                 <b><span className='font-weight-bold'>{studentsD.name}</span></b>
                               </div>
                             </div>
                           </td>
-                          <td key={studentsD.onlinetime} className='w-30'>
+                          <td key={studentsD.onlinetime} className=' '>
                             <div className='d-flex justify-content-center'>
                               <div className="align-self-center pl-3">
                                 <b>
@@ -521,7 +521,7 @@ class Leaderboard extends React.Component{
                               </div>
                             </div>
                           </td> */}
-                          <td key={studentsD.totaltimeplayed} className='w-30'>
+                          <td key={studentsD.totaltimeplayed} className=' '>
                             <div className='d-flex justify-content-center'>
                               <div className="align-self-center pl-3">
                                 <b>

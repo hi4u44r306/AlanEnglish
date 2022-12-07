@@ -3,6 +3,10 @@ import Containerfull from './Containerfull';
 import '../assets/scss/Game.scss';
 import { toast, ToastContainer} from "react-toastify"
 import Name from './Name';
+import CheckMark from '../assets/img/checkmark.png'
+import RedSquare from '../assets/img/redsquare.png'
+import Mic from '../assets/img/microphone.png'
+import Next from '../assets/img/next.png'
 
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
 const mic = new SpeechRecognition()
@@ -46,6 +50,9 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
           mic.onend = () => {
             console.log('continue...')
             mic.start();
+          }
+          mic.onerror = event => {
+            console.log(event.error)
           }
         }else{
           mic.stop();
@@ -170,24 +177,24 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
                 <div className='questiontext'>你的答案 : {transcript}</div>
               {/* 電腦版顯示 */}
                 <div className="computer-btncontainer">
-                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>提交答案 ✅</button>
+                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><span>提交答案</span> <img style={{ width: 22, marginLeft: 10 , marginBottom: 2, }} src={CheckMark} alt="checkmark"/></button>
                   {isListening ? 
-                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡暫停 🟥 </button> 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><span>停止</span> <img style={{ width: 22, marginLeft: 2 , marginBottom: 5, }} src={RedSquare} alt="redsquare"/></button> 
                     : 
-                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}> 點這裡開始錄音 🎙️</button>
+                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}><span>開始錄音</span> <img style={{ width: 22, marginLeft: 2 , marginBottom: 5, }} src={Mic} alt="mic"/></button>
                   }
-                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>下一題 ⏭️</button>
+                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}><span>下一題</span> <img style={{ width: 22, marginLeft: 2 , marginBottom: 5, }} src={Next} alt="mic"/></button>
                 </div>
 
               {/* 手機版顯示 */}
                 <div className="mobile-btncontainer">
-                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>✅</button>
+                  <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><img style={{ width: 30 }} src={CheckMark} alt="checkmark"/></button>
                   {isListening ? 
-                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}>🟥 </button> 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={RedSquare} alt="redsquare"/> </button> 
                     : 
-                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}>🎙️</button>
+                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={Mic} alt="mic"/></button>
                   }
-                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}>⏭️</button>
+                  <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}><img style={{ width: 30 }} src={Next} alt="mic"/></button>
                 </div>
 
 
