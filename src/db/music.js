@@ -66,7 +66,7 @@ let musicDB = [
         musicName: "super easy reading 1/SER1track02.mp3",
         questions : [
             {
-                questionText : "hello my name is super easy reading one",
+                questionText : "test",
             },
         ]
     },

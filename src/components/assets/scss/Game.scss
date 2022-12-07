@@ -1,5 +1,5 @@
 .gamenotification {
-  width: 90vw;
+  min-width: 350px;
 }
 .questionbox {
   padding: 20 0 20 0;
@@ -283,6 +283,9 @@
 }
 
 @media screen and (max-width: 695px) {
+  .gamenotification {
+    width: 90%;
+  }
   .boxtitle {
     font-size: 20px;
   }

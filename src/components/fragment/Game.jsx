@@ -13,6 +13,7 @@ mic.lang = 'en-US'
 export default function Game({open, onClose, bookname, pagename, questionsinmusic}){
 
     const questions = [questionsinmusic]
+    const [transcript, setTranscript] = useState();
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [note, setNote] = useState(null);
     const [isListening, setIsListening ] = useState(false);
@@ -63,11 +64,14 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
           const transcript = Array.from(event.results)
           .map(result => result[0])
           .map(result => result.transcript)
-          .join('')
+          .join('').toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
           console.log(transcript);
           const stringSimilarity = require("string-similarity");
-          const question = questions[0][currentQuestion].questionText
+          const question = questions[0][currentQuestion].questionText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
+          setTranscript(transcript,question);
           const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, question)*100);
+          // const test = Array.isArray(transcript) ? transcript.filter(x => question.indexOf(x) === -1) : [];
+          // console.log(test)
           setScore(similarity);
           console.log(similarity);
           setNote(transcript);
@@ -142,6 +146,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
           <div className='gamebox'>
             <div>
               <ToastContainer
+              className="gamenotification"
               position="bottom-center"
               autoClose={2000}
               hideProgressBar={false}
@@ -160,8 +165,9 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
               <div className="questionindex">第 {currentQuestion + 1} 題 / 共 {questions[0].length} 題</div>
             </div>
             <div className='questionbox'>
-              <div className='題目'>題目 :</div>
-              <div className='questiontext'> {questions[0][currentQuestion].questionText}</div>
+                <div className='題目'>題目 :</div>
+                <div className='questiontext'> {questions[0][currentQuestion].questionText.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"")}</div>
+                <div className='questiontext'>你的答案 : {transcript}</div>
               {/* 電腦版顯示 */}
                 <div className="computer-btncontainer">
                   <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}>提交答案 ✅</button>
@@ -187,6 +193,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
 
                 {/* <div className='gamenote'>你的回答 : {note}</div> */}
                 <div className='gamenote' key={score}>正確率 : {score}%</div>
+                
             </div>   
           </div>
         </Containerfull>

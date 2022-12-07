@@ -151,7 +151,7 @@ class Leaderboard extends React.Component{
                   this.state.studentsA.map((studentsA, index) =>{
                     return(
                       <tr key={index}>
-                        <td className='w-20'>
+                        <td className='d-flex justify-content-center'>
                          <b className={index + 1===1 || index + 1===2 || index + 1===3?'text-danger':''}>
                             {index + 1===1? 
                               <span>
