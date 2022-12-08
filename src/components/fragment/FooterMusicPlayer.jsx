@@ -38,7 +38,9 @@ function FooterMusicPlayer({music}) {
             });
         };
 
-    const resetfunction = () => {
+    useEffect(() => {
+        setCurrTrack(music);
+        // 每月1號重置所有播放次數//
         userRef.get().then((doc) =>{
             if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
                 userRef.set({
@@ -59,13 +61,7 @@ function FooterMusicPlayer({music}) {
             }
         }).catch(() =>{
         })
-    }
-
-    useEffect(() => {
-        setCurrTrack(music);
-        // 每月1號重置所有播放次數//
-        resetfunction();
-    }, [music]);
+    }, [currentMonth, music, userRef]);
         
 
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
