@@ -27,9 +27,9 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
 
     
     const finishnotification = () =>  {
-      toast.success('恭喜你完成測驗 測驗視窗即將關閉',{
+      toast.success('測驗結束 視窗即將關閉',{
         className:"gamenotification",
-        position: "top-center",
+        // position: "top-center",
         autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
@@ -40,7 +40,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
       });
       setTimeout(() => {
         onClose();
-      }, 2500);
+      }, 2000);
     };
 
     useEffect(()=>{
@@ -72,13 +72,13 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
           .map(result => result[0])
           .map(result => result.transcript)
           .join('').toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
-          console.log(transcript);
+
           const stringSimilarity = require("string-similarity");
           const question = questions[0][currentQuestion].questionText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
           setTranscript(transcript,question);
           const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, question)*100);
-          // const test = Array.isArray(transcript) ? transcript.filter(x => question.indexOf(x) === -1) : [];
-          // console.log(test)
+          const test = Array.isArray(transcript) ? transcript.filter(x => question.indexOf(x) === -1) : [];
+          console.log(test)
           setScore(similarity);
           console.log(similarity);
           setNote(transcript);
@@ -94,7 +94,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
     const success = () =>  {
       toast.success('太棒了',{
         className:"gamenotification",
-        position: "top-center",
+        // position: "top-center",
         autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
@@ -105,9 +105,9 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
         });
       };
     const error = () =>  {
-      toast.error('正確率未超過80%，再試一次',{
+      toast.error('低於80%，再試一次',{
         className:"gamenotification",
-        position: "top-center",
+        // position: "top-center",
         autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
@@ -153,8 +153,8 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
           <div className='gamebox'>
             <div>
               <ToastContainer
-              className="gamenotification"
-              position="bottom-center"
+              // className="gamenotification"
+              position="top-center"
               autoClose={2000}
               hideProgressBar={false}
               newestOnTop={false}

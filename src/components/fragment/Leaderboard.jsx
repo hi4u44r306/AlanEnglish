@@ -135,7 +135,7 @@ class Leaderboard extends React.Component{
             <table className='table table-border'>
               <thead>
                 <tr>
-                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                  <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
                   <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 
@@ -238,7 +238,7 @@ class Leaderboard extends React.Component{
               <table className='table table-border'>
               <thead>
                 <tr>
-                  <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                  <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
                   <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 
@@ -341,7 +341,7 @@ class Leaderboard extends React.Component{
               <table className='table table-border'>
                 <thead>
                   <tr>
-                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                    <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
                     <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 
@@ -444,7 +444,7 @@ class Leaderboard extends React.Component{
               <table className='table table-border'>
                 <thead>
                   <tr>
-                    <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
+                    <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名'/>排名</span> </th>
 
                     <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名'/>姓名</span></th>
 

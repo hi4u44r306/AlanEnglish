@@ -22,6 +22,7 @@ import Search from '../assets/img/search.png';
 import File from '../assets/img/file.png';
 import Mail from '../assets/img/mail.png';
 import Trophy from '../assets/img/trophy.png';
+import Menu from '../assets/img/menu.png';
 import { Link } from "react-router-dom";
 import Brand from "./Brand";
 
@@ -84,7 +85,9 @@ function NavigationMobile() {
              <Brand/>
             </Navbar.Brand>
 
-            <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`} />
+            <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`}>
+              <img style={{width: 40, height: 40}} src={Menu} alt="menu"/>
+            </Navbar.Toggle>
 
             <Navbar.Offcanvas
               id={`offcanvasNavbar-expand-${expand}`}

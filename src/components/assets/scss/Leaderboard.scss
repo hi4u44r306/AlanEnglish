@@ -26,7 +26,7 @@ tbody {
   -ms-user-select: none;
   user-select: none;
   // border: solid 10px rgb(255, 32, 32);
-  padding: 10px;
+  // padding: 10px;
 }
 .leaderboard > table > thead > tr > th > span > img {
   width: 20px;
@@ -89,7 +89,17 @@ tbody > tr > td > b > span > img {
   align-items: center;
 }
 .coltitle {
-  width: 200px;
+  width: 25vw;
+  padding: 15px;
+  justify-content: space-evenly;
+  font-size: 20px;
+  font-weight: 900;
+  color: #005b7f;
+  text-align: center;
+  align-items: center;
+}
+.coltitlerank {
+  width: 18vw;
   padding: 15px;
   justify-content: space-evenly;
   font-size: 20px;
@@ -130,6 +140,9 @@ tbody > tr > td > b > span > img {
     font-size: 10px;
   }
   .coltitle {
+    font-size: 10px;
+  }
+  .coltitlerank {
     font-size: 10px;
   }
   .countdown > .countdownlabel {
