@@ -38,9 +38,7 @@ function FooterMusicPlayer({music}) {
             });
         };
 
-    useEffect(() => {
-        setCurrTrack(music);
-        // 每月1號重置所有播放次數//
+    const resetfunction = () => {
         userRef.get().then((doc) =>{
             if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
                 userRef.set({
@@ -48,6 +46,7 @@ function FooterMusicPlayer({music}) {
                     currdatetimeplayed : 0,
                     Resetallmusic : currentMonth+'alreadyupdated',
                 },{merge: true})
+                console.log('test')
                 for(let i = 0; i < 601; i++){      
                     let j = "'"+i+"'"
                     userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
@@ -60,8 +59,13 @@ function FooterMusicPlayer({music}) {
             }
         }).catch(() =>{
         })
-        console.log('footermusicplayerlog')
-    }, [currentMonth, music, userRef]);
+    }
+
+    useEffect(() => {
+        setCurrTrack(music);
+        // 每月1號重置所有播放次數//
+        resetfunction();
+    }, [music]);
         
 
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
