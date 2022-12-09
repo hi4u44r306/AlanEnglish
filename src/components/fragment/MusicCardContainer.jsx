@@ -11,7 +11,7 @@ function MusicCardContainer() {
             <div className={"music-card-container"}>
                 {
                     playlists.map(item => (
-                        <MusicCard key={item.id} music={item}/>
+                        <MusicCard key={item.musicName} music={item}/>
                         ))
                     }
             </div>

@@ -73,11 +73,19 @@ class Login extends React.Component{
         // const date = new Date('2022-11-07');
         // const result = subtractDays(7, date);
         // const calculateaccountexpiretime = result.toJSON().slice(0,10)
-        // e.preventDefault();
+        e.preventDefault();
         firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
         .then((userCredential)=>{
+            // 檢查次帳號試用期是否已到 //
+            // firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
+            //     if(doc.data().accountcreatetime === calculateaccountexpiretime){
+            //         this.expire();
+            //     }else{
+            //         this.success();
+            //     }
+            // })
             firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
-                const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 500));
+                const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 1000));
                 toast.promise(
                     resolveAfter1SecSuccess,
                     {
@@ -99,14 +107,7 @@ class Login extends React.Component{
             
 
             
-            // 檢查次帳號試用期是否已到 //
-            // firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
-            //     if(doc.data().accountcreatetime === calculateaccountexpiretime){
-            //         this.expire();
-            //     }else{
-            //         this.success();
-            //     }
-            // })
+            
         }).catch(()=>{
             const resolveAfter3Sec = new Promise((resolve, reject) =>{
                 setTimeout(reject, 2500);

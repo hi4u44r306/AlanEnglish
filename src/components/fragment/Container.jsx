@@ -1,28 +1,17 @@
 import React from 'react';
-// import React, { useState } from 'react';
 import '../assets/scss/Container.scss';
-// import Game from './Game';
+// import Banner from '../assets/banner/banner03.svg'
 
 const Container = ({children}) => {
-    // const [isOpen, setIsOpen] = useState(false);
     return (
         <div className={"Container"}>
-            {/* <button onClick={()=>setIsOpen(true)}>Open Game</button>
-            <Game open={isOpen} onClose={()=>setIsOpen(false)}>
-               <div>Game Time</div>
-                <div>
-                    Question 1
-                    <button>
-                        1. ABC
-                    </button>
-                    <button>
-                        2. EFG
-                    </button>
-                    <button>
-                        3. HIJ
-                    </button>
-                </div>
-            </Game> */}
+            {/* <img className='banner' src={Banner} alt=""/> */}
+            {/* <div className='wavesection'>
+                <div className='wave wave1'></div>
+                <div className='wave wave2'></div>
+                <div className='wave wave3'></div>
+                <div className='wave wave4'></div>
+            </div> */}
             {children}
         </div>
     );

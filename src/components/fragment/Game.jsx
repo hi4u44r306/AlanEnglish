@@ -7,6 +7,7 @@ import CheckMark from '../assets/img/checkmark.png'
 import RedSquare from '../assets/img/redsquare.png'
 import Mic from '../assets/img/microphone.png'
 import Next from '../assets/img/next.png'
+import firebase from 'firebase/app';
 
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
 const mic = new SpeechRecognition()
@@ -14,7 +15,7 @@ mic.continous = true
 mic.interimResults = true
 mic.lang = 'en-US'
 
-export default function Game({open, onClose, bookname, pagename, questionsinmusic}){
+export default function Game({open, onClose, bookname, pagename, musicName, questionsinmusic}){
 
     const questions = [questionsinmusic]
     const [transcript, setTranscript] = useState();
@@ -23,7 +24,22 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
     const [isListening, setIsListening ] = useState(false);
     const [score, setScore] = useState();
     const [nextbtn, setNextbtn] = useState(true);
-  
+    // const realtimedb = firebase.database(); //realtime database
+    const db = firebase.firestore(); // firestore
+    const abc = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g,"")
+
+    function uploadscore() {
+      firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
+        if(user){
+            db.collection('student').onSnapshot(snapshot =>{
+                firebase.database().ref('student/' + user.uid + '/quiz/' + abc ).set({
+                  score: '通過',
+                });
+            });
+        }else{
+        }
+      });
+    }
 
     
     const finishnotification = () =>  {
@@ -121,6 +137,7 @@ export default function Game({open, onClose, bookname, pagename, questionsinmusi
       const nextQuestion = currentQuestion + 1;
       if (score >= 80 && nextQuestion === questions[0].length) {
         finishnotification();
+        uploadscore();
       }else{
         if (score >= 80) {
           success();

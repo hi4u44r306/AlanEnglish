@@ -16,7 +16,7 @@
   font-weight: 800;
   font-family: "Nunito", sans-serif;
   // border: solid 2px rgba(0, 0, 0, 0.534);
-  background-color: bisque;
+  background-color: antiquewhite;
   border-radius: 50px;
   margin: 10px;
   padding: 10px;
@@ -42,7 +42,11 @@
 .timesplayedcontainer {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-evenly;
+  padding: 10px 0 10px 0;
+  margin: 10px 0 10px 0;
+  background-color: antiquewhite;
+  border-radius: 20px;
 }
 .timesplayedlabel {
   font-weight: bolder;
@@ -73,6 +77,7 @@
   padding: 5px;
   margin: 5px;
   background-color: rgb(255, 255, 255);
+  border: solid 5px rgb(255, 227, 227);
   .music-card-cover {
     position: relative;
     display: flex;
@@ -117,7 +122,7 @@
 
 @media only screen and (max-width: 545px) {
   .music-card {
-    padding: 0;
+    // padding: 0;
     .music-card-cover {
       img {
         width: 80px;

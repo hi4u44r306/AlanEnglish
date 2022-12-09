@@ -9,39 +9,23 @@ import Game from "./Game";
 import firebase from 'firebase/app';
 
 function MusicCard(props) {
-    const {bookname , page , img, questions} = props.music;
-    const db = firebase.firestore();
-    const [timeplayed, setTimesplayed] = useState();//避免使用innerHTML, textContext 所以用useState();
-    const [gamescore, setGamescore] = useState();//避免使用innerHTML, textContext 所以用useState();
+    const {bookname , page , img, questions, musicName} = props.music;
+    const abc = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g,"")
+    const [gamescore, setGamescore] = useState();
     const dispatch = useDispatch();
     
-    firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
-        if(user){
-            db.collection('student').onSnapshot(snapshot =>{
-                getUserInfo(user);
-            });
-        }else{
-            getUserInfo();
+    const dbRef = firebase.database().ref();
+    var userId = firebase.auth().currentUser.uid;
+    dbRef.child("student").child(userId).child("quiz").child(abc).child("score").get().then((snapshot) => {
+        if (snapshot.exists()) {
+            // console.log(snapshot.val());
+            setGamescore(snapshot.val());
+        } else {
+            // console.log("No score");
         }
-    })
-
-    const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid中的'Musics'documents, 並且傳送資料到checkmusicidmatch
-        if(user){
-            const convertmusicid = "'" + props.music.id + "'";
-            db.collection('student').doc(user.uid).collection('Musics').doc(convertmusicid).get().then((doc)=>{
-                setTimesplayed(doc.data().timeplayed);
-            })
-            db.collection('student').doc(user.uid).collection('Musics').doc(convertmusicid).get().then((doc)=>{
-                setGamescore(doc.data().gamescore);
-            })
-
-            .catch((err)=>{
-                console.log("There no data for some ID", err)
-            })
-        }else{
-            console.log('no data');
-        }
-    }   
+    }).catch((error) => {
+        console.error(error);
+    });
 
     function handlePlay() {
         dispatch(setCurrentPlaying(props.music))
@@ -50,7 +34,6 @@ function MusicCard(props) {
 
     return (
         <div className={"music-card"}>
-            
             {
                 <>
                 <div onClick={handlePlay} className={"music-card-cover"} >
@@ -61,20 +44,14 @@ function MusicCard(props) {
                 </div>
                 <React.Fragment>
                     <div className='gamesection'>
-                        <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} onClose={()=>setIsOpen(false)}></Game>
+                        <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} musicName={musicName} onClose={()=>setIsOpen(false)}></Game>
                     </div>
                     <Name name={bookname} className={"song-name"} length={bookname.length}/>
                     <Name name={page} className={"song-name"} length={page.length}/>
-                
                     <div className="timesplayedcontainer">
-                        <Name name={"播放次數:  "} className={"song-name"}/>
-                        <Name name={timeplayed} className={"timeplayed"}/>
-                        <Name name={"次"} className={"song-name"}/>
-                    </div>
-                    <div className="timesplayedcontainer">
-                        <Name name={"測驗分數:  "} className={"song-name"}/>
-                        <Name name={gamescore||"no score"} className={"timeplayed"}/>
-                        <Name name={"分"} className={"song-name"}/>
+                        <Name name={"小測驗:  "} className={"song-name"}/>
+                        <Name name={gamescore||"------"} className={"timeplayed"}/>
+                        <Name name={"  "} className={"song-name"}/>
                     </div>
                 </React.Fragment>
                 <div className='d-flex justify-content-center'>

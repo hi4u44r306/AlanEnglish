@@ -12,12 +12,12 @@ import 'react-h5-audio-player/lib/styles.css';
 
 function FooterMusicPlayer({music}) {
 
-    const [{ id, bookname, page , musicName}, setCurrTrack] = useState(music);
+    const [{ bookname, page , musicName}, setCurrTrack] = useState(music);
     const {playlists} = useSelector(state => state.musicReducer);
     const [currentuser,setCurrUser] = useState();
     // const [totaltimeplayed,setTotaltimeplayed] = useState();
-    const currplayingmusicid = "'" + id + "'";
-    const db = firebase.firestore();
+    // const currplayingmusicid = "'" + id + "'";
+    const db = firebase.firestore(); // firestore
     const dispatch = useDispatch();
     const audioElement = useRef();
     const currentDate = new Date().toJSON().slice(0, 10);
@@ -37,10 +37,7 @@ function FooterMusicPlayer({music}) {
             theme: "colored",
             });
         };
-
-    useEffect(() => {
-        setCurrTrack(music);
-        // 每月1號重置所有播放次數//
+    useEffect(()=>{
         userRef.get().then((doc) =>{
             if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
                 userRef.set({
@@ -61,7 +58,13 @@ function FooterMusicPlayer({music}) {
             }
         }).catch(() =>{
         })
-    }, [currentMonth, music, userRef]);
+    },[currentMonth, userRef])
+
+    useEffect(() => {
+        setCurrTrack(music);
+        // 每月1號重置所有播放次數//
+        
+    }, [music]);
         
 
     firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
@@ -74,13 +77,28 @@ function FooterMusicPlayer({music}) {
         }
     });
 
+   
+
     
     
     const updatetimeplayedtofirestore = () => {
-
+       
 //============================================================================================//
 
-        if(currplayingmusicid){
+            const dbRef = firebase.database().ref();
+            const userId = firebase.auth().currentUser.uid;
+            dbRef.child("student").child(userId).child("totaltimeplayed").get().then((snapshot) => {
+                const aaa = parseInt(snapshot.val())+1;
+                dbRef.child("student").child(userId).update({
+                    totaltimeplayed : aaa,
+                });
+            }).catch(() => {
+                firebase.database().ref('student/' + userId ).update({
+                    totaltimeplayed : 0,
+                });
+            });
+            
+
 
             // 當使用者聽完一個音軌 推送Timestamp到firebase //
             userRef.update({ 
@@ -89,7 +107,7 @@ function FooterMusicPlayer({music}) {
             })
             // 當使用者聽完一個音軌 推送Timestamp到firebase 結束 //
 
-//============================================================================================//
+// //============================================================================================//
 
             // 檢查當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增 //
             const checklisten = userRef.collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate)
@@ -107,26 +125,26 @@ function FooterMusicPlayer({music}) {
             }
             // 檢查當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增 結束 //
 
-//============================================================================================//
+// //============================================================================================//
             
-            // 當前音軌次數增加 //
-            userRef.collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
-                const a = doc.data().timeplayed;
-                const b = parseInt(a)+1;
-                userRef.collection('Musics').doc(currplayingmusicid).set({
-                    timeplayed: b,
-                    // gamescore: 100,
-                })
-                // setTimeout(function(){window.location = "/home/game";} ,500)
-            }).catch((err)=>{
-                // userRef.collection('Musics').doc(currplayingmusicid).set({
-                //     gamescore: 0,
-                // })
-                console.log(err.message);
-            })
-            // 當前音軌次數增加 結束 //
+//             // 當前音軌次數增加 //
+//             userRef.collection('Musics').doc(currplayingmusicid).get().then((doc)=>{
+//                 const a = doc.data().timeplayed;
+//                 const b = parseInt(a)+1;
+//                 userRef.collection('Musics').doc(currplayingmusicid).set({
+//                     timeplayed: b,
+//                     // gamescore: 100,
+//                 })
+//                 // setTimeout(function(){window.location = "/home/game";} ,500)
+//             }).catch((err)=>{
+//                 // userRef.collection('Musics').doc(currplayingmusicid).set({
+//                 //     gamescore: 0,
+//                 // })
+//                 console.log(err.message);
+//             })
+//             // 當前音軌次數增加 結束 //
 
-//============================================================================================//
+// //============================================================================================//
             
             /// 記錄檔中當月總次數 ///
             const usermonthlytimes = userRef.collection('Logfile').doc(currentMonth)
@@ -143,7 +161,7 @@ function FooterMusicPlayer({music}) {
             })
             /// 記錄檔中當月總次數 結束 ///
 
-//============================================================================================//
+// //============================================================================================//
             
             // 記錄檔中當天總次數計算 //
             const userdailytimes = userRef.collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate);
@@ -160,32 +178,32 @@ function FooterMusicPlayer({music}) {
             })
             // 記錄檔中當天總次數計算 結束 //
 
-//============================================================================================//
+// //============================================================================================//
             
-            // 記錄檔中的當前音軌當天次數增加 //
-            const logfileRef = userRef.collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
-            logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
-                const a = doc.data().timeplayed;
-                const b = parseInt(a)+1;  
-                logfileRef.update({
-                    timeplayed: b,
-                    gamescore : 100,
-                }).then(() => {
-                    console.log(currentDate, " id: ", currplayingmusicid , 'time played update', b);
-                })
-            }).catch(() => { ///如果Firebase 中沒有這筆資料則新增///
-                const newdaytimeplayed = 1;
-                const newgamescore = 0;
-                logfileRef.set({
-                    timeplayed: newdaytimeplayed,
-                    gamescore: newgamescore,
-                }).then(() =>{
-                    console.log(currentDate, "id :", currplayingmusicid ,'new update');
-                })
-            });
-            // 記錄檔中的當前音軌當天次數增加 結束 //
+//             // 記錄檔中的當前音軌當天次數增加 //
+//             const logfileRef = userRef.collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).collection(currplayingmusicid).doc(currplayingmusicid)
+//             logfileRef.get().then((doc)=>{///如果Firebase 有這筆資料播放次數 + 1///
+//                 const a = doc.data().timeplayed;
+//                 const b = parseInt(a)+1;  
+//                 logfileRef.update({
+//                     timeplayed: b,
+//                     gamescore : 100,
+//                 }).then(() => {
+//                     console.log(currentDate, " id: ", currplayingmusicid , 'time played update', b);
+//                 })
+//             }).catch(() => { ///如果Firebase 中沒有這筆資料則新增///
+//                 const newdaytimeplayed = 1;
+//                 const newgamescore = 0;
+//                 logfileRef.set({
+//                     timeplayed: newdaytimeplayed,
+//                     gamescore: newgamescore,
+//                 }).then(() =>{
+//                     console.log(currentDate, "id :", currplayingmusicid ,'new update');
+//                 })
+//             });
+//             // 記錄檔中的當前音軌當天次數增加 結束 //
                        
-//============================================================================================//
+// //============================================================================================//
 
             // 所有音軌總次數增加 //
             userRef.get().then((doc)=>{  
@@ -197,38 +215,62 @@ function FooterMusicPlayer({music}) {
             })
             // 所有音軌總次數增加 結束 //
 
-//============================================================================================//
-        }else{
-            console.log("update currplayingmusicid failed");
-        }
+// //============================================================================================//
+//         }else{
+//             console.log("update currplayingmusicid failed");
+//         }
+        
 
     };
 
-    
+    const currentTrack = playlists.findIndex(obj => obj.musicName=== musicName)
     const handleClickNext = () => {
-        console.log('click next')
-        let currTrackId = (id+1) % playlists.length;
-        dispatch(setCurrentPlaying(playlists[currTrackId]));
+        console.log('Next Track')
+        let abc = currentTrack + 1;
+        if ((currentTrack+1)>=playlists.length){
+            abc = 0;
+        }
+        dispatch(setCurrentPlaying(playlists[abc]));
     };
 
     const handleClickPrev = () => {
-        console.log('end')
-        let currTrackId = (id-1) % playlists.length;
-        if ((id-1)<=-1){
-            currTrackId = playlists.length - 1;
+        console.log('Previous Track')
+        let abc = currentTrack - 1;
+        if ((currentTrack-1)<=-1){
+            abc = playlists.length - 1;
         }
-        dispatch(setCurrentPlaying(playlists[currTrackId]));
+        dispatch(setCurrentPlaying(playlists[abc]));
     };
 
-    const handleEnd = () =>{
-        console.log('track end')
-        const currplayingmusicid = "'" + id + "'";
-        updatetimeplayedtofirestore(currplayingmusicid);
+    const handleEnd = () => {
+        console.log('Track End')
+        let abc = currentTrack + 1;
+        // if ((currentTrack+1)<=playlists.length){
+        //     abc = 0;
+        // }
         success();
-        // secondsuccess();
-        let currTrackId = (id+1) % playlists.length;
-        dispatch(setCurrentPlaying(playlists[currTrackId]));
+        updatetimeplayedtofirestore();
+        dispatch(setCurrentPlaying(playlists[abc]));
     }
+
+    
+   
+    // const handleClickNext = () => {
+    //     console.log('click next')
+    //     let currTrackId = (id+1) % playlists.length;
+    //     dispatch(setCurrentPlaying(playlists[currTrackId]));
+    // };
+
+
+    // const handleEnd = () =>{
+    //     console.log('track end')
+    //     const currplayingmusicid = "'" + id + "'";
+    //     updatetimeplayedtofirestore(currplayingmusicid);
+    //     success();
+    //     // secondsuccess();
+    //     let currTrackId = (id+1) % playlists.length;
+    //     dispatch(setCurrentPlaying(playlists[currTrackId]));
+    // }
     
     
     return (
