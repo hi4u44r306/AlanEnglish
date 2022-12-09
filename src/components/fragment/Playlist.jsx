@@ -20,7 +20,7 @@ const Playlist = () => {
         <Container>
             <div className={"Playlist"}>
                 <div className='playlisttitle'> {typeOfPlaylist} </div>
-                <div className='totaltimeplayed'>總聽力次數 : {totaltimeplayed} 次</div>
+                <div className='totaltimeplayed'>總聽力次數 : {totaltimeplayed || '---'} 次</div>
                 <div className="Playlist-container">
                     {
                         playlists.map((item)=>(
