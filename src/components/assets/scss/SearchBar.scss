@@ -1,5 +1,5 @@
-.searchcontainer{
-  font-family: 'Varela Round', sans-serif;
+.searchcontainer {
+  font-family: "Varela Round", sans-serif;
   font-weight: 900;
   display: flex;
   align-items: center;
@@ -8,30 +8,25 @@
   width: 200px;
   justify-content: center;
 }
-// .searchcontainer:focus{
-  // border: 2px;
-  // border-color: transparent;
-  // box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.075), 0 0 5px  #0fa6f1 !important;
-  // box-shadow: none;
-// }
 
-.searchbar{
+.searchbar {
   display: flex;
   justify-content: center;
   background: none;
   border: none;
   outline: none;
+  font-size: 15px;
   width: 150px;
   height: 40px;
-  font-family: 'Varela Round', sans-serif;
+  font-family: "Varela Round", sans-serif;
   font-weight: 900;
 }
 
-.searchbar::placeholder{
+.searchbar::placeholder {
   font-weight: 600;
 }
 
-.searchbar:focus{
+.searchbar:focus {
   border: 2px;
   border-color: none;
   // box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.075), 0 0 5px  #0fa6f1 !important;

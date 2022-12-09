@@ -1,13 +1,13 @@
 .marqueenamelabel {
   font-family: "Nunito", sans-serif;
   font-weight: bolder;
-  font-size: 0.8rem;
+  font-size: 15px;
   text-align: center;
 }
 .marqueename {
   font-family: "Nunito", sans-serif;
   font-weight: bolder;
-  font-size: 0.8rem;
+  font-size: 15px;
   text-align: center;
   color: red;
 }
@@ -16,7 +16,7 @@
   display: flex;
   color: red;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 15px;
   text-align: center;
   justify-content: space-around;
   cursor: default;
@@ -25,7 +25,7 @@
 .game-name {
   font-family: "Nunito", sans-serif;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 18px;
   text-align: center;
   cursor: default;
   user-select: none;
@@ -34,7 +34,7 @@
 .song-name {
   font-family: "Nunito";
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 15px;
   text-align: center;
   cursor: default;
   user-select: none;
@@ -52,6 +52,15 @@
   font-size: 1.2rem;
   text-align: center;
   color: red;
+}
+.quizlabel {
+  font-family: "Nunito";
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  margin-right: 10px;
 }
 
 @media only screen and (max-width: 968px) {

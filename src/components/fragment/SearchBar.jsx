@@ -32,7 +32,7 @@ const SearchBar = () => {
                 <Link to={"/home/search"} ref={searchLink}/>
                 <div className="searchcontainer">
                     <div className="searchimg">
-                    <SearchIcon/>
+                    <SearchIcon style={{width:25, height:25}}/>
                     </div>
                     <div className="serachinput">
                         <input

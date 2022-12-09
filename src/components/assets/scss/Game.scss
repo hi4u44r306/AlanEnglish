@@ -1,3 +1,6 @@
+:root {
+  --small-font: 20px;
+}
 .gamenotification {
   width: auto;
 }
@@ -8,7 +11,7 @@
   background-color: #edf7ff;
 }
 .questiontext {
-  font-size: 20px;
+  font-size: var(--small-font);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,50 +20,39 @@
   color: #000000;
   border-radius: 20px;
   margin: 10px;
-  padding: 15px;
+  padding: 10px;
   font-family: "Nunito", sans-serif;
   font-weight: 800;
 }
 .questionindex {
   background-color: #ffaaaa;
-  font-size: 20px;
+  font-size: var(--small-font);
   padding: 10px;
   color: #000000;
   border-radius: 20px;
   font-family: "Nunito", sans-serif;
-  font-weight: 800;
+  font-weight: 700;
 }
 .題目 {
   display: flex;
   justify-content: center;
   font-family: "Nunito", sans-serif;
   font-weight: 600;
-}
-.gametitle {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  font-size: 30px;
-  font-weight: 700;
-  background-color: #005b7f !important;
-  padding: 5px;
-  color: #f6edba;
-  text-align: center;
-  font-family: "Nunito", sans-serif;
+  font-size: var(--small-font);
 }
 .gamecontainer {
-  margin: 20px;
+  margin: var(--small-font);
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
 .computer-btncontainer {
   display: flex;
-  font-size: 20px;
+  font-size: var(--small-font);
   justify-content: center;
 }
 .mobile-btncontainer {
   display: none;
-  font-size: 20px;
+  font-size: var(--small-font);
 }
 .closebtn {
   position: fixed;
@@ -124,6 +116,7 @@
   // box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
   // margin: 15px;
   display: flex;
+  font-size: var(--small-font);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -157,7 +150,7 @@
   margin: 15px;
   padding: 20px;
   border-radius: 5px;
-  font-size: 25px;
+  font-size: var(--small-font);
   font-weight: 700;
   color: #ff3d3d;
   text-align: center;
@@ -166,7 +159,7 @@
 .notes {
   color: #ff0000;
   font-weight: 600;
-  font-size: 25px;
+  font-size: var(--small-font);
 }
 .Overlay {
   position: fixed;
@@ -210,7 +203,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   // display: flex;
-  font-size: 24px;
+  font-size: var(--small-font);
   align-items: center;
 }
 /* QUESTION/TIMER/LEFT SECTION */
