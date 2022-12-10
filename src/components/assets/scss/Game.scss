@@ -86,7 +86,8 @@
 }
 .recordingbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
-  background-color: #39acff;
+  // background-color: #39acff;
+  background-color: #e9f6ff;
   color: #000000;
   border-radius: 20px;
   margin: 10px;
@@ -94,6 +95,10 @@
   padding: 10px;
   font-family: "Nunito", sans-serif;
   font-weight: var(--btn-weight);
+}
+.goxjub {
+  width: 25px;
+  height: 25px;
 }
 .stoprecordbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
