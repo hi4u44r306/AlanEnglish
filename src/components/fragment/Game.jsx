@@ -42,6 +42,17 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
       });
     }
 
+    const getDifference = (s, t) => {
+      let a = 0, b = 0; let charCode, i = 0;
+      while(s[i]){
+         a ^= s.charCodeAt(i).toString(2);
+         b ^= t.charCodeAt(i).toString(2);
+         i++;
+      };
+      b^=t.charCodeAt(i).toString(2);
+      charCode = parseInt(a^b,2);
+      return String.fromCharCode(charCode);
+   };
     
     const finishnotification = () =>  {
       toast.success('測驗結束 視窗即將關閉',{
@@ -93,9 +104,10 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
           const stringSimilarity = require("string-similarity");
           const question = questions[0][currentQuestion].questionText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
           setTranscript(transcript,question);
+          console.log("transcript : ",transcript)
+          console.log("question : ",question)
+          console.log(getDifference(transcript,question))
           const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, question)*100);
-          // const test = Array.isArray(transcript) ? transcript.filter(x => question.indexOf(x) === -1) : [];
-          // console.log(test)
           setScore(similarity);
           console.log(similarity);
           setNote(transcript);
@@ -157,7 +169,6 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
       }
   
     };
-
     const handleSaveNote = () => {
       mic.stop();
       setIsListening(false);

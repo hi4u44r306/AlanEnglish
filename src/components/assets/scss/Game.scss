@@ -2,6 +2,7 @@
   --small-font: 18px;
   --medium-font: 20px;
   --btn-weight: 700;
+  --gamewidth: 60vw;
 }
 .gamenotification {
   width: auto;
@@ -9,7 +10,7 @@
 .questionbox {
   padding: 20 0 20 0;
   margin: 10px;
-  width: 80vw;
+  width: var(--gamewidth);
   background-color: #edf7ff;
 }
 .questionsection {
@@ -122,7 +123,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 80vw;
+  width: var(--gamewidth);
   border-radius: 20px;
   position: fixed;
   top: 50%;
@@ -282,6 +283,12 @@
 }
 
 @media screen and (max-width: 695px) {
+  .questionbox {
+    width: 90vw;
+  }
+  .gamebox {
+    width: 90vw;
+  }
   .gamenotification {
     width: 90%;
   }

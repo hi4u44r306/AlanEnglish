@@ -15,6 +15,7 @@ function FooterMusicPlayer({music}) {
     const [{ bookname, page , musicName}, setCurrTrack] = useState(music);
     const {playlists} = useSelector(state => state.musicReducer);
     const [currentuser,setCurrUser] = useState();
+    const userId = firebase.auth().currentUser.uid;
     // const [totaltimeplayed,setTotaltimeplayed] = useState();
     // const currplayingmusicid = "'" + id + "'";
     const db = firebase.firestore(); // firestore
@@ -37,28 +38,6 @@ function FooterMusicPlayer({music}) {
             theme: "colored",
             });
         };
-    useEffect(()=>{
-        userRef.get().then((doc) =>{
-            if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
-                userRef.set({
-                    totaltimeplayed : 0,
-                    currdatetimeplayed : 0,
-                    Resetallmusic : currentMonth+'alreadyupdated',
-                },{merge: true})
-                console.log('test')
-                for(let i = 0; i < 601; i++){      
-                    let j = "'"+i+"'"
-                    userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
-                        timeplayed : 0,
-                    })        
-                }
-                console.log('First time reset')
-            }else{
-                console.log('this account is alreadyreset')
-            }
-        }).catch(() =>{
-        })
-    },[currentMonth, userRef])
 
     useEffect(() => {
         setCurrTrack(music);
@@ -85,8 +64,33 @@ function FooterMusicPlayer({music}) {
        
 //============================================================================================//
 
+            userRef.get().then((doc) =>{
+                if(doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth+'alreadyupdated'){
+                    userRef.set({
+                        totaltimeplayed : 0,
+                        currdatetimeplayed : 0,
+                        Resetallmusic : currentMonth+'alreadyupdated',
+                    },{merge: true})
+                    firebase.database().ref('student/' + userId ).update({
+                        totaltimeplayed : 0,
+                    });
+                    // for(let i = 0; i < 601; i++){      
+                    //     let j = "'"+i+"'"
+                    //     userRef.collection('Musics').doc(j).set({ // 在特定User中加入Musics集合，在Musics中加入id以及timeplayed
+                    //         timeplayed : 0,
+                    //     })        
+                    // }
+                    console.log('First time reset')
+                }else{
+                    console.log('This account is alreadyreset')
+                }
+            }).catch(() =>{
+            })
+           
+
+
             const dbRef = firebase.database().ref();
-            const userId = firebase.auth().currentUser.uid;
+            
             dbRef.child("student").child(userId).child("totaltimeplayed").get().then((snapshot) => {
                 const aaa = parseInt(snapshot.val())+1;
                 dbRef.child("student").child(userId).update({
