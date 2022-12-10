@@ -1,5 +1,7 @@
 :root {
-  --small-font: 20px;
+  --small-font: 18px;
+  --medium-font: 20px;
+  --btn-weight: 700;
 }
 .gamenotification {
   width: auto;
@@ -7,8 +9,14 @@
 .questionbox {
   padding: 20 0 20 0;
   margin: 10px;
-  width: 90vw;
+  width: 80vw;
   background-color: #edf7ff;
+}
+.questionsection {
+  border: solid 3px lightsteelblue;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 5px;
 }
 .questiontext {
   font-size: var(--small-font);
@@ -16,11 +24,8 @@
   justify-content: center;
   align-items: center;
   align-content: center;
-  background-color: #5cbbff;
   color: #000000;
-  border-radius: 20px;
-  margin: 10px;
-  padding: 10px;
+  margin: 5px;
   font-family: "Nunito", sans-serif;
   font-weight: 800;
 }
@@ -34,11 +39,16 @@
   font-weight: 700;
 }
 .題目 {
+  color: #005b7f;
   display: flex;
   justify-content: center;
   font-family: "Nunito", sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--small-font);
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  margin: 10px;
 }
 .gamecontainer {
   margin: var(--small-font);
@@ -69,36 +79,31 @@
   border-radius: 20px;
   margin: 10px;
   height: 50px;
-  // height: fit-content;
   padding: 10px;
   font-family: "Nunito", sans-serif;
-  font-weight: 600;
+  font-weight: var(--btn-weight);
 }
 .recordingbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #39acff;
   color: #000000;
   border-radius: 20px;
-  // border: 3px solid #000000;
   margin: 10px;
   height: 50px;
-  // height: fit-content;
   padding: 10px;
   font-family: "Nunito", sans-serif;
-  font-weight: 600;
+  font-weight: var(--btn-weight);
 }
 .stoprecordbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #ffb5b5;
   color: #000000;
   border-radius: 20px;
-  // border: 3px solid #000000;
   margin: 10px;
   height: 50px;
-  // height: fit-content;
   padding: 10px;
   font-family: "Nunito", sans-serif;
-  font-weight: 600;
+  font-weight: var(--btn-weight);
 }
 .nextquestionbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
@@ -107,21 +112,17 @@
   border-radius: 20px;
   margin: 10px;
   height: 50px;
-  // height: fit-content;
   padding: 10px;
   font-family: "Nunito", sans-serif;
-  font-weight: 600;
+  font-weight: var(--btn-weight);
 }
 .gamebox {
-  // box-shadow: -4px 10px 35px -1px rgba(111, 111, 111, 0.75);
-  // margin: 15px;
   display: flex;
   font-size: var(--small-font);
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  // height: 75vh;
-  width: 90vw;
+  width: 80vw;
   border-radius: 20px;
   position: fixed;
   top: 50%;
@@ -202,7 +203,6 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  // display: flex;
   font-size: var(--small-font);
   align-items: center;
 }
@@ -302,10 +302,6 @@
       align-content: center;
       width: 60px;
       height: 60px;
-      // font-size: 25px;
     }
   }
-  // .recordingbtn .submitanswerbtn .stoprecordbtn .nextquestionbtn {
-  //   margin: 5px;
-  // }
 }

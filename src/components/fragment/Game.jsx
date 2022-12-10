@@ -4,7 +4,8 @@ import '../assets/scss/Game.scss';
 import { toast, ToastContainer} from "react-toastify"
 import Name from './Name';
 import CheckMark from '../assets/img/checkmark.png'
-import RedSquare from '../assets/img/redsquare.png'
+import Listening from '../assets/img/bars.svg'
+// import RedSquare from '../assets/img/redsquare.png'
 import Mic from '../assets/img/microphone.png'
 import Next from '../assets/img/next.png'
 import firebase from 'firebase/app';
@@ -93,8 +94,8 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
           const question = questions[0][currentQuestion].questionText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
           setTranscript(transcript,question);
           const similarity = Math.round(stringSimilarity.compareTwoStrings(transcript, question)*100);
-          const test = Array.isArray(transcript) ? transcript.filter(x => question.indexOf(x) === -1) : [];
-          console.log(test)
+          // const test = Array.isArray(transcript) ? transcript.filter(x => question.indexOf(x) === -1) : [];
+          // console.log(test)
           setScore(similarity);
           console.log(similarity);
           setNote(transcript);
@@ -108,9 +109,9 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
     },[isListening])
     
     const success = () =>  {
-      toast.success('太棒了',{
+      toast.info('下一題',{
         className:"gamenotification",
-        // position: "top-center",
+        position: "top-center",
         autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
@@ -137,6 +138,7 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
       const nextQuestion = currentQuestion + 1;
       if (score >= 80 && nextQuestion === questions[0].length) {
         finishnotification();
+        setCurrentQuestion(0);
         uploadscore();
       }else{
         if (score >= 80) {
@@ -189,16 +191,21 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
               <div className="questionindex">第 {currentQuestion + 1} 題 / 共 {questions[0].length} 題</div>
             </div>
             <div className='questionbox'>
-                <div className='題目'>題目 :</div>
+              <div className='questionsection'>
+                <div className='題目'>Question :</div>
                 <div className='questiontext'> {questions[0][currentQuestion].questionText.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"")}</div>
-                <div className='questiontext'>你的答案 : {transcript}</div>
+              </div>
+              <div className='questionsection'>
+                <div className='題目'>Your Answer :</div>
+                <div className='questiontext'> {transcript || "------"}</div>
+              </div>
               {/* 電腦版顯示 */}
                 <div className="computer-btncontainer">
                   <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><span>提交答案</span> <img style={{ width: 22, marginLeft: 10 , marginBottom: 2, }} src={CheckMark} alt="checkmark"/></button>
                   {isListening ? 
-                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><span>停止</span> <img style={{ width: 22, marginLeft: 2 , marginBottom: 5, }} src={RedSquare} alt="redsquare"/></button> 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><span>Recording</span> <img style={{ width: 22, marginLeft: 2 , marginBottom: 5, }} src={Listening} alt="redsquare"/></button> 
                     : 
-                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}><span>開始錄音</span> <img style={{ width: 22, marginLeft: 2 , marginBottom: 5, }} src={Mic} alt="mic"/></button>
+                    <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}><span>Start Recording</span> <img style={{ width: 25, marginLeft: 2 , marginBottom: 5, }} src={Mic} alt="mic"/></button>
                   }
                   <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}><span>下一題</span> <img style={{ width: 22, marginLeft: 2 , marginBottom: 5, }} src={Next} alt="mic"/></button>
                 </div>
@@ -207,7 +214,7 @@ export default function Game({open, onClose, bookname, pagename, musicName, ques
                 <div className="mobile-btncontainer">
                   <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><img style={{ width: 30 }} src={CheckMark} alt="checkmark"/></button>
                   {isListening ? 
-                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={RedSquare} alt="redsquare"/> </button> 
+                    <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={Listening} alt="redsquare"/> </button> 
                     : 
                     <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={Mic} alt="mic"/></button>
                   }

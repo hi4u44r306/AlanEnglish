@@ -85,7 +85,7 @@ class Login extends React.Component{
             //     }
             // })
             firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
-                const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 1000));
+                const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 2000));
                 toast.promise(
                     resolveAfter1SecSuccess,
                     {
@@ -96,12 +96,12 @@ class Login extends React.Component{
                           },
                         success:{
                             render(){
-                                return <div className="notification">Hello {doc.data().name}</div>
+                                return <div className="notification">Welcome Back {doc.data().name.toUpperCase()}!!</div>
                             },
                             
                         }
                     },
-                    setTimeout(function(){window.location = "/home/leaderboard";}) 
+                    setTimeout(function(){window.location = "/home/leaderboard";},2500) 
                 );
             })
             

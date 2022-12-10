@@ -42,6 +42,12 @@ let musicDB = [
             {
                 questionText : "test",
             },
+            {
+                questionText : "name",
+            },
+            {
+                questionText : "sunny",
+            },
         ]
     },
     {
@@ -55,7 +61,13 @@ let musicDB = [
         musicName: "super easy reading 1/SER1track03.mp3",
         questions : [
             {
-                questionText : "1.",
+                questionText : "one",
+            },
+            {
+                questionText : "two",
+            },
+            {
+                questionText : "three",
             },
         ]
     }
