@@ -81,7 +81,7 @@ function NavigationMobile() {
         <Navbar collapseOnSelect={true} key={expand} expand={expand} className="navbackground">
           <Container fluid className="containerfluid">
 
-            <Navbar.Brand as={Link} to="/home/leaderboard" className="brand">
+            <Navbar.Brand as={Link} to="/home/leaderboard" href="/home/leaderboard" className="brand">
              <Brand/>
             </Navbar.Brand>
 
@@ -95,7 +95,7 @@ function NavigationMobile() {
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title className="brand" as={Link} to="/home/leaderboard" id={`offcanvasNavbarLabel-expand-${expand}`}>
+                <Offcanvas.Title className="brand" as={Link} to="/home/leaderboard" href="/home/leaderboard" id={`offcanvasNavbarLabel-expand-${expand}`}>
                   <Brand/>
                 </Offcanvas.Title>
               </Offcanvas.Header>
@@ -124,7 +124,7 @@ function NavigationMobile() {
                   </div> */}
 
                   {/* 用戶資料 */}
-                  <Nav.Link as={Link} to="/home/userinfo" className="navlinkscoreboard">
+                  <Nav.Link as={Link} to="/home/userinfo" href="/home/userinfo" className="navlinkscoreboard">
                     <div className="username">
                       <p>
                        {navusername || '----'} 
@@ -133,7 +133,7 @@ function NavigationMobile() {
                   </Nav.Link>
 
                   {/* 排行榜 */}
-                  <Nav.Link as={Link} to="/home/leaderboard" className="navlinkscoreboard">
+                  <Nav.Link as={Link} to="/home/leaderboard" href="/home/leaderboard" className="navlinkscoreboard">
                   <img style={{ width: 18, marginRight: 4 }} 
                       src={Trophy} 
                       alt="bluebook"
@@ -156,156 +156,55 @@ function NavigationMobile() {
                     className="navlink"
                   >
                   {/*                             聽力本習作本 1                                   */}
-                  {['down'].map((direction) => (
-                    <NavDropdown 
-                      className="navlink"
-                      key={direction}
-                      drop={direction}
-                      title=
-                      {
-                      <div className="d-flex align-items-center">
+                    {['down'].map((direction) => (
+                      <NavDropdown 
+                        className="navlink"
+                        key={direction}
+                        drop={direction}
+                        title=
+                        {
+                        <div className="d-flex align-items-center">
+                          <img style={{ width: 18, marginRight: 4 }} 
+                              src={OrangeBook} 
+                              alt="bluebook"
+                          />
+                          習作本1專用聽力本
+                        </div>
+                        } 
+                      >
+                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" href="/home/playlist/Listening_1" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
-                            src={OrangeBook} 
-                            alt="bluebook"
-                        />
-                        習作本1專用聽力本
-                      </div>
-                      } 
-                    >
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }} 
-                        src={OrangeBook} 
-                        alt="bluebook"
-                      />聽力本1 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }} 
-                        src={OrangeBook} 
-                        alt="bluebook"
-                      /> 聽力本2 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }} 
-                        src={OrangeBook} 
-                        alt="bluebook"
-                      /> 聽力本3 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }} 
-                        src={OrangeBook} 
-                        alt="bluebook"
-                      /> 聽力本4 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }} 
-                        src={OrangeBook} 
-                        alt="bluebook"
-                      /> 聽力本5 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }} 
-                        src={OrangeBook} 
-                        alt="bluebook"
-                      /> 聽力本6 建構中...</NavDropdown.Item>
-                
-                    </NavDropdown>
-                  ))}
-
-                  {/*                             聽力本習作本 2                                  */}
-                  {/* {['down'].map((direction) => (
-                    <NavDropdown 
-                      className="navlink"
-                      key={direction}
-                      // id={`dropdown-button-drop-${direction}`}
-                      drop={direction}
-                      // variant="secondary"
-                      title={` 📗 習作本2專用聽力本 `}
-                    >
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">📙 聽力本1 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">📙 聽力本2 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">📙 聽力本3 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">📙 聽力本4 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">📙 聽力本5 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">📙 聽力本6 建構中...</NavDropdown.Item>
-                
-                    </NavDropdown>
-                  ))} */}
-
-                  {/*                             聽力本習作本 3                                  */}
-                  {/* {['down'].map((direction) => (
-                    <NavDropdown 
-                      className="navlink"
-                      key={direction}
-                      // id={`dropdown-button-drop-${direction}`}
-                      drop={direction}
-                      // variant="secondary"
-                      title={` 📗 習作本3專用聽力本 `}
-                    >
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">📙 聽力本1 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">📙 聽力本2 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">📙 聽力本3 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">📙 聽力本4 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">📙 聽力本5 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">📙 聽力本6 建構中...</NavDropdown.Item>
-                
-                    </NavDropdown>
-                  ))} */}
-
-                  {/*                             聽力本習作本 4                                  */}
-                  {/* {['down'].map((direction) => (
-                    <NavDropdown 
-                      className="navlink"
-                      key={direction}
-                      // id={`dropdown-button-drop-${direction}`}
-                      drop={direction}
-                      // variant="secondary"
-                      title={` 📗 習作本4專用聽力本 `}
-                    >
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">📙 聽力本1 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">📙 聽力本2 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">📙 聽力本3 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">📙 聽力本4 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">📙 聽力本5 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">📙 聽力本6 建構中...</NavDropdown.Item>
-                
-                    </NavDropdown>
-                  ))} */}
-
-                  {/*                             聽力本習作本 5                                  */}
-                  {/* {['down'].map((direction) => (
-                    <NavDropdown 
-                      className="navlink"
-                      key={direction}
-                      // id={`dropdown-button-drop-${direction}`}
-                      drop={direction}
-                      // variant="secondary"
-                      title={` 📗 習作本5專用聽力本 `}
-                    >
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">📙 聽力本1 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">📙 聽力本2 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">📙 聽力本3 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">📙 聽力本4 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">📙 聽力本5 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">📙 聽力本6 建構中...</NavDropdown.Item>
-                
-                    </NavDropdown>
-                  ))} */}
-
-                  {/*                             聽力本習作本 6                                  */}
-                  {/* {['down'].map((direction) => (
-                    <NavDropdown 
-                      className="navlink"
-                      key={direction}
-                      // id={`dropdown-button-drop-${direction}`}
-                      drop={direction}
-                      // variant="secondary"
-                      title={` 📗 習作本6專用聽力本 `}
-                    >
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" className="subnavlink">📙 聽力本1 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" className="subnavlink">📙 聽力本2 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" className="subnavlink">📙 聽力本3 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" className="subnavlink">📙 聽力本4 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" className="subnavlink">📙 聽力本5 建構中...</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" className="subnavlink">📙 聽力本6 建構中...</NavDropdown.Item>
-                
-                    </NavDropdown>
-                  ))} */}
+                          src={OrangeBook} 
+                          alt="bluebook"
+                        />聽力本1 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" href="/home/playlist/Listening_2" className="subnavlink">
+                        <img style={{ width: 18, marginRight: 4 }} 
+                          src={OrangeBook} 
+                          alt="bluebook"
+                        /> 聽力本2 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" href="/home/playlist/Listening_3" className="subnavlink">
+                        <img style={{ width: 18, marginRight: 4 }} 
+                          src={OrangeBook} 
+                          alt="bluebook"
+                        /> 聽力本3 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" href="/home/playlist/Listening_4" className="subnavlink">
+                        <img style={{ width: 18, marginRight: 4 }} 
+                          src={OrangeBook} 
+                          alt="bluebook"
+                        /> 聽力本4 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" href="/home/playlist/Listening_5" className="subnavlink">
+                        <img style={{ width: 18, marginRight: 4 }} 
+                          src={OrangeBook} 
+                          alt="bluebook"
+                        /> 聽力本5 建構中...</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" href="/home/playlist/Listening_6"  className="subnavlink">
+                        <img style={{ width: 18, marginRight: 4 }} 
+                          src={OrangeBook} 
+                          alt="bluebook"
+                        /> 聽力本6 建構中...</NavDropdown.Item>
                   
+                      </NavDropdown>
+                    ))}
                   </NavDropdown>
 
                   {/* 習作本 */}
@@ -323,38 +222,38 @@ function NavigationMobile() {
                     } 
                     className="navlink"
                   >
-                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_1" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_1" href="/home/playlist/Workbook_1" className="subnavlink">
                     <img
                     style={{ width: 18, marginRight: 4 }}
                     src={BlueBook}
                     alt="greenbook"
                     /> 習作本1
                     </NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_2" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_2" href="/home/playlist/Workbook_2" className="subnavlink">
                     <img
                     style={{ width: 18, marginRight: 4 }}
                     src={BlueBook}
                     alt="greenbook"
                     />  習作本2</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_3" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_3" href="/home/playlist/Workbook_3" className="subnavlink">
                     <img
                     style={{ width: 18, marginRight: 4 }}
                     src={BlueBook}
                     alt="greenbook"
                     />  習作本3</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_4" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_4" href="/home/playlist/Workbook_4" className="subnavlink">
                     <img
                     style={{ width: 18, marginRight: 4 }}
                     src={BlueBook}
                     alt="greenbook"
                     />  習作本4 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_5" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_5" href="/home/playlist/Workbook_5" className="subnavlink">
                     <img
                     style={{ width: 18, marginRight: 4 }}
                     src={BlueBook}
                     alt="greenbook"
                     />  習作本5 建構中...</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_6" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/Workbook_6" href="/home/playlist/Workbook_6" className="subnavlink">
                     <img
                     style={{ width: 18, marginRight: 4 }}
                     src={BlueBook}
@@ -394,17 +293,17 @@ function NavigationMobile() {
                         </div>
                         } 
                       >
-                        <NavDropdown.Item as={Link} to="/home/playlist/SER1" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/SER1" href="/home/playlist/SER1" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           /> Super Easy Reading 3e 1</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/SER2" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/SER2" href="/home/playlist/SER2" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           />Super Easy Reading 3e 2</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/SER3" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/SER3" href="/home/playlist/SER3" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
@@ -430,17 +329,17 @@ function NavigationMobile() {
                         </div>
                         } 
                       >
-                        <NavDropdown.Item as={Link} to="/home/playlist/STEAM1" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/STEAM1" href="/home/playlist/STEAM1" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           /> Steam Reading E1</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/STEAM2" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/STEAM2" href="/home/playlist/STEAM2" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           /> Steam Reading E2</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/STEAM3" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/STEAM3" href="/home/playlist/STEAM3" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
@@ -466,17 +365,17 @@ function NavigationMobile() {
                         </div>
                         } 
                       >
-                        <NavDropdown.Item as={Link} to="/home/playlist/RL1Reading" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/RL1Reading" href="/home/playlist/RL1Reading" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           /> Reading Lamp 1 Reading</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/RL2Reading" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/RL2Reading" href="/home/playlist/RL2Reading" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           /> Reading Lamp 2 Reading</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/RL3Reading" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/RL3Reading" href="/home/playlist/RL3Reading" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
@@ -502,17 +401,17 @@ function NavigationMobile() {
                         </div>
                         } 
                       >
-                        <NavDropdown.Item as={Link} to="/home/playlist/Skyline1" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/Skyline1" href="/home/playlist/Skyline1" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           /> Skyline1</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/Skyline2" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/Skyline2" href="/home/playlist/Skyline2" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
                           /> Skyline2</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/Skyline3" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/Skyline3" href="/home/playlist/Skyline3" className="subnavlink">
                         <img style={{ width: 18, marginRight: 4 }} 
                               src={Books} 
                               alt="bluebook"
@@ -544,17 +443,17 @@ function NavigationMobile() {
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                      <NavDropdown.Item as={Link} to="/home/about" className="subnavlink">
+                      <NavDropdown.Item as={Link} to="/home/about" href="/home/about" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }} 
                           src={Search} 
                           alt="bluebook"
                       /> 關於</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/userinfo" className="subnavlink">
+                      <NavDropdown.Item as={Link} to="/home/userinfo" href="/home/userinfo" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }} 
                           src={File} 
                           alt="bluebook"
                       /> 學生檔案</NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/home/contact" className="subnavlink">
+                      <NavDropdown.Item as={Link} to="/home/contact" href="/home/contact" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }} 
                           src={Mail} 
                           alt="bluebook"
