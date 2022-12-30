@@ -45,6 +45,11 @@ class Leaderboard extends React.Component {
 
   componentDidMount() {
     const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量
+    const d = new Date();
+    d.setDate(d.getDate() - 3);
+    const offlinelimit = d.toJSON().slice(0, 10);
+
+
     db.collection("student")
       .where('class', '==', 'A')
       .where('onlinemonth', '==', this.currentMonth)
@@ -57,6 +62,19 @@ class Leaderboard extends React.Component {
           studentsA.push(data);
         })
         this.setState({ studentsA: studentsA });
+      }).catch(() => {
+        window.location = "/"
+      })
+    db.collection("student")
+      .where('onlinetime', '<=', offlinelimit)
+      .where('class', '==', 'A')
+      .get().then((snapshot) => {
+        const OfflineA = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          OfflineA.push(data);
+        })
+        this.setState({ OfflineA: OfflineA });
       }).catch(() => {
         window.location = "/"
       })
@@ -76,6 +94,19 @@ class Leaderboard extends React.Component {
       }).catch(() => {
         window.location = "/"
       })
+    db.collection("student")
+      .where('onlinetime', '<=', offlinelimit)
+      .where('class', '==', 'B')
+      .get().then((snapshot) => {
+        const OfflineB = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          OfflineB.push(data);
+        })
+        this.setState({ OfflineB: OfflineB });
+      }).catch(() => {
+        window.location = "/"
+      })
 
     db.collection("student")
       .where('class', '==', 'C')
@@ -89,6 +120,19 @@ class Leaderboard extends React.Component {
           studentsC.push(data);
         })
         this.setState({ studentsC: studentsC });
+      }).catch(() => {
+        window.location = "/"
+      })
+    db.collection("student")
+      .where('onlinetime', '<=', offlinelimit)
+      .where('class', '==', 'C')
+      .get().then((snapshot) => {
+        const OfflineC = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          OfflineC.push(data);
+        })
+        this.setState({ OfflineC: OfflineC });
       }).catch(() => {
         window.location = "/"
       })
@@ -108,25 +152,22 @@ class Leaderboard extends React.Component {
       }).catch(() => {
         window.location = "/"
       })
-
-    const d = new Date();
-    d.setDate(d.getDate() - 5);
-    const offlinelimit = d.toJSON().slice(0, 10);
-
-
     db.collection("student")
       .where('onlinetime', '<=', offlinelimit)
-      .orderBy('onlinetime', 'desc')
+      .where('class', '==', 'D')
       .get().then((snapshot) => {
-        const studentsOffline = [];
+        const OfflineD = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
-          studentsOffline.push(data);
+          OfflineD.push(data);
         })
-        this.setState({ studentsOffline: studentsOffline });
+        this.setState({ OfflineD: OfflineD });
       }).catch(() => {
-        // window.location = "/"
+        window.location = "/"
       })
+
+
+
 
 
   }
@@ -255,6 +296,58 @@ class Leaderboard extends React.Component {
             </tfoot>
           </table>
 
+          {/* A班未上線名單 */}
+          <div className='classtitle'>A班3天以上沒上線名單</div>
+          <table className='table table-border'>
+            <thead>
+              <tr>
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班級</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名' />姓名</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名' />最後上線日</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                this.state.OfflineA &&
+                this.state.OfflineA.map((OfflineA, index) => {
+                  return (
+                    <tr key={index}>
+                      <td key={OfflineA.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{OfflineA.class}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={OfflineA.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{OfflineA.name}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={OfflineA.onlinetime} className=' '>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b>
+                              <span className='font-weight-bold'>
+                                <span className={'text-danger'}>
+                                  {OfflineA.onlinetime || '從未上線過'}
+                                </span>
+                              </span>
+                            </b>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              }
+            </tbody>
+          </table>
+
           {/* B班 */}
           <div className='classtitle'>B 班</div>
           <table className='table table-border'>
@@ -356,6 +449,58 @@ class Leaderboard extends React.Component {
                 <td className='coltitle' colSpan="5">!! 這是B班最後一筆資料了 !!</td>
               </tr>
             </tfoot>
+          </table>
+
+          {/* B班未上線名單 */}
+          <div className='classtitle'>B班3天以上沒上線名單</div>
+          <table className='table table-border'>
+            <thead>
+              <tr>
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班級</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名' />姓名</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名' />最後上線日</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                this.state.OfflineB &&
+                this.state.OfflineB.map((OfflineB, index) => {
+                  return (
+                    <tr key={index}>
+                      <td key={OfflineB.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{OfflineB.class}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={OfflineB.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{OfflineB.name}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={OfflineB.onlinetime} className=' '>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b>
+                              <span className='font-weight-bold'>
+                                <span className={'text-danger'}>
+                                  {OfflineB.onlinetime || '從未上線過'}
+                                </span>
+                              </span>
+                            </b>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              }
+            </tbody>
           </table>
 
           {/* C班 */}
@@ -460,6 +605,57 @@ class Leaderboard extends React.Component {
               </tr>
             </tfoot>
           </table>
+          {/* C班未上線名單 */}
+          <div className='classtitle'>C班3天以上沒上線名單</div>
+          <table className='table table-border'>
+            <thead>
+              <tr>
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班級</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名' />姓名</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名' />最後上線日</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                this.state.OfflineC &&
+                this.state.OfflineC.map((OfflineC, index) => {
+                  return (
+                    <tr key={index}>
+                      <td key={OfflineC.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{OfflineC.class}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={OfflineC.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{OfflineC.name}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={OfflineC.onlinetime} className=' '>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b>
+                              <span className='font-weight-bold'>
+                                <span className={'text-danger'}>
+                                  {OfflineC.onlinetime || '從未上線過'}
+                                </span>
+                              </span>
+                            </b>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              }
+            </tbody>
+          </table>
 
           {/* D班 */}
           <div className='classtitle'>D 班</div>
@@ -563,13 +759,13 @@ class Leaderboard extends React.Component {
               </tr>
             </tfoot>
           </table>
-
-
-          {/* 未上線名單 */}
-          <div className='classtitle'>五天以上沒上線名單</div>
+          {/* D班未上線名單 */}
+          <div className='classtitle'>D班3天以上沒上線名單</div>
           <table className='table table-border'>
             <thead>
               <tr>
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班級</span></th>
+
                 <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名' />姓名</span></th>
 
                 <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名' />最後上線日</span></th>
@@ -577,52 +773,31 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.studentsOffline &&
-                this.state.studentsOffline.map((studentsOffline, index) => {
+                this.state.OfflineD &&
+                this.state.OfflineD.map((OfflineD, index) => {
                   return (
                     <tr key={index}>
-                      {/* <td className='d-flex justify-content-center '>
-                        <b className={index + 1 === 1 || index + 1 === 2 || index + 1 === 3 ? 'text-danger' : ''}>
-                          {index + 1 === 1 ?
-                            <span>
-                              <img style={{ marginRight: 7 }}
-                                src={first}
-                                alt="1st" />
-                              1st
-                            </span>
-                            :
-                            index + 1 === 2 ?
-                              <span>
-                                <img style={{ marginRight: 7 }}
-                                  src={second}
-                                  alt="2nd" />
-                                2nd
-                              </span>
-                              :
-                              index + 1 === 3 ?
-                                <span>
-                                  <img style={{ marginRight: 7 }}
-                                    src={third}
-                                    alt="3rd" />
-                                  3rd
-                                </span>
-                                : index + 1}
-                        </b>
-                      </td> */}
-                      <td key={studentsOffline.name} className=''>
+                      <td key={OfflineD.name} className=''>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
-                            <b><span className='font-weight-bold'>{studentsOffline.name}</span></b>
+                            <b><span className='font-weight-bold'>{OfflineD.class}</span></b>
                           </div>
                         </div>
                       </td>
-                      <td key={studentsOffline.onlinetime} className=' '>
+                      <td key={OfflineD.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{OfflineD.name}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={OfflineD.onlinetime} className=' '>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
                             <b>
                               <span className='font-weight-bold'>
                                 <span className={'text-danger'}>
-                                  {studentsOffline.onlinetime || '從未上線過'}
+                                  {OfflineD.onlinetime || '從未上線過'}
                                 </span>
                               </span>
                             </b>
@@ -635,6 +810,9 @@ class Leaderboard extends React.Component {
               }
             </tbody>
           </table>
+
+
+
         </div>
       </Containerfull>
     )

@@ -5,31 +5,19 @@
   margin: 15px;
 }
 .logoutbtn {
-  width: 40px;
-  border-radius: 60%;
-  cursor: pointer;
+  margin: 20px 0px;
+  padding: 10px;
+  font-size: 15px;
+  letter-spacing: 2px;
+  border-radius: 5px;
+  font-family: "Noto Sans TC", sans-serif;
+  font-weight: 600;
+  border: 3.5px solid #d22d2d;
+  color: rgb(0, 0, 0);
+  background-color: rgb(255, 255, 255);
 }
 .logoutbtn:hover {
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.533);
+  box-shadow: 0 0 15px #d22d2d;
+  // box-shadow: 0 0 15px rgba(0, 0, 0, 0.533);
   transition: 350ms ease-in-out;
 }
-
-// .logoutbtn {
-//   border-radius: 10px;
-//   border: 3px solid rgb(232, 52, 52);
-//   color: rgb(0, 0, 0);
-//   background: {
-//     image: linear-gradient(45deg, #f10f0f 50%, transparent 50%);
-//     position: 100%;
-//     size: 400%;
-//   }
-//   transition: background 300ms ease-in-out;
-
-//   &:hover {
-//     background-position: 0;
-//     cursor: pointer;
-//   }
-//   img {
-//     width: 40px;
-//   }
-// }
