@@ -15,7 +15,7 @@ import 'react-circular-progressbar/dist/styles.css';
 // import Star from '../assets/img/star.png';
 // import GreenBook from '../assets/img/green book.png';
 import BlueBook from '../assets/img/blue book.png';
-import OrangeBook from '../assets/img/orange book.png';
+// import OrangeBook from '../assets/img/orange book.png';
 import Books from '../assets/img/books.png';
 import ThumbUp from '../assets/img/thumbup.png';
 import Search from '../assets/img/search.png';
