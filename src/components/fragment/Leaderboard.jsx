@@ -190,7 +190,7 @@ class Leaderboard extends React.Component {
               <div className='countdownlabel'>
                 {this.resetDate}日結算
               </div>
-              <CountdownTimer countdownTimestampMs={1672416000000} />
+              <CountdownTimer countdownTimestampMs={1675094400000} />
             </div>
           </div>
           {/* A班 */}
