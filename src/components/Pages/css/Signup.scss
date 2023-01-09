@@ -1,9 +1,38 @@
+.Signup {
+  height: 100vh;
+  background-color: #fcf8ec;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .signupsection {
   display: flex;
   flex-direction: column;
   align-items: center;
   align-content: center;
   height: auto;
-  width: 80vw;
   padding: 20px 0px;
+  gap: 20px;
+
+  span {
+    font-weight: 600;
+  }
+}
+.signupinput {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-weight: 600;
+
+  input {
+    border: solid 2.5px;
+    border-radius: 5px;
+    padding: 5px;
+  }
+}
+
+.signupbtn {
+  border-radius: 20px;
+  font-weight: 600;
+  padding: 10px 20px;
 }

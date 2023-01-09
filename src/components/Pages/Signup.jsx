@@ -84,77 +84,76 @@ class Signup extends React.Component {
 
     render() {
         return (
-            <section id="main">
-                <div className="main-row">
-                    <div className="main-row-text">
-                        <div className="signupsection">
-                            <span>Add User</span>
-                            <label>帳號</label>
-                            <input
-                                name="email"
-                                type="email"
-                                id="email"
-                                placeholder="輸入電子郵件或帳號..."
-                                onChange={this.handleChange}
-                                value={this.state.email}
-                            />
-
-                            <label>密碼</label>
-                            <input
-                                name="password"
-                                type="password"
-                                id="password"
-                                placeholder="輸入密碼..."
-                                onChange={this.handleChange}
-                                value={this.state.password}
-                            />
-
-                            <label>English Name</label>
-                            <input
-                                name="name"
-                                type="name"
-                                id="name"
-                                placeholder="輸入姓名..."
-                                onChange={this.handleChange}
-                                value={this.state.name}
-                            />
-
-                            <label>ClassType</label>
-                            <input
-                                name="classtype"
-                                type="classtype"
-                                id="classtype"
-                                placeholder="輸入Class..."
-                                onChange={this.handleChange}
-                                value={this.state.classtype}
-                            />
-
-
-                            <button onClick={this.signupuser} className="loginbtn">
-                                創建
-                                <ToastContainer
-                                    position="top-center"
-                                    autoClose={2000}
-                                    hideProgressBar={false}
-                                    newestOnTop={false}
-                                    closeOnClick
-                                    rtl={false}
-                                    pauseOnFocusLoss
-                                    draggable
-                                    pauseOnHover
-                                />
-                            </button>
-                            <div className="nav-item">
-                                <span className="logincopyright" href="/">Copyright © 2022 Alan English Inc.</span>
-                            </div>
-                        </div>
-
-
+            <div className="Signup">
+                <div className="signupsection">
+                    <span>Add User</span>
+                    <div className="signupinput">
+                        <label>帳號</label>
+                        <input
+                            name="email"
+                            type="email"
+                            id="email"
+                            placeholder="輸入電子郵件或帳號..."
+                            onChange={this.handleChange}
+                            value={this.state.email}
+                        />
                     </div>
 
-                </div>
+                    <div className="signupinput">
+                        <label>密碼</label>
+                        <input
+                            name="password"
+                            type="password"
+                            id="password"
+                            placeholder="輸入密碼..."
+                            onChange={this.handleChange}
+                            value={this.state.password}
+                        />
+                    </div>
 
-            </section>
+                    <div className="signupinput">
+                        <label>English Name</label>
+                        <input
+                            name="name"
+                            type="name"
+                            id="name"
+                            placeholder="輸入姓名..."
+                            onChange={this.handleChange}
+                            value={this.state.name}
+                        />
+                    </div>
+
+                    <div className="signupinput">
+                        <label>ClassType</label>
+                        <input
+                            name="classtype"
+                            type="classtype"
+                            id="classtype"
+                            placeholder="輸入Class..."
+                            onChange={this.handleChange}
+                            value={this.state.classtype}
+                        />
+                    </div>
+
+                    <button onClick={this.signupuser} className="signupbtn">
+                        創建
+                        <ToastContainer
+                            position="top-center"
+                            autoClose={2000}
+                            hideProgressBar={false}
+                            newestOnTop={false}
+                            closeOnClick
+                            rtl={false}
+                            pauseOnFocusLoss
+                            draggable
+                            pauseOnHover
+                        />
+                    </button>
+                    <div className="nav-item">
+                        <span className="copyright" href="/">Copyright © 2022 Alan English Inc.</span>
+                    </div>
+                </div>
+            </div>
         );
     }
 }
