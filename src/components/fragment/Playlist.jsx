@@ -6,15 +6,9 @@ import Container from "./Container";
 // import firebase from 'firebase/app';
 
 const Playlist = () => {
-    // const [totaltimeplayed, setTotal] = useState();
     const typeOfPlaylist = window.location.pathname.substring(15);
     const { playlists } = useSelector(state => state.musicReducer);
-    // const userId = firebase.auth().currentUser.uid;
-    // firebase.database().ref().child("student").child(userId).child("totaltimeplayed").get().then((snapshot) => {
-    //     setTotal(snapshot.val());
-    // }).catch((error) => {
-    //     console.error(error);
-    // });
+
     return (
         <Container>
             <div className={"Playlist"}>

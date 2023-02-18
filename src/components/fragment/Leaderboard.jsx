@@ -49,6 +49,14 @@ class Leaderboard extends React.Component {
     d.setDate(d.getDate() - 3);
     const offlinelimit = d.toJSON().slice(0, 10);
 
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+
+      } else {
+        window.location.href = '/'
+      }
+    })
+
 
     db.collection("student")
       .where('class', '==', 'A')
@@ -62,8 +70,8 @@ class Leaderboard extends React.Component {
           studentsA.push(data);
         })
         this.setState({ studentsA: studentsA });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
     db.collection("student")
       .where('onlinetime', '<=', offlinelimit)
@@ -75,8 +83,8 @@ class Leaderboard extends React.Component {
           OfflineA.push(data);
         })
         this.setState({ OfflineA: OfflineA });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
 
     db.collection("student")
@@ -91,8 +99,8 @@ class Leaderboard extends React.Component {
           studentsB.push(data);
         })
         this.setState({ studentsB: studentsB });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
     db.collection("student")
       .where('onlinetime', '<=', offlinelimit)
@@ -104,8 +112,8 @@ class Leaderboard extends React.Component {
           OfflineB.push(data);
         })
         this.setState({ OfflineB: OfflineB });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
 
     db.collection("student")
@@ -120,8 +128,8 @@ class Leaderboard extends React.Component {
           studentsC.push(data);
         })
         this.setState({ studentsC: studentsC });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
     db.collection("student")
       .where('onlinetime', '<=', offlinelimit)
@@ -133,8 +141,8 @@ class Leaderboard extends React.Component {
           OfflineC.push(data);
         })
         this.setState({ OfflineC: OfflineC });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
 
     db.collection("student")
@@ -149,8 +157,8 @@ class Leaderboard extends React.Component {
           studentsD.push(data);
         })
         this.setState({ studentsD: studentsD });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
     db.collection("student")
       .where('onlinetime', '<=', offlinelimit)
@@ -162,8 +170,8 @@ class Leaderboard extends React.Component {
           OfflineD.push(data);
         })
         this.setState({ OfflineD: OfflineD });
-      }).catch(() => {
-        window.location = "/"
+      }).catch((err) => {
+        console.lor(err)
       })
 
 
@@ -190,7 +198,7 @@ class Leaderboard extends React.Component {
               <div className='countdownlabel'>
                 {this.resetDate}日結算
               </div>
-              <CountdownTimer countdownTimestampMs={1675094400000} />
+              <CountdownTimer countdownTimestampMs={1677513600000} />
             </div>
           </div>
           {/* A班 */}

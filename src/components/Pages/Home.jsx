@@ -1,30 +1,30 @@
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import './css/Home.scss';
 import NavigationMobile from "../fragment/NavigationMobile";
 import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
 import MusicCardContainer from "../fragment/MusicCardContainer";
-import {useSelector} from "react-redux";
+import { useSelector } from "react-redux";
 import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
 import Playlist from "../fragment/Playlist";
-import {Skeleton} from "@material-ui/lab";
+import { Skeleton } from "@material-ui/lab";
 import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
 import Copyright from "../fragment/Copyright";
 import firebase from "./firebase";
-import Redirectpage from "../fragment/Redirectpage";
+import { toast, ToastContainer } from "react-toastify"
 
 function getCurrPage(pathName) {
     switch (pathName) {
         case "/home":
-            return <Playlist/>
+            return <Playlist />
         case "/home/search":
-            return <Search/>
+            return <Search />
         case "/home/addmusic":
-            return <AddMusic/>
+            return <AddMusic />
         default:
             if (pathName.startsWith("/home/playlist/")) {
-                return <Playlist/>
+                return <Playlist />
             }
             return null
     }
@@ -33,18 +33,35 @@ function getCurrPage(pathName) {
 function Home() {
 
     const [currMusic, setCurrMusic] = useState(null);
-    const [Page, setCurrPage] = useState(<MusicCardContainer/>);
-    const [auth, setAuth] = useState(false);
+    const [Page, setCurrPage] = useState(<MusicCardContainer />);
 
-    firebase.auth().onAuthStateChanged((user) => {
-        if(user) {
-          // 使用者已登入，可以取得資料
-          setAuth(true)
-        } else {
-          // 使用者未登入
-          setAuth(false)
-        }
-      });
+
+    const error = () => {
+        toast.error('尚未登入', {
+            className: "notification",
+            position: "top-center",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+        });
+        setTimeout(() => {
+            window.location.href = '/'
+        }, 1200);
+    };
+
+    useEffect(() => {
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+
+            } else {
+                error();
+            }
+        });
+    }, [])
+
 
     let pathname = window.location.pathname;
     useEffect(() => {
@@ -52,7 +69,7 @@ function Home() {
     }, [pathname]);
 
 
-    const {playing, bannerOpen} = useSelector(state => state.musicReducer);
+    const { playing, bannerOpen } = useSelector(state => state.musicReducer);
 
     useEffect(() => {
         setCurrMusic(playing)
@@ -64,26 +81,35 @@ function Home() {
     }, []);
 
 
-    if(!auth) return <Redirectpage/>
-    // if(!auth) return null
     return (
         <div className={"home-container"}>
             {
                 !loaded ?
                     <div className="Home-skeleton">
-                        <Skeleton variant={"rect"} height={"100vh"}/>
+                        <Skeleton variant={"rect"} height={"100vh"} />
                     </div>
                     :
                     <div>
-                        
-                        <NavigationMobile/>
+
+                        <NavigationMobile />
                         <section className={"home-music-container"}>
+                            <ToastContainer
+                                position="top-center"
+                                autoClose={2000}
+                                hideProgressBar={false}
+                                newestOnTop={false}
+                                closeOnClick
+                                rtl={false}
+                                pauseOnFocusLoss
+                                draggable
+                                pauseOnHover
+                            />
                             <div className="main-home">
                                 {
                                     Page
                                 }
                                 <div className="main-home-copyright">
-                                    <Copyright/>
+                                    <Copyright />
                                 </div>
                             </div>
                         </section>
@@ -91,21 +117,21 @@ function Home() {
                             <React.Fragment>
                                 {
                                     currMusic
-                                    ?
-                                    <FooterMusicPlayer music={currMusic}/>
-                                    :
-                                    <FooterEmpty/>
+                                        ?
+                                        <FooterMusicPlayer music={currMusic} />
+                                        :
+                                        <FooterEmpty />
                                 }
-                            </React.Fragment> 
+                            </React.Fragment>
                         </section>
                         {
                             bannerOpen
                             &&
                             <section className="current-large-banner">
-                                <CurrentPlayingLarge/>
+                                <CurrentPlayingLarge />
                             </section>
                         }
-                    </div>  
+                    </div>
             }
         </div>
     );
