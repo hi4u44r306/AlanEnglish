@@ -16,8 +16,6 @@ function FooterMusicPlayer({ music }) {
     const { playlists } = useSelector(state => state.musicReducer);
     const [currentuser, setCurrUser] = useState();
     const userId = firebase.auth().currentUser.uid;
-    // const [totaltimeplayed,setTotaltimeplayed] = useState();
-    // const currplayingmusicid = "'" + id + "'";
     const db = firebase.firestore(); // firestore
     const dispatch = useDispatch();
     const audioElement = useRef();
@@ -57,6 +55,14 @@ function FooterMusicPlayer({ music }) {
     });
 
     function updatetimeplayedtofirestore() {
+
+        userRef.get().then((doc) => {
+            const c = doc.data().totaltimeplayed;
+            const d = parseInt(c) + 1;
+            userRef.update({
+                totaltimeplayed: d,
+            })
+        })
 
 
         // Firestore
