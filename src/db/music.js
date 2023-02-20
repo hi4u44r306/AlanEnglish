@@ -9842,6 +9842,42 @@ let musicDB = [
         type: "Workbook_4",
         musicName: "習作本4/習作本4 P30.mp3"
     },
+    {
+        bookname: "習作本4",
+        page: "P.32 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P32.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.34",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P34.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.36",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P36.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.38",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P38.mp3"
+    },
 
 ];
 
