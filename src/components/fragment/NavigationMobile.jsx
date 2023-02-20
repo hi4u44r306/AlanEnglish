@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import firebase from 'firebase/app';
+import React from "react";
 import 'firebase/firestore';
 import Logout from "./Logout";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -31,48 +30,15 @@ import Brand from "./Brand";
 
 function NavigationMobile() {
 
-  const db = firebase.firestore();
-  const [navusername, setnavUsername] = useState();//避免使用innerHTML, textContext 所以用useState();
+
   // const [updated, setUpdated] = useState();
   // const currentDate = new Date().toJSON().slice(0, 10);
   // const currentMonth = new Date().toJSON().slice(0, 7);
   // const [dailytimeplayed, setDailyTimeplayed] = useState();
   // const percentage = dailytimeplayed*100/20;
   // const custompathColor = `#89aae6`
+  const navusername = localStorage.getItem('username');
 
-  const getUserInfo = (user) => {  //從firestore取得 student 集合中選取符合user.uid的資訊
-    if (user) {
-      db.collection('student').doc(user.uid).get().then(doc => {
-        setnavUsername(doc.data().name)
-        // if(doc.data().Resetallmusic === currentMonth+'alreadyupdated'){
-        // setUpdated(`${currentMonth}'月次數已歸零'`)
-        // }else{
-        // setUpdated('尚未歸零')
-        // }
-      }, err => {
-        console.log(err.message);
-      });
-      // db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc)=>{
-      //   setDailyTimeplayed(doc.data().todaytotaltimeplayed);
-      // }).catch(()=>{
-      //     setDailyTimeplayed("0")
-      // })
-    } else {
-
-    }
-  }
-
-  firebase.auth().onAuthStateChanged(user => {
-    if (user) {
-      db.collection('student').onSnapshot(snapshot => {
-        getUserInfo(user);
-      }, err => {
-        console.log(err.message);
-      });
-    } else {
-      getUserInfo();
-    }
-  })
 
 
   return (
@@ -86,7 +52,7 @@ function NavigationMobile() {
             </Navbar.Brand>
 
             <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`}>
-              <img style={{ width: 40, height: 40 }} src={Menu} alt="menu" />
+              <img style={{ width: 30, height: 30 }} src={Menu} alt="menu" />
             </Navbar.Toggle>
 
             <Navbar.Offcanvas

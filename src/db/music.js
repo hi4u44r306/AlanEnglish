@@ -9680,6 +9680,60 @@ let musicDB = [
         type: "Workbook_4",
         musicName: "習作本4/習作本4 P8.mp3"
     },
+    {
+        bookname: "習作本4",
+        page: "P.9",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P9.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.13",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P13.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.15",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P15.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.17",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P17.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.19",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P19.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.20",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P20.mp3"
+    },
 
 ];
 

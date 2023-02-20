@@ -16,9 +16,9 @@ import { useEffect } from 'react';
 const User = () => {
 
     const db = firebase.firestore();
-    const [username, setUsername] = useState();
+    const username = localStorage.getItem('username');
+    const totaltimeplayed = localStorage.getItem('totaltimeplayed');
     const [dailytimeplayed, setDailyTimeplayed] = useState();
-    const [totaltimeplayed, setTotaltimeplayed] = useState();
     const currentDate = new Date().toJSON().slice(0, 10);
     const currentMonth = new Date().toJSON().slice(0, 7);
     const custompathColor = `#89aae6`
@@ -44,12 +44,6 @@ const User = () => {
 
     useEffect(() => {
         const getUserInfo = (user) => {
-            db.collection('student').doc(user.uid).get().then(doc => {
-                setUsername(doc.data().name);
-                setTotaltimeplayed(doc.data().totaltimeplayed);
-            }).catch(() => {
-                setTotaltimeplayed(0);
-            })
             db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc) => {
                 setDailyTimeplayed(doc.data().todaytotaltimeplayed);
             }).catch(() => {

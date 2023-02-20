@@ -221,7 +221,7 @@ class Leaderboard extends React.Component {
                 this.state.studentsA &&
                 this.state.studentsA.map((studentsA, index) => {
                   return (
-                    <tr key={index}>
+                    <tr key={studentsA.name}>
                       <td className='d-flex justify-content-center'>
                         <b className={index + 1 === 1 || index + 1 === 2 || index + 1 === 3 ? 'text-danger' : ''}>
                           {index + 1 === 1 ?
@@ -319,9 +319,9 @@ class Leaderboard extends React.Component {
             <tbody>
               {
                 this.state.OfflineA &&
-                this.state.OfflineA.map((OfflineA, index) => {
+                this.state.OfflineA.map((OfflineA) => {
                   return (
-                    <tr key={index}>
+                    <tr key={OfflineA.name}>
                       <td key={OfflineA.name} className=''>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">

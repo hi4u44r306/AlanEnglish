@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-// import firebase from 'firebase/app';
+import firebase from 'firebase/app';
 import './App.scss';
 import Home from "../components/Pages/Home";
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
@@ -15,8 +15,6 @@ import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
-// import { useState } from "react";
-// import Menu from "../components/fragment/Menu";
 
 
 
@@ -47,6 +45,18 @@ const App = () => {
     //         getUserInfo();
     //     }
     // })
+    const db = firebase.firestore();
+    firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+            db.collection('student').doc(user.uid).get().then(doc => {
+                localStorage.setItem('username', doc.data().name)
+                localStorage.setItem('totaltimeplayed', doc.data().totaltimeplayed)
+            });
+        } else {
+            localStorage.setItem('username', '')
+            localStorage.setItem('totaltimeplayed', '')
+        }
+    })
 
     const dispatch = useDispatch();
     useEffect(() => {
