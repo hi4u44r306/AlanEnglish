@@ -182,12 +182,16 @@ function FooterMusicPlayer({ music }) {
     const handleEnd = () => {
         console.log('Track End')
         let abc = currentTrack + 1;
-        if ((currentTrack + 1) <= playlists.length) {
+        if ((currentTrack + 1) >= playlists.length) {
             abc = 0;
+            success();
+            updatetimeplayedtofirestore();
+            dispatch(setCurrentPlaying(playlists[abc]));
+        } else {
+            success();
+            updatetimeplayedtofirestore();
+            dispatch(setCurrentPlaying(playlists[abc]));
         }
-        success();
-        updatetimeplayedtofirestore();
-        dispatch(setCurrentPlaying(playlists[abc]));
     }
 
 
