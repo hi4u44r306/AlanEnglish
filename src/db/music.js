@@ -9995,6 +9995,24 @@ let musicDB = [
         type: "Workbook_4",
         musicName: "習作本4/習作本4 P61.mp3"
     },
+    {
+        bookname: "習作本4",
+        page: "P.63 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P63.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.64 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P64.mp3"
+    },
 
 ];
 
