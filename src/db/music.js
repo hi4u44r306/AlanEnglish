@@ -10013,6 +10013,114 @@ let musicDB = [
         type: "Workbook_4",
         musicName: "習作本4/習作本4 P64.mp3"
     },
+    {
+        bookname: "習作本4",
+        page: "P.71 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P71.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.76 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P76.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.80 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P80.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.81 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P81.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.82 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P82.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.86 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P86.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.86 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P86 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.86 Answer",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P86 Answer.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.89 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P89.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.91 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P91.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.93 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P93.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.95 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P95.mp3"
+    },
 
 ];
 
