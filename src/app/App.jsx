@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import firebase from 'firebase/app';
 import './App.scss';
-import Home from "../components/Pages/Home";
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
@@ -15,6 +14,7 @@ import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
+import Home from "../components/Pages/Showcase/Pages/Home";
 
 
 
@@ -79,11 +79,7 @@ const App = () => {
                 <Switch>
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
-                    {/* <Route path="/home/menu">
-                        <NavigationMobile/>
-                        <Menu/>
-                        <Copyright/>
-                    </Route> */}
+                    <Route path="/showcase" exact component={Home} />
                     <Route path="/home/leaderboard">
                         <NavigationMobile />
                         <Leaderboard />

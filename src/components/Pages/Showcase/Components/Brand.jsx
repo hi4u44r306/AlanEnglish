@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "../assets/scss/Brand.css";
+import "./Brand.css";
 
 class Brand extends React.Component {
     render() {
