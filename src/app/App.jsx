@@ -14,8 +14,7 @@ import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
-import Home from "../components/Pages/Showcase/Pages/Home";
-
+import Home from "../components/Pages/Home"
 
 
 const App = () => {
@@ -79,7 +78,7 @@ const App = () => {
                 <Switch>
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
-                    <Route path="/showcase" exact component={Home} />
+                    {/* <Route path="/showcase" exact component={Home} /> */}
                     <Route path="/home/leaderboard">
                         <NavigationMobile />
                         <Leaderboard />
