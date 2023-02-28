@@ -15,35 +15,12 @@ import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
 import Home from "../components/Pages/Home"
+import Showcase from "../components/Pages/Showcase";
 
 
 const App = () => {
 
     const { language } = useSelector(state => state.musicReducer);
-    // const [userid, setuserID] = useState();
-    // const db = firebase.firestore();
-    // const getUserInfo = (user) =>{  //從firestore取得 student 集合中選取符合user.uid的資訊
-    //     if(user){
-    //         db.collection('student').doc(user.uid).get().then( doc => {
-    //             setuserID(doc.id)
-    //         }, err =>{
-    //             console.log(err.message);
-    //         });
-    //     }else{
-
-    //     }
-    //   }    
-    // firebase.auth().onAuthStateChanged(user => {
-    //     if(user){
-    //         db.collection('student').onSnapshot(snapshot =>{
-    //             getUserInfo(user);
-    //         }, err =>{
-    //             console.log(err.message);
-    //         });
-    //     }else{
-    //         getUserInfo();
-    //     }
-    // })
     const db = firebase.firestore();
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
@@ -78,6 +55,7 @@ const App = () => {
                 <Switch>
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
+                    <Route path="/showcase" exact component={Showcase} />
                     {/* <Route path="/showcase" exact component={Home} /> */}
                     <Route path="/home/leaderboard">
                         <NavigationMobile />

@@ -31,19 +31,20 @@ class Leaderboard extends React.Component {
     return new Date(date.getFullYear(), date.getMonth() + 1, 1);
   }
 
-  nextMonth = new Date().getMonth() + 3;
-  firstdayofmonth = this.currentMonth + '-01';
 
   lastday = function (y, m) {
     return new Date(y, m + 1, 0).getDate();
   }
   lastdayofmonth = this.lastday(this.currentYear, new Date().toJSON().slice(5, 7))
-  resetDate = this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth;
-  resetDateToMs = new Date(this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth).getTime()
+  // resetDate = this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth;
+  // resetDateToMs = new Date(this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth).getTime()
+  resetDate = this.currentYear + '-' + this.currentMonth2 + '-' + new Date(this.currentYear, this.currentMonth2, 0).getDate()
+
 
   currentDate = new Date().toJSON().slice(0, 10);
 
   componentDidMount() {
+    // console.log(this.abc)
     const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量
     const d = new Date();
     d.setDate(d.getDate() - 3);
@@ -198,7 +199,7 @@ class Leaderboard extends React.Component {
               <div className='countdownlabel'>
                 {this.resetDate}日結算
               </div>
-              <CountdownTimer countdownTimestampMs={1677513600000} />
+              <CountdownTimer countdownTimestampMs={1680273592287} />
             </div>
           </div>
           {/* A班 */}

@@ -10,14 +10,13 @@ import Playlist from "../fragment/Playlist";
 import { Skeleton } from "@material-ui/lab";
 import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
-import Copyright from "../fragment/Copyright";
 import firebase from "./firebase";
 import { toast, ToastContainer } from "react-toastify"
 
 function getCurrPage(pathName) {
     switch (pathName) {
-        case "/home":
-            return <Playlist />
+        // case "/home":
+        //     return <Playlist />
         case "/home/search":
             return <Search />
         case "/home/addmusic":
@@ -108,9 +107,9 @@ function Home() {
                                 {
                                     Page
                                 }
-                                <div className="main-home-copyright">
+                                {/* <div className="main-home-copyright">
                                     <Copyright />
-                                </div>
+                                </div> */}
                             </div>
                         </section>
                         <section className={"home-musicplayer"}>
