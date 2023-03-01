@@ -1,4 +1,2387 @@
 let musicDB = [
+    //////////////////////////        習作本 1      /////////////////////////////////
+
+    {
+        // id: 519,
+        bookname: "習作本1",
+        page: "P.19",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P19.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 520,
+        bookname: "習作本1",
+        page: "P.20",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P20.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 521,
+        bookname: "習作本1",
+        page: "P.21",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P21.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 522,
+        bookname: "習作本1",
+        page: "P.24",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P24.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 523,
+        bookname: "習作本1",
+        page: "P.25",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P25.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 524,
+        bookname: "習作本1",
+        page: "P.26",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P26.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 525,
+        bookname: "習作本1",
+        page: "P.29",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P29.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 526,
+        bookname: "習作本1",
+        page: "P.31",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P31.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 527,
+        bookname: "習作本1",
+        page: "P.32",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P32.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 528,
+        bookname: "習作本1",
+        page: "P.38",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P38.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 529,
+        bookname: "習作本1",
+        page: "P.39",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P39.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 530,
+        bookname: "習作本1",
+        page: "P.43",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P43.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 531,
+        bookname: "習作本1",
+        page: "P.44",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P44.mp3",
+        questions: [
+            {
+                questionText: "Test.",
+            },
+            {
+                questionText: "Victor.",
+            },
+            // {
+            //     questionText : "hello",
+            // },
+            // {
+            //     questionText : "mouse",
+            // },
+            // {
+            //     questionText : "mice",
+            // },
+        ]
+    },
+    {
+        // id: 532,
+        bookname: "習作本1",
+        page: "P.45",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P45.mp3"
+    },
+    {
+        // id: 533,
+        bookname: "習作本1",
+        page: "P.46",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P46.mp3"
+    },
+    {
+        // id: 534,
+        bookname: "習作本1",
+        page: "P.48",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P48.mp3"
+    },
+    {
+        // id: 535,
+        bookname: "習作本1",
+        page: "P.50",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P50.mp3"
+    },
+    {
+        // id: 536,
+        bookname: "習作本1",
+        page: "P.52",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P52.mp3"
+    },
+    {
+        // id: 537,
+        bookname: "習作本1",
+        page: "P.54",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P54.mp3"
+    },
+    {
+        // id: 538,
+        bookname: "習作本1",
+        page: "P.58",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P58.mp3"
+    },
+    {
+        // id: 539,
+        bookname: "習作本1",
+        page: "P.60",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P60.mp3"
+    },
+    {
+        // id: 540,
+        bookname: "習作本1",
+        page: "P.64",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P64.mp3"
+    },
+    {
+        // id: 541,
+        bookname: "習作本1",
+        page: "P.66",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P66.mp3"
+    },
+    {
+        // id: 542,
+        bookname: "習作本1",
+        page: "P.68",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P68.mp3"
+    },
+    {
+        // id: 543,
+        bookname: "習作本1",
+        page: "P.71",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P71.mp3"
+    },
+    {
+        // id: 544,
+        bookname: "習作本1",
+        page: "P.81",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P81.mp3"
+    },
+    {
+        // id: 545,
+        bookname: "習作本1",
+        page: "P.83",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P83.mp3"
+    },
+    {
+        // id: 546,
+        bookname: "習作本1",
+        page: "P.85",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P85.mp3"
+    },
+    {
+        // id: 547,
+        bookname: "習作本1",
+        page: "P.87",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P87.mp3"
+    },
+    {
+        // id: 548,
+        bookname: "習作本1",
+        page: "P.94",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P94.mp3"
+    },
+    {
+        // id: 549,
+        bookname: "習作本1",
+        page: "P.95",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P95.mp3"
+    },
+    {
+        // id: 550,
+        bookname: "習作本1",
+        page: "P.96",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P96.mp3"
+    },
+    {
+        // id: 551,
+        bookname: "習作本1",
+        page: "P.98",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P98.mp3"
+    },
+    {
+        // id: 552,
+        bookname: "習作本1",
+        page: "P.99",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P99.mp3"
+    },
+    {
+        // id: 553,
+        bookname: "習作本1",
+        page: "P.101",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P101.mp3"
+    },
+    {
+        // id: 554,
+        bookname: "習作本1",
+        page: "P.102",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P102.mp3"
+    },
+    {
+        // id: 555,
+        bookname: "習作本1",
+        page: "P.104",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P104.mp3"
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //////////////////////// 習作本2 //////////////////////////////
+
+
+
+    {
+        // id: 136,
+        bookname: "習作本2",
+        page: "P.4 Q&A",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P4.mp3"
+
+    },
+    {
+        // id: 137,
+        bookname: "習作本2",
+        page: "P.6 Q&A",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P6.mp3"
+
+    },
+    {
+        // id: 138,
+        bookname: "習作本2",
+        page: "P.8 Q&A",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P8.mp3"
+
+    },
+    {
+        // id: 138,
+        bookname: "習作本2",
+        page: "P.8 Question",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P8 Question.mp3"
+
+    },
+    {
+        // id: 138,
+        bookname: "習作本2",
+        page: "P.8 Answer",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P8 Answer.mp3"
+
+    },
+    {
+        // id: 139,
+        bookname: "習作本2",
+        page: "P.10 Q&A",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P10.mp3"
+
+    },
+    {
+        // id: 140,
+        bookname: "習作本2",
+        page: "P.14 Q&A",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P14.mp3"
+
+    },
+    {
+        // id: 141,
+        bookname: "習作本2",
+        page: "P.16 Q&A",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P16.mp3"
+
+    },
+    {
+        // id: 142,
+        bookname: "習作本2",
+        page: "P.18",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P18.mp3"
+    },
+    {
+        // id: 143,
+        bookname: "習作本2",
+        page: "P.20",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P20.mp3"
+    },
+    {
+        // id: 144,
+        bookname: "習作本2",
+        page: "P.21",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P21.mp3"
+    },
+    {
+        // id: 145,
+        bookname: "習作本2",
+        page: "P.24",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P24.mp3"
+    },
+    {
+        // id: 146,
+        bookname: "習作本2",
+        page: "P.26",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P26.mp3"
+    },
+    {
+        // id: 147,
+        bookname: "習作本2",
+        page: "P.28",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P28.mp3"
+    },
+    {
+        // id: 148,
+        bookname: "習作本2",
+        page: "P.30",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P30.mp3"
+    },
+    {
+        // id: 149,
+        bookname: "習作本2",
+        page: "P.31",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P31.mp3"
+    },
+    {
+        // id: 150,
+        bookname: "習作本2",
+        page: "P.34",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P34.mp3"
+    },
+    {
+        // id: 151,
+        bookname: "習作本2",
+        page: "P.36",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P36.mp3"
+    },
+    {
+        // id: 152,
+        bookname: "習作本2",
+        page: "P.38",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P38.mp3"
+    },
+    {
+        // id: 153,
+        bookname: "習作本2",
+        page: "P.40",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P40.mp3"
+    },
+    {
+        // id: 154,
+        bookname: "習作本2",
+        page: "P.42",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P42.mp3"
+    },
+    {
+        // id: 155,
+        bookname: "習作本2",
+        page: "P.43",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P43.mp3"
+    },
+    {
+        // id: 156,
+        bookname: "習作本2",
+        page: "P.46",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P46.mp3"
+    },
+    {
+        // id: 157,
+        bookname: "習作本2",
+        page: "P.48",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P48.mp3"
+    },
+    {
+        // id: 158,
+        bookname: "習作本2",
+        page: "P.50",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P50.mp3"
+    },
+    {
+        // id: 159,
+        bookname: "習作本2",
+        page: "P.52",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P52.mp3"
+    },
+    {
+        // id: 160,
+        bookname: "習作本2",
+        page: "P.53",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P53.mp3"
+    },
+    {
+        // id: 161,
+        bookname: "習作本2",
+        page: "P.56",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P56.mp3"
+    },
+    {
+        // id: 162,
+        bookname: "習作本2",
+        page: "P.58",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P58.mp3"
+    },
+    {
+        // id: 163,
+        bookname: "習作本2",
+        page: "P.60",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P60.mp3"
+    },
+    {
+        // id: 164,
+        bookname: "習作本2",
+        page: "P.62",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P62.mp3"
+    },
+    {
+        // id: 165,
+        bookname: "習作本2",
+        page: "P.64",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P64.mp3"
+    },
+    {
+        // id: 166,
+        bookname: "習作本2",
+        page: "P.65",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P65.mp3"
+    },
+    {
+        // id: 167,
+        bookname: "習作本2",
+        page: "P.68",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P68.mp3"
+    },
+    {
+        // id: 168,
+        bookname: "習作本2",
+        page: "P.69",
+        img: "headphone2.png",
+        lang: "習作本2",
+        type: "Workbook_2",
+        timesPlayed: 0,
+        musicName: "習作本2/習作本2 P69.mp3"
+    },
+    {
+        // id: 169,
+        bookname: "習作本2",
+        page: "P.70",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P70.mp3"
+    },
+    {
+        // id: 170,
+        bookname: "習作本2",
+        page: "P.72",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P72.mp3"
+    },
+    {
+        // id: 171,
+        bookname: "習作本2",
+        page: "P.76",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P76.mp3"
+    },
+    {
+        // id: 172,
+        bookname: "習作本2",
+        page: "P.78",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P78.mp3"
+    },
+    {
+        // id: 173,
+        bookname: "習作本2",
+        page: "P.80",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P80.mp3"
+    },
+    {
+        // id: 174,
+        bookname: "習作本2",
+        page: "P.82",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P82.mp3"
+    },
+    {
+        // id: 175,
+        bookname: "習作本2",
+        page: "P.84",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P84.mp3"
+    },
+    {
+        // id: 176,
+        bookname: "習作本2",
+        page: "P.86",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P86.mp3"
+    },
+    {
+        // id: 177,
+        bookname: "習作本2",
+        page: "P.88",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P88.mp3"
+    },
+    {
+        // id: 178,
+        bookname: "習作本2",
+        page: "P.92",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P92.mp3"
+    },
+    {
+        // id: 179,
+        bookname: "習作本2",
+        page: "P.93",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P93.mp3"
+    },
+    {
+        // id: 180,
+        bookname: "習作本2",
+        page: "P.94",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P94.mp3"
+    },
+    {
+        // id: 181,
+        bookname: "習作本2",
+        page: "P.96",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P96.mp3"
+    },
+    {
+        // id: 182,
+        bookname: "習作本2",
+        page: "P.98",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P98.mp3"
+    },
+    {
+        // id: 183,
+        bookname: "習作本2",
+        page: "P.100",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P100.mp3"
+    },
+    {
+        // id: 184,
+        bookname: "習作本2",
+        page: "P.102",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P102.mp3"
+    },
+    {
+        // id: 185,
+        bookname: "習作本2",
+        page: "P.103",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P103.mp3"
+    },
+    {
+        // id: 186,
+        bookname: "習作本2",
+        page: "P.104",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P104.mp3"
+    },
+    {
+        // id: 187,
+        bookname: "習作本2",
+        page: "P.106",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P106.mp3"
+    },
+    {
+        // id: 188,
+        bookname: "習作本2",
+        page: "P.108",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P108.mp3"
+    },
+    {
+        // id: 189,
+        bookname: "習作本2",
+        page: "P.110",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P110.mp3"
+    },
+    {
+        // id: 190,
+        bookname: "習作本2",
+        page: "P.114",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P114.mp3"
+    },
+    {
+        // id: 191,
+        bookname: "習作本2",
+        page: "P.115",
+        img: "headphone2.png",
+        lang: "習作本2",
+        timesPlayed: 0,
+        type: "Workbook_2",
+        musicName: "習作本2/習作本2 P115.mp3"
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ///////////////////////// 習作本 3 ////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+    {
+        // id: 192,
+        bookname: "習作本3",
+        page: "P.4",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P4.mp3"
+    },
+    {
+        // id: 193,
+        bookname: "習作本3",
+        page: "P.5",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P5.mp3"
+    },
+    {
+        // id: 194,
+        bookname: "習作本3",
+        page: "P.6",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P6.mp3"
+    },
+    {
+        // id: 195,
+        bookname: "習作本3",
+        page: "P.9",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P9.mp3"
+    },
+    {
+        // id: 196,
+        bookname: "習作本3",
+        page: "P.11",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P11.mp3"
+    },
+    {
+        // id: 197,
+        bookname: "習作本3",
+        page: "P.15",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P15.mp3"
+    },
+    {
+        // id: 198,
+        bookname: "習作本3",
+        page: "P.17",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P17.mp3"
+    },
+    {
+        // id: 199,
+        bookname: "習作本3",
+        page: "P.20",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P20.mp3"
+    },
+    {
+        // id: 200,
+        bookname: "習作本3",
+        page: "P.22",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P22.mp3"
+    },
+    {
+        // id: 201,
+        bookname: "習作本3",
+        page: "P.23",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P23.mp3"
+    },
+    {
+        // id: 202,
+        bookname: "習作本3",
+        page: "P.26",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P26.mp3"
+    },
+    {
+        // id: 203,
+        bookname: "習作本3",
+        page: "P.28",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P28.mp3"
+    },
+    {
+        // id: 204,
+        bookname: "習作本3",
+        page: "P.30",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P30.mp3"
+    },
+    {
+        // id: 205,
+        bookname: "習作本3",
+        page: "P.32",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P32.mp3"
+    },
+    {
+        // id: 206,
+        bookname: "習作本3",
+        page: "P.36",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P36.mp3"
+    },
+    {
+        // id: 207,
+        bookname: "習作本3",
+        page: "P.38",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P38.mp3"
+    },
+    {
+        // id: 208,
+        bookname: "習作本3",
+        page: "P.40",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P40.mp3"
+    },
+    {
+        // id: 209,
+        bookname: "習作本3",
+        page: "P.42",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P42.mp3"
+    },
+    {
+        // id: 210,
+        bookname: "習作本3",
+        page: "P.43",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P43.mp3"
+    },
+    {
+        // id: 211,
+        bookname: "習作本3",
+        page: "P.46",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P46.mp3"
+    },
+    {
+        // id: 212,
+        bookname: "習作本3",
+        page: "P.48",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P48.mp3"
+    },
+    {
+        // id: 213,
+        bookname: "習作本3",
+        page: "P.49",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P49.mp3"
+    },
+    {
+        // id: 214,
+        bookname: "習作本3",
+        page: "P.51",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P51.mp3"
+    },
+    {
+        // id: 215,
+        bookname: "習作本3",
+        page: "P.52",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P52.mp3"
+    },
+    {
+        // id: 216,
+        bookname: "習作本3",
+        page: "P.53",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P53.mp3"
+    },
+    {
+        // id: 217,
+        bookname: "習作本3",
+        page: "P.54",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P54.mp3"
+    },
+    {
+        // id: 218,
+        bookname: "習作本3",
+        page: "P.55",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P55.mp3"
+    },
+    {
+        // id: 219,
+        bookname: "習作本3",
+        page: "P.56",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P56.mp3"
+    },
+    {
+        // id: 220,
+        bookname: "習作本3",
+        page: "P.59",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P59.mp3"
+    },
+    {
+        // id: 221,
+        bookname: "習作本3",
+        page: "P.61",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P61.mp3"
+    },
+    {
+        // id: 222,
+        bookname: "習作本3",
+        page: "P.63",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P63.mp3"
+    },
+    {
+        // id: 223,
+        bookname: "習作本3",
+        page: "P.67",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P67.mp3"
+    },
+    {
+        // id: 224,
+        bookname: "習作本3",
+        page: "P.69",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P69.mp3"
+    },
+    {
+        // id: 225,
+        bookname: "習作本3",
+        page: "P.71",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P71.mp3"
+    },
+    {
+        // id: 226,
+        bookname: "習作本3",
+        page: "P.73",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P73.mp3"
+    },
+    {
+        // id: 227,
+        bookname: "習作本3",
+        page: "P.77",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P77.mp3"
+    },
+    {
+        // id: 228,
+        bookname: "習作本3",
+        page: "P.79",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P79.mp3"
+    },
+    {
+        // id: 229,
+        bookname: "習作本3",
+        page: "P.81",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P81.mp3"
+    },
+    {
+        // id: 230,
+        bookname: "習作本3",
+        page: "P.83",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P83.mp3"
+    },
+    {
+        // id: 231,
+        bookname: "習作本3",
+        page: "P.84",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P84.mp3"
+    },
+    {
+        // id: 232,
+        bookname: "習作本3",
+        page: "P.85",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P85.mp3"
+    },
+    {
+        // id: 233,
+        bookname: "習作本3",
+        page: "P.87",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P87.mp3"
+    },
+    {
+        // id: 234,
+        bookname: "習作本3",
+        page: "P.91",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P91.mp3"
+    },
+    {
+        // id: 235,
+        bookname: "習作本3",
+        page: "P.93",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P93.mp3"
+    },
+    {
+        // id: 236,
+        bookname: "習作本3",
+        page: "P.95",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P95.mp3"
+    },
+    {
+        // id: 237,
+        bookname: "習作本3",
+        page: "P.97",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P97.mp3"
+    },
+    {
+        // id: 238,
+        bookname: "習作本3",
+        page: "P.99",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P99.mp3"
+    },
+    {
+        // id: 239,
+        bookname: "習作本3",
+        page: "P.100",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P100.mp3"
+    },
+    {
+        // id: 240,
+        bookname: "習作本3",
+        page: "P.101",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P101.mp3"
+    },
+    {
+        // id: 241,
+        bookname: "習作本3",
+        page: "P.105",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P105.mp3"
+    },
+    {
+        // id: 242,
+        bookname: "習作本3",
+        page: "P.106",
+        img: "headphone3.png",
+        lang: "習作本3",
+        timesPlayed: 0,
+        type: "Workbook_3",
+        musicName: "習作本3/習作本3 P106.mp3"
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /////////////////////// 習作本4 //////////////////////////
+
+    // {
+    //     bookname: "習作本4",
+    //     page: "P.8 Q&A",
+    //     img: "headphone4.png",
+    //     lang: "習作本4",
+    //     timesPlayed: 0,
+    //     type: "Workbook_4",
+    //     musicName: "習作本4/習作本4 P8.mp3"
+    // },
+    {
+        bookname: "習作本4",
+        page: "P.9 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P9 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.9 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P9.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.13 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P13.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.13 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P13 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.13 Answer",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P13 Answer.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.15 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P15.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.15 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P15 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.15 Answer",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P15 Answer.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.17 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P17.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.17 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P17 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.17 Answer",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P17 Answer.mp3"
+    },
+    // {
+    //     bookname: "習作本4",
+    //     page: "P.19",
+    //     img: "headphone4.png",
+    //     lang: "習作本4",
+    //     timesPlayed: 0,
+    //     type: "Workbook_4",
+    //     musicName: "習作本4/習作本4 P19.mp3"
+    // },
+    // {
+    //     bookname: "習作本4",
+    //     page: "P.20",
+    //     img: "headphone4.png",
+    //     lang: "習作本4",
+    //     timesPlayed: 0,
+    //     type: "Workbook_4",
+    //     musicName: "習作本4/習作本4 P20.mp3"
+    // },
+    // {
+    //     bookname: "習作本4",
+    //     page: "P.21-1",
+    //     img: "headphone4.png",
+    //     lang: "習作本4",
+    //     timesPlayed: 0,
+    //     type: "Workbook_4",
+    //     musicName: "習作本4/習作本4 P21-1.mp3"
+    // },
+    // {
+    //     bookname: "習作本4",
+    //     page: "P.21-2",
+    //     img: "headphone4.png",
+    //     lang: "習作本4",
+    //     timesPlayed: 0,
+    //     type: "Workbook_4",
+    //     musicName: "習作本4/習作本4 P21-2.mp3"
+    // },
+    {
+        bookname: "習作本4",
+        page: "P.24 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P24.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.24 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P24 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.24 Answer",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P24 Answer.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.26 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P26.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.26 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P26 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.26 Answer",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P26 Answer.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.28 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P28.mp3"
+    },
+    // {
+    //     bookname: "習作本4",
+    //     page: "P.30 Q&A",
+    //     img: "headphone4.png",
+    //     lang: "習作本4",
+    //     timesPlayed: 0,
+    //     type: "Workbook_4",
+    //     musicName: "習作本4/習作本4 P30.mp3"
+    // },
+    {
+        bookname: "習作本4",
+        page: "P.32 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P32.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.34 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P34.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.36 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P36.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.38 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P38.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.40 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P40.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.46 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P46.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.48 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P48.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.50 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P50.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.52 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P52.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.54 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P54.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.59 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P59.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.61 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P61.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.63 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P63.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.64 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P64.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.71 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P71.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.76 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P76.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.80 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P80.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.81 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P81.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.82 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P82.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.86 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P86.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.86 Question",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P86 Question.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.86 Answer",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P86 Answer.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.89 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P89.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.91 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P91.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.93 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P93.mp3"
+    },
+    {
+        bookname: "習作本4",
+        page: "P.95 Q&A",
+        img: "headphone4.png",
+        lang: "習作本4",
+        timesPlayed: 0,
+        type: "Workbook_4",
+        musicName: "習作本4/習作本4 P95.mp3"
+    },
+
 
 
 
@@ -1075,7 +3458,7 @@ let musicDB = [
 
 
 
-    /////////////////////////////////////   Short Articles 1 ////////////////////////////////////
+    ////////////////////////   Short Articles 1 ///////////////////////////
 
 
 
@@ -1321,7 +3704,6 @@ let musicDB = [
 
 
 
-    ///////////////////////////// Reading Lamp 2 Reading    /////////////////////////////////
 
 
 
@@ -1343,6 +3725,28 @@ let musicDB = [
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //////////////// Reading Lamp 2 Reading    //////////
 
     {
         // id: 116,
@@ -1568,7 +3972,6 @@ let musicDB = [
 
 
 
-    ///////////////////////////////////////// 習作本2 //////////////////////////////
 
 
 
@@ -1585,572 +3988,6 @@ let musicDB = [
 
 
 
-    {
-        // id: 136,
-        bookname: "習作本2",
-        page: "P.4",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P4.mp3"
-
-    },
-    {
-        // id: 137,
-        bookname: "習作本2",
-        page: "P.6",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P6.mp3"
-
-    },
-    {
-        // id: 138,
-        bookname: "習作本2",
-        page: "P.8",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P8.mp3"
-
-    },
-    {
-        // id: 139,
-        bookname: "習作本2",
-        page: "P.10",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P10.mp3"
-
-    },
-    {
-        // id: 140,
-        bookname: "習作本2",
-        page: "P.14",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P14.mp3"
-
-    },
-    {
-        // id: 141,
-        bookname: "習作本2",
-        page: "P.16",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P16.mp3"
-
-    },
-    {
-        // id: 142,
-        bookname: "習作本2",
-        page: "P.18",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P18.mp3"
-    },
-    {
-        // id: 143,
-        bookname: "習作本2",
-        page: "P.20",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P20.mp3"
-    },
-    {
-        // id: 144,
-        bookname: "習作本2",
-        page: "P.21",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P21.mp3"
-    },
-    {
-        // id: 145,
-        bookname: "習作本2",
-        page: "P.24",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P24.mp3"
-    },
-    {
-        // id: 146,
-        bookname: "習作本2",
-        page: "P.26",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P26.mp3"
-    },
-    {
-        // id: 147,
-        bookname: "習作本2",
-        page: "P.28",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P28.mp3"
-    },
-    {
-        // id: 148,
-        bookname: "習作本2",
-        page: "P.30",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P30.mp3"
-    },
-    {
-        // id: 149,
-        bookname: "習作本2",
-        page: "P.31",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P31.mp3"
-    },
-    {
-        // id: 150,
-        bookname: "習作本2",
-        page: "P.34",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P34.mp3"
-    },
-    {
-        // id: 151,
-        bookname: "習作本2",
-        page: "P.36",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P36.mp3"
-    },
-    {
-        // id: 152,
-        bookname: "習作本2",
-        page: "P.38",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P38.mp3"
-    },
-    {
-        // id: 153,
-        bookname: "習作本2",
-        page: "P.40",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P40.mp3"
-    },
-    {
-        // id: 154,
-        bookname: "習作本2",
-        page: "P.42",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P42.mp3"
-    },
-    {
-        // id: 155,
-        bookname: "習作本2",
-        page: "P.43",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P43.mp3"
-    },
-    {
-        // id: 156,
-        bookname: "習作本2",
-        page: "P.46",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P46.mp3"
-    },
-    {
-        // id: 157,
-        bookname: "習作本2",
-        page: "P.48",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P48.mp3"
-    },
-    {
-        // id: 158,
-        bookname: "習作本2",
-        page: "P.50",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P50.mp3"
-    },
-    {
-        // id: 159,
-        bookname: "習作本2",
-        page: "P.52",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P52.mp3"
-    },
-    {
-        // id: 160,
-        bookname: "習作本2",
-        page: "P.53",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P53.mp3"
-    },
-    {
-        // id: 161,
-        bookname: "習作本2",
-        page: "P.56",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P56.mp3"
-    },
-    {
-        // id: 162,
-        bookname: "習作本2",
-        page: "P.58",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P58.mp3"
-    },
-    {
-        // id: 163,
-        bookname: "習作本2",
-        page: "P.60",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P60.mp3"
-    },
-    {
-        // id: 164,
-        bookname: "習作本2",
-        page: "P.62",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P62.mp3"
-    },
-    {
-        // id: 165,
-        bookname: "習作本2",
-        page: "P.64",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P64.mp3"
-    },
-    {
-        // id: 166,
-        bookname: "習作本2",
-        page: "P.65",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P65.mp3"
-    },
-    {
-        // id: 167,
-        bookname: "習作本2",
-        page: "P.68",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P68.mp3"
-    },
-    {
-        // id: 168,
-        bookname: "習作本2",
-        page: "P.69",
-        img: "headphone2.png",
-        lang: "習作本2",
-        type: "Workbook_2",
-        timesPlayed: 0,
-        musicName: "習作本2/習作本2 P69.mp3"
-    },
-    {
-        // id: 169,
-        bookname: "習作本2",
-        page: "P.70",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P70.mp3"
-    },
-    {
-        // id: 170,
-        bookname: "習作本2",
-        page: "P.72",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P72.mp3"
-    },
-    {
-        // id: 171,
-        bookname: "習作本2",
-        page: "P.76",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P76.mp3"
-    },
-    {
-        // id: 172,
-        bookname: "習作本2",
-        page: "P.78",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P78.mp3"
-    },
-    {
-        // id: 173,
-        bookname: "習作本2",
-        page: "P.80",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P80.mp3"
-    },
-    {
-        // id: 174,
-        bookname: "習作本2",
-        page: "P.82",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P82.mp3"
-    },
-    {
-        // id: 175,
-        bookname: "習作本2",
-        page: "P.84",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P84.mp3"
-    },
-    {
-        // id: 176,
-        bookname: "習作本2",
-        page: "P.86",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P86.mp3"
-    },
-    {
-        // id: 177,
-        bookname: "習作本2",
-        page: "P.88",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P88.mp3"
-    },
-    {
-        // id: 178,
-        bookname: "習作本2",
-        page: "P.92",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P92.mp3"
-    },
-    {
-        // id: 179,
-        bookname: "習作本2",
-        page: "P.93",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P93.mp3"
-    },
-    {
-        // id: 180,
-        bookname: "習作本2",
-        page: "P.94",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P94.mp3"
-    },
-    {
-        // id: 181,
-        bookname: "習作本2",
-        page: "P.96",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P96.mp3"
-    },
-    {
-        // id: 182,
-        bookname: "習作本2",
-        page: "P.98",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P98.mp3"
-    },
-    {
-        // id: 183,
-        bookname: "習作本2",
-        page: "P.100",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P100.mp3"
-    },
-    {
-        // id: 184,
-        bookname: "習作本2",
-        page: "P.102",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P102.mp3"
-    },
-    {
-        // id: 185,
-        bookname: "習作本2",
-        page: "P.103",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P103.mp3"
-    },
-    {
-        // id: 186,
-        bookname: "習作本2",
-        page: "P.104",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P104.mp3"
-    },
-    {
-        // id: 187,
-        bookname: "習作本2",
-        page: "P.106",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P106.mp3"
-    },
-    {
-        // id: 188,
-        bookname: "習作本2",
-        page: "P.108",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P108.mp3"
-    },
-    {
-        // id: 189,
-        bookname: "習作本2",
-        page: "P.110",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P110.mp3"
-    },
-    {
-        // id: 190,
-        bookname: "習作本2",
-        page: "P.114",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P114.mp3"
-    },
-    {
-        // id: 191,
-        bookname: "習作本2",
-        page: "P.115",
-        img: "headphone2.png",
-        lang: "習作本2",
-        timesPlayed: 0,
-        type: "Workbook_2",
-        musicName: "習作本2/習作本2 P115.mp3"
-    },
 
 
 
@@ -2161,532 +3998,6 @@ let musicDB = [
 
 
 
-
-
-
-
-    /////////////////////////////////// 習作本 3 //////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-    {
-        // id: 192,
-        bookname: "習作本3",
-        page: "P.4",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P4.mp3"
-    },
-    {
-        // id: 193,
-        bookname: "習作本3",
-        page: "P.5",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P5.mp3"
-    },
-    {
-        // id: 194,
-        bookname: "習作本3",
-        page: "P.6",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P6.mp3"
-    },
-    {
-        // id: 195,
-        bookname: "習作本3",
-        page: "P.9",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P9.mp3"
-    },
-    {
-        // id: 196,
-        bookname: "習作本3",
-        page: "P.11",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P11.mp3"
-    },
-    {
-        // id: 197,
-        bookname: "習作本3",
-        page: "P.15",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P15.mp3"
-    },
-    {
-        // id: 198,
-        bookname: "習作本3",
-        page: "P.17",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P17.mp3"
-    },
-    {
-        // id: 199,
-        bookname: "習作本3",
-        page: "P.20",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P20.mp3"
-    },
-    {
-        // id: 200,
-        bookname: "習作本3",
-        page: "P.22",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P22.mp3"
-    },
-    {
-        // id: 201,
-        bookname: "習作本3",
-        page: "P.23",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P23.mp3"
-    },
-    {
-        // id: 202,
-        bookname: "習作本3",
-        page: "P.26",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P26.mp3"
-    },
-    {
-        // id: 203,
-        bookname: "習作本3",
-        page: "P.28",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P28.mp3"
-    },
-    {
-        // id: 204,
-        bookname: "習作本3",
-        page: "P.30",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P30.mp3"
-    },
-    {
-        // id: 205,
-        bookname: "習作本3",
-        page: "P.32",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P32.mp3"
-    },
-    {
-        // id: 206,
-        bookname: "習作本3",
-        page: "P.36",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P36.mp3"
-    },
-    {
-        // id: 207,
-        bookname: "習作本3",
-        page: "P.38",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P38.mp3"
-    },
-    {
-        // id: 208,
-        bookname: "習作本3",
-        page: "P.40",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P40.mp3"
-    },
-    {
-        // id: 209,
-        bookname: "習作本3",
-        page: "P.42",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P42.mp3"
-    },
-    {
-        // id: 210,
-        bookname: "習作本3",
-        page: "P.43",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P43.mp3"
-    },
-    {
-        // id: 211,
-        bookname: "習作本3",
-        page: "P.46",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P46.mp3"
-    },
-    {
-        // id: 212,
-        bookname: "習作本3",
-        page: "P.48",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P48.mp3"
-    },
-    {
-        // id: 213,
-        bookname: "習作本3",
-        page: "P.49",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P49.mp3"
-    },
-    {
-        // id: 214,
-        bookname: "習作本3",
-        page: "P.51",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P51.mp3"
-    },
-    {
-        // id: 215,
-        bookname: "習作本3",
-        page: "P.52",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P52.mp3"
-    },
-    {
-        // id: 216,
-        bookname: "習作本3",
-        page: "P.53",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P53.mp3"
-    },
-    {
-        // id: 217,
-        bookname: "習作本3",
-        page: "P.54",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P54.mp3"
-    },
-    {
-        // id: 218,
-        bookname: "習作本3",
-        page: "P.55",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P55.mp3"
-    },
-    {
-        // id: 219,
-        bookname: "習作本3",
-        page: "P.56",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P56.mp3"
-    },
-    {
-        // id: 220,
-        bookname: "習作本3",
-        page: "P.59",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P59.mp3"
-    },
-    {
-        // id: 221,
-        bookname: "習作本3",
-        page: "P.61",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P61.mp3"
-    },
-    {
-        // id: 222,
-        bookname: "習作本3",
-        page: "P.63",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P63.mp3"
-    },
-    {
-        // id: 223,
-        bookname: "習作本3",
-        page: "P.67",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P67.mp3"
-    },
-    {
-        // id: 224,
-        bookname: "習作本3",
-        page: "P.69",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P69.mp3"
-    },
-    {
-        // id: 225,
-        bookname: "習作本3",
-        page: "P.71",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P71.mp3"
-    },
-    {
-        // id: 226,
-        bookname: "習作本3",
-        page: "P.73",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P73.mp3"
-    },
-    {
-        // id: 227,
-        bookname: "習作本3",
-        page: "P.77",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P77.mp3"
-    },
-    {
-        // id: 228,
-        bookname: "習作本3",
-        page: "P.79",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P79.mp3"
-    },
-    {
-        // id: 229,
-        bookname: "習作本3",
-        page: "P.81",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P81.mp3"
-    },
-    {
-        // id: 230,
-        bookname: "習作本3",
-        page: "P.83",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P83.mp3"
-    },
-    {
-        // id: 231,
-        bookname: "習作本3",
-        page: "P.84",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P84.mp3"
-    },
-    {
-        // id: 232,
-        bookname: "習作本3",
-        page: "P.85",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P85.mp3"
-    },
-    {
-        // id: 233,
-        bookname: "習作本3",
-        page: "P.87",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P87.mp3"
-    },
-    {
-        // id: 234,
-        bookname: "習作本3",
-        page: "P.91",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P91.mp3"
-    },
-    {
-        // id: 235,
-        bookname: "習作本3",
-        page: "P.93",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P93.mp3"
-    },
-    {
-        // id: 236,
-        bookname: "習作本3",
-        page: "P.95",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P95.mp3"
-    },
-    {
-        // id: 237,
-        bookname: "習作本3",
-        page: "P.97",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P97.mp3"
-    },
-    {
-        // id: 238,
-        bookname: "習作本3",
-        page: "P.99",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P99.mp3"
-    },
-    {
-        // id: 239,
-        bookname: "習作本3",
-        page: "P.100",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P100.mp3"
-    },
-    {
-        // id: 240,
-        bookname: "習作本3",
-        page: "P.101",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P101.mp3"
-    },
-    {
-        // id: 241,
-        bookname: "習作本3",
-        page: "P.105",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P105.mp3"
-    },
-    {
-        // id: 242,
-        bookname: "習作本3",
-        page: "P.106",
-        img: "headphone3.png",
-        lang: "習作本3",
-        timesPlayed: 0,
-        type: "Workbook_3",
-        musicName: "習作本3/習作本3 P106.mp3"
-    },
 
 
 
@@ -2747,48 +4058,6 @@ let musicDB = [
 
 
     //////////////////////////        Skyline 1     /////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     {
@@ -3788,73 +5057,6 @@ let musicDB = [
 
 
     //////////////////////////        Skyline 2     /////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     {
         // id: 331,
@@ -4911,74 +6113,6 @@ let musicDB = [
 
 
     //////////////////////////        Skyline 3     /////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     {
         // id: 425,
         bookname: "Skyline3",
@@ -5930,599 +7064,7 @@ let musicDB = [
 
 
 
-    //////////////////////////        習作本 1      /////////////////////////////////
 
-    {
-        // id: 519,
-        bookname: "習作本1",
-        page: "P.19",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P19.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 520,
-        bookname: "習作本1",
-        page: "P.20",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P20.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 521,
-        bookname: "習作本1",
-        page: "P.21",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P21.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 522,
-        bookname: "習作本1",
-        page: "P.24",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P24.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 523,
-        bookname: "習作本1",
-        page: "P.25",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P25.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 524,
-        bookname: "習作本1",
-        page: "P.26",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P26.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 525,
-        bookname: "習作本1",
-        page: "P.29",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P29.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 526,
-        bookname: "習作本1",
-        page: "P.31",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P31.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 527,
-        bookname: "習作本1",
-        page: "P.32",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P32.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 528,
-        bookname: "習作本1",
-        page: "P.38",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P38.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 529,
-        bookname: "習作本1",
-        page: "P.39",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P39.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 530,
-        bookname: "習作本1",
-        page: "P.43",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P43.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 531,
-        bookname: "習作本1",
-        page: "P.44",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P44.mp3",
-        questions: [
-            {
-                questionText: "Test.",
-            },
-            {
-                questionText: "Victor.",
-            },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
-    },
-    {
-        // id: 532,
-        bookname: "習作本1",
-        page: "P.45",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P45.mp3"
-    },
-    {
-        // id: 533,
-        bookname: "習作本1",
-        page: "P.46",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P46.mp3"
-    },
-    {
-        // id: 534,
-        bookname: "習作本1",
-        page: "P.48",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P48.mp3"
-    },
-    {
-        // id: 535,
-        bookname: "習作本1",
-        page: "P.50",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P50.mp3"
-    },
-    {
-        // id: 536,
-        bookname: "習作本1",
-        page: "P.52",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P52.mp3"
-    },
-    {
-        // id: 537,
-        bookname: "習作本1",
-        page: "P.54",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P54.mp3"
-    },
-    {
-        // id: 538,
-        bookname: "習作本1",
-        page: "P.58",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P58.mp3"
-    },
-    {
-        // id: 539,
-        bookname: "習作本1",
-        page: "P.60",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P60.mp3"
-    },
-    {
-        // id: 540,
-        bookname: "習作本1",
-        page: "P.64",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P64.mp3"
-    },
-    {
-        // id: 541,
-        bookname: "習作本1",
-        page: "P.66",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P66.mp3"
-    },
-    {
-        // id: 542,
-        bookname: "習作本1",
-        page: "P.68",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P68.mp3"
-    },
-    {
-        // id: 543,
-        bookname: "習作本1",
-        page: "P.71",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P71.mp3"
-    },
-    {
-        // id: 544,
-        bookname: "習作本1",
-        page: "P.81",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P81.mp3"
-    },
-    {
-        // id: 545,
-        bookname: "習作本1",
-        page: "P.83",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P83.mp3"
-    },
-    {
-        // id: 546,
-        bookname: "習作本1",
-        page: "P.85",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P85.mp3"
-    },
-    {
-        // id: 547,
-        bookname: "習作本1",
-        page: "P.87",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P87.mp3"
-    },
-    {
-        // id: 548,
-        bookname: "習作本1",
-        page: "P.94",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P94.mp3"
-    },
-    {
-        // id: 549,
-        bookname: "習作本1",
-        page: "P.95",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P95.mp3"
-    },
-    {
-        // id: 550,
-        bookname: "習作本1",
-        page: "P.96",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P96.mp3"
-    },
-    {
-        // id: 551,
-        bookname: "習作本1",
-        page: "P.98",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P98.mp3"
-    },
-    {
-        // id: 552,
-        bookname: "習作本1",
-        page: "P.99",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P99.mp3"
-    },
-    {
-        // id: 553,
-        bookname: "習作本1",
-        page: "P.101",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P101.mp3"
-    },
-    {
-        // id: 554,
-        bookname: "習作本1",
-        page: "P.102",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P102.mp3"
-    },
-    {
-        // id: 555,
-        bookname: "習作本1",
-        page: "P.104",
-        img: "headphone1.png",
-        lang: "習作本1",
-        timesPlayed: 0,
-        type: "Workbook_1",
-        musicName: "習作本1/習作本1 P104.mp3"
-    },
 
 
 
@@ -6589,26 +7131,6 @@ let musicDB = [
 
 
     ///////////////////////////// Reading Lamp 1 Reading /////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     {
         // id: 556,
@@ -6851,47 +7373,6 @@ let musicDB = [
 
     /// Reading Lamp 3 Reading ///
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     {
         // id: 576,
         bookname: "Reading Lamp 3",
@@ -7130,7 +7611,6 @@ let musicDB = [
 
 
 
-    /////////////////////////////////////Steam Reading Elementary 2////////////////////////////////////////
 
 
 
@@ -7151,6 +7631,34 @@ let musicDB = [
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ////////// Steam Reading Elementary 2 ///////
 
     {
         // id: 596,
@@ -7721,40 +8229,7 @@ let musicDB = [
 
 
 
-    /////////////////////////////////////Steam Reading Elementary 3////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //////// Steam Reading Elementary 3 /////
 
     {
         // id: 644,
@@ -8412,42 +8887,6 @@ let musicDB = [
 
 
     ////// Super Easy Reading 3e 2 ///////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     {
         // id: 692,
@@ -9108,42 +9547,6 @@ let musicDB = [
 
     ////// Super Easy Reading 3e 3 ///////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     {
         // id: 740,
         bookname: "Super Easy Reading 3",
@@ -9624,502 +10027,6 @@ let musicDB = [
         timesPlayed: 0,
         type: "SER3",
         musicName: "super easy reading 3e 3/Track49.mp3"
-    },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /////////////////////// 習作本4 //////////////////////////
-
-    // {
-    //     bookname: "習作本4",
-    //     page: "P.8 Q&A",
-    //     img: "headphone4.png",
-    //     lang: "習作本4",
-    //     timesPlayed: 0,
-    //     type: "Workbook_4",
-    //     musicName: "習作本4/習作本4 P8.mp3"
-    // },
-    {
-        bookname: "習作本4",
-        page: "P.9 Question",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P9 Question.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.9 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P9.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.13 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P13.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.13 Question",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P13 Question.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.13 Answer",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P13 Answer.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.15 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P15.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.15 Question",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P15 Question.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.15 Answer",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P15 Answer.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.17 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P17.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.17 Question",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P17 Question.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.17 Answer",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P17 Answer.mp3"
-    },
-    // {
-    //     bookname: "習作本4",
-    //     page: "P.19",
-    //     img: "headphone4.png",
-    //     lang: "習作本4",
-    //     timesPlayed: 0,
-    //     type: "Workbook_4",
-    //     musicName: "習作本4/習作本4 P19.mp3"
-    // },
-    // {
-    //     bookname: "習作本4",
-    //     page: "P.20",
-    //     img: "headphone4.png",
-    //     lang: "習作本4",
-    //     timesPlayed: 0,
-    //     type: "Workbook_4",
-    //     musicName: "習作本4/習作本4 P20.mp3"
-    // },
-    // {
-    //     bookname: "習作本4",
-    //     page: "P.21-1",
-    //     img: "headphone4.png",
-    //     lang: "習作本4",
-    //     timesPlayed: 0,
-    //     type: "Workbook_4",
-    //     musicName: "習作本4/習作本4 P21-1.mp3"
-    // },
-    // {
-    //     bookname: "習作本4",
-    //     page: "P.21-2",
-    //     img: "headphone4.png",
-    //     lang: "習作本4",
-    //     timesPlayed: 0,
-    //     type: "Workbook_4",
-    //     musicName: "習作本4/習作本4 P21-2.mp3"
-    // },
-    {
-        bookname: "習作本4",
-        page: "P.24 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P24.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.24 Question",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P24 Question.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.24 Answer",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P24 Answer.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.26 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P26.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.26 Question",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P26 Question.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.26 Answer",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P26 Answer.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.28 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P28.mp3"
-    },
-    // {
-    //     bookname: "習作本4",
-    //     page: "P.30 Q&A",
-    //     img: "headphone4.png",
-    //     lang: "習作本4",
-    //     timesPlayed: 0,
-    //     type: "Workbook_4",
-    //     musicName: "習作本4/習作本4 P30.mp3"
-    // },
-    {
-        bookname: "習作本4",
-        page: "P.32 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P32.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.34 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P34.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.36 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P36.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.38 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P38.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.40 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P40.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.46 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P46.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.48 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P48.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.50 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P50.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.52 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P52.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.54 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P54.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.59 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P59.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.61 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P61.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.63 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P63.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.64 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P64.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.71 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P71.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.76 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P76.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.80 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P80.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.81 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P81.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.82 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P82.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.86 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P86.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.86 Question",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P86 Question.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.86 Answer",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P86 Answer.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.89 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P89.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.91 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P91.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.93 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P93.mp3"
-    },
-    {
-        bookname: "習作本4",
-        page: "P.95 Q&A",
-        img: "headphone4.png",
-        lang: "習作本4",
-        timesPlayed: 0,
-        type: "Workbook_4",
-        musicName: "習作本4/習作本4 P95.mp3"
     },
 
 ];
