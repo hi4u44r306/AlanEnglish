@@ -1,6 +1,7 @@
 :root {
   --smallfont: 15px;
   --mediumfont: 18px;
+  --largefont: 21px;
 }
 .marqueenamelabel {
   font-family: "Nunito", sans-serif;
@@ -29,7 +30,7 @@
 .game-name {
   font-family: "Nunito", sans-serif;
   font-weight: 700;
-  font-size: var(--mediumfont);
+  font-size: var(--largefont);
   text-align: center;
   cursor: default;
   user-select: none;

@@ -14,10 +14,8 @@
   background-color: #edf7ff;
 }
 .questionsection {
-  border: solid 3px lightsteelblue;
-  border-radius: 10px;
+  // border: solid 3px lightsteelblue;
   margin: 10px;
-  padding: 5px;
 }
 .questiontext {
   font-size: var(--small-font);
@@ -33,7 +31,7 @@
 .questionindex {
   background-color: #ffaaaa;
   font-size: var(--small-font);
-  padding: 10px;
+  padding: 10px 20px;
   color: #000000;
   border-radius: 20px;
   font-family: "Nunito", sans-serif;
@@ -129,6 +127,7 @@
   justify-content: center;
   align-items: center;
   width: var(--gamewidth);
+  height: 100vh;
   border-radius: 20px;
   position: fixed;
   top: 50%;
@@ -202,6 +201,34 @@
   transform: translate(-50%, -50%);
   flex-wrap: wrap;
   justify-content: space-evenly;
+}
+.deckcontainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.deck {
+  cursor: pointer;
+  border-radius: 20px;
+  background-color: #ffffff;
+  color: black;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  border: 2px solid black;
+  padding: 10px;
+  margin: 10px;
+  width: 100px;
+  height: 100px;
+  justify-content: center;
+  align-items: center;
+}
+.deck:hover {
+  color: white;
+  border: 5px solid #3e8e41;
+}
+.deckimage {
+  width: -webkit-fill-available;
 }
 
 .score-section {

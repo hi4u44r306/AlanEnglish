@@ -12,21 +12,40 @@ let musicDB = [
         musicName: "習作本1/習作本1 P19.mp3",
         questions: [
             {
-                questionText: "Test.",
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                ]
             },
             {
-                questionText: "Victor.",
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
             },
-            // {
-            //     questionText : "hello",
-            // },
-            // {
-            //     questionText : "mouse",
-            // },
-            // {
-            //     questionText : "mice",
-            // },
-        ]
+        ],
     },
     {
         // id: 520,
