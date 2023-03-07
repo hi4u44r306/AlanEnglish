@@ -2,7 +2,7 @@
   --small-font: 18px;
   --medium-font: 20px;
   --btn-weight: 700;
-  --gamewidth: 60vw;
+  --gamewidth: fit-content;
 }
 .gamenotification {
   width: auto;
@@ -11,7 +11,6 @@
   padding: 20 0 20 0;
   margin: 10px;
   width: var(--gamewidth);
-  background-color: #edf7ff;
 }
 .questionsection {
   // border: solid 3px lightsteelblue;
@@ -121,6 +120,10 @@
   font-weight: var(--btn-weight);
 }
 .gamebox {
+  background-image: url("../../assets/img/gamebackground.png");
+  background-repeat: no-repeat;
+  background-position: right top;
+  background-attachment: fixed;
   display: flex;
   font-size: var(--small-font);
   flex-direction: column;
@@ -133,9 +136,16 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #edf7ff;
+  // background-color: #edf7ff;
   padding: 20px;
   z-index: 1000;
+}
+.gamebox2 {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background-color: rgb(252, 228, 255);
+  border-radius: 20px;
 }
 .boxtitle {
   top: 0;
@@ -317,6 +327,12 @@
 @media screen and (max-width: 695px) {
   .questionbox {
     width: 90vw;
+  }
+  .gamebox {
+    width: 90vw;
+  }
+  .gamebox2 {
+    width: 80vw;
   }
   .gamebox {
     width: 90vw;

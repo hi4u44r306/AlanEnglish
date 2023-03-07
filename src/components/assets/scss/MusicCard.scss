@@ -50,9 +50,11 @@
 .buttoncontainer {
   display: flex;
   justify-content: center;
+  flex-direction: column;
 }
 .timesplayedcontainer-mobile {
   display: flex;
+  justify-content: center;
   align-items: center;
   align-content: center;
   font-size: 15px;

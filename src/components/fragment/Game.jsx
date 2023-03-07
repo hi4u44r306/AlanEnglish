@@ -8,7 +8,7 @@ import Name from './Name';
 // import RedSquare from '../assets/img/redsquare.png'
 // import Mic from '../assets/img/microphone.png'
 // import Next from '../assets/img/next.png'
-// import firebase from 'firebase/app';
+import firebase from 'firebase/app';
 // import axios from 'axios';
 
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
@@ -23,18 +23,17 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
   const [currentQuestion, setCurrentQuestion] = useState(0);
   // const [note, setNote] = useState(null);
   // const [isListening, setIsListening] = useState(false);
-  // const [score, setScore] = useState();
   // const [nextbtn, setNextbtn] = useState(true);
   // const realtimedb = firebase.database(); //realtime database
-  // const db = firebase.firestore(); // firestore
-  // const abc = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
+  const db = firebase.firestore(); // firestore
+  const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
 
   const handleCardClick = (card) => {
     const nextQuestion = currentQuestion + 1;
     if (card.name === questions[0][currentQuestion].questionText && nextQuestion === questions[0].length) {
       finishnotification();
       setCurrentQuestion(0);
-      // uploadscore();
+      uploadscore();
     } else {
       if (card.name === questions[0][currentQuestion].questionText) {
         success();
@@ -55,18 +54,17 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
   };
 
 
-  // function uploadscore() {
-  //   firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
-  //     if (user) {
-  //       db.collection('student').onSnapshot(snapshot => {
-  //         firebase.database().ref('student/' + user.uid + '/quiz/' + abc).set({
-  //           score: '通過',
-  //         });
-  //       });
-  //     } else {
-  //     }
-  //   });
-  // }
+  function uploadscore() {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        db.collection('student').onSnapshot(() => {
+          firebase.database().ref('student/' + user.uid + '/quiz/' + quizname).set({
+            score: '通過',
+          });
+        });
+      }
+    });
+  }
 
   // const getDifference = (s, t) => {
   //   let a = 0, b = 0; let charCode, i = 0;
@@ -208,47 +206,47 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
       <Containerfull>
         <div className='Overlay' />
         <div className='gamebox'>
-
-          <div className='boxtitle'>
-            <span className='closebtn' onClick={onClose}>❌</span>
-            <Name name={bookname} className={"game-name"} />
-            <Name name={pagename} className={"game-name"} />
-            <div className="questionindex">第 {currentQuestion + 1} 題 / 共 {questions[0].length} 題</div>
-          </div>
-          <div className='questionbox'>
-            <div className='questionsection'>
-              <div className='題目'>Question :</div>
-              <div className='questiontext'> {questions[0][currentQuestion].questionText.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")}</div>
+          <div className='gamebox2'>
+            <div className='boxtitle'>
+              <span className='closebtn' onClick={onClose}>❌</span>
+              <Name name={bookname} className={"game-name"} />
+              <Name name={pagename} className={"game-name"} />
+              <div className="questionindex">第 {currentQuestion + 1} 題 / 共 {questions[0].length} 題</div>
             </div>
-
-            <div className='questionsection'>
-              <div className='deckcontainer'>
-                <ToastContainer
-                  // className="gamenotification"
-                  position="top-center"
-                  autoClose={2000}
-                  hideProgressBar={false}
-                  newestOnTop={false}
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                />
-                {!questions[0][currentQuestion].questiondeck || questions[0][currentQuestion].questiondeck.map((card) => (
-                  <div className="deck" key={card.image} onClick={() => handleCardClick(card)}>
-                    <img className='deckimage' src={require("../assets/img/" + card.image).default} alt="" />
-                  </div>
-                ))}
+            <div className='questionbox'>
+              <div className='questionsection'>
+                <div className='題目'>Question :</div>
+                <div className='questiontext'> {questions[0][currentQuestion].questionText.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")}</div>
               </div>
 
+              <div className='questionsection'>
+                <div className='deckcontainer'>
+                  <ToastContainer
+                    // className="gamenotification"
+                    position="top-center"
+                    autoClose={2000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                  />
+                  {!questions[0][currentQuestion].questiondeck || questions[0][currentQuestion].questiondeck.map((card) => (
+                    <div className="deck" key={card.image} onClick={() => handleCardClick(card)}>
+                      <img className='deckimage' src={require("../assets/img/" + card.image).default} alt="" />
+                    </div>
+                  ))}
+                </div>
 
 
-              {/* <div className='題目'>Your Answer :</div>
+
+                {/* <div className='題目'>Your Answer :</div>
                 <div className='questiontext'> {transcript || "------"}</div> */}
-            </div>
-            {/* 電腦版顯示 */}
-            {/* <div className="computer-btncontainer">
+              </div>
+              {/* 電腦版顯示 */}
+              {/* <div className="computer-btncontainer">
               <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><span>提交答案</span> <img style={{ width: 22, marginLeft: 10, marginBottom: 2, }} src={CheckMark} alt="checkmark" /></button>
               {isListening ?
                 <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><span>Recording</span> <img style={{ width: 22, marginLeft: 2, marginBottom: 5, }} src={Listening} alt="redsquare" /></button>
@@ -260,8 +258,8 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
               <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}><span>下一題</span> <img style={{ width: 22, marginLeft: 2, marginBottom: 5, }} src={Next} alt="mic" /></button>
             </div> */}
 
-            {/* 手機版顯示 */}
-            {/* <div className="mobile-btncontainer">
+              {/* 手機版顯示 */}
+              {/* <div className="mobile-btncontainer">
               <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><img style={{ width: 30 }} src={CheckMark} alt="checkmark" /></button>
               {isListening ?
                 <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={Listening} alt="redsquare" /> </button>
@@ -272,9 +270,10 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
             </div> */}
 
 
-            {/* <div className='gamenote'>你的回答 : {note}</div> */}
-            {/* <div className='gamenote' key={score}>正確率 : {score}%</div> */}
+              {/* <div className='gamenote'>你的回答 : {note}</div> */}
+              {/* <div className='gamenote' key={score}>正確率 : {score}%</div> */}
 
+            </div>
           </div>
         </div>
       </Containerfull>

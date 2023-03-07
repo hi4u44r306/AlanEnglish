@@ -1,35 +1,42 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../assets/scss/MusicCard.scss';
 import PlayCircleFilledWhiteIcon from "@material-ui/icons/PlayCircleFilledWhite";
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
+import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import { useDispatch } from "react-redux";
 import { setCurrentPlaying } from "../../actions/actions";
 import Name from "./Name";
 import Game from "./Game";
-// import firebase from 'firebase/app';
+import firebase from 'firebase/app';
 
 function MusicCard(props) {
     const { bookname, page, img, questions, musicName } = props.music;
-    // const abc = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
-    // const [gamescore, setGamescore] = useState();
+    const useruid = localStorage.getItem('useruid');
+    const [gamescore, setGamescore] = useState();
+    const [isOpen, setIsOpen] = useState(false);
+    const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
     const dispatch = useDispatch();
 
-    // const dbRef = firebase.database().ref();
-    // dbRef.child("student").child(userid).child("quiz").child(abc).child("score").get().then((snapshot) => {
-    //     if (snapshot.exists()) {
-    //         // console.log(snapshot.val());
-    //         setGamescore(snapshot.val());
-    //     } else {
-    //         // console.log("No score");
-    //     }
-    // }).catch((error) => {
-    //     console.error(error);
-    // });
+    useEffect(() => {
+        const dbRef = firebase.database().ref();
+        dbRef.child("student").child(useruid).child("quiz").child(quizname).child("score").get().then((snapshot) => {
+            if (snapshot.exists()) {
+                setGamescore(snapshot.val());
+            } else {
+                setGamescore();
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
+    }, [quizname, useruid])
 
     function handlePlay() {
         dispatch(setCurrentPlaying(props.music))
     }
-    const [isOpen, setIsOpen] = useState(false);
+    // function handleStop() {
+    //     dispatch(setCurrentPlaying())
+    //     console.log('stop playing')
+    // }
 
     return (
         <div className={"music-card"}>
@@ -49,11 +56,11 @@ function MusicCard(props) {
                             </div>
                             <Name name={bookname} className={"song-name"} length={bookname.length} />
                             <Name name={page} className={"song-name"} length={page.length} />
-                            {/* <div className="timesplayedcontainer-web">
+                            <div className="timesplayedcontainer-web">
                                 <Name name={"小測驗:  "} className={"song-name"} />
                                 <Name name={gamescore || "------"} className={"timeplayed"} />
                                 <Name name={"  "} className={"song-name"} />
-                            </div> */}
+                            </div>
                         </React.Fragment>
                         <div className='d-flex justify-content-center'>
                             <div onClick={handlePlay} className={"music-card-cover"} >
@@ -66,17 +73,19 @@ function MusicCard(props) {
                                 {
                                     () => {
                                         if (questions === undefined) {
+                                            dispatch(setCurrentPlaying())
                                             setIsOpen(false);
                                             alert('目前未開放')
                                         }
                                         else {
+                                            dispatch(setCurrentPlaying())
                                             setIsOpen(true);
                                         }
                                     }
                                 } className={"music-card-cover"} >
                                 <div className='testbutton'>
-                                    <span>小測驗</span>
-                                    <PlayCircleOutlineIcon className="circleicon" />
+                                    <span>小遊戲</span>
+                                    <VideogameAssetIcon className="circleicon" />
                                 </div>
                             </div>
                         </div>
@@ -104,35 +113,39 @@ function MusicCard(props) {
                             </div>
                         </React.Fragment>
                         <div className='buttoncontainer'>
-                            <div onClick={handlePlay} className={"music-card-cover"} >
-                                <div onClick={handlePlay} className='testbutton'>
-                                    <span>播放</span>
-                                    <PlayCircleOutlineIcon className="playicon" />
+                            <div style={{ display: 'flex' }}>
+                                <div onClick={handlePlay} className={"music-card-cover"} >
+                                    <div onClick={handlePlay} className='testbutton'>
+                                        <span>播放</span>
+                                        <PlayCircleOutlineIcon className="playicon" />
+                                    </div>
                                 </div>
-                            </div>
-                            <div onClick=
-                                {
-                                    () => {
-                                        if (questions === undefined) {
-                                            setIsOpen(false);
-                                            alert('目前未開放')
+                                <div onClick=
+                                    {
+                                        () => {
+                                            if (questions === undefined) {
+                                                dispatch(setCurrentPlaying())
+                                                setIsOpen(false);
+                                                alert('目前未開放')
+                                            }
+                                            else {
+                                                dispatch(setCurrentPlaying())
+                                                setIsOpen(true);
+                                            }
                                         }
-                                        else {
-                                            setIsOpen(true);
-                                        }
-                                    }
-                                } className={"music-card-cover"} >
-                                <div className='testbutton'>
-                                    <span>測驗</span>
-                                    <PlayCircleOutlineIcon className="circleicon" />
+                                    } className={"music-card-cover"} >
+                                    <div className='testbutton'>
+                                        <span>小遊戲</span>
+                                        <VideogameAssetIcon className="circleicon" />
+                                    </div>
                                 </div>
                             </div>
                             <React.Fragment>
-                                {/* <div className="timesplayedcontainer-mobile">
+                                <div className="timesplayedcontainer-mobile">
                                     <Name name={"測驗 :  "} className={"quizlabel"} />
                                     <Name name={gamescore || " ---- "} className={"timeplayed"} />
                                     <Name name={"  "} className={"song-name"} />
-                                </div> */}
+                                </div>
                             </React.Fragment>
                         </div>
                     </div>

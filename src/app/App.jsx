@@ -9,7 +9,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPlaylist } from "../actions/actions";
 import Leaderboard from "../components/fragment/Leaderboard";
 import NavigationMobile from "../components/fragment/NavigationMobile";
-import Copyright from "../components/fragment/Copyright";
 import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
@@ -24,11 +23,13 @@ const App = () => {
     const db = firebase.firestore();
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
+            localStorage.setItem('useruid', user.uid);
             db.collection('student').doc(user.uid).get().then(doc => {
                 localStorage.setItem('username', doc.data().name)
                 localStorage.setItem('totaltimeplayed', doc.data().totaltimeplayed)
             });
         } else {
+            localStorage.setItem('useruid', '');
             localStorage.setItem('username', '')
             localStorage.setItem('totaltimeplayed', '')
         }
@@ -60,22 +61,18 @@ const App = () => {
                     <Route path="/home/leaderboard">
                         <NavigationMobile />
                         <Leaderboard />
-                        <Copyright />
                     </Route>
                     <Route path="/home/userinfo">
                         <NavigationMobile />
                         <UserInfo />
-                        <Copyright />
                     </Route>
                     <Route path="/home/contact">
                         <NavigationMobile />
                         <Contact />
-                        <Copyright />
                     </Route>
                     <Route path="/home/about">
                         <NavigationMobile />
                         <About />
-                        <Copyright />
                     </Route>
                     {/* <Route path="/home/game">
                         <NavigationMobile/>
@@ -85,7 +82,6 @@ const App = () => {
                     <Route path="/home/dashboard">
                         <NavigationMobile />
                         <Dashboard />
-                        <Copyright />
                     </Route>
                     <Route path="/home" component={Home} />
                 </Switch>

@@ -107,9 +107,6 @@ function Home() {
                                 {
                                     Page
                                 }
-                                {/* <div className="main-home-copyright">
-                                    <Copyright />
-                                </div> */}
                             </div>
                         </section>
                         <section className={"home-musicplayer"}>
