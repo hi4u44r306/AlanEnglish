@@ -22,34 +22,20 @@ class Leaderboard extends React.Component {
     studentsC: null,
     studentsD: null,
   }
-  currentMonth = new Date().toJSON().slice(0, 7);
-  currentMonth2 = new Date().toJSON().slice(5, 7);
-  currentYear = new Date().toJSON().slice(0, 4);
-  getFirstDayOfNextMonth() {
-    const date = new Date();
-
-    return new Date(date.getFullYear(), date.getMonth() + 1, 1);
-  }
+  //當月最後一天日期計算
+  currentDate = new Date();
+  currentYear = this.currentDate.getFullYear();
+  currentMonth = this.currentDate.getMonth() + 1;
+  lastDayOfMonth = new Date(this.currentYear, this.currentMonth, 0).getDate();
+  lastDayOfMonthFormatted = this.currentYear + '-' + ('0' + this.currentMonth).slice(-2) + '-' + ('0' + this.lastDayOfMonth).slice(-2);
 
 
-  lastday = function (y, m) {
-    return new Date(y, m + 1, 0).getDate();
-  }
-  lastdayofmonth = this.lastday(this.currentYear, new Date().toJSON().slice(5, 7))
-  // resetDate = this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth;
-  // resetDateToMs = new Date(this.currentYear + '-' + this.currentMonth2 + '-' + this.lastdayofmonth).getTime()
-  resetDate = this.currentYear + '-' + this.currentMonth2 + '-' + new Date(this.currentYear, this.currentMonth2, 0).getDate()
-
-
-  currentDate = new Date().toJSON().slice(0, 10);
+  //將當月最後一天日期換成Millisecond
+  currentDate = new Date();
+  currentMonthLastDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+  currentMonthLastDateMs = this.currentMonthLastDate.getTime();
 
   componentDidMount() {
-    // console.log(this.abc)
-    const db = firebase.firestore(); /// 使用limit()可選擇顯示資料數量
-    const d = new Date();
-    d.setDate(d.getDate() - 3);
-    const offlinelimit = d.toJSON().slice(0, 10);
-
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
 
@@ -57,128 +43,75 @@ class Leaderboard extends React.Component {
         window.location.href = '/'
       }
     })
-
-
-    db.collection("student")
-      .where('class', '==', 'A')
-      .where('onlinemonth', '==', this.currentMonth)
-      .where('totaltimeplayed', '>', 0)
-      .orderBy('totaltimeplayed', 'desc')
-      .get().then((snapshot) => {
-        const studentsA = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          studentsA.push(data);
+    const getStudents = (classParam, orderByParam, monthParam, setStateFunc) => {
+      const db = firebase.firestore();
+      db.collection("student")
+        .where('class', '==', classParam)
+        .where('onlinemonth', '==', monthParam)
+        .where('totaltimeplayed', '>', 0)
+        .orderBy(orderByParam, 'desc')
+        .get()
+        .then((snapshot) => {
+          const students = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            students.push(data);
+          })
+          setStateFunc(students);
         })
-        this.setState({ studentsA: studentsA });
-      }).catch((err) => {
-        console.lor(err)
-      })
-    db.collection("student")
-      .where('onlinetime', '<=', offlinelimit)
-      .where('class', '==', 'A')
-      .get().then((snapshot) => {
-        const OfflineA = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          OfflineA.push(data);
+        .catch((err) => {
+          console.log(err)
+        });
+    }
+    const getOfflineStudents = (classParam, setStateFunc) => {
+      const db = firebase.firestore();
+      db.collection("student")
+        .where('onlinetime', '<=', offlinelimit)
+        .where('class', '==', classParam)
+        .get()
+        .then((snapshot) => {
+          const students = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            students.push(data);
+          })
+          setStateFunc(students);
         })
-        this.setState({ OfflineA: OfflineA });
-      }).catch((err) => {
-        console.lor(err)
-      })
+        .catch((err) => {
+          console.log(err)
+        });
+    }
 
-    db.collection("student")
-      .where('class', '==', 'B')
-      .where('onlinemonth', '==', this.currentMonth)
-      .where('totaltimeplayed', '>', 0)
-      .orderBy('totaltimeplayed', 'desc')
-      .get().then((snapshot) => {
-        const studentsB = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          studentsB.push(data);
-        })
-        this.setState({ studentsB: studentsB });
-      }).catch((err) => {
-        console.lor(err)
-      })
-    db.collection("student")
-      .where('onlinetime', '<=', offlinelimit)
-      .where('class', '==', 'B')
-      .get().then((snapshot) => {
-        const OfflineB = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          OfflineB.push(data);
-        })
-        this.setState({ OfflineB: OfflineB });
-      }).catch((err) => {
-        console.lor(err)
-      })
+    const d = new Date();
+    d.setDate(d.getDate() - 3);
+    const offlinelimit = d.toJSON().slice(0, 10);
 
-    db.collection("student")
-      .where('class', '==', 'C')
-      .where('onlinemonth', '==', this.currentMonth)
-      .where('totaltimeplayed', '>', 0)
-      .orderBy('totaltimeplayed', 'desc')
-      .get().then((snapshot) => {
-        const studentsC = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          studentsC.push(data);
-        })
-        this.setState({ studentsC: studentsC });
-      }).catch((err) => {
-        console.lor(err)
-      })
-    db.collection("student")
-      .where('onlinetime', '<=', offlinelimit)
-      .where('class', '==', 'C')
-      .get().then((snapshot) => {
-        const OfflineC = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          OfflineC.push(data);
-        })
-        this.setState({ OfflineC: OfflineC });
-      }).catch((err) => {
-        console.lor(err)
-      })
+    const currentMonth = new Date().toJSON().slice(0, 7);
+    getStudents('A', 'totaltimeplayed', currentMonth, (students) => {
+      this.setState({ studentsA: students });
+    });
+    getStudents('B', 'totaltimeplayed', currentMonth, (students) => {
+      this.setState({ studentsB: students });
+    });
+    getStudents('C', 'totaltimeplayed', currentMonth, (students) => {
+      this.setState({ studentsC: students });
+    });
+    getStudents('D', 'totaltimeplayed', currentMonth, (students) => {
+      this.setState({ studentsD: students });
+    });
 
-    db.collection("student")
-      .where('class', '==', 'D')
-      .where('onlinemonth', '==', this.currentMonth)
-      .where('totaltimeplayed', '>', 0)
-      .orderBy('totaltimeplayed', 'desc')
-      .get().then((snapshot) => {
-        const studentsD = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          studentsD.push(data);
-        })
-        this.setState({ studentsD: studentsD });
-      }).catch((err) => {
-        console.lor(err)
-      })
-    db.collection("student")
-      .where('onlinetime', '<=', offlinelimit)
-      .where('class', '==', 'D')
-      .get().then((snapshot) => {
-        const OfflineD = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          OfflineD.push(data);
-        })
-        this.setState({ OfflineD: OfflineD });
-      }).catch((err) => {
-        console.lor(err)
-      })
-
-
-
-
-
+    getOfflineStudents('A', (students) => {
+      this.setState({ OfflineA: students });
+    });
+    getOfflineStudents('B', (students) => {
+      this.setState({ OfflineB: students });
+    });
+    getOfflineStudents('C', (students) => {
+      this.setState({ OfflineC: students });
+    });
+    getOfflineStudents('D', (students) => {
+      this.setState({ OfflineD: students });
+    });
   }
 
   render() {
@@ -197,9 +130,12 @@ class Leaderboard extends React.Component {
             </div>
             <div className='countdown'>
               <div className='countdownlabel'>
-                {this.resetDate}日結算
+                {this.lastDayOfMonthFormatted}日結算
               </div>
-              <CountdownTimer countdownTimestampMs={1680273592287} />
+              {/* <div className='countdownlabel'>
+                {this.resetDate}日結算
+              </div> */}
+              <CountdownTimer countdownTimestampMs={this.currentMonthLastDateMs} />
             </div>
           </div>
           {/* A班 */}
