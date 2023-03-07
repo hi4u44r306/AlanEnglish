@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Containerfull from './Containerfull';
 import '../assets/scss/Game.scss';
 import { toast, ToastContainer } from "react-toastify"
 import Name from './Name';
@@ -9,6 +8,7 @@ import Name from './Name';
 // import Mic from '../assets/img/microphone.png'
 // import Next from '../assets/img/next.png'
 import firebase from 'firebase/app';
+import ContainerGame from './ContainerGame';
 // import axios from 'axios';
 
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
@@ -203,7 +203,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
   if (!open) return null
   return (
     <>
-      <Containerfull>
+      <ContainerGame>
         <div className='Overlay' />
         <div className='gamebox'>
           <div className='gamebox2'>
@@ -276,7 +276,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
             </div>
           </div>
         </div>
-      </Containerfull>
+      </ContainerGame>
     </>
   )
 }
