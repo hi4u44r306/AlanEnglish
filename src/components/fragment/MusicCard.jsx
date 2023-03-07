@@ -33,10 +33,10 @@ function MusicCard(props) {
     function handlePlay() {
         dispatch(setCurrentPlaying(props.music))
     }
-    // function handleStop() {
-    //     dispatch(setCurrentPlaying())
-    //     console.log('stop playing')
-    // }
+    function handleStop() {
+        dispatch(setCurrentPlaying())
+        console.log('stop playing')
+    }
 
     return (
         <div className={"music-card"}>
@@ -72,13 +72,12 @@ function MusicCard(props) {
                             <div onClick=
                                 {
                                     () => {
+                                        handleStop()
                                         if (questions === undefined) {
-                                            dispatch(setCurrentPlaying())
                                             setIsOpen(false);
                                             alert('目前未開放')
                                         }
                                         else {
-                                            dispatch(setCurrentPlaying())
                                             setIsOpen(true);
                                         }
                                     }
@@ -123,13 +122,12 @@ function MusicCard(props) {
                                 <div onClick=
                                     {
                                         () => {
+                                            handleStop()
                                             if (questions === undefined) {
-                                                dispatch(setCurrentPlaying())
                                                 setIsOpen(false);
                                                 alert('目前未開放')
                                             }
                                             else {
-                                                dispatch(setCurrentPlaying())
                                                 setIsOpen(true);
                                             }
                                         }

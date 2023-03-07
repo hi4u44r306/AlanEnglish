@@ -64,7 +64,7 @@ class Leaderboard extends React.Component {
       .where('onlinemonth', '==', this.currentMonth)
       .where('totaltimeplayed', '>', 0)
       .orderBy('totaltimeplayed', 'desc')
-      .limit(7).get().then((snapshot) => {
+      .get().then((snapshot) => {
         const studentsA = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -93,7 +93,7 @@ class Leaderboard extends React.Component {
       .where('onlinemonth', '==', this.currentMonth)
       .where('totaltimeplayed', '>', 0)
       .orderBy('totaltimeplayed', 'desc')
-      .limit(7).get().then((snapshot) => {
+      .get().then((snapshot) => {
         const studentsB = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -122,7 +122,7 @@ class Leaderboard extends React.Component {
       .where('onlinemonth', '==', this.currentMonth)
       .where('totaltimeplayed', '>', 0)
       .orderBy('totaltimeplayed', 'desc')
-      .limit(7).get().then((snapshot) => {
+      .get().then((snapshot) => {
         const studentsC = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -151,7 +151,7 @@ class Leaderboard extends React.Component {
       .where('onlinemonth', '==', this.currentMonth)
       .where('totaltimeplayed', '>', 0)
       .orderBy('totaltimeplayed', 'desc')
-      .limit(7).get().then((snapshot) => {
+      .get().then((snapshot) => {
         const studentsD = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
