@@ -34,8 +34,7 @@ function MusicCard(props) {
         dispatch(setCurrentPlaying(props.music))
     }
     function handleStop() {
-        dispatch(setCurrentPlaying())
-        console.log('stop playing')
+        dispatch(setCurrentPlaying());
     }
 
     return (

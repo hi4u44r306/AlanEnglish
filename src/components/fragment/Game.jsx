@@ -32,7 +32,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
     const nextQuestion = currentQuestion + 1;
     if (card.name === questions[0][currentQuestion].questionText && nextQuestion === questions[0].length) {
       finishnotification();
-      setCurrentQuestion(0);
+      // setCurrentQuestion(0);
       uploadscore();
     } else {
       if (card.name === questions[0][currentQuestion].questionText) {
@@ -233,11 +233,12 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
                     draggable
                     pauseOnHover
                   />
-                  {!questions[0][currentQuestion].questiondeck || questions[0][currentQuestion].questiondeck.map((card) => (
-                    <div className="deck" key={card.image} onClick={() => handleCardClick(card)}>
-                      <img className='deckimage' src={require("../assets/img/" + card.image).default} alt="" />
-                    </div>
-                  ))}
+                  {
+                    !questions[0][currentQuestion].questiondeck || questions[0][currentQuestion].questiondeck.sort(() => Math.random() - 0.3).map((card) => (
+                      <div className="deck" key={card.image} onClick={() => handleCardClick(card)}>
+                        <img className='deckimage' src={require("../assets/img/" + card.image).default} alt="" />
+                      </div>
+                    ))}
                 </div>
 
 
