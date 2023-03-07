@@ -121,9 +121,6 @@
 }
 .gamebox {
   background-image: url("../../assets/img/gamebackground.png");
-  background-repeat: no-repeat;
-  background-position: right top;
-  background-attachment: fixed;
   display: flex;
   font-size: var(--small-font);
   flex-direction: column;
