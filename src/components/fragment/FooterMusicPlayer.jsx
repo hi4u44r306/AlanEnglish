@@ -64,7 +64,6 @@ function FooterMusicPlayer({ music }) {
             })
         })
 
-
         // Firestore
         userRef.get().then((doc) => {
             if (doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth + 'alreadyupdated') {
@@ -80,7 +79,6 @@ function FooterMusicPlayer({ music }) {
             }
         }).catch(() => {
         })
-
 
         // Realtime Database
         const dbRef = firebase.database().ref();
@@ -109,14 +107,7 @@ function FooterMusicPlayer({ music }) {
         if (checklisten === true) {
             console.log('no checklisten');
         } else {
-            // checklisten.get().then((doc) => {
-            //     const aaa = doc.data().todaytotaltimeplayed
-            //     const bbb = parseInt(aaa) + 1; ////+1 是因為非同步 舉例:在logfile中總播放次數是2 但是在用戶資料中播放次數是1 所以要同步的話要+1
-            //     userRef.set({
-            //         currdatetimeplayed: bbb,
-            //     }, { merge: true })
-            // })
-            // .catch((err) => err.message)
+
         }
 
 
@@ -147,17 +138,6 @@ function FooterMusicPlayer({ music }) {
                 todaytotaltimeplayed: 1,
             })
         })
-
-
-        // 所有音軌總次數增加 //
-        // userRef.get().then((doc) => {
-        //     const c = doc.data().totaltimeplayed;
-        //     const d = parseInt(c) + 1;
-        //     userRef.update({
-        //         totaltimeplayed: d,
-        //     })
-        // })
-
     };
 
     const currentTrack = playlists.findIndex(obj => obj.musicName === musicName)
@@ -193,26 +173,6 @@ function FooterMusicPlayer({ music }) {
             dispatch(setCurrentPlaying(playlists[abc]));
         }
     }
-
-
-
-    // const handleClickNext = () => {
-    //     console.log('click next')
-    //     let currTrackId = (id+1) % playlists.length;
-    //     dispatch(setCurrentPlaying(playlists[currTrackId]));
-    // };
-
-
-    // const handleEnd = () =>{
-    //     console.log('track end')
-    //     const currplayingmusicid = "'" + id + "'";
-    //     updatetimeplayedtofirestore(currplayingmusicid);
-    //     success();
-    //     // secondsuccess();
-    //     let currTrackId = (id+1) % playlists.length;
-    //     dispatch(setCurrentPlaying(playlists[currTrackId]));
-    // }
-
 
     return (
         <div className={"footer-player"}>

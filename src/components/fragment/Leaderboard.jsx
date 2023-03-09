@@ -66,8 +66,8 @@ class Leaderboard extends React.Component {
     const getOfflineStudents = (classParam, setStateFunc) => {
       const db = firebase.firestore();
       db.collection("student")
-        .where('onlinetime', '<=', offlinelimit)
         .where('class', '==', classParam)
+        .where('onlinetime', '<=', offlinelimit)
         .get()
         .then((snapshot) => {
           const students = [];
@@ -81,6 +81,24 @@ class Leaderboard extends React.Component {
           console.log(err)
         });
     }
+    // const NeverOnlineStudents = (classParam, setStateFunc) => {
+    //   const db = firebase.firestore();
+    //   db.collection("student")
+    //     .where('onlinetime', '==', '')
+    //     .where('class', '==', classParam)
+    //     .get()
+    //     .then((snapshot) => {
+    //       const students = [];
+    //       snapshot.forEach((doc) => {
+    //         const data = doc.data();
+    //         students.push(data);
+    //       })
+    //       setStateFunc(students);
+    //     })
+    //     .catch((err) => {
+    //       console.log(err)
+    //     });
+    // }
 
     const d = new Date();
     d.setDate(d.getDate() - 3);
@@ -112,6 +130,19 @@ class Leaderboard extends React.Component {
     getOfflineStudents('D', (students) => {
       this.setState({ OfflineD: students });
     });
+
+    // NeverOnlineStudents('A', (students) => {
+    //   this.setState({ NeverA: students });
+    // });
+    // NeverOnlineStudents('B', (students) => {
+    //   this.setState({ NeverB: students });
+    // });
+    // NeverOnlineStudents('C', (students) => {
+    //   this.setState({ NeverC: students });
+    // });
+    // NeverOnlineStudents('D', (students) => {
+    //   this.setState({ NeverD: students });
+    // });
   }
 
   render() {
@@ -120,21 +151,12 @@ class Leaderboard extends React.Component {
         <div className='leaderboard'>
           <div className='leaderboardmaintitle'>
             <div className='leaderboardtitle'>
-              {/* <div>
-                  <img className='loudspeaker1' src={loudspeaker} alt='#'/>
-                </div> */}
               Leaderboard
-              {/* <div>
-                  <img className='loudspeaker2' src={loudspeaker} alt='#'/>
-                </div> */}
             </div>
             <div className='countdown'>
               <div className='countdownlabel'>
                 {this.lastDayOfMonthFormatted}日結算
               </div>
-              {/* <div className='countdownlabel'>
-                {this.resetDate}日結算
-              </div> */}
               <CountdownTimer countdownTimestampMs={this.currentMonthLastDateMs} />
             </div>
           </div>
@@ -292,6 +314,58 @@ class Leaderboard extends React.Component {
               }
             </tbody>
           </table>
+
+          {/* A班從來沒有上線名單 */}
+          {/* <div className='classtitle'>A班從來沒有上線名單</div>
+          <table className='table table-border'>
+            <thead>
+              <tr>
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班級</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名' />姓名</span></th>
+
+                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名' />最後上線日</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                this.state.NeverA &&
+                this.state.NeverA.map((NeverA) => {
+                  return (
+                    <tr key={NeverA.name}>
+                      <td key={NeverA.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{NeverA.class}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={NeverA.name} className=''>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b><span className='font-weight-bold'>{NeverA.name}</span></b>
+                          </div>
+                        </div>
+                      </td>
+                      <td key={NeverA.onlinetime} className=' '>
+                        <div className='d-flex justify-content-center'>
+                          <div className="align-self-center pl-3">
+                            <b>
+                              <span className='font-weight-bold'>
+                                <span className={'text-danger'}>
+                                  {NeverA.onlinetime || '從未上線過'}
+                                </span>
+                              </span>
+                            </b>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              }
+            </tbody>
+          </table> */}
 
           {/* B班 */}
           <div className='classtitle'>B 班</div>

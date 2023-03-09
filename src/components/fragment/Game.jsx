@@ -32,7 +32,6 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
     const nextQuestion = currentQuestion + 1;
     if (card.name === questions[0][currentQuestion].questionText && nextQuestion === questions[0].length) {
       finishnotification();
-      // setCurrentQuestion(0);
       uploadscore();
     } else {
       if (card.name === questions[0][currentQuestion].questionText) {
@@ -45,7 +44,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
             setCurrentQuestion(nextQuestion);
             // setNextbtn(true)
           }
-        }, 1500);
+        }, 1800);
       } else {
         error();
       }
@@ -92,6 +91,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
     });
     setTimeout(() => {
       onClose();
+      setCurrentQuestion(0);
     }, 2000);
   };
 

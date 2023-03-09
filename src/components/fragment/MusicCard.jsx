@@ -81,7 +81,7 @@ function MusicCard(props) {
                                         }
                                     }
                                 } className={"music-card-cover"} >
-                                <div className='testbutton'>
+                                <div className='gamebutton'>
                                     <span>小遊戲</span>
                                     <VideogameAssetIcon className="circleicon" />
                                 </div>
@@ -131,7 +131,7 @@ function MusicCard(props) {
                                             }
                                         }
                                     } className={"music-card-cover"} >
-                                    <div className='testbutton'>
+                                    <div className='gamebutton'>
                                         <span>小遊戲</span>
                                         <VideogameAssetIcon className="circleicon" />
                                     </div>
