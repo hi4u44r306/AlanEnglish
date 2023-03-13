@@ -2440,6 +2440,427 @@ let musicDB = [
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /////////////// 習作本 5 ///////////////
+
+
+
+
+
+
+
+
+
+    {
+        bookname: "習作本5",
+        page: "P.2 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P2.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        bookname: "習作本5",
+        page: "P.4 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P4.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        bookname: "習作本5",
+        page: "P.6 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P6.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        bookname: "習作本5",
+        page: "P.8 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P8.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        bookname: "習作本5",
+        page: "P.13 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P13.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //     ////////////////////////////////////Super Easy Reading 1////////////////////////////////////////////
 
 

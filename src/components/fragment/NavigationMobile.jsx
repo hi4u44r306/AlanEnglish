@@ -218,7 +218,7 @@ function NavigationMobile() {
                         style={{ width: 18, marginRight: 4 }}
                         src={BlueBook}
                         alt="greenbook"
-                      />  習作本5 建構中...</NavDropdown.Item>
+                      />  習作本5 </NavDropdown.Item>
                     <NavDropdown.Item as={Link} to="/home/playlist/Workbook_6" href="/home/playlist/Workbook_6" className="subnavlink">
                       <img
                         style={{ width: 18, marginRight: 4 }}
