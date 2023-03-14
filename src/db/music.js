@@ -2763,6 +2763,190 @@ let musicDB = [
             },
         ],
     },
+    {
+        bookname: "習作本5",
+        page: "P.15 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P15.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        bookname: "習作本5",
+        page: "P.26 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P26.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        bookname: "習作本5",
+        page: "P.27 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P27.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
+    {
+        bookname: "習作本5",
+        page: "P.30 Q&A",
+        img: "headphone5.png",
+        lang: "習作本5",
+        timesPlayed: 0,
+        type: "Workbook_5",
+        musicName: "習作本5/習作本5 P30.mp3",
+        questions: [
+            {
+                questionText: "apple",
+                questiondeck: [
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+
+                ]
+            },
+            {
+                questionText: "banana",
+                questiondeck: [
+                    {
+                        name: 'banana',
+                        image: 'banana.jpg'
+                    },
+                    {
+                        name: 'cat',
+                        image: '小乖.png'
+                    },
+                    {
+                        name: 'apple',
+                        image: 'apple.jpg'
+                    },
+                ]
+            },
+        ],
+    },
 
 
 
