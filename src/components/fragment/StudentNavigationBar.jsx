@@ -92,10 +92,10 @@ function StudentNavigationBar() {
 
                   {/* 主控台 */}
                   {
-                    localStorage.getItem('class') !== 'Teacher' ?
+                    localStorage.getItem('ae-class') !== 'Teacher' ?
                       ''
                       :
-                      <Nav.Link as={Link} to="/home/dashboard" href="/home/dashboard" className="navlinkscoreboard">
+                      <Nav.Link as={Link} to="/home/dashboard" href="/home/dashboard" className="navlinksetting">
                         <img style={{ width: 18, marginRight: 4 }}
                           src={Setting}
                           alt="setting"

@@ -18,6 +18,7 @@ const User = () => {
     const db = firebase.firestore();
     const username = localStorage.getItem('ae-username');
     const totaltimeplayed = localStorage.getItem('ae-totaltimeplayed');
+    const useruid = localStorage.getItem('ae-useruid');
     const [dailytimeplayed, setDailyTimeplayed] = useState();
     const currentDate = new Date().toJSON().slice(0, 10);
     const currentMonth = new Date().toJSON().slice(0, 7);
@@ -43,28 +44,17 @@ const User = () => {
     };
 
     useEffect(() => {
-        const getUserInfo = (user) => {
-            db.collection('student').doc(user.uid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc) => {
-                setDailyTimeplayed(doc.data().todaytotaltimeplayed);
-            }).catch(() => {
-                setDailyTimeplayed("0")
-            })
-        }
+        db.collection('student').doc(useruid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc) => {
+            setDailyTimeplayed(doc.data().todaytotaltimeplayed);
+        }).catch(() => {
+            setDailyTimeplayed("0")
+        })
 
         firebase.auth().onAuthStateChanged(user => {
-            if (user) {
-                db.collection('student').onSnapshot(() => {
-                    getUserInfo(user);
-                });
-            } else {
-                error();
-            }
+            if (!user) return error();
         })
-    }, [currentDate, currentMonth, db])
+    }, [currentDate, currentMonth, db, useruid])
 
-
-
-    // if (!auth) return window.location.href = '/'
     return (
         <div className={"User"}>
             <div className="User-profile">

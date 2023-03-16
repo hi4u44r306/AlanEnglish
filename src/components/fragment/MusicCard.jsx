@@ -11,7 +11,7 @@ import firebase from 'firebase/app';
 
 function MusicCard(props) {
     const { bookname, page, img, questions, musicName } = props.music;
-    const useruid = localStorage.getItem('useruid');
+    const useruid = localStorage.getItem('ae-useruid');
     const [gamescore, setGamescore] = useState();
     const [isOpen, setIsOpen] = useState(false);
     const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")

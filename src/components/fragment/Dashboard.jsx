@@ -6,23 +6,17 @@ import '../assets/scss/Dashboard.scss'
 class Dashboard extends React.Component {
     state = {
         studentsA: null,
-        studentsAinfo: null,
         studentsB: null,
-        studentsBinfo: null,
         studentsC: null,
-        studentsCinfo: null,
         studentsD: null,
-        studentsDinfo: null,
     }
     componentDidMount() {
         const db = firebase.firestore();
         db.collection('student').where('class', '==', 'A').orderBy('onlinetime', 'desc').get().then((snapshot) => {
             const studentsA = [];
-            const studentsAinfo = [];
             snapshot.forEach((doc) => {
                 const data = doc;
                 studentsA.push(data);
-                studentsAinfo.push(doc.id);
             })
             this.setState({
                 studentsA: studentsA
@@ -30,51 +24,34 @@ class Dashboard extends React.Component {
         });
         db.collection('student').where('class', '==', 'B').orderBy('onlinetime', 'desc').get().then((snapshot) => {
             const studentsB = [];
-            const studentsBinfo = [];
             snapshot.forEach((doc) => {
-                const data = doc.data();
-                const id = doc.id;
+                const data = doc;
                 studentsB.push(data);
-                studentsBinfo.push(id);
             })
             this.setState({
                 studentsB: studentsB,
-                studentsBinfo: studentsBinfo
             });
         });
         db.collection('student').where('class', '==', 'C').orderBy('onlinetime', 'desc').get().then((snapshot) => {
             const studentsC = [];
-            const studentsCinfo = [];
             snapshot.forEach((doc) => {
-                const data = doc.data();
-                const id = doc.id;
+                const data = doc;
                 studentsC.push(data);
-                studentsCinfo.push(id);
             })
             this.setState({
                 studentsC: studentsC,
-                studentsCinfo: studentsCinfo
             });
         });
         db.collection('student').where('class', '==', 'D').orderBy('onlinetime', 'desc').get().then((snapshot) => {
             const studentsD = [];
-            const studentsDinfo = [];
             snapshot.forEach((doc) => {
-                const data = doc.data();
-                const id = doc.id;
+                const data = doc;
                 studentsD.push(data);
-                studentsDinfo.push(id);
             })
             this.setState({
                 studentsD: studentsD,
-                studentsDinfo: studentsDinfo
             });
         });
-    }
-
-    Edit = (event, data) => {
-        event.preventDefault();
-        window.location = `/edit/${data}`;
     }
 
     render() {
@@ -92,11 +69,15 @@ class Dashboard extends React.Component {
                     <table className='table table-border'>
                         <thead>
                             <tr>
-                                <th className='dashboardcoltitle'>✨ 上線日期</th>
-                                <th className='dashboardcoltitle'>🏆 班級</th>
-                                <th className='dashboardcoltitle'>👦 姓名 👩</th>
-                                <th className='dashboardcoltitle'>🎵 播放次數</th>
-                                <th className='dashboardcoltitle'></th>
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>日期</span> </th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班別</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>姓名</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>次數</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>編輯</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -106,7 +87,7 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsA.data().onlinetime}>
-                                                <div className='d-flex justify-content-center'>
+                                                <div className='d-flex justify-content-center align-items-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
@@ -151,14 +132,7 @@ class Dashboard extends React.Component {
                                             <td key={studentsA.data().totaltimeplayed}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
-                                                        <button className='editbtn'
-                                                            onClick={
-                                                                (e) => {
-                                                                    e.preventDefault();
-                                                                    window.location = `/edit/${studentsA.id}`;
-                                                                }
-                                                            }
-                                                        >編輯</button>
+                                                        <a href={`/edit/${studentsA.id}`}>編輯</a>
                                                     </div>
                                                 </div>
                                             </td>
@@ -178,9 +152,15 @@ class Dashboard extends React.Component {
                     <table className='table table-border'>
                         <thead>
                             <tr>
-                                <th className='dashboardcoltitle'>✨ 上線日期</th>
-                                <th className='dashboardcoltitle'>🏆 班級</th>
-                                <th className='dashboardcoltitle'>👦 姓名 👩</th>
+                                <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'>日期</span> </th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班別</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>姓名</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>次數</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>編輯</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -189,36 +169,53 @@ class Dashboard extends React.Component {
                                 this.state.studentsB.map((studentsB, index) => {
                                     return (
                                         <tr key={index}>
-                                            <td key={studentsB.onlinetime}>
+                                            <td key={studentsB.data().onlinetime}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
-                                                                <span className={studentsB.onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsB.onlinetime || '近期無上線'}
+                                                                <span className={studentsB.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
+                                                                    {studentsB.data().onlinetime || '近期無上線'}
                                                                 </span>
                                                             </span>
                                                         </b>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td key={studentsB.class}>
+                                            <td key={studentsB.data().class}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
-                                                                <span className={studentsB.class ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsB.class || '近期無上線'}
+                                                                <span className={studentsB.data().class ? 'text-success' || '' : 'text-danger'}>
+                                                                    {studentsB.data().class || '近期無上線'}
                                                                 </span>
                                                             </span>
                                                         </b>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td key={studentsB.name}>
+                                            <td key={studentsB.data().name}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
-                                                        <b><span className='font-weight-bold'>{studentsB.name}</span></b>
+                                                        <b><span className='font-weight-bold'>{studentsB.data().name}</span></b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td key={studentsB.data().email}>
+                                                <div className='d-flex justify-content-center'>
+                                                    <div className="align-self-center pl-3">
+                                                        <b>
+                                                            <span
+                                                                className='font-weight-bold'>{studentsB.data().totaltimeplayed}</span>
+                                                        </b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td key={studentsB.data().totaltimeplayed}>
+                                                <div className='d-flex justify-content-center'>
+                                                    <div className="align-self-center pl-3">
+                                                        <a href={`/edit/${studentsB.id}`}>編輯</a>
                                                     </div>
                                                 </div>
                                             </td>
@@ -238,9 +235,15 @@ class Dashboard extends React.Component {
                     <table className='table table-border'>
                         <thead>
                             <tr>
-                                <th className='dashboardcoltitle'>✨ 上線日期</th>
-                                <th className='dashboardcoltitle'>🏆 班級</th>
-                                <th className='dashboardcoltitle'>👦 姓名 👩</th>
+                                <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'>日期</span> </th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班別</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>姓名</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>次數</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>編輯</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -249,36 +252,53 @@ class Dashboard extends React.Component {
                                 this.state.studentsC.map((studentsC, index) => {
                                     return (
                                         <tr key={index}>
-                                            <td key={studentsC.onlinetime}>
+                                            <td key={studentsC.data().onlinetime}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
-                                                                <span className={studentsC.onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsC.onlinetime || '近期無上線'}
+                                                                <span className={studentsC.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
+                                                                    {studentsC.data().onlinetime || '近期無上線'}
                                                                 </span>
                                                             </span>
                                                         </b>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td key={studentsC.class}>
+                                            <td key={studentsC.data().class}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
-                                                                <span className={studentsC.class ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsC.class || '近期無上線'}
+                                                                <span className={studentsC.data().class ? 'text-success' || '' : 'text-danger'}>
+                                                                    {studentsC.data().class || '近期無上線'}
                                                                 </span>
                                                             </span>
                                                         </b>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td key={studentsC.name}>
+                                            <td key={studentsC.data().name}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
-                                                        <b><span className='font-weight-bold'>{studentsC.name}</span></b>
+                                                        <b><span className='font-weight-bold'>{studentsC.data().name}</span></b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td key={studentsC.data().email}>
+                                                <div className='d-flex justify-content-center'>
+                                                    <div className="align-self-center pl-3">
+                                                        <b>
+                                                            <span
+                                                                className='font-weight-bold'>{studentsC.data().totaltimeplayed}</span>
+                                                        </b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td key={studentsC.data().totaltimeplayed}>
+                                                <div className='d-flex justify-content-center'>
+                                                    <div className="align-self-center pl-3">
+                                                        <a href={`/edit/${studentsC.id}`}>編輯</a>
                                                     </div>
                                                 </div>
                                             </td>
@@ -298,9 +318,15 @@ class Dashboard extends React.Component {
                     <table className='table table-border'>
                         <thead>
                             <tr>
-                                <th className='dashboardcoltitle'>✨ 上線日期</th>
-                                <th className='dashboardcoltitle'>🏆 班級</th>
-                                <th className='dashboardcoltitle'>👦 姓名 👩</th>
+                                <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'>日期</span> </th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班別</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>姓名</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>次數</span></th>
+
+                                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>編輯</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -309,36 +335,53 @@ class Dashboard extends React.Component {
                                 this.state.studentsD.map((studentsD, index) => {
                                     return (
                                         <tr key={index}>
-                                            <td key={studentsD.onlinetime}>
+                                            <td key={studentsD.data().onlinetime}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
-                                                                <span className={studentsD.onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsD.onlinetime || '近期無上線'}
+                                                                <span className={studentsD.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
+                                                                    {studentsD.data().onlinetime || '近期無上線'}
                                                                 </span>
                                                             </span>
                                                         </b>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td key={studentsD.class}>
+                                            <td key={studentsD.data().class}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
-                                                                <span className={studentsD.class ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsD.class || '近期無上線'}
+                                                                <span className={studentsD.data().class ? 'text-success' || '' : 'text-danger'}>
+                                                                    {studentsD.data().class || '近期無上線'}
                                                                 </span>
                                                             </span>
                                                         </b>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td key={studentsD.name}>
+                                            <td key={studentsD.data().name}>
                                                 <div className='d-flex justify-content-center'>
                                                     <div className="align-self-center pl-3">
-                                                        <b><span className='font-weight-bold'>{studentsD.name}</span></b>
+                                                        <b><span className='font-weight-bold'>{studentsD.data().name}</span></b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td key={studentsD.data().email}>
+                                                <div className='d-flex justify-content-center'>
+                                                    <div className="align-self-center pl-3">
+                                                        <b>
+                                                            <span
+                                                                className='font-weight-bold'>{studentsD.data().totaltimeplayed}</span>
+                                                        </b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td key={studentsD.data().totaltimeplayed}>
+                                                <div className='d-flex justify-content-center'>
+                                                    <div className="align-self-center pl-3">
+                                                        <a href={`/edit/${studentsD.id}`}>編輯</a>
                                                     </div>
                                                 </div>
                                             </td>

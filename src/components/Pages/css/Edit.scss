@@ -6,13 +6,16 @@
 .Editform {
   height: fit-content;
   min-width: 35vw;
-  box-shadow: rgb(0, 0, 0 / 16%) 1px 1px 10px;
+  box-shadow: rgba(152, 152, 152, 0.01) x 10px;
   padding: 20px;
   margin: 20px;
+  border-radius: 20px;
 }
 .Edittitle {
   display: flex;
   justify-content: center;
+  font-weight: 700;
+  font-size: 25px;
 }
 .Editinputcontainer {
   display: flex;

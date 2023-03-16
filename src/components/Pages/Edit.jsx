@@ -22,14 +22,12 @@ class Edit extends React.Component {
     // useruid = localStorage.getItem('ae-useruid');
     dbRef = firebase.database().ref();
     db = firebase.firestore();
+    url = window.location.pathname;
+    segments = this.url.split('/');
+    useruid = this.segments[this.segments.length - 1] || this.segments[this.segments.length - 2];
 
     componentDidMount() {
-        // get url's userid //
-        const url = window.location.pathname;
-        const segments = url.split('/');
-        const useruid = segments[segments.length - 1] || segments[segments.length - 2];
-
-        this.db.collection("student").doc(useruid).get().then((doc) => {
+        this.db.collection("student").doc(this.useruid).get().then((doc) => {
             this.setState({ ...doc.data() })
         }).catch(() => {
             this.setState({})
@@ -37,14 +35,6 @@ class Edit extends React.Component {
         setTimeout(() => {
             this.setState({ loading: false });
         }, 1000);
-        // this.dbRef.child("Users").child(this.useruid).get().then((snapshot) => {
-        //     this.setState({ ...snapshot.val() })
-        // }).catch(() => {
-        //     this.setState({})
-        // });
-        // setTimeout(() => {
-        //     this.setState({ loading: false });
-        // }, 1000);
     }
 
     success = () => {
@@ -75,22 +65,21 @@ class Edit extends React.Component {
     }
 
     update = () => {
-        console.log('success')
-        // this.dbRef.child("Users").child(this.useruid).update({
-        //     studentname: this.state.studentname,
-        //     parentsname: this.state.parentsname,
-        //     phonenumber: this.state.phonenumber,
-        // }).then(() => {
-        //     localStorage.setItem("studentname", this.state.studentname);
-        //     localStorage.setItem("parentsname", this.state.parentsname);
-        //     localStorage.setItem('phonenumber', this.state.phonenumber)
-        //     this.success();
-        //     setTimeout(() => {
-        //         window.location.href = "/home/dashboard"
-        //     }, 1000);
-        // }).catch(() => {
-        //     this.error();
-        // })
+        this.db.collection('student').doc(this.useruid).update({
+            name: this.state.name,
+            class: this.state.class,
+            totaltimeplayed: this.state.totaltimeplayed,
+        }).then(() => {
+            // localStorage.setItem("ae-username", this.state.name);
+            // localStorage.setItem("ae-class", this.state.class);
+            // localStorage.setItem('ae-totaltimeplayed', this.state.totaltimeplayed);
+            this.success();
+            setTimeout(() => {
+                window.location.href = "/home/dashboard"
+            }, 1000);
+        }).catch(() => {
+            this.error();
+        })
     }
 
     cancel = () => {
@@ -105,9 +94,12 @@ class Edit extends React.Component {
 
     render() {
         return (
-            <div className='Editcontainer'>
+            <div className='Editcontainer' >
                 <ToastContainer />
                 <div className='Editform'>
+                    <div className='Edittitle'>
+                        資料更新
+                    </div>
                     <div className='Editinputcontainer'>
                         <label>班級 / Class</label>
                         {

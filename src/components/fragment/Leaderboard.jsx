@@ -37,11 +37,7 @@ class Leaderboard extends React.Component {
 
   componentDidMount() {
     firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-
-      } else {
-        window.location.href = '/'
-      }
+      if (!user) return window.location.href = '/';
     })
     const getStudents = (classParam, orderByParam, monthParam, setStateFunc) => {
       const db = firebase.firestore();
@@ -81,31 +77,13 @@ class Leaderboard extends React.Component {
           console.log(err)
         });
     }
-    // const NeverOnlineStudents = (classParam, setStateFunc) => {
-    //   const db = firebase.firestore();
-    //   db.collection("student")
-    //     .where('onlinetime', '==', '')
-    //     .where('class', '==', classParam)
-    //     .get()
-    //     .then((snapshot) => {
-    //       const students = [];
-    //       snapshot.forEach((doc) => {
-    //         const data = doc.data();
-    //         students.push(data);
-    //       })
-    //       setStateFunc(students);
-    //     })
-    //     .catch((err) => {
-    //       console.log(err)
-    //     });
-    // }
 
     const d = new Date();
     d.setDate(d.getDate() - 3);
     const offlinelimit = d.toJSON().slice(0, 10);
 
     const currentMonth = new Date().toJSON().slice(0, 7);
-    getStudents('A', 'totaltimeplayed', currentMonth, (students) => {
+    getStudents("A", 'totaltimeplayed', currentMonth, (students) => {
       this.setState({ studentsA: students });
     });
     getStudents('B', 'totaltimeplayed', currentMonth, (students) => {
