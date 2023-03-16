@@ -16,6 +16,7 @@ import Home from "../components/Pages/Home"
 import Showcase from "../components/Pages/Showcase";
 import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
 import Edit from "../components/Pages/Edit";
+import { Helmet } from 'react-helmet';
 
 
 const App = () => {
@@ -60,6 +61,9 @@ const App = () => {
     return (
         <>
             <Router>
+                <Helmet>
+                    <link rel="icon" type="image/png" href={'/favicon.ico'} sizes="16x16" />
+                </Helmet>
                 <Switch>
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
