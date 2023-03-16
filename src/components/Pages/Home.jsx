@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import './css/Home.scss';
-import NavigationMobile from "../fragment/NavigationMobile";
 import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
 import MusicCardContainer from "../fragment/MusicCardContainer";
 import { useSelector } from "react-redux";
@@ -12,11 +11,10 @@ import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
 import firebase from "./firebase";
 import { toast, ToastContainer } from "react-toastify"
+import StudentNavigationBar from "../fragment/StudentNavigationBar";
 
 function getCurrPage(pathName) {
     switch (pathName) {
-        // case "/home":
-        //     return <Playlist />
         case "/home/search":
             return <Search />
         case "/home/addmusic":
@@ -89,8 +87,7 @@ function Home() {
                     </div>
                     :
                     <div>
-
-                        <NavigationMobile />
+                        <StudentNavigationBar />
                         <section className={"home-music-container"}>
                             <ToastContainer
                                 position="top-center"

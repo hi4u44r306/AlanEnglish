@@ -8,13 +8,14 @@ import musicDB from "../db/music";
 import { useDispatch, useSelector } from "react-redux";
 import { setPlaylist } from "../actions/actions";
 import Leaderboard from "../components/fragment/Leaderboard";
-import NavigationMobile from "../components/fragment/NavigationMobile";
 import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
 import Home from "../components/Pages/Home"
 import Showcase from "../components/Pages/Showcase";
+import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
+import Edit from "../components/Pages/Edit";
 
 
 const App = () => {
@@ -23,15 +24,17 @@ const App = () => {
     const db = firebase.firestore();
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
-            localStorage.setItem('useruid', user.uid);
+            localStorage.setItem('ae-useruid', user.uid);
             db.collection('student').doc(user.uid).get().then(doc => {
-                localStorage.setItem('username', doc.data().name)
-                localStorage.setItem('totaltimeplayed', doc.data().totaltimeplayed)
+                localStorage.setItem('ae-class', doc.data().class)
+                localStorage.setItem('ae-username', doc.data().name)
+                localStorage.setItem('ae-totaltimeplayed', doc.data().totaltimeplayed)
             });
         } else {
-            localStorage.setItem('useruid', '');
-            localStorage.setItem('username', '')
-            localStorage.setItem('totaltimeplayed', '')
+            localStorage.setItem('ae-class', '')
+            localStorage.setItem('ae-useruid', '');
+            localStorage.setItem('ae-username', '')
+            localStorage.setItem('ae-totaltimeplayed', '')
         }
     })
 
@@ -50,6 +53,10 @@ const App = () => {
         }
     }, [dispatch, language]);
 
+    const url = window.location.pathname;
+    const segments = url.split('/');
+    const useruid = segments[segments.length - 1] || segments[segments.length - 2];
+
     return (
         <>
             <Router>
@@ -57,30 +64,28 @@ const App = () => {
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
                     <Route path="/showcase" exact component={Showcase} />
-                    {/* <Route path="/showcase" exact component={Home} /> */}
+                    <Route path={`/edit/${useruid}`}>
+                        <StudentNavigationBar />
+                        <Edit />
+                    </Route>
                     <Route path="/home/leaderboard">
-                        <NavigationMobile />
+                        <StudentNavigationBar />
                         <Leaderboard />
                     </Route>
                     <Route path="/home/userinfo">
-                        <NavigationMobile />
+                        <StudentNavigationBar />
                         <UserInfo />
                     </Route>
                     <Route path="/home/contact">
-                        <NavigationMobile />
+                        <StudentNavigationBar />
                         <Contact />
                     </Route>
                     <Route path="/home/about">
-                        <NavigationMobile />
+                        <StudentNavigationBar />
                         <About />
                     </Route>
-                    {/* <Route path="/home/game">
-                        <NavigationMobile/>
-                        <Game/>
-                        <Copyright/>
-                    </Route> */}
                     <Route path="/home/dashboard">
-                        <NavigationMobile />
+                        <StudentNavigationBar />
                         <Dashboard />
                     </Route>
                     <Route path="/home" component={Home} />

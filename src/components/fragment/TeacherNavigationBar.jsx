@@ -28,7 +28,7 @@ import Brand from "./Brand";
 
 
 
-function NavigationMobile() {
+function TeacherNavigationBar() {
 
 
   // const [updated, setUpdated] = useState();
@@ -68,27 +68,6 @@ function NavigationMobile() {
 
               <Offcanvas.Body className="navbackground">
                 <Nav className="d-flex align-items-center justify-content-end flex-grow-1">
-
-                  {/* 星星圓形 */}
-                  {/* <div className='navcurrentdaycircle'>
-                    <CircularProgressbarWithChildren value={percentage || 'Loading...'} 
-                        background
-                        styles={buildStyles({
-                            backgroundColor: 'white',
-                            textColor: "red",
-                            pathColor: "gold",
-                            trailColor: `${custompathColor}`
-                            })}
-                        >
-                        <img
-                        style={{ width: 20, marginTop: -5 }}
-                        src={Star}
-                        alt="star"
-                        />
-                        <div className={dailytimeplayed >= 20?'navdailycircletextcomplete':'navdailycircletextnotcomplete'}> X {dailytimeplayed || '0'} </div>
-                    </CircularProgressbarWithChildren>
-                  </div> */}
-
                   {/* 用戶資料 */}
                   <Nav.Link as={Link} to="/home/userinfo" href="/home/userinfo" className="navlinkscoreboard">
                     <div className="username">
@@ -98,6 +77,14 @@ function NavigationMobile() {
                     </div>
                   </Nav.Link>
 
+                  {/* 主控台 */}
+                  <Nav.Link as={Link} to="/home/dashboard" href="/home/dashboard" className="navlinkscoreboard">
+                    <img style={{ width: 18, marginRight: 4 }}
+                      src={Trophy}
+                      alt="bluebook"
+                    />Dashboard
+                  </Nav.Link>
+
                   {/* 排行榜 */}
                   <Nav.Link as={Link} to="/home/leaderboard" href="/home/leaderboard" className="navlinkscoreboard">
                     <img style={{ width: 18, marginRight: 4 }}
@@ -105,73 +92,6 @@ function NavigationMobile() {
                       alt="bluebook"
                     />排行榜
                   </Nav.Link>
-
-                  {/* 聽力本 */}
-                  {/* <NavDropdown
-                    title=
-                    {
-                      <div className="d-flex align-items-center">
-                        <img style={{ width: 18, marginRight: 4 }}
-                          src={OrangeBook}
-                          alt="bluebook"
-                        />
-                        聽力本
-                      </div>
-                    }
-                    id={`offcanvasNavbarDropdown-expand-${expand}`}
-                    className="navlink"
-                  > */}
-                  {/*                             聽力本習作本 1                                   */}
-                  {/* {['down'].map((direction) => (
-                      <NavDropdown
-                        className="navlink"
-                        key={direction}
-                        drop={direction}
-                        title=
-                        {
-                          <div className="d-flex align-items-center">
-                            <img style={{ width: 18, marginRight: 4 }}
-                              src={OrangeBook}
-                              alt="bluebook"
-                            />
-                            習作本1專用聽力本
-                          </div>
-                        }
-                      >
-                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_1" href="/home/playlist/Listening_1" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={OrangeBook}
-                            alt="bluebook"
-                          />聽力本1 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_2" href="/home/playlist/Listening_2" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={OrangeBook}
-                            alt="bluebook"
-                          /> 聽力本2 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_3" href="/home/playlist/Listening_3" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={OrangeBook}
-                            alt="bluebook"
-                          /> 聽力本3 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_4" href="/home/playlist/Listening_4" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={OrangeBook}
-                            alt="bluebook"
-                          /> 聽力本4 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_5" href="/home/playlist/Listening_5" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={OrangeBook}
-                            alt="bluebook"
-                          /> 聽力本5 建構中...</NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/playlist/Listening_6" href="/home/playlist/Listening_6" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={OrangeBook}
-                            alt="bluebook"
-                          /> 聽力本6 建構中...</NavDropdown.Item>
-
-                      </NavDropdown>
-                    ))} */}
-                  {/* </NavDropdown> */}
 
                   {/* 習作本 */}
                   <NavDropdown
@@ -443,4 +363,4 @@ function NavigationMobile() {
   );
 }
 
-export default NavigationMobile;
+export default TeacherNavigationBar;

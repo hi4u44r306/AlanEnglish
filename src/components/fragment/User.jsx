@@ -16,8 +16,8 @@ import { useEffect } from 'react';
 const User = () => {
 
     const db = firebase.firestore();
-    const username = localStorage.getItem('username');
-    const totaltimeplayed = localStorage.getItem('totaltimeplayed');
+    const username = localStorage.getItem('ae-username');
+    const totaltimeplayed = localStorage.getItem('ae-totaltimeplayed');
     const [dailytimeplayed, setDailyTimeplayed] = useState();
     const currentDate = new Date().toJSON().slice(0, 10);
     const currentMonth = new Date().toJSON().slice(0, 7);

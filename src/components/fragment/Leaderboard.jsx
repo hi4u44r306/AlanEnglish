@@ -278,9 +278,9 @@ class Leaderboard extends React.Component {
             <tbody>
               {
                 this.state.OfflineA &&
-                this.state.OfflineA.map((OfflineA) => {
+                this.state.OfflineA.map((OfflineA, index) => {
                   return (
-                    <tr key={OfflineA.name}>
+                    <tr key={index}>
                       <td key={OfflineA.name} className=''>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
@@ -288,7 +288,7 @@ class Leaderboard extends React.Component {
                           </div>
                         </div>
                       </td>
-                      <td key={OfflineA.name} className=''>
+                      <td key={OfflineA.class} className=''>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
                             <b><span className='font-weight-bold'>{OfflineA.name}</span></b>
@@ -495,7 +495,7 @@ class Leaderboard extends React.Component {
                           </div>
                         </div>
                       </td>
-                      <td key={OfflineB.name} className=''>
+                      <td key={OfflineB.class} className=''>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
                             <b><span className='font-weight-bold'>{OfflineB.name}</span></b>
@@ -642,7 +642,7 @@ class Leaderboard extends React.Component {
                 this.state.OfflineC.map((OfflineC, index) => {
                   return (
                     <tr key={index}>
-                      <td key={OfflineC.name} className=''>
+                      <td key={OfflineC.class} className=''>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
                             <b><span className='font-weight-bold'>{OfflineC.class}</span></b>
@@ -803,7 +803,7 @@ class Leaderboard extends React.Component {
                           </div>
                         </div>
                       </td>
-                      <td key={OfflineD.name} className=''>
+                      <td key={OfflineD.class} className=''>
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
                             <b><span className='font-weight-bold'>{OfflineD.name}</span></b>
