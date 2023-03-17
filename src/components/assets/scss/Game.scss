@@ -21,24 +21,30 @@
     justify-content: center;
 
     button {
-      margin: 0 5px;
-      padding: 5px 10px;
+      font-weight: 700;
+      font-size: 18px;
+      margin: 0 10px;
+      padding: 5px 20px;
+      letter-spacing: 1px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
 
-      &.learn-btn {
-        background-color: #2196f3;
-        color: #fff;
-      }
-
       &.know-btn {
         background-color: #4caf50;
+      }
+      &.learn-btn {
+        color: white;
+        background-color: #2196f3;
       }
     }
   }
 }
+.listen-btn {
+  cursor: pointer;
+}
 .word {
+  font-size: 20px;
   position: relative;
   cursor: pointer;
 
@@ -48,6 +54,7 @@
 }
 
 .wordbox {
+  border-radius: 20px;
   padding: 10px;
   background-color: #fff;
   border: 1px solid #ccc;
@@ -62,17 +69,21 @@
     transform: translateX(-50%) rotate(45deg);
   }
 }
+.close-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
 .tooltip-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 .tooltip-title {
   font-weight: bold;
   margin-right: 10px;
-  font-size: 25px;
+  font-size: 20px;
 }
 .tooltip-explain {
   font-weight: bold;

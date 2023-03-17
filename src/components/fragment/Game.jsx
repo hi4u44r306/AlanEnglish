@@ -10,6 +10,7 @@ import ContainerGame from './ContainerGame';
 // import Mic from '../assets/img/microphone.png'
 // import Next from '../assets/img/next.png'
 // import axios from 'axios';
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
 const mic = new SpeechRecognition()
@@ -17,7 +18,7 @@ mic.continous = true
 mic.interimResults = true
 mic.lang = 'en-US'
 
-export default function Game({ open, onClose, bookname, pagename, musicName, questionsinmusic }) {
+export default function Game({ open, onClose, bookname, pagename, musicName, questionsinmusic, booktext }) {
   // const questions = [questionsinmusic];
   // const [transcript, setTranscript] = useState();
   // const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -199,7 +200,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
   //   setNextbtn(false)
   //   setNote('')
   // }
-  const paragraph = "No matter how hard he tried, he couldn't give her a good explanation about what had happened. It didn't even really make sense to him. All he knew was that he froze at the moment and no matter how hard he tried to react, nothing in his body allowed him to move. It was as if he had instantly become a statue and although he could see what was taking place, he couldn't move to intervene. He knew that wasn't a satisfactory explanation even though it was the truth.";
+  const paragraph = `${booktext}`;
 
   if (!open) return null
   return (
@@ -260,6 +261,50 @@ export function HoverableWords({ text }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [selectedWord, setSelectedWord] = useState("");
 
+  const [audioUrl, setAudioUrl] = useState('');
+
+  // function generateAudio(text) {
+  //   fetch('https://developer.voicemaker.in/voice/api', {
+  //     method: 'POST',
+  //     headers: {
+  //       'Authorization': 'Bearer 1f1cb9c0-c4be-11ed-a45b-a34d3be11e4c',
+  //       'Content-Type': 'application/json'
+  //     },
+  //     body: JSON.stringify({
+  //       'Engine': 'neural',
+  //       'VoiceId': 'ai3-Jony',
+  //       'LanguageCode': 'en-US',
+  //       'Text': text,
+  //       'OutputFormat': 'mp3',
+  //       'SampleRate': '48000',
+  //       'Effect': 'default',
+  //       'MasterSpeed': '0',
+  //       'MasterVolume': '0',
+  //       'MasterPitch': '0'
+  //     })
+  //   })
+  //     .then(response => response.json())
+  //     .then(data => {
+  //       console.log(data); // { success: true, path: 'https://developer.voicemaker.in/uploads/1605002662512-voicemaker.in-speech.mp3' }
+  //       const audio = new Audio(data.path);
+  //       audio.play();
+  //     })
+  //     .catch(error => {
+  //       console.error(error);
+  //     });
+  // }
+
+  function generateAudio(text) {
+    const utterance = new SpeechSynthesisUtterance();
+    utterance.text = text;
+    utterance.lang = 'en-US';
+    const voices = speechSynthesis.getVoices();
+    utterance.voice = voices.find(voice => voice.name === 'Google US English');
+    speechSynthesis.speak(utterance);
+  }
+
+
+
   const regex = /\s+/;
   const words = text.split(regex);
 
@@ -274,17 +319,27 @@ export function HoverableWords({ text }) {
 
   return (
     <div className="paragraph-container">
-
       {showTooltip && (
         <div className="wordbox">
-          <div className="tooltip-header">
-            <div className="tooltip-title">{selectedWord}</div>
+          <div className="close-header">
             <button className="close-btn" onClick={handleTooltipClose}>
               X
             </button>
           </div>
           <div className="tooltip-header">
-            <div className="tooltip-explain">The word's meaning</div>
+            <div className="tooltip-title"> {selectedWord}</div>
+            {/* <button className="listen-btn" onClick={() => generateAudio(selectedWord)}></button> */}
+            <VolumeUpRoundedIcon className="listen-btn" onClick={() => generateAudio(selectedWord)} />
+          </div>
+          <div className="tooltip-header">
+            <div className="tooltip-explain">
+              <div>
+
+                {audioUrl && (
+                  <audio src={audioUrl} controls autoPlay />
+                )}
+              </div>
+            </div>
           </div>
           <div className="tooltip-body">
             <button className="learn-btn">Learn</button>

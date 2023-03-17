@@ -10,7 +10,7 @@ import Game from "./Game";
 import firebase from 'firebase/app';
 
 function MusicCard(props) {
-    const { bookname, page, img, questions, musicName } = props.music;
+    const { bookname, page, img, questions, musicName, booktext } = props.music;
     const useruid = localStorage.getItem('ae-useruid');
     const [gamescore, setGamescore] = useState();
     const [isOpen, setIsOpen] = useState(false);
@@ -51,7 +51,7 @@ function MusicCard(props) {
                         </div>
                         <React.Fragment>
                             <div className='gamesection'>
-                                <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setIsOpen(false)}></Game>
+                                <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} musicName={musicName} booktext={booktext} onClose={() => setIsOpen(false)}></Game>
                             </div>
                             <Name name={bookname} className={"song-name"} length={bookname.length} />
                             <Name name={page} className={"song-name"} length={page.length} />

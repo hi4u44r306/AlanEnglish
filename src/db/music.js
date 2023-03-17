@@ -47,6 +47,7 @@ let musicDB = [
                 ]
             },
         ],
+        booktext: "No matter how hard he tried, he couldn't give her a good explanation about what had happened. It didn't even really make sense to him. All he knew was that he froze at the moment and no matter how hard he tried to react, nothing in his body allowed him to move. It was as if he had instantly become a statue and although he could see what was taking place, he couldn't move to intervene. He knew that wasn't a satisfactory explanation even though it was the truth."
     },
     {
         // id: 520,
@@ -73,7 +74,8 @@ let musicDB = [
             // {
             //     questionText : "mice",
             // },
-        ]
+        ],
+        booktext: "this is workbook one"
     },
     {
         // id: 521,
