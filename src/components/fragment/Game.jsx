@@ -261,7 +261,6 @@ export function HoverableWords({ text }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [selectedWord, setSelectedWord] = useState("");
 
-  const [audioUrl, setAudioUrl] = useState('');
 
   // function generateAudio(text) {
   //   fetch('https://developer.voicemaker.in/voice/api', {
@@ -303,8 +302,6 @@ export function HoverableWords({ text }) {
     speechSynthesis.speak(utterance);
   }
 
-
-
   const regex = /\s+/;
   const words = text.split(regex);
 
@@ -328,18 +325,8 @@ export function HoverableWords({ text }) {
           </div>
           <div className="tooltip-header">
             <div className="tooltip-title"> {selectedWord}</div>
-            {/* <button className="listen-btn" onClick={() => generateAudio(selectedWord)}></button> */}
-            <VolumeUpRoundedIcon className="listen-btn" onClick={() => generateAudio(selectedWord)} />
-          </div>
-          <div className="tooltip-header">
-            <div className="tooltip-explain">
-              <div>
 
-                {audioUrl && (
-                  <audio src={audioUrl} controls autoPlay />
-                )}
-              </div>
-            </div>
+            <VolumeUpRoundedIcon className="listen-btn" onClick={() => generateAudio(selectedWord)} />
           </div>
           <div className="tooltip-body">
             <button className="learn-btn">Learn</button>
