@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import '../assets/scss/Game.scss';
 import { toast, ToastContainer } from "react-toastify"
 import Name from './Name';
+import firebase from 'firebase/app';
+import ContainerGame from './ContainerGame';
 // import CheckMark from '../assets/img/checkmark.png'
 // import Listening from '../assets/img/bars.svg'
 // import RedSquare from '../assets/img/redsquare.png'
 // import Mic from '../assets/img/microphone.png'
 // import Next from '../assets/img/next.png'
-import firebase from 'firebase/app';
-import ContainerGame from './ContainerGame';
 // import axios from 'axios';
 
 const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition
@@ -199,6 +199,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
   //   setNextbtn(false)
   //   setNote('')
   // }
+  const paragraph = "No matter how hard he tried, he couldn't give her a good explanation about what had happened. It didn't even really make sense to him. All he knew was that he froze at the moment and no matter how hard he tried to react, nothing in his body allowed him to move. It was as if he had instantly become a statue and although he could see what was taking place, he couldn't move to intervene. He knew that wasn't a satisfactory explanation even though it was the truth.";
 
   if (!open) return null
   return (
@@ -222,7 +223,6 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
               <div className='questionsection'>
                 <div className='deckcontainer'>
                   <ToastContainer
-                    // className="gamenotification"
                     position="top-center"
                     autoClose={2000}
                     hideProgressBar={false}
@@ -240,45 +240,98 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
                       </div>
                     ))}
                 </div>
-
-
-
-                {/* <div className='題目'>Your Answer :</div>
-                <div className='questiontext'> {transcript || "------"}</div> */}
               </div>
-              {/* 電腦版顯示 */}
-              {/* <div className="computer-btncontainer">
-              <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><span>提交答案</span> <img style={{ width: 22, marginLeft: 10, marginBottom: 2, }} src={CheckMark} alt="checkmark" /></button>
-              {isListening ?
-                <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><span>Recording</span> <img style={{ width: 22, marginLeft: 2, marginBottom: 5, }} src={Listening} alt="redsquare" /></button>
-                :
-                <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}>
-                  <span>Start Recording</span> <svg className="goxjub" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285f4" d="m12 15c1.66 0 3-1.31 3-2.97v-7.02c0-1.66-1.34-3.01-3-3.01s-3 1.34-3 3.01v7.02c0 1.66 1.34 2.97 3 2.97z"></path><path fill="#34a853" d="m11 18.08h2v3.92h-2z"></path><path fill="#fbbc05" d="m7.05 16.87c-1.27-1.33-2.05-2.83-2.05-4.87h2c0 1.45 0.56 2.42 1.47 3.38v0.32l-1.15 1.18z"></path><path fill="#ea4335" d="m12 16.93a4.97 5.25 0 0 1 -3.54 -1.55l-1.41 1.49c1.26 1.34 3.02 2.13 4.95 2.13 3.87 0 6.99-2.92 6.99-7h-1.99c0 2.92-2.24 4.93-5 4.93z"></path></svg>
-                </button>
-              }
-              <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}><span>下一題</span> <img style={{ width: 22, marginLeft: 2, marginBottom: 5, }} src={Next} alt="mic" /></button>
-            </div> */}
-
-              {/* 手機版顯示 */}
-              {/* <div className="mobile-btncontainer">
-              <button className='btn submitanswerbtn' onClick={handleSaveNote} disabled={!note}><img style={{ width: 30 }} src={CheckMark} alt="checkmark" /></button>
-              {isListening ?
-                <button className='stoprecordbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={Listening} alt="redsquare" /> </button>
-                :
-                <button className='recordingbtn' onClick={() => setIsListening(prevState => !prevState)}><img style={{ width: 30 }} src={Mic} alt="mic" /></button>
-              }
-              <button className='btn nextquestionbtn' onClick={handleAnswerOptionClick} disabled={nextbtn}><img style={{ width: 30 }} src={Next} alt="mic" /></button>
-            </div> */}
-
-
-              {/* <div className='gamenote'>你的回答 : {note}</div> */}
-              {/* <div className='gamenote' key={score}>正確率 : {score}%</div> */}
-
             </div>
           </div>
+
+          <HoverableWords text={paragraph} />
         </div>
       </ContainerGame>
     </>
   )
 }
+
+
+export function HoverableWords({ text }) {
+  const [hoveredWord, setHoveredWord] = useState(null);
+  const [openBoxes, setOpenBoxes] = useState({});
+
+  const handleWordHover = (word) => {
+    setHoveredWord(word);
+  };
+
+  const handleWordLeave = () => {
+    setHoveredWord(null);
+  };
+
+  const handleButtonClick = (e, word) => {
+    e.stopPropagation();
+    setOpenBoxes((prevOpenBoxes) => {
+      const newOpenBoxes = { ...prevOpenBoxes };
+      newOpenBoxes[word] = !newOpenBoxes[word];
+      return newOpenBoxes;
+    });
+  };
+
+  const handleCloseBox = (word) => {
+    setOpenBoxes((prevOpenBoxes) => {
+      const newOpenBoxes = { ...prevOpenBoxes };
+      delete newOpenBoxes[word];
+      return newOpenBoxes;
+    });
+  };
+
+  const regex = /\s+/;
+  const words = text.split(regex);
+
+  return (
+    <span className="hoverable-paragraph">
+      {words.map((word, index) => {
+        if (word.trim() === '') {
+          return <span key={index}> </span>;
+        }
+
+        const isHovered = word === hoveredWord;
+        const isOpen = !!openBoxes[word];
+
+        return (
+          <span key={index}>
+            <span
+              className={`hoverable-word ${isHovered ? 'hovered' : ''}`}
+              onClick={(e) => handleButtonClick(e, word)}
+              onMouseEnter={() => handleWordHover(word)}
+              onMouseLeave={() => handleWordLeave()}
+            >
+              {word}
+              {isHovered && (
+                <span className="word-box" style={{ display: isOpen ? 'block' : 'none' }}>
+                  <div className="word-box-header">
+                    <span className="word-box-title">{word}</span>
+                    <button className="word-box-close" onClick={() => handleCloseBox(word)}>
+                      X
+                    </button>
+                  </div>
+                  <div className="word-box-content">
+                    <p>{word} is a word.</p>
+                    <p>It has some meaning.</p>
+                    <div className="word-box-buttons">
+                      <button className="word-box-button">Learn</button>
+                      <button className="word-box-button">Know</button>
+                    </div>
+                  </div>
+                </span>
+              )}
+              {' '}
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+
+
+
+
 

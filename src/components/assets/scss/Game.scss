@@ -4,6 +4,90 @@
   --btn-weight: 700;
   --gamewidth: fit-content;
 }
+// Hover word //
+.hoverable-paragraph {
+  .hoverable-word {
+    position: relative;
+    background-color: transparent;
+
+    &:hover {
+      cursor: pointer;
+      background-color: #eeb980;
+    }
+
+    &.clicked {
+      font-weight: bold;
+
+      .word-box {
+        display: block;
+      }
+    }
+
+    .word-box {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #f7f7f7;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      width: 300px;
+
+      .word-box-content {
+        font-weight: bold;
+        margin-right: 5px;
+      }
+
+      .word-box-close {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 14px;
+        color: #666;
+        cursor: pointer;
+
+        &:hover {
+          color: #333;
+        }
+      }
+
+      .word-box-buttons {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+
+        .word-box-button {
+          background-color: #4caf50;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          padding: 5px 10px;
+          margin-left: 5px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #3e8e41;
+          }
+
+          &:focus {
+            outline: none;
+          }
+        }
+      }
+    }
+  }
+
+  .clicked-word {
+    background-color: #f7f7f7;
+    font-weight: bold;
+  }
+}
+
+// Hover word //
 .gamenotification {
   width: auto;
 }
