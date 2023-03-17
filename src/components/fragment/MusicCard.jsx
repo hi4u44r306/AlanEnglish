@@ -102,7 +102,7 @@ function MusicCard(props) {
                                     </div>
                                 </div>
                                 <div className='gamesection'>
-                                    <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setIsOpen(false)}></Game>
+                                    <Game bookname={bookname} pagename={page} open={isOpen} questionsinmusic={questions} musicName={musicName} booktext={booktext} onClose={() => setIsOpen(false)}></Game>
                                 </div>
                                 <div>
                                     <Name name={bookname} className={"song-name"} length={bookname.length} />
