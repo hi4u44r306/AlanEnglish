@@ -5,86 +5,87 @@
   --gamewidth: fit-content;
 }
 // Hover word //
-.hoverable-paragraph {
-  .hoverable-word {
-    position: relative;
-    background-color: transparent;
+.paragraph-container {
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  padding: 5px;
+  height: 50vh;
+  overflow: scroll;
+  font-size: 16px;
+  color: black;
+  line-height: 2;
+  position: relative;
 
-    &:hover {
+  .tooltip-body {
+    display: flex;
+    justify-content: center;
+
+    button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
-      background-color: #eeb980;
-    }
 
-    &.clicked {
-      font-weight: bold;
-
-      .word-box {
-        display: block;
-      }
-    }
-
-    .word-box {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #f7f7f7;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 10px;
-      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-      z-index: 1;
-      width: 300px;
-
-      .word-box-content {
-        font-weight: bold;
-        margin-right: 5px;
+      &.learn-btn {
+        background-color: #2196f3;
+        color: #fff;
       }
 
-      .word-box-close {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 14px;
-        color: #666;
-        cursor: pointer;
-
-        &:hover {
-          color: #333;
-        }
-      }
-
-      .word-box-buttons {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 10px;
-
-        .word-box-button {
-          background-color: #4caf50;
-          color: #fff;
-          border: none;
-          border-radius: 4px;
-          padding: 5px 10px;
-          margin-left: 5px;
-          cursor: pointer;
-
-          &:hover {
-            background-color: #3e8e41;
-          }
-
-          &:focus {
-            outline: none;
-          }
-        }
+      &.know-btn {
+        background-color: #4caf50;
       }
     }
   }
+}
+.word {
+  position: relative;
+  cursor: pointer;
 
-  .clicked-word {
-    background-color: #f7f7f7;
-    font-weight: bold;
+  &:hover {
+    background-color: #e6c69d;
   }
+}
+
+.wordbox {
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 99;
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+  }
+}
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tooltip-title {
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 25px;
+}
+.tooltip-explain {
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 15px;
+}
+
+.close-btn {
+  color: red;
+  font-weight: 800;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
 }
 
 // Hover word //
@@ -225,8 +226,9 @@
   display: flex;
   align-items: center;
   flex-direction: column;
-  background-color: rgb(252, 228, 255);
+  // background-color: rgb(252, 228, 255);
   border-radius: 20px;
+  padding: 20px;
 }
 .boxtitle {
   top: 0;
@@ -407,13 +409,10 @@
 
 @media screen and (max-width: 695px) {
   .questionbox {
-    width: 90vw;
-  }
-  .gamebox {
-    width: 90vw;
+    width: 100vw;
   }
   .gamebox2 {
-    width: 80vw;
+    width: 95vw;
   }
   .gamebox {
     width: 90vw;

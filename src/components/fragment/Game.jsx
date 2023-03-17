@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import '../assets/scss/Game.scss';
-import { toast, ToastContainer } from "react-toastify"
+// import { toast, ToastContainer } from "react-toastify"
 import Name from './Name';
-import firebase from 'firebase/app';
+// import firebase from 'firebase/app';
 import ContainerGame from './ContainerGame';
 // import CheckMark from '../assets/img/checkmark.png'
 // import Listening from '../assets/img/bars.svg'
@@ -18,52 +18,52 @@ mic.interimResults = true
 mic.lang = 'en-US'
 
 export default function Game({ open, onClose, bookname, pagename, musicName, questionsinmusic }) {
-  const questions = [questionsinmusic];
+  // const questions = [questionsinmusic];
   // const [transcript, setTranscript] = useState();
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  // const [currentQuestion, setCurrentQuestion] = useState(0);
   // const [note, setNote] = useState(null);
   // const [isListening, setIsListening] = useState(false);
   // const [nextbtn, setNextbtn] = useState(true);
   // const realtimedb = firebase.database(); //realtime database
-  const db = firebase.firestore(); // firestore
-  const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
+  // const db = firebase.firestore(); // firestore
+  // const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
 
-  const handleCardClick = (card) => {
-    const nextQuestion = currentQuestion + 1;
-    if (card.name === questions[0][currentQuestion].questionText && nextQuestion === questions[0].length) {
-      finishnotification();
-      uploadscore();
-    } else {
-      if (card.name === questions[0][currentQuestion].questionText) {
-        success();
-        // setNextbtn(false);
-        // mic.stop();
-        // setScore('')
-        setTimeout(() => {
-          if (nextQuestion < questions[0].length) {
-            setCurrentQuestion(nextQuestion);
-            // setNextbtn(true)
-          }
-        }, 1800);
-      } else {
-        error();
-      }
-    }
+  // const handleCardClick = (card) => {
+  //   const nextQuestion = currentQuestion + 1;
+  //   if (card.name === questions[0][currentQuestion].questionText && nextQuestion === questions[0].length) {
+  //     finishnotification();
+  //     uploadscore();
+  //   } else {
+  //     if (card.name === questions[0][currentQuestion].questionText) {
+  //       success();
+  //       // setNextbtn(false);
+  //       // mic.stop();
+  //       // setScore('')
+  //       setTimeout(() => {
+  //         if (nextQuestion < questions[0].length) {
+  //           setCurrentQuestion(nextQuestion);
+  //           // setNextbtn(true)
+  //         }
+  //       }, 1800);
+  //     } else {
+  //       error();
+  //     }
+  //   }
 
-  };
+  // };
 
 
-  function uploadscore() {
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        db.collection('student').onSnapshot(() => {
-          firebase.database().ref('student/' + user.uid + '/quiz/' + quizname).set({
-            score: '通過',
-          });
-        });
-      }
-    });
-  }
+  // function uploadscore() {
+  //   firebase.auth().onAuthStateChanged(user => {
+  //     if (user) {
+  //       db.collection('student').onSnapshot(() => {
+  //         firebase.database().ref('student/' + user.uid + '/quiz/' + quizname).set({
+  //           score: '通過',
+  //         });
+  //       });
+  //     }
+  //   });
+  // }
 
   // const getDifference = (s, t) => {
   //   let a = 0, b = 0; let charCode, i = 0;
@@ -77,23 +77,23 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
   //   return String.fromCharCode(charCode);
   // };
 
-  const finishnotification = () => {
-    toast.success('測驗結束 視窗即將關閉', {
-      className: "gamenotification",
-      // position: "top-center",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "colored",
-    });
-    setTimeout(() => {
-      onClose();
-      setCurrentQuestion(0);
-    }, 2000);
-  };
+  // const finishnotification = () => {
+  //   toast.success('測驗結束 視窗即將關閉', {
+  //     className: "gamenotification",
+  //     // position: "top-center",
+  //     autoClose: 1500,
+  //     hideProgressBar: false,
+  //     closeOnClick: true,
+  //     pauseOnHover: true,
+  //     draggable: true,
+  //     progress: undefined,
+  //     theme: "colored",
+  //   });
+  //   setTimeout(() => {
+  //     onClose();
+  //     setCurrentQuestion(0);
+  //   }, 2000);
+  // };
 
   // useEffect(() => {
   //   const handleListen = () => {
@@ -144,32 +144,32 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [isListening])
 
-  const success = () => {
-    toast.success('下一題', {
-      className: "gamenotification",
-      position: "top-center",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "colored",
-    });
-  };
-  const error = () => {
-    toast.error('選錯囉! 再試一次', {
-      className: "gamenotification",
-      // position: "top-center",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "colored",
-    });
-  };
+  // const success = () => {
+  //   toast.success('下一題', {
+  //     className: "gamenotification",
+  //     position: "top-center",
+  //     autoClose: 1500,
+  //     hideProgressBar: false,
+  //     closeOnClick: true,
+  //     pauseOnHover: true,
+  //     draggable: true,
+  //     progress: undefined,
+  //     theme: "colored",
+  //   });
+  // };
+  // const error = () => {
+  //   toast.error('選錯囉! 再試一次', {
+  //     className: "gamenotification",
+  //     // position: "top-center",
+  //     autoClose: 1500,
+  //     hideProgressBar: false,
+  //     closeOnClick: true,
+  //     pauseOnHover: true,
+  //     draggable: true,
+  //     progress: undefined,
+  //     theme: "colored",
+  //   });
+  // };
   // const handleAnswerOptionClick = () => {
   //   const nextQuestion = currentQuestion + 1;
   //   if (score >= 80 && nextQuestion === questions[0].length) {
@@ -208,7 +208,7 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
         <div className='Overlay' />
         <div className='gamebox'>
           <div className='gamebox2'>
-            <div className='boxtitle'>
+            {/* <div className='boxtitle'>
               <span className='closebtn' onClick={onClose}>❌</span>
               <Name name={bookname} className={"game-name"} />
               <Name name={pagename} className={"game-name"} />
@@ -241,94 +241,70 @@ export default function Game({ open, onClose, bookname, pagename, musicName, que
                     ))}
                 </div>
               </div>
+            </div> */}
+            <div className='boxtitle'>
+              <span className='closebtn' onClick={onClose}>❌</span>
+              <Name name={bookname} className={"game-name"} />
+              <Name name={pagename} className={"game-name"} />
             </div>
+            <HoverableWords text={paragraph} />
           </div>
 
-          <HoverableWords text={paragraph} />
         </div>
       </ContainerGame>
     </>
   )
 }
 
-
 export function HoverableWords({ text }) {
-  const [hoveredWord, setHoveredWord] = useState(null);
-  const [openBoxes, setOpenBoxes] = useState({});
-
-  const handleWordHover = (word) => {
-    setHoveredWord(word);
-  };
-
-  const handleWordLeave = () => {
-    setHoveredWord(null);
-  };
-
-  const handleButtonClick = (e, word) => {
-    e.stopPropagation();
-    setOpenBoxes((prevOpenBoxes) => {
-      const newOpenBoxes = { ...prevOpenBoxes };
-      newOpenBoxes[word] = !newOpenBoxes[word];
-      return newOpenBoxes;
-    });
-  };
-
-  const handleCloseBox = (word) => {
-    setOpenBoxes((prevOpenBoxes) => {
-      const newOpenBoxes = { ...prevOpenBoxes };
-      delete newOpenBoxes[word];
-      return newOpenBoxes;
-    });
-  };
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [selectedWord, setSelectedWord] = useState("");
 
   const regex = /\s+/;
   const words = text.split(regex);
 
+  const handleWordHover = (word) => {
+    setSelectedWord(word);
+    setShowTooltip(true);
+  };
+
+  const handleTooltipClose = () => {
+    setShowTooltip(false);
+  };
+
   return (
-    <span className="hoverable-paragraph">
-      {words.map((word, index) => {
-        if (word.trim() === '') {
-          return <span key={index}> </span>;
-        }
+    <div className="paragraph-container">
 
-        const isHovered = word === hoveredWord;
-        const isOpen = !!openBoxes[word];
-
-        return (
-          <span key={index}>
-            <span
-              className={`hoverable-word ${isHovered ? 'hovered' : ''}`}
-              onClick={(e) => handleButtonClick(e, word)}
-              onMouseEnter={() => handleWordHover(word)}
-              onMouseLeave={() => handleWordLeave()}
-            >
-              {word}
-              {isHovered && (
-                <span className="word-box" style={{ display: isOpen ? 'block' : 'none' }}>
-                  <div className="word-box-header">
-                    <span className="word-box-title">{word}</span>
-                    <button className="word-box-close" onClick={() => handleCloseBox(word)}>
-                      X
-                    </button>
-                  </div>
-                  <div className="word-box-content">
-                    <p>{word} is a word.</p>
-                    <p>It has some meaning.</p>
-                    <div className="word-box-buttons">
-                      <button className="word-box-button">Learn</button>
-                      <button className="word-box-button">Know</button>
-                    </div>
-                  </div>
-                </span>
-              )}
-              {' '}
-            </span>
+      {showTooltip && (
+        <div className="wordbox">
+          <div className="tooltip-header">
+            <div className="tooltip-title">{selectedWord}</div>
+            <button className="close-btn" onClick={handleTooltipClose}>
+              X
+            </button>
+          </div>
+          <div className="tooltip-header">
+            <div className="tooltip-explain">The word's meaning</div>
+          </div>
+          <div className="tooltip-body">
+            <button className="learn-btn">Learn</button>
+            <button className="know-btn">Know</button>
+          </div>
+        </div>
+      )}
+      {words.map((word, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && " "}
+          <span className="word" onClick={() => handleWordHover(word)}>
+            {word}
           </span>
-        );
-      })}
-    </span>
+        </React.Fragment>
+      ))}
+    </div>
   );
-}
+};
+
+
 
 
 
