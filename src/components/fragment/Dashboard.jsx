@@ -170,7 +170,7 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsB.data().onlinetime}>
-                                                <div className='d-flex justify-content-center'>
+                                                <div className='d-flex justify-content-center align-items-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
@@ -253,7 +253,7 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsC.data().onlinetime}>
-                                                <div className='d-flex justify-content-center'>
+                                                <div className='d-flex justify-content-center align-items-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
@@ -336,7 +336,7 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsD.data().onlinetime}>
-                                                <div className='d-flex justify-content-center'>
+                                                <div className='d-flex justify-content-center align-items-center'>
                                                     <div className="align-self-center pl-3">
                                                         <b>
                                                             <span className='font-weight-bold'>
