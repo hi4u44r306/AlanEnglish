@@ -23,14 +23,13 @@ import Mail from '../assets/img/mail.png';
 import Trophy from '../assets/img/trophy.png';
 import Menu from '../assets/img/menu.png';
 import Setting from '../assets/img/setting.png';
+import Openbook from '../assets/img/openbook.png';
 import { Link } from "react-router-dom";
 import Brand from "./Brand";
-
-
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 
 function StudentNavigationBar() {
-
 
   // const [updated, setUpdated] = useState();
   // const currentDate = new Date().toJSON().slice(0, 10);
@@ -95,13 +94,36 @@ function StudentNavigationBar() {
                     localStorage.getItem('ae-class') !== 'Teacher' ?
                       ''
                       :
-                      <Nav.Link as={Link} to="/home/dashboard" href="/home/dashboard" className="navlinksetting">
-                        <img style={{ width: 18, marginRight: 4 }}
-                          src={Setting}
-                          alt="setting"
-                        />Dashboard
-                      </Nav.Link>
+                      <NavDropdown
+                        title=
+                        {
+                          <div className="d-flex align-items-center">
+                            <img style={{ width: 18, marginRight: 4 }}
+                              src={Books}
+                              alt="bluebook"
+                            />
+                            教師用
+                          </div>
+                        }
+                        id={`offcanvasNavbarDropdown-expand-${expand}`}
+                        className="navlink"
+                      >
+                        <NavDropdown.Item as={Link} to="/home/dashboard" href="/home/dashboard" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Setting}
+                            alt="setting"
+                          />控制台
+                        </NavDropdown.Item>
+
+                        <NavDropdown.Item as={Link} to="/home/makehomework" href="/home/makehomework" className="subnavlink">
+                          <AddCircleIcon style={{ width: 18, marginRight: 4 }} />
+                          <p>
+                            出功課
+                          </p>
+                        </NavDropdown.Item>
+                      </NavDropdown>
                   }
+
 
 
                   {/* 用戶資料 */}
@@ -111,6 +133,14 @@ function StudentNavigationBar() {
                         {navusername || '----'}
                       </p>
                     </div>
+                  </Nav.Link>
+
+                  {/* 功課 */}
+                  <Nav.Link as={Link} to="/home/homework" href="/home/homework" className="navlinkscoreboard">
+                    <img style={{ width: 18, marginRight: 4 }}
+                      src={Openbook}
+                      alt="openbook"
+                    />功課
                   </Nav.Link>
 
                   {/* 排行榜 */}

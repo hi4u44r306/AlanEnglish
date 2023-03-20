@@ -1,0 +1,75 @@
+.mhmain {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.mhcontainer {
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.mhsecondcontainer {
+  background-color: rgb(198, 198, 198);
+  border-radius: 20px;
+  padding: 30px;
+}
+.mhtitle {
+  display: flex;
+  justify-content: center;
+  font-size: 35px;
+  font-weight: 800;
+}
+
+.inputcontainer {
+  color: #103755;
+  display: flex;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 20px;
+
+  .inputlabel {
+    display: inline-flex;
+    text-align: left;
+    vertical-align: middle;
+    width: 130px;
+  }
+
+  input {
+    border-radius: 10px;
+    padding: 3px 5px;
+  }
+}
+
+select {
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 3px 5px;
+}
+
+.mhbtncontainer {
+  display: flex;
+  justify-content: center;
+
+  .mhbtn {
+    border-radius: 5px;
+    background-color: rgb(160, 160, 253);
+    color: black;
+    font-weight: 600;
+    padding: 10px;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .mhcontainer {
+    width: 90vw;
+  }
+  .mhsecondcontainer {
+    padding: 20px;
+  }
+  .inputcontainer {
+    flex-direction: column;
+    font-size: 18px;
+  }
+}
