@@ -17,19 +17,19 @@ import Showcase from "../components/Pages/Showcase";
 import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
 import Edit from "../components/Pages/Edit";
 import { Helmet } from 'react-helmet';
-import Homework from "../components/Pages/Homework";
-import Makehomework from "../components/Pages/Makehomework";
+// import Homework from "../components/Pages/Homework";
+// import Makehomework from "../components/Pages/Makehomework";
 
 
 const App = () => {
 
     const { language } = useSelector(state => state.musicReducer);
     const db = firebase.firestore();
-    const date = new Date();
-    let day = date.getDate();
-    let month = date.getMonth() + 1;
-    let year = date.getFullYear();
-    const currentDate = `${year}-${month}-${day}`;
+    // const date = new Date();
+    // let day = date.getDate();
+    // let month = date.getMonth() + 1;
+    // let year = date.getFullYear();
+    // const currentDate = `${year}-${month}-${day}`;
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
             localStorage.setItem('ae-useruid', user.uid);
@@ -37,18 +37,19 @@ const App = () => {
                 localStorage.setItem('ae-class', doc.data().class)
                 localStorage.setItem('ae-username', doc.data().name)
                 localStorage.setItem('ae-totaltimeplayed', doc.data().totaltimeplayed)
-            }).then(() => {
-                const classtype = localStorage.getItem('ae-class')
-                db.collection('Homework').doc(classtype).collection(currentDate).doc(currentDate).get().then((doc) => {
-                    localStorage.setItem('ae-hwbook', doc.data().book);
-                    localStorage.setItem('ae-hwpage', doc.data().page);
-                    localStorage.setItem('ae-hwplaytime', doc.data().playtime);
-                }).catch(() => {
-                    localStorage.setItem('ae-hwbook', '');
-                    localStorage.setItem('ae-hwpage', '');
-                    localStorage.setItem('ae-hwplaytime', '');
-                })
             })
+            // .then(() => {
+            //     const classtype = localStorage.getItem('ae-class')
+            //     db.collection('Homework').doc(classtype).collection(currentDate).doc(currentDate).get().then((doc) => {
+            //         localStorage.setItem('ae-hwbook', doc.data().book);
+            //         localStorage.setItem('ae-hwpage', doc.data().page);
+            //         localStorage.setItem('ae-hwplaytime', doc.data().playtime);
+            //     }).catch(() => {
+            //         localStorage.setItem('ae-hwbook', '');
+            //         localStorage.setItem('ae-hwpage', '');
+            //         localStorage.setItem('ae-hwplaytime', '');
+            //     })
+            // })
         } else {
             localStorage.setItem('ae-class', '')
             localStorage.setItem('ae-useruid', '');
@@ -86,14 +87,14 @@ const App = () => {
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
                     <Route path="/showcase" exact component={Showcase} />
-                    <Route path="/home/makehomework">
+                    {/* <Route path="/home/makehomework">
                         <StudentNavigationBar />
                         <Makehomework />
                     </Route>
                     <Route path="/home/homework">
                         <StudentNavigationBar />
                         <Homework />
-                    </Route>
+                    </Route> */}
                     <Route path={`/edit/${useruid}`}>
                         <StudentNavigationBar />
                         <Edit />

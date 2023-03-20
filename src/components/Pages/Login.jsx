@@ -100,7 +100,7 @@ class Login extends React.Component {
 
                             }
                         },
-                        setTimeout(function () { window.location = "/home/homework"; }, 2500)
+                        setTimeout(function () { window.location = "/home/leaderboard"; }, 2500)
                     );
                 })
 
