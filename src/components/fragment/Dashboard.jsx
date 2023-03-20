@@ -11,47 +11,80 @@ class Dashboard extends React.Component {
         studentsD: null,
     }
     componentDidMount() {
-        const db = firebase.firestore();
-        db.collection('student').where('class', '==', 'A').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-            const studentsA = [];
-            snapshot.forEach((doc) => {
-                const data = doc;
-                studentsA.push(data);
-            })
-            this.setState({
-                studentsA: studentsA
-            });
+        const getStudents = (classParam, orderByParam, setStateFunc) => {
+            const db = firebase.firestore();
+            db.collection("student")
+                .where('class', '==', classParam)
+                .orderBy(orderByParam, 'desc')
+                .get()
+                .then((snapshot) => {
+                    const students = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc;
+                        students.push(data);
+                    })
+                    setStateFunc(students);
+                })
+                .catch((err) => {
+                    console.log(err)
+                });
+        }
+        getStudents("A", 'onlinetime', (students) => {
+            this.setState({ studentsA: students });
         });
-        db.collection('student').where('class', '==', 'B').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-            const studentsB = [];
-            snapshot.forEach((doc) => {
-                const data = doc;
-                studentsB.push(data);
-            })
-            this.setState({
-                studentsB: studentsB,
-            });
+        getStudents('B', 'onlinetime', (students) => {
+            this.setState({ studentsB: students });
         });
-        db.collection('student').where('class', '==', 'C').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-            const studentsC = [];
-            snapshot.forEach((doc) => {
-                const data = doc;
-                studentsC.push(data);
-            })
-            this.setState({
-                studentsC: studentsC,
-            });
+        getStudents('C', 'onlinetime', (students) => {
+            this.setState({ studentsC: students });
         });
-        db.collection('student').where('class', '==', 'D').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-            const studentsD = [];
-            snapshot.forEach((doc) => {
-                const data = doc;
-                studentsD.push(data);
-            })
-            this.setState({
-                studentsD: studentsD,
-            });
+        getStudents('D', 'onlinetime', (students) => {
+            this.setState({ studentsD: students });
         });
+
+
+
+        // const db = firebase.firestore();
+        // db.collection('student').where('class', '==', 'A').orderBy('onlinetime', 'desc').get().then((snapshot) => {
+        //     const studentsA = [];
+        //     snapshot.forEach((doc) => {
+        //         const data = doc;
+        //         studentsA.push(data);
+        //     })
+        //     this.setState({
+        //         studentsA: studentsA
+        //     });
+        // });
+        // db.collection('student').where('class', '==', 'B').orderBy('onlinetime', 'desc').get().then((snapshot) => {
+        //     const studentsB = [];
+        //     snapshot.forEach((doc) => {
+        //         const data = doc;
+        //         studentsB.push(data);
+        //     })
+        //     this.setState({
+        //         studentsB: studentsB,
+        //     });
+        // });
+        // db.collection('student').where('class', '==', 'C').orderBy('onlinetime', 'desc').get().then((snapshot) => {
+        //     const studentsC = [];
+        //     snapshot.forEach((doc) => {
+        //         const data = doc;
+        //         studentsC.push(data);
+        //     })
+        //     this.setState({
+        //         studentsC: studentsC,
+        //     });
+        // });
+        // db.collection('student').where('class', '==', 'D').orderBy('onlinetime', 'desc').get().then((snapshot) => {
+        //     const studentsD = [];
+        //     snapshot.forEach((doc) => {
+        //         const data = doc;
+        //         studentsD.push(data);
+        //     })
+        //     this.setState({
+        //         studentsD: studentsD,
+        //     });
+        // });
     }
 
     render() {
