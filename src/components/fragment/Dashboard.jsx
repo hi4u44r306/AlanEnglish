@@ -41,50 +41,6 @@ class Dashboard extends React.Component {
         getStudents('D', 'onlinetime', (students) => {
             this.setState({ studentsD: students });
         });
-
-
-
-        // const db = firebase.firestore();
-        // db.collection('student').where('class', '==', 'A').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-        //     const studentsA = [];
-        //     snapshot.forEach((doc) => {
-        //         const data = doc;
-        //         studentsA.push(data);
-        //     })
-        //     this.setState({
-        //         studentsA: studentsA
-        //     });
-        // });
-        // db.collection('student').where('class', '==', 'B').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-        //     const studentsB = [];
-        //     snapshot.forEach((doc) => {
-        //         const data = doc;
-        //         studentsB.push(data);
-        //     })
-        //     this.setState({
-        //         studentsB: studentsB,
-        //     });
-        // });
-        // db.collection('student').where('class', '==', 'C').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-        //     const studentsC = [];
-        //     snapshot.forEach((doc) => {
-        //         const data = doc;
-        //         studentsC.push(data);
-        //     })
-        //     this.setState({
-        //         studentsC: studentsC,
-        //     });
-        // });
-        // db.collection('student').where('class', '==', 'D').orderBy('onlinetime', 'desc').get().then((snapshot) => {
-        //     const studentsD = [];
-        //     snapshot.forEach((doc) => {
-        //         const data = doc;
-        //         studentsD.push(data);
-        //     })
-        //     this.setState({
-        //         studentsD: studentsD,
-        //     });
-        // });
     }
 
     render() {
@@ -120,21 +76,19 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsA.data().onlinetime}>
-                                                <div className='d-flex justify-content-center align-items-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
-                                                            <span className='font-weight-bold'>
-                                                                <span className={studentsA.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsA.data().onlinetime || '近期無上線'}
-                                                                </span>
+                                                            <span className={studentsA.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
+                                                                {studentsA.data().onlinetime || '近期無上線'}
                                                             </span>
                                                         </b>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td key={studentsA.data().class}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span className='font-weight-bold'>
                                                                 <span className={studentsA.data().class ? 'text-success' || '' : 'text-danger'}>
@@ -146,15 +100,15 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsA.data().name}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b><span className='font-weight-bold'>{studentsA.data().name}</span></b>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td key={studentsA.data().email}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span
                                                                 className='font-weight-bold'>{studentsA.data().totaltimeplayed}</span>
@@ -163,8 +117,8 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsA.data().totaltimeplayed}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <a href={`/edit/${studentsA.id}`}>編輯</a>
                                                     </div>
                                                 </div>
@@ -203,8 +157,8 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsB.data().onlinetime}>
-                                                <div className='d-flex justify-content-center align-items-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span className='font-weight-bold'>
                                                                 <span className={studentsB.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
@@ -216,8 +170,8 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsB.data().class}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span className='font-weight-bold'>
                                                                 <span className={studentsB.data().class ? 'text-success' || '' : 'text-danger'}>
@@ -229,15 +183,15 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsB.data().name}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b><span className='font-weight-bold'>{studentsB.data().name}</span></b>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td key={studentsB.data().email}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span
                                                                 className='font-weight-bold'>{studentsB.data().totaltimeplayed}</span>
@@ -246,8 +200,8 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsB.data().totaltimeplayed}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <a href={`/edit/${studentsB.id}`}>編輯</a>
                                                     </div>
                                                 </div>
@@ -286,8 +240,8 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsC.data().onlinetime}>
-                                                <div className='d-flex justify-content-center align-items-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span className='font-weight-bold'>
                                                                 <span className={studentsC.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
@@ -299,8 +253,8 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsC.data().class}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span className='font-weight-bold'>
                                                                 <span className={studentsC.data().class ? 'text-success' || '' : 'text-danger'}>
@@ -312,15 +266,15 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsC.data().name}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b><span className='font-weight-bold'>{studentsC.data().name}</span></b>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td key={studentsC.data().email}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span
                                                                 className='font-weight-bold'>{studentsC.data().totaltimeplayed}</span>
@@ -329,8 +283,8 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsC.data().totaltimeplayed}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <a href={`/edit/${studentsC.id}`}>編輯</a>
                                                     </div>
                                                 </div>
@@ -369,8 +323,8 @@ class Dashboard extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td key={studentsD.data().onlinetime}>
-                                                <div className='d-flex justify-content-center align-items-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span className='font-weight-bold'>
                                                                 <span className={studentsD.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
@@ -382,8 +336,8 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsD.data().class}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span className='font-weight-bold'>
                                                                 <span className={studentsD.data().class ? 'text-success' || '' : 'text-danger'}>
@@ -395,15 +349,15 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsD.data().name}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b><span className='font-weight-bold'>{studentsD.data().name}</span></b>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td key={studentsD.data().email}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <b>
                                                             <span
                                                                 className='font-weight-bold'>{studentsD.data().totaltimeplayed}</span>
@@ -412,8 +366,8 @@ class Dashboard extends React.Component {
                                                 </div>
                                             </td>
                                             <td key={studentsD.data().totaltimeplayed}>
-                                                <div className='d-flex justify-content-center'>
-                                                    <div className="align-self-center pl-3">
+                                                <div className='studentmain'>
+                                                    <div className="studentsecond">
                                                         <a href={`/edit/${studentsD.id}`}>編輯</a>
                                                     </div>
                                                 </div>
