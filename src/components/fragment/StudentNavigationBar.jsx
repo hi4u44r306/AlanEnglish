@@ -115,12 +115,12 @@ function StudentNavigationBar() {
                           />控制台
                         </NavDropdown.Item>
 
-                        <NavDropdown.Item as={Link} to="/home/makehomework" href="/home/makehomework" className="subnavlink">
+                        {/* <NavDropdown.Item as={Link} to="/home/makehomework" href="/home/makehomework" className="subnavlink">
                           <AddCircleIcon style={{ width: 18, marginRight: 4 }} />
                           <p>
                             出功課
                           </p>
-                        </NavDropdown.Item>
+                        </NavDropdown.Item> */}
                       </NavDropdown>
                   }
 
@@ -136,12 +136,12 @@ function StudentNavigationBar() {
                   </Nav.Link>
 
                   {/* 功課 */}
-                  <Nav.Link as={Link} to="/home/homework" href="/home/homework" className="navlinkscoreboard">
+                  {/* <Nav.Link as={Link} to="/home/homework" href="/home/homework" className="navlinkscoreboard">
                     <img style={{ width: 18, marginRight: 4 }}
                       src={Openbook}
                       alt="openbook"
                     />功課
-                  </Nav.Link>
+                  </Nav.Link> */}
 
                   {/* 排行榜 */}
                   <Nav.Link as={Link} to="/home/leaderboard" href="/home/leaderboard" className="navlinkscoreboard">
