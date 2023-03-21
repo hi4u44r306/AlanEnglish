@@ -15,7 +15,8 @@ class Login extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.state = {
             email: "",
-            password: ""
+            password: "",
+            isLoading: false,
         }
     }
 
@@ -63,6 +64,10 @@ class Login extends React.Component {
     };
 
     login(e) {
+        this.setState({ isLoading: true });
+        setTimeout(() => {
+            this.setState({ isLoading: false });
+        }, 2000);
         // function subtractDays(numOfDays, date = new Date()) {
         //     const dateCopy = new Date(date.getTime());
         //     dateCopy.setDate(dateCopy.getDate() - numOfDays);
@@ -148,6 +153,7 @@ class Login extends React.Component {
     }
 
     render() {
+        const { isLoading } = this.state;
         return (
             <section className="Login">
                 <div className="Logincontainer">
@@ -213,8 +219,10 @@ class Login extends React.Component {
                                 className="loginbtn"
                                 ref={node => (this.btn = node)}
                                 type="submit"
+                                disabled={isLoading}
                             >
-                                登入
+                                {isLoading ? "登入中..." : "登入"}
+
                             </button>
                             <ToastContainer
                                 position="top-center"

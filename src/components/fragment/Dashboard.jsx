@@ -160,10 +160,8 @@ class Dashboard extends React.Component {
                                                 <div className='studentmain'>
                                                     <div className="studentsecond">
                                                         <b>
-                                                            <span className='font-weight-bold'>
-                                                                <span className={studentsB.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsB.data().onlinetime || '近期無上線'}
-                                                                </span>
+                                                            <span className={studentsB.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
+                                                                {studentsB.data().onlinetime || '近期無上線'}
                                                             </span>
                                                         </b>
                                                     </div>
@@ -243,10 +241,8 @@ class Dashboard extends React.Component {
                                                 <div className='studentmain'>
                                                     <div className="studentsecond">
                                                         <b>
-                                                            <span className='font-weight-bold'>
-                                                                <span className={studentsC.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsC.data().onlinetime || '近期無上線'}
-                                                                </span>
+                                                            <span className={studentsC.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
+                                                                {studentsC.data().onlinetime || '近期無上線'}
                                                             </span>
                                                         </b>
                                                     </div>
@@ -326,10 +322,8 @@ class Dashboard extends React.Component {
                                                 <div className='studentmain'>
                                                     <div className="studentsecond">
                                                         <b>
-                                                            <span className='font-weight-bold'>
-                                                                <span className={studentsD.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                                                    {studentsD.data().onlinetime || '近期無上線'}
-                                                                </span>
+                                                            <span className={studentsD.data().onlinetime ? 'text-success' || '' : 'text-danger'}>
+                                                                {studentsD.data().onlinetime || '近期無上線'}
                                                             </span>
                                                         </b>
                                                     </div>
