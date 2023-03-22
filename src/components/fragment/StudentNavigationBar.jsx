@@ -23,10 +23,8 @@ import Mail from '../assets/img/mail.png';
 import Trophy from '../assets/img/trophy.png';
 import Menu from '../assets/img/menu.png';
 import Setting from '../assets/img/setting.png';
-import Openbook from '../assets/img/openbook.png';
 import { Link } from "react-router-dom";
 import Brand from "./Brand";
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 
 function StudentNavigationBar() {
