@@ -63,81 +63,107 @@ class Login extends React.Component {
         });
     };
 
-    login(e) {
-        this.setState({ isLoading: true });
-        setTimeout(() => {
-            this.setState({ isLoading: false });
-        }, 2000);
-        // function subtractDays(numOfDays, date = new Date()) {
-        //     const dateCopy = new Date(date.getTime());
-        //     dateCopy.setDate(dateCopy.getDate() - numOfDays);
-        //     return dateCopy;
-        // }
+    // login(e) {
+    //     this.setState({ isLoading: true });
+    //     // function subtractDays(numOfDays, date = new Date()) {
+    //     //     const dateCopy = new Date(date.getTime());
+    //     //     dateCopy.setDate(dateCopy.getDate() - numOfDays);
+    //     //     return dateCopy;
+    //     // }
 
-        // const date = new Date('2022-11-07');
-        // const result = subtractDays(7, date);
-        // const calculateaccountexpiretime = result.toJSON().slice(0,10)
+    //     // const date = new Date('2022-11-07');
+    //     // const result = subtractDays(7, date);
+    //     // const calculateaccountexpiretime = result.toJSON().slice(0,10)
+    //     e.preventDefault();
+    //     firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
+    //         .then((userCredential) => {
+    //             // 檢查次帳號試用期是否已到 //
+    //             // firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
+    //             //     if(doc.data().accountcreatetime === calculateaccountexpiretime){
+    //             //         this.expire();
+    //             //     }else{
+    //             //         this.success();
+    //             //     }
+    //             // })
+    //             firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc) => {
+    //                 const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 2000));
+    //                 toast.promise(
+    //                     resolveAfter1SecSuccess,
+    //                     {
+    //                         pending: {
+    //                             render() {
+    //                                 return "Loading...";
+    //                             },
+    //                         },
+    //                         success: {
+    //                             render() {
+    //                                 return <div className="notification">Welcome Back {doc.data().name.toUpperCase()}!!</div>
+    //                             },
+
+    //                         }
+    //                     },
+    //                     setTimeout(function () { window.location = "/home/leaderboard"; }, 2500)
+    //                 );
+    //             })
+
+
+
+
+    //         }).catch(() => {
+    //             const resolveAfter3Sec = new Promise((resolve, reject) => {
+    //                 setTimeout(reject, 2500);
+    //             });
+    //             toast.promise(resolveAfter3Sec, {
+    //                 pending: 'Loading...',
+    //                 success: 'Promise resolved 👌',
+    //                 error: {
+    //                     render() {
+    //                         return <div className="notification">帳號密碼錯誤 🤯</div>
+    //                     }
+    //                 }
+    //             })
+    //             // toast.promise('帳號密碼錯誤 🤯',{
+    //             //     className:"notification",
+    //             //     position: "top-center",
+    //             //     autoClose: 3000,
+    //             //     hideProgressBar: false,
+    //             //     closeOnClick: true,
+    //             //     pauseOnHover: false,
+    //             //     draggable: true,
+    //             //     progress: undefined,
+    //             //     theme: "colored",
+    //             // });
+    //         })
+    // }
+
+    async login(e) {
         e.preventDefault();
-        firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
-            .then((userCredential) => {
-                // 檢查次帳號試用期是否已到 //
-                // firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc)=>{
-                //     if(doc.data().accountcreatetime === calculateaccountexpiretime){
-                //         this.expire();
-                //     }else{
-                //         this.success();
-                //     }
-                // })
-                firebase.firestore().collection('student').doc(userCredential.user.uid).get().then((doc) => {
-                    const resolveAfter1SecSuccess = new Promise(resolve => setTimeout(resolve, 2000));
-                    toast.promise(
-                        resolveAfter1SecSuccess,
-                        {
-                            pending: {
-                                render() {
-                                    return "Loading...";
-                                },
-                            },
-                            success: {
-                                render() {
-                                    return <div className="notification">Welcome Back {doc.data().name.toUpperCase()}!!</div>
-                                },
+        this.setState({ isLoading: true });
 
-                            }
-                        },
-                        setTimeout(function () { window.location = "/home/leaderboard"; }, 2500)
-                    );
-                })
+        const { email, password } = this.state;
+        const db = firebase.firestore();
 
+        try {
+            const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+            const userDoc = await db.collection('student').doc(userCredential.user.uid).get();
+            const userName = userDoc.data().name.toUpperCase();
 
-
-
-            }).catch(() => {
-                const resolveAfter3Sec = new Promise((resolve, reject) => {
-                    setTimeout(reject, 2500);
-                });
-                toast.promise(resolveAfter3Sec, {
-                    pending: 'Loading...',
-                    success: 'Promise resolved 👌',
-                    error: {
-                        render() {
-                            return <div className="notification">帳號密碼錯誤 🤯</div>
-                        }
-                    }
-                })
-                // toast.promise('帳號密碼錯誤 🤯',{
-                //     className:"notification",
-                //     position: "top-center",
-                //     autoClose: 3000,
-                //     hideProgressBar: false,
-                //     closeOnClick: true,
-                //     pauseOnHover: false,
-                //     draggable: true,
-                //     progress: undefined,
-                //     theme: "colored",
-                // });
-            })
+            toast.promise(
+                new Promise(resolve => setTimeout(resolve, 2000)),
+                {
+                    pending: { render: () => "Loading..." },
+                    success: { render: () => <div className="notification">Welcome Back {userName}!!</div> }
+                },
+                setTimeout(() => window.location = "/home/leaderboard", 2500)
+            );
+        } catch (error) {
+            toast.promise(
+                new Promise((resolve, reject) => setTimeout(reject, 2500)),
+                { pending: 'Loading...', error: { render: () => <div className="notification">帳號密碼錯誤 🤯</div> } }
+            );
+        }
     }
+
 
     handleKeypress(e) {
         //it triggers by pressing the enter key

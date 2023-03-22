@@ -9,38 +9,65 @@ class Dashboard extends React.Component {
         studentsB: null,
         studentsC: null,
         studentsD: null,
-    }
+    };
+
     componentDidMount() {
+        const db = firebase.firestore();
+
         const getStudents = (classParam, orderByParam, setStateFunc) => {
-            const db = firebase.firestore();
             db.collection("student")
-                .where('class', '==', classParam)
-                .orderBy(orderByParam, 'desc')
+                .where("class", "==", classParam)
+                .orderBy(orderByParam, "desc")
                 .get()
                 .then((snapshot) => {
                     const students = [];
                     snapshot.forEach((doc) => {
                         const data = doc;
                         students.push(data);
-                    })
+                    });
                     setStateFunc(students);
+                    localStorage.setItem(`${classParam}-students`, JSON.stringify(students));
                 })
                 .catch((err) => {
-                    console.log(err)
+                    console.log(err);
                 });
+        };
+
+        const studentsAFromLocalStorage = JSON.parse(localStorage.getItem('studentsA'));
+        if (studentsAFromLocalStorage) {
+            this.setState({ studentsA: studentsAFromLocalStorage });
+        } else {
+            getStudents("A", 'totaltimeplayed', (students) => {
+                this.setState({ studentsA: students });
+            });
         }
-        getStudents("A", 'onlinetime', (students) => {
-            this.setState({ studentsA: students });
-        });
-        getStudents('B', 'onlinetime', (students) => {
-            this.setState({ studentsB: students });
-        });
-        getStudents('C', 'onlinetime', (students) => {
-            this.setState({ studentsC: students });
-        });
-        getStudents('D', 'onlinetime', (students) => {
-            this.setState({ studentsD: students });
-        });
+
+        const studentsBFromLocalStorage = JSON.parse(localStorage.getItem('studentsA'));
+        if (studentsBFromLocalStorage) {
+            this.setState({ studentsB: studentsBFromLocalStorage });
+        } else {
+            getStudents("B", 'totaltimeplayed', (students) => {
+                this.setState({ studentsB: students });
+            });
+        }
+
+        const studentsCFromLocalStorage = JSON.parse(localStorage.getItem('studentsA'));
+        if (studentsCFromLocalStorage) {
+            this.setState({ studentsC: studentsCFromLocalStorage });
+        } else {
+            getStudents("C", 'totaltimeplayed', (students) => {
+                this.setState({ studentsC: students });
+            });
+        }
+
+        const studentsDFromLocalStorage = JSON.parse(localStorage.getItem('studentsA'));
+        if (studentsDFromLocalStorage) {
+            this.setState({ studentsD: studentsDFromLocalStorage });
+        } else {
+            getStudents("D", 'totaltimeplayed', (students) => {
+                this.setState({ studentsD: students });
+            });
+        }
     }
 
     render() {
