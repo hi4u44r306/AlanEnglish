@@ -109,18 +109,6 @@ class Leaderboard extends React.Component {
       this.setState({ OfflineD: students });
     });
 
-    // NeverOnlineStudents('A', (students) => {
-    //   this.setState({ NeverA: students });
-    // });
-    // NeverOnlineStudents('B', (students) => {
-    //   this.setState({ NeverB: students });
-    // });
-    // NeverOnlineStudents('C', (students) => {
-    //   this.setState({ NeverC: students });
-    // });
-    // NeverOnlineStudents('D', (students) => {
-    //   this.setState({ NeverD: students });
-    // });
   }
 
   render() {

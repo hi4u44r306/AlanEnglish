@@ -328,10 +328,10 @@ export function HoverableWords({ text }) {
 
             <VolumeUpRoundedIcon className="listen-btn" onClick={() => generateAudio(selectedWord)} />
           </div>
-          <div className="tooltip-body">
+          {/* <div className="tooltip-body">
             <button className="learn-btn">Learn</button>
             <button className="know-btn">Know</button>
-          </div>
+          </div> */}
         </div>
       )}
       {words.map((word, index) => (
