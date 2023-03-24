@@ -15,7 +15,6 @@ import Dashboard from "../components/fragment/Dashboard";
 import Home from "../components/Pages/Home"
 import Showcase from "../components/Pages/Showcase";
 import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
-import Edit from "../components/Pages/Edit";
 import { Helmet } from 'react-helmet';
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
@@ -73,9 +72,7 @@ const App = () => {
         }
     }, [dispatch, language]);
 
-    const url = window.location.pathname;
-    const segments = url.split('/');
-    const useruid = segments[segments.length - 1] || segments[segments.length - 2];
+
 
     return (
         <>
@@ -95,10 +92,7 @@ const App = () => {
                         <StudentNavigationBar />
                         <Homework />
                     </Route> */}
-                    <Route path={`/edit/${useruid}`}>
-                        <StudentNavigationBar />
-                        <Edit />
-                    </Route>
+
                     <Route path="/home/leaderboard">
                         <StudentNavigationBar />
                         <Leaderboard />

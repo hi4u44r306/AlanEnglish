@@ -1,11 +1,97 @@
-.editbtn {
-  background-color: #005b7f;
-  border-radius: 10px;
-  color: white;
-  padding: 5px 15px;
-  font-weight: 600;
-  letter-spacing: 2px;
+.Editcontainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
+
+.Editcontainer.show {
+  opacity: 1;
+}
+
+.Editform {
+  height: fit-content;
+  min-width: 35vw;
+  box-shadow: rgba(152, 152, 152, 0.01) x 10px;
+  padding: 20px;
+  margin: 20px;
+  border-radius: 20px;
+}
+.Edittitle {
+  display: flex;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 25px;
+}
+.Editinputcontainer {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.Editinputcontainer > label {
+  font-size: 18px;
+  font-weight: 700;
+}
+.Editinputcontainer > input {
+  border: 2px solid black;
+  border-radius: 10px;
+  padding: 5px 10px 5px 10px;
+}
+.Editbtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.Editforgotpassword {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+}
+.Editform {
+  height: fit-content;
+  min-width: 35vw;
+  box-shadow: rgb(0, 0, 0 / 16%) 1px 1px 10px;
+  padding: 20px;
+  margin: 20px;
+}
+.editstudentbtn {
+  background-color: #2384cd;
+  color: rgb(255, 255, 255);
+  border-radius: 5px;
+  font-weight: 500;
+
+  &:hover {
+    background-color: darken(#103755, 6%);
+  }
+}
+.updatebtn {
+  background-color: #103755;
+  color: white;
+  padding: 3px 14px;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: darken(#103755, 6%);
+  }
+}
+
+.cancelbtn {
+  color: white;
+  background-color: #ce4f4b;
+  padding: 3px 14px;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: darken(#ce4f4b, 6%);
+  }
+}
+
 .studentinformation {
   display: flex;
 }
@@ -52,6 +138,7 @@
   display: flex;
   align-self: center;
   padding-left: 3px;
+  font-weight: 700;
 }
 
 @media only screen and (max-width: 700px) {
