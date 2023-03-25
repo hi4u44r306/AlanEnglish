@@ -16,6 +16,7 @@ import Home from "../components/Pages/Home"
 import Showcase from "../components/Pages/Showcase";
 import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
 import { Helmet } from 'react-helmet';
+import SolvePage from "../components/Pages/SolvePage";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -84,6 +85,7 @@ const App = () => {
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
                     <Route path="/showcase" exact component={Showcase} />
+                    <Route path="/solve" exact component={SolvePage} />
                     {/* <Route path="/home/makehomework">
                         <StudentNavigationBar />
                         <Makehomework />

@@ -13,6 +13,7 @@ class Login extends React.Component {
         super(props)
         this.login = this.login.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.state = {
             email: "",
             password: "",
@@ -135,10 +136,29 @@ class Login extends React.Component {
     //             // });
     //         })
     // }
-
     async login(e) {
         e.preventDefault();
+
+        if (!this.state.email || !this.state.password) {
+            toast.error('Please enter email and password', {
+                className: "notification",
+                position: "top-center",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+            });
+            return;
+        }
+
         this.setState({ isLoading: true });
+
+        setTimeout(() => {
+            this.setState({ isLoading: false });
+        }, 2000);
 
         const { email, password } = this.state;
         const db = firebase.firestore();
@@ -165,17 +185,16 @@ class Login extends React.Component {
     }
 
 
-    handleKeypress(e) {
-        //it triggers by pressing the enter key
-        if (e.keyCode === 13) {
-            this.btn.click();
-        }
-    };
-
     handleChange(e) {
         this.setState({
             [e.target.name]: e.target.value
         })
+    }
+
+    handleKeyDown(event) {
+        if (event.key === 'Enter' && this.state.email && this.state.password) {
+            this.login(event);
+        }
     }
 
     render() {
@@ -215,7 +234,6 @@ class Login extends React.Component {
                             </div>
                         </div>
                         <div className="loginsection">
-
                             <label>帳號</label>
                             <input
                                 className="rightinput"
@@ -224,7 +242,7 @@ class Login extends React.Component {
                                 id="email"
                                 placeholder="輸入電子郵件或帳號..."
                                 onChange={this.handleChange}
-                                onKeyPress={this.handleKeypress}
+                                onKeyDown={this.handleKeyDown}
                                 value={this.state.email}
                             />
 
@@ -236,20 +254,20 @@ class Login extends React.Component {
                                 id="password"
                                 placeholder="輸入密碼..."
                                 onChange={this.handleChange}
-                                onKeyPress={this.handleKeypress}
+                                onKeyDown={this.handleKeyDown}
                                 value={this.state.password}
                             />
 
                             <button
                                 onClick={this.login}
                                 className="loginbtn"
-                                ref={node => (this.btn = node)}
                                 type="submit"
                                 disabled={isLoading}
                             >
                                 {isLoading ? "登入中..." : "登入"}
 
                             </button>
+                            <a style={{ fontSize: 18, fontWeight: 700 }} href="/solve" alt="/solve" >無法登入嗎 ? 點這裡</a>
                             <ToastContainer
                                 position="top-center"
                                 autoClose={2000}

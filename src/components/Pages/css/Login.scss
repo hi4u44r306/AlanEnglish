@@ -135,7 +135,6 @@
       border: 10px solid rgb(255, 191, 63);
       width: 40vw;
       height: 60vh;
-      padding: 20px 70px;
       border-radius: 20px;
       display: flex;
       flex-flow: column wrap;
@@ -145,7 +144,7 @@
       label {
         display: block;
         text-align: left;
-        font-size: 25px;
+        font-size: 20px;
         margin: 3px;
         font-weight: 700;
         margin: 10px;
@@ -160,7 +159,7 @@
         height: 40px;
         width: 80%;
         padding: 5px 10px;
-        font-size: 20px;
+        font-size: 18px;
         border-radius: 5px;
         border: 3.5px solid rgb(46, 148, 33);
         font-weight: 700;
@@ -172,8 +171,8 @@
     }
     .loginbtn {
       margin: 20px 0px;
-      padding: 10px 20px;
-      font-size: 1.2rem;
+      padding: 10px 15px;
+      font-size: 18px;
       letter-spacing: 5px;
       border-radius: 10px;
       font-family: "Noto Sans TC", sans-serif;
@@ -181,17 +180,6 @@
       border: 3.5px solid #2d7dd2;
       color: rgb(0, 0, 0);
       background-color: rgb(255, 255, 255);
-      // background: {
-      //   image: linear-gradient(45deg, #f1c40f 50%, transparent 50%);
-      //   position: 100%;
-      //   size: 400%;
-      // }
-      // transition: background 300ms ease-in-out;
-
-      // &:hover {
-      //   background-position: 0;
-      //   cursor: pointer;
-      // }
     }
   }
 }
