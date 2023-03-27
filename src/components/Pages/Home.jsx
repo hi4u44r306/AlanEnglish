@@ -79,7 +79,7 @@ function Home() {
 
 
     return (
-        <div className={"home-container"}>
+        <div className="home-container">
             {
                 !loaded ?
                     <div className="Home-skeleton">

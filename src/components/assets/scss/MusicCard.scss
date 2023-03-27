@@ -9,6 +9,18 @@
   height: 100vh;
   height: fit-content;
 }
+.sharebtn-container {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 5px;
+  // height: 5px;
+  cursor: pointer;
+
+  .sharebtn {
+    width: 20px;
+  }
+}
+
 .testbutton {
   display: flex;
   align-items: center;
@@ -175,6 +187,11 @@
 }
 
 @media only screen and (max-width: 545px) {
+  // .sharebtn-container {
+  //   position: fixed;
+  //   top: 10px;
+  //   right: 10px;
+  // }
   .music-card {
     width: 400px;
     .music-card-cover {
