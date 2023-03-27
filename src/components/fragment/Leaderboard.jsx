@@ -146,7 +146,7 @@ class Leaderboard extends React.Component {
                 this.state.studentsA &&
                 this.state.studentsA.map((studentsA, index) => {
                   return (
-                    <tr key={studentsA.name}>
+                    <tr key={index}>
                       <td className='d-flex justify-content-center'>
                         <b className={index + 1 === 1 || index + 1 === 2 || index + 1 === 3 ? 'text-danger' : ''}>
                           {index + 1 === 1 ?
@@ -195,13 +195,13 @@ class Leaderboard extends React.Component {
                           </div>
                         </div>
                       </td>
-                      {/* <td key={studentsA.index}>
+                      {/* <td key={studentsB.index}>
                           <div className='d-flex justify-content-center'>
                             <div className="align-self-center pl-3">
                               <b>
                                 <span className='font-weight-bold' >
-                                  <span className={studentsA.currdatetimeplayed?'text-success' || '':'text-danger'}>
-                                    {studentsA.currdatetimeplayed || '0'}次
+                                  <span className={studentsB.currdatetimeplayed?'text-success' || '':'text-danger'}>
+                                    {studentsB.currdatetimeplayed || '0'}次
                                   </span>
                                 </span>
                               </b>
@@ -212,7 +212,7 @@ class Leaderboard extends React.Component {
                         <div className='d-flex justify-content-center'>
                           <div className="align-self-center pl-3">
                             <b>
-                              <span className='font-weight-bold'>{studentsA.totaltimeplayed}次</span>
+                              <span className='font-weight-bold' >{studentsA.totaltimeplayed}次</span>
                             </b>
                           </div>
                         </div>
