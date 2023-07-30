@@ -11884,6 +11884,761 @@ let musicDB = [
         musicName: "super easy reading 3e 3/Track49.mp3"
     },
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ////// Reading Table 1 ///////////
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 1",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 1.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 2",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 2.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 3",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 3.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 4",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 4.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 5",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 5.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 6",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 6.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 7",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 7.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 8",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 8.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 9",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 9.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 10",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 10.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 11",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 11.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 12",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 12.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 13",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 13.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 14",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 14.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 15",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 15.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 16",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 16.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 17",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 17.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 18",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 18.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 19",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 19.mp3"
+    },
+    {
+        bookname: "Reading Table 1",
+        page: "Unit 20",
+        img: "headphone.png",
+        lang: "Reading Table 1",
+        timesPlayed: 0,
+        type: "ReadingTable1",
+        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 20.mp3"
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ////// Reading Table 2 ///////////
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 1",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 1.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 2",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 2.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 3",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 3.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 4",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 4.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 5",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 5.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 6",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 6.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 7",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 7.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 8",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 8.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 9",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 9.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 10",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 10.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 11",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 11.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 12",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 12.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 13",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 13.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 14",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 14.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 15",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 15.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 16",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 16.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 17",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 17.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 18",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 18.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 19",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 19.mp3"
+    },
+    {
+        bookname: "Reading Table 2",
+        page: "Unit 20",
+        img: "headphone.png",
+        lang: "Reading Table 2",
+        timesPlayed: 0,
+        type: "ReadingTable2",
+        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 20.mp3"
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ////// Reading Table 3 ///////////
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 1",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 1.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 2",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 2.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 3",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 3.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 4",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 4.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 5",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 5.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 6",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 6.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 7",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 7.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 8",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 8.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 9",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 9.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 10",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 10.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 11",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 11.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 12",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 12.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 13",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 13.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 14",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 14.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 15",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 15.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 16",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 16.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 17",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 17.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 18",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 18.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 19",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 19.mp3"
+    },
+    {
+        bookname: "Reading Table 3",
+        page: "Unit 20",
+        img: "headphone.png",
+        lang: "Reading Table 3",
+        timesPlayed: 0,
+        type: "ReadingTable3",
+        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 20.mp3"
+    }
+
+
+
 ];
 
 export default musicDB;

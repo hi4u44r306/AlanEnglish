@@ -23,6 +23,7 @@ import Mail from '../assets/img/mail.png';
 import Trophy from '../assets/img/trophy.png';
 import Menu from '../assets/img/menu.png';
 import Setting from '../assets/img/setting.png';
+import Goldflower from '../assets/img/goldflower.png';
 import { Link } from "react-router-dom";
 import Brand from "./Brand";
 
@@ -429,11 +430,53 @@ function StudentNavigationBar() {
                       </NavDropdown>
                     ))}
 
+                    {/*                             Reading Table                                  */}
+                    {['down'].map((direction) => (
+                      <NavDropdown
+                        className="navlink"
+                        key={direction}
+                        drop={direction}
+                        title=
+                        {
+                          <div className="d-flex align-items-center">
+
+                            <img style={{ width: 18, marginRight: 4 }}
+                              src={Books}
+                              alt="bluebook"
+                            />
+                            Reading Table
+                          </div>
+                        }
+                      >
+                        <NavDropdown.Item as={Link} to="/home/playlist/ReadingTable1" href="/home/playlist/ReadingTable1" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Goldflower}
+                            alt="Goldflower"
+                          />
+                          Reading Table 1</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/ReadingTable2" href="/home/playlist/ReadingTable2" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Goldflower}
+                            alt="Goldflower"
+                          />
+                          Reading Table 2</NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/playlist/ReadingTable3" href="/home/playlist/ReadingTable3" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Goldflower}
+                            alt="Goldflower"
+                          />
+                          Reading Table 3</NavDropdown.Item>
+
+                      </NavDropdown>
+                    ))}
+
                     <NavDropdown.Item as={Link} to="/home/playlist/SARC1" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }}
                         src={Books}
                         alt="bluebook"
                       /> Short Articles Reading 1</NavDropdown.Item>
+
+
 
                   </NavDropdown>
 

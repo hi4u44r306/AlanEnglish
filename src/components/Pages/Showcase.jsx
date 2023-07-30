@@ -6,6 +6,7 @@ import Musicpage from '.././assets/img/Music.PNG'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import ShowcaseNavbar from '../fragment/ShowcaseNavbar';
+import { Link } from "react-router-dom";
 
 const Showcase = () => {
     const color = `rgb(255, 53, 99)`;
@@ -22,7 +23,7 @@ const Showcase = () => {
                             <strong style={{ color }}><u>Learn English</u></strong>
                         </h1>
                         <p>AI Teacher - Alan English Listening</p>
-                        <Button className='d-flex justify-content-center gap-1' href="https://www.alanenglish.com.tw/" target="_blank" variant="danger">開始試用Alan English <ArrowForwardIcon /> </Button>
+                        <Button className='d-flex justify-content-center gap-1' as={Link} to="/login" href="/login" variant="danger">開始試用Alan English <ArrowForwardIcon /> </Button>
                     </div>
                     <img src={Homepage} alt="Product 1" />
                 </section>
