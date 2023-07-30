@@ -13,7 +13,6 @@ import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
 import Home from "../components/Pages/Home"
-import Showcase from "../components/Pages/Showcase";
 import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
 import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
