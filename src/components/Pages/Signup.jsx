@@ -3,6 +3,8 @@ import './css/Signup.scss';
 import firebase from "./firebase";
 import { toast, ToastContainer } from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
+import { Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 class Signup extends React.Component {
 
@@ -77,6 +79,9 @@ class Signup extends React.Component {
     render() {
         return (
             <div className="Signup">
+                <div>
+                    <Button as={Link} to="/home/leaderboard" href="/home/leaderboard">回首頁</Button>
+                </div>
                 <div className="signupsection">
                     <span>Add User</span>
                     <div className="signupinput">

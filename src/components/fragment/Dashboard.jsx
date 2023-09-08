@@ -85,6 +85,16 @@ const Dashboard = () => {
         }, 1000);
     }
 
+    const deleteUser = (id) => {
+        const db = firebase.firestore();
+        db.collection("student").doc(id).delete().then(() => {
+            console.log("成功刪除");
+        }).catch((error) => {
+            console.error("刪除失敗 ", error);
+        });
+
+    }
+
     return (
         <>
             {editingStudent ? (
@@ -102,6 +112,13 @@ const Dashboard = () => {
                         <div className='Edittitle'>
                             資料更新
                         </div>
+                        <div className='Editinputcontainer'>
+                            <label>
+                                Email Address
+                            </label>
+                            <input type="text" value={updatedStudentData.email} onChange={(e) => setUpdatedStudentData({ ...updatedStudentData, email: e.target.value })} />
+                        </div>
+
                         <div className='Editinputcontainer'>
                             <label>
                                 上線時間 / Onlinetime
@@ -134,6 +151,9 @@ const Dashboard = () => {
                         </div>
                         <div className='Editbtn'>
                             <button className="cancelbtn" onClick={() => setEditingStudent(null)}>Cancel</button>
+                        </div>
+                        <div className='Editbtn'>
+                            <button className="cancelbtn" onClick={() => deleteUser()}>刪除使用者</button>
                         </div>
 
                     </div>

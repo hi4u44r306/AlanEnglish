@@ -113,6 +113,12 @@ function StudentNavigationBar() {
                             alt="setting"
                           />控制台
                         </NavDropdown.Item>
+                        <NavDropdown.Item as={Link} to="/home/signup" href="/home/signup" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Setting}
+                            alt="setting"
+                          />新增學生帳號
+                        </NavDropdown.Item>
 
                         {/* <NavDropdown.Item as={Link} to="/home/makehomework" href="/home/makehomework" className="subnavlink">
                           <AddCircleIcon style={{ width: 18, marginRight: 4 }} />
