@@ -18,7 +18,6 @@ const Dashboard = () => {
 
     useEffect(() => {
         const db = firebase.firestore();
-
         const getStudents = (classParam, orderByParam, setStateFunc) => {
             db.collection("student")
                 .where("class", "==", classParam)
@@ -67,6 +66,23 @@ const Dashboard = () => {
         });
     };
 
+    const deleteStudent = (id) => {
+        const db = firebase.firestore();
+        window.confirm('確認要刪除嗎?');
+        if (window.confirm() === true) {
+            // 刪除Firestore中的資料
+            db.collection("student").doc(id).delete().then(() => {
+                console.log("成功刪除");
+            }).catch((error) => {
+                console.error("刪除失敗 ", error);
+            });
+            // 刪除Auth資料
+
+        } else {
+            window.alert("取消刪除")
+        }
+    }
+
 
     const success = () => {
         toast.success('修改成功', {
@@ -85,15 +101,7 @@ const Dashboard = () => {
         }, 1000);
     }
 
-    const deleteUser = (id) => {
-        const db = firebase.firestore();
-        db.collection("student").doc(id).delete().then(() => {
-            console.log("成功刪除");
-        }).catch((error) => {
-            console.error("刪除失敗 ", error);
-        });
 
-    }
 
     return (
         <>
@@ -152,10 +160,6 @@ const Dashboard = () => {
                         <div className='Editbtn'>
                             <button className="cancelbtn" onClick={() => setEditingStudent(null)}>Cancel</button>
                         </div>
-                        <div className='Editbtn'>
-                            <button className="cancelbtn" onClick={() => deleteUser()}>刪除使用者</button>
-                        </div>
-
                     </div>
                 </form>
             ) : (
@@ -200,6 +204,10 @@ const Dashboard = () => {
                                             <div className="studentsecond">
                                                 <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
                                             </div>
+
+                                            <div className="studentsecond">
+                                                <button className='editstudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -208,7 +216,7 @@ const Dashboard = () => {
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td className='coltitle' colSpan="5">!!這是D班最後一筆資料了!!</td>
+                                <td className='coltitle' colSpan="5">!!這是A班最後一筆資料了!!</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -254,7 +262,7 @@ const Dashboard = () => {
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td className='coltitle' colSpan="5">!!這是D班最後一筆資料了!!</td>
+                                <td className='coltitle' colSpan="5">!!這是B班最後一筆資料了!!</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -300,7 +308,7 @@ const Dashboard = () => {
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td className='coltitle' colSpan="5">!!這是D班最後一筆資料了!!</td>
+                                <td className='coltitle' colSpan="5">!!這是C班最後一筆資料了!!</td>
                             </tr>
                         </tfoot>
                     </table>
