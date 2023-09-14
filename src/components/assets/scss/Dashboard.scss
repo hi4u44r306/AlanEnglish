@@ -70,6 +70,16 @@
     background-color: darken(#103755, 6%);
   }
 }
+.deletestudentbtn {
+  background-color: #cd2323;
+  color: rgb(255, 255, 255);
+  border-radius: 5px;
+  font-weight: 500;
+
+  &:hover {
+    background-color: darken(#103755, 6%);
+  }
+}
 .updatebtn {
   background-color: #103755;
   color: white;

@@ -206,7 +206,7 @@ const Dashboard = () => {
                                             </div>
 
                                             <div className="studentsecond">
-                                                <button className='editstudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
+                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
                                             </div>
                                         </div>
                                     </td>

@@ -81,20 +81,9 @@ const App = () => {
                     <link rel="icon" type="image/png" href={'/favicon.ico'} sizes="16x16" />
                 </Helmet>
                 <Switch>
-                    {/* <Route path="/" exact component={Showcase} /> */}
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
-                    {/* <Route path="/showcase" exact component={Showcase} /> */}
                     <Route path="/solve" exact component={SolvePage} />
-                    {/* <Route path="/home/makehomework">
-                        <StudentNavigationBar />
-                        <Makehomework />
-                    </Route>
-                    <Route path="/home/homework">
-                        <StudentNavigationBar />
-                        <Homework />
-                    </Route> */}
-
                     <Route path="/home/leaderboard">
                         <StudentNavigationBar />
                         <Leaderboard />
