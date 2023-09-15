@@ -41,83 +41,89 @@ class Leaderboard extends React.Component {
       if (!user) return window.location.href = '/';
     })
 
-    const getStudents = (classParam, orderByParam, monthParam, setStateFunc) => {
-      const db = firebase.firestore();
-      db.collection("student")
-        .where('class', '==', classParam)
-        .where('onlinemonth', '==', monthParam)
-        .where('totaltimeplayed', '>', 0)
-        .orderBy(orderByParam, 'desc')
-        .get()
-        .then((snapshot) => {
-          const students = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            students.push(data);
+    try {
+      const getStudents = (classParam, orderByParam, monthParam, setStateFunc) => {
+        const db = firebase.firestore();
+        db.collection("student")
+          .where('class', '==', classParam)
+          .where('onlinemonth', '==', monthParam)
+          .where('totaltimeplayed', '>', 0)
+          .orderBy(orderByParam, 'desc')
+          .get()
+          .then((snapshot) => {
+            const students = [];
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              students.push(data);
+            })
+            setStateFunc(students);
           })
-          setStateFunc(students);
-        })
-        .catch((err) => {
-          console.log(err)
-        });
-    }
-    const getOfflineStudents = (classParam, setStateFunc) => {
-      const db = firebase.firestore();
-      db.collection("student")
-        .where('class', '==', classParam)
-        .where('onlinetime', '<=', offlinelimit)
-        .get()
-        .then((snapshot) => {
-          const students = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            students.push(data);
+          .catch((err) => {
+            console.log(err)
+          });
+      }
+      const getOfflineStudents = (classParam, setStateFunc) => {
+        const db = firebase.firestore();
+        db.collection("student")
+          .where('class', '==', classParam)
+          .where('onlinetime', '<=', offlinelimit)
+          .get()
+          .then((snapshot) => {
+            const students = [];
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              students.push(data);
+            })
+            setStateFunc(students);
           })
-          setStateFunc(students);
-        })
-        .catch((err) => {
-          console.log(err)
-        });
+          .catch((err) => {
+            console.log(err)
+          });
+      }
+
+      const d = new Date();
+      d.setDate(d.getDate() - 3);
+      const offlinelimit = d.toJSON().slice(0, 10);
+
+      const currentMonth = new Date().toJSON().slice(0, 7);
+      getStudents("A", 'totaltimeplayed', currentMonth, (students) => {
+        this.setState({ studentsA: students });
+        localStorage.setItem("classA online", JSON.stringify(students));
+      });
+      getStudents('B', 'totaltimeplayed', currentMonth, (students) => {
+        this.setState({ studentsB: students });
+        localStorage.setItem("classB online", JSON.stringify(students));
+      });
+      getStudents('C', 'totaltimeplayed', currentMonth, (students) => {
+        this.setState({ studentsC: students });
+        localStorage.setItem("classC online", JSON.stringify(students));
+      });
+      getStudents('D', 'totaltimeplayed', currentMonth, (students) => {
+        this.setState({ studentsD: students });
+        localStorage.setItem("classD online", JSON.stringify(students));
+      });
+
+      getOfflineStudents('A', (students) => {
+        this.setState({ OfflineA: students });
+        localStorage.setItem("classA offline", JSON.stringify(students));
+      });
+      getOfflineStudents('B', (students) => {
+        this.setState({ OfflineB: students });
+        localStorage.setItem("classB offline", JSON.stringify(students));
+      });
+      getOfflineStudents('C', (students) => {
+        this.setState({ OfflineC: students });
+        localStorage.setItem("classC offline", JSON.stringify(students));
+      });
+      getOfflineStudents('D', (students) => {
+        this.setState({ OfflineD: students });
+        localStorage.setItem("classD offline", JSON.stringify(students));
+      });
+
+    } catch {
+      alert('nothing')
+
     }
-
-    const d = new Date();
-    d.setDate(d.getDate() - 3);
-    const offlinelimit = d.toJSON().slice(0, 10);
-
-    const currentMonth = new Date().toJSON().slice(0, 7);
-    getStudents("A", 'totaltimeplayed', currentMonth, (students) => {
-      this.setState({ studentsA: students });
-      localStorage.setItem("classA online", JSON.stringify(students));
-    });
-    getStudents('B', 'totaltimeplayed', currentMonth, (students) => {
-      this.setState({ studentsB: students });
-      localStorage.setItem("classB online", JSON.stringify(students));
-    });
-    getStudents('C', 'totaltimeplayed', currentMonth, (students) => {
-      this.setState({ studentsC: students });
-      localStorage.setItem("classC online", JSON.stringify(students));
-    });
-    getStudents('D', 'totaltimeplayed', currentMonth, (students) => {
-      this.setState({ studentsD: students });
-      localStorage.setItem("classD online", JSON.stringify(students));
-    });
-
-    getOfflineStudents('A', (students) => {
-      this.setState({ OfflineA: students });
-      localStorage.setItem("classA offline", JSON.stringify(students));
-    });
-    getOfflineStudents('B', (students) => {
-      this.setState({ OfflineB: students });
-      localStorage.setItem("classB offline", JSON.stringify(students));
-    });
-    getOfflineStudents('C', (students) => {
-      this.setState({ OfflineC: students });
-      localStorage.setItem("classC offline", JSON.stringify(students));
-    });
-    getOfflineStudents('D', (students) => {
-      this.setState({ OfflineD: students });
-      localStorage.setItem("classD offline", JSON.stringify(students));
-    });
 
   }
 
@@ -158,7 +164,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                JSON.parse(localStorage.getItem('classA online')).map((student, index) => (
+                this.state.studentsA && this.state.studentsA.map((student, index) => (
                   <tr key={index}>
                     <td className='d-flex justify-content-center'>
                       <b className={index < 3 ? 'text-danger' : ''}>
@@ -211,7 +217,6 @@ class Leaderboard extends React.Component {
             </tfoot>
           </table>
 
-
           {/* A班未上線名單 */}
           <div className='classtitle'>A班3天以上沒上線名單</div>
           <table className='table table-border'>
@@ -226,7 +231,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                JSON.parse(localStorage.getItem('classA offline')).map((OfflineA, index) => {
+                this.state.OfflineA && this.state.OfflineA.map((OfflineA, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineA.name} className=''>
@@ -280,7 +285,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                JSON.parse(localStorage.getItem('classB online')).map((studentsB, index) => {
+                this.state.studentsB && this.state.studentsB.map((studentsB, index) => {
                   return (
                     <tr key={index}>
                       <td className='d-flex justify-content-center'>
@@ -379,7 +384,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                JSON.parse(localStorage.getItem('classB offline')).map((OfflineB, index) => {
+                this.state.OfflineB && this.state.OfflineB.map((OfflineB, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineB.name} className=''>
@@ -433,7 +438,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                JSON.parse(localStorage.getItem('classC online')).map((studentsC, index) => {
+                this.state.studentsC && this.state.studentsC.map((studentsC, index) => {
                   return (
                     <tr key={index}>
                       <td className='d-flex justify-content-center ' >
@@ -531,7 +536,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                JSON.parse(localStorage.getItem('classC offline')).map((OfflineC, index) => {
+                this.state.OfflineC && this.state.OfflineC.map((OfflineC, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineC.class} className=''>
@@ -585,7 +590,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                JSON.parse(localStorage.getItem('classD online')).map((studentsD, index) => {
+                this.state.studentsD && this.state.studentsD.map((studentsD, index) => {
                   return (
                     <tr key={index}>
                       <td className='d-flex justify-content-center '>
@@ -683,9 +688,8 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                //this.state.OfflineD &&
-                //this.state.OfflineD.map((OfflineD, index) => { 
-                JSON.parse(localStorage.getItem('classD offline')).map((OfflineD, index) => {
+                this.state.OfflineD &&
+                this.state.OfflineD.map((OfflineD, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineD.name} className=''>
@@ -721,6 +725,7 @@ class Leaderboard extends React.Component {
               }
             </tbody>
           </table>
+
         </div>
       </Containerfull>
     )

@@ -163,6 +163,7 @@ class Login extends React.Component {
         const { email, password } = this.state;
         const db = firebase.firestore();
 
+
         try {
             const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
             const userDoc = await db.collection('student').doc(userCredential.user.uid).get();
@@ -176,6 +177,7 @@ class Login extends React.Component {
                 },
                 setTimeout(() => window.location = "/home/leaderboard", 2500)
             );
+
         } catch (error) {
             toast.promise(
                 new Promise((resolve, reject) => setTimeout(reject, 2500)),

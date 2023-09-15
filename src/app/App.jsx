@@ -37,6 +37,7 @@ const App = () => {
             localStorage.setItem('ae-useruid', '');
             localStorage.setItem('ae-username', '')
             localStorage.setItem('ae-totaltimeplayed', '')
+
         }
     })
 
@@ -55,43 +56,7 @@ const App = () => {
         }
     }, [dispatch, language]);
 
-    useEffect(() => {
-        const db = firebase.firestore();
-        const getStudents = (classParam, orderByParam, setStateFunc) => {
-            db.collection("student")
-                .where("class", "==", classParam)
-                .orderBy(orderByParam, "desc")
-                .get()
-                .then((snapshot) => {
-                    const students = [];
-                    snapshot.forEach((doc) => {
-                        const data = doc;
-                        students.push(data);
-                    });
-                    setStateFunc(students);
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        };
 
-        getStudents("A", 'totaltimeplayed', (students) => {
-            // setStudentsA(students);
-            localStorage.setItem("classA", JSON.stringify(students));
-        });
-        getStudents("B", 'totaltimeplayed', (students) => {
-            // setStudentsB(students);
-            localStorage.setItem("classB", JSON.stringify(students))
-        });
-        getStudents("C", 'totaltimeplayed', (students) => {
-            // setStudentsC(students);
-            localStorage.setItem("classC", JSON.stringify(students))
-        });
-        getStudents("D", 'totaltimeplayed', (students) => {
-            // setStudentsD(students);
-            localStorage.setItem("classD", JSON.stringify(students))
-        });
-    }, []);
 
     return (
         <>
