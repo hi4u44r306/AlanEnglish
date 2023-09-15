@@ -84,7 +84,7 @@ function FooterMusicPlayer({ music }) {
         const dbRef = firebase.database().ref();
         dbRef.child("student").child(userId).child("totaltimeplayed").get().then((snapshot) => {
             const aaa = parseInt(snapshot.val()) + 1;
-            dbRef.child("student").child(userId).update({
+            firebase.database().ref('student/' + userId).update({
                 totaltimeplayed: aaa,
             });
         }).catch(() => {

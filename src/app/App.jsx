@@ -24,31 +24,14 @@ const App = () => {
 
     const { language } = useSelector(state => state.musicReducer);
     const db = firebase.firestore();
-    // const date = new Date();
-    // let day = date.getDate();
-    // let month = date.getMonth() + 1;
-    // let year = date.getFullYear();
-    // const currentDate = `${year}-${month}-${day}`;
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
             localStorage.setItem('ae-useruid', user.uid);
             db.collection('student').doc(user.uid).get().then(doc => {
-                localStorage.setItem('ae-class', doc.data().class)
+                localStorage.setItem('ae-class', doc.data().class || '')
                 localStorage.setItem('ae-username', doc.data().name)
                 localStorage.setItem('ae-totaltimeplayed', doc.data().totaltimeplayed)
             })
-            // .then(() => {
-            //     const classtype = localStorage.getItem('ae-class')
-            //     db.collection('Homework').doc(classtype).collection(currentDate).doc(currentDate).get().then((doc) => {
-            //         localStorage.setItem('ae-hwbook', doc.data().book);
-            //         localStorage.setItem('ae-hwpage', doc.data().page);
-            //         localStorage.setItem('ae-hwplaytime', doc.data().playtime);
-            //     }).catch(() => {
-            //         localStorage.setItem('ae-hwbook', '');
-            //         localStorage.setItem('ae-hwpage', '');
-            //         localStorage.setItem('ae-hwplaytime', '');
-            //     })
-            // })
         } else {
             localStorage.setItem('ae-class', '')
             localStorage.setItem('ae-useruid', '');
@@ -72,7 +55,43 @@ const App = () => {
         }
     }, [dispatch, language]);
 
+    useEffect(() => {
+        const db = firebase.firestore();
+        const getStudents = (classParam, orderByParam, setStateFunc) => {
+            db.collection("student")
+                .where("class", "==", classParam)
+                .orderBy(orderByParam, "desc")
+                .get()
+                .then((snapshot) => {
+                    const students = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc;
+                        students.push(data);
+                    });
+                    setStateFunc(students);
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        };
 
+        getStudents("A", 'totaltimeplayed', (students) => {
+            // setStudentsA(students);
+            localStorage.setItem("classA", JSON.stringify(students));
+        });
+        getStudents("B", 'totaltimeplayed', (students) => {
+            // setStudentsB(students);
+            localStorage.setItem("classB", JSON.stringify(students))
+        });
+        getStudents("C", 'totaltimeplayed', (students) => {
+            // setStudentsC(students);
+            localStorage.setItem("classC", JSON.stringify(students))
+        });
+        getStudents("D", 'totaltimeplayed', (students) => {
+            // setStudentsD(students);
+            localStorage.setItem("classD", JSON.stringify(students))
+        });
+    }, []);
 
     return (
         <>

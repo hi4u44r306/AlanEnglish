@@ -63,6 +63,9 @@ class Signup extends React.Component {
                 email: this.state.email,
                 totaltimeplayed: 0,
             })
+            firebase.database().ref('student/' + useruid).update({
+                totaltimeplayed: 0,
+            });
             this.success();
         }).catch(() => {
             this.error();

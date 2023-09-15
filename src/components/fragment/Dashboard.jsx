@@ -14,6 +14,13 @@ const Dashboard = () => {
     const [editingStudentRef, setEditingStudentRef] = useState(null);
     const [updatedStudentData, setUpdatedStudentData] = useState({});
 
+    firebase.auth().onAuthStateChanged(() => {
+        const classtype = localStorage.getItem('ae-class');
+        if (classtype !== 'teacher') {
+            alert('你沒有此權限');
+            window.history.back();
+        }
+    })
 
 
     useEffect(() => {
@@ -69,13 +76,15 @@ const Dashboard = () => {
     const deleteStudent = (id) => {
         const db = firebase.firestore();
         window.confirm('確認要刪除嗎?');
-        if (window.confirm() === true) {
+        if (window.confirm('確認要刪除嗎?') === true) {
             // 刪除Firestore中的資料
             db.collection("student").doc(id).delete().then(() => {
                 console.log("成功刪除");
             }).catch((error) => {
                 console.error("刪除失敗 ", error);
             });
+            // 刪除Realtime Database資料
+            firebase.database().ref('student/' + id).remove();
             // 刪除Auth資料
 
         } else {
@@ -131,7 +140,7 @@ const Dashboard = () => {
                             <label>
                                 上線時間 / Onlinetime
                             </label>
-                            <input type="text" value={updatedStudentData.onlinetime} onChange={(e) => setUpdatedStudentData({ ...updatedStudentData, onlinetime: e.target.value })} />
+                            <input type="text" value={updatedStudentData.onlinetime} onChange={(e) => setUpdatedStudentData({ ...updatedStudentData, onlinetime: e.target.value || 0 })} />
                         </div>
 
                         <div className='Editinputcontainer'>
@@ -220,6 +229,7 @@ const Dashboard = () => {
                             </tr>
                         </tfoot>
                     </table>
+
                     <div className='classtitle'>B班</div>
                     <table className='table table-border'>
                         <thead>
@@ -253,6 +263,9 @@ const Dashboard = () => {
                                         <div className='studentmain'>
                                             <div className="studentsecond">
                                                 <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
+                                            </div>
+                                            <div className="studentsecond">
+                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
                                             </div>
                                         </div>
                                     </td>
@@ -300,6 +313,9 @@ const Dashboard = () => {
                                             <div className="studentsecond">
                                                 <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
                                             </div>
+                                            <div className="studentsecond">
+                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -345,6 +361,9 @@ const Dashboard = () => {
                                         <div className='studentmain'>
                                             <div className="studentsecond">
                                                 <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
+                                            </div>
+                                            <div className="studentsecond">
+                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
                                             </div>
                                         </div>
                                     </td>

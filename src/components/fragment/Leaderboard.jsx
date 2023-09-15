@@ -36,9 +36,11 @@ class Leaderboard extends React.Component {
   currentMonthLastDateMs = this.currentMonthLastDate.getTime();
 
   componentDidMount() {
+    //當系統偵測用戶沒有登入，跳轉到登入頁面
     firebase.auth().onAuthStateChanged((user) => {
       if (!user) return window.location.href = '/';
     })
+
     const getStudents = (classParam, orderByParam, monthParam, setStateFunc) => {
       const db = firebase.firestore();
       db.collection("student")
@@ -85,28 +87,36 @@ class Leaderboard extends React.Component {
     const currentMonth = new Date().toJSON().slice(0, 7);
     getStudents("A", 'totaltimeplayed', currentMonth, (students) => {
       this.setState({ studentsA: students });
+      localStorage.setItem("classA online", JSON.stringify(students));
     });
     getStudents('B', 'totaltimeplayed', currentMonth, (students) => {
       this.setState({ studentsB: students });
+      localStorage.setItem("classB online", JSON.stringify(students));
     });
     getStudents('C', 'totaltimeplayed', currentMonth, (students) => {
       this.setState({ studentsC: students });
+      localStorage.setItem("classC online", JSON.stringify(students));
     });
     getStudents('D', 'totaltimeplayed', currentMonth, (students) => {
       this.setState({ studentsD: students });
+      localStorage.setItem("classD online", JSON.stringify(students));
     });
 
     getOfflineStudents('A', (students) => {
       this.setState({ OfflineA: students });
+      localStorage.setItem("classA offline", JSON.stringify(students));
     });
     getOfflineStudents('B', (students) => {
       this.setState({ OfflineB: students });
+      localStorage.setItem("classB offline", JSON.stringify(students));
     });
     getOfflineStudents('C', (students) => {
       this.setState({ OfflineC: students });
+      localStorage.setItem("classC offline", JSON.stringify(students));
     });
     getOfflineStudents('D', (students) => {
       this.setState({ OfflineD: students });
+      localStorage.setItem("classD offline", JSON.stringify(students));
     });
 
   }
@@ -131,96 +141,68 @@ class Leaderboard extends React.Component {
           <table className='table table-border'>
             <thead>
               <tr>
-                <th className='coltitlerank'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Trophy} alt='排名' />排名</span> </th>
-
-                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名' />姓名</span></th>
-
-                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名' />最後上線日</span></th>
-
-                {/* <th className='coltitle'>🎵 當日播放次數</th> */}
-                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Headphone} alt='排名' />本月累積次數</span></th>
+                {[
+                  { text: '排名', icon: Trophy },
+                  { text: '姓名', icon: Sun },
+                  { text: '最後上線日', icon: Sparkles },
+                  { text: '本月累積次數', icon: Headphone },
+                ].map((col, index) => (
+                  <th className='coltitle' key={index}>
+                    <span className='d-flex align-items-center justify-content-center'>
+                      <img style={{ marginRight: 7, marginBottom: 5 }} src={col.icon} alt={col.text} />
+                      {col.text}
+                    </span>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {
-                this.state.studentsA &&
-                this.state.studentsA.map((studentsA, index) => {
-                  return (
-                    <tr key={index}>
-                      <td className='d-flex justify-content-center'>
-                        <b className={index + 1 === 1 || index + 1 === 2 || index + 1 === 3 ? 'text-danger' : ''}>
-                          {index + 1 === 1 ?
-                            <span>
-                              <img style={{ marginRight: 7 }}
-                                src={first}
-                                alt="1st" />
-                              1st
+                JSON.parse(localStorage.getItem('classA online')).map((student, index) => (
+                  <tr key={index}>
+                    <td className='d-flex justify-content-center'>
+                      <b className={index < 3 ? 'text-danger' : ''}>
+                        {index < 3 ? (
+                          <span>
+                            <img style={{ marginRight: 7 }} src={[first, second, third][index]} alt={`${index + 1}st`} />
+                            {`${index + 1}st`}
+                          </span>
+                        ) : (
+                          index + 1
+                        )}
+                      </b>
+                    </td>
+                    <td>
+                      <div className='d-flex justify-content-center'>
+                        <div className="align-self-center pl-3">
+                          <b>
+                            <span className='font-weight-bold'>{student.name}</span>
+                          </b>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className='d-flex justify-content-center'>
+                        <div className="align-self-center pl-3">
+                          <b>
+                            <span className={`font-weight-bold ${student.onlinetime ? 'text-success' : 'text-danger'}`}>
+                              {student.onlinetime || '近期無上線'}
                             </span>
-                            :
-                            index + 1 === 2 ?
-                              <span>
-                                <img style={{ marginRight: 7 }}
-                                  src={second}
-                                  alt="2nd" />
-                                2nd
-                              </span>
-                              :
-                              index + 1 === 3 ?
-                                <span>
-                                  <img style={{ marginRight: 7 }}
-                                    src={third}
-                                    alt="3rd" />
-                                  3rd
-                                </span>
-                                : index + 1}
-                        </b>
-                      </td>
-                      <td key={studentsA.name}>
-                        <div className='d-flex justify-content-center'>
-                          <div className="align-self-center pl-3">
-                            <b><span className='font-weight-bold'>{studentsA.name}</span></b>
-                          </div>
+                          </b>
                         </div>
-                      </td>
-                      <td key={studentsA.onlinetime}>
-                        <div className='d-flex justify-content-center'>
-                          <div className="align-self-center pl-3">
-                            <b>
-                              <span className='font-weight-bold'>
-                                <span className={studentsA.onlinetime ? 'text-success' || '' : 'text-danger'}>
-                                  {studentsA.onlinetime || '近期無上線'}
-                                </span>
-                              </span>
-                            </b>
-                          </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className='d-flex justify-content-center'>
+                        <div className="align-self-center pl-3">
+                          <b>
+                            <span className='font-weight-bold'>{student.totaltimeplayed}次</span>
+                          </b>
                         </div>
-                      </td>
-                      {/* <td key={studentsB.index}>
-                          <div className='d-flex justify-content-center'>
-                            <div className="align-self-center pl-3">
-                              <b>
-                                <span className='font-weight-bold' >
-                                  <span className={studentsB.currdatetimeplayed?'text-success' || '':'text-danger'}>
-                                    {studentsB.currdatetimeplayed || '0'}次
-                                  </span>
-                                </span>
-                              </b>
-                            </div>
-                          </div>
-                        </td> */}
-                      <td key={studentsA.totaltimeplayed}>
-                        <div className='d-flex justify-content-center'>
-                          <div className="align-self-center pl-3">
-                            <b>
-                              <span className='font-weight-bold' >{studentsA.totaltimeplayed}次</span>
-                            </b>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              }
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
             <tfoot>
               <tr>
@@ -228,6 +210,7 @@ class Leaderboard extends React.Component {
               </tr>
             </tfoot>
           </table>
+
 
           {/* A班未上線名單 */}
           <div className='classtitle'>A班3天以上沒上線名單</div>
@@ -243,8 +226,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.OfflineA &&
-                this.state.OfflineA.map((OfflineA, index) => {
+                JSON.parse(localStorage.getItem('classA offline')).map((OfflineA, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineA.name} className=''>
@@ -281,58 +263,6 @@ class Leaderboard extends React.Component {
             </tbody>
           </table>
 
-          {/* A班從來沒有上線名單 */}
-          {/* <div className='classtitle'>A班從來沒有上線名單</div>
-          <table className='table table-border'>
-            <thead>
-              <tr>
-                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'>班級</span></th>
-
-                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sun} alt='排名' />姓名</span></th>
-
-                <th className='coltitle'><span className='d-flex align-items-center justify-content-center'><img style={{ marginRight: 7, marginBottom: 5 }} src={Sparkles} alt='排名' />最後上線日</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {
-                this.state.NeverA &&
-                this.state.NeverA.map((NeverA) => {
-                  return (
-                    <tr key={NeverA.name}>
-                      <td key={NeverA.name} className=''>
-                        <div className='d-flex justify-content-center'>
-                          <div className="align-self-center pl-3">
-                            <b><span className='font-weight-bold'>{NeverA.class}</span></b>
-                          </div>
-                        </div>
-                      </td>
-                      <td key={NeverA.name} className=''>
-                        <div className='d-flex justify-content-center'>
-                          <div className="align-self-center pl-3">
-                            <b><span className='font-weight-bold'>{NeverA.name}</span></b>
-                          </div>
-                        </div>
-                      </td>
-                      <td key={NeverA.onlinetime} className=' '>
-                        <div className='d-flex justify-content-center'>
-                          <div className="align-self-center pl-3">
-                            <b>
-                              <span className='font-weight-bold'>
-                                <span className={'text-danger'}>
-                                  {NeverA.onlinetime || '從未上線過'}
-                                </span>
-                              </span>
-                            </b>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              }
-            </tbody>
-          </table> */}
-
           {/* B班 */}
           <div className='classtitle'>B 班</div>
           <table className='table table-border'>
@@ -350,8 +280,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.studentsB &&
-                this.state.studentsB.map((studentsB, index) => {
+                JSON.parse(localStorage.getItem('classB online')).map((studentsB, index) => {
                   return (
                     <tr key={index}>
                       <td className='d-flex justify-content-center'>
@@ -450,8 +379,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.OfflineB &&
-                this.state.OfflineB.map((OfflineB, index) => {
+                JSON.parse(localStorage.getItem('classB offline')).map((OfflineB, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineB.name} className=''>
@@ -505,8 +433,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.studentsC &&
-                this.state.studentsC.map((studentsC, index) => {
+                JSON.parse(localStorage.getItem('classC online')).map((studentsC, index) => {
                   return (
                     <tr key={index}>
                       <td className='d-flex justify-content-center ' >
@@ -604,8 +531,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.OfflineC &&
-                this.state.OfflineC.map((OfflineC, index) => {
+                JSON.parse(localStorage.getItem('classC offline')).map((OfflineC, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineC.class} className=''>
@@ -659,8 +585,7 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.studentsD &&
-                this.state.studentsD.map((studentsD, index) => {
+                JSON.parse(localStorage.getItem('classD online')).map((studentsD, index) => {
                   return (
                     <tr key={index}>
                       <td className='d-flex justify-content-center '>
@@ -758,8 +683,9 @@ class Leaderboard extends React.Component {
             </thead>
             <tbody>
               {
-                this.state.OfflineD &&
-                this.state.OfflineD.map((OfflineD, index) => {
+                //this.state.OfflineD &&
+                //this.state.OfflineD.map((OfflineD, index) => { 
+                JSON.parse(localStorage.getItem('classD offline')).map((OfflineD, index) => {
                   return (
                     <tr key={index}>
                       <td key={OfflineD.name} className=''>

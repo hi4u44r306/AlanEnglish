@@ -169,10 +169,10 @@ class Login extends React.Component {
             const userName = userDoc.data().name.toUpperCase();
 
             toast.promise(
-                new Promise(resolve => setTimeout(resolve, 2000)),
+                new Promise(resolve => setTimeout(resolve, 500)),
                 {
-                    pending: { render: () => "Loading..." },
-                    success: { render: () => <div className="notification">Welcome Back {userName}!!</div> }
+                    // pending: { render: () => "Loading..." },
+                    success: { render: () => <div className="notification">歡迎回來 {userName}!!</div> }
                 },
                 setTimeout(() => window.location = "/home/leaderboard", 2500)
             );
