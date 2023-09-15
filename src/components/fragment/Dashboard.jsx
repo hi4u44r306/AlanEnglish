@@ -14,15 +14,6 @@ const Dashboard = () => {
     const [editingStudentRef, setEditingStudentRef] = useState(null);
     const [updatedStudentData, setUpdatedStudentData] = useState({});
 
-    firebase.auth().onAuthStateChanged(() => {
-        const classtype = localStorage.getItem('ae-class');
-        if (classtype !== 'teacher') {
-            alert('你沒有此權限');
-            window.history.back();
-        }
-    })
-
-
     useEffect(() => {
         const db = firebase.firestore();
         const getStudents = (classParam, orderByParam, setStateFunc) => {
