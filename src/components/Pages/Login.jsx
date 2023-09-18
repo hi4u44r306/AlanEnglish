@@ -283,7 +283,7 @@ class Login extends React.Component {
                                 pauseOnHover
                             />
                             <div className="logincopyrightcontainer">
-                                <span className="logincopyright" href="/">© 2022 Alan English Inc.</span>
+                                <span className="logincopyright" href="/">© 2023 Alan English Inc.</span>
                             </div>
                         </div>
 
