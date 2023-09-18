@@ -173,17 +173,18 @@
     }
   }
 
-  .music-card-cover:hover {
-    cursor: pointer;
-    .play-circle {
-      color: rgb(249, 42, 27);
-      visibility: visible;
-    }
-  }
+  // .music-card-cover:hover {
+  //   cursor: pointer;
+  //   .play-circle {
+  //     color: rgb(249, 42, 27);
+  //     visibility: visible;
+  //   }
+  // }
 }
 .music-card:hover {
   transition: 0.3s ease-in-out;
-  box-shadow: 0 0 20px 3px rgba(168, 168, 168, 0.681);
+  box-shadow: 0 0 20px 3px rgb(255, 161, 161);
+  // box-shadow: 0 0 20px 3px rgba(168, 168, 168, 0.681);
 }
 
 @media only screen and (max-width: 545px) {

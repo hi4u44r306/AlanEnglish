@@ -3,8 +3,8 @@ import '../assets/scss/MusicCard.scss';
 import PlayCircleFilledWhiteIcon from "@material-ui/icons/PlayCircleFilledWhite";
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import ShareIcon from '@mui/icons-material/Share';
+// import MenuBookIcon from '@mui/icons-material/MenuBook';
+// import ShareIcon from '@mui/icons-material/Share';
 import { useDispatch } from "react-redux";
 import { setCurrentPlaying } from "../../actions/actions";
 import Name from "./Name";
@@ -47,9 +47,9 @@ function MusicCard(props) {
                 <>
                     {/* Web */}
                     <div className='web'>
-                        <div className='sharebtn-container'>
+                        {/* <div className='sharebtn-container'>
                             <ShareIcon className='sharebtn' />
-                        </div>
+                        </div> */}
                         <div onClick={handlePlay} className={"music-card-cover"} >
                             <img src={require("../assets/img/" + img).default} alt={bookname} />
                             <div className="play-circle">
@@ -97,7 +97,7 @@ function MusicCard(props) {
                             </div>
                         </div>
 
-                        <div className='d-flex justify-content-center'>
+                        {/* <div className='d-flex justify-content-center'>
                             <div onClick=
                                 {
                                     () => {
@@ -116,14 +116,14 @@ function MusicCard(props) {
                                     <MenuBookIcon className="circleicon" />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* //////////////////////////////////////// */}
 
                     {/* Mobile */}
                     <div className='mobile'>
-                        <ShareIcon className='sharebtn' />
+                        {/* <ShareIcon className='sharebtn' /> */}
                         <React.Fragment>
                             <div className='musicbanner'>
                                 <div onClick={handlePlay} className={"music-card-cover"} >
@@ -170,7 +170,7 @@ function MusicCard(props) {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
                                 <div onClick=
                                     {
                                         () => {
@@ -189,7 +189,7 @@ function MusicCard(props) {
                                         <MenuBookIcon className="circleicon" />
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                             <React.Fragment>
                                 <div className="timesplayedcontainer-mobile">
                                     <Name name={"測驗 :  "} className={"quizlabel"} />
