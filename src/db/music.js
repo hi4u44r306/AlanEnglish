@@ -512,16 +512,16 @@ let musicDB = [
         type: "Workbook_1",
         musicName: "習作本1/習作本1 P59.mp3"
     },
-    // {
-    //     // id: 539,
-    //     bookname: "習作本1",
-    //     page: "P.60",
-    //     img: "headphone1.png",
-    //     lang: "習作本1",
-    //     timesPlayed: 0,
-    //     type: "Workbook_1",
-    //     musicName: "習作本1/習作本1 P60.mp3"
-    // },
+    {
+        // id: 539,
+        bookname: "習作本1",
+        page: "P.60",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P60.mp3"
+    },
     {
         // id: 540,
         bookname: "習作本1",
@@ -541,6 +541,16 @@ let musicDB = [
         timesPlayed: 0,
         type: "Workbook_1",
         musicName: "習作本1/習作本1 P66.mp3"
+    },
+    {
+        // id: 542,
+        bookname: "習作本1",
+        page: "P.70",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P70.mp3"
     },
     {
         // id: 542,
@@ -583,6 +593,16 @@ let musicDB = [
         musicName: "習作本1/習作本1 P78.mp3"
     },
     {
+        // id: 545,
+        bookname: "習作本1",
+        page: "P.80",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P80.mp3"
+    },
+    {
         // id: 546,
         bookname: "習作本1",
         page: "P.89",
@@ -591,6 +611,16 @@ let musicDB = [
         timesPlayed: 0,
         type: "Workbook_1",
         musicName: "習作本1/習作本1 P89.mp3"
+    },
+    {
+        // id: 546,
+        bookname: "習作本1",
+        page: "P.90",
+        img: "headphone1.png",
+        lang: "習作本1",
+        timesPlayed: 0,
+        type: "Workbook_1",
+        musicName: "習作本1/習作本1 P90.mp3"
     },
     {
         // id: 547,
