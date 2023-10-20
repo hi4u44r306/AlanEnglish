@@ -74,7 +74,7 @@ function TeachingResources() {
     useEffect(() => {
         setTimeout(() => {
             setLoading(false);
-        }, 3000);
+        }, 2000);
     }, []);
 
     useEffect(() => {
@@ -166,7 +166,11 @@ function TeachingResources() {
     return (
         <Containerfull>
             <div className='teaching-container'>
-                <button className='teaching-filter-btn' onClick={toggleFilter}>{showFilter ? '❌關閉' : '🗂️篩選器'}</button>
+                <div className='teaching-filter-container'>
+                    <button className='teaching-filter-btn' onClick={toggleFilter}>
+                        {showFilter ? '❌關閉' : '🗂️篩選器'}</button>
+                    <button className='popupbtn' onClick={openPopup}>➕ 新增教學資源</button>
+                </div>
                 {
                     showFilter && (
                         <div className='teaching-filter'>
@@ -240,10 +244,6 @@ function TeachingResources() {
                         </div>
                     )
                 }
-                <div className='teaching-filter-container'>
-
-                </div>
-                <button className='popupbtn' onClick={openPopup}>➕ 新增教學資源</button>
 
                 {/* <div className='teaching-sidebar'>
                 <Navbar bg="light" expand="lg" className="sidebar">
@@ -290,18 +290,21 @@ function TeachingResources() {
 
                                     return true;
                                 })
+                                .reverse()
                                 .map((item, index) => (
                                     <div div key={index} className={item.date.endsWith(`-${userId}`) ? 'data-box-outline' : 'data-box'}>
                                         <div>日期: {item.date.slice(0, 19)}</div>
                                         <div>分校: {item.school}</div>
                                         <div>老師: {item.teacher.toUpperCase()}</div>
-                                        <div>紀錄:
+                                        <div>內容:
                                             <div className="cutoff-text" style={{ maxHeight: expandedItems[index] ? 'none' : '3em', overflow: 'hidden' }}>
                                                 {item.text}
                                             </div>
-                                            <button onClick={() => toggleExpansion(index)}>
-                                                {expandedItems[index] ? '隱藏全文' : '查看全文'}
-                                            </button>
+                                            <div className='expandbtn-container'>
+                                                <button className='expandbtn' onClick={() => toggleExpansion(index)}>
+                                                    {expandedItems[index] ? '隱藏全文' : '查看全文'}
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className='button-container'>
                                             {item.date.endsWith(`-${userId}`) && (
@@ -317,7 +320,6 @@ function TeachingResources() {
                                 ))
                         ) : (
                             <div className='loader'>
-                                { }
                                 <div className='data-box'>
                                     {
                                         isLoading ? (
@@ -359,9 +361,6 @@ function TeachingResources() {
 
                                         )
                                     }
-                                    <div className='button-container'>
-
-                                    </div>
                                 </div>
                                 <div className='data-box'>
                                     {

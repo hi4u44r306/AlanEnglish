@@ -64,10 +64,6 @@ function FooterMusicPlayer({ music }) {
                 totaltimeplayed: d,
             })
         })
-        firebase.database().ref('TeachingResources/').child('test').update({
-            test: '0'
-        })
-
         // Firestore
         userRef.get().then((doc) => {
             if (doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth + 'alreadyupdated') {

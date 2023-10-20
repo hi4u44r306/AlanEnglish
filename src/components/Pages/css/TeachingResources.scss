@@ -5,6 +5,7 @@
 }
 .teaching-filter-container {
   display: flex;
+  justify-content: space-evenly;
 }
 .teaching-filter {
   font-weight: 800;
@@ -18,7 +19,6 @@
   letter-spacing: 5px;
 }
 .teaching-filter input {
-  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
@@ -29,7 +29,6 @@
   background-color: #f6518a;
   border-radius: 5px;
   padding: 5px 15px 5px 15px;
-  margin: 10px 0px 0px 65px;
   box-shadow: 2px 2px 5px #888;
   transition: transform 0.3s ease;
 }
@@ -48,7 +47,14 @@
   padding: 5px 20px 0px 20px;
 }
 
+.data-box-setting {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
 .data-box {
+  position: relative;
   font-weight: 600;
   display: flex;
   flex-direction: column;
@@ -65,6 +71,7 @@
   justify-content: center;
 }
 .data-box-outline {
+  position: relative;
   font-weight: 600;
   border: 5px solid #007bff;
   display: flex;
@@ -121,16 +128,26 @@
 }
 .popupbtn {
   font-size: 18px;
-  // top: 13%;
-  // left: 50%;
-  // transform: translate(-50%, -50%);
-  // position: fixed;
   color: #fff;
   font-weight: 700;
   background-color: #fa4a2b;
   border-radius: 5px;
   padding: 5px 15px 5px 15px;
-  margin: 10px 0px 0px 65px;
+  box-shadow: 2px 2px 5px #888;
+  transition: transform 0.3s ease;
+}
+.expandbtn-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+.expandbtn {
+  font-size: 18px;
+  color: #000000;
+  font-weight: 700;
+  background: none;
+  border-radius: 5px;
+  padding: 5px 15px 5px 15px;
   box-shadow: 2px 2px 5px #888;
   transition: transform 0.3s ease;
 }
@@ -185,8 +202,9 @@
   gap: 20px;
 }
 .loader {
-  display: inline-table;
-  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
 }
 
 // .cutoff-text {
@@ -244,14 +262,14 @@
   }
 }
 @media (max-width: 520px) {
-  .popupbtn {
-    margin: 10px 0px 0px 30px;
-  }
-  .teaching-filter-btn {
-    margin: 10px 0px 0px 30px;
-  }
+  // .popupbtn {
+  //   margin: 10px 0px 0px 30px;
+  // }
+  // .teaching-filter-btn {
+  //   margin: 10px 0px 0px 30px;
+  // }
   .teaching-filter {
-    margin: 10px 0px 0px 30px;
+    margin: 10px 0px 0px 20px;
   }
   .form-box {
     width: 90vw;
