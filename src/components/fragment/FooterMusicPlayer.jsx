@@ -23,6 +23,7 @@ function FooterMusicPlayer({ music }) {
     const currentMonth = new Date().toJSON().slice(0, 7);
     const userRef = db.collection('student').doc(currentuser);
 
+
     const success = () => {
         toast.success(`聽力次數 + 1`, {
             className: "musicnotification",
@@ -63,6 +64,9 @@ function FooterMusicPlayer({ music }) {
                 totaltimeplayed: d,
             })
         })
+        firebase.database().ref('TeachingResources/').child('test').update({
+            test: '0'
+        })
 
         // Firestore
         userRef.get().then((doc) => {
@@ -92,6 +96,8 @@ function FooterMusicPlayer({ music }) {
                 totaltimeplayed: 0,
             });
         });
+
+
 
 
 

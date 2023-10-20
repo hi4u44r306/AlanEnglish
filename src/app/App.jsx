@@ -16,6 +16,8 @@ import Home from "../components/Pages/Home"
 import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
 import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
+import News from "../components/Pages/News";
+import TeachingResources from "../components/Pages/TeachingResources";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -32,12 +34,15 @@ const App = () => {
                 localStorage.setItem('ae-username', doc.data().name)
                 localStorage.setItem('ae-totaltimeplayed', doc.data().totaltimeplayed)
             })
+            db.collection('teacher').doc(user.uid).get().then(doc => {
+                localStorage.setItem('ae-teacherschool', doc.data().school || '')
+            })
         } else {
             localStorage.setItem('ae-class', '')
             localStorage.setItem('ae-useruid', '');
             localStorage.setItem('ae-username', '')
             localStorage.setItem('ae-totaltimeplayed', '')
-
+            localStorage.setItem('ae-teacherschool', '')
         }
     })
 
@@ -72,6 +77,10 @@ const App = () => {
                         <StudentNavigationBar />
                         <Leaderboard />
                     </Route>
+                    <Route path="/home/teachingresources">
+                        <StudentNavigationBar />
+                        <TeachingResources />
+                    </Route>
                     <Route path="/home/userinfo">
                         <StudentNavigationBar />
                         <UserInfo />
@@ -87,6 +96,10 @@ const App = () => {
                     <Route path="/home/dashboard">
                         <StudentNavigationBar />
                         <Dashboard />
+                    </Route>
+                    <Route path="/home/news">
+                        <StudentNavigationBar />
+                        <News />
                     </Route>
                     <Route path="/home" component={Home} />
                 </Switch>
