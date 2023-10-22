@@ -4,12 +4,15 @@
   -ms-user-select: none;
   user-select: none;
   background-color: #fcf8ec;
-  height: 90vh;
-  overflow-y: auto;
+  min-height: 90vh; /* Set a minimum height of 90% viewport height */
+  max-height: 100vh; /* Limit the maximum height to 100% viewport height */
+  overflow-y: auto; /* Enable vertical scrolling if content exceeds the maximum height */
 }
 @media only screen and (max-width: 970px) {
   .Containerfull {
-    height: 90vh;
+    min-height: 90vh; /* Set a minimum height of 90% viewport height */
+    max-height: 100vh; /* Limit the maximum height to 100% viewport height */
+    overflow-y: auto; /* Enable vertical scrolling if content exceeds the maximum height */
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;

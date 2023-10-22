@@ -69,7 +69,6 @@ function TeachingResources() {
     // const [data, setData] = useState([]);
     const data = JSON.parse(localStorage.getItem('teachingResourcesData'));
 
-    // const [editData, setEditData] = useState(null); // To store data for editing
 
     useEffect(() => {
         setTimeout(() => {
@@ -80,33 +79,6 @@ function TeachingResources() {
     useEffect(() => {
         const formattedDateTime = `${year},${month},${day} ${hours}:${minutes}:${seconds}`;
         setCurrentDateTime(formattedDateTime);
-        // var PostRef = firebase.database().ref('TeachingResources/');
-
-        // PostRef.on('value', (snapshot) => {
-        //     if (snapshot.exists()) {
-        //         const data = snapshot.val();
-        //         const dataArray = Object.entries(data).map(([date, details]) => ({
-        //             date,
-        //             ...details,
-        //         }));
-        //         setData(dataArray);
-
-        //         // Store the data in localStorage
-        //         localStorage.setItem('teachingResourcesData', JSON.stringify(dataArray));
-        //     } else {
-        //         const placeholderData = {
-        //             description: "This is a placeholder node.",
-        //             timestamp: "2023-10-19 12:00:00"
-        //         };
-
-        //         // Store the placeholder data in localStorage
-        //         localStorage.setItem('teachingResourcesData', JSON.stringify(placeholderData));
-
-        //         setData(placeholderData);
-        //     }
-        // });
-
-
     }, [day, hours, minutes, month, seconds, year]);
 
     const handleChange = (e) => {
@@ -134,7 +106,6 @@ function TeachingResources() {
             const newPostRef = firebase.database().ref('TeachingResources/').push();
             const postkey = newPostRef.key;
             console.log(newPostRef.key)
-            // setEditData(null); // Clear the edit data
             newPostRef.set({
                 ...postData,
                 postkey: postkey,
@@ -143,14 +114,29 @@ function TeachingResources() {
             closePopup();
         }
     };
-
+    const [editData, setEditData] = useState(null);
     const handleEdit = (item) => {
-        // Allow users to edit only their own posts
+        // Only allow users to edit their own posts
         if (item.date.endsWith(`-${userId}`)) {
-            // setEditData(item);
-            setText(item.text);
+            setEditData(item);
         } else {
             alert('You can only edit your own posts.');
+        }
+    };
+
+    const handleSaveEdit = () => {
+        if (editData) {
+            // Update the edited data in Firebase
+            const postRef = firebase.database().ref('TeachingResources/' + editData.postkey);
+            // Capture the current timestamp
+            const updatedTimestamp = currentDateTime;
+            // Update the 'text' and 'timestamp' fields with the edited content and the new timestamp
+            postRef.update({
+                text: editData.text,
+                updatedTimestamp: updatedTimestamp,
+            });
+            // Clear the editData state to exit edit mode
+            setEditData(null);
         }
     };
 
@@ -298,13 +284,26 @@ function TeachingResources() {
                                 .reverse()
                                 .map((item, index) => (
                                     <div div key={index} className={item.date.endsWith(`-${userId}`) ? 'data-box-outline' : 'data-box'}>
-                                        <div>日期: {item.date.slice(0, 19)}</div>
+                                        <div>
+                                            貼文日期: {item.date.slice(0, 19)}
+                                            <div>
+                                                {item.updatedTimestamp ? `${item.updatedTimestamp}編輯過` : ''}
+                                            </div>
+                                        </div>
                                         <div>分校: {item.school}</div>
                                         <div>老師: {item.teacher.toUpperCase()}</div>
                                         <div>內容:
-                                            <div className="cutoff-text" style={{ maxHeight: expandedItems[index] ? 'none' : '3em', overflow: 'hidden' }}>
-                                                {item.text}
-                                            </div>
+                                            {editData && editData.date === item.date ? ( // Check if this item is being edited
+                                                <input
+                                                    type="text"
+                                                    value={editData.text}
+                                                    onChange={(e) => setEditData({ ...editData, text: e.target.value })}
+                                                />
+                                            ) : (
+                                                <div className="cutoff-text" style={{ maxHeight: expandedItems[index] ? 'none' : '3em', overflow: 'hidden' }}>
+                                                    {item.text}
+                                                </div>
+                                            )}
                                             <div className='expandbtn-container'>
                                                 <button className='expandbtn' onClick={() => toggleExpansion(index)}>
                                                     {expandedItems[index] ? '隱藏全文' : '查看全文'}
@@ -313,8 +312,11 @@ function TeachingResources() {
                                         </div>
                                         <div className='button-container'>
                                             {item.date.endsWith(`-${userId}`) && (
-                                                <button className='posteditbtn' onClick={() => handleEdit(item)}>Edit</button>
-                                            )}
+                                                editData && editData.date === item.date ? ( // Check if this item is being edited
+                                                    <button className='saveeditbtn' onClick={handleSaveEdit}>Save</button>
+                                                ) : (
+                                                    <button className='posteditbtn' onClick={() => handleEdit(item)}>Edit</button>
+                                                ))}
                                             <form>
                                                 {item.date.endsWith(`-${userId}`) && (
                                                     <button className='deletebtn' onClick={() => handleDelete(item)}>Delete</button>
