@@ -127,7 +127,10 @@ class Leaderboard extends React.Component {
 
   }
 
+
+
   render() {
+
     return (
       <Containerfull>
         <div className='leaderboard'>
@@ -142,6 +145,8 @@ class Leaderboard extends React.Component {
               <CountdownTimer countdownTimestampMs={this.currentMonthLastDateMs} />
             </div>
           </div>
+
+
           {/* A班 */}
           <div className='classtitle'>A 班</div>
           <table className='table table-border'>
@@ -218,7 +223,7 @@ class Leaderboard extends React.Component {
           </table>
 
           {/* A班未上線名單 */}
-          <div className='classtitle'>A班3天以上沒上線名單</div>
+          <div className='classtitle-notonline'>A班3天以上沒上線名單</div>
           <table className='table table-border'>
             <thead>
               <tr>
@@ -371,7 +376,7 @@ class Leaderboard extends React.Component {
           </table>
 
           {/* B班未上線名單 */}
-          <div className='classtitle'>B班3天以上沒上線名單</div>
+          <div className='classtitle-notonline'>B班3天以上沒上線名單</div>
           <table className='table table-border'>
             <thead>
               <tr>
@@ -523,7 +528,7 @@ class Leaderboard extends React.Component {
             </tfoot>
           </table>
           {/* C班未上線名單 */}
-          <div className='classtitle'>C班3天以上沒上線名單</div>
+          <div className='classtitle-notonline'>C班3天以上沒上線名單</div>
           <table className='table table-border'>
             <thead>
               <tr>
@@ -675,7 +680,7 @@ class Leaderboard extends React.Component {
             </tfoot>
           </table>
           {/* D班未上線名單 */}
-          <div className='classtitle'>D班3天以上沒上線名單</div>
+          <div className='classtitle-notonline'>D班3天以上沒上線名單</div>
           <table className='table table-border'>
             <thead>
               <tr>

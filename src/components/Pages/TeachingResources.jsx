@@ -66,10 +66,10 @@ function TeachingResources() {
 
 
     const [error, setError] = useState(true);
-    const [data, setData] = useState([]);
+    // const [data, setData] = useState([]);
+    const data = JSON.parse(localStorage.getItem('teachingResourcesData'));
+
     // const [editData, setEditData] = useState(null); // To store data for editing
-
-
 
     useEffect(() => {
         setTimeout(() => {
@@ -80,26 +80,32 @@ function TeachingResources() {
     useEffect(() => {
         const formattedDateTime = `${year},${month},${day} ${hours}:${minutes}:${seconds}`;
         setCurrentDateTime(formattedDateTime);
+        // var PostRef = firebase.database().ref('TeachingResources/');
 
+        // PostRef.on('value', (snapshot) => {
+        //     if (snapshot.exists()) {
+        //         const data = snapshot.val();
+        //         const dataArray = Object.entries(data).map(([date, details]) => ({
+        //             date,
+        //             ...details,
+        //         }));
+        //         setData(dataArray);
 
-        var starCountRef = firebase.database().ref('TeachingResources/');
-        starCountRef.on('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                const dataArray = Object.entries(data).map(([date, details]) => ({
-                    date,
-                    ...details,
-                }));
-                setData(dataArray);
-            }
-            else {
-                const placeholderData = {
-                    description: "This is a placeholder node.",
-                    timestamp: "2023-10-19 12:00:00"
-                };
-                setData(placeholderData);
-            }
-        });
+        //         // Store the data in localStorage
+        //         localStorage.setItem('teachingResourcesData', JSON.stringify(dataArray));
+        //     } else {
+        //         const placeholderData = {
+        //             description: "This is a placeholder node.",
+        //             timestamp: "2023-10-19 12:00:00"
+        //         };
+
+        //         // Store the placeholder data in localStorage
+        //         localStorage.setItem('teachingResourcesData', JSON.stringify(placeholderData));
+
+        //         setData(placeholderData);
+        //     }
+        // });
+
 
     }, [day, hours, minutes, month, seconds, year]);
 
@@ -259,7 +265,6 @@ function TeachingResources() {
             </div> */}
                 <div className='teaching-main'>
                     {
-
                         data.length ? (
                             data
                                 .filter((item) => {

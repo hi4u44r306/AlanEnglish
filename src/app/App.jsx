@@ -37,6 +37,28 @@ const App = () => {
             db.collection('teacher').doc(user.uid).get().then(doc => {
                 localStorage.setItem('ae-teacherschool', doc.data().school || '')
             })
+            var PostRef = firebase.database().ref('TeachingResources/');
+
+            PostRef.on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const dataArray = Object.entries(data).map(([date, details]) => ({
+                        date,
+                        ...details,
+                    }));
+
+                    // Store the data in localStorage
+                    localStorage.setItem('teachingResourcesData', JSON.stringify(dataArray));
+                } else {
+                    const placeholderData = {
+                        description: "This is a placeholder node.",
+                        timestamp: "2023-10-19 12:00:00"
+                    };
+
+                    // Store the placeholder data in localStorage
+                    localStorage.setItem('teachingResourcesData', JSON.stringify(placeholderData));
+                }
+            });
         } else {
             localStorage.setItem('ae-class', '')
             localStorage.setItem('ae-useruid', '');
