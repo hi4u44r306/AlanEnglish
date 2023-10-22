@@ -1,10 +1,13 @@
 nav {
-  height: 10vh;
+  /* height: 10%; */
   display: flex;
   flex-flow: row wrap;
   justify-content: flex-start;
   background-color: #f6f6f6;
   user-select: none;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 nav div {
   display: flex;
