@@ -62,8 +62,11 @@
 
 .teaching-container {
   width: 100%;
-  height: calc(100vh - 10vh);
-  overflow: auto;
+  position: absolute;
+  top: 10vh;
+  bottom: 0;
+  width: 100%;
+  overflow-y: auto;
   background-color: #fcf8ec;
 }
 .teaching-filter-container {

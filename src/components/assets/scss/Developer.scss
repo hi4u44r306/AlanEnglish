@@ -3,7 +3,11 @@
   background-color: #fcf8ec;
   display: flex;
   justify-content: center;
-  height: 90vh;
+  position: absolute;
+  top: 10vh;
+  bottom: 0;
+  width: 100%;
+  overflow-y: auto;
   .Developer-profile {
     display: flex;
     background-color: #fcf8ec;

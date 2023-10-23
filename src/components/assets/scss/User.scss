@@ -139,7 +139,11 @@
   align-items: center;
   justify-content: center;
   background-color: #fcf8ec;
-  height: 90vh;
+  position: absolute;
+  top: 10vh;
+  bottom: 0;
+  width: 100%;
+  overflow-y: auto;
 }
 .User-profileDetails {
   background-color: #ffffff;

@@ -5,7 +5,7 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import firebase from 'firebase/app';
 import 'firebase/database';
 import './css/TeachingResources.scss';
-import Containerfull from '../fragment/Containerfull';
+// import Containerfull from '../fragment/Containerfull';
 // import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -185,88 +185,88 @@ function TeachingResources() {
 
 
     return (
-        <Containerfull>
-            <div className='teaching-container'>
-                <div className='teaching-filter-container'>
-                    <button className='teaching-filter-btn' onClick={toggleFilter}>
-                        {showFilter ? '❌關閉' : '🗂️篩選器'}</button>
-                    <button className='popupbtn' onClick={openPopup}>➕ 新增教學資源</button>
-                </div>
-                {
-                    showFilter && (
-                        <div className='teaching-filter'>
-                            <label>
-                                日期查詢
-                                <input
-                                    value={filterOptions.date}
-                                    onChange={(e) => setFilterOptions({ ...filterOptions, date: e.target.value })}
-                                    placeholder='請輸入日期' />
-                            </label>
+        // <Containerfull>
+        <div className='teaching-container'>
+            <div className='teaching-filter-container'>
+                <button className='teaching-filter-btn' onClick={toggleFilter}>
+                    {showFilter ? '❌關閉' : '🗂️篩選器'}</button>
+                <button className='popupbtn' onClick={openPopup}>➕ 新增教學資源</button>
+            </div>
+            {
+                showFilter && (
+                    <div className='teaching-filter'>
+                        <label>
+                            日期查詢
+                            <input
+                                value={filterOptions.date}
+                                onChange={(e) => setFilterOptions({ ...filterOptions, date: e.target.value })}
+                                placeholder='請輸入日期' />
+                        </label>
 
-                            <label>
-                                校區
-                                <select
-                                    value={filterOptions.school}
-                                    onChange={(e) => setFilterOptions({ ...filterOptions, school: e.target.value })}
-                                >
-                                    <option value="" >顯示全部</option>
-                                    <option value="桃園校區">桃園校區</option>
-                                    <option value="龜山校區">龜山校區</option>
+                        <label>
+                            校區
+                            <select
+                                value={filterOptions.school}
+                                onChange={(e) => setFilterOptions({ ...filterOptions, school: e.target.value })}
+                            >
+                                <option value="" >顯示全部</option>
+                                <option value="桃園校區">桃園校區</option>
+                                <option value="龜山校區">龜山校區</option>
 
-                                    {/* Add school options */}
-                                </select>
-                            </label>
+                                {/* Add school options */}
+                            </select>
+                        </label>
 
-                            <label>
-                                月份
-                                <select
-                                    value={filterOptions.month}
-                                    onChange={(e) => setFilterOptions({ ...filterOptions, month: e.target.value })}
-                                >
-                                    <option value="">顯示全部</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                    <option value="6">6</option>
-                                    <option value="7">7</option>
-                                    <option value="8">8</option>
-                                    <option value="9">9</option>
-                                    <option value="10">10</option>
-                                    <option value="11">11</option>
-                                    <option value="12">12</option>
-                                    {/* Add month options */}
-                                </select>
-                            </label>
+                        <label>
+                            月份
+                            <select
+                                value={filterOptions.month}
+                                onChange={(e) => setFilterOptions({ ...filterOptions, month: e.target.value })}
+                            >
+                                <option value="">顯示全部</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                {/* Add month options */}
+                            </select>
+                        </label>
 
-                            <label>
-                                年份
-                                <select
-                                    value={filterOptions.year}
-                                    onChange={(e) => setFilterOptions({ ...filterOptions, year: e.target.value })}
-                                >
-                                    <option value="">顯示全部</option>
-                                    <option value="2023">2023</option>
-                                    <option value="2022">2022</option>
-                                    <option value="2021">2021</option>
-                                    {/* Add year options */}
-                                </select>
-                            </label>
+                        <label>
+                            年份
+                            <select
+                                value={filterOptions.year}
+                                onChange={(e) => setFilterOptions({ ...filterOptions, year: e.target.value })}
+                            >
+                                <option value="">顯示全部</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                {/* Add year options */}
+                            </select>
+                        </label>
 
-                            <label>
-                                <input
-                                    value={filterOptions.hasOutline}
-                                    type="checkbox"
-                                    onChange={(e) => setFilterOptions({ ...filterOptions, hasOutline: e.target.checked })}
-                                /> 只顯示我的貼文
-                            </label>
-                            <button className='reset-filter-btn' onClick={resetFilter}>重置篩選</button>
-                        </div>
-                    )
-                }
+                        <label>
+                            <input
+                                value={filterOptions.hasOutline}
+                                type="checkbox"
+                                onChange={(e) => setFilterOptions({ ...filterOptions, hasOutline: e.target.checked })}
+                            /> 只顯示我的貼文
+                        </label>
+                        <button className='reset-filter-btn' onClick={resetFilter}>重置篩選</button>
+                    </div>
+                )
+            }
 
-                {/* <div className='teaching-sidebar'>
+            {/* <div className='teaching-sidebar'>
                 <Navbar bg="light" expand="lg" className="sidebar">
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
@@ -278,420 +278,420 @@ function TeachingResources() {
                     </Navbar.Collapse>
                 </Navbar>
             </div> */}
-                <div className='teaching-main'>
-                    {
-                        data.length ? (
-                            data
-                                .filter((item) => {
-                                    // Date filter
-                                    if (filterOptions.date && !item.date.slice(0, -38).includes(filterOptions.date)) {
-                                        return false;
-                                    }
+            <div className='teaching-main'>
+                {
+                    data.length ? (
+                        data
+                            .filter((item) => {
+                                // Date filter
+                                if (filterOptions.date && !item.date.slice(0, -38).includes(filterOptions.date)) {
+                                    return false;
+                                }
 
-                                    // School filter
-                                    if (filterOptions.school && !item.school.includes(filterOptions.school)) {
-                                        return false;
-                                    }
+                                // School filter
+                                if (filterOptions.school && !item.school.includes(filterOptions.school)) {
+                                    return false;
+                                }
 
-                                    // Month filter
-                                    if (filterOptions.month && parseInt(item.date.slice(5, 7)) !== parseInt(filterOptions.month)) {
-                                        return false;
-                                    }
+                                // Month filter
+                                if (filterOptions.month && parseInt(item.date.slice(5, 7)) !== parseInt(filterOptions.month)) {
+                                    return false;
+                                }
 
-                                    // Year filter
-                                    if (filterOptions.year && parseInt(item.date.slice(0, 4)) !== parseInt(filterOptions.year)) {
-                                        return false;
-                                    }
+                                // Year filter
+                                if (filterOptions.year && parseInt(item.date.slice(0, 4)) !== parseInt(filterOptions.year)) {
+                                    return false;
+                                }
 
-                                    // Has Outline filter
-                                    if (filterOptions.hasOutline && !item.date.endsWith(`-${userId}`)) {
-                                        return false;
-                                    }
+                                // Has Outline filter
+                                if (filterOptions.hasOutline && !item.date.endsWith(`-${userId}`)) {
+                                    return false;
+                                }
 
-                                    return true;
-                                })
-                                .reverse()
-                                .map((item, index) => (
-                                    <div div key={index} className={item.date.endsWith(`-${userId}`) ? 'data-box-outline' : 'data-box'}>
-                                        <div>
-                                            貼文日期: {item.date.slice(0, 19)}
-                                            <div className='edittimestamp'>
-                                                {item.updatedTimestamp ? `${item.updatedTimestamp}編輯過` : ''}
+                                return true;
+                            })
+                            .reverse()
+                            .map((item, index) => (
+                                <div div key={index} className={item.date.endsWith(`-${userId}`) ? 'data-box-outline' : 'data-box'}>
+                                    <div>
+                                        貼文日期: {item.date.slice(0, 19)}
+                                        <div className='edittimestamp'>
+                                            {item.updatedTimestamp ? `${item.updatedTimestamp}編輯過` : ''}
+                                        </div>
+                                    </div>
+                                    <div>分校: {item.school}</div>
+                                    <div>老師: {item.teacher.toUpperCase()}</div>
+                                    <div>
+                                        <div>內容:
+                                            {editData && editData.date === item.date ? (
+                                                // Edit input
+                                                <div>
+                                                    <textarea
+                                                        type="text"
+                                                        value={editData.text}
+                                                        onChange={(e) => setEditData({ ...editData, text: e.target.value })}
+                                                        className='editinput'
+                                                        rows="4"
+                                                        cols="28"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                // Display post content
+                                                <div className="cutoff-text" style={{ maxHeight: expandedItems[index] ? 'none' : '3em', overflow: 'hidden' }}>
+                                                    {item.text}
+                                                </div>
+                                            )}
+                                            <div className='expandbtn-container'>
+                                                <button className='expandbtn' onClick={() => toggleExpansion(index)}>
+                                                    {expandedItems[index] ? '隱藏全文' : '查看全文'}
+                                                </button>
                                             </div>
                                         </div>
-                                        <div>分校: {item.school}</div>
-                                        <div>老師: {item.teacher.toUpperCase()}</div>
-                                        <div>
-                                            <div>內容:
-                                                {editData && editData.date === item.date ? (
-                                                    // Edit input
-                                                    <div>
-                                                        <textarea
-                                                            type="text"
-                                                            value={editData.text}
-                                                            onChange={(e) => setEditData({ ...editData, text: e.target.value })}
-                                                            className='editinput'
-                                                            rows="4"
-                                                            cols="28"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    // Display post content
-                                                    <div className="cutoff-text" style={{ maxHeight: expandedItems[index] ? 'none' : '3em', overflow: 'hidden' }}>
-                                                        {item.text}
-                                                    </div>
-                                                )}
-                                                <div className='expandbtn-container'>
-                                                    <button className='expandbtn' onClick={() => toggleExpansion(index)}>
-                                                        {expandedItems[index] ? '隱藏全文' : '查看全文'}
-                                                    </button>
+                                    </div>
+                                    <div className='button-container'>
+                                        {/* <ToastContainer /> */}
+                                        <div className="heart-btn">
+                                            <div className={`content ${isHeartActive ? 'heart-active' : ''}`} onClick={handleClick}>
+                                                <div className={`text ${isHeartActive ? 'heart-active' : ''}`}>
+                                                </div>
+                                                <div className={`numb ${isHeartActive ? 'heart-active' : ''}`}>
+                                                </div>
+                                                <div className={`heart ${isHeartActive ? 'heart-active' : ''}`}>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className='button-container'>
-                                            {/* <ToastContainer /> */}
-                                            <div className="heart-btn">
-                                                <div className={`content ${isHeartActive ? 'heart-active' : ''}`} onClick={handleClick}>
-                                                    <div className={`text ${isHeartActive ? 'heart-active' : ''}`}>
-                                                    </div>
-                                                    <div className={`numb ${isHeartActive ? 'heart-active' : ''}`}>
-                                                    </div>
-                                                    <div className={`heart ${isHeartActive ? 'heart-active' : ''}`}>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {/* <div className="heart-btn">
+                                        {/* <div className="heart-btn">
                                                 <div className="content">
                                                     <span className="heart"></span>
                                                     <span className="text">Like</span>
                                                     <span className="numb"></span>
                                                 </div>
                                             </div> */}
-                                            <button>❤️{item.likes || 0}</button>
-                                            {item.date.endsWith(`-${userId}`) && (
-                                                editData && editData.date === item.date ? (
-                                                    // Edit buttons
-                                                    <div className='buttons'>
-                                                        <button className='saveeditbtn' onClick={handleSaveEdit}>Save</button>
-                                                        <button className='cancel-edit-button' onClick={() => handleCancelEdit()}>取消</button>
-                                                    </div>
-                                                ) : (
-                                                    // Normal buttons
-                                                    <div className='buttons'>
+                                        <button>❤️{item.likes || 0}</button>
+                                        {item.date.endsWith(`-${userId}`) && (
+                                            editData && editData.date === item.date ? (
+                                                // Edit buttons
+                                                <div className='buttons'>
+                                                    <button className='saveeditbtn' onClick={handleSaveEdit}>Save</button>
+                                                    <button className='cancel-edit-button' onClick={() => handleCancelEdit()}>取消</button>
+                                                </div>
+                                            ) : (
+                                                // Normal buttons
+                                                <div className='buttons'>
 
-                                                        <button className='posteditbtn' onClick={() => handleEdit(item)}>Edit</button>
-                                                        {item.date.endsWith(`-${userId}`) && (
-                                                            <button className='deletebtn' onClick={() => handleDelete(item)}>Delete</button>
-                                                        )}
-                                                    </div>
-                                                )
-                                            )}
+                                                    <button className='posteditbtn' onClick={() => handleEdit(item)}>Edit</button>
+                                                    {item.date.endsWith(`-${userId}`) && (
+                                                        <button className='deletebtn' onClick={() => handleDelete(item)}>Delete</button>
+                                                    )}
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                    ) : (
+                        <div className='loader'>
+                            <div className='data-box'>
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Date:
                                         </div>
-                                    </div>
-                                ))
-                        ) : (
-                            <div className='loader'>
-                                <div className='data-box'>
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Date:
-                                            </div>
 
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                School:
-                                            </div>
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            School:
+                                        </div>
 
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Teacher:
-                                            </div>
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Teacher:
+                                        </div>
 
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Text:
-                                            </div>
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Text:
+                                        </div>
 
-                                        )
-                                    }
-                                </div>
-                                <div className='data-box'>
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Date:
-                                            </div>
+                                    )
+                                }
+                            </div>
+                            <div className='data-box'>
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Date:
+                                        </div>
 
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                School:
-                                            </div>
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            School:
+                                        </div>
 
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Teacher:
-                                            </div>
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Teacher:
+                                        </div>
 
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Text:
-                                            </div>
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Text:
+                                        </div>
 
-                                        )
-                                    }
-                                    <div className='button-container'>
+                                    )
+                                }
+                                <div className='button-container'>
 
-                                    </div>
-                                </div>
-                                <div className='data-box'>
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Date:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                School:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Teacher:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Text:
-                                            </div>
-
-                                        )
-                                    }
-                                    <div className='button-container'>
-
-                                    </div>
-                                </div>
-                                <div className='data-box'>
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Date:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                School:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Teacher:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Text:
-                                            </div>
-
-                                        )
-                                    }
-                                    <div className='button-container'>
-
-                                    </div>
-                                </div>
-                                <div className='data-box'>
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Date:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                School:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Teacher:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Text:
-                                            </div>
-
-                                        )
-                                    }
-                                    <div className='button-container'>
-
-                                    </div>
-                                </div>
-                                <div className='data-box'>
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Date:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                School:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Teacher:
-                                            </div>
-
-                                        )
-                                    }
-                                    {
-                                        isLoading ? (
-                                            <Skeleton />
-                                        ) : (
-                                            <div>
-                                                Text:
-                                            </div>
-
-                                        )
-                                    }
-                                    <div className='button-container'>
-
-                                    </div>
                                 </div>
                             </div>
-                        )
-                    }
-                    {isPopupOpen && (
-                        <>
-                            <div className='Overlay' />
-                            <div className='form-box'>
-                                <div className='form-box-title'>新增教學資源</div>
-                                <div>
-                                    <label>AlanEnglish校區 : {teacherschool}</label>
-                                </div>
-                                <div>
-                                    <label>老師名稱 : {teacher.toUpperCase()}</label>
-                                </div>
-                                <div>
-                                    <label>內容 :</label>
-                                    <textarea
-                                        value={text}
-                                        onChange={handleChange}
-                                        rows="4"
-                                        cols="22"
-                                    ></textarea>
-                                    {error && <p style={{ color: 'red' }}>字數至少10個字</p>}
-                                </div>
-                                <div className='btncontainer'>
-                                    <button className='teachingsubmitbtn' type='submit' onClick={handleSubmit} disabled={isSubmitDisabled}>上傳</button>
-                                    <button className='teachingclosebtn' onClick={closePopup}>取消</button>
+                            <div className='data-box'>
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Date:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            School:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Teacher:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Text:
+                                        </div>
+
+                                    )
+                                }
+                                <div className='button-container'>
+
                                 </div>
                             </div>
-                        </>
-                    )}
-                </div>
+                            <div className='data-box'>
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Date:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            School:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Teacher:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Text:
+                                        </div>
+
+                                    )
+                                }
+                                <div className='button-container'>
+
+                                </div>
+                            </div>
+                            <div className='data-box'>
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Date:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            School:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Teacher:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Text:
+                                        </div>
+
+                                    )
+                                }
+                                <div className='button-container'>
+
+                                </div>
+                            </div>
+                            <div className='data-box'>
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Date:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            School:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Teacher:
+                                        </div>
+
+                                    )
+                                }
+                                {
+                                    isLoading ? (
+                                        <Skeleton />
+                                    ) : (
+                                        <div>
+                                            Text:
+                                        </div>
+
+                                    )
+                                }
+                                <div className='button-container'>
+
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+                {isPopupOpen && (
+                    <>
+                        <div className='Overlay' />
+                        <div className='form-box'>
+                            <div className='form-box-title'>新增教學資源</div>
+                            <div>
+                                <label>AlanEnglish校區 : {teacherschool}</label>
+                            </div>
+                            <div>
+                                <label>老師名稱 : {teacher.toUpperCase()}</label>
+                            </div>
+                            <div>
+                                <label>內容 :</label>
+                                <textarea
+                                    value={text}
+                                    onChange={handleChange}
+                                    rows="4"
+                                    cols="22"
+                                ></textarea>
+                                {error && <p style={{ color: 'red' }}>字數至少10個字</p>}
+                            </div>
+                            <div className='btncontainer'>
+                                <button className='teachingsubmitbtn' type='submit' onClick={handleSubmit} disabled={isSubmitDisabled}>上傳</button>
+                                <button className='teachingclosebtn' onClick={closePopup}>取消</button>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
-        </Containerfull >
+        </div>
+        // </Containerfull >
     );
 }
 
