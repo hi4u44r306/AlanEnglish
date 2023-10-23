@@ -18,6 +18,9 @@
 //   position: fixed;
 //   bottom: 12%;
 // }
+.home-music-container {
+  height: 90vh;
+}
 .copyright {
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -33,6 +36,7 @@
   align-items: center;
 }
 .home-musicplayer {
-  position: relative;
-  bottom: 12%;
+  position: absolute;
+  bottom: 0;
+  z-index: 1;
 }

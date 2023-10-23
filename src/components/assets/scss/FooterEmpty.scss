@@ -1,7 +1,7 @@
 .marquee {
   flex: none !important;
   min-width: 100%;
-  min-height: 100%;
+  // min-height: 100%;
   overflow: hidden;
   gap: 20px;
 }
@@ -33,43 +33,35 @@
 }
 
 // 時間軸點點顏色
-.rhap_progress-indicator {
-  background-color: rgb(255, 0, 0) !important;
-}
+// .rhap_progress-indicator {
+//   background-color: rgb(255, 0, 0) !important;
+// }
 // 音量點點顏色
 .rhap_volume-indicator {
   background-color: rgb(255, 0, 0) !important;
 }
 // 重複鍵顏色
-.rhap_repeat-button {
-  color: rgb(255, 0, 0) !important;
-}
-.rhap_progress-filled {
-  background-color: rgb(255, 0, 0) !important;
-}
+// .rhap_repeat-button {
+//   color: rgb(255, 0, 0) !important;
+// }
+// .rhap_progress-filled {
+//   background-color: rgb(255, 0, 0) !important;
+// }
 .rhap_volume-button {
   color: rgb(255, 0, 0) !important;
 }
 .rhap_main-controls > button {
   color: rgb(255, 0, 0) !important;
 }
-.rhap_additional-controls {
-  color: rgb(0, 145, 255) !important;
-}
+// .rhap_additional-controls {
+//   color: rgb(0, 145, 255) !important;
+// }
 .nomusicname {
   font-weight: bolder;
   font-size: 0.7rem;
   color: rgb(255, 0, 0);
   text-align: center;
 }
-// .footer-player {
-//   border-top: 1px solid #e0e0e0;
-//   height: 10vh;
-//   position: absolute;
-//   display: flex;
-//   flex-direction: row;
-//   align-items: center;
-// }
 .MuiButton-label {
   width: 100%;
   display: inherit;
