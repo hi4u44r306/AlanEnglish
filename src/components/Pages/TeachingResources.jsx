@@ -176,11 +176,11 @@ function TeachingResources() {
     // }
 
 
-    const [isHeartActive, setHeartActive] = useState(false);
+    // const [isHeartActive, setHeartActive] = useState(false);
 
-    const handleClick = () => {
-        setHeartActive(!isHeartActive);
-    };
+    // const handleClick = () => {
+    //     setHeartActive(!isHeartActive);
+    // };
 
 
 
@@ -350,7 +350,7 @@ function TeachingResources() {
                                     </div>
                                     <div className='button-container'>
                                         {/* <ToastContainer /> */}
-                                        <div className="heart-btn">
+                                        {/* <div className="heart-btn">
                                             <div className={`content ${isHeartActive ? 'heart-active' : ''}`} onClick={handleClick}>
                                                 <div className={`text ${isHeartActive ? 'heart-active' : ''}`}>
                                                 </div>
@@ -359,7 +359,7 @@ function TeachingResources() {
                                                 <div className={`heart ${isHeartActive ? 'heart-active' : ''}`}>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> */}
                                         {/* <div className="heart-btn">
                                                 <div className="content">
                                                     <span className="heart"></span>
