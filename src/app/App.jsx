@@ -47,6 +47,7 @@ const App = () => {
                         ...details,
                     }));
 
+
                     // Store the data in localStorage
                     localStorage.setItem('teachingResourcesData', JSON.stringify(dataArray));
                 } else {

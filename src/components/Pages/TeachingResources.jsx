@@ -6,6 +6,8 @@ import firebase from 'firebase/app';
 import 'firebase/database';
 import './css/TeachingResources.scss';
 import Containerfull from '../fragment/Containerfull';
+// import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function TeachingResources() {
 
@@ -101,6 +103,7 @@ function TeachingResources() {
                 school: teacherschool,
                 teacher: teacher,
                 text: text,
+                likes: 0,
             };
             // Use `push` to generate a unique ID for each submission
             const newPostRef = firebase.database().ref('TeachingResources/').push();
@@ -140,6 +143,11 @@ function TeachingResources() {
         }
     };
 
+    const handleCancelEdit = () => {
+        // Reset the editData state to cancel the edit
+        setEditData(null);
+    };
+
     const handleDelete = (item) => {
         if (window.confirm("Are you sure you want to delete this post?")) {
             const postRef = firebase.database().ref('TeachingResources/' + item.postkey);
@@ -151,6 +159,27 @@ function TeachingResources() {
                     console.error("Error deleting post: " + error);
                 });
         }
+    };
+
+    // const success = () => {
+    //     toast.success('已加入收藏', {
+    //         className: "notification",
+    //         position: "top-center",
+    //         autoClose: 3000,
+    //         hideProgressBar: false,
+    //         closeOnClick: true,
+    //         pauseOnHover: false,
+    //         draggable: true,
+    //         progress: undefined,
+    //         theme: "colored",
+    //     });
+    // }
+
+
+    const [isHeartActive, setHeartActive] = useState(false);
+
+    const handleClick = () => {
+        setHeartActive(!isHeartActive);
     };
 
 
@@ -286,42 +315,77 @@ function TeachingResources() {
                                     <div div key={index} className={item.date.endsWith(`-${userId}`) ? 'data-box-outline' : 'data-box'}>
                                         <div>
                                             貼文日期: {item.date.slice(0, 19)}
-                                            <div>
+                                            <div className='edittimestamp'>
                                                 {item.updatedTimestamp ? `${item.updatedTimestamp}編輯過` : ''}
                                             </div>
                                         </div>
                                         <div>分校: {item.school}</div>
                                         <div>老師: {item.teacher.toUpperCase()}</div>
-                                        <div>內容:
-                                            {editData && editData.date === item.date ? ( // Check if this item is being edited
-                                                <input
-                                                    type="text"
-                                                    value={editData.text}
-                                                    onChange={(e) => setEditData({ ...editData, text: e.target.value })}
-                                                />
-                                            ) : (
-                                                <div className="cutoff-text" style={{ maxHeight: expandedItems[index] ? 'none' : '3em', overflow: 'hidden' }}>
-                                                    {item.text}
+                                        <div>
+                                            <div>內容:
+                                                {editData && editData.date === item.date ? (
+                                                    // Edit input
+                                                    <div>
+                                                        <textarea
+                                                            type="text"
+                                                            value={editData.text}
+                                                            onChange={(e) => setEditData({ ...editData, text: e.target.value })}
+                                                            className='editinput'
+                                                            rows="4"
+                                                            cols="28"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    // Display post content
+                                                    <div className="cutoff-text" style={{ maxHeight: expandedItems[index] ? 'none' : '3em', overflow: 'hidden' }}>
+                                                        {item.text}
+                                                    </div>
+                                                )}
+                                                <div className='expandbtn-container'>
+                                                    <button className='expandbtn' onClick={() => toggleExpansion(index)}>
+                                                        {expandedItems[index] ? '隱藏全文' : '查看全文'}
+                                                    </button>
                                                 </div>
-                                            )}
-                                            <div className='expandbtn-container'>
-                                                <button className='expandbtn' onClick={() => toggleExpansion(index)}>
-                                                    {expandedItems[index] ? '隱藏全文' : '查看全文'}
-                                                </button>
                                             </div>
                                         </div>
                                         <div className='button-container'>
+                                            {/* <ToastContainer /> */}
+                                            <div className="heart-btn">
+                                                <div className={`content ${isHeartActive ? 'heart-active' : ''}`} onClick={handleClick}>
+                                                    <div className={`text ${isHeartActive ? 'heart-active' : ''}`}>
+                                                    </div>
+                                                    <div className={`numb ${isHeartActive ? 'heart-active' : ''}`}>
+                                                    </div>
+                                                    <div className={`heart ${isHeartActive ? 'heart-active' : ''}`}>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* <div className="heart-btn">
+                                                <div className="content">
+                                                    <span className="heart"></span>
+                                                    <span className="text">Like</span>
+                                                    <span className="numb"></span>
+                                                </div>
+                                            </div> */}
+                                            <button>❤️{item.likes || 0}</button>
                                             {item.date.endsWith(`-${userId}`) && (
-                                                editData && editData.date === item.date ? ( // Check if this item is being edited
-                                                    <button className='saveeditbtn' onClick={handleSaveEdit}>Save</button>
+                                                editData && editData.date === item.date ? (
+                                                    // Edit buttons
+                                                    <div className='buttons'>
+                                                        <button className='saveeditbtn' onClick={handleSaveEdit}>Save</button>
+                                                        <button className='cancel-edit-button' onClick={() => handleCancelEdit()}>取消</button>
+                                                    </div>
                                                 ) : (
-                                                    <button className='posteditbtn' onClick={() => handleEdit(item)}>Edit</button>
-                                                ))}
-                                            <form>
-                                                {item.date.endsWith(`-${userId}`) && (
-                                                    <button className='deletebtn' onClick={() => handleDelete(item)}>Delete</button>
-                                                )}
-                                            </form>
+                                                    // Normal buttons
+                                                    <div className='buttons'>
+
+                                                        <button className='posteditbtn' onClick={() => handleEdit(item)}>Edit</button>
+                                                        {item.date.endsWith(`-${userId}`) && (
+                                                            <button className='deletebtn' onClick={() => handleDelete(item)}>Delete</button>
+                                                        )}
+                                                    </div>
+                                                )
+                                            )}
                                         </div>
                                     </div>
                                 ))
