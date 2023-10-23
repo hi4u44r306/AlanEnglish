@@ -1,30 +1,22 @@
 .Playlist {
-  .totaltimeplayed {
-    font-size: 20px;
-    font-weight: 600;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    // background-color: #005b7f;
-    color: black;
-    text-align: center;
-    font-family: "Nunito", sans-serif;
-  }
+  position: absolute;
+  top: 10vh;
+  bottom: 13vh;
+  width: 100%;
+  overflow-y: auto;
   .playlisttitle {
     position: sticky;
     top: 0;
     z-index: 1;
     font-size: 20px;
     font-weight: 500;
-    // background-color: #fcf8ec;
     background-color: #005b7f;
     color: #fff4d5;
-    // color: #005b7f;
     text-align: center;
     font-family: "Nunito", sans-serif;
   }
   .Playlist-container {
     // background-color: #fcf8ec;
-    background-image: rul("");
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
