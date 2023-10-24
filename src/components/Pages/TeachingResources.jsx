@@ -158,6 +158,7 @@ function TeachingResources() {
                 .catch((error) => {
                     console.error("Error deleting post: " + error);
                 });
+            window.location.reload();
         }
     };
 
