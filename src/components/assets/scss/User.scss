@@ -1,3 +1,8 @@
+.User-Logout {
+  position: absolute;
+  right: 25%;
+  top: 10%;
+}
 .userinfo {
   display: flex;
   justify-content: flex-start;
@@ -175,6 +180,10 @@
 }
 
 @media screen and (max-width: 800px) {
+  .User-Logout {
+    position: absolute;
+    right: 5%;
+  }
   .User-profileDetails {
     width: 90%;
   }

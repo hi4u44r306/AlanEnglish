@@ -61,7 +61,6 @@
 }
 
 .teaching-container {
-  width: 100%;
   position: absolute;
   top: 10vh;
   bottom: 0;
@@ -70,6 +69,7 @@
   background-color: #fcf8ec;
 }
 .teaching-filter-container {
+  margin-top: 20px;
   display: flex;
   justify-content: space-evenly;
   background-color: #fcf8ec;

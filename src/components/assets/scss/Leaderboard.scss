@@ -1,3 +1,6 @@
+:root {
+  --leaderboardcolor: #2d7dd2;
+}
 .classtitle {
   font-family: "Nunito", sans-serif;
   border-radius: 15px;
@@ -51,15 +54,15 @@ tbody {
 tbody > tr > td > b > span > img {
   width: 20px;
 }
-.leaderboardmaintitle {
-  background-color: #ffd000;
-  border-radius: 20px;
-}
+// .leaderboardmaintitle {
+//   background-color: #f58a07;
+// }
 .countdown {
   padding: 10px;
   font-size: 30px;
   font-weight: 800;
-  color: #005b7f;
+  // color: #005b7f;
+  color: var(--leaderboardcolor);
   text-align: center;
   align-items: center;
   .countdownlabel {
@@ -101,7 +104,7 @@ tbody > tr > td > b > span > img {
   justify-content: space-evenly;
   font-size: 45px;
   font-weight: 900;
-  color: #005b7f;
+  color: var(--leaderboardcolor);
   text-align: center;
   align-items: center;
 }
@@ -111,7 +114,7 @@ tbody > tr > td > b > span > img {
   justify-content: space-evenly;
   font-size: 20px;
   font-weight: 900;
-  color: #005b7f;
+  color: var(--leaderboardcolor);
   text-align: center;
   align-items: center;
 }
@@ -121,7 +124,7 @@ tbody > tr > td > b > span > img {
   justify-content: space-evenly;
   font-size: 20px;
   font-weight: 900;
-  color: #005b7f;
+  color: var(--leaderboardcolor);
   text-align: center;
   align-items: center;
 }

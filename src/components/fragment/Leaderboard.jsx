@@ -36,6 +36,7 @@ class Leaderboard extends React.Component {
   currentMonthLastDateMs = this.currentMonthLastDate.getTime();
 
   componentDidMount() {
+
     //當系統偵測用戶沒有登入，跳轉到登入頁面
     firebase.auth().onAuthStateChanged((user) => {
       if (!user) return window.location.href = '/';
@@ -128,7 +129,6 @@ class Leaderboard extends React.Component {
   }
 
 
-
   render() {
 
     return (
@@ -145,7 +145,6 @@ class Leaderboard extends React.Component {
             <CountdownTimer countdownTimestampMs={this.currentMonthLastDateMs} />
           </div>
         </div>
-
 
         {/* A班 */}
         <div className='classtitle'>A 班</div>

@@ -3,7 +3,7 @@
   //   auto;
   font-family: "Nunito", sans-serif;
   background-color: #ffffff;
-  height: 100vh;
+  height: fit-content;
   text-align: center;
   display: flex;
   flex-flow: column wrap;
@@ -47,7 +47,7 @@
     padding: 20px;
     border-radius: 20px;
     text-align: left;
-    cursor: pointer;
+    user-select: none;
   }
 }
 .Logincontainer {
@@ -63,7 +63,7 @@
     font-size: 60px;
     font-weight: 800;
     letter-spacing: 4px;
-    cursor: pointer;
+    user-select: none;
   }
 
   .loginbrand span:nth-child(1) {
@@ -188,6 +188,9 @@
 }
 
 @media only screen and (max-width: 900px) {
+  .Login {
+    height: fit-content;
+  }
   .Logincontainer {
     display: flex;
     align-content: center;

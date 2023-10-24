@@ -1,6 +1,6 @@
 import React from "react";
 import 'firebase/firestore';
-import Logout from "./Logout";
+// import Logout from "./Logout";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -67,7 +67,10 @@ function StudentNavigationBar() {
 
               <Offcanvas.Body className="navbackground">
                 <Nav className="d-flex align-items-center justify-content-end flex-grow-1">
-
+                  {/*                                     搜尋欄位                         */}
+                  <div className="justify-content-center d-flex align-items-center">
+                    <SearchBar />
+                  </div>
                   {/* 星星圓形 */}
                   {/* <div className='navcurrentdaycircle'>
                     <CircularProgressbarWithChildren value={percentage || 'Loading...'} 
@@ -137,14 +140,7 @@ function StudentNavigationBar() {
 
 
 
-                  {/* 用戶資料 */}
-                  <Nav.Link as={Link} to="/home/userinfo" href="/home/userinfo" className="navlinkscoreboard">
-                    <div className="username">
-                      <p>
-                        {navusername || '----'}
-                      </p>
-                    </div>
-                  </Nav.Link>
+
 
                   {/* 功課 */}
                   {/* <Nav.Link as={Link} to="/home/homework" href="/home/homework" className="navlinkscoreboard">
@@ -526,12 +522,17 @@ function StudentNavigationBar() {
 
                 </Nav>
 
-                {/*                                     搜尋欄位                         */}
-                <div className="justify-content-center d-flex align-items-center">
-                  <SearchBar />
-                </div>
+
+                {/* 用戶資料 */}
+                <Nav.Link as={Link} to="/home/userinfo" href="/home/userinfo" className="navlinkscoreboard">
+                  <div className="username">
+                    <p>
+                      {navusername || '----'}
+                    </p>
+                  </div>
+                </Nav.Link>
                 {/*                                     登出                         */}
-                <Logout />
+                {/* <Logout /> */}
               </Offcanvas.Body>
             </Navbar.Offcanvas>
           </Container>

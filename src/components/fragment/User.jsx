@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import '../assets/scss/User.scss';
+import Logout from './Logout'
 // import HashLoader from "react-spinners/HashLoader";
 // import UserImage1 from "../assets/img/User-Image1.png";
 // import UserImage2 from "../assets/img/Login.png";
@@ -61,6 +62,9 @@ const User = () => {
                 <div className="User-profileDetails">
                     <div className='User-profile-title'>
                         Profile
+                    </div>
+                    <div className='User-Logout'>
+                        <Logout />
                     </div>
                     <div className='User-profile-today'>Today : {currentDate}</div>
                     <div className='dailycirclecontainer'>

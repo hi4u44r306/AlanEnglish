@@ -12,13 +12,17 @@ class Logout extends React.Component {
         }
     }
     logout() {
-        firebase.auth().signOut()
-            .then((u) => {
-                console.log(u);
-                window.location = "/";
-            }).catch((err) => {
-                console.log(err)
-            })
+        if (window.confirm('確定要登出嗎?')) {
+            firebase.auth().signOut()
+                .then((u) => {
+                    console.log(u);
+                    window.location = "/";
+                }).catch((err) => {
+                    console.log(err)
+                })
+        } else {
+
+        }
     }
     render() {
         return (
