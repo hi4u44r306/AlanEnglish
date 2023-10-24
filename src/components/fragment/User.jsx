@@ -63,9 +63,6 @@ const User = () => {
                     <div className='User-profile-title'>
                         Profile
                     </div>
-                    <div className='User-Logout'>
-                        <Logout />
-                    </div>
                     <div className='User-profile-today'>Today : {currentDate}</div>
                     <div className='dailycirclecontainer'>
                         <span className='howtouseicon'>
@@ -112,6 +109,8 @@ const User = () => {
                             <p className='userinfoptag'>{totaltimeplayed || '0'}次</p>
                         </div>
                     </div>
+                    <Logout />
+
                     <ToastContainer
                         position="top-center"
                         autoClose={2000}
