@@ -42,7 +42,7 @@
     color: rgb(255, 255, 255);
     font-family: "Nunito", sans-serif;
     font-weight: 700;
-    font-size: 20px;
+    font-size: 17px;
     margin: 10px;
     padding: 20px;
     border-radius: 20px;
@@ -60,7 +60,7 @@
     padding: 30px;
     border-radius: 20px;
     font-family: "Nunito", sans-serif;
-    font-size: 60px;
+    font-size: 50px;
     font-weight: 800;
     letter-spacing: 4px;
     user-select: none;
@@ -121,7 +121,7 @@
     font-family: "Nunito", sans-serif;
     // color: #f8eeee;
     color: rgb(46, 148, 33);
-    font-size: 1.2rem;
+    font-size: 20px;
     font-weight: 700;
   }
   .Right {
@@ -132,9 +132,9 @@
     flex-basis: 50%;
     flex-grow: 1;
     .loginsection {
-      border: 10px solid rgb(255, 191, 63);
+      // border: 10px solid rgb(255, 191, 63);
       width: 40vw;
-      height: 60vh;
+      // height: 60vh;
       border-radius: 20px;
       display: flex;
       flex-flow: column wrap;
@@ -247,5 +247,36 @@
   }
   .main-row-img {
     flex-basis: 51% !important;
+  }
+}
+@media only screen and (max-width: 512px) {
+  .Logincontainer {
+    .loginbrand {
+      padding: 0;
+      border-radius: 20px;
+      font-family: "Nunito", sans-serif;
+      font-size: 60px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      user-select: none;
+    }
+    .Right {
+      .loginsection {
+        border: none;
+        display: flex;
+        align-items: center;
+        align-content: center;
+        height: auto;
+        width: 80vw;
+        padding: 0;
+      }
+      label {
+        font-size: 20px !important;
+      }
+      .rightinput {
+        font-size: 15px;
+        width: 70%;
+      }
+    }
   }
 }

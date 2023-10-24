@@ -202,97 +202,191 @@ class Login extends React.Component {
     render() {
         const { isLoading } = this.state;
         return (
-            <section className="Login">
-                <div className="Logincontainer">
-                    <div className="Left">
-                        <div className="english-method">
-                            <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
-                            <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
-                            <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
-                                才能有效地背誦並牢記單字！
-                            </p>
+            <>
+
+                <section className="Login">
+                    <div className="Logincontainer">
+                        <div className="Left">
+                            <div className="english-method">
+                                <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
+                                <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
+                                <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
+                                    才能有效地背誦並牢記單字！
+                                </p>
+                            </div>
+                            <img className="head-phone-img" src={HeadPhone} alt="" />
                         </div>
-                        <img className="head-phone-img" src={HeadPhone} alt="" />
+
+                        <div className="Right">
+                            <div className="loginbrand">
+                                <div className="loginbrandword">
+                                    <span>A</span>
+                                    <span>L</span>
+                                    <span>A</span>
+                                    <span>N</span>
+                                    <span> </span>
+                                    <span>E</span>
+                                    <span>N</span>
+                                    <span>G</span>
+                                    <span>L</span>
+                                    <span>I</span>
+                                    <span>S</span>
+                                    <span>H</span>
+                                </div>
+                                <div className="loginbrandbottom">
+                                    <div className="loginbrandbottomtext">系統化 | 口語化 | 聽力導向 </div>
+                                </div>
+                            </div>
+                            <div className="loginsection">
+                                <label>帳號</label>
+                                <input
+                                    className="rightinput"
+                                    name="email"
+                                    type="email"
+                                    id="email"
+                                    placeholder="輸入電子郵件或帳號..."
+                                    onChange={this.handleChange}
+                                    onKeyDown={this.handleKeyDown}
+                                    value={this.state.email}
+                                />
+
+                                <label>密碼</label>
+                                <input
+                                    className="rightinput"
+                                    name="password"
+                                    type="password"
+                                    id="password"
+                                    placeholder="輸入密碼..."
+                                    onChange={this.handleChange}
+                                    onKeyDown={this.handleKeyDown}
+                                    value={this.state.password}
+                                />
+
+                                <button
+                                    onClick={this.login}
+                                    className="loginbtn"
+                                    type="submit"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? "登入中..." : "登入"}
+
+                                </button>
+                                <a style={{ fontSize: 18, fontWeight: 700 }} href="/solve" alt="/solve" >無法登入嗎 ? 點這裡</a>
+                                <ToastContainer
+                                    position="top-center"
+                                    autoClose={2000}
+                                    limit={1}
+                                    hideProgressBar={false}
+                                    newestOnTop={false}
+                                    closeOnClick
+                                    rtl={false}
+                                    pauseOnFocusLoss
+                                    draggable
+                                    pauseOnHover
+                                />
+                                <div className="logincopyrightcontainer">
+                                    <span className="logincopyright" href="/">© 2023 Alan English Inc.</span>
+                                </div>
+                            </div>
+
+
+                        </div>
+
                     </div>
 
-                    <div className="Right">
-                        <div className="loginbrand">
-                            <div className="loginbrandword">
-                                <span>A</span>
-                                <span>L</span>
-                                <span>A</span>
-                                <span>N</span>
-                                <span> </span>
-                                <span>E</span>
-                                <span>N</span>
-                                <span>G</span>
-                                <span>L</span>
-                                <span>I</span>
-                                <span>S</span>
-                                <span>H</span>
+                </section>
+                {/* <section className="MobileLogin">
+                    <div className="Logincontainer">
+                        <div className="Left">
+                            <div className="english-method">
+                                <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
+                                <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
+                                <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
+                                    才能有效地背誦並牢記單字！
+                                </p>
                             </div>
-                            <div className="loginbrandbottom">
-                                <div className="loginbrandbottomtext">系統化 | 口語化 | 聽力導向 </div>
-                            </div>
-                        </div>
-                        <div className="loginsection">
-                            <label>帳號</label>
-                            <input
-                                className="rightinput"
-                                name="email"
-                                type="email"
-                                id="email"
-                                placeholder="輸入電子郵件或帳號..."
-                                onChange={this.handleChange}
-                                onKeyDown={this.handleKeyDown}
-                                value={this.state.email}
-                            />
-
-                            <label>密碼</label>
-                            <input
-                                className="rightinput"
-                                name="password"
-                                type="password"
-                                id="password"
-                                placeholder="輸入密碼..."
-                                onChange={this.handleChange}
-                                onKeyDown={this.handleKeyDown}
-                                value={this.state.password}
-                            />
-
-                            <button
-                                onClick={this.login}
-                                className="loginbtn"
-                                type="submit"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? "登入中..." : "登入"}
-
-                            </button>
-                            <a style={{ fontSize: 18, fontWeight: 700 }} href="/solve" alt="/solve" >無法登入嗎 ? 點這裡</a>
-                            <ToastContainer
-                                position="top-center"
-                                autoClose={2000}
-                                limit={1}
-                                hideProgressBar={false}
-                                newestOnTop={false}
-                                closeOnClick
-                                rtl={false}
-                                pauseOnFocusLoss
-                                draggable
-                                pauseOnHover
-                            />
-                            <div className="logincopyrightcontainer">
-                                <span className="logincopyright" href="/">© 2023 Alan English Inc.</span>
-                            </div>
+                            <img className="head-phone-img" src={HeadPhone} alt="" />
                         </div>
 
+                        <div className="Right">
+                            <div className="loginbrand">
+                                <div className="loginbrandword">
+                                    <span>A</span>
+                                    <span>L</span>
+                                    <span>A</span>
+                                    <span>N</span>
+                                    <span> </span>
+                                    <span>E</span>
+                                    <span>N</span>
+                                    <span>G</span>
+                                    <span>L</span>
+                                    <span>I</span>
+                                    <span>S</span>
+                                    <span>H</span>
+                                </div>
+                                <div className="loginbrandbottom">
+                                    <div className="loginbrandbottomtext">系統化 | 口語化 | 聽力導向 </div>
+                                </div>
+                            </div>
+                            <div className="loginsection">
+                                <label>帳號</label>
+                                <input
+                                    className="rightinput"
+                                    name="email"
+                                    type="email"
+                                    id="email"
+                                    placeholder="輸入電子郵件或帳號..."
+                                    onChange={this.handleChange}
+                                    onKeyDown={this.handleKeyDown}
+                                    value={this.state.email}
+                                />
+
+                                <label>密碼</label>
+                                <input
+                                    className="rightinput"
+                                    name="password"
+                                    type="password"
+                                    id="password"
+                                    placeholder="輸入密碼..."
+                                    onChange={this.handleChange}
+                                    onKeyDown={this.handleKeyDown}
+                                    value={this.state.password}
+                                />
+
+                                <button
+                                    onClick={this.login}
+                                    className="loginbtn"
+                                    type="submit"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? "登入中..." : "登入"}
+
+                                </button>
+                                <a style={{ fontSize: 18, fontWeight: 700 }} href="/solve" alt="/solve" >無法登入嗎 ? 點這裡</a>
+                                <ToastContainer
+                                    position="top-center"
+                                    autoClose={2000}
+                                    limit={1}
+                                    hideProgressBar={false}
+                                    newestOnTop={false}
+                                    closeOnClick
+                                    rtl={false}
+                                    pauseOnFocusLoss
+                                    draggable
+                                    pauseOnHover
+                                />
+                                <div className="logincopyrightcontainer">
+                                    <span className="logincopyright" href="/">© 2023 Alan English Inc.</span>
+                                </div>
+                            </div>
+
+
+                        </div>
 
                     </div>
+                </section> */}
+            </>
 
-                </div>
-
-            </section>
         );
     }
 }
