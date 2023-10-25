@@ -10,9 +10,13 @@ import { Link } from "react-router-dom";
 
 const Showcase = () => {
     const color = `rgb(255, 53, 99)`;
+    const nav1 = '#關於AlanEnglish';
+    const nav2 = '#About';
+    const nav3 = '#EnglishMethod';
+    const nav4 = '#Contact';
     return (
         <>
-            <ShowcaseNavbar />
+            <ShowcaseNavbar nav1={nav1} nav2={nav2} nav3={nav3} nav4={nav4} />
             <div className="product-section-container">
                 <section className="product-section">
                     <div className='productdiv'>
@@ -23,7 +27,7 @@ const Showcase = () => {
                             <strong style={{ color }}><u>Learn English</u></strong>
                         </h1>
                         <p>AI Teacher - Alan English Listening</p>
-                        <Button className='d-flex justify-content-center gap-1' as={Link} to="/login" href="/login" variant="danger">開始試用Alan English <ArrowForwardIcon /> </Button>
+                        <Button className='d-flex justify-content-center gap-1' as={Link} to="/" href="/" variant="danger">開始試用Alan English <ArrowForwardIcon /> </Button>
                     </div>
                     <img src={Homepage} alt="Product 1" />
                 </section>
@@ -44,7 +48,11 @@ const Showcase = () => {
                         <h6> <strong style={{ color }}><u>Pricing : 500 NT / Month </u></strong></h6>
                     </div>
                 </section>
-            </div>
+                <section id='關於AlanEnglish' className='product-section'>關於AlanEnglish</section>
+                <div id='About' className='product-section'>About</div>
+                <div id='EnglishMethod' className='product-section'>EnglishMethod</div>
+                <div id='Contact' className='product-section'>Contact</div>
+            </div >
         </>
     );
 };

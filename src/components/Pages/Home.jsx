@@ -87,7 +87,9 @@ function Home() {
                     </div>
                     :
                     <div>
-                        <StudentNavigationBar />
+                        <div className="home-navbar">
+                            <StudentNavigationBar />
+                        </div>
                         <section className={"home-music-container"}>
                             <ToastContainer
                                 position="top-center"

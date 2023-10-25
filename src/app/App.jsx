@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import firebase from 'firebase/app';
+import 'firebase/firestore'
 import './App.scss';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Login from "../components/Pages/Login";
@@ -18,6 +19,7 @@ import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
 import News from "../components/Pages/News";
 import TeachingResources from "../components/Pages/TeachingResources";
+import Showcase from "../components/Pages/Showcase";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -96,6 +98,7 @@ const App = () => {
                     <Route path="/" exact component={Login} />
                     <Route path="/home/signup" exact component={Signup} />
                     <Route path="/solve" exact component={SolvePage} />
+                    <Route path="/showcase" exact component={Showcase} />
                     <Route path="/home/leaderboard">
                         <StudentNavigationBar />
                         <Leaderboard />
