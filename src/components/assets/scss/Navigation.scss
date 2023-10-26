@@ -1,3 +1,16 @@
+.studentnavbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.navbackground {
+  width: 100%;
+  height: 10vh;
+  align-items: center;
+  align-content: center;
+}
 .username {
   font-weight: 800;
   font-size: 18px;
@@ -16,42 +29,33 @@
 .offcanvas-header {
   padding: 20px 20px;
 }
-.navcurrentdaycircle {
-  font-family: "Nunito", sans-serif;
-  font-weight: 700;
-  width: 60px;
-  height: 60px;
-}
-.navdailycircletextcomplete {
-  font-family: "Nunito", sans-serif;
-  display: flex;
-  justify-content: center;
-  font-weight: 700;
-  align-items: center;
-  color: #fc3434;
-  font-size: 15px;
-}
-.navdailycircletextnotcomplete {
-  font-family: "Nunito", sans-serif;
-  display: flex;
-  justify-content: center;
-  font-weight: 700;
-  align-items: center;
-  color: #000000;
-  font-size: 15px;
-}
+// .navcurrentdaycircle {
+//   font-family: "Nunito", sans-serif;
+//   font-weight: 700;
+//   width: 60px;
+//   height: 60px;
+// }
+// .navdailycircletextcomplete {
+//   font-family: "Nunito", sans-serif;
+//   display: flex;
+//   justify-content: center;
+//   font-weight: 700;
+//   align-items: center;
+//   color: #fc3434;
+//   font-size: 15px;
+// }
+// .navdailycircletextnotcomplete {
+//   font-family: "Nunito", sans-serif;
+//   display: flex;
+//   justify-content: center;
+//   font-weight: 700;
+//   align-items: center;
+//   color: #000000;
+//   font-size: 15px;
+// }
 .containerfluid {
   transition: all 0.3s cubic-bezier(0.6, 0.4, 0, 1);
   z-index: 999;
-}
-
-.navbackground {
-  // background-color: #fcf8ec;
-  height: 10vh;
-  // overflow-y: hidden;
-  // display: flex;
-  align-items: center;
-  align-content: center;
 }
 
 .navbar-toggler {
@@ -101,7 +105,7 @@
 .navlink {
   color: black !important;
   font-family: "Nunito", sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 15px;
 }
 .nav-link {
@@ -115,7 +119,7 @@
   color: rgb(255, 0, 0) !important;
   font-size: 15px;
   font-family: "Nunito", sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   justify-content: center;
 }
@@ -124,7 +128,7 @@
   color: rgb(0, 89, 255) !important;
   font-size: 17px;
   font-family: "Nunito", sans-serif;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .subnavlink {
@@ -136,7 +140,7 @@
   background-clip: text, padding-box;
   transition: 0.3s;
   font-family: "Nunito", sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 15px;
   padding: 10px;
   display: flex;
@@ -149,9 +153,3 @@
   justify-content: center;
   align-items: center;
 }
-
-// .logoutbtn:hover {
-//   box-shadow: 0 0 15px #d22d2d;
-//   // box-shadow: 0 0 15px rgba(0, 0, 0, 0.533);
-//   transition: 350ms ease-in-out;
-// }

@@ -9,11 +9,10 @@
   justify-content: flex-end;
   align-items: center;
   flex-grow: 1;
-  padding-left: 20px;
-  padding-right: 20px;
 }
 .showcasenavbar.scrolled {
-  background-color: rgb(212, 230, 255) !important;
+  background-color: rgb(212, 226, 255) !important;
+  // background-color: rgba(212, 230, 255, 0.9) !important;
   height: 70px;
 }
 .showcase-loginbtn {
@@ -22,6 +21,15 @@
   align-items: center;
   gap: 5px;
   font-weight: 800;
+  font-size: 17px;
+}
+.showcase-tryforfreebtn {
+  background-color: rgb(255, 101, 101);
+  font-weight: 800;
+  font-size: 15px;
+  border-radius: 15px;
+  color: white;
+  height: 30px;
 }
 .showcasenavlink {
   font-weight: 600;

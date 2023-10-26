@@ -60,7 +60,9 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
                                         <BiLogIn />
                                         Login
                                     </NavLink>
-
+                                    <NavLink className='showcase-tryforfreebtn' as={Link} href="/freetrial" to="/freetrial">
+                                        開通帳號
+                                    </NavLink>
                                 </Nav>
                             </Offcanvas.Body>
                         </Navbar.Offcanvas>

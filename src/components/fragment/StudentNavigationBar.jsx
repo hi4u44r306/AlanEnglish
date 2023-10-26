@@ -46,7 +46,7 @@ function StudentNavigationBar() {
         <Navbar collapseOnSelect={true} key={expand} expand={expand} className="navbackground">
           <Container fluid className="containerfluid">
 
-            <Navbar.Brand as={Link} to="/home/leaderboard" href="/home/leaderboard" className="brand">
+            <Navbar.Brand as={Link} to="/home/leaderboard" href="/home/leaderboard">
               <Brand />
             </Navbar.Brand>
 
@@ -66,7 +66,7 @@ function StudentNavigationBar() {
               </Offcanvas.Header>
 
               <Offcanvas.Body className="navbackground">
-                <Nav className="d-flex align-items-center justify-content-end flex-grow-1">
+                <Nav className="studentnavbar">
                   {/*                                     搜尋欄位                         */}
                   <div className="justify-content-center d-flex align-items-center">
                     <SearchBar />
