@@ -14,14 +14,13 @@ function FooterMusicPlayer({ music }) {
 
     const [{ bookname, page, musicName }, setCurrTrack] = useState(music);
     const { playlists } = useSelector(state => state.musicReducer);
-    const [currentuser, setCurrUser] = useState();
-    const userId = firebase.auth().currentUser.uid;
+    const userId = localStorage.getItem('ae-useruid')
     const db = firebase.firestore(); // firestore
     const dispatch = useDispatch();
     const audioElement = useRef();
     const currentDate = new Date().toJSON().slice(0, 10);
     const currentMonth = new Date().toJSON().slice(0, 7);
-    const userRef = db.collection('student').doc(currentuser);
+    const userRef = db.collection('student').doc(userId);
 
 
     const success = () => {
@@ -40,22 +39,25 @@ function FooterMusicPlayer({ music }) {
 
     useEffect(() => {
         setCurrTrack(music);
-        // 每月1號重置所有播放次數//
-
     }, [music]);
 
-
-    firebase.auth().onAuthStateChanged(user => { //從firestore取得student 集合中的登入中的useruid
-        if (user) {
-            db.collection('student').onSnapshot(snapshot => {
-                setCurrUser(user.uid);
-            });
-        } else {
-            updatetimeplayedtofirestore();
-        }
-    });
-
     function updatetimeplayedtofirestore() {
+
+        // 更新每日次數
+        db.collection('student').doc(userId).get().then((doc) => {
+            const onlinetime = doc.data().onlinetime;
+            let currdatetimeplayed = doc.data().currdatetimeplayed || 0;
+            if (onlinetime !== currentDate) {
+                userRef.update({
+                    onlinemonth: currentMonth,
+                    onlinetime: currentDate,
+                    currdatetimeplayed: 1,
+                });
+            } else {
+                currdatetimeplayed += 1;
+                userRef.update({ currdatetimeplayed });
+            }
+        });
 
         userRef.get().then((doc) => {
             const c = doc.data().totaltimeplayed;
@@ -77,7 +79,8 @@ function FooterMusicPlayer({ music }) {
                 });
             } else {
             }
-        }).catch(() => {
+        }).catch((error) => {
+            console.log(error);
         })
 
         // Realtime Database
@@ -93,27 +96,7 @@ function FooterMusicPlayer({ music }) {
             });
         });
 
-
-
-
-
-        // 當使用者聽完一個音軌 推送Timestamp到firebase //
-        userRef.update({
-            onlinetime: currentDate,
-            onlinemonth: currentMonth,
-        })
-
-
-        // 檢查當天日期是否有聽 如果有就上傳資料到user doc 如果沒有就新增 //
-        const checklisten = userRef.collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate)
-        if (checklisten === true) {
-            console.log('no checklisten');
-        } else {
-
-        }
-
-
-        /// 記錄檔中當月總次數 ///
+        // 當月總次數
         const usermonthlytimes = userRef.collection('Logfile').doc(currentMonth)
         usermonthlytimes.get().then((doc) => {
             const abc = doc.data().currentMonthTotalTimes;
@@ -124,20 +107,6 @@ function FooterMusicPlayer({ music }) {
         }).catch(() => {
             usermonthlytimes.set({
                 currentMonthTotalTimes: 1,
-            })
-        })
-
-        // 記錄檔中當天總次數計算 //
-        const userdailytimes = userRef.collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate);
-        userdailytimes.get().then((doc) => {
-            const abc = doc.data().todaytotaltimeplayed;
-            const efg = parseInt(abc) + 1;
-            userdailytimes.update({
-                todaytotaltimeplayed: efg,
-            })
-        }).catch(() => {
-            userdailytimes.set({
-                todaytotaltimeplayed: 1,
             })
         })
     };
