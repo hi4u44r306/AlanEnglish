@@ -162,17 +162,44 @@ class Login extends React.Component {
 
         const { email, password } = this.state;
         const db = firebase.firestore();
-
+        const currentDate = new Date().toJSON().slice(0, 10);
+        const currentMonth = new Date().toJSON().slice(0, 7);
 
         try {
             const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
             const userDoc = await db.collection('student').doc(userCredential.user.uid).get();
             const userName = userDoc.data().name.toUpperCase();
+            const userRef = db.collection('student').doc(userCredential.user.uid);
+
+            userRef.get().then((doc) => {
+                const onlinetime = doc.data().onlinetime;
+                if (onlinetime !== currentDate) {
+                    userRef.update({
+                        onlinemonth: currentMonth,
+                        onlinetime: currentDate,
+                        currdatetimeplayed: 0,
+                    });
+                }
+            });
+
+            userRef.get().then((doc) => {
+                if (doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth + 'alreadyupdated') {
+                    userRef.set({
+                        totaltimeplayed: 0,
+                        Resetallmusic: currentMonth + 'alreadyupdated',
+                    }, { merge: true })
+                    firebase.database().ref().child("student").child(userCredential.user.uid).child("totaltimeplayed").update({
+                        totaltimeplayed: 0,
+                    });
+                } else {
+                }
+            }).catch((error) => {
+                console.log(error);
+            })
 
             toast.promise(
                 new Promise(resolve => setTimeout(resolve, 500)),
                 {
-                    // pending: { render: () => "Loading..." },
                     success: { render: () => <div className="notification">歡迎回來 {userName}!!</div> }
                 },
                 setTimeout(() => window.location = "/home/leaderboard", 2500)

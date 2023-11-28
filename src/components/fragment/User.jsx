@@ -45,8 +45,8 @@ const User = () => {
     };
 
     useEffect(() => {
-        db.collection('student').doc(useruid).collection('Logfile').doc(currentMonth).collection(currentMonth).doc(currentDate).get().then((doc) => {
-            setDailyTimeplayed(doc.data().todaytotaltimeplayed);
+        db.collection('student').doc(useruid).get().then((doc) => {
+            setDailyTimeplayed(doc.data().currdatetimeplayed);
         }).catch(() => {
             setDailyTimeplayed("0")
         })

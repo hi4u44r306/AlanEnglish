@@ -18,7 +18,6 @@ function FooterMusicPlayer({ music }) {
     const db = firebase.firestore(); // firestore
     const dispatch = useDispatch();
     const audioElement = useRef();
-    const currentDate = new Date().toJSON().slice(0, 10);
     const currentMonth = new Date().toJSON().slice(0, 7);
     const userRef = db.collection('student').doc(userId);
 
@@ -43,66 +42,25 @@ function FooterMusicPlayer({ music }) {
 
     function updatetimeplayedtofirestore() {
 
-        // 更新每日次數
-        db.collection('student').doc(userId).get().then((doc) => {
-            const onlinetime = doc.data().onlinetime;
-            let currdatetimeplayed = doc.data().currdatetimeplayed || 0;
-            if (onlinetime !== currentDate) {
-                userRef.update({
-                    onlinemonth: currentMonth,
-                    onlinetime: currentDate,
-                    currdatetimeplayed: 1,
-                });
-            } else {
-                currdatetimeplayed += 1;
-                userRef.update({ currdatetimeplayed });
-            }
-        });
+        // 當日次數、總次數 +1
+        userRef.get().then((doc) => {
+            const daily = doc.data().currdatetimeplayed + 1;
+            const total = doc.data().totaltimeplayed + 1;
 
-        userRef.get().then((doc) => {
-            const c = doc.data().totaltimeplayed;
-            const d = parseInt(c) + 1;
             userRef.update({
-                totaltimeplayed: d,
-            })
-        })
-        // Firestore
-        userRef.get().then((doc) => {
-            if (doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth + 'alreadyupdated') {
-                userRef.set({
-                    totaltimeplayed: 0,
-                    currdatetimeplayed: 0,
-                    Resetallmusic: currentMonth + 'alreadyupdated',
-                }, { merge: true })
-                firebase.database().ref().child("student").child(userId).child("totaltimeplayed").update({
-                    totaltimeplayed: 0,
-                });
-            } else {
-            }
+                currdatetimeplayed: daily,
+                totaltimeplayed: total,
+            });
         }).catch((error) => {
             console.log(error);
-        })
-
-        // Realtime Database
-        const dbRef = firebase.database().ref();
-        dbRef.child("student").child(userId).child("totaltimeplayed").get().then((snapshot) => {
-            const aaa = parseInt(snapshot.val()) + 1;
-            firebase.database().ref('student/' + userId).update({
-                totaltimeplayed: aaa,
-            });
-        }).catch(() => {
-            firebase.database().ref('student/' + userId).update({
-                totaltimeplayed: 0,
-            });
         });
 
-        // 當月總次數
+        // 當月總次數 +1
         const usermonthlytimes = userRef.collection('Logfile').doc(currentMonth)
         usermonthlytimes.get().then((doc) => {
-            const abc = doc.data().currentMonthTotalTimes;
-            const efg = parseInt(abc) + 1;
+            const monthlytotal = doc.data().currentMonthTotalTimes + 1;
             usermonthlytimes.update({
-                currentMonthTotalTimes: efg,
+                currentMonthTotalTimes: monthlytotal,
             })
         }).catch(() => {
             usermonthlytimes.set({
