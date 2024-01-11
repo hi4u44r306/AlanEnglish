@@ -57,18 +57,18 @@ function MusicCard(props) {
                             </div>
                         </div>
                         <React.Fragment>
-                            <div className='gamesection'>
+                            {/* <div className='gamesection'>
                                 <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
 
                                 <BooktextGame bookname={bookname} pagename={page} open={booktextgameisOpen} musicName={musicName} booktext={booktext} onClose={() => setbooktextIsOpen(false)}></BooktextGame>
-                            </div>
+                            </div> */}
                             <Name name={bookname} className={"song-name"} length={bookname.length} />
                             <Name name={page} className={"song-name"} length={page.length} />
-                            <div className="timesplayedcontainer-web">
+                            {/* <div className="timesplayedcontainer-web">
                                 <Name name={"小測驗:  "} className={"song-name"} />
                                 <Name name={gamescore || "------"} className={"timeplayed"} />
                                 <Name name={"  "} className={"song-name"} />
-                            </div>
+                            </div> */}
                         </React.Fragment>
                         <div className='d-flex justify-content-center'>
                             <div onClick={handlePlay} className={"music-card-cover"} >
@@ -77,7 +77,7 @@ function MusicCard(props) {
                                     <PlayCircleOutlineIcon className="playicon" />
                                 </div>
                             </div>
-                            <div onClick=
+                            {/* <div onClick=
                                 {
                                     () => {
                                         handleStop()
@@ -94,7 +94,7 @@ function MusicCard(props) {
                                     <span>小遊戲</span>
                                     <VideogameAssetIcon className="circleicon" />
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* <div className='d-flex justify-content-center'>
