@@ -68,7 +68,7 @@ function StudentNavigationBar() {
 
           <Container fluid className="containerfluid">
 
-            <Navbar.Brand as={Link} to="/home/leaderboard" href="/home/leaderboard">
+            <Navbar.Brand as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard">
               <Brand />
             </Navbar.Brand>
 
@@ -82,7 +82,7 @@ function StudentNavigationBar() {
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title className="brand" as={Link} to="/home/leaderboard" href="/home/leaderboard" id={`offcanvasNavbarLabel-expand-${expand}`}>
+                <Offcanvas.Title className="brand" as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" id={`offcanvasNavbarLabel-expand-${expand}`}>
                   <Brand />
                 </Offcanvas.Title>
               </Offcanvas.Header>

@@ -61,7 +61,7 @@ const Leaderboard = () => {
         setStateFunc(students);
         localStorage.setItem(`class${classParam} online`, JSON.stringify(students));
       } catch (error) {
-        console.error(error);
+        console.log(error);
       }
     };
 
@@ -79,7 +79,7 @@ const Leaderboard = () => {
         setStateFunc(students);
         localStorage.setItem(`class${classParam} offline`, JSON.stringify(students));
       } catch (error) {
-        console.error(error);
+        console.log(error);
       }
     };
 
@@ -194,7 +194,7 @@ const Leaderboard = () => {
       </table>
 
       {/* A班未上線名單 */}
-      <div className='classtitle-notonline'>A班3天以上沒上線名單</div>
+      {/* <div className='classtitle-notonline'>A班3天以上沒上線名單</div>
       <table className='table table-border'>
         <thead>
           <tr>
@@ -254,7 +254,7 @@ const Leaderboard = () => {
             <td className='coltitle' colSpan="5">...</td>
           </tr>
         </tfoot>
-      </table>
+      </table> */}
 
       {/* B班 */}
       <div className='classtitle'>B 班</div>
@@ -364,7 +364,7 @@ const Leaderboard = () => {
       </table>
 
       {/* B班未上線名單 */}
-      <div className='classtitle-notonline'>B班3天以上沒上線名單</div>
+      {/* <div className='classtitle-notonline'>B班3天以上沒上線名單</div>
       <table className='table table-border'>
         <thead>
           <tr>
@@ -424,7 +424,7 @@ const Leaderboard = () => {
             <td className='coltitle' colSpan="5">...</td>
           </tr>
         </tfoot>
-      </table>
+      </table> */}
 
       {/* C班 */}
       <div className='classtitle'>C 班</div>
@@ -533,7 +533,7 @@ const Leaderboard = () => {
         </tfoot>
       </table>
       {/* C班未上線名單 */}
-      <div className='classtitle-notonline'>C班3天以上沒上線名單</div>
+      {/* <div className='classtitle-notonline'>C班3天以上沒上線名單</div>
       <table className='table table-border'>
         <thead>
           <tr>
@@ -593,7 +593,7 @@ const Leaderboard = () => {
             <td className='coltitle' colSpan="5">...</td>
           </tr>
         </tfoot>
-      </table>
+      </table> */}
 
       {/* D班 */}
       <div className='classtitle'>D 班</div>
@@ -702,7 +702,7 @@ const Leaderboard = () => {
         </tfoot>
       </table>
       {/* D班未上線名單 */}
-      <div className='classtitle-notonline'>D班3天以上沒上線名單</div>
+      {/* <div className='classtitle-notonline'>D班3天以上沒上線名單</div>
       <table className='table table-border'>
         <thead>
           <tr>
@@ -763,7 +763,7 @@ const Leaderboard = () => {
             <td className='coltitle' colSpan="5">...</td>
           </tr>
         </tfoot>
-      </table>
+      </table> */}
     </div>
     // </Containerfull>
   )

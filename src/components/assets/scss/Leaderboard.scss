@@ -6,7 +6,7 @@
   border-radius: 15px;
   display: flex;
   justify-content: space-around;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   background-color: #2ba84a;
   // background-color: #5098f6e7;
@@ -22,7 +22,7 @@
   border-radius: 15px;
   display: flex;
   justify-content: space-around;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   background-color: #fa3e3e;
   // background-color: #5098f6e7;
@@ -37,7 +37,7 @@ table {
   font-size: 15px;
 }
 tbody {
-  font-size: 18px;
+  font-size: 15px;
 }
 .leaderboard {
   -moz-user-select: none;
@@ -53,7 +53,7 @@ tbody > tr > td > b > span > img {
 }
 
 .countdown {
-  font-size: 30px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--leaderboardcolor);
   text-align: center;
@@ -95,7 +95,7 @@ tbody > tr > td > b > span > img {
   text-shadow: -2px 0 white, 0 2px white, 2px 0 white, 0 -2px white;
   display: flex;
   justify-content: space-evenly;
-  font-size: 45px;
+  font-size: 35px;
   font-weight: 900;
   color: var(--leaderboardcolor);
   text-align: center;
@@ -105,7 +105,7 @@ tbody > tr > td > b > span > img {
   width: 25vw;
   padding: 15px;
   justify-content: space-evenly;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 900;
   color: var(--leaderboardcolor);
   text-align: center;

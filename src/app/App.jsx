@@ -30,6 +30,8 @@ const App = () => {
 
     const { language } = useSelector(state => state.musicReducer);
 
+
+
     onAuthStateChanged(authentication, user => {
         if (user) {
             localStorage.setItem('ae-useruid', user.uid);
