@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import '../assets/scss/Game.scss';
 import { toast, ToastContainer } from "react-toastify"
 import Name from './Name';
-import firebase from 'firebase/app';
 import ContainerGame from './ContainerGame';
 // import CheckMark from '../assets/img/checkmark.png'
 // import Listening from '../assets/img/bars.svg'
@@ -23,15 +22,14 @@ export default function CardGame({ open, onClose, bookname, pagename, musicName,
   // const [nextbtn, setNextbtn] = useState(true);
   // const realtimedb = firebase.database(); //realtime database
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const db = firebase.firestore(); // firestore
-  const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
+  // const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
   const questions = [questionsinmusic];
 
   const handleCardClick = (card) => {
     const nextQuestion = currentQuestion + 1;
     if (card.name === questions[0][currentQuestion].questionText && nextQuestion === questions[0].length) {
       finishnotification();
-      uploadscore();
+      // uploadScore();
     } else {
       if (card.name === questions[0][currentQuestion].questionText) {
         success();
@@ -52,17 +50,13 @@ export default function CardGame({ open, onClose, bookname, pagename, musicName,
   };
 
 
-  function uploadscore() {
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        db.collection('student').onSnapshot(() => {
-          firebase.database().ref('student/' + user.uid + '/quiz/' + quizname).set({
-            score: '通過',
-          });
-        });
-      }
-    });
-  }
+  // const uploadScore = () => {
+  //   const useruid = localStorage.getItem('ae-useruid');
+  //   const quizRef = ref(rtdb, 'student/' + useruid + '/quiz/' + quizname);
+  //   update(quizRef, {
+  //     score: '通過'
+  //   });
+  // }
 
   // const getDifference = (s, t) => {
   //   let a = 0, b = 0; let charCode, i = 0;
@@ -197,8 +191,8 @@ export default function CardGame({ open, onClose, bookname, pagename, musicName,
   //   setNextbtn(false)
   //   setNote('')
   // }
-
-  if (!open) return null
+  // if (!open) return null
+  if (!open) return null;
   return (
     <>
       <ContainerGame>
@@ -240,12 +234,12 @@ export default function CardGame({ open, onClose, bookname, pagename, musicName,
               </div>
             </div>
           </div>
-
         </div>
       </ContainerGame>
     </>
   )
 }
+
 
 
 

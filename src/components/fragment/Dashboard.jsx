@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import Containerfull from './Containerfull';
-import firebase from 'firebase/app';
 import '../assets/scss/Dashboard.scss';
+import { collection, deleteDoc, doc, getDoc, getFirestore, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { getDatabase, ref, remove } from 'firebase/database';
 
 const Dashboard = () => {
     const [studentsA, setStudentsA] = useState([]);
@@ -15,74 +16,67 @@ const Dashboard = () => {
     const [updatedStudentData, setUpdatedStudentData] = useState({});
 
     useEffect(() => {
-        const db = firebase.firestore();
-        const getStudents = (classParam, orderByParam, setStateFunc) => {
-            db.collection("student")
-                .where("class", "==", classParam)
-                .orderBy(orderByParam, "desc")
-                .get()
-                .then((snapshot) => {
+        const db = getFirestore();
+        const getStudents = async (classParam, orderByParam, setStateFunc) => {
+            try {
+                const querySnapshot = collection(db, "student")
+                const q = query(querySnapshot, where("class", "==", classParam), orderBy(orderByParam, "desc"));
+                onSnapshot(q, (snapshot) => {
                     const students = [];
                     snapshot.forEach((doc) => {
-                        const data = doc;
-                        students.push(data);
-                    });
+                        students.push(doc);
+                    })
                     setStateFunc(students);
                 })
-                .catch((err) => {
-                    console.log(err);
-                });
+            } catch (err) {
+                console.log(err);
+            }
         };
 
-        getStudents("A", 'totaltimeplayed', (students) => {
-            setStudentsA(students);
-        });
-        getStudents("B", 'totaltimeplayed', (students) => {
-            setStudentsB(students);
-        });
-        getStudents("C", 'totaltimeplayed', (students) => {
-            setStudentsC(students);
-        });
-        getStudents("D", 'totaltimeplayed', (students) => {
-            setStudentsD(students);
-        });
+        getStudents("A", 'totaltimeplayed', setStudentsA);
+        getStudents("B", 'totaltimeplayed', setStudentsB);
+        getStudents("C", 'totaltimeplayed', setStudentsC);
+        getStudents("D", 'totaltimeplayed', setStudentsD);
     }, []);
 
-    const editStudent = (id) => {
-        const db = firebase.firestore();
-        const studentRef = db.collection("student").doc(id);
-        studentRef.get().then((doc) => {
-            if (doc.exists) {
-                const student = doc.data();
+    const editStudent = async (id) => {
+        const db = getFirestore();
+        const studentRef = doc(db, "student", id);
+        try {
+            const docSnapshot = await getDoc(studentRef);
+            if (docSnapshot.exists()) {
+                const student = docSnapshot.data();
                 setEditingStudent(student);
                 setEditingStudentRef(studentRef);
                 setUpdatedStudentData(student);
-                setShowEditForm(true); // add this line to show the edit form
+                setShowEditForm(true);
             } else {
                 console.log("No such document!");
             }
-        });
+        } catch (error) {
+            console.log("Error getting document:", error);
+        }
     };
 
     const deleteStudent = (id) => {
-        const db = firebase.firestore();
-        window.confirm('確認要刪除嗎?');
-        if (window.confirm('確認要刪除嗎?') === true) {
-            // 刪除Firestore中的資料
-            db.collection("student").doc(id).delete().then(() => {
+        if (window.confirm('確認要刪除嗎?')) {
+            const db = getFirestore();
+            const studentDocRef = doc(db, "student", id);
+            deleteDoc(studentDocRef).then(() => {
                 console.log("成功刪除");
             }).catch((error) => {
                 console.error("刪除失敗 ", error);
             });
-            // 刪除Realtime Database資料
-            firebase.database().ref('student/' + id).remove();
-            // 刪除Auth資料
 
+            const realtimeDb = getDatabase();
+            const studentRealtimeRef = ref(realtimeDb, `student/${id}`);
+            remove(studentRealtimeRef);
+
+            // Delete Auth data if applicable
         } else {
             window.alert("取消刪除")
         }
     }
-
 
     const success = () => {
         toast.success('修改成功', {

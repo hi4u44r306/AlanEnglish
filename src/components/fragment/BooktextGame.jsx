@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../assets/scss/Game.scss';
 import Name from './Name';
 import ContainerGame from './ContainerGame';
-import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
+// import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 
 export default function BooktextGame({ open, onClose, bookname, pagename, booktext }) {
 
@@ -66,7 +66,10 @@ export function HoverableWords({ text }) {
           <div className="tooltip-header">
             <div className="tooltip-title"> {selectedWord}</div>
 
-            <VolumeUpRoundedIcon className="listen-btn" onClick={() => generateAudio(selectedWord)} />
+            {/* <VolumeUpRoundedIcon className="listen-btn" onClick={() => generateAudio(selectedWord)} /> */}
+            <button className="listen-btn" onClick={() => generateAudio(selectedWord)}>
+              VolumeUpRoundedIcon
+            </button>
           </div>
         </div>
       )}

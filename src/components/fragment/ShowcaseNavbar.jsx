@@ -5,7 +5,7 @@ import Brand from './Brand';
 import Menu from '../assets/img/menu.png';
 import '../assets/scss/ShowcaseNavbar.scss';
 import { BiLogIn } from 'react-icons/bi'
-import { Link } from 'react-router-dom/cjs/react-router-dom.min';
+import { Link } from 'react-router-dom';
 
 function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
     const [scrolled, setScrolled] = useState(false);

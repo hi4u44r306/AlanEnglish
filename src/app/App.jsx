@@ -1,8 +1,6 @@
-import React, { useEffect } from "react";
-import firebase from 'firebase/app';
-import 'firebase/firestore'
+import React, { useEffect, useState } from "react";
 import './App.scss';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
 import musicDB from "../db/music";
@@ -14,12 +12,17 @@ import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
 import Home from "../components/Pages/Home"
-import StudentNavigationBar from "../components/fragment/StudentNavigationBar";
 import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
-import News from "../components/Pages/News";
-import TeachingResources from "../components/Pages/TeachingResources";
+// import TeachingResources from "../components/Pages/TeachingResources";
 import Showcase from "../components/Pages/Showcase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, } from "firebase/firestore";
+import { onValue, ref } from "firebase/database";
+import Playlist from "../components/fragment/Playlist";
+import Containerfull from "../components/fragment/Containerfull";
+import { authentication, db, rtdb } from "../components/Pages/firebase-config";
+import Search from "../components/Pages/Search";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -27,49 +30,51 @@ import Showcase from "../components/Pages/Showcase";
 const App = () => {
 
     const { language } = useSelector(state => state.musicReducer);
-    const db = firebase.firestore();
-    firebase.auth().onAuthStateChanged(user => {
+
+    onAuthStateChanged(authentication, user => {
         if (user) {
             localStorage.setItem('ae-useruid', user.uid);
-            db.collection('student').doc(user.uid).get().then(doc => {
-                localStorage.setItem('ae-class', doc.data().class || '')
-                localStorage.setItem('ae-username', doc.data().name)
-                localStorage.setItem('ae-totaltimeplayed', doc.data().totaltimeplayed)
-            })
-            db.collection('teacher').doc(user.uid).get().then(doc => {
-                localStorage.setItem('ae-teacherschool', doc.data().school || '')
-            })
-            var PostRef = firebase.database().ref('TeachingResources/');
-
-            PostRef.on('value', (snapshot) => {
+            const studentDocRef = doc(db, 'student', user.uid);
+            getDoc(studentDocRef).then(docSnapshot => {
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
+                    localStorage.setItem('ae-class', data.class || '');
+                    localStorage.setItem('ae-username', data.name);
+                    localStorage.setItem('ae-totaltimeplayed', data.totaltimeplayed);
+                }
+            });
+            const teacherDocRef = doc(db, 'teacher', user.uid);
+            getDoc(teacherDocRef).then(docSnapshot => {
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
+                    localStorage.setItem('ae-teacherschool', data.school || '');
+                }
+            });
+            const postRef = ref(rtdb, 'TeachingResources/');
+            onValue(postRef, snapshot => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     const dataArray = Object.entries(data).map(([date, details]) => ({
                         date,
                         ...details,
                     }));
-
-
-                    // Store the data in localStorage
                     localStorage.setItem('teachingResourcesData', JSON.stringify(dataArray));
                 } else {
                     const placeholderData = {
                         description: "This is a placeholder node.",
                         timestamp: "2023-10-19 12:00:00"
                     };
-
-                    // Store the placeholder data in localStorage
                     localStorage.setItem('teachingResourcesData', JSON.stringify(placeholderData));
                 }
             });
         } else {
-            localStorage.setItem('ae-class', '')
+            localStorage.setItem('ae-class', '');
             localStorage.setItem('ae-useruid', '');
-            localStorage.setItem('ae-username', '')
-            localStorage.setItem('ae-totaltimeplayed', '')
-            localStorage.setItem('ae-teacherschool', '')
+            localStorage.setItem('ae-username', '');
+            localStorage.setItem('ae-totaltimeplayed', '');
+            localStorage.setItem('ae-teacherschool', '');
         }
-    })
+    });
 
     const dispatch = useDispatch();
     useEffect(() => {
@@ -94,41 +99,60 @@ const App = () => {
                 <Helmet>
                     <link rel="icon" type="image/png" href={'/favicon.ico'} sizes="16x16" />
                 </Helmet>
-                <Switch>
-                    <Route path="/" exact component={Login} />
-                    <Route path="/home/signup" exact component={Signup} />
-                    <Route path="/solve" exact component={SolvePage} />
-                    <Route path="/showcase" exact component={Showcase} />
-                    <Route path="/home/leaderboard">
-                        <StudentNavigationBar />
-                        <Leaderboard />
-                    </Route>
-                    <Route path="/home/teachingresources">
-                        <StudentNavigationBar />
-                        <TeachingResources />
-                    </Route>
-                    <Route path="/home/userinfo">
-                        <StudentNavigationBar />
-                        <UserInfo />
-                    </Route>
-                    <Route path="/home/contact">
-                        <StudentNavigationBar />
-                        <Contact />
-                    </Route>
-                    <Route path="/home/about">
-                        <StudentNavigationBar />
-                        <About />
-                    </Route>
-                    <Route path="/home/dashboard">
-                        <StudentNavigationBar />
-                        <Dashboard />
-                    </Route>
-                    <Route path="/home/news">
-                        <StudentNavigationBar />
-                        <News />
-                    </Route>
-                    <Route path="/home" component={Home} />
-                </Switch>
+                <Routes>
+                    <Route path="/" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/solve" element={<SolvePage />} />
+                    <Route path="/showcase" element={<Showcase />} />
+                    <Route path="/home/leaderboard" element={
+                        <Containerfull>
+                            <Leaderboard />
+                        </Containerfull>
+                    } />
+
+                    {/* <Route path="/home/teachingresources" element={
+                        <React.Fragment>
+                            <StudentNavigationBar />
+                            <TeachingResources />
+                        </React.Fragment>
+                    } /> */}
+
+                    <Route path="/home/userinfo" element={
+                        <Containerfull>
+                            <UserInfo />
+                        </Containerfull>
+                    } />
+                    <Route path="/home/contact" element={
+                        <Containerfull>
+                            <Contact />
+                        </Containerfull>
+                    } />
+                    <Route path="/home/about" element={
+                        <Containerfull>
+                            <About />
+                        </Containerfull>
+                    } />
+                    <Route path="/home/dashboard" element={
+                        <Containerfull>
+                            <Dashboard />
+                        </Containerfull>
+                    } />
+                    <Route path="/home" element={
+                        <Containerfull>
+                            <Home />
+                        </Containerfull>
+                    } />
+                    <Route path="/home/search" element={
+                        <Containerfull>
+                            <Search />
+                        </Containerfull>
+                    } />
+                    <Route path="/home/playlist/:playlistId" element={
+                        <Containerfull>
+                            <Playlist />
+                        </Containerfull>
+                    } />
+                </Routes>
             </Router>
         </>
 

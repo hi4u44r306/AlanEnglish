@@ -4,15 +4,24 @@
   -ms-user-select: none;
   user-select: none;
   background-color: #fcf8ec;
-  min-height: 90%; /* Set a minimum height of 90% viewport height */
-  max-height: 100%; /* Limit the maximum height to 100% viewport height */
   overflow-y: auto; /* Enable vertical scrolling if content exceeds the maximum height */
   z-index: 999;
 }
+.containernavbar {
+  width: 100%;
+  position: sticky;
+  top: 0;
+}
+.containerchildren {
+  width: 100%;
+}
+.containermusicplayer {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+}
 @media only screen and (max-width: 970px) {
   .Containerfull {
-    min-height: 90%; /* Set a minimum height of 90% viewport height */
-    max-height: 100%; /* Limit the maximum height to 100% viewport height */
     overflow-y: auto; /* Enable vertical scrolling if content exceeds the maximum height */
     -moz-user-select: none;
     -webkit-user-select: none;

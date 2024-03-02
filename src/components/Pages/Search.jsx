@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './css/Search.scss';
 import Container from "../fragment/Container";
-import {useSelector} from "react-redux";
+import { useSelector } from "react-redux";
 import MusicCard from "../fragment/MusicCard";
 import SearchMusic from "../assets/img/searchMusic.svg";
 import SearchMusicMp3 from "../assets/img/searchMusicMp3.svg";
@@ -9,7 +9,7 @@ import SearchMusicDisc from "../assets/img/searchMusicDisc.svg";
 // import ArrowUp from '../assets/img/left.svg';
 
 const Search = () => {
-    const {playlists, search} = useSelector(state => state.musicReducer);
+    const { playlists, search } = useSelector(state => state.musicReducer);
     const [searchResult, setSearchResult] = useState([]);
     useEffect(() => {
         setSearchResult(playlists.filter((i) => (
@@ -23,15 +23,15 @@ const Search = () => {
         )));
     }, [search, playlists]);
     return (
-        <Container>
+        <>
             {
                 (search === "" || search === null)
                     ?
                     <div className={"Search"}>
                         <div className="Search-img">
-                            <img className={"Rotate-img"} src={SearchMusicDisc} alt="search-music-icon"/>
-                            <img src={SearchMusicMp3} alt="search-music-icon"/>
-                            <img src={SearchMusic} alt="search-music-icon"/>
+                            <img className={"Rotate-img"} src={SearchMusicDisc} alt="search-music-icon" />
+                            <img src={SearchMusicMp3} alt="search-music-icon" />
+                            <img src={SearchMusic} alt="search-music-icon" />
                             {/* <img className={"Arrow"} src={ArrowUp} alt=""/> */}
                         </div>
                     </div>
@@ -41,16 +41,16 @@ const Search = () => {
                             searchResult.length === 0
                                 ?
                                 <div className={"Search-fallback"}>
-                                   找不到 {search} 或是 {search} 正在建構中... 
+                                    找不到 {search} 或是 {search} 正在建構中...
                                 </div>
                                 :
                                 searchResult.map((item) => (
-                                    <MusicCard key={item.id} music={item}/>
+                                    <MusicCard key={item.id} music={item} />
                                 ))
                         }
                     </div>
             }
-        </Container>
+        </>
     );
 }
 

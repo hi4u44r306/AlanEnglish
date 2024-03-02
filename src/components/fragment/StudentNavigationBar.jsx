@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import 'firebase/firestore';
 // import Logout from "./Logout";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -38,12 +38,34 @@ function StudentNavigationBar() {
   // const custompathColor = `#89aae6`
   const navusername = localStorage.getItem('ae-username');
 
+  const [scrolled, setScrolled] = useState(false);
+
+  // Function to handle the scroll event
+  const handleScroll = () => {
+    if (window.scrollY > 100) {
+      setScrolled(true);
+    } else {
+      setScrolled(false);
+    }
+  };
+
+  useEffect(() => {
+    // Add a scroll event listener when the component mounts
+    window.addEventListener('scroll', handleScroll);
+
+    // Remove the scroll event listener when the component unmounts
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
 
 
   return (
     <div>
       {['xl'].map((expand) => (
-        <Navbar collapseOnSelect={true} key={expand} expand={expand} className="navbackground">
+        <Navbar collapseOnSelect={true} key={expand} expand={expand} className={`navbackground ${scrolled ? 'scrolled' : ''}`}>
+
           <Container fluid className="containerfluid">
 
             <Navbar.Brand as={Link} to="/home/leaderboard" href="/home/leaderboard">
@@ -65,7 +87,7 @@ function StudentNavigationBar() {
                 </Offcanvas.Title>
               </Offcanvas.Header>
 
-              <Offcanvas.Body className="navbackground">
+              <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''}`} >
                 <Nav className="studentnavbar">
                   {/*                                     搜尋欄位                         */}
                   <div className="justify-content-center d-flex align-items-center">
@@ -110,19 +132,19 @@ function StudentNavigationBar() {
                         id={`offcanvasNavbarDropdown-expand-${expand}`}
                         className="navlink"
                       >
-                        <NavDropdown.Item as={Link} to="/home/teachingresources" href="/home/teachingresources" className="subnavlink">
+                        {/* <NavDropdown.Item as={Link} to="/home/teachingresources" href="/home/teachingresources" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
                             alt="setting"
                           />教學資源共享
-                        </NavDropdown.Item>
+                        </NavDropdown.Item> */}
                         <NavDropdown.Item as={Link} to="/home/dashboard" href="/home/dashboard" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
                             alt="setting"
                           />控制台
                         </NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/home/signup" href="/home/signup" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/signup" href="/signup" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
                             alt="setting"

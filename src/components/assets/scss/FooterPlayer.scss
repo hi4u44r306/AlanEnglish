@@ -7,15 +7,32 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  width: "50px";
+}
+.rhap_container {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
+  visibility: visible;
+  height: 100px;
 }
 .marquee {
   flex: none !important;
   min-width: 100%;
-  // min-height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  // overflow: hidden;
   gap: 20px;
   cursor: default;
   user-select: none;
+  height: 30px;
+}
+.rfm-marquee {
+  height: 20px;
+}
+.rhap_progress-section {
+  height: 30px;
 }
 .musicnotification {
   font-family: "Nunito", sans-serif;
@@ -26,16 +43,7 @@
   align-items: center;
   display: flex;
 }
-.rhap_container {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  cursor: default;
-  visibility: visible;
-  width: 100vw;
-  padding: 0px 15px;
-}
+
 .rhap_time {
   font-size: 0.85rem;
   font-weight: 900;
@@ -52,7 +60,7 @@
 }
 // 音量點點顏色
 .rhap_volume-indicator {
-  background-color: rgb(255, 0, 0) !important;
+  background-color: rgb(0, 0, 0) !important;
 }
 // 重複鍵顏色
 .rhap_repeat-button {
@@ -62,10 +70,10 @@
   background-color: rgb(255, 0, 0) !important;
 }
 .rhap_volume-button {
-  color: rgb(255, 0, 0) !important;
+  color: rgb(0, 0, 0) !important;
 }
 .rhap_main-controls > button {
-  color: rgb(255, 0, 0) !important;
+  color: rgb(0, 0, 0) !important;
 }
 .rhap_additional-controls {
   color: rgb(0, 145, 255) !important;

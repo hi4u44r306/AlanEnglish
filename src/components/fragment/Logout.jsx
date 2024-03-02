@@ -1,6 +1,6 @@
 import React from "react";
 import "../assets/scss/Logout.scss";
-import firebase from "../Pages/firebase";
+import { signOut } from "firebase/auth";
 // import Exiticon from "../assets/img/exit.png"
 // import Logouticon from "../assets/img/log-out.png"
 
@@ -13,7 +13,7 @@ class Logout extends React.Component {
     }
     logout() {
         if (window.confirm('確定要登出嗎?')) {
-            firebase.auth().signOut()
+            signOut()
                 .then((u) => {
                     console.log(u);
                     window.location = "/";

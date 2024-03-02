@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import './css/Home.scss';
-import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
+// import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
 import MusicCardContainer from "../fragment/MusicCardContainer";
 import { useSelector } from "react-redux";
 import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
 import Search from "./Search";
 import Playlist from "../fragment/Playlist";
-import { Skeleton } from "@material-ui/lab";
-import FooterEmpty from "../fragment/FooterEmpty";
+// import FooterEmpty from "../fragment/FooterEmpty";
 import AddMusic from "./AddMusic";
-import firebase from "./firebase";
-import { toast, ToastContainer } from "react-toastify"
+// import { toast, ToastContainer } from "react-toastify"
 import StudentNavigationBar from "../fragment/StudentNavigationBar";
 
 function getCurrPage(pathName) {
@@ -33,34 +31,25 @@ function Home() {
     const [Page, setCurrPage] = useState(<MusicCardContainer />);
 
 
-    const error = () => {
-        toast.error('尚未登入', {
-            className: "notification",
-            position: "top-center",
-            autoClose: 1000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-        });
-        setTimeout(() => {
-            window.location.href = '/'
-        }, 1200);
-    };
-
-    useEffect(() => {
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-
-            } else {
-                error();
-            }
-        });
-    }, [])
+    // const error = () => {
+    //     toast.error('尚未登入', {
+    //         className: "notification",
+    //         position: "top-center",
+    //         autoClose: 1000,
+    //         hideProgressBar: false,
+    //         closeOnClick: true,
+    //         pauseOnHover: false,
+    //         draggable: true,
+    //         progress: undefined,
+    //     });
+    //     setTimeout(() => {
+    //         window.location.href = '/'
+    //     }, 1200);
+    // };
 
 
     let pathname = window.location.pathname;
+
     useEffect(() => {
         setCurrPage(getCurrPage(pathname))
     }, [pathname]);
@@ -83,7 +72,7 @@ function Home() {
             {
                 !loaded ?
                     <div className="Home-skeleton">
-                        <Skeleton variant={"rect"} height={"100vh"} />
+                        {/* <Skeleton variant={"rect"} height={"100vh"} /> */}
                     </div>
                     :
                     <div>
@@ -91,7 +80,7 @@ function Home() {
                             <StudentNavigationBar />
                         </div>
                         <section className={"home-music-container"}>
-                            <ToastContainer
+                            {/* <ToastContainer
                                 position="top-center"
                                 autoClose={2000}
                                 hideProgressBar={false}
@@ -101,14 +90,14 @@ function Home() {
                                 pauseOnFocusLoss
                                 draggable
                                 pauseOnHover
-                            />
+                            /> */}
                             <div className="main-home">
                                 {
                                     Page
                                 }
                             </div>
                         </section>
-                        <section className={"home-musicplayer"}>
+                        {/* <section className={"home-musicplayer"}>
                             <React.Fragment>
                                 {
                                     currMusic
@@ -118,7 +107,7 @@ function Home() {
                                         <FooterEmpty />
                                 }
                             </React.Fragment>
-                        </section>
+                        </section> */}
                         {
                             bannerOpen
                             &&
@@ -128,7 +117,7 @@ function Home() {
                         }
                     </div>
             }
-        </div >
+        </div>
     );
 }
 

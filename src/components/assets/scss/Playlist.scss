@@ -1,25 +1,27 @@
 .Playlist {
-  position: absolute;
+  // position: absolute;
   top: 10vh;
-  bottom: 13vh;
+  // bottom: 13vh;
   width: 100%;
   overflow-y: auto;
   background-color: #fcf8ec;
-  .playlisttitle {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    font-size: 20px;
-    font-weight: 500;
-    background-color: #005b7f;
-    color: #fff4d5;
-    text-align: center;
-    font-family: "Nunito", sans-serif;
-  }
-  .Playlist-container {
-    // background-color: #fcf8ec;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-  }
+}
+.Playlist-container {
+  // background-color: #fcf8ec;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  padding-bottom: 20px;
+}
+.playlisttitle {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 20px;
+  font-weight: 500;
+  background-color: #005b7f;
+  color: #fff4d5;
+  text-align: center;
+  justify-content: center;
+  font-family: "Nunito", sans-serif;
 }

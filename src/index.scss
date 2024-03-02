@@ -25,7 +25,7 @@ button {
 }
 /* width */
 ::-webkit-scrollbar {
-  width: 15px;
+  width: 10px;
 }
 
 /* Track */
@@ -35,8 +35,8 @@ button {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #818181;
-  border-radius: 5px;
+  background: rgb(152, 149, 149);
+  border-radius: 2px;
 }
 
 /* Handle on hover */

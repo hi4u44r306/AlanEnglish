@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import '../assets/scss/MusicCard.scss';
-import PlayCircleFilledWhiteIcon from "@material-ui/icons/PlayCircleFilledWhite";
-import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
-import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
+import { AiFillPlayCircle } from "react-icons/ai";
+import { FaAddressCard } from "react-icons/fa";
 // import MenuBookIcon from '@mui/icons-material/MenuBook';
 // import ShareIcon from '@mui/icons-material/Share';
 import { useDispatch } from "react-redux";
-import { setCurrentPlaying } from "../../actions/actions";
+import { setCurrentMargin, setCurrentPlaying } from "../../actions/actions";
 import Name from "./Name";
 import CardGame from "./CardGame";
-import firebase from 'firebase/app';
 import BooktextGame from './BooktextGame';
+import { child, get, getDatabase, ref } from 'firebase/database';
 
 function MusicCard(props) {
     const { bookname, page, img, questions, musicName, booktext } = props.music;
@@ -22,19 +21,23 @@ function MusicCard(props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const dbRef = firebase.database().ref();
-        dbRef.child("student").child(useruid).child("quiz").child(quizname).child("score").get().then((snapshot) => {
-            if (snapshot.exists()) {
-                setGamescore(snapshot.val());
-            } else {
-                setGamescore();
-            }
-        }).catch((error) => {
-            console.error(error);
-        });
-    }, [quizname, useruid])
+        const db = getDatabase();
+        const dbRef = ref(db);
+        get(child(dbRef, `student/${useruid}/quiz/${quizname}/score`))
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    setGamescore(snapshot.val());
+                } else {
+                    setGamescore();
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }, [quizname, useruid]);
 
     function handlePlay() {
+        dispatch(setCurrentMargin('100px'))
         dispatch(setCurrentPlaying(props.music))
     }
     function handleStop() {
@@ -43,134 +46,50 @@ function MusicCard(props) {
 
     return (
         <div className={"music-card"}>
-            {
-                <>
-                    {/* Web */}
-                    <div className='web'>
-                        {/* <div className='sharebtn-container'>
-                            <ShareIcon className='sharebtn' />
-                        </div> */}
-                        <div onClick={handlePlay} className={"music-card-cover"} >
-                            <img src={require("../assets/img/" + img).default} alt={bookname} />
-                            <div className="play-circle">
-                                <PlayCircleFilledWhiteIcon />
-                            </div>
-                        </div>
-                        <React.Fragment>
-                            {/* <div className='gamesection'>
-                                <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
+            <div className='web'>
+                <React.Fragment>
+                    <div className='musicbanner'>
+                        <img src={require("../assets/img/" + img)} alt={bookname} />
+                        <div className='gamesection'>
+                            <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
 
-                                <BooktextGame bookname={bookname} pagename={page} open={booktextgameisOpen} musicName={musicName} booktext={booktext} onClose={() => setbooktextIsOpen(false)}></BooktextGame>
-                            </div> */}
-                            <Name name={bookname} className={"song-name"} length={bookname.length} />
-                            <Name name={page} className={"song-name"} length={page.length} />
-                            {/* <div className="timesplayedcontainer-web">
-                                <Name name={"小測驗:  "} className={"song-name"} />
-                                <Name name={gamescore || "------"} className={"timeplayed"} />
-                                <Name name={"  "} className={"song-name"} />
-                            </div> */}
-                        </React.Fragment>
-                        <div className='d-flex justify-content-center'>
-                            <div onClick={handlePlay} className={"music-card-cover"} >
-                                <div onClick={handlePlay} className='testbutton'>
-                                    <span>播放</span>
-                                    <PlayCircleOutlineIcon className="playicon" />
-                                </div>
-                            </div>
-                            {/* <div onClick=
-                                {
-                                    () => {
-                                        handleStop()
-                                        if (booktext === undefined) {
-                                            setcardgameIsOpen(false);
-                                            alert('目前未開放')
-                                        }
-                                        else {
-                                            setcardgameIsOpen(true);
-                                        }
-                                    }
-                                } className={"music-card-cover"} >
-                                <div className='gamebutton'>
-                                    <span>小遊戲</span>
-                                    <VideogameAssetIcon className="circleicon" />
-                                </div>
-                            </div> */}
+                            <BooktextGame bookname={bookname} pagename={page} open={booktextgameisOpen} musicName={musicName} booktext={booktext} onClose={() => setbooktextIsOpen(false)}></BooktextGame>
+                        </div>
+                        <div>
+                            <Name name={bookname} className={"book-name"} length={bookname.length} />
+                            <Name name={page} className={"page-name"} length={page.length} />
                         </div>
 
-                        {/* <div className='d-flex justify-content-center'>
-                            <div onClick=
-                                {
-                                    () => {
-                                        handleStop()
-                                        if (questions === undefined) {
-                                            setbooktextIsOpen(false);
-                                            alert('未開放課文')
-                                        }
-                                        else {
-                                            setbooktextIsOpen(true);
-                                        }
-                                    }
-                                } className={"music-card-cover"} >
-                                <div className='gamebutton'>
-                                    <span>課文</span>
-                                    <MenuBookIcon className="circleicon" />
-                                </div>
-                            </div>
-                        </div> */}
-                    </div>
-
-                    {/* //////////////////////////////////////// */}
-
-                    {/* Mobile */}
-                    <div className='mobile'>
-                        {/* <ShareIcon className='sharebtn' /> */}
-                        <React.Fragment>
-                            <div className='musicbanner'>
-                                <div onClick={handlePlay} className={"music-card-cover"} >
-                                    <img src={require("../assets/img/" + img).default} alt={bookname} />
-                                    <div className="play-circle">
-                                        <PlayCircleFilledWhiteIcon />
-                                    </div>
-                                </div>
-                                <div className='gamesection'>
-                                    <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
-
-                                    <BooktextGame bookname={bookname} pagename={page} open={booktextgameisOpen} musicName={musicName} booktext={booktext} onClose={() => setbooktextIsOpen(false)}></BooktextGame>
-                                </div>
-                                <div>
-                                    <Name name={bookname} className={"song-name"} length={bookname.length} />
-                                    <Name name={page} className={"song-name"} length={page.length} />
-                                </div>
-                            </div>
-                        </React.Fragment>
                         <div className='buttoncontainer'>
                             <div style={{ display: 'flex' }}>
-                                <div onClick={handlePlay} className={"music-card-cover"} >
-                                    <div onClick={handlePlay} className='testbutton'>
-                                        <span>播放</span>
-                                        <PlayCircleOutlineIcon className="playicon" />
-                                    </div>
+                                <div onClick={handlePlay} className='testbutton'>
+                                    <span>播放</span>
+                                    <AiFillPlayCircle className="playicon" />
                                 </div>
                                 <div onClick=
                                     {
                                         () => {
                                             handleStop()
+
+                                            //之後可以用
+                                            // dispatch(setCurrentMargin(0))
                                             if (questions === undefined) {
-                                                setcardgameIsOpen(false);
+                                                // setcardgameIsOpen(false);
                                                 alert('目前未開放')
                                             }
                                             else {
-                                                setcardgameIsOpen(true);
+                                                alert('目前未開放')
+                                                // setcardgameIsOpen(true);
                                             }
                                         }
-                                    } className={"music-card-cover"} >
+                                    }>
                                     <div className='gamebutton'>
                                         <span>小遊戲</span>
-                                        <VideogameAssetIcon className="circleicon" />
+                                        <FaAddressCard className="circleicon" />
                                     </div>
                                 </div>
                             </div>
-                            {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
                                 <div onClick=
                                     {
                                         () => {
@@ -184,23 +103,52 @@ function MusicCard(props) {
                                             }
                                         }
                                     } className={"music-card-cover"} >
-                                    <div className='gamebutton'>
-                                        <span>課文</span>
-                                        <MenuBookIcon className="circleicon" />
-                                    </div>
+                                    {/* <div className='gamebutton'>
+                                                <span>課文</span>
+                                                <MenuBookIcon className="circleicon" />
+                                            </div> */}
                                 </div>
-                            </div> */}
+                            </div>
                             <React.Fragment>
                                 <div className="timesplayedcontainer-mobile">
                                     <Name name={"測驗 :  "} className={"quizlabel"} />
                                     <Name name={gamescore || " ---- "} className={"timeplayed"} />
-                                    <Name name={"  "} className={"song-name"} />
+                                    <Name name={"  "} className={"book-name"} />
                                 </div>
                             </React.Fragment>
                         </div>
                     </div>
-                </>
-            }
+                </React.Fragment>
+                {/* <React.Fragment>
+                    <div className='gamesection'>
+                        <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
+
+                        <BooktextGame bookname={bookname} pagename={page} open={booktextgameisOpen} musicName={musicName} booktext={booktext} onClose={() => setbooktextIsOpen(false)}></BooktextGame>
+                    </div>
+
+
+                    <div className='d-flex justify-content-center'>
+                        <div onClick=
+                            {
+                                () => {
+                                    handleStop()
+                                    if (questions === undefined) {
+                                        setbooktextIsOpen(false);
+                                        alert('未開放課文')
+                                    }
+                                    else {
+                                        setbooktextIsOpen(true);
+                                    }
+                                }
+                            } className={"music-card-cover"} >
+                            <div className='gamebutton'>
+                                <span>課文</span>
+                                <FaBook className="circleicon" />
+                            </div>
+                        </div>
+                    </div>
+                </React.Fragment> */}
+            </div>
         </div>
     );
 }

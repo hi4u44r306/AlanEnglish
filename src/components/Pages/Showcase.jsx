@@ -3,8 +3,8 @@ import './css/Showcase.scss';
 import { Button } from 'react-bootstrap';
 import Homepage from '.././assets/img/Homepage.PNG'
 import Musicpage from '.././assets/img/Music.PNG'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+// import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+// import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import ShowcaseNavbar from '../fragment/ShowcaseNavbar';
 import { Link } from "react-router-dom";
 
@@ -28,7 +28,9 @@ const Showcase = () => {
                             <strong style={{ color }}><u>Learn English</u></strong>
                         </h1>
                         <p>AI Teacher - Alan English Listening</p>
-                        <Button className='d-flex justify-content-center gap-1' as={Link} to="/" href="/" variant="danger">開始試用Alan English <ArrowForwardIcon /> </Button>
+                        <Button className='d-flex justify-content-center gap-1' as={Link} to="/" href="/" variant="danger">開始試用Alan English
+                            箭頭圖示
+                        </Button>
                     </div>
                     <img src={Homepage} alt="Product 1" />
                 </div>
@@ -36,10 +38,18 @@ const Showcase = () => {
                     <img src={Musicpage} alt="Product 2" />
                     <div>
                         <h1>
-                            <strong><KeyboardDoubleArrowRightIcon />AI 自動生成測驗問題 </strong>
+                            <strong>
+                                {/* <KeyboardDoubleArrowRightIcon /> */}
+                                KeyboardDoubleArrowRightIcon
+                                AI 自動生成測驗問題
+                            </strong>
                         </h1>
                         <h1>
-                            <strong><KeyboardDoubleArrowRightIcon />高效學習不死板 </strong>
+                            <strong>
+                                {/* <KeyboardDoubleArrowRightIcon /> */}
+                                KeyboardDoubleArrowRightIcon
+                                高效學習不死板
+                            </strong>
                         </h1>
                         <h3>
                             <strong style={{ color }}><u>FACT : </u></strong>

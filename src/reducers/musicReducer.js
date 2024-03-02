@@ -2,13 +2,14 @@ import musicDB from "../db/music";
 
 export const initialState = {
     playlists: musicDB,
-    playing:null,
+    playing: null,
     bannerOpen: false,
-    search:null,
-    language: null
+    search: null,
+    language: null,
+    curr_margin: 0,
 };
-const musicReducer = (state=initialState,action) => {
-    switch (action.type){
+const musicReducer = (state = initialState, action) => {
+    switch (action.type) {
         case "SET_PLAYLIST":
             return {
                 ...state,
@@ -36,6 +37,11 @@ const musicReducer = (state=initialState,action) => {
             return {
                 ...state,
                 language: action.payload
+            };
+        case "SET_CURR_MARGIN":
+            return {
+                ...state,
+                curr_margin: action.payload
             };
         default:
             return state;

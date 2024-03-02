@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import firebase from 'firebase/app';
-import 'firebase/firestore';
 import '../assets/scss/User.scss';
 import Logout from './Logout'
 // import HashLoader from "react-spinners/HashLoader";
@@ -10,13 +8,14 @@ import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-pro
 import 'react-circular-progressbar/dist/styles.css';
 import Star from '../assets/img/star.png';
 import Notice from '../assets/img/warning.png';
-import { toast, ToastContainer } from "react-toastify"
+import { ToastContainer } from "react-toastify"
 import { useEffect } from 'react';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
 
 
 const User = () => {
 
-    const db = firebase.firestore();
+    const db = getFirestore();
     const username = localStorage.getItem('ae-username');
     const totaltimeplayed = localStorage.getItem('ae-totaltimeplayed');
     const useruid = localStorage.getItem('ae-useruid');
@@ -26,35 +25,25 @@ const User = () => {
     const custompathColor = `#89aae6`
     const percentage = dailytimeplayed * 100 / 20;
 
-
-
-    const error = () => {
-        toast.error('尚未登入 即將跳轉至登入頁面', {
-            className: "notification",
-            position: "top-center",
-            autoClose: 1000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-        });
-        setTimeout(() => {
-            window.location.href = '/'
-        }, 1200);
-    };
-
     useEffect(() => {
-        db.collection('student').doc(useruid).get().then((doc) => {
-            setDailyTimeplayed(doc.data().currdatetimeplayed);
-        }).catch(() => {
-            setDailyTimeplayed("0")
-        })
+        const fetchData = async () => {
+            try {
+                const docRef = doc(db, 'student', useruid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setDailyTimeplayed(docSnap.data().currdatetimeplayed);
+                } else {
+                    setDailyTimeplayed("0");
+                }
+            } catch (error) {
+                console.error("Error fetching document:", error);
+                setDailyTimeplayed("0");
+            }
+        };
+        fetchData();
+    }, [currentDate, currentMonth, db, useruid]);
 
-        firebase.auth().onAuthStateChanged(user => {
-            if (!user) return error();
-        })
-    }, [currentDate, currentMonth, db, useruid])
+
 
     return (
         <div className={"User"}>
