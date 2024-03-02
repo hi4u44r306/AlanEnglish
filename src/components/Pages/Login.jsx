@@ -254,13 +254,13 @@
 
 // export default Login;
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import HeadPhone from '../assets/img/Login2.png';
 import './css/Login.scss';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, getFirestore, query, collection, where, getDocs } from 'firebase/firestore';
 import { authentication, db, rtdb } from "./firebase-config";
 import { ref, update } from "firebase/database";
 
@@ -268,6 +268,58 @@ function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+
+    // 找出有在規定時間內上線的學生
+    useEffect(() => {
+        const db = getFirestore();
+        const currentDate = new Date();
+        const currentMonthFormatted = currentDate.toJSON().slice(0, 7);
+
+        const getStudents = async () => {
+            const q = query(collection(db, 'student'),
+                where('onlinemonth', '==', currentMonthFormatted),
+                where('totaltimeplayed', '>', 0));
+
+            try {
+                const querySnapshot = await getDocs(q);
+                const students = [];
+                querySnapshot.forEach((doc) => {
+                    students.push(doc.data());
+                });
+                localStorage.setItem('OnlineStudentData', JSON.stringify(students));
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        getStudents();
+    }, []);
+
+    // 找出未上線的學生
+    useEffect(() => {
+        const db = getFirestore();
+
+        const date = new Date();
+        date.setDate(date.getDate() - 3);
+        const offlineLimit = date.toJSON().slice(0, 10);
+
+        const getOfflineStudents = async () => {
+            const q = query(collection(db, 'student'),
+                where('onlinetime', '<=', offlineLimit));
+
+            try {
+                const querySnapshot = await getDocs(q);
+                const students = [];
+                querySnapshot.forEach((doc) => {
+                    students.push(doc.data());
+                });
+                localStorage.setItem('OfflineStudentData', JSON.stringify(students));
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        getOfflineStudents();
+    }, []);
 
     const handleChange = (e) => {
         if (e.target.name === "email") setEmail(e.target.value);
