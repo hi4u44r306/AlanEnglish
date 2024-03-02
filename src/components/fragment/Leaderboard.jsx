@@ -11,7 +11,7 @@ import Trophy from '../assets/img/trophy.png';
 import Sun from '../assets/img/sun.png';
 import Sparkles from '../assets/img/sparkles.png';
 import Headphone from '../assets/img/leaderboardheadphone.png';
-import Rocket from '../assets/img/rocket.png';
+// import Rocket from '../assets/img/rocket.png';
 
 
 const Leaderboard = () => {
@@ -19,10 +19,10 @@ const Leaderboard = () => {
   const [studentsB, setStudentsB] = useState(null);
   const [studentsC, setStudentsC] = useState(null);
   const [studentsD, setStudentsD] = useState(null);
-  const [OfflineA, setOfflineA] = useState(null);
-  const [OfflineB, setOfflineB] = useState(null);
-  const [OfflineC, setOfflineC] = useState(null);
-  const [OfflineD, setOfflineD] = useState(null);
+  // const [OfflineA, setOfflineA] = useState(null);
+  // const [OfflineB, setOfflineB] = useState(null);
+  // const [OfflineC, setOfflineC] = useState(null);
+  // const [OfflineD, setOfflineD] = useState(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const currentDate = new Date();
@@ -65,29 +65,29 @@ const Leaderboard = () => {
       }
     };
 
-    const getOfflineStudents = async (classParam, setStateFunc, offlineLimit) => {
-      const q = query(collection(db, 'student'),
-        where('class', '==', classParam),
-        where('onlinetime', '<=', offlineLimit));
+    // const getOfflineStudents = async (classParam, setStateFunc, offlineLimit) => {
+    //   const q = query(collection(db, 'student'),
+    //     where('class', '==', classParam),
+    //     where('onlinetime', '<=', offlineLimit));
 
-      try {
-        const querySnapshot = await getDocs(q);
-        const students = [];
-        querySnapshot.forEach((doc) => {
-          students.push(doc.data());
-        });
-        setStateFunc(students);
-        localStorage.setItem(`class${classParam} offline`, JSON.stringify(students));
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    //   try {
+    //     const querySnapshot = await getDocs(q);
+    //     const students = [];
+    //     querySnapshot.forEach((doc) => {
+    //       students.push(doc.data());
+    //     });
+    //     setStateFunc(students);
+    //     localStorage.setItem(`class${classParam} offline`, JSON.stringify(students));
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // };
 
 
 
     const d = new Date();
     d.setDate(d.getDate() - 3);
-    const offlineLimit = d.toJSON().slice(0, 10);
+    // const offlineLimit = d.toJSON().slice(0, 10);
 
     const currentMonthFormatted = currentDate.toJSON().slice(0, 7);
 
@@ -96,10 +96,10 @@ const Leaderboard = () => {
     getStudents("C", 'totaltimeplayed', currentMonthFormatted, setStudentsC);
     getStudents("D", 'totaltimeplayed', currentMonthFormatted, setStudentsD);
 
-    getOfflineStudents("A", setOfflineA, offlineLimit);
-    getOfflineStudents("B", setOfflineB, offlineLimit);
-    getOfflineStudents("C", setOfflineC, offlineLimit);
-    getOfflineStudents("D", setOfflineD, offlineLimit);
+    // getOfflineStudents("A", setOfflineA, offlineLimit);
+    // getOfflineStudents("B", setOfflineB, offlineLimit);
+    // getOfflineStudents("C", setOfflineC, offlineLimit);
+    // getOfflineStudents("D", setOfflineD, offlineLimit);
 
   }, [currentDate]);
 
