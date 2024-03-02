@@ -25,30 +25,30 @@
   display: flex;
   align-items: center;
   align-content: center;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 800;
   font-family: "Nunito", sans-serif;
   border: solid 1px rgb(255, 0, 0);
   background-color: antiquewhite;
   border-radius: 50px;
-  // margin: 10px;
+  margin: 10px;
   padding: 10px;
   cursor: pointer;
 }
 .testbutton > span {
-  margin-right: 5px;
+  margin-right: 2px;
 }
 .gamebutton {
   display: flex;
   align-items: center;
   align-content: center;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 800;
   font-family: "Nunito", sans-serif;
   border: solid 1px rgb(0, 153, 255);
   background-color: antiquewhite;
   border-radius: 50px;
-  // margin: 10px;
+  margin: 10px;
   padding: 10px;
   cursor: pointer;
 }
@@ -64,17 +64,11 @@
   width: 20px;
   color: rgb(249, 42, 27);
 }
-.playicon:hover {
-  // transform-origin: 50% 50%;
-  animation: jump 0.5s linear alternate infinite;
-}
+
 .circleicon {
   height: 20px;
   width: 20px;
   color: rgb(0, 132, 255);
-}
-.mobile {
-  display: none;
 }
 .musicbanner {
   display: flex;
@@ -148,27 +142,14 @@
   margin: 5px;
   background-color: rgb(255, 255, 255);
   border: solid 5px rgb(255, 227, 227);
-
-  img {
-    width: 60px;
-    height: 60px;
-    // margin-left: auto;
-    // margin-right: auto;
-  }
-  // .play-circle {
-  //   position: absolute;
-  //   visibility: hidden;
-  //   width: 100%;
-  //   height: 100%;
-  //   display: flex;
-  //   align-items: center;
-  //   justify-content: center;
-  //   .MuiSvgIcon-root {
-  //     font-size: 1.3rem;
-  //   }
-  // }
 }
 
+.musiccardimage {
+  width: 60px;
+  height: 60px;
+  // margin-left: auto;
+  // margin-right: auto;
+}
 @media only screen and (max-width: 545px) {
   // .sharebtn-container {
   //   position: fixed;
@@ -176,12 +157,20 @@
   //   right: 10px;
   // }
   .music-card {
-    width: 350px;
-    .music-card-cover {
-      img {
-        width: 50px;
-        height: 50px;
-      }
-    }
+    width: 400px;
+  }
+  .musiccardimage {
+    width: 50px;
+    height: 50px;
+  }
+  .testbutton {
+    font-size: 8px;
+    padding: 8px;
+    margin: 5px;
+  }
+  .gamebutton {
+    font-size: 8px;
+    padding: 8px;
+    margin: 5px;
   }
 }

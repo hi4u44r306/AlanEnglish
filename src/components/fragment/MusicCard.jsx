@@ -49,13 +49,18 @@ function MusicCard(props) {
             <div className='web'>
                 <React.Fragment>
                     <div className='musicbanner'>
-                        <img src={require("../assets/img/" + img)} alt={bookname} />
+
                         <div className='gamesection'>
                             <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
 
                             <BooktextGame bookname={bookname} pagename={page} open={booktextgameisOpen} musicName={musicName} booktext={booktext} onClose={() => setbooktextIsOpen(false)}></BooktextGame>
                         </div>
-                        <div>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                        }}>
+                            <img src={require("../assets/img/" + img)} alt={bookname} className='musiccardimage' />
                             <Name name={bookname} className={"book-name"} length={bookname.length} />
                             <Name name={page} className={"page-name"} length={page.length} />
                         </div>
