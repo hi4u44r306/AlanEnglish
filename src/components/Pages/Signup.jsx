@@ -222,8 +222,7 @@ function Signup() {
                 totaltimeplayed: 0,
             });
             success();
-        } catch (error) {
-            console.error(error);
+        } catch {
             error();
         }
     };

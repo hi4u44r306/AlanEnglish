@@ -259,7 +259,7 @@ import HeadPhone from '../assets/img/Login2.png';
 import './css/Login.scss';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getFirestore, getDatabase, signInWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { authentication, db, rtdb } from "./firebase-config";
 import { ref, update } from "firebase/database";

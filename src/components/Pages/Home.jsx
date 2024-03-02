@@ -27,7 +27,6 @@ function getCurrPage(pathName) {
 
 function Home() {
 
-    const [currMusic, setCurrMusic] = useState(null);
     const [Page, setCurrPage] = useState(<MusicCardContainer />);
 
 
@@ -55,11 +54,8 @@ function Home() {
     }, [pathname]);
 
 
-    const { playing, bannerOpen } = useSelector(state => state.musicReducer);
+    const { bannerOpen } = useSelector(state => state.musicReducer);
 
-    useEffect(() => {
-        setCurrMusic(playing)
-    }, [playing])
 
     const [loaded, setLoaded] = useState(false);
     useEffect(() => {

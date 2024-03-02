@@ -13,7 +13,7 @@ import { db } from '../Pages/firebase-config';
 
 function FooterMusicPlayer({ music }) {
     console.log('infootermusic')
-    const [{ bookname, page, musicName, img }, setCurrTrack] = useState(music);
+    const [{ bookname, page, musicName }, setCurrTrack] = useState(music);
     const { playlists } = useSelector(state => state.musicReducer);
     const userId = localStorage.getItem('ae-useruid')
     const dispatch = useDispatch();
