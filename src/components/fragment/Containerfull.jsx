@@ -35,17 +35,15 @@ const Containerfull = ({ children }) => {
                 width: '100%',
                 zIndex: 100,
             }}>
-                <React.Fragment>
-                    {
-                        currMusic &&
-                        (
-                            <>
-                                <FooterMusicPlayer music={currMusic} />
-                                {/* <BigScreen music={currMusic} /> */}
-                            </>
-                        )
-                    }
-                </React.Fragment>
+                {
+                    currMusic &&
+                    (
+                        <>
+                            <FooterMusicPlayer music={currMusic} />
+                            {/* <BigScreen music={currMusic} /> */}
+                        </>
+                    )
+                }
             </div>
         </>
     );

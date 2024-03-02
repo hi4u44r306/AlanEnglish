@@ -143,21 +143,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #fcf8ec;
-  position: absolute;
-  top: 10vh;
-  bottom: 0;
+  // background-color: #fcf8ec;
+  padding-top: 100px;
   width: 100%;
   overflow-y: auto;
 }
 .User-profileDetails {
-  background-color: #ffffff;
-  border-radius: 20px;
-  box-shadow: -4px 10px 35px -1px #3fa6d648;
-  // box-shadow: -4px 10px 35px -1px rgba(102, 102, 102, 0.75);
-  font-weight: 600;
+  font-weight: 900;
   width: 50%;
-  padding: 25px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -177,6 +170,99 @@
   color: #fe4a49;
   font-size: 20px;
   font-weight: 700;
+}
+
+$FONTS: "EB Garamond", serif;
+$COLORS: (
+  primary: black,
+  gray: gray,
+  black: black,
+);
+
+$SIZES: (
+  base: 15px,
+);
+
+.container {
+  flex: 1;
+  background-color: white;
+}
+
+.Upper {
+  align-items: center;
+  justify-content: center;
+}
+
+.titleContainer {
+  align-items: center;
+  justify-content: center;
+  padding-top: 10px;
+  margin-bottom: 20px;
+  position: relative; // Make the container relative to position the absolute image
+}
+
+.titleText {
+  margin-top: 25px;
+  font-size: 26px;
+  font-weight: 900;
+  font-family: #{$FONTS};
+  color: map-get($COLORS, primary);
+  letter-spacing: 3px;
+}
+
+.userinfolabel {
+  margin-top: 18px;
+  font-size: 18px;
+  font-family: #{$FONTS};
+  color: map-get($COLORS, black);
+}
+
+.secondtitleText {
+  margin-top: 18px;
+  font-size: 18px;
+  font-family: Garamond;
+  color: map-get($COLORS, gray);
+}
+
+.userInfoContainer {
+  width: 90%;
+  background-color: white;
+  margin: 15px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: map-get($SIZES, base); // You can adjust this padding as needed
+  border-radius: map-get($SIZES, base);
+}
+
+.listeningCountContainer {
+  background-color: #5784e9; // blue background
+  margin: 15px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: map-get($SIZES, base);
+  border-radius: map-get($SIZES, base);
+  elevation: 3;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+.userinfo {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.userInfoText {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  padding-top: 25px;
+  padding-bottom: 15px;
+}
+
+.userSecondInfoText {
+  font-size: 15px;
+  color: white;
+  padding-bottom: 20px;
 }
 
 @media screen and (max-width: 800px) {

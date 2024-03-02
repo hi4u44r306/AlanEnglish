@@ -7,11 +7,9 @@ import musicDB from "../db/music";
 import { useDispatch, useSelector } from "react-redux";
 import { setPlaylist } from "../actions/actions";
 import Leaderboard from "../components/fragment/Leaderboard";
-import UserInfo from "../components/Pages/UserInfo";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
-import Home from "../components/Pages/Home"
 import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
 // import TeachingResources from "../components/Pages/TeachingResources";
@@ -23,6 +21,7 @@ import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
 import { authentication, db, rtdb } from "../components/Pages/firebase-config";
 import Search from "../components/Pages/Search";
+import User from "../components/Pages/User";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -39,8 +38,11 @@ const App = () => {
                 if (docSnapshot.exists()) {
                     const data = docSnapshot.data();
                     localStorage.setItem('ae-class', data.class || '');
-                    localStorage.setItem('ae-username', data.name);
+                    localStorage.setItem('ae-username', data.name.toUpperCase());
                     localStorage.setItem('ae-totaltimeplayed', data.totaltimeplayed);
+                    localStorage.setItem('ae-userimage', data.userimage || '');
+                    const currdatetimeplayed = JSON.stringify(data.currdatetimeplayed);
+                    localStorage.setItem('ae-currentdaytimeplayed', currdatetimeplayed);
                 }
             });
             const teacherDocRef = doc(db, 'teacher', user.uid);
@@ -104,7 +106,7 @@ const App = () => {
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />
-                    <Route path="/home/leaderboard" element={
+                    <Route path="/home/playlist/leaderboard" element={
                         <Containerfull>
                             <Leaderboard />
                         </Containerfull>
@@ -117,32 +119,32 @@ const App = () => {
                         </React.Fragment>
                     } /> */}
 
-                    <Route path="/home/userinfo" element={
+                    <Route path="/home/playlist/userinfo" element={
                         <Containerfull>
-                            <UserInfo />
+                            <User />
                         </Containerfull>
                     } />
-                    <Route path="/home/contact" element={
+                    <Route path="/home/playlist/contact" element={
                         <Containerfull>
                             <Contact />
                         </Containerfull>
                     } />
-                    <Route path="/home/about" element={
+                    <Route path="/home/playlist/about" element={
                         <Containerfull>
                             <About />
                         </Containerfull>
                     } />
-                    <Route path="/home/dashboard" element={
+                    <Route path="/home/playlist/dashboard" element={
                         <Containerfull>
                             <Dashboard />
                         </Containerfull>
                     } />
-                    <Route path="/home" element={
+                    {/* <Route path="/home" element={
                         <Containerfull>
                             <Home />
                         </Containerfull>
-                    } />
-                    <Route path="/home/search" element={
+                    } /> */}
+                    <Route path="/home/playlist/search" element={
                         <Containerfull>
                             <Search />
                         </Containerfull>

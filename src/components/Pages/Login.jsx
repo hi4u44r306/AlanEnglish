@@ -330,9 +330,9 @@ function Login() {
             toast.promise(
                 new Promise(resolve => setTimeout(resolve, 500)),
                 {
-                    success: { render: () => <div className="notification">歡迎回來 {userName}!!</div> }
+                    success: { render: () => <div className="notification">歡迎回來 {userName} !!</div> }
                 },
-                setTimeout(() => window.location = "/home/leaderboard", 2500)
+                setTimeout(() => window.location = "/home/playlist/leaderboard", 2500)
             );
 
         } catch (error) {
@@ -425,7 +425,7 @@ function Login() {
                                 pauseOnHover
                             />
                             <div className="logincopyrightcontainer">
-                                <span className="logincopyright" href="/">© 2023 Alan English Inc.</span>
+                                <span className="logincopyright" href="/">© 2024 Alan English Inc.</span>
                             </div>
                         </div>
                     </div>

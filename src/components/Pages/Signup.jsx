@@ -238,7 +238,7 @@ function Signup() {
     return (
         <div className="Signup">
             <div>
-                <Button as={Link} to="/home/leaderboard" href="/home/leaderboard">回首頁</Button>
+                <Button as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard">回首頁</Button>
             </div>
             <div className="signupsection">
                 <span>Add User</span>

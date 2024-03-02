@@ -1,48 +1,104 @@
-import React, { useState } from 'react';
-import '../assets/scss/User.scss';
+import React from 'react';
+import './css/User.scss';
 import Logout from './Logout'
 // import HashLoader from "react-spinners/HashLoader";
 // import UserImage1 from "../assets/img/User-Image1.png";
 // import UserImage2 from "../assets/img/Login.png";
-import { buildStyles, CircularProgressbarWithChildren } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import Star from '../assets/img/star.png';
-import Notice from '../assets/img/warning.png';
 import { ToastContainer } from "react-toastify"
-import { useEffect } from 'react';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
 
 
 const User = () => {
 
-    const db = getFirestore();
     const username = localStorage.getItem('ae-username');
+    const classname = localStorage.getItem('ae-class');
+    const currdatetimeplayed = localStorage.getItem('ae-currentdaytimeplayed');
     const totaltimeplayed = localStorage.getItem('ae-totaltimeplayed');
-    const useruid = localStorage.getItem('ae-useruid');
-    const [dailytimeplayed, setDailyTimeplayed] = useState();
-    const currentDate = new Date().toJSON().slice(0, 10);
-    const currentMonth = new Date().toJSON().slice(0, 7);
-    const custompathColor = `#89aae6`
-    const percentage = dailytimeplayed * 100 / 20;
+    const Month = new Date().toJSON().slice(5, 7);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const docRef = doc(db, 'student', useruid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setDailyTimeplayed(docSnap.data().currdatetimeplayed);
-                } else {
-                    setDailyTimeplayed("0");
-                }
-            } catch (error) {
-                console.error("Error fetching document:", error);
-                setDailyTimeplayed("0");
-            }
-        };
-        fetchData();
-    }, [currentDate, currentMonth, db, useruid]);
+    // const [image, setImage] = useState();
+    // const [uploading, setUploading] = useState(false);
+    // const [data, setData] = useState();
 
+    // useEffect(() => {
+    //     getUserInfo();
+    // }, []);
+
+    // const getUserInfo = async () => {
+    //     try {
+    //         const userRef = ref(rtdb, 'student/' + await localStorage.getItem('ae-userimage') + '/userimage');
+    //         const snapshot = await get(userRef);
+    //         const data = snapshot.val();
+    //         setData(data)
+    //         const storageRef = storageref(getstorage, `UserimageFile/${data}`);
+    //         const downloadURL = await getDownloadURL(storageRef);
+    //         setImage(downloadURL);
+
+    //     } catch (error) {
+    //         alert('Error fetching user info:', error);
+    //     }
+    // };
+
+    // // Function to handle choosing an image
+    // const handleChooseImage = async () => {
+    //     try {
+    //         // Open image picker
+    //         let result = await ImagePicker.launchImageLibraryAsync({
+    //             mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    //             allowsEditing: true,
+    //             aspect: [4, 3],
+    //             quality: 1,
+    //         });
+
+    //         // Check if image was picked
+    //         if (!result.canceled) {
+    //             // Image URI
+    //             const imageUri = result.assets[0].uri;
+
+    //             // Upload the image to Firebase Storage
+    //             await handleImageUpload(imageUri);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error choosing image:', error);
+    //     }
+    // };
+
+
+    // // Function to handle image upload
+    // const handleImageUpload = async (imageUri) => {
+    //     setUploading(true);
+    //     try {
+    //         // Create a reference to the file to delete
+    //         const desertRef = ref(getstorage, `UserimageFile/${data}`);
+    //         // Delete the file
+    //         deleteObject(desertRef).then(() => {
+    //             alert('deleted successfully')
+    //         }).catch((error) => {
+
+    //         });
+    //     } catch (e) {
+
+    //     }
+    //     try {
+    //         const storage = getStorage();
+    //         const filename = imageUri.substring(imageUri.lastIndexOf('/') + 1); // Corrected
+    //         const storageRef = storageref(storage, `UserimageFile/${filename}`);
+    //         const response = await fetch(imageUri);
+    //         const blob = await response.blob();
+    //         const db = getDatabase();
+    //         await update(ref(db, 'student/' + useruid), {
+    //             userimage: filename,
+    //         });
+    //         await uploadBytes(storageRef, blob);
+    //         Alert.alert('Success', 'Image uploaded successfully');
+    //         getUserInfo();
+    //     } catch (error) {
+    //         console.error('Error uploading image:', error);
+    //         Alert.alert('Error', 'Failed to upload image');
+    //     } finally {
+    //         setUploading(false);
+    //     }
+    // };
 
 
     return (
@@ -50,10 +106,40 @@ const User = () => {
             <div className="User-profile">
                 <div className="User-profileDetails">
                     <div className='User-profile-title'>
-                        Profile
+                        PROFILE
                     </div>
-                    <div className='User-profile-today'>Today : {currentDate}</div>
-                    <div className='dailycirclecontainer'>
+                    {/* <div style={styles.titleContainer}>
+
+                        <div style={{
+                            backgroundColor: 'white',
+                            top: 20,
+                        }}>
+                            {
+                                image ?
+                                    (
+                                        <img source={{ uri: image }} alt={image} style={{
+                                            width: 150,
+                                            height: 150,
+                                            borderRadius: 100,
+                                        }} />
+                                    ) : (
+                                        <div>Loading...</div>
+                                    )
+                            }
+                            <Button onPress={handleChooseImage} disabled={uploading} style={{
+                                backgroundColor: '#2d7dd2',
+                                padding: 10,
+                                borderRadius: 10,
+                                position: 'absolute',
+                                right: 0,
+                                bottom: 0,
+                            }}>
+                                <FiEdit size={20} color={'white'} />
+                            </Button>
+                        </div>
+                        {uploading && <div style={{ justifyContent: 'center', alignContent: 'center', alignItems: 'center', marginTop: 50 }}>上傳中...</div>}
+                    </div> */}
+                    {/* <div className='dailycirclecontainer'>
                         <span className='howtouseicon'>
                             <img
                                 style={{ width: 30, marginTop: -5 }}
@@ -87,17 +173,26 @@ const User = () => {
                                 <div className={dailytimeplayed >= 20 ? "complete" : 'notcomplete'}>達成目標!!!</div>
                             </div>
                         </div>
-                    </div>
-                    <div className='userinfocontainer'>
-                        <div className="userinfo">
-                            <label>👦 姓名:</label>
-                            <p className='userinfoptag'>{username || 'Loading...'}</p>
+                    </div> */}
+
+                    <div className="titleText">{username || 'NONE'}</div>
+                    <div className="userInfoContainer">
+                        <div>
+                            <div className='userinfo'>
+                                <div className='userinfolabel'>班級</div>
+                                <div className='secondtitleText' >{classname || ''} 班</div>
+                            </div>
+                            <div className='userinfo'>
+                                <div className='userinfolabel'>{Month} 月聽力次數 </div>
+                                <div className='secondtitleText'>{totaltimeplayed || '0'} 次</div>
+                            </div>
+                            <div className='userinfo'>
+                                <div className='userinfolabel'>今日聽力次數 </div>
+                                <div className='secondtitleText'>{currdatetimeplayed || '0'} 次</div>
+                            </div>
                         </div>
-                        <div className="userinfo">
-                            <label>🏆 本月聽力總次數:</label>
-                            <p className='userinfoptag'>{totaltimeplayed || '0'}次</p>
-                        </div>
                     </div>
+
                     <Logout />
 
                     <ToastContainer
@@ -199,20 +294,6 @@ const User = () => {
                     </div>
                     
                 </div> */}
-                    {/* <form>
-                    <div className="userinfo">
-                        <label>👦👧 姓名:</label>
-                        <p>{username || 'Loading'}</p>
-                    </div>
-                    <div className="userinfo">
-                        <label>🎧 {currentDate} 聽力次數:</label>
-                        <p>{dailytimeplayed || '0'}次</p>
-                    </div>
-                    <div className="userinfo">
-                        <label>🏆 總聽力次數:</label>
-                        <p>{totaltimeplayed || '0'}次</p>
-                    </div>
-                </form> */}
                 </div>
             </div>
         </div>

@@ -138,7 +138,7 @@ function StudentNavigationBar() {
                             alt="setting"
                           />教學資源共享
                         </NavDropdown.Item> */}
-                        <NavDropdown.Item as={Link} to="/home/dashboard" href="/home/dashboard" className="subnavlink">
+                        <NavDropdown.Item as={Link} to="/home/playlist/dashboard" href="/home/playlist/dashboard" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
                             alt="setting"
@@ -172,13 +172,7 @@ function StudentNavigationBar() {
                     />功課
                   </Nav.Link> */}
 
-                  {/* 排行榜 */}
-                  <Nav.Link as={Link} to="/home/leaderboard" href="/home/leaderboard" className="navlinkscoreboard">
-                    <img style={{ width: 18, marginRight: 4 }}
-                      src={Trophy}
-                      alt="bluebook"
-                    />排行榜
-                  </Nav.Link>
+
 
                   {/* 聽力本 */}
                   {/* <NavDropdown
@@ -525,28 +519,35 @@ function StudentNavigationBar() {
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     className="navlink"
                   >
-                    <NavDropdown.Item as={Link} to="/home/about" href="/home/about" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/about" href="/home/playlist/about" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }}
                         src={Search}
                         alt="bluebook"
                       /> 關於</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/userinfo" href="/home/userinfo" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }}
                         src={File}
                         alt="bluebook"
                       /> 學生檔案</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/contact" href="/home/contact" className="subnavlink">
+                    <NavDropdown.Item as={Link} to="/home/playlist/contact" href="/home/playlist/contact" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }}
                         src={Mail}
                         alt="bluebook"
                       /> 聯絡我們</NavDropdown.Item>
                   </NavDropdown>
 
+                  {/* 排行榜 */}
+                  <Nav.Link as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="navlinkscoreboard">
+                    <img style={{ width: 18, marginRight: 4 }}
+                      src={Trophy}
+                      alt="bluebook"
+                    />排行榜
+                  </Nav.Link>
                 </Nav>
 
 
                 {/* 用戶資料 */}
-                <Nav.Link as={Link} to="/home/userinfo" href="/home/userinfo" className="navlinkscoreboard">
+                <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlinkscoreboard">
                   <div className="username">
                     <p>
                       {navusername || '----'}

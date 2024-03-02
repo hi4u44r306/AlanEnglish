@@ -73,6 +73,7 @@
 .containerfluid {
   transition: all 0.3s cubic-bezier(0.6, 0.4, 0, 1);
   z-index: 999;
+  padding-right: 30px;
 }
 
 .navbar-toggler {
@@ -95,7 +96,7 @@
 }
 
 .dropdown-menu {
-  width: 300px !important;
+  width: 250px !important;
   // background-color: #f7edce;
 }
 .dropdown-toggle {
@@ -128,7 +129,6 @@
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 10px;
 }
 
 .navlinkscoreboard {
@@ -139,6 +139,8 @@
   font-weight: 600;
   display: flex;
   justify-content: center;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 .navlinksetting {
   padding: auto;
