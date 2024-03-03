@@ -1,45 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
-import Containerfull from './Containerfull';
 import '../assets/scss/Dashboard.scss';
-import { collection, deleteDoc, doc, getDoc, getFirestore, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, getFirestore } from 'firebase/firestore';
 import { getDatabase, ref, remove } from 'firebase/database';
 
+import Trophy from '../assets/img/trophy.png';
+import Sun from '../assets/img/sun.png';
+import Sparkles from '../assets/img/sparkles.png';
+import Headphone from '../assets/img/leaderboardheadphone.png';
+
 const Dashboard = () => {
-    const [studentsA, setStudentsA] = useState([]);
-    const [studentsB, setStudentsB] = useState([]);
-    const [studentsC, setStudentsC] = useState([]);
-    const [studentsD, setStudentsD] = useState([]);
     const [showEditForm, setShowEditForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
     const [editingStudentRef, setEditingStudentRef] = useState(null);
     const [updatedStudentData, setUpdatedStudentData] = useState({});
 
-    useEffect(() => {
-        const db = getFirestore();
-        const getStudents = async (classParam, orderByParam, setStateFunc) => {
-            try {
-                const querySnapshot = collection(db, "student")
-                const q = query(querySnapshot, where("class", "==", classParam), orderBy(orderByParam, "desc"));
-                onSnapshot(q, (snapshot) => {
-                    const students = [];
-                    snapshot.forEach((doc) => {
-                        students.push(doc);
-                    })
-                    setStateFunc(students);
-                })
-            } catch (err) {
-                console.log(err);
-            }
-        };
-
-        getStudents("A", 'totaltimeplayed', setStudentsA);
-        getStudents("B", 'totaltimeplayed', setStudentsB);
-        getStudents("C", 'totaltimeplayed', setStudentsC);
-        getStudents("D", 'totaltimeplayed', setStudentsD);
-    }, []);
-
     const editStudent = async (id) => {
+        console.log(id)
+
         const db = getFirestore();
         const studentRef = doc(db, "student", id);
         try {
@@ -95,7 +73,37 @@ const Dashboard = () => {
         }, 1000);
     }
 
+    const [classFilters, setClassFilters] = useState({
+        A: false,
+        B: false,
+        C: false,
+        D: false,
+        // Teacher: true,
+    });
+    const [AllStudent, setAllStudentData] = useState([]);
 
+    useEffect(() => {
+        const AllStudent = localStorage.getItem('AllStudent');
+        if (AllStudent) {
+            setAllStudentData(JSON.parse(AllStudent));
+        }
+    }, []);
+
+    const handleCheckboxChange = (event) => {
+        const { name, checked } = event.target;
+        if (name === "selectAll") {
+            const updatedFilters = {};
+            for (const className in classFilters) {
+                updatedFilters[className] = checked;
+            }
+            setClassFilters(updatedFilters);
+        } else {
+            setClassFilters(prevFilters => ({
+                ...prevFilters,
+                [name]: checked
+            }));
+        }
+    };
 
     return (
         <>
@@ -157,214 +165,126 @@ const Dashboard = () => {
                     </div>
                 </form>
             ) : (
-                <Containerfull>
-                    <div className='leaderboardtitle'>
-                        Dashboard
+
+                <div className='leaderboard'>
+                    <div className='leaderboardmaintitle'>
+                        <div className='leaderboardtitle'>
+                            控制台
+                        </div>
                     </div>
-                    <div className='notice'>
-                        ⚠️ 若名字沒有在上面表示從來沒有上線過 ⚠️
+                    <div className="class-filters">
+                        <label className="class-filter">
+                            <input
+                                type="checkbox"
+                                name="selectAll"
+                                checked={Object.values(classFilters).every(val => val)}
+                                onChange={handleCheckboxChange}
+                            />
+                            All
+                        </label>
+                        {Object.keys(classFilters).map(className => (
+                            <label key={className} className="class-filter">
+                                <input
+                                    type="checkbox"
+                                    name={className}
+                                    checked={classFilters[className]}
+                                    onChange={handleCheckboxChange}
+                                />
+                                {className}班
+                            </label>
+                        ))}
                     </div>
-                    <div className='classtitle'>A班</div>
+
+                    {/* Online Data */}
                     <table className='table table-border'>
                         <thead>
                             <tr>
-                                <th className='coltitlerank'>日期</th>
-                                <th className='coltitlerank'>班別</th>
-                                <th className='coltitlerank'>姓名</th>
-                                <th className='coltitlerank'>次數</th>
-                                <th className='coltitlerank'>編輯</th>
+                                {[
+                                    { text: '排名', icon: Trophy },
+                                    { text: '姓名', icon: Sun },
+                                    { text: '日期', icon: Sparkles },
+                                    { text: '月次數', icon: Headphone },
+                                    { text: '編輯', icon: Headphone },
+                                ].map((col, index) => (
+                                    <th className='coltitle' key={index}>
+                                        <span className='d-flex align-items-center justify-content-center'>
+                                            <img style={{ marginRight: 7, marginBottom: 5 }} src={col.icon} alt={col.text} />
+                                            {col.text}
+                                        </span>
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
-                            {studentsA && studentsA.map((student, index) => (
-                                <tr key={index}>
-                                    {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
-                                        <td key={key}>
-                                            <div className='studentmain'>
-                                                <div className="studentsecond">
-                                                    {key === 'totaltimeplayed' ? (
-                                                        <span className='font-weight-bold'>{student.data()[key]}</span>
-                                                    ) : (
-                                                        <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
-                                                            {student.data()[key] || '近期無上線'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                    ))}
-                                    <td>
-                                        <div className='studentmain'>
-                                            <div className="studentsecond">
-                                                <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
-                                            </div>
-
-                                            <div className="studentsecond">
-                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-
+                            {
+                                AllStudent.map((student, index) => {
+                                    if (classFilters[student.class]) {
+                                        return (
+                                            <tr key={index}>
+                                                <td>
+                                                    <div className='d-flex justify-content-center'>
+                                                        <div className="align-self-center pl-3">
+                                                            <b>
+                                                                <span className='font-weight-bold'>{student.class}</span>
+                                                            </b>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className='d-flex justify-content-center'>
+                                                        <div className="align-self-center pl-3">
+                                                            <b>
+                                                                <span className='font-weight-bold'>{student.name}</span>
+                                                            </b>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className='d-flex justify-content-center'>
+                                                        <div className="align-self-center pl-3">
+                                                            <b>
+                                                                <span className={`font-weight-bold ${student.onlinetime ? 'text-success' : 'text-danger'}`}>
+                                                                    {student.onlinetime || '近期無上線'}
+                                                                </span>
+                                                            </b>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className='d-flex justify-content-center'>
+                                                        <div className="align-self-center pl-3">
+                                                            <b>
+                                                                <span className='font-weight-bold'>{student.totaltimeplayed}次</span>
+                                                            </b>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className='studentmain'>
+                                                        <div className="studentsecond">
+                                                            <button className='editstudentbtn' onClick={() => editStudent(student.uid)}>編輯</button>
+                                                        </div>
+                                                        <div className="studentsecond">
+                                                            <button className='deletestudentbtn' onClick={() => deleteStudent(student.uid)}>刪除</button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }
+                                    return null;
+                                })
+                            }
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td className='coltitle' colSpan="5">!!這是A班最後一筆資料了!!</td>
+                                <td className='coltitle' colSpan="5">!! 這是最底部了 !!</td>
                             </tr>
                         </tfoot>
                     </table>
-
-                    <div className='classtitle'>B班</div>
-                    <table className='table table-border'>
-                        <thead>
-                            <tr>
-                                <th className='coltitlerank'>日期</th>
-                                <th className='coltitlerank'>班別</th>
-                                <th className='coltitlerank'>姓名</th>
-                                <th className='coltitlerank'>次數</th>
-                                <th className='coltitlerank'>編輯</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {studentsB && studentsB.map((student, index) => (
-                                <tr key={index}>
-                                    {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
-                                        <td key={key}>
-                                            <div className='studentmain'>
-                                                <div className="studentsecond">
-                                                    {key === 'totaltimeplayed' ? (
-                                                        <span className='font-weight-bold'>{student.data()[key]}</span>
-                                                    ) : (
-                                                        <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
-                                                            {student.data()[key] || '近期無上線'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                    ))}
-                                    <td>
-                                        <div className='studentmain'>
-                                            <div className="studentsecond">
-                                                <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
-                                            </div>
-                                            <div className="studentsecond">
-                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td className='coltitle' colSpan="5">!!這是B班最後一筆資料了!!</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <div className='classtitle'>C班</div>
-                    <table className='table table-border'>
-                        <thead>
-                            <tr>
-                                <th className='coltitlerank'>日期</th>
-                                <th className='coltitlerank'>班別</th>
-                                <th className='coltitlerank'>姓名</th>
-                                <th className='coltitlerank'>次數</th>
-                                <th className='coltitlerank'>編輯</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {studentsC && studentsC.map((student, index) => (
-                                <tr key={index}>
-                                    {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
-                                        <td key={key}>
-                                            <div className='studentmain'>
-                                                <div className="studentsecond">
-                                                    {key === 'totaltimeplayed' ? (
-                                                        <span className='font-weight-bold'>{student.data()[key]}</span>
-                                                    ) : (
-                                                        <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
-                                                            {student.data()[key] || '近期無上線'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                    ))}
-                                    <td>
-                                        <div className='studentmain'>
-                                            <div className="studentsecond">
-                                                <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
-                                            </div>
-                                            <div className="studentsecond">
-                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td className='coltitle' colSpan="5">!!這是C班最後一筆資料了!!</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <div className='classtitle'>D班</div>
-                    <table className='table table-border'>
-                        <thead>
-                            <tr>
-                                <th className='coltitlerank'>日期</th>
-                                <th className='coltitlerank'>班別</th>
-                                <th className='coltitlerank'>姓名</th>
-                                <th className='coltitlerank'>次數</th>
-                                <th className='coltitlerank'>編輯</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {studentsD && studentsD.map((student, index) => (
-                                <tr key={index}>
-                                    {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
-                                        <td key={key}>
-                                            <div className='studentmain'>
-                                                <div className="studentsecond">
-                                                    {key === 'totaltimeplayed' ? (
-                                                        <span className='font-weight-bold'>{student.data()[key]}</span>
-                                                    ) : (
-                                                        <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
-                                                            {student.data()[key] || '近期無上線'}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                    ))}
-                                    <td>
-                                        <div className='studentmain'>
-                                            <div className="studentsecond">
-                                                <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
-                                            </div>
-                                            <div className="studentsecond">
-                                                <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td className='coltitle' colSpan="5">!!這是D班最後一筆資料了!!</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                </Containerfull>
-            )}
+                </div>
+            )
+            }
         </>
     )
 }
@@ -372,145 +292,210 @@ const Dashboard = () => {
 
 export default Dashboard
 
-
-// import React, { useState } from "react";
-
-// const Dashboard = () => {
-//     const [users, setUsers] = useState([
-//         {
-//             id: 1,
-//             classType: "Class A",
-//             name: "John Smith",
-//             onlineTime: "2h 30m",
-//             musicPlayedTime: "30m",
-//         },
-//         {
-//             id: 2,
-//             classType: "Class B",
-//             name: "Jane Doe",
-//             onlineTime: "1h 45m",
-//             musicPlayedTime: "15m",
-//         },
-//         {
-//             id: 3,
-//             classType: "Class C",
-//             name: "Bob Johnson",
-//             onlineTime: "3h 10m",
-//             musicPlayedTime: "45m",
-//         },
-//     ]);
-
-//     const [editing, setEditing] = useState(false);
-//     const [currentUser, setCurrentUser] = useState({
-//         id: null,
-//         classType: "",
-//         name: "",
-//         onlineTime: "",
-//         musicPlayedTime: "",
-//     });
-
-//     const editRow = (user) => {
-//         setEditing(true);
-//         setCurrentUser({
-//             id: user.id,
-//             classType: user.classType,
-//             name: user.name,
-//             onlineTime: user.onlineTime,
-//             musicPlayedTime: user.musicPlayedTime,
-//         });
-//     };
-
-//     const updateUser = (id, updatedUser) => {
-//         setEditing(false);
-//         setUsers(users.map((user) => (user.id === id ? updatedUser : user)));
-//     };
-
-//     return (
-//         <div>
-//             <table>
-//                 <thead>
-//                     <tr>
-//                         <th>Class Type</th>
-//                         <th>Name</th>
-//                         <th>Online Time</th>
-//                         <th>Music Played Time</th>
-//                         <th>Edit</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     {users.map((user) => (
-//                         <tr key={user.id}>
-//                             <td>{user.classType}</td>
-//                             <td>{user.name}</td>
-//                             <td>{user.onlineTime}</td>
-//                             <td>{user.musicPlayedTime}</td>
-//                             <td>
-//                                 <button onClick={() => editRow(user)}>Edit</button>
-//                             </td>
-//                         </tr>
-//                     ))}
-//                 </tbody>
-//             </table>
-//             {editing && (
-//                 <div>
-//                     <h2>Edit user</h2>
-//                     <form
-//                         onSubmit={(e) => {
-//                             e.preventDefault();
-//                             updateUser(currentUser.id, currentUser);
-//                         }}
-//                     >
-//                         <label htmlFor="classType">Class Type</label>
-//                         <input
-//                             type="text"
-//                             name="classType"
-//                             value={currentUser.classType}
-//                             onChange={(e) =>
-//                                 setCurrentUser({
-//                                     ...currentUser,
-//                                     classType: e.target.value,
-//                                 })
-//                             }
-//                         />
-//                         <label htmlFor="name">Name</label>
-//                         <input
-//                             type="text"
-//                             name="name"
-//                             value={currentUser.name}
-//                             onChange={(e) =>
-//                                 setCurrentUser({ ...currentUser, name: e.target.value })
-//                             }
-//                         />
-//                         <label htmlFor="onlineTime">Online Time</label>
-//                         <input
-//                             type="text"
-//                             name="onlineTime"
-//                             value={currentUser.onlineTime}
-//                             onChange={(e) =>
-//                                 setCurrentUser({
-//                                     ...currentUser,
-//                                     onlineTime: e.target.value,
-//                                 })
-//                             }
-//                         />
-//                         <label htmlFor="musicPlayedTime">Music Played Time</label>
-//                         <input
-//                             type="text"
-//                             name="musicPlayedTime"
-//                             value={currentUser.musicPlayedTime}
-//                             onChange={(e) =>
-//                                 setCurrentUser({
-//                                     ...currentUser,
-//                                     musicPlayedTime: e.target.value,
-//                                 })
-//                             }
-//                         />
-//                         <button>Update</button>
-//                         <button onClick={() => setEditing(false)}>Cancel</button>
-//                     </form>
+// <Containerfull  >
+//                 <div className='leaderboardtitle'>
+//                     Dashboard
 //                 </div>
-//             )}
-//         </div>
-//     );
-// };
-// export default Dashboard
+//                 <div className='notice'>
+//                     ⚠️ 若名字沒有在上面表示從來沒有上線過 ⚠️
+//                 </div>
+//                 <div className='classtitle'>A班</div>
+//                 <table className='table table-border'>
+//                     <thead>
+//                         <tr>
+//                             <th className='coltitlerank'>日期</th>
+//                             <th className='coltitlerank'>班別</th>
+//                             <th className='coltitlerank'>姓名</th>
+//                             <th className='coltitlerank'>次數</th>
+//                             <th className='coltitlerank'>編輯</th>
+//                         </tr>
+//                     </thead>
+//                     <tbody>
+//                         {studentsA && studentsA.map((student, index) => (
+//                             <tr key={index}>
+//                                 {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
+//                                     <td key={key}>
+//                                         <div className='studentmain'>
+//                                             <div className="studentsecond">
+//                                                 {key === 'totaltimeplayed' ? (
+//                                                     <span className='font-weight-bold'>{student.data()[key]}</span>
+//                                                 ) : (
+//                                                     <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
+//                                                         {student.data()[key] || '近期無上線'}
+//                                                     </span>
+//                                                 )}
+//                                             </div>
+//                                         </div>
+//                                     </td>
+//                                 ))}
+//                                 <td>
+//                                     <div className='studentmain'>
+//                                         <div className="studentsecond">
+//                                             <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
+//                                         </div>
+
+//                                         <div className="studentsecond">
+//                                             <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
+//                                         </div>
+//                                     </div>
+//                                 </td>
+//                             </tr>
+//                         ))}
+
+//                     </tbody>
+//                     <tfoot>
+//                         <tr>
+//                             <td className='coltitle' colSpan="5">!!這是A班最後一筆資料了!!</td>
+//                         </tr>
+//                     </tfoot>
+//                 </table>
+
+//                 <div className='classtitle'>B班</div>
+//                 <table className='table table-border'>
+//                     <thead>
+//                         <tr>
+//                             <th className='coltitlerank'>日期</th>
+//                             <th className='coltitlerank'>班別</th>
+//                             <th className='coltitlerank'>姓名</th>
+//                             <th className='coltitlerank'>次數</th>
+//                             <th className='coltitlerank'>編輯</th>
+//                         </tr>
+//                     </thead>
+//                     <tbody>
+//                         {studentsB && studentsB.map((student, index) => (
+//                             <tr key={index}>
+//                                 {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
+//                                     <td key={key}>
+//                                         <div className='studentmain'>
+//                                             <div className="studentsecond">
+//                                                 {key === 'totaltimeplayed' ? (
+//                                                     <span className='font-weight-bold'>{student.data()[key]}</span>
+//                                                 ) : (
+//                                                     <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
+//                                                         {student.data()[key] || '近期無上線'}
+//                                                     </span>
+//                                                 )}
+//                                             </div>
+//                                         </div>
+//                                     </td>
+//                                 ))}
+//                                 <td>
+//                                     <div className='studentmain'>
+//                                         <div className="studentsecond">
+//                                             <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
+//                                         </div>
+//                                         <div className="studentsecond">
+//                                             <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
+//                                         </div>
+//                                     </div>
+//                                 </td>
+//                             </tr>
+//                         ))}
+
+//                     </tbody>
+//                     <tfoot>
+//                         <tr>
+//                             <td className='coltitle' colSpan="5">!!這是B班最後一筆資料了!!</td>
+//                         </tr>
+//                     </tfoot>
+//                 </table>
+//                 <div className='classtitle'>C班</div>
+//                 <table className='table table-border'>
+//                     <thead>
+//                         <tr>
+//                             <th className='coltitlerank'>日期</th>
+//                             <th className='coltitlerank'>班別</th>
+//                             <th className='coltitlerank'>姓名</th>
+//                             <th className='coltitlerank'>次數</th>
+//                             <th className='coltitlerank'>編輯</th>
+//                         </tr>
+//                     </thead>
+//                     <tbody>
+//                         {studentsC && studentsC.map((student, index) => (
+//                             <tr key={index}>
+//                                 {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
+//                                     <td key={key}>
+//                                         <div className='studentmain'>
+//                                             <div className="studentsecond">
+//                                                 {key === 'totaltimeplayed' ? (
+//                                                     <span className='font-weight-bold'>{student.data()[key]}</span>
+//                                                 ) : (
+//                                                     <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
+//                                                         {student.data()[key] || '近期無上線'}
+//                                                     </span>
+//                                                 )}
+//                                             </div>
+//                                         </div>
+//                                     </td>
+//                                 ))}
+//                                 <td>
+//                                     <div className='studentmain'>
+//                                         <div className="studentsecond">
+//                                             <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
+//                                         </div>
+//                                         <div className="studentsecond">
+//                                             <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
+//                                         </div>
+//                                     </div>
+//                                 </td>
+//                             </tr>
+//                         ))}
+
+//                     </tbody>
+//                     <tfoot>
+//                         <tr>
+//                             <td className='coltitle' colSpan="5">!!這是C班最後一筆資料了!!</td>
+//                         </tr>
+//                     </tfoot>
+//                 </table>
+//                 <div className='classtitle'>D班</div>
+//                 <table className='table table-border'>
+//                     <thead>
+//                         <tr>
+//                             <th className='coltitlerank'>日期</th>
+//                             <th className='coltitlerank'>班別</th>
+//                             <th className='coltitlerank'>姓名</th>
+//                             <th className='coltitlerank'>次數</th>
+//                             <th className='coltitlerank'>編輯</th>
+//                         </tr>
+//                     </thead>
+//                     <tbody>
+//                         {studentsD && studentsD.map((student, index) => (
+//                             <tr key={index}>
+//                                 {['onlinetime', 'class', 'name', 'totaltimeplayed'].map(key => (
+//                                     <td key={key}>
+//                                         <div className='studentmain'>
+//                                             <div className="studentsecond">
+//                                                 {key === 'totaltimeplayed' ? (
+//                                                     <span className='font-weight-bold'>{student.data()[key]}</span>
+//                                                 ) : (
+//                                                     <span className={student.data()[key] ? 'text-success' : 'text-danger'}>
+//                                                         {student.data()[key] || '近期無上線'}
+//                                                     </span>
+//                                                 )}
+//                                             </div>
+//                                         </div>
+//                                     </td>
+//                                 ))}
+//                                 <td>
+//                                     <div className='studentmain'>
+//                                         <div className="studentsecond">
+//                                             <button className='editstudentbtn' onClick={() => editStudent(student.id)}>編輯</button>
+//                                         </div>
+//                                         <div className="studentsecond">
+//                                             <button className='deletestudentbtn' onClick={() => deleteStudent(student.id)}>刪除</button>
+//                                         </div>
+//                                     </div>
+//                                 </td>
+//                             </tr>
+//                         ))}
+
+//                     </tbody>
+//                     <tfoot>
+//                         <tr>
+//                             <td className='coltitle' colSpan="5">!!這是D班最後一筆資料了!!</td>
+//                         </tr>
+//                     </tfoot>
+//                 </table>
+
+//             </Containerfull > 

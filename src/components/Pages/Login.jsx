@@ -321,6 +321,27 @@ function Login() {
         getOfflineStudents();
     }, []);
 
+    // 找出所有學生
+    // useEffect(() => {
+    //     const db = getFirestore();
+
+    //     const getAllStudent = async () => {
+    //         const q = collection(db, 'student');
+
+    //         try {
+    //             const querySnapshot = await getDocs(q);
+    //             const students = [];
+    //             querySnapshot.forEach((doc) => {
+    //                 students.push(doc.data());
+    //             });
+    //             localStorage.setItem('AllStudent', JSON.stringify(students));
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     }
+    //     getAllStudent();
+    // }, []);
+
     const handleChange = (e) => {
         if (e.target.name === "email") setEmail(e.target.value);
         if (e.target.name === "password") setPassword(e.target.value);

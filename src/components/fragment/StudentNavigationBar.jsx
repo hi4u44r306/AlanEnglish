@@ -138,12 +138,12 @@ function StudentNavigationBar() {
                             alt="setting"
                           />教學資源共享
                         </NavDropdown.Item> */}
-                        <NavDropdown.Item as={Link} to="/home/playlist/dashboard" href="/home/playlist/dashboard" className="subnavlink">
+                        {/* <NavDropdown.Item as={Link} to="/home/playlist/dashboard" href="/home/playlist/dashboard" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
                             alt="setting"
                           />控制台
-                        </NavDropdown.Item>
+                        </NavDropdown.Item> */}
                         <NavDropdown.Item as={Link} to="/signup" href="/signup" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
