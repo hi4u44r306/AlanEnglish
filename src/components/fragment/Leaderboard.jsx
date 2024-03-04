@@ -26,10 +26,10 @@ const Leaderboard = () => {
   const currentMonthLastDateMs = currentMonthLastDate.getTime();
 
   const [classFilters, setClassFilters] = useState({
-    A: false,
-    B: false,
-    C: false,
-    D: false,
+    A: true,
+    B: true,
+    C: true,
+    D: true,
     // Teacher: true,
   });
   const [OfflinestudentData, setOfflineStudentData] = useState([]);

@@ -254,7 +254,7 @@
 
 // export default Login;
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import HeadPhone from '../assets/img/Login2.png';
 import './css/Login.scss';
 import { ToastContainer, toast } from 'react-toastify';
@@ -269,57 +269,58 @@ function Login() {
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    // 找出有在規定時間內上線的學生
-    useEffect(() => {
-        const db = getFirestore();
-        const currentDate = new Date();
-        const currentMonthFormatted = currentDate.toJSON().slice(0, 7);
 
-        const getStudents = async () => {
-            const q = query(collection(db, 'student'),
-                where('onlinemonth', '==', currentMonthFormatted),
-                where('totaltimeplayed', '>', 0));
+    // // 找出有在規定時間內上線的學生
+    // useEffect(() => {
+    //     const db = getFirestore();
+    //     const currentDate = new Date();
+    //     const currentMonthFormatted = currentDate.toJSON().slice(0, 7);
 
-            try {
-                const querySnapshot = await getDocs(q);
-                const students = [];
-                querySnapshot.forEach((doc) => {
-                    students.push(doc.data());
-                });
-                localStorage.setItem('OnlineStudentData', JSON.stringify(students));
-            } catch (error) {
-                console.log(error);
-            }
-        };
+    //     const getStudents = async () => {
+    //         const q = query(collection(db, 'student'),
+    //             where('onlinemonth', '==', currentMonthFormatted),
+    //             where('totaltimeplayed', '>', 0));
 
-        getStudents();
-    }, []);
+    //         try {
+    //             const querySnapshot = await getDocs(q);
+    //             const students = [];
+    //             querySnapshot.forEach((doc) => {
+    //                 students.push(doc.data());
+    //             });
+    //             localStorage.setItem('OnlineStudentData', JSON.stringify(students));
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     };
 
-    // 找出未上線的學生
-    useEffect(() => {
-        const db = getFirestore();
+    //     getStudents();
+    // }, []);
 
-        const date = new Date();
-        date.setDate(date.getDate() - 3);
-        const offlineLimit = date.toJSON().slice(0, 10);
+    // // 找出未上線的學生
+    // useEffect(() => {
+    //     const db = getFirestore();
 
-        const getOfflineStudents = async () => {
-            const q = query(collection(db, 'student'),
-                where('onlinetime', '<=', offlineLimit));
+    //     const date = new Date();
+    //     date.setDate(date.getDate() - 3);
+    //     const offlineLimit = date.toJSON().slice(0, 10);
 
-            try {
-                const querySnapshot = await getDocs(q);
-                const students = [];
-                querySnapshot.forEach((doc) => {
-                    students.push(doc.data());
-                });
-                localStorage.setItem('OfflineStudentData', JSON.stringify(students));
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        getOfflineStudents();
-    }, []);
+    //     const getOfflineStudents = async () => {
+    //         const q = query(collection(db, 'student'),
+    //             where('onlinetime', '<=', offlineLimit));
+
+    //         try {
+    //             const querySnapshot = await getDocs(q);
+    //             const students = [];
+    //             querySnapshot.forEach((doc) => {
+    //                 students.push(doc.data());
+    //             });
+    //             localStorage.setItem('OfflineStudentData', JSON.stringify(students));
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     }
+    //     getOfflineStudents();
+    // }, []);
 
     // 找出所有學生
     // useEffect(() => {
@@ -349,6 +350,46 @@ function Login() {
 
     const handleKeyDown = (event) => {
         if (event.key === 'Enter' && email && password) login();
+    }
+
+    const getOnlineStudents = async () => {
+        const db = getFirestore();
+        const currentDate = new Date();
+        const currentMonthFormatted = currentDate.toJSON().slice(0, 7);
+        const q = query(collection(db, 'student'),
+            where('onlinemonth', '==', currentMonthFormatted),
+            where('totaltimeplayed', '>', 0));
+
+        try {
+            const querySnapshot = await getDocs(q);
+            const students = [];
+            querySnapshot.forEach((doc) => {
+                students.push(doc.data());
+            });
+            localStorage.setItem('OnlineStudentData', JSON.stringify(students));
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const getOfflineStudents = async () => {
+        const db = getFirestore();
+        const date = new Date();
+        date.setDate(date.getDate() - 3);
+        const offlineLimit = date.toJSON().slice(0, 10);
+        const q = query(collection(db, 'student'),
+            where('onlinetime', '<=', offlineLimit));
+
+        try {
+            const querySnapshot = await getDocs(q);
+            const students = [];
+            querySnapshot.forEach((doc) => {
+                students.push(doc.data());
+            });
+            localStorage.setItem('OfflineStudentData', JSON.stringify(students));
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const login = async () => {
@@ -400,12 +441,17 @@ function Login() {
                 update(databaseRef, { totaltimeplayed: 0 });
             }
 
+            if (userDoc.data().class === 'Teacher') {
+                getOnlineStudents();
+                getOfflineStudents();
+            }
+
             toast.promise(
                 new Promise(resolve => setTimeout(resolve, 500)),
                 {
                     success: { render: () => <div className="notification">歡迎回來 {userName} !!</div> }
                 },
-                setTimeout(() => window.location = "/home/playlist/leaderboard", 2500)
+                setTimeout(() => window.location = "/home/playlist/SER1", 2500)
             );
 
         } catch (error) {

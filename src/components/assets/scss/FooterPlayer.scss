@@ -46,7 +46,7 @@
 
 .rhap_time {
   font-size: 0.85rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 .rhap_play-pause-button {
   font-size: 50px;
@@ -60,7 +60,7 @@
 }
 // 音量點點顏色
 .rhap_volume-indicator {
-  background-color: rgb(0, 0, 0) !important;
+  background-color: rgb(73, 73, 73) !important;
 }
 // 重複鍵顏色
 .rhap_repeat-button {
@@ -70,20 +70,20 @@
   background-color: rgb(255, 0, 0) !important;
 }
 .rhap_volume-button {
-  color: rgb(0, 0, 0) !important;
+  color: rgb(73, 73, 73) !important;
 }
 .rhap_main-controls > button {
-  color: rgb(0, 0, 0) !important;
+  color: rgb(73, 73, 73) !important;
 }
 .rhap_additional-controls {
   color: rgb(0, 145, 255) !important;
 }
-.nomusicname {
-  font-weight: bolder;
-  font-size: 0.7rem;
-  color: rgb(255, 0, 0);
-  text-align: center;
-}
+// .nomusicname {
+//   font-weight: bolder;
+//   font-size: 0.7rem;
+//   color: rgb(255, 0, 0);
+//   text-align: center;
+// }
 
 .MuiButton-label {
   width: 100%;

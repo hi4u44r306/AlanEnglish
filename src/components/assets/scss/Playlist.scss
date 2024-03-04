@@ -25,3 +25,22 @@
   justify-content: center;
   font-family: "Nunito", sans-serif;
 }
+
+.newfunctionalert {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 900;
+  background-color: #ff7070;
+  color: #000000;
+  text-align: center;
+  justify-content: center;
+  font-family: "Nunito", sans-serif;
+}
+
+@media only screen and (max-width: 675px) {
+  .newfunctionalert {
+    font-size: 15px;
+  }
+}

@@ -295,7 +295,7 @@ let musicDB = [
         lang: "習作本1",
         timesPlayed: 0,
         type: "Workbook_1",
-        musicName: "習作本1/習作本1 P.34.mp3",
+        musicName: "習作本1/習作本1 P34.mp3",
         questions: [
             {
                 questionText: "Test.",

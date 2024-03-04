@@ -8,11 +8,11 @@ import Name from "./Name";
 import '../assets/scss/FooterPlayer.scss';
 import 'react-h5-audio-player/lib/styles.css';
 import { collection, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../Pages/firebase-config';
+import { db, rtdb } from '../Pages/firebase-config';
+import { get, ref, update } from 'firebase/database';
 
 
 function FooterMusicPlayer({ music }) {
-    console.log('infootermusic')
     const [{ bookname, page, musicName }, setCurrTrack] = useState(music);
     const { playlists } = useSelector(state => state.musicReducer);
     const userId = localStorage.getItem('ae-useruid')
@@ -64,7 +64,6 @@ function FooterMusicPlayer({ music }) {
             });
 
         // 當月總次數 +1
-
         const usermonthlytimes = doc(collection(userRef, 'Logfile'), currentMonth);
         getDoc(usermonthlytimes)
             .then((docSnapshot) => {
@@ -89,6 +88,42 @@ function FooterMusicPlayer({ music }) {
             .catch((error) => {
                 console.error(error);
             });
+
+        // 在RTDB新增次數、達到7次才能打勾
+        const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
+        // update(ref(rtdb, '/student/' + userId + '/MusicLogfile/' + convertmusicName + '/'), {
+        //     musicplay: 1,
+        //     complete: '',
+        // });
+
+        async function updateMusicPlay(userId, convertmusicName) {
+            try {
+                // Create a reference to the specific music entry
+                const musicRef = ref(rtdb, '/student/' + userId + '/MusicLogfile/' + convertmusicName + '/');
+
+                // Get the current `musicplay` value (if it exists)
+                const snapshot = await get(musicRef);
+                const currentMusicPlay = snapshot.exists() ? snapshot.val().musicplay : 0;
+
+                // Update the `musicplay` value and check the condition
+                const newMusicPlay = currentMusicPlay + 1; // Increment by 1
+                if (newMusicPlay >= 7) {
+                    await update(musicRef, { musicplay: newMusicPlay, complete: '通過' });
+                    console.log("Music play updated and marked complete successfully!");
+                } else {
+                    await update(musicRef, { musicplay: newMusicPlay });
+                    console.log("Music play updated successfully!");
+                }
+            } catch (error) {
+                console.error("Error updating music play:", error);
+                // Handle errors appropriately, e.g., display an error message to the user
+            }
+        }
+
+        updateMusicPlay(userId, convertmusicName);
+
+
+
     };
 
     const currentTrack = playlists.findIndex(obj => obj.musicName === musicName)

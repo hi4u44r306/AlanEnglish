@@ -23,6 +23,9 @@ class Logout extends React.Component {
                     localStorage.removeItem('ae-username');
                     localStorage.removeItem('ae-totaltimeplayed');
                     localStorage.removeItem('ae-teacherschool');
+                    localStorage.removeItem('AllStudent');
+                    localStorage.removeItem('OnlineStudentData');
+                    localStorage.removeItem('OfflineStudentData');
                     window.location = "/";
                     alert('已成功登出');
                 }).catch((err) => {

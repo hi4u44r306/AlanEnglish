@@ -68,7 +68,7 @@ function StudentNavigationBar() {
 
           <Container fluid className="containerfluid">
 
-            <Navbar.Brand as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard">
+            <Navbar.Brand as={Link} to="/home/playlist/SER1" href="/home/playlist/SER1">
               <Brand />
             </Navbar.Brand>
 
@@ -82,7 +82,7 @@ function StudentNavigationBar() {
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title className="brand" as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" id={`offcanvasNavbarLabel-expand-${expand}`}>
+                <Offcanvas.Title className="brand" as={Link} to="/home/playlist/SER1" href="/home/playlist/SER1" id={`offcanvasNavbarLabel-expand-${expand}`}>
                   <Brand />
                 </Offcanvas.Title>
               </Offcanvas.Header>
@@ -90,9 +90,7 @@ function StudentNavigationBar() {
               <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''}`} >
                 <Nav className="studentnavbar">
                   {/*                                     搜尋欄位                         */}
-                  <div className="justify-content-center d-flex align-items-center">
-                    <SearchBar />
-                  </div>
+
                   {/* 星星圓形 */}
                   {/* <div className='navcurrentdaycircle'>
                     <CircularProgressbarWithChildren value={percentage || 'Loading...'} 
@@ -144,6 +142,14 @@ function StudentNavigationBar() {
                             alt="setting"
                           />控制台
                         </NavDropdown.Item> */}
+
+                        {/* 排行榜 */}
+                        <NavDropdown.Item as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Trophy}
+                            alt="bluebook"
+                          />排行榜
+                        </NavDropdown.Item>
                         <NavDropdown.Item as={Link} to="/signup" href="/signup" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
@@ -494,13 +500,32 @@ function StudentNavigationBar() {
                       </NavDropdown>
                     ))}
 
-                    <NavDropdown.Item as={Link} to="/home/playlist/SARC1" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }}
-                        src={Books}
-                        alt="bluebook"
-                      /> Short Articles Reading 1</NavDropdown.Item>
+                    {/*                             Short Articles Reading 1                                 */}
+                    {['down'].map((direction) => (
+                      <NavDropdown
+                        className="navlink"
+                        key={direction}
+                        drop={direction}
+                        title=
+                        {
+                          <div className="d-flex align-items-center">
 
-
+                            <img style={{ width: 18, marginRight: 4 }}
+                              src={Books}
+                              alt="bluebook"
+                            />
+                            Short Articles Reading
+                          </div>
+                        }
+                      >
+                        <NavDropdown.Item as={Link} to="/home/playlist/SARC1" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Books}
+                            alt="bluebook"
+                          /> Short Articles Reading 1
+                        </NavDropdown.Item>
+                      </NavDropdown>
+                    ))}
 
                   </NavDropdown>
 
@@ -536,22 +561,18 @@ function StudentNavigationBar() {
                       /> 聯絡我們</NavDropdown.Item>
                   </NavDropdown>
 
-                  {/* 排行榜 */}
-                  <Nav.Link as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="navlinkscoreboard">
-                    <img style={{ width: 18, marginRight: 4 }}
-                      src={Trophy}
-                      alt="bluebook"
-                    />排行榜
-                  </Nav.Link>
-                </Nav>
 
+                </Nav>
+                <div className="justify-content-center d-flex align-items-center">
+                  <SearchBar />
+                </div>
 
                 {/* 用戶資料 */}
                 <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlinkscoreboard">
-                  <div className="username">
-                    <p>
+                  <div className="usernavlink">
+                    <div className="username">
                       {navusername || '----'}
-                    </p>
+                    </div>
                   </div>
                 </Nav.Link>
                 {/*                                     登出                         */}

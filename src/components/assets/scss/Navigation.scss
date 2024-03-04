@@ -16,8 +16,8 @@
 }
 
 .navbackground.scrolled {
-  background-color: rgb(212, 226, 255) !important;
-  // background-color: rgba(212, 230, 255, 0.9) !important;
+  background-color: rgb(184, 208, 255) !important;
+  // background-color: rgb(212, 226, 255) !important;
   height: 12vh;
 }
 
@@ -25,7 +25,7 @@
   background-color: rgb(255, 255, 255) !important;
 }
 .offcanvas-body.scrolled {
-  background-color: rgb(212, 226, 255) !important;
+  background-color: rgb(184, 208, 255) !important;
 }
 
 .username {
@@ -73,7 +73,9 @@
 .containerfluid {
   transition: all 0.3s cubic-bezier(0.6, 0.4, 0, 1);
   z-index: 999;
-  padding-right: 30px;
+}
+.container-fluid {
+  padding-right: 0;
 }
 
 .navbar-toggler {
@@ -139,8 +141,8 @@
   font-weight: 600;
   display: flex;
   justify-content: center;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 .navlinksetting {
   padding: auto;
@@ -170,5 +172,21 @@
   --_p: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.usernavlink {
+  background: linear-gradient(90deg, #ffffff 50%, var(--c) 0)
+      calc(100% - var(--_p, 0%)) / 200% 100%,
+    linear-gradient(var(--c) 0 0) 0% 100% / var(--_p, 0%) 100% no-repeat;
+  -webkit-background-clip: text, padding-box;
+  background-clip: text, padding-box;
+  transition: 0.3s;
+  font-family: "Nunito", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 10px;
+  display: flex;
+  justify-content: flex-start;
   align-items: center;
 }

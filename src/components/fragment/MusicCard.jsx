@@ -9,32 +9,66 @@ import { setCurrentMargin, setCurrentPlaying } from "../../actions/actions";
 import Name from "./Name";
 import CardGame from "./CardGame";
 import BooktextGame from './BooktextGame';
-import { child, get, getDatabase, ref } from 'firebase/database';
+import { child, onValue, ref } from 'firebase/database';
+import { rtdb } from '../Pages/firebase-config';
+import { FcApproval } from "react-icons/fc";
+import { AiFillCloseCircle } from "react-icons/ai";
 
 function MusicCard(props) {
     const { bookname, page, img, questions, musicName, booktext } = props.music;
     const useruid = localStorage.getItem('ae-useruid');
-    const [gamescore, setGamescore] = useState();
+    // const [gamescore, setGamescore] = useState();
+    const [complete, setComplete] = useState();
+    const [musicplay, setMusicPlay] = useState();
     const [cardgameisOpen, setcardgameIsOpen] = useState(false);
     const [booktextgameisOpen, setbooktextIsOpen] = useState(false);
-    const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
+    // const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
+    const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
+
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const db = getDatabase();
-        const dbRef = ref(db);
-        get(child(dbRef, `student/${useruid}/quiz/${quizname}/score`))
-            .then((snapshot) => {
-                if (snapshot.exists()) {
-                    setGamescore(snapshot.val());
-                } else {
-                    setGamescore();
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }, [quizname, useruid]);
+        // 小遊戲
+        // const db = getDatabase();
+        // const dbRef = ref(db);
+        // get(child(dbRef, `student/${useruid}/quiz/${quizname}/score`))
+        //     .then((snapshot) => {
+        //         if (snapshot.exists()) {
+        //             setGamescore(snapshot.val());
+        //         } else {
+        //             setGamescore();
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         console.error(error);
+        //     });
+
+        // 次數通過
+        const dbRef = ref(rtdb);
+        const completeRef = child(dbRef, `student/${useruid}/MusicLogfile/${convertmusicName}/complete`);
+        const musicplayRef = child(dbRef, `student/${useruid}/MusicLogfile/${convertmusicName}/musicplay`);
+
+        onValue(musicplayRef, (snapshot) => {
+            if (snapshot.exists()) {
+                setMusicPlay(snapshot.val());
+            } else {
+                setMusicPlay(); // If data doesn't exist, setComplete to its default value
+            }
+        }, (error) => {
+            console.error("Error fetching complete value:", error);
+        });
+        onValue(completeRef, (snapshot) => {
+            if (snapshot.exists()) {
+                setComplete(snapshot.val());
+            } else {
+                setComplete(); // If data doesn't exist, setComplete to its default value
+            }
+        }, (error) => {
+            console.error("Error fetching complete value:", error);
+        });
+
+    }, [convertmusicName, useruid]);
+
 
     function handlePlay() {
         dispatch(setCurrentMargin('100px'))
@@ -66,6 +100,17 @@ function MusicCard(props) {
                         </div>
 
                         <div className='buttoncontainer'>
+                            {/* 次數通過 */}
+                            <React.Fragment>
+                                <div className="timesplayedcontainer-mobile">
+                                    <Name name={"播放次數 :"} className={"quizlabel"} />
+                                    <Name name={`${musicplay || 0} 次`} />
+                                </div>
+                                <div className="timesplayedcontainer-mobile">
+                                    <Name name={"通過 :"} className={"quizlabel"} />
+                                    <Name name={complete === '通過' ? <FcApproval size={20} /> : <AiFillCloseCircle size={20} />} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
+                                </div>
+                            </React.Fragment>
                             <div style={{ display: 'flex' }}>
                                 <div onClick={handlePlay} className='testbutton'>
                                     <span>播放</span>
@@ -114,13 +159,14 @@ function MusicCard(props) {
                                             </div> */}
                                 </div>
                             </div>
-                            <React.Fragment>
+                            {/* 小遊戲 */}
+                            {/* <React.Fragment>
                                 <div className="timesplayedcontainer-mobile">
-                                    <Name name={"測驗 :  "} className={"quizlabel"} />
+                                    <Name name={"通過 :  "} className={"quizlabel"} />
                                     <Name name={gamescore || " ---- "} className={"timeplayed"} />
                                     <Name name={"  "} className={"book-name"} />
                                 </div>
-                            </React.Fragment>
+                            </React.Fragment> */}
                         </div>
                     </div>
                 </React.Fragment>
