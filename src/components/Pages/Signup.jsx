@@ -211,15 +211,28 @@ function Signup() {
             const useruid = credentials.user.uid;
             const db = getFirestore();
             await setDoc(doc(db, 'student', useruid), {
-                name: name,
+                Resetallmusic: '',
                 class: classtype,
+                currdatetimeplayed: 0,
                 email: email,
+                name: name,
+                onlinemonth: '',
+                onlinetime: '',
                 totaltimeplayed: 0,
+                userimage: '',
             });
             const rtdb = getDatabase();
             const databaseRef = ref(rtdb, 'student/' + useruid);
             await update(databaseRef, {
-                totaltimeplayed: 0,
+                Resetallmusic: '',
+                onlinemonth: '',
+                onlinetime: '',
+                name: name,
+                class: classtype,
+                email: email,
+                Daytotaltimeplayed: 0,
+                Monthtotaltimeplayed: 0,
+                userimage: '',
             });
             success();
         } catch {

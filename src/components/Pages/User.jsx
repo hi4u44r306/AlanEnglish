@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './css/User.scss';
 import Logout from './Logout'
 // import HashLoader from "react-spinners/HashLoader";
@@ -6,15 +6,37 @@ import Logout from './Logout'
 // import UserImage2 from "../assets/img/Login.png";
 import 'react-circular-progressbar/dist/styles.css';
 import { ToastContainer } from "react-toastify"
+import { rtdb } from './firebase-config';
+import { child, onValue, ref } from 'firebase/database';
 
 
 const User = () => {
 
-    const username = localStorage.getItem('ae-username');
-    const classname = localStorage.getItem('ae-class');
-    const currdatetimeplayed = localStorage.getItem('ae-currentdaytimeplayed');
-    const totaltimeplayed = localStorage.getItem('ae-totaltimeplayed');
+    // const username = localStorage.getItem('ae-username');
+    // const classname = localStorage.getItem('ae-class');
     const Month = new Date().toJSON().slice(5, 7);
+    const [dayplaytime, setDayPlayTime] = useState();
+    const [monthplaytime, setMonthPlayTime] = useState();
+    const [classname, setClassname] = useState();
+    const [username, setUsername] = useState();
+    const useruid = localStorage.getItem('ae-useruid');
+    const dbRef = ref(rtdb);
+    const musicplayRef = child(dbRef, `student/${useruid}`);
+
+    useEffect(() => {
+        onValue(musicplayRef, (snapshot) => {
+            if (snapshot.exists()) {
+                setDayPlayTime(snapshot.val().Daytotaltimeplayed);
+                setMonthPlayTime(snapshot.val().Monthtotaltimeplayed);
+                setClassname(snapshot.val().class);
+                setUsername(snapshot.val().name.toUpperCase());
+            } else {
+                setDayPlayTime(); // If data doesn't exist, setComplete to its default value
+            }
+        }, (error) => {
+            console.error("Error fetching complete value:", error);
+        });
+    }, [musicplayRef])
 
     // const [image, setImage] = useState();
     // const [uploading, setUploading] = useState(false);
@@ -184,11 +206,11 @@ const User = () => {
                             </div>
                             <div className='userinfo'>
                                 <div className='userinfolabel'>{Month} 月聽力次數 </div>
-                                <div className='secondtitleText'>{totaltimeplayed || '0'} 次</div>
+                                <div className='secondtitleText'>{monthplaytime || '0'} 次</div>
                             </div>
                             <div className='userinfo'>
                                 <div className='userinfolabel'>今日聽力次數 </div>
-                                <div className='secondtitleText'>{currdatetimeplayed || '0'} 次</div>
+                                <div className='secondtitleText'>{dayplaytime || '0'} 次</div>
                             </div>
                         </div>
                     </div>

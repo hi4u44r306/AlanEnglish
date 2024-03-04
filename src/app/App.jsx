@@ -41,10 +41,7 @@ const App = () => {
                     const data = docSnapshot.data();
                     localStorage.setItem('ae-class', data.class || '');
                     localStorage.setItem('ae-username', data.name.toUpperCase());
-                    localStorage.setItem('ae-totaltimeplayed', data.totaltimeplayed);
                     localStorage.setItem('ae-userimage', data.userimage || '');
-                    const currdatetimeplayed = JSON.stringify(data.currdatetimeplayed);
-                    localStorage.setItem('ae-currentdaytimeplayed', currdatetimeplayed);
                 }
             });
             const teacherDocRef = doc(db, 'teacher', user.uid);
@@ -75,7 +72,6 @@ const App = () => {
             localStorage.setItem('ae-class', '');
             localStorage.setItem('ae-useruid', '');
             localStorage.setItem('ae-username', '');
-            localStorage.setItem('ae-totaltimeplayed', '');
             localStorage.setItem('ae-teacherschool', '');
         }
     });

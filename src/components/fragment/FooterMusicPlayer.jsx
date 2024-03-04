@@ -9,7 +9,7 @@ import '../assets/scss/FooterPlayer.scss';
 import 'react-h5-audio-player/lib/styles.css';
 import { collection, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db, rtdb } from '../Pages/firebase-config';
-import { get, ref, update } from 'firebase/database';
+import { get, ref, set, update } from 'firebase/database';
 
 
 function FooterMusicPlayer({ music }) {
@@ -91,11 +91,6 @@ function FooterMusicPlayer({ music }) {
 
         // 在RTDB新增次數、達到7次才能打勾
         const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
-        // update(ref(rtdb, '/student/' + userId + '/MusicLogfile/' + convertmusicName + '/'), {
-        //     musicplay: 1,
-        //     complete: '',
-        // });
-
         async function updateMusicPlay(userId, convertmusicName) {
             try {
                 // Create a reference to the specific music entry
@@ -119,8 +114,53 @@ function FooterMusicPlayer({ music }) {
                 // Handle errors appropriately, e.g., display an error message to the user
             }
         }
-
         updateMusicPlay(userId, convertmusicName);
+
+
+        // 在RTDB新增每 月 播放次數
+        async function updateRTDBMonthMusicPlay(userId) {
+            try {
+                // Create a reference to the specific music entry
+                const musicRef = ref(rtdb, '/student/' + userId + '/Monthtotaltimeplayed'); // Access directly
+
+                // Get the current `totaltimeplayed` value (if it exists) using `once`
+                const snapshot = await get(musicRef, { once: true }); // Fetch once
+                const currentMusicPlay = snapshot.exists() ? snapshot.val() : 0;
+
+                // Update the `totaltimeplayed` value using `set`
+                const newMusicPlay = currentMusicPlay + 1; // Increment by 1
+                await set(musicRef, newMusicPlay);
+
+                console.log("Music play updated and marked complete successfully!");
+            } catch (error) {
+                console.error("Error updating music play:", error);
+                // Handle errors appropriately, e.g., display an error message to the user
+            }
+        }
+        updateRTDBMonthMusicPlay(userId);
+
+
+        // 在RTDB新增每 日 播放次數
+        async function updateRTDBDayMusicPlay(userId) {
+            try {
+                // Create a reference to the specific music entry
+                const musicRef = ref(rtdb, '/student/' + userId + '/Daytotaltimeplayed'); // Access directly
+
+                // Get the current `totaltimeplayed` value (if it exists) using `once`
+                const snapshot = await get(musicRef, { once: true }); // Fetch once
+                const currentMusicPlay = snapshot.exists() ? snapshot.val() : 0;
+
+                // Update the `totaltimeplayed` value using `set`
+                const newMusicPlay = currentMusicPlay + 1; // Increment by 1
+                await set(musicRef, newMusicPlay);
+
+                console.log("Music play updated and marked complete successfully!");
+            } catch (error) {
+                console.error("Error updating music play:", error);
+                // Handle errors appropriately, e.g., display an error message to the user
+            }
+        }
+        updateRTDBDayMusicPlay(userId);
 
 
 

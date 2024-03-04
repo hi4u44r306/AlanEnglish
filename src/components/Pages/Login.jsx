@@ -262,7 +262,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, updateDoc, setDoc, getFirestore, query, collection, where, getDocs } from 'firebase/firestore';
 import { authentication, db, rtdb } from "./firebase-config";
-import { ref, update } from "firebase/database";
+import { equalTo, onValue, orderByChild, ref, update } from "firebase/database";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -352,25 +352,35 @@ function Login() {
         if (event.key === 'Enter' && email && password) login();
     }
 
-    const getOnlineStudents = async () => {
-        const db = getFirestore();
-        const currentDate = new Date();
-        const currentMonthFormatted = currentDate.toJSON().slice(0, 7);
-        const q = query(collection(db, 'student'),
-            where('onlinemonth', '==', currentMonthFormatted),
-            where('totaltimeplayed', '>', 0));
-
+    async function getOnlineStudents() {
         try {
-            const querySnapshot = await getDocs(q);
-            const students = [];
-            querySnapshot.forEach((doc) => {
-                students.push(doc.data());
+            // Create a reference to the "student" node
+            const studentRef = ref(rtdb, '/student');
+
+            // Use `orderByChild` and `equalTo` to filter online students
+            const onlineStudentsRef = query(studentRef, orderByChild('onlinemonth'), equalTo(new Date().toJSON().slice(0, 7)));
+
+            // Create a snapshot listener to get online students
+            const unsubscribe = onValue(onlineStudentsRef, (snapshot) => {
+                const students = [];
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    // Check if totaltimeplayed is greater than 0
+                    if (data.totaltimeplayed > 0) {
+                        students.push(data);
+                    }
+                });
+                // Store data in localStorage (optional)
+                localStorage.setItem('OnlineStudentData', JSON.stringify(students));
             });
-            localStorage.setItem('OnlineStudentData', JSON.stringify(students));
+
+            // Remember to clean up the listener when necessary
+            return unsubscribe; // Return the unsubscribe function for cleanup
+
         } catch (error) {
-            console.log(error);
+            console.error("Error getting online students:", error);
         }
-    };
+    }
 
     const getOfflineStudents = async () => {
         const db = getFirestore();
@@ -424,21 +434,32 @@ function Login() {
             const userRef = doc(db, 'student', userCredential.user.uid);
 
             const onlinetime = userDoc.data().onlinetime;
+
+            const userRTDBRef = ref(rtdb, '/student/' + userCredential.user.uid);
+            await update(userRTDBRef, {
+                name: userDoc.data().name,
+                class: userDoc.data().class,
+                email: userDoc.data().email,
+            })
+
+            const musicRef = ref(rtdb, '/student/' + userCredential.user.uid);
             if (onlinetime !== currentDate) {
                 await updateDoc(userRef, {
                     onlinemonth: currentMonth,
                     onlinetime: currentDate,
-                    currdatetimeplayed: 0,
+                    // currdatetimeplayed: 0,
                 });
+
+                await update(musicRef, { Daytotaltimeplayed: 0 })
             }
 
             if (userDoc.data().Resetallmusic === 'notupdated' || userDoc.data().Resetallmusic !== currentMonth + 'alreadyupdated') {
                 await setDoc(userRef, {
-                    totaltimeplayed: 0,
+                    // totaltimeplayed: 0,
                     Resetallmusic: currentMonth + 'alreadyupdated',
                 }, { merge: true });
-                const databaseRef = ref(rtdb, `student/${userCredential.user.uid}/totaltimeplayed`);
-                update(databaseRef, { totaltimeplayed: 0 });
+                const databaseRef = ref(rtdb, `student/${userCredential.user.uid}`);
+                update(databaseRef, { Monthtotaltimeplayed: 0 });
             }
 
             if (userDoc.data().class === 'Teacher') {
