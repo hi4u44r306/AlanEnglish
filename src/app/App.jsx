@@ -6,7 +6,6 @@ import Signup from "../components/Pages/Signup";
 import musicDB from "../db/music";
 import { useDispatch, useSelector } from "react-redux";
 import { setPlaylist } from "../actions/actions";
-import Leaderboard from "../components/fragment/Leaderboard";
 import Contact from "../components/Pages/Contact";
 import About from "../components/Pages/About";
 import Dashboard from "../components/fragment/Dashboard";
@@ -22,6 +21,7 @@ import Containerfull from "../components/fragment/Containerfull";
 import { authentication, db, rtdb } from "../components/Pages/firebase-config";
 import Search from "../components/Pages/Search";
 import User from "../components/Pages/User";
+import Leaderboard from "../components/Pages/Leaderboard";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -100,9 +100,13 @@ const App = () => {
                 </Helmet>
                 <Routes>
                     <Route path="/" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />
+                    <Route path="/home/playlist/signup" element={
+                        <Containerfull>
+                            <Signup />
+                        </Containerfull>
+                    } />
                     <Route path="/home/playlist/leaderboard" element={
                         <Containerfull>
                             <Leaderboard />

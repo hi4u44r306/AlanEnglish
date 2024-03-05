@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import React from 'react'
-import '../assets/scss/Leaderboard.scss';
-import CountdownTimer from './CountdownTimer';
+import './css/Leaderboard.scss';
+import CountdownTimer from '../fragment/CountdownTimer';
 // import first from '../assets/img/firstplace.png';
 // import second from '../assets/img/secondplace.png';
 // import third from '../assets/img/thirdplace.png';
@@ -9,6 +9,8 @@ import Trophy from '../assets/img/trophy.png';
 import Sun from '../assets/img/sun.png';
 import Sparkles from '../assets/img/sparkles.png';
 import Headphone from '../assets/img/leaderboardheadphone.png';
+import { rtdb } from "./firebase-config";
+import { onValue, ref } from "firebase/database";
 // import Rocket from '../assets/img/rocket.png';
 
 
@@ -26,23 +28,41 @@ const Leaderboard = () => {
   const currentMonthLastDateMs = currentMonthLastDate.getTime();
 
   const [classFilters, setClassFilters] = useState({
-    A: false,
-    B: false,
-    C: false,
-    D: false,
+    A: true,
+    B: true,
+    C: true,
+    D: true,
     // Teacher: true,
+
   });
-  const [OfflinestudentData, setOfflineStudentData] = useState([]);
-  const [OnlinestudentData, setOnlineStudentData] = useState([]);
+  const [studentData, setStudentData] = useState([]);
+  const [dateFilterEnabled, setDateFilterEnabled] = useState(false);
+
 
   useEffect(() => {
-    const OfflinestoredData = localStorage.getItem('OfflineStudentData');
-    const OnlinestoredData = localStorage.getItem('OnlineStudentData');
-    if (OfflinestoredData || OnlinestoredData) {
-      setOfflineStudentData(JSON.parse(OfflinestoredData));
-      setOnlineStudentData(JSON.parse(OnlinestoredData));
-    }
+
+    // const date = new Date();
+    // date.setDate(date.getDate() - 3);
+    // const offlineLimit = date.toJSON().slice(0, 10);
+
+    const getStudents = async () => {
+      const studentsRef = ref(rtdb, 'student'); // Assuming 'students' is your node
+
+      onValue(studentsRef, (snapshot) => {
+        const students = [];
+        snapshot.forEach((childSnapshot) => {
+          const childKey = childSnapshot.key;
+          const childData = childSnapshot.val();
+          students.push({ id: childKey, ...childData });
+          // ...
+        });
+        setStudentData(students)
+      });
+    };
+    getStudents();
   }, []);
+
+
 
   const handleCheckboxChange = (event) => {
     const { name, checked } = event.target;
@@ -94,12 +114,21 @@ const Leaderboard = () => {
             {className}班
           </label>
         ))}
+
+        <label className="class-filter">
+          <input
+            type="checkbox"
+            checked={dateFilterEnabled}
+            onChange={() => setDateFilterEnabled(!dateFilterEnabled)}
+          />
+          三天未上限
+        </label>
       </div>
 
       {/* Online Data */}
-      <div className='leaderboardtitle'>
-        Online
-      </div>
+      {/* <div className='leaderboardtitle'>
+        Students
+      </div> */}
       <table className='table table-border'>
         <thead>
           <tr>
@@ -120,8 +149,14 @@ const Leaderboard = () => {
         </thead>
         <tbody>
           {
-            OnlinestudentData.map((student, index) => {
-              if (classFilters[student.class]) {
+            studentData.map((student, index) => {
+              const currentDate = new Date();
+              const threeDaysAgo = new Date(currentDate.getTime() - (3 * 24 * 60 * 60 * 1000));
+              const studentOnlineTime = new Date(student.onlinetime);
+
+              const isClassFiltered = classFilters[student.class];
+              const isDateFiltered = !dateFilterEnabled || studentOnlineTime <= threeDaysAgo; // Apply date filter only if enabled
+              if (isClassFiltered && isDateFiltered) {
                 return (
                   <tr key={index}>
                     <td className='d-flex justify-content-center'>
@@ -153,7 +188,7 @@ const Leaderboard = () => {
                       <div className='d-flex justify-content-center'>
                         <div className="align-self-center pl-3">
                           <b>
-                            <span className='font-weight-bold'>{student.totaltimeplayed}次</span>
+                            <span className='font-weight-bold'>{student.Monthtotaltimeplayed}次</span>
                           </b>
                         </div>
                       </div>
@@ -164,6 +199,7 @@ const Leaderboard = () => {
               return null;
             })
           }
+
         </tbody>
         <tfoot>
           <tr>
@@ -174,7 +210,7 @@ const Leaderboard = () => {
 
 
       {/* Offline Data */}
-      <div className='leaderboardtitle'>
+      {/* <div className='leaderboardtitle'>
         Offline
       </div>
       <table className='table table-border'>
@@ -230,7 +266,7 @@ const Leaderboard = () => {
                       <div className='d-flex justify-content-center'>
                         <div className="align-self-center pl-3">
                           <b>
-                            <span className='font-weight-bold'>{student.totaltimeplayed}次</span>
+                            <span className='font-weight-bold'>{student.Monthtotaltimeplayed}次</span>
                           </b>
                         </div>
                       </div>
@@ -247,7 +283,7 @@ const Leaderboard = () => {
             <td className='coltitle' colSpan="5">!! 這是最底部了 !!</td>
           </tr>
         </tfoot>
-      </table>
+      </table> */}
     </div>
 
   )

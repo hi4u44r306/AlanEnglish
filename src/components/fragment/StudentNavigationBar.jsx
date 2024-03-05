@@ -68,7 +68,7 @@ function StudentNavigationBar() {
 
           <Container fluid className="containerfluid">
 
-            <Navbar.Brand as={Link} to="/home/playlist/SER1" href="/home/playlist/SER1">
+            <Navbar.Brand as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard">
               <Brand />
             </Navbar.Brand>
 
@@ -110,7 +110,13 @@ function StudentNavigationBar() {
                         <div className={dailytimeplayed >= 20?'navdailycircletextcomplete':'navdailycircletextnotcomplete'}> X {dailytimeplayed || '0'} </div>
                     </CircularProgressbarWithChildren>
                   </div> */}
-
+                  {/* 排行榜 */}
+                  <Nav.Link as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="navlinkscoreboard">
+                    <img style={{ width: 18, marginRight: 4 }}
+                      src={Trophy}
+                      alt="bluebook"
+                    />排行榜
+                  </Nav.Link>
                   {/* 主控台 */}
                   {
                     localStorage.getItem('ae-class') !== 'Teacher' ?
@@ -144,13 +150,13 @@ function StudentNavigationBar() {
                         </NavDropdown.Item> */}
 
                         {/* 排行榜 */}
-                        <NavDropdown.Item as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="subnavlink">
+                        {/* <NavDropdown.Item as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Trophy}
                             alt="bluebook"
                           />排行榜
-                        </NavDropdown.Item>
-                        <NavDropdown.Item as={Link} to="/signup" href="/signup" className="subnavlink">
+                        </NavDropdown.Item> */}
+                        <NavDropdown.Item as={Link} to="/home/playlist/signup" href="/home/playlist/signup" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
                             alt="setting"
