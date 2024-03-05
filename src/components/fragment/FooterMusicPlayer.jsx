@@ -20,6 +20,8 @@ function FooterMusicPlayer({ music }) {
     const audioElement = useRef();
     const currentMonth = new Date().toJSON().slice(0, 7);
     const userRef = doc(db, 'student', userId);
+    // const [counting, setCounting] = useState(localStorage.getItem('counting'));
+
 
 
     const success = () => {
@@ -168,6 +170,7 @@ function FooterMusicPlayer({ music }) {
 
     const currentTrack = playlists.findIndex(obj => obj.musicName === musicName)
     const handleClickNext = () => {
+        // setCounting(localStorage.setItem('counting', 0))
         console.log('Next Track')
         let abc = currentTrack + 1;
         if ((currentTrack + 1) >= playlists.length) {
@@ -177,6 +180,7 @@ function FooterMusicPlayer({ music }) {
     };
 
     const handleClickPrev = () => {
+        // setCounting(localStorage.setItem('counting', 0))
         console.log('Previous Track')
         let abc = currentTrack - 1;
         if ((currentTrack - 1) <= -1) {
@@ -186,6 +190,7 @@ function FooterMusicPlayer({ music }) {
     };
 
     const handleEnd = () => {
+        // setCounting(localStorage.setItem('counting', 0))
         console.log('Track End')
         let abc = currentTrack + 1;
         if ((currentTrack + 1) >= playlists.length) {
@@ -251,6 +256,7 @@ function FooterMusicPlayer({ music }) {
                     RHAP_UI.VOLUME_CONTROLS,
                 ]}
             />
+            {/* {counting} */}
             <div>
                 <ToastContainer
                     position="top-center"

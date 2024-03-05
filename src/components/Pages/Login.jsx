@@ -260,9 +260,8 @@ import './css/Login.scss';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, updateDoc, setDoc, getFirestore, query, collection, where, getDocs } from 'firebase/firestore';
-import { authentication, db, rtdb } from "./firebase-config";
-import { equalTo, onValue, orderByChild, ref, update } from "firebase/database";
+import { authentication, rtdb } from "./firebase-config";
+import { child, get, ref, remove, update } from "firebase/database";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -352,55 +351,55 @@ function Login() {
         if (event.key === 'Enter' && email && password) login();
     }
 
-    async function getOnlineStudents() {
-        try {
-            // Create a reference to the "student" node
-            const studentRef = ref(rtdb, '/student');
+    // async function getOnlineStudents() {
+    //     try {
+    //         // Create a reference to the "student" node
+    //         const studentRef = ref(rtdb, '/student');
 
-            // Use `orderByChild` and `equalTo` to filter online students
-            const onlineStudentsRef = query(studentRef, orderByChild('onlinemonth'), equalTo(new Date().toJSON().slice(0, 7)));
+    //         // Use `orderByChild` and `equalTo` to filter online students
+    //         const onlineStudentsRef = query(studentRef, orderByChild('onlinemonth'), equalTo(new Date().toJSON().slice(0, 7)));
 
-            // Create a snapshot listener to get online students
-            const unsubscribe = onValue(onlineStudentsRef, (snapshot) => {
-                const students = [];
-                snapshot.forEach((childSnapshot) => {
-                    const data = childSnapshot.val();
-                    // Check if totaltimeplayed is greater than 0
-                    if (data.totaltimeplayed > 0) {
-                        students.push(data);
-                    }
-                });
-                // Store data in localStorage (optional)
-                localStorage.setItem('OnlineStudentData', JSON.stringify(students));
-            });
+    //         // Create a snapshot listener to get online students
+    //         const unsubscribe = onValue(onlineStudentsRef, (snapshot) => {
+    //             const students = [];
+    //             snapshot.forEach((childSnapshot) => {
+    //                 const data = childSnapshot.val();
+    //                 // Check if totaltimeplayed is greater than 0
+    //                 if (data.totaltimeplayed > 0) {
+    //                     students.push(data);
+    //                 }
+    //             });
+    //             // Store data in localStorage (optional)
+    //             localStorage.setItem('OnlineStudentData', JSON.stringify(students));
+    //         });
 
-            // Remember to clean up the listener when necessary
-            return unsubscribe; // Return the unsubscribe function for cleanup
+    //         // Remember to clean up the listener when necessary
+    //         return unsubscribe; // Return the unsubscribe function for cleanup
 
-        } catch (error) {
-            console.error("Error getting online students:", error);
-        }
-    }
+    //     } catch (error) {
+    //         console.error("Error getting online students:", error);
+    //     }
+    // }
 
-    const getOfflineStudents = async () => {
-        const db = getFirestore();
-        const date = new Date();
-        date.setDate(date.getDate() - 3);
-        const offlineLimit = date.toJSON().slice(0, 10);
-        const q = query(collection(db, 'student'),
-            where('onlinetime', '<=', offlineLimit));
+    // const getOfflineStudents = async () => {
+    //     const db = getFirestore();
+    //     const date = new Date();
+    //     date.setDate(date.getDate() - 3);
+    //     const offlineLimit = date.toJSON().slice(0, 10);
+    //     const q = query(collection(db, 'student'),
+    //         where('onlinetime', '<=', offlineLimit));
 
-        try {
-            const querySnapshot = await getDocs(q);
-            const students = [];
-            querySnapshot.forEach((doc) => {
-                students.push(doc.data());
-            });
-            localStorage.setItem('OfflineStudentData', JSON.stringify(students));
-        } catch (error) {
-            console.log(error);
-        }
-    }
+    //     try {
+    //         const querySnapshot = await getDocs(q);
+    //         const students = [];
+    //         querySnapshot.forEach((doc) => {
+    //             students.push(doc.data());
+    //         });
+    //         localStorage.setItem('OfflineStudentData', JSON.stringify(students));
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
 
     const login = async () => {
         if (!email || !password) {
@@ -429,51 +428,73 @@ function Login() {
 
         try {
             const userCredential = await signInWithEmailAndPassword(authentication, email, password);
-            const userDoc = await getDoc(doc(db, 'student', userCredential.user.uid));
-            const userName = userDoc.data().name.toUpperCase();
-            const userRef = doc(db, 'student', userCredential.user.uid);
+            const userid = userCredential.user.uid;
 
-            const onlinetime = userDoc.data().onlinetime;
+            // const userName = userDoc.data().name.toUpperCase();
+            // const userRef = doc(db, 'student', userCredential.user.uid);
 
-            const userRTDBRef = ref(rtdb, '/student/' + userCredential.user.uid);
-            await update(userRTDBRef, {
-                name: userDoc.data().name,
-                class: userDoc.data().class,
-                email: userDoc.data().email,
+            // const onlinetime = userDoc.data().onlinetime;
+
+            // 更新所有學生資料
+            // const userRTDBRef = ref(rtdb, '/student/' + userCredential.user.uid);
+            // await update(userRTDBRef, {
+            //     Resetallmusic: "2024-03alreadyupdated",
+            //     class: userDoc.data().class,
+            //     Daytotaltimeplayed: userDoc.data().currdatetimeplayed || 0,
+            //     email: userDoc.data().email,
+            //     name: userDoc.data().name,
+            //     onlinemonth: currentMonth,
+            //     onlinetime: currentDate,
+            //     Monthtotaltimeplayed: 0,
+            // })
+
+
+
+            const dbRef = ref(rtdb);
+            get(child(dbRef, `student/${userid}`)).then((snapshot) => {
+                const userName = snapshot.val().name.toUpperCase();
+                const onlinetime = snapshot.val().onlinetime;
+                const musicRef = ref(rtdb, '/student/' + userid);
+                if (onlinetime !== currentDate) {
+                    // await updateDoc(userRef, {
+                    //     onlinemonth: currentMonth,
+                    //     onlinetime: currentDate,
+                    //     // currdatetimeplayed: 0,
+                    // });
+
+                    update(musicRef, {
+                        Daytotaltimeplayed: 0,
+                        onlinemonth: currentMonth,
+                        onlinetime: currentDate,
+                    })
+                }
+
+                if (snapshot.val().Resetallmusic === 'notupdated' || snapshot.val().Resetallmusic !== currentMonth + 'alreadyupdated') {
+                    // setDoc(userRef, {
+                    //     // totaltimeplayed: 0,
+                    //     Resetallmusic: currentMonth + 'alreadyupdated',
+                    // }, { merge: true });
+                    const databaseRef = ref(rtdb, `student/${userid}`);
+                    update(databaseRef, {
+                        Monthtotaltimeplayed: 0,
+                        Resetallmusic: currentMonth + 'alreadyupdated',
+                    });
+                    const musicLogfileRef = ref(rtdb, `student/${userid}/MusicLogfile`);
+                    remove(musicLogfileRef);
+                }
+
+                // if (snapshot.val().class === 'Teacher') {
+                //     getOnlineStudents();
+                //     getOfflineStudents();
+                // }
+                toast.promise(
+                    new Promise(resolve => setTimeout(resolve, 500)),
+                    {
+                        success: { render: () => <div className="notification">歡迎回來 {userName} !!</div> }
+                    },
+                    setTimeout(() => window.location = "/home/playlist/SER1", 2500)
+                );
             })
-
-            const musicRef = ref(rtdb, '/student/' + userCredential.user.uid);
-            if (onlinetime !== currentDate) {
-                await updateDoc(userRef, {
-                    onlinemonth: currentMonth,
-                    onlinetime: currentDate,
-                    // currdatetimeplayed: 0,
-                });
-
-                await update(musicRef, { Daytotaltimeplayed: 0 })
-            }
-
-            if (userDoc.data().Resetallmusic === 'notupdated' || userDoc.data().Resetallmusic !== currentMonth + 'alreadyupdated') {
-                await setDoc(userRef, {
-                    // totaltimeplayed: 0,
-                    Resetallmusic: currentMonth + 'alreadyupdated',
-                }, { merge: true });
-                const databaseRef = ref(rtdb, `student/${userCredential.user.uid}`);
-                update(databaseRef, { Monthtotaltimeplayed: 0 });
-            }
-
-            if (userDoc.data().class === 'Teacher') {
-                getOnlineStudents();
-                getOfflineStudents();
-            }
-
-            toast.promise(
-                new Promise(resolve => setTimeout(resolve, 500)),
-                {
-                    success: { render: () => <div className="notification">歡迎回來 {userName} !!</div> }
-                },
-                setTimeout(() => window.location = "/home/playlist/SER1", 2500)
-            );
 
         } catch (error) {
             toast.promise(

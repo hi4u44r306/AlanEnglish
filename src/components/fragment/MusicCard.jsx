@@ -15,6 +15,7 @@ import { FcApproval } from "react-icons/fc";
 import { AiFillCloseCircle } from "react-icons/ai";
 
 function MusicCard(props) {
+    const dispatch = useDispatch();
     const { bookname, page, img, questions, musicName, booktext } = props.music;
     const useruid = localStorage.getItem('ae-useruid');
     // const [gamescore, setGamescore] = useState();
@@ -25,7 +26,8 @@ function MusicCard(props) {
     // const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
     const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
 
-    const dispatch = useDispatch();
+
+
 
     useEffect(() => {
         // 小遊戲
@@ -83,7 +85,6 @@ function MusicCard(props) {
             <div className='web'>
                 <React.Fragment>
                     <div className='musicbanner'>
-
                         <div className='gamesection'>
                             <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
 
