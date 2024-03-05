@@ -1,3 +1,52 @@
+.User {
+  display: flex;
+}
+.User-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.556);
+  width: 100%;
+  padding: 20px;
+  overflow-y: auto;
+}
+.User-profileDetails {
+  padding: 100px 0px 100px 0;
+  font-weight: 900;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+}
+
+.User-profile-title {
+  color: #3fa7d6;
+  display: flex;
+  font-family: "Nunito", sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+.User-profile-today {
+  font-family: "Nunito", sans-serif;
+  color: #fe4a49;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+// .Userbackgroundimage {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   background-image: url("../../assets/img/profilebackgroundimage.webp");
+//   background-size: cover;
+//   background-position: center; /* Centers the background image */
+//   opacity: 0.6;
+//   z-index: -1; /* Ensures the image stays behind the content */
+// }
 .User-Logout {
   position: absolute;
   right: 25%;
@@ -93,9 +142,7 @@
 .notcomplete {
   display: none;
 }
-.User {
-  font-family: "Nunito", sans-serif;
-}
+
 .loader {
   display: flex;
   text-align: center;
@@ -138,38 +185,6 @@
   align-content: center;
   visibility: visible;
   box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
-}
-.User-profile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  // background-color: #fcf8ec;
-  padding-top: 100px;
-  width: 100%;
-  overflow-y: auto;
-}
-.User-profileDetails {
-  font-weight: 900;
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-content: center;
-}
-
-.User-profile-title {
-  color: #3fa7d6;
-  display: flex;
-  font-family: "Nunito", sans-serif;
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: 3px;
-}
-.User-profile-today {
-  font-family: "Nunito", sans-serif;
-  color: #fe4a49;
-  font-size: 20px;
-  font-weight: 700;
 }
 
 $FONTS: "EB Garamond", serif;

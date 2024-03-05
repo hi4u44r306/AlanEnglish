@@ -124,8 +124,9 @@ const User = () => {
 
 
     return (
-        <div className={"User"}>
+        <div className='User'>
             <div className="User-profile">
+                <div className='Userbackgroundimage'></div>
                 <div className="User-profileDetails">
                     <div className='User-profile-title'>
                         PROFILE
@@ -319,7 +320,6 @@ const User = () => {
                 </div>
             </div>
         </div>
-
     )
 }
 
