@@ -133,7 +133,7 @@ const Leaderboard = () => {
         <thead>
           <tr>
             {[
-              { text: '排名', icon: Trophy },
+              { text: '班級', icon: Trophy },
               { text: '姓名', icon: Sun },
               { text: '日期', icon: Sparkles },
               { text: '月次數', icon: Headphone },
