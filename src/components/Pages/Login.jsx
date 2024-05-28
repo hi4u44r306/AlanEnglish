@@ -492,7 +492,7 @@ function Login() {
                     {
                         success: { render: () => <div className="notification">歡迎回來 {userName} !!</div> }
                     },
-                    setTimeout(() => window.location = "/home/playlist/leaderboard", 2500)
+                    setTimeout(() => window.location = "/home/playlist/userinfo", 2500)
                 );
             })
 

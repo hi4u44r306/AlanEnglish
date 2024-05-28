@@ -1,340 +1,129 @@
 .User {
-  display: flex;
-}
-.User-profile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.556);
-  width: 100%;
   padding: 20px;
-  overflow-y: auto;
+  background-color: #f0f4f8;
 }
+
+.User-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.User-left,
+.User-right {
+  flex: 1;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .User-profileDetails {
-  padding: 100px 0px 100px 0;
-  font-weight: 900;
-  width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  align-content: center;
 }
 
 .User-profile-title {
-  color: #3fa7d6;
-  display: flex;
-  font-family: "Nunito", sans-serif;
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: 3px;
-}
-.User-profile-today {
-  font-family: "Nunito", sans-serif;
-  color: #fe4a49;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-// .Userbackgroundimage {
-//   position: absolute;
-//   top: 0;
-//   left: 0;
-//   right: 0;
-//   bottom: 0;
-//   background-image: url("../../assets/img/profilebackgroundimage.webp");
-//   background-size: cover;
-//   background-position: center; /* Centers the background image */
-//   opacity: 0.6;
-//   z-index: -1; /* Ensures the image stays behind the content */
-// }
-.User-Logout {
-  position: absolute;
-  right: 25%;
-  top: 10%;
-}
-.userinfo {
-  display: flex;
-  justify-content: flex-start;
-  gap: 20px;
-  font-weight: 800;
-}
-.userinfoptag {
-  color: #fc3434;
-}
-// Container
-.userinfocontainer {
-  display: flex;
-  flex-direction: column;
-  height: fit-content;
-  padding: 20px;
-  margin: 20px;
-  background-color: #ffffff;
-  border-radius: 20px;
-  box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
-  justify-content: center;
-  gap: 20px;
-}
-.dailycirclecontainer {
-  display: flex;
-  height: 150px;
-  padding: 20px;
-  margin: 20px;
-  background-color: #ffffff;
-  border-radius: 20px;
-  box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
-  justify-content: center;
-  gap: 20px;
-}
-.currentdaycircle {
-  font-family: "Nunito", sans-serif;
-  font-weight: 900;
-  width: 100px;
-  height: 100px;
-}
-.dailycircle {
-  width: 60px;
-  height: 60px;
-}
-.abc {
-  display: flex;
-  gap: 10px;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  align-content: center;
-}
-.dailycircletext {
-  font-family: "Nunito", sans-serif;
-  display: flex;
-  justify-content: center;
-  font-weight: 900;
-  align-items: center;
-  color: #3fa7d6;
-  gap: 10px;
-}
-.dailycircletext1 {
-  font-family: "Nunito", sans-serif;
-  display: flex;
-  justify-content: center;
-  font-weight: 900;
-  align-items: center;
-  color: #fc3434;
-  font-size: 25px;
-}
-.dailycircletext2 {
-  font-family: "Nunito", sans-serif;
-  display: flex;
-  justify-content: center;
-  font-weight: 900;
-  align-items: center;
-  color: #3fa7d6;
-  font-size: 15px;
-}
-.complete {
-  font-family: "Nunito", sans-serif;
-  display: flex;
-  justify-content: center;
-  font-weight: 900;
-  align-items: center;
-  color: #fc3434;
-  font-size: 25px;
-}
-.notcomplete {
-  display: none;
-}
-
-.loader {
-  display: flex;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
-}
-.howtouseicon {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  // background-color: rgb(255, 0, 0);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-}
-.howtouseicontext {
-  font-size: 15px;
-  visibility: hidden;
-  width: 300px;
-  height: 40px;
-  background-color: rgb(255, 131, 131);
-  color: black;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px;
-
-  /* Position the howtouseicontext */
-  position: absolute;
-  bottom: 65px;
-  left: -22px;
-  z-index: 1;
-}
-.howtouseicon:hover .howtouseicontext {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-content: center;
-  visibility: visible;
-  box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
-}
-
-$FONTS: "EB Garamond", serif;
-$COLORS: (
-  primary: black,
-  gray: gray,
-  black: black,
-);
-
-$SIZES: (
-  base: 15px,
-);
-
-.container {
-  flex: 1;
-  background-color: white;
-}
-
-.Upper {
-  align-items: center;
-  justify-content: center;
-}
-
-.titleContainer {
-  align-items: center;
-  justify-content: center;
-  padding-top: 10px;
-  margin-bottom: 20px;
-  position: relative; // Make the container relative to position the absolute image
+  font-size: 26px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 15px;
 }
 
 .titleText {
-  margin-top: 25px;
-  font-size: 26px;
-  font-weight: 900;
-  font-family: #{$FONTS};
-  color: map-get($COLORS, primary);
-  letter-spacing: 3px;
-}
-
-.userinfolabel {
-  margin-top: 18px;
-  font-size: 18px;
-  font-family: #{$FONTS};
-  color: map-get($COLORS, black);
-}
-
-.secondtitleText {
-  margin-top: 18px;
-  font-size: 18px;
-  font-family: Garamond;
-  color: map-get($COLORS, gray);
+  font-size: 20px;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 15px;
 }
 
 .userInfoContainer {
-  width: 90%;
-  background-color: white;
-  margin: 15px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: map-get($SIZES, base); // You can adjust this padding as needed
-  border-radius: map-get($SIZES, base);
-}
-
-.listeningCountContainer {
-  background-color: #5784e9; // blue background
-  margin: 15px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: map-get($SIZES, base);
-  border-radius: map-get($SIZES, base);
-  elevation: 3;
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
+  width: 100%;
 }
 
 .userinfo {
-  width: 100%;
   display: flex;
   justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.userInfoText {
-  font-size: 20px;
-  font-weight: 700;
-  color: white;
-  padding-top: 25px;
-  padding-bottom: 15px;
+.userinfolabel {
+  font-weight: 600;
+  color: #2c3e50;
 }
 
-.userSecondInfoText {
-  font-size: 15px;
-  color: white;
-  padding-bottom: 20px;
+.secondtitleText {
+  font-size: 18px;
+  color: #7f8c8d;
 }
 
-@media screen and (max-width: 800px) {
-  .User-Logout {
-    position: absolute;
-    right: 5%;
-  }
-  .User-profileDetails {
-    width: 90%;
-  }
-  .userinfocontainer {
-    display: flex;
+.User-passedItems {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.User-passedItems-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.User-passedItems-list {
+  list-style: none;
+  padding: 0;
+}
+
+.User-passedItems-ul {
+  padding: 0;
+  margin: 0;
+}
+
+.User-passedItems-li {
+  margin-bottom: 10px;
+}
+
+.User-passedItems-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.User-passedItems-key {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.User-passedItems-playcount {
+  color: #555;
+}
+
+.User-passedItems-none {
+  color: #888;
+  text-align: center;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .User-container {
     flex-direction: column;
-    width: 80vw;
-    height: fit-content;
-    padding: 20px;
-    margin: 20px;
-    background-color: #ffffff;
-    border-radius: 20px;
-    box-shadow: -4px 10px 35px -1px rgba(175, 175, 175, 0.75);
-    justify-content: center;
-    gap: 20px;
   }
-  .howtouseicon {
-    font-size: 25px;
-    width: 50px;
-    height: 50px;
-  }
-  .complete {
-    font-size: 18px;
-  }
-  .dailycircletext {
-    font-size: 10px;
-  }
-  .dailycircletext1 {
-    font-size: 10px;
-  }
-  .dailycircletext2 {
-    font-size: 10px;
-  }
-  .dailycirclecontainer {
-    display: flex;
-    align-items: center;
-    align-content: center;
-    gap: 30px;
-    height: 130px;
-    width: 80vw;
-  }
-  .currentdaycircle {
-    width: 80px;
-    height: 80px;
-  }
-  .dailycircle {
-    width: 40px;
-    height: 40px;
-  }
-  .User-Image {
-    display: none;
+
+  .User-left,
+  .User-right {
+    width: 100%;
   }
 }

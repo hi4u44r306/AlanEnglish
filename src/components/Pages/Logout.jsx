@@ -44,7 +44,7 @@ class Logout extends React.Component {
                         fontSize: '20px',
                         fontFamily: FONTS.semiBold,
                     }}>
-                        LOGOUT
+                        登出
                     </span>
                 </button>
 
