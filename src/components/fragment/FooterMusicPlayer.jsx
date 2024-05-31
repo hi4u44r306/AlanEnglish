@@ -92,7 +92,8 @@ function FooterMusicPlayer({ music }) {
             });
 
         // 在RTDB新增次數、達到7次才能打勾
-        const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
+        const convertmusicName = bookname + ' ' + page;
+        // const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
         async function updateMusicPlay(userId, convertmusicName) {
             try {
                 // Create a reference to the specific music entry

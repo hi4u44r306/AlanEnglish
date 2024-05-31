@@ -1,124 +1,130 @@
 .User {
-  padding: 20px;
-  background-color: #f0f4f8;
+  padding: 10px;
+  font-family: "Nunito", sans-serif;
+  display: flex;
+  justify-content: center;
 }
 
 .User-container {
   display: flex;
-  justify-content: space-between;
-  gap: 20px;
+  flex-direction: column;
+  gap: 25px;
+  width: 70%;
 }
 
 .User-left,
 .User-right {
   flex: 1;
-  padding: 20px;
+  padding: 10px;
   background: #ffffff;
-  border: 1px solid #e0e0e0;
+  border: 2px solid #ffcc80; /* Warm border color */
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.User-profileDetails {
+.User-profile-details {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .User-profile-title {
-  font-size: 26px;
+  font-size: 27px; /* Smaller font size */
   font-weight: bold;
-  color: #2c3e50;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
-.titleText {
-  font-size: 20px;
-  font-weight: 600;
-  color: #34495e;
-  margin-bottom: 15px;
+.title-text {
+  font-size: 20px; /* Smaller font size */
+  font-weight: 900;
+  color: #f57c00; /* Warm text color */
+  margin-bottom: 8px;
 }
 
-.userInfoContainer {
+.user-info-container {
   width: 100%;
+  border-radius: 8px;
+  padding: 8px;
 }
 
-.userinfo {
+.user-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 6px;
+  padding: 6px 0;
+  border-bottom: 1px solid #ffb74d; /* Warm border color */
 }
 
-.userinfolabel {
+.user-info-label {
   font-weight: 600;
-  color: #2c3e50;
+  color: #000000; /* Warm text color */
 }
 
-.secondtitleText {
-  font-size: 18px;
-  color: #7f8c8d;
+.second-title-text {
+  font-size: 16px; /* Smaller font size */
+  font-weight: 900;
+  color: #e65100; /* Warm text color */
 }
 
-.User-passedItems {
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  margin-top: 20px;
+.User-passed-items {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
 }
 
-.User-passedItems-title {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
+.User-passed-items-title {
+  font-size: 18px; /* Smaller font size */
+  font-weight: 900;
+  color: #f57c00; /* Warm text color */
+  margin-bottom: 8px;
 }
 
-.User-passedItems-list {
+.User-passed-items-list {
+  width: 100%;
   list-style: none;
-  padding: 0;
 }
 
-.User-passedItems-ul {
-  padding: 0;
-  margin: 0;
+// .User-passed-items-ul {
+//   padding: 0;
+//   margin: 0;
+// }
+
+.User-passed-items-li {
+  margin-bottom: 6px;
 }
 
-.User-passedItems-li {
-  margin-bottom: 10px;
-}
-
-.User-passedItems-item {
+.User-passed-items-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #ffffff;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  border: 1px solid #ffcc80; /* Warm border color */
+  border-radius: 8px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
 }
 
-.User-passedItems-key {
-  font-weight: bold;
-  color: #007bff;
+.User-passed-items-key {
+  font-weight: 900;
+  color: #000000; /* Warm text color */
 }
 
-.User-passedItems-playcount {
-  color: #555;
+.User-passed-items-playcount {
+  font-weight: 900;
+  color: #e65100; /* Warm text color */
 }
 
-.User-passedItems-none {
-  color: #888;
+.User-passed-items-none {
+  color: #e65100; /* Warm text color */
   text-align: center;
-  padding: 15px;
-  background: #f9f9f9;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
 }
 
 @media (max-width: 768px) {
   .User-container {
+    width: 100%;
     flex-direction: column;
   }
 

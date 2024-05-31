@@ -398,9 +398,17 @@ const User = () => {
 
         const musicpassUnsubscribe = onValue(musicpassRef, (snapshot) => {
             if (snapshot.exists()) {
-                setMusicPass(snapshot.val());
+                const data = snapshot.val();
+                const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
+                    if (value.musicplay >= 7) {
+                        acc[key] = value;
+                    }
+                    return acc;
+                }, {});
+
+                setMusicPass(filteredData);
             } else {
-                setMusicPass();
+                setMusicPass({});
             }
         }, (error) => {
             console.error("Error fetching complete value:", error);
@@ -410,61 +418,61 @@ const User = () => {
             musicplayUnsubscribe();
             musicpassUnsubscribe();
         };
+
     }, [useruid, dbRef]);
 
     return (
         <div className='User'>
             <div className="User-container">
+                <Logout />
                 <div className="User-left">
-                    <div className='Userbackgroundimage'></div>
-                    <div className="User-profileDetails">
+                    <div className="User-profile-details">
                         <div className='User-profile-title'>
                             個人資料
                         </div>
-                        <div className="titleText">{username || 'NONE'}</div>
-                        <div className="userInfoContainer">
-                            <div className='userinfo'>
-                                <div className='userinfolabel'>班級</div>
-                                <div className='secondtitleText'>{classname || ''} 班</div>
+                        <div className="user-info-container">
+                            <div className='user-info'>
+                                <div className='user-info-label'>姓名</div>
+                                <div className='second-title-text'>{username || ''}</div>
                             </div>
-                            <div className='userinfo'>
-                                <div className='userinfolabel'>{Month} 月聽力次數 </div>
-                                <div className='secondtitleText'>{monthplaytime || '0'} 次</div>
+                            <div className='user-info'>
+                                <div className='user-info-label'>班級</div>
+                                <div className='second-title-text'>{classname || ''} 班</div>
                             </div>
-                            <div className='userinfo'>
-                                <div className='userinfolabel'>今日聽力次數 </div>
-                                <div className='secondtitleText'>{dayplaytime || '0'} 次</div>
+                            <div className='user-info'>
+                                <div className='user-info-label'>{Month} 月聽力次數 </div>
+                                <div className='second-title-text'>{monthplaytime || '0'} 次</div>
+                            </div>
+                            <div className='user-info'>
+                                <div className='user-info-label'>今日聽力次數 </div>
+                                <div className='second-title-text'>{dayplaytime || '0'} 次</div>
                             </div>
                         </div>
-                        <Logout />
+
                     </div>
                 </div>
                 <div className="User-right">
-                    <div className='User-passedItems'>
-                        <h2 className='User-passedItems-title'>已通過的項目</h2>
-                        <div className='User-passedItems-list'>
+                    <div className='User-passed-items'>
+                        <div className='User-passed-items-title'>已通過的項目</div>
+                        <div className='User-passed-items-list'>
                             {musicpass && Object.keys(musicpass).length > 0 ? (
-                                <ul className='User-passedItems-ul'>
+                                <div className='User-passed-items-ul'>
                                     {Object.entries(musicpass).map(([key, value]) => (
-                                        <li key={key} className='User-passedItems-li'>
-                                            <div className='User-passedItems-item'>
-                                                <span className='User-passedItems-key'>{key}</span>
-                                                <span className='User-passedItems-playcount'>已聽過 {value.musicplay} 次</span>
+                                        <li key={key} className='User-passed-items-li'>
+                                            <div className='User-passed-items-item'>
+                                                <span className='User-passed-items-key'>{key}</span>
+                                                <span className='User-passed-items-playcount'>已聽過 {value.musicplay} 次</span>
                                             </div>
                                         </li>
                                     ))}
-                                </ul>
+                                </div>
                             ) : (
-                                <p className='User-passedItems-none'>目前無通過項目</p>
+                                <p className='User-passed-items-none'>目前無通過項目</p>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
-
-
-
-
             <ToastContainer
                 position="top-center"
                 autoClose={2000}
@@ -481,4 +489,5 @@ const User = () => {
 };
 
 export default User;
+
 

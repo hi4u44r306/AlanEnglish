@@ -4,7 +4,7 @@ let musicDB = [
     {
         // id: 519,
         bookname: "習作本1",
-        page: "P.11",
+        page: "P11",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -52,7 +52,7 @@ let musicDB = [
     {
         // id: 520,
         bookname: "習作本1",
-        page: "P.21",
+        page: "P21",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -80,7 +80,7 @@ let musicDB = [
     {
         // id: 520,
         bookname: "習作本1",
-        page: "P.22",
+        page: "P22",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -108,7 +108,7 @@ let musicDB = [
     {
         // id: 521,
         bookname: "習作本1",
-        page: "P.23",
+        page: "P23",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -135,7 +135,7 @@ let musicDB = [
     {
         // id: 522,
         bookname: "習作本1",
-        page: "P.24",
+        page: "P24",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -162,7 +162,7 @@ let musicDB = [
     {
         // id: 523,
         bookname: "習作本1",
-        page: "P.27",
+        page: "P27",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -189,7 +189,7 @@ let musicDB = [
     {
         // id: 524,
         bookname: "習作本1",
-        page: "P.28",
+        page: "P28",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -216,7 +216,7 @@ let musicDB = [
     {
         // id: 525,
         bookname: "習作本1",
-        page: "P.30",
+        page: "P30",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -263,7 +263,7 @@ let musicDB = [
     {
         // id: 526,
         bookname: "習作本1",
-        page: "P.32",
+        page: "P32",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -290,7 +290,7 @@ let musicDB = [
     {
         // id: 526,
         bookname: "習作本1",
-        page: "P.34",
+        page: "P34",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -317,7 +317,7 @@ let musicDB = [
     {
         // id: 528,
         bookname: "習作本1",
-        page: "P.35",
+        page: "P35",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -344,7 +344,7 @@ let musicDB = [
     {
         // id: 529,
         bookname: "習作本1",
-        page: "P.40",
+        page: "P40",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -371,7 +371,7 @@ let musicDB = [
     {
         // id: 530,
         bookname: "習作本1",
-        page: "P.42",
+        page: "P42",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -398,7 +398,7 @@ let musicDB = [
     {
         // id: 531,
         bookname: "習作本1",
-        page: "P.43",
+        page: "P43",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -425,7 +425,7 @@ let musicDB = [
     {
         // id: 532,
         bookname: "習作本1",
-        page: "P.47",
+        page: "P47",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -435,7 +435,7 @@ let musicDB = [
     {
         // id: 533,
         bookname: "習作本1",
-        page: "P.48",
+        page: "P48",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -445,7 +445,7 @@ let musicDB = [
     {
         // id: 534,
         bookname: "習作本1",
-        page: "P.49",
+        page: "P49",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -455,7 +455,7 @@ let musicDB = [
     {
         // id: 535,
         bookname: "習作本1",
-        page: "P.50",
+        page: "P50",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -465,7 +465,7 @@ let musicDB = [
     {
         // id: 535,
         bookname: "習作本1",
-        page: "P.51",
+        page: "P51",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -475,7 +475,7 @@ let musicDB = [
     {
         // id: 536,
         bookname: "習作本1",
-        page: "P.53",
+        page: "P53",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -485,7 +485,7 @@ let musicDB = [
     {
         // id: 537,
         bookname: "習作本1",
-        page: "P.55",
+        page: "P55",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -495,7 +495,7 @@ let musicDB = [
     {
         // id: 538,
         bookname: "習作本1",
-        page: "P.57",
+        page: "P57",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -505,7 +505,7 @@ let musicDB = [
     {
         // id: 539,
         bookname: "習作本1",
-        page: "P.59",
+        page: "P59",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -515,7 +515,7 @@ let musicDB = [
     {
         // id: 539,
         bookname: "習作本1",
-        page: "P.60",
+        page: "P60",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -525,7 +525,7 @@ let musicDB = [
     {
         // id: 540,
         bookname: "習作本1",
-        page: "P.64",
+        page: "P64",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -535,7 +535,7 @@ let musicDB = [
     {
         // id: 541,
         bookname: "習作本1",
-        page: "P.66",
+        page: "P66",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -545,7 +545,7 @@ let musicDB = [
     {
         // id: 542,
         bookname: "習作本1",
-        page: "P.70",
+        page: "P70",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -555,7 +555,7 @@ let musicDB = [
     {
         // id: 542,
         bookname: "習作本1",
-        page: "P.71",
+        page: "P71",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -565,7 +565,7 @@ let musicDB = [
     {
         // id: 543,
         bookname: "習作本1",
-        page: "P.73",
+        page: "P73",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -575,7 +575,7 @@ let musicDB = [
     {
         // id: 544,
         bookname: "習作本1",
-        page: "P.75",
+        page: "P75",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -585,7 +585,7 @@ let musicDB = [
     {
         // id: 545,
         bookname: "習作本1",
-        page: "P.78",
+        page: "P78",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -595,7 +595,7 @@ let musicDB = [
     {
         // id: 545,
         bookname: "習作本1",
-        page: "P.80",
+        page: "P80",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -605,7 +605,7 @@ let musicDB = [
     {
         // id: 545,
         bookname: "習作本1",
-        page: "P.87",
+        page: "P87",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -615,7 +615,7 @@ let musicDB = [
     {
         // id: 546,
         bookname: "習作本1",
-        page: "P.89",
+        page: "P89",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -625,7 +625,7 @@ let musicDB = [
     {
         // id: 546,
         bookname: "習作本1",
-        page: "P.90",
+        page: "P90",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -635,7 +635,7 @@ let musicDB = [
     {
         // id: 547,
         bookname: "習作本1",
-        page: "P.92",
+        page: "P92",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -645,7 +645,7 @@ let musicDB = [
     {
         // id: 548,
         bookname: "習作本1",
-        page: "P.94",
+        page: "P94",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -655,7 +655,7 @@ let musicDB = [
     {
         // id: 549,
         bookname: "習作本1",
-        page: "P.96",
+        page: "P96",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -665,7 +665,7 @@ let musicDB = [
     {
         // id: 550,
         bookname: "習作本1",
-        page: "P.100",
+        page: "P100",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -675,7 +675,7 @@ let musicDB = [
     {
         // id: 551,
         bookname: "習作本1",
-        page: "P.104",
+        page: "P104",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -685,7 +685,7 @@ let musicDB = [
     {
         // id: 552,
         bookname: "習作本1",
-        page: "P.105",
+        page: "P105",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -695,7 +695,7 @@ let musicDB = [
     {
         // id: 553,
         bookname: "習作本1",
-        page: "P.106",
+        page: "P106",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -705,7 +705,7 @@ let musicDB = [
     {
         // id: 554,
         bookname: "習作本1",
-        page: "P.108",
+        page: "P108",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -715,7 +715,7 @@ let musicDB = [
     {
         // id: 555,
         bookname: "習作本1",
-        page: "P.109",
+        page: "P109",
         img: "headphone1.png",
         lang: "習作本1",
         timesPlayed: 0,
@@ -787,7 +787,7 @@ let musicDB = [
     {
         // id: 136,
         bookname: "習作本2",
-        page: "P.4 Q&A",
+        page: "P4 Q&A",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -798,7 +798,7 @@ let musicDB = [
     {
         // id: 137,
         bookname: "習作本2",
-        page: "P.6 Q&A",
+        page: "P6 Q&A",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -809,7 +809,7 @@ let musicDB = [
     {
         // id: 138,
         bookname: "習作本2",
-        page: "P.8 Q&A",
+        page: "P8 Q&A",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -820,7 +820,7 @@ let musicDB = [
     {
         // id: 138,
         bookname: "習作本2",
-        page: "P.8 Question",
+        page: "P8 Question",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -831,7 +831,7 @@ let musicDB = [
     {
         // id: 138,
         bookname: "習作本2",
-        page: "P.8 Answer",
+        page: "P8 Answer",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -842,7 +842,7 @@ let musicDB = [
     {
         // id: 139,
         bookname: "習作本2",
-        page: "P.10 Q&A",
+        page: "P10 Q&A",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -853,7 +853,7 @@ let musicDB = [
     {
         // id: 140,
         bookname: "習作本2",
-        page: "P.14 Q&A",
+        page: "P14 Q&A",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -864,7 +864,7 @@ let musicDB = [
     {
         // id: 141,
         bookname: "習作本2",
-        page: "P.16 Q&A",
+        page: "P16 Q&A",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -875,7 +875,7 @@ let musicDB = [
     {
         // id: 142,
         bookname: "習作本2",
-        page: "P.18",
+        page: "P18",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -885,7 +885,7 @@ let musicDB = [
     {
         // id: 143,
         bookname: "習作本2",
-        page: "P.20",
+        page: "P20",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -895,7 +895,7 @@ let musicDB = [
     {
         // id: 144,
         bookname: "習作本2",
-        page: "P.21",
+        page: "P21",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -905,7 +905,7 @@ let musicDB = [
     {
         // id: 144,
         bookname: "習作本2",
-        page: "P.22",
+        page: "P22",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -915,7 +915,7 @@ let musicDB = [
     {
         // id: 145,
         bookname: "習作本2",
-        page: "P.24",
+        page: "P24",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -925,7 +925,7 @@ let musicDB = [
     {
         // id: 146,
         bookname: "習作本2",
-        page: "P.26",
+        page: "P26",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -935,7 +935,7 @@ let musicDB = [
     {
         // id: 147,
         bookname: "習作本2",
-        page: "P.28",
+        page: "P28",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -945,7 +945,7 @@ let musicDB = [
     {
         // id: 148,
         bookname: "習作本2",
-        page: "P.30",
+        page: "P30",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -955,7 +955,7 @@ let musicDB = [
     {
         // id: 149,
         bookname: "習作本2",
-        page: "P.31",
+        page: "P31",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -965,7 +965,7 @@ let musicDB = [
     {
         // id: 149,
         bookname: "習作本2",
-        page: "P.32",
+        page: "P32",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -975,7 +975,7 @@ let musicDB = [
     {
         // id: 150,
         bookname: "習作本2",
-        page: "P.34",
+        page: "P34",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -985,7 +985,7 @@ let musicDB = [
     {
         // id: 151,
         bookname: "習作本2",
-        page: "P.36",
+        page: "P36",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -995,7 +995,7 @@ let musicDB = [
     {
         // id: 152,
         bookname: "習作本2",
-        page: "P.38",
+        page: "P38",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1005,7 +1005,7 @@ let musicDB = [
     {
         // id: 153,
         bookname: "習作本2",
-        page: "P.40",
+        page: "P40",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1015,7 +1015,7 @@ let musicDB = [
     {
         // id: 154,
         bookname: "習作本2",
-        page: "P.42",
+        page: "P42",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1025,7 +1025,7 @@ let musicDB = [
     {
         // id: 155,
         bookname: "習作本2",
-        page: "P.43",
+        page: "P43",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1035,7 +1035,7 @@ let musicDB = [
     {
         // id: 155,
         bookname: "習作本2",
-        page: "P.44",
+        page: "P44",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1045,7 +1045,7 @@ let musicDB = [
     {
         // id: 156,
         bookname: "習作本2",
-        page: "P.46",
+        page: "P46",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1055,7 +1055,7 @@ let musicDB = [
     {
         // id: 157,
         bookname: "習作本2",
-        page: "P.48",
+        page: "P48",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1065,7 +1065,7 @@ let musicDB = [
     {
         // id: 158,
         bookname: "習作本2",
-        page: "P.50",
+        page: "P50",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1075,7 +1075,7 @@ let musicDB = [
     {
         // id: 159,
         bookname: "習作本2",
-        page: "P.52",
+        page: "P52",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1085,7 +1085,7 @@ let musicDB = [
     {
         // id: 160,
         bookname: "習作本2",
-        page: "P.53",
+        page: "P53",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1095,7 +1095,7 @@ let musicDB = [
     {
         // id: 160,
         bookname: "習作本2",
-        page: "P.54",
+        page: "P54",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1105,7 +1105,7 @@ let musicDB = [
     {
         // id: 161,
         bookname: "習作本2",
-        page: "P.56",
+        page: "P56",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1115,7 +1115,7 @@ let musicDB = [
     {
         // id: 162,
         bookname: "習作本2",
-        page: "P.58",
+        page: "P58",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1125,7 +1125,7 @@ let musicDB = [
     {
         // id: 163,
         bookname: "習作本2",
-        page: "P.60",
+        page: "P60",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1135,7 +1135,7 @@ let musicDB = [
     {
         // id: 164,
         bookname: "習作本2",
-        page: "P.62",
+        page: "P62",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1145,7 +1145,7 @@ let musicDB = [
     {
         // id: 165,
         bookname: "習作本2",
-        page: "P.64",
+        page: "P64",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1155,7 +1155,7 @@ let musicDB = [
     {
         // id: 166,
         bookname: "習作本2",
-        page: "P.65",
+        page: "P65",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1165,7 +1165,7 @@ let musicDB = [
     {
         // id: 166,
         bookname: "習作本2",
-        page: "P.66",
+        page: "P66",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1175,7 +1175,7 @@ let musicDB = [
     {
         // id: 167,
         bookname: "習作本2",
-        page: "P.68",
+        page: "P68",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1185,7 +1185,7 @@ let musicDB = [
     {
         // id: 168,
         bookname: "習作本2",
-        page: "P.69",
+        page: "P69",
         img: "headphone2.png",
         lang: "習作本2",
         type: "Workbook_2",
@@ -1195,7 +1195,7 @@ let musicDB = [
     {
         // id: 169,
         bookname: "習作本2",
-        page: "P.70",
+        page: "P70",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1205,7 +1205,7 @@ let musicDB = [
     {
         // id: 170,
         bookname: "習作本2",
-        page: "P.72",
+        page: "P72",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1215,7 +1215,7 @@ let musicDB = [
     {
         // id: 170,
         bookname: "習作本2",
-        page: "P.74",
+        page: "P74",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1225,7 +1225,7 @@ let musicDB = [
     {
         // id: 171,
         bookname: "習作本2",
-        page: "P.76",
+        page: "P76",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1235,7 +1235,7 @@ let musicDB = [
     {
         // id: 172,
         bookname: "習作本2",
-        page: "P.78",
+        page: "P78",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1245,7 +1245,7 @@ let musicDB = [
     {
         // id: 173,
         bookname: "習作本2",
-        page: "P.80",
+        page: "P80",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1255,7 +1255,7 @@ let musicDB = [
     {
         // id: 174,
         bookname: "習作本2",
-        page: "P.82",
+        page: "P82",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1265,7 +1265,7 @@ let musicDB = [
     {
         // id: 175,
         bookname: "習作本2",
-        page: "P.84",
+        page: "P84",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1275,7 +1275,7 @@ let musicDB = [
     {
         // id: 176,
         bookname: "習作本2",
-        page: "P.86",
+        page: "P86",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1285,7 +1285,7 @@ let musicDB = [
     {
         // id: 177,
         bookname: "習作本2",
-        page: "P.88",
+        page: "P88",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1295,7 +1295,7 @@ let musicDB = [
     {
         // id: 177,
         bookname: "習作本2",
-        page: "P.90",
+        page: "P90",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1305,7 +1305,7 @@ let musicDB = [
     {
         // id: 178,
         bookname: "習作本2",
-        page: "P.92",
+        page: "P92",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1315,7 +1315,7 @@ let musicDB = [
     {
         // id: 179,
         bookname: "習作本2",
-        page: "P.93",
+        page: "P93",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1325,7 +1325,7 @@ let musicDB = [
     {
         // id: 180,
         bookname: "習作本2",
-        page: "P.94",
+        page: "P94",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1335,7 +1335,7 @@ let musicDB = [
     {
         // id: 181,
         bookname: "習作本2",
-        page: "P.96",
+        page: "P96",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1345,7 +1345,7 @@ let musicDB = [
     {
         // id: 182,
         bookname: "習作本2",
-        page: "P.98",
+        page: "P98",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1355,7 +1355,7 @@ let musicDB = [
     {
         // id: 183,
         bookname: "習作本2",
-        page: "P.100",
+        page: "P100",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1365,7 +1365,7 @@ let musicDB = [
     {
         // id: 184,
         bookname: "習作本2",
-        page: "P.102",
+        page: "P102",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1375,7 +1375,7 @@ let musicDB = [
     {
         // id: 185,
         bookname: "習作本2",
-        page: "P.103",
+        page: "P103",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1385,7 +1385,7 @@ let musicDB = [
     {
         // id: 186,
         bookname: "習作本2",
-        page: "P.104",
+        page: "P104",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1395,7 +1395,7 @@ let musicDB = [
     {
         // id: 187,
         bookname: "習作本2",
-        page: "P.106",
+        page: "P106",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1405,7 +1405,7 @@ let musicDB = [
     {
         // id: 188,
         bookname: "習作本2",
-        page: "P.108",
+        page: "P108",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1415,7 +1415,7 @@ let musicDB = [
     {
         // id: 189,
         bookname: "習作本2",
-        page: "P.110",
+        page: "P110",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1425,7 +1425,7 @@ let musicDB = [
     {
         // id: 189,
         bookname: "習作本2",
-        page: "P.112",
+        page: "P112",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1435,7 +1435,7 @@ let musicDB = [
     {
         // id: 190,
         bookname: "習作本2",
-        page: "P.114",
+        page: "P114",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1445,7 +1445,7 @@ let musicDB = [
     {
         // id: 191,
         bookname: "習作本2",
-        page: "P.115",
+        page: "P115",
         img: "headphone2.png",
         lang: "習作本2",
         timesPlayed: 0,
@@ -1549,7 +1549,7 @@ let musicDB = [
     {
         // id: 192,
         bookname: "習作本3",
-        page: "P.4",
+        page: "P4",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1559,7 +1559,7 @@ let musicDB = [
     {
         // id: 193,
         bookname: "習作本3",
-        page: "P.5",
+        page: "P5",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1569,7 +1569,7 @@ let musicDB = [
     {
         // id: 194,
         bookname: "習作本3",
-        page: "P.6",
+        page: "P6",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1579,7 +1579,7 @@ let musicDB = [
     {
         // id: 195,
         bookname: "習作本3",
-        page: "P.9",
+        page: "P9",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1589,7 +1589,7 @@ let musicDB = [
     {
         // id: 196,
         bookname: "習作本3",
-        page: "P.11",
+        page: "P11",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1599,7 +1599,7 @@ let musicDB = [
     {
         // id: 197,
         bookname: "習作本3",
-        page: "P.15",
+        page: "P15",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1609,7 +1609,7 @@ let musicDB = [
     {
         // id: 198,
         bookname: "習作本3",
-        page: "P.17",
+        page: "P17",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1619,7 +1619,7 @@ let musicDB = [
     {
         // id: 199,
         bookname: "習作本3",
-        page: "P.20",
+        page: "P20",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1629,7 +1629,7 @@ let musicDB = [
     {
         // id: 200,
         bookname: "習作本3",
-        page: "P.22",
+        page: "P22",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1639,7 +1639,7 @@ let musicDB = [
     {
         // id: 201,
         bookname: "習作本3",
-        page: "P.23",
+        page: "P23",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1649,7 +1649,7 @@ let musicDB = [
     {
         // id: 202,
         bookname: "習作本3",
-        page: "P.26",
+        page: "P26",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1659,7 +1659,7 @@ let musicDB = [
     {
         // id: 203,
         bookname: "習作本3",
-        page: "P.28",
+        page: "P28",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1669,7 +1669,7 @@ let musicDB = [
     {
         // id: 204,
         bookname: "習作本3",
-        page: "P.30",
+        page: "P30",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1679,7 +1679,7 @@ let musicDB = [
     {
         // id: 205,
         bookname: "習作本3",
-        page: "P.32",
+        page: "P32",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1689,7 +1689,7 @@ let musicDB = [
     {
         // id: 206,
         bookname: "習作本3",
-        page: "P.36",
+        page: "P36",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1699,7 +1699,7 @@ let musicDB = [
     {
         // id: 207,
         bookname: "習作本3",
-        page: "P.38",
+        page: "P38",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1709,7 +1709,7 @@ let musicDB = [
     {
         // id: 208,
         bookname: "習作本3",
-        page: "P.40",
+        page: "P40",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1719,7 +1719,7 @@ let musicDB = [
     {
         // id: 209,
         bookname: "習作本3",
-        page: "P.42",
+        page: "P42",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1729,7 +1729,7 @@ let musicDB = [
     {
         // id: 210,
         bookname: "習作本3",
-        page: "P.43",
+        page: "P43",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1739,7 +1739,7 @@ let musicDB = [
     {
         // id: 211,
         bookname: "習作本3",
-        page: "P.46",
+        page: "P46",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1749,7 +1749,7 @@ let musicDB = [
     {
         // id: 212,
         bookname: "習作本3",
-        page: "P.48",
+        page: "P48",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1759,7 +1759,7 @@ let musicDB = [
     {
         // id: 213,
         bookname: "習作本3",
-        page: "P.49",
+        page: "P49",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1769,7 +1769,7 @@ let musicDB = [
     {
         // id: 214,
         bookname: "習作本3",
-        page: "P.51",
+        page: "P51",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1779,7 +1779,7 @@ let musicDB = [
     {
         // id: 215,
         bookname: "習作本3",
-        page: "P.52",
+        page: "P52",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1789,7 +1789,7 @@ let musicDB = [
     {
         // id: 216,
         bookname: "習作本3",
-        page: "P.53",
+        page: "P53",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1799,7 +1799,7 @@ let musicDB = [
     {
         // id: 217,
         bookname: "習作本3",
-        page: "P.54",
+        page: "P54",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1809,7 +1809,7 @@ let musicDB = [
     {
         // id: 218,
         bookname: "習作本3",
-        page: "P.55",
+        page: "P55",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1819,7 +1819,7 @@ let musicDB = [
     {
         // id: 219,
         bookname: "習作本3",
-        page: "P.56",
+        page: "P56",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1829,7 +1829,7 @@ let musicDB = [
     {
         // id: 220,
         bookname: "習作本3",
-        page: "P.59",
+        page: "P59",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1839,7 +1839,7 @@ let musicDB = [
     {
         // id: 221,
         bookname: "習作本3",
-        page: "P.61",
+        page: "P61",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1849,7 +1849,7 @@ let musicDB = [
     {
         // id: 222,
         bookname: "習作本3",
-        page: "P.63",
+        page: "P63",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1859,7 +1859,7 @@ let musicDB = [
     {
         // id: 223,
         bookname: "習作本3",
-        page: "P.67",
+        page: "P67",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1869,7 +1869,7 @@ let musicDB = [
     {
         // id: 224,
         bookname: "習作本3",
-        page: "P.69",
+        page: "P69",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1879,7 +1879,7 @@ let musicDB = [
     {
         // id: 225,
         bookname: "習作本3",
-        page: "P.71",
+        page: "P71",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1889,7 +1889,7 @@ let musicDB = [
     {
         // id: 226,
         bookname: "習作本3",
-        page: "P.73",
+        page: "P73",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1899,7 +1899,7 @@ let musicDB = [
     {
         // id: 227,
         bookname: "習作本3",
-        page: "P.77",
+        page: "P77",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1909,7 +1909,7 @@ let musicDB = [
     {
         // id: 228,
         bookname: "習作本3",
-        page: "P.79",
+        page: "P79",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1919,7 +1919,7 @@ let musicDB = [
     {
         // id: 229,
         bookname: "習作本3",
-        page: "P.81",
+        page: "P81",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1929,7 +1929,7 @@ let musicDB = [
     {
         // id: 230,
         bookname: "習作本3",
-        page: "P.83",
+        page: "P83",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1939,7 +1939,7 @@ let musicDB = [
     {
         // id: 231,
         bookname: "習作本3",
-        page: "P.84",
+        page: "P84",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1949,7 +1949,7 @@ let musicDB = [
     {
         // id: 232,
         bookname: "習作本3",
-        page: "P.85",
+        page: "P85",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1959,7 +1959,7 @@ let musicDB = [
     {
         // id: 233,
         bookname: "習作本3",
-        page: "P.87",
+        page: "P87",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1969,7 +1969,7 @@ let musicDB = [
     {
         // id: 234,
         bookname: "習作本3",
-        page: "P.91",
+        page: "P91",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1979,7 +1979,7 @@ let musicDB = [
     {
         // id: 235,
         bookname: "習作本3",
-        page: "P.93",
+        page: "P93",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1989,7 +1989,7 @@ let musicDB = [
     {
         // id: 236,
         bookname: "習作本3",
-        page: "P.95",
+        page: "P95",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -1999,7 +1999,7 @@ let musicDB = [
     {
         // id: 237,
         bookname: "習作本3",
-        page: "P.97",
+        page: "P97",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -2009,7 +2009,7 @@ let musicDB = [
     {
         // id: 238,
         bookname: "習作本3",
-        page: "P.99",
+        page: "P99",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -2019,7 +2019,7 @@ let musicDB = [
     {
         // id: 239,
         bookname: "習作本3",
-        page: "P.100",
+        page: "P100",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -2029,7 +2029,7 @@ let musicDB = [
     {
         // id: 240,
         bookname: "習作本3",
-        page: "P.101",
+        page: "P101",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -2039,7 +2039,7 @@ let musicDB = [
     {
         // id: 241,
         bookname: "習作本3",
-        page: "P.105",
+        page: "P105",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -2049,7 +2049,7 @@ let musicDB = [
     {
         // id: 242,
         bookname: "習作本3",
-        page: "P.106",
+        page: "P106",
         img: "headphone3.png",
         lang: "習作本3",
         timesPlayed: 0,
@@ -2144,7 +2144,7 @@ let musicDB = [
 
     // {
     //     bookname: "習作本4",
-    //     page: "P.8 Q&A",
+    //     page: "P8 Q&A",
     //     img: "headphone4.png",
     //     lang: "習作本4",
     //     timesPlayed: 0,
@@ -2153,7 +2153,7 @@ let musicDB = [
     // },
     {
         bookname: "習作本4",
-        page: "P.9 Question",
+        page: "P9 Question",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2162,7 +2162,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.9 Q&A",
+        page: "P9 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2171,7 +2171,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.13 Q&A",
+        page: "P13 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2180,7 +2180,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.13 Question",
+        page: "P13 Question",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2189,7 +2189,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.13 Answer",
+        page: "P13 Answer",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2198,7 +2198,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.15 Q&A",
+        page: "P15 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2207,7 +2207,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.15 Question",
+        page: "P15 Question",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2216,7 +2216,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.15 Answer",
+        page: "P15 Answer",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2225,7 +2225,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.17 Q&A",
+        page: "P17 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2234,7 +2234,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.17 Question",
+        page: "P17 Question",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2243,7 +2243,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.17 Answer",
+        page: "P17 Answer",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2252,7 +2252,7 @@ let musicDB = [
     },
     // {
     //     bookname: "習作本4",
-    //     page: "P.19",
+    //     page: "P19",
     //     img: "headphone4.png",
     //     lang: "習作本4",
     //     timesPlayed: 0,
@@ -2261,7 +2261,7 @@ let musicDB = [
     // },
     // {
     //     bookname: "習作本4",
-    //     page: "P.20",
+    //     page: "P20",
     //     img: "headphone4.png",
     //     lang: "習作本4",
     //     timesPlayed: 0,
@@ -2270,7 +2270,7 @@ let musicDB = [
     // },
     // {
     //     bookname: "習作本4",
-    //     page: "P.21-1",
+    //     page: "P21-1",
     //     img: "headphone4.png",
     //     lang: "習作本4",
     //     timesPlayed: 0,
@@ -2279,7 +2279,7 @@ let musicDB = [
     // },
     // {
     //     bookname: "習作本4",
-    //     page: "P.21-2",
+    //     page: "P21-2",
     //     img: "headphone4.png",
     //     lang: "習作本4",
     //     timesPlayed: 0,
@@ -2288,7 +2288,7 @@ let musicDB = [
     // },
     {
         bookname: "習作本4",
-        page: "P.24 Q&A",
+        page: "P24 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2297,7 +2297,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.24 Question",
+        page: "P24 Question",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2306,7 +2306,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.24 Answer",
+        page: "P24 Answer",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2315,7 +2315,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.26 Q&A",
+        page: "P26 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2324,7 +2324,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.26 Question",
+        page: "P26 Question",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2333,7 +2333,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.26 Answer",
+        page: "P26 Answer",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2342,7 +2342,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.28 Q&A",
+        page: "P28 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2351,7 +2351,7 @@ let musicDB = [
     },
     // {
     //     bookname: "習作本4",
-    //     page: "P.30 Q&A",
+    //     page: "P30 Q&A",
     //     img: "headphone4.png",
     //     lang: "習作本4",
     //     timesPlayed: 0,
@@ -2360,7 +2360,7 @@ let musicDB = [
     // },
     {
         bookname: "習作本4",
-        page: "P.32 Q&A",
+        page: "P32 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2369,7 +2369,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.34 Q&A",
+        page: "P34 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2378,7 +2378,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.36 Q&A",
+        page: "P36 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2387,7 +2387,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.38 Q&A",
+        page: "P38 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2396,7 +2396,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.40 Q&A",
+        page: "P40 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2405,7 +2405,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.46 Q&A",
+        page: "P46 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2414,7 +2414,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.48 Q&A",
+        page: "P48 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2423,7 +2423,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.50 Q&A",
+        page: "P50 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2432,7 +2432,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.52 Q&A",
+        page: "P52 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2441,7 +2441,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.54 Q&A",
+        page: "P54 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2450,7 +2450,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.59 Q&A",
+        page: "P59 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2459,7 +2459,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.61 Q&A",
+        page: "P61 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2468,7 +2468,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.63 Q&A",
+        page: "P63 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2477,7 +2477,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.64 Q&A",
+        page: "P64 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2486,7 +2486,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.71 Q&A",
+        page: "P71 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2495,7 +2495,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.76 Q&A",
+        page: "P76 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2504,7 +2504,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.80 Q&A",
+        page: "P80 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2513,7 +2513,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.81 Q&A",
+        page: "P81 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2522,7 +2522,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.82 Q&A",
+        page: "P82 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2531,7 +2531,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.86 Q&A",
+        page: "P86 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2540,7 +2540,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.86 Question",
+        page: "P86 Question",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2549,7 +2549,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.86 Answer",
+        page: "P86 Answer",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2558,7 +2558,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.89 Q&A",
+        page: "P89 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2567,7 +2567,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.91 Q&A",
+        page: "P91 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2576,7 +2576,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.93 Q&A",
+        page: "P93 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2585,7 +2585,7 @@ let musicDB = [
     },
     {
         bookname: "習作本4",
-        page: "P.95 Q&A",
+        page: "P95 Q&A",
         img: "headphone4.png",
         lang: "習作本4",
         timesPlayed: 0,
@@ -2705,7 +2705,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.2 Q&A",
+        page: "P2 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -2751,7 +2751,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.4 Q&A",
+        page: "P4 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -2797,7 +2797,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.6 Q&A",
+        page: "P6 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -2843,7 +2843,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.8 Q&A",
+        page: "P8 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -2889,7 +2889,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.13 Q&A",
+        page: "P13 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -2935,7 +2935,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.15 Q&A",
+        page: "P15 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -2981,7 +2981,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.26 Q&A",
+        page: "P26 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3027,7 +3027,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.27 Q&A",
+        page: "P27 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3073,7 +3073,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.30 Q&A",
+        page: "P30 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3119,7 +3119,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.35 Q&A",
+        page: "P35 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3165,7 +3165,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.36 Q&A",
+        page: "P36 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3211,7 +3211,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.38 Q&A",
+        page: "P38 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3257,7 +3257,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.42 Q&A",
+        page: "P42 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3303,7 +3303,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.43 Q&A",
+        page: "P43 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3349,7 +3349,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.47 Q&A",
+        page: "P47 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3395,7 +3395,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.58 Q&A",
+        page: "P58 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3441,7 +3441,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.60 Q&A",
+        page: "P60 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3487,7 +3487,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.62 Q&A",
+        page: "P62 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3533,7 +3533,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.64 Q&A",
+        page: "P64 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3579,7 +3579,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.69 Q&A",
+        page: "P69 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3626,7 +3626,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.72 Q&A",
+        page: "P72 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3672,7 +3672,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.74 Q&A",
+        page: "P74 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3718,7 +3718,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.81 Q&A",
+        page: "P81 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3764,7 +3764,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.82 Q&A",
+        page: "P82 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3811,7 +3811,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.83 Q&A",
+        page: "P83 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3857,7 +3857,7 @@ let musicDB = [
     },
     {
         bookname: "習作本5",
-        page: "P.84 Q&A",
+        page: "P84 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3904,7 +3904,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.85 Q&A",
+        page: "P85 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3951,7 +3951,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.86 Q&A",
+        page: "P86 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -3998,7 +3998,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.88 Q&A",
+        page: "P88 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -4045,7 +4045,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.89 Q&A",
+        page: "P89 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -4092,7 +4092,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.91 Q&A",
+        page: "P91 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -4139,7 +4139,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.93 Q&A",
+        page: "P93 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -4186,7 +4186,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.95 Q&A",
+        page: "P95 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -4233,7 +4233,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.97 Q&A",
+        page: "P97 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -4280,7 +4280,7 @@ let musicDB = [
 
     {
         bookname: "習作本5",
-        page: "P.99 Q&A",
+        page: "P99 Q&A",
         img: "headphone5.png",
         lang: "習作本5",
         timesPlayed: 0,
@@ -6091,7 +6091,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 01.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 01.mp3"
     },
     {
         // id: 244,
@@ -6101,7 +6101,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 02.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 02.mp3"
     },
     {
         // id: 245,
@@ -6111,7 +6111,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 03.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 03.mp3"
     },
     {
         // id: 246,
@@ -6121,7 +6121,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 04.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 04.mp3"
     },
     {
         // id: 247,
@@ -6131,7 +6131,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 05.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 05.mp3"
     },
     {
         // id: 248,
@@ -6141,7 +6141,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 06.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 06.mp3"
     },
     {
         // id: 249,
@@ -6151,7 +6151,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 07.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 07.mp3"
     },
 
     {
@@ -6162,7 +6162,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 08.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 08.mp3"
     },
     {
         // id: 251,
@@ -6172,7 +6172,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 09.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 09.mp3"
     },
     {
         // id: 252,
@@ -6182,7 +6182,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 10.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 10.mp3"
     },
     {
         // id: 253,
@@ -6192,7 +6192,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 11.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 11.mp3"
     },
     {
         // id: 254,
@@ -6202,7 +6202,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 12.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 12.mp3"
     },
     {
         // id: 255,
@@ -6212,7 +6212,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 13.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 13.mp3"
     },
     {
         // id: 256,
@@ -6222,7 +6222,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 14.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 14.mp3"
     },
     {
         // id: 257,
@@ -6232,7 +6232,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 15.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 15.mp3"
     },
     {
         // id: 258,
@@ -6242,7 +6242,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 16.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 16.mp3"
     },
     {
         // id: 259,
@@ -6252,7 +6252,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 17.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 17.mp3"
     },
     {
         // id: 260,
@@ -6262,7 +6262,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 18.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 18.mp3"
     },
     {
         // id: 261,
@@ -6272,7 +6272,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 19.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 19.mp3"
     },
     {
         // id: 262,
@@ -6282,7 +6282,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 20.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 20.mp3"
     },
     {
         // id: 263,
@@ -6292,7 +6292,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 21.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 21.mp3"
     },
     {
         // id: 264,
@@ -6302,7 +6302,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 22.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 22.mp3"
     },
     {
         // id: 265,
@@ -6312,7 +6312,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 23.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 23.mp3"
     },
     {
         // id: 266,
@@ -6322,7 +6322,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 24.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 24.mp3"
     },
     {
         // id: 267,
@@ -6332,7 +6332,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 25.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 25.mp3"
     },
     {
         // id: 268,
@@ -6342,7 +6342,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 26.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 26.mp3"
     },
     {
         // id: 269,
@@ -6352,7 +6352,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 27.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 27.mp3"
     },
     {
         // id: 270,
@@ -6362,7 +6362,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 28.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 28.mp3"
     },
     {
         // id: 271,
@@ -6372,7 +6372,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 29.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 29.mp3"
     },
     {
         // id: 272,
@@ -6382,7 +6382,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 30.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 30.mp3"
     },
     {
         // id: 273,
@@ -6392,7 +6392,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 31.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 31.mp3"
     },
     {
         // id: 274,
@@ -6402,7 +6402,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 32.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 32.mp3"
     },
     {
         // id: 275,
@@ -6412,7 +6412,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 33.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 33.mp3"
     },
     {
         // id: 276,
@@ -6422,7 +6422,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 34.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 34.mp3"
     },
     {
         // id: 277,
@@ -6432,7 +6432,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 35.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 35.mp3"
     },
     {
         // id: 278,
@@ -6442,7 +6442,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 36.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 36.mp3"
     },
     {
         // id: 279,
@@ -6452,7 +6452,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 37.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 37.mp3"
     },
     {
         // id: 280,
@@ -6462,7 +6462,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 38.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 38.mp3"
     },
     {
         // id: 281,
@@ -6472,7 +6472,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 39.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 39.mp3"
     },
     {
         // id: 282,
@@ -6482,7 +6482,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 40.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 40.mp3"
     },
     {
         // id: 283,
@@ -6492,7 +6492,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 41.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 41.mp3"
     },
     {
         // id: 284,
@@ -6502,7 +6502,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 42.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 42.mp3"
     },
     {
         // id: 285,
@@ -6512,7 +6512,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 43.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 43.mp3"
     },
     {
         // id: 286,
@@ -6522,7 +6522,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 44.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 44.mp3"
     },
     {
         // id: 287,
@@ -6532,7 +6532,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 45.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 45.mp3"
     },
     {
         // id: 288,
@@ -6542,7 +6542,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 46.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 46.mp3"
     },
     {
         // id: 289,
@@ -6552,7 +6552,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 47.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 47.mp3"
     },
     {
         // id: 290,
@@ -6562,7 +6562,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 48.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 48.mp3"
     },
     {
         // id: 291,
@@ -6572,7 +6572,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 49.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 49.mp3"
     },
     {
         // id: 292,
@@ -6582,7 +6582,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 50.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 50.mp3"
     },
     {
         // id: 293,
@@ -6592,7 +6592,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 51.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 51.mp3"
     },
     {
         // id: 294,
@@ -6602,7 +6602,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 52.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 52.mp3"
     },
     {
         // id: 295,
@@ -6612,7 +6612,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 53.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 53.mp3"
     },
     {
         // id: 296,
@@ -6622,7 +6622,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 54.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 54.mp3"
     },
     {
         // id: 297,
@@ -6632,7 +6632,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 55.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 55.mp3"
     },
     {
         // id: 298,
@@ -6642,7 +6642,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 56.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 56.mp3"
     },
     {
         // id: 299,
@@ -6652,7 +6652,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 57.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 57.mp3"
     },
     {
         // id: 300,
@@ -6662,7 +6662,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 58.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 58.mp3"
     },
     {
         // id: 301,
@@ -6672,7 +6672,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 59.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 59.mp3"
     },
     {
         // id: 302,
@@ -6682,7 +6682,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 60.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 60.mp3"
     },
     {
         // id: 303,
@@ -6692,7 +6692,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 61.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 61.mp3"
     },
     {
         // id: 304,
@@ -6702,7 +6702,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 62.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 62.mp3"
     },
     {
         // id: 305,
@@ -6712,7 +6712,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 63.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 63.mp3"
     },
     {
         // id: 306,
@@ -6722,7 +6722,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 64.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 64.mp3"
     },
     {
         // id: 307,
@@ -6732,7 +6732,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 65.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 65.mp3"
     },
     {
         // id: 308,
@@ -6742,7 +6742,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 66.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 66.mp3"
     },
     {
         // id: 309,
@@ -6752,7 +6752,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 67.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 67.mp3"
     },
     {
         // id: 310,
@@ -6762,7 +6762,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 68.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 68.mp3"
     },
     {
         // id: 311,
@@ -6772,7 +6772,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 69.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 69.mp3"
     },
     {
         // id: 312,
@@ -6782,7 +6782,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 70.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 70.mp3"
     },
     {
         // id: 313,
@@ -6792,7 +6792,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 71.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 71.mp3"
     },
     {
         // id: 314,
@@ -6802,7 +6802,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 72.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 72.mp3"
     },
     {
         // id: 315,
@@ -6812,7 +6812,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 73.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 73.mp3"
     },
     {
         // id: 316,
@@ -6822,7 +6822,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 74.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 74.mp3"
     },
     {
         // id: 317,
@@ -6832,7 +6832,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 75.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 75.mp3"
     },
     {
         // id: 318,
@@ -6842,7 +6842,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 76.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 76.mp3"
     },
     {
         // id: 319,
@@ -6852,7 +6852,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 77.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 77.mp3"
     },
     {
         // id: 320,
@@ -6862,7 +6862,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 78.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 78.mp3"
     },
     {
         // id: 321,
@@ -6872,7 +6872,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 79.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 79.mp3"
     },
     {
         // id: 322,
@@ -6882,7 +6882,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 80.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 80.mp3"
     },
     {
         // id: 323,
@@ -6892,7 +6892,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 81.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 81.mp3"
     },
     {
         // id: 324,
@@ -6902,7 +6902,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 82.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 82.mp3"
     },
     {
         // id: 325,
@@ -6912,7 +6912,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 83.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 83.mp3"
     },
     {
         // id: 326,
@@ -6922,7 +6922,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 84.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 84.mp3"
     },
     {
         // id: 327,
@@ -6932,7 +6932,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 85.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 85.mp3"
     },
     {
         // id: 328,
@@ -6942,7 +6942,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 86.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 86.mp3"
     },
     {
         // id: 329,
@@ -6952,7 +6952,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 87.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 87.mp3"
     },
     {
         // id: 330,
@@ -6962,7 +6962,7 @@ let musicDB = [
         lang: "Skyline1",
         timesPlayed: 0,
         type: "Skyline1",
-        musicName: "SP_Book1_SB_MP3/SP_Book1_SB_MP3/Track 88.mp3"
+        musicName: "SP_Book1_SB_MP3/Track 88.mp3"
     },
 
 
@@ -7089,7 +7089,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 01.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 01.mp3"
     },
     {
         // id: 332,
@@ -7099,7 +7099,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 02.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 02.mp3"
     },
     {
         // id: 333,
@@ -7109,7 +7109,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 03.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 03.mp3"
     },
     {
         // id: 334,
@@ -7119,7 +7119,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 04.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 04.mp3"
     },
     {
         // id: 335,
@@ -7129,7 +7129,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 05.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 05.mp3"
     },
     {
         // id: 336,
@@ -7139,7 +7139,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 06.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 06.mp3"
     },
     {
         // id: 337,
@@ -7149,7 +7149,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 07.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 07.mp3"
     },
 
     {
@@ -7160,7 +7160,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 08.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 08.mp3"
     },
     {
         // id: 339,
@@ -7170,7 +7170,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 09.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 09.mp3"
     },
     {
         // id: 340,
@@ -7180,7 +7180,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 10.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 10.mp3"
     },
     {
         // id: 341,
@@ -7190,7 +7190,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 11.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 11.mp3"
     },
     {
         // id: 342,
@@ -7200,7 +7200,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 12.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 12.mp3"
     },
     {
         // id: 343,
@@ -7210,7 +7210,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 13.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 13.mp3"
     },
     {
         // id: 344,
@@ -7220,7 +7220,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 14.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 14.mp3"
     },
     {
         // id: 345,
@@ -7230,7 +7230,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 15.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 15.mp3"
     },
     {
         // id: 346,
@@ -7240,7 +7240,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 16.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 16.mp3"
     },
     {
         // id: 347,
@@ -7250,7 +7250,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 17.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 17.mp3"
     },
     {
         // id: 348,
@@ -7260,7 +7260,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 18.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 18.mp3"
     },
     {
         // id: 349,
@@ -7270,7 +7270,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 19.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 19.mp3"
     },
     {
         // id: 350,
@@ -7280,7 +7280,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 20.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 20.mp3"
     },
     {
         // id: 351,
@@ -7290,7 +7290,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 21.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 21.mp3"
     },
     {
         // id: 352,
@@ -7300,7 +7300,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 22.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 22.mp3"
     },
     {
         // id: 353,
@@ -7310,7 +7310,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 23.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 23.mp3"
     },
     {
         // id: 354,
@@ -7320,7 +7320,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 24.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 24.mp3"
     },
     {
         // id: 355,
@@ -7330,7 +7330,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 25.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 25.mp3"
     },
     {
         // id: 356,
@@ -7340,7 +7340,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 26.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 26.mp3"
     },
     {
         // id: 357,
@@ -7350,7 +7350,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 27.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 27.mp3"
     },
     {
         // id: 358,
@@ -7360,7 +7360,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 28.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 28.mp3"
     },
     {
         // id: 359,
@@ -7370,7 +7370,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 29.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 29.mp3"
     },
     {
         // id: 360,
@@ -7380,7 +7380,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 30.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 30.mp3"
     },
     {
         // id: 361,
@@ -7390,7 +7390,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 31.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 31.mp3"
     },
     {
         // id: 362,
@@ -7400,7 +7400,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 32.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 32.mp3"
     },
     {
         // id: 363,
@@ -7410,7 +7410,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 33.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 33.mp3"
     },
     {
         // id: 364,
@@ -7420,7 +7420,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 34.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 34.mp3"
     },
     {
         // id: 365,
@@ -7430,7 +7430,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 35.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 35.mp3"
     },
     {
         // id: 366,
@@ -7440,7 +7440,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 36.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 36.mp3"
     },
     {
         // id: 367,
@@ -7450,7 +7450,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 37.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 37.mp3"
     },
     {
         // id: 368,
@@ -7460,7 +7460,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 38.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 38.mp3"
     },
     {
         // id: 369,
@@ -7470,7 +7470,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 39.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 39.mp3"
     },
     {
         // id: 370,
@@ -7480,7 +7480,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 40.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 40.mp3"
     },
     {
         // id: 371,
@@ -7490,7 +7490,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 41.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 41.mp3"
     },
     {
         // id: 372,
@@ -7500,7 +7500,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 42.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 42.mp3"
     },
     {
         // id: 373,
@@ -7510,7 +7510,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 43.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 43.mp3"
     },
     {
         // id: 374,
@@ -7520,7 +7520,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 44.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 44.mp3"
     },
     {
         // id: 375,
@@ -7530,7 +7530,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 45.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 45.mp3"
     },
     {
         // id: 376,
@@ -7540,7 +7540,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 46.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 46.mp3"
     },
     {
         // id: 377,
@@ -7550,7 +7550,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 47.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 47.mp3"
     },
     {
         // id: 378,
@@ -7560,7 +7560,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 48.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 48.mp3"
     },
     {
         // id: 379,
@@ -7570,7 +7570,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 49.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 49.mp3"
     },
     {
         // id: 380,
@@ -7580,7 +7580,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 50.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 50.mp3"
     },
     {
         // id: 381,
@@ -7590,7 +7590,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 51.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 51.mp3"
     },
     {
         // id: 382,
@@ -7600,7 +7600,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 52.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 52.mp3"
     },
     {
         // id: 383,
@@ -7610,7 +7610,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 53.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 53.mp3"
     },
     {
         // id: 384,
@@ -7620,7 +7620,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 54.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 54.mp3"
     },
     {
         // id: 385,
@@ -7630,7 +7630,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 55.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 55.mp3"
     },
     {
         // id: 386,
@@ -7640,7 +7640,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 56.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 56.mp3"
     },
     {
         // id: 387,
@@ -7650,7 +7650,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 57.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 57.mp3"
     },
     {
         // id: 388,
@@ -7660,7 +7660,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 58.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 58.mp3"
     },
     {
         // id: 389,
@@ -7670,7 +7670,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 59.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 59.mp3"
     },
     {
         // id: 390,
@@ -7680,7 +7680,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 60.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 60.mp3"
     },
     {
         // id: 391,
@@ -7690,7 +7690,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 61.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 61.mp3"
     },
     {
         // id: 392,
@@ -7700,7 +7700,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 62.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 62.mp3"
     },
     {
         // id: 393,
@@ -7710,7 +7710,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 63.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 63.mp3"
     },
     {
         // id: 394,
@@ -7720,7 +7720,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 64.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 64.mp3"
     },
     {
         // id: 395,
@@ -7730,7 +7730,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 65.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 65.mp3"
     },
     {
         // id: 396,
@@ -7740,7 +7740,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 66.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 66.mp3"
     },
     {
         // id: 397,
@@ -7750,7 +7750,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 67.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 67.mp3"
     },
     {
         // id: 398,
@@ -7760,7 +7760,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 68.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 68.mp3"
     },
     {
         // id: 399,
@@ -7770,7 +7770,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 69.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 69.mp3"
     },
     {
         // id: 400,
@@ -7780,7 +7780,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 70.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 70.mp3"
     },
     {
         // id: 401,
@@ -7790,7 +7790,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 71.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 71.mp3"
     },
     {
         // id: 402,
@@ -7800,7 +7800,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 72.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 72.mp3"
     },
     {
         // id: 403,
@@ -7810,7 +7810,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 73.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 73.mp3"
     },
     {
         // id: 404,
@@ -7820,7 +7820,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 74.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 74.mp3"
     },
     {
         // id: 405,
@@ -7830,7 +7830,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 75.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 75.mp3"
     },
     {
         // id: 406,
@@ -7840,7 +7840,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 76.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 76.mp3"
     },
     {
         // id: 407,
@@ -7850,7 +7850,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 77.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 77.mp3"
     },
     {
         // id: 408,
@@ -7860,7 +7860,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 78.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 78.mp3"
     },
     {
         // id: 409,
@@ -7870,7 +7870,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 79.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 79.mp3"
     },
     {
         // id: 410,
@@ -7880,7 +7880,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 80.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 80.mp3"
     },
     {
         // id: 411,
@@ -7890,7 +7890,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 81.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 81.mp3"
     },
     {
         // id: 412,
@@ -7900,7 +7900,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 82.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 82.mp3"
     },
     {
         // id: 413,
@@ -7910,7 +7910,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 83.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 83.mp3"
     },
     {
         // id: 414,
@@ -7920,7 +7920,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 84.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 84.mp3"
     },
     {
         // id: 415,
@@ -7930,7 +7930,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 85.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 85.mp3"
     },
     {
         // id: 416,
@@ -7940,7 +7940,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 86.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 86.mp3"
     },
     {
         // id: 417,
@@ -7950,7 +7950,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 87.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 87.mp3"
     },
     {
         // id: 418,
@@ -7960,7 +7960,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 88.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 88.mp3"
     },
     {
         // id: 419,
@@ -7970,7 +7970,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 89.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 89.mp3"
     },
     {
         // id: 420,
@@ -7980,7 +7980,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 90.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 90.mp3"
     },
     {
         // id: 421,
@@ -7990,7 +7990,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 91.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 91.mp3"
     },
     {
         // id: 422,
@@ -8000,7 +8000,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 92.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 92.mp3"
     },
     {
         // id: 423,
@@ -8010,7 +8010,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 93.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 93.mp3"
     },
     {
         // id: 424,
@@ -8020,7 +8020,7 @@ let musicDB = [
         lang: "Skyline2",
         timesPlayed: 0,
         type: "Skyline2",
-        musicName: "SP_Book2_SB_MP3/SP_Book2_SB_MP3/Track 94.mp3"
+        musicName: "SP_Book2_SB_MP3/Track 94.mp3"
     },
 
 
@@ -8144,7 +8144,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_01.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_01.mp3"
     },
     {
         // id: 426,
@@ -8154,7 +8154,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_02.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_02.mp3"
     },
     {
         // id: 427,
@@ -8164,7 +8164,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_03.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_03.mp3"
     },
     {
         // id: 428,
@@ -8174,7 +8174,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_04.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_04.mp3"
     },
     {
         // id: 429,
@@ -8184,7 +8184,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_05.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_05.mp3"
     },
     {
         // id: 430,
@@ -8194,7 +8194,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_06.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_06.mp3"
     },
     {
         // id: 431,
@@ -8204,7 +8204,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_07.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_07.mp3"
     },
 
     {
@@ -8215,7 +8215,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_08.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_08.mp3"
     },
     {
         // id: 433,
@@ -8225,7 +8225,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_09.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_09.mp3"
     },
     {
         // id: 434,
@@ -8235,7 +8235,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_10.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_10.mp3"
     },
     {
         // id: 435,
@@ -8245,7 +8245,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_11.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_11.mp3"
     },
     {
         // id: 436,
@@ -8255,7 +8255,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_12.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_12.mp3"
     },
     {
         // id: 437,
@@ -8265,7 +8265,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_13.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_13.mp3"
     },
     {
         // id: 438,
@@ -8275,7 +8275,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_14.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_14.mp3"
     },
     {
         // id: 439,
@@ -8285,7 +8285,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_15.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_15.mp3"
     },
     {
         // id: 440,
@@ -8295,7 +8295,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_16.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_16.mp3"
     },
     {
         // id: 441,
@@ -8305,7 +8305,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_17.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_17.mp3"
     },
     {
         // id: 442,
@@ -8315,7 +8315,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_18.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_18.mp3"
     },
     {
         // id: 443,
@@ -8325,7 +8325,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_19.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_19.mp3"
     },
     {
         // id: 444,
@@ -8335,7 +8335,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_20.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_20.mp3"
     },
     {
         // id: 445,
@@ -8345,7 +8345,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_21.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_21.mp3"
     },
     {
         // id: 446,
@@ -8355,7 +8355,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_22.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_22.mp3"
     },
     {
         // id: 447,
@@ -8365,7 +8365,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_23.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_23.mp3"
     },
     {
         // id: 448,
@@ -8375,7 +8375,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_24.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_24.mp3"
     },
     {
         // id: 449,
@@ -8385,7 +8385,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_25.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_25.mp3"
     },
     {
         // id: 450,
@@ -8395,7 +8395,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_26.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_26.mp3"
     },
     {
         // id: 451,
@@ -8405,7 +8405,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_27.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_27.mp3"
     },
     {
         // id: 452,
@@ -8415,7 +8415,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_28.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_28.mp3"
     },
     {
         // id: 453,
@@ -8425,7 +8425,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_29.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_29.mp3"
     },
     {
         // id: 454,
@@ -8435,7 +8435,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_30.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_30.mp3"
     },
     {
         // id: 455,
@@ -8445,7 +8445,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_31.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_31.mp3"
     },
     {
         // id: 456,
@@ -8455,7 +8455,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_32.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_32.mp3"
     },
     {
         // id: 457,
@@ -8465,7 +8465,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_33.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_33.mp3"
     },
     {
         // id: 458,
@@ -8475,7 +8475,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_34.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_34.mp3"
     },
     {
         // id: 459,
@@ -8485,7 +8485,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_35.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_35.mp3"
     },
     {
         // id: 460,
@@ -8495,7 +8495,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_36.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_36.mp3"
     },
     {
         // id: 461,
@@ -8505,7 +8505,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_37.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_37.mp3"
     },
     {
         // id: 462,
@@ -8515,7 +8515,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_38.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_38.mp3"
     },
     {
         // id: 463,
@@ -8525,7 +8525,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_39.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_39.mp3"
     },
     {
         // id: 464,
@@ -8535,7 +8535,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_40.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_40.mp3"
     },
     {
         // id: 465,
@@ -8545,7 +8545,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_41.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_41.mp3"
     },
     {
         // id: 466,
@@ -8555,7 +8555,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_42.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_42.mp3"
     },
     {
         // id: 467,
@@ -8565,7 +8565,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_43.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_43.mp3"
     },
     {
         // id: 468,
@@ -8575,7 +8575,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_44.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_44.mp3"
     },
     {
         // id: 469,
@@ -8585,7 +8585,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_45.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_45.mp3"
     },
     {
         // id: 470,
@@ -8595,7 +8595,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_46.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_46.mp3"
     },
     {
         // id: 471,
@@ -8605,7 +8605,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_47.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_47.mp3"
     },
     {
         // id: 472,
@@ -8615,7 +8615,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_48.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_48.mp3"
     },
     {
         // id: 473,
@@ -8625,7 +8625,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_49.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_49.mp3"
     },
     {
         // id: 474,
@@ -8635,7 +8635,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_50.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_50.mp3"
     },
     {
         // id: 475,
@@ -8645,7 +8645,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_51.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_51.mp3"
     },
     {
         // id: 476,
@@ -8655,7 +8655,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_52.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_52.mp3"
     },
     {
         // id: 477,
@@ -8665,7 +8665,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_53.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_53.mp3"
     },
     {
         // id: 478,
@@ -8675,7 +8675,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_54.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_54.mp3"
     },
     {
         // id: 479,
@@ -8685,7 +8685,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_55.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_55.mp3"
     },
     {
         // id: 480,
@@ -8695,7 +8695,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_56.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_56.mp3"
     },
     {
         // id: 481,
@@ -8705,7 +8705,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_57.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_57.mp3"
     },
     {
         // id: 482,
@@ -8715,7 +8715,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_58.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_58.mp3"
     },
     {
         // id: 483,
@@ -8725,7 +8725,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_59.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_59.mp3"
     },
     {
         // id: 484,
@@ -8735,7 +8735,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_60.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_60.mp3"
     },
     {
         // id: 485,
@@ -8745,7 +8745,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_61.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_61.mp3"
     },
     {
         // id: 486,
@@ -8755,7 +8755,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_62.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_62.mp3"
     },
     {
         // id: 487,
@@ -8765,7 +8765,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_63.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_63.mp3"
     },
     {
         // id: 488,
@@ -8775,7 +8775,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_64.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_64.mp3"
     },
     {
         // id: 489,
@@ -8785,7 +8785,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_65.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_65.mp3"
     },
     {
         // id: 490,
@@ -8795,7 +8795,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_66.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_66.mp3"
     },
     {
         // id: 491,
@@ -8805,7 +8805,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_67.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_67.mp3"
     },
     {
         // id: 492,
@@ -8815,7 +8815,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_68.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_68.mp3"
     },
     {
         // id: 493,
@@ -8825,7 +8825,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_69.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_69.mp3"
     },
     {
         // id: 494,
@@ -8835,7 +8835,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_70.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_70.mp3"
     },
     {
         // id: 495,
@@ -8845,7 +8845,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_71.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_71.mp3"
     },
     {
         // id: 496,
@@ -8855,7 +8855,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_72.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_72.mp3"
     },
     {
         // id: 497,
@@ -8865,7 +8865,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_73.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_73.mp3"
     },
     {
         // id: 498,
@@ -8875,7 +8875,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_74.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_74.mp3"
     },
     {
         // id: 499,
@@ -8885,7 +8885,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_75.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_75.mp3"
     },
     {
         // id: 500,
@@ -8895,7 +8895,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_76.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_76.mp3"
     },
     {
         // id: 501,
@@ -8905,7 +8905,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_77.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_77.mp3"
     },
     {
         // id: 502,
@@ -8915,7 +8915,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_78.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_78.mp3"
     },
     {
         // id: 503,
@@ -8925,7 +8925,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_79.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_79.mp3"
     },
     {
         // id: 504,
@@ -8935,7 +8935,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_80.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_80.mp3"
     },
     {
         // id: 505,
@@ -8945,7 +8945,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_81.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_81.mp3"
     },
     {
         // id: 506,
@@ -8955,7 +8955,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_82.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_82.mp3"
     },
     {
         // id: 507,
@@ -8965,7 +8965,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_83.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_83.mp3"
     },
     {
         // id: 508,
@@ -8975,7 +8975,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_84.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_84.mp3"
     },
     {
         // id: 509,
@@ -8985,7 +8985,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_85.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_85.mp3"
     },
     {
         // id: 510,
@@ -8995,7 +8995,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_86.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_86.mp3"
     },
     {
         // id: 511,
@@ -9005,7 +9005,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_87.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_87.mp3"
     },
     {
         // id: 512,
@@ -9015,7 +9015,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_88.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_88.mp3"
     },
     {
         // id: 513,
@@ -9025,7 +9025,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_89.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_89.mp3"
     },
     {
         // id: 514,
@@ -9035,7 +9035,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_90.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_90.mp3"
     },
     {
         // id: 515,
@@ -9045,7 +9045,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_91.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_91.mp3"
     },
     {
         // id: 516,
@@ -9055,7 +9055,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_92.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_92.mp3"
     },
     {
         // id: 517,
@@ -9065,7 +9065,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_93.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_93.mp3"
     },
     {
         // id: 518,
@@ -9075,7 +9075,7 @@ let musicDB = [
         lang: "Skyline3",
         timesPlayed: 0,
         type: "Skyline3",
-        musicName: "SP_Book3_SB_MP3/SP_Book3_SB_MP3/Track_94.mp3"
+        musicName: "SP_Book3_SB_MP3/Track_94.mp3"
     },
 
 
@@ -12105,7 +12105,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 1.mp3"
+        musicName: "Reading Table 1_Reading/Unit 1.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12114,7 +12114,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 2.mp3"
+        musicName: "Reading Table 1_Reading/Unit 2.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12123,7 +12123,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 3.mp3"
+        musicName: "Reading Table 1_Reading/Unit 3.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12132,7 +12132,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 4.mp3"
+        musicName: "Reading Table 1_Reading/Unit 4.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12141,7 +12141,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 5.mp3"
+        musicName: "Reading Table 1_Reading/Unit 5.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12150,7 +12150,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 6.mp3"
+        musicName: "Reading Table 1_Reading/Unit 6.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12159,7 +12159,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 7.mp3"
+        musicName: "Reading Table 1_Reading/Unit 7.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12168,7 +12168,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 8.mp3"
+        musicName: "Reading Table 1_Reading/Unit 8.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12177,7 +12177,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 9.mp3"
+        musicName: "Reading Table 1_Reading/Unit 9.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12186,7 +12186,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 10.mp3"
+        musicName: "Reading Table 1_Reading/Unit 10.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12195,7 +12195,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 11.mp3"
+        musicName: "Reading Table 1_Reading/Unit 11.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12204,7 +12204,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 12.mp3"
+        musicName: "Reading Table 1_Reading/Unit 12.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12213,7 +12213,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 13.mp3"
+        musicName: "Reading Table 1_Reading/Unit 13.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12222,7 +12222,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 14.mp3"
+        musicName: "Reading Table 1_Reading/Unit 14.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12231,7 +12231,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 15.mp3"
+        musicName: "Reading Table 1_Reading/Unit 15.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12240,7 +12240,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 16.mp3"
+        musicName: "Reading Table 1_Reading/Unit 16.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12249,7 +12249,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 17.mp3"
+        musicName: "Reading Table 1_Reading/Unit 17.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12258,7 +12258,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 18.mp3"
+        musicName: "Reading Table 1_Reading/Unit 18.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12267,7 +12267,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 19.mp3"
+        musicName: "Reading Table 1_Reading/Unit 19.mp3"
     },
     {
         bookname: "Reading Table 1",
@@ -12276,7 +12276,7 @@ let musicDB = [
         lang: "Reading Table 1",
         timesPlayed: 0,
         type: "ReadingTable1",
-        musicName: "Reading Table 1_Reading/Reading Table 1_Reading/Unit 20.mp3"
+        musicName: "Reading Table 1_Reading/Unit 20.mp3"
     },
 
 
@@ -12387,7 +12387,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 1.mp3"
+        musicName: "Reading Table 2_Reading/Unit 1.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12396,7 +12396,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 2.mp3"
+        musicName: "Reading Table 2_Reading/Unit 2.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12405,7 +12405,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 3.mp3"
+        musicName: "Reading Table 2_Reading/Unit 3.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12414,7 +12414,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 4.mp3"
+        musicName: "Reading Table 2_Reading/Unit 4.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12423,7 +12423,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 5.mp3"
+        musicName: "Reading Table 2_Reading/Unit 5.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12432,7 +12432,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 6.mp3"
+        musicName: "Reading Table 2_Reading/Unit 6.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12441,7 +12441,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 7.mp3"
+        musicName: "Reading Table 2_Reading/Unit 7.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12450,7 +12450,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 8.mp3"
+        musicName: "Reading Table 2_Reading/Unit 8.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12459,7 +12459,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 9.mp3"
+        musicName: "Reading Table 2_Reading/Unit 9.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12468,7 +12468,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 10.mp3"
+        musicName: "Reading Table 2_Reading/Unit 10.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12477,7 +12477,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 11.mp3"
+        musicName: "Reading Table 2_Reading/Unit 11.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12486,7 +12486,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 12.mp3"
+        musicName: "Reading Table 2_Reading/Unit 12.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12495,7 +12495,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 13.mp3"
+        musicName: "Reading Table 2_Reading/Unit 13.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12504,7 +12504,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 14.mp3"
+        musicName: "Reading Table 2_Reading/Unit 14.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12513,7 +12513,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 15.mp3"
+        musicName: "Reading Table 2_Reading/Unit 15.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12522,7 +12522,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 16.mp3"
+        musicName: "Reading Table 2_Reading/Unit 16.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12531,7 +12531,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 17.mp3"
+        musicName: "Reading Table 2_Reading/Unit 17.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12540,7 +12540,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 18.mp3"
+        musicName: "Reading Table 2_Reading/Unit 18.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12549,7 +12549,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 19.mp3"
+        musicName: "Reading Table 2_Reading/Unit 19.mp3"
     },
     {
         bookname: "Reading Table 2",
@@ -12558,7 +12558,7 @@ let musicDB = [
         lang: "Reading Table 2",
         timesPlayed: 0,
         type: "ReadingTable2",
-        musicName: "Reading Table 2_Reading/Reading Table 2_Reading/Unit 20.mp3"
+        musicName: "Reading Table 2_Reading/Unit 20.mp3"
     },
 
 
@@ -12631,7 +12631,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 1.mp3"
+        musicName: "Reading Table 3_Reading/Unit 1.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12640,7 +12640,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 2.mp3"
+        musicName: "Reading Table 3_Reading/Unit 2.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12649,7 +12649,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 3.mp3"
+        musicName: "Reading Table 3_Reading/Unit 3.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12658,7 +12658,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 4.mp3"
+        musicName: "Reading Table 3_Reading/Unit 4.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12667,7 +12667,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 5.mp3"
+        musicName: "Reading Table 3_Reading/Unit 5.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12676,7 +12676,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 6.mp3"
+        musicName: "Reading Table 3_Reading/Unit 6.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12685,7 +12685,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 7.mp3"
+        musicName: "Reading Table 3_Reading/Unit 7.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12694,7 +12694,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 8.mp3"
+        musicName: "Reading Table 3_Reading/Unit 8.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12703,7 +12703,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 9.mp3"
+        musicName: "Reading Table 3_Reading/Unit 9.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12712,7 +12712,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 10.mp3"
+        musicName: "Reading Table 3_Reading/Unit 10.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12721,7 +12721,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 11.mp3"
+        musicName: "Reading Table 3_Reading/Unit 11.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12730,7 +12730,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 12.mp3"
+        musicName: "Reading Table 3_Reading/Unit 12.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12739,7 +12739,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 13.mp3"
+        musicName: "Reading Table 3_Reading/Unit 13.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12748,7 +12748,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 14.mp3"
+        musicName: "Reading Table 3_Reading/Unit 14.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12757,7 +12757,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 15.mp3"
+        musicName: "Reading Table 3_Reading/Unit 15.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12766,7 +12766,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 16.mp3"
+        musicName: "Reading Table 3_Reading/Unit 16.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12775,7 +12775,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 17.mp3"
+        musicName: "Reading Table 3_Reading/Unit 17.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12784,7 +12784,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 18.mp3"
+        musicName: "Reading Table 3_Reading/Unit 18.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12793,7 +12793,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 19.mp3"
+        musicName: "Reading Table 3_Reading/Unit 19.mp3"
     },
     {
         bookname: "Reading Table 3",
@@ -12802,7 +12802,7 @@ let musicDB = [
         lang: "Reading Table 3",
         timesPlayed: 0,
         type: "ReadingTable3",
-        musicName: "Reading Table 3_Reading/Reading Table 3_Reading/Unit 20.mp3"
+        musicName: "Reading Table 3_Reading/Unit 20.mp3"
     }
 
 

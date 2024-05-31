@@ -24,7 +24,8 @@ function MusicCard(props) {
     const [cardgameisOpen, setcardgameIsOpen] = useState(false);
     const [booktextgameisOpen, setbooktextIsOpen] = useState(false);
     // const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
-    const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
+    // const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
+    const convertmusicName = bookname + ' ' + page;
 
 
 
