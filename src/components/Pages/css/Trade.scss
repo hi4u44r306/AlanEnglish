@@ -1,0 +1,196 @@
+.Trade {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: antiquewhite;
+  border-radius: 8px;
+  max-width: 700px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.trade-list {
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: column;
+  flex-wrap: wrap;
+  background-color: #fff;
+  margin-top: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.trade-item-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+}
+
+.trade-title {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  color: #333;
+}
+
+.trade-img {
+  width: 50px;
+  margin-right: 10px;
+}
+
+.trade-list-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.trade-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  align-items: center;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  input {
+    margin-left: 10px;
+    border-radius: 10px;
+  }
+}
+
+.game-rule {
+  font-size: 16px;
+  font-weight: 800;
+  padding: 15px;
+  color: red;
+}
+
+.trade-name,
+.trade-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #555;
+}
+
+.editbutton {
+  border: solid 3px black;
+  background-color: antiquewhite;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.button-group {
+  margin: 10px;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.savebutton {
+  border: solid 3px rgb(0, 0, 0);
+  background-color: rgb(91, 198, 255);
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 800;
+  color: rgb(0, 0, 0);
+}
+
+.cancelbutton {
+  border: solid 3px black;
+  background-color: rgb(253, 83, 83);
+  padding: 10px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.news {
+  background-color: rgb(238, 72, 72);
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: rgb(255, 255, 255);
+}
+
+.arrow-up {
+  margin-left: 5px;
+}
+.arrow-down {
+  margin-left: 5px;
+}
+
+.loss-profit-calculation {
+  padding: 25px;
+  background-color: antiquewhite;
+  border-radius: 8px;
+
+  .title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #333;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+
+    label {
+      font-size: 16px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+  }
+
+  .summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 15px;
+
+    div {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 5px;
+    }
+  }
+
+  .profit-message {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    color: #2a9d8f;
+  }
+}

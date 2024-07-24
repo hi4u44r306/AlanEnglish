@@ -22,6 +22,7 @@ import { authentication, db, rtdb } from "../components/Pages/firebase-config";
 import Search from "../components/Pages/Search";
 import User from "../components/Pages/User";
 import Leaderboard from "../components/Pages/Leaderboard";
+import Trade from "../components/Pages/Trade";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -154,6 +155,9 @@ const App = () => {
                         <Containerfull>
                             <Playlist />
                         </Containerfull>
+                    } />
+                    <Route path="/trade" element={
+                        <Trade />
                     } />
                 </Routes>
             </Router>

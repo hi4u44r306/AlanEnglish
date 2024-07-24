@@ -12,6 +12,7 @@
     "appwrite": "^13.0.2",
     "axios": "^1.6.7",
     "bootstrap": "^5.3.3",
+    "chart.js": "^4.4.3",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
     "emailjs-com": "^3.2.0",
@@ -23,9 +24,10 @@
     "node-sass": "^9.0.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.1",
+    "react-chartjs-2": "^5.2.0",
     "react-circular-progressbar": "^2.1.0",
     "react-dom": "^18.2.0",
-    "react-fast-marquee": "^1.6.4",
+    "react-fast-marquee": "^1.6.5",
     "react-flip-move": "^3.0.5",
     "react-h5-audio-player": "^3.9.1",
     "react-helmet": "^6.1.0",
@@ -61,5 +63,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  } 
+  }
 }
