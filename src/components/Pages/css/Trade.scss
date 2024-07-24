@@ -83,6 +83,9 @@
 
 .trade-name,
 .trade-price {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 16px;
   font-weight: 700;
   color: #555;
@@ -134,10 +137,10 @@
 }
 
 .arrow-up {
-  margin-left: 5px;
+  margin-left: 10px;
 }
 .arrow-down {
-  margin-left: 5px;
+  margin-left: 10px;
 }
 
 .loss-profit-calculation {

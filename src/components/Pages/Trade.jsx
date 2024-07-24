@@ -10,6 +10,7 @@ import { BsArrowUpCircleFill } from "react-icons/bs";
 import { BsArrowDownCircleFill } from "react-icons/bs";
 
 function Trade() {
+    const size = 24;
     const [meat, setMeat] = useState();
     const [vegetable, setVegetable] = useState();
     const [egg, setEgg] = useState();
@@ -128,8 +129,8 @@ function Trade() {
                             <div className="trade-name">肉類</div>
                             <div className="trade-price">
                                 {newmeat} 元
-                                {newmeat > meat && <BsArrowUpCircleFill color='red' size={20} className='arrow-up' />}
-                                {newmeat < meat && <BsArrowDownCircleFill color='green' size={20} className='arrow-down' />}
+                                {newmeat > meat && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                {newmeat < meat && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
                             </div>
                         </div>
                         <div className="trade-item">
@@ -137,8 +138,8 @@ function Trade() {
                             <div className="trade-name">蔬菜</div>
                             <div className="trade-price">
                                 {newvegetable} 元
-                                {newvegetable > vegetable && <BsArrowUpCircleFill color='red' size={20} className='arrow-up' />}
-                                {newvegetable < vegetable && <BsArrowDownCircleFill color='green' size={20} className='arrow-down' />}
+                                {newvegetable > vegetable && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                {newvegetable < vegetable && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
                             </div>
                         </div>
                         <div className="trade-item">
@@ -146,8 +147,8 @@ function Trade() {
                             <div className="trade-name">雞蛋</div>
                             <div className="trade-price">
                                 {newegg} 元
-                                {newegg > egg && <BsArrowUpCircleFill color='red' size={20} className='arrow-up' />}
-                                {newegg < egg && <BsArrowDownCircleFill color='green' size={20} className='arrow-down' />}
+                                {newegg > egg && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                {newegg < egg && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
                             </div>
                         </div>
                     </div>
