@@ -5,6 +5,16 @@
   align-items: center;
   flex-wrap: wrap;
 }
+.userinfo {
+  display: flex;
+  justify-content: center;
+
+  .info {
+    font-weight: 800;
+    margin: 10px;
+    color: #356cb0;
+  }
+}
 .container {
   display: flex;
   flex-direction: column;

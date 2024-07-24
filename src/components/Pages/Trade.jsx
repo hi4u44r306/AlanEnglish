@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import './css/Trade.scss';
-import { rtdb } from './firebase-config';
+import { authentication, rtdb } from './firebase-config';
 import { child, onValue, ref } from 'firebase/database';
 import meatimg from '../assets/img/meat.png';
 import vegetableimg from '../assets/img/vegetable.png';
 import eggimg from '../assets/img/egg.png';
 import Marquee from "react-fast-marquee";
-import { BsArrowUpCircleFill } from "react-icons/bs";
-import { BsArrowDownCircleFill } from "react-icons/bs";
+import { BsArrowUpCircleFill, BsArrowDownCircleFill } from "react-icons/bs";
+import { onAuthStateChanged } from 'firebase/auth';
+import OrderPage from './OrderPage';
 
 function Trade() {
     const size = 24;
+    const [data, setDate] = useState({});
     const [meat, setMeat] = useState();
     const [vegetable, setVegetable] = useState();
     const [egg, setEgg] = useState();
@@ -18,11 +20,9 @@ function Trade() {
     const [newvegetable, setNewVegetable] = useState();
     const [newegg, setNewEgg] = useState();
     const [news, setNews] = useState();
-    const [meatShares, setMeatShares] = useState('');
-    const [vegetableShares, setVegetableShares] = useState('');
-    const [eggShares, setEggShares] = useState('');
-    const [unusedMoney, setUnusedMoney] = useState('');
-    const [currentdate] = useState(getCurrentDate());
+    const [unusedMoney, setUnusedMoney] = useState(1000);
+    const [showOrderPage, setShowOrderPage] = useState(false);
+    const [userStocks, setUserStocks] = useState({ meat: 0, vegetable: 0, egg: 0 });
     const dbRef = ref(rtdb);
 
     function getCurrentDate() {
@@ -34,149 +34,169 @@ function Trade() {
     }
 
     useEffect(() => {
-        const TradeRef = child(dbRef, `Trade`);
+        const fetchData = () => {
+            onAuthStateChanged(authentication, user => {
+                if (user) {
+                    const userRef = ref(rtdb, `Trade/TradeTeam/${user.uid}`);
+                    onValue(userRef, snapshot => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            setDate(data);
+                            setUserStocks({
+                                meat: data.meatShares || 0,
+                                vegetable: data.vegetableShares || 0,
+                                egg: data.eggShares || 0
+                            });
+                        }
+                    });
+                }
+            });
+        };
 
-        const Original = onValue(TradeRef, (snapshot) => {
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const tradeRef = child(dbRef, 'Trade');
+        const handleData = onValue(tradeRef, snapshot => {
             if (snapshot.exists()) {
-                setMeat(snapshot.val().Original.meat);
-                setVegetable(snapshot.val().Original.vegetable);
-                setEgg(snapshot.val().Original.egg);
-                setNewMeat(snapshot.val().New.meat);
-                setNewVegetable(snapshot.val().New.vegetable);
-                setNewEgg(snapshot.val().New.egg);
-                setNews(snapshot.val().News)
+                const tradeData = snapshot.val();
+                setMeat(tradeData.Original.meat);
+                setVegetable(tradeData.Original.vegetable);
+                setEgg(tradeData.Original.egg);
+                setNewMeat(tradeData.New.meat);
+                setNewVegetable(tradeData.New.vegetable);
+                setNewEgg(tradeData.New.egg);
+                setNews(tradeData.News);
             }
-        }, (error) => {
-            console.error("Error fetching complete value:", error);
         });
 
         return () => {
-            Original();
+            handleData();
         };
-
     }, [dbRef]);
 
-    const handleMeatSharesChange = (e) => setMeatShares(e.target.value);
-    const handleVegetableSharesChange = (e) => setVegetableShares(e.target.value);
-    const handleEggSharesChange = (e) => setEggShares(e.target.value);
-    const handleUnusedMoneyChange = (e) => setUnusedMoney(e.target.value);
-
-    const calculateCurrentValue = () => {
-        const meatValue = (parseFloat(meatShares) || 0) * (parseFloat(newmeat) || 0);
-        const vegetableValue = (parseFloat(vegetableShares) || 0) * (parseFloat(newvegetable) || 0);
-        const eggValue = (parseFloat(eggShares) || 0) * (parseFloat(newegg) || 0);
-        return meatValue + vegetableValue + eggValue + (parseFloat(unusedMoney) || 0);
+    const handleOrderClick = () => {
+        setShowOrderPage(true);
     };
 
-    const initialInvestment = 1000;
-    const currentValue = calculateCurrentValue();
-    const profit = currentValue - initialInvestment;
-
-    let profitMessage;
-    if (profit > 0) {
-        profitMessage = `賺了 ${profit} 元`;
-    } else if (profit === 0) {
-        profitMessage = "沒賺沒賠";
-    } else {
-        profitMessage = `賠了 ${Math.abs(profit)} 元`;
-    }
+    const handleOrderClose = () => {
+        setShowOrderPage(false);
+    };
 
     return (
         <div className='Trade'>
             <div className="container">
-                <div className="title">
-                    理財達人 投資遊戲
-                </div>
-                <div className='game-rule'>
-                    這個投資遊戲是為了讓小朋友了解投資的基本概念和風險設計的。投資有賺有賠，不要太在意結果，放輕鬆享受遊戲的過程吧！
-                </div>
-                <div className='news'>
-                    <Marquee
-                        pauseOnHover={false}
-                        direction='right'
-                        speed={60}
-                    >
-                        <div>
-                            {news}
+                {showOrderPage ? (
+                    <OrderPage
+                        meat={newmeat}
+                        vegetable={newvegetable}
+                        egg={newegg}
+                        unusedMoney={unusedMoney}
+                        setUnusedMoney={setUnusedMoney}
+                        handleOrderClose={handleOrderClose}
+                        userStocks={userStocks}
+                        setUserStocks={setUserStocks}
+                    />
+                ) : (
+                    <>
+                        <div className="title">
+                            理財達人 投資遊戲
                         </div>
-                    </Marquee>
-                </div>
-                <div className="trade-list">
-                    <div className='trade-title'>初始購買價格</div>
-                    <div className='trade-item-container'>
-                        <div className="trade-item">
-                            <img className='trade-img' src={meatimg} alt='meat' />
-                            <div className="trade-name">肉類</div>
-                            <div className="trade-price">{meat} 元</div>
-                        </div>
-                        <div className="trade-item">
-                            <img className='trade-img' src={vegetableimg} alt='vegetable' />
-                            <div className="trade-name">蔬菜</div>
-                            <div className="trade-price">{vegetable} 元</div>
-                        </div>
-                        <div className="trade-item">
-                            <img className='trade-img' src={eggimg} alt='egg' />
-                            <div className="trade-name">雞蛋</div>
-                            <div className="trade-price">{egg} 元</div>
-                        </div>
-                    </div>
-                </div>
-                <div className="trade-list">
-                    <div className='trade-title'>{currentdate} 的價格</div>
-                    <div className='trade-item-container'>
-                        <div className="trade-item">
-                            <img className='trade-img' src={meatimg} alt='meat' />
-                            <div className="trade-name">肉類</div>
-                            <div className="trade-price">
-                                {newmeat} 元
-                                {newmeat > meat && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
-                                {newmeat < meat && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                        <div className='userinfo'>
+                            <div className='info'>
+                                組別 : 第{data.name}組
+                            </div>
+                            <div className='info'>
+                                金錢 : ${data.remainingMoney}
                             </div>
                         </div>
-                        <div className="trade-item">
-                            <img className='trade-img' src={vegetableimg} alt='vegetable' />
-                            <div className="trade-name">蔬菜</div>
-                            <div className="trade-price">
-                                {newvegetable} 元
-                                {newvegetable > vegetable && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
-                                {newvegetable < vegetable && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                        <div className='game-rule'>
+                            這個投資遊戲是為了讓小朋友了解投資的基本概念和風險設計的。投資有賺有賠，不要太在意結果，放輕鬆享受遊戲的過程吧！
+                        </div>
+                        <div className='news'>
+                            <Marquee
+                                pauseOnHover={false}
+                                direction='right'
+                                speed={60}
+                            >
+                                <div>
+                                    {news}
+                                </div>
+                            </Marquee>
+                        </div>
+                        <div className="trade-list">
+                            <div className='trade-title'>初始購買價格</div>
+                            <div className='trade-item-container'>
+                                <div className="trade-item">
+                                    <img className='trade-img' src={meatimg} alt='meat' />
+                                    <div className="trade-name">肉類</div>
+                                    <div className="trade-price">{meat} 元</div>
+                                </div>
+                                <div className="trade-item">
+                                    <img className='trade-img' src={vegetableimg} alt='vegetable' />
+                                    <div className="trade-name">蔬菜</div>
+                                    <div className="trade-price">{vegetable} 元</div>
+                                </div>
+                                <div className="trade-item">
+                                    <img className='trade-img' src={eggimg} alt='egg' />
+                                    <div className="trade-name">雞蛋</div>
+                                    <div className="trade-price">{egg} 元</div>
+                                </div>
                             </div>
                         </div>
-                        <div className="trade-item">
-                            <img className='trade-img' src={eggimg} alt='egg' />
-                            <div className="trade-name">雞蛋</div>
-                            <div className="trade-price">
-                                {newegg} 元
-                                {newegg > egg && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
-                                {newegg < egg && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                        <div className="trade-list">
+                            <div className='trade-title'>{getCurrentDate()} 的價格</div>
+                            <div className='trade-item-container'>
+                                <div className="trade-item">
+                                    <img className='trade-img' src={meatimg} alt='meat' />
+                                    <div className="trade-name">肉類</div>
+                                    <div className="trade-price">
+                                        {newmeat} 元
+                                        {newmeat > meat && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                        {newmeat < meat && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                    </div>
+                                </div>
+                                <div className="trade-item">
+                                    <img className='trade-img' src={vegetableimg} alt='vegetable' />
+                                    <div className="trade-name">蔬菜</div>
+                                    <div className="trade-price">
+                                        {newvegetable} 元
+                                        {newvegetable > vegetable && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                        {newvegetable < vegetable && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                    </div>
+                                </div>
+                                <div className="trade-item">
+                                    <img className='trade-img' src={eggimg} alt='egg' />
+                                    <div className="trade-name">雞蛋</div>
+                                    <div className="trade-price">
+                                        {newegg} 元
+                                        {newegg > egg && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                        {newegg < egg && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div className="loss-profit-calculation">
-                    <div className="title">損益試算表</div>
-                    <div className="input-group">
-                        <label>肉類</label>
-                        <input type="number" placeholder='請輸入數字' value={meatShares === '' ? '' : meatShares} onChange={handleMeatSharesChange} />
-                    </div>
-                    <div className="input-group">
-                        <label>蔬菜</label>
-                        <input type="number" placeholder='請輸入數字' value={vegetableShares === '' ? '' : vegetableShares} onChange={handleVegetableSharesChange} />
-                    </div>
-                    <div className="input-group">
-                        <label>雞蛋</label>
-                        <input type="number" placeholder='請輸入數字' value={eggShares === '' ? '' : eggShares} onChange={handleEggSharesChange} />
-                    </div>
-                    <div className="input-group">
-                        <label>沒有用到的錢</label>
-                        <input type="number" placeholder='請輸入數字' value={unusedMoney === '' ? '' : unusedMoney} onChange={handleUnusedMoneyChange} />
-                    </div>
-                    <div className="summary">
-                        <div>初始金額 1000 元</div>
-                        <div>試算金額 {currentValue} 元</div>
-                        <div className="profit-message">試算結果 : {profitMessage}</div>
-                    </div>
-                </div>
+                        <div className="user-stocks">
+                            <div className="stock-item">
+                                <img className='trade-img' src={meatimg} alt='meat' />
+                                <div className="stock-name">肉類</div>
+                                <div className="stock-quantity">擁有: {userStocks.meat} 份</div>
+                            </div>
+                            <div className="stock-item">
+                                <img className='trade-img' src={vegetableimg} alt='vegetable' />
+                                <div className="stock-name">蔬菜</div>
+                                <div className="stock-quantity">擁有: {userStocks.vegetable} 份</div>
+                            </div>
+                            <div className="stock-item">
+                                <img className='trade-img' src={eggimg} alt='egg' />
+                                <div className="stock-name">雞蛋</div>
+                                <div className="stock-quantity">擁有: {userStocks.egg} 份</div>
+                            </div>
+                        </div>
+                        <button onClick={handleOrderClick}>下單</button>
+                    </>
+                )}
             </div>
         </div>
     );

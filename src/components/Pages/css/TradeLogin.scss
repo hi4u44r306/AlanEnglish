@@ -1,0 +1,282 @@
+.Login {
+  // cursor: url("https://www.google.com/url?sa=i&url=https%3A%2F%2Fblog.tcea.org%2Fcopyright-free-images-2%2F&psig=AOvVaw3vYuvtdYCSRp_gOPIjjlAk&ust=1667921830393000&source=images&cd=vfe&ved=0CA0QjRxqFwoTCNj225OznPsCFQAAAAAdAAAAABAE"),
+  //   auto;
+  font-family: "Nunito", sans-serif;
+  background-color: #ffffff;
+  height: fit-content;
+  text-align: center;
+  display: flex;
+  flex-flow: column wrap;
+}
+
+.logincopyrightcontainer {
+  height: 10vh;
+  display: flex;
+  font-size: 1.3rem;
+  .logincopyright {
+    font-family: "Nunito", sans-serif;
+    font-weight: 800;
+    color: #ff0000;
+    font-size: 0.9rem;
+    text-align: center;
+    display: flex;
+    flex-flow: column wrap;
+    justify-content: center;
+    flex-basis: 100%;
+  }
+}
+
+.Left {
+  flex-basis: 50%;
+  flex-grow: 1;
+  .head-phone-img {
+    width: 55%;
+  }
+  .english-method {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: rgb(46, 148, 33);
+    border: 10px solid rgb(255, 191, 63);
+    // box-shadow: 5px 5px rgb(255, 191, 63);
+    color: rgb(255, 255, 255);
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    margin: 10px;
+    padding: 20px;
+    border-radius: 20px;
+    text-align: left;
+    user-select: none;
+  }
+}
+.Logincontainer {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: center;
+  height: 100vh;
+  .loginbrand {
+    padding: 30px;
+    border-radius: 20px;
+    font-family: "Nunito", sans-serif;
+    font-size: 50px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    user-select: none;
+  }
+
+  .loginbrand span:nth-child(1) {
+    color: red;
+    text-shadow: 1px 0px 0px red;
+  }
+  .loginbrand span:nth-child(2) {
+    color: #f45d01;
+    margin-right: 2px;
+    text-shadow: 1px 0px 0px #f45d01;
+  }
+  .loginbrand span:nth-child(3) {
+    color: #eeb902;
+    margin-right: 2px;
+    text-shadow: 1px 0px 0px #eeb902;
+  }
+  .loginbrand span:nth-child(4) {
+    color: #04cc0b;
+    margin-right: 2px;
+    text-shadow: 1px 0px 0px #04cc0b;
+  }
+  .loginbrand span:nth-child(5) {
+    display: space;
+    margin: 6px;
+  }
+  .loginbrand span:nth-child(6) {
+    color: #2d7dd2;
+    text-shadow: 1px 0px 0px #2d7dd2;
+  }
+  .loginbrand span:nth-child(7) {
+    color: #4062bb;
+    text-shadow: 1px 0px 0px #4062bb;
+  }
+  .loginbrand span:nth-child(8) {
+    color: #52489c;
+    text-shadow: 1px 0px 0px #52489c;
+  }
+  .loginbrand span:nth-child(9) {
+    color: red;
+    text-shadow: 1px 0px 0px red;
+  }
+  .loginbrand span:nth-child(10) {
+    color: #f45d01;
+    text-shadow: 1px 0px 0px #f45d01;
+  }
+  .loginbrand span:nth-child(11) {
+    color: #eeb902;
+    text-shadow: 1px 0px 0px #eeb902;
+  }
+  .loginbrand span:nth-child(12) {
+    color: #4062bb;
+    text-shadow: 1px 0px 0px #4062bb;
+  }
+  .loginbrandbottomtext {
+    font-family: "Nunito", sans-serif;
+    // color: #f8eeee;
+    color: rgb(46, 148, 33);
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .Right {
+    display: flex;
+    flex-flow: column wrap;
+    justify-content: center;
+    align-items: center;
+    flex-basis: 50%;
+    flex-grow: 1;
+    .loginsection {
+      // border: 10px solid rgb(255, 191, 63);
+      width: 40vw;
+      // height: 60vh;
+      border-radius: 20px;
+      display: flex;
+      flex-flow: column wrap;
+      justify-content: center;
+      align-items: center;
+
+      label {
+        display: block;
+        text-align: left;
+        font-size: 20px;
+        margin: 3px;
+        font-weight: 700;
+        margin: 10px;
+      }
+      p {
+        // color: #f8eeee;
+        color: rgb(46, 148, 33);
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+      .rightinput {
+        height: 40px;
+        width: 80%;
+        padding: 5px 10px;
+        font-size: 18px;
+        border-radius: 5px;
+        border: 3.5px solid rgb(46, 148, 33);
+        font-weight: 700;
+      }
+      input::placeholder {
+        color: #aaa;
+        font-weight: 700;
+      }
+    }
+    .loginbtn {
+      margin: 20px 0px;
+      padding: 10px 15px;
+      font-size: 18px;
+      letter-spacing: 5px;
+      border-radius: 10px;
+      font-family: "Noto Sans TC", sans-serif;
+      font-weight: 600;
+      border: 3.5px solid #2d7dd2;
+      color: rgb(0, 0, 0);
+      background-color: rgb(255, 255, 255);
+    }
+  }
+}
+.notification {
+  font-family: "Nunito", sans-serif;
+}
+
+@media only screen and (max-width: 900px) {
+  .Login {
+    height: fit-content;
+  }
+  .Logincontainer {
+    display: flex;
+    align-content: center;
+    .loginbrandbottomtext {
+      font-family: "Nunito", sans-serif;
+      font-size: 15px;
+    }
+    .Left {
+      // display: none;
+      .head-phone-img {
+        display: none;
+      }
+      .english-method > p {
+        color: #ffffff;
+        font-size: 10px;
+      }
+      .english-method {
+        padding: 10px;
+        border: 5px solid rgb(255, 191, 63);
+      }
+    }
+    .loginbrand {
+      .loginbrandword {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-content: center;
+      }
+
+      span {
+        font-size: 40px;
+      }
+    }
+    .Right {
+      .loginsection {
+        display: flex;
+        align-items: center;
+        align-content: center;
+        height: auto;
+        width: 80vw;
+        padding: 20px 0px;
+      }
+      label {
+        font-size: 20px !important;
+      }
+      .rightinput {
+        font-size: 15px;
+        width: 70%;
+      }
+    }
+  }
+  .head-phone-img {
+    display: none;
+  }
+  .main-row-img {
+    flex-basis: 51% !important;
+  }
+}
+@media only screen and (max-width: 512px) {
+  .Logincontainer {
+    .loginbrand {
+      padding: 0;
+      border-radius: 20px;
+      font-family: "Nunito", sans-serif;
+      font-size: 60px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      user-select: none;
+    }
+    .Right {
+      .loginsection {
+        border: none;
+        display: flex;
+        align-items: center;
+        align-content: center;
+        height: auto;
+        width: 80vw;
+        padding: 0;
+      }
+      label {
+        font-size: 20px !important;
+      }
+      .rightinput {
+        font-size: 15px;
+        width: 70%;
+      }
+    }
+  }
+}

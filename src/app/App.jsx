@@ -23,6 +23,8 @@ import Search from "../components/Pages/Search";
 import User from "../components/Pages/User";
 import Leaderboard from "../components/Pages/Leaderboard";
 import Trade from "../components/Pages/Trade";
+import TradeSignup from "../components/Pages/TradeSignup";
+import TradeLogin from "../components/Pages/TradeLogin";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -44,6 +46,7 @@ const App = () => {
                     localStorage.setItem('ae-userimage', data.userimage || '');
                 }
             });
+
             const teacherDocRef = doc(db, 'teacher', user.uid);
             getDoc(teacherDocRef).then(docSnapshot => {
                 if (docSnapshot.exists()) {
@@ -51,6 +54,7 @@ const App = () => {
                     localStorage.setItem('ae-teacherschool', data.school || '');
                 }
             });
+
             const postRef = ref(rtdb, 'TeachingResources/');
             onValue(postRef, snapshot => {
                 if (snapshot.exists()) {
@@ -158,6 +162,12 @@ const App = () => {
                     } />
                     <Route path="/trade" element={
                         <Trade />
+                    } />
+                    <Route path="/tradesignup" element={
+                        <TradeSignup />
+                    } />
+                    <Route path="/tradeLogin" element={
+                        <TradeLogin />
                     } />
                 </Routes>
             </Router>
