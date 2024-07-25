@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import HeadPhone from '../assets/img/Login2.png';
 import './css/TradeLogin.scss';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -44,8 +43,6 @@ function TradeLogin() {
             setIsLoading(false);
         }, 2000);
 
-        const currentDate = new Date().toJSON().slice(0, 10);
-        const currentMonth = new Date().toJSON().slice(0, 7);
 
         try {
             const userCredential = await signInWithEmailAndPassword(authentication, email, password);

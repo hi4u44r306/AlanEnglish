@@ -1,35 +1,43 @@
 .Trade {
-  margin: 0;
+  height: 100vh; // Use viewport height
   display: flex;
-  justify-content: center;
+  flex-direction: column; // Ensure the content stacks vertically
+  background-color: antiquewhite;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: center;
 }
+
+.trade-container {
+  flex: 1; // Allow this to grow and fill the available space
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  background-color: antiquewhite;
+  border-radius: 8px;
+  overflow-y: auto; // Add scrollbar if content overflows
+}
+
 .userinfo {
   display: flex;
   justify-content: center;
-
+  flex-wrap: wrap;
   .info {
     font-weight: 800;
     margin: 10px;
     color: #356cb0;
   }
 }
-.container {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  background-color: antiquewhite;
-  border-radius: 8px;
-  max-width: 700px;
-}
 
 .title {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 20px;
   font-weight: 800;
   text-align: center;
-  margin-bottom: 20px;
   color: #333;
+  gap: 20px;
 }
 
 .trade-list {
@@ -87,7 +95,6 @@
 .game-rule {
   font-size: 16px;
   font-weight: 800;
-  padding: 15px;
   color: red;
 }
 
@@ -140,8 +147,7 @@
   background-color: rgb(238, 72, 72);
   display: flex;
   justify-content: center;
-  padding: 10px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: rgb(255, 255, 255);
 }
@@ -153,57 +159,114 @@
   margin-left: 10px;
 }
 
-.loss-profit-calculation {
-  padding: 25px;
-  background-color: antiquewhite;
-  border-radius: 8px;
+// .loss-profit-calculation {
+//   padding: 25px;
+//   background-color: antiquewhite;
+//   border-radius: 8px;
 
-  .title {
-    font-size: 24px;
-    font-weight: 800;
-    margin-bottom: 10px;
-    text-align: center;
-    color: #333;
-  }
+//   .title {
+//     font-size: 24px;
+//     font-weight: 800;
+//     margin-bottom: 10px;
+//     text-align: center;
+//     color: #333;
+//   }
 
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10px;
+//   .input-group {
+//     display: flex;
+//     flex-direction: column;
+//     margin-bottom: 10px;
 
-    label {
-      font-size: 16px;
-      font-weight: 700;
-      color: #555;
-      margin-bottom: 5px;
-    }
+//     label {
+//       font-size: 16px;
+//       font-weight: 700;
+//       color: #555;
+//       margin-bottom: 5px;
+//     }
 
-    input {
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-  }
+//     input {
+//       padding: 8px;
+//       border: 1px solid #ddd;
+//       border-radius: 4px;
+//       font-size: 16px;
+//     }
+//   }
 
-  .summary {
+//   .summary {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//     margin-top: 15px;
+
+//     div {
+//       font-size: 18px;
+//       font-weight: 700;
+//       color: #333;
+//       margin-bottom: 5px;
+//     }
+//   }
+
+//   .profit-message {
+//     font-size: 20px;
+//     font-weight: bold;
+//     text-align: center;
+//     color: #2a9d8f;
+//   }
+// }
+
+.user-stocks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  .stock-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 15px;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    transition: transform 0.2s;
 
-    div {
-      font-size: 18px;
-      font-weight: 700;
-      color: #333;
+    .trade-img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
+
+    .stock-name {
+      font-size: 1.2em;
+      font-weight: 800;
+      color: #000000;
       margin-bottom: 5px;
     }
-  }
 
-  .profit-message {
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    color: #2a9d8f;
+    .stock-quantity {
+      font-size: 1em;
+      font-weight: 800;
+      color: #ff5a5a;
+    }
+  }
+}
+
+.order-button {
+  border: none;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  color: white;
+  margin: 10px;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-weight: 800;
+
+  &:hover {
+    background: linear-gradient(90deg, #0056b3, #003d7a);
   }
 }
