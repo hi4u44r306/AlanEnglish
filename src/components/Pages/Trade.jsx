@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import './css/Trade.scss';
-import { authentication, rtdb } from './firebase-config';
+import { rtdb } from './firebase-config';
 import { child, onValue, ref } from 'firebase/database';
 import meatimg from '../assets/img/meat.png';
 import vegetableimg from '../assets/img/vegetable.png';
 import eggimg from '../assets/img/egg.png';
 import Marquee from "react-fast-marquee";
 import { BsArrowUpCircleFill, BsArrowDownCircleFill } from "react-icons/bs";
-import { onAuthStateChanged } from 'firebase/auth';
 import OrderPage from './OrderPage';
 
 function Trade() {
