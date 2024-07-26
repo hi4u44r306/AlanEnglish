@@ -33,32 +33,30 @@ function Trade() {
     }
 
     useEffect(() => {
-        const fetchData = () => {
-            onAuthStateChanged(authentication, user => {
-                if (user) {
-                    const userRef = ref(rtdb, `Trade/TradeTeam/${user.uid}`);
-                    onValue(userRef, snapshot => {
-                        if (snapshot.exists()) {
-                            const data = snapshot.val();
-                            setDate(data);
-                            setUserStocks({
-                                meat: data.meatShares || 0,
-                                vegetable: data.vegetableShares || 0,
-                                egg: data.eggShares || 0
-                            });
-                            setUnusedMoney(data.remainingMoney)
-                        }
-                    });
-                }
-            });
-        };
-
-        fetchData();
+        const useruid = localStorage.getItem('ae-useruid');
+        const userRef = ref(rtdb, `Trade/TradeTeam/${useruid}`);
+        onValue(userRef, snapshot => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                setDate(data);
+                setUserStocks({
+                    meat: data.meatShares || 0,
+                    vegetable: data.vegetableShares || 0,
+                    egg: data.eggShares || 0
+                });
+                setUnusedMoney(data.remainingMoney)
+            }
+        });
     }, []);
+
     const [unusedMoney, setUnusedMoney] = useState();
 
 
-    const total = newmeatprice * userStocks.meat + newvegetableprice * userStocks.vegetable + neweggprice * userStocks.egg + unusedMoney;
+    const total = (newmeatprice || 0) * (userStocks.meat || 0) +
+        (newvegetableprice || 0) * (userStocks.vegetable || 0) +
+        (neweggprice || 0) * (userStocks.egg || 0) +
+        (unusedMoney || 0);
+
 
     useEffect(() => {
         const tradeRef = child(dbRef, 'Trade');
@@ -75,10 +73,13 @@ function Trade() {
             }
         });
 
+        // Cleanup: unsubscribe from the listener
         return () => {
-            handleData();
+            handleData(); // This is incorrect
+
         };
     }, [dbRef]);
+
 
     const handleOrderClick = () => {
         setShowOrderPage(true);

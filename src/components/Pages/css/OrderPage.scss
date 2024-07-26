@@ -76,11 +76,6 @@
     align-items: center;
     justify-content: center;
 
-    label {
-      font-size: 16px;
-      font-weight: 600;
-      color: #444;
-    }
     .stock-info {
       margin-top: 8px;
       font-size: 14px;
@@ -107,6 +102,12 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
+  }
+
+  .input-top-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #444;
   }
 
   .input-group:last-child {
@@ -218,10 +219,10 @@
 
 .total-cost {
   font-weight: 800;
-  margin: 10px;
+  margin-top: 10px;
 }
 .error-message {
   color: red;
   font-weight: 800;
-  margin: 10px;
+  margin-top: 10px;
 }

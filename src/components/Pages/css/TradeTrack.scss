@@ -1,0 +1,42 @@
+.trade-track {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tradetrack-title {
+  font-size: 24px;
+  text-align: center;
+  color: #333;
+  margin: 20px;
+}
+
+.tradetrack-ul {
+  list-style: none;
+  padding: 0;
+
+  .tradetrack-li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    font-weight: 800;
+
+    .tradetrack-detail {
+      margin: 5px 0;
+      color: #555;
+
+      &:first-child {
+        font-weight: bold;
+        color: #007bff; // Highlight for the team name
+      }
+    }
+  }
+}

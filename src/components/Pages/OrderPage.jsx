@@ -311,15 +311,16 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
                     </div>
                 </div>
                 <div className="remaining-money">
-                    <label>剩下</label>
+                    <div>剩下</div>
                     <div readOnly>{unusedMoney === '' ? '' : unusedMoney}</div>
-                    <label>元</label>
+                    <div>元</div>
                 </div>
             </div>
             <div className="input-group">
                 <div className='input-top'>
-                    <label>肉類</label>
+                    <div className='input-top-title'>肉類</div>
                     <input
+                        id='meatShares'
                         className='stock-input'
                         type="number"
                         placeholder='0'
@@ -340,8 +341,9 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
             </div>
             <div className="input-group">
                 <div className='input-top'>
-                    <label>蔬菜</label>
+                    <div className='input-top-title'>蔬菜</div>
                     <input
+                        id='vegetableShares'
                         className='stock-input'
                         type="number"
                         placeholder='0'
@@ -362,8 +364,9 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
             </div>
             <div className="input-group">
                 <div className='input-top'>
-                    <label>雞蛋</label>
+                    <div className='input-top-title'>雞蛋</div>
                     <input
+                        id='eggShares'
                         className='stock-input'
                         type="number"
                         placeholder='0'

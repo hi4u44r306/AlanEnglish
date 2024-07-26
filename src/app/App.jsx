@@ -25,6 +25,7 @@ import Leaderboard from "../components/Pages/Leaderboard";
 import Trade from "../components/Pages/Trade";
 import TradeSignup from "../components/Pages/TradeSignup";
 import TradeLogin from "../components/Pages/TradeLogin";
+import TradeTrack from "../components/Pages/TradeTrack";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -168,6 +169,9 @@ const App = () => {
                     } />
                     <Route path="/tradeLogin" element={
                         <TradeLogin />
+                    } />
+                    <Route path="/tradetrack" element={
+                        <TradeTrack />
                     } />
                 </Routes>
             </Router>
