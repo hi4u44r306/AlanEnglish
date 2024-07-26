@@ -104,8 +104,8 @@ function Trade() {
                     />
                 ) : (
                     <>
-                        <div className="title">
-                            理財達人 投資遊戲
+                        <div className="Tradetitle">
+                            理財達人 投資遊戲 (奕彬老師製作)
                         </div>
                         <div className='userinfo'>
                             <div className='info'>
@@ -115,23 +115,13 @@ function Trade() {
                                 金錢 : $ {data.remainingMoney} 元
                             </div>
                             <div className='info'>
-                                預估總價值 : $ {total || "讀取中..."} 元
+                                預估總價值 : $ {total || "---"} 元
                             </div>
                         </div>
                         <div className='game-rule'>
                             教學理念 : 這個投資遊戲是為了讓小朋友了解投資的基本概念和風險設計的。投資有賺有賠，不要太在意結果，放輕鬆享受遊戲的過程吧！
                         </div>
-                        <div className='news'>
-                            <Marquee
-                                pauseOnHover={false}
-                                direction='right'
-                                speed={60}
-                            >
-                                <div>
-                                    {news}
-                                </div>
-                            </Marquee>
-                        </div>
+
                         {/* <div className="trade-list">
                             <div className='trade-title'>初始購買價格</div>
                             <div className='trade-item-container'>
@@ -156,32 +146,52 @@ function Trade() {
 
                         <div className="trade-list">
                             <div className='trade-title'>{getCurrentDate()} 的價格</div>
+                            <div className='news'>
+                                <Marquee
+                                    pauseOnHover={false}
+                                    direction='right'
+                                    speed={60}
+                                >
+                                    <div>
+                                        {news}
+                                    </div>
+                                </Marquee>
+                            </div>
                             <div className='trade-item-container'>
                                 <div className="trade-item">
-                                    <img className='trade-img' src={meatimg} alt='meat' />
-                                    <div className="trade-name">肉類 </div>
-                                    <div className="trade-price">
-                                        {newmeatprice} 元
-                                        {newmeatprice > meatprice && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
-                                        {newmeatprice < meatprice && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                    <div className='risk-rate-medium'>穩健型</div>
+                                    <div className='trade-item-bottom'>
+                                        <img className='trade-img' src={meatimg} alt='meat' />
+                                        <div className="trade-name">肉類 </div>
+                                        <div className="trade-price">
+                                            {newmeatprice || "---"} 元
+                                            {newmeatprice > meatprice && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                            {newmeatprice < meatprice && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="trade-item">
-                                    <img className='trade-img' src={vegetableimg} alt='vegetable' />
-                                    <div className="trade-name">蔬菜 </div>
-                                    <div className="trade-price">
-                                        {newvegetableprice} 元
-                                        {newvegetableprice > vegetableprice && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
-                                        {newvegetableprice < vegetableprice && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                    <div className='risk-rate-high'>積極型</div>
+                                    <div className='trade-item-bottom'>
+                                        <img className='trade-img' src={vegetableimg} alt='vegetable' />
+                                        <div className="trade-name">蔬菜 </div>
+                                        <div className="trade-price">
+                                            {newvegetableprice || "---"} 元
+                                            {newvegetableprice > vegetableprice && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                            {newvegetableprice < vegetableprice && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="trade-item">
-                                    <img className='trade-img' src={eggimg} alt='egg' />
-                                    <div className="trade-name">雞蛋 </div>
-                                    <div className="trade-price">
-                                        {neweggprice} 元
-                                        {neweggprice > eggprice && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
-                                        {neweggprice < eggprice && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                    <div className='risk-rate-low'>保守型</div>
+                                    <div className='trade-item-bottom'>
+                                        <img className='trade-img' src={eggimg} alt='egg' />
+                                        <div className="trade-name">雞蛋 </div>
+                                        <div className="trade-price">
+                                            {neweggprice || "---"} 元
+                                            {neweggprice > eggprice && <BsArrowUpCircleFill color='red' size={size} className='arrow-up' />}
+                                            {neweggprice < eggprice && <BsArrowDownCircleFill color='green' size={size} className='arrow-down' />}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

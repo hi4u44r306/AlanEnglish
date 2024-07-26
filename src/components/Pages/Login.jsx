@@ -508,6 +508,7 @@ function Login() {
         <>
             <section className="Login">
                 <div className="Logincontainer">
+
                     <div className="Left">
                         <div className="english-method">
                             <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
@@ -520,6 +521,7 @@ function Login() {
                     </div>
 
                     <div className="Right">
+                        <a style={{ fontSize: 18, fontWeight: 700 }} href="/tradelogin" alt="/tradelogin" >奕彬老師 理財達人投資遊戲點這裡!!!</a>
                         <div className="loginbrand">
                             <div className="loginbrandword">
                                 <span>A</span>

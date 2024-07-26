@@ -9,12 +9,16 @@ import vegetableimg from '../assets/img/vegetable.png';
 import eggimg from '../assets/img/egg.png';
 
 function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOrderClose, userStocks, setUserStocks }) {
-    const [meatShares, setMeatShares] = useState(0);
-    const [vegetableShares, setVegetableShares] = useState(0);
-    const [eggShares, setEggShares] = useState(0);
+    const [meatShares, setMeatShares] = useState('');
+    const [vegetableShares, setVegetableShares] = useState('');
+    const [eggShares, setEggShares] = useState('');
     const [meatTotalCost, setMeatTotalCost] = useState(0);
     const [vegetableTotalCost, setVegetableTotalCost] = useState(0);
     const [eggTotalCost, setEggTotalCost] = useState(0);
+    // New state for error messages
+    const [meatError, setMeatError] = useState('');
+    const [vegetableError, setVegetableError] = useState('');
+    const [eggError, setEggError] = useState('');
     const dbRef = ref(rtdb);
 
     useEffect(() => {
@@ -170,34 +174,111 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
     const resetShares = (item) => {
         switch (item) {
             case 'meat':
-                setMeatShares(0);
+                setMeatShares('');
                 break;
             case 'vegetable':
-                setVegetableShares(0);
+                setVegetableShares('');
                 break;
             case 'egg':
-                setEggShares(0);
+                setEggShares('');
                 break;
             default:
                 break;
         }
     };
 
+    const handleSellAll = (item) => {
+        let currentShares;
+        switch (item) {
+            case 'meat':
+                currentShares = parseFloat(userStocks.meat);
+                break;
+            case 'vegetable':
+                currentShares = parseFloat(userStocks.vegetable);
+                break;
+            case 'egg':
+                currentShares = parseFloat(userStocks.egg);
+                break;
+            default:
+                return;
+        }
+
+        // Check if the user has any stock to sell
+        if (currentShares === 0) {
+            toast.error(`您沒有任何 ${item} 可以賣出！`);
+            return;
+        }
+
+        switch (item) {
+            case 'meat':
+                setMeatShares(currentShares);
+                break;
+            case 'vegetable':
+                setVegetableShares(currentShares);
+                break;
+            case 'egg':
+                setEggShares(currentShares);
+                break;
+            default:
+                break;
+        }
+    };
+
+
+
+    // Check if the input is valid (greater than 0)
+    const isMeatSharesValid = parseFloat(meatShares) > 0;
+    const isVegetableSharesValid = parseFloat(vegetableShares) > 0;
+    const isEggSharesValid = parseFloat(eggShares) > 0;
+
+    // Validation check function
+    const validateInput = (value) => {
+        if (value === '0') {
+            return '數量不能為0';
+        }
+        return '';
+    };
+
+    // Handle input change
+    const handleMeatChange = (e) => {
+        const value = e.target.value;
+        setMeatShares(value);
+        setMeatError(validateInput(value));
+    };
+
+    const handleVegetableChange = (e) => {
+        const value = e.target.value;
+        setVegetableShares(value);
+        setVegetableError(validateInput(value));
+    };
+
+    const handleEggChange = (e) => {
+        const value = e.target.value;
+        setEggShares(value);
+        setEggError(validateInput(value));
+    };
+
+
     return (
         <div className='order-page'>
-            <ToastContainer />
-            <button className='back-button' onClick={handleOrderClose}>返回</button>
-            <div className='title'>下單頁面</div>
+            <ToastContainer
+                position="top-center"
+                className={"notification"}
+                autoClose={2200}
+                limit={1}
+                newestOnTop={true}
+            />
+
+            <div className='Ordertitle'>
+                <button className='back-button' onClick={handleOrderClose}>返回</button>
+                下單頁面
+            </div>
 
             <div className="user-stocks-orderpage">
-                <div className="remaining-money">
-                    <label>剩下</label>
-                    <div readOnly>{unusedMoney === '' ? '' : unusedMoney}</div>
-                    <label>元</label>
-                </div>
+
 
                 <div className='order-title'>您的庫存</div>
-                <div className='trade-item-container'>
+                <div className='order-item-container'>
 
                     <div className="stock-item">
                         <img className='order-img' src={meatimg} alt='meat' />
@@ -229,6 +310,11 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
                         </div>
                     </div>
                 </div>
+                <div className="remaining-money">
+                    <label>剩下</label>
+                    <div readOnly>{unusedMoney === '' ? '' : unusedMoney}</div>
+                    <label>元</label>
+                </div>
             </div>
             <div className="input-group">
                 <div className='input-top'>
@@ -236,18 +322,20 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
                     <input
                         className='stock-input'
                         type="number"
-                        placeholder='請輸入數字'
+                        placeholder='0'
                         value={meatShares}
-                        onChange={(e) => setMeatShares(e.target.value)}
+                        onChange={handleMeatChange}
                         min="0"
                     />
-                    <button className='buy-button' onClick={() => handleBuy('meat', meat, meatShares)}>買</button>
-                    <button className='sell-button' onClick={() => handleSell('meat', meat, meatShares)}>賣</button>
+                    <button className='buy-button' onClick={() => handleBuy('meat', meat, meatShares)} disabled={!isMeatSharesValid}>買</button>
+                    <button className='sell-button' onClick={() => handleSell('meat', meat, meatShares)} disabled={!isMeatSharesValid}>賣</button>
+                    <button className='sell-button' onClick={() => handleSellAll('meat')}>全部賣出</button>
                 </div>
                 <div className='input-bottom'>
                     {meatShares > 0 && (
                         <div className='total-cost'>總計金額: {meatTotalCost} 元</div>
                     )}
+                    {meatError && <div className='error-message'>{meatError}</div>}
                 </div>
             </div>
             <div className="input-group">
@@ -256,18 +344,20 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
                     <input
                         className='stock-input'
                         type="number"
-                        placeholder='請輸入數字'
+                        placeholder='0'
                         value={vegetableShares}
-                        onChange={(e) => setVegetableShares(e.target.value)}
+                        onChange={handleVegetableChange}
                         min="0"
                     />
-                    <button className='buy-button' onClick={() => handleBuy('vegetable', vegetable, vegetableShares)}>買</button>
-                    <button className='sell-button' onClick={() => handleSell('vegetable', vegetable, vegetableShares)}>賣</button>
+                    <button className='buy-button' onClick={() => handleBuy('vegetable', vegetable, vegetableShares)} disabled={!isVegetableSharesValid}>買</button>
+                    <button className='sell-button' onClick={() => handleSell('vegetable', vegetable, vegetableShares)} disabled={!isVegetableSharesValid}>賣</button>
+                    <button className='sell-button' onClick={() => handleSellAll('vegetable')}>全部賣出</button>
                 </div>
                 <div className='input-bottom'>
                     {vegetableShares > 0 && (
                         <div className='total-cost'>總計金額: {vegetableTotalCost} 元</div>
                     )}
+                    {vegetableError && <div className='error-message'>{vegetableError}</div>}
                 </div>
             </div>
             <div className="input-group">
@@ -276,18 +366,20 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
                     <input
                         className='stock-input'
                         type="number"
-                        placeholder='請輸入數字'
+                        placeholder='0'
                         value={eggShares}
-                        onChange={(e) => setEggShares(e.target.value)}
+                        onChange={handleEggChange}
                         min="0"
                     />
-                    <button className='buy-button' onClick={() => handleBuy('egg', egg, eggShares)}>買</button>
-                    <button className='sell-button' onClick={() => handleSell('egg', egg, eggShares)}>賣</button>
+                    <button className='buy-button' onClick={() => handleBuy('egg', egg, eggShares)} disabled={!isEggSharesValid}>買</button>
+                    <button className='sell-button' onClick={() => handleSell('egg', egg, eggShares)} disabled={!isEggSharesValid}>賣</button>
+                    <button className='sell-button' onClick={() => handleSellAll('egg')}>全部賣出</button>
                 </div>
                 <div className='input-bottom'>
                     {eggShares > 0 && (
                         <div className='total-cost'>總計金額: {eggTotalCost} 元</div>
                     )}
+                    {eggError && <div className='error-message'>{eggError}</div>}
                 </div>
             </div>
         </div>

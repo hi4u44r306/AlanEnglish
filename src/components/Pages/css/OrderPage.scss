@@ -1,13 +1,24 @@
 .order-page {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #faefef;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
+  .Ordertitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    font-size: 25px;
+    font-weight: 800;
+    text-align: center;
+    color: #000000;
+  }
+
   button {
     border: none;
     border-radius: 5px;
     padding: 8px 15px;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
     outline: none;
@@ -16,6 +27,7 @@
   .back-button {
     background: linear-gradient(90deg, #007bff, #0056b3);
     color: white;
+    font-weight: 800;
 
     &:hover {
       background: linear-gradient(90deg, #0056b3, #003d7a);
@@ -26,6 +38,7 @@
     background: linear-gradient(90deg, #28a745, #218838);
     color: white;
     border-radius: 5px;
+    font-weight: 800;
 
     &:hover {
       background: linear-gradient(90deg, #218838, #1e7e34);
@@ -36,15 +49,25 @@
     background: linear-gradient(90deg, #dc3545, #c82333);
     color: white;
     border-radius: 5px;
+    font-weight: 800;
 
     &:hover {
       background: linear-gradient(90deg, #c82333, #bd2130);
     }
   }
 
+  .buy-button:disabled,
+  .sell-button:disabled {
+    background-color: #ccc; /* Light gray background */
+    color: #ffffff; /* Gray text */
+    cursor: not-allowed; /* Show a not-allowed cursor */
+    opacity: 0.7; /* Slightly transparent */
+    pointer-events: none; /* Prevent clicking */
+  }
+
   .input-group {
     margin-bottom: 10px;
-    padding: 5px;
+    padding: 10px;
     background: white;
     border-radius: 8px;
     box-shadow: 1px 2px 4px 1px rgba(0, 0, 0, 0.1);
@@ -58,20 +81,6 @@
       font-weight: 600;
       color: #444;
     }
-
-    button {
-      border: none;
-      border-radius: 5px;
-      padding: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-
-      &:hover {
-        opacity: 0.8;
-      }
-    }
-
     .stock-info {
       margin-top: 8px;
       font-size: 14px;
@@ -80,7 +89,7 @@
   }
 
   .remaining-money {
-    margin-bottom: 10px;
+    margin-top: 10px;
     padding: 5px;
     background: white;
     border-radius: 8px;
@@ -94,6 +103,8 @@
 
   .input-top {
     display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
   }
@@ -103,6 +114,8 @@
   }
 
   .stock-input {
+    width: 100px;
+    height: 40px; /* Increase the height to make the arrow bigger */
     padding: 10px;
     border: 2px solid #ddd;
     border-radius: 5px;
@@ -116,6 +129,17 @@
       outline: none;
     }
   }
+  /* Remove the arrows from input[type="number"] in WebKit browsers */
+  .stock-input::-webkit-outer-spin-button,
+  .stock-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; /* Optional: removes margin in WebKit browsers */
+  }
+
+  /* Remove the arrows from input[type="number"] in other browsers */
+  .stock-input {
+    appearance: none;
+  }
 
   .user-stocks-orderpage {
     display: flex;
@@ -128,13 +152,12 @@
       font-weight: 700;
       color: #333;
       text-align: center;
-      margin-top: 15px;
     }
 
-    .trade-item-container {
+    .order-item-container {
       display: flex;
-      justify-content: space-around;
-      gap: 50px;
+      flex-wrap: wrap;
+      justify-content: space-evenly;
     }
 
     .stock-item {
@@ -184,6 +207,8 @@
 }
 .items {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .item {
   margin-left: 10px;
@@ -192,6 +217,11 @@
 }
 
 .total-cost {
+  font-weight: 800;
+  margin: 10px;
+}
+.error-message {
+  color: red;
   font-weight: 800;
   margin: 10px;
 }

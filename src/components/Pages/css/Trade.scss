@@ -28,7 +28,7 @@
   }
 }
 
-.title {
+.Tradetitle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,6 +61,7 @@
   font-size: 18px;
   font-weight: bold;
   text-align: center;
+  margin: 10px;
   color: #333;
 }
 
@@ -78,7 +79,7 @@
 
 .trade-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 10px;
   align-items: center;
 
@@ -92,8 +93,35 @@
   }
 }
 
+.risk-rate-high {
+  background-color: red;
+  padding: 8px 10px 8px 10px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 800;
+}
+.risk-rate-medium {
+  background-color: rgb(255, 248, 41);
+  padding: 8px 10px 8px 10px;
+  border-radius: 20px;
+  color: black;
+  font-weight: 800;
+}
+.risk-rate-low {
+  background-color: rgb(96, 255, 43);
+  padding: 8px 10px 8px 10px;
+  border-radius: 20px;
+  color: black;
+  font-weight: 800;
+}
+.trade-item-bottom {
+  display: flex;
+}
+
 .game-rule {
-  font-size: 16px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 18px;
   font-weight: 800;
   color: red;
 }
@@ -104,8 +132,8 @@
   justify-content: center;
   align-items: center;
   font-size: 16px;
-  font-weight: 700;
-  color: #555;
+  font-weight: 800;
+  color: #000000;
 }
 
 .editbutton {
@@ -218,7 +246,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-top: 10px;
@@ -243,14 +271,14 @@
     }
 
     .stock-name {
-      font-size: 1.2em;
+      font-size: 18px;
       font-weight: 800;
       color: #000000;
       margin-bottom: 5px;
     }
 
     .stock-quantity {
-      font-size: 1em;
+      font-size: 16px;
       font-weight: 800;
       color: #ff5a5a;
     }

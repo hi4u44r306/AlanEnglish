@@ -71,11 +71,12 @@ function TradeLogin() {
     }
     return (
         <>
-            <section className="Login">
-                <div className="Logincontainer">
+            <section className="TradeLogin">
+                <div className="TradeLogincontainer">
                     <div className="Right">
-                        <div className="loginbrand">
-                            <div className="loginbrandword">
+                        奕彬老師製作
+                        <div className="Tradeloginbrand">
+                            <div className="Tradeloginbrandword">
                                 <span>理</span>
                                 <span>財</span>
                                 <span>達</span>
@@ -87,7 +88,7 @@ function TradeLogin() {
                                 <span>戲</span>
                             </div>
                         </div>
-                        <div className="loginsection">
+                        <div className="Tradeloginsection">
                             <label>帳號</label>
                             <input
                                 className="rightinput"
@@ -133,7 +134,7 @@ function TradeLogin() {
                                 pauseOnHover
                             />
                             <div className="logincopyrightcontainer">
-                                <span className="logincopyright" href="/">© 2024 Taoyuan Cram School Inc.</span>
+                                <span className="logincopyright" href="/">© 2024 桃園課後照顧服務中心版權所有</span>
                             </div>
                         </div>
                     </div>

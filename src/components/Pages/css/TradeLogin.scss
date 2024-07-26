@@ -1,4 +1,4 @@
-.Login {
+.TradeLogin {
   // cursor: url("https://www.google.com/url?sa=i&url=https%3A%2F%2Fblog.tcea.org%2Fcopyright-free-images-2%2F&psig=AOvVaw3vYuvtdYCSRp_gOPIjjlAk&ust=1667921830393000&source=images&cd=vfe&ved=0CA0QjRxqFwoTCNj225OznPsCFQAAAAAdAAAAABAE"),
   //   auto;
   font-family: "Nunito", sans-serif;
@@ -50,74 +50,72 @@
     user-select: none;
   }
 }
-.Logincontainer {
+.TradeLogincontainer {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
   align-items: center;
   height: 100vh;
-  .loginbrand {
+  .Tradeloginbrand {
     padding: 30px;
-    border-radius: 20px;
     font-family: "Nunito", sans-serif;
-    font-size: 50px;
+    font-size: 40px;
     font-weight: 800;
-    letter-spacing: 4px;
     user-select: none;
   }
 
-  .loginbrand span:nth-child(1) {
+  .Tradeloginbrand span:nth-child(1) {
     color: red;
     text-shadow: 1px 0px 0px red;
   }
-  .loginbrand span:nth-child(2) {
+  .Tradeloginbrand span:nth-child(2) {
     color: #f45d01;
     margin-right: 2px;
     text-shadow: 1px 0px 0px #f45d01;
   }
-  .loginbrand span:nth-child(3) {
+  .Tradeloginbrand span:nth-child(3) {
     color: #eeb902;
     margin-right: 2px;
     text-shadow: 1px 0px 0px #eeb902;
   }
-  .loginbrand span:nth-child(4) {
+  .Tradeloginbrand span:nth-child(4) {
     color: #04cc0b;
     margin-right: 2px;
     text-shadow: 1px 0px 0px #04cc0b;
   }
-  .loginbrand span:nth-child(5) {
+  .Tradeloginbrand span:nth-child(5) {
     display: space;
     margin: 6px;
   }
-  .loginbrand span:nth-child(6) {
+  .Tradeloginbrand span:nth-child(6) {
     color: #2d7dd2;
     text-shadow: 1px 0px 0px #2d7dd2;
   }
-  .loginbrand span:nth-child(7) {
+  .Tradeloginbrand span:nth-child(7) {
     color: #4062bb;
     text-shadow: 1px 0px 0px #4062bb;
   }
-  .loginbrand span:nth-child(8) {
+  .Tradeloginbrand span:nth-child(8) {
     color: #52489c;
     text-shadow: 1px 0px 0px #52489c;
   }
-  .loginbrand span:nth-child(9) {
+  .Tradeloginbrand span:nth-child(9) {
     color: red;
     text-shadow: 1px 0px 0px red;
   }
-  .loginbrand span:nth-child(10) {
+  .Tradeloginbrand span:nth-child(10) {
     color: #f45d01;
     text-shadow: 1px 0px 0px #f45d01;
   }
-  .loginbrand span:nth-child(11) {
+  .Tradeloginbrand span:nth-child(11) {
     color: #eeb902;
     text-shadow: 1px 0px 0px #eeb902;
   }
-  .loginbrand span:nth-child(12) {
+  .Tradeloginbrand span:nth-child(12) {
     color: #4062bb;
     text-shadow: 1px 0px 0px #4062bb;
   }
-  .loginbrandbottomtext {
+  .Tradeloginbrandbottomtext {
     font-family: "Nunito", sans-serif;
     // color: #f8eeee;
     color: rgb(46, 148, 33);
@@ -131,7 +129,7 @@
     align-items: center;
     flex-basis: 50%;
     flex-grow: 1;
-    .loginsection {
+    .Tradeloginsection {
       // border: 10px solid rgb(255, 191, 63);
       width: 40vw;
       // height: 60vh;
@@ -188,10 +186,10 @@
 }
 
 @media only screen and (max-width: 900px) {
-  .Login {
+  .TradeLogin {
     height: fit-content;
   }
-  .Logincontainer {
+  .TradeLogincontainer {
     display: flex;
     align-content: center;
     .loginbrandbottomtext {
@@ -212,8 +210,8 @@
         border: 5px solid rgb(255, 191, 63);
       }
     }
-    .loginbrand {
-      .loginbrandword {
+    .Tradeloginbrand {
+      .Tradeloginbrandword {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -221,11 +219,11 @@
       }
 
       span {
-        font-size: 40px;
+        font-size: 30px;
       }
     }
     .Right {
-      .loginsection {
+      .Tradeloginsection {
         display: flex;
         align-items: center;
         align-content: center;
@@ -250,8 +248,8 @@
   }
 }
 @media only screen and (max-width: 512px) {
-  .Logincontainer {
-    .loginbrand {
+  .TradeLogincontainer {
+    .Tradeloginbrand {
       padding: 0;
       border-radius: 20px;
       font-family: "Nunito", sans-serif;
@@ -261,7 +259,7 @@
       user-select: none;
     }
     .Right {
-      .loginsection {
+      .Tradeloginsection {
         border: none;
         display: flex;
         align-items: center;
