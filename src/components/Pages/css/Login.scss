@@ -131,6 +131,16 @@
     align-items: center;
     flex-basis: 50%;
     flex-grow: 1;
+    .game-title {
+      font-size: 18;
+      font-weight: 700;
+      background-color: #0d6efd;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
     .loginsection {
       // border: 10px solid rgb(255, 191, 63);
       width: 40vw;

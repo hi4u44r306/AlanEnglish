@@ -47,7 +47,7 @@ function TradeSignup() {
             const databaseRef = ref(rtdb, 'Trade/TradeTeam/' + useruid);
             await update(databaseRef, {
                 name: team,
-                money: 1000,
+                remainingMoney: 1000,
                 meatShares: 0,
                 vegetableShares: 0,
                 eggShares: 0,

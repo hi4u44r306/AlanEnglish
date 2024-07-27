@@ -74,7 +74,9 @@ function TradeLogin() {
             <section className="TradeLogin">
                 <div className="TradeLogincontainer">
                     <div className="Right">
-                        奕彬老師製作
+                        <div className="creator">
+                            桃園課後中心 奕彬老師製作
+                        </div>
                         <div className="Tradeloginbrand">
                             <div className="Tradeloginbrandword">
                                 <span>理</span>

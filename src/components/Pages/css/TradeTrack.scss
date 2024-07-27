@@ -13,19 +13,33 @@
   color: #333;
   margin: 20px;
 }
-
+.tradetrack-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tradetrack-conclude {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #59a9ff;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #000000;
+}
 .tradetrack-ul {
   list-style: none;
-  padding: 0;
 
   .tradetrack-li {
     background-color: #fff;
-    border: 1px solid #ddd;
     border-radius: 4px;
-    padding: 15px;
-    margin-bottom: 10px;
+    padding: 5px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 15px;
     flex-wrap: wrap;
     font-weight: 800;
 

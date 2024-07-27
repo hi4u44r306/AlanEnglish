@@ -88,6 +88,18 @@ function Trade() {
         setShowOrderPage(false);
     };
 
+    const handleClick = (e) => {
+        e.preventDefault();
+        const correctPassword = '880203'; // 将 'yourPassword' 替换为你实际的密码
+        const userInput = prompt('請輸入密碼：');
+
+        if (userInput === correctPassword) {
+            window.location.href = '/tradetrack';
+        } else {
+            alert('密碼錯誤');
+        }
+    };
+
     return (
         <div className='Trade'>
             <div className="trade-container">
@@ -106,6 +118,7 @@ function Trade() {
                     <>
                         <div className="Tradetitle">
                             理財達人 投資遊戲 (奕彬老師製作)
+                            <a onClick={handleClick} style={{ fontSize: 18, fontWeight: 700 }} href="/tradetrack" alt="/tradetrack" >奕彬老師專用</a>
                         </div>
                         <div className='userinfo'>
                             <div className='info'>
@@ -201,17 +214,17 @@ function Trade() {
                             <div className='trade-item-container'>
 
                                 <div className="stock-item">
-                                    <img className='trade-img' src={meatimg} alt='meat' />
+                                    <img className='stock-img' src={meatimg} alt='meat' />
                                     <div className="stock-name">肉類</div>
                                     <div className="stock-quantity">擁有 : {userStocks.meat} 個單位</div>
                                 </div>
                                 <div className="stock-item">
-                                    <img className='trade-img' src={vegetableimg} alt='vegetable' />
+                                    <img className='stock-img' src={vegetableimg} alt='vegetable' />
                                     <div className="stock-name">蔬菜</div>
                                     <div className="stock-quantity">擁有 : {userStocks.vegetable} 個單位</div>
                                 </div>
                                 <div className="stock-item">
-                                    <img className='trade-img' src={eggimg} alt='egg' />
+                                    <img className='stock-img' src={eggimg} alt='egg' />
                                     <div className="stock-name">雞蛋</div>
                                     <div className="stock-quantity">擁有 : {userStocks.egg} 個單位</div>
                                 </div>
