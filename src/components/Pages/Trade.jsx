@@ -11,7 +11,7 @@ import OrderPage from './OrderPage';
 
 function Trade() {
     const size = 24;
-    const [data, setDate] = useState({});
+    const [data, setData] = useState({});
     const [meatprice, setMeatPrice] = useState();
     const [vegetableprice, setVegetablePrice] = useState();
     const [eggprice, setEggPrice] = useState();
@@ -22,6 +22,8 @@ function Trade() {
     const [showOrderPage, setShowOrderPage] = useState(false);
     const [userStocks, setUserStocks] = useState({ meat: 0, vegetable: 0, egg: 0 });
     const dbRef = ref(rtdb);
+    const [unusedMoney, setUnusedMoney] = useState();
+
 
     function getCurrentDate() {
         const today = new Date();
@@ -37,7 +39,7 @@ function Trade() {
         onValue(userRef, snapshot => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                setDate(data);
+                setData(data);
                 setUserStocks({
                     meat: data.meatShares || 0,
                     vegetable: data.vegetableShares || 0,
@@ -48,7 +50,6 @@ function Trade() {
         });
     }, []);
 
-    const [unusedMoney, setUnusedMoney] = useState();
 
 
     const total = (newmeatprice || 0) * (userStocks.meat || 0) +
@@ -170,9 +171,10 @@ function Trade() {
                                     </div>
                                 </Marquee>
                             </div>
+
                             <div className='trade-item-container'>
                                 <div className="trade-item">
-                                    <div className='risk-rate-medium'>穩健型</div>
+                                    <div className='risk-rate-high'>風險等級: 高 (積極型)</div>
                                     <div className='trade-item-bottom'>
                                         <img className='trade-img' src={meatimg} alt='meat' />
                                         <div className="trade-name">肉類 </div>
@@ -184,7 +186,7 @@ function Trade() {
                                     </div>
                                 </div>
                                 <div className="trade-item">
-                                    <div className='risk-rate-high'>積極型</div>
+                                    <div className='risk-rate-medium'>風險等級: 中 (穩健型)</div>
                                     <div className='trade-item-bottom'>
                                         <img className='trade-img' src={vegetableimg} alt='vegetable' />
                                         <div className="trade-name">蔬菜 </div>
@@ -196,7 +198,7 @@ function Trade() {
                                     </div>
                                 </div>
                                 <div className="trade-item">
-                                    <div className='risk-rate-low'>保守型</div>
+                                    <div className='risk-rate-low'>風險等級: 低 (保守型)</div>
                                     <div className='trade-item-bottom'>
                                         <img className='trade-img' src={eggimg} alt='egg' />
                                         <div className="trade-name">雞蛋 </div>
