@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './css/Trade.scss';
-import { rtdb } from './firebase-config';
+import { authentication, rtdb } from './firebase-config';
 import { child, onValue, ref } from 'firebase/database';
 import meatimg from '../assets/img/meat.png';
 import vegetableimg from '../assets/img/vegetable.png';
@@ -8,6 +8,7 @@ import eggimg from '../assets/img/egg.png';
 import Marquee from "react-fast-marquee";
 import { BsArrowUpCircleFill, BsArrowDownCircleFill } from "react-icons/bs";
 import OrderPage from './OrderPage';
+import { signOut } from 'firebase/auth';
 
 function Trade() {
     const size = 24;
@@ -101,6 +102,19 @@ function Trade() {
         }
     };
 
+    const handleLogout = (e) => {
+        if (window.confirm('確定要登出嗎?')) {
+            signOut(authentication)
+                .then(() => {
+                    localStorage.removeItem('ae-useruid');
+                    window.location = "/tradelogin";
+                    alert('已成功登出');
+                }).catch((err) => {
+                    console.log(err)
+                })
+        }
+    }
+
     return (
         <div className='Trade'>
             <div className="trade-container">
@@ -120,6 +134,7 @@ function Trade() {
                         <div className="Tradetitle">
                             理財達人 投資遊戲 (奕彬老師製作)
                             <a onClick={handleClick} style={{ fontSize: 18, fontWeight: 700 }} href="/tradetrack" alt="/tradetrack" >奕彬老師專用</a>
+                            <button onClick={handleLogout} className='order-button'>登出</button>
                         </div>
                         <div className='userinfo'>
                             <div className='info'>
@@ -164,7 +179,7 @@ function Trade() {
                                 <Marquee
                                     pauseOnHover={false}
                                     direction='right'
-                                    speed={60}
+                                    speed={30}
                                 >
                                     <div>
                                         {news}

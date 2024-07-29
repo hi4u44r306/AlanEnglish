@@ -8,58 +8,58 @@ function TradeTrack() {
     const [totalMeatShares, setTotalMeatShares] = useState(0);
     const [totalVegetableShares, setTotalVegetableShares] = useState(0);
     const [totalEggShares, setTotalEggShares] = useState(0);
-    const [meatprice, setMeatPrice] = useState(0);
-    const [vegetableprice, setVegetablePrice] = useState(0);
-    const [eggprice, setEggPrice] = useState(0);
 
-    // 計算損益
-    const total = totalMeatShares * meatprice + totalVegetableShares * vegetableprice + totalEggShares * eggprice - 1000;
+
+
+
 
 
 
     useEffect(() => {
         const fetchTradeTeams = () => {
-            const userRef = ref(rtdb, `Trade/TradeTeam`);
-            onValue(userRef, snapshot => {
-                if (snapshot.exists()) {
-                    const teams = snapshot.val();
-                    const teamsArray = Object.keys(teams).map(teamId => ({
-                        id: teamId,
-                        remainingMoney: teams[teamId].remainingMoney,
-                        name: teams[teamId].name,
-                        eggShares: teams[teamId].eggShares,
-                        meatShares: teams[teamId].meatShares,
-                        vegetableShares: teams[teamId].vegetableShares,
-                    }));
-
-                    // Sort teamsArray by team number (assuming team name contains the number)
-                    teamsArray.sort((a, b) => {
-                        const getTeamNumber = name => parseInt(name.match(/\d+/)[0], 10);
-                        return getTeamNumber(a.name) - getTeamNumber(b.name);
-                    });
-
-                    setTradeTeams(teamsArray);
-
-                    // Calculate totals
-                    const totalMeat = teamsArray.reduce((acc, team) => acc + team.meatShares, 0);
-                    const totalVegetable = teamsArray.reduce((acc, team) => acc + team.vegetableShares, 0);
-                    const totalEgg = teamsArray.reduce((acc, team) => acc + team.eggShares, 0);
-
-                    setTotalMeatShares(totalMeat);
-                    setTotalVegetableShares(totalVegetable);
-                    setTotalEggShares(totalEgg);
-                }
-            });
 
             const productRef = ref(rtdb, `Trade/New`);
             onValue(productRef, snapshot => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    setMeatPrice(data.meat);
-                    setVegetablePrice(data.vegetable);
-                    setEggPrice(data.egg);
+
+                    const userRef = ref(rtdb, `Trade/TradeTeam`);
+                    onValue(userRef, snapshot => {
+                        if (snapshot.exists()) {
+                            const teams = snapshot.val();
+                            const teamsArray = Object.keys(teams).map(teamId => ({
+                                id: teamId,
+                                remainingMoney: teams[teamId].remainingMoney,
+                                name: teams[teamId].name,
+                                eggShares: teams[teamId].eggShares,
+                                meatShares: teams[teamId].meatShares,
+                                vegetableShares: teams[teamId].vegetableShares,
+                                // 計算損益
+                                total: (teams[teamId].meatShares * data.meat) + (teams[teamId].vegetableShares * data.vegetable) + (teams[teamId].eggShares * data.egg) + teams[teamId].remainingMoney - 1000
+                            }));
+
+                            // Sort teamsArray by team number (assuming team name contains the number)
+                            teamsArray.sort((a, b) => {
+                                const getTeamNumber = name => parseInt(name.match(/\d+/)[0], 10);
+                                return getTeamNumber(a.name) - getTeamNumber(b.name);
+                            });
+
+                            setTradeTeams(teamsArray);
+
+                            // Calculate totals
+                            const totalMeat = teamsArray.reduce((acc, team) => acc + team.meatShares, 0);
+                            const totalVegetable = teamsArray.reduce((acc, team) => acc + team.vegetableShares, 0);
+                            const totalEgg = teamsArray.reduce((acc, team) => acc + team.eggShares, 0);
+
+                            setTotalMeatShares(totalMeat);
+                            setTotalVegetableShares(totalVegetable);
+                            setTotalEggShares(totalEgg);
+                        }
+                    });
                 }
-            })
+            });
+
+
         };
 
         fetchTradeTeams();
@@ -81,7 +81,7 @@ function TradeTrack() {
                             <div className='tradetrack-detail'>肉類: {team.meatShares}</div>
                             <div className='tradetrack-detail'>蔬菜: {team.vegetableShares}</div>
                             <div className='tradetrack-detail'>雞蛋: {team.eggShares}</div>
-                            <div className='tradetrack-detail'>損益: {total}</div>
+                            <div className='tradetrack-detail'>損益: {team.total}</div>
                         </li>
                     ))}
                 </ul>
