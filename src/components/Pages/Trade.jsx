@@ -136,17 +136,7 @@ function Trade() {
                             <a onClick={handleClick} style={{ fontSize: 18, fontWeight: 700 }} href="/tradetrack" alt="/tradetrack" >奕彬老師專用</a>
                             <button onClick={handleLogout} className='order-button'>登出</button>
                         </div>
-                        <div className='userinfo'>
-                            <div className='info'>
-                                組別 : 第 {data.name} 組
-                            </div>
-                            <div className='info'>
-                                金錢 : $ {data.remainingMoney} 元
-                            </div>
-                            <div className='info'>
-                                預估總價值 : $ {total || "---"} 元
-                            </div>
-                        </div>
+
                         <div className='game-rule'>
                             教學理念 : 這個投資遊戲是為了讓小朋友了解投資的基本概念和風險設計的。投資有賺有賠，不要太在意結果，放輕鬆享受遊戲的過程吧！
                         </div>
@@ -174,6 +164,17 @@ function Trade() {
 
 
                         <div className="trade-list">
+                            <div className='userinfo'>
+                                <div className='info'>
+                                    組別 : 第 {data.name} 組
+                                </div>
+                                <div className='info'>
+                                    金錢 : $ {data.remainingMoney} 元
+                                </div>
+                                <div className='info'>
+                                    預估總價值 : $ {total || "---"} 元
+                                </div>
+                            </div>
                             <div className='trade-title'>{getCurrentDate()} 的價格</div>
                             <div className='news'>
                                 <Marquee
