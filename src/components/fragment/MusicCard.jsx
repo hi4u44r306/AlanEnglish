@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import '../assets/scss/MusicCard.scss';
 import { AiFillPlayCircle } from "react-icons/ai";
-import { FaAddressCard } from "react-icons/fa";
+// import { FaAddressCard } from "react-icons/fa";
 // import MenuBookIcon from '@mui/icons-material/MenuBook';
 // import ShareIcon from '@mui/icons-material/Share';
 import { useDispatch } from "react-redux";
 import { setCurrentMargin, setCurrentPlaying } from "../../actions/actions";
 import Name from "./Name";
-import CardGame from "./CardGame";
-import BooktextGame from './BooktextGame';
+// import CardGame from "./CardGame";
+// import BooktextGame from './BooktextGame';
 import { child, onValue, ref } from 'firebase/database';
 import { rtdb } from '../Pages/firebase-config';
 import { FcApproval } from "react-icons/fc";
@@ -16,13 +16,14 @@ import { AiFillCloseCircle } from "react-icons/ai";
 
 function MusicCard(props) {
     const dispatch = useDispatch();
-    const { bookname, page, img, questions, musicName, booktext } = props.music;
+    const { bookname, page, img } = props.music;
+    // const { bookname, page, img, questions, musicName, booktext } = props.music;
     const useruid = localStorage.getItem('ae-useruid');
     // const [gamescore, setGamescore] = useState();
     const [complete, setComplete] = useState();
     const [musicplay, setMusicPlay] = useState();
-    const [cardgameisOpen, setcardgameIsOpen] = useState(false);
-    const [booktextgameisOpen, setbooktextIsOpen] = useState(false);
+    // const [cardgameisOpen, setcardgameIsOpen] = useState(false);
+    // const [booktextgameisOpen, setbooktextIsOpen] = useState(false);
     // const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
     // const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
     const convertmusicName = bookname + ' ' + page;
@@ -77,9 +78,9 @@ function MusicCard(props) {
         dispatch(setCurrentMargin('100px'))
         dispatch(setCurrentPlaying(props.music))
     }
-    function handleStop() {
-        dispatch(setCurrentPlaying());
-    }
+    // function handleStop() {
+    //     dispatch(setCurrentPlaying());
+    // }
 
     return (
         <div className={"music-card"}>
@@ -130,15 +131,14 @@ function MusicCard(props) {
                             </div>
                         </div>
 
-                        <div className='buttoncontainer'>
+                        {/* <div className='buttoncontainer'>
                             <div>
-
                                 <div onClick=
                                     {
                                         () => {
                                             handleStop()
 
-                                            //之後可以用
+                                            // 之後可以用
                                             // dispatch(setCurrentMargin(0))
                                             if (questions === undefined) {
                                                 // setcardgameIsOpen(false);
@@ -150,13 +150,13 @@ function MusicCard(props) {
                                             }
                                         }
                                     }>
-                                    {/* <div className='gamebutton'>
+                                    <div className='gamebutton'>
                                         <span>小遊戲</span>
                                         <FaAddressCard className="circleicon" />
-                                    </div> */}
+                                    </div>
                                 </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            </div> */}
+                        {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
                                 <div onClick=
                                     {
                                         () => {
@@ -170,21 +170,21 @@ function MusicCard(props) {
                                             }
                                         }
                                     } className={"music-card-cover"} >
-                                    {/* <div className='gamebutton'>
-                                                <span>課文</span>
-                                                <MenuBookIcon className="circleicon" />
-                                            </div> */}
+                                    <div className='gamebutton'>
+                                        <span>課文</span>
+                                        <MenuBookIcon className="circleicon" />
+                                    </div>
                                 </div>
-                            </div>
-                            {/* 小遊戲 */}
-                            {/* <React.Fragment>
+                            </div> */}
+                        {/* 小遊戲 */}
+                        {/* <React.Fragment>
                                 <div className="timesplayedcontainer-mobile">
                                     <Name name={"通過 :  "} className={"quizlabel"} />
                                     <Name name={gamescore || " ---- "} className={"timeplayed"} />
                                     <Name name={"  "} className={"book-name"} />
                                 </div>
                             </React.Fragment> */}
-                        </div>
+                        {/* </div> */}
                     </div>
                 </React.Fragment>
                 {/* <React.Fragment>
