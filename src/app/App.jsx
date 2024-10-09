@@ -26,6 +26,7 @@ import Trade from "../components/Pages/Trade";
 import TradeSignup from "../components/Pages/TradeSignup";
 import TradeLogin from "../components/Pages/TradeLogin";
 import TradeTrack from "../components/Pages/TradeTrack";
+import GetHW from "../components/Pages/GetHW";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -172,6 +173,11 @@ const App = () => {
                     } />
                     <Route path="/tradetrack" element={
                         <TradeTrack />
+                    } />
+                    <Route path="/getHW" element={
+                        <Containerfull>
+                            <GetHW />
+                        </Containerfull>
                     } />
                 </Routes>
             </Router>

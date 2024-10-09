@@ -29,7 +29,7 @@ const Playlist = () => {
             <div className='newfunctionalert'>
                 <Marquee
                     direction='right'
-                    speed={30}
+                    speed={20}
                     style={{
                         height: '40px',
                         alignItems: 'center'

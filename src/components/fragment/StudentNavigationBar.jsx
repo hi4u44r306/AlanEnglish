@@ -207,13 +207,13 @@ function StudentNavigationBar() {
                     ))}
                   </NavDropdown>
 
-                  {/* 閱讀本 */}
+                  {/* 課本 */}
                   <NavDropdown
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     title={
                       <div className="d-flex align-items-center">
                         <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
-                        閱讀本
+                        課本
                       </div>
                     }
                     className="navlink"
@@ -277,12 +277,9 @@ function StudentNavigationBar() {
                   </NavDropdown>
                 </Nav>
 
-
                 <div className="justify-content-center d-flex align-items-center ">
                   <SearchBar />
                 </div>
-
-
 
               </Offcanvas.Body>
             </Navbar.Offcanvas>

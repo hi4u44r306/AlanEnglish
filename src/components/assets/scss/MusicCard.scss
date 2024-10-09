@@ -21,29 +21,23 @@
   }
 }
 
-.testbutton {
+.playbutton {
   display: flex;
   align-items: center;
   align-content: center;
-  font-size: 12px;
-  font-weight: 800;
-  font-family: "Nunito", sans-serif;
-  border: solid 1px rgb(255, 0, 0);
-  background-color: antiquewhite;
+  // border: solid 1px rgb(255, 0, 0);
+  // background-color: antiquewhite;
   border-radius: 50px;
-  margin: 10px;
-  padding: 10px;
+  // padding: 5px;
   cursor: pointer;
 }
-.testbutton > span {
-  margin-right: 2px;
-}
+
 .gamebutton {
   display: flex;
   align-items: center;
   align-content: center;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   font-family: "Nunito", sans-serif;
   border: solid 1px rgb(0, 153, 255);
   background-color: antiquewhite;
@@ -55,13 +49,13 @@
 .gamebutton > span {
   margin-right: 5px;
 }
-// .testbutton:hover {
+// .playbutton:hover {
 //   // box-shadow: 0 0 15px rgba(0, 132, 255, 0.629);
 //   transition: 200ms;
 // }
 .playicon {
-  height: 20px;
-  width: 20px;
+  height: 35px;
+  width: 35px;
   color: rgb(249, 42, 27);
 }
 
@@ -86,7 +80,7 @@
   align-items: center;
   align-content: center;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   font-family: "Nunito", sans-serif;
   background-color: antiquewhite;
   border-radius: 50px;
@@ -137,11 +131,13 @@
 
 .music-card {
   border-radius: 20px;
-  width: 400px;
+  width: 475px;
   padding: 5px;
   margin: 5px;
-  background-color: rgb(255, 255, 255);
-  border: solid 5px rgb(255, 227, 227);
+  // background-color: rgb(255, 255, 255);
+  background-color: #fcf8ec;
+  // border: solid 5px rgb(255, 227, 227);
+  border: solid 2px rgb(255, 227, 227);
   cursor: default;
 }
 
@@ -151,6 +147,13 @@
   // margin-left: auto;
   // margin-right: auto;
 }
+
+.labelcontainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 @media only screen and (max-width: 545px) {
   // .sharebtn-container {
   //   position: fixed;
@@ -167,14 +170,17 @@
     width: 50px;
     height: 50px;
   }
-  .testbutton {
-    font-size: 8px;
-    padding: 8px;
-    margin: 5px;
+  .playbutton {
+    padding: 5px;
   }
   .gamebutton {
     font-size: 8px;
     padding: 8px;
     margin: 5px;
+  }
+  .playicon {
+    height: 25px;
+    width: 25px;
+    color: rgb(249, 42, 27);
   }
 }

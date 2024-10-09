@@ -86,10 +86,15 @@ function MusicCard(props) {
             <div className='web'>
                 <React.Fragment>
                     <div className='musicbanner'>
-                        <div className='gamesection'>
+                        {/* <div className='gamesection'>
                             <CardGame bookname={bookname} pagename={page} open={cardgameisOpen} questionsinmusic={questions} musicName={musicName} onClose={() => setcardgameIsOpen(false)}></CardGame>
 
                             <BooktextGame bookname={bookname} pagename={page} open={booktextgameisOpen} musicName={musicName} booktext={booktext} onClose={() => setbooktextIsOpen(false)}></BooktextGame>
+                        </div> */}
+
+                        <div onClick={handlePlay} className='playbutton'>
+                            {/* <span>播放</span> */}
+                            <AiFillPlayCircle className="playicon" />
                         </div>
                         <div style={{
                             display: 'flex',
@@ -97,27 +102,37 @@ function MusicCard(props) {
                             alignItems: 'center',
                         }}>
                             <img src={require("../assets/img/" + img)} alt={bookname} className='musiccardimage' />
-                            <Name name={bookname} className={"book-name"} length={bookname.length} />
+
+                        </div>
+                        <div className='labelcontainer'>
                             <Name name={page} className={"page-name"} length={page.length} />
+                            <div style={{
+                                display: 'flex',
+                                gap: '15px',
+                                alignItems: 'center',
+                            }}>
+                                <React.Fragment>
+
+                                    <Name name={bookname} className={"book-name"} length={bookname.length} />
+                                    {/* 次數通過 */}
+                                    <Name name={`播放次數 : ${musicplay || 0} 次`} className={"book-name"} length={bookname.length} />
+                                    <Name name={complete === '通過' ? <FcApproval size={20} /> : <AiFillCloseCircle size={20} />} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
+
+                                </React.Fragment>
+
+                                {/* 次數通過 */}
+                                {/* <React.Fragment>
+                                    <div className="timesplayedcontainer-mobile">
+                                        <Name name={"通過 :"} className={"quizlabel"} />
+                                        <Name name={complete === '通過' ? <FcApproval size={20} /> : <AiFillCloseCircle size={20} />} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
+                                    </div>
+                                </React.Fragment> */}
+                            </div>
                         </div>
 
                         <div className='buttoncontainer'>
-                            {/* 次數通過 */}
-                            <React.Fragment>
-                                <div className="timesplayedcontainer-mobile">
-                                    <Name name={"播放次數 :"} className={"quizlabel"} />
-                                    <Name name={`${musicplay || 0} 次`} />
-                                </div>
-                                <div className="timesplayedcontainer-mobile">
-                                    <Name name={"通過 :"} className={"quizlabel"} />
-                                    <Name name={complete === '通過' ? <FcApproval size={20} /> : <AiFillCloseCircle size={20} />} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
-                                </div>
-                            </React.Fragment>
-                            <div style={{ display: 'flex' }}>
-                                <div onClick={handlePlay} className='testbutton'>
-                                    <span>播放</span>
-                                    <AiFillPlayCircle className="playicon" />
-                                </div>
+                            <div>
+
                                 <div onClick=
                                     {
                                         () => {
@@ -135,10 +150,10 @@ function MusicCard(props) {
                                             }
                                         }
                                     }>
-                                    <div className='gamebutton'>
+                                    {/* <div className='gamebutton'>
                                         <span>小遊戲</span>
                                         <FaAddressCard className="circleicon" />
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'center' }}>

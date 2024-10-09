@@ -1,4 +1,5 @@
 :root {
+  --extrasmallfont: 11px;
   --smallfont: 13px;
   --mediumfont: 15px;
   --largefont: 21px;
@@ -59,16 +60,15 @@
 .page-name {
   font-family: "Nunito", sans-serif;
   font-weight: 700;
-  font-size: var(--mediumfont);
+  font-size: var(--smallfont);
   color: black;
-  text-align: center;
   cursor: default;
   user-select: none;
 }
 
 .quizlabel {
   font-family: "Nunito";
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--smallfont);
   text-align: center;
   cursor: default;
@@ -77,11 +77,22 @@
   font-size: 15px;
 }
 
-@media only screen and (max-width: 968px) {
-  .song-name {
-    font-size: 0.7rem;
+@media only screen and (max-width: 425px) {
+  .book-name {
+    font-family: "Nunito";
+    font-weight: 700;
+    font-size: var(--extrasmallfont);
+    color: gray;
+    text-align: center;
+    cursor: default;
+    user-select: none;
   }
-  .author-name {
-    font-size: 0.7rem;
+  .page-name {
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    font-size: var(--extrasmallfont);
+    color: black;
+    cursor: default;
+    user-select: none;
   }
 }
