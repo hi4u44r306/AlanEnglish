@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import MusicCard from "./MusicCard";
 import { useParams } from 'react-router-dom';
 import Marquee from 'react-fast-marquee';
+import { FcApproval } from "react-icons/fc";
 // import CountdownTimer from './CountdownTimer';
 // import Container from "./Container";
 // import firebase from 'firebase/app';
@@ -37,7 +38,12 @@ const Playlist = () => {
                 >
                     {/* {lastDayOfMonthFormatted}日結算
                     <CountdownTimer countdownTimestampMs={currentMonthLastDateMs} /> */}
-                    新功能已上線  音軌播放次數要達到 "7次以上" 才算通過
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}>
+                        音軌聽力次數達到每聽 "7次" 就能獲得一個 <FcApproval size={20} /> 喔!!
+                    </div>
                 </Marquee>
             </div>
             <div className='playlisttitle'>

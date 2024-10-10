@@ -521,7 +521,7 @@ function Login() {
                     </div>
 
                     <div className="Right">
-                        <a className="game-title" href="/tradelogin" alt="/tradelogin" >奕彬老師 理財達人投資遊戲點這裡!!!</a>
+                        {/* <a className="game-title" href="/tradelogin" alt="/tradelogin" >奕彬老師 理財達人投資遊戲點這裡!!!</a> */}
                         <div className="loginbrand">
                             <div className="loginbrandword">
                                 <span>A</span>

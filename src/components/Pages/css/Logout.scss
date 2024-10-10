@@ -8,15 +8,18 @@
   margin-bottom: 10px;
 }
 .logoutbtn {
-  gap: 20px;
+  gap: 15px;
+  letter-spacing: 2px;
   display: flex;
   align-items: center;
-  font-size: 20px;
+  font-size: 18px;
   font-family: "Noto Sans TC", sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
-  color: red;
-  background-color: transparent;
+  color: #ffffff;
+  background-color: #f2784b;
+  padding: 10px;
+  border-radius: 10px;
 }
 // .logoutbtn:hover {
 //   box-shadow: 0 0 15px #d22d2d;

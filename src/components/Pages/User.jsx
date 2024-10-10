@@ -368,6 +368,7 @@ import 'react-circular-progressbar/dist/styles.css';
 import { ToastContainer } from "react-toastify";
 import { rtdb } from './firebase-config';
 import { child, onValue, ref } from 'firebase/database';
+import { FcApproval } from "react-icons/fc";
 
 const User = () => {
     const Month = new Date().toJSON().slice(5, 7);
@@ -422,13 +423,24 @@ const User = () => {
     }, [useruid, dbRef]);
 
     return (
-        <div className='User'>
+        <div className={"User"}>
             <div className="User-container">
-                <Logout />
+                <div className='User-news'>
+                    <p>
+                        點數功能上線囉!! 累績點數換獎品
+                    </p>
+
+                    <p style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}>
+                        只要每聽7次聽力音軌就可以獲得一個 <FcApproval size={20} /> 喔!!
+                    </p>
+                </div>
                 <div className="User-left">
                     <div className="User-profile-details">
                         <div className='User-profile-title'>
-                            個人資料
+                            學生資料
                         </div>
                         <div className="user-info-container">
                             <div className='user-info'>
@@ -472,6 +484,8 @@ const User = () => {
                         </div>
                     </div>
                 </div>
+                <Logout />
+
             </div>
             <ToastContainer
                 position="top-center"
@@ -484,6 +498,7 @@ const User = () => {
                 draggable
                 pauseOnHover
             />
+
         </div>
     );
 };

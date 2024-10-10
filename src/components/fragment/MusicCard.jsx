@@ -12,7 +12,8 @@ import Name from "./Name";
 import { child, onValue, ref } from 'firebase/database';
 import { rtdb } from '../Pages/firebase-config';
 import { FcApproval } from "react-icons/fc";
-import { AiFillCloseCircle } from "react-icons/ai";
+import { FcMinus } from "react-icons/fc";
+// import { AiFillCloseCircle } from "react-icons/ai";
 
 function MusicCard(props) {
     const dispatch = useDispatch();
@@ -22,6 +23,7 @@ function MusicCard(props) {
     // const [gamescore, setGamescore] = useState();
     const [complete, setComplete] = useState();
     const [musicplay, setMusicPlay] = useState();
+    const times = Math.round(musicplay / 7);
     // const [cardgameisOpen, setcardgameIsOpen] = useState(false);
     // const [booktextgameisOpen, setbooktextIsOpen] = useState(false);
     // const quizname = musicName.substring(musicName.indexOf('/') + 1).replace(/[.mp3]/g, "")
@@ -117,7 +119,7 @@ function MusicCard(props) {
                                     <Name name={bookname} className={"book-name"} length={bookname.length} />
                                     {/* 次數通過 */}
                                     <Name name={`播放次數 : ${musicplay || 0} 次`} className={"book-name"} length={bookname.length} />
-                                    <Name name={complete === '通過' ? <FcApproval size={20} /> : <AiFillCloseCircle size={20} />} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
+                                    <Name name={complete === '通過' ? <div><FcApproval size={20} /> X {times}</div> : <FcMinus size={20} />} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
 
                                 </React.Fragment>
 

@@ -1,35 +1,58 @@
+:root {
+  --extrasmallfont: 11px;
+  --smallfont: 13px;
+  --mediumfont: 15px;
+  --largefont: 21px;
+
+  --fontWeight: 700;
+  --textColor: black;
+}
 .User {
-  padding: 10px;
   font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
+  background-color: #439fd9;
+}
+.User-news {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  letter-spacing: 1px;
+  background-color: #f2784b;
+  padding: 20px;
+  border-radius: 20px;
+  font-size: 18px; /* Smaller font size */
+  font-weight: var(--fontWeight);
+  color: #000000; /* Warm text color */
 }
 
 .User-container {
   display: flex;
+  justify-content: center;
   flex-direction: column;
-  gap: 25px;
-  width: 70%;
+  gap: 15px;
+  width: 700px;
+  height: 90vh;
 }
 
 .User-left,
 .User-right {
-  flex: 1;
-  padding: 10px;
-  background: #ffffff;
-  border: 2px solid #ffcc80; /* Warm border color */
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: var(--textColor);
 }
 
 .User-profile-details {
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .User-profile-title {
-  font-size: 27px; /* Smaller font size */
+  font-size: var(--largefont);
   font-weight: bold;
   margin-bottom: 8px;
 }
@@ -37,7 +60,7 @@
 .title-text {
   font-size: 20px; /* Smaller font size */
   font-weight: 900;
-  color: #f57c00; /* Warm text color */
+  color: var(--textColor); /* Warm text color */
   margin-bottom: 8px;
 }
 
@@ -52,21 +75,24 @@
   justify-content: space-between;
   margin-bottom: 6px;
   padding: 6px 0;
-  border-bottom: 1px solid #ffb74d; /* Warm border color */
+  border-bottom: 1px solid #ffffff; /* Warm border color */
 }
 
 .user-info-label {
-  font-weight: 600;
-  color: #000000; /* Warm text color */
+  font-weight: var(--fontWeight);
+  font-size: var(--mediumfont);
+  color: var(--textColor); /* Warm text color */
 }
 
 .second-title-text {
-  font-size: 16px; /* Smaller font size */
-  font-weight: 900;
-  color: #e65100; /* Warm text color */
+  font-size: var(--mediumfont); /* Smaller font size */
+  font-weight: var(--fontWeight);
+  color: var(--textColor); /* Warm text color */
 }
 
 .User-passed-items {
+  background-color: #ffffff;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -74,9 +100,9 @@
 }
 
 .User-passed-items-title {
-  font-size: 18px; /* Smaller font size */
-  font-weight: 900;
-  color: #f57c00; /* Warm text color */
+  font-size: var(--largefont); /* Smaller font size */
+  font-weight: var(--fontWeight);
+  color: var(--textColor); /* Warm text color */
   margin-bottom: 8px;
 }
 
@@ -98,34 +124,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
-  padding: 10px;
-  border: 1px solid #ffcc80; /* Warm border color */
   border-radius: 8px;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
 }
 
 .User-passed-items-key {
-  font-weight: 900;
-  color: #000000; /* Warm text color */
+  font-size: var(--mediumfont);
+  font-weight: var(--fontWeight);
+  color: var(--textColor); /* Warm text color */
 }
 
 .User-passed-items-playcount {
-  font-weight: 900;
-  color: #e65100; /* Warm text color */
+  font-size: var(--mediumfont);
+  font-weight: var(--fontWeight);
+  color: var(--textColor); /* Warm text color */
 }
 
 .User-passed-items-none {
-  color: #e65100; /* Warm text color */
+  font-size: var(--mediumfont);
+  color: var(--textColor); /* Warm text color */
   text-align: center;
-  padding: 10px;
-  border-radius: 8px;
 }
 
 @media (max-width: 768px) {
   .User-container {
     width: 100%;
-    flex-direction: column;
+    // flex-direction: column;
   }
 
   .User-left,
