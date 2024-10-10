@@ -67,7 +67,7 @@
 .musicbanner {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  padding-left: 20px;
 }
 .buttoncontainer {
   display: flex;
@@ -160,11 +160,9 @@
   //   top: 10px;
   //   right: 10px;
   // }
-  .musicbanner {
-    justify-content: space-around;
-  }
+
   .music-card {
-    width: 360px;
+    width: 100vw;
   }
   .musiccardimage {
     width: 50px;

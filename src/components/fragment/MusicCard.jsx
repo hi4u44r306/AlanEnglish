@@ -111,14 +111,17 @@ function MusicCard(props) {
                             <Name name={page} className={"page-name"} length={page.length} />
                             <div style={{
                                 display: 'flex',
-                                gap: '15px',
+                                flexWrap: 'wrap',
+                                gap: '5px',
                                 alignItems: 'center',
                             }}>
                                 <React.Fragment>
 
                                     <Name name={bookname} className={"book-name"} length={bookname.length} />
+                                    <p> </p>
                                     {/* 次數通過 */}
                                     <Name name={`播放次數 : ${musicplay || 0} 次`} className={"book-name"} length={bookname.length} />
+                                    <p> </p>
                                     <Name name={complete === '通過' ? <div><FcApproval size={20} /> X {times}</div> : <FcMinus size={20} />} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
 
                                 </React.Fragment>

@@ -11,7 +11,8 @@
   font-family: "Nunito", sans-serif;
   display: flex;
   justify-content: center;
-  background-color: #439fd9;
+  background-color: #ffffff;
+  // background-color: #439fd9;
 }
 .User-news {
   margin-top: 10px;
@@ -23,17 +24,17 @@
   background-color: #f2784b;
   padding: 20px;
   border-radius: 20px;
-  font-size: 18px; /* Smaller font size */
+  font-size: var(--mediumfont); /* Smaller font size */
   font-weight: var(--fontWeight);
   color: #000000; /* Warm text color */
 }
 
 .User-container {
   display: flex;
-  justify-content: center;
   flex-direction: column;
+  margin: 0 10px 0 10px;
   gap: 15px;
-  width: 700px;
+  width: 600px;
   height: 90vh;
 }
 
@@ -43,7 +44,7 @@
 }
 
 .User-profile-details {
-  background-color: #ffffff;
+  background-color: #bad98b;
   padding: 10px;
   border-radius: 10px;
   display: flex;

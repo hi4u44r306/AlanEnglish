@@ -23,6 +23,7 @@ import { Link } from "react-router-dom";
 import Brand from "./Brand";
 import { child, onValue, ref } from "firebase/database";
 import { rtdb } from "../Pages/firebase-config";
+import { FcApproval } from "react-icons/fc";
 
 
 function StudentNavigationBar() {
@@ -163,7 +164,7 @@ function StudentNavigationBar() {
                         {navusername || '----'}
                       </div> */}
                       <div className="username">
-                        Points : {point || '0'}
+                        <FcApproval size={20} />點數 : {point || '0'} 點
                       </div>
                     </div>
                   </Nav.Link>
