@@ -18,24 +18,14 @@
   color: red;
 }
 .timeplayed {
-  font-family: "Nunito", sans-serif;
   display: flex;
-  color: rgb(139, 195, 74);
-  font-weight: 700;
-  font-size: var(--smallfont);
   text-align: center;
-  justify-content: space-around;
   cursor: default;
   user-select: none;
 }
 .timeplayednotcomplete {
-  font-family: "Nunito", sans-serif;
   display: flex;
-  color: rgb(237, 61, 61);
-  font-weight: 700;
-  font-size: var(--smallfont);
   text-align: center;
-  justify-content: space-around;
   cursor: default;
   user-select: none;
 }

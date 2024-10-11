@@ -1,3 +1,9 @@
+export const setPlayPauseStatus = (status) => {
+    return {
+        type: "SET_PLAY_PAUSE_STATUS",
+        payload: status
+    };
+};
 export const setPlaylist = (playlist) => {
     return {
         type: "SET_PLAYLIST",

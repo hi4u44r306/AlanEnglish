@@ -21,34 +21,15 @@ import Setting from '../assets/img/setting.png';
 import Goldflower from '../assets/img/goldflower.png';
 import { Link } from "react-router-dom";
 import Brand from "./Brand";
-import { child, onValue, ref } from "firebase/database";
-import { rtdb } from "../Pages/firebase-config";
-import { FcApproval } from "react-icons/fc";
+// import { FcApproval } from "react-icons/fc";
 
 
 function StudentNavigationBar() {
 
-  // const navusername = localStorage.getItem('ae-username');
-  const useruid = localStorage.getItem('ae-useruid');
+  const navusername = localStorage.getItem('ae-username');
   const [scrolled, setScrolled] = useState(false);
-  const [monthplaytime, setMonthPlayTime] = useState();
-  const point = Math.round(monthplaytime / 7);
-  const dbRef = ref(rtdb);
 
-  useEffect(() => {
-    const musicplayRef = child(dbRef, `student/${useruid}`);
-    const musicplayUnsubscribe = onValue(musicplayRef, (snapshot) => {
-      if (snapshot.exists()) {
-        setMonthPlayTime(snapshot.val().Monthtotaltimeplayed);
-      } else {
-      }
-    }, (error) => {
-      console.error("Error fetching complete value:", error);
-    });
-    return () => {
-      musicplayUnsubscribe();
-    };
-  }, [useruid, dbRef])
+
 
   // Function to handle the scroll event
   const handleScroll = () => {
@@ -160,12 +141,12 @@ function StudentNavigationBar() {
                   {/* 用戶資料 */}
                   <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlinkscoreboard">
                     <div className="usernavlink">
-                      {/* <div className="username">
-                        {navusername || '----'}
-                      </div> */}
                       <div className="username">
-                        <FcApproval size={20} />點數 : {point || '0'} 點
+                        {navusername || '----'}
                       </div>
+                      {/* <div className="username">
+                        <FcApproval size={20} />點數 : {point || '0'} 點
+                      </div> */}
                     </div>
                   </Nav.Link>
 

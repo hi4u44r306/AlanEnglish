@@ -7,9 +7,15 @@ export const initialState = {
     search: null,
     language: null,
     curr_margin: 0,
+    playingStatus: false,
 };
 const musicReducer = (state = initialState, action) => {
     switch (action.type) {
+        case "SET_PLAY_PAUSE_STATUS":
+            return {
+                ...state,
+                playingStatus: action.payload
+            };
         case "SET_PLAYLIST":
             return {
                 ...state,

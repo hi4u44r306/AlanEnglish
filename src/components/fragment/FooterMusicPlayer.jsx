@@ -3,13 +3,12 @@ import React, { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentPlaying } from "../../actions/actions";
 import { toast, ToastContainer } from "react-toastify"
-import Marquee from "react-fast-marquee";
 import Name from "./Name";
 import '../assets/scss/FooterPlayer.scss';
 import 'react-h5-audio-player/lib/styles.css';
 import { rtdb } from '../Pages/firebase-config';
 import { get, ref, set, update } from 'firebase/database';
-
+import { setPlayPauseStatus } from "../../actions/actions";
 
 function FooterMusicPlayer({ music }) {
     const [{ bookname, page, musicName }, setCurrTrack] = useState(music);
@@ -20,7 +19,6 @@ function FooterMusicPlayer({ music }) {
     // const currentMonth = new Date().toJSON().slice(0, 7);
     // const userRef = doc(db, 'student', userId);
     // const [counting, setCounting] = useState(localStorage.getItem('counting'));
-
 
 
     const success = () => {
@@ -90,7 +88,7 @@ function FooterMusicPlayer({ music }) {
         //         console.error(error);
         //     });
 
-        // 在RTDB新增次數、達到7次才能打勾
+        // 在RTDB新增次數、達到100次才能打勾
         const convertmusicName = bookname + ' ' + page;
         // const convertmusicName = musicName.replace(/^(.*?)\/(.*?)\.mp3$/, '$2');
         async function updateMusicPlay(userId, convertmusicName) {
@@ -104,7 +102,7 @@ function FooterMusicPlayer({ music }) {
 
                 // Update the `musicplay` value and check the condition
                 const newMusicPlay = currentMusicPlay + 1; // Increment by 1
-                if (newMusicPlay >= 7) {
+                if (newMusicPlay >= 100) {
                     await update(musicRef, { musicplay: newMusicPlay, complete: '通過' });
                     console.log("Music play updated and marked complete successfully!");
                 } else {
@@ -221,35 +219,37 @@ function FooterMusicPlayer({ music }) {
                 onClickNext={handleClickNext}
                 onClickPrevious={handleClickPrev}
                 onEnded={handleEnd}
+                onPlay={() => dispatch(setPlayPauseStatus(true))} // Dispatch when playing
+                onPause={() => dispatch(setPlayPauseStatus(false))} // Dispatch when paused
                 customProgressBarSection={
                     [
                         RHAP_UI.CURRENT_TIME,
-                        <Marquee
-                            pauseOnHover={false}
-                            gradient={true}
-                            gradientWidth={30}
-                            direction='right'
-                            speed={60}
-                        >
-                            <div style={{
-                                display: 'flex',
-                                gap: '5px',
-                            }}>
-                                <div>
-                                    <Name name={"正在收聽的是 : "} className={"marqueenamelabel"} length={bookname.length} />
-                                </div>
-                                <div>
-                                    <Name name={bookname} className={"marqueename"} length={bookname.length} />
-                                </div>
-                                <div>
-                                    <Name name={page} className={"marqueename"} length={page.length} />
-                                </div>
-                                <div>
-                                    <Name name={"請專心聆聽"} className={"marqueenamelabel"} length={page.length} />
-                                </div>
-                            </div>
+                        // <Marquee
+                        //     pauseOnHover={false}
+                        //     gradient={true}
+                        //     gradientWidth={30}
+                        //     direction='right'
+                        //     speed={60}
+                        // >
 
-                        </Marquee>,
+                        // </Marquee>,
+                        <div style={{
+                            display: 'flex',
+                            gap: '5px',
+                        }}>
+                            <div>
+                                <Name name={"正在收聽的是 : "} className={"marqueenamelabel"} length={bookname.length} />
+                            </div>
+                            <div>
+                                <Name name={bookname} className={"marqueename"} length={bookname.length} />
+                            </div>
+                            <div>
+                                <Name name={page} className={"marqueename"} length={page.length} />
+                            </div>
+                            <div>
+                                <Name name={"請專心聆聽"} className={"marqueenamelabel"} length={page.length} />
+                            </div>
+                        </div>,
                         RHAP_UI.DURATION,
                     ]
                 }

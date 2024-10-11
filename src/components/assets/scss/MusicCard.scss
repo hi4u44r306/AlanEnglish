@@ -1,3 +1,19 @@
+.music-card {
+  border-radius: 20px;
+  width: 475px;
+  padding: 5px;
+  margin: 5px;
+  // background-color: rgb(255, 255, 255);
+  background-color: #fcf8ec;
+  // border: solid 5px rgb(255, 227, 227);
+  border: solid 2px rgb(255, 227, 227);
+  cursor: default;
+  user-select: none;
+
+  &.playing {
+    background-color: #ffd969; // Background color when music is playing
+  }
+}
 .gamesection {
   position: fixed;
   top: 0;
@@ -57,6 +73,7 @@
   height: 35px;
   width: 35px;
   color: rgb(249, 42, 27);
+  background-color: transparent;
 }
 
 .circleicon {
@@ -127,18 +144,6 @@
   font-weight: bolder;
   font-size: 0.8rem;
   text-align: center;
-}
-
-.music-card {
-  border-radius: 20px;
-  width: 475px;
-  padding: 5px;
-  margin: 5px;
-  // background-color: rgb(255, 255, 255);
-  background-color: #fcf8ec;
-  // border: solid 5px rgb(255, 227, 227);
-  border: solid 2px rgb(255, 227, 227);
-  cursor: default;
 }
 
 .musiccardimage {

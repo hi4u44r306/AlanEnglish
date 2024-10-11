@@ -3,8 +3,6 @@ import '../assets/scss/Playlist.scss';
 import { useSelector } from "react-redux";
 import MusicCard from "./MusicCard";
 import { useParams } from 'react-router-dom';
-import Marquee from 'react-fast-marquee';
-import { FcApproval } from "react-icons/fc";
 // import CountdownTimer from './CountdownTimer';
 // import Container from "./Container";
 // import firebase from 'firebase/app';
@@ -27,7 +25,7 @@ const Playlist = () => {
         // <Container>
         <div className={"Playlist"}>
 
-            <div className='newfunctionalert'>
+            {/* <div className='newfunctionalert'>
                 <Marquee
                     direction='right'
                     speed={20}
@@ -36,8 +34,7 @@ const Playlist = () => {
                         alignItems: 'center'
                     }}
                 >
-                    {/* {lastDayOfMonthFormatted}日結算
-                    <CountdownTimer countdownTimestampMs={currentMonthLastDateMs} /> */}
+
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -45,7 +42,7 @@ const Playlist = () => {
                         音軌聽力次數達到每聽 "7次" 就能獲得一個 <FcApproval size={20} /> 喔!!
                     </div>
                 </Marquee>
-            </div>
+            </div> */}
             <div className='playlisttitle'>
                 {playlistId}
             </div>
