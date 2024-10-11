@@ -238,16 +238,10 @@ function FooterMusicPlayer({ music }) {
                             gap: '5px',
                         }}>
                             <div>
-                                <Name name={"正在收聽的是 : "} className={"marqueenamelabel"} length={bookname.length} />
-                            </div>
-                            <div>
                                 <Name name={bookname} className={"marqueename"} length={bookname.length} />
                             </div>
                             <div>
                                 <Name name={page} className={"marqueename"} length={page.length} />
-                            </div>
-                            <div>
-                                <Name name={"請專心聆聽"} className={"marqueenamelabel"} length={page.length} />
                             </div>
                         </div>,
                         RHAP_UI.DURATION,
