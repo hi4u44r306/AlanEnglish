@@ -130,7 +130,7 @@ function StudentNavigationBar() {
               placement="end"
             >
               <Offcanvas.Header closeButton>
-                <Offcanvas.Title className="brand" as={Link} to="/home/playlist/SER1" href="/home/playlist/SER1" id={`offcanvasNavbarLabel-expand-${expand}`}>
+                <Offcanvas.Title className="brand" as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" id={`offcanvasNavbarLabel-expand-${expand}`}>
                   <Brand />
                 </Offcanvas.Title>
               </Offcanvas.Header>
