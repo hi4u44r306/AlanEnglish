@@ -27,6 +27,7 @@ import TradeSignup from "../components/Pages/TradeSignup";
 import TradeLogin from "../components/Pages/TradeLogin";
 import TradeTrack from "../components/Pages/TradeTrack";
 import GetHW from "../components/Pages/GetHW";
+import ControlPanel from "../components/Pages/ControlPanel";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -39,15 +40,20 @@ const App = () => {
     onAuthStateChanged(authentication, user => {
         if (user) {
             localStorage.setItem('ae-useruid', user.uid);
-            const studentDocRef = doc(db, 'student', user.uid);
-            getDoc(studentDocRef).then(docSnapshot => {
-                if (docSnapshot.exists()) {
-                    const data = docSnapshot.data();
+            const studentDocRef = ref(rtdb, `student/${user.uid}`);
+            onValue(studentDocRef, snapshot => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
                     localStorage.setItem('ae-class', data.class || '');
                     localStorage.setItem('ae-username', data.name.toUpperCase());
                     localStorage.setItem('ae-userimage', data.userimage || '');
                 }
-            });
+                else {
+                    localStorage.setItem('ae-class', '');
+                    localStorage.setItem('ae-username', '');
+                    localStorage.setItem('ae-userimage', '');
+                }
+            })
 
             const teacherDocRef = doc(db, 'teacher', user.uid);
             getDoc(teacherDocRef).then(docSnapshot => {
@@ -74,11 +80,6 @@ const App = () => {
                     localStorage.setItem('teachingResourcesData', JSON.stringify(placeholderData));
                 }
             });
-        } else {
-            localStorage.setItem('ae-class', '');
-            localStorage.setItem('ae-useruid', '');
-            localStorage.setItem('ae-username', '');
-            localStorage.setItem('ae-teacherschool', '');
         }
     });
 
@@ -117,6 +118,11 @@ const App = () => {
                     <Route path="/home/playlist/leaderboard" element={
                         <Containerfull>
                             <Leaderboard />
+                        </Containerfull>
+                    } />
+                    <Route path="/home/playlist/controlpanel" element={
+                        <Containerfull>
+                            <ControlPanel />
                         </Containerfull>
                     } />
 

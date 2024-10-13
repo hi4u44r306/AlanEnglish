@@ -1,0 +1,103 @@
+.control-panel {
+  font-family: "Nunito", sans-serif;
+  font-weight: 600;
+  padding: 20px;
+  h1 {
+    text-align: center;
+  }
+
+  .student-table {
+    width: 100%;
+    border-collapse: collapse;
+    th,
+    td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+  }
+}
+.edit-row {
+  background-color: #f9f9f9;
+  .edit-form {
+    padding: 10px;
+    input {
+      border-radius: 10px;
+      margin-right: 10px;
+      padding: 5px;
+    }
+  }
+}
+.controlpaneleditbutton {
+  border-radius: 10px;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    background-color: #0056b3;
+  }
+}
+.controlpaneldeletebutton {
+  border-radius: 10px;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #ff0000cf;
+  color: white;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    background-color: #b30000;
+  }
+}
+.controlpanelsavebutton {
+  border-radius: 10px;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    background-color: #0056b3;
+  }
+}
+.controlpanelcancelbutton {
+  border-radius: 10px;
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #ff0000cf;
+  color: white;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    background-color: #b30000;
+  }
+}
+
+.batch-edit-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 10px 0px 10px 0px;
+  input {
+    border-radius: 10px;
+    padding: 5px;
+    width: 100px;
+    font-weight: 600;
+  }
+  button {
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 5px 10px;
+    background-color: #ff0000cf;
+    color: white;
+    border: none;
+    cursor: pointer;
+    &:hover {
+      background-color: #b30000;
+    }
+  }
+}

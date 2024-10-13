@@ -170,6 +170,13 @@ function StudentNavigationBar() {
                         id={`offcanvasNavbarDropdown-expand-${expand}`}
                         className="navlink"
                       >
+                        <NavDropdown.Item as={Link} to="/home/playlist/controlpanel" href="/home/playlist/controlpanel" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Setting}
+                            alt="setting"
+                          />控制台
+                        </NavDropdown.Item>
+
                         <NavDropdown.Item as={Link} to="/home/playlist/signup" href="/home/playlist/signup" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
