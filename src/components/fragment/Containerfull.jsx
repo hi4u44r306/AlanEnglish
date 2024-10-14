@@ -29,13 +29,15 @@ const Containerfull = ({ children }) => {
                 width: '100%',
                 zIndex: 100,
                 height: '10vh',
-                backgroundColor: 'white'
+                backgroundColor: 'white',
+                userSelect: 'none',
             }}>
                 <StudentNavigationBar />
             </div>
             <div style={{
                 marginTop: '10vh',
                 marginBottom: curr_margin,
+                userSelect: 'none',
             }}>
                 {children}
             </div>
@@ -44,6 +46,7 @@ const Containerfull = ({ children }) => {
                 bottom: 0,
                 width: '100%',
                 zIndex: 100,
+                userSelect: 'none',
             }}>
                 {
                     currMusic &&

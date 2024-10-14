@@ -105,12 +105,7 @@ function MusicCard(props) {
                         </div>
                     </div>
 
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        marginLeft: '10px',
-                    }}>
+                    <div className='passicon'>
                         <Name name={complete === '通過' ? <FcApproval size={50} /> : ' '} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
                     </div>
                 </div>

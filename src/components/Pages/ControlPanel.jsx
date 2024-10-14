@@ -2,6 +2,15 @@ import React, { useEffect, useState } from "react";
 import { rtdb } from "./firebase-config";
 import { onValue, ref, update, remove } from "firebase/database";
 import './css/ControlPanel.scss';
+import { FcCollapse } from "react-icons/fc";
+import { FcExpand } from "react-icons/fc";
+import { FcFilledFilter } from "react-icons/fc";
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+
 
 const ControlPanel = () => {
     const [students, setStudents] = useState([]);
@@ -101,12 +110,33 @@ const ControlPanel = () => {
             const updateStudentRef = ref(rtdb, `student/${editStudentId}`);
             update(updateStudentRef, editableStudent)
                 .then(() => {
+                    toast.success('學生資料編輯成功!', {
+                        position: "top-center",
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                    });
                     setEditStudentId(null);
                     setEditableStudent(null);
                 })
-                .catch(error => console.log(error));
+                .catch(error => {
+                    toast.error('學生資料編輯失敗!', {
+                        position: "top-center",
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                    });
+                    console.log(error);
+                });
         }
     };
+
 
     // Delete Student with confirmation
     const handleDeleteStudent = (id) => {
@@ -162,9 +192,9 @@ const ControlPanel = () => {
 
     const getSortIcon = (key) => {
         if (sortConfig.key === key) {
-            return sortConfig.direction === 'asc' ? '↑' : '↓';
+            return sortConfig.direction === 'asc' ? <FcCollapse size={20} /> : <FcExpand size={20} />;
         }
-        return '↕';
+        return <FcFilledFilter size={20} />;
     };
 
     return (
@@ -239,6 +269,7 @@ const ControlPanel = () => {
                                 <td>{student.name}</td>
                                 <td>{student.onlinetime}</td>
                                 <td>{student.Monthtotaltimeplayed}</td>
+                                <td>{JSON.stringify(student.BookLogfile) || ''}</td>
                                 <td>
                                     <button className="controlpaneleditbutton" onClick={() => handleEditStudent(student)}>編輯</button>
                                     <button className="controlpaneldeletebutton" onClick={() => handleDeleteStudent(student.id)}>刪除</button>
@@ -272,6 +303,7 @@ const ControlPanel = () => {
                     ))}
                 </tbody>
             </table>
+            <ToastContainer />
         </div>
     );
 };

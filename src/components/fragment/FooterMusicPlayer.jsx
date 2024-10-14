@@ -147,7 +147,7 @@ function FooterMusicPlayer({ music }) {
 
                 // Get the current `totaltimeplayed` value (if it exists) using `once`
                 const snapshot = await get(musicRef, { once: true }); // Fetch once
-                const currentMusicPlay = snapshot.exists() ? snapshot.val() : 0;
+                const currentMusicPlay = snapshot.exists() ? parseInt(snapshot.val(), 10) : 0; // Ensure it's a number
 
                 // Update the `totaltimeplayed` value using `set`
                 const newMusicPlay = currentMusicPlay + 1; // Increment by 1
@@ -159,6 +159,8 @@ function FooterMusicPlayer({ music }) {
                 // Handle errors appropriately, e.g., display an error message to the user
             }
         }
+
+        // Call the function with the userId
         updateRTDBMonthMusicPlay(userId);
 
 
