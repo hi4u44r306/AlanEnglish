@@ -9,7 +9,7 @@ const Developer = () => {
             <div className="Developer-profile">
                 <div className="Developer-profileCard">
                     <div className='Developer-title'>AlanEnglish 創辦人</div>
-                    <img className='Developer-img' src={AlanImage} alt="Profile"/>
+                    <img className='Developer-img' src={AlanImage} alt="Profile" />
                     <div className='Developer-title'>Alan Hsu</div>
                 </div>
                 <div className="Developer-profileDetails">
@@ -24,7 +24,7 @@ const Developer = () => {
                     <div className='Developer-text'> 6. 戊類所長班培訓</div>
                     <div className='Developer-text'> 7. 合格保育人員</div>
                     <div className='d-flex justify-content-center'>
-                        <div className='Developer-title'>著作: </div>   
+                        <div className='Developer-title'>著作: </div>
                     </div>
                     <div className='Developer-text'>1. Phonics K.K</div>
                     <div className='Developer-text'>2. Alan English 習作本 & 聽力本</div>
@@ -33,8 +33,8 @@ const Developer = () => {
                     <div className='Developer-text'>5. 更多教材陸續編排中...</div>
                 </div>
                 <div className="Developer-profileCard">
-                    <div className='Developer-title'>AlanEnglish 網站開發人員</div>
-                    <img className='Developer-img' src={VictorImage} alt="Profile"/>
+                    <div className='Developer-title'>AlanEnglish 工程師</div>
+                    <img className='Developer-img' src={VictorImage} alt="Profile" />
                     <div className='Developer-title'>Victor Hsu</div>
                 </div>
             </div>

@@ -422,20 +422,8 @@ const User = () => {
     }, [useruid, dbRef]);
 
     return (
-        <div className={"User"}>
+        <div className="User">
             <div className="User-container">
-                {/* <div className='User-news'>
-                    <p>
-                        點數功能上線囉!! 累績點數換獎品
-                    </p>
-
-                    <p style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                    }}>
-                        只要每聽7次聽力音軌就可以獲得一個 <FcApproval size={20} /> 喔!!
-                    </p>
-                </div> */}
                 <div className="User-left">
                     <div className="User-profile-details">
                         <div className='User-profile-title'>
@@ -484,20 +472,18 @@ const User = () => {
                     </div>
                 </div> */}
                 <Logout />
-
+                <ToastContainer
+                    position="top-center"
+                    autoClose={2000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
             </div>
-            <ToastContainer
-                position="top-center"
-                autoClose={2000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
-
         </div>
     );
 };

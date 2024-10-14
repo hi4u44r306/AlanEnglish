@@ -20,13 +20,13 @@
       .Developer-title {
         color: #0d5d82;
         font-size: 20px;
-        font-weight: 900;
+        font-weight: 600;
         padding: 15px;
       }
       .Developer-img {
         border-radius: 20px;
         padding: 2px;
-        width: 300px;
+        width: 250px;
         box-shadow: 0 0 20px 3px rgba(153, 153, 153, 0.681);
       }
     }
@@ -40,13 +40,14 @@
       flex-direction: column;
       .Developer-title {
         color: #0d5d82;
-        font-size: 25px;
+        font-size: 20px;
         font-weight: 800;
       }
       .Developer-text {
         // letter-spacing: 1px;
         text-transform: uppercase;
-        font-weight: 800;
+        font-size: 16px;
+        font-weight: 700;
       }
     }
   }

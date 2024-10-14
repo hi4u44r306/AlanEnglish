@@ -6,9 +6,6 @@ import Signup from "../components/Pages/Signup";
 import musicDB from "../db/music";
 import { useDispatch, useSelector } from "react-redux";
 import { setPlaylist } from "../actions/actions";
-import Contact from "../components/Pages/Contact";
-import About from "../components/Pages/About";
-import Dashboard from "../components/fragment/Dashboard";
 import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
 // import TeachingResources from "../components/Pages/TeachingResources";
@@ -28,6 +25,7 @@ import TradeLogin from "../components/Pages/TradeLogin";
 import TradeTrack from "../components/Pages/TradeTrack";
 import GetHW from "../components/Pages/GetHW";
 import ControlPanel from "../components/Pages/ControlPanel";
+import Developer from "../components/fragment/Developer";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -138,21 +136,21 @@ const App = () => {
                             <User />
                         </Containerfull>
                     } />
-                    <Route path="/home/playlist/contact" element={
+                    {/* <Route path="/home/playlist/contact" element={
                         <Containerfull>
                             <Contact />
                         </Containerfull>
-                    } />
+                    } /> */}
                     <Route path="/home/playlist/about" element={
                         <Containerfull>
-                            <About />
+                            <Developer />
                         </Containerfull>
                     } />
-                    <Route path="/home/playlist/dashboard" element={
+                    {/* <Route path="/home/playlist/dashboard" element={
                         <Containerfull>
                             <Dashboard />
                         </Containerfull>
-                    } />
+                    } /> */}
                     {/* <Route path="/home" element={
                         <Containerfull>
                             <Home />

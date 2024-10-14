@@ -7,11 +7,10 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
-import SearchBar from "./SearchBar";
+// import SearchBar from "./SearchBar";
 import 'react-circular-progressbar/dist/styles.css';
 import BlueBook from '../assets/img/blue book.png';
 import Books from '../assets/img/books.png';
-import ThumbUp from '../assets/img/thumbup.png';
 import Search from '../assets/img/search.png';
 import File from '../assets/img/file.png';
 // import Mail from '../assets/img/mail.png';
@@ -138,17 +137,7 @@ function StudentNavigationBar() {
               <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''}`} >
                 <Nav className="studentnavbar">
 
-                  {/* 用戶資料 */}
-                  <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlinkscoreboard">
-                    <div className="usernavlink">
-                      <div className="username">
-                        {navusername || '----'}
-                      </div>
-                      {/* <div className="username">
-                        <FcApproval size={20} />點數 : {point || '0'} 點
-                      </div> */}
-                    </div>
-                  </Nav.Link>
+
 
 
                   {/* 教師主控台 */}
@@ -258,41 +247,39 @@ function StudentNavigationBar() {
                   </NavDropdown>
 
                   {/* 更多 */}
-                  <NavDropdown
-                    title=
-                    {
-                      <div className="d-flex align-items-center">
-                        <img style={{ width: 18, marginRight: 4 }}
-                          src={ThumbUp}
-                          alt="bluebook"
-                        />
-                        更多
-                      </div>
-                    }
-                    id={`offcanvasNavbarDropdown-expand-${expand}`}
-                    className="navlink"
-                  >
-                    <NavDropdown.Item as={Link} to="/home/playlist/about" href="/home/playlist/about" className="subnavlink">
-                      <img style={{ width: 18, marginRight: 4 }}
-                        src={Search}
-                        alt="bluebook"
-                      /> 關於</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="subnavlink">
+                  <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlinkscoreboard">
+                    <div className="username">
                       <img style={{ width: 18, marginRight: 4 }}
                         src={File}
                         alt="bluebook"
-                      /> 學生檔案</NavDropdown.Item>
-                    {/* <NavDropdown.Item as={Link} to="/home/playlist/contact" href="/home/playlist/contact" className="subnavlink">
+                      /> 學生檔案
+                    </div>
+                  </Nav.Link>
+
+                  <Nav.Link as={Link} to="/home/playlist/about" href="/home/playlist/about" className="navlinkscoreboard">
+                    <div className="username">
                       <img style={{ width: 18, marginRight: 4 }}
-                        src={Mail}
+                        src={Search}
                         alt="bluebook"
-                      /> 聯絡我們</NavDropdown.Item> */}
-                  </NavDropdown>
+                      />  關於AE
+                    </div>
+                  </Nav.Link>
+
+                  {/* 用戶資料 */}
+                  <Nav.Link className="navlinkscoreboard">
+                    <div className="usernavlink">
+                      <div className="username">
+                        {navusername || '----'}
+                      </div>
+                    </div>
+                  </Nav.Link>
+
                 </Nav>
 
-                <div className="justify-content-center d-flex align-items-center ">
+
+                {/* <div className="justify-content-center d-flex align-items-center ">
                   <SearchBar />
-                </div>
+                </div> */}
 
               </Offcanvas.Body>
             </Navbar.Offcanvas>
