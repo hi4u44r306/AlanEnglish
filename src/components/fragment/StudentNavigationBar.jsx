@@ -246,7 +246,6 @@ function StudentNavigationBar() {
                     ))}
                   </NavDropdown>
 
-                  {/* 更多 */}
                   <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlinkscoreboard">
                     <div className="username">
                       <img style={{ width: 18, marginRight: 4 }}
@@ -267,13 +266,10 @@ function StudentNavigationBar() {
 
                   {/* 用戶資料 */}
                   <Nav.Link className="navlinkscoreboard">
-                    <div className="usernavlink">
-                      <div className="username">
-                        {navusername || '----'}
-                      </div>
+                    <div className="username">
+                      {navusername || '----'}
                     </div>
                   </Nav.Link>
-
                 </Nav>
 
 
