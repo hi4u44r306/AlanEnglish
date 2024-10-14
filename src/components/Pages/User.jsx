@@ -375,13 +375,13 @@ const User = () => {
     const [monthplaytime, setMonthPlayTime] = useState();
     const [classname, setClassname] = useState();
     const [username, setUsername] = useState();
-    const [musicpass, setMusicPass] = useState();
+    // const [musicpass, setMusicPass] = useState();
     const useruid = localStorage.getItem('ae-useruid');
     const dbRef = ref(rtdb);
 
     useEffect(() => {
         const musicplayRef = child(dbRef, `student/${useruid}`);
-        const musicpassRef = child(dbRef, `student/${useruid}/MusicLogfile`);
+        // const musicpassRef = child(dbRef, `student/${useruid}/MusicLogfile`);
 
         const musicplayUnsubscribe = onValue(musicplayRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -396,27 +396,27 @@ const User = () => {
             console.error("Error fetching complete value:", error);
         });
 
-        const musicpassUnsubscribe = onValue(musicpassRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
-                    if (value.musicplay >= 7) {
-                        acc[key] = value;
-                    }
-                    return acc;
-                }, {});
+        // const musicpassUnsubscribe = onValue(musicpassRef, (snapshot) => {
+        //     if (snapshot.exists()) {
+        //         const data = snapshot.val();
+        //         const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
+        //             if (value.musicplay >= 7) {
+        //                 acc[key] = value;
+        //             }
+        //             return acc;
+        //         }, {});
 
-                setMusicPass(filteredData);
-            } else {
-                setMusicPass({});
-            }
-        }, (error) => {
-            console.error("Error fetching complete value:", error);
-        });
+        //         setMusicPass(filteredData);
+        //     } else {
+        //         setMusicPass({});
+        //     }
+        // }, (error) => {
+        //     console.error("Error fetching complete value:", error);
+        // });
 
         return () => {
             musicplayUnsubscribe();
-            musicpassUnsubscribe();
+            // musicpassUnsubscribe();
         };
 
     }, [useruid, dbRef]);
@@ -462,7 +462,7 @@ const User = () => {
 
                     </div>
                 </div>
-                <div className="User-right">
+                {/* <div className="User-right">
                     <div className='User-passed-items'>
                         <div className='User-passed-items-title'>已通過的項目</div>
                         <div className='User-passed-items-list'>
@@ -482,7 +482,7 @@ const User = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div> */}
                 <Logout />
 
             </div>

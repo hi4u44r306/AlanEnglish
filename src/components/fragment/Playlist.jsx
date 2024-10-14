@@ -49,7 +49,9 @@ const Playlist = () => {
             // 更新 Firebase 中書籍的通過比例
             const bookRef = ref(rtdb, `student/${useruid}/BookLogfile/${playlistId}`);
             try {
-                await update(bookRef, { passRate: passRate.toFixed(1) });
+                await update(bookRef, {
+                    passRate: Math.round(passRate)
+                });
             } catch (error) {
                 console.error("Error updating pass rate:", error);
             }
@@ -95,7 +97,7 @@ const Playlist = () => {
                 />
             </div>
             <div className="progress-info">
-                已通過 {completedTracks} 首 / 總共 {totalTracks} 首 ({completionPercentage.toFixed(1)}%)
+                已通過 {completedTracks} 首 / 總共 {totalTracks} 首 ({Math.round(completionPercentage)}%)
             </div>
             <div className="Playlist-container">
                 {

@@ -251,6 +251,9 @@ const ControlPanel = () => {
                         <th onClick={() => handleSort('Monthtotaltimeplayed')}>
                             總播放次數 {getSortIcon('Monthtotaltimeplayed')}
                         </th>
+                        <th>
+                            通過率
+                        </th>
                         <th>編輯</th>
                     </tr>
                 </thead>
@@ -269,7 +272,18 @@ const ControlPanel = () => {
                                 <td>{student.name}</td>
                                 <td>{student.onlinetime}</td>
                                 <td>{student.Monthtotaltimeplayed}</td>
-                                <td>{JSON.stringify(student.BookLogfile) || ''}</td>
+                                <td>
+                                    {student.BookLogfile
+                                        ? Object.entries(student.BookLogfile)
+                                            .filter(([, value]) => parseFloat(value.passRate) > 0)
+                                            .map(([key, value], index) => (
+                                                <div key={index}>
+                                                    {key} : {value.passRate}%
+                                                </div>
+                                            ))
+                                        : '全部未通過'}
+                                </td>
+
                                 <td>
                                     <button className="controlpaneleditbutton" onClick={() => handleEditStudent(student)}>編輯</button>
                                     <button className="controlpaneldeletebutton" onClick={() => handleDeleteStudent(student.id)}>刪除</button>

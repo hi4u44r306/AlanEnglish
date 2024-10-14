@@ -14,8 +14,8 @@ import Books from '../assets/img/books.png';
 import ThumbUp from '../assets/img/thumbup.png';
 import Search from '../assets/img/search.png';
 import File from '../assets/img/file.png';
-import Mail from '../assets/img/mail.png';
-import Trophy from '../assets/img/trophy.png';
+// import Mail from '../assets/img/mail.png';
+// import Trophy from '../assets/img/trophy.png';
 import Menu from '../assets/img/menu.png';
 import Setting from '../assets/img/setting.png';
 import Goldflower from '../assets/img/goldflower.png';
@@ -185,12 +185,12 @@ function StudentNavigationBar() {
                         </NavDropdown.Item>
 
                         {/* 排行榜 */}
-                        <NavDropdown.Item as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="subnavlink">
+                        {/* <NavDropdown.Item as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Trophy}
                             alt="bluebook"
                           />排行榜
-                        </NavDropdown.Item>
+                        </NavDropdown.Item> */}
                       </NavDropdown>
                   }
 
@@ -282,11 +282,11 @@ function StudentNavigationBar() {
                         src={File}
                         alt="bluebook"
                       /> 學生檔案</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/home/playlist/contact" href="/home/playlist/contact" className="subnavlink">
+                    {/* <NavDropdown.Item as={Link} to="/home/playlist/contact" href="/home/playlist/contact" className="subnavlink">
                       <img style={{ width: 18, marginRight: 4 }}
                         src={Mail}
                         alt="bluebook"
-                      /> 聯絡我們</NavDropdown.Item>
+                      /> 聯絡我們</NavDropdown.Item> */}
                   </NavDropdown>
                 </Nav>
 
