@@ -433,7 +433,7 @@ function Login() {
                                 pauseOnHover
                             />
                             <div className="logincopyrightcontainer">
-                                <span className="logincopyright" href="/">© 2024 Alan English Inc.</span>
+                                <span className="logincopyright" href="/">© 2020-2024 Alan English Inc.</span>
                             </div>
                         </div>
                     </div>
