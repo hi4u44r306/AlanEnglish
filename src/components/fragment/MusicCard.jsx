@@ -53,7 +53,7 @@ function MusicCard(props) {
 
     function handlePlay() {
         dispatch(setCurrentMargin('100px'));
-
+        localStorage.setItem('ae-no-interaction', 0);
         if (isPlaying) {
             // If currently playing, dispatch pause action
             dispatch(setPlayPauseStatus(false)); // Pause music

@@ -292,198 +292,198 @@
 // export default Leaderboard;
 
 
-import { useEffect, useState } from "react";
-import React from 'react';
-import './css/Leaderboard.scss';
-import CountdownTimer from '../fragment/CountdownTimer';
-import Trophy from '../assets/img/trophy.png';
-import Sun from '../assets/img/sun.png';
-import Sparkles from '../assets/img/sparkles.png';
-import Headphone from '../assets/img/leaderboardheadphone.png';
-import { rtdb } from "./firebase-config";
-import { onValue, ref } from "firebase/database";
+// import { useEffect, useState } from "react";
+// import React from 'react';
+// import './css/Leaderboard.scss';
+// import CountdownTimer from '../fragment/CountdownTimer';
+// import Trophy from '../assets/img/trophy.png';
+// import Sun from '../assets/img/sun.png';
+// import Sparkles from '../assets/img/sparkles.png';
+// import Headphone from '../assets/img/leaderboardheadphone.png';
+// import { rtdb } from "./firebase-config";
+// import { onValue, ref } from "firebase/database";
 
-const Leaderboard = () => {
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
-  const lastDayOfMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
-  const lastDayOfMonthFormatted = `${currentYear}-${currentMonth}-${lastDayOfMonth}`;
-  const currentMonthLastDateMs = new Date(currentYear, currentDate.getMonth() + 1, 0).getTime();
-  const [lastThreeDaysFilterEnabled, setLastThreeDaysFilterEnabled] = useState(false);
+// const Leaderboard = () => {
+//   const currentDate = new Date();
+//   const currentYear = currentDate.getFullYear();
+//   const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+//   const lastDayOfMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
+//   const lastDayOfMonthFormatted = `${currentYear}-${currentMonth}-${lastDayOfMonth}`;
+//   const currentMonthLastDateMs = new Date(currentYear, currentDate.getMonth() + 1, 0).getTime();
+//   const [lastThreeDaysFilterEnabled, setLastThreeDaysFilterEnabled] = useState(false);
 
 
-  const [classFilters, setClassFilters] = useState({
-    A: true,
-    B: true,
-    C: true,
-    D: true,
-  });
-  const [studentData, setStudentData] = useState([]);
-  const [dateFilterEnabled, setDateFilterEnabled] = useState(false);
+//   const [classFilters, setClassFilters] = useState({
+//     A: true,
+//     B: true,
+//     C: true,
+//     D: true,
+//   });
+//   const [studentData, setStudentData] = useState([]);
+//   const [dateFilterEnabled, setDateFilterEnabled] = useState(false);
 
-  useEffect(() => {
-    const getStudents = async () => {
-      const studentsRef = ref(rtdb, 'student');
-      onValue(studentsRef, (snapshot) => {
-        const students = [];
-        snapshot.forEach((childSnapshot) => {
-          const childData = childSnapshot.val();
-          students.push({ id: childSnapshot.key, ...childData });
-        });
-        setStudentData(students);
-      });
-    };
-    getStudents();
-  }, []);
+//   useEffect(() => {
+//     const getStudents = async () => {
+//       const studentsRef = ref(rtdb, 'student');
+//       onValue(studentsRef, (snapshot) => {
+//         const students = [];
+//         snapshot.forEach((childSnapshot) => {
+//           const childData = childSnapshot.val();
+//           students.push({ id: childSnapshot.key, ...childData });
+//         });
+//         setStudentData(students);
+//       });
+//     };
+//     getStudents();
+//   }, []);
 
-  const handleCheckboxChange = (event) => {
-    const { name, checked } = event.target;
-    if (name === "selectAll") {
-      const updatedFilters = {};
-      for (const className in classFilters) {
-        updatedFilters[className] = checked;
-      }
-      setClassFilters(updatedFilters);
-    } else {
-      setClassFilters(prevFilters => ({
-        ...prevFilters,
-        [name]: checked
-      }));
-    }
-  };
+//   const handleCheckboxChange = (event) => {
+//     const { name, checked } = event.target;
+//     if (name === "selectAll") {
+//       const updatedFilters = {};
+//       for (const className in classFilters) {
+//         updatedFilters[className] = checked;
+//       }
+//       setClassFilters(updatedFilters);
+//     } else {
+//       setClassFilters(prevFilters => ({
+//         ...prevFilters,
+//         [name]: checked
+//       }));
+//     }
+//   };
 
-  const handleLastThreeDaysChange = () => {
-    setLastThreeDaysFilterEnabled(!lastThreeDaysFilterEnabled);
-    if (!lastThreeDaysFilterEnabled) {
-      setDateFilterEnabled(false);
-    }
-  };
+//   const handleLastThreeDaysChange = () => {
+//     setLastThreeDaysFilterEnabled(!lastThreeDaysFilterEnabled);
+//     if (!lastThreeDaysFilterEnabled) {
+//       setDateFilterEnabled(false);
+//     }
+//   };
 
-  const handleDateFilterChange = () => {
-    setDateFilterEnabled(!dateFilterEnabled);
-    if (!dateFilterEnabled) {
-      setLastThreeDaysFilterEnabled(false);
-    }
-  };
+//   const handleDateFilterChange = () => {
+//     setDateFilterEnabled(!dateFilterEnabled);
+//     if (!dateFilterEnabled) {
+//       setLastThreeDaysFilterEnabled(false);
+//     }
+//   };
 
-  const filteredStudents = studentData.filter(student => {
-    const currentDate = new Date();
-    const threeDaysAgo = new Date(currentDate.getTime() - (3 * 24 * 60 * 60 * 1000));
-    const studentOnlineTime = new Date(student.onlinetime);
-    const isClassFiltered = classFilters[student.class];
-    const isDateFiltered = !dateFilterEnabled || studentOnlineTime <= threeDaysAgo;
-    const isLastThreeDaysFiltered = !lastThreeDaysFilterEnabled || (studentOnlineTime > threeDaysAgo && studentOnlineTime <= currentDate);
-    return isClassFiltered && isDateFiltered && isLastThreeDaysFiltered;
-  });
+//   const filteredStudents = studentData.filter(student => {
+//     const currentDate = new Date();
+//     const threeDaysAgo = new Date(currentDate.getTime() - (3 * 24 * 60 * 60 * 1000));
+//     const studentOnlineTime = new Date(student.onlinetime);
+//     const isClassFiltered = classFilters[student.class];
+//     const isDateFiltered = !dateFilterEnabled || studentOnlineTime <= threeDaysAgo;
+//     const isLastThreeDaysFiltered = !lastThreeDaysFilterEnabled || (studentOnlineTime > threeDaysAgo && studentOnlineTime <= currentDate);
+//     return isClassFiltered && isDateFiltered && isLastThreeDaysFiltered;
+//   });
 
-  return (
-    <div className='leaderboard'>
-      <div className='leaderboardmaintitle'>
-        <div className='leaderboardtitle'>Leaderboard</div>
-        <div className='countdown'>
-          <div className='countdownlabel'>{lastDayOfMonthFormatted}日結算</div>
-          <CountdownTimer countdownTimestampMs={currentMonthLastDateMs} />
-        </div>
-      </div>
-      <div className="class-filters">
-        <label className="class-filter">
-          <input
-            type="checkbox"
-            name="selectAll"
-            checked={Object.values(classFilters).every(val => val)}
-            onChange={handleCheckboxChange}
-          />
-          All
-        </label>
-        {Object.keys(classFilters).map(className => (
-          <label key={className} className="class-filter">
-            <input
-              type="checkbox"
-              name={className}
-              checked={classFilters[className]}
-              onChange={handleCheckboxChange}
-            />
-            {className}班
-          </label>
-        ))}
-        <label className="class-filter">
-          <input
-            type="checkbox"
-            checked={dateFilterEnabled}
-            onChange={handleDateFilterChange}
-          />
-          三天未上線
-        </label>
-        <label className="class-filter">
-          <input
-            type="checkbox"
-            checked={lastThreeDaysFilterEnabled}
-            onChange={handleLastThreeDaysChange}
-          />
-          近三天上線
-        </label>
-      </div>
-      <StudentTable students={filteredStudents} />
-    </div>
-  );
-};
+//   return (
+//     <div className='leaderboard'>
+//       <div className='leaderboardmaintitle'>
+//         <div className='leaderboardtitle'>Leaderboard</div>
+//         <div className='countdown'>
+//           <div className='countdownlabel'>{lastDayOfMonthFormatted}日結算</div>
+//           <CountdownTimer countdownTimestampMs={currentMonthLastDateMs} />
+//         </div>
+//       </div>
+//       <div className="class-filters">
+//         <label className="class-filter">
+//           <input
+//             type="checkbox"
+//             name="selectAll"
+//             checked={Object.values(classFilters).every(val => val)}
+//             onChange={handleCheckboxChange}
+//           />
+//           All
+//         </label>
+//         {Object.keys(classFilters).map(className => (
+//           <label key={className} className="class-filter">
+//             <input
+//               type="checkbox"
+//               name={className}
+//               checked={classFilters[className]}
+//               onChange={handleCheckboxChange}
+//             />
+//             {className}班
+//           </label>
+//         ))}
+//         <label className="class-filter">
+//           <input
+//             type="checkbox"
+//             checked={dateFilterEnabled}
+//             onChange={handleDateFilterChange}
+//           />
+//           三天未上線
+//         </label>
+//         <label className="class-filter">
+//           <input
+//             type="checkbox"
+//             checked={lastThreeDaysFilterEnabled}
+//             onChange={handleLastThreeDaysChange}
+//           />
+//           近三天上線
+//         </label>
+//       </div>
+//       <StudentTable students={filteredStudents} />
+//     </div>
+//   );
+// };
 
-const StudentTable = ({ students }) => (
-  <table className='table table-border'>
-    <thead>
-      <tr>
-        {[
-          { text: '班級', icon: Trophy },
-          { text: '姓名', icon: Sun },
-          { text: '日期', icon: Sparkles },
-          { text: '月次數', icon: Headphone },
-        ].map((col, index) => (
-          <th className='coltitle' key={index}>
-            <span className='d-flex align-items-center justify-content-center'>
-              <img style={{ marginRight: 7, marginBottom: 5 }} src={col.icon} alt={col.text} />
-              {col.text}
-            </span>
-          </th>
-        ))}
-      </tr>
-    </thead>
-    <tbody>
-      {students.map((student, index) => (
-        <tr key={index}>
-          <td className='d-flex justify-content-center'>
-            <b><span className='font-weight-bold'>{student.class}</span></b>
-          </td>
-          <td>
-            <div className='d-flex justify-content-center'>
-              <div className="align-self-center pl-3">
-                <b><span className='font-weight-bold'>{student.name}</span></b>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div className='d-flex justify-content-center'>
-              <div className="align-self-center pl-3">
-                <b><span className={`font-weight-bold ${student.onlinetime ? 'text-success' : 'text-danger'}`}>{student.onlinetime || '近期無上線'}</span></b>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div className='d-flex justify-content-center'>
-              <div className="align-self-center pl-3">
-                <b><span className='font-weight-bold'>{student.Monthtotaltimeplayed}次</span></b>
-              </div>
-            </div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-    <tfoot>
-      <tr>
-        <td className='coltitle' colSpan="4">!! 這是最底部了 !!</td>
-      </tr>
-    </tfoot>
-  </table>
-);
+// const StudentTable = ({ students }) => (
+//   <table className='table table-border'>
+//     <thead>
+//       <tr>
+//         {[
+//           { text: '班級', icon: Trophy },
+//           { text: '姓名', icon: Sun },
+//           { text: '日期', icon: Sparkles },
+//           { text: '月次數', icon: Headphone },
+//         ].map((col, index) => (
+//           <th className='coltitle' key={index}>
+//             <span className='d-flex align-items-center justify-content-center'>
+//               <img style={{ marginRight: 7, marginBottom: 5 }} src={col.icon} alt={col.text} />
+//               {col.text}
+//             </span>
+//           </th>
+//         ))}
+//       </tr>
+//     </thead>
+//     <tbody>
+//       {students.map((student, index) => (
+//         <tr key={index}>
+//           <td className='d-flex justify-content-center'>
+//             <b><span className='font-weight-bold'>{student.class}</span></b>
+//           </td>
+//           <td>
+//             <div className='d-flex justify-content-center'>
+//               <div className="align-self-center pl-3">
+//                 <b><span className='font-weight-bold'>{student.name}</span></b>
+//               </div>
+//             </div>
+//           </td>
+//           <td>
+//             <div className='d-flex justify-content-center'>
+//               <div className="align-self-center pl-3">
+//                 <b><span className={`font-weight-bold ${student.onlinetime ? 'text-success' : 'text-danger'}`}>{student.onlinetime || '近期無上線'}</span></b>
+//               </div>
+//             </div>
+//           </td>
+//           <td>
+//             <div className='d-flex justify-content-center'>
+//               <div className="align-self-center pl-3">
+//                 <b><span className='font-weight-bold'>{student.Monthtotaltimeplayed}次</span></b>
+//               </div>
+//             </div>
+//           </td>
+//         </tr>
+//       ))}
+//     </tbody>
+//     <tfoot>
+//       <tr>
+//         <td className='coltitle' colSpan="4">!! 這是最底部了 !!</td>
+//       </tr>
+//     </tfoot>
+//   </table>
+// );
 
-export default Leaderboard;
+// export default Leaderboard;

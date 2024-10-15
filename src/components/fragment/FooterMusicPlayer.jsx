@@ -10,16 +10,25 @@ import { rtdb } from '../Pages/firebase-config';
 import { get, ref, set, update } from 'firebase/database';
 import { setPlayPauseStatus } from "../../actions/actions";
 
+
 function FooterMusicPlayer({ music }) {
     const [{ bookname, page, musicName }, setCurrTrack] = useState(music);
     const { playlists } = useSelector(state => state.musicReducer);
     const userId = localStorage.getItem('ae-useruid')
     const dispatch = useDispatch();
     const audioElement = useRef();
-    // const currentMonth = new Date().toJSON().slice(0, 7);
-    // const userRef = doc(db, 'student', userId);
-    // const [counting, setCounting] = useState(localStorage.getItem('counting'));
 
+    const [noInteractionCount, setNoInteractionCount] = useState(0);
+    const interactionTimer = useRef(null);
+
+    const resetInteractionTimer = () => {
+        clearTimeout(interactionTimer.current);
+        interactionTimer.current = setTimeout(() => {
+            // Reset count if no interaction happens for a certain time (e.g., 5 minutes)
+            setNoInteractionCount(0);
+            localStorage.setItem('ae-no-interaction', 0)
+        }, 300000); // 5 minutes in milliseconds
+    };
 
     const success = () => {
         toast.success(`聽力次數 + 1`, {
@@ -35,58 +44,51 @@ function FooterMusicPlayer({ music }) {
         });
     };
 
+    const warning = () => {
+        toast.warning(
+            <div className="noInteractionCountWarning">
+                偵測到持續播放但未操作，即將停止播放
+                <div>
+                    <button
+                        onClick={() => {
+                            toast.dismiss(); // Dismiss the warning toast when the button is clicked
+                            setNoInteractionCount(0)
+                            localStorage.setItem('ae-no-interaction', 0);
+                            console.log(localStorage.getItem('ae-no-interaction'));
+                        }}
+                        style={{
+                            padding: '5px 10px',
+                            backgroundColor: '#ff3c00',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        解除警告
+                    </button>
+                </div>
+            </div>,
+            {
+                className: "noInteractionCountWarning",
+                closeButton: true,
+                position: "top-center",
+                autoClose: false,
+                // autoClose: 10000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: false,
+                draggable: false,
+                progress: undefined,
+                theme: "colored",
+            });
+    };
+
     useEffect(() => {
         setCurrTrack(music);
-    }, [music]);
+    }, [music, noInteractionCount]);
 
-    function updatetimeplayedtofirestore() {
-
-        // 當日次數、總次數 +1
-        // getDoc(userRef)
-        //     .then((docSnapshot) => {
-        //         if (docSnapshot.exists()) {
-        //             const data = docSnapshot.data();
-        //             const daily = data.currdatetimeplayed + 1;
-        //             const total = data.totaltimeplayed + 1;
-
-        //             updateDoc(userRef, {
-        //                 currdatetimeplayed: daily,
-        //                 totaltimeplayed: total,
-        //             })
-        //                 .catch((error) => {
-        //                     console.error(error);
-        //                 });
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         console.error(error);
-        //     });
-
-        // 當月總次數 +1
-        // const usermonthlytimes = doc(collection(userRef, 'Logfile'), currentMonth);
-        // getDoc(usermonthlytimes)
-        //     .then((docSnapshot) => {
-        //         if (docSnapshot.exists()) {
-        //             const data = docSnapshot.data();
-        //             const monthlytotal = data.currentMonthTotalTimes + 1;
-        //             updateDoc(usermonthlytimes, {
-        //                 currentMonthTotalTimes: monthlytotal,
-        //             })
-        //                 .catch((error) => {
-        //                     console.error(error);
-        //                 });
-        //         } else {
-        //             setDoc(usermonthlytimes, {
-        //                 currentMonthTotalTimes: 1,
-        //             })
-        //                 .catch((error) => {
-        //                     console.error(error);
-        //                 });
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         console.error(error);
-        //     });
+    function updatetimeplayedtorealtimedatabase() {
 
         // 在RTDB新增次數、達到100次才能打勾
         const convertmusicName = bookname + ' ' + page;
@@ -104,10 +106,8 @@ function FooterMusicPlayer({ music }) {
                 const newMusicPlay = currentMusicPlay + 1; // Increment by 1
                 if (newMusicPlay >= 100) {
                     await update(musicRef, { musicplay: newMusicPlay, complete: '通過' });
-                    console.log("Music play updated and marked complete successfully!");
                 } else {
                     await update(musicRef, { musicplay: newMusicPlay });
-                    console.log("Music play updated successfully!");
                 }
             } catch (error) {
                 console.error("Error updating music play:", error);
@@ -130,7 +130,6 @@ function FooterMusicPlayer({ music }) {
                 const newMusicPlay = currentMusicPlay + 1; // Increment by 1
                 await set(musicRef, newMusicPlay);
 
-                console.log("Music play updated and marked complete successfully!");
             } catch (error) {
                 console.error("Error updating music play:", error);
                 // Handle errors appropriately, e.g., display an error message to the user
@@ -153,7 +152,6 @@ function FooterMusicPlayer({ music }) {
                 const newMusicPlay = currentMusicPlay + 1; // Increment by 1
                 await set(musicRef, newMusicPlay);
 
-                console.log("Music play updated and marked complete successfully!");
             } catch (error) {
                 console.error("Error updating music play:", error);
                 // Handle errors appropriately, e.g., display an error message to the user
@@ -162,18 +160,15 @@ function FooterMusicPlayer({ music }) {
 
         // Call the function with the userId
         updateRTDBMonthMusicPlay(userId);
-
-
-
-
-
-
     };
 
     const currentTrack = playlists.findIndex(obj => obj.musicName === musicName)
     const handleClickNext = () => {
         // setCounting(localStorage.setItem('counting', 0))
         console.log('Next Track')
+        setNoInteractionCount(0); // Reset on user interaction
+        localStorage.setItem('ae-no-interaction', 0)
+        resetInteractionTimer();
         let abc = currentTrack + 1;
         if ((currentTrack + 1) >= playlists.length) {
             abc = 0;
@@ -184,6 +179,9 @@ function FooterMusicPlayer({ music }) {
     const handleClickPrev = () => {
         // setCounting(localStorage.setItem('counting', 0))
         console.log('Previous Track')
+        setNoInteractionCount(0); // Reset on user interaction
+        localStorage.setItem('ae-no-interaction', 0)
+        resetInteractionTimer();
         let abc = currentTrack - 1;
         if ((currentTrack - 1) <= -1) {
             abc = playlists.length - 1;
@@ -194,17 +192,37 @@ function FooterMusicPlayer({ music }) {
     const handleEnd = () => {
         // setCounting(localStorage.setItem('counting', 0))
         console.log('Track End')
+        console.log(noInteractionCount);
         let abc = currentTrack + 1;
         if ((currentTrack + 1) >= playlists.length) {
             abc = 0;
             success();
-            updatetimeplayedtofirestore();
+            updatetimeplayedtorealtimedatabase();
             dispatch(setCurrentPlaying(playlists[abc]));
         } else {
             success();
-            updatetimeplayedtofirestore();
+            updatetimeplayedtorealtimedatabase();
             dispatch(setCurrentPlaying(playlists[abc]));
         }
+
+
+        let nextTrack = (currentTrack + 1) >= playlists.length ? 0 : currentTrack + 1;
+        setNoInteractionCount(prev => prev + 1);
+        localStorage.setItem('ae-no-interaction', noInteractionCount);
+
+
+        // Check if the user is continuously playing tracks without interaction
+        if (noInteractionCount >= 9) { // Threshold of 10 consecutive tracks without interaction
+            warning();
+
+        } else {
+            // Proceed to the next track if within threshold
+            dispatch(setCurrentPlaying(playlists[nextTrack]));
+            updatetimeplayedtorealtimedatabase();
+        }
+
+
+        resetInteractionTimer();
     }
 
     return (
@@ -221,8 +239,8 @@ function FooterMusicPlayer({ music }) {
                 onClickNext={handleClickNext}
                 onClickPrevious={handleClickPrev}
                 onEnded={handleEnd}
-                onPlay={() => dispatch(setPlayPauseStatus(true))} // Dispatch when playing
-                onPause={() => dispatch(setPlayPauseStatus(false))} // Dispatch when paused
+                onPlay={() => { dispatch(setPlayPauseStatus(true)); }} // Dispatch when playing
+                onPause={() => { dispatch(setPlayPauseStatus(false)); }} // Dispatch when paused
                 customProgressBarSection={
                     [
                         RHAP_UI.CURRENT_TIME,

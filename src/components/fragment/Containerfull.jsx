@@ -8,19 +8,15 @@ const Containerfull = ({ children }) => {
 
     const { playing, curr_margin } = useSelector(state => state.musicReducer);
     const [currMusic, setCurrMusic] = useState(null);
-
-    // const [count, setCount] = useState(0);
-    // useEffect(() => {
-    //     const intervalId = setInterval(() => {
-    //         setCount((prevCount) => prevCount + 1);
-    //     }, 1000);
-    //     return () => clearInterval(intervalId);
-    // }, []);
-    // localStorage.setItem('counting', count);
+    const noInteractionCount = localStorage.getItem('ae-no-interaction');
 
     useEffect(() => {
-        setCurrMusic(playing)
-    }, [playing])
+        if (noInteractionCount >= 10) {
+            setCurrMusic('');
+        } else {
+            setCurrMusic(playing);
+        }
+    }, [noInteractionCount, playing])
     return (
         <>
             <div style={{

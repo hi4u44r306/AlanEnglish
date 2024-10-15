@@ -97,6 +97,23 @@ const ControlPanel = () => {
         }
     };
 
+    // Handle batch delete of BookLogfile and musicLogfile with confirmation
+    const handleBatchDeleteLogs = () => {
+        const isConfirmed = window.confirm("你確定要刪除這些學生的 BookLogfile 和 musicLogfile 嗎？");
+        if (isConfirmed) {
+            selectedStudents.forEach(studentId => {
+                const updateStudentRef = ref(rtdb, `student/${studentId}`);
+                update(updateStudentRef, {
+                    BookLogfile: null,
+                    MusicLogfile: null
+                }).catch(error => console.log(error));
+            });
+            setSelectedStudents([]);  // 清空選擇
+            setIsAllSelected(false);  // 重置全選狀態
+        }
+    };
+
+
     // Edit Student
     const handleEditStudent = (student) => {
         setEditStudentId(student.id);
@@ -221,12 +238,16 @@ const ControlPanel = () => {
                 <button onClick={handleBatchDelete} disabled={selectedStudents.length === 0}>
                     批量刪除
                 </button>
+                <button onClick={handleBatchDeleteLogs} disabled={selectedStudents.length === 0}>
+                    刪除選擇的 BookLogfile 和 musicLogfile
+                </button>
                 <button onClick={handleClearSelection}>全不選</button>
                 <button onClick={() => handleSelectClass('A')}>全選 A班</button>
                 <button onClick={() => handleSelectClass('B')}>全選 B班</button>
                 <button onClick={() => handleSelectClass('C')}>全選 C班</button>
                 <button onClick={() => handleSelectClass('D')}>全選 D班</button>
             </div>
+
 
             {/* 顯示學生列表 */}
             <table className="student-table">
@@ -239,6 +260,9 @@ const ControlPanel = () => {
                                 onChange={handleSelectAll}
                             /> 全選
                         </th>
+                        {/* <th onClick={() => handleSort('id')}>
+                            ID {getSortIcon('id')}
+                        </th> */}
                         <th onClick={() => handleSort('class')}>
                             班級 {getSortIcon('class')}
                         </th>
@@ -268,6 +292,7 @@ const ControlPanel = () => {
                                         onChange={() => handleSelectStudent(student.id)}
                                     />
                                 </td>
+                                {/* <td>{student.id}</td> */}
                                 <td>{student.class}</td>
                                 <td>{student.name}</td>
                                 <td>{student.onlinetime}</td>

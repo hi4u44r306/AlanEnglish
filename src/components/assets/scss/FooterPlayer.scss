@@ -37,14 +37,26 @@
 }
 .musicnotification {
   font-family: "Nunito", sans-serif;
-  font-weight: 900;
-  color: #000000;
+  font-weight: 700;
+  color: #000000 !important;
+  font-size: 1rem;
+  text-align: center;
+  align-items: center;
+  display: flex;
+}
+.noInteractionCountWarning {
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  color: #000000 !important;
   font-size: 1rem;
   text-align: center;
   align-items: center;
   display: flex;
 }
 
+// .Toastify__toast-container {
+//   width: fit-content;
+// }
 .rhap_time {
   font-size: 0.85rem;
   font-weight: 700;

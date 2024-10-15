@@ -20,11 +20,12 @@ class Logout extends React.Component {
                 .then(() => {
                     localStorage.removeItem('ae-class');
                     localStorage.removeItem('ae-useruid');
+                    localStorage.removeItem('ae-userimage');
                     localStorage.removeItem('ae-username');
                     localStorage.removeItem('ae-teacherschool');
-                    localStorage.removeItem('AllStudent');
-                    localStorage.removeItem('OnlineStudentData');
-                    localStorage.removeItem('OfflineStudentData');
+                    // localStorage.removeItem('AllStudent');
+                    // localStorage.removeItem('OnlineStudentData');
+                    // localStorage.removeItem('OfflineStudentData');
                     window.location = "/";
                     alert('已成功登出');
                 }).catch((err) => {

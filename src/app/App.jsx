@@ -11,14 +11,13 @@ import SolvePage from "../components/Pages/SolvePage";
 // import TeachingResources from "../components/Pages/TeachingResources";
 import Showcase from "../components/Pages/Showcase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, } from "firebase/firestore";
 import { onValue, ref } from "firebase/database";
 import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
-import { authentication, db, rtdb } from "../components/Pages/firebase-config";
+import { authentication, rtdb } from "../components/Pages/firebase-config";
 import Search from "../components/Pages/Search";
 import User from "../components/Pages/User";
-import Leaderboard from "../components/Pages/Leaderboard";
+// import Leaderboard from "../components/Pages/Leaderboard";
 import Trade from "../components/Pages/Trade";
 import TradeSignup from "../components/Pages/TradeSignup";
 import TradeLogin from "../components/Pages/TradeLogin";
@@ -52,14 +51,6 @@ const App = () => {
                     localStorage.setItem('ae-userimage', '');
                 }
             })
-
-            const teacherDocRef = doc(db, 'teacher', user.uid);
-            getDoc(teacherDocRef).then(docSnapshot => {
-                if (docSnapshot.exists()) {
-                    const data = docSnapshot.data();
-                    localStorage.setItem('ae-teacherschool', data.school || '');
-                }
-            });
 
             const postRef = ref(rtdb, 'TeachingResources/');
             onValue(postRef, snapshot => {
@@ -113,11 +104,11 @@ const App = () => {
                             <Signup />
                         </Containerfull>
                     } />
-                    <Route path="/home/playlist/leaderboard" element={
+                    {/* <Route path="/home/playlist/leaderboard" element={
                         <Containerfull>
                             <Leaderboard />
                         </Containerfull>
-                    } />
+                    } /> */}
                     <Route path="/home/playlist/controlpanel" element={
                         <Containerfull>
                             <ControlPanel />
