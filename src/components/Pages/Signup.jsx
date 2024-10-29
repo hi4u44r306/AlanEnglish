@@ -125,7 +125,6 @@ function Signup() {
                         placeholder="輸入密碼..."
                         onChange={handleChange}
                         value={123456}
-                        disabled
                     />
                 </div>
 
