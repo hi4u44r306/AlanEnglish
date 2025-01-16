@@ -1,115 +1,101 @@
 import React, { useEffect, useState } from 'react';
 import '../assets/scss/MusicCard.scss';
+import ScaleLoader from "react-spinners/ScaleLoader";
 import { AiFillPlayCircle } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentMargin, setCurrentPlaying } from "../../actions/actions";
+import { setCurrentMargin, setCurrentPlaying, setNoInteractionCount } from "../../actions/actions";
 import Name from "./Name";
 import { child, onValue, ref } from 'firebase/database';
+import { getStorage, ref as storageRef, getDownloadURL } from 'firebase/storage';
 import { rtdb } from '../Pages/firebase-config';
 import { FcApproval } from "react-icons/fc";
 import { setPlayPauseStatus } from "../../actions/actions";
 
-
-
 function MusicCard(props) {
     const dispatch = useDispatch();
-    const { bookname, page, img } = props.music;
+    const { bookname, page, musicName } = props.music;
     const useruid = localStorage.getItem('ae-useruid');
     const [complete, setComplete] = useState();
     const [musicplay, setMusicPlay] = useState();
+    const [audioURL, setAudioURL] = useState('');
     const convertmusicName = bookname + ' ' + page;
 
     const currentPlaying = useSelector(state => state.musicReducer.playing);
     const isPlaying = currentPlaying && currentPlaying.bookname === bookname && currentPlaying.page === page;
 
-
     useEffect(() => {
-        // 次數通過
+        // Fetch play count and completion status
         const dbRef = ref(rtdb);
         const completeRef = child(dbRef, `student/${useruid}/MusicLogfile/${convertmusicName}/complete`);
         const musicplayRef = child(dbRef, `student/${useruid}/MusicLogfile/${convertmusicName}/musicplay`);
 
         onValue(musicplayRef, (snapshot) => {
-            if (snapshot.exists()) {
-                setMusicPlay(snapshot.val());
-            } else {
-                setMusicPlay(); // If data doesn't exist, setComplete to its default value
-            }
+            setMusicPlay(snapshot.exists() ? snapshot.val() : 0);
         }, (error) => {
-            console.error("Error fetching complete value:", error);
-        });
-        onValue(completeRef, (snapshot) => {
-            if (snapshot.exists()) {
-                setComplete(snapshot.val());
-            } else {
-                setComplete(); // If data doesn't exist, setComplete to its default value
-            }
-        }, (error) => {
-            console.error("Error fetching complete value:", error);
+            console.error("Error fetching musicplay value:", error);
         });
 
+        onValue(completeRef, (snapshot) => {
+            setComplete(snapshot.exists() ? snapshot.val() : null);
+        }, (error) => {
+            console.error("Error fetching complete value:", error);
+        });
     }, [convertmusicName, useruid]);
 
-
-    function handlePlay() {
-        dispatch(setCurrentMargin('100px'));
-        localStorage.setItem('ae-no-interaction', 0);
-        if (isPlaying) {
-            // If currently playing, dispatch pause action
-            dispatch(setPlayPauseStatus(false)); // Pause music
-        } else {
-            // If not currently playing, dispatch play action
-            dispatch(setCurrentPlaying(props.music, true)); // Set the current playing music and isPlaying to true
-            dispatch(setPlayPauseStatus(true)); // Play music
+    async function fetchAudioURL() {
+        const storage = getStorage();
+        try {
+            const audioPath = storageRef(storage, `Music/${musicName}`);
+            const audioDownloadURL = await getDownloadURL(audioPath);
+            setAudioURL(audioDownloadURL);
+            return audioDownloadURL;
+        } catch (error) {
+            console.error("Error fetching audio URL:", error);
         }
     }
 
 
+    function handlePlay() {
+        fetchAudioURL();
+        if (!musicName) {
+            console.error("Music name is undefined.");
+            return;
+        }
+
+        dispatch(setCurrentMargin('100px'));
+        dispatch(setNoInteractionCount(0));
+        if (isPlaying) {
+            dispatch(setPlayPauseStatus(false)); // Pause music
+        } else {
+            dispatch(setCurrentPlaying({ ...JSON.parse(JSON.stringify(props.music)), audioURL }, true));
+            dispatch(setPlayPauseStatus(true)); // Play music
+        }
+    }
+
     return (
-        <div className={`music-card ${isPlaying ? 'playing' : ''}`}> {/* Add class based on isPlaying */}
-            <React.Fragment>
-                <div className='musicbanner'>
-                    {/* <div onClick={handlePlay} className='playbutton'>
+        <div className={`music-card ${isPlaying ? 'playing' : ''}`}>
+            <div className='musicbanner'>
+                <div onClick={handlePlay} className='playbutton'>
+                    {isPlaying ? (
+                        <ScaleLoader height={20} />
+                    ) : (
                         <AiFillPlayCircle className="playicon" />
-                    </div> */}
-                    <div onClick={handlePlay} className='playbutton'>
-                        {isPlaying && currentPlaying.bookname === bookname && currentPlaying.page === page ? (
-                            <img src={require("../assets/img/musicplaying.png")} alt="Playing" className="playicon" />
-                        ) : (
-                            <AiFillPlayCircle className="playicon" />
-                        )}
-                    </div>
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                    }}>
-                        <img src={require("../assets/img/" + img)} alt={bookname} className='musiccardimage' />
-                    </div>
-                    <div className='labelcontainer'>
-                        <Name name={page} className={"page-name"} length={page.length} />
-                        <div style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '5px',
-                            alignItems: 'center',
-                        }}>
-                            <React.Fragment>
-
-                                <Name name={bookname} className={"book-name"} length={bookname.length} />
-                                <p> </p>
-                                {/* 次數通過 */}
-                                <Name name={`播放次數 : ${musicplay || 0} 次`} className={"book-name"} length={bookname.length} />
-                                <p> </p>
-                            </React.Fragment>
-                        </div>
-                    </div>
-
-                    <div className='passicon'>
-                        <Name name={complete === '通過' ? <FcApproval size={50} /> : ' '} className={complete === '通過' ? "timeplayed" : "timeplayednotcomplete"} />
+                    )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <img src={require("../assets/img/headphone.png")} alt={bookname} className='musiccardimage' />
+                </div>
+                <div className='labelcontainer'>
+                    <Name name={page} className={"page-name"} length={page.length} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center' }}>
+                        <Name name={bookname} className={"book-name"} length={bookname.length} />
+                        <Name name={`播放次數 : ${musicplay || 0} 次`} className={"book-name"} length={bookname.length} />
                     </div>
                 </div>
-            </React.Fragment>
+                <div className='passicon'>
+                    {complete === '通過' ? <FcApproval size={50} /> : ' '}
+                </div>
+            </div>
         </div>
     );
 }

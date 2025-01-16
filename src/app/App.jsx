@@ -3,15 +3,13 @@ import './App.scss';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
-import musicDB from "../db/music";
-import { useDispatch, useSelector } from "react-redux";
-import { setPlaylist } from "../actions/actions";
+// import musicDB from "../db/music";
 import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
 // import TeachingResources from "../components/Pages/TeachingResources";
 import Showcase from "../components/Pages/Showcase";
 import { onAuthStateChanged } from "firebase/auth";
-import { onValue, ref } from "firebase/database";
+import { get, off, onValue, ref } from "firebase/database";
 import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
 import { authentication, rtdb } from "../components/Pages/firebase-config";
@@ -25,13 +23,13 @@ import TradeTrack from "../components/Pages/TradeTrack";
 import GetHW from "../components/Pages/GetHW";
 import ControlPanel from "../components/Pages/ControlPanel";
 import Developer from "../components/fragment/Developer";
+import TRY from "../components/Pages/AddMusic";
+import AddMusic from "../components/Pages/AddMusic";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
 
 const App = () => {
-
-    const { language } = useSelector(state => state.musicReducer);
 
 
     onAuthStateChanged(authentication, user => {
@@ -44,11 +42,13 @@ const App = () => {
                     localStorage.setItem('ae-class', data.class || '');
                     localStorage.setItem('ae-username', data.name.toUpperCase());
                     localStorage.setItem('ae-userimage', data.userimage || '');
+                    localStorage.setItem('ae-plan', data.plan || '');
                 }
                 else {
                     localStorage.setItem('ae-class', '');
                     localStorage.setItem('ae-username', '');
                     localStorage.setItem('ae-userimage', '');
+                    localStorage.setItem('ae-plan', '');
                 }
             })
 
@@ -71,21 +71,31 @@ const App = () => {
             });
         }
     });
-
-    const dispatch = useDispatch();
     useEffect(() => {
-        if (language === null || language.includes("any")) {
-            dispatch(setPlaylist(musicDB))
-        }
-        else if (language.includes('hindi')) {
-            alert("No hindi tracks available")
-        } else {
-            let x = musicDB.filter((item) => (
-                item.lang && language.includes(item.lang.toLowerCase())
-            ))
-            dispatch(setPlaylist(x))
-        }
-    }, [dispatch, language]);
+        const fetchPlaylistsFromRTDB = () => {
+            try {
+                const dbRef = ref(rtdb, 'Music');
+                onValue(dbRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        localStorage.setItem('ae-playlistData', JSON.stringify(data));
+                    }
+                });
+            } catch (error) {
+                console.error("Error fetching playlists from RTDB:", error);
+            }
+        };
+
+        fetchPlaylistsFromRTDB();
+
+        // 清理函數，當組件卸載時移除監聽器
+        return () => {
+            // 如果你需要在組件卸載時移除監聽，可以使用 off 方法
+            const dbRef = ref(rtdb, 'Music');
+            off(dbRef);  // 移除監聽
+        };
+    }, []); // 空的依賴陣列表示只在組件掛載和卸載時執行
+
 
 
 
@@ -99,6 +109,11 @@ const App = () => {
                     <Route path="/" element={<Login />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />
+                    <Route path="/home/playlist/addmusic" element={
+                        <Containerfull>
+                            <AddMusic />
+                        </Containerfull>
+                    } />
                     <Route path="/home/playlist/signup" element={
                         <Containerfull>
                             <Signup />

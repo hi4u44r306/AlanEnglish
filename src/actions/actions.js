@@ -1,13 +1,11 @@
+export const setNoInteractionCount = (count) => ({
+    type: 'SET_NO_INTERACTION_COUNT',
+    payload: count,
+});
 export const setPlayPauseStatus = (status) => {
     return {
         type: "SET_PLAY_PAUSE_STATUS",
         payload: status
-    };
-};
-export const setPlaylist = (playlist) => {
-    return {
-        type: "SET_PLAYLIST",
-        payload: playlist
     };
 };
 export const setCurrentPlaying = (curr_music) => {

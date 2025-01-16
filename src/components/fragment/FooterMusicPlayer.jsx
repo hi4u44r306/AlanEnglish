@@ -1,34 +1,28 @@
 import AudioPlayer, { RHAP_UI } from 'react-h5-audio-player'
 import React, { useRef, useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setCurrentPlaying } from "../../actions/actions";
 import { toast, ToastContainer } from "react-toastify"
 import Name from "./Name";
 import '../assets/scss/FooterPlayer.scss';
 import 'react-h5-audio-player/lib/styles.css';
-import { rtdb } from '../Pages/firebase-config';
+import { rtdb, getstorage as storage } from '../Pages/firebase-config';
 import { get, ref, set, update } from 'firebase/database';
 import { setPlayPauseStatus } from "../../actions/actions";
+import { getDownloadURL, ref as storageRef } from "firebase/storage";
+import { useParams } from 'react-router-dom';
 
 
 function FooterMusicPlayer({ music }) {
+    const playlists = JSON.parse(localStorage.getItem('ae-playlistData'));
     const [{ bookname, page, musicName }, setCurrTrack] = useState(music);
-    const { playlists } = useSelector(state => state.musicReducer);
     const userId = localStorage.getItem('ae-useruid')
     const dispatch = useDispatch();
     const audioElement = useRef();
+    const { playlistId } = useParams();
+    const musicRoot = playlists[playlistId];
 
-    const [noInteractionCount, setNoInteractionCount] = useState(0);
-    const interactionTimer = useRef(null);
 
-    const resetInteractionTimer = () => {
-        clearTimeout(interactionTimer.current);
-        interactionTimer.current = setTimeout(() => {
-            // Reset count if no interaction happens for a certain time (e.g., 5 minutes)
-            setNoInteractionCount(0);
-            localStorage.setItem('ae-no-interaction', 0)
-        }, 300000); // 5 minutes in milliseconds
-    };
 
     const success = () => {
         toast.success(`聽力次數 + 1`, {
@@ -44,49 +38,45 @@ function FooterMusicPlayer({ music }) {
         });
     };
 
-    const warning = () => {
-        toast.warning(
-            <div className="noInteractionCountWarning">
-                偵測到持續播放但未操作，即將停止播放
-                <div>
-                    <button
-                        onClick={() => {
-                            toast.dismiss(); // Dismiss the warning toast when the button is clicked
-                            setNoInteractionCount(0)
-                            localStorage.setItem('ae-no-interaction', 0);
-                            console.log(localStorage.getItem('ae-no-interaction'));
-                        }}
-                        style={{
-                            padding: '5px 10px',
-                            backgroundColor: '#ff3c00',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        解除警告
-                    </button>
-                </div>
-            </div>,
-            {
-                className: "noInteractionCountWarning",
-                closeButton: true,
-                position: "top-center",
-                autoClose: false,
-                // autoClose: 10000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: false,
-                draggable: false,
-                progress: undefined,
-                theme: "colored",
-            });
-    };
-
-    useEffect(() => {
-        setCurrTrack(music);
-    }, [music, noInteractionCount]);
+    // const warning = () => {
+    //     toast.warning(
+    //         <div className="noInteractionCountWarning">
+    //             偵測到持續播放但未操作，即將停止播放
+    //             <div>
+    //                 <button
+    //                     onClick={() => {
+    //                         toast.dismiss(); // Dismiss the warning toast when the button is clicked
+    //                         // setNoInteractionCount(0)
+    //                         localStorage.setItem('ae-no-interaction', 0);
+    //                         console.log(localStorage.getItem('ae-no-interaction'));
+    //                     }}
+    //                     style={{
+    //                         padding: '5px 10px',
+    //                         backgroundColor: '#ff3c00',
+    //                         color: '#fff',
+    //                         border: 'none',
+    //                         borderRadius: '5px',
+    //                         cursor: 'pointer',
+    //                     }}
+    //                 >
+    //                     解除警告
+    //                 </button>
+    //             </div>
+    //         </div>,
+    //         {
+    //             className: "noInteractionCountWarning",
+    //             closeButton: true,
+    //             position: "top-center",
+    //             autoClose: false,
+    //             // autoClose: 10000,
+    //             hideProgressBar: false,
+    //             closeOnClick: false,
+    //             pauseOnHover: false,
+    //             draggable: false,
+    //             progress: undefined,
+    //             theme: "colored",
+    //         });
+    // };
 
     function updatetimeplayedtorealtimedatabase() {
 
@@ -162,68 +152,67 @@ function FooterMusicPlayer({ music }) {
         updateRTDBMonthMusicPlay(userId);
     };
 
-    const currentTrack = playlists.findIndex(obj => obj.musicName === musicName)
-    const handleClickNext = () => {
-        // setCounting(localStorage.setItem('counting', 0))
-        console.log('Next Track')
-        setNoInteractionCount(0); // Reset on user interaction
-        localStorage.setItem('ae-no-interaction', 0)
-        resetInteractionTimer();
-        let abc = currentTrack + 1;
-        if ((currentTrack + 1) >= playlists.length) {
-            abc = 0;
+    useEffect(() => {
+        setCurrTrack(music);
+        if (music.musicName) {
+            fetchAudioURL(music.musicName);
         }
-        dispatch(setCurrentPlaying(playlists[abc]));
+    }, [music]);
+
+    const [audioURL, setAudioURL] = useState(null);
+    const fetchAudioURL = async (fileName) => {
+        try {
+            const fileRef = storageRef(storage, `Music/${fileName}`);
+            console.log(fileRef);
+            const url = await getDownloadURL(fileRef);
+            setAudioURL(url);
+        } catch (error) {
+            console.error("Error fetching audio URL from Firebase Storage:", error);
+        }
+    };
+
+    const handleClickNext = () => {
+        const currentIndex = musicRoot.findIndex(obj => obj.musicName === musicName);
+        const nextIndex = (currentIndex + 1) % musicRoot.length;
+        dispatch(setCurrentPlaying(musicRoot[nextIndex]));
     };
 
     const handleClickPrev = () => {
-        // setCounting(localStorage.setItem('counting', 0))
-        console.log('Previous Track')
-        setNoInteractionCount(0); // Reset on user interaction
-        localStorage.setItem('ae-no-interaction', 0)
-        resetInteractionTimer();
-        let abc = currentTrack - 1;
-        if ((currentTrack - 1) <= -1) {
-            abc = playlists.length - 1;
-        }
-        dispatch(setCurrentPlaying(playlists[abc]));
+        const currentIndex = musicRoot.findIndex(obj => obj.musicName === musicName);
+        const prevIndex = (currentIndex - 1) % musicRoot.length;
+        dispatch(setCurrentPlaying(musicRoot[prevIndex]));
     };
 
     const handleEnd = () => {
-        // setCounting(localStorage.setItem('counting', 0))
-        console.log('Track End')
-        console.log(noInteractionCount);
-        let abc = currentTrack + 1;
-        if ((currentTrack + 1) >= playlists.length) {
-            abc = 0;
-            success();
-            updatetimeplayedtorealtimedatabase();
-            dispatch(setCurrentPlaying(playlists[abc]));
+        console.log('Track End');
+        const currentIndex = musicRoot.findIndex(obj => obj.musicName === musicName);
+        const nextIndex = (currentIndex + 1) % musicRoot.length;
+
+        // 用戶沒反應次數達到10次
+        // setNoInteractionCount(prev => prev + 1);
+        // localStorage.setItem('ae-no-interaction', noInteractionCount);
+
+        // if (noInteractionCount >= 9) {
+        //     warning(); // Show warning message when no interaction count reaches the threshold
+        // } else {
+        //     // Update current playing track
+        //     dispatch(setCurrentPlaying(musicRoot[nextIndex]));
+        //     updatetimeplayedtorealtimedatabase(); // Update time played to real-time database
+        // }
+
+        // Handle music playback and success
+        if ((music + 1) >= playlists.length) {
+            success(); // Call success if it's the last track
+            updatetimeplayedtorealtimedatabase(); // Update time played to real-time database
+            dispatch(setCurrentPlaying(playlists[0])); // Restart playlist from the beginning
         } else {
-            success();
-            updatetimeplayedtorealtimedatabase();
-            dispatch(setCurrentPlaying(playlists[abc]));
+            success(); // Call success for each track
+            updatetimeplayedtorealtimedatabase(); // Update time played to real-time database
+            dispatch(setCurrentPlaying(musicRoot[nextIndex])); // Continue to the next track
         }
-
-
-        let nextTrack = (currentTrack + 1) >= playlists.length ? 0 : currentTrack + 1;
-        setNoInteractionCount(prev => prev + 1);
-        localStorage.setItem('ae-no-interaction', noInteractionCount);
-
-
-        // Check if the user is continuously playing tracks without interaction
-        if (noInteractionCount >= 9) { // Threshold of 10 consecutive tracks without interaction
-            warning();
-
-        } else {
-            // Proceed to the next track if within threshold
-            dispatch(setCurrentPlaying(playlists[nextTrack]));
-            updatetimeplayedtorealtimedatabase();
-        }
-
-
-        resetInteractionTimer();
-    }
+        // resetInteractionTimer(); // Reset the interaction timer
+        dispatch(setCurrentPlaying(musicRoot[nextIndex]));
+    };
 
     return (
         <div className={"footer-player"}>
@@ -233,46 +222,27 @@ function FooterMusicPlayer({ music }) {
                 loop={null}
                 progressUpdateInterval={50}
                 ref={audioElement}
-                src={require("../assets/music/" + musicName)}
+                src={audioURL}
                 showSkipControls={true}
                 showJumpControls={false}
                 onClickNext={handleClickNext}
                 onClickPrevious={handleClickPrev}
                 onEnded={handleEnd}
-                onPlay={() => { dispatch(setPlayPauseStatus(true)); }} // Dispatch when playing
-                onPause={() => { dispatch(setPlayPauseStatus(false)); }} // Dispatch when paused
-                customProgressBarSection={
-                    [
-                        RHAP_UI.CURRENT_TIME,
-                        // <Marquee
-                        //     pauseOnHover={false}
-                        //     gradient={true}
-                        //     gradientWidth={30}
-                        //     direction='right'
-                        //     speed={60}
-                        // >
-
-                        // </Marquee>,
-                        <div style={{
-                            display: 'flex',
-                            gap: '5px',
-                        }}>
-                            <div>
-                                <Name name={bookname} className={"marqueename"} length={bookname.length} />
-                            </div>
-                            <div>
-                                <Name name={page} className={"marqueename"} length={page.length} />
-                            </div>
-                        </div>,
-                        RHAP_UI.DURATION,
-                    ]
-                }
+                onPlay={() => dispatch(setPlayPauseStatus(true))}
+                onPause={() => dispatch(setPlayPauseStatus(false))}
+                customProgressBarSection={[
+                    RHAP_UI.CURRENT_TIME,
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                        <Name name={bookname} className="marqueename" length={bookname.length} />
+                        <Name name={page} className="marqueename" length={page.length} />
+                    </div>,
+                    RHAP_UI.DURATION,
+                ]}
                 customControlsSection={[
                     RHAP_UI.MAIN_CONTROLS,
                     RHAP_UI.VOLUME_CONTROLS,
                 ]}
             />
-            {/* {counting} */}
             <div>
                 <ToastContainer
                     position="top-center"

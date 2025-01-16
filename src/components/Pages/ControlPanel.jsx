@@ -5,7 +5,6 @@ import './css/ControlPanel.scss';
 import { FcCollapse } from "react-icons/fc";
 import { FcExpand } from "react-icons/fc";
 import { FcFilledFilter } from "react-icons/fc";
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -86,6 +85,7 @@ const ControlPanel = () => {
 
     // Handle batch delete with double check
     const handleBatchDelete = () => {
+
         const isConfirmed = window.confirm("你確定要批量刪除這些學生嗎？");
         if (isConfirmed) {
             selectedStudents.forEach(studentId => {
@@ -153,7 +153,6 @@ const ControlPanel = () => {
                 });
         }
     };
-
 
     // Delete Student with confirmation
     const handleDeleteStudent = (id) => {

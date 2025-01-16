@@ -50,12 +50,12 @@ function StudentNavigationBar() {
   }, []);
 
   const workbooks = [
-    { name: '習作本1', path: 'Workbook_1' },
-    { name: '習作本2', path: 'Workbook_2' },
-    { name: '習作本3', path: 'Workbook_3' },
-    { name: '習作本4', path: 'Workbook_4' },
-    { name: '習作本5', path: 'Workbook_5' },
-    { name: '習作本6 建構中...', path: 'Workbook_6' },
+    { name: '習作本1', path: '習作本1' },
+    { name: '習作本2', path: '習作本2' },
+    { name: '習作本3', path: '習作本3' },
+    { name: '習作本4', path: '習作本4' },
+    { name: '習作本5', path: '習作本5' },
+    { name: '習作本6 建構中...', path: '習作本6' },
   ];
 
   const ReadingBooks = [
@@ -105,6 +105,15 @@ function StudentNavigationBar() {
         { name: 'Short Articles Reading 1', path: 'SARC1', icon: Goldflower },
       ],
     },
+  ];
+
+  const ListeningBooks = [
+    { name: '聽力本1', path: 'Listeningbook_1' },
+    { name: '聽力本2', path: 'Listeningbook_2' },
+    { name: '聽力本3', path: 'Listeningbook_3' },
+    { name: '聽力本4', path: 'Listeningbook_4' },
+    { name: '聽力本5', path: 'Listeningbook_5' },
+    { name: '聽力本6 建構中...', path: 'Listeningbook_6' },
   ];
 
 
@@ -159,6 +168,13 @@ function StudentNavigationBar() {
                         id={`offcanvasNavbarDropdown-expand-${expand}`}
                         className="navlink"
                       >
+                        <NavDropdown.Item as={Link} to="/home/playlist/addmusic" href="/home/playlist/addmusic" className="subnavlink">
+                          <img style={{ width: 18, marginRight: 4 }}
+                            src={Setting}
+                            alt="setting"
+                          />新增音檔
+                        </NavDropdown.Item>
+
                         <NavDropdown.Item as={Link} to="/home/playlist/controlpanel" href="/home/playlist/controlpanel" className="subnavlink">
                           <img style={{ width: 18, marginRight: 4 }}
                             src={Setting}
@@ -183,20 +199,19 @@ function StudentNavigationBar() {
                       </NavDropdown>
                   }
 
-                  {/* 習作本 */}
+                  {/* 聽力本 */}
 
                   <NavDropdown
-                    key={'end'}
                     id={`offcanvasNavbarDropdown-expand-${expand}`}
                     title={
                       <div className="d-flex align-items-center">
                         <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="bluebook" />
-                        習作本
+                        聽力本
                       </div>
                     }
                     className="navlink"
                   >
-                    {workbooks.map((workbook, index) => (
+                    {ListeningBooks.map((workbook, index) => (
                       <NavDropdown.Item
                         key={index}
                         as={Link}
@@ -209,42 +224,76 @@ function StudentNavigationBar() {
                     ))}
                   </NavDropdown>
 
-                  {/* 課本 */}
-                  <NavDropdown
-                    id={`offcanvasNavbarDropdown-expand-${expand}`}
-                    title={
-                      <div className="d-flex align-items-center">
-                        <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
-                        課本
-                      </div>
-                    }
-                    className="navlink"
-                  >
-                    {ReadingBooks.map((category, index) => (
+                  {/* 習作本 */}
+                  {
+                    localStorage.getItem('ae-plan') === 'listeningonly' ?
+                      ''
+                      :
                       <NavDropdown
-                        key={index}
-                        className="navlink"
+                        id={`offcanvasNavbarDropdown-expand-${expand}`}
                         title={
                           <div className="d-flex align-items-center">
-                            <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
-                            {category.title}
+                            <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="bluebook" />
+                            習作本
                           </div>
                         }
+                        className="navlink"
                       >
-                        {category.items.map((item, idx) => (
+                        {workbooks.map((workbook, index) => (
                           <NavDropdown.Item
-                            key={idx}
+                            key={index}
                             as={Link}
-                            to={`/home/playlist/${item.path}`}
-                            href={`/home/playlist/${item.path}`}
+                            to={`/home/playlist/${workbook.path}`}
+                            href={`/home/playlist/${workbook.path}`}
                             className="subnavlink"
                           >
-                            <img style={{ width: 18, marginRight: 4 }} src={item.icon || Books} alt="book" /> {item.name}
+                            <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="bluebook" /> {workbook.name}
                           </NavDropdown.Item>
                         ))}
                       </NavDropdown>
-                    ))}
-                  </NavDropdown>
+                  }
+
+                  {/* 課本 */}
+                  {
+                    localStorage.getItem('ae-plan') === 'listeningonly' ?
+                      ''
+                      :
+                      <NavDropdown
+                        id={`offcanvasNavbarDropdown-expand-${expand}`}
+                        title={
+                          <div className="d-flex align-items-center">
+                            <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
+                            課本
+                          </div>
+                        }
+                        className="navlink"
+                      >
+                        {ReadingBooks.map((category, index) => (
+                          <NavDropdown
+                            key={index}
+                            className="navlink"
+                            title={
+                              <div className="d-flex align-items-center">
+                                <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
+                                {category.title}
+                              </div>
+                            }
+                          >
+                            {category.items.map((item, idx) => (
+                              <NavDropdown.Item
+                                key={idx}
+                                as={Link}
+                                to={`/home/playlist/${item.path}`}
+                                href={`/home/playlist/${item.path}`}
+                                className="subnavlink"
+                              >
+                                <img style={{ width: 18, marginRight: 4 }} src={item.icon || Books} alt="book" /> {item.name}
+                              </NavDropdown.Item>
+                            ))}
+                          </NavDropdown>
+                        ))}
+                      </NavDropdown>
+                  }
 
                   <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlinkscoreboard">
                     <div className="username">

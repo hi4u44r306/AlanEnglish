@@ -13,6 +13,7 @@ function Signup() {
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
     const [classtype, setClassType] = useState("");
+    const [plan, setPlan] = useState("");
     // const [studentView, setStudentView] = useState([]);
 
     // useEffect(() => {
@@ -80,6 +81,7 @@ function Signup() {
                 name: name,
                 class: classtype,
                 email: email,
+                plan: plan,
                 Daytotaltimeplayed: 0,
                 Monthtotaltimeplayed: 0,
                 userimage: '6C9570CC-B276-424C-857F-11BBDD21C99B.png',
@@ -97,6 +99,7 @@ function Signup() {
         if (name === "password") setPassword(value);
         if (name === "name") setName(value);
         if (name === "classtype") setClassType(value);
+        if (name === "plan") setPlan(value);
     }
 
     return (
@@ -150,6 +153,21 @@ function Signup() {
                         onChange={handleChange}
                         value={classtype}
                     />
+                </div>
+
+                <div className="signupinput">
+                    <label>Plan</label>
+
+                    <select
+                        name="plan"
+                        id="plan"
+                        onChange={handleChange}
+                        value={plan}
+                    >
+                        <option value="" disabled>選擇Plan...</option>
+                        <option value="listeningonly">純聽力</option>
+                        <option value="allcover">全方位</option>
+                    </select>
                 </div>
 
                 <button onClick={signupUser} className="signupbtn">
