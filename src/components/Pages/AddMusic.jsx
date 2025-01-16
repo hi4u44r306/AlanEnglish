@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ref as storageref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
-import { child, get, onValue, ref as rtdbref, set, update } from "firebase/database";
+import { child, get, ref as rtdbref, update } from "firebase/database";
 import { rtdb, getstorage } from "./firebase-config";
 
 const AddMusic = () => {
