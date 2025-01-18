@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { ref as storageref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
-import { child, get, ref as rtdbref, update } from "firebase/database";
+import { ref as storageref, uploadBytesResumable, listAll, getDownloadURL, uploadBytes } from "firebase/storage";
+import { child, get, ref as rtdbref, set, update } from "firebase/database";
 import { rtdb, getstorage } from "./firebase-config";
 
 const AddMusic = () => {
     const [folders, setFolders] = useState([]);
     const [currentFolder, setCurrentFolder] = useState("");
     const [files, setFiles] = useState([]);
-    const [uploading, setUploading] = useState(false);
+    const [uploadingFiles, setUploadingFiles] = useState([]); // Track upload progress
     const [newFolderName, setNewFolderName] = useState("");
 
     useEffect(() => {
@@ -32,80 +32,80 @@ const AddMusic = () => {
         setFiles(urls);
     };
 
-
     const handleDrop = async (e) => {
         e.preventDefault();
-        setUploading(true);
 
-        const file = e.dataTransfer.files[0];
-        if (file && currentFolder) {
-            const storageRef = storageref(getstorage, `Music/${currentFolder}/${file.name}`);
-            await uploadBytes(storageRef, file);
-            fetchFiles();
-
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        if (!droppedFiles.length || !currentFolder) {
+            return;
         }
-        setUploading(false);
 
         const regex = /^(.*) (P\d+)\.mp3$/;
-        const match = file.name.match(regex);
 
-        if (!match) {
-            return null; // 或拋出錯誤
-        }
-
-        const [, bookName, page] = match;
-        const type = bookName; // 假設type與bookName相同
-        const musicName = `${bookName}/${file.name}`;
-
-
-        // 構造要寫入 Firebase 的資料
-        const initialData = {
-            bookname: bookName,
-            page: page,
-            type: type,
-            musicName: musicName,
-        };
-
-        // 合併資料
-        const finalData = {
-            ...initialData,
-        };
-        // 寫入 Firebase
-        const dbRef = rtdbref(rtdb, `Music/${currentFolder}/`);
-
-        async function addNewSubcollection(finalData) {
-            try {
-                const snapshot = await get(dbRef);
-                const data = snapshot.val();
-
-                // 計算子集合數量
-                const childCount = Object.keys(data || {}).length;
-                console.log('習作本1 總共有', childCount, '個子集合');
-
-                // 找到最大的 ID
-                let maxId = 0;
-                for (const key in data) {
-                    if (Number(key) > maxId) {
-                        maxId = Number(key);
-                    }
-                }
-
-                // 新增子集合 (假設 finalData 已經準備好)
-                const newId = maxId + 1;
-                console.log(newId);
-
-                // 設定新的子集合
-                const newRef = child(dbRef, newId.toString());
-                await update(newRef, finalData);
-                console.log('資料已成功新增');
-            } catch (error) {
-                console.error('錯誤發生:', error);
+        for (const file of droppedFiles) {
+            const match = file.name.match(regex);
+            if (!match) {
+                console.error(`File name "${file.name}" does not match the required pattern.`);
+                continue;
             }
+
+            const [, bookName, page] = match;
+            const type = bookName;
+            const musicName = `${bookName}/${file.name}`;
+
+            const initialData = {
+                bookname: bookName,
+                page: page,
+                type: type,
+                musicName: musicName,
+            };
+
+            const uploadTask = uploadBytesResumable(
+                storageref(getstorage, `Music/${currentFolder}/${file.name}`),
+                file
+            );
+
+            setUploadingFiles((prev) => [
+                ...prev,
+                { name: file.name, progress: 0 },
+            ]);
+
+            uploadTask.on(
+                "state_changed",
+                (snapshot) => {
+                    const progress = Math.round(
+                        (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                    );
+
+                    setUploadingFiles((prev) =>
+                        prev.map((upload) =>
+                            upload.name === file.name
+                                ? { ...upload, progress }
+                                : upload
+                        )
+                    );
+                },
+                (error) => {
+                    console.error(`Error uploading file "${file.name}":`, error);
+                },
+                async () => {
+                    // On complete
+                    const dbRef = rtdbref(rtdb, `Music/${currentFolder}/`);
+                    const snapshot = await get(dbRef);
+                    const data = snapshot.val();
+                    const maxId = Object.keys(data || {}).reduce((max, key) => Math.max(max, Number(key)), 0);
+
+                    const newId = maxId + 1;
+                    const newRef = child(dbRef, newId.toString());
+                    await update(newRef, { ...initialData });
+
+                    setUploadingFiles((prev) =>
+                        prev.filter((upload) => upload.name !== file.name)
+                    );
+                    fetchFiles(); // Refresh files
+                }
+            );
         }
-
-        addNewSubcollection(finalData);
-
-
     };
 
     const handleDragOver = (e) => {
@@ -114,21 +114,25 @@ const AddMusic = () => {
 
     const handleCreateFolder = async () => {
         if (newFolderName.trim()) {
-            const dummyFileRef = storageref(getstorage, `${newFolderName}/.keep`);
-            await uploadBytes(dummyFileRef, new Blob([])); // 創建一個空檔案以初始化資料夾
-            setNewFolderName("");
-            fetchFolders();
+            if (window.confirm("Are you sure you want to add this dropdown?")) {
+                const newDropdownRef = rtdbref(rtdb, `Music/${newFolderName}`);
+                await set(newDropdownRef, "");
 
+                const dummyFileRef = storageref(getstorage, `Music/${newFolderName}/.keep`);
+                await uploadBytes(dummyFileRef, new Blob([]));
 
+                setNewFolderName("");
+                fetchFolders();
+                alert("Dropdown added successfully.");
+            }
         }
-
     };
 
     return (
         <div style={{ padding: "20px", maxWidth: "600px", margin: "50px auto", textAlign: "center" }}>
             <h5>音樂上傳與播放</h5>
 
-            {/* 資料夾選擇或創建 */}
+            {/* Folder Selection */}
             <div>
                 <h6>選擇資料夾</h6>
                 <select
@@ -156,7 +160,7 @@ const AddMusic = () => {
                 </div>
             </div>
 
-            {/* 拖曳區 */}
+            {/* Drag-and-Drop Area */}
             {currentFolder && (
                 <div
                     onDrop={handleDrop}
@@ -169,11 +173,24 @@ const AddMusic = () => {
                     }}
                 >
                     <p>將檔案拖曳到此處上傳到「{currentFolder}」資料夾。</p>
-                    {uploading && <p>上傳中...</p>}
+                    {uploadingFiles.map((upload, index) => (
+                        <div key={index} style={{ marginTop: "10px", textAlign: "left" }}>
+                            <p>{upload.name}</p>
+                            <div style={{ background: "#f3f3f3", borderRadius: "5px", overflow: "hidden" }}>
+                                <div
+                                    style={{
+                                        width: `${upload.progress}%`,
+                                        background: "#4caf50",
+                                        height: "10px",
+                                    }}
+                                ></div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
-            {/* 檔案列表 */}
+            {/* File List */}
             <ul style={{ marginTop: "20px" }}>
                 {files.map((file, index) => (
                     <li key={index}>
@@ -183,7 +200,7 @@ const AddMusic = () => {
                 ))}
             </ul>
 
-            {/* 加載資料夾檔案 */}
+            {/* Refresh Files */}
             {currentFolder && (
                 <button style={{ marginTop: "20px" }} onClick={fetchFiles}>
                     加載 {currentFolder} 中的檔案

@@ -76,12 +76,14 @@ const Playlist = () => {
     };
     const sortedPlaylists = Object.values(playlists) // Get all values of the playlists object
         .flat() // Flatten the array if playlists contains arrays of tracks
-        .filter(item => item.type === playlistId) // Filter out invalid data
+        .filter(item => item && item.type) // Filter out null, undefined, or items without a 'type'
+        .filter(item => item.type === playlistId) // Further filter by playlistId
         .sort((a, b) => {
             const pageA = extractPageNumber(a.page);
             const pageB = extractPageNumber(b.page);
             return pageA - pageB;
         });
+
 
 
 
@@ -102,13 +104,24 @@ const Playlist = () => {
                 已通過 {completedTracks} 首 / 總共 {totalTracks} 首 ({Math.round(completionPercentage)}%)
             </div> */}
             <div className="Playlist-container">
-                {
+                {/* {
                     sortedPlaylists
-                        .filter(item => item.type === playlistId)
+                        .filter(item => item?.type === playlistId)
                         .map(item => (
                             <MusicCard key={item.musicName} music={item} />
                         ))
+                } */}
+                {
+                    sortedPlaylists
+                        .map(item =>
+                            item?.type === playlistId ? (
+                                <MusicCard key={item.musicName} music={item} />
+                            ) : item === null ? (
+                                <div key={Math.random()}>Invalid Item</div>
+                            ) : null
+                        )
                 }
+
             </div>
 
         </div>

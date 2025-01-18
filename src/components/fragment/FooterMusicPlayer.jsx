@@ -163,7 +163,6 @@ function FooterMusicPlayer({ music }) {
     const fetchAudioURL = async (fileName) => {
         try {
             const fileRef = storageRef(storage, `Music/${fileName}`);
-            console.log(fileRef);
             const url = await getDownloadURL(fileRef);
             setAudioURL(url);
         } catch (error) {
@@ -172,21 +171,29 @@ function FooterMusicPlayer({ music }) {
     };
 
     const handleClickNext = () => {
-        const currentIndex = musicRoot.findIndex(obj => obj.musicName === musicName);
-        const nextIndex = (currentIndex + 1) % musicRoot.length;
-        dispatch(setCurrentPlaying(musicRoot[nextIndex]));
+        const validMusicRoot = musicRoot.filter(obj => obj && obj.musicName); // Filter out invalid items
+        const currentIndex = validMusicRoot.findIndex(obj => obj.musicName === musicName);
+        if (currentIndex === -1) {
+            console.error('Current music is not found in the valid music list.');
+            return;
+        }
+        const nextIndex = (currentIndex + 1) % validMusicRoot.length;
+        dispatch(setCurrentPlaying(validMusicRoot[nextIndex]));
     };
 
     const handleClickPrev = () => {
-        const currentIndex = musicRoot.findIndex(obj => obj.musicName === musicName);
-        const prevIndex = (currentIndex - 1) % musicRoot.length;
-        dispatch(setCurrentPlaying(musicRoot[prevIndex]));
+        const validMusicRoot = musicRoot.filter(obj => obj && obj.musicName); // Filter out invalid items
+        const currentIndex = validMusicRoot.findIndex(obj => obj.musicName === musicName);
+        if (currentIndex === -1) {
+            console.error('Current music is not found in the valid music list.');
+            return;
+        }
+        const prevIndex = (currentIndex - 1 + validMusicRoot.length) % validMusicRoot.length;
+        dispatch(setCurrentPlaying(validMusicRoot[prevIndex]));
     };
 
     const handleEnd = () => {
         console.log('Track End');
-        const currentIndex = musicRoot.findIndex(obj => obj.musicName === musicName);
-        const nextIndex = (currentIndex + 1) % musicRoot.length;
 
         // 用戶沒反應次數達到10次
         // setNoInteractionCount(prev => prev + 1);
@@ -200,19 +207,35 @@ function FooterMusicPlayer({ music }) {
         //     updatetimeplayedtorealtimedatabase(); // Update time played to real-time database
         // }
 
-        // Handle music playback and success
-        if ((music + 1) >= playlists.length) {
+        // Filter out invalid items from musicRoot
+        const validMusicRoot = musicRoot.filter(obj => obj && obj.musicName);
+
+        // Find the index of the current track
+        const currentIndex = validMusicRoot.findIndex(obj => obj.musicName === musicName);
+
+        if (currentIndex === -1) {
+            console.error('Current track not found in the valid music list.');
+            return;
+        }
+
+        // Calculate the next index
+        const nextIndex = (currentIndex + 1) % validMusicRoot.length;
+
+        // Handle when reaching the end of the playlist
+        if (currentIndex + 1 >= playlists.length) {
             success(); // Call success if it's the last track
-            updatetimeplayedtorealtimedatabase(); // Update time played to real-time database
+            updatetimeplayedtorealtimedatabase(); // Update time played to the real-time database
             dispatch(setCurrentPlaying(playlists[0])); // Restart playlist from the beginning
         } else {
             success(); // Call success for each track
-            updatetimeplayedtorealtimedatabase(); // Update time played to real-time database
-            dispatch(setCurrentPlaying(musicRoot[nextIndex])); // Continue to the next track
+            updatetimeplayedtorealtimedatabase(); // Update time played to the real-time database
+            dispatch(setCurrentPlaying(validMusicRoot[nextIndex])); // Continue to the next track
         }
-        // resetInteractionTimer(); // Reset the interaction timer
-        dispatch(setCurrentPlaying(musicRoot[nextIndex]));
+
+        // Optional: Reset interaction timer if required
+        // resetInteractionTimer();
     };
+
 
     return (
         <div className={"footer-player"}>

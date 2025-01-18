@@ -24,6 +24,7 @@ import GetHW from "../components/Pages/GetHW";
 import ControlPanel from "../components/Pages/ControlPanel";
 import Developer from "../components/fragment/Developer";
 import AddMusic from "../components/Pages/AddMusic";
+import EditMainNavbar from "../components/fragment/EditMainNavbar";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -74,10 +75,19 @@ const App = () => {
         const fetchPlaylistsFromRTDB = () => {
             try {
                 const dbRef = ref(rtdb, 'Music');
+                const navItemsRef = ref(rtdb, 'Navbar/');
                 onValue(dbRef, (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
                         localStorage.setItem('ae-playlistData', JSON.stringify(data));
+                    }
+                });
+                onValue(navItemsRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        const childTitles = Object.keys(data);
+                        localStorage.setItem('ae-navData', JSON.stringify(data));
+                        localStorage.setItem('ae-NavItems', JSON.stringify(childTitles));
                     }
                 });
             } catch (error) {
@@ -123,6 +133,12 @@ const App = () => {
                             <Leaderboard />
                         </Containerfull>
                     } /> */}
+                    <Route path="/home/playlist/editnavbar" element={
+                        <Containerfull>
+                            <EditMainNavbar />
+                        </Containerfull>
+                    } />
+
                     <Route path="/home/playlist/controlpanel" element={
                         <Containerfull>
                             <ControlPanel />

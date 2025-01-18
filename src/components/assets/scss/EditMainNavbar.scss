@@ -1,0 +1,203 @@
+.edit-navbar-container {
+  margin: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.add-item-section-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.add-item-section-container button {
+  padding: 8px 16px;
+  font-size: 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+// Add New Dropdown and Item Section
+.add-dropdown-section,
+.add-item-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.add-dropdown-section input,
+.add-item-section input {
+  padding: 4px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.add-dropdown-section button,
+.add-item-section button {
+  padding: 8px 16px;
+  font-size: 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-dropdown-section button:hover,
+.add-item-section button:hover {
+  background-color: #45a049;
+}
+
+// Select dropdown styling
+select {
+  padding: 4px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+// Navbar item section
+.navbar-item {
+  margin-bottom: 20px;
+}
+
+.navbar-item h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-item ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.navbar-item li {
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.navbar-item li span {
+  font-size: 1rem;
+  color: #555;
+}
+
+.navbar-item button {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  background-color: #ff7043;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-left: 8px;
+}
+
+.navbar-item button:hover {
+  background-color: #e64a19;
+}
+
+// Delete Dropdown button styling
+.navbar-item button.delete-dropdown {
+  background-color: #f44336;
+}
+
+.navbar-item button.delete-dropdown:hover {
+  background-color: #d32f2f;
+}
+
+// SCSS for rendering navbar items
+.nav-item-container {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #efefef;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item-container h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-item-container h4 {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.nav-item-container ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.nav-item-container li {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.nav-item-container li span {
+  color: #555;
+}
+
+.nav-item-container button {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  background-color: #ff7043;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-left: 8px;
+}
+
+.nav-item-container button:hover {
+  background-color: #e64a19;
+}
+
+.nav-item-container .delete-dropdown {
+  background-color: #f44336;
+}
+
+.nav-item-container .delete-dropdown:hover {
+  background-color: #d32f2f;
+}

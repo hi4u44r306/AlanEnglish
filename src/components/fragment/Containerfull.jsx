@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../assets/scss/Containerfull.scss';
-import StudentNavigationBar from './StudentNavigationBar';
+import MainNavbar from './MainNavbar';
 import { useSelector } from 'react-redux';
 import FooterMusicPlayer from './FooterMusicPlayer';
 
@@ -28,7 +28,7 @@ const Containerfull = ({ children }) => {
                 backgroundColor: 'white',
                 userSelect: 'none',
             }}>
-                <StudentNavigationBar />
+                <MainNavbar />
             </div>
             <div style={{
                 marginTop: '10vh',
