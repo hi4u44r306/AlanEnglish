@@ -1,0 +1,69 @@
+{
+  "聽力本": [
+    { "name": "聽力本1", "path": "聽力本1" },
+    { "name": "聽力本2", "path": "聽力本2" },
+    { "name": "聽力本3", "path": "聽力本3" },
+    { "name": "聽力本4", "path": "聽力本4" },
+    { "name": "聽力本5", "path": "聽力本5" },
+    { "name": "聽力本6", "path": "聽力本6" }
+  ],
+  "習作本": [
+    { "name": "習作本1", "path": "習作本1" },
+    { "name": "習作本2", "path": "習作本2" },
+    { "name": "習作本3", "path": "習作本3" },
+    { "name": "習作本4", "path": "習作本4" },
+    { "name": "習作本5", "path": "習作本5" },
+    { "name": "習作本6", "path": "習作本6" }
+  ],
+  "課本": [
+    {
+      "title": "Super Easy Reading",
+      "items": [
+        { "name": "Super Easy Reading 3e 1", "path": "Super Easy Reading 1" },
+        { "name": "Super Easy Reading 3e 2", "path": "Super Easy Reading 2" },
+        { "name": "Super Easy Reading 3e 3", "path": "Super Easy Reading 3" }
+      ]
+    },
+    {
+      "title": "Steam Reading",
+      "items": [
+        { "name": "Steam Reading E1", "path": "Steam Reading 1" },
+        { "name": "Steam Reading E2", "path": "Steam Reading 2" },
+        { "name": "Steam Reading E3", "path": "Steam Reading 3" }
+      ]
+    },
+    {
+      "title": "Reading Lamp",
+      "items": [
+        { "name": "Reading Lamp 1 Reading", "path": "Reading Lamp 1" },
+        { "name": "Reading Lamp 2 Reading", "path": "Reading Lamp 2" },
+        { "name": "Reading Lamp 3 Reading", "path": "Reading Lamp 3" }
+      ]
+    },
+    {
+      "title": "Skyline",
+      "items": [
+        { "name": "Skyline1", "path": "Skyline1" },
+        { "name": "Skyline2", "path": "Skyline2" },
+        { "name": "Skyline3", "path": "Skyline3" }
+      ]
+    },
+    {
+      "title": "Reading Table",
+      "items": [
+        { "name": "Reading Table 1", "path": "Reading Table 1" },
+        { "name": "Reading Table 2", "path": "Reading Table 2" },
+        { "name": "Reading Table 3", "path": "Reading Table 3" }
+      ]
+    },
+    {
+      "title": "Short Articles Reading",
+      "items": [
+        {
+          "name": "Short Articles Reading 1",
+          "path": "Short Articles Reading 1"
+        }
+      ]
+    }
+  ]
+}

@@ -75,7 +75,7 @@ const App = () => {
         const fetchPlaylistsFromRTDB = () => {
             try {
                 const dbRef = ref(rtdb, 'Music');
-                const navItemsRef = ref(rtdb, 'Navbar/');
+                const navItemsRef = ref(rtdb, 'WebsiteNavbar/');
                 onValue(dbRef, (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
