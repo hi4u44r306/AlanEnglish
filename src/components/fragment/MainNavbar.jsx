@@ -136,6 +136,7 @@ function MainNavbar() {
               id={`offcanvasNavbar-expand-${expand}`}
               aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
               placement="end"
+              style={{ width: 'auto' }} // 設定 Offcanvas 寬度根據內容變化
             >
               <Offcanvas.Header closeButton>
                 {/* <Offcanvas.Title className="brand" as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" id={`offcanvasNavbarLabel-expand-${expand}`}>
@@ -143,7 +144,8 @@ function MainNavbar() {
                 </Offcanvas.Title> */}
               </Offcanvas.Header>
 
-              <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''}`} >
+              <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''} d-flex flex-column align-items-center`}>
+
                 <Nav>
 
 
