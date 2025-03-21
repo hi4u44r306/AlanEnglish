@@ -57,14 +57,12 @@ function MainNavbar() {
         key={`${type}Dropdown`}
         title={
           <div className="d-flex align-items-center">
-            <img style={{ width: 18, marginRight: 4 }}
-              src={Books}
-              alt="books"
-            />
+            <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
             {type}
           </div>
         }
         className="navlink"
+        align="end" // 新增這行，讓下拉選單對齊右側，避免手機消失
       >
         {/* Check if navData[type] is defined before mapping */}
         {navData[type] && navData[type].map((category, index) => (
@@ -136,7 +134,7 @@ function MainNavbar() {
               id={`offcanvasNavbar-expand-${expand}`}
               aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
               placement="end"
-              style={{ width: 'auto' }} // 設定 Offcanvas 寬度根據內容變化
+              className="w-auto" // 新增這行
             >
               <Offcanvas.Header closeButton>
                 {/* <Offcanvas.Title className="brand" as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" id={`offcanvasNavbarLabel-expand-${expand}`}>
@@ -144,7 +142,7 @@ function MainNavbar() {
                 </Offcanvas.Title> */}
               </Offcanvas.Header>
 
-              <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''} d-flex flex-column align-items-center`}>
+              <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''} d-flex flex-column align-items-center justify-content-center`}>
 
                 <Nav>
 
