@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import {
-    ref, set, get, child, onValue, query, orderByChild, equalTo
+    ref, set, get, child, onValue
 } from 'firebase/database';
 import { rtdb } from './firebase-config';
 
@@ -43,7 +43,7 @@ function CheckStudent() {
         const scanner = new Html5QrcodeScanner('reader', { fps: 10, qrbox: { width: 300, height: 100 } }, false);
         scanner.render(onScanSuccess, onScanError);
         return () => { scanner.clear().catch(() => { }); };
-    }, []);
+    },);
 
     async function onScanSuccess(decodedText) {
         const id = decodedText.trim();
