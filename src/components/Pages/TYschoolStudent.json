@@ -1,0 +1,39 @@
+{
+  "TYschoolStudent": {
+    "g1_01": { "name": "1年級學生1", "grade": 1, "expired": false },
+    "g1_02": { "name": "1年級學生2", "grade": 1, "expired": false },
+    "g1_03": { "name": "1年級學生3", "grade": 1, "expired": false },
+    "g1_04": { "name": "1年級學生4", "grade": 1, "expired": false },
+    "g1_05": { "name": "1年級學生5", "grade": 1, "expired": false },
+
+    "g2_01": { "name": "2年級學生1", "grade": 2, "expired": false },
+    "g2_02": { "name": "2年級學生2", "grade": 2, "expired": false },
+    "g2_03": { "name": "2年級學生3", "grade": 2, "expired": false },
+    "g2_04": { "name": "2年級學生4", "grade": 2, "expired": false },
+    "g2_05": { "name": "2年級學生5", "grade": 2, "expired": false },
+
+    "g3_01": { "name": "3年級學生1", "grade": 3, "expired": false },
+    "g3_02": { "name": "3年級學生2", "grade": 3, "expired": false },
+    "g3_03": { "name": "3年級學生3", "grade": 3, "expired": false },
+    "g3_04": { "name": "3年級學生4", "grade": 3, "expired": false },
+    "g3_05": { "name": "3年級學生5", "grade": 3, "expired": false },
+
+    "g4_01": { "name": "4年級學生1", "grade": 4, "expired": false },
+    "g4_02": { "name": "4年級學生2", "grade": 4, "expired": false },
+    "g4_03": { "name": "4年級學生3", "grade": 4, "expired": false },
+    "g4_04": { "name": "4年級學生4", "grade": 4, "expired": false },
+    "g4_05": { "name": "4年級學生5", "grade": 4, "expired": false },
+
+    "g5_01": { "name": "5年級學生1", "grade": 5, "expired": false },
+    "g5_02": { "name": "5年級學生2", "grade": 5, "expired": false },
+    "g5_03": { "name": "5年級學生3", "grade": 5, "expired": false },
+    "g5_04": { "name": "5年級學生4", "grade": 5, "expired": false },
+    "g5_05": { "name": "5年級學生5", "grade": 5, "expired": false },
+
+    "g6_01": { "name": "6年級學生1", "grade": 6, "expired": false },
+    "g6_02": { "name": "6年級學生2", "grade": 6, "expired": false },
+    "g6_03": { "name": "6年級學生3", "grade": 6, "expired": false },
+    "g6_04": { "name": "6年級學生4", "grade": 6, "expired": false },
+    "g6_05": { "name": "6年級學生5", "grade": 6, "expired": false }
+  }
+}

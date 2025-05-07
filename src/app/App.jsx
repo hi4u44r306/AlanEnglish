@@ -25,6 +25,7 @@ import ControlPanel from "../components/Pages/ControlPanel";
 import Developer from "../components/fragment/Developer";
 import AddMusic from "../components/Pages/AddMusic";
 import EditMainNavbar from "../components/fragment/EditMainNavbar";
+import CheckStudent from "../components/Pages/CheckStudent";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -116,6 +117,7 @@ const App = () => {
                 </Helmet>
                 <Routes>
                     <Route path="/" element={<Login />} />
+                    <Route path="/checkstudent" element={<CheckStudent />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />
                     <Route path="/home/playlist/addmusic" element={

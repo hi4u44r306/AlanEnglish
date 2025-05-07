@@ -62,37 +62,45 @@ function MainNavbar() {
           </div>
         }
         className="navlink"
-        align="end" // 新增這行，讓下拉選單對齊右側，避免手機消失
+        align="end"
       >
-        {/* Check if navData[type] is defined before mapping */}
         {navData[type] && navData[type].map((category, index) => (
-          // Check if `category.items` exists and render either directly or in a nested dropdown
           category.items && category.items.length > 0 ? (
             <NavDropdown
               key={index}
               title={
                 <div className="d-flex align-items-center">
-                  <img style={{ width: 18, marginRight: 4 }}
-                    src={Books}
-                    alt="books"
-                  />
+                  <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
                   {category.title}
                 </div>
               }
             >
               {category.items.map((item, idx) => (
-                <NavDropdown.Item
-                  key={idx}
-                  as={Link}
-                  to={`/home/playlist/${item.path}`}
-                  className="subnavlink"
-                >
-                  <img style={{ width: 18, marginRight: 4 }}
-                    src={BlueBook}
-                    alt="BlueBook"
-                  />
-                  {item.name}
-                </NavDropdown.Item>
+                item.subItems && item.subItems.length > 0 ? (
+                  <NavDropdown key={idx} title={item.name}>
+                    {item.subItems.map((subItem, subIdx) => (
+                      <NavDropdown.Item
+                        key={subIdx}
+                        as={Link}
+                        to={`/home/playlist/${subItem.path}`}
+                        className="subnavlink"
+                      >
+                        <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="BlueBook" />
+                        {subItem.name}
+                      </NavDropdown.Item>
+                    ))}
+                  </NavDropdown>
+                ) : (
+                  <NavDropdown.Item
+                    key={idx}
+                    as={Link}
+                    to={`/home/playlist/${item.path}`}
+                    className="subnavlink"
+                  >
+                    <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="BlueBook" />
+                    {item.name}
+                  </NavDropdown.Item>
+                )
               ))}
             </NavDropdown>
           ) : (
@@ -102,10 +110,7 @@ function MainNavbar() {
               to={`/home/playlist/${category.path}`}
               className="subnavlink"
             >
-              <img style={{ width: 18, marginRight: 4 }}
-                src={BlueBook}
-                alt="BlueBook"
-              />
+              <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="BlueBook" />
               {category.name}
             </NavDropdown.Item>
           )
@@ -113,6 +118,7 @@ function MainNavbar() {
       </NavDropdown>
     );
   };
+
 
 
   return (
@@ -234,6 +240,7 @@ function MainNavbar() {
                       {navusername || '----'}
                     </div>
                   </Nav.Link> */}
+
                 </Nav>
 
               </Offcanvas.Body>
