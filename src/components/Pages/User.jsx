@@ -388,7 +388,7 @@ const User = () => {
                 setDayPlayTime(snapshot.val().Daytotaltimeplayed);
                 setMonthPlayTime(snapshot.val().Monthtotaltimeplayed);
                 setClassname(snapshot.val().class);
-                setUsername(snapshot.val().name.toUpperCase());
+                setUsername(snapshot.val().name);
             } else {
                 setDayPlayTime();
             }

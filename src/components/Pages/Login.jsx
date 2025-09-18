@@ -305,41 +305,58 @@ function Login() {
         try {
             const userCredential = await signInWithEmailAndPassword(authentication, email, password);
             const userid = userCredential.user.uid;
-
+            const useremailtmp = userCredential._tokenResponse.email
+            const useremail = useremailtmp.split('@')[0]
+            console.log(userid)
             const dbRef = ref(rtdb);
             get(child(dbRef, `student/${userid}`)).then((snapshot) => {
-                const userName = snapshot.val().name.toUpperCase();
-                const onlinetime = snapshot.val().onlinetime;
+                const userData = snapshot.val() || {};  // snapshot.val() 可能是 null
+                const userName = useremail.toUpperCase();
+                const onlinetime = userData.onlinetime || "null";  // 用 userData 而不是 snapshot.val()
                 const musicRef = ref(rtdb, '/student/' + userid);
-                if (onlinetime !== currentDate) {
+
+                // 如果還沒資料就先初始化
+                if (!snapshot.exists()) {
                     update(musicRef, {
                         Daytotaltimeplayed: 0,
+                        Monthtotaltimeplayed: 0,
                         onlinemonth: currentMonth,
                         onlinetime: currentDate,
-                    })
-                }
-
-                if (snapshot.val().Resetallmusic === 'notupdated' || snapshot.val().Resetallmusic !== currentMonth + 'alreadyupdated') {
-
-                    const databaseRef = ref(rtdb, `student/${userid}`);
-                    update(databaseRef, {
-                        Monthtotaltimeplayed: 0,
-                        Resetallmusic: currentMonth + 'alreadyupdated',
+                        name: userName,
+                        email: useremailtmp,
+                        Resetallmusic: currentMonth + 'alreadyupdated'
                     });
+                } else {
+                    // 舊用戶更新
+                    if (onlinetime !== currentDate || onlinetime === "") {
+                        update(musicRef, {
+                            Daytotaltimeplayed: 0,
+                            onlinemonth: currentMonth,
+                            onlinetime: currentDate,
+                            name: userName,
+                            email: useremailtmp,
+                        });
+                    }
 
-                    // 這個是播放紀錄不能刪
-                    // const musicLogfileRef = ref(rtdb, `student/${userid}/MusicLogfile`);
-                    // remove(musicLogfileRef);
+                    if (userData.Resetallmusic === 'notupdated' || userData.Resetallmusic !== currentMonth + 'alreadyupdated') {
+                        update(musicRef, {
+                            Monthtotaltimeplayed: 0,
+                            Resetallmusic: currentMonth + 'alreadyupdated',
+                        });
+                    }
                 }
 
                 toast.promise(
                     new Promise(resolve => setTimeout(resolve, 500)),
                     {
-                        success: { render: () => <div className="notification">歡迎回來 {userName} !!</div> }
+                        success: {
+                            render: () => <div className="notification">歡迎回來 {userName} !!</div>
+                        }
                     },
                     setTimeout(() => window.location = "/home/playlist/userinfo", 2500)
                 );
-            })
+            });
+
 
         } catch (error) {
             toast.promise(

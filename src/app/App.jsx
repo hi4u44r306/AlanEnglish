@@ -26,6 +26,7 @@ import Developer from "../components/fragment/Developer";
 import AddMusic from "../components/Pages/AddMusic";
 import EditMainNavbar from "../components/fragment/EditMainNavbar";
 import CheckStudent from "../components/Pages/CheckStudent";
+import Links from "../components/Pages/Links";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -41,7 +42,7 @@ const App = () => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     localStorage.setItem('ae-class', data.class || '');
-                    localStorage.setItem('ae-username', data.name.toUpperCase());
+                    // localStorage.setItem('ae-username', data.name.toUpperCase());
                     localStorage.setItem('ae-userimage', data.userimage || '');
                     localStorage.setItem('ae-plan', data.plan || '');
                 }
@@ -117,6 +118,7 @@ const App = () => {
                 </Helmet>
                 <Routes>
                     <Route path="/" element={<Login />} />
+                    <Route path="/links" element={<Links />} />
                     <Route path="/checkstudent" element={<CheckStudent />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />

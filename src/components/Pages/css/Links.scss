@@ -1,0 +1,68 @@
+$app-bg: #f7f7f7;
+$button-bg: #4a90e2;
+$button-hover: #357ab8;
+$text-color: #333;
+$logo-color: #222;
+
+.Links {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background-color: $app-bg;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .links-header {
+    width: 100%;
+    padding: 20px 0;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: $logo-color;
+    }
+  }
+
+  .links-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+
+    h1 {
+      color: $text-color;
+      margin-bottom: 30px;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 800px;
+
+      .link-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px 0;
+        background-color: $button-bg;
+        color: white;
+        font-weight: bold;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: background 0.3s, transform 0.2s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+          background-color: $button-hover;
+          transform: translateY(-2px);
+        }
+      }
+    }
+  }
+}
