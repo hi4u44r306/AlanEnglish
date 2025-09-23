@@ -1,6 +1,6 @@
-$app-bg: #f7f7f7;
-$button-bg: #4a90e2;
-$button-hover: #357ab8;
+$app-bg: #f9fafc;
+$button-bg: linear-gradient(135deg, #4a90e2, #357ab8);
+$button-hover: linear-gradient(135deg, #5aa0f2, #468ad0);
 $text-color: #333;
 $logo-color: #222;
 
@@ -14,15 +14,16 @@ $logo-color: #222;
 
   .links-header {
     width: 100%;
-    padding: 20px 0;
     background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     text-align: center;
+    padding: 20px;
 
     .logo {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: bold;
       color: $logo-color;
+      letter-spacing: 1px;
     }
   }
 
@@ -31,36 +32,129 @@ $logo-color: #222;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 20px;
 
     h1 {
       color: $text-color;
-      margin-bottom: 30px;
+      margin-bottom: 40px;
+      font-size: 20px;
+      font-weight: 500;
     }
 
     .button-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
+      // flex-direction: column;
+      align-items: center;
       gap: 20px;
       width: 100%;
-      max-width: 800px;
+      max-width: 400px;
 
       .link-button {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 15px 0;
-        background-color: $button-bg;
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 18px;
+        background: $button-bg;
         color: white;
-        font-weight: bold;
+        font-size: 18px;
+        font-weight: 600;
         text-decoration: none;
-        border-radius: 8px;
-        transition: background 0.3s, transform 0.2s;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 
         &:hover {
-          background-color: $button-hover;
-          transform: translateY(-2px);
+          background: $button-hover;
+          transform: translateY(-3px) scale(1.03);
+          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+        }
+      }
+    }
+  }
+}
+.loginbrand {
+  padding: 20px;
+  font-family: "Nunito", sans-serif;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  user-select: none;
+}
+.loginbrand span:nth-child(1) {
+  color: red;
+  text-shadow: 1px 0px 0px red;
+}
+.loginbrand span:nth-child(2) {
+  color: #f45d01;
+  margin-right: 2px;
+  text-shadow: 1px 0px 0px #f45d01;
+}
+.loginbrand span:nth-child(3) {
+  color: #eeb902;
+  margin-right: 2px;
+  text-shadow: 1px 0px 0px #eeb902;
+}
+.loginbrand span:nth-child(4) {
+  color: #04cc0b;
+  margin-right: 2px;
+  text-shadow: 1px 0px 0px #04cc0b;
+}
+.loginbrand span:nth-child(5) {
+  display: space;
+  margin: 6px;
+}
+.loginbrand span:nth-child(6) {
+  color: #2d7dd2;
+  text-shadow: 1px 0px 0px #2d7dd2;
+}
+.loginbrand span:nth-child(7) {
+  color: #4062bb;
+  text-shadow: 1px 0px 0px #4062bb;
+}
+.loginbrand span:nth-child(8) {
+  color: #52489c;
+  text-shadow: 1px 0px 0px #52489c;
+}
+.loginbrand span:nth-child(9) {
+  color: red;
+  text-shadow: 1px 0px 0px red;
+}
+.loginbrand span:nth-child(10) {
+  color: #f45d01;
+  text-shadow: 1px 0px 0px #f45d01;
+}
+.loginbrand span:nth-child(11) {
+  color: #eeb902;
+  text-shadow: 1px 0px 0px #eeb902;
+}
+.loginbrand span:nth-child(12) {
+  color: #4062bb;
+  text-shadow: 1px 0px 0px #4062bb;
+}
+
+/* 📱 RWD 手機版 */
+@media (max-width: 768px) {
+  .Links {
+    .links-header {
+      .logo {
+        font-size: 26px;
+      }
+    }
+
+    .links-main {
+      padding: 30px 15px;
+
+      h1 {
+        font-size: 18px;
+        margin-bottom: 25px;
+      }
+
+      .button-grid {
+        gap: 15px;
+
+        .link-button {
+          font-size: 16px;
+          padding: 14px;
         }
       }
     }
