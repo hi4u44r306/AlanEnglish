@@ -28,6 +28,7 @@ import EditMainNavbar from "../components/fragment/EditMainNavbar";
 import CheckStudent from "../components/Pages/CheckStudent";
 import Links from "../components/Pages/Links";
 import ABC from "../components/Pages/ABC";
+import LinkAdmin from "../components/Pages/Link Admin Page";
 // import Homework from "../components/Pages/Homework";
 // import Makehomework from "../components/Pages/Makehomework";
 
@@ -121,6 +122,7 @@ const App = () => {
                     <Route path="/" element={<Login />} />
                     <Route path="/home/playlist/37bhpv285364" element={<ABC />} />
                     <Route path="/links" element={<Links />} />
+                    <Route path="/linksadmin" element={<LinkAdmin />} />
                     <Route path="/checkstudent" element={<CheckStudent />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />

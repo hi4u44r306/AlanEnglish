@@ -4,74 +4,6 @@ $button-hover: linear-gradient(135deg, #5aa0f2, #468ad0);
 $text-color: #333;
 $logo-color: #222;
 
-.Links {
-  font-family: "Helvetica Neue", Arial, sans-serif;
-  background-color: $app-bg;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  .links-header {
-    width: 100%;
-    background-color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    text-align: center;
-    padding: 20px;
-
-    .logo {
-      font-size: 32px;
-      font-weight: bold;
-      color: $logo-color;
-      letter-spacing: 1px;
-    }
-  }
-
-  .links-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    h1 {
-      color: $text-color;
-      margin-bottom: 40px;
-      font-size: 20px;
-      font-weight: 500;
-    }
-
-    .button-grid {
-      display: flex;
-      flex-wrap: wrap;
-      // flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      width: 100%;
-      max-width: 400px;
-
-      .link-button {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 18px;
-        background: $button-bg;
-        color: white;
-        font-size: 18px;
-        font-weight: 600;
-        text-decoration: none;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-
-        &:hover {
-          background: $button-hover;
-          transform: translateY(-3px) scale(1.03);
-          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-        }
-      }
-    }
-  }
-}
 .loginbrand {
   padding: 20px;
   font-family: "Nunito", sans-serif;
@@ -132,31 +64,49 @@ $logo-color: #222;
   text-shadow: 1px 0px 0px #4062bb;
 }
 
-/* 📱 RWD 手機版 */
-@media (max-width: 768px) {
-  .Links {
-    .links-header {
-      .logo {
-        font-size: 26px;
-      }
-    }
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); // 電腦版 3 欄
+  gap: 24px;
+  width: 100%;
+  // max-width: 900px;
+  padding: 40px 20px;
+  justify-items: center;
+}
 
-    .links-main {
-      padding: 30px 15px;
+.link-button {
+  width: 100%;
+  max-width: 240px; // 按鈕最大寬度一致
+  padding: 16px 12px;
+  background: $button-bg;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 14px;
+  transition: 0.25s ease;
+  box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.1);
 
-      h1 {
-        font-size: 18px;
-        margin-bottom: 25px;
-      }
+  &:hover {
+    background: $button-hover;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
+}
 
-      .button-grid {
-        gap: 15px;
+/* 平板：2 欄 */
+@media (max-width: 1024px) {
+  .button-grid {
+    grid-template-columns: repeat(3, 1fr);
+    // max-width: 700px;
+  }
+}
 
-        .link-button {
-          font-size: 16px;
-          padding: 14px;
-        }
-      }
-    }
+/* 手機：1 欄 */
+@media (max-width: 600px) {
+  .button-grid {
+    grid-template-columns: repeat(1, 1fr);
+    // max-width: 380px;
   }
 }
