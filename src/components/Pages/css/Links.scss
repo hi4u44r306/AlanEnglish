@@ -78,8 +78,8 @@ $logo-color: #222;
 .section {
   width: 100%;
   max-width: 1100px;
-  margin: 0 auto 40px auto;
-  padding: 0 20px 30px 20px;
+  margin: 0 auto 20px auto;
+  padding: 0 20px 10px 20px;
   background: white;
   border-radius: 18px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
@@ -90,7 +90,7 @@ $logo-color: #222;
   font-weight: 700;
   color: $text-color;
   margin: 0;
-  padding: 24px 0 10px 0;
+  padding: 10px 0 10px 0;
   text-align: left;
   border-left: 6px solid #357ab8;
   padding-left: 14px;
@@ -104,7 +104,7 @@ $logo-color: #222;
   grid-template-columns: repeat(5, 1fr);
   gap: 24px;
   width: 100%;
-  padding: 30px 10px 10px 10px;
+  padding: 5px;
   justify-items: center;
 }
 
@@ -112,7 +112,7 @@ $logo-color: #222;
 .link-button {
   width: 100%;
   max-width: 240px;
-  padding: 16px 12px;
+  padding: 10px 10px;
   background: $button-bg;
   color: #fff;
   font-size: 18px;
