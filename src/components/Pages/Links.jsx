@@ -4,6 +4,7 @@ import './css/Links.scss';
 
 function Links() {
     const [links, setLinks] = useState({
+        special: [],
         exercise: [],
         listening: [],
         discovery: [],
@@ -21,19 +22,23 @@ function Links() {
             const listening = [];
             const discovery = [];
             const speedphonics = [];
+            const special = [];
 
             Object.keys(data).forEach(key => {
                 const item = data[key];
-                const title = item.title;
+                const title = item.title.toLowerCase();
 
                 if (title.includes("習作本")) {
                     exercise.push(item);
                 } else if (title.includes("聽力本")) {
                     listening.push(item);
-                } else if (title.toLowerCase().includes("discovery")) {
+                } else if (title.includes("discovery")) {
                     discovery.push(item);
-                } else if (title.toLowerCase().includes("speed phonics")) {
+                } else if (title.includes("speed phonics")) {
                     speedphonics.push(item);
+                } else {
+                    // ⭐ 不屬於任何預設分類 → Special
+                    special.push(item);
                 }
             });
 
@@ -44,29 +49,35 @@ function Links() {
                 exercise: sortZH(exercise),
                 listening: sortZH(listening),
                 discovery: sortZH(discovery),
-                speedphonics: sortZH(speedphonics)
+                speedphonics: sortZH(speedphonics),
+                special: sortZH(special)
             });
         });
     }, []);
 
-    const renderSection = (title, items) => (
-        <div className="section">
-            <h2 className="section-title">{title}</h2>
-            <div className="button-grid">
-                {items.map((link, index) => (
-                    <a
-                        key={index}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="link-button"
-                    >
-                        {link.title}
-                    </a>
-                ))}
+    // ⭐ 若該分類沒有資料，直接不顯示
+    const renderSection = (title, items) => {
+        if (!items || items.length === 0) return null;
+
+        return (
+            <div className="section">
+                <h2 className="section-title">{title}</h2>
+                <div className="button-grid">
+                    {items.map((link, index) => (
+                        <a
+                            key={index}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="link-button"
+                        >
+                            {link.title}
+                        </a>
+                    ))}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="Links">
@@ -79,12 +90,11 @@ function Links() {
             </header>
 
             <main className="links-main">
-
+                {renderSection("Special", links.special)}
                 {renderSection("習作本", links.exercise)}
                 {renderSection("聽力本", links.listening)}
                 {renderSection("Discovery", links.discovery)}
                 {renderSection("Speed Phonics", links.speedphonics)}
-
             </main>
         </div>
     );
