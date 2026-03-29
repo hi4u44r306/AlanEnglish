@@ -5,7 +5,7 @@ import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAEDlCj0bsRoiacVPhFHff_eb0RfqeB8uA",
+  apiKey: "AIzaSyAKut6TW8-AHuUmbkgFRECuamobNXknZgk",
   authDomain: "alan-english-listening.firebaseapp.com",
   databaseURL: "https://alan-english-listening-default-rtdb.firebaseio.com",
   projectId: "alan-english-listening",
