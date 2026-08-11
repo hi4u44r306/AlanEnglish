@@ -22,7 +22,7 @@ function MusicCard(props) {
     const {
         bookname,
         page,
-        musicName,
+        // musicName,
         audioURL
     } = props.music;
 
