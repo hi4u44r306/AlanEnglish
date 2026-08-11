@@ -22,7 +22,7 @@ function MusicPlayer({ music }) {
     const {
         bookname,
         page,
-        musicName,
+        // musicName,
         audioURL,
         book_id
     } = currTrack || {};

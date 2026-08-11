@@ -1,463 +1,348 @@
-// import React from "react";
-// // import HeadPhone from '../assets/img/headphones.svg';
-// // import HeadPhone from '../assets/img/User-Image1.png';
-// import HeadPhone from '../assets/img/Login2.png';
-// import './css/Login.scss';
-// import firebase from "./firebase";
-// import { ToastContainer, toast } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-
-// class Login extends React.Component {
-
-//     constructor(props) {
-//         super(props)
-//         this.login = this.login.bind(this);
-//         this.handleChange = this.handleChange.bind(this);
-//         this.handleKeyDown = this.handleKeyDown.bind(this);
-//         this.state = {
-//             email: "",
-//             password: "",
-//             isLoading: false,
-//         }
-//     }
-
-//     // success = (userCredential) =>  {
-//     //     toast.success('😻Welcome😻',{
-//     //         className:"notification",
-//     //         position: "top-center",
-//     //         autoClose: 500,
-//     //         hideProgressBar: false,
-//     //         closeOnClick: true,
-//     //         pauseOnHover: false,
-//     //         draggable: true,
-//     //         progress: undefined,
-//     //         theme: "colored",
-//     //         });
-//     //         setTimeout(function(){window.location = "/home/leaderboard";} ,500); 
-
-//     //     };
-
-//     error = () => {
-//         toast.error('帳號密碼錯誤 🤯', {
-//             className: "notification",
-//             position: "top-center",
-//             autoClose: 3000,
-//             hideProgressBar: false,
-//             closeOnClick: true,
-//             pauseOnHover: false,
-//             draggable: true,
-//             progress: undefined,
-//             theme: "colored",
-//         });
-//     };
-//     expire = () => {
-//         toast.error('此帳號已註銷', {
-//             className: "notification",
-//             position: "top-center",
-//             autoClose: 3000,
-//             hideProgressBar: false,
-//             closeOnClick: true,
-//             pauseOnHover: false,
-//             draggable: true,
-//             progress: undefined,
-//             theme: "colored",
-//         });
-//     };
-
-//     async login(e) {
-//         e.preventDefault();
-
-//         if (!this.state.email || !this.state.password) {
-//             toast.error('Please enter email and password', {
-//                 className: "notification",
-//                 position: "top-center",
-//                 autoClose: 3000,
-//                 hideProgressBar: false,
-//                 closeOnClick: true,
-//                 pauseOnHover: false,
-//                 draggable: true,
-//                 progress: undefined,
-//                 theme: "colored",
-//             });
-//             return;
-//         }
-
-//         this.setState({ isLoading: true });
-
-//         setTimeout(() => {
-//             this.setState({ isLoading: false });
-//         }, 2000);
-
-//         const { email, password } = this.state;
-//         const db = firebase.firestore();
-//         const currentDate = new Date().toJSON().slice(0, 10);
-//         const currentMonth = new Date().toJSON().slice(0, 7);
-
-//         try {
-//             const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-//             const userDoc = await db.collection('student').doc(userCredential.user.uid).get();
-//             const userName = userDoc.data().name.toUpperCase();
-//             const userRef = db.collection('student').doc(userCredential.user.uid);
-
-//             userRef.get().then((doc) => {
-//                 const onlinetime = doc.data().onlinetime;
-//                 if (onlinetime !== currentDate) {
-//                     userRef.update({
-//                         onlinemonth: currentMonth,
-//                         onlinetime: currentDate,
-//                         currdatetimeplayed: 0,
-//                     });
-//                 }
-//             });
-
-//             userRef.get().then((doc) => {
-//                 if (doc.data().Resetallmusic === 'notupdated' || doc.data().Resetallmusic !== currentMonth + 'alreadyupdated') {
-//                     userRef.set({
-//                         totaltimeplayed: 0,
-//                         Resetallmusic: currentMonth + 'alreadyupdated',
-//                     }, { merge: true })
-//                     firebase.database().ref().child("student").child(userCredential.user.uid).child("totaltimeplayed").update({
-//                         totaltimeplayed: 0,
-//                     });
-//                 } else {
-//                 }
-//             }).catch((error) => {
-//                 console.log(error);
-//             })
-
-//             toast.promise(
-//                 new Promise(resolve => setTimeout(resolve, 500)),
-//                 {
-//                     success: { render: () => <div className="notification">歡迎回來 {userName}!!</div> }
-//                 },
-//                 setTimeout(() => window.location = "/home/leaderboard", 2500)
-//             );
-
-//         } catch (error) {
-//             toast.promise(
-//                 new Promise((resolve, reject) => setTimeout(reject, 2500)),
-//                 { pending: 'Loading...', error: { render: () => <div className="notification">帳號密碼錯誤 🤯</div> } }
-//             );
-//         }
-//     }
-
-
-//     handleChange(e) {
-//         this.setState({
-//             [e.target.name]: e.target.value
-//         })
-//     }
-
-//     handleKeyDown(event) {
-//         if (event.key === 'Enter' && this.state.email && this.state.password) {
-//             this.login(event);
-//         }
-//     }
-
-//     render() {
-//         const { isLoading } = this.state;
-//         return (
-//             <>
-
-//                 <section className="Login">
-//                     <div className="Logincontainer">
-//                         <div className="Left">
-//                             <div className="english-method">
-//                                 <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
-//                                 <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
-//                                 <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
-//                                     才能有效地背誦並牢記單字！
-//                                 </p>
-//                             </div>
-//                             <img className="head-phone-img" src={HeadPhone} alt="" />
-//                         </div>
-
-//                         <div className="Right">
-//                             <div className="loginbrand">
-//                                 <div className="loginbrandword">
-//                                     <span>A</span>
-//                                     <span>L</span>
-//                                     <span>A</span>
-//                                     <span>N</span>
-//                                     <span> </span>
-//                                     <span>E</span>
-//                                     <span>N</span>
-//                                     <span>G</span>
-//                                     <span>L</span>
-//                                     <span>I</span>
-//                                     <span>S</span>
-//                                     <span>H</span>
-//                                 </div>
-//                                 <div className="loginbrandbottom">
-//                                     <div className="loginbrandbottomtext">系統化 | 口語化 | 聽力導向 </div>
-//                                 </div>
-//                             </div>
-//                             <div className="loginsection">
-//                                 <label>帳號</label>
-//                                 <input
-//                                     className="rightinput"
-//                                     name="email"
-//                                     type="email"
-//                                     id="email"
-//                                     placeholder="輸入電子郵件或帳號..."
-//                                     onChange={this.handleChange}
-//                                     onKeyDown={this.handleKeyDown}
-//                                     value={this.state.email}
-//                                 />
-
-//                                 <label>密碼</label>
-//                                 <input
-//                                     className="rightinput"
-//                                     name="password"
-//                                     type="password"
-//                                     id="password"
-//                                     placeholder="輸入密碼..."
-//                                     onChange={this.handleChange}
-//                                     onKeyDown={this.handleKeyDown}
-//                                     value={this.state.password}
-//                                 />
-
-//                                 <button
-//                                     onClick={this.login}
-//                                     className="loginbtn"
-//                                     type="submit"
-//                                     disabled={isLoading}
-//                                 >
-//                                     {isLoading ? "登入中..." : "登入"}
-
-//                                 </button>
-//                                 <a style={{ fontSize: 18, fontWeight: 700 }} href="/solve" alt="/solve" >無法登入嗎 ? 點這裡</a>
-//                                 <ToastContainer
-//                                     position="top-center"
-//                                     autoClose={2000}
-//                                     limit={1}
-//                                     hideProgressBar={false}
-//                                     newestOnTop={false}
-//                                     closeOnClick
-//                                     rtl={false}
-//                                     pauseOnFocusLoss
-//                                     draggable
-//                                     pauseOnHover
-//                                 />
-//                                 <div className="logincopyrightcontainer">
-//                                     <span className="logincopyright" href="/">© 2023 Alan English Inc.</span>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </section>
-//             </>
-
-//         );
-//     }
-// }
-
-// export default Login;
-
 import React, { useState } from "react";
-import HeadPhone from '../assets/img/Login2.png';
-import './css/Login.scss';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { authentication, rtdb } from "./firebase-config";
-import { child, get, ref, update } from "firebase/database";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { ToastContainer, toast } from "react-toastify";
+import { authentication } from "./firebase-config";
+import { supabase } from "./supabase-config";
+import HeadPhone from "../assets/img/Login2.png";
+import "react-toastify/dist/ReactToastify.css";
+import "./css/Login.scss";
 
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
-    const handleChange = (e) => {
-        if (e.target.name === "email") setEmail(e.target.value);
-        if (e.target.name === "password") setPassword(e.target.value);
-    }
+    const showError = (message) => {
+        toast.error(message, {
+            position: "top-center",
+            autoClose: 2500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            theme: "colored"
+        });
+    };
 
-    const handleKeyDown = (event) => {
-        if (event.key === 'Enter' && email && password) login();
-    }
+    const showSuccess = (name) => {
+        toast.success(`歡迎回來 ${name}！`, {
+            position: "top-center",
+            autoClose: 1200,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            theme: "colored"
+        });
+    };
 
-    const login = async () => {
-        if (!email || !password) {
-            toast.error('Please enter email and password', {
-                className: "notification",
-                position: "top-center",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-            });
-            return;
-        }
+    const saveUserToLocalStorage = (firebaseUser, student) => {
+        localStorage.setItem("ae-useruid", firebaseUser.uid);
+        localStorage.setItem("ae-studentid", String(student.id || ""));
+        localStorage.setItem("ae-username", student.name || firebaseUser.email?.split("@")[0] || "");
+        localStorage.setItem("ae-class", student.class || "");
+        localStorage.setItem("ae-userimage", student.user_image || "");
+        localStorage.setItem("ae-plan", student.plan || "");
+        localStorage.setItem("ae-role", student.role || "student");
+    };
+
+    const findStudentByUid = async (uid) => {
+        return await supabase
+            .from("students")
+            .select("*")
+            .eq("firebase_uid", uid)
+            .maybeSingle();
+    };
+
+    const findStudentByEmail = async (studentEmail) => {
+        return await supabase
+            .from("students")
+            .select("*")
+            .ilike("email", studentEmail)
+            .maybeSingle();
+    };
+
+    const login = async (e) => {
+        e.preventDefault();
+        const cleanEmail = email.trim().toLowerCase();
+
+        if (!cleanEmail) return showError("請輸入 Email");
+        if (!password) return showError("請輸入密碼");
 
         setIsLoading(true);
 
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 2000);
-
-        const currentDate = new Date().toJSON().slice(0, 10);
-        const currentMonth = new Date().toJSON().slice(0, 7);
-
         try {
-            const userCredential = await signInWithEmailAndPassword(authentication, email, password);
-            const userid = userCredential.user.uid;
-            const useremailtmp = userCredential._tokenResponse.email
-            const useremail = useremailtmp.split('@')[0]
-            console.log(userCredential)
-            const dbRef = ref(rtdb);
+            const credential = await signInWithEmailAndPassword(authentication, cleanEmail, password);
+            const firebaseUser = credential.user;
 
-            get(child(dbRef, `student/${userid}`)).then((snapshot) => {
-                const userData = snapshot.val() || {};  // snapshot.val() 可能是 null
-                const userName = useremail.toUpperCase();
-                const onlinetime = userData.onlinetime || "null";  // 用 userData 而不是 snapshot.val()
-                const musicRef = ref(rtdb, '/student/' + userid);
+            console.log("🔥 Firebase 登入成功");
+            console.log("Firebase UID:", firebaseUser.uid);
+            console.log("Firebase Email:", firebaseUser.email);
 
-                // 如果還沒資料就先初始化
-                if (!snapshot.exists()) {
-                    update(musicRef, {
-                        Daytotaltimeplayed: 0,
-                        Monthtotaltimeplayed: 0,
-                        onlinemonth: currentMonth,
-                        onlinetime: currentDate,
-                        name: userName,
-                        email: useremailtmp,
-                        Resetallmusic: currentMonth + 'alreadyupdated'
-                    });
-                } else {
-                    // 舊用戶更新
-                    if (onlinetime !== currentDate || onlinetime === "") {
-                        update(musicRef, {
-                            Daytotaltimeplayed: 0,
-                            onlinemonth: currentMonth,
-                            onlinetime: currentDate,
-                            name: userName,
-                            email: useremailtmp,
-                        });
-                    }
+            let student = null;
 
-                    if (userData.Resetallmusic === 'notupdated' || userData.Resetallmusic !== currentMonth + 'alreadyupdated') {
-                        update(musicRef, {
-                            Monthtotaltimeplayed: 0,
-                            Resetallmusic: currentMonth + 'alreadyupdated',
-                        });
-                    }
+            const { data: studentByUid, error: uidError } = await findStudentByUid(firebaseUser.uid);
+
+            if (uidError) {
+                console.error("Supabase UID 查詢失敗:", uidError);
+                await signOut(authentication);
+                showError(`Supabase 讀取失敗：${uidError.message}`);
+                return;
+            }
+
+            if (studentByUid) {
+                student = studentByUid;
+                console.log("✅ 使用 UID 找到學生:", student);
+            }
+
+            if (!student) {
+                console.log("⚠️ UID 找不到，改用 Email 搜尋");
+
+                const { data: studentByEmail, error: emailError } = await findStudentByEmail(
+                    firebaseUser.email || cleanEmail
+                );
+
+                if (emailError) {
+                    console.error("Supabase Email 查詢失敗:", emailError);
+                    await signOut(authentication);
+                    showError(`Supabase 讀取失敗：${emailError.message}`);
+                    return;
                 }
 
-                toast.promise(
-                    new Promise(resolve => setTimeout(resolve, 500)),
-                    {
-                        success: {
-                            render: () => <div className="notification">歡迎回來 {userName} !!</div>
+                if (studentByEmail) {
+                    if (studentByEmail.firebase_uid && studentByEmail.firebase_uid !== firebaseUser.uid) {
+                        await signOut(authentication);
+                        showError("這個 Email 已綁定其他 Firebase 帳號");
+                        return;
+                    }
+
+                    if (!studentByEmail.firebase_uid) {
+                        const { data: updatedStudent, error: bindError } = await supabase
+                            .from("students")
+                            .update({
+                                firebase_uid: firebaseUser.uid,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq("id", studentByEmail.id)
+                            .select("*")
+                            .single();
+
+                        if (bindError) {
+                            console.error("UID 綁定失敗:", bindError);
+                            await signOut(authentication);
+                            showError(`UID 綁定失敗：${bindError.message}`);
+                            return;
                         }
-                    },
-                    setTimeout(() => window.location = "/userinfo", 2500)
-                );
-            });
 
+                        student = updatedStudent;
+                        console.log("🔗 已自動綁定 Firebase UID:", student);
+                    } else {
+                        student = studentByEmail;
+                    }
+                }
+            }
 
+            if (!student) {
+                console.error("❌ Supabase 完全找不到學生資料");
+                await signOut(authentication);
+                showError("Firebase 登入成功，但 Supabase 找不到這位學生");
+                return;
+            }
+
+            saveUserToLocalStorage(firebaseUser, student);
+
+            const { error: updateError } = await supabase
+                .from("students")
+                .update({ updated_at: new Date().toISOString() })
+                .eq("id", student.id);
+
+            if (updateError) console.warn("更新 updated_at 失敗:", updateError);
+
+            console.log("✅ 登入完成:", student);
+            showSuccess(student.name || "同學");
+
+            setTimeout(() => {
+                window.location.href = "/userinfo";
+            }, 900);
         } catch (error) {
-            toast.promise(
-                new Promise((resolve, reject) => setTimeout(reject, 2500)),
-                { pending: 'Loading...', error: { render: () => <div className="notification">帳號密碼錯誤 🤯</div> } }
-            );
+            console.error("❌ Login error:", error);
+
+            switch (error.code) {
+                case "auth/invalid-email":
+                    showError("Email 格式不正確");
+                    break;
+                case "auth/invalid-credential":
+                case "auth/wrong-password":
+                case "auth/user-not-found":
+                    showError("帳號或密碼錯誤");
+                    break;
+                case "auth/user-disabled":
+                    showError("此帳號已被停用");
+                    break;
+                case "auth/too-many-requests":
+                    showError("登入失敗次數過多，請稍後再試");
+                    break;
+                case "auth/network-request-failed":
+                    showError("Firebase 登入服務連線失敗");
+                    break;
+                default:
+                    showError(error?.message || "登入失敗");
+            }
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
-        <>
-            <section className="Login">
-                <div className="Logincontainer">
+        <section className="Login">
+            <div className="login-bg-circle login-bg-circle-one"></div>
+            <div className="login-bg-circle login-bg-circle-two"></div>
 
-                    <div className="Left">
-                        <div className="english-method">
-                            <p>步驟一：能聽清楚句子中每個單字,並瞭解中文句意。</p>
-                            <p>步驟二：聽問句與提示後,能馬上完整地回答！回答速度可以比MP3更快！</p>
-                            <p>步驟三：只唸幾次所強記的單字忘得快!!!!所以，依學生個別的專注能力，前兩個步驟需要 20～80 次反覆地聽讀跟唸,
-                                才能有效地背誦並牢記單字！
-                            </p>
-                        </div>
-                        <img className="head-phone-img" src={HeadPhone} alt="" />
-                    </div>
-
-                    <div className="Right">
-                        {/* <a className="game-title" href="/tradelogin" alt="/tradelogin" >奕彬老師 理財達人投資遊戲點這裡!!!</a> */}
-                        <div className="loginbrand">
-                            <div className="loginbrandword">
-                                <span>A</span>
-                                <span>L</span>
-                                <span>A</span>
-                                <span>N</span>
-                                <span> </span>
-                                <span>E</span>
-                                <span>N</span>
-                                <span>G</span>
-                                <span>L</span>
-                                <span>I</span>
-                                <span>S</span>
-                                <span>H</span>
+            <div className="login-container">
+                <div className="login-left">
+                    <div className="login-left-content">
+                        <div className="login-brand">
+                            <div className="login-brand-word">
+                                <span>A</span><span>L</span><span>A</span><span>N</span>
+                                <i></i>
+                                <span>E</span><span>N</span><span>G</span><span>L</span><span>I</span><span>S</span><span>H</span>
                             </div>
-                            <div className="loginbrandbottom">
-                                <div className="loginbrandbottomtext">系統化 | 口語化 | 聽力導向 </div>
-                            </div>
+                            <div className="login-brand-subtitle">Learn English · Listen Better</div>
                         </div>
-                        <div className="loginsection">
-                            <label>帳號</label>
-                            <input
-                                className="rightinput"
-                                name="email"
-                                type="email"
-                                id="email"
-                                placeholder="輸入電子郵件或帳號..."
-                                onChange={handleChange}
-                                onKeyDown={handleKeyDown}
-                                value={email}
-                            />
 
-                            <label>密碼</label>
-                            <input
-                                className="rightinput"
-                                name="password"
-                                type="password"
-                                id="password"
-                                placeholder="輸入密碼..."
-                                onChange={handleChange}
-                                onKeyDown={handleKeyDown}
-                                value={password}
-                            />
+                        <div className="login-hero">
+                            <div className="login-hero-text">
+                                <span className="login-badge">ALAN ENGLISH</span>
+                                <h1>每天聽一點，<br />英文進步一點。</h1>
+                                <p>透過反覆聆聽與口語練習，讓英文從「聽得懂」慢慢變成「說得出來」。</p>
+                            </div>
+                            <img className="login-headphone" src={HeadPhone} alt="Alan English" />
+                        </div>
 
-                            <button
-                                onClick={login}
-                                className="loginbtn"
-                                type="submit"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? "登入中..." : "登入"}
-                            </button>
-                            <a style={{ fontSize: 18, fontWeight: 700 }} href="/solve" alt="/solve" >無法登入嗎 ? 點這裡</a>
-                            <ToastContainer
-                                position="top-center"
-                                autoClose={2000}
-                                limit={1}
-                                hideProgressBar={false}
-                                newestOnTop={false}
-                                closeOnClick
-                                rtl={false}
-                                pauseOnFocusLoss
-                                draggable
-                                pauseOnHover
-                            />
-                            <div className="logincopyrightcontainer">
-                                <span className="logincopyright" href="/">© 2020-2026 Alan English Inc.</span>
+                        <div className="login-methods">
+                            <div className="login-method">
+                                <div className="method-number">01</div>
+                                <div>
+                                    <strong>聽清楚</strong>
+                                    <span>理解單字、句型與完整內容</span>
+                                </div>
+                            </div>
+
+                            <div className="login-method">
+                                <div className="method-number">02</div>
+                                <div>
+                                    <strong>快速回答</strong>
+                                    <span>訓練聽到問題後立即反應</span>
+                                </div>
+                            </div>
+
+                            <div className="login-method">
+                                <div className="method-number">03</div>
+                                <div>
+                                    <strong>反覆練習</strong>
+                                    <span>透過重複聆聽建立英文語感</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-        </>
+
+                <div className="login-right">
+                    <form className="login-card" onSubmit={login}>
+                        <div className="mobile-brand">
+                            <div className="mobile-brand-word">
+                                <span>A</span><span>L</span><span>A</span><span>N</span>
+                                <i></i>
+                                <span>E</span><span>N</span><span>G</span><span>L</span><span>I</span><span>S</span><span>H</span>
+                            </div>
+                        </div>
+
+                        <div className="login-title">
+                            <span>WELCOME BACK</span>
+                            <h2>歡迎回來 👋</h2>
+                            <p>登入 Alan English，開始今天的英文練習。</p>
+                        </div>
+
+                        <div className="login-field">
+                            <label htmlFor="email">Email</label>
+                            <div className="login-input-wrapper">
+                                <span className="login-input-icon">✉</span>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    placeholder="輸入你的 Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={isLoading}
+                                    autoComplete="email"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="login-field">
+                            <div className="password-label">
+                                <label htmlFor="password">密碼</label>
+                                <a href="/solve">忘記密碼？</a>
+                            </div>
+
+                            <div className="login-input-wrapper">
+                                <span className="login-input-icon password-icon">●</span>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="輸入你的密碼"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={isLoading}
+                                    autoComplete="current-password"
+                                />
+                                <button
+                                    type="button"
+                                    className="show-password-button"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                >
+                                    {showPassword ? "隱藏" : "顯示"}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button className="login-button" type="submit" disabled={isLoading}>
+                            {isLoading ? (
+                                <>
+                                    <span className="login-spinner"></span>
+                                    登入中...
+                                </>
+                            ) : "登入"}
+                        </button>
+
+                        <div className="login-tip">
+                            <span>🎧</span>
+                            每一次聆聽，都讓英文更自然。
+                        </div>
+
+                        <div className="login-copyright">
+                            © 2020–2026 Alan English Inc.
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <ToastContainer
+                position="top-center"
+                autoClose={2000}
+                limit={1}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss={false}
+                draggable
+                pauseOnHover={false}
+            />
+        </section>
     );
 }
 

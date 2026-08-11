@@ -1,493 +1,253 @@
-// import React, { useEffect, useState } from 'react';
-// import './css/User.scss';
-// import Logout from './Logout'
-// // import HashLoader from "react-spinners/HashLoader";
-// // import UserImage1 from "../assets/img/User-Image1.png";
-// // import UserImage2 from "../assets/img/Login.png";
-// import 'react-circular-progressbar/dist/styles.css';
-// import { ToastContainer } from "react-toastify"
-// import { rtdb } from './firebase-config';
-// import { child, onValue, ref } from 'firebase/database';
-
-
-// const User = () => {
-
-//     // const username = localStorage.getItem('ae-username');
-//     // const classname = localStorage.getItem('ae-class');
-//     const Month = new Date().toJSON().slice(5, 7);
-//     const [dayplaytime, setDayPlayTime] = useState();
-//     const [monthplaytime, setMonthPlayTime] = useState();
-//     const [classname, setClassname] = useState();
-//     const [username, setUsername] = useState();
-//     const [musicpass, setMusicPass] = useState();
-//     const useruid = localStorage.getItem('ae-useruid');
-//     const dbRef = ref(rtdb);
-//     const musicplayRef = child(dbRef, `student/${useruid}`);
-//     const musicpassRef = child(dbRef, `student/${useruid}/MusicLogfile`);
-
-//     useEffect(() => {
-//         onValue(musicplayRef, (snapshot) => {
-//             if (snapshot.exists()) {
-//                 setDayPlayTime(snapshot.val().Daytotaltimeplayed);
-//                 setMonthPlayTime(snapshot.val().Monthtotaltimeplayed);
-//                 setClassname(snapshot.val().class);
-//                 setUsername(snapshot.val().name.toUpperCase());
-//             } else {
-//                 setDayPlayTime(); // If data doesn't exist, setComplete to its default value
-//             }
-//         }, (error) => {
-//             console.error("Error fetching complete value:", error);
-//         });
-
-//         onValue(musicpassRef, (snapshot) => {
-//             if (snapshot.exists()) {
-//                 setMusicPass(snapshot.val());
-//             } else {
-//                 setMusicPass(); // If data doesn't exist, setComplete to its default value
-//             }
-//         }, (error) => {
-//             console.error("Error fetching complete value:", error);
-//         });
-
-//     }, [musicplayRef, musicpassRef])
-
-//     // const [image, setImage] = useState();
-//     // const [uploading, setUploading] = useState(false);
-//     // const [data, setData] = useState();
-
-//     // useEffect(() => {
-//     //     getUserInfo();
-//     // }, []);
-
-//     // const getUserInfo = async () => {
-//     //     try {
-//     //         const userRef = ref(rtdb, 'student/' + await localStorage.getItem('ae-userimage') + '/userimage');
-//     //         const snapshot = await get(userRef);
-//     //         const data = snapshot.val();
-//     //         setData(data)
-//     //         const storageRef = storageref(getstorage, `UserimageFile/${data}`);
-//     //         const downloadURL = await getDownloadURL(storageRef);
-//     //         setImage(downloadURL);
-
-//     //     } catch (error) {
-//     //         alert('Error fetching user info:', error);
-//     //     }
-//     // };
-
-//     // // Function to handle choosing an image
-//     // const handleChooseImage = async () => {
-//     //     try {
-//     //         // Open image picker
-//     //         let result = await ImagePicker.launchImageLibraryAsync({
-//     //             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-//     //             allowsEditing: true,
-//     //             aspect: [4, 3],
-//     //             quality: 1,
-//     //         });
-
-//     //         // Check if image was picked
-//     //         if (!result.canceled) {
-//     //             // Image URI
-//     //             const imageUri = result.assets[0].uri;
-
-//     //             // Upload the image to Firebase Storage
-//     //             await handleImageUpload(imageUri);
-//     //         }
-//     //     } catch (error) {
-//     //         console.error('Error choosing image:', error);
-//     //     }
-//     // };
-
-
-//     // // Function to handle image upload
-//     // const handleImageUpload = async (imageUri) => {
-//     //     setUploading(true);
-//     //     try {
-//     //         // Create a reference to the file to delete
-//     //         const desertRef = ref(getstorage, `UserimageFile/${data}`);
-//     //         // Delete the file
-//     //         deleteObject(desertRef).then(() => {
-//     //             alert('deleted successfully')
-//     //         }).catch((error) => {
-
-//     //         });
-//     //     } catch (e) {
-
-//     //     }
-//     //     try {
-//     //         const storage = getStorage();
-//     //         const filename = imageUri.substring(imageUri.lastIndexOf('/') + 1); // Corrected
-//     //         const storageRef = storageref(storage, `UserimageFile/${filename}`);
-//     //         const response = await fetch(imageUri);
-//     //         const blob = await response.blob();
-//     //         const db = getDatabase();
-//     //         await update(ref(db, 'student/' + useruid), {
-//     //             userimage: filename,
-//     //         });
-//     //         await uploadBytes(storageRef, blob);
-//     //         Alert.alert('Success', 'Image uploaded successfully');
-//     //         getUserInfo();
-//     //     } catch (error) {
-//     //         console.error('Error uploading image:', error);
-//     //         Alert.alert('Error', 'Failed to upload image');
-//     //     } finally {
-//     //         setUploading(false);
-//     //     }
-//     // };
-
-
-//     return (
-//         <div className='User'>
-//             <div className="User-profile">
-//                 <div className='Userbackgroundimage'></div>
-//                 <div className="User-profileDetails">
-//                     <div className='User-profile-title'>
-//                         PROFILE
-//                     </div>
-//                     {/* <div style={styles.titleContainer}>
-
-//                         <div style={{
-//                             backgroundColor: 'white',
-//                             top: 20,
-//                         }}>
-//                             {
-//                                 image ?
-//                                     (
-//                                         <img source={{ uri: image }} alt={image} style={{
-//                                             width: 150,
-//                                             height: 150,
-//                                             borderRadius: 100,
-//                                         }} />
-//                                     ) : (
-//                                         <div>Loading...</div>
-//                                     )
-//                             }
-//                             <Button onPress={handleChooseImage} disabled={uploading} style={{
-//                                 backgroundColor: '#2d7dd2',
-//                                 padding: 10,
-//                                 borderRadius: 10,
-//                                 position: 'absolute',
-//                                 right: 0,
-//                                 bottom: 0,
-//                             }}>
-//                                 <FiEdit size={20} color={'white'} />
-//                             </Button>
-//                         </div>
-//                         {uploading && <div style={{ justifyContent: 'center', alignContent: 'center', alignItems: 'center', marginTop: 50 }}>上傳中...</div>}
-//                     </div> */}
-//                     {/* <div className='dailycirclecontainer'>
-//                         <span className='howtouseicon'>
-//                             <img
-//                                 style={{ width: 30, marginTop: -5 }}
-//                                 src={Notice}
-//                                 alt="notice"
-//                             />
-//                             <span className='howtouseicontext'>每天至少聽20次，聽一次加一顆星</span>
-//                         </span>
-//                         <div className='currentdaycircle'>
-//                             <CircularProgressbarWithChildren value={percentage || 'Loading...'}
-//                                 styles={buildStyles({
-//                                     textColor: "red",
-//                                     pathColor: "gold",
-//                                     trailColor: `${custompathColor}`
-//                                 })}
-//                             >
-//                                 <img
-//                                     style={{ width: 40, marginTop: -5 }}
-//                                     src={Star}
-//                                     alt="star"
-//                                 />
-//                                 <div className={dailytimeplayed >= 20 ? 'dailycircletext1' : ''}> X {dailytimeplayed || '0'} </div>
-//                             </CircularProgressbarWithChildren>
-//                         </div>
-//                         <div className='abc'>
-//                             <div className='dailycircletext'>
-//                                 <div className={dailytimeplayed >= 20 ? 'dailycircletext1' : ''}>{dailytimeplayed || '0'} </div>
-//                                 <div className='dailycircletext2'>/ 20 次</div>
-//                             </div>
-//                             <div className='dailycircletext'>
-//                                 <div className={dailytimeplayed >= 20 ? "complete" : 'notcomplete'}>達成目標!!!</div>
-//                             </div>
-//                         </div>
-//                     </div> */}
-
-//                     <div className="titleText">{username || 'NONE'}</div>
-//                     <div className="userInfoContainer">
-//                         <div>
-//                             <div className='userinfo'>
-//                                 <div className='userinfolabel'>班級</div>
-//                                 <div className='secondtitleText' >{classname || ''} 班</div>
-//                             </div>
-//                             <div className='userinfo'>
-//                                 <div className='userinfolabel'>{Month} 月聽力次數 </div>
-//                                 <div className='secondtitleText'>{monthplaytime || '0'} 次</div>
-//                             </div>
-//                             <div className='userinfo'>
-//                                 <div className='userinfolabel'>今日聽力次數 </div>
-//                                 <div className='secondtitleText'>{dayplaytime || '0'} 次</div>
-//                             </div>
-//                         </div>
-//                     </div>
-
-//                     <Logout />
-
-//                     <div>
-//                         <div>
-//                             已通過的項目
-//                         </div>
-//                         <div>
-//                             {musicpass && Object.keys(musicpass).length > 0 ? (
-//                                 <ul>
-//                                     {Object.entries(musicpass).map(([key, value]) => (
-//                                         <li key={key}>
-//                                             <strong>{key}</strong>: 完成狀態 - {value.complete}, 音樂播放次數 - {value.musicplay}
-//                                         </li>
-//                                     ))}
-//                                 </ul>
-//                             ) : (
-//                                 <p>No data available.</p>
-//                             )}
-//                         </div>
-//                     </div>
-
-//                     <ToastContainer
-//                         position="top-center"
-//                         autoClose={2000}
-//                         hideProgressBar={false}
-//                         newestOnTop={false}
-//                         closeOnClick
-//                         rtl={false}
-//                         pauseOnFocusLoss
-//                         draggable
-//                         pauseOnHover
-//                     />
-//                     {/* <div>Days Learned</div> */}
-//                     {/* <div className='dailycirclecontainer'>
-//                     <div className='dailycircle'>
-//                         <CircularProgressbar
-//                             value={percentage || ''}
-//                             text={`${percentage || '0'}%`}
-//                             styles={buildStyles({
-//                             textColor: "red",
-//                             pathColor: {custompathColor},
-//                             trailColor: "gold"
-//                             })}
-//                         />
-//                     <div className='dailycircletext'>Mon</div>
-//                     </div>
-//                     <div className='dailycircle'>
-//                         <CircularProgressbar
-//                             value={percentage || ''}
-//                             text={`${percentage || '0'}%`}
-//                             styles={buildStyles({
-//                             textColor: "red",
-//                             pathColor: {custompathColor},
-//                             trailColor: "gold"
-//                             })}
-//                         />
-//                         <div className='dailycircletext'>Tue</div>
-//                     </div>
-//                     <div className='dailycircle'>
-//                         <CircularProgressbar
-//                             value={percentage || ''}
-//                             text={`${percentage || '0'}%`}
-//                             styles={buildStyles({
-//                             textColor: "red",
-//                             pathColor: {custompathColor},
-//                             trailColor: "gold"
-//                             })}
-//                         />
-//                         <div className='dailycircletext'>Wed</div>
-//                     </div>
-//                     <div className='dailycircle'>
-//                         <CircularProgressbar
-//                             value={percentage || ''}
-//                             text={`${percentage || '0'}%`}
-//                             styles={buildStyles({
-//                             textColor: "red",
-//                             pathColor: {custompathColor},
-//                             trailColor: "gold"
-//                             })}
-//                         />
-//                         <div className='dailycircletext'>Thur</div>
-//                     </div>
-//                     <div className='dailycircle'>
-//                         <CircularProgressbar
-//                             value={percentage || ''}
-//                             text={`${percentage || '0'}%`}
-//                             styles={buildStyles({
-//                             textColor: "red",
-//                             pathColor: {custompathColor},
-//                             trailColor: "gold"
-//                             })}
-//                         />
-//                         <div className='dailycircletext'>Fri</div>
-//                     </div>
-//                     <div className='dailycircle'>
-//                         <CircularProgressbar
-//                             value={percentage || ''}
-//                             text={`${percentage || '0'}%`}
-//                             styles={buildStyles({
-//                             textColor: "red",
-//                             pathColor: {custompathColor},
-//                             trailColor: "gold"
-//                             })}
-//                         />
-//                         <div className='dailycircletext'>Sat</div>
-//                     </div>
-//                     <div className='dailycircle'>
-//                         <CircularProgressbar
-//                             value={percentage || ''}
-//                             text={`${percentage || '0'}%`}
-//                             styles={buildStyles({
-//                             textColor: "red",
-//                             pathColor: {custompathColor},
-//                             trailColor: "gold"
-//                             })}
-//                         />
-//                         <div className='dailycircletext'>Sun</div>
-//                     </div>
-
-//                 </div> */}
-//                 </div>
-//             </div>
-//         </div>
-//     )
-// }
-
-// export default User
-
-
-
-
-
-import React, { useEffect, useState } from 'react';
-import './css/User.scss';
-import Logout from './Logout';
-import 'react-circular-progressbar/dist/styles.css';
-import { ToastContainer } from "react-toastify";
-import { rtdb } from './firebase-config';
-import { child, onValue, ref } from 'firebase/database';
+import React, { useEffect, useState } from "react";
+import { supabase } from "./supabase-config";
+import Logout from "./Logout";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./css/User.scss";
 
 const User = () => {
-    const Month = new Date().toJSON().slice(5, 7);
-    const [dayplaytime, setDayPlayTime] = useState();
-    const [monthplaytime, setMonthPlayTime] = useState();
-    const [classname, setClassname] = useState();
-    const [username, setUsername] = useState();
-    // const [musicpass, setMusicPass] = useState();
-    const useruid = localStorage.getItem('ae-useruid');
-    const dbRef = ref(rtdb);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const useruid = localStorage.getItem("ae-useruid");
 
     useEffect(() => {
-        const musicplayRef = child(dbRef, `student/${useruid}`);
-        // const musicpassRef = child(dbRef, `student/${useruid}/MusicLogfile`);
-
-        const musicplayUnsubscribe = onValue(musicplayRef, (snapshot) => {
-            if (snapshot.exists()) {
-                setDayPlayTime(snapshot.val().Daytotaltimeplayed);
-                setMonthPlayTime(snapshot.val().Monthtotaltimeplayed);
-                setClassname(snapshot.val().class);
-                setUsername(snapshot.val().name);
-            } else {
-                setDayPlayTime();
+        const fetchUser = async () => {
+            if (!useruid) {
+                toast.error("找不到登入資料，請重新登入");
+                setLoading(false);
+                return;
             }
-        }, (error) => {
-            console.error("Error fetching complete value:", error);
-        });
 
-        // const musicpassUnsubscribe = onValue(musicpassRef, (snapshot) => {
-        //     if (snapshot.exists()) {
-        //         const data = snapshot.val();
-        //         const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
-        //             if (value.musicplay >= 7) {
-        //                 acc[key] = value;
-        //             }
-        //             return acc;
-        //         }, {});
+            try {
+                const { data, error } = await supabase
+                    .from("students")
+                    .select("*")
+                    .eq("firebase_uid", useruid)
+                    .maybeSingle();
 
-        //         setMusicPass(filteredData);
-        //     } else {
-        //         setMusicPass({});
-        //     }
-        // }, (error) => {
-        //     console.error("Error fetching complete value:", error);
-        // });
+                if (error) throw error;
 
-        return () => {
-            musicplayUnsubscribe();
-            // musicpassUnsubscribe();
+                if (!data) {
+                    toast.error("找不到學生資料");
+                    setLoading(false);
+                    return;
+                }
+
+                setUser(data);
+                localStorage.setItem("ae-username", data.name || "");
+                localStorage.setItem("ae-class", data.class || "");
+                localStorage.setItem("ae-plan", data.plan || "");
+                localStorage.setItem("ae-role", data.role || "student");
+            } catch (error) {
+                console.error("讀取學生資料失敗:", error);
+                toast.error(`學生資料讀取失敗：${error.message}`);
+            } finally {
+                setLoading(false);
+            }
         };
 
-    }, [useruid, dbRef]);
+        fetchUser();
+    }, [useruid]);
+
+    const getInitial = (name) => {
+        if (!name) return "A";
+        return name.trim().charAt(0).toUpperCase();
+    };
+
+    const getPlanName = (plan) => {
+        if (plan === "listeningonly") return "純聽力方案";
+        if (plan === "allcover") return "全方位方案";
+        return "一般方案";
+    };
+
+    const getRoleName = (role) => {
+        if (role === "teacher") return "教師";
+        if (role === "admin") return "管理員";
+        return "學生";
+    };
+
+    const formatNumber = (number) => {
+        return Number(number || 0).toLocaleString();
+    };
+
+    if (loading) {
+        return (
+            <div className="User">
+                <div className="user-loading">
+                    <div className="user-loading-spinner"></div>
+                    <span>正在載入學生資料...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="User">
+                <div className="user-error-card">
+                    <div className="user-error-icon">!</div>
+                    <h2>找不到學生資料</h2>
+                    <p>請重新登入，或聯絡老師確認帳號資料。</p>
+                    <Logout />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="User">
-            <div className="User-container">
-                <div className="User-left">
-                    <div className="User-profile-details">
-                        <div className='User-profile-title'>
-                            學生資料
+            <div className="user-page">
+                <section className="user-hero">
+                    <div className="user-hero-content">
+                        <div className="user-avatar">{getInitial(user.name)}</div>
+                        <div className="user-hero-info">
+                            <span className="user-eyebrow">MY PROFILE</span>
+                            <h1>Hi, {user.name || "Student"} 👋</h1>
+                            <p>今天也繼續累積你的英文聽力實力。</p>
+                            <div className="user-badges">
+                                {user.class && <span className="user-badge">{user.class} 班</span>}
+                                <span className="user-badge plan">{getPlanName(user.plan)}</span>
+                                <span className="user-badge role">{getRoleName(user.role)}</span>
+                            </div>
                         </div>
-                        <div className="user-info-container">
-                            <div className='user-info'>
-                                <div className='user-info-label'>姓名</div>
-                                <div className='second-title-text'>{username || ''}</div>
+                    </div>
+                    <div className="user-hero-decoration">AE</div>
+                </section>
+
+                <section className="user-stats">
+                    <div className="user-stat-card">
+                        <div className="user-stat-icon">🎧</div>
+                        <div>
+                            <span>累積聽力次數</span>
+                            <strong>{formatNumber(user.total_time_played)}</strong>
+                        </div>
+                    </div>
+                    <div className="user-stat-card">
+                        <div className="user-stat-icon">▶</div>
+                        <div>
+                            <span>目前練習次數</span>
+                            <strong>{formatNumber(user.current_time_played)}</strong>
+                        </div>
+                    </div>
+                    <div className="user-stat-card">
+                        <div className="user-stat-icon">📚</div>
+                        <div>
+                            <span>學習方案</span>
+                            <strong className="stat-text">{getPlanName(user.plan)}</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <div className="user-content-grid">
+                    <section className="user-card user-profile-card">
+                        <div className="user-card-header">
+                            <div>
+                                <span className="user-card-eyebrow">ACCOUNT</span>
+                                <h2>學生資料</h2>
                             </div>
-                            <div className='user-info'>
-                                <div className='user-info-label'>班級</div>
-                                <div className='second-title-text'>{classname || ''} 班</div>
+                            <span className="user-status"><i></i>帳號正常</span>
+                        </div>
+
+                        <div className="user-info-list">
+                            <div className="user-info-row">
+                                <div className="user-info-label">
+                                    <span>👤</span>
+                                    <div>
+                                        <small>姓名</small>
+                                        <strong>{user.name || "—"}</strong>
+                                    </div>
+                                </div>
                             </div>
-                            <div className='user-info'>
-                                <div className='user-info-label'>{Month} 月聽力次數 </div>
-                                <div className='second-title-text'>{monthplaytime || '0'} 次</div>
+
+                            <div className="user-info-row">
+                                <div className="user-info-label">
+                                    <span>✉</span>
+                                    <div>
+                                        <small>Email</small>
+                                        <strong>{user.email || "—"}</strong>
+                                    </div>
+                                </div>
                             </div>
-                            <div className='user-info'>
-                                <div className='user-info-label'>今日聽力次數 </div>
-                                <div className='second-title-text'>{dayplaytime || '0'} 次</div>
+
+                            <div className="user-info-row">
+                                <div className="user-info-label">
+                                    <span>🏫</span>
+                                    <div>
+                                        <small>班級</small>
+                                        <strong>{user.class ? `${user.class} 班` : "尚未設定"}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="user-info-row">
+                                <div className="user-info-label">
+                                    <span>🪪</span>
+                                    <div>
+                                        <small>帳號角色</small>
+                                        <strong>{getRoleName(user.role)}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="user-card user-plan-card">
+                        <div className="user-card-header">
+                            <div>
+                                <span className="user-card-eyebrow">PLAN</span>
+                                <h2>我的方案</h2>
                             </div>
                         </div>
 
-                    </div>
-                </div>
-                {/* <div className="User-right">
-                    <div className='User-passed-items'>
-                        <div className='User-passed-items-title'>已通過的項目</div>
-                        <div className='User-passed-items-list'>
-                            {musicpass && Object.keys(musicpass).length > 0 ? (
-                                <div className='User-passed-items-ul'>
-                                    {Object.entries(musicpass).map(([key, value]) => (
-                                        <li key={key} className='User-passed-items-li'>
-                                            <div className='User-passed-items-item'>
-                                                <span className='User-passed-items-key'>{key}</span>
-                                                <span className='User-passed-items-playcount'>已聽過 {value.musicplay} 次</span>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </div>
+                        <div className="user-plan-content">
+                            <div className="plan-icon">★</div>
+                            <span>目前方案</span>
+                            <h3>{getPlanName(user.plan)}</h3>
+
+                            {user.plan === "allcover" ? (
+                                <p>可以使用完整教材與英文聽力練習內容。</p>
+                            ) : user.plan === "listeningonly" ? (
+                                <p>目前以英文聽力練習內容為主。</p>
                             ) : (
-                                <p className='User-passed-items-none'>目前無通過項目</p>
+                                <p>目前使用一般 Alan English 學習方案。</p>
                             )}
+
+                            <div className="plan-features">
+                                <div><span>✓</span>個人學習資料</div>
+                                <div><span>✓</span>聽力練習紀錄</div>
+                                <div><span>✓</span>教材播放功能</div>
+                            </div>
                         </div>
+                    </section>
+                </div>
+
+                <section className="user-account-section">
+                    <div>
+                        <span className="user-card-eyebrow">SESSION</span>
+                        <h2>帳號管理</h2>
+                        <p>使用完畢後記得登出，避免其他人使用你的帳號。</p>
                     </div>
-                </div> */}
-                <Logout />
-                <ToastContainer
-                    position="top-center"
-                    autoClose={2000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                />
+                    <div className="user-logout-wrapper">
+                        <Logout />
+                    </div>
+                </section>
+
+                <div className="user-footer">© 2020–2026 Alan English Inc.</div>
             </div>
+
+            <ToastContainer
+                position="top-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss={false}
+                draggable
+                pauseOnHover={false}
+            />
         </div>
     );
 };
 
 export default User;
-
-

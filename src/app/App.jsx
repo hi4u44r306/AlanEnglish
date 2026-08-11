@@ -131,7 +131,7 @@ const App = () => {
                             <AddMusic />
                         </Containerfull>
                     } />
-                    <Route path="/home/playlist/signup" element={
+                    <Route path="/signup" element={
                         <Containerfull>
                             <Signup />
                         </Containerfull>
