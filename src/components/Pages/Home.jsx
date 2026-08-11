@@ -1,6 +1,6 @@
 // import React, { useEffect, useState } from "react";
 // import './css/Home.scss';
-// // import FooterMusicPlayer from "../fragment/FooterMusicPlayer";
+// // import MusicPlayer from "../fragment/MusicPlayer";
 // import MusicCardContainer from "../fragment/MusicCardContainer";
 // import { useSelector } from "react-redux";
 // import CurrentPlayingLarge from "../fragment/CurrentPlayingLarge";
@@ -98,7 +98,7 @@
 //                                 {
 //                                     currMusic
 //                                         ?
-//                                         <FooterMusicPlayer music={currMusic} />
+//                                         <MusicPlayer music={currMusic} />
 //                                         :
 //                                         <FooterEmpty />
 //                                 }

@@ -307,8 +307,9 @@ function Login() {
             const userid = userCredential.user.uid;
             const useremailtmp = userCredential._tokenResponse.email
             const useremail = useremailtmp.split('@')[0]
-            console.log(userid)
+            console.log(userCredential)
             const dbRef = ref(rtdb);
+
             get(child(dbRef, `student/${userid}`)).then((snapshot) => {
                 const userData = snapshot.val() || {};  // snapshot.val() 可能是 null
                 const userName = useremail.toUpperCase();
@@ -353,7 +354,7 @@ function Login() {
                             render: () => <div className="notification">歡迎回來 {userName} !!</div>
                         }
                     },
-                    setTimeout(() => window.location = "/home/playlist/userinfo", 2500)
+                    setTimeout(() => window.location = "/userinfo", 2500)
                 );
             });
 
@@ -450,7 +451,7 @@ function Login() {
                                 pauseOnHover
                             />
                             <div className="logincopyrightcontainer">
-                                <span className="logincopyright" href="/">© 2020-2024 Alan English Inc.</span>
+                                <span className="logincopyright" href="/">© 2020-2026 Alan English Inc.</span>
                             </div>
                         </div>
                     </div>

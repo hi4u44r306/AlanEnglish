@@ -1,257 +1,837 @@
 import React, { useEffect, useState } from "react";
-import 'firebase/firestore';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
+
 import '../assets/scss/Navigation.scss';
 import 'react-circular-progressbar/dist/styles.css';
+
 import BlueBook from '../assets/img/blue book.png';
 import Books from '../assets/img/books.png';
 import Search from '../assets/img/search.png';
 import File from '../assets/img/file.png';
 import Menu from '../assets/img/menu.png';
 import Setting from '../assets/img/setting.png';
-// import Goldflower from '../assets/img/goldflower.png';
+
 import { Link } from "react-router-dom";
 import Brand from "./Brand";
+
+import { supabase } from "../Pages/supabase-config";
 
 
 function MainNavbar() {
 
-  // const navusername = localStorage.getItem('ae-username');
   const [scrolled, setScrolled] = useState(false);
 
-  // const [navData, setNavData] = useState({});
-  const navItems = JSON.parse(localStorage.getItem('ae-NavItems'));
-  const navData = JSON.parse(localStorage.getItem('ae-navData'));
-  // const [navItems, setNavItems] = useState([]);
+  // Supabase Navbar 資料
+  const [categories, setCategories] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const [navError, setNavError] = useState(null);
 
 
-
-  // Function to handle the scroll event
-  const handleScroll = () => {
-    if (window.scrollY > 100) {
-      setScrolled(true);
-    } else {
-      setScrolled(false);
-    }
-  };
+  // =====================================================
+  // Navbar 捲動效果
+  // =====================================================
 
   useEffect(() => {
-    // Add a scroll event listener when the component mounts
-    window.addEventListener('scroll', handleScroll);
 
-    // Remove the scroll event listener when the component unmounts
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+
+      if (window.scrollY > 100) {
+
+        setScrolled(true);
+
+      } else {
+
+        setScrolled(false);
+
+      }
+
     };
+
+
+    window.addEventListener(
+      'scroll',
+      handleScroll
+    );
+
+
+    return () => {
+
+      window.removeEventListener(
+        'scroll',
+        handleScroll
+      );
+
+    };
+
   }, []);
 
-  const renderNavDropdown = (type) => {
-    return (
-      <NavDropdown
-        id={`${type}Dropdown`}
-        key={`${type}Dropdown`}
-        title={
-          <div className="d-flex align-items-center">
-            <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
-            {type}
-          </div>
-        }
-        className="navlink"
-        align="end"
-      >
-        {navData[type] && navData[type].map((category, index) => (
-          category.items && category.items.length > 0 ? (
-            <NavDropdown
-              key={index}
-              title={
-                <div className="d-flex align-items-center">
-                  <img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />
-                  {category.title}
-                </div>
-              }
-            >
-              {category.items.map((item, idx) => (
-                item.subItems && item.subItems.length > 0 ? (
-                  <NavDropdown key={idx} title={item.name}>
-                    {item.subItems.map((subItem, subIdx) => (
-                      <NavDropdown.Item
-                        key={subIdx}
-                        as={Link}
-                        to={`/home/playlist/${subItem.path}`}
-                        className="subnavlink"
-                      >
-                        <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="BlueBook" />
-                        {subItem.name}
-                      </NavDropdown.Item>
-                    ))}
-                  </NavDropdown>
-                ) : (
-                  <NavDropdown.Item
-                    key={idx}
-                    as={Link}
-                    to={`/home/playlist/${item.path}`}
-                    className="subnavlink"
-                  >
-                    <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="BlueBook" />
-                    {item.name}
-                  </NavDropdown.Item>
-                )
-              ))}
-            </NavDropdown>
-          ) : (
-            <NavDropdown.Item
-              key={index}
-              as={Link}
-              to={`/home/playlist/${category.path}`}
-              className="subnavlink"
-            >
-              <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt="BlueBook" />
-              {category.name}
-            </NavDropdown.Item>
+
+  // =====================================================
+  // 從 Supabase 取得教材分類 + 書籍
+  // =====================================================
+
+  useEffect(() => {
+
+    const fetchNavbarData = async () => {
+
+      try {
+
+        setLoading(true);
+
+        setNavError(null);
+
+
+        // -----------------------------
+        // 1. 讀取教材分類
+        // -----------------------------
+
+        const {
+          data: categoryData,
+          error: categoryError
+        } = await supabase
+          .from('book_categories')
+          .select(
+            `
+                        id,
+                        name,
+                        code,
+                        sort_order,
+                        enabled
+                        `
           )
-        ))}
+          .eq('enabled', true)
+          .order(
+            'sort_order',
+            {
+              ascending: true
+            }
+          );
+
+
+        if (categoryError) {
+
+          console.error(
+            "讀取 book_categories 失敗:",
+            categoryError
+          );
+
+          setNavError(
+            "教材分類讀取失敗"
+          );
+
+          return;
+
+        }
+
+
+        // -----------------------------
+        // 2. 讀取 books
+        // -----------------------------
+
+        const {
+          data: bookData,
+          error: bookError
+        } = await supabase
+          .from('books')
+          .select(
+            `
+                        id,
+                        category_id,
+                        name,
+                        code,
+                        sort_order,
+                        enabled
+                        `
+          )
+          .eq('enabled', true)
+          .order(
+            'sort_order',
+            {
+              ascending: true
+            }
+          );
+
+
+        if (bookError) {
+
+          console.error(
+            "讀取 books 失敗:",
+            bookError
+          );
+
+          setNavError(
+            "教材讀取失敗"
+          );
+
+          return;
+
+        }
+
+
+        // -----------------------------
+        // 3. 把 books 放進 category
+        // -----------------------------
+
+        const convertedCategories =
+          (categoryData || []).map(
+            category => {
+
+              const categoryBooks =
+                (bookData || [])
+                  .filter(
+                    book =>
+                      book.category_id
+                      === category.id
+                  )
+                  .sort(
+                    (a, b) =>
+                      a.sort_order
+                      - b.sort_order
+                  );
+
+
+              return {
+
+                ...category,
+
+                books:
+                  categoryBooks
+
+              };
+
+            }
+          );
+
+
+        console.log(
+          "Navbar Supabase categories:",
+          convertedCategories
+        );
+
+
+        setCategories(
+          convertedCategories
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "MainNavbar 發生錯誤:",
+          error
+        );
+
+        setNavError(
+          "Navbar 載入失敗"
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
+
+
+    fetchNavbarData();
+
+  }, []);
+
+
+  // =====================================================
+  // 渲染教材 Dropdown
+  // =====================================================
+
+  const renderCategoryDropdown = (
+    category
+  ) => {
+
+    return (
+
+      <NavDropdown
+
+        id={
+          `category-${category.id}`
+        }
+
+        key={
+          category.id
+        }
+
+        title={
+
+          <div
+            className=
+            "d-flex align-items-center"
+          >
+
+            <img
+              style={{
+                width: 18,
+                marginRight: 4
+              }}
+              src={Books}
+              alt="books"
+            />
+
+            {category.name}
+
+          </div>
+
+        }
+
+        className="navlink"
+
+        align="end"
+
+      >
+
+
+        {
+          category.books
+            && category.books.length > 0
+            ?
+
+            category.books.map(
+              book => (
+
+                <NavDropdown.Item
+
+                  key={
+                    book.id
+                  }
+
+                  as={Link}
+
+                  to={
+                    `/home/playlist/${book.code}`
+                  }
+
+                  className=
+                  "subnavlink"
+
+                >
+
+                  <img
+
+                    style={{
+                      width: 18,
+                      marginRight: 4
+                    }}
+
+                    src={
+                      BlueBook
+                    }
+
+                    alt={
+                      book.name
+                    }
+
+                  />
+
+                  {book.name}
+
+                </NavDropdown.Item>
+
+              )
+            )
+
+            :
+
+            <NavDropdown.Item
+              disabled
+            >
+
+              尚無教材
+
+            </NavDropdown.Item>
+        }
+
+
       </NavDropdown>
+
     );
+
   };
 
 
+  // =====================================================
+  // Render
+  // =====================================================
 
   return (
+
     <div>
-      {['xl'].map((expand) => (
-        <Navbar collapseOnSelect={true} key={expand} expand={expand} className={`navbackground ${scrolled ? 'scrolled' : ''}`}>
 
-          <Container fluid className="containerfluid">
+      {
+        ['xl'].map(
+          expand => (
 
-            <Navbar.Brand as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo">
-              <Brand />
-            </Navbar.Brand>
+            <Navbar
 
-            <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`}>
-              <img style={{ width: 30, height: 30 }} src={Menu} alt="menu" />
-            </Navbar.Toggle>
+              collapseOnSelect={
+                true
+              }
 
-            <Navbar.Offcanvas
-              id={`offcanvasNavbar-expand-${expand}`}
-              aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
-              placement="end"
+              key={
+                expand
+              }
+
+              expand={
+                expand
+              }
+
+              className={
+                `navbackground ${scrolled
+                  ? 'scrolled'
+                  : ''
+                }`
+              }
+
             >
-              <Offcanvas.Header closeButton>
-                {/* <Offcanvas.Title className="brand" as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" id={`offcanvasNavbarLabel-expand-${expand}`}>
+
+
+              <Container
+
+                fluid
+
+                className=
+                "containerfluid"
+
+              >
+
+
+                {/* Logo */}
+
+                <Navbar.Brand
+
+                  as={Link}
+
+                  to="/userinfo"
+
+                >
+
                   <Brand />
-                </Offcanvas.Title> */}
-              </Offcanvas.Header>
 
-              <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''} d-flex flex-column align-items-center justify-content-center`}>
-
-                <Nav>
+                </Navbar.Brand>
 
 
-                  {/* 教師主控台 */}
-                  {
-                    localStorage.getItem('ae-class') !== 'Teacher' ?
-                      ''
-                      :
-                      <NavDropdown
-                        title=
-                        {
-                          <div className="d-flex align-items-center">
-                            <img style={{ width: 18, marginRight: 4 }}
-                              src={Books}
-                              alt="bluebook"
+                {/* Mobile Menu */}
+
+                <Navbar.Toggle
+
+                  className="toggle"
+
+                  aria-controls={
+                    `offcanvasNavbar-expand-${expand}`
+                  }
+
+                >
+
+                  <img
+
+                    style={{
+                      width: 30,
+                      height: 30
+                    }}
+
+                    src={
+                      Menu
+                    }
+
+                    alt="menu"
+
+                  />
+
+                </Navbar.Toggle>
+
+
+                <Navbar.Offcanvas
+
+                  id={
+                    `offcanvasNavbar-expand-${expand}`
+                  }
+
+                  aria-labelledby={
+                    `offcanvasNavbarLabel-expand-${expand}`
+                  }
+
+                  placement="end"
+
+                >
+
+
+                  <Offcanvas.Header
+                    closeButton
+                  />
+
+
+                  <Offcanvas.Body
+
+                    className={
+                      `navbackground ${scrolled
+                        ? 'scrolled'
+                        : ''
+                      } d-flex flex-column align-items-center justify-content-center`
+                    }
+
+                  >
+
+
+                    <Nav>
+
+
+                      {/* ===================== */}
+                      {/* 教師主控台 */}
+                      {/* ===================== */}
+
+                      {
+                        localStorage.getItem(
+                          'ae-class'
+                        )
+                        === 'Teacher'
+                        &&
+
+                        <NavDropdown
+
+                          title={
+
+                            <div
+                              className=
+                              "d-flex align-items-center"
+                            >
+
+                              <img
+
+                                style={{
+                                  width: 18,
+                                  marginRight: 4
+                                }}
+
+                                src={
+                                  Books
+                                }
+
+                                alt=
+                                "teacher"
+
+                              />
+
+                              教師用
+
+                            </div>
+
+                          }
+
+                          id={
+                            `offcanvasNavbarDropdown-expand-${expand}`
+                          }
+
+                          className=
+                          "navlink"
+
+                        >
+
+
+                          <NavDropdown.Item
+
+                            as={Link}
+
+                            to=
+                            "/editnavbar"
+
+                            className=
+                            "subnavlink"
+
+                          >
+
+                            <img
+
+                              style={{
+                                width: 18,
+                                marginRight: 4
+                              }}
+
+                              src={
+                                Setting
+                              }
+
+                              alt=
+                              "setting"
+
                             />
-                            教師用
-                          </div>
-                        }
-                        id={`offcanvasNavbarDropdown-expand-${expand}`}
-                        className="navlink"
+
+                            編輯Navbar
+
+                          </NavDropdown.Item>
+
+
+                          <NavDropdown.Item
+
+                            as={Link}
+
+                            to=
+                            "/home/playlist/addmusic"
+
+                            className=
+                            "subnavlink"
+
+                          >
+
+                            <img
+
+                              style={{
+                                width: 18,
+                                marginRight: 4
+                              }}
+
+                              src={
+                                Setting
+                              }
+
+                              alt=
+                              "setting"
+
+                            />
+
+                            新增音檔
+
+                          </NavDropdown.Item>
+
+
+                          <NavDropdown.Item
+
+                            as={Link}
+
+                            to=
+                            "/home/playlist/controlpanel"
+
+                            className=
+                            "subnavlink"
+
+                          >
+
+                            <img
+
+                              style={{
+                                width: 18,
+                                marginRight: 4
+                              }}
+
+                              src={
+                                Setting
+                              }
+
+                              alt=
+                              "setting"
+
+                            />
+
+                            控制台
+
+                          </NavDropdown.Item>
+
+
+                          <NavDropdown.Item
+
+                            as={Link}
+
+                            to=
+                            "/home/playlist/signup"
+
+                            className=
+                            "subnavlink"
+
+                          >
+
+                            <img
+
+                              style={{
+                                width: 18,
+                                marginRight: 4
+                              }}
+
+                              src={
+                                Setting
+                              }
+
+                              alt=
+                              "setting"
+
+                            />
+
+                            新增學生帳號
+
+                          </NavDropdown.Item>
+
+
+                        </NavDropdown>
+                      }
+
+
+                      {/* ===================== */}
+                      {/* Supabase 教材 Navbar */}
+                      {/* ===================== */}
+
+                      {
+                        loading
+                          ?
+
+                          <Nav.Link
+                            className=
+                            "navlink"
+                            disabled
+                          >
+
+                            教材載入中...
+
+                          </Nav.Link>
+
+                          :
+
+                          navError
+                            ?
+
+                            <Nav.Link
+                              className=
+                              "navlink"
+                              disabled
+                            >
+
+                              教材載入失敗
+
+                            </Nav.Link>
+
+                            :
+
+                            categories.map(
+                              category =>
+                                renderCategoryDropdown(
+                                  category
+                                )
+                            )
+                      }
+
+
+                      {/* ===================== */}
+                      {/* 學生檔案 */}
+                      {/* ===================== */}
+
+                      <Nav.Link
+
+                        as={Link}
+
+                        to="/userinfo"
+
+                        className=
+                        "navlink nav-item dropdown"
+
                       >
-                        <NavDropdown.Item as={Link} to="/home/playlist/editnavbar" href="/home/playlist/editnavbar" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={Setting}
-                            alt="setting"
-                          />編輯Navbar
-                        </NavDropdown.Item>
 
-                        <NavDropdown.Item as={Link} to="/home/playlist/addmusic" href="/home/playlist/addmusic" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={Setting}
-                            alt="setting"
-                          />新增音檔
-                        </NavDropdown.Item>
+                        <div
+                          className=
+                          "username"
+                        >
 
-                        <NavDropdown.Item as={Link} to="/home/playlist/controlpanel" href="/home/playlist/controlpanel" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={Setting}
-                            alt="setting"
-                          />控制台
-                        </NavDropdown.Item>
+                          <img
 
-                        <NavDropdown.Item as={Link} to="/home/playlist/signup" href="/home/playlist/signup" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={Setting}
-                            alt="setting"
-                          />新增學生帳號
-                        </NavDropdown.Item>
+                            style={{
+                              width: 18,
+                              marginRight: 4
+                            }}
 
-                        {/* 排行榜 */}
-                        {/* <NavDropdown.Item as={Link} to="/home/playlist/leaderboard" href="/home/playlist/leaderboard" className="subnavlink">
-                          <img style={{ width: 18, marginRight: 4 }}
-                            src={Trophy}
-                            alt="bluebook"
-                          />排行榜
-                        </NavDropdown.Item> */}
-                      </NavDropdown>
-                  }
+                            src={
+                              File
+                            }
 
-                  {/* 測試 */}
-                  {
-                    navItems.map((item) =>
-                      renderNavDropdown(item)
-                    )
-                  }
+                            alt=
+                            "student"
 
-                  <Nav.Link as={Link} to="/home/playlist/userinfo" href="/home/playlist/userinfo" className="navlink nav-item dropdown">
-                    <div className="username">
-                      <img style={{ width: 18, marginRight: 4 }}
-                        src={File}
-                        alt="bluebook"
-                      /> 學生檔案
-                    </div>
-                  </Nav.Link>
+                          />
 
-                  <Nav.Link as={Link} to="/home/playlist/about" href="/home/playlist/about" className="navlink nav-item dropdown">
-                    <div className="username">
-                      <img style={{ width: 18, marginRight: 4 }}
-                        src={Search}
-                        alt="bluebook"
-                      />  關於AE
-                    </div>
-                  </Nav.Link>
+                          學生檔案
 
-                  {/* 用戶資料 */}
-                  {/* <Nav.Link className="navlinkscoreboard">
-                    <div className="username">
-                      {navusername || '----'}
-                    </div>
-                  </Nav.Link> */}
+                        </div>
 
-                </Nav>
+                      </Nav.Link>
 
-              </Offcanvas.Body>
-            </Navbar.Offcanvas>
-          </Container>
-        </Navbar>
-      ))}
+
+                      {/* ===================== */}
+                      {/* About */}
+                      {/* ===================== */}
+
+                      <Nav.Link
+
+                        as={Link}
+
+                        to=
+                        "/home/playlist/about"
+
+                        className=
+                        "navlink nav-item dropdown"
+
+                      >
+
+                        <div
+                          className=
+                          "username"
+                        >
+
+                          <img
+
+                            style={{
+                              width: 18,
+                              marginRight: 4
+                            }}
+
+                            src={
+                              Search
+                            }
+
+                            alt=
+                            "about"
+
+                          />
+
+                          關於AE
+
+                        </div>
+
+                      </Nav.Link>
+
+
+                    </Nav>
+
+
+                  </Offcanvas.Body>
+
+
+                </Navbar.Offcanvas>
+
+
+              </Container>
+
+
+            </Navbar>
+
+          )
+        )
+      }
+
     </div>
+
   );
+
 }
 
+
 export default MainNavbar;
-
-

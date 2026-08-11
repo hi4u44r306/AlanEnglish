@@ -1,132 +1,253 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import '../assets/scss/Playlist.scss';
 import MusicCard from "./MusicCard";
 import { useParams } from 'react-router-dom';
+import { supabase } from "../Pages/supabase-config";
 
 const Playlist = () => {
+
     const { playlistId } = useParams();
-    // const [totalTracks, setTotalTracks] = useState(0);
-    // const [completedTracks, setCompletedTracks] = useState(0);
-    const useruid = localStorage.getItem('ae-useruid');
-    const playlists = JSON.parse(localStorage.getItem('ae-playlistData'));
 
-
+    const [tracks, setTracks] = useState([]);
+    const [bookName, setBookName] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
 
-        // const allTracks = Object.keys(playlists).reduce((acc, workbook) => {
-        //     return acc.concat(playlists[playlistId].map(track => ({ ...track, workbook })));
-        // }, []);
-        // const filteredTracks = allTracks.filter(item => item.type === playlistId);
-        // // 計算類別中的音軌總數
-        // setTotalTracks(filteredTracks.length);
+        const fetchPlaylist = async () => {
 
-        // 從 Firebase 獲取通過的音軌數量
-        // async function fetchCompletedTracks() {
-        //     let count = 0;
-        //     const dbRef = ref(rtdb);
+            try {
 
-        //     // 收集每首音軌的完成狀態
-        //     for (const track of filteredTracks) {
-        //         const convertmusicName = `${track.bookname} ${track.page}`;
-        //         const completeRef = child(dbRef, `student/${useruid}/MusicLogfile/${convertmusicName}/complete`);
+                setLoading(true);
+                setErrorMessage('');
 
-        //         try {
-        //             const snapshot = await get(completeRef);
-        //             if (snapshot.exists() && snapshot.val() === '通過') {
-        //                 count += 1;
-        //             }
-        //         } catch (error) {
-        //             console.error("Error fetching complete value:", error);
-        //         }
-        //     }
+                console.log("目前 playlistId:", playlistId);
 
-        //     setCompletedTracks(count);
+                // =========================
+                // 1. 先透過 code 找 books
+                // =========================
 
-        //     // 計算通過比例
-        //     const passRate = filteredTracks.length > 0 ? (count / filteredTracks.length) * 100 : 0;
+                const { data: bookData, error: bookError } = await supabase
+                    .from('books')
+                    .select('id, name, code')
+                    .eq('code', playlistId)
+                    .single();
 
-        //     // 更新 Firebase 中書籍的通過比例
-        //     const bookRef = ref(rtdb, `student/${useruid}/BookLogfile/${playlistId}`);
-        //     try {
-        //         await update(bookRef, {
-        //             passRate: Math.round(passRate)
-        //         });
-        //     } catch (error) {
-        //         console.error("Error updating pass rate:", error);
-        //     }
-        // }
+                if (bookError) {
 
-        // fetchCompletedTracks();
-    }, [playlistId, useruid]);
+                    console.error(
+                        '讀取 books 發生錯誤:',
+                        bookError
+                    );
 
-    // 計算通過的百分比
-    // const completionPercentage = totalTracks > 0 ? (completedTracks / totalTracks) * 100 : 0;
+                    setErrorMessage(
+                        '找不到這本教材'
+                    );
 
-    const extractPageNumber = (page) => {
-        if (!page || typeof page !== 'string') {
-            return 0; // 預設值：若 page 無效
+                    setLoading(false);
+
+                    return;
+                }
+
+                console.log(
+                    '找到的教材:',
+                    bookData
+                );
+
+                setBookName(bookData.name);
+
+                // =========================
+                // 2. 用 book_id 找音檔
+                // =========================
+
+                const { data: trackData, error: trackError } = await supabase
+                    .from('music_tracks')
+                    .select('*')
+                    .eq('book_id', bookData.id)
+                    .eq('enabled', true)
+                    .order('sort_order', {
+                        ascending: true
+                    });
+
+                if (trackError) {
+
+                    console.error(
+                        '讀取 music_tracks 發生錯誤:',
+                        trackError
+                    );
+
+                    setErrorMessage(
+                        '讀取音檔資料失敗'
+                    );
+
+                    setLoading(false);
+
+                    return;
+                }
+
+                console.log(
+                    'Supabase 音檔資料:',
+                    trackData
+                );
+
+                // =========================
+                // 3. Storage path
+                //    → Public URL
+                // =========================
+
+                const convertedTracks =
+                    (trackData || []).map((track) => {
+
+                        const {
+                            data: publicUrlData
+                        } = supabase.storage
+                            .from('music')
+                            .getPublicUrl(
+                                track.audio_url
+                            );
+
+                        return {
+
+                            // 新 SQL 欄位
+                            id: track.id,
+                            book_id: track.book_id,
+                            page: track.page,
+                            title: track.title,
+                            sort_order: track.sort_order,
+
+                            // 舊 MusicCard 可能還會使用
+                            // 這些名稱，所以先相容舊程式
+                            bookname: bookData.name,
+                            type: playlistId,
+
+                            musicName:
+                                track.music_name,
+
+                            audioURL:
+                                publicUrlData.publicUrl,
+
+                            audio_url:
+                                publicUrlData.publicUrl,
+
+                            image:
+                                track.image
+                        };
+                    });
+
+                console.log(
+                    '轉換後 Playlist:',
+                    convertedTracks
+                );
+
+                setTracks(convertedTracks);
+
+            } catch (error) {
+
+                console.error(
+                    'Playlist 發生未知錯誤:',
+                    error
+                );
+
+                setErrorMessage(
+                    '載入教材時發生錯誤'
+                );
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        };
+
+        if (playlistId) {
+            fetchPlaylist();
         }
-        if (page.startsWith('P')) {
-            return parseInt(page.replace('P', ''), 10); // 處理 "P" 開頭
-        } else if (page.startsWith('Unit')) {
-            return parseInt(page.replace('Unit', ''), 10); // 處理 "Unit" 開頭
-        }
-        return 0; // 預設值：若格式無法識別
-    };
-    const sortedPlaylists = Object.values(playlists) // Get all values of the playlists object
-        .flat() // Flatten the array if playlists contains arrays of tracks
-        .filter(item => item && item.type) // Filter out null, undefined, or items without a 'type'
-        .filter(item => item.type === playlistId) // Further filter by playlistId
-        .sort((a, b) => {
-            const pageA = extractPageNumber(a.page);
-            const pageB = extractPageNumber(b.page);
-            return pageA - pageB;
-        });
+
+    }, [playlistId]);
 
 
+    // =========================
+    // Loading
+    // =========================
 
+    if (loading) {
+
+        return (
+            <div className="Playlist">
+
+                <div className="playlisttitle">
+                    載入中...
+                </div>
+
+            </div>
+        );
+
+    }
+
+
+    // =========================
+    // Error
+    // =========================
+
+    if (errorMessage) {
+
+        return (
+            <div className="Playlist">
+
+                <div className="playlisttitle">
+                    {errorMessage}
+                </div>
+
+            </div>
+        );
+
+    }
+
+
+    // =========================
+    // 正常畫面
+    // =========================
 
     return (
-        // <Container>
-        <div className={"Playlist"}>
-            <div className='playlisttitle'>
-                {playlistId}
+
+        <div className="Playlist">
+
+            <div className="playlisttitle">
+
+                {bookName || playlistId}
+
             </div>
-            {/* Progress bar */}
-            {/* <div className="progress-bar">
-                <div
-                    className="progress-bar-fill"
-                    style={{ width: `${completionPercentage}%` }}
-                />
-            </div> */}
-            {/* <div className="progress-info">
-                已通過 {completedTracks} 首 / 總共 {totalTracks} 首 ({Math.round(completionPercentage)}%)
-            </div> */}
+
+
             <div className="Playlist-container">
-                {/* {
-                    sortedPlaylists
-                        .filter(item => item?.type === playlistId)
-                        .map(item => (
-                            <MusicCard key={item.musicName} music={item} />
-                        ))
-                } */}
+
                 {
-                    sortedPlaylists
-                        .map(item =>
-                            item?.type === playlistId ? (
-                                <MusicCard key={item.musicName} music={item} />
-                            ) : item === null ? (
-                                <div key={Math.random()}>Invalid Item</div>
-                            ) : null
-                        )
+                    tracks.length > 0 ?
+
+                        tracks.map((item) => (
+
+                            <MusicCard
+                                key={item.id}
+                                music={item}
+                            />
+
+                        ))
+
+                        :
+
+                        <div>
+                            目前沒有音檔
+                        </div>
                 }
 
             </div>
 
         </div>
-        // </Container>
+
     );
-}
+
+};
 
 export default Playlist;

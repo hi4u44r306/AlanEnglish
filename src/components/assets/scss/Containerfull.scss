@@ -1,32 +1,66 @@
-.Containerfull {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  background-color: #fcf8ec;
-  overflow-y: auto; /* Enable vertical scrolling if content exceeds the maximum height */
-  z-index: 999;
-}
-.containernavbar {
+.app-shell {
   width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f7f9fc;
+  overflow-x: hidden;
+}
+
+.app-header {
   position: sticky;
   top: 0;
-}
-.containerchildren {
+  z-index: 1000;
   width: 100%;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #edf0f4;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  backdrop-filter: blur(12px);
 }
-.containermusicplayer {
+
+.app-content {
+  position: relative;
   width: 100%;
-  position: absolute;
+  flex: 1;
+  box-sizing: border-box;
+
+  &.has-player {
+    padding-bottom: 110px;
+  }
+}
+
+.app-player {
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
+  z-index: 1100;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
 }
-@media only screen and (max-width: 970px) {
-  .Containerfull {
-    overflow-y: auto; /* Enable vertical scrolling if content exceeds the maximum height */
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    z-index: 999;
+
+body {
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c7cdd6;
+    border-radius: 999px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-content.has-player {
+    padding-bottom: 95px;
   }
 }

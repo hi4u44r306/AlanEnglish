@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import './App.scss';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-// import Login from "../components/Pages/Login";
-// import Signup from "../components/Pages/Signup";
+import Login from "../components/Pages/Login";
+import Signup from "../components/Pages/Signup";
 // import musicDB from "../db/music";
 import { Helmet } from 'react-helmet';
 import SolvePage from "../components/Pages/SolvePage";
@@ -10,11 +10,11 @@ import SolvePage from "../components/Pages/SolvePage";
 import Showcase from "../components/Pages/Showcase";
 import { onAuthStateChanged } from "firebase/auth";
 import { off, onValue, ref } from "firebase/database";
-// import Playlist from "../components/fragment/Playlist";
-// import Containerfull from "../components/fragment/Containerfull";
+import Playlist from "../components/fragment/Playlist";
+import Containerfull from "../components/fragment/Containerfull";
 import { authentication, rtdb } from "../components/Pages/firebase-config";
 // import Search from "../components/Pages/Search";
-// import User from "../components/Pages/User";
+import User from "../components/Pages/User";
 // import Leaderboard from "../components/Pages/Leaderboard";
 // import Trade from "../components/Pages/Trade";
 // import TradeSignup from "../components/Pages/TradeSignup";
@@ -23,8 +23,8 @@ import { authentication, rtdb } from "../components/Pages/firebase-config";
 // import GetHW from "../components/Pages/GetHW";
 // import ControlPanel from "../components/Pages/ControlPanel";
 // import Developer from "../components/fragment/Developer";
-// import AddMusic from "../components/Pages/AddMusic";
-// import EditMainNavbar from "../components/fragment/EditMainNavbar";
+import AddMusic from "../components/Pages/AddMusic";
+import EditMainNavbar from "../components/fragment/EditMainNavbar";
 // import CheckStudent from "../components/Pages/CheckStudent";
 import Links from "../components/Pages/Links";
 import LinkAdmin from "../components/Pages/Link Admin Page";
@@ -119,14 +119,14 @@ const App = () => {
                     <link rel="icon" type="image/png" href={'/favicon.ico'} sizes="16x16" />
                 </Helmet>
                 <Routes>
-                    {/* <Route path="/" element={<Login />} /> */}
-                    <Route path="/" element={<Links />} />
+                    <Route path="/" element={<Login />} />
+                    {/* <Route path="/" element={<Links />} /> */}
                     <Route path="/links" element={<Links />} />
                     <Route path="/linksadmin" element={<LinkAdmin />} />
                     {/* <Route path="/checkstudent" element={<CheckStudent />} /> */}
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />
-                    {/* <Route path="/home/playlist/addmusic" element={
+                    <Route path="/home/playlist/addmusic" element={
                         <Containerfull>
                             <AddMusic />
                         </Containerfull>
@@ -135,19 +135,19 @@ const App = () => {
                         <Containerfull>
                             <Signup />
                         </Containerfull>
-                    } /> */}
+                    } />
                     {/* <Route path="/home/playlist/leaderboard" element={
                         <Containerfull>
                             <Leaderboard />
                         </Containerfull>
                     } /> */}
-                    {/* <Route path="/home/playlist/editnavbar" element={
+                    <Route path="/editnavbar" element={
                         <Containerfull>
                             <EditMainNavbar />
                         </Containerfull>
                     } />
 
-                    <Route path="/home/playlist/controlpanel" element={
+                    {/* <Route path="/home/playlist/controlpanel" element={
                         <Containerfull>
                             <ControlPanel />
                         </Containerfull>
@@ -160,11 +160,11 @@ const App = () => {
                         </React.Fragment>
                     } /> */}
 
-                    {/* <Route path="/home/playlist/userinfo" element={
+                    <Route path="/userinfo" element={
                         <Containerfull>
                             <User />
                         </Containerfull>
-                    } /> */}
+                    } />
                     {/* <Route path="/home/playlist/contact" element={
                         <Containerfull>
                             <Contact />
@@ -190,11 +190,11 @@ const App = () => {
                             <Search />
                         </Containerfull>
                     } /> */}
-                    {/* <Route path="/home/playlist/:playlistId" element={
+                    <Route path="/home/playlist/:playlistId" element={
                         <Containerfull>
                             <Playlist />
                         </Containerfull>
-                    } /> */}
+                    } />
                     {/* <Route path="/trade" element={
                         <Trade />
                     } />
