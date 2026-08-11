@@ -50,15 +50,42 @@ const AddMusic = () => {
     );
 
     useEffect(() => {
+        const fetchInitialData = async () => {
+            setLoading(true);
+
+            await Promise.all([
+                fetchBooks(),
+                fetchCategories()
+            ]);
+
+            setLoading(false);
+        };
+
         fetchInitialData();
     }, []);
 
     useEffect(() => {
-        if (selectedBookId) {
-            fetchExistingTracks();
-        } else {
-            setExistingTracks([]);
-        }
+        const fetchExistingTracks = async () => {
+            if (!selectedBookId) {
+                setExistingTracks([]);
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from("music_tracks")
+                .select("*")
+                .eq("book_id", Number(selectedBookId))
+                .order("sort_order", { ascending: true });
+
+            if (error) {
+                console.error("讀取音檔失敗:", error);
+                return;
+            }
+
+            setExistingTracks(data || []);
+        };
+
+        fetchExistingTracks();
     }, [selectedBookId]);
 
     // =========================
@@ -87,14 +114,14 @@ const AddMusic = () => {
     // 初始化
     // =========================
 
-    const fetchInitialData = async () => {
-        setLoading(true);
-        await Promise.all([
-            fetchBooks(),
-            fetchCategories()
-        ]);
-        setLoading(false);
-    };
+    // const fetchInitialData = async () => {
+    //     setLoading(true);
+    //     await Promise.all([
+    //         fetchBooks(),
+    //         fetchCategories()
+    //     ]);
+    //     setLoading(false);
+    // };
 
     // =========================
     // 取得教材
@@ -1116,8 +1143,8 @@ const AddMusic = () => {
 
                     <div
                         className={`drop-zone ${dragActive
-                                ? "active"
-                                : ""
+                            ? "active"
+                            : ""
                             } ${!selectedBook
                                 ? "disabled"
                                 : ""
@@ -1223,8 +1250,8 @@ const AddMusic = () => {
                                     item => (
                                         <div
                                             className={`selected-file ${item.valid
-                                                    ? ""
-                                                    : "invalid"
+                                                ? ""
+                                                : "invalid"
                                                 }`}
                                             key={item.id}
                                         >
@@ -1253,8 +1280,8 @@ const AddMusic = () => {
 
                                             <div
                                                 className={`validation-badge ${item.valid
-                                                        ? "valid"
-                                                        : "invalid"
+                                                    ? "valid"
+                                                    : "invalid"
                                                     }`}
                                             >
                                                 {item.valid
