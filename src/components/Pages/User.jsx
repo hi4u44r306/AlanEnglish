@@ -1,53 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { supabase } from "./supabase-config";
+import React from "react";
 import Logout from "./Logout";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../../auth/AuthContext";
 import "./css/User.scss";
 
 const User = () => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const useruid = localStorage.getItem("ae-useruid");
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            if (!useruid) {
-                toast.error("找不到登入資料，請重新登入");
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase
-                    .from("students")
-                    .select("*")
-                    .eq("firebase_uid", useruid)
-                    .maybeSingle();
-
-                if (error) throw error;
-
-                if (!data) {
-                    toast.error("找不到學生資料");
-                    setLoading(false);
-                    return;
-                }
-
-                setUser(data);
-                localStorage.setItem("ae-username", data.name || "");
-                localStorage.setItem("ae-class", data.class || "");
-                localStorage.setItem("ae-plan", data.plan || "");
-                localStorage.setItem("ae-role", data.role || "student");
-            } catch (error) {
-                console.error("讀取學生資料失敗:", error);
-                toast.error(`學生資料讀取失敗：${error.message}`);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUser();
-    }, [useruid]);
+    const { studentProfile: user, authLoading } = useAuth();
 
     const getInitial = (name) => {
         if (!name) return "A";
@@ -70,12 +27,12 @@ const User = () => {
         return Number(number || 0).toLocaleString();
     };
 
-    if (loading) {
+    if (authLoading) {
         return (
             <div className="User">
                 <div className="user-loading">
                     <div className="user-loading-spinner"></div>
-                    <span>正在載入學生資料...</span>
+                    <span>正在載入帳號資料...</span>
                 </div>
             </div>
         );
@@ -86,8 +43,8 @@ const User = () => {
             <div className="User">
                 <div className="user-error-card">
                     <div className="user-error-icon">!</div>
-                    <h2>找不到學生資料</h2>
-                    <p>請重新登入，或聯絡老師確認帳號資料。</p>
+                    <h2>找不到帳號資料</h2>
+                    <p>請重新登入，或聯絡管理員確認帳號資料。</p>
                     <Logout />
                 </div>
             </div>
@@ -102,8 +59,8 @@ const User = () => {
                         <div className="user-avatar">{getInitial(user.name)}</div>
                         <div className="user-hero-info">
                             <span className="user-eyebrow">MY PROFILE</span>
-                            <h1>Hi, {user.name || "Student"} 👋</h1>
-                            <p>今天也繼續累積你的英文聽力實力。</p>
+                            <h1>Hi, {user.name || "User"} 👋</h1>
+                            <p>今天也繼續累積你的英文學習實力。</p>
                             <div className="user-badges">
                                 {user.class && <span className="user-badge">{user.class} 班</span>}
                                 <span className="user-badge plan">{getPlanName(user.plan)}</span>
@@ -143,7 +100,7 @@ const User = () => {
                         <div className="user-card-header">
                             <div>
                                 <span className="user-card-eyebrow">ACCOUNT</span>
-                                <h2>學生資料</h2>
+                                <h2>帳號資料</h2>
                             </div>
                             <span className="user-status"><i></i>帳號正常</span>
                         </div>
@@ -225,7 +182,7 @@ const User = () => {
                     <div>
                         <span className="user-card-eyebrow">SESSION</span>
                         <h2>帳號管理</h2>
-                        <p>使用完畢後記得登出，避免其他人使用你的帳號。</p>
+                        <p>使用完畢後可手動登出目前裝置。</p>
                     </div>
                     <div className="user-logout-wrapper">
                         <Logout />
@@ -234,18 +191,6 @@ const User = () => {
 
                 <div className="user-footer">© 2020–2026 Alan English Inc.</div>
             </div>
-
-            <ToastContainer
-                position="top-center"
-                autoClose={2000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss={false}
-                draggable
-                pauseOnHover={false}
-            />
         </div>
     );
 };
