@@ -13,7 +13,7 @@ import Search from '../assets/img/search.png';
 import File from '../assets/img/file.png';
 import Menu from '../assets/img/menu.png';
 import Setting from '../assets/img/setting.png';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Brand from "./Brand";
 import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
@@ -24,7 +24,9 @@ function MainNavbar() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [navError, setNavError] = useState(null);
-    const { role, isAuthenticated } = useAuth();
+    const [loggingOut, setLoggingOut] = useState(false);
+    const navigate = useNavigate();
+    const { role, isAuthenticated, logout } = useAuth();
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
@@ -76,6 +78,21 @@ function MainNavbar() {
 
         fetchNavbarData();
     }, []);
+
+    const handleLogout = async () => {
+        if (loggingOut) return;
+
+        setLoggingOut(true);
+
+        try {
+            await logout();
+            navigate("/", { replace: true });
+        } catch (error) {
+            console.error("登出失敗:", error);
+        } finally {
+            setLoggingOut(false);
+        }
+    };
 
     const renderCategoryDropdown = category => (
         <NavDropdown
@@ -192,6 +209,21 @@ function MainNavbar() {
                                             <div className="username">
                                                 <img style={{ width: 18, marginRight: 4 }} src={File} alt="profile" />
                                                 {isTeacher ? "管理首頁" : "我的帳號"}
+                                            </div>
+                                        </Nav.Link>
+                                    )}
+
+                                    {isAuthenticated && (
+                                        <Nav.Link
+                                            as="button"
+                                            type="button"
+                                            onClick={handleLogout}
+                                            disabled={loggingOut}
+                                            className="navlink nav-item dropdown border-0 bg-transparent"
+                                        >
+                                            <div className="username">
+                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="logout" />
+                                                {loggingOut ? "登出中..." : "登出"}
                                             </div>
                                         </Nav.Link>
                                     )}
