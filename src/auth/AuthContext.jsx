@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { authentication } from "../components/Pages/firebase-config";
-import { clearStudentSession, loadStudentProfile } from "./authService";
+import {
+    clearStudentSession,
+    loadStudentProfile,
+    logoutCurrentUser
+} from "./authService";
 
 const AuthContext = createContext(null);
 
@@ -11,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(authentication, async (user) => {
+        const unsubscribe = onAuthStateChanged(authentication, async user => {
             setAuthLoading(true);
 
             if (!user) {
@@ -45,13 +49,26 @@ export const AuthProvider = ({ children }) => {
         return unsubscribe;
     }, []);
 
+    const logout = async () => {
+        setAuthLoading(true);
+
+        try {
+            await logoutCurrentUser();
+        } finally {
+            setFirebaseUser(null);
+            setStudentProfile(null);
+            setAuthLoading(false);
+        }
+    };
+
     const value = useMemo(() => ({
         firebaseUser,
         studentProfile,
         role: studentProfile?.role || null,
         authLoading,
         isAuthenticated: Boolean(firebaseUser && studentProfile),
-        setStudentProfile
+        setStudentProfile,
+        logout
     }), [firebaseUser, studentProfile, authLoading]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
