@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../auth/AuthContext";
-import { supabase } from "./supabase-config";
+import { authentication } from "./firebase-config";
+import { supabase, supabaseKey, supabaseUrl } from "./supabase-config";
 import "./css/ManagementDashboard.scss";
 
 const ROLE_LABELS = {
@@ -16,43 +19,51 @@ const PLAN_LABELS = {
 };
 
 function AccountManagement() {
-    const { role } = useAuth();
+    const { role, studentProfile } = useAuth();
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [searchText, setSearchText] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [classFilter, setClassFilter] = useState("all");
+    const [editingAccount, setEditingAccount] = useState(null);
+    const [editForm, setEditForm] = useState({
+        name: "",
+        role: "student",
+        class: "",
+        plan: ""
+    });
 
     const isAdmin = role === "admin";
 
+    const fetchAccounts = async () => {
+        setLoading(true);
+        setErrorMessage("");
+
+        let query = supabase
+            .from("students")
+            .select("id, firebase_uid, email, name, role, class, plan, updated_at")
+            .order("name", { ascending: true });
+
+        if (!isAdmin) {
+            query = query.eq("role", "student");
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error("讀取帳號清單失敗:", error);
+            setErrorMessage("帳號清單讀取失敗");
+            setAccounts([]);
+        } else {
+            setAccounts(data || []);
+        }
+
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const fetchAccounts = async () => {
-            setLoading(true);
-            setErrorMessage("");
-
-            let query = supabase
-                .from("students")
-                .select("id, firebase_uid, email, name, role, class, plan, updated_at")
-                .order("name", { ascending: true });
-
-            if (!isAdmin) {
-                query = query.eq("role", "student");
-            }
-
-            const { data, error } = await query;
-
-            if (error) {
-                console.error("讀取帳號清單失敗:", error);
-                setErrorMessage("帳號清單讀取失敗");
-                setAccounts([]);
-            } else {
-                setAccounts(data || []);
-            }
-
-            setLoading(false);
-        };
-
         fetchAccounts();
     }, [isAdmin]);
 
@@ -71,6 +82,108 @@ function AccountManagement() {
         });
     }, [accounts, searchText, roleFilter, classFilter]);
 
+    const startEdit = account => {
+        if (!isAdmin && account.role !== "student") return;
+
+        setEditingAccount(account);
+        setEditForm({
+            name: account.name || "",
+            role: account.role || "student",
+            class: account.class || "",
+            plan: account.plan || ""
+        });
+    };
+
+    const cancelEdit = () => {
+        if (saving) return;
+        setEditingAccount(null);
+    };
+
+    const handleRoleChange = event => {
+        const nextRole = event.target.value;
+        setEditForm(prev => ({
+            ...prev,
+            role: nextRole,
+            class: nextRole === "student" ? prev.class : "",
+            plan: nextRole === "student" ? prev.plan : ""
+        }));
+    };
+
+    const saveAccount = async event => {
+        event.preventDefault();
+
+        if (!editingAccount) return;
+
+        if (!editForm.name.trim()) {
+            toast.error("Name 不可空白");
+            return;
+        }
+
+        if (editForm.role === "student" && (!editForm.class || !editForm.plan)) {
+            toast.error("學生必須選擇 Class 與 Plan");
+            return;
+        }
+
+        const currentUser = authentication.currentUser;
+
+        if (!currentUser) {
+            toast.error("登入狀態已失效，請重新登入");
+            return;
+        }
+
+        setSaving(true);
+
+        try {
+            const idToken = await currentUser.getIdToken(true);
+
+            const response = await fetch(`${supabaseUrl}/functions/v1/update-user`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${idToken}`,
+                    "apikey": supabaseKey
+                },
+                body: JSON.stringify({
+                    id: editingAccount.id,
+                    name: editForm.name.trim(),
+                    role: isAdmin ? editForm.role : "student",
+                    class: editForm.role === "student" ? editForm.class : null,
+                    plan: editForm.role === "student" ? editForm.plan : null
+                })
+            });
+
+            let result = null;
+
+            try {
+                result = await response.json();
+            } catch (error) {
+                console.error("update-user 回傳格式錯誤:", error);
+            }
+
+            if (!response.ok) {
+                throw new Error(result?.error || `帳號更新失敗（HTTP ${response.status}）`);
+            }
+
+            setAccounts(prev => prev.map(account => (
+                account.id === result.user.id ? result.user : account
+            )));
+
+            setEditingAccount(null);
+            toast.success("帳號資料更新成功");
+        } catch (error) {
+            console.error("帳號更新失敗:", error);
+            toast.error(error.message || "帳號更新失敗");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const editingOwnAdminAccount = Boolean(
+        isAdmin &&
+        editingAccount &&
+        editingAccount.firebase_uid === studentProfile?.firebase_uid
+    );
+
     return (
         <div className="management-page">
             <section className="management-hero">
@@ -79,8 +192,8 @@ function AccountManagement() {
                     <h1>帳號管理</h1>
                     <p>
                         {isAdmin
-                            ? "查看 Alan English 的學生、教師與管理員帳號。"
-                            : "查看目前學生帳號與班級、方案資料。"}
+                            ? "查看並安全編輯 Alan English 的學生、教師與管理員帳號。"
+                            : "查看學生帳號，並修改學生姓名、班級與方案。"}
                     </p>
                 </div>
 
@@ -133,24 +246,110 @@ function AccountManagement() {
                                         <th>Role</th>
                                         <th>Class</th>
                                         <th>Plan</th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredAccounts.length > 0 ? filteredAccounts.map(account => (
-                                        <tr key={account.id}>
-                                            <td>{account.name || "-"}</td>
-                                            <td>{account.email || "-"}</td>
-                                            <td>
-                                                <span className={`role-badge role-${account.role || "student"}`}>
-                                                    {ROLE_LABELS[account.role] || account.role || "Student"}
-                                                </span>
-                                            </td>
-                                            <td>{account.role === "student" ? account.class || "-" : "-"}</td>
-                                            <td>{account.role === "student" ? PLAN_LABELS[account.plan] || account.plan || "-" : "-"}</td>
-                                        </tr>
+                                        <React.Fragment key={account.id}>
+                                            <tr>
+                                                <td>{account.name || "-"}</td>
+                                                <td>{account.email || "-"}</td>
+                                                <td>
+                                                    <span className={`role-badge role-${account.role || "student"}`}>
+                                                        {ROLE_LABELS[account.role] || account.role || "Student"}
+                                                    </span>
+                                                </td>
+                                                <td>{account.role === "student" ? account.class || "-" : "-"}</td>
+                                                <td>{account.role === "student" ? PLAN_LABELS[account.plan] || account.plan || "-" : "-"}</td>
+                                                <td>
+                                                    <button
+                                                        type="button"
+                                                        className="management-edit-button"
+                                                        onClick={() => startEdit(account)}
+                                                    >
+                                                        編輯
+                                                    </button>
+                                                </td>
+                                            </tr>
+
+                                            {editingAccount?.id === account.id && (
+                                                <tr className="management-edit-row">
+                                                    <td colSpan="6">
+                                                        <form className="management-edit-form" onSubmit={saveAccount}>
+                                                            <div className="management-edit-grid">
+                                                                <label>
+                                                                    <span>Name</span>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editForm.name}
+                                                                        onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                                                                        disabled={saving}
+                                                                    />
+                                                                </label>
+
+                                                                <label>
+                                                                    <span>Role</span>
+                                                                    <select
+                                                                        value={editForm.role}
+                                                                        onChange={handleRoleChange}
+                                                                        disabled={!isAdmin || saving || editingOwnAdminAccount}
+                                                                    >
+                                                                        <option value="student">Student</option>
+                                                                        <option value="teacher">Teacher</option>
+                                                                        <option value="admin">Admin</option>
+                                                                    </select>
+                                                                </label>
+
+                                                                {editForm.role === "student" && (
+                                                                    <>
+                                                                        <label>
+                                                                            <span>Class</span>
+                                                                            <select
+                                                                                value={editForm.class}
+                                                                                onChange={e => setEditForm(prev => ({ ...prev, class: e.target.value }))}
+                                                                                disabled={saving}
+                                                                            >
+                                                                                <option value="">選擇 Class</option>
+                                                                                <option value="A">A</option>
+                                                                                <option value="B">B</option>
+                                                                                <option value="C">C</option>
+                                                                                <option value="D">D</option>
+                                                                            </select>
+                                                                        </label>
+
+                                                                        <label>
+                                                                            <span>Plan</span>
+                                                                            <select
+                                                                                value={editForm.plan}
+                                                                                onChange={e => setEditForm(prev => ({ ...prev, plan: e.target.value }))}
+                                                                                disabled={saving}
+                                                                            >
+                                                                                <option value="">選擇 Plan</option>
+                                                                                <option value="listeningonly">純聽力</option>
+                                                                                <option value="allcover">全方位</option>
+                                                                            </select>
+                                                                        </label>
+                                                                    </>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="management-edit-actions">
+                                                                <button type="submit" className="management-save-button" disabled={saving}>
+                                                                    {saving ? "儲存中..." : "儲存修改"}
+                                                                </button>
+                                                                <button type="button" className="management-cancel-button" onClick={cancelEdit} disabled={saving}>
+                                                                    取消
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
                                     )) : (
                                         <tr>
-                                            <td colSpan="5" className="management-empty">沒有符合條件的帳號</td>
+                                            <td colSpan="6" className="management-empty">沒有符合條件的帳號</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -159,6 +358,15 @@ function AccountManagement() {
                     </>
                 )}
             </section>
+
+            <ToastContainer
+                position="top-center"
+                autoClose={2200}
+                hideProgressBar={false}
+                closeOnClick
+                pauseOnHover={false}
+                draggable
+            />
         </div>
     );
 }
