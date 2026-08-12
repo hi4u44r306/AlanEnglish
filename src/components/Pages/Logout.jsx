@@ -1,59 +1,45 @@
-import React from "react";
-import "./css/Logout.scss";
-import { signOut } from "firebase/auth";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { IoExit } from "react-icons/io5";
 import { FONTS } from "./theme";
-import { authentication } from "./firebase-config";
-// import Exiticon from "../assets/img/exit.png"
-// import Logouticon from "../assets/img/log-out.png"
+import { logoutCurrentUser } from "../../auth/authService";
+import "./css/Logout.scss";
 
-class Logout extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = {
+const Logout = () => {
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
 
+    const logout = async () => {
+        if (!window.confirm("確定要登出嗎?")) return;
+
+        setIsLoading(true);
+
+        try {
+            await logoutCurrentUser();
+            navigate("/", { replace: true });
+            window.alert("已成功登出");
+        } catch (error) {
+            console.error("登出失敗:", error);
+            window.alert("登出失敗，請再試一次");
+        } finally {
+            setIsLoading(false);
         }
-    }
-    logout() {
-        if (window.confirm('確定要登出嗎?')) {
-            signOut(authentication)
-                .then(() => {
-                    localStorage.removeItem('ae-class');
-                    localStorage.removeItem('ae-useruid');
-                    localStorage.removeItem('ae-userimage');
-                    localStorage.removeItem('ae-username');
-                    localStorage.removeItem('ae-teacherschool');
-                    // localStorage.removeItem('AllStudent');
-                    // localStorage.removeItem('OnlineStudentData');
-                    // localStorage.removeItem('OfflineStudentData');
-                    window.location = "/";
-                    alert('已成功登出');
-                }).catch((err) => {
-                    console.log(err)
-                })
-        } else {
+    };
 
-        }
-    }
-    render() {
-        return (
-            <div className="logoutcontainer">
-                <button className="logoutbtn" onClick={this.logout}>
-                    <IoExit size={20} />
-                    <span style={{
-                        textAlign: 'center',
-                        fontSize: '20px',
-                        fontFamily: FONTS.semiBold,
-                    }}>
-                        登出
-                    </span>
-                </button>
-
-                {/* <img className="logoutbtn" onClick={this.logout} src={Logouticon} alt="#"/> */}
-            </div>
-
-        );
-    }
-}
+    return (
+        <div className="logoutcontainer">
+            <button className="logoutbtn" onClick={logout} disabled={isLoading}>
+                <IoExit size={20} />
+                <span style={{
+                    textAlign: "center",
+                    fontSize: "20px",
+                    fontFamily: FONTS.semiBold
+                }}>
+                    {isLoading ? "登出中..." : "登出"}
+                </span>
+            </button>
+        </div>
+    );
+};
 
 export default Logout;
