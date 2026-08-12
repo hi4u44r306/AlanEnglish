@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { off, onValue, ref } from "firebase/database";
 import "./App.scss";
@@ -18,6 +18,12 @@ import LinkAdmin from "../components/Pages/Link Admin Page";
 import NotFound from "../components/Pages/NotFound";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
+import RoleHomeRedirect from "../auth/RoleHomeRedirect";
+
+const LegacyPlaylistRedirect = () => {
+    const { playlistId } = useParams();
+    return <Navigate to={`/student/books/${playlistId}`} replace />;
+};
 
 const App = () => {
     useEffect(() => {
@@ -73,9 +79,9 @@ const App = () => {
                     <Route path="/showcase" element={<Showcase />} />
 
                     <Route
-                        path="/userinfo"
+                        path="/student/dashboard"
                         element={
-                            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+                            <ProtectedRoute allowedRoles={["student"]}>
                                 <Containerfull>
                                     <User />
                                 </Containerfull>
@@ -84,7 +90,7 @@ const App = () => {
                     />
 
                     <Route
-                        path="/home/playlist/:playlistId"
+                        path="/student/books/:playlistId"
                         element={
                             <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
                                 <Containerfull>
@@ -95,7 +101,18 @@ const App = () => {
                     />
 
                     <Route
-                        path="/home/playlist/addmusic"
+                        path="/teacher/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                                <Containerfull>
+                                    <User />
+                                </Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/teacher/add-music"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
                                 <Containerfull>
@@ -106,7 +123,18 @@ const App = () => {
                     />
 
                     <Route
-                        path="/editnavbar"
+                        path="/teacher/students"
+                        element={
+                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                                <Containerfull>
+                                    <Signup />
+                                </Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/teacher/navbar"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
                                 <Containerfull>
@@ -117,7 +145,18 @@ const App = () => {
                     />
 
                     <Route
-                        path="/linksadmin"
+                        path="/admin/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <Containerfull>
+                                    <User />
+                                </Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/links"
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
                                 <LinkAdmin />
@@ -125,16 +164,13 @@ const App = () => {
                         }
                     />
 
-                    <Route
-                        path="/signup"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull>
-                                    <Signup />
-                                </Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
+                    <Route path="/userinfo" element={<RoleHomeRedirect />} />
+                    <Route path="/home/playlist/addmusic" element={<Navigate to="/teacher/add-music" replace />} />
+                    <Route path="/home/playlist/signup" element={<Navigate to="/teacher/students" replace />} />
+                    <Route path="/home/playlist/:playlistId" element={<LegacyPlaylistRedirect />} />
+                    <Route path="/editnavbar" element={<Navigate to="/teacher/navbar" replace />} />
+                    <Route path="/signup" element={<Navigate to="/teacher/students" replace />} />
+                    <Route path="/linksadmin" element={<Navigate to="/admin/links" replace />} />
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
