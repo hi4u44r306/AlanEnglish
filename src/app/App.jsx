@@ -33,13 +33,13 @@ const App = () => {
         const navItemsRef = ref(rtdb, "WebsiteNavbar/");
         const teachingResourcesRef = ref(rtdb, "TeachingResources/");
 
-        const unsubscribeMusic = onValue(musicRef, (snapshot) => {
+        const unsubscribeMusic = onValue(musicRef, snapshot => {
             if (snapshot.exists()) {
                 localStorage.setItem("ae-playlistData", JSON.stringify(snapshot.val()));
             }
         });
 
-        const unsubscribeNavbar = onValue(navItemsRef, (snapshot) => {
+        const unsubscribeNavbar = onValue(navItemsRef, snapshot => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 localStorage.setItem("ae-navData", JSON.stringify(data));
@@ -47,12 +47,9 @@ const App = () => {
             }
         });
 
-        const unsubscribeTeachingResources = onValue(teachingResourcesRef, (snapshot) => {
+        const unsubscribeTeachingResources = onValue(teachingResourcesRef, snapshot => {
             if (snapshot.exists()) {
-                const dataArray = Object.entries(snapshot.val()).map(([date, details]) => ({
-                    date,
-                    ...details
-                }));
+                const dataArray = Object.entries(snapshot.val()).map(([date, details]) => ({ date, ...details }));
                 localStorage.setItem("teachingResourcesData", JSON.stringify(dataArray));
             }
         });
@@ -84,9 +81,7 @@ const App = () => {
                         path="/student/dashboard"
                         element={
                             <ProtectedRoute allowedRoles={["student"]}>
-                                <Containerfull>
-                                    <User />
-                                </Containerfull>
+                                <Containerfull><User /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -95,9 +90,7 @@ const App = () => {
                         path="/student/books/:playlistId"
                         element={
                             <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                                <Containerfull>
-                                    <Playlist />
-                                </Containerfull>
+                                <Containerfull><Playlist /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -106,9 +99,7 @@ const App = () => {
                         path="/teacher/dashboard"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull>
-                                    <ManagementDashboard />
-                                </Containerfull>
+                                <Containerfull><ManagementDashboard /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -117,9 +108,7 @@ const App = () => {
                         path="/teacher/accounts"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull>
-                                    <AccountManagement />
-                                </Containerfull>
+                                <Containerfull><AccountManagement /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -128,9 +117,7 @@ const App = () => {
                         path="/teacher/add-music"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull>
-                                    <AddMusic />
-                                </Containerfull>
+                                <Containerfull><AddMusic /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -139,20 +126,7 @@ const App = () => {
                         path="/teacher/students"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull>
-                                    <Signup />
-                                </Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/navbar"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull>
-                                    <EditMainNavbar />
-                                </Containerfull>
+                                <Containerfull><Signup /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -161,9 +135,7 @@ const App = () => {
                         path="/admin/dashboard"
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
-                                <Containerfull>
-                                    <ManagementDashboard />
-                                </Containerfull>
+                                <Containerfull><ManagementDashboard /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -172,9 +144,16 @@ const App = () => {
                         path="/admin/accounts"
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
-                                <Containerfull>
-                                    <AccountManagement />
-                                </Containerfull>
+                                <Containerfull><AccountManagement /></Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/navbar"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <Containerfull><EditMainNavbar /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -192,7 +171,8 @@ const App = () => {
                     <Route path="/home/playlist/addmusic" element={<Navigate to="/teacher/add-music" replace />} />
                     <Route path="/home/playlist/signup" element={<Navigate to="/teacher/students" replace />} />
                     <Route path="/home/playlist/:playlistId" element={<LegacyPlaylistRedirect />} />
-                    <Route path="/editnavbar" element={<Navigate to="/teacher/navbar" replace />} />
+                    <Route path="/teacher/navbar" element={<Navigate to="/admin/navbar" replace />} />
+                    <Route path="/editnavbar" element={<Navigate to="/admin/navbar" replace />} />
                     <Route path="/signup" element={<Navigate to="/teacher/students" replace />} />
                     <Route path="/linksadmin" element={<Navigate to="/admin/links" replace />} />
 
