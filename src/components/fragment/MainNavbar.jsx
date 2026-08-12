@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import Brand from "./Brand";
 import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
+import { getRoleHome } from "../../auth/RoleHomeRedirect";
 
 function MainNavbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -26,6 +27,7 @@ function MainNavbar() {
     const { role, isAuthenticated } = useAuth();
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
+    const homePath = isAuthenticated ? getRoleHome(role) : "/";
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 100);
@@ -91,7 +93,7 @@ function MainNavbar() {
                 <NavDropdown.Item
                     key={book.id}
                     as={Link}
-                    to={`/home/playlist/${book.code}`}
+                    to={`/student/books/${book.code}`}
                     className="subnavlink"
                 >
                     <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt={book.name} />
@@ -113,7 +115,7 @@ function MainNavbar() {
                     className={`navbackground ${scrolled ? 'scrolled' : ''}`}
                 >
                     <Container fluid className="containerfluid">
-                        <Navbar.Brand as={Link} to={isAuthenticated ? "/userinfo" : "/"}>
+                        <Navbar.Brand as={Link} to={homePath}>
                             <Brand />
                         </Navbar.Brand>
 
@@ -140,20 +142,20 @@ function MainNavbar() {
                                             id={`offcanvasNavbarDropdown-expand-${expand}`}
                                             className="navlink"
                                         >
-                                            <NavDropdown.Item as={Link} to="/editnavbar" className="subnavlink">
+                                            <NavDropdown.Item as={Link} to="/teacher/navbar" className="subnavlink">
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
-                                                編輯Navbar
+                                                編輯 Navbar
                                             </NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/home/playlist/addmusic" className="subnavlink">
+                                            <NavDropdown.Item as={Link} to="/teacher/add-music" className="subnavlink">
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
                                                 新增音檔
                                             </NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/signup" className="subnavlink">
+                                            <NavDropdown.Item as={Link} to="/teacher/students" className="subnavlink">
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
                                                 新增學生帳號
                                             </NavDropdown.Item>
                                             {isAdmin && (
-                                                <NavDropdown.Item as={Link} to="/linksadmin" className="subnavlink">
+                                                <NavDropdown.Item as={Link} to="/admin/links" className="subnavlink">
                                                     <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
                                                     管理員功能
                                                 </NavDropdown.Item>
@@ -170,7 +172,7 @@ function MainNavbar() {
                                     )}
 
                                     {isAuthenticated && (
-                                        <Nav.Link as={Link} to="/userinfo" className="navlink nav-item dropdown">
+                                        <Nav.Link as={Link} to={homePath} className="navlink nav-item dropdown">
                                             <div className="username">
                                                 <img style={{ width: 18, marginRight: 4 }} src={File} alt="profile" />
                                                 我的帳號
@@ -178,10 +180,10 @@ function MainNavbar() {
                                         </Nav.Link>
                                     )}
 
-                                    <Nav.Link as={Link} to="/home/playlist/about" className="navlink nav-item dropdown">
+                                    <Nav.Link as={Link} to="/showcase" className="navlink nav-item dropdown">
                                         <div className="username">
                                             <img style={{ width: 18, marginRight: 4 }} src={Search} alt="about" />
-                                            關於AE
+                                            關於 AE
                                         </div>
                                     </Nav.Link>
                                 </Nav>
