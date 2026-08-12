@@ -3,10 +3,16 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Signup.scss";
 
-import { createUserWithEmailAndPassword, getAuth, signOut } from "firebase/auth";
+import {
+    createUserWithEmailAndPassword,
+    deleteUser,
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut
+} from "firebase/auth";
 import { deleteApp, initializeApp } from "firebase/app";
-import { firebaseConfig } from "./firebase-config";
-import { supabase } from "./supabase-config";
+import { authentication, firebaseConfig } from "./firebase-config";
+import { supabaseKey, supabaseUrl } from "./supabase-config";
 
 function Signup() {
     const [email, setEmail] = useState("");
@@ -16,8 +22,8 @@ function Signup() {
     const [plan, setPlan] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const showSuccess = () => {
-        toast.success("學生帳號建立成功", {
+    const showSuccess = (message = "學生帳號建立成功") => {
+        toast.success(message, {
             className: "notification",
             position: "top-center",
             autoClose: 1800,
@@ -32,7 +38,7 @@ function Signup() {
         toast.error(message || "建立失敗", {
             className: "notification",
             position: "top-center",
-            autoClose: 2500,
+            autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: false,
@@ -76,61 +82,155 @@ function Signup() {
         return true;
     };
 
+    const createStudentInDatabase = async (firebaseUid) => {
+        const teacherUser = authentication.currentUser;
+
+        if (!teacherUser) {
+            throw new Error("找不到目前教師登入狀態，請重新登入");
+        }
+
+        const teacherIdToken = await teacherUser.getIdToken(true);
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/create-student`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${teacherIdToken}`,
+                "apikey": supabaseKey
+            },
+            body: JSON.stringify({
+                firebase_uid: firebaseUid,
+                email: email.trim().toLowerCase(),
+                name: name.trim(),
+                class: classtype,
+                plan
+            })
+        });
+
+        let result = null;
+
+        try {
+            result = await response.json();
+        } catch (error) {
+            console.error("create-student 回傳格式錯誤:", error);
+        }
+
+        if (!response.ok) {
+            throw new Error(result?.error || `學生資料建立失敗（HTTP ${response.status}）`);
+        }
+
+        return result;
+    };
+
     const signupUser = async (e) => {
         e.preventDefault();
         if (!validateForm()) return;
 
         setIsLoading(true);
+
         let secondaryApp = null;
+        let secondaryAuth = null;
+        let secondaryUser = null;
+        let firebaseAccountCreatedNow = false;
 
         try {
             const secondaryAppName = `studentCreator-${Date.now()}`;
             secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-            const secondaryAuth = getAuth(secondaryApp);
+            secondaryAuth = getAuth(secondaryApp);
 
-            const credentials = await createUserWithEmailAndPassword(
-                secondaryAuth,
-                email.trim().toLowerCase(),
-                password
-            );
+            try {
+                const credentials = await createUserWithEmailAndPassword(
+                    secondaryAuth,
+                    email.trim().toLowerCase(),
+                    password
+                );
 
-            const firebaseUid = credentials.user.uid;
+                secondaryUser = credentials.user;
+                firebaseAccountCreatedNow = true;
+            } catch (firebaseCreateError) {
+                if (firebaseCreateError.code !== "auth/email-already-in-use") {
+                    throw firebaseCreateError;
+                }
 
-            const { error: studentError } = await supabase.from("students").insert({
-                firebase_uid: firebaseUid,
-                name: name.trim(),
-                email: email.trim().toLowerCase(),
-                class: classtype,
-                role: "student",
-                plan,
-                user_image: "6C9570CC-B276-424C-857F-11BBDD21C99B.png",
-                total_time_played: 0,
-                current_time_played: 0
-            });
+                console.warn("Firebase 帳號已存在，嘗試修復既有帳號資料");
 
-            if (studentError) {
-                console.error("Supabase 新增學生失敗:", studentError);
-                throw new Error(`學生資料寫入失敗：${studentError.message}`);
+                try {
+                    const existingCredentials = await signInWithEmailAndPassword(
+                        secondaryAuth,
+                        email.trim().toLowerCase(),
+                        password
+                    );
+
+                    secondaryUser = existingCredentials.user;
+                } catch (existingLoginError) {
+                    if (
+                        existingLoginError.code === "auth/invalid-credential" ||
+                        existingLoginError.code === "auth/wrong-password"
+                    ) {
+                        throw new Error(
+                            "這個 Email 已存在 Firebase，但輸入的密碼不正確。請確認原本建立此帳號時使用的密碼。"
+                        );
+                    }
+
+                    throw existingLoginError;
+                }
             }
 
-            await signOut(secondaryAuth);
-            showSuccess();
-            clearForm();
+            if (!secondaryUser?.uid) {
+                throw new Error("無法取得學生 Firebase UID");
+            }
+
+            try {
+                const result = await createStudentInDatabase(secondaryUser.uid);
+
+                if (secondaryAuth.currentUser) {
+                    await signOut(secondaryAuth);
+                }
+
+                if (result?.repaired) {
+                    showSuccess("既有學生帳號已修復並同步完成");
+                } else {
+                    showSuccess("學生帳號建立成功");
+                }
+
+                clearForm();
+            } catch (databaseError) {
+                if (firebaseAccountCreatedNow && secondaryUser) {
+                    try {
+                        await deleteUser(secondaryUser);
+                        console.warn("Supabase 建立失敗，已回滾剛建立的 Firebase 帳號");
+                    } catch (rollbackError) {
+                        console.error("Firebase 帳號回滾失敗:", rollbackError);
+                    }
+                }
+
+                throw databaseError;
+            }
         } catch (err) {
             console.error("建立學生發生錯誤:", err);
 
-            if (err.code === "auth/email-already-in-use") {
-                showError("這個 Email 已經建立過帳號");
-            } else if (err.code === "auth/invalid-email") {
+            if (err.code === "auth/invalid-email") {
                 showError("Email 格式不正確");
             } else if (err.code === "auth/weak-password") {
                 showError("密碼強度不足");
+            } else if (err.code === "auth/too-many-requests") {
+                showError("操作次數過多，請稍後再試");
+            } else if (err.code === "auth/network-request-failed") {
+                showError("Firebase 連線失敗，請確認網路後再試");
             } else if (err.message) {
                 showError(err.message);
             } else {
                 showError("建立學生失敗");
             }
         } finally {
+            if (secondaryAuth?.currentUser) {
+                try {
+                    await signOut(secondaryAuth);
+                } catch (signOutError) {
+                    console.warn("Secondary Firebase Auth 登出失敗:", signOutError);
+                }
+            }
+
             if (secondaryApp) {
                 try {
                     await deleteApp(secondaryApp);
@@ -138,6 +238,7 @@ function Signup() {
                     console.warn("Secondary Firebase App 移除失敗:", deleteError);
                 }
             }
+
             setIsLoading(false);
         }
     };
@@ -172,6 +273,7 @@ function Signup() {
                         value={email}
                         onChange={handleChange}
                         autoComplete="off"
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -184,6 +286,7 @@ function Signup() {
                         value={password}
                         onChange={handleChange}
                         autoComplete="new-password"
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -195,13 +298,19 @@ function Signup() {
                         placeholder="例如 Alan"
                         value={name}
                         onChange={handleChange}
+                        disabled={isLoading}
                     />
                 </div>
 
                 <div className="signup-row">
                     <div className="signupinput">
                         <label>Class</label>
-                        <select name="classtype" value={classtype} onChange={handleChange}>
+                        <select
+                            name="classtype"
+                            value={classtype}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                        >
                             <option value="" disabled>選擇 Class...</option>
                             <option value="A">A</option>
                             <option value="B">B</option>
@@ -212,7 +321,12 @@ function Signup() {
 
                     <div className="signupinput">
                         <label>Plan</label>
-                        <select name="plan" value={plan} onChange={handleChange}>
+                        <select
+                            name="plan"
+                            value={plan}
+                            onChange={handleChange}
+                            disabled={isLoading}
+                        >
                             <option value="" disabled>選擇 Plan...</option>
                             <option value="listeningonly">純聽力</option>
                             <option value="allcover">全方位</option>
