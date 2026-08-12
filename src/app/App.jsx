@@ -16,6 +16,8 @@ import EditMainNavbar from "../components/fragment/EditMainNavbar";
 import Links from "../components/Pages/Links";
 import LinkAdmin from "../components/Pages/Link Admin Page";
 import NotFound from "../components/Pages/NotFound";
+import ManagementDashboard from "../components/Pages/ManagementDashboard";
+import AccountManagement from "../components/Pages/AccountManagement";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -105,7 +107,18 @@ const App = () => {
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
                                 <Containerfull>
-                                    <User />
+                                    <ManagementDashboard />
+                                </Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/teacher/accounts"
+                        element={
+                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                                <Containerfull>
+                                    <AccountManagement />
                                 </Containerfull>
                             </ProtectedRoute>
                         }
@@ -149,7 +162,18 @@ const App = () => {
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
                                 <Containerfull>
-                                    <User />
+                                    <ManagementDashboard />
+                                </Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin/accounts"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <Containerfull>
+                                    <AccountManagement />
                                 </Containerfull>
                             </ProtectedRoute>
                         }
