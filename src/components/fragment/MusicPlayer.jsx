@@ -1,67 +1,41 @@
-import AudioPlayer, {
-    RHAP_UI
-} from "react-h5-audio-player";
-
-import React, {
-    useEffect,
-    useRef,
-    useState
-} from "react";
-
+import AudioPlayer, { RHAP_UI } from "react-h5-audio-player";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-
 import {
     setCurrentPlaying,
-    setPlayPauseStatus
+    setPlayPauseStatus,
+    setNoInteractionCount
 } from "../../actions/actions";
-
-import {
-    toast,
-    ToastContainer
-} from "react-toastify";
-
+import { toast, ToastContainer } from "react-toastify";
 import Name from "./Name";
-
 import "../assets/scss/FooterPlayer.scss";
 import "react-h5-audio-player/lib/styles.css";
+import { supabase } from "../Pages/supabase-config";
+import { useAuth } from "../../auth/AuthContext";
+import { recordTrackPlay } from "../../services/listeningService";
 
-import {
-    supabase
-} from "../Pages/supabase-config";
+const NO_INTERACTION_STORAGE_KEY = "ae-no-interaction";
+const NO_INTERACTION_WARNING_COUNT = 5;
+const NO_INTERACTION_STOP_COUNT = 10;
 
-import {
-    useAuth
-} from "../../auth/AuthContext";
+function MusicPlayer({ music }) {
+    const dispatch = useDispatch();
+    const audioElement = useRef(null);
+    const automaticTrackChangeRef = useRef(false);
 
-import {
-    recordTrackPlay
-} from "../../services/listeningService";
+    const { firebaseUser, role } = useAuth();
 
-function MusicPlayer({
-    music
-}) {
-    const dispatch =
-        useDispatch();
+    const [currTrack, setCurrTrack] = useState(music);
+    const [playlist, setPlaylist] = useState([]);
+    const [noInteractionCount, setLocalNoInteractionCount] = useState(() => {
+        const savedCount = Number(
+            localStorage.getItem(NO_INTERACTION_STORAGE_KEY)
+        );
 
-    const audioElement =
-        useRef(null);
-
-    const {
-        firebaseUser,
-        role
-    } = useAuth();
-
-    const [
-        currTrack,
-        setCurrTrack
-    ] = useState(
-        music
-    );
-
-    const [
-        playlist,
-        setPlaylist
-    ] = useState([]);
+        return Number.isFinite(savedCount)
+            ? savedCount
+            : 0;
+    });
 
     const {
         id: trackId,
@@ -70,6 +44,18 @@ function MusicPlayer({
         audioURL,
         book_id
     } = currTrack || {};
+
+    // =====================================
+    // 初始化 noInteraction Redux
+    // =====================================
+
+    useEffect(() => {
+        dispatch(
+            setNoInteractionCount(
+                noInteractionCount
+            )
+        );
+    }, [dispatch, noInteractionCount]);
 
     // =====================================
     // Redux music 改變
@@ -90,110 +76,93 @@ function MusicPlayer({
     // =====================================
 
     useEffect(() => {
-        const fetchPlaylist =
-            async () => {
-                if (!book_id) {
-                    setPlaylist(
-                        []
-                    );
-                    return;
-                }
-
-                const {
-                    data,
-                    error
-                } =
-                    await supabase
-                        .from(
-                            "music_tracks"
-                        )
-                        .select(
-                            "*"
-                        )
-                        .eq(
-                            "book_id",
-                            book_id
-                        )
-                        .eq(
-                            "enabled",
-                            true
-                        )
-                        .order(
-                            "sort_order",
-                            {
-                                ascending:
-                                    true
-                            }
-                        );
-
-                if (error) {
-                    console.error(
-                        "MusicPlayer 讀取 Playlist 失敗:",
-                        error
-                    );
-
-                    return;
-                }
-
-                const convertedTracks =
-                    (
-                        data ||
-                        []
-                    ).map(
-                        track => {
-                            const {
-                                data:
-                                publicUrlData
-                            } =
-                                supabase.storage
-                                    .from(
-                                        "music"
-                                    )
-                                    .getPublicUrl(
-                                        track.audio_url
-                                    );
-
-                            return {
-                                id:
-                                    track.id,
-
-                                book_id:
-                                    track.book_id,
-
-                                page:
-                                    track.page,
-
-                                title:
-                                    track.title,
-
-                                sort_order:
-                                    track.sort_order,
-
-                                bookname:
-                                    bookname,
-
-                                musicName:
-                                    track.music_name,
-
-                                audioURL:
-                                    publicUrlData.publicUrl,
-
-                                audio_url:
-                                    publicUrlData.publicUrl,
-
-                                image:
-                                    track.image,
-
-                                type:
-                                    music?.type
-                            };
-                        }
-                    );
-
+        const fetchPlaylist = async () => {
+            if (!book_id) {
                 setPlaylist(
-                    convertedTracks
+                    []
                 );
-            };
+
+                return;
+            }
+
+            const {
+                data,
+                error
+            } = await supabase
+                .from(
+                    "music_tracks"
+                )
+                .select(
+                    "*"
+                )
+                .eq(
+                    "book_id",
+                    book_id
+                )
+                .eq(
+                    "enabled",
+                    true
+                )
+                .order(
+                    "sort_order",
+                    {
+                        ascending: true
+                    }
+                );
+
+            if (error) {
+                console.error(
+                    "MusicPlayer 讀取 Playlist 失敗:",
+                    error
+                );
+
+                return;
+            }
+
+            const convertedTracks = (
+                data ||
+                []
+            ).map(track => {
+                const {
+                    data: publicUrlData
+                } = supabase.storage
+                    .from(
+                        "music"
+                    )
+                    .getPublicUrl(
+                        track.audio_url
+                    );
+
+                return {
+                    id:
+                        track.id,
+                    book_id:
+                        track.book_id,
+                    page:
+                        track.page,
+                    title:
+                        track.title,
+                    sort_order:
+                        track.sort_order,
+                    bookname:
+                        bookname,
+                    musicName:
+                        track.music_name,
+                    audioURL:
+                        publicUrlData.publicUrl,
+                    audio_url:
+                        publicUrlData.publicUrl,
+                    image:
+                        track.image,
+                    type:
+                        music?.type
+                };
+            });
+
+            setPlaylist(
+                convertedTracks
+            );
+        };
 
         fetchPlaylist();
     }, [
@@ -203,333 +172,495 @@ function MusicPlayer({
     ]);
 
     // =====================================
-    // 成功 Toast
+    // noInteraction 共用更新
     // =====================================
 
-    const showSuccessToast =
-        () => {
-            toast.success(
-                "🎧 聽力次數 + 1",
+    const updateNoInteractionCount = count => {
+        const safeCount = Math.max(
+            0,
+            Number(count) || 0
+        );
+
+        setLocalNoInteractionCount(
+            safeCount
+        );
+
+        localStorage.setItem(
+            NO_INTERACTION_STORAGE_KEY,
+            String(safeCount)
+        );
+
+        dispatch(
+            setNoInteractionCount(
+                safeCount
+            )
+        );
+
+        return safeCount;
+    };
+
+    // =====================================
+    // 人工操作時歸零
+    // =====================================
+
+    const resetNoInteraction = () => {
+        automaticTrackChangeRef.current =
+            false;
+
+        updateNoInteractionCount(
+            0
+        );
+    };
+
+    // =====================================
+    // 自動播放累計
+    // =====================================
+
+    const increaseNoInteraction = () => {
+        const nextCount =
+            noInteractionCount +
+            1;
+
+        updateNoInteractionCount(
+            nextCount
+        );
+
+        if (
+            nextCount ===
+            NO_INTERACTION_WARNING_COUNT
+        ) {
+            toast.warning(
+                "還在聽嗎？已經連續自動播放 5 首囉！",
                 {
                     className:
                         "musicnotification",
-
                     position:
                         "top-center",
-
                     autoClose:
-                        1800,
-
+                        3500,
                     hideProgressBar:
                         false,
-
                     closeOnClick:
                         true,
-
                     pauseOnHover:
                         false,
-
                     draggable:
                         true,
-
                     theme:
                         "colored"
                 }
             );
-        };
+        }
+
+        return nextCount;
+    };
+
+    // =====================================
+    // 成功 Toast
+    // =====================================
+
+    const showSuccessToast = () => {
+        toast.success(
+            "🎧 聽力次數 + 1",
+            {
+                className:
+                    "musicnotification",
+                position:
+                    "top-center",
+                autoClose:
+                    1800,
+                hideProgressBar:
+                    false,
+                closeOnClick:
+                    true,
+                pauseOnHover:
+                    false,
+                draggable:
+                    true,
+                theme:
+                    "colored"
+            }
+        );
+    };
 
     // =====================================
     // 儲存播放完成紀錄
     // =====================================
 
-    const saveCompletedPlay =
-        async () => {
-            // Teacher / Admin
-            // 不累計學生紀錄
-            if (
-                role !==
-                "student"
-            ) {
-                return null;
-            }
+    const saveCompletedPlay = async () => {
+        if (
+            role !==
+            "student"
+        ) {
+            return null;
+        }
 
-            if (
-                !firebaseUser
-            ) {
-                console.warn(
-                    "播放結束但沒有 Firebase User"
+        if (
+            !firebaseUser
+        ) {
+            console.warn(
+                "播放結束但沒有 Firebase User"
+            );
+
+            return null;
+        }
+
+        if (
+            !trackId
+        ) {
+            console.warn(
+                "播放結束但沒有 trackId:",
+                currTrack
+            );
+
+            return null;
+        }
+
+        try {
+            const result =
+                await recordTrackPlay(
+                    firebaseUser,
+                    trackId
                 );
 
-                return null;
-            }
+            const progress =
+                result?.progress ||
+                null;
 
             if (
-                !trackId
+                progress
             ) {
-                console.warn(
-                    "播放結束但沒有 trackId:",
-                    currTrack
+                window.dispatchEvent(
+                    new CustomEvent(
+                        "ae:track-progress-updated",
+                        {
+                            detail:
+                                progress
+                        }
+                    )
                 );
-
-                return null;
             }
 
-            try {
-                const result =
-                    await recordTrackPlay(
-                        firebaseUser,
-                        trackId
-                    );
+            showSuccessToast();
 
-                const progress =
-                    result?.progress ||
-                    null;
+            return progress;
+        } catch (error) {
+            console.error(
+                "更新 Supabase 播放紀錄失敗:",
+                error
+            );
 
-                if (
-                    progress
-                ) {
-                    // =================================
-                    // 讓 Playlist / MusicCard 立即更新
-                    // =================================
-
-                    window.dispatchEvent(
-                        new CustomEvent(
-                            "ae:track-progress-updated",
-                            {
-                                detail:
-                                    progress
-                            }
-                        )
-                    );
+            toast.error(
+                `播放完成，但紀錄更新失敗：${error.message}`,
+                {
+                    position:
+                        "top-center",
+                    autoClose:
+                        3000
                 }
+            );
 
-                showSuccessToast();
-
-                return progress;
-            } catch (error) {
-                console.error(
-                    "更新 Supabase 播放紀錄失敗:",
-                    error
-                );
-
-                toast.error(
-                    `播放完成，但紀錄更新失敗：${error.message}`,
-                    {
-                        position:
-                            "top-center",
-
-                        autoClose:
-                            3000
-                    }
-                );
-
-                return null;
-            }
-        };
+            return null;
+        }
+    };
 
     // =====================================
     // 找目前歌曲位置
     // =====================================
 
-    const getCurrentIndex =
-        () => {
-            if (
-                !playlist ||
-                playlist.length ===
-                0
-            ) {
-                return -1;
-            }
+    const getCurrentIndex = () => {
+        if (
+            !playlist ||
+            playlist.length ===
+            0
+        ) {
+            return -1;
+        }
 
-            return playlist.findIndex(
-                track => {
-                    if (
-                        track.id ===
-                        currTrack?.id
-                    ) {
-                        return true;
-                    }
-
-                    return (
-                        track.bookname ===
-                        bookname &&
-                        track.page ===
-                        page
-                    );
+        return playlist.findIndex(
+            track => {
+                if (
+                    track.id ===
+                    currTrack?.id
+                ) {
+                    return true;
                 }
-            );
-        };
+
+                return (
+                    track.bookname ===
+                    bookname &&
+                    track.page ===
+                    page
+                );
+            }
+        );
+    };
 
     // =====================================
     // 切換歌曲共用
     // =====================================
 
-    const playTrack =
-        track => {
-            if (!track) {
-                return;
-            }
+    const playTrack = (
+        track,
+        isAutomatic = false
+    ) => {
+        if (!track) {
+            return;
+        }
 
-            setCurrTrack(
+        automaticTrackChangeRef.current =
+            isAutomatic;
+
+        setCurrTrack(
+            track
+        );
+
+        dispatch(
+            setCurrentPlaying(
                 track
-            );
+            )
+        );
 
-            dispatch(
-                setCurrentPlaying(
-                    track
-                )
-            );
-
-            dispatch(
-                setPlayPauseStatus(
-                    true
-                )
-            );
-        };
+        dispatch(
+            setPlayPauseStatus(
+                true
+            )
+        );
+    };
 
     // =====================================
-    // 下一首
+    // 下一首（手動）
     // =====================================
 
-    const handleClickNext =
-        () => {
-            if (
-                playlist.length ===
-                0
-            ) {
-                return;
-            }
+    const handleClickNext = () => {
+        if (
+            playlist.length ===
+            0
+        ) {
+            return;
+        }
 
-            const currentIndex =
-                getCurrentIndex();
+        resetNoInteraction();
 
-            if (
-                currentIndex ===
-                -1
-            ) {
-                console.error(
-                    "找不到目前歌曲 index"
-                );
+        const currentIndex =
+            getCurrentIndex();
 
-                return;
-            }
-
-            const nextIndex =
-                (
-                    currentIndex +
-                    1
-                ) %
-                playlist.length;
-
-            const nextTrack =
-                playlist[
-                nextIndex
-                ];
-
-            playTrack(
-                nextTrack
+        if (
+            currentIndex ===
+            -1
+        ) {
+            console.error(
+                "找不到目前歌曲 index"
             );
-        };
+
+            return;
+        }
+
+        const nextIndex =
+            (
+                currentIndex +
+                1
+            ) %
+            playlist.length;
+
+        const nextTrack =
+            playlist[
+            nextIndex
+            ];
+
+        playTrack(
+            nextTrack,
+            false
+        );
+    };
 
     // =====================================
-    // 上一首
+    // 上一首（手動）
     // =====================================
 
-    const handleClickPrev =
-        () => {
-            if (
-                playlist.length ===
-                0
-            ) {
-                return;
-            }
+    const handleClickPrev = () => {
+        if (
+            playlist.length ===
+            0
+        ) {
+            return;
+        }
 
-            const currentIndex =
-                getCurrentIndex();
+        resetNoInteraction();
 
-            if (
-                currentIndex ===
-                -1
-            ) {
-                console.error(
-                    "找不到目前歌曲 index"
-                );
+        const currentIndex =
+            getCurrentIndex();
 
-                return;
-            }
-
-            const prevIndex =
-                (
-                    currentIndex -
-                    1 +
-                    playlist.length
-                ) %
-                playlist.length;
-
-            const prevTrack =
-                playlist[
-                prevIndex
-                ];
-
-            playTrack(
-                prevTrack
+        if (
+            currentIndex ===
+            -1
+        ) {
+            console.error(
+                "找不到目前歌曲 index"
             );
-        };
+
+            return;
+        }
+
+        const prevIndex =
+            (
+                currentIndex -
+                1 +
+                playlist.length
+            ) %
+            playlist.length;
+
+        const prevTrack =
+            playlist[
+            prevIndex
+            ];
+
+        playTrack(
+            prevTrack,
+            false
+        );
+    };
 
     // =====================================
     // 播放完整首
     // =====================================
 
-    const handleEnd =
-        async () => {
-            console.log(
-                "Track End:",
-                currTrack
+    const handleEnd = async () => {
+        console.log(
+            "Track End:",
+            currTrack
+        );
+
+        // =================================
+        // 一定先記錄現在這首
+        // =================================
+
+        await saveCompletedPlay();
+
+        // =================================
+        // 自動播放次數 +1
+        // =================================
+
+        const nextNoInteractionCount =
+            increaseNoInteraction();
+
+        // =================================
+        // 10 次直接停止
+        // =================================
+
+        if (
+            nextNoInteractionCount >=
+            NO_INTERACTION_STOP_COUNT
+        ) {
+            automaticTrackChangeRef.current =
+                false;
+
+            dispatch(
+                setPlayPauseStatus(
+                    false
+                )
             );
 
-            // =================================
-            // 一定先記錄現在這首
-            // =================================
-
-            await saveCompletedPlay();
-
-            // =================================
-            // 再自動播放下一首
-            // =================================
-
-            if (
-                playlist.length ===
-                0
-            ) {
-                return;
-            }
-
-            const currentIndex =
-                getCurrentIndex();
-
-            if (
-                currentIndex ===
-                -1
-            ) {
-                return;
-            }
-
-            const nextIndex =
-                (
-                    currentIndex +
-                    1
-                ) %
-                playlist.length;
-
-            const nextTrack =
-                playlist[
-                nextIndex
-                ];
-
-            playTrack(
-                nextTrack
+            toast.info(
+                "已連續自動播放 10 首，播放器已暫停。請按播放鍵繼續收聽。",
+                {
+                    className:
+                        "musicnotification",
+                    position:
+                        "top-center",
+                    autoClose:
+                        5000,
+                    hideProgressBar:
+                        false,
+                    closeOnClick:
+                        true,
+                    pauseOnHover:
+                        false,
+                    draggable:
+                        true,
+                    theme:
+                        "colored"
+                }
             );
-        };
+
+            return;
+        }
+
+        // =================================
+        // 再自動播放下一首
+        // =================================
+
+        if (
+            playlist.length ===
+            0
+        ) {
+            return;
+        }
+
+        const currentIndex =
+            getCurrentIndex();
+
+        if (
+            currentIndex ===
+            -1
+        ) {
+            return;
+        }
+
+        const nextIndex =
+            (
+                currentIndex +
+                1
+            ) %
+            playlist.length;
+
+        const nextTrack =
+            playlist[
+            nextIndex
+            ];
+
+        playTrack(
+            nextTrack,
+            true
+        );
+    };
+
+    // =====================================
+    // 播放
+    // =====================================
+
+    const handlePlay = () => {
+        dispatch(
+            setPlayPauseStatus(
+                true
+            )
+        );
+
+        if (
+            automaticTrackChangeRef.current
+        ) {
+            automaticTrackChangeRef.current =
+                false;
+
+            return;
+        }
+
+        resetNoInteraction();
+    };
+
+    // =====================================
+    // 暫停
+    // =====================================
+
+    const handlePause = () => {
+        dispatch(
+            setPlayPauseStatus(
+                false
+            )
+        );
+
+        resetNoInteraction();
+    };
 
     // =====================================
     // 沒有音樂
@@ -545,74 +676,37 @@ function MusicPlayer({
 
     return (
         <div className="footer-player">
-
             <AudioPlayer
                 key={
                     currTrack.id ||
                     `${bookname}-${page}`
                 }
-
-                autoPlay={
-                    true
-                }
-
-                volume={
-                    0.5
-                }
-
-                loop={
-                    false
-                }
-
-                progressUpdateInterval={
-                    50
-                }
-
-                ref={
-                    audioElement
-                }
-
+                autoPlay={true}
+                volume={0.5}
+                loop={false}
+                progressUpdateInterval={50}
+                ref={audioElement}
                 src={
                     audioURL ||
                     ""
                 }
-
-                showSkipControls={
-                    true
-                }
-
-                showJumpControls={
-                    false
-                }
-
+                showSkipControls={true}
+                showJumpControls={false}
                 onClickNext={
                     handleClickNext
                 }
-
                 onClickPrevious={
                     handleClickPrev
                 }
-
                 onEnded={
                     handleEnd
                 }
-
-                onPlay={() => {
-                    dispatch(
-                        setPlayPauseStatus(
-                            true
-                        )
-                    );
-                }}
-
-                onPause={() => {
-                    dispatch(
-                        setPlayPauseStatus(
-                            false
-                        )
-                    );
-                }}
-
+                onPlay={
+                    handlePlay
+                }
+                onPause={
+                    handlePause
+                }
                 onError={event => {
                     console.error(
                         "Audio 播放錯誤:",
@@ -624,10 +718,8 @@ function MusicPlayer({
                         audioURL
                     );
                 }}
-
                 customProgressBarSection={[
                     RHAP_UI.CURRENT_TIME,
-
                     <div
                         key="music-name"
                         className="footer-track-name"
@@ -645,9 +737,7 @@ function MusicPlayer({
                                 bookname ||
                                 ""
                             }
-
                             className="marqueename"
-
                             length={
                                 bookname
                                     ? bookname.length
@@ -660,9 +750,7 @@ function MusicPlayer({
                                 page ||
                                 ""
                             }
-
                             className="marqueename"
-
                             length={
                                 page
                                     ? page.length
@@ -670,10 +758,8 @@ function MusicPlayer({
                             }
                         />
                     </div>,
-
                     RHAP_UI.DURATION
                 ]}
-
                 customControlsSection={[
                     RHAP_UI.MAIN_CONTROLS,
                     RHAP_UI.VOLUME_CONTROLS
@@ -691,7 +777,6 @@ function MusicPlayer({
                 draggable
                 pauseOnHover
             />
-
         </div>
     );
 }
