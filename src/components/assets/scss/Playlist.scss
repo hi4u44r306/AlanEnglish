@@ -1,70 +1,191 @@
-.progress-bar {
+.playlist-page {
   width: 100%;
-  height: 20px;
-  background-color: #e0e0e0;
-  border-radius: 10px;
-  overflow: hidden;
-  margin: 10px 0;
+  min-height: 100vh;
+  padding: 18px 16px 110px;
+  background: #f6f8fb;
+  box-sizing: border-box;
+}
 
-  .progress-bar-fill {
-    height: 100%;
-    background-color: #4caf50; // 可根據需要更改顏色
-    transition: width 0.3s ease-in-out;
+.playlist-content {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+// ==========================================
+// Header
+// ==========================================
+
+.playlist-header {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.playlist-header__main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.playlist-header h1 {
+  margin: 0;
+  color: #26384a;
+  font-size: 25px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.3px;
+}
+
+.playlist-header__stats {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  color: #7b8794;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.playlist-header__dot {
+  color: #b7c0ca;
+}
+
+// ==========================================
+// Music List
+// ==========================================
+
+.playlist-list-section {
+  width: 100%;
+}
+
+.playlist-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.playlist-empty {
+  width: 100%;
+  padding: 40px 20px;
+  color: #8895a3;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e7ecf1;
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+// ==========================================
+// Loading
+// ==========================================
+
+.playlist-loading {
+  width: 100%;
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #607285;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.playlist-loading__icon {
+  font-size: 32px;
+}
+
+// ==========================================
+// Error
+// ==========================================
+
+.playlist-error {
+  width: 100%;
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #556779;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.playlist-error h2 {
+  margin: 0 0 8px;
+  color: #3e5368;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.playlist-error p {
+  margin: 0;
+  color: #83909d;
+  font-size: 14px;
+}
+
+// ==========================================
+// Tablet
+// ==========================================
+
+@media (max-width: 768px) {
+  .playlist-page {
+    padding: 12px 10px 105px;
+  }
+
+  .playlist-header {
+    margin-bottom: 10px;
+  }
+
+  .playlist-header__main {
+    display: block;
+  }
+
+  .playlist-header h1 {
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .playlist-header__stats {
+    margin-top: 5px;
+    gap: 5px;
+    font-size: 12px;
+    white-space: normal;
   }
 }
 
-.progress-info {
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #333;
-}
+// ==========================================
+// Mobile
+// ==========================================
 
-.Playlist {
-  // position: absolute;
-  top: 10vh;
-  // bottom: 13vh;
-  width: 100%;
-  overflow-y: auto;
-  background-color: #ffffff;
-  // background-color: #fcf8ec;
-}
-.Playlist-container {
-  // background-color: #fcf8ec;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-}
-.playlisttitle {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  font-size: 18px;
-  padding: 10px;
-  font-weight: 500;
-  background-color: #005b7f;
-  color: #fff4d5;
-  text-align: center;
-  justify-content: center;
-  font-family: "Nunito", sans-serif;
-}
+@media (max-width: 480px) {
+  .playlist-page {
+    padding: 10px 8px 100px;
+  }
 
-.newfunctionalert {
-  display: flex;
-  align-items: center;
-  height: 40px;
-  font-size: 18px;
-  font-weight: 600;
-  background-color: #ff7070;
-  color: #000000;
-  text-align: center;
-  justify-content: center;
-  font-family: "Nunito", sans-serif;
-}
+  .playlist-header {
+    margin-bottom: 8px;
+  }
 
-@media only screen and (max-width: 675px) {
-  .newfunctionalert {
-    font-size: 13px;
+  .playlist-header h1 {
+    font-size: 18px;
+    letter-spacing: 0;
+  }
+
+  .playlist-header__stats {
+    margin-top: 4px;
+    font-size: 11px;
+  }
+
+  .playlist-empty {
+    padding: 30px 16px;
+    border-radius: 14px;
   }
 }
