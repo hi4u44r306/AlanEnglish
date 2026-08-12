@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { authentication } from "../components/Pages/firebase-config";
 import { clearStudentSession, loadStudentProfile } from "./authService";
 
@@ -31,6 +31,12 @@ export const AuthProvider = ({ children }) => {
                 clearStudentSession();
                 setFirebaseUser(null);
                 setStudentProfile(null);
+
+                try {
+                    await signOut(authentication);
+                } catch (signOutError) {
+                    console.error("清除無效 Firebase Session 失敗:", signOutError);
+                }
             } finally {
                 setAuthLoading(false);
             }
