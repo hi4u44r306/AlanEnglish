@@ -131,7 +131,7 @@ function ManagementDashboard() {
                                 className="dashboard-action-card"
                             >
                                 <strong>帳號管理</strong>
-                                <span>{isAdmin ? "查看所有角色帳號" : "查看學生帳號"}</span>
+                                <span>{isAdmin ? "查看與編輯所有角色帳號" : "查看與編輯學生帳號"}</span>
                             </Link>
 
                             <Link to="/teacher/students" className="dashboard-action-card">
@@ -144,16 +144,18 @@ function ManagementDashboard() {
                                 <span>新增教材、上傳與管理音檔</span>
                             </Link>
 
-                            <Link to="/teacher/navbar" className="dashboard-action-card">
-                                <strong>教材導覽</strong>
-                                <span>管理 Navbar 與教材入口</span>
-                            </Link>
-
                             {isAdmin && (
-                                <Link to="/admin/links" className="dashboard-action-card">
-                                    <strong>系統連結</strong>
-                                    <span>管理 Alan English 連結功能</span>
-                                </Link>
+                                <>
+                                    <Link to="/admin/navbar" className="dashboard-action-card">
+                                        <strong>教材導覽</strong>
+                                        <span>管理 Navbar 與教材入口</span>
+                                    </Link>
+
+                                    <Link to="/admin/links" className="dashboard-action-card">
+                                        <strong>系統連結</strong>
+                                        <span>管理 Alan English 連結功能</span>
+                                    </Link>
+                                </>
                             )}
                         </div>
                     </section>
