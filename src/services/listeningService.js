@@ -1,6 +1,6 @@
 import { supabaseKey, supabaseUrl } from "../components/Pages/supabase-config";
 
-const callListeningFunction = async (functionName, firebaseUser, body) => {
+const callListeningFunction = async (functionName, firebaseUser, body = {}) => {
     if (!firebaseUser) throw new Error("尚未登入");
 
     const firebaseToken = await firebaseUser.getIdToken();
@@ -22,6 +22,10 @@ const callListeningFunction = async (functionName, firebaseUser, body) => {
     }
 
     return result;
+};
+
+export const getDashboardStats = async firebaseUser => {
+    return await callListeningFunction("get-dashboard-stats", firebaseUser);
 };
 
 export const getBookPlaybackProgress = async (firebaseUser, bookId) => {
