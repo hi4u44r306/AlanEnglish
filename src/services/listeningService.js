@@ -6,14 +6,13 @@ import {
 const callListeningFunction = async (
     functionName,
     firebaseUser,
-    body
+    body = {}
 ) => {
     if (!firebaseUser) {
         throw new Error("尚未登入");
     }
 
-    const firebaseToken =
-        await firebaseUser.getIdToken();
+    const firebaseToken = await firebaseUser.getIdToken();
 
     const response = await fetch(
         `${supabaseUrl}/functions/v1/${functionName}`,
@@ -28,10 +27,9 @@ const callListeningFunction = async (
         }
     );
 
-    const result =
-        await response
-            .json()
-            .catch(() => ({}));
+    const result = await response
+        .json()
+        .catch(() => ({}));
 
     if (!response.ok) {
         throw new Error(
@@ -41,6 +39,13 @@ const callListeningFunction = async (
     }
 
     return result;
+};
+
+export const getDashboardStats = async firebaseUser => {
+    return await callListeningFunction(
+        "get-dashboard-stats",
+        firebaseUser
+    );
 };
 
 export const getBookPlaybackProgress = async (

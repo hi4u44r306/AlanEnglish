@@ -1,31 +1,89 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Logout from "./Logout";
 import { useAuth } from "../../auth/AuthContext";
+import { getDashboardStats } from "../../services/listeningService";
 import "./css/User.scss";
 
 const User = () => {
-    const { studentProfile: user, authLoading } = useAuth();
+    const { firebaseUser, studentProfile: user, authLoading } = useAuth();
+    const [listeningStats, setListeningStats] = useState({
+        dailyCount: 0,
+        monthlyCount: 0,
+        totalCount: 0
+    });
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [statsError, setStatsError] = useState("");
 
-    const getInitial = (name) => {
+    const getInitial = name => {
         if (!name) return "A";
         return name.trim().charAt(0).toUpperCase();
     };
 
-    const getPlanName = (plan) => {
+    const getPlanName = plan => {
         if (plan === "listeningonly") return "純聽力方案";
         if (plan === "allcover") return "全方位方案";
         return "一般方案";
     };
 
-    const getRoleName = (role) => {
+    const getRoleName = role => {
         if (role === "teacher") return "教師";
         if (role === "admin") return "管理員";
         return "學生";
     };
 
-    const formatNumber = (number) => {
-        return Number(number || 0).toLocaleString();
-    };
+    const formatNumber = number => Number(number || 0).toLocaleString();
+
+    const loadListeningStats = useCallback(async () => {
+        if (!firebaseUser || !user || user.role !== "student") {
+            setListeningStats({
+                dailyCount: 0,
+                monthlyCount: 0,
+                totalCount: Number(user?.total_time_played || 0)
+            });
+            setStatsLoading(false);
+            setStatsError("");
+            return;
+        }
+
+        setStatsLoading(true);
+        setStatsError("");
+
+        try {
+            const result = await getDashboardStats(firebaseUser);
+
+            setListeningStats({
+                dailyCount: Number(result?.daily_count || 0),
+                monthlyCount: Number(result?.monthly_count || 0),
+                totalCount: Number(result?.total_count || 0)
+            });
+        } catch (error) {
+            console.error("載入 Student Dashboard 播放統計失敗:", error);
+            setListeningStats({
+                dailyCount: 0,
+                monthlyCount: 0,
+                totalCount: Number(user?.total_time_played || 0)
+            });
+            setStatsError(error?.message || "播放統計載入失敗");
+        } finally {
+            setStatsLoading(false);
+        }
+    }, [firebaseUser, user]);
+
+    useEffect(() => {
+        loadListeningStats();
+    }, [loadListeningStats]);
+
+    useEffect(() => {
+        const handleTrackProgressUpdated = () => {
+            loadListeningStats();
+        };
+
+        window.addEventListener("ae:track-progress-updated", handleTrackProgressUpdated);
+
+        return () => {
+            window.removeEventListener("ae:track-progress-updated", handleTrackProgressUpdated);
+        };
+    }, [loadListeningStats]);
 
     if (authLoading) {
         return (
@@ -73,27 +131,33 @@ const User = () => {
 
                 <section className="user-stats">
                     <div className="user-stat-card">
-                        <div className="user-stat-icon">🎧</div>
-                        <div>
-                            <span>累積聽力次數</span>
-                            <strong>{formatNumber(user.total_time_played)}</strong>
-                        </div>
-                    </div>
-                    <div className="user-stat-card">
                         <div className="user-stat-icon">▶</div>
                         <div>
-                            <span>目前練習次數</span>
-                            <strong>{formatNumber(user.current_time_played)}</strong>
+                            <span>今日播放次數</span>
+                            <strong>{statsLoading ? "—" : formatNumber(listeningStats.dailyCount)}</strong>
                         </div>
                     </div>
                     <div className="user-stat-card">
-                        <div className="user-stat-icon">📚</div>
+                        <div className="user-stat-icon">◷</div>
                         <div>
-                            <span>學習方案</span>
-                            <strong className="stat-text">{getPlanName(user.plan)}</strong>
+                            <span>本月播放次數</span>
+                            <strong>{statsLoading ? "—" : formatNumber(listeningStats.monthlyCount)}</strong>
+                        </div>
+                    </div>
+                    <div className="user-stat-card">
+                        <div className="user-stat-icon">🎧</div>
+                        <div>
+                            <span>累計播放次數</span>
+                            <strong>{statsLoading ? "—" : formatNumber(listeningStats.totalCount)}</strong>
                         </div>
                     </div>
                 </section>
+
+                {statsError && (
+                    <div className="user-stats-error">
+                        播放統計暫時無法更新：{statsError}
+                    </div>
+                )}
 
                 <div className="user-content-grid">
                     <section className="user-card user-profile-card">
