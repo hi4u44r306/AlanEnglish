@@ -3,7 +3,7 @@ import { supabaseKey, supabaseUrl } from "../components/Pages/supabase-config";
 const callListeningFunction = async (functionName, firebaseUser, body) => {
     if (!firebaseUser) throw new Error("尚未登入");
 
-    const firebaseToken = await firebaseUser.getIdToken(true);
+    const firebaseToken = await firebaseUser.getIdToken();
 
     const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
         method: "POST",
