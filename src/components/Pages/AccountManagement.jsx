@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -37,7 +37,7 @@ function AccountManagement() {
 
     const isAdmin = role === "admin";
 
-    const fetchAccounts = async () => {
+    const fetchAccounts = useCallback(async () => {
         setLoading(true);
         setErrorMessage("");
 
@@ -61,11 +61,11 @@ function AccountManagement() {
         }
 
         setLoading(false);
-    };
+    }, [isAdmin]);
 
     useEffect(() => {
         fetchAccounts();
-    }, [isAdmin]);
+    }, [fetchAccounts]);
 
     const filteredAccounts = useMemo(() => {
         const keyword = searchText.trim().toLowerCase();
