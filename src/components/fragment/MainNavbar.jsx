@@ -58,10 +58,10 @@ function MainNavbar() {
 
                 if (bookError) throw bookError;
 
-                const convertedCategories = (categoryData || []).map((category) => ({
+                const convertedCategories = (categoryData || []).map(category => ({
                     ...category,
                     books: (bookData || [])
-                        .filter((book) => book.category_id === category.id)
+                        .filter(book => book.category_id === category.id)
                         .sort((a, b) => a.sort_order - b.sort_order)
                 }));
 
@@ -77,7 +77,7 @@ function MainNavbar() {
         fetchNavbarData();
     }, []);
 
-    const renderCategoryDropdown = (category) => (
+    const renderCategoryDropdown = category => (
         <NavDropdown
             id={`category-${category.id}`}
             key={category.id}
@@ -90,7 +90,7 @@ function MainNavbar() {
             className="navlink"
             align="end"
         >
-            {category.books?.length > 0 ? category.books.map((book) => (
+            {category.books?.length > 0 ? category.books.map(book => (
                 <NavDropdown.Item
                     key={book.id}
                     as={Link}
@@ -108,7 +108,7 @@ function MainNavbar() {
 
     return (
         <div>
-            {['xl'].map((expand) => (
+            {['xl'].map(expand => (
                 <Navbar
                     collapseOnSelect
                     key={expand}
@@ -147,27 +147,34 @@ function MainNavbar() {
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="dashboard" />
                                                 Dashboard
                                             </NavDropdown.Item>
+
                                             <NavDropdown.Item as={Link} to={accountManagementPath} className="subnavlink">
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="accounts" />
                                                 帳號管理
                                             </NavDropdown.Item>
+
                                             <NavDropdown.Item as={Link} to="/teacher/students" className="subnavlink">
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="create-account" />
                                                 建立帳號
                                             </NavDropdown.Item>
+
                                             <NavDropdown.Item as={Link} to="/teacher/add-music" className="subnavlink">
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="music" />
                                                 新增音檔
                                             </NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/teacher/navbar" className="subnavlink">
-                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
-                                                編輯 Navbar
-                                            </NavDropdown.Item>
+
                                             {isAdmin && (
-                                                <NavDropdown.Item as={Link} to="/admin/links" className="subnavlink">
-                                                    <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="admin" />
-                                                    系統連結
-                                                </NavDropdown.Item>
+                                                <>
+                                                    <NavDropdown.Item as={Link} to="/admin/navbar" className="subnavlink">
+                                                        <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="navbar" />
+                                                        編輯 Navbar
+                                                    </NavDropdown.Item>
+
+                                                    <NavDropdown.Item as={Link} to="/admin/links" className="subnavlink">
+                                                        <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="admin" />
+                                                        系統連結
+                                                    </NavDropdown.Item>
+                                                </>
                                             )}
                                         </NavDropdown>
                                     )}
