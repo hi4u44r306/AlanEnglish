@@ -227,6 +227,110 @@
   color: #b85d00;
 }
 
+.management-edit-button,
+.management-save-button,
+.management-cancel-button {
+  border: none;
+  border-radius: 9px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.management-edit-button {
+  min-height: 34px;
+  padding: 0 12px;
+  background: #eef5ff;
+  color: #2563eb;
+
+  &:hover {
+    background: #deebff;
+  }
+}
+
+.management-edit-row td {
+  padding: 0;
+  background: #f8fbff;
+}
+
+.management-edit-form {
+  padding: 20px;
+}
+
+.management-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    span {
+      color: #687385;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid #d8e0ea;
+    border-radius: 9px;
+    background: #fff;
+    outline: none;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: #3478db;
+      box-shadow: 0 0 0 3px rgba(52, 120, 219, 0.08);
+    }
+
+    &:disabled {
+      background: #eef1f5;
+      color: #7b8492;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.management-edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.management-save-button {
+  min-height: 38px;
+  padding: 0 16px;
+  background: #3478db;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #2867c2;
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.management-cancel-button {
+  min-height: 38px;
+  padding: 0 16px;
+  background: #edf0f4;
+  color: #4b5563;
+
+  &:hover:not(:disabled) {
+    background: #e1e5ea;
+  }
+}
+
 .management-state,
 .management-empty {
   padding: 34px 18px;
@@ -251,7 +355,8 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .management-toolbar {
+  .management-toolbar,
+  .management-edit-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -275,5 +380,9 @@
   .dashboard-actions,
   .management-panel {
     padding: 20px;
+  }
+
+  .management-edit-actions {
+    flex-direction: column;
   }
 }
