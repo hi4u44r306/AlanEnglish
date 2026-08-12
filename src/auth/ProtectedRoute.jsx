@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { getRoleHome } from "./RoleHomeRedirect";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { authLoading, isAuthenticated, role } = useAuth();
@@ -25,7 +26,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
 
     if (Array.isArray(allowedRoles) && allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-        return <Navigate to="/userinfo" replace />;
+        return <Navigate to={getRoleHome(role)} replace />;
     }
 
     return children;
