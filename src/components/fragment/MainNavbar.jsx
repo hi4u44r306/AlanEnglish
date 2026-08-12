@@ -28,6 +28,7 @@ function MainNavbar() {
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
+    const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 100);
@@ -136,28 +137,36 @@ function MainNavbar() {
                                             title={
                                                 <div className="d-flex align-items-center">
                                                     <img style={{ width: 18, marginRight: 4 }} src={Books} alt="teacher" />
-                                                    教師用
+                                                    {isAdmin ? "管理員" : "教師用"}
                                                 </div>
                                             }
                                             id={`offcanvasNavbarDropdown-expand-${expand}`}
                                             className="navlink"
                                         >
+                                            <NavDropdown.Item as={Link} to={homePath} className="subnavlink">
+                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="dashboard" />
+                                                Dashboard
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to={accountManagementPath} className="subnavlink">
+                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="accounts" />
+                                                帳號管理
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/teacher/students" className="subnavlink">
+                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="create-account" />
+                                                建立帳號
+                                            </NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/teacher/add-music" className="subnavlink">
+                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="music" />
+                                                新增音檔
+                                            </NavDropdown.Item>
                                             <NavDropdown.Item as={Link} to="/teacher/navbar" className="subnavlink">
                                                 <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
                                                 編輯 Navbar
                                             </NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/teacher/add-music" className="subnavlink">
-                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
-                                                新增音檔
-                                            </NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/teacher/students" className="subnavlink">
-                                                <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
-                                                新增學生帳號
-                                            </NavDropdown.Item>
                                             {isAdmin && (
                                                 <NavDropdown.Item as={Link} to="/admin/links" className="subnavlink">
-                                                    <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="setting" />
-                                                    管理員功能
+                                                    <img style={{ width: 18, marginRight: 4 }} src={Setting} alt="admin" />
+                                                    系統連結
                                                 </NavDropdown.Item>
                                             )}
                                         </NavDropdown>
@@ -175,7 +184,7 @@ function MainNavbar() {
                                         <Nav.Link as={Link} to={homePath} className="navlink nav-item dropdown">
                                             <div className="username">
                                                 <img style={{ width: 18, marginRight: 4 }} src={File} alt="profile" />
-                                                我的帳號
+                                                {isTeacher ? "管理首頁" : "我的帳號"}
                                             </div>
                                         </Nav.Link>
                                     )}
