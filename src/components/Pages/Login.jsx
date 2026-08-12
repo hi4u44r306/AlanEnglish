@@ -1,17 +1,27 @@
-import React, { useState } from "react";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import React, { useEffect, useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { authentication } from "./firebase-config";
-import { supabase } from "./supabase-config";
+import { loginWithEmail } from "../../auth/authService";
+import { useAuth } from "../../auth/AuthContext";
 import HeadPhone from "../assets/img/Login2.png";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.scss";
 
 function Login() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { authLoading, isAuthenticated } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            const destination = location.state?.from?.pathname || "/userinfo";
+            navigate(destination, { replace: true });
+        }
+    }, [authLoading, isAuthenticated, location.state, navigate]);
 
     const showError = (message) => {
         toast.error(message, {
@@ -28,39 +38,13 @@ function Login() {
     const showSuccess = (name) => {
         toast.success(`歡迎回來 ${name}！`, {
             position: "top-center",
-            autoClose: 1200,
+            autoClose: 1000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: false,
             draggable: true,
             theme: "colored"
         });
-    };
-
-    const saveUserToLocalStorage = (firebaseUser, student) => {
-        localStorage.setItem("ae-useruid", firebaseUser.uid);
-        localStorage.setItem("ae-studentid", String(student.id || ""));
-        localStorage.setItem("ae-username", student.name || firebaseUser.email?.split("@")[0] || "");
-        localStorage.setItem("ae-class", student.class || "");
-        localStorage.setItem("ae-userimage", student.user_image || "");
-        localStorage.setItem("ae-plan", student.plan || "");
-        localStorage.setItem("ae-role", student.role || "student");
-    };
-
-    const findStudentByUid = async (uid) => {
-        return await supabase
-            .from("students")
-            .select("*")
-            .eq("firebase_uid", uid)
-            .maybeSingle();
-    };
-
-    const findStudentByEmail = async (studentEmail) => {
-        return await supabase
-            .from("students")
-            .select("*")
-            .ilike("email", studentEmail)
-            .maybeSingle();
     };
 
     const login = async (e) => {
@@ -73,100 +57,13 @@ function Login() {
         setIsLoading(true);
 
         try {
-            const credential = await signInWithEmailAndPassword(authentication, cleanEmail, password);
-            const firebaseUser = credential.user;
-
-            console.log("🔥 Firebase 登入成功");
-            console.log("Firebase UID:", firebaseUser.uid);
-            console.log("Firebase Email:", firebaseUser.email);
-
-            let student = null;
-
-            const { data: studentByUid, error: uidError } = await findStudentByUid(firebaseUser.uid);
-
-            if (uidError) {
-                console.error("Supabase UID 查詢失敗:", uidError);
-                await signOut(authentication);
-                showError(`Supabase 讀取失敗：${uidError.message}`);
-                return;
-            }
-
-            if (studentByUid) {
-                student = studentByUid;
-                console.log("✅ 使用 UID 找到學生:", student);
-            }
-
-            if (!student) {
-                console.log("⚠️ UID 找不到，改用 Email 搜尋");
-
-                const { data: studentByEmail, error: emailError } = await findStudentByEmail(
-                    firebaseUser.email || cleanEmail
-                );
-
-                if (emailError) {
-                    console.error("Supabase Email 查詢失敗:", emailError);
-                    await signOut(authentication);
-                    showError(`Supabase 讀取失敗：${emailError.message}`);
-                    return;
-                }
-
-                if (studentByEmail) {
-                    if (studentByEmail.firebase_uid && studentByEmail.firebase_uid !== firebaseUser.uid) {
-                        await signOut(authentication);
-                        showError("這個 Email 已綁定其他 Firebase 帳號");
-                        return;
-                    }
-
-                    if (!studentByEmail.firebase_uid) {
-                        const { data: updatedStudent, error: bindError } = await supabase
-                            .from("students")
-                            .update({
-                                firebase_uid: firebaseUser.uid,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq("id", studentByEmail.id)
-                            .select("*")
-                            .single();
-
-                        if (bindError) {
-                            console.error("UID 綁定失敗:", bindError);
-                            await signOut(authentication);
-                            showError(`UID 綁定失敗：${bindError.message}`);
-                            return;
-                        }
-
-                        student = updatedStudent;
-                        console.log("🔗 已自動綁定 Firebase UID:", student);
-                    } else {
-                        student = studentByEmail;
-                    }
-                }
-            }
-
-            if (!student) {
-                console.error("❌ Supabase 完全找不到學生資料");
-                await signOut(authentication);
-                showError("Firebase 登入成功，但 Supabase 找不到這位學生");
-                return;
-            }
-
-            saveUserToLocalStorage(firebaseUser, student);
-
-            const { error: updateError } = await supabase
-                .from("students")
-                .update({ updated_at: new Date().toISOString() })
-                .eq("id", student.id);
-
-            if (updateError) console.warn("更新 updated_at 失敗:", updateError);
-
-            console.log("✅ 登入完成:", student);
+            const { student } = await loginWithEmail(cleanEmail, password);
             showSuccess(student.name || "同學");
 
-            setTimeout(() => {
-                window.location.href = "/userinfo";
-            }, 900);
+            const destination = location.state?.from?.pathname || "/userinfo";
+            setTimeout(() => navigate(destination, { replace: true }), 500);
         } catch (error) {
-            console.error("❌ Login error:", error);
+            console.error("Login error:", error);
 
             switch (error.code) {
                 case "auth/invalid-email":
@@ -193,6 +90,23 @@ function Login() {
             setIsLoading(false);
         }
     };
+
+    if (authLoading) {
+        return (
+            <section className="Login">
+                <div className="login-container">
+                    <div className="login-right" style={{ width: "100%" }}>
+                        <div className="login-card" style={{ textAlign: "center" }}>
+                            <span className="login-spinner"></span>
+                            <p style={{ marginTop: "16px" }}>正在確認登入狀態...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    if (isAuthenticated) return <Navigate to="/userinfo" replace />;
 
     return (
         <section className="Login">
