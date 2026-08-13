@@ -1,0 +1,87 @@
+.conversation-cloud-loading {
+    width: min(760px, calc(100% - 32px));
+    margin: 120px auto 0;
+    padding: 28px;
+    border: 1px solid rgba(20, 33, 61, .08);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(25, 43, 84, .08);
+    color: #5f6b82;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.conversation-cloud-banner {
+    display: flex;
+    width: min(1180px, 100%);
+    margin: 0 auto 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border: 1px solid rgba(82, 103, 232, .18);
+    border-radius: 18px;
+    background: #f1f3ff;
+    color: #31405f;
+}
+
+.conversation-cloud-banner > div {
+    min-width: 0;
+}
+
+.conversation-cloud-banner strong,
+.conversation-cloud-banner span {
+    display: block;
+}
+
+.conversation-cloud-banner strong {
+    margin-bottom: 3px;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.conversation-cloud-banner span {
+    color: #6f7b94;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.conversation-cloud-banner.saving {
+    border-color: rgba(229, 159, 44, .28);
+    background: #fff9ed;
+}
+
+.conversation-cloud-banner.error {
+    border-color: rgba(204, 73, 73, .25);
+    background: #fff2f2;
+}
+
+.conversation-cloud-banner.demo {
+    border-color: rgba(43, 151, 116, .24);
+    background: #ecfaf5;
+}
+
+.conversation-cloud-banner button {
+    flex: 0 0 auto;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 11px;
+    background: #14213d;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
+    .conversation-cloud-banner {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px;
+    }
+
+    .conversation-cloud-banner button {
+        width: 100%;
+    }
+}
