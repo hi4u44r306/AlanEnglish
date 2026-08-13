@@ -18,6 +18,7 @@ import LinkAdmin from "../components/Pages/Link Admin Page";
 import NotFound from "../components/Pages/NotFound";
 import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
+import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -82,6 +83,15 @@ const App = () => {
                         element={
                             <ProtectedRoute allowedRoles={["student"]}>
                                 <Containerfull><User /></Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/student/ai-generator"
+                        element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                                <Containerfull><AIMaterialGenerator /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
