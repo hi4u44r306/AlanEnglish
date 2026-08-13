@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./css/ConversationPractice.scss";
+import "./css/ConversationSpeech.scss";
 
 const SMALL_NUMBER_WORDS = {
     zero: 0,
@@ -46,6 +47,10 @@ const GRADE_WORDS = {
     eighth: 8,
     ninth: 9
 };
+
+const AUTO_FINISH_SILENCE_MS = 1500;
+const NO_SPEECH_TIMEOUT_MS = 6000;
+const MAX_RECORDING_MS = 15000;
 
 const normalize = value => String(value || "")
     .toLowerCase()
@@ -98,6 +103,7 @@ const SCENARIO_STEPS = [
     {
         id: "name",
         mission: "介紹自己的名字",
+        shortLabel: "Name",
         question: "Hi! Nice to meet you. What's your name?",
         translation: "嗨！很高興認識你。你叫什麼名字？",
         hint: "可以用 My name is... 或 I'm...",
@@ -116,6 +122,7 @@ const SCENARIO_STEPS = [
     {
         id: "age",
         mission: "說出自己的年齡",
+        shortLabel: "Age",
         question: "How old are you?",
         translation: "你幾歲？",
         hint: "回答自己的年齡，例如 I'm eleven years old.",
@@ -125,9 +132,7 @@ const SCENARIO_STEPS = [
             const reasonableAge = age !== null && age >= 1 && age <= 120;
             return {
                 correct: reasonableAge,
-                success: reasonableAge
-                    ? `Good job! I understood that you are ${age} years old.`
-                    : "",
+                success: reasonableAge ? `Good job! I understood that you are ${age} years old.` : "",
                 retry: "I didn't catch your age. Try: I'm eleven years old."
             };
         }
@@ -135,6 +140,7 @@ const SCENARIO_STEPS = [
     {
         id: "grade",
         mission: "說出自己的年級",
+        shortLabel: "Grade",
         question: "What grade are you in?",
         translation: "你讀幾年級？",
         hint: "例如 I'm in fifth grade.",
@@ -153,6 +159,7 @@ const SCENARIO_STEPS = [
     {
         id: "school",
         mission: "介紹自己的學校",
+        shortLabel: "School",
         question: "What school do you go to?",
         translation: "你讀哪一間學校？",
         hint: "可以說 I go to ___ Elementary School.",
@@ -170,6 +177,7 @@ const SCENARIO_STEPS = [
     {
         id: "family",
         mission: "介紹家裡有幾個人",
+        shortLabel: "Family",
         question: "How many people are there in your family?",
         translation: "你家裡有幾個人？",
         hint: "例如 There are four people in my family.",
@@ -187,6 +195,7 @@ const SCENARIO_STEPS = [
     {
         id: "hobby",
         mission: "聊一個自己的興趣",
+        shortLabel: "Hobby",
         question: "What do you like to do after school?",
         translation: "放學後你喜歡做什麼？",
         hint: "可以用 I like to... / I like...",
@@ -204,6 +213,7 @@ const SCENARIO_STEPS = [
     {
         id: "direction",
         mission: "不知道路時安全回答",
+        shortLabel: "Directions",
         question: "Excuse me. Do you know where the train station is?",
         translation: "不好意思，你知道火車站在哪裡嗎？",
         hint: "如果不知道，不需要亂指路。可以直接說 Sorry, I don't know.",
@@ -224,6 +234,7 @@ const SCENARIO_STEPS = [
     {
         id: "clarify",
         mission: "聽不懂時請對方再說一次",
+        shortLabel: "Clarify",
         question: "By the way, what do you usually enjoy doing with your classmates during your free time?",
         translation: "順帶一問，你空閒時通常喜歡和同學一起做什麼？",
         hint: "這一題故意比較長。聽不懂時不要猜，請對方再說一次或說慢一點。",
@@ -251,6 +262,7 @@ const SCENARIO_STEPS = [
     {
         id: "goodbye",
         mission: "自然結束對話",
+        shortLabel: "Goodbye",
         question: "It was nice talking to you. Have a great day!",
         translation: "很高興和你聊天，祝你今天愉快！",
         hint: "回一句自然的道別就完成任務。",
@@ -294,17 +306,36 @@ function ConversationPractice() {
     const streamRef = useRef(null);
     const chunksRef = useRef([]);
     const audioUrlRef = useRef("");
+    const audioContextRef = useRef(null);
+    const analyserRef = useRef(null);
+    const animationFrameRef = useRef(null);
+    const finalTranscriptRef = useRef("");
+    const interimTranscriptRef = useRef("");
+    const listeningRef = useRef(false);
+    const finishingRef = useRef(false);
+    const evaluatedRef = useRef(false);
+    const speechStartedRef = useRef(false);
+    const lastVoiceAtRef = useRef(0);
+    const sessionStartedAtRef = useRef(0);
+    const noiseFloorRef = useRef(0.006);
+    const lastMeterPaintRef = useRef(0);
+    const noSpeechTimerRef = useRef(null);
+    const maxRecordingTimerRef = useRef(null);
 
     const [mode, setMode] = useState("explorer");
     const [stepIndex, setStepIndex] = useState(0);
     const [answer, setAnswer] = useState("");
     const [heardText, setHeardText] = useState("");
+    const [interimText, setInterimText] = useState("");
     const [evaluation, setEvaluation] = useState(null);
     const [listening, setListening] = useState(false);
+    const [speechStarted, setSpeechStarted] = useState(false);
+    const [voiceLevel, setVoiceLevel] = useState(0);
     const [audioUrl, setAudioUrl] = useState("");
     const [showHint, setShowHint] = useState(false);
     const [speechError, setSpeechError] = useState("");
     const [completed, setCompleted] = useState(false);
+    const [finishReason, setFinishReason] = useState("");
     const [messages, setMessages] = useState([
         { speaker: "system", text: "You're walking near a park when Alex, a friendly visitor, says hello." },
         { speaker: "alex", text: SCENARIO_STEPS[0].question }
@@ -323,30 +354,198 @@ function ConversationPractice() {
         window.MediaRecorder
     ), []);
 
-    const cleanupStream = () => {
+    const progressValue = completed
+        ? SCENARIO_STEPS.length
+        : stepIndex + (evaluation?.correct ? 1 : 0);
+
+    function clearSpeechTimers() {
+        if (noSpeechTimerRef.current) {
+            window.clearTimeout(noSpeechTimerRef.current);
+            noSpeechTimerRef.current = null;
+        }
+        if (maxRecordingTimerRef.current) {
+            window.clearTimeout(maxRecordingTimerRef.current);
+            maxRecordingTimerRef.current = null;
+        }
+    }
+
+    function cleanupStream() {
         if (!streamRef.current) return;
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
-    };
+    }
 
-    const clearAudio = () => {
+    function cleanupAudioMeter() {
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+
+        analyserRef.current = null;
+
+        if (audioContextRef.current) {
+            try {
+                audioContextRef.current.close();
+            } catch (error) {
+                console.warn("Audio context close error:", error);
+            }
+            audioContextRef.current = null;
+        }
+
+        setVoiceLevel(0);
+    }
+
+    function clearAudio() {
         if (audioUrlRef.current) {
             URL.revokeObjectURL(audioUrlRef.current);
             audioUrlRef.current = "";
         }
         setAudioUrl("");
-    };
+    }
 
-    const stopRecorder = () => {
+    function stopRecorder() {
         if (recorderRef.current && recorderRef.current.state !== "inactive") {
-            recorderRef.current.stop();
+            try {
+                recorderRef.current.stop();
+            } catch (error) {
+                console.warn("Recorder stop error:", error);
+                cleanupStream();
+            }
             return;
         }
         cleanupStream();
-    };
+    }
+
+    function combinedTranscript() {
+        return `${finalTranscriptRef.current} ${interimTranscriptRef.current}`
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function evaluateAnswer(rawAnswer) {
+        if (!rawAnswer.trim() || evaluatedRef.current) return;
+
+        const result = step.evaluate(rawAnswer);
+        evaluatedRef.current = true;
+        setEvaluation(result);
+
+        if (result.correct) {
+            setMessages(previous => [
+                ...previous,
+                { speaker: "student", text: rawAnswer.trim() }
+            ]);
+        }
+    }
+
+    function finalizeTranscriptAndEvaluate() {
+        const transcript = combinedTranscript() || answer.trim();
+        if (!transcript) return;
+
+        finalTranscriptRef.current = transcript;
+        interimTranscriptRef.current = "";
+        setHeardText(transcript);
+        setInterimText("");
+        setAnswer(transcript);
+        evaluateAnswer(transcript);
+    }
+
+    function finishSpeechSession(reason = "manual") {
+        if (!listeningRef.current || finishingRef.current) return;
+
+        finishingRef.current = true;
+        listeningRef.current = false;
+        setListening(false);
+        setFinishReason(reason);
+        clearSpeechTimers();
+        cleanupAudioMeter();
+
+        try {
+            recognitionRef.current?.stop();
+        } catch (error) {
+            console.warn("Speech recognition stop error:", error);
+            finalizeTranscriptAndEvaluate();
+        }
+
+        stopRecorder();
+    }
+
+    function startAudioMeter(stream) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        try {
+            const audioContext = new AudioContextClass();
+            const analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyser.fftSize = 1024;
+            analyser.smoothingTimeConstant = 0.72;
+            source.connect(analyser);
+            audioContextRef.current = audioContext;
+            analyserRef.current = analyser;
+
+            if (audioContext.state === "suspended") {
+                audioContext.resume().catch(() => {});
+            }
+
+            const samples = new Float32Array(analyser.fftSize);
+
+            const paintMeter = timestamp => {
+                if (!analyserRef.current || !listeningRef.current) return;
+
+                analyser.getFloatTimeDomainData(samples);
+                let sum = 0;
+                for (let index = 0; index < samples.length; index += 1) {
+                    sum += samples[index] * samples[index];
+                }
+
+                const rms = Math.sqrt(sum / samples.length);
+                const elapsed = Date.now() - sessionStartedAtRef.current;
+
+                if (!speechStartedRef.current && elapsed < 900) {
+                    noiseFloorRef.current = (noiseFloorRef.current * 0.88) + (rms * 0.12);
+                }
+
+                const threshold = Math.max(0.0085, noiseFloorRef.current * 2.15);
+                const voiceDetected = rms > threshold;
+                const now = Date.now();
+
+                if (voiceDetected) {
+                    lastVoiceAtRef.current = now;
+                    if (!speechStartedRef.current) {
+                        speechStartedRef.current = true;
+                        setSpeechStarted(true);
+                    }
+                }
+
+                if (
+                    speechStartedRef.current &&
+                    lastVoiceAtRef.current > 0 &&
+                    now - lastVoiceAtRef.current >= AUTO_FINISH_SILENCE_MS &&
+                    combinedTranscript()
+                ) {
+                    finishSpeechSession("silence");
+                    return;
+                }
+
+                if (timestamp - lastMeterPaintRef.current > 70) {
+                    lastMeterPaintRef.current = timestamp;
+                    setVoiceLevel(Math.min(100, Math.round(rms * 1150)));
+                }
+
+                animationFrameRef.current = requestAnimationFrame(paintMeter);
+            };
+
+            animationFrameRef.current = requestAnimationFrame(paintMeter);
+        } catch (error) {
+            console.warn("Audio meter unavailable:", error);
+        }
+    }
 
     useEffect(() => {
         return () => {
+            listeningRef.current = false;
+            clearSpeechTimers();
+
             try {
                 recognitionRef.current?.abort();
             } catch (error) {
@@ -361,6 +560,7 @@ function ConversationPractice() {
                 }
             }
 
+            cleanupAudioMeter();
             cleanupStream();
             if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
             window.speechSynthesis?.cancel();
@@ -387,42 +587,43 @@ function ConversationPractice() {
         window.speechSynthesis.speak(utterance);
     };
 
-    const evaluateAnswer = rawAnswer => {
-        if (!rawAnswer.trim() || evaluation?.correct) return;
-
-        const result = step.evaluate(rawAnswer);
-        setEvaluation(result);
-
-        if (result.correct) {
-            setMessages(previous => [
-                ...previous,
-                { speaker: "student", text: rawAnswer.trim() }
-            ]);
-        }
-    };
-
     const startRecording = async () => {
+        if (evaluation?.correct || listeningRef.current) return;
+
         setSpeechError("");
         setEvaluation(null);
         setHeardText("");
+        setInterimText("");
+        setSpeechStarted(false);
+        setVoiceLevel(0);
+        setFinishReason("");
         clearAudio();
+
+        evaluatedRef.current = false;
+        speechStartedRef.current = false;
+        finishingRef.current = false;
+        finalTranscriptRef.current = "";
+        interimTranscriptRef.current = "";
+        lastVoiceAtRef.current = 0;
+        noiseFloorRef.current = 0.006;
+        sessionStartedAtRef.current = Date.now();
 
         if (!speechRecognitionSupported) {
             setSpeechError("這個瀏覽器目前無法使用語音辨識，請改用下方文字輸入。建議在 iPhone Safari 或最新版 Chrome 測試。");
             return;
         }
 
-        const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new Recognition();
-        recognition.lang = "en-US";
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 3;
-        recognitionRef.current = recognition;
+        let stream = null;
 
         if (recordingSupported) {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
                 streamRef.current = stream;
                 chunksRef.current = [];
 
@@ -445,20 +646,72 @@ function ConversationPractice() {
                     cleanupStream();
                 };
 
-                recorder.start();
+                recorder.start(250);
             } catch (error) {
                 console.warn("Audio recording unavailable:", error);
                 cleanupStream();
             }
         }
 
-        recognition.onstart = () => setListening(true);
+        const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new Recognition();
+        recognition.lang = "en-US";
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 3;
+        recognitionRef.current = recognition;
+
+        recognition.onstart = () => {
+            listeningRef.current = true;
+            setListening(true);
+            if (stream) startAudioMeter(stream);
+
+            noSpeechTimerRef.current = window.setTimeout(() => {
+                if (!speechStartedRef.current && listeningRef.current) {
+                    setSpeechError("我還沒聽到你的聲音。靠近一點麥克風，或直接按「我說完了」後再試一次。");
+                    finishSpeechSession("no-speech");
+                }
+            }, NO_SPEECH_TIMEOUT_MS);
+
+            maxRecordingTimerRef.current = window.setTimeout(() => {
+                if (listeningRef.current) finishSpeechSession("max-time");
+            }, MAX_RECORDING_MS);
+        };
+
+        recognition.onspeechstart = () => {
+            speechStartedRef.current = true;
+            lastVoiceAtRef.current = Date.now();
+            setSpeechStarted(true);
+        };
 
         recognition.onresult = event => {
-            const transcript = event.results?.[0]?.[0]?.transcript?.trim() || "";
-            setHeardText(transcript);
-            setAnswer(transcript);
-            if (transcript) evaluateAnswer(transcript);
+            let finalText = finalTranscriptRef.current;
+            let currentInterim = "";
+
+            for (let index = event.resultIndex; index < event.results.length; index += 1) {
+                const transcript = event.results[index]?.[0]?.transcript?.trim() || "";
+                if (!transcript) continue;
+
+                if (event.results[index].isFinal) {
+                    finalText = `${finalText} ${transcript}`.replace(/\s+/g, " ").trim();
+                } else {
+                    currentInterim = `${currentInterim} ${transcript}`.replace(/\s+/g, " ").trim();
+                }
+            }
+
+            finalTranscriptRef.current = finalText;
+            interimTranscriptRef.current = currentInterim;
+
+            const liveText = `${finalText} ${currentInterim}`.replace(/\s+/g, " ").trim();
+            setHeardText(finalText);
+            setInterimText(currentInterim);
+            setAnswer(liveText);
+
+            if (liveText && !speechStartedRef.current) {
+                speechStartedRef.current = true;
+                lastVoiceAtRef.current = Date.now();
+                setSpeechStarted(true);
+            }
         };
 
         recognition.onerror = event => {
@@ -468,32 +721,45 @@ function ConversationPractice() {
                 "no-speech": "沒有聽到清楚的英文，請靠近麥克風再說一次。",
                 network: "瀏覽器語音辨識服務暫時無法連線，請稍後再試或使用文字輸入。"
             };
-            setSpeechError(errorMap[event.error] || "語音辨識沒有成功，請再試一次或使用文字輸入。");
+
+            if (event.error !== "aborted") {
+                setSpeechError(errorMap[event.error] || "語音辨識沒有成功，請再試一次或使用文字輸入。");
+            }
         };
 
         recognition.onend = () => {
+            const wasListening = listeningRef.current;
+            listeningRef.current = false;
+            finishingRef.current = true;
             setListening(false);
+            clearSpeechTimers();
+            cleanupAudioMeter();
             stopRecorder();
+
+            if (wasListening || combinedTranscript()) {
+                window.setTimeout(() => {
+                    finalizeTranscriptAndEvaluate();
+                    finishingRef.current = false;
+                }, 80);
+            } else {
+                finishingRef.current = false;
+            }
         };
 
         try {
             recognition.start();
         } catch (error) {
             console.error("Speech recognition start error:", error);
+            listeningRef.current = false;
             setListening(false);
+            cleanupAudioMeter();
             stopRecorder();
             setSpeechError("語音辨識無法啟動，請稍後再試或使用文字輸入。");
         }
     };
 
     const stopRecording = () => {
-        try {
-            recognitionRef.current?.stop();
-        } catch (error) {
-            console.warn("Speech recognition stop error:", error);
-        }
-        setListening(false);
-        stopRecorder();
+        finishSpeechSession("manual");
     };
 
     const nextStep = () => {
@@ -514,9 +780,14 @@ function ConversationPractice() {
         setStepIndex(nextIndex);
         setAnswer("");
         setHeardText("");
+        setInterimText("");
         setEvaluation(null);
         setShowHint(false);
         setSpeechError("");
+        setSpeechStarted(false);
+        setVoiceLevel(0);
+        setFinishReason("");
+        evaluatedRef.current = false;
         clearAudio();
         setMessages(previous => [
             ...previous,
@@ -525,21 +796,30 @@ function ConversationPractice() {
     };
 
     const restartMission = () => {
+        listeningRef.current = false;
+        clearSpeechTimers();
+
         try {
             recognitionRef.current?.abort();
         } catch (error) {
             console.warn("Speech recognition restart cleanup error:", error);
         }
 
+        cleanupAudioMeter();
         stopRecorder();
         clearAudio();
         setStepIndex(0);
         setAnswer("");
         setHeardText("");
+        setInterimText("");
         setEvaluation(null);
         setShowHint(false);
         setSpeechError("");
+        setSpeechStarted(false);
+        setVoiceLevel(0);
+        setFinishReason("");
         setCompleted(false);
+        evaluatedRef.current = false;
         setMessages([
             { speaker: "system", text: "You're walking near a park when Alex, a friendly visitor, says hello." },
             { speaker: "alex", text: SCENARIO_STEPS[0].question }
@@ -583,6 +863,28 @@ function ConversationPractice() {
                 </div>
             </section>
 
+            <section className="conversation-mobile-progress">
+                <div className="conversation-mobile-progress-heading">
+                    <div>
+                        <span>NOW PRACTICING</span>
+                        <strong>{stepIndex + 1}/{SCENARIO_STEPS.length} · {step.shortLabel}</strong>
+                    </div>
+                    <span>{Math.round((progressValue / SCENARIO_STEPS.length) * 100)}%</span>
+                </div>
+                <div className="conversation-mobile-progress-track">
+                    <span style={{ width: `${(progressValue / SCENARIO_STEPS.length) * 100}%` }} />
+                </div>
+                <div className="conversation-step-dots">
+                    {SCENARIO_STEPS.map((item, index) => (
+                        <span
+                            key={item.id}
+                            className={`${index < stepIndex ? "done" : ""} ${index === stepIndex ? "current" : ""}`}
+                            title={item.mission}
+                        />
+                    ))}
+                </div>
+            </section>
+
             <section className="conversation-layout">
                 <aside className="conversation-mission-card">
                     <div className="mission-card-heading">
@@ -594,14 +896,10 @@ function ConversationPractice() {
                     <div className="mission-progress">
                         <div>
                             <span>Progress</span>
-                            <strong>{completed ? SCENARIO_STEPS.length : stepIndex + (evaluation?.correct ? 1 : 0)} / {SCENARIO_STEPS.length}</strong>
+                            <strong>{progressValue} / {SCENARIO_STEPS.length}</strong>
                         </div>
                         <div className="mission-progress-track">
-                            <span
-                                style={{
-                                    width: `${((completed ? SCENARIO_STEPS.length : stepIndex + (evaluation?.correct ? 1 : 0)) / SCENARIO_STEPS.length) * 100}%`
-                                }}
-                            />
+                            <span style={{ width: `${(progressValue / SCENARIO_STEPS.length) * 100}%` }} />
                         </div>
                     </div>
 
@@ -611,10 +909,7 @@ function ConversationPractice() {
                             const current = !completed && index === stepIndex && !evaluation?.correct;
 
                             return (
-                                <div
-                                    key={item.id}
-                                    className={`mission-item ${done ? "done" : ""} ${current ? "current" : ""}`}
-                                >
+                                <div key={item.id} className={`mission-item ${done ? "done" : ""} ${current ? "current" : ""}`}>
                                     <span className="mission-check">{done ? "✓" : index + 1}</span>
                                     <p>{item.mission}</p>
                                 </div>
@@ -640,10 +935,7 @@ function ConversationPractice() {
 
                     <div className="conversation-messages">
                         {messages.slice(-6).map((message, index) => (
-                            <div
-                                key={`${message.speaker}-${index}`}
-                                className={`conversation-message ${message.speaker}`}
-                            >
+                            <div key={`${message.speaker}-${index}`} className={`conversation-message ${message.speaker}`}>
                                 {message.speaker === "alex" && <span className="message-avatar">A</span>}
                                 <div className="message-bubble">
                                     {message.speaker === "system" && <small>SCENE</small>}
@@ -657,15 +949,11 @@ function ConversationPractice() {
                         <div className="conversation-practice-panel">
                             <div className="conversation-current-question">
                                 <div>
-                                    <span>NOW PRACTICING · {stepIndex + 1}/{SCENARIO_STEPS.length}</span>
+                                    <span>NOW PRACTICING · {stepIndex + 1}/{SCENARIO_STEPS.length} · {step.shortLabel.toUpperCase()}</span>
                                     <h3>{step.question}</h3>
                                     {MODES[mode].showTranslation && <p>{step.translation}</p>}
                                 </div>
-                                <button
-                                    type="button"
-                                    className="listen-question-button"
-                                    onClick={() => speak(step.question)}
-                                >
+                                <button type="button" className="listen-question-button" onClick={() => speak(step.question)}>
                                     🔊 Listen
                                 </button>
                             </div>
@@ -675,29 +963,19 @@ function ConversationPractice() {
                                     <strong>💡 {step.hint}</strong>
                                     <div className="sample-answer-list">
                                         {step.samples.map(sample => (
-                                            <button
-                                                type="button"
-                                                key={sample}
-                                                onClick={() => setAnswer(sample)}
-                                            >
-                                                {sample}
-                                            </button>
+                                            <button type="button" key={sample} onClick={() => setAnswer(sample)}>{sample}</button>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
                             {!MODES[mode].showSamples && !showHint && (
-                                <button
-                                    type="button"
-                                    className="show-hint-button"
-                                    onClick={() => setShowHint(true)}
-                                >
+                                <button type="button" className="show-hint-button" onClick={() => setShowHint(true)}>
                                     💡 I don't know what to say
                                 </button>
                             )}
 
-                            <div className="speaking-control">
+                            <div className={`speaking-control ${listening ? "is-listening" : ""}`}>
                                 <button
                                     type="button"
                                     className={`microphone-button ${listening ? "listening" : ""}`}
@@ -706,23 +984,57 @@ function ConversationPractice() {
                                 >
                                     <span>{listening ? "■" : "🎤"}</span>
                                 </button>
+
                                 <strong>
                                     {listening
-                                        ? "Listening... tap to stop"
-                                        : "Tap the microphone and answer in English"}
+                                        ? speechStarted
+                                            ? "I can hear you — keep speaking"
+                                            : "Listening... start speaking"
+                                        : "Tap once and answer in English"}
                                 </strong>
+
                                 <p>
                                     {speechRecognitionSupported
-                                        ? "Speak naturally. You don't need to match one exact sentence."
+                                        ? "Your words appear live. Pause for about 1.5 seconds and AE will finish automatically."
                                         : "Voice recognition isn't available here. Use text answer below."}
                                 </p>
+
+                                {listening && (
+                                    <div className="speech-live-console">
+                                        <div className="speech-meter-row">
+                                            <span className={`speech-status-dot ${speechStarted ? "detected" : ""}`} />
+                                            <strong>{speechStarted ? "Voice detected" : "Waiting for your voice..."}</strong>
+                                        </div>
+
+                                        <div className="speech-waveform" aria-label="Microphone level">
+                                            {Array.from({ length: 18 }).map((_, index) => {
+                                                const multiplier = 0.22 + ((index % 5) * 0.08);
+                                                const height = 8 + Math.min(34, voiceLevel * multiplier);
+                                                return <span key={index} style={{ height: `${height}px` }} />;
+                                            })}
+                                        </div>
+
+                                        <div className="live-transcript">
+                                            <span>LIVE TRANSCRIPT</span>
+                                            <p>
+                                                {heardText && <strong>{heardText} </strong>}
+                                                {interimText && <em>{interimText}</em>}
+                                                {!heardText && !interimText && <em>Start speaking in English...</em>}
+                                            </p>
+                                        </div>
+
+                                        <button type="button" className="speech-finished-button" onClick={stopRecording}>
+                                            ✓ 我說完了
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
-                            {heardText && (
-                                <div className="heard-result">
+                            {!listening && (heardText || interimText) && (
+                                <div className="heard-result speech-final-result">
                                     <div>
-                                        <span>I HEARD</span>
-                                        <strong>“{heardText}”</strong>
+                                        <span>I HEARD {finishReason === "silence" ? "· AUTO FINISHED" : ""}</span>
+                                        <strong>“{`${heardText} ${interimText}`.trim()}”</strong>
                                     </div>
                                     {audioUrl && (
                                         <audio controls src={audioUrl}>
@@ -732,9 +1044,7 @@ function ConversationPractice() {
                                 </div>
                             )}
 
-                            {speechError && (
-                                <div className="conversation-error">{speechError}</div>
-                            )}
+                            {speechError && <div className="conversation-error">{speechError}</div>}
 
                             <div className="text-answer-box">
                                 <label htmlFor="conversation-answer">或直接輸入英文回答</label>
@@ -745,18 +1055,21 @@ function ConversationPractice() {
                                         value={answer}
                                         onChange={event => {
                                             setAnswer(event.target.value);
-                                            if (!evaluation?.correct) setEvaluation(null);
+                                            if (!evaluation?.correct) {
+                                                evaluatedRef.current = false;
+                                                setEvaluation(null);
+                                            }
                                         }}
                                         onKeyDown={event => {
                                             if (event.key === "Enter") evaluateAnswer(answer);
                                         }}
                                         placeholder="Type your answer in English..."
-                                        disabled={evaluation?.correct}
+                                        disabled={evaluation?.correct || listening}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => evaluateAnswer(answer)}
-                                        disabled={!answer.trim() || evaluation?.correct}
+                                        disabled={!answer.trim() || evaluation?.correct || listening}
                                     >
                                         Check
                                     </button>
@@ -767,23 +1080,15 @@ function ConversationPractice() {
                                 <div className={`conversation-feedback ${evaluation.correct ? "correct" : "retry"}`}>
                                     <span>{evaluation.correct ? "✓" : "↻"}</span>
                                     <div>
-                                        <strong>
-                                            {evaluation.correct ? "Answer understood!" : "Try one more time"}
-                                        </strong>
+                                        <strong>{evaluation.correct ? "Answer understood!" : "Try one more time"}</strong>
                                         <p>{evaluation.correct ? evaluation.success : evaluation.retry}</p>
                                     </div>
                                 </div>
                             )}
 
                             {evaluation?.correct && (
-                                <button
-                                    type="button"
-                                    className="continue-conversation-button"
-                                    onClick={nextStep}
-                                >
-                                    {stepIndex === SCENARIO_STEPS.length - 1
-                                        ? "Complete Mission 🎉"
-                                        : "Continue Conversation →"}
+                                <button type="button" className="continue-conversation-button" onClick={nextStep}>
+                                    {stepIndex === SCENARIO_STEPS.length - 1 ? "Complete Mission 🎉" : "Continue Conversation →"}
                                 </button>
                             )}
                         </div>
