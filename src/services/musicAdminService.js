@@ -34,3 +34,28 @@ export const updateMusicTrackDisplayName = (firebaseUser, trackId, displayPage) 
     track_id: trackId,
     display_page: displayPage
 });
+
+export const getMusicBookManagementStatus = (firebaseUser, bookId) => callMusicAdminFunction(firebaseUser, {
+    action: "book_status",
+    book_id: bookId
+});
+
+export const deleteAllBookTracks = (firebaseUser, bookId) => callMusicAdminFunction(firebaseUser, {
+    action: "delete_book_tracks",
+    book_id: bookId
+});
+
+export const archiveMusicBook = (firebaseUser, bookId) => callMusicAdminFunction(firebaseUser, {
+    action: "archive_book",
+    book_id: bookId
+});
+
+export const restoreMusicBook = (firebaseUser, bookId) => callMusicAdminFunction(firebaseUser, {
+    action: "restore_book",
+    book_id: bookId
+});
+
+export const deleteMusicBook = (firebaseUser, bookId) => callMusicAdminFunction(firebaseUser, {
+    action: "delete_book",
+    book_id: bookId
+});
