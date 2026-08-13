@@ -1,0 +1,119 @@
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-width: 0;
+  margin: 0;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.app-shell,
+.app-header,
+.app-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ae-navbar,
+.ae-navbar-container,
+.ae-brand,
+.ae-desktop-nav,
+.ae-mobile-offcanvas,
+.ae-mobile-offcanvas .offcanvas-header,
+.ae-mobile-offcanvas .offcanvas-body,
+.ae-mobile-profile,
+.ae-mobile-section,
+.ae-mobile-category,
+.ae-mobile-book-list {
+  min-width: 0;
+}
+
+.ae-mobile-offcanvas {
+  max-width: 100vw !important;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  max-height: 100vh;
+  max-height: 100dvh;
+}
+
+.ae-mobile-offcanvas .offcanvas-header {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+
+.ae-mobile-offcanvas .offcanvas-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.ae-mobile-profile > div:last-child,
+.ae-mobile-section > a,
+.ae-mobile-section > button,
+.ae-mobile-category summary,
+.ae-mobile-book-list a {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ae-mobile-section > a span,
+.ae-mobile-section > button span,
+.ae-mobile-category summary span,
+.ae-mobile-book-list a span,
+.ae-mobile-profile strong,
+.ae-mobile-profile span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 576px) {
+  .ae-mobile-offcanvas {
+    width: min(92vw, 370px) !important;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .ae-mobile-offcanvas .offcanvas-body {
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  .ae-mobile-profile {
+    padding: 10px 12px;
+  }
+
+  .ae-mobile-section > a,
+  .ae-mobile-section > button,
+  .ae-mobile-category summary {
+    min-height: 44px;
+  }
+}
