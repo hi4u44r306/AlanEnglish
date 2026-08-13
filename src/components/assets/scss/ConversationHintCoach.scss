@@ -1,0 +1,308 @@
+.ae-your-turn-guide {
+    order: -1;
+    width: min(520px, 100%);
+    margin: 0 auto 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(82, 103, 232, .18);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #eef2ff, #f7f9ff);
+    color: #4053c9;
+    text-align: center;
+}
+
+.ae-your-turn-guide span,
+.ae-your-turn-guide strong,
+.ae-your-turn-guide small {
+    display: block;
+}
+
+.ae-your-turn-guide span {
+    margin-bottom: 3px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .12em;
+}
+
+.ae-your-turn-guide strong {
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.ae-your-turn-guide small {
+    margin-top: 4px;
+    color: #8b6a16;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.conversation-hint-box {
+    position: relative;
+    border: 1px solid #f0df9d;
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.conversation-hint-box.ae-hint-highlight {
+    border-color: #f4b928;
+    box-shadow: 0 0 0 4px rgba(244, 185, 40, .18), 0 14px 34px rgba(177, 126, 0, .15);
+    animation: aeHintPulse .7s ease-in-out 2;
+}
+
+@keyframes aeHintPulse {
+    0%, 100% {
+        transform: translateY(0);
+        background: #fff9e9;
+    }
+    50% {
+        transform: translateY(-2px);
+        background: #fff4c9;
+    }
+}
+
+.ae-progressive-hint {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #e8d692;
+}
+
+.ae-progressive-hint-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.ae-progressive-hint-heading span {
+    color: #a77908;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .11em;
+}
+
+.ae-progressive-hint-heading strong {
+    color: #765b18;
+    font-size: 11px;
+    text-align: right;
+}
+
+.ae-hint-focus {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 10px;
+    padding: 10px 11px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .75);
+}
+
+.ae-hint-focus span {
+    flex: 0 0 auto;
+    min-width: 34px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: #f4b928;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    text-align: center;
+}
+
+.ae-hint-focus p {
+    margin: 0;
+    color: #765b18;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.5;
+}
+
+.ae-sentence-frame {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(82, 103, 232, .16);
+    border-radius: 12px;
+    background: #f1f4ff;
+}
+
+.ae-sentence-frame small,
+.ae-sentence-frame strong {
+    display: block;
+}
+
+.ae-sentence-frame small {
+    margin-bottom: 3px;
+    color: #7a86b5;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .1em;
+}
+
+.ae-sentence-frame strong {
+    color: #3f51c7;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.ae-extra-answer-list {
+    display: grid;
+    gap: 7px;
+}
+
+.ae-extra-answer-list > small {
+    color: #9a7a28;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .1em;
+}
+
+.ae-extra-answer-list button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px solid #cfd7ff;
+    border-radius: 11px;
+    background: #fff;
+    color: #3347b8;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: left;
+    transition: transform .15s ease, background-color .15s ease, border-color .15s ease;
+}
+
+.ae-extra-answer-list button:hover,
+.ae-extra-answer-list button:focus-visible {
+    border-color: #8c9cff;
+    background: #f4f6ff;
+    transform: translateY(-1px);
+}
+
+.ae-extra-answer-list button span {
+    flex: 0 0 auto;
+    font-size: 10px;
+}
+
+.ae-listen-repeat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(47, 159, 129, .2);
+    border-radius: 13px;
+    background: #effaf6;
+}
+
+.ae-listen-repeat > div:first-child {
+    min-width: 0;
+}
+
+.ae-listen-repeat small,
+.ae-listen-repeat strong {
+    display: block;
+}
+
+.ae-listen-repeat small {
+    margin-bottom: 3px;
+    color: #438774;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .1em;
+}
+
+.ae-listen-repeat strong {
+    color: #266b58;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.ae-listen-repeat-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 6px;
+}
+
+.ae-listen-repeat-actions button {
+    min-height: 36px;
+    padding: 7px 9px;
+    border: 1px solid #b9e2d6;
+    border-radius: 10px;
+    background: #fff;
+    color: #2d725f;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+/* Student speech is consistently blue; teacher/Alex content stays dark, hints stay yellow. */
+.sample-answer-list button {
+    border-color: #cfd7ff !important;
+    background: #f4f6ff !important;
+    color: #4053c9 !important;
+}
+
+.sample-answer-list button::before {
+    content: "●";
+    margin-right: 5px;
+    color: #5267e8;
+    font-size: 8px;
+}
+
+.show-hint-button {
+    border-color: #ecd687 !important;
+    background: #fff9df !important;
+    color: #7d621b !important;
+    font-weight: 850 !important;
+}
+
+.live-transcript strong {
+    color: #334bc3 !important;
+}
+
+.live-transcript em {
+    color: #8c9ae0 !important;
+}
+
+.conversation-message.student .message-bubble {
+    background: linear-gradient(135deg, #4e63df, #6478f1) !important;
+}
+
+@media (max-width: 768px) {
+    .ae-progressive-hint-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .ae-progressive-hint-heading strong {
+        text-align: left;
+    }
+
+    .ae-listen-repeat {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ae-listen-repeat-actions {
+        width: 100%;
+    }
+
+    .ae-listen-repeat-actions button {
+        flex: 1;
+    }
+
+    .ae-extra-answer-list button {
+        min-height: 44px;
+        font-size: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .conversation-hint-box.ae-hint-highlight {
+        animation: none;
+    }
+
+    .ae-extra-answer-list button {
+        transition: none;
+    }
+}
