@@ -1,0 +1,84 @@
+.continue-conversation-button {
+  display: none !important;
+}
+
+.conversation-current-question {
+  scroll-margin-top: 104px;
+}
+
+.conversation-action-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 1800;
+  width: min(420px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.conversation-action-dock button {
+  width: 100%;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 18px;
+  background: #17213d;
+  color: #ffffff;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.26);
+  pointer-events: auto;
+  font-size: 16px;
+}
+
+.conversation-action-dock button span {
+  font-size: 20px;
+}
+
+.conversation-action-dock button strong {
+  font-weight: 900;
+}
+
+.conversation-action-dock button:disabled {
+  cursor: wait;
+  opacity: 0.96;
+}
+
+.conversation-action-dock.state-success button,
+.conversation-action-dock.state-saving button {
+  background: #17885b;
+}
+
+.conversation-action-dock.state-save-error button {
+  background: #b45309;
+}
+
+@media (min-width: 769px) {
+  .conversation-action-dock {
+    bottom: 24px;
+    width: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .conversation-page {
+    padding-bottom: 94px !important;
+  }
+
+  .conversation-current-question {
+    scroll-margin-top: 86px;
+  }
+
+  .conversation-action-dock {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: calc(100vw - 24px);
+  }
+
+  .conversation-action-dock button {
+    min-height: 60px;
+    border-radius: 17px;
+    font-size: 16px;
+  }
+}
