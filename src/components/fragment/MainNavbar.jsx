@@ -110,6 +110,7 @@ function MainNavbar() {
                                             </>}
                                         </NavDropdown>
                                     )}
+                                    {isStudent && <Nav.Link as={Link} to="/student/conversation" className="navlink nav-item dropdown"><div className="username"><span style={{ width: 18, marginRight: 5, display: "inline-block" }}>💬</span>英文對話</div></Nav.Link>}
                                     {isStudent && <Nav.Link as={Link} to="/student/ai-generator" className="navlink nav-item dropdown"><div className="username"><FiStar style={{ width: 18, marginRight: 5 }} />AI 教材</div></Nav.Link>}
                                     {loading ? <Nav.Link className="navlink" disabled>教材載入中...</Nav.Link> : navError ? <Nav.Link className="navlink" disabled>教材載入失敗</Nav.Link> : categories.map(renderCategoryDropdown)}
                                     {isAuthenticated && <Nav.Link as={Link} to={homePath} className="navlink nav-item dropdown"><div className="username"><img style={{ width: 18, marginRight: 4 }} src={File} alt="profile" />{isTeacher ? "管理首頁" : "我的帳號"}</div></Nav.Link>}
