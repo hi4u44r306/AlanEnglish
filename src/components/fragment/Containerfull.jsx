@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../assets/scss/Containerfull.scss';
 import MainNavbar from './MainNavbar';
+import '../assets/scss/BrowserCompatibility.scss';
 import MusicPlayer from './MusicPlayer';
 import GuidedTour from './GuidedTour';
 import ConversationUXGuard from './ConversationUXGuard';
