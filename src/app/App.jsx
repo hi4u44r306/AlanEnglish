@@ -72,8 +72,8 @@ const App = () => {
         <Router>
             <AuthProvider>
                 <Helmet>
-                    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=ae-20260813-soft-1" />
-                    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=ae-20260813-soft-1" />
+                    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=ae-20260813-logo-2" />
+                    <link rel="shortcut icon" href="/favicon.svg?v=ae-20260813-logo-2" />
                     <meta name="theme-color" content="#fff8ed" />
                 </Helmet>
 
