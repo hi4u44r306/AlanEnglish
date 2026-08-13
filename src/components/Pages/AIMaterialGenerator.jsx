@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 import {
+    FiAward,
     FiBookOpen,
     FiCheckCircle,
     FiClock,
@@ -10,7 +11,10 @@ import {
     FiHeadphones,
     FiHeart,
     FiRefreshCw,
+    FiRotateCcw,
+    FiSend,
     FiStar,
+    FiXCircle,
     FiZap
 } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
@@ -19,6 +23,7 @@ import {
     getAiMaterialHistory,
     getAiMaterialUsage,
     markAiMaterialReviewed,
+    submitAiMaterialAttempt,
     updateAiMaterialFavorite
 } from "../../services/aiMaterialService";
 import "./css/AIMaterialGenerator.scss";
@@ -32,6 +37,7 @@ const MATERIAL_TYPES = [
 ];
 
 const DIFFICULTIES = ["國小低年級", "國小中年級", "國小高年級", "國中基礎"];
+const DEFAULT_PASSING_SCORE = 90;
 
 const formatDate = value => {
     if (!value) return "";
@@ -43,6 +49,8 @@ const formatDate = value => {
     }).format(new Date(value));
 };
 
+const getTypeLabel = type => MATERIAL_TYPES.find(item => item.id === type)?.title || "AI 教材";
+
 function AIMaterialGenerator() {
     const { firebaseUser } = useAuth();
     const [activeTab, setActiveTab] = useState("generator");
@@ -52,11 +60,15 @@ function AIMaterialGenerator() {
     const [questionCount, setQuestionCount] = useState(5);
     const [customRequest, setCustomRequest] = useState("");
     const [usage, setUsage] = useState({ used: 0, limit: 5, remaining: 5, role: "student" });
+    const [passingScore, setPassingScore] = useState(DEFAULT_PASSING_SCORE);
     const [material, setMaterial] = useState(null);
     const [materials, setMaterials] = useState([]);
+    const [answers, setAnswers] = useState({});
+    const [attemptResult, setAttemptResult] = useState(null);
     const [loadingUsage, setLoadingUsage] = useState(true);
     const [loadingLibrary, setLoadingLibrary] = useState(true);
     const [generating, setGenerating] = useState(false);
+    const [submittingAttempt, setSubmittingAttempt] = useState(false);
     const [libraryActionId, setLibraryActionId] = useState(null);
     const [error, setError] = useState("");
 
@@ -78,6 +90,11 @@ function AIMaterialGenerator() {
         return "學生";
     }, [usage.role]);
 
+    const content = material?.content || null;
+    const questions = Array.isArray(content?.questions) ? content.questions : [];
+    const answeredCount = questions.filter((_, index) => Boolean(answers[index])).length;
+    const allAnswered = questions.length > 0 && answeredCount === questions.length;
+
     useEffect(() => {
         const loadData = async () => {
             if (!firebaseUser) return;
@@ -92,8 +109,10 @@ function AIMaterialGenerator() {
                 ]);
 
                 if (usageResult?.usage) setUsage(usageResult.usage);
+                if (usageResult?.passing_score) setPassingScore(usageResult.passing_score);
                 if (historyResult?.materials) setMaterials(historyResult.materials);
                 if (historyResult?.usage) setUsage(historyResult.usage);
+                if (historyResult?.passing_score) setPassingScore(historyResult.passing_score);
             } catch (loadError) {
                 console.error("AI material load error:", loadError);
                 setError(loadError.message);
@@ -105,6 +124,17 @@ function AIMaterialGenerator() {
 
         loadData();
     }, [firebaseUser]);
+
+    const resetQuiz = () => {
+        setAnswers({});
+        setAttemptResult(null);
+    };
+
+    const scrollToMaterial = () => {
+        window.setTimeout(() => {
+            document.getElementById("ai-material-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+    };
 
     const handleGenerate = async event => {
         event.preventDefault();
@@ -124,6 +154,8 @@ function AIMaterialGenerator() {
         }
 
         setGenerating(true);
+        resetQuiz();
+
         try {
             const result = await generateAiMaterial(firebaseUser, {
                 material_type: materialType,
@@ -133,15 +165,13 @@ function AIMaterialGenerator() {
                 custom_request: customRequest.trim()
             });
 
-            setMaterial(result?.material || null);
-            if (result?.usage) setUsage(result.usage);
             if (result?.material) {
+                setMaterial(result.material);
                 setMaterials(current => [result.material, ...current.filter(item => item.id !== result.material.id)]);
             }
-
-            window.setTimeout(() => {
-                document.getElementById("ai-material-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 100);
+            if (result?.usage) setUsage(result.usage);
+            if (result?.passing_score) setPassingScore(result.passing_score);
+            scrollToMaterial();
         } catch (generateError) {
             console.error("AI material generate error:", generateError);
             if (generateError?.usage) setUsage(generateError.usage);
@@ -154,15 +184,14 @@ function AIMaterialGenerator() {
     const handleOpenMaterial = async savedMaterial => {
         setMaterial(savedMaterial);
         setError("");
+        resetQuiz();
         setLibraryActionId(savedMaterial.id);
 
         try {
             const result = await markAiMaterialReviewed(firebaseUser, savedMaterial.id);
             if (result?.material) {
                 setMaterials(current => current.map(item => (
-                    item.id === savedMaterial.id
-                        ? { ...item, ...result.material }
-                        : item
+                    item.id === savedMaterial.id ? { ...item, ...result.material } : item
                 )));
                 setMaterial(current => current?.id === savedMaterial.id ? { ...current, ...result.material } : current);
             }
@@ -172,9 +201,7 @@ function AIMaterialGenerator() {
             setLibraryActionId(null);
         }
 
-        window.setTimeout(() => {
-            document.getElementById("ai-material-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
+        scrollToMaterial();
     };
 
     const handleFavorite = async savedMaterial => {
@@ -184,15 +211,11 @@ function AIMaterialGenerator() {
 
         try {
             const result = await updateAiMaterialFavorite(firebaseUser, savedMaterial.id, nextValue);
+            const value = result?.material?.is_favorite ?? nextValue;
             setMaterials(current => current.map(item => (
-                item.id === savedMaterial.id
-                    ? { ...item, is_favorite: result?.material?.is_favorite ?? nextValue }
-                    : item
+                item.id === savedMaterial.id ? { ...item, is_favorite: value } : item
             )));
-            setMaterial(current => current?.id === savedMaterial.id
-                ? { ...current, is_favorite: result?.material?.is_favorite ?? nextValue }
-                : current
-            );
+            setMaterial(current => current?.id === savedMaterial.id ? { ...current, is_favorite: value } : current);
         } catch (favoriteError) {
             console.error("AI favorite update error:", favoriteError);
             setError(favoriteError.message);
@@ -201,7 +224,125 @@ function AIMaterialGenerator() {
         }
     };
 
-    const content = material?.content || null;
+    const handleAnswer = (questionIndex, option) => {
+        if (attemptResult) return;
+        setAnswers(current => ({ ...current, [questionIndex]: option }));
+    };
+
+    const handleSubmitAttempt = async () => {
+        if (!material?.id || submittingAttempt) return;
+        if (!allAnswered) {
+            setError(`還有 ${questions.length - answeredCount} 題尚未作答，請完成所有題目再提交。`);
+            return;
+        }
+
+        setSubmittingAttempt(true);
+        setError("");
+
+        try {
+            const orderedAnswers = questions.map((_, index) => answers[index]);
+            const result = await submitAiMaterialAttempt(firebaseUser, material.id, orderedAnswers);
+            setAttemptResult(result?.result || null);
+
+            if (result?.progress) {
+                setMaterials(current => current.map(item => (
+                    item.id === material.id ? { ...item, progress: result.progress } : item
+                )));
+                setMaterial(current => current?.id === material.id
+                    ? { ...current, progress: result.progress }
+                    : current
+                );
+            }
+
+            window.setTimeout(() => {
+                document.getElementById("ai-quiz-score")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 100);
+        } catch (submitError) {
+            console.error("AI material submit error:", submitError);
+            setError(submitError.message);
+        } finally {
+            setSubmittingAttempt(false);
+        }
+    };
+
+    const handleRetry = () => {
+        resetQuiz();
+        setError("");
+        document.getElementById("ai-quiz")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    const renderLibrary = () => (
+        <section className="ai-library-shell">
+            <div className="ai-library-heading">
+                <div>
+                    <span className="ai-eyebrow"><FiFolder /> MY AI MATERIALS</span>
+                    <h2>{activeTab === "favorites" ? "收藏教材" : "我的 AI 教材庫"}</h2>
+                    <p>{activeTab === "favorites" ? "把最值得再次練習的教材集中在這裡。" : "生成過的教材都保存在這裡，重新作答不會再扣 AI 額度。"}</p>
+                </div>
+                <div className="ai-library-stat">
+                    <strong>{visibleMaterials.length}</strong>
+                    <span>{activeTab === "favorites" ? "收藏" : "份教材"}</span>
+                </div>
+            </div>
+
+            {loadingLibrary ? (
+                <div className="ai-library-empty">教材庫載入中...</div>
+            ) : visibleMaterials.length === 0 ? (
+                <div className="ai-library-empty">
+                    <FiFolder />
+                    <strong>{activeTab === "favorites" ? "目前沒有收藏教材" : "還沒有 AI 教材"}</strong>
+                    <span>生成第一份教材後就會自動出現在這裡。</span>
+                </div>
+            ) : (
+                <div className="ai-library-grid">
+                    {visibleMaterials.map(item => {
+                        const progress = item.progress || {};
+                        return (
+                            <article className="ai-library-card" key={item.id}>
+                                <div className="ai-library-card-top">
+                                    <span>{getTypeLabel(item.material_type)}</span>
+                                    <button
+                                        type="button"
+                                        className={item.is_favorite ? "favorite" : ""}
+                                        onClick={() => handleFavorite(item)}
+                                        disabled={libraryActionId === item.id}
+                                        aria-label={item.is_favorite ? "取消收藏" : "加入收藏"}
+                                    >
+                                        <FiHeart />
+                                    </button>
+                                </div>
+
+                                <h3>{item.title}</h3>
+                                <p>{item.topic || item.content?.subtitle || "Alan English AI 教材"}</p>
+
+                                <div className="ai-library-meta">
+                                    <span><FiClock /> {formatDate(item.created_at)}</span>
+                                    <span>{item.difficulty}</span>
+                                </div>
+
+                                <div className="ai-library-progress">
+                                    <span className={progress.completed ? "passed" : "pending"}>
+                                        {progress.completed ? <><FiCheckCircle /> 已完成</> : <>尚未完成</>}
+                                    </span>
+                                    <span>最高 {Number(progress.best_score || 0)} 分</span>
+                                    <span>作答 {Number(progress.attempt_count || 0)} 次</span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="ai-library-open"
+                                    onClick={() => handleOpenMaterial(item)}
+                                    disabled={libraryActionId === item.id}
+                                >
+                                    {progress.attempt_count > 0 ? "再次練習" : "開始作答"}
+                                </button>
+                            </article>
+                        );
+                    })}
+                </div>
+            )}
+        </section>
+    );
 
     return (
         <main className="ai-studio">
@@ -209,7 +350,7 @@ function AIMaterialGenerator() {
                 <div className="ai-studio-hero-copy">
                     <span className="ai-eyebrow"><FiStar /> ALAN ENGLISH AI</span>
                     <h1>把你想練的英文，<br /><span>變成專屬教材。</span></h1>
-                    <p>生成後會自動存進你的 AI 教材庫，之後可以重新開啟、收藏與複習，不需要為同一份教材再次消耗生成額度。</p>
+                    <p>所有 AI 教材都是實際可作答的選擇題。完成所有題目後才會批改，達到 {passingScore} 分以上才算完成。</p>
                 </div>
 
                 <div className="ai-quota-card">
@@ -228,42 +369,23 @@ function AIMaterialGenerator() {
                             <span key={index} className={index < usage.used ? "used" : "available"} />
                         ))}
                     </div>
-                    <p>今天已使用 {usage.used} / {usage.limit} 次 · 每日 00:00 重置</p>
+                    <p>今天已使用 {usage.used} / {usage.limit} 次 · 成功生成才扣額度</p>
                 </div>
             </section>
 
             <section className="ai-workspace-tabs">
-                <button
-                    type="button"
-                    className={activeTab === "generator" ? "active" : ""}
-                    onClick={() => setActiveTab("generator")}
-                >
-                    <FiStar />
-                    <span>生成教材</span>
+                <button type="button" className={activeTab === "generator" ? "active" : ""} onClick={() => setActiveTab("generator")}>
+                    <FiStar /><span>生成教材</span>
                 </button>
-                <button
-                    type="button"
-                    className={activeTab === "library" ? "active" : ""}
-                    onClick={() => setActiveTab("library")}
-                >
-                    <FiFolder />
-                    <span>我的教材</span>
-                    <small>{materials.length}</small>
+                <button type="button" className={activeTab === "library" ? "active" : ""} onClick={() => setActiveTab("library")}>
+                    <FiFolder /><span>我的教材</span><small>{materials.length}</small>
                 </button>
-                <button
-                    type="button"
-                    className={activeTab === "favorites" ? "active" : ""}
-                    onClick={() => setActiveTab("favorites")}
-                >
-                    <FiHeart />
-                    <span>收藏教材</span>
-                    <small>{favoriteMaterials.length}</small>
+                <button type="button" className={activeTab === "favorites" ? "active" : ""} onClick={() => setActiveTab("favorites")}>
+                    <FiHeart /><span>收藏教材</span><small>{favoriteMaterials.length}</small>
                 </button>
             </section>
 
-            {error && activeTab !== "generator" && (
-                <div className="ai-library-error">{error}</div>
-            )}
+            {error && activeTab !== "generator" && <div className="ai-library-error">{error}</div>}
 
             {activeTab === "generator" ? (
                 <section className="ai-generator-shell">
@@ -271,7 +393,7 @@ function AIMaterialGenerator() {
                         <div className="ai-section-heading">
                             <span>STEP 01</span>
                             <h2>想練習什麼？</h2>
-                            <p>先選擇你希望 AI 幫你製作的教材類型。</p>
+                            <p>選擇教材類型，AI 會產生四選一題目供學生實際作答。</p>
                         </div>
 
                         <div className="ai-type-grid">
@@ -279,12 +401,7 @@ function AIMaterialGenerator() {
                                 const Icon = type.icon;
                                 const active = materialType === type.id;
                                 return (
-                                    <button
-                                        type="button"
-                                        key={type.id}
-                                        className={`ai-type-card ${active ? "active" : ""}`}
-                                        onClick={() => setMaterialType(type.id)}
-                                    >
+                                    <button type="button" key={type.id} className={`ai-type-card ${active ? "active" : ""}`} onClick={() => setMaterialType(type.id)}>
                                         <span className="ai-type-icon"><Icon /></span>
                                         <strong>{type.title}</strong>
                                         <small>{type.description}</small>
@@ -343,123 +460,27 @@ function AIMaterialGenerator() {
 
                         {error && <div className="ai-error-message">{error}</div>}
 
-                        <button
-                            type="submit"
-                            className="ai-generate-button"
-                            disabled={generating || loadingUsage || usage.remaining <= 0}
-                        >
+                        <button type="submit" className="ai-generate-button" disabled={generating || loadingUsage || usage.remaining <= 0}>
                             {generating
                                 ? <><FiRefreshCw className="ai-spin" /> AI 正在製作教材...</>
-                                : <><FiStar /> 生成 {selectedType?.title || "AI 教材"}</>
-                            }
+                                : <><FiStar /> 生成 {selectedType?.title || "AI 教材"}</>}
                         </button>
-                        <p className="ai-generate-note">AI 成功完成並存入教材庫後才會扣除 1 次額度；生成失敗不扣次數。</p>
+                        <p className="ai-generate-note">成功生成後自動保存；重新開啟與重新作答既有教材不扣 AI 生成額度。</p>
                     </form>
                 </section>
-            ) : (
-                <section className="ai-library-shell">
-                    <div className="ai-library-heading">
-                        <div>
-                            <span className="ai-eyebrow"><FiFolder /> MY AI MATERIALS</span>
-                            <h2>{activeTab === "favorites" ? "收藏教材" : "我的 AI 教材庫"}</h2>
-                            <p>{activeTab === "favorites" ? "把最值得再次練習的教材集中在這裡。" : "每次成功生成的教材都會自動保存在這裡，可以隨時重新開啟複習。"}</p>
-                        </div>
-                        <div className="ai-library-stat">
-                            <strong>{visibleMaterials.length}</strong>
-                            <span>{activeTab === "favorites" ? "收藏" : "份教材"}</span>
-                        </div>
-                    </div>
-
-                    {loadingLibrary ? (
-                        <div className="ai-library-empty"><FiRefreshCw className="ai-spin" /><p>正在載入你的 AI 教材庫...</p></div>
-                    ) : visibleMaterials.length === 0 ? (
-                        <div className="ai-library-empty">
-                            {activeTab === "favorites" ? <FiHeart /> : <FiFolder />}
-                            <h3>{activeTab === "favorites" ? "還沒有收藏教材" : "還沒有 AI 教材"}</h3>
-                            <p>{activeTab === "favorites" ? "到「我的教材」把想重複練習的內容加入收藏。" : "先生成第一份教材，完成後會自動出現在這裡。"}</p>
-                            <button type="button" onClick={() => setActiveTab("generator")}>開始生成教材</button>
-                        </div>
-                    ) : (
-                        <div className="ai-library-grid">
-                            {visibleMaterials.map(item => {
-                                const typeInfo = MATERIAL_TYPES.find(type => type.id === item.material_type);
-                                const TypeIcon = typeInfo?.icon || FiBookOpen;
-                                const actionLoading = libraryActionId === item.id;
-
-                                return (
-                                    <article className="ai-library-card" key={item.id}>
-                                        <div className="ai-library-card-top">
-                                            <span className="ai-library-type"><TypeIcon />{typeInfo?.title || "AI 教材"}</span>
-                                            <button
-                                                type="button"
-                                                className={`ai-favorite-button ${item.is_favorite ? "active" : ""}`}
-                                                onClick={() => handleFavorite(item)}
-                                                disabled={actionLoading}
-                                                aria-label={item.is_favorite ? "取消收藏" : "加入收藏"}
-                                            >
-                                                <FiHeart />
-                                            </button>
-                                        </div>
-
-                                        <h3>{item.title}</h3>
-                                        <p className="ai-library-topic">{item.topic || item.content?.subtitle || "自訂教材"}</p>
-
-                                        <div className="ai-library-meta">
-                                            <span>{item.difficulty || "未設定程度"}</span>
-                                            <span>{item.question_count || 0} 題</span>
-                                            <span><FiClock /> {formatDate(item.created_at)}</span>
-                                        </div>
-
-                                        <div className="ai-library-review-info">
-                                            <span>已複習 {item.review_count || 0} 次</span>
-                                            {item.last_reviewed_at && <small>上次 {formatDate(item.last_reviewed_at)}</small>}
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            className="ai-review-button"
-                                            onClick={() => handleOpenMaterial(item)}
-                                            disabled={actionLoading}
-                                        >
-                                            {actionLoading ? <FiRefreshCw className="ai-spin" /> : <FiBookOpen />}
-                                            開始複習
-                                        </button>
-                                    </article>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    <div className="ai-future-review-card">
-                        <FiZap />
-                        <div>
-                            <strong>下一階段：AI 個人化複習</strong>
-                            <p>目前已經開始累積教材與複習紀錄，之後可以利用原教材、複習次數與錯題紀錄產生新的複習內容。</p>
-                        </div>
-                    </div>
-                </section>
-            )}
+            ) : renderLibrary()}
 
             {content && (
                 <section className="ai-result" id="ai-material-result">
                     <div className="ai-result-header">
                         <div>
-                            <span className="ai-eyebrow"><FiStar /> {material?.id ? "SAVED MATERIAL" : "GENERATED FOR YOU"}</span>
-                            <h2>{content.title}</h2>
+                            <span className="ai-eyebrow"><FiStar /> {material?.progress?.completed ? "COMPLETED MATERIAL" : "AI PRACTICE"}</span>
+                            <h2>{content.title || material?.title}</h2>
                             {content.subtitle && <p>{content.subtitle}</p>}
                         </div>
-                        <div className="ai-result-actions">
+                        <div className="ai-result-badges">
                             <span className="ai-result-level">{material?.difficulty}</span>
-                            {material?.id && (
-                                <button
-                                    type="button"
-                                    className={`ai-result-favorite ${material.is_favorite ? "active" : ""}`}
-                                    onClick={() => handleFavorite(material)}
-                                    disabled={libraryActionId === material.id}
-                                >
-                                    <FiHeart /> {material.is_favorite ? "已收藏" : "收藏"}
-                                </button>
-                            )}
+                            {material?.progress?.completed && <span className="ai-completed-badge"><FiAward /> 已完成</span>}
                         </div>
                     </div>
 
@@ -491,27 +512,92 @@ function AIMaterialGenerator() {
                         </article>
                     )}
 
-                    {Array.isArray(content.questions) && content.questions.length > 0 && (
-                        <article className="ai-result-block">
+                    {questions.length > 0 && (
+                        <article className="ai-result-block ai-quiz-block" id="ai-quiz">
                             <span className="ai-result-number">03</span>
                             <div className="ai-result-content-wide">
-                                <h3>Practice</h3>
-                                <div className="ai-question-list">
-                                    {content.questions.map((question, index) => (
-                                        <details className="ai-question-card" key={index}>
-                                            <summary><span>Q{index + 1}</span>{question.question}</summary>
-                                            <div className="ai-question-options">
-                                                {(question.options || []).map((option, optionIndex) => (
-                                                    <div key={optionIndex}>{String.fromCharCode(65 + optionIndex)}. {option}</div>
-                                                ))}
-                                            </div>
-                                            <div className="ai-answer">
-                                                <strong>答案：{question.answer}</strong>
-                                                {question.explanation && <p>{question.explanation}</p>}
-                                            </div>
-                                        </details>
-                                    ))}
+                                <div className="ai-quiz-heading">
+                                    <div>
+                                        <h3>Practice Quiz</h3>
+                                        <p>先完成全部題目再提交。作答前不會顯示答案，{passingScore} 分以上才算完成。</p>
+                                    </div>
+                                    <span>{answeredCount} / {questions.length} 已作答</span>
                                 </div>
+
+                                <div className="ai-quiz-list">
+                                    {questions.map((question, questionIndex) => {
+                                        const feedback = attemptResult?.feedback?.find(item => item.index === questionIndex);
+                                        return (
+                                            <section className="ai-quiz-question" key={questionIndex}>
+                                                <div className="ai-quiz-question-title">
+                                                    <span>Q{questionIndex + 1}</span>
+                                                    <strong>{question.question}</strong>
+                                                </div>
+
+                                                <div className="ai-quiz-options">
+                                                    {(question.options || []).map((option, optionIndex) => {
+                                                        const selected = answers[questionIndex] === option;
+                                                        const isCorrectOption = Boolean(attemptResult && feedback?.correct_answer === option);
+                                                        const isWrongSelected = Boolean(attemptResult && selected && !feedback?.is_correct);
+                                                        const optionClass = [
+                                                            "ai-quiz-option",
+                                                            selected ? "selected" : "",
+                                                            isCorrectOption ? "correct" : "",
+                                                            isWrongSelected ? "wrong" : ""
+                                                        ].filter(Boolean).join(" ");
+
+                                                        return (
+                                                            <button
+                                                                type="button"
+                                                                key={`${questionIndex}-${optionIndex}`}
+                                                                className={optionClass}
+                                                                onClick={() => handleAnswer(questionIndex, option)}
+                                                                disabled={Boolean(attemptResult)}
+                                                            >
+                                                                <span>{String.fromCharCode(65 + optionIndex)}</span>
+                                                                <strong>{option}</strong>
+                                                                {attemptResult && isCorrectOption && <FiCheckCircle />}
+                                                                {attemptResult && isWrongSelected && <FiXCircle />}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {attemptResult && feedback && (
+                                                    <div className={`ai-quiz-feedback ${feedback.is_correct ? "correct" : "wrong"}`}>
+                                                        <strong>{feedback.is_correct ? "答對了！" : `正確答案：${feedback.correct_answer}`}</strong>
+                                                        {feedback.explanation && <p>{feedback.explanation}</p>}
+                                                    </div>
+                                                )}
+                                            </section>
+                                        );
+                                    })}
+                                </div>
+
+                                {!attemptResult ? (
+                                    <div className="ai-quiz-submit-area">
+                                        <div>
+                                            <strong>完成標準：{passingScore} 分</strong>
+                                            <span>{allAnswered ? "全部題目已完成，可以提交答案。" : `還有 ${questions.length - answeredCount} 題尚未作答。`}</span>
+                                        </div>
+                                        <button type="button" onClick={handleSubmitAttempt} disabled={!allAnswered || submittingAttempt}>
+                                            {submittingAttempt ? <><FiRefreshCw className="ai-spin" /> 批改中...</> : <><FiSend /> 提交答案</>}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className={`ai-quiz-score ${attemptResult.passed ? "passed" : "failed"}`} id="ai-quiz-score">
+                                        <div className="ai-quiz-score-number">
+                                            <strong>{attemptResult.score}</strong>
+                                            <span>分</span>
+                                        </div>
+                                        <div className="ai-quiz-score-copy">
+                                            <span>{attemptResult.passed ? <><FiAward /> 恭喜完成教材</> : <><FiRotateCcw /> 還差一點</>}</span>
+                                            <h4>{attemptResult.correct_count} / {attemptResult.total_questions} 題答對</h4>
+                                            <p>{attemptResult.passed ? `已達 ${passingScore} 分完成標準，這份教材已記錄為完成。` : `需要 ${passingScore} 分以上才算完成，可以查看錯題後再挑戰一次。`}</p>
+                                        </div>
+                                        <button type="button" onClick={handleRetry}><FiRotateCcw /> 再挑戰一次</button>
+                                    </div>
+                                )}
                             </div>
                         </article>
                     )}
