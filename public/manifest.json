@@ -3,9 +3,9 @@
   "name": "Alan English | Best English in the world",
   "icons": [
     {
-      "src": "favicon.ico?v=ae-20260813-soft-1",
-      "sizes": "16x16 32x32 48x48 64x64",
-      "type": "image/x-icon"
+      "src": "favicon.svg?v=ae-20260813-logo-2",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ],
   "start_url": ".",
