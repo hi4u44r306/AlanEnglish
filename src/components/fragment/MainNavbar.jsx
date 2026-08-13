@@ -17,6 +17,21 @@ import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
 import { getRoleHome } from "../../auth/RoleHomeRedirect";
 
+const restoreDocumentScroll = () => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    window.requestAnimationFrame(() => {
+        const activeBlockingLayer = document.querySelector('.modal.show, .offcanvas.show');
+        if (activeBlockingLayer) return;
+
+        document.documentElement.style.removeProperty('overflow');
+        document.documentElement.style.removeProperty('padding-right');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+        document.body.classList.remove('modal-open');
+    });
+};
+
 function MainNavbar() {
     const [scrolled, setScrolled] = useState(false);
     const [categories, setCategories] = useState([]);
@@ -48,16 +63,19 @@ function MainNavbar() {
 
     useEffect(() => {
         setMobileOpen(false);
+
+        const timer = window.setTimeout(() => {
+            restoreDocumentScroll();
+        }, 420);
+
+        return () => window.clearTimeout(timer);
     }, [location.pathname]);
 
     useEffect(() => {
-        if (!mobileOpen) return undefined;
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
         return () => {
-            document.body.style.overflow = previousOverflow;
+            restoreDocumentScroll();
         };
-    }, [mobileOpen]);
+    }, []);
 
     useEffect(() => {
         const fetchNavbarData = async () => {
@@ -110,12 +128,13 @@ function MainNavbar() {
             console.error("登出失敗:", error);
         } finally {
             setLoggingOut(false);
+            restoreDocumentScroll();
         }
     };
 
     const openTour = () => {
         closeMobileMenu();
-        window.setTimeout(() => window.dispatchEvent(new CustomEvent("ae:open-tour")), 180);
+        window.setTimeout(() => window.dispatchEvent(new CustomEvent("ae:open-tour")), 220);
     };
 
     const isPathActive = path => location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`));
@@ -262,6 +281,7 @@ function MainNavbar() {
             <Offcanvas
                 show={mobileOpen}
                 onHide={closeMobileMenu}
+                onExited={restoreDocumentScroll}
                 placement="end"
                 className="ae-mobile-offcanvas d-xl-none"
                 backdrop
