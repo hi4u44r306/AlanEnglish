@@ -102,3 +102,18 @@ export const markAiMaterialReviewed = async (
         }
     );
 };
+
+export const submitAiMaterialAttempt = async (
+    firebaseUser,
+    materialId,
+    answers
+) => {
+    return await callAiMaterialFunction(
+        firebaseUser,
+        {
+            action: "submit_attempt",
+            material_id: materialId,
+            answers
+        }
+    );
+};
