@@ -7,6 +7,7 @@ import GuidedTour from './GuidedTour';
 import ConversationUXGuard from './ConversationUXGuard';
 import ConversationHintCoach from './ConversationHintCoach';
 import MobileOffcanvasScrollGuard from './MobileOffcanvasScrollGuard';
+import AssignmentShortcut from './AssignmentShortcut';
 import { useSelector } from 'react-redux';
 
 const Containerfull = ({ children }) => {
@@ -44,6 +45,7 @@ const Containerfull = ({ children }) => {
                 {children}
             </main>
 
+            <AssignmentShortcut />
             <ConversationUXGuard />
             <ConversationHintCoach />
             <GuidedTour />
