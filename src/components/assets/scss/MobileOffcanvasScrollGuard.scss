@@ -1,0 +1,21 @@
+html.ae-offcanvas-scroll-locked,
+body.ae-offcanvas-scroll-locked {
+  overscroll-behavior: none;
+}
+
+body.ae-offcanvas-scroll-locked {
+  max-width: 100vw;
+}
+
+.ae-mobile-offcanvas {
+  overscroll-behavior: contain;
+}
+
+.ae-mobile-offcanvas .offcanvas-body {
+  min-height: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
