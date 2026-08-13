@@ -1,6 +1,7 @@
 import { browserLocalPersistence, setPersistence, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { authentication } from "../components/Pages/firebase-config";
 import { supabase } from "../components/Pages/supabase-config";
+import { recordLoginActivity } from "../services/learningActivityService";
 
 const STORAGE_KEYS = [
     "ae-useruid",
@@ -24,10 +25,10 @@ export const saveStudentSession = (firebaseUser, student) => {
 };
 
 export const clearStudentSession = () => {
-    STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
 };
 
-const findStudentByUid = async (uid) => {
+const findStudentByUid = async uid => {
     return await supabase
         .from("students")
         .select("*")
@@ -35,7 +36,7 @@ const findStudentByUid = async (uid) => {
         .maybeSingle();
 };
 
-const findStudentByEmail = async (email) => {
+const findStudentByEmail = async email => {
     if (!email) return { data: null, error: null };
 
     return await supabase
@@ -45,7 +46,7 @@ const findStudentByEmail = async (email) => {
         .maybeSingle();
 };
 
-export const loadStudentProfile = async (firebaseUser) => {
+export const loadStudentProfile = async firebaseUser => {
     if (!firebaseUser?.uid) throw new Error("找不到 Firebase 使用者資料");
 
     const { data: studentByUid, error: uidError } = await findStudentByUid(firebaseUser.uid);
@@ -97,12 +98,11 @@ export const loginWithEmail = async (email, password) => {
     try {
         const student = await loadStudentProfile(credential.user);
 
-        const { error: updateError } = await supabase
-            .from("students")
-            .update({ updated_at: new Date().toISOString() })
-            .eq("id", student.id);
-
-        if (updateError) console.warn("更新 updated_at 失敗:", updateError);
+        try {
+            await recordLoginActivity(credential.user);
+        } catch (activityError) {
+            console.warn("登入成功，但登入活動紀錄失敗:", activityError);
+        }
 
         return { firebaseUser: credential.user, student };
     } catch (error) {
