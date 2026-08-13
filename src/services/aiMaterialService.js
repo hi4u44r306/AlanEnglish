@@ -53,6 +53,15 @@ export const getAiMaterialUsage = async firebaseUser => {
     );
 };
 
+export const getAiMaterialHistory = async firebaseUser => {
+    return await callAiMaterialFunction(
+        firebaseUser,
+        {
+            action: "history"
+        }
+    );
+};
+
 export const generateAiMaterial = async (
     firebaseUser,
     payload
@@ -62,6 +71,34 @@ export const generateAiMaterial = async (
         {
             action: "generate",
             ...payload
+        }
+    );
+};
+
+export const updateAiMaterialFavorite = async (
+    firebaseUser,
+    materialId,
+    isFavorite
+) => {
+    return await callAiMaterialFunction(
+        firebaseUser,
+        {
+            action: "favorite",
+            material_id: materialId,
+            is_favorite: isFavorite
+        }
+    );
+};
+
+export const markAiMaterialReviewed = async (
+    firebaseUser,
+    materialId
+) => {
+    return await callAiMaterialFunction(
+        firebaseUser,
+        {
+            action: "mark_reviewed",
+            material_id: materialId
         }
     );
 };
