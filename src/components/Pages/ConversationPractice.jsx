@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./css/ConversationPractice.scss";
 
-const NUMBER_WORDS = {
+const SMALL_NUMBER_WORDS = {
+    zero: 0,
     one: 1,
     two: 2,
     three: 3,
@@ -16,7 +17,22 @@ const NUMBER_WORDS = {
     twelve: 12,
     thirteen: 13,
     fourteen: 14,
-    fifteen: 15
+    fifteen: 15,
+    sixteen: 16,
+    seventeen: 17,
+    eighteen: 18,
+    nineteen: 19
+};
+
+const TENS_NUMBER_WORDS = {
+    twenty: 20,
+    thirty: 30,
+    forty: 40,
+    fifty: 50,
+    sixty: 60,
+    seventy: 70,
+    eighty: 80,
+    ninety: 90
 };
 
 const GRADE_WORDS = {
@@ -33,21 +49,44 @@ const GRADE_WORDS = {
 
 const normalize = value => String(value || "")
     .toLowerCase()
+    .replace(/[-–—]/g, " ")
     .replace(/[.,!?;:]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
 const containsAny = (text, values) => values.some(value => text.includes(value));
 
-const extractNumber = text => {
-    const numeric = text.match(/\b(\d{1,2})\b/);
+const extractNumber = rawText => {
+    const text = normalize(rawText);
+    const numeric = text.match(/\b(\d{1,3})\b/);
     if (numeric) return Number(numeric[1]);
 
-    const word = Object.keys(NUMBER_WORDS).find(item => text.includes(item));
-    return word ? NUMBER_WORDS[word] : null;
+    const tokens = text.split(" ");
+
+    for (let index = 0; index < tokens.length; index += 1) {
+        const token = tokens[index];
+        const nextToken = tokens[index + 1];
+
+        if (token === "one" && nextToken === "hundred") return 100;
+
+        if (Object.prototype.hasOwnProperty.call(TENS_NUMBER_WORDS, token)) {
+            const tens = TENS_NUMBER_WORDS[token];
+            const ones = Object.prototype.hasOwnProperty.call(SMALL_NUMBER_WORDS, nextToken)
+                ? SMALL_NUMBER_WORDS[nextToken]
+                : 0;
+            return tens + ones;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(SMALL_NUMBER_WORDS, token)) {
+            return SMALL_NUMBER_WORDS[token];
+        }
+    }
+
+    return null;
 };
 
-const extractGrade = text => {
+const extractGrade = rawText => {
+    const text = normalize(rawText);
     const numeric = text.match(/\b([1-9])(?:st|nd|rd|th)?\b/);
     if (numeric) return Number(numeric[1]);
 
@@ -82,12 +121,13 @@ const SCENARIO_STEPS = [
         hint: "回答自己的年齡，例如 I'm eleven years old.",
         samples: ["I'm ten years old.", "I'm eleven.", "I am twelve years old."],
         evaluate: answer => {
-            const text = normalize(answer);
-            const age = extractNumber(text);
-            const reasonableAge = age !== null && age >= 6 && age <= 18;
+            const age = extractNumber(answer);
+            const reasonableAge = age !== null && age >= 1 && age <= 120;
             return {
                 correct: reasonableAge,
-                success: `Good job! I understood that you are ${age ?? ""} years old.`,
+                success: reasonableAge
+                    ? `Good job! I understood that you are ${age} years old.`
+                    : "",
                 retry: "I didn't catch your age. Try: I'm eleven years old."
             };
         }
@@ -135,11 +175,11 @@ const SCENARIO_STEPS = [
         hint: "例如 There are four people in my family.",
         samples: ["There are four people in my family.", "There are five people in my family.", "We are a family of four."],
         evaluate: answer => {
-            const text = normalize(answer);
-            const count = extractNumber(text);
+            const count = extractNumber(answer);
+            const validCount = count !== null && count >= 1 && count <= 20;
             return {
-                correct: count !== null && count >= 1 && count <= 20,
-                success: count ? `Got it! There are ${count} people in your family.` : "Great family answer!",
+                correct: validCount,
+                success: validCount ? `Got it! There are ${count} people in your family.` : "",
                 retry: "Tell me a number, for example: There are four people in my family."
             };
         }
@@ -271,10 +311,12 @@ function ConversationPractice() {
     ]);
 
     const step = SCENARIO_STEPS[stepIndex];
+
     const speechRecognitionSupported = useMemo(() => Boolean(
         typeof window !== "undefined" &&
         (window.SpeechRecognition || window.webkitSpeechRecognition)
     ), []);
+
     const recordingSupported = useMemo(() => Boolean(
         typeof window !== "undefined" &&
         navigator.mediaDevices?.getUserMedia &&
@@ -282,10 +324,9 @@ function ConversationPractice() {
     ), []);
 
     const cleanupStream = () => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
-        }
+        if (!streamRef.current) return;
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
     };
 
     const clearAudio = () => {
@@ -299,9 +340,9 @@ function ConversationPractice() {
     const stopRecorder = () => {
         if (recorderRef.current && recorderRef.current.state !== "inactive") {
             recorderRef.current.stop();
-        } else {
-            cleanupStream();
+            return;
         }
+        cleanupStream();
     };
 
     useEffect(() => {
@@ -311,6 +352,7 @@ function ConversationPractice() {
             } catch (error) {
                 console.warn("Speech recognition cleanup error:", error);
             }
+
             if (recorderRef.current?.state !== "inactive") {
                 try {
                     recorderRef.current.stop();
@@ -318,6 +360,7 @@ function ConversationPractice() {
                     console.warn("Recorder cleanup error:", error);
                 }
             }
+
             cleanupStream();
             if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
             window.speechSynthesis?.cancel();
@@ -339,8 +382,8 @@ function ConversationPractice() {
         const voices = window.speechSynthesis.getVoices();
         const englishVoice = voices.find(voice => voice.lang?.toLowerCase().startsWith("en-us")) ||
             voices.find(voice => voice.lang?.toLowerCase().startsWith("en"));
-        if (englishVoice) utterance.voice = englishVoice;
 
+        if (englishVoice) utterance.voice = englishVoice;
         window.speechSynthesis.speak(utterance);
     };
 
@@ -385,18 +428,23 @@ function ConversationPractice() {
 
                 const recorder = new MediaRecorder(stream);
                 recorderRef.current = recorder;
+
                 recorder.ondataavailable = event => {
                     if (event.data?.size > 0) chunksRef.current.push(event.data);
                 };
+
                 recorder.onstop = () => {
                     if (chunksRef.current.length > 0) {
-                        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+                        const blob = new Blob(chunksRef.current, {
+                            type: recorder.mimeType || "audio/webm"
+                        });
                         const nextUrl = URL.createObjectURL(blob);
                         audioUrlRef.current = nextUrl;
                         setAudioUrl(nextUrl);
                     }
                     cleanupStream();
                 };
+
                 recorder.start();
             } catch (error) {
                 console.warn("Audio recording unavailable:", error);
@@ -405,12 +453,14 @@ function ConversationPractice() {
         }
 
         recognition.onstart = () => setListening(true);
+
         recognition.onresult = event => {
             const transcript = event.results?.[0]?.[0]?.transcript?.trim() || "";
             setHeardText(transcript);
             setAnswer(transcript);
             if (transcript) evaluateAnswer(transcript);
         };
+
         recognition.onerror = event => {
             const errorMap = {
                 "not-allowed": "麥克風或語音辨識權限被拒絕，請允許權限後再試。",
@@ -420,6 +470,7 @@ function ConversationPractice() {
             };
             setSpeechError(errorMap[event.error] || "語音辨識沒有成功，請再試一次或使用文字輸入。");
         };
+
         recognition.onend = () => {
             setListening(false);
             stopRecorder();
@@ -479,6 +530,7 @@ function ConversationPractice() {
         } catch (error) {
             console.warn("Speech recognition restart cleanup error:", error);
         }
+
         stopRecorder();
         clearAudio();
         setStepIndex(0);
@@ -545,7 +597,11 @@ function ConversationPractice() {
                             <strong>{completed ? SCENARIO_STEPS.length : stepIndex + (evaluation?.correct ? 1 : 0)} / {SCENARIO_STEPS.length}</strong>
                         </div>
                         <div className="mission-progress-track">
-                            <span style={{ width: `${((completed ? SCENARIO_STEPS.length : stepIndex + (evaluation?.correct ? 1 : 0)) / SCENARIO_STEPS.length) * 100}%` }} />
+                            <span
+                                style={{
+                                    width: `${((completed ? SCENARIO_STEPS.length : stepIndex + (evaluation?.correct ? 1 : 0)) / SCENARIO_STEPS.length) * 100}%`
+                                }}
+                            />
                         </div>
                     </div>
 
@@ -553,8 +609,12 @@ function ConversationPractice() {
                         {SCENARIO_STEPS.map((item, index) => {
                             const done = completed || index < stepIndex || (index === stepIndex && evaluation?.correct);
                             const current = !completed && index === stepIndex && !evaluation?.correct;
+
                             return (
-                                <div key={item.id} className={`mission-item ${done ? "done" : ""} ${current ? "current" : ""}`}>
+                                <div
+                                    key={item.id}
+                                    className={`mission-item ${done ? "done" : ""} ${current ? "current" : ""}`}
+                                >
                                     <span className="mission-check">{done ? "✓" : index + 1}</span>
                                     <p>{item.mission}</p>
                                 </div>
@@ -580,7 +640,10 @@ function ConversationPractice() {
 
                     <div className="conversation-messages">
                         {messages.slice(-6).map((message, index) => (
-                            <div key={`${message.speaker}-${index}`} className={`conversation-message ${message.speaker}`}>
+                            <div
+                                key={`${message.speaker}-${index}`}
+                                className={`conversation-message ${message.speaker}`}
+                            >
                                 {message.speaker === "alex" && <span className="message-avatar">A</span>}
                                 <div className="message-bubble">
                                     {message.speaker === "system" && <small>SCENE</small>}
@@ -598,7 +661,11 @@ function ConversationPractice() {
                                     <h3>{step.question}</h3>
                                     {MODES[mode].showTranslation && <p>{step.translation}</p>}
                                 </div>
-                                <button type="button" className="listen-question-button" onClick={() => speak(step.question)}>
+                                <button
+                                    type="button"
+                                    className="listen-question-button"
+                                    onClick={() => speak(step.question)}
+                                >
                                     🔊 Listen
                                 </button>
                             </div>
@@ -608,14 +675,24 @@ function ConversationPractice() {
                                     <strong>💡 {step.hint}</strong>
                                     <div className="sample-answer-list">
                                         {step.samples.map(sample => (
-                                            <button type="button" key={sample} onClick={() => setAnswer(sample)}>{sample}</button>
+                                            <button
+                                                type="button"
+                                                key={sample}
+                                                onClick={() => setAnswer(sample)}
+                                            >
+                                                {sample}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
                             {!MODES[mode].showSamples && !showHint && (
-                                <button type="button" className="show-hint-button" onClick={() => setShowHint(true)}>
+                                <button
+                                    type="button"
+                                    className="show-hint-button"
+                                    onClick={() => setShowHint(true)}
+                                >
                                     💡 I don't know what to say
                                 </button>
                             )}
@@ -629,8 +706,16 @@ function ConversationPractice() {
                                 >
                                     <span>{listening ? "■" : "🎤"}</span>
                                 </button>
-                                <strong>{listening ? "Listening... tap to stop" : "Tap the microphone and answer in English"}</strong>
-                                <p>{speechRecognitionSupported ? "Speak naturally. You don't need to match one exact sentence." : "Voice recognition isn't available here. Use text answer below."}</p>
+                                <strong>
+                                    {listening
+                                        ? "Listening... tap to stop"
+                                        : "Tap the microphone and answer in English"}
+                                </strong>
+                                <p>
+                                    {speechRecognitionSupported
+                                        ? "Speak naturally. You don't need to match one exact sentence."
+                                        : "Voice recognition isn't available here. Use text answer below."}
+                                </p>
                             </div>
 
                             {heardText && (
@@ -639,11 +724,17 @@ function ConversationPractice() {
                                         <span>I HEARD</span>
                                         <strong>“{heardText}”</strong>
                                     </div>
-                                    {audioUrl && <audio controls src={audioUrl}>Your browser does not support audio playback.</audio>}
+                                    {audioUrl && (
+                                        <audio controls src={audioUrl}>
+                                            Your browser does not support audio playback.
+                                        </audio>
+                                    )}
                                 </div>
                             )}
 
-                            {speechError && <div className="conversation-error">{speechError}</div>}
+                            {speechError && (
+                                <div className="conversation-error">{speechError}</div>
+                            )}
 
                             <div className="text-answer-box">
                                 <label htmlFor="conversation-answer">或直接輸入英文回答</label>
@@ -662,7 +753,11 @@ function ConversationPractice() {
                                         placeholder="Type your answer in English..."
                                         disabled={evaluation?.correct}
                                     />
-                                    <button type="button" onClick={() => evaluateAnswer(answer)} disabled={!answer.trim() || evaluation?.correct}>
+                                    <button
+                                        type="button"
+                                        onClick={() => evaluateAnswer(answer)}
+                                        disabled={!answer.trim() || evaluation?.correct}
+                                    >
                                         Check
                                     </button>
                                 </div>
@@ -672,15 +767,23 @@ function ConversationPractice() {
                                 <div className={`conversation-feedback ${evaluation.correct ? "correct" : "retry"}`}>
                                     <span>{evaluation.correct ? "✓" : "↻"}</span>
                                     <div>
-                                        <strong>{evaluation.correct ? "Answer understood!" : "Try one more time"}</strong>
+                                        <strong>
+                                            {evaluation.correct ? "Answer understood!" : "Try one more time"}
+                                        </strong>
                                         <p>{evaluation.correct ? evaluation.success : evaluation.retry}</p>
                                     </div>
                                 </div>
                             )}
 
                             {evaluation?.correct && (
-                                <button type="button" className="continue-conversation-button" onClick={nextStep}>
-                                    {stepIndex === SCENARIO_STEPS.length - 1 ? "Complete Mission 🎉" : "Continue Conversation →"}
+                                <button
+                                    type="button"
+                                    className="continue-conversation-button"
+                                    onClick={nextStep}
+                                >
+                                    {stepIndex === SCENARIO_STEPS.length - 1
+                                        ? "Complete Mission 🎉"
+                                        : "Continue Conversation →"}
                                 </button>
                             )}
                         </div>
