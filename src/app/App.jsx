@@ -104,7 +104,7 @@ const App = () => {
                     <Route
                         path="/student/ai-generator"
                         element={
-                            <ProtectedRoute allowedRoles={["student"]}>
+                            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
                                 <Containerfull><AIMaterialGenerator /></Containerfull>
                             </ProtectedRoute>
                         }
