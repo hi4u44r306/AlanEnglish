@@ -192,33 +192,19 @@ function MainNavbar() {
 
                     <Nav className="ae-desktop-nav d-none d-xl-flex">
                         {isAuthenticated && (
-                            <Nav.Link
-                                as={Link}
-                                to={homePath}
-                                className={isPathActive(homePath) ? "active" : ""}
-                                data-tour="home"
-                            >
+                            <Nav.Link as={Link} to={homePath} className={isPathActive(homePath) ? "active" : ""} data-tour="home">
                                 <span className="ae-nav-inline"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</span>
                             </Nav.Link>
                         )}
 
                         {isAuthenticated && (
-                            <Nav.Link
-                                as={Link}
-                                to="/student/conversation"
-                                className={isPathActive("/student/conversation") ? "active" : ""}
-                                data-tour="conversation"
-                            >
+                            <Nav.Link as={Link} to="/student/conversation" className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation">
                                 <span className="ae-nav-inline"><FiMessageCircle />{isTeacher ? "英文對話示範" : "英文對話"}</span>
                             </Nav.Link>
                         )}
 
                         {isAuthenticated && (
-                            <Nav.Link
-                                as={Link}
-                                to="/student/ai-generator"
-                                className={isPathActive("/student/ai-generator") ? "active" : ""}
-                            >
+                            <Nav.Link as={Link} to="/student/ai-generator" className={isPathActive("/student/ai-generator") ? "active" : ""}>
                                 <span className="ae-nav-inline"><FiStar />AI 教材</span>
                             </Nav.Link>
                         )}
@@ -231,20 +217,38 @@ function MainNavbar() {
 
                         {isTeacher && (
                             <NavDropdown
-                                id="desktop-management-tools"
-                                title={<span className="ae-nav-inline"><FiSettings />管理工具</span>}
+                                id="desktop-account-management"
+                                title={<span className="ae-nav-inline"><FiUsers />管理</span>}
                                 className="ae-desktop-dropdown"
                                 align="end"
                                 data-tour="accounts"
                             >
                                 <NavDropdown.Item as={Link} to={accountManagementPath} className="ae-dropdown-item"><FiUsers />帳號管理</NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/teacher/students" className="ae-dropdown-item"><FiUsers />建立帳號</NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/teacher/add-music" className="ae-dropdown-item"><FiBookOpen />新增音檔</NavDropdown.Item>
-                                {isAdmin && <>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item as={Link} to="/admin/navbar" className="ae-dropdown-item"><FiSettings />編輯 Navbar</NavDropdown.Item>
-                                    <NavDropdown.Item as={Link} to="/admin/links" className="ae-dropdown-item"><FiSettings />系統連結</NavDropdown.Item>
-                                </>}
+                                <NavDropdown.Item as={Link} to="/teacher/accounts/create" className="ae-dropdown-item"><FiUsers />建立帳號</NavDropdown.Item>
+                            </NavDropdown>
+                        )}
+
+                        {isTeacher && (
+                            <NavDropdown
+                                id="desktop-music-management"
+                                title={<span className="ae-nav-inline"><FiBookOpen />音檔</span>}
+                                className="ae-desktop-dropdown"
+                                align="end"
+                            >
+                                <NavDropdown.Item as={Link} to="/teacher/music/create" className="ae-dropdown-item"><FiBookOpen />建立音檔</NavDropdown.Item>
+                                <NavDropdown.Item as={Link} to="/teacher/music/manage" className="ae-dropdown-item"><FiSettings />管理音檔</NavDropdown.Item>
+                            </NavDropdown>
+                        )}
+
+                        {isAdmin && (
+                            <NavDropdown
+                                id="desktop-system-tools"
+                                title={<span className="ae-nav-inline"><FiSettings />系統</span>}
+                                className="ae-desktop-dropdown"
+                                align="end"
+                            >
+                                <NavDropdown.Item as={Link} to="/admin/navbar" className="ae-dropdown-item"><FiSettings />編輯 Navbar</NavDropdown.Item>
+                                <NavDropdown.Item as={Link} to="/admin/links" className="ae-dropdown-item"><FiSettings />系統連結</NavDropdown.Item>
                             </NavDropdown>
                         )}
 
@@ -265,12 +269,7 @@ function MainNavbar() {
                         )}
                     </Nav>
 
-                    <button
-                        type="button"
-                        className="ae-mobile-toggle d-xl-none"
-                        onClick={() => setMobileOpen(true)}
-                        aria-label="開啟選單"
-                    >
+                    <button type="button" className="ae-mobile-toggle d-xl-none" onClick={() => setMobileOpen(true)} aria-label="開啟選單">
                         <img src={Menu} alt="" />
                     </button>
                 </Container>
@@ -286,9 +285,7 @@ function MainNavbar() {
                 scroll={false}
             >
                 <Offcanvas.Header closeButton>
-                    <div className="ae-mobile-brand">
-                        <Brand />
-                    </div>
+                    <div className="ae-mobile-brand"><Brand /></div>
                 </Offcanvas.Header>
 
                 <Offcanvas.Body>
@@ -305,17 +302,14 @@ function MainNavbar() {
                     <section className="ae-mobile-section">
                         <span className="ae-mobile-section-title">主要功能</span>
                         <Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home">
-                            <FiHome />
-                            <span>{isTeacher ? "管理首頁" : "我的首頁"}</span>
+                            <FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span>
                         </Link>
                         <Link to="/student/conversation" onClick={closeMobileMenu} className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation">
-                            <FiMessageCircle />
-                            <span>{isTeacher ? "英文對話示範" : "英文對話"}</span>
+                            <FiMessageCircle /><span>{isTeacher ? "英文對話示範" : "英文對話"}</span>
                         </Link>
                         {isAuthenticated && (
                             <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}>
-                                <FiStar />
-                                <span>AI 教材</span>
+                                <FiStar /><span>AI 教材</span>
                             </Link>
                         )}
                     </section>
@@ -329,12 +323,23 @@ function MainNavbar() {
                         <section className="ae-mobile-section" data-tour="accounts">
                             <span className="ae-mobile-section-title">管理</span>
                             <Link to={accountManagementPath} onClick={closeMobileMenu}><FiUsers /><span>帳號管理</span></Link>
-                            <Link to="/teacher/students" onClick={closeMobileMenu}><FiUsers /><span>建立帳號</span></Link>
-                            <Link to="/teacher/add-music" onClick={closeMobileMenu}><FiBookOpen /><span>新增音檔</span></Link>
-                            {isAdmin && <>
-                                <Link to="/admin/navbar" onClick={closeMobileMenu}><FiSettings /><span>編輯 Navbar</span></Link>
-                                <Link to="/admin/links" onClick={closeMobileMenu}><FiSettings /><span>系統連結</span></Link>
-                            </>}
+                            <Link to="/teacher/accounts/create" onClick={closeMobileMenu}><FiUsers /><span>建立帳號</span></Link>
+                        </section>
+                    )}
+
+                    {isTeacher && (
+                        <section className="ae-mobile-section">
+                            <span className="ae-mobile-section-title">音檔</span>
+                            <Link to="/teacher/music/create" onClick={closeMobileMenu}><FiBookOpen /><span>建立音檔</span></Link>
+                            <Link to="/teacher/music/manage" onClick={closeMobileMenu}><FiSettings /><span>管理音檔</span></Link>
+                        </section>
+                    )}
+
+                    {isAdmin && (
+                        <section className="ae-mobile-section">
+                            <span className="ae-mobile-section-title">系統</span>
+                            <Link to="/admin/navbar" onClick={closeMobileMenu}><FiSettings /><span>編輯 Navbar</span></Link>
+                            <Link to="/admin/links" onClick={closeMobileMenu}><FiSettings /><span>系統連結</span></Link>
                         </section>
                     )}
 
@@ -346,8 +351,7 @@ function MainNavbar() {
 
                     {isAuthenticated && (
                         <button type="button" className="ae-mobile-logout" onClick={handleLogout} disabled={loggingOut}>
-                            <FiLogOut />
-                            <span>{loggingOut ? "登出中..." : "登出"}</span>
+                            <FiLogOut /><span>{loggingOut ? "登出中..." : "登出"}</span>
                         </button>
                     )}
                 </Offcanvas.Body>
