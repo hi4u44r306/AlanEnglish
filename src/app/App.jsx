@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import { off, onValue, ref } from "firebase/database";
 import "./App.scss";
 import "./MobileNavFix.scss";
+import "../components/assets/scss/BrowserCompatibility.scss";
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
 import SolvePage from "../components/Pages/SolvePage";
