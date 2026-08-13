@@ -6,6 +6,7 @@ import {
     loadStudentProfile,
     logoutCurrentUser
 } from "./authService";
+import { recordHeartbeat } from "../services/learningActivityService";
 
 const AuthContext = createContext(null);
 
@@ -48,6 +49,37 @@ export const AuthProvider = ({ children }) => {
 
         return unsubscribe;
     }, []);
+
+    useEffect(() => {
+        if (!firebaseUser) return undefined;
+
+        let disposed = false;
+
+        const sendHeartbeat = async () => {
+            if (disposed || document.visibilityState === "hidden") return;
+
+            try {
+                await recordHeartbeat(firebaseUser);
+            } catch (error) {
+                console.warn("更新最後活躍時間失敗:", error);
+            }
+        };
+
+        sendHeartbeat();
+        const intervalId = window.setInterval(sendHeartbeat, 5 * 60 * 1000);
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") sendHeartbeat();
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            disposed = true;
+            window.clearInterval(intervalId);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [firebaseUser]);
 
     const logout = async () => {
         setAuthLoading(true);
