@@ -15,8 +15,6 @@ import { rtdb } from "../components/Pages/firebase-config";
 import User from "../components/Pages/User";
 import AddMusic from "../components/Pages/AddMusicV3";
 import EditMainNavbar from "../components/fragment/EditMainNavbar";
-import Links from "../components/Pages/Links";
-import LinkAdmin from "../components/Pages/Link Admin Page";
 import NotFound from "../components/Pages/NotFound";
 import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
@@ -40,9 +38,7 @@ const App = () => {
         const teachingResourcesRef = ref(rtdb, "TeachingResources/");
 
         const unsubscribeMusic = onValue(musicRef, snapshot => {
-            if (snapshot.exists()) {
-                localStorage.setItem("ae-playlistData", JSON.stringify(snapshot.val()));
-            }
+            if (snapshot.exists()) localStorage.setItem("ae-playlistData", JSON.stringify(snapshot.val()));
         });
 
         const unsubscribeNavbar = onValue(navItemsRef, snapshot => {
@@ -81,144 +77,25 @@ const App = () => {
 
                 <Routes>
                     <Route path="/" element={<Login />} />
-                    <Route path="/links" element={<Links />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />
 
-                    <Route
-                        path="/student/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                                <Containerfull><User /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
+                    <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><User /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
 
-                    <Route
-                        path="/student/assignments"
-                        element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                                <Containerfull><StudentAssignments /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
+                    <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/assignments" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><TeacherAssignments /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/accounts" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/accounts/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><Signup /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/music/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/music/manage" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
 
-                    <Route
-                        path="/student/conversation"
-                        element={
-                            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                                <Containerfull><ConversationPractice /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/student/ai-generator"
-                        element={
-                            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                                <Containerfull><AIMaterialGenerator /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/student/books/:playlistId"
-                        element={
-                            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
-                                <Containerfull><Playlist /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull><ManagementDashboard /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/assignments"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull><TeacherAssignments /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/accounts"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull><AccountManagement /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/accounts/create"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull><Signup /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/music/create"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull><AddMusic /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/music/manage"
-                        element={
-                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull><AddMusic /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <Containerfull><ManagementDashboard /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/accounts"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <Containerfull><AccountManagement /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/navbar"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <Containerfull><EditMainNavbar /></Containerfull>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/links"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <LinkAdmin />
-                            </ProtectedRoute>
-                        }
-                    />
+                    <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/navbar" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><EditMainNavbar /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/userinfo" element={<RoleHomeRedirect />} />
                     <Route path="/teacher/add-music" element={<Navigate to="/teacher/music/create" replace />} />
@@ -229,7 +106,6 @@ const App = () => {
                     <Route path="/teacher/navbar" element={<Navigate to="/admin/navbar" replace />} />
                     <Route path="/editnavbar" element={<Navigate to="/admin/navbar" replace />} />
                     <Route path="/signup" element={<Navigate to="/teacher/accounts/create" replace />} />
-                    <Route path="/linksadmin" element={<Navigate to="/admin/links" replace />} />
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
