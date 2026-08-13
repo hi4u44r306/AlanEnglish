@@ -28,6 +28,10 @@
   &.has-player {
     padding-bottom: 110px;
   }
+
+  &.has-mini-player {
+    padding-bottom: 24px;
+  }
 }
 
 .app-player {
@@ -40,6 +44,119 @@
   background: rgba(255, 255, 255, 0.98);
   border-top: 1px solid #e5e7eb;
   box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
+  transition: width 180ms ease, left 180ms ease, right 180ms ease, bottom 180ms ease, border-radius 180ms ease;
+}
+
+.app-player-toggle {
+  display: none;
+}
+
+.app-player.mini {
+  left: auto;
+  right: 24px;
+  bottom: 24px;
+  width: min(360px, calc(100vw - 48px));
+  border: 1px solid #dfe5ef;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.18);
+
+  .app-player-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    z-index: 4;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #17233f;
+    color: #fff;
+    font-family: "Nunito", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .footer-player {
+    border-top: 0;
+  }
+
+  .rhap_container {
+    min-height: 78px;
+    height: auto;
+    padding: 10px 12px;
+    padding-right: 86px;
+    box-shadow: none;
+  }
+
+  .rhap_progress-section {
+    min-width: 0;
+    height: auto;
+    margin-bottom: 2px;
+  }
+
+  .rhap_progress-container,
+  .rhap_time {
+    display: none;
+  }
+
+  .footer-track-name {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .footer-track-name .marquee,
+  .footer-track-name .rfm-marquee {
+    height: 22px;
+    min-height: 22px;
+  }
+
+  .rhap_controls-section {
+    margin-top: 0;
+  }
+
+  .rhap_main-controls-button:not(.rhap_play-pause-button),
+  .rhap_volume-controls {
+    display: none;
+  }
+
+  .rhap_main-controls {
+    justify-content: flex-start;
+  }
+
+  .rhap_play-pause-button {
+    width: 42px;
+    height: 42px;
+    font-size: 42px;
+  }
+}
+
+.app-player:not(.mini) > .app-player-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: absolute;
+  right: 18px;
+  top: -34px;
+  z-index: 4;
+  height: 34px;
+  border: 1px solid #dfe5ef;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.98);
+  color: #17233f;
+  font-family: "Nunito", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 body {
@@ -62,5 +179,22 @@ body {
 @media (max-width: 768px) {
   .app-content.has-player {
     padding-bottom: 95px;
+  }
+
+  .app-content.has-mini-player {
+    padding-bottom: 18px;
+  }
+
+  .app-player.mini {
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: min(320px, calc(100vw - 24px));
+    border-radius: 16px;
+  }
+
+  .app-player.mini .rhap_container {
+    min-height: 70px;
+    padding: 8px 10px;
+    padding-right: 82px;
   }
 }
