@@ -14,6 +14,7 @@ import File from '../assets/img/file.png';
 import Menu from '../assets/img/menu.png';
 import Setting from '../assets/img/setting.png';
 import { Link, useNavigate } from "react-router-dom";
+import { FiSparkles } from "react-icons/fi";
 import Brand from "./Brand";
 import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
@@ -29,6 +30,7 @@ function MainNavbar() {
     const { role, isAuthenticated, logout } = useAuth();
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
+    const isStudent = role === "student";
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
 
@@ -194,6 +196,15 @@ function MainNavbar() {
                                                 </>
                                             )}
                                         </NavDropdown>
+                                    )}
+
+                                    {isStudent && (
+                                        <Nav.Link as={Link} to="/student/ai-generator" className="navlink nav-item dropdown">
+                                            <div className="username">
+                                                <FiSparkles style={{ width: 18, marginRight: 5 }} />
+                                                AI 教材
+                                            </div>
+                                        </Nav.Link>
                                     )}
 
                                     {loading ? (
