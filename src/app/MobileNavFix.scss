@@ -1,0 +1,34 @@
+@media (max-width: 1199.98px) {
+  .ae-mobile-offcanvas .offcanvas-header {
+    position: relative;
+    width: 100%;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    padding-right: 76px !important;
+  }
+
+  .ae-mobile-offcanvas .ae-mobile-brand {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .ae-mobile-offcanvas .offcanvas-header .btn-close {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    width: 20px;
+    height: 20px;
+    margin: 0 !important;
+    padding: 12px;
+    box-sizing: content-box;
+    background-size: 18px;
+    transform: translateY(-50%);
+    opacity: 0.62;
+    z-index: 5;
+  }
+
+  .ae-mobile-offcanvas .offcanvas-header .btn-close:focus {
+    box-shadow: 0 0 0 3px rgba(66, 84, 214, 0.14);
+  }
+}
