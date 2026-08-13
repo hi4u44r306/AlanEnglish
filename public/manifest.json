@@ -3,13 +3,13 @@
   "name": "Alan English | Best English in the world",
   "icons": [
     {
-      "src": "favicon.ico?v=ae-20260813-1",
+      "src": "favicon.ico?v=ae-20260813-soft-1",
       "sizes": "16x16 32x32 48x48 64x64",
       "type": "image/x-icon"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#17213d",
+  "theme_color": "#fff8ed",
   "background_color": "#ffffff"
 }
