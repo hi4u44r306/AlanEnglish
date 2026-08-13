@@ -13,6 +13,7 @@ import {
 
 function MusicCard({
     music,
+    playbackQueue = [],
     progress = {}
 }) {
     const dispatch = useDispatch();
@@ -95,7 +96,8 @@ function MusicCard({
         dispatch(
             setCurrentPlaying({
                 ...music,
-                audioURL
+                audioURL,
+                playbackQueue
             })
         );
 

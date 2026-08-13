@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { loginWithEmail } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
 import HeadPhone from "../assets/img/Login2.png";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.scss";
+
+const APP_TOAST_CONTAINER_ID = "app-notifications";
 
 function Login() {
     const navigate = useNavigate();
@@ -15,16 +17,22 @@ function Login() {
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const loginAttemptRef = useRef(false);
+    const destination = location.state?.from?.pathname || "/userinfo";
 
     useEffect(() => {
-        if (!authLoading && isAuthenticated) {
-            const destination = location.state?.from?.pathname || "/userinfo";
+        if (
+            !authLoading &&
+            isAuthenticated &&
+            !loginAttemptRef.current
+        ) {
             navigate(destination, { replace: true });
         }
-    }, [authLoading, isAuthenticated, location.state, navigate]);
+    }, [authLoading, destination, isAuthenticated, navigate]);
 
     const showError = (message) => {
         toast.error(message, {
+            containerId: APP_TOAST_CONTAINER_ID,
             position: "top-center",
             autoClose: 2500,
             hideProgressBar: false,
@@ -37,8 +45,9 @@ function Login() {
 
     const showSuccess = (name) => {
         toast.success(`歡迎回來 ${name}！`, {
+            containerId: APP_TOAST_CONTAINER_ID,
             position: "top-center",
-            autoClose: 1000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: false,
@@ -61,18 +70,17 @@ function Login() {
         if (!cleanEmail) return showError("請輸入 Email");
         if (!password) return showError("請輸入密碼");
 
+        loginAttemptRef.current = true;
         setIsLoading(true);
 
         try {
             const { student } = await loginWithEmail(cleanEmail, password);
             showSuccess(student.name || "同學");
-
-            const destination = location.state?.from?.pathname || "/userinfo";
-            window.setTimeout(() => {
-                window.scrollTo(0, 0);
-                navigate(destination, { replace: true });
-            }, 500);
+            window.scrollTo(0, 0);
+            loginAttemptRef.current = false;
+            navigate(destination, { replace: true });
         } catch (error) {
+            loginAttemptRef.current = false;
             console.error("Login error:", error);
 
             switch (error.code) {
@@ -116,7 +124,12 @@ function Login() {
         );
     }
 
-    if (isAuthenticated) return <Navigate to="/userinfo" replace />;
+    if (
+        isAuthenticated &&
+        !loginAttemptRef.current
+    ) {
+        return <Navigate to={destination} replace />;
+    }
 
     return (
         <section className="Login">
@@ -254,18 +267,6 @@ function Login() {
                 </div>
             </div>
 
-            <ToastContainer
-                position="top-center"
-                autoClose={2000}
-                limit={1}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss={false}
-                draggable
-                pauseOnHover={false}
-            />
         </section>
     );
 }

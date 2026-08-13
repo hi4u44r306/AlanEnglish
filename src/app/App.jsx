@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
+import { ToastContainer } from "react-toastify";
 import { off, onValue, ref } from "firebase/database";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.scss";
 import "./MobileNavFix.scss";
 import "../components/assets/scss/BrowserCompatibility.scss";
@@ -69,6 +71,20 @@ const App = () => {
     return (
         <Router>
             <AuthProvider>
+                <ToastContainer
+                    containerId="app-notifications"
+                    position="top-center"
+                    autoClose={2000}
+                    limit={2}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss={false}
+                    draggable
+                    pauseOnHover={false}
+                />
+
                 <Helmet>
                     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=ae-20260813-logo-2" />
                     <link rel="shortcut icon" href="/favicon.svg?v=ae-20260813-logo-2" />

@@ -1,5 +1,5 @@
 import AudioPlayer, { RHAP_UI } from "react-h5-audio-player";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
     setCurrentPlaying,
@@ -22,11 +22,17 @@ function MusicPlayer({ music }) {
     const dispatch = useDispatch();
     const audioElement = useRef(null);
     const automaticTrackChangeRef = useRef(false);
+    const internalTrackChangeRef = useRef(false);
+    const pendingPlaybackRef = useRef(Boolean(music));
 
     const { firebaseUser, role } = useAuth();
 
     const [currTrack, setCurrTrack] = useState(music);
-    const [playlist, setPlaylist] = useState([]);
+    const [playlist, setPlaylist] = useState(() => (
+        Array.isArray(music?.playbackQueue)
+            ? music.playbackQueue
+            : []
+    ));
     const [noInteractionCount, setLocalNoInteractionCount] = useState(() => {
         const savedCount = Number(
             localStorage.getItem(NO_INTERACTION_STORAGE_KEY)
@@ -66,6 +72,21 @@ function MusicPlayer({ music }) {
             return;
         }
 
+        internalTrackChangeRef.current =
+            true;
+
+        pendingPlaybackRef.current =
+            true;
+
+        if (
+            Array.isArray(music.playbackQueue) &&
+            music.playbackQueue.length > 0
+        ) {
+            setPlaylist(
+                music.playbackQueue
+            );
+        }
+
         setCurrTrack(
             music
         );
@@ -77,6 +98,17 @@ function MusicPlayer({ music }) {
 
     useEffect(() => {
         const fetchPlaylist = async () => {
+            if (
+                Array.isArray(music?.playbackQueue) &&
+                music.playbackQueue.length > 0
+            ) {
+                setPlaylist(
+                    music.playbackQueue
+                );
+
+                return;
+            }
+
             if (!book_id) {
                 setPlaylist(
                     []
@@ -168,7 +200,71 @@ function MusicPlayer({ music }) {
     }, [
         book_id,
         bookname,
-        music?.type
+        music?.type,
+        music?.playbackQueue
+    ]);
+
+    // =====================================
+    // 換檔後確保立即開始播放
+    // =====================================
+
+    const requestPlayback = useCallback(audio => {
+        if (
+            !audio ||
+            !audio.src ||
+            !pendingPlaybackRef.current
+        ) {
+            return;
+        }
+
+        const playPromise =
+            audio.play();
+
+        if (
+            playPromise &&
+            typeof playPromise.catch ===
+            "function"
+        ) {
+            playPromise.catch(error => {
+                if (
+                    error?.name !==
+                    "AbortError"
+                ) {
+                    console.warn(
+                        "自動播放下一個音檔失敗，等待音檔可播放後重試:",
+                        error
+                    );
+                }
+            });
+        }
+    }, []);
+
+    useEffect(() => {
+        if (
+            !pendingPlaybackRef.current ||
+            !audioURL
+        ) {
+            return undefined;
+        }
+
+        const frameId =
+            window.requestAnimationFrame(
+                () => {
+                    requestPlayback(
+                        audioElement.current?.audio?.current
+                    );
+                }
+            );
+
+        return () => {
+            window.cancelAnimationFrame(
+                frameId
+            );
+        };
+    }, [
+        audioURL,
+        requestPlayback,
+        trackId
     ]);
 
     // =====================================
@@ -411,13 +507,25 @@ function MusicPlayer({ music }) {
         automaticTrackChangeRef.current =
             isAutomatic;
 
+        internalTrackChangeRef.current =
+            true;
+
+        pendingPlaybackRef.current =
+            true;
+
+        const queuedTrack = {
+            ...track,
+            playbackQueue:
+                playlist
+        };
+
         setCurrTrack(
-            track
+            queuedTrack
         );
 
         dispatch(
             setCurrentPlaying(
-                track
+                queuedTrack
             )
         );
 
@@ -525,7 +633,7 @@ function MusicPlayer({ music }) {
     // 播放完整首
     // =====================================
 
-    const handleEnd = async () => {
+    const handleEnd = () => {
         console.log(
             "Track End:",
             currTrack
@@ -535,7 +643,7 @@ function MusicPlayer({ music }) {
         // 一定先記錄現在這首
         // =================================
 
-        await saveCompletedPlay();
+        void saveCompletedPlay();
 
         // =================================
         // 自動播放次數 +1
@@ -630,6 +738,12 @@ function MusicPlayer({ music }) {
     // =====================================
 
     const handlePlay = () => {
+        pendingPlaybackRef.current =
+            false;
+
+        internalTrackChangeRef.current =
+            false;
+
         dispatch(
             setPlayPauseStatus(
                 true
@@ -653,6 +767,13 @@ function MusicPlayer({ music }) {
     // =====================================
 
     const handlePause = () => {
+        if (
+            internalTrackChangeRef.current ||
+            pendingPlaybackRef.current
+        ) {
+            return;
+        }
+
         dispatch(
             setPlayPauseStatus(
                 false
@@ -677,11 +798,9 @@ function MusicPlayer({ music }) {
     return (
         <div className="footer-player">
             <AudioPlayer
-                key={
-                    currTrack.id ||
-                    `${bookname}-${page}`
-                }
                 autoPlay={true}
+                autoPlayAfterSrcChange={true}
+                preload="auto"
                 volume={0.5}
                 loop={false}
                 progressUpdateInterval={50}
@@ -701,6 +820,11 @@ function MusicPlayer({ music }) {
                 onEnded={
                     handleEnd
                 }
+                onCanPlay={event => {
+                    requestPlayback(
+                        event.currentTarget
+                    );
+                }}
                 onPlay={
                     handlePlay
                 }
