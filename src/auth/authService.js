@@ -3,6 +3,8 @@ import { authentication } from "../components/Pages/firebase-config";
 import { supabase } from "../components/Pages/supabase-config";
 import { recordLoginActivity } from "../services/learningActivityService";
 
+const PROFILE_CACHE_KEY = "ae-profile-cache-v1";
+
 const STORAGE_KEYS = [
     "ae-useruid",
     "ae-studentid",
@@ -11,10 +13,17 @@ const STORAGE_KEYS = [
     "ae-userimage",
     "ae-plan",
     "ae-role",
-    "ae-teacherschool"
+    "ae-teacherschool",
+    PROFILE_CACHE_KEY
 ];
 
 export const saveStudentSession = (firebaseUser, student) => {
+    const normalizedProfile = {
+        ...student,
+        firebase_uid: student.firebase_uid || firebaseUser.uid,
+        cached_at: Date.now()
+    };
+
     localStorage.setItem("ae-useruid", firebaseUser.uid);
     localStorage.setItem("ae-studentid", String(student.id || ""));
     localStorage.setItem("ae-username", student.name || firebaseUser.email?.split("@")[0] || "");
@@ -22,6 +31,26 @@ export const saveStudentSession = (firebaseUser, student) => {
     localStorage.setItem("ae-userimage", student.user_image || student.userimage || "");
     localStorage.setItem("ae-plan", student.plan || "");
     localStorage.setItem("ae-role", student.role || "student");
+    localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(normalizedProfile));
+};
+
+export const getCachedStudentProfile = firebaseUid => {
+    try {
+        const raw = localStorage.getItem(PROFILE_CACHE_KEY);
+        if (!raw) return null;
+
+        const profile = JSON.parse(raw);
+        if (!profile || typeof profile !== "object") return null;
+        if (!profile.id || !profile.role) return null;
+
+        const cachedUid = String(profile.firebase_uid || localStorage.getItem("ae-useruid") || "");
+        if (firebaseUid && cachedUid && cachedUid !== String(firebaseUid)) return null;
+
+        return profile;
+    } catch (error) {
+        console.warn("讀取登入快取失敗:", error);
+        return null;
+    }
 };
 
 export const clearStudentSession = () => {
