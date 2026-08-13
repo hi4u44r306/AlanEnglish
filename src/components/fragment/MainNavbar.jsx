@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -9,12 +9,9 @@ import '../assets/scss/Navigation.scss';
 import 'react-circular-progressbar/dist/styles.css';
 import BlueBook from '../assets/img/blue book.png';
 import Books from '../assets/img/books.png';
-import Search from '../assets/img/search.png';
-import File from '../assets/img/file.png';
 import Menu from '../assets/img/menu.png';
-import Setting from '../assets/img/setting.png';
-import { Link, useNavigate } from "react-router-dom";
-import { FiStar } from "react-icons/fi";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FiBookOpen, FiHelpCircle, FiHome, FiLogOut, FiMessageCircle, FiSettings, FiStar, FiUsers } from "react-icons/fi";
 import Brand from "./Brand";
 import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
@@ -26,19 +23,41 @@ function MainNavbar() {
     const [loading, setLoading] = useState(true);
     const [navError, setNavError] = useState(null);
     const [loggingOut, setLoggingOut] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
-    const { role, isAuthenticated, logout } = useAuth();
+    const location = useLocation();
+    const { role, isAuthenticated, logout, studentProfile } = useAuth();
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
     const isStudent = role === "student";
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
 
+    const displayRole = useMemo(() => {
+        if (isAdmin) return "Admin";
+        if (isTeacher) return "Teacher";
+        return "Student";
+    }, [isAdmin, isTeacher]);
+
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 100);
-        window.addEventListener('scroll', handleScroll);
+        const handleScroll = () => setScrolled(window.scrollY > 24);
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        if (!mobileOpen) return undefined;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [mobileOpen]);
 
     useEffect(() => {
         const fetchNavbarData = async () => {
@@ -60,14 +79,12 @@ function MainNavbar() {
                     .order('sort_order', { ascending: true });
                 if (bookError) throw bookError;
 
-                const convertedCategories = (categoryData || []).map(category => ({
+                setCategories((categoryData || []).map(category => ({
                     ...category,
                     books: (bookData || [])
                         .filter(book => book.category_id === category.id)
                         .sort((a, b) => a.sort_order - b.sort_order)
-                }));
-
-                setCategories(convertedCategories);
+                })));
             } catch (error) {
                 console.error("MainNavbar 載入失敗:", error);
                 setNavError("Navbar 載入失敗");
@@ -79,9 +96,12 @@ function MainNavbar() {
         fetchNavbarData();
     }, []);
 
+    const closeMobileMenu = () => setMobileOpen(false);
+
     const handleLogout = async () => {
         if (loggingOut) return;
         setLoggingOut(true);
+        closeMobileMenu();
 
         try {
             await logout();
@@ -93,93 +113,229 @@ function MainNavbar() {
         }
     };
 
-    const renderCategoryDropdown = category => (
+    const openTour = () => {
+        closeMobileMenu();
+        window.setTimeout(() => window.dispatchEvent(new CustomEvent("ae:open-tour")), 180);
+    };
+
+    const isPathActive = path => location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`));
+
+    const renderDesktopCategory = (category, index) => (
         <NavDropdown
-            id={`category-${category.id}`}
+            id={`desktop-category-${category.id}`}
             key={category.id}
-            title={<div className="d-flex align-items-center"><img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />{category.name}</div>}
-            className="navlink"
+            title={<span className="ae-nav-inline"><FiBookOpen />{category.name}</span>}
+            className="ae-desktop-dropdown"
+            data-tour={index === 0 ? "materials" : undefined}
             align="end"
         >
             {category.books?.length > 0 ? category.books.map(book => (
-                <NavDropdown.Item key={book.id} as={Link} to={`/student/books/${book.code}`} className="subnavlink">
-                    <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt={book.name} />{book.name}
+                <NavDropdown.Item
+                    key={book.id}
+                    as={Link}
+                    to={`/student/books/${book.code}`}
+                    className="ae-dropdown-item"
+                >
+                    <img src={BlueBook} alt="" />
+                    <span>{book.name}</span>
                 </NavDropdown.Item>
             )) : <NavDropdown.Item disabled>尚無教材</NavDropdown.Item>}
         </NavDropdown>
     );
 
+    const renderMobileCategories = () => {
+        if (loading) return <div className="ae-mobile-status">教材載入中...</div>;
+        if (navError) return <div className="ae-mobile-status error">{navError}</div>;
+
+        return categories.map((category, index) => (
+            <details className="ae-mobile-category" key={category.id} data-tour={index === 0 ? "materials" : undefined}>
+                <summary>
+                    <span><FiBookOpen />{category.name}</span>
+                    <span className="ae-mobile-chevron">⌄</span>
+                </summary>
+                <div className="ae-mobile-book-list">
+                    {category.books?.length > 0 ? category.books.map(book => (
+                        <Link key={book.id} to={`/student/books/${book.code}`} onClick={closeMobileMenu}>
+                            <img src={BlueBook} alt="" />
+                            <span>{book.name}</span>
+                        </Link>
+                    )) : <span className="ae-mobile-empty">尚無教材</span>}
+                </div>
+            </details>
+        ));
+    };
+
     return (
-        <div>
-            {['xl'].map(expand => (
-                <Navbar collapseOnSelect key={expand} expand={expand} className={`navbackground ${scrolled ? 'scrolled' : ''}`}>
-                    <Container fluid className="containerfluid">
-                        <Navbar.Brand as={Link} to={homePath}><Brand /></Navbar.Brand>
-                        <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`}>
-                            <img style={{ width: 30, height: 30 }} src={Menu} alt="menu" />
-                        </Navbar.Toggle>
-                        <Navbar.Offcanvas id={`offcanvasNavbar-expand-${expand}`} aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`} placement="end">
-                            <Offcanvas.Header closeButton />
-                            <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''} d-flex flex-column align-items-center justify-content-center`}>
-                                <Nav>
-                                    {isTeacher && (
-                                        <NavDropdown
-                                            title={<div className="d-flex align-items-center"><img style={{ width: 18, marginRight: 4 }} src={Books} alt="teacher" />{isAdmin ? "管理員" : "教師用"}</div>}
-                                            id={`offcanvasNavbarDropdown-expand-${expand}`}
-                                            className="navlink"
-                                        >
-                                            <NavDropdown.Item as={Link} to={homePath} className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="dashboard" />Dashboard</NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/student/conversation" className="subnavlink"><span style={{ width: 18, marginRight: 4, display: "inline-block" }}>💬</span>英文對話示範</NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to={accountManagementPath} className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="accounts" />帳號管理</NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/teacher/students" className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="create-account" />建立帳號</NavDropdown.Item>
-                                            <NavDropdown.Item as={Link} to="/teacher/add-music" className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="music" />新增音檔</NavDropdown.Item>
-                                            {isAdmin && <>
-                                                <NavDropdown.Item as={Link} to="/admin/navbar" className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="navbar" />編輯 Navbar</NavDropdown.Item>
-                                                <NavDropdown.Item as={Link} to="/admin/links" className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="admin" />系統連結</NavDropdown.Item>
-                                            </>}
-                                        </NavDropdown>
-                                    )}
+        <>
+            <Navbar className={`ae-navbar ${scrolled ? "scrolled" : ""}`}>
+                <Container fluid className="ae-navbar-container">
+                    <Navbar.Brand as={Link} to={homePath} className="ae-brand" data-tour="home">
+                        <Brand />
+                    </Navbar.Brand>
 
-                                    {isStudent && (
-                                        <Nav.Link as={Link} to="/student/conversation" className="navlink nav-item dropdown">
-                                            <div className="username"><span style={{ width: 18, marginRight: 5, display: "inline-block" }}>💬</span>英文對話</div>
-                                        </Nav.Link>
-                                    )}
+                    <Nav className="ae-desktop-nav d-none d-xl-flex">
+                        {isAuthenticated && (
+                            <Nav.Link
+                                as={Link}
+                                to={homePath}
+                                className={isPathActive(homePath) ? "active" : ""}
+                                data-tour="home"
+                            >
+                                <span className="ae-nav-inline"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</span>
+                            </Nav.Link>
+                        )}
 
-                                    {isStudent && (
-                                        <Nav.Link as={Link} to="/student/ai-generator" className="navlink nav-item dropdown">
-                                            <div className="username"><FiStar style={{ width: 18, marginRight: 5 }} />AI 教材</div>
-                                        </Nav.Link>
-                                    )}
+                        {isAuthenticated && (
+                            <Nav.Link
+                                as={Link}
+                                to="/student/conversation"
+                                className={isPathActive("/student/conversation") ? "active" : ""}
+                                data-tour="conversation"
+                            >
+                                <span className="ae-nav-inline"><FiMessageCircle />{isTeacher ? "英文對話示範" : "英文對話"}</span>
+                            </Nav.Link>
+                        )}
 
-                                    {loading
-                                        ? <Nav.Link className="navlink" disabled>教材載入中...</Nav.Link>
-                                        : navError
-                                            ? <Nav.Link className="navlink" disabled>教材載入失敗</Nav.Link>
-                                            : categories.map(renderCategoryDropdown)}
+                        {isStudent && (
+                            <Nav.Link
+                                as={Link}
+                                to="/student/ai-generator"
+                                className={isPathActive("/student/ai-generator") ? "active" : ""}
+                            >
+                                <span className="ae-nav-inline"><FiStar />AI 教材</span>
+                            </Nav.Link>
+                        )}
 
-                                    {isAuthenticated && (
-                                        <Nav.Link as={Link} to={homePath} className="navlink nav-item dropdown">
-                                            <div className="username"><img style={{ width: 18, marginRight: 4 }} src={File} alt="profile" />{isTeacher ? "管理首頁" : "我的帳號"}</div>
-                                        </Nav.Link>
-                                    )}
+                        {loading
+                            ? <Nav.Link disabled>教材載入中...</Nav.Link>
+                            : navError
+                                ? <Nav.Link disabled>教材載入失敗</Nav.Link>
+                                : categories.map(renderDesktopCategory)}
 
-                                    {isAuthenticated && (
-                                        <Nav.Link as="button" type="button" onClick={handleLogout} disabled={loggingOut} className="navlink nav-item dropdown border-0 bg-transparent">
-                                            <div className="username"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="logout" />{loggingOut ? "登出中..." : "登出"}</div>
-                                        </Nav.Link>
-                                    )}
+                        {isTeacher && (
+                            <NavDropdown
+                                id="desktop-management-tools"
+                                title={<span className="ae-nav-inline"><FiSettings />管理工具</span>}
+                                className="ae-desktop-dropdown"
+                                align="end"
+                                data-tour="accounts"
+                            >
+                                <NavDropdown.Item as={Link} to={accountManagementPath} className="ae-dropdown-item"><FiUsers />帳號管理</NavDropdown.Item>
+                                <NavDropdown.Item as={Link} to="/teacher/students" className="ae-dropdown-item"><FiUsers />建立帳號</NavDropdown.Item>
+                                <NavDropdown.Item as={Link} to="/teacher/add-music" className="ae-dropdown-item"><FiBookOpen />新增音檔</NavDropdown.Item>
+                                {isAdmin && <>
+                                    <NavDropdown.Divider />
+                                    <NavDropdown.Item as={Link} to="/admin/navbar" className="ae-dropdown-item"><FiSettings />編輯 Navbar</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/admin/links" className="ae-dropdown-item"><FiSettings />系統連結</NavDropdown.Item>
+                                </>}
+                            </NavDropdown>
+                        )}
 
-                                    <Nav.Link as={Link} to="/showcase" className="navlink nav-item dropdown">
-                                        <div className="username"><img style={{ width: 18, marginRight: 4 }} src={Search} alt="about" />關於 AE</div>
-                                    </Nav.Link>
-                                </Nav>
-                            </Offcanvas.Body>
-                        </Navbar.Offcanvas>
-                    </Container>
-                </Navbar>
-            ))}
-        </div>
+                        <button type="button" className="ae-desktop-help" onClick={openTour} data-tour="help">
+                            <FiHelpCircle />使用教學
+                        </button>
+
+                        {isAuthenticated && (
+                            <NavDropdown
+                                id="desktop-user-menu"
+                                title={<span className="ae-user-chip"><span>{studentProfile?.name?.slice(0, 1) || "A"}</span>{studentProfile?.name || displayRole}</span>}
+                                className="ae-user-dropdown"
+                                align="end"
+                            >
+                                <NavDropdown.Item as={Link} to={homePath} className="ae-dropdown-item"><FiHome />{isTeacher ? "管理首頁" : "我的帳號"}</NavDropdown.Item>
+                                <NavDropdown.Item as="button" onClick={handleLogout} disabled={loggingOut} className="ae-dropdown-item"><FiLogOut />{loggingOut ? "登出中..." : "登出"}</NavDropdown.Item>
+                            </NavDropdown>
+                        )}
+                    </Nav>
+
+                    <button
+                        type="button"
+                        className="ae-mobile-toggle d-xl-none"
+                        onClick={() => setMobileOpen(true)}
+                        aria-label="開啟選單"
+                    >
+                        <img src={Menu} alt="" />
+                    </button>
+                </Container>
+            </Navbar>
+
+            <Offcanvas
+                show={mobileOpen}
+                onHide={closeMobileMenu}
+                placement="end"
+                className="ae-mobile-offcanvas d-xl-none"
+                backdrop
+                scroll={false}
+            >
+                <Offcanvas.Header closeButton>
+                    <div className="ae-mobile-brand">
+                        <Brand />
+                        <span>Alan English</span>
+                    </div>
+                </Offcanvas.Header>
+
+                <Offcanvas.Body>
+                    {isAuthenticated && (
+                        <div className="ae-mobile-profile">
+                            <div className="ae-mobile-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</div>
+                            <div>
+                                <strong>{studentProfile?.name || "Alan English User"}</strong>
+                                <span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    <section className="ae-mobile-section">
+                        <span className="ae-mobile-section-title">主要功能</span>
+                        <Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home">
+                            <FiHome />
+                            <span>{isTeacher ? "管理首頁" : "我的首頁"}</span>
+                        </Link>
+                        <Link to="/student/conversation" onClick={closeMobileMenu} className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation">
+                            <FiMessageCircle />
+                            <span>{isTeacher ? "英文對話示範" : "英文對話"}</span>
+                        </Link>
+                        {isStudent && (
+                            <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}>
+                                <FiStar />
+                                <span>AI 教材</span>
+                            </Link>
+                        )}
+                    </section>
+
+                    <section className="ae-mobile-section">
+                        <span className="ae-mobile-section-title">教材</span>
+                        {renderMobileCategories()}
+                    </section>
+
+                    {isTeacher && (
+                        <section className="ae-mobile-section" data-tour="accounts">
+                            <span className="ae-mobile-section-title">管理</span>
+                            <Link to={accountManagementPath} onClick={closeMobileMenu}><FiUsers /><span>帳號管理</span></Link>
+                            <Link to="/teacher/students" onClick={closeMobileMenu}><FiUsers /><span>建立帳號</span></Link>
+                            <Link to="/teacher/add-music" onClick={closeMobileMenu}><FiBookOpen /><span>新增音檔</span></Link>
+                            {isAdmin && <>
+                                <Link to="/admin/navbar" onClick={closeMobileMenu}><FiSettings /><span>編輯 Navbar</span></Link>
+                                <Link to="/admin/links" onClick={closeMobileMenu}><FiSettings /><span>系統連結</span></Link>
+                            </>}
+                        </section>
+                    )}
+
+                    <section className="ae-mobile-section ae-mobile-other">
+                        <span className="ae-mobile-section-title">其他</span>
+                        <button type="button" onClick={openTour} data-tour="help"><FiHelpCircle /><span>使用教學</span></button>
+                        <Link to="/showcase" onClick={closeMobileMenu}><FiBookOpen /><span>關於 AE</span></Link>
+                    </section>
+
+                    {isAuthenticated && (
+                        <button type="button" className="ae-mobile-logout" onClick={handleLogout} disabled={loggingOut}>
+                            <FiLogOut />
+                            <span>{loggingOut ? "登出中..." : "登出"}</span>
+                        </button>
+                    )}
+                </Offcanvas.Body>
+            </Offcanvas>
+        </>
     );
 }
 
