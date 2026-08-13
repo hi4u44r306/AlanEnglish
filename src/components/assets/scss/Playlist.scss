@@ -28,6 +28,22 @@
   gap: 16px;
 }
 
+.playlist-homework-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 9px;
+  color: #68758d;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.playlist-homework-back:hover {
+  color: #4055cf;
+}
+
 .playlist-header h1 {
   margin: 0;
   color: #26384a;
@@ -58,14 +74,30 @@
 // ==========================================
 
 .playlist-homework-banner {
+  display: grid;
   width: 100%;
+  grid-template-columns: auto minmax(0, 1fr) 150px;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 16px;
-  padding: 18px 20px;
-  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
-  border: 1px solid #d8e0ff;
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(50, 70, 150, 0.08);
+  padding: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(90, 113, 240, 0.10), transparent 16rem),
+    #ffffff;
+  border: 1px solid #dfe5f0;
+  border-radius: 20px;
+  box-shadow: 0 12px 34px rgba(35, 51, 83, 0.07);
   box-sizing: border-box;
+}
+
+.playlist-homework-banner__icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 17px;
+  background: #eaf8f4;
+  color: #27866f;
 }
 
 .playlist-homework-banner__copy > span {
@@ -80,18 +112,15 @@
 .playlist-homework-banner h2 {
   margin: 0 0 6px;
   color: #17233f;
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 900;
 }
 
 .playlist-homework-banner p {
   margin: 0;
   color: #77839a;
-  font-size: 13px;
-}
-
-.playlist-homework-banner button {
-  display: none;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .playlist-homework-chips {
@@ -102,6 +131,9 @@
 }
 
 .playlist-homework-chips strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 6px 10px;
   background: #ffffff;
   color: #4055cf;
@@ -111,13 +143,59 @@
   font-weight: 900;
 }
 
+.playlist-homework-chips strong.completed {
+  background: #eaf8f4;
+  color: #26755f;
+  border-color: #c8e5dc;
+}
+
+.playlist-homework-progress {
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid #e8ecf3;
+}
+
+.playlist-homework-progress > strong,
+.playlist-homework-progress > span {
+  display: block;
+}
+
+.playlist-homework-progress > strong {
+  color: #17233f;
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.playlist-homework-progress > span {
+  margin: 3px 0 10px;
+  color: #8390a4;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.playlist-homework-progress > div {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5eaf1;
+}
+
+.playlist-homework-progress > div > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #35a789, #68cfb2);
+  transition: width 220ms ease;
+}
+
 .playlist-homework-track {
   position: relative;
   margin-bottom: 10px;
-  padding: 4px;
-  background: #f7f8ff;
-  border: 2px solid #cbd5ff;
+  padding: 4px 4px 4px 8px;
+  background: linear-gradient(90deg, #35a789 0 8px, #f7fbfa 8px 100%);
+  border: 1px solid #d8e8e3;
   border-radius: 18px;
+  box-shadow: 0 7px 24px rgba(40, 91, 78, 0.06);
 }
 
 .playlist-homework-track__label {
@@ -126,12 +204,13 @@
   right: 10px;
   z-index: 2;
   padding: 5px 9px;
-  background: #5267e8;
-  color: #ffffff;
+  background: #eaf8f4;
+  color: #26755f;
+  border: 1px solid #cae6dd;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 900;
-  box-shadow: 0 5px 12px rgba(82, 103, 232, 0.2);
+  box-shadow: none;
 }
 
 // ==========================================
@@ -242,7 +321,27 @@
   }
 
   .playlist-homework-banner {
+    grid-template-columns: auto minmax(0, 1fr);
     padding: 16px;
+  }
+
+  .playlist-homework-progress {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 13px 0 0;
+    border-top: 1px solid #e8ecf3;
+    border-left: 0;
+  }
+
+  .playlist-homework-progress > span {
+    margin: 0;
+  }
+
+  .playlist-homework-progress > div {
+    grid-column: 1 / -1;
   }
 }
 
@@ -270,8 +369,16 @@
   }
 
   .playlist-homework-banner {
+    display: block;
     padding: 14px;
     border-radius: 15px;
+  }
+
+  .playlist-homework-banner__icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 12px;
+    border-radius: 14px;
   }
 
   .playlist-homework-banner h2 {

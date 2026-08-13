@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { ArrowLeft, Check, Headphones } from "lucide-react";
 import MusicCard from "./MusicCard";
 import "../assets/scss/Playlist.scss";
 import { supabase } from "../Pages/supabase-config";
@@ -39,20 +40,16 @@ function Playlist() {
     const [progressMap, setProgressMap] = useState({});
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
-    const [homeworkOnly, setHomeworkOnly] = useState(true);
 
     const homeworkContext = useMemo(() => {
         const params = new URLSearchParams(location.search);
         const assignmentId = params.get("assignment") || "";
         const trackIds = (params.get("tracks") || "").split(",").map(value => value.trim()).filter(Boolean);
-        return { assignmentId, trackIds, active: Boolean(assignmentId && trackIds.length) };
+        const requiredListens = Math.max(1, Number(params.get("required")) || 7);
+        return { assignmentId, trackIds, requiredListens, active: Boolean(assignmentId && trackIds.length) };
     }, [location.search]);
 
     const homeworkTrackSet = useMemo(() => new Set(homeworkContext.trackIds.map(String)), [homeworkContext.trackIds]);
-
-    useEffect(() => {
-        setHomeworkOnly(true);
-    }, [homeworkContext.assignmentId]);
 
     useEffect(() => {
         let cancelled = false;
@@ -155,7 +152,13 @@ function Playlist() {
     }, [tracks, progressMap]);
 
     const homeworkTracks = useMemo(() => tracks.filter(track => homeworkTrackSet.has(String(track.id))), [tracks, homeworkTrackSet]);
-    const visibleTracks = homeworkContext.active && homeworkOnly ? homeworkTracks : tracks;
+    const visibleTracks = homeworkContext.active ? homeworkTracks : tracks;
+    const isHomeworkTrackCompleted = track => {
+        const progress = progressMap[String(track.id)] || {};
+        return Boolean(progress.completed) || Number(progress.playCount || 0) >= homeworkContext.requiredListens;
+    };
+    const homeworkCompletedCount = homeworkTracks.filter(isHomeworkTrackCompleted).length;
+    const homeworkCompletionRate = homeworkTracks.length ? Math.round((homeworkCompletedCount / homeworkTracks.length) * 100) : 0;
 
     if (loading && tracks.length === 0) return <div className="playlist-loading"><div className="playlist-loading__icon">🎧</div><div>音檔載入中...</div></div>;
     if (errorMessage && tracks.length === 0) return <div className="playlist-error"><h2>讀取失敗</h2><p>{errorMessage}</p></div>;
@@ -165,22 +168,51 @@ function Playlist() {
             <div className="playlist-content">
                 <header className="playlist-header">
                     <div className="playlist-header__main">
-                        <h1>{book?.name || playlistId}</h1>
-                        {role === "student" && <div className="playlist-header__stats"><span>完成 {stats.completed} / {stats.total}</span><span className="playlist-header__dot">·</span><span>累計播放 {stats.totalPlayCount} 次</span></div>}
+                        <div>
+                            {homeworkContext.active && (
+                                <Link className="playlist-homework-back" to="/student/assignments">
+                                    <ArrowLeft aria-hidden="true" size={16} />
+                                    返回今日作業
+                                </Link>
+                            )}
+                            <h1>{book?.name || playlistId}</h1>
+                        </div>
+                        {role === "student" && (
+                            <div className="playlist-header__stats">
+                                <span>{homeworkContext.active ? `本次完成 ${homeworkCompletedCount} / ${homeworkTracks.length || homeworkContext.trackIds.length}` : `完成 ${stats.completed} / ${stats.total}`}</span>
+                                <span className="playlist-header__dot">·</span>
+                                <span>累計播放 {stats.totalPlayCount} 次</span>
+                            </div>
+                        )}
                     </div>
                 </header>
 
                 {homeworkContext.active && (
                     <section className="playlist-homework-banner">
+                        <div className="playlist-homework-banner__icon">
+                            <Headphones aria-hidden="true" size={25} />
+                        </div>
                         <div className="playlist-homework-banner__copy">
                             <span>TODAY'S HOMEWORK</span>
-                            <h2>📚 今日指定聽力</h2>
-                            <p>老師指定 {homeworkTracks.length || homeworkContext.trackIds.length} 個音檔。預設只顯示今天要完成的內容。</p>
+                            <h2>今天的指定聽力</h2>
+                            <p>這裡只顯示老師指定的 {homeworkTracks.length || homeworkContext.trackIds.length} 個音檔，逐一完成就可以回到今日作業。</p>
                             <div className="playlist-homework-chips">
-                                {(homeworkTracks.length ? homeworkTracks : tracks.filter(track => homeworkTrackSet.has(String(track.id)))).map(track => <strong key={track.id}>{track.page || track.title || "音檔"}</strong>)}
+                                {(homeworkTracks.length ? homeworkTracks : tracks.filter(track => homeworkTrackSet.has(String(track.id)))).map(track => {
+                                    const completed = isHomeworkTrackCompleted(track);
+                                    return (
+                                        <strong className={completed ? "completed" : ""} key={track.id}>
+                                            {completed && <Check aria-hidden="true" size={12} />}
+                                            {track.page || track.title || "音檔"}
+                                        </strong>
+                                    );
+                                })}
                             </div>
                         </div>
-                        <button type="button" onClick={() => setHomeworkOnly(current => !current)}>{homeworkOnly ? "查看全部音檔" : "只看今日作業"}</button>
+                        <div className="playlist-homework-progress" role="progressbar" aria-label="指定聽力完成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={homeworkCompletionRate}>
+                            <strong>{homeworkCompletionRate}%</strong>
+                            <span>{homeworkCompletedCount} / {homeworkTracks.length || homeworkContext.trackIds.length} 完成</span>
+                            <div aria-hidden="true"><span style={{ width: `${homeworkCompletionRate}%` }} /></div>
+                        </div>
                     </section>
                 )}
 
@@ -188,7 +220,7 @@ function Playlist() {
                     <div className="playlist-list">
                         {visibleTracks.length > 0 ? visibleTracks.map(track => (
                             <div className={homeworkTrackSet.has(String(track.id)) ? "playlist-homework-track" : ""} key={track.id}>
-                                {homeworkTrackSet.has(String(track.id)) && <div className="playlist-homework-track__label">📌 今日作業</div>}
+                                {homeworkTrackSet.has(String(track.id)) && <div className="playlist-homework-track__label">本日任務</div>}
                                 <MusicCard music={track} progress={progressMap[String(track.id)] || {}} />
                             </div>
                         )) : <div className="playlist-empty">目前沒有音檔</div>}
