@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { authentication } from "../components/Pages/firebase-config";
 import {
     clearStudentSession,
+    getCachedStudentProfile,
     loadStudentProfile,
     logoutCurrentUser
 } from "./authService";
@@ -14,23 +15,49 @@ export const AuthProvider = ({ children }) => {
     const [firebaseUser, setFirebaseUser] = useState(null);
     const [studentProfile, setStudentProfile] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
+    const [profileRefreshing, setProfileRefreshing] = useState(false);
 
     useEffect(() => {
+        let disposed = false;
+
         const unsubscribe = onAuthStateChanged(authentication, async user => {
-            setAuthLoading(true);
+            if (disposed) return;
 
             if (!user) {
                 clearStudentSession();
                 setFirebaseUser(null);
                 setStudentProfile(null);
+                setProfileRefreshing(false);
                 setAuthLoading(false);
                 return;
             }
 
+            setFirebaseUser(user);
+            const cachedProfile = getCachedStudentProfile(user.uid);
+
+            if (cachedProfile) {
+                setStudentProfile(cachedProfile);
+                setAuthLoading(false);
+                setProfileRefreshing(true);
+
+                try {
+                    const freshProfile = await loadStudentProfile(user);
+                    if (!disposed) setStudentProfile(freshProfile);
+                } catch (error) {
+                    console.warn("背景更新帳號資料失敗，暫時保留已驗證 Session 的快取資料:", error);
+                } finally {
+                    if (!disposed) setProfileRefreshing(false);
+                }
+
+                return;
+            }
+
+            setAuthLoading(true);
+            setProfileRefreshing(true);
+
             try {
                 const profile = await loadStudentProfile(user);
-                setFirebaseUser(user);
-                setStudentProfile(profile);
+                if (!disposed) setStudentProfile(profile);
             } catch (error) {
                 console.error("恢復登入狀態失敗:", error);
                 clearStudentSession();
@@ -43,11 +70,17 @@ export const AuthProvider = ({ children }) => {
                     console.error("清除無效 Firebase Session 失敗:", signOutError);
                 }
             } finally {
-                setAuthLoading(false);
+                if (!disposed) {
+                    setProfileRefreshing(false);
+                    setAuthLoading(false);
+                }
             }
         });
 
-        return unsubscribe;
+        return () => {
+            disposed = true;
+            unsubscribe();
+        };
     }, []);
 
     useEffect(() => {
@@ -89,6 +122,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setFirebaseUser(null);
             setStudentProfile(null);
+            setProfileRefreshing(false);
             setAuthLoading(false);
         }
     };
@@ -98,10 +132,11 @@ export const AuthProvider = ({ children }) => {
         studentProfile,
         role: studentProfile?.role || null,
         authLoading,
+        profileRefreshing,
         isAuthenticated: Boolean(firebaseUser && studentProfile),
         setStudentProfile,
         logout
-    }), [firebaseUser, studentProfile, authLoading]);
+    }), [firebaseUser, studentProfile, authLoading, profileRefreshing]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
