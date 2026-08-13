@@ -8,7 +8,6 @@ import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import 'react-circular-progressbar/dist/styles.css';
 import BlueBook from '../assets/img/blue book.png';
-import Books from '../assets/img/books.png';
 import Menu from '../assets/img/menu.png';
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiBookOpen, FiHelpCircle, FiHome, FiLogOut, FiMessageCircle, FiSettings, FiStar, FiUsers } from "react-icons/fi";

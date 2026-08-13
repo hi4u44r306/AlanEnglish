@@ -1,15 +1,17 @@
 {
   "short_name": "Alan English",
-  "name": "Alan English | Best English in the world",
+  "name": "Alan English｜兒童英文聽力與 AI 英語學習平台",
   "icons": [
     {
-      "src": "favicon.svg?v=ae-20260813-logo-2",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "ae-icon.jpeg",
+      "sizes": "1254x1254",
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#fff8ed",
-  "background_color": "#ffffff"
+  "background_color": "#fff8ed"
 }
