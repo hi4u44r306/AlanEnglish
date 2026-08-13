@@ -43,7 +43,6 @@ function MainNavbar() {
     const { role, isAuthenticated, logout, studentProfile } = useAuth();
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
-    const isStudent = role === "student";
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
 
@@ -214,7 +213,7 @@ function MainNavbar() {
                             </Nav.Link>
                         )}
 
-                        {isStudent && (
+                        {isAuthenticated && (
                             <Nav.Link
                                 as={Link}
                                 to="/student/ai-generator"
@@ -313,7 +312,7 @@ function MainNavbar() {
                             <FiMessageCircle />
                             <span>{isTeacher ? "英文對話示範" : "英文對話"}</span>
                         </Link>
-                        {isStudent && (
+                        {isAuthenticated && (
                             <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}>
                                 <FiStar />
                                 <span>AI 教材</span>
