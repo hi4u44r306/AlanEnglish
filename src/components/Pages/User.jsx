@@ -1,96 +1,307 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+    FiArrowRight,
+    FiBookOpen,
+    FiCheck,
+    FiClock,
+    FiHeadphones,
+    FiMessageCircle,
+    FiRefreshCw,
+    FiStar,
+    FiTarget,
+    FiTrendingUp,
+    FiZap
+} from "react-icons/fi";
 import Logout from "./Logout";
 import { useAuth } from "../../auth/AuthContext";
+import { supabase } from "./supabase-config";
+import { getAiMaterialUsage } from "../../services/aiMaterialService";
+import { getStudentAssignments } from "../../services/assignmentService";
+import { getConversationProgress } from "../../services/learningActivityService";
 import { getDashboardStats } from "../../services/listeningService";
 import "./css/User.scss";
 
-const User = () => {
-    const { firebaseUser, studentProfile: user, authLoading } = useAuth();
-    const [listeningStats, setListeningStats] = useState({
+const DAILY_LISTENING_GOAL = 3;
+const DEFAULT_AI_LIMIT = 5;
+const DEFAULT_CONVERSATION_STEPS = 9;
+
+const EMPTY_HOME_DATA = {
+    today: "",
+    listening: {
         dailyCount: 0,
         monthlyCount: 0,
         totalCount: 0
-    });
-    const [statsLoading, setStatsLoading] = useState(true);
-    const [statsError, setStatsError] = useState("");
+    },
+    assignments: {
+        total: 0,
+        completed: 0,
+        pending: 0
+    },
+    ai: {
+        used: 0,
+        limit: DEFAULT_AI_LIMIT,
+        remaining: DEFAULT_AI_LIMIT
+    },
+    conversation: {
+        completedSteps: 0,
+        totalSteps: DEFAULT_CONVERSATION_STEPS,
+        completed: false
+    },
+    firstBookPath: ""
+};
 
-    const getInitial = name => {
-        if (!name) return "A";
-        return name.trim().charAt(0).toUpperCase();
+const formatNumber = value => Number(value || 0).toLocaleString("zh-TW");
+
+const formatToday = value => {
+    const date = value
+        ? new Date(`${value}T00:00:00+08:00`)
+        : new Date();
+
+    return new Intl.DateTimeFormat("zh-TW", {
+        timeZone: "Asia/Taipei",
+        month: "long",
+        day: "numeric",
+        weekday: "long"
+    }).format(date);
+};
+
+const getInitial = name => {
+    if (!name) return "A";
+    return name.trim().charAt(0).toUpperCase();
+};
+
+const getPlanName = plan => {
+    if (plan === "listeningonly") return "純聽力方案";
+    if (plan === "allcover") return "全方位方案";
+    return "一般方案";
+};
+
+const normalizeAssignments = result => {
+    const assignments = Array.isArray(result?.assignments)
+        ? result.assignments
+        : [];
+    const completed = assignments.filter(item => item?.progress?.completed).length;
+
+    return {
+        total: assignments.length,
+        completed,
+        pending: Math.max(0, assignments.length - completed)
     };
+};
 
-    const getPlanName = plan => {
-        if (plan === "listeningonly") return "純聽力方案";
-        if (plan === "allcover") return "全方位方案";
-        return "一般方案";
+const normalizeConversation = result => {
+    const progress = result?.progress || {};
+    const totalSteps = Number(progress.total_steps) || DEFAULT_CONVERSATION_STEPS;
+    const completedSteps = progress.completed
+        ? totalSteps
+        : Math.min(totalSteps, Number(progress.completed_steps) || 0);
+
+    return {
+        completedSteps,
+        totalSteps,
+        completed: Boolean(progress.completed)
     };
+};
 
-    const getRoleName = role => {
-        if (role === "teacher") return "教師";
-        if (role === "admin") return "管理員";
-        return "學生";
-    };
+const User = () => {
+    const { firebaseUser, studentProfile: user, authLoading } = useAuth();
+    const [homeData, setHomeData] = useState(EMPTY_HOME_DATA);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [dataWarning, setDataWarning] = useState("");
 
-    const formatNumber = number => Number(number || 0).toLocaleString();
-
-    const loadListeningStats = useCallback(async () => {
+    const loadHomeData = useCallback(async ({ silent = false } = {}) => {
         if (!firebaseUser || !user || user.role !== "student") {
-            setListeningStats({
-                dailyCount: 0,
-                monthlyCount: 0,
-                totalCount: Number(user?.total_time_played || 0)
-            });
-            setStatsLoading(false);
-            setStatsError("");
+            setHomeData(current => ({
+                ...current,
+                listening: {
+                    dailyCount: 0,
+                    monthlyCount: 0,
+                    totalCount: Number(user?.total_time_played || 0)
+                }
+            }));
+            setLoading(false);
+            setRefreshing(false);
             return;
         }
 
-        setStatsLoading(true);
-        setStatsError("");
-
-        try {
-            const result = await getDashboardStats(firebaseUser);
-
-            setListeningStats({
-                dailyCount: Number(result?.daily_count || 0),
-                monthlyCount: Number(result?.monthly_count || 0),
-                totalCount: Number(result?.total_count || 0)
-            });
-        } catch (error) {
-            console.error("載入 Student Dashboard 播放統計失敗:", error);
-            setListeningStats({
-                dailyCount: 0,
-                monthlyCount: 0,
-                totalCount: Number(user?.total_time_played || 0)
-            });
-            setStatsError(error?.message || "播放統計載入失敗");
-        } finally {
-            setStatsLoading(false);
+        if (silent) {
+            setRefreshing(true);
+        } else {
+            setLoading(true);
         }
+
+        const requests = await Promise.allSettled([
+            getDashboardStats(firebaseUser),
+            getStudentAssignments(firebaseUser),
+            getAiMaterialUsage(firebaseUser),
+            getConversationProgress(firebaseUser),
+            supabase
+                .from("books")
+                .select("code")
+                .eq("enabled", true)
+                .order("sort_order", { ascending: true })
+                .limit(1)
+                .maybeSingle()
+        ]);
+
+        const [listeningResult, assignmentResult, aiResult, conversationResult, bookResult] = requests;
+        const failedCount = requests.filter(result => result.status === "rejected").length;
+
+        setHomeData(current => {
+            const next = { ...current };
+
+            if (listeningResult.status === "fulfilled") {
+                next.listening = {
+                    dailyCount: Number(listeningResult.value?.daily_count || 0),
+                    monthlyCount: Number(listeningResult.value?.monthly_count || 0),
+                    totalCount: Number(listeningResult.value?.total_count || 0)
+                };
+            }
+
+            if (assignmentResult.status === "fulfilled") {
+                next.today = assignmentResult.value?.today || "";
+                next.assignments = normalizeAssignments(assignmentResult.value);
+            }
+
+            if (aiResult.status === "fulfilled") {
+                const usage = aiResult.value?.usage || {};
+                next.ai = {
+                    used: Number(usage.used || 0),
+                    limit: Number(usage.limit || DEFAULT_AI_LIMIT),
+                    remaining: Number(usage.remaining ?? DEFAULT_AI_LIMIT)
+                };
+            }
+
+            if (conversationResult.status === "fulfilled") {
+                next.conversation = normalizeConversation(conversationResult.value);
+            }
+
+            if (bookResult.status === "fulfilled" && !bookResult.value?.error && bookResult.value?.data?.code) {
+                next.firstBookPath = `/student/books/${bookResult.value.data.code}`;
+            }
+
+            return next;
+        });
+
+        setDataWarning(failedCount > 0 ? "部分學習資料暫時無法更新，其餘內容仍可正常使用。" : "");
+        setLoading(false);
+        setRefreshing(false);
     }, [firebaseUser, user]);
 
     useEffect(() => {
-        loadListeningStats();
-    }, [loadListeningStats]);
+        loadHomeData();
+    }, [loadHomeData]);
 
     useEffect(() => {
-        const handleTrackProgressUpdated = () => {
-            loadListeningStats();
-        };
+        const refreshProgress = () => loadHomeData({ silent: true });
 
-        window.addEventListener("ae:track-progress-updated", handleTrackProgressUpdated);
+        window.addEventListener("ae:track-progress-updated", refreshProgress);
+        window.addEventListener("focus", refreshProgress);
 
         return () => {
-            window.removeEventListener("ae:track-progress-updated", handleTrackProgressUpdated);
+            window.removeEventListener("ae:track-progress-updated", refreshProgress);
+            window.removeEventListener("focus", refreshProgress);
         };
-    }, [loadListeningStats]);
+    }, [loadHomeData]);
 
-    if (authLoading) {
+    const dailyTasks = useMemo(() => {
+        const tasks = [];
+
+        if (homeData.assignments.total > 0) {
+            tasks.push({
+                id: "assignment",
+                title: "完成今日作業",
+                description: homeData.assignments.pending > 0
+                    ? `還有 ${homeData.assignments.pending} 項老師指定的任務`
+                    : `今天的 ${homeData.assignments.total} 項作業都完成了`,
+                meta: `${homeData.assignments.completed} / ${homeData.assignments.total}`,
+                completed: homeData.assignments.pending === 0,
+                icon: FiBookOpen,
+                path: "/student/assignments",
+                action: homeData.assignments.pending > 0 ? "開始作業" : "再次複習",
+                tone: "blue"
+            });
+        }
+
+        tasks.push({
+            id: "listening",
+            title: "聽力暖身",
+            description: homeData.listening.dailyCount >= DAILY_LISTENING_GOAL
+                ? "今天的聽力目標已經達成"
+                : `再聽 ${Math.max(0, DAILY_LISTENING_GOAL - homeData.listening.dailyCount)} 次，完成今日暖身`,
+            meta: `${Math.min(homeData.listening.dailyCount, DAILY_LISTENING_GOAL)} / ${DAILY_LISTENING_GOAL}`,
+            completed: homeData.listening.dailyCount >= DAILY_LISTENING_GOAL,
+            icon: FiHeadphones,
+            path: homeData.firstBookPath || "/student/assignments",
+            action: homeData.listening.dailyCount >= DAILY_LISTENING_GOAL ? "繼續聆聽" : "開始聆聽",
+            tone: "orange"
+        });
+
+        tasks.push({
+            id: "ai",
+            title: "AI 專屬練習",
+            description: homeData.ai.used > 0
+                ? `今天已建立 ${homeData.ai.used} 份練習，既有教材可免費複習`
+                : "依照你的程度，建立一份今天想加強的教材",
+            meta: `${homeData.ai.remaining} 次可用`,
+            completed: homeData.ai.used > 0,
+            icon: FiStar,
+            path: "/student/ai-generator",
+            action: homeData.ai.used > 0 ? "前往教材庫" : "開始練習",
+            tone: "purple"
+        });
+
+        if (!homeData.conversation.completed) {
+            tasks.push({
+                id: "conversation",
+                title: "情境口說任務",
+                description: homeData.conversation.completedSteps > 0
+                    ? "從上次進度繼續，練習遇到外國人的英文反應"
+                    : "用名字、年級、家庭與問路完成真實對話",
+                meta: `${homeData.conversation.completedSteps} / ${homeData.conversation.totalSteps}`,
+                completed: false,
+                icon: FiMessageCircle,
+                path: "/student/conversation",
+                action: homeData.conversation.completedSteps > 0 ? "繼續任務" : "開始口說",
+                tone: "green"
+            });
+        }
+
+        return tasks;
+    }, [homeData]);
+
+    const completedTaskCount = dailyTasks.filter(task => task.completed).length;
+    const dailyProgress = dailyTasks.length
+        ? Math.round((completedTaskCount / dailyTasks.length) * 100)
+        : 0;
+
+    const primaryAction = useMemo(() => {
+        const pendingTask = dailyTasks.find(task => !task.completed);
+
+        if (pendingTask) {
+            return {
+                path: pendingTask.path,
+                label: pendingTask.action
+            };
+        }
+
+        return {
+            path: "/student/ai-generator",
+            label: "自由複習"
+        };
+    }, [dailyTasks]);
+
+    if (authLoading || loading) {
         return (
             <div className="User">
                 <div className="user-loading">
-                    <div className="user-loading-spinner"></div>
-                    <span>正在載入帳號資料...</span>
+                    <div className="user-loading-spinner" />
+                    <div>
+                        <strong>正在整理今天的學習任務</strong>
+                        <span>同步作業、聽力與學習進度...</span>
+                    </div>
                 </div>
             </div>
         );
@@ -111,149 +322,145 @@ const User = () => {
 
     return (
         <div className="User">
-            <div className="user-page">
-                <section className="user-hero">
-                    <div className="user-hero-content">
-                        <div className="user-avatar">{getInitial(user.name)}</div>
-                        <div className="user-hero-info">
-                            <span className="user-eyebrow">MY PROFILE</span>
-                            <h1>Hi, {user.name || "User"} 👋</h1>
-                            <p>今天也繼續累積你的英文學習實力。</p>
-                            <div className="user-badges">
-                                {user.class && <span className="user-badge">{user.class} 班</span>}
-                                <span className="user-badge plan">{getPlanName(user.plan)}</span>
-                                <span className="user-badge role">{getRoleName(user.role)}</span>
-                            </div>
-                        </div>
+            <div className="student-home">
+                <section className="student-home__hero">
+                    <div className="student-home__hero-copy">
+                        <span className="student-home__eyebrow">
+                            <FiTarget /> TODAY'S MISSION · {formatToday(homeData.today)}
+                        </span>
+                        <h1>{user.name || "同學"}，今天先完成這些！</h1>
+                        <p>
+                            {dailyProgress === 100
+                                ? "太棒了，今天的學習任務全部完成，可以自由複習最喜歡的內容。"
+                                : `已完成 ${completedTaskCount} 項，跟著順序練習，大約 10 分鐘就能完成。`}
+                        </p>
+                        <Link className="student-home__primary" to={primaryAction.path}>
+                            <span>
+                                <small>NEXT STEP</small>
+                                <strong>{primaryAction.label}</strong>
+                            </span>
+                            <FiArrowRight />
+                        </Link>
                     </div>
-                    <div className="user-hero-decoration">AE</div>
-                </section>
 
-                <section className="user-stats">
-                    <div className="user-stat-card">
-                        <div className="user-stat-icon">▶</div>
+                    <div className="student-home__progress" style={{ "--mission-progress": `${dailyProgress * 3.6}deg` }}>
                         <div>
-                            <span>今日播放次數</span>
-                            <strong>{statsLoading ? "—" : formatNumber(listeningStats.dailyCount)}</strong>
-                        </div>
-                    </div>
-                    <div className="user-stat-card">
-                        <div className="user-stat-icon">◷</div>
-                        <div>
-                            <span>本月播放次數</span>
-                            <strong>{statsLoading ? "—" : formatNumber(listeningStats.monthlyCount)}</strong>
-                        </div>
-                    </div>
-                    <div className="user-stat-card">
-                        <div className="user-stat-icon">🎧</div>
-                        <div>
-                            <span>累計播放次數</span>
-                            <strong>{statsLoading ? "—" : formatNumber(listeningStats.totalCount)}</strong>
+                            <strong>{dailyProgress}%</strong>
+                            <span>今日進度</span>
                         </div>
                     </div>
                 </section>
 
-                {statsError && (
-                    <div className="user-stats-error">
-                        播放統計暫時無法更新：{statsError}
+                {dataWarning && (
+                    <div className="student-home__warning">
+                        <span>{dataWarning}</span>
+                        <button type="button" onClick={() => loadHomeData()} disabled={refreshing}>
+                            <FiRefreshCw className={refreshing ? "is-spinning" : ""} />
+                            重新整理
+                        </button>
                     </div>
                 )}
 
-                <div className="user-content-grid">
-                    <section className="user-card user-profile-card">
-                        <div className="user-card-header">
-                            <div>
-                                <span className="user-card-eyebrow">ACCOUNT</span>
-                                <h2>帳號資料</h2>
-                            </div>
-                            <span className="user-status"><i></i>帳號正常</span>
+                <section className="student-home__section">
+                    <div className="student-home__section-heading">
+                        <div>
+                            <span>LEARNING PATH</span>
+                            <h2>今天的學習路線</h2>
+                            <p>照順序完成，不用自己煩惱下一步要做什麼。</p>
                         </div>
-
-                        <div className="user-info-list">
-                            <div className="user-info-row">
-                                <div className="user-info-label">
-                                    <span>👤</span>
-                                    <div>
-                                        <small>姓名</small>
-                                        <strong>{user.name || "—"}</strong>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="user-info-row">
-                                <div className="user-info-label">
-                                    <span>✉</span>
-                                    <div>
-                                        <small>Email</small>
-                                        <strong>{user.email || "—"}</strong>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="user-info-row">
-                                <div className="user-info-label">
-                                    <span>🏫</span>
-                                    <div>
-                                        <small>班級</small>
-                                        <strong>{user.class ? `${user.class} 班` : "尚未設定"}</strong>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="user-info-row">
-                                <div className="user-info-label">
-                                    <span>🪪</span>
-                                    <div>
-                                        <small>帳號角色</small>
-                                        <strong>{getRoleName(user.role)}</strong>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="student-home__completion-chip">
+                            <FiCheck /> {completedTaskCount} / {dailyTasks.length} 完成
                         </div>
-                    </section>
-
-                    <section className="user-card user-plan-card">
-                        <div className="user-card-header">
-                            <div>
-                                <span className="user-card-eyebrow">PLAN</span>
-                                <h2>我的方案</h2>
-                            </div>
-                        </div>
-
-                        <div className="user-plan-content">
-                            <div className="plan-icon">★</div>
-                            <span>目前方案</span>
-                            <h3>{getPlanName(user.plan)}</h3>
-
-                            {user.plan === "allcover" ? (
-                                <p>可以使用完整教材與英文聽力練習內容。</p>
-                            ) : user.plan === "listeningonly" ? (
-                                <p>目前以英文聽力練習內容為主。</p>
-                            ) : (
-                                <p>目前使用一般 Alan English 學習方案。</p>
-                            )}
-
-                            <div className="plan-features">
-                                <div><span>✓</span>個人學習資料</div>
-                                <div><span>✓</span>聽力練習紀錄</div>
-                                <div><span>✓</span>教材播放功能</div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-
-                <section className="user-account-section">
-                    <div>
-                        <span className="user-card-eyebrow">SESSION</span>
-                        <h2>帳號管理</h2>
-                        <p>使用完畢後可手動登出目前裝置。</p>
                     </div>
-                    <div className="user-logout-wrapper">
-                        <Logout />
+
+                    {homeData.assignments.total === 0 && (
+                        <div className="student-home__no-homework">
+                            <FiClock />
+                            <span><strong>今天沒有老師指定的新作業</strong>，可以完成聽力、AI 與口說自主練習。</span>
+                        </div>
+                    )}
+
+                    <div className="student-home__task-list">
+                        {dailyTasks.map((task, index) => {
+                            const Icon = task.icon;
+
+                            return (
+                                <article className={`student-home__task student-home__task--${task.tone} ${task.completed ? "is-completed" : ""}`} key={task.id}>
+                                    <div className="student-home__task-order">
+                                        {task.completed ? <FiCheck /> : index + 1}
+                                    </div>
+                                    <div className="student-home__task-icon"><Icon /></div>
+                                    <div className="student-home__task-copy">
+                                        <div>
+                                            <h3>{task.title}</h3>
+                                            <span>{task.meta}</span>
+                                        </div>
+                                        <p>{task.description}</p>
+                                    </div>
+                                    <Link to={task.path}>
+                                        {task.action}
+                                        <FiArrowRight />
+                                    </Link>
+                                </article>
+                            );
+                        })}
                     </div>
                 </section>
 
-                <div className="user-footer">© 2020–2026 Alan English Inc.</div>
+                <section className="student-home__overview">
+                    <div className="student-home__overview-heading">
+                        <div>
+                            <span>YOUR PROGRESS</span>
+                            <h2>你的學習累積</h2>
+                        </div>
+                        <FiTrendingUp />
+                    </div>
+
+                    <div className="student-home__stats">
+                        <article>
+                            <div className="student-home__stat-icon student-home__stat-icon--today"><FiZap /></div>
+                            <span>今日聽力</span>
+                            <strong>{formatNumber(homeData.listening.dailyCount)}</strong>
+                            <small>次播放</small>
+                        </article>
+                        <article>
+                            <div className="student-home__stat-icon student-home__stat-icon--month"><FiHeadphones /></div>
+                            <span>本月聽力</span>
+                            <strong>{formatNumber(homeData.listening.monthlyCount)}</strong>
+                            <small>次播放</small>
+                        </article>
+                        <article>
+                            <div className="student-home__stat-icon student-home__stat-icon--total"><FiTrendingUp /></div>
+                            <span>累計聽力</span>
+                            <strong>{formatNumber(homeData.listening.totalCount)}</strong>
+                            <small>次播放</small>
+                        </article>
+                        <article>
+                            <div className="student-home__stat-icon student-home__stat-icon--speaking"><FiMessageCircle /></div>
+                            <span>口說任務</span>
+                            <strong>{homeData.conversation.completedSteps}</strong>
+                            <small>/ {homeData.conversation.totalSteps} 關</small>
+                        </article>
+                    </div>
+                </section>
+
+                <section className="student-home__account">
+                    <div className="student-home__identity">
+                        <div className="student-home__avatar">{getInitial(user.name)}</div>
+                        <div>
+                            <span>MY ACCOUNT</span>
+                            <strong>{user.name || "Alan English 學生"}</strong>
+                            <small>{user.email || "—"}</small>
+                        </div>
+                    </div>
+                    <div className="student-home__account-tags">
+                        {user.class && <span>{user.class} 班</span>}
+                        <span>{getPlanName(user.plan)}</span>
+                    </div>
+                    <div className="student-home__logout"><Logout /></div>
+                </section>
+
+                <footer className="student-home__footer">© 2020–2026 Alan English Inc.</footer>
             </div>
         </div>
     );
