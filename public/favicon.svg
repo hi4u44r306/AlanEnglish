@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="iconClip">
+      <rect x="24" y="24" width="464" height="464" rx="96"/>
+    </clipPath>
+    <linearGradient id="aeMain" x1="118" y1="142" x2="402" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#71e0bd"/>
+      <stop offset="0.58" stop-color="#4ecdb8"/>
+      <stop offset="1" stop-color="#56aef2"/>
+    </linearGradient>
+    <linearGradient id="aeCross" x1="164" y1="270" x2="258" y2="305" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#42bda9"/>
+      <stop offset="1" stop-color="#249e9a"/>
+    </linearGradient>
+    <linearGradient id="pink" x1="271" y1="154" x2="430" y2="225" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff7b75"/>
+      <stop offset="1" stop-color="#ff837b"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="287" y1="245" x2="424" y2="292" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffc13b"/>
+      <stop offset="1" stop-color="#ffb52e"/>
+    </linearGradient>
+    <linearGradient id="mintWave" x1="24" y1="384" x2="265" y2="488" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8ce7c8"/>
+      <stop offset="1" stop-color="#b9efd8"/>
+    </linearGradient>
+    <linearGradient id="blueWave" x1="250" y1="382" x2="488" y2="488" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8bd2ff"/>
+      <stop offset="1" stop-color="#76b5f6"/>
+    </linearGradient>
+    <linearGradient id="sunWave" x1="176" y1="452" x2="346" y2="492" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffd77a"/>
+      <stop offset="1" stop-color="#ffc14a"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#164d5d" flood-opacity="0.16"/>
+    </filter>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#9c8d78" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#cardShadow)">
+    <rect x="24" y="24" width="464" height="464" rx="96" fill="#fff9ef"/>
+  </g>
+
+  <g clip-path="url(#iconClip)">
+    <path d="M-8 354C71 421 140 443 251 459L185 520H-8Z" fill="url(#mintWave)"/>
+    <path d="M251 459C351 441 440 412 520 347V520H333Z" fill="url(#blueWave)"/>
+    <path d="M134 520C179 472 222 454 257 454C298 454 342 475 387 520Z" fill="url(#sunWave)"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <path d="M124 345C151 252 191 156 239 156C259 156 270 169 270 188V267C270 313 292 337 337 337H401" fill="none" stroke="url(#aeMain)" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M168 292C192 272 218 272 250 289" fill="none" stroke="url(#aeCross)" stroke-width="33" stroke-linecap="round"/>
+
+    <path d="M279 247V189C279 170 294 155 313 155H393C412 155 427 169 427 187C427 205 412 219 393 219H337C309 219 290 230 279 247Z" fill="url(#pink)"/>
+    <rect x="296" y="248" width="129" height="48" rx="24" fill="url(#gold)"/>
+  </g>
+</svg>
