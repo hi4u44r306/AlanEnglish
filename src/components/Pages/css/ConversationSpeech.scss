@@ -1,0 +1,245 @@
+.conversation-mobile-progress {
+    display: none;
+}
+
+.speaking-control.is-listening {
+    padding-bottom: 8px;
+}
+
+.speech-live-console {
+    width: min(640px, 100%);
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid #dfe4ff;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #f8f9ff 0%, #f2f4ff 100%);
+    text-align: left;
+}
+
+.speech-meter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.speech-meter-row strong {
+    color: #59647a;
+    font-size: 11px;
+}
+
+.speech-status-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #c5ccd9;
+    box-shadow: 0 0 0 5px rgba(197, 204, 217, .18);
+}
+
+.speech-status-dot.detected {
+    background: #31a37f;
+    box-shadow: 0 0 0 5px rgba(49, 163, 127, .12);
+}
+
+.speech-waveform {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 0 10px;
+}
+
+.speech-waveform span {
+    display: block;
+    width: 4px;
+    min-height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6f7fff, #5267e8);
+    transition: height .08s linear, opacity .15s ease;
+}
+
+.live-transcript {
+    padding: 14px 15px;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(61, 77, 143, .07);
+}
+
+.live-transcript > span {
+    display: block;
+    margin-bottom: 6px;
+    color: #7d88a1;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .14em;
+}
+
+.live-transcript p {
+    min-height: 27px;
+    margin: 0;
+    color: #22304e;
+    font-size: 17px;
+    line-height: 1.55;
+}
+
+.live-transcript strong {
+    color: #22304e;
+    font-weight: 800;
+}
+
+.live-transcript em {
+    color: #96a0b4;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.speech-finished-button {
+    display: flex;
+    width: 100%;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+    border: 0;
+    border-radius: 14px;
+    background: #14213d;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 10px 24px rgba(20, 33, 61, .14);
+}
+
+.speech-finished-button:active {
+    transform: scale(.99);
+}
+
+.speech-final-result > div > span {
+    display: block;
+    margin-bottom: 4px;
+}
+
+@media (max-width: 980px) {
+    .conversation-mobile-progress {
+        display: block;
+        width: min(1180px, 100%);
+        margin: 0 auto 14px;
+        padding: 14px 16px;
+        border: 1px solid rgba(20, 33, 61, .07);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, .94);
+        box-shadow: 0 12px 32px rgba(25, 43, 84, .06);
+    }
+
+    .conversation-mobile-progress-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .conversation-mobile-progress-heading > div span,
+    .conversation-mobile-progress-heading > div strong {
+        display: block;
+    }
+
+    .conversation-mobile-progress-heading > div span {
+        margin-bottom: 3px;
+        color: #5267e8;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .14em;
+    }
+
+    .conversation-mobile-progress-heading > div strong {
+        font-size: 14px;
+    }
+
+    .conversation-mobile-progress-heading > span {
+        color: #7c879d;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .conversation-mobile-progress-track {
+        height: 6px;
+        margin-top: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #edf0f5;
+    }
+
+    .conversation-mobile-progress-track > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #5267e8, #7888ff);
+        transition: width .25s ease;
+    }
+
+    .conversation-step-dots {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        gap: 5px;
+        margin-top: 9px;
+    }
+
+    .conversation-step-dots > span {
+        height: 4px;
+        border-radius: 999px;
+        background: #e5e9f1;
+    }
+
+    .conversation-step-dots > span.done {
+        background: #60b69b;
+    }
+
+    .conversation-step-dots > span.current {
+        background: #5267e8;
+    }
+}
+
+@media (max-width: 640px) {
+    .conversation-mobile-progress {
+        margin-bottom: 10px;
+        border-radius: 16px;
+    }
+
+    .speaking-control {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .microphone-button {
+        width: 92px;
+        height: 92px;
+    }
+
+    .speech-live-console {
+        padding: 13px;
+        border-radius: 18px;
+    }
+
+    .speech-waveform {
+        min-height: 42px;
+        gap: 3px;
+    }
+
+    .speech-waveform span {
+        width: 3px;
+    }
+
+    .live-transcript {
+        padding: 13px;
+    }
+
+    .live-transcript p {
+        font-size: 16px;
+    }
+
+    .speech-finished-button {
+        min-height: 48px;
+        font-size: 14px;
+    }
+}
