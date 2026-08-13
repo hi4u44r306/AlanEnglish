@@ -13,7 +13,7 @@ import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
 import { rtdb } from "../components/Pages/firebase-config";
 import User from "../components/Pages/User";
-import AddMusic from "../components/Pages/AddMusicV2";
+import AddMusic from "../components/Pages/AddMusicV3";
 import EditMainNavbar from "../components/fragment/EditMainNavbar";
 import Links from "../components/Pages/Links";
 import LinkAdmin from "../components/Pages/Link Admin Page";
