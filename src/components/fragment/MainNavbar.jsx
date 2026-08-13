@@ -45,14 +45,28 @@ function MainNavbar() {
             try {
                 setLoading(true);
                 setNavError(null);
-                const { data: categoryData, error: categoryError } = await supabase.from('book_categories').select('id,name,code,sort_order,enabled').eq('enabled', true).order('sort_order', { ascending: true });
+
+                const { data: categoryData, error: categoryError } = await supabase
+                    .from('book_categories')
+                    .select('id,name,code,sort_order,enabled')
+                    .eq('enabled', true)
+                    .order('sort_order', { ascending: true });
                 if (categoryError) throw categoryError;
-                const { data: bookData, error: bookError } = await supabase.from('books').select('id,category_id,name,code,sort_order,enabled').eq('enabled', true).order('sort_order', { ascending: true });
+
+                const { data: bookData, error: bookError } = await supabase
+                    .from('books')
+                    .select('id,category_id,name,code,sort_order,enabled')
+                    .eq('enabled', true)
+                    .order('sort_order', { ascending: true });
                 if (bookError) throw bookError;
+
                 const convertedCategories = (categoryData || []).map(category => ({
                     ...category,
-                    books: (bookData || []).filter(book => book.category_id === category.id).sort((a, b) => a.sort_order - b.sort_order)
+                    books: (bookData || [])
+                        .filter(book => book.category_id === category.id)
+                        .sort((a, b) => a.sort_order - b.sort_order)
                 }));
+
                 setCategories(convertedCategories);
             } catch (error) {
                 console.error("MainNavbar 載入失敗:", error);
@@ -61,12 +75,14 @@ function MainNavbar() {
                 setLoading(false);
             }
         };
+
         fetchNavbarData();
     }, []);
 
     const handleLogout = async () => {
         if (loggingOut) return;
         setLoggingOut(true);
+
         try {
             await logout();
             navigate("/", { replace: true });
@@ -78,7 +94,13 @@ function MainNavbar() {
     };
 
     const renderCategoryDropdown = category => (
-        <NavDropdown id={`category-${category.id}`} key={category.id} title={<div className="d-flex align-items-center"><img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />{category.name}</div>} className="navlink" align="end">
+        <NavDropdown
+            id={`category-${category.id}`}
+            key={category.id}
+            title={<div className="d-flex align-items-center"><img style={{ width: 18, marginRight: 4 }} src={Books} alt="books" />{category.name}</div>}
+            className="navlink"
+            align="end"
+        >
             {category.books?.length > 0 ? category.books.map(book => (
                 <NavDropdown.Item key={book.id} as={Link} to={`/student/books/${book.code}`} className="subnavlink">
                     <img style={{ width: 18, marginRight: 4 }} src={BlueBook} alt={book.name} />{book.name}
@@ -93,14 +115,21 @@ function MainNavbar() {
                 <Navbar collapseOnSelect key={expand} expand={expand} className={`navbackground ${scrolled ? 'scrolled' : ''}`}>
                     <Container fluid className="containerfluid">
                         <Navbar.Brand as={Link} to={homePath}><Brand /></Navbar.Brand>
-                        <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`}><img style={{ width: 30, height: 30 }} src={Menu} alt="menu" /></Navbar.Toggle>
+                        <Navbar.Toggle className="toggle" aria-controls={`offcanvasNavbar-expand-${expand}`}>
+                            <img style={{ width: 30, height: 30 }} src={Menu} alt="menu" />
+                        </Navbar.Toggle>
                         <Navbar.Offcanvas id={`offcanvasNavbar-expand-${expand}`} aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`} placement="end">
                             <Offcanvas.Header closeButton />
                             <Offcanvas.Body className={`navbackground ${scrolled ? 'scrolled' : ''} d-flex flex-column align-items-center justify-content-center`}>
                                 <Nav>
                                     {isTeacher && (
-                                        <NavDropdown title={<div className="d-flex align-items-center"><img style={{ width: 18, marginRight: 4 }} src={Books} alt="teacher" />{isAdmin ? "管理員" : "教師用"}</div>} id={`offcanvasNavbarDropdown-expand-${expand}`} className="navlink">
+                                        <NavDropdown
+                                            title={<div className="d-flex align-items-center"><img style={{ width: 18, marginRight: 4 }} src={Books} alt="teacher" />{isAdmin ? "管理員" : "教師用"}</div>}
+                                            id={`offcanvasNavbarDropdown-expand-${expand}`}
+                                            className="navlink"
+                                        >
                                             <NavDropdown.Item as={Link} to={homePath} className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="dashboard" />Dashboard</NavDropdown.Item>
+                                            <NavDropdown.Item as={Link} to="/student/conversation" className="subnavlink"><span style={{ width: 18, marginRight: 4, display: "inline-block" }}>💬</span>英文對話示範</NavDropdown.Item>
                                             <NavDropdown.Item as={Link} to={accountManagementPath} className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="accounts" />帳號管理</NavDropdown.Item>
                                             <NavDropdown.Item as={Link} to="/teacher/students" className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="create-account" />建立帳號</NavDropdown.Item>
                                             <NavDropdown.Item as={Link} to="/teacher/add-music" className="subnavlink"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="music" />新增音檔</NavDropdown.Item>
@@ -110,12 +139,40 @@ function MainNavbar() {
                                             </>}
                                         </NavDropdown>
                                     )}
-                                    {isStudent && <Nav.Link as={Link} to="/student/conversation" className="navlink nav-item dropdown"><div className="username"><span style={{ width: 18, marginRight: 5, display: "inline-block" }}>💬</span>英文對話</div></Nav.Link>}
-                                    {isStudent && <Nav.Link as={Link} to="/student/ai-generator" className="navlink nav-item dropdown"><div className="username"><FiStar style={{ width: 18, marginRight: 5 }} />AI 教材</div></Nav.Link>}
-                                    {loading ? <Nav.Link className="navlink" disabled>教材載入中...</Nav.Link> : navError ? <Nav.Link className="navlink" disabled>教材載入失敗</Nav.Link> : categories.map(renderCategoryDropdown)}
-                                    {isAuthenticated && <Nav.Link as={Link} to={homePath} className="navlink nav-item dropdown"><div className="username"><img style={{ width: 18, marginRight: 4 }} src={File} alt="profile" />{isTeacher ? "管理首頁" : "我的帳號"}</div></Nav.Link>}
-                                    {isAuthenticated && <Nav.Link as="button" type="button" onClick={handleLogout} disabled={loggingOut} className="navlink nav-item dropdown border-0 bg-transparent"><div className="username"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="logout" />{loggingOut ? "登出中..." : "登出"}</div></Nav.Link>}
-                                    <Nav.Link as={Link} to="/showcase" className="navlink nav-item dropdown"><div className="username"><img style={{ width: 18, marginRight: 4 }} src={Search} alt="about" />關於 AE</div></Nav.Link>
+
+                                    {isStudent && (
+                                        <Nav.Link as={Link} to="/student/conversation" className="navlink nav-item dropdown">
+                                            <div className="username"><span style={{ width: 18, marginRight: 5, display: "inline-block" }}>💬</span>英文對話</div>
+                                        </Nav.Link>
+                                    )}
+
+                                    {isStudent && (
+                                        <Nav.Link as={Link} to="/student/ai-generator" className="navlink nav-item dropdown">
+                                            <div className="username"><FiStar style={{ width: 18, marginRight: 5 }} />AI 教材</div>
+                                        </Nav.Link>
+                                    )}
+
+                                    {loading
+                                        ? <Nav.Link className="navlink" disabled>教材載入中...</Nav.Link>
+                                        : navError
+                                            ? <Nav.Link className="navlink" disabled>教材載入失敗</Nav.Link>
+                                            : categories.map(renderCategoryDropdown)}
+
+                                    {isAuthenticated && (
+                                        <Nav.Link as={Link} to={homePath} className="navlink nav-item dropdown">
+                                            <div className="username"><img style={{ width: 18, marginRight: 4 }} src={File} alt="profile" />{isTeacher ? "管理首頁" : "我的帳號"}</div>
+                                        </Nav.Link>
+                                    )}
+
+                                    {isAuthenticated && (
+                                        <Nav.Link as="button" type="button" onClick={handleLogout} disabled={loggingOut} className="navlink nav-item dropdown border-0 bg-transparent">
+                                            <div className="username"><img style={{ width: 18, marginRight: 4 }} src={Setting} alt="logout" />{loggingOut ? "登出中..." : "登出"}</div>
+                                        </Nav.Link>
+                                    )}
+
+                                    <Nav.Link as={Link} to="/showcase" className="navlink nav-item dropdown">
+                                        <div className="username"><img style={{ width: 18, marginRight: 4 }} src={Search} alt="about" />關於 AE</div>
+                                    </Nav.Link>
                                 </Nav>
                             </Offcanvas.Body>
                         </Navbar.Offcanvas>
