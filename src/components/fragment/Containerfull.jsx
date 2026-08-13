@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import '../assets/scss/Containerfull.scss';
 import MainNavbar from './MainNavbar';
 import MusicPlayer from './MusicPlayer';
+import GuidedTour from './GuidedTour';
+import ConversationUXGuard from './ConversationUXGuard';
 import { useSelector } from 'react-redux';
 
 const Containerfull = ({ children }) => {
@@ -36,6 +38,9 @@ const Containerfull = ({ children }) => {
             >
                 {children}
             </main>
+
+            <ConversationUXGuard />
+            <GuidedTour />
 
             {currMusic && (
                 <footer className="app-player">
