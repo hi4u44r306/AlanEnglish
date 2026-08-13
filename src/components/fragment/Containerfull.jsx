@@ -5,6 +5,7 @@ import '../assets/scss/BrowserCompatibility.scss';
 import MusicPlayer from './MusicPlayer';
 import GuidedTour from './GuidedTour';
 import ConversationUXGuard from './ConversationUXGuard';
+import ConversationHintCoach from './ConversationHintCoach';
 import { useSelector } from 'react-redux';
 
 const Containerfull = ({ children }) => {
@@ -41,6 +42,7 @@ const Containerfull = ({ children }) => {
             </main>
 
             <ConversationUXGuard />
+            <ConversationHintCoach />
             <GuidedTour />
 
             {currMusic && (
