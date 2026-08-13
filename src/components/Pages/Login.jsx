@@ -47,8 +47,15 @@ function Login() {
         });
     };
 
+    const releaseFormFocus = () => {
+        const activeElement = document.activeElement;
+        if (activeElement instanceof HTMLElement) activeElement.blur();
+    };
+
     const login = async (e) => {
         e.preventDefault();
+        releaseFormFocus();
+
         const cleanEmail = email.trim().toLowerCase();
 
         if (!cleanEmail) return showError("請輸入 Email");
@@ -61,7 +68,10 @@ function Login() {
             showSuccess(student.name || "同學");
 
             const destination = location.state?.from?.pathname || "/userinfo";
-            setTimeout(() => navigate(destination, { replace: true }), 500);
+            window.setTimeout(() => {
+                window.scrollTo(0, 0);
+                navigate(destination, { replace: true });
+            }, 500);
         } catch (error) {
             console.error("Login error:", error);
 
