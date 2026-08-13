@@ -91,3 +91,62 @@
     font-size: 18px;
   }
 }
+
+/* Mobile offcanvas: use the colorful brand as a compact one-line accent. */
+.ae-mobile-brand {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ae-mobile-brand .brand {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  font-size: 17px !important;
+  line-height: 1;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.ae-mobile-brand .brand > div {
+  display: block;
+  white-space: nowrap;
+}
+
+.ae-mobile-brand .brand span {
+  display: inline !important;
+  margin-right: 0 !important;
+}
+
+.ae-mobile-offcanvas .offcanvas-header {
+  position: relative;
+  min-height: 60px !important;
+  padding: 11px 66px 11px 18px !important;
+  align-items: center;
+}
+
+.ae-mobile-offcanvas .offcanvas-header .btn-close {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 14px !important;
+  background-size: 16px 16px;
+  transform: translateY(-50%);
+  box-sizing: content-box;
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .ae-mobile-offcanvas .offcanvas-header {
+    min-height: 52px !important;
+    padding: 8px 62px 8px 16px !important;
+  }
+
+  .ae-mobile-brand .brand {
+    font-size: 14px !important;
+    letter-spacing: 0.8px;
+  }
+}
