@@ -51,6 +51,7 @@ const GRADE_WORDS = {
 const AUTO_FINISH_SILENCE_MS = 1500;
 const NO_SPEECH_TIMEOUT_MS = 6000;
 const MAX_RECORDING_MS = 15000;
+const PROGRESS_KEY = "ae-conversation-meet-foreigner-progress-v1";
 
 const normalize = value => String(value || "")
     .toLowerCase()
@@ -300,7 +301,82 @@ const MODES = {
     }
 };
 
+const readSavedProgress = () => {
+    if (typeof window === "undefined") return null;
+
+    try {
+        const raw = localStorage.getItem(PROGRESS_KEY);
+        if (!raw) return null;
+
+        const saved = JSON.parse(raw);
+        const stepIndex = Number(saved?.stepIndex);
+        const safeStepIndex = Number.isInteger(stepIndex)
+            ? Math.min(SCENARIO_STEPS.length - 1, Math.max(0, stepIndex))
+            : 0;
+        const safeMode = Object.prototype.hasOwnProperty.call(MODES, saved?.mode)
+            ? saved.mode
+            : "explorer";
+
+        return {
+            stepIndex: safeStepIndex,
+            mode: safeMode,
+            completed: Boolean(saved?.completed),
+            updatedAt: saved?.updatedAt || null
+        };
+    } catch (error) {
+        console.warn("Conversation progress read error:", error);
+        return null;
+    }
+};
+
+const pickNaturalEnglishVoice = voices => {
+    if (!Array.isArray(voices) || voices.length === 0) return null;
+
+    const preferredNames = [
+        "samantha",
+        "ava",
+        "allison",
+        "susan",
+        "zoe",
+        "serena",
+        "siri",
+        "jenny",
+        "aria",
+        "guy"
+    ];
+
+    const scoreVoice = voice => {
+        const name = String(voice?.name || "").toLowerCase();
+        const lang = String(voice?.lang || "").toLowerCase();
+        let score = 0;
+
+        if (lang === "en-us") score += 120;
+        else if (lang.startsWith("en-")) score += 80;
+        else if (lang.startsWith("en")) score += 60;
+        else return -1000;
+
+        if (voice?.localService) score += 20;
+        if (name.includes("premium")) score += 55;
+        if (name.includes("enhanced")) score += 50;
+        if (name.includes("natural")) score += 45;
+
+        preferredNames.forEach((preferredName, index) => {
+            if (name.includes(preferredName)) score += 45 - index;
+        });
+
+        if (containsAny(name, ["bad news", "bells", "boing", "bubbles", "cellos", "deranged", "good news", "organ", "superstar", "trinoids", "whisper", "zarvox"])) {
+            score -= 100;
+        }
+
+        return score;
+    };
+
+    return [...voices]
+        .sort((a, b) => scoreVoice(b) - scoreVoice(a))[0] || null;
+};
+
 function ConversationPractice() {
+    const savedProgressRef = useRef(readSavedProgress());
     const recognitionRef = useRef(null);
     const recorderRef = useRef(null);
     const streamRef = useRef(null);
@@ -321,9 +397,15 @@ function ConversationPractice() {
     const lastMeterPaintRef = useRef(0);
     const noSpeechTimerRef = useRef(null);
     const maxRecordingTimerRef = useRef(null);
+    const preferredVoiceRef = useRef(null);
 
-    const [mode, setMode] = useState("explorer");
-    const [stepIndex, setStepIndex] = useState(0);
+    const initialProgress = savedProgressRef.current;
+    const initialStepIndex = initialProgress?.stepIndex || 0;
+    const initialMode = initialProgress?.mode || "explorer";
+    const initialCompleted = Boolean(initialProgress?.completed);
+
+    const [mode, setMode] = useState(initialMode);
+    const [stepIndex, setStepIndex] = useState(initialStepIndex);
     const [answer, setAnswer] = useState("");
     const [heardText, setHeardText] = useState("");
     const [interimText, setInterimText] = useState("");
@@ -334,11 +416,14 @@ function ConversationPractice() {
     const [audioUrl, setAudioUrl] = useState("");
     const [showHint, setShowHint] = useState(false);
     const [speechError, setSpeechError] = useState("");
-    const [completed, setCompleted] = useState(false);
+    const [completed, setCompleted] = useState(initialCompleted);
     const [finishReason, setFinishReason] = useState("");
+    const [restoredProgress, setRestoredProgress] = useState(Boolean(
+        initialProgress && (initialProgress.stepIndex > 0 || initialProgress.completed)
+    ));
     const [messages, setMessages] = useState([
-        { speaker: "system", text: "You're walking near a park when Alex, a friendly visitor, says hello." },
-        { speaker: "alex", text: SCENARIO_STEPS[0].question }
+        { speaker: "system", text: initialProgress && initialProgress.stepIndex > 0 ? "Welcome back! Your last practice progress has been restored." : "You're walking near a park when Alex, a friendly visitor, says hello." },
+        { speaker: "alex", text: SCENARIO_STEPS[initialStepIndex].question }
     ]);
 
     const step = SCENARIO_STEPS[stepIndex];
@@ -357,6 +442,21 @@ function ConversationPractice() {
     const progressValue = completed
         ? SCENARIO_STEPS.length
         : stepIndex + (evaluation?.correct ? 1 : 0);
+
+    function saveProgress(next = {}) {
+        try {
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+                scenarioId: "meet-a-foreigner",
+                version: 1,
+                stepIndex: next.stepIndex ?? stepIndex,
+                mode: next.mode ?? mode,
+                completed: next.completed ?? completed,
+                updatedAt: new Date().toISOString()
+            }));
+        } catch (error) {
+            console.warn("Conversation progress save error:", error);
+        }
+    }
 
     function clearSpeechTimers() {
         if (noSpeechTimerRef.current) {
@@ -542,6 +642,26 @@ function ConversationPractice() {
     }
 
     useEffect(() => {
+        if (!window.speechSynthesis) return undefined;
+
+        const loadVoices = () => {
+            const voices = window.speechSynthesis.getVoices();
+            preferredVoiceRef.current = pickNaturalEnglishVoice(voices);
+        };
+
+        loadVoices();
+        window.speechSynthesis.addEventListener?.("voiceschanged", loadVoices);
+
+        return () => {
+            window.speechSynthesis.removeEventListener?.("voiceschanged", loadVoices);
+        };
+    }, []);
+
+    useEffect(() => {
+        saveProgress();
+    }, [mode, stepIndex, completed]);
+
+    useEffect(() => {
         return () => {
             listeningRef.current = false;
             clearSpeechTimers();
@@ -574,16 +694,19 @@ function ConversationPractice() {
         }
 
         window.speechSynthesis.cancel();
+
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-US";
-        utterance.rate = 0.88;
-        utterance.pitch = 1;
+        const preferredVoice = preferredVoiceRef.current || pickNaturalEnglishVoice(window.speechSynthesis.getVoices());
 
-        const voices = window.speechSynthesis.getVoices();
-        const englishVoice = voices.find(voice => voice.lang?.toLowerCase().startsWith("en-us")) ||
-            voices.find(voice => voice.lang?.toLowerCase().startsWith("en"));
+        utterance.lang = preferredVoice?.lang || "en-US";
+        utterance.rate = 0.93;
+        utterance.pitch = 1.02;
+        utterance.volume = 1;
 
-        if (englishVoice) utterance.voice = englishVoice;
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+
         window.speechSynthesis.speak(utterance);
     };
 
@@ -767,6 +890,7 @@ function ConversationPractice() {
 
         if (stepIndex >= SCENARIO_STEPS.length - 1) {
             setCompleted(true);
+            saveProgress({ completed: true, stepIndex: SCENARIO_STEPS.length - 1 });
             localStorage.setItem("ae-conversation-meet-foreigner-complete", new Date().toISOString());
             setMessages(previous => [
                 ...previous,
@@ -778,6 +902,8 @@ function ConversationPractice() {
         const nextIndex = stepIndex + 1;
         const nextStepData = SCENARIO_STEPS[nextIndex];
         setStepIndex(nextIndex);
+        saveProgress({ stepIndex: nextIndex, completed: false });
+        setRestoredProgress(false);
         setAnswer("");
         setHeardText("");
         setInterimText("");
@@ -809,6 +935,7 @@ function ConversationPractice() {
         stopRecorder();
         clearAudio();
         setStepIndex(0);
+        setMode("explorer");
         setAnswer("");
         setHeardText("");
         setInterimText("");
@@ -819,7 +946,9 @@ function ConversationPractice() {
         setVoiceLevel(0);
         setFinishReason("");
         setCompleted(false);
+        setRestoredProgress(false);
         evaluatedRef.current = false;
+        localStorage.removeItem(PROGRESS_KEY);
         setMessages([
             { speaker: "system", text: "You're walking near a park when Alex, a friendly visitor, says hello." },
             { speaker: "alex", text: SCENARIO_STEPS[0].question }
@@ -840,6 +969,49 @@ function ConversationPractice() {
                 </div>
             </section>
 
+            {restoredProgress && (
+                <section
+                    style={{
+                        width: "min(1180px, 100%)",
+                        margin: "0 auto 16px",
+                        padding: "14px 18px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 14,
+                        border: "1px solid rgba(82, 103, 232, .18)",
+                        borderRadius: 18,
+                        background: "#f1f3ff",
+                        color: "#31405f"
+                    }}
+                >
+                    <div>
+                        <strong style={{ display: "block", marginBottom: 3 }}>Welcome back 👋 已恢復上次進度</strong>
+                        <span style={{ fontSize: 12, color: "#6f7b94" }}>
+                            {completed
+                                ? "你上次已經完成這個 Mission。"
+                                : `繼續第 ${stepIndex + 1} / ${SCENARIO_STEPS.length} 關 · ${step.shortLabel}`}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={restartMission}
+                        style={{
+                            flex: "0 0 auto",
+                            padding: "9px 13px",
+                            border: 0,
+                            borderRadius: 12,
+                            background: "#14213d",
+                            color: "#fff",
+                            fontWeight: 800,
+                            fontSize: 12
+                        }}
+                    >
+                        從頭開始
+                    </button>
+                </section>
+            )}
+
             <section className="conversation-mode-bar">
                 <div className="conversation-mode-title">
                     <span>Practice Mode</span>
@@ -853,6 +1025,7 @@ function ConversationPractice() {
                             className={mode === key ? "active" : ""}
                             onClick={() => {
                                 setMode(key);
+                                saveProgress({ mode: key });
                                 setShowHint(false);
                             }}
                         >
