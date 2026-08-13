@@ -95,6 +95,21 @@ canvas {
   word-break: break-word;
 }
 
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    touch-action: manipulation;
+  }
+}
+
 @media (max-width: 576px) {
   .ae-mobile-offcanvas {
     width: min(92vw, 370px) !important;
