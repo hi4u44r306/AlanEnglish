@@ -270,7 +270,6 @@ function MainNavbar() {
                 <Offcanvas.Header closeButton>
                     <div className="ae-mobile-brand">
                         <Brand />
-                        <span>Alan English</span>
                     </div>
                 </Offcanvas.Header>
 
