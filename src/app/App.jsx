@@ -158,7 +158,16 @@ const App = () => {
                     />
 
                     <Route
-                        path="/teacher/add-music"
+                        path="/teacher/accounts/create"
+                        element={
+                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                                <Containerfull><Signup /></Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/teacher/music/create"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
                                 <Containerfull><AddMusic /></Containerfull>
@@ -167,10 +176,10 @@ const App = () => {
                     />
 
                     <Route
-                        path="/teacher/students"
+                        path="/teacher/music/manage"
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
-                                <Containerfull><Signup /></Containerfull>
+                                <Containerfull><AddMusic /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
@@ -212,12 +221,14 @@ const App = () => {
                     />
 
                     <Route path="/userinfo" element={<RoleHomeRedirect />} />
-                    <Route path="/home/playlist/addmusic" element={<Navigate to="/teacher/add-music" replace />} />
-                    <Route path="/home/playlist/signup" element={<Navigate to="/teacher/students" replace />} />
+                    <Route path="/teacher/add-music" element={<Navigate to="/teacher/music/create" replace />} />
+                    <Route path="/teacher/students" element={<Navigate to="/teacher/accounts/create" replace />} />
+                    <Route path="/home/playlist/addmusic" element={<Navigate to="/teacher/music/create" replace />} />
+                    <Route path="/home/playlist/signup" element={<Navigate to="/teacher/accounts/create" replace />} />
                     <Route path="/home/playlist/:playlistId" element={<LegacyPlaylistRedirect />} />
                     <Route path="/teacher/navbar" element={<Navigate to="/admin/navbar" replace />} />
                     <Route path="/editnavbar" element={<Navigate to="/admin/navbar" replace />} />
-                    <Route path="/signup" element={<Navigate to="/teacher/students" replace />} />
+                    <Route path="/signup" element={<Navigate to="/teacher/accounts/create" replace />} />
                     <Route path="/linksadmin" element={<Navigate to="/admin/links" replace />} />
 
                     <Route path="*" element={<NotFound />} />
