@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Navigate, Route, Routes, useParams } from "rea
 import { Helmet } from "react-helmet";
 import { off, onValue, ref } from "firebase/database";
 import "./App.scss";
+import "./MobileNavFix.scss";
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
 import SolvePage from "../components/Pages/SolvePage";
