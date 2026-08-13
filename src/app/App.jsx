@@ -13,7 +13,7 @@ import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
 import { rtdb } from "../components/Pages/firebase-config";
 import User from "../components/Pages/User";
-import AddMusic from "../components/Pages/AddMusic";
+import AddMusic from "../components/Pages/AddMusicV2";
 import EditMainNavbar from "../components/fragment/EditMainNavbar";
 import Links from "../components/Pages/Links";
 import LinkAdmin from "../components/Pages/Link Admin Page";
@@ -22,6 +22,8 @@ import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
 import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import ConversationPractice from "../components/Pages/ConversationPractice";
+import TeacherAssignments from "../components/Pages/TeacherAssignments";
+import StudentAssignments from "../components/Pages/StudentAssignments";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -93,6 +95,15 @@ const App = () => {
                     />
 
                     <Route
+                        path="/student/assignments"
+                        element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                                <Containerfull><StudentAssignments /></Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
                         path="/student/conversation"
                         element={
                             <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
@@ -124,6 +135,15 @@ const App = () => {
                         element={
                             <ProtectedRoute allowedRoles={["teacher", "admin"]}>
                                 <Containerfull><ManagementDashboard /></Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/teacher/assignments"
+                        element={
+                            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+                                <Containerfull><TeacherAssignments /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
