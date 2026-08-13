@@ -44,10 +44,11 @@
   background: rgba(255, 255, 255, 0.98);
   border-top: 1px solid #e5e7eb;
   box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
-  transition: width 180ms ease, left 180ms ease, right 180ms ease, bottom 180ms ease, border-radius 180ms ease;
+  transition: width 180ms ease, left 180ms ease, right 180ms ease, bottom 180ms ease, border-radius 180ms ease, box-shadow 180ms ease;
 }
 
-.app-player-toggle {
+.app-player-toggle,
+.app-player-drag-handle {
   display: none;
 }
 
@@ -60,6 +61,37 @@
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 18px 46px rgba(15, 23, 42, 0.18);
+  touch-action: none;
+
+  &.dragging {
+    transition: none;
+    box-shadow: 0 24px 58px rgba(15, 23, 42, 0.28);
+  }
+
+  .app-player-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    z-index: 5;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #eef2f8;
+    color: #4b5872;
+    font-family: "Nunito", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
 
   .app-player-toggle {
     display: flex;
@@ -88,8 +120,7 @@
   .rhap_container {
     min-height: 78px;
     height: auto;
-    padding: 10px 12px;
-    padding-right: 86px;
+    padding: 42px 12px 10px;
     box-shadow: none;
   }
 
@@ -194,7 +225,6 @@ body {
 
   .app-player.mini .rhap_container {
     min-height: 70px;
-    padding: 8px 10px;
-    padding-right: 82px;
+    padding: 40px 10px 8px;
   }
 }
