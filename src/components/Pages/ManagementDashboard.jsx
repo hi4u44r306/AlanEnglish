@@ -8,6 +8,7 @@ import {
     upsertGuardianContact
 } from "../../services/learningActivityService";
 import "./css/ManagementDashboard.scss";
+import "./css/ManagementActivity.scss";
 
 const formatDateTime = value => {
     if (!value) return "—";
@@ -379,11 +380,14 @@ function ManagementDashboard() {
                                                                         checked={guardianForm.notification_enabled}
                                                                         onChange={event => setGuardianForm(previous => ({ ...previous, notification_enabled: event.target.checked }))}
                                                                     />
-                                                                    <span>允許產生學習提醒</span>
+                                                                    <span>允許寄送學習提醒</span>
                                                                 </label>
-                                                                <button type="button" className="guardian-save-button" disabled={guardianSaving} onClick={() => saveGuardian(student.id)}>
-                                                                    {guardianSaving ? "儲存中..." : "儲存家長資料"}
-                                                                </button>
+                                                                <div className="guardian-editor-actions">
+                                                                    <button type="button" onClick={() => setEditingGuardianId(null)}>取消</button>
+                                                                    <button type="button" className="primary" disabled={guardianSaving} onClick={() => saveGuardian(student.id)}>
+                                                                        {guardianSaving ? "儲存中..." : "儲存家長資料"}
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -403,52 +407,43 @@ function ManagementDashboard() {
                         <div className="dashboard-action-grid">
                             <Link to={isAdmin ? "/admin/accounts" : "/teacher/accounts"} className="dashboard-action-card">
                                 <strong>帳號管理</strong>
-                                <span>{isAdmin ? "查看與編輯所有角色帳號" : "查看與編輯學生帳號"}</span>
-                            </Link>
-                            <Link to="/student/conversation" className="dashboard-action-card">
-                                <strong>英文對話示範</strong>
-                                <span>老師可完整示範語音對話，不會寫入學生紀錄</span>
+                                <span>查看與編輯學生帳號資料</span>
                             </Link>
                             <Link to="/teacher/students" className="dashboard-action-card">
                                 <strong>建立帳號</strong>
-                                <span>{isAdmin ? "建立 Student / Teacher / Admin" : "建立 Student 帳號"}</span>
+                                <span>新增學生與管理使用者</span>
                             </Link>
                             <Link to="/teacher/add-music" className="dashboard-action-card">
                                 <strong>教材音檔</strong>
                                 <span>新增教材、上傳與管理音檔</span>
                             </Link>
-                            {isAdmin && (
-                                <>
-                                    <Link to="/admin/navbar" className="dashboard-action-card">
-                                        <strong>教材導覽</strong>
-                                        <span>管理 Navbar 與教材入口</span>
-                                    </Link>
-                                    <Link to="/admin/links" className="dashboard-action-card">
-                                        <strong>系統連結</strong>
-                                        <span>管理 Alan English 連結功能</span>
-                                    </Link>
-                                </>
-                            )}
                         </div>
                     </section>
                 </>
             )}
 
             {noticeDraft && noticeStudent && (
-                <div className="reminder-modal-backdrop" role="presentation" onClick={() => setNoticeDraft(null)}>
-                    <div className="reminder-modal" role="dialog" aria-modal="true" onClick={event => event.stopPropagation()}>
-                        <span className="management-eyebrow">PARENT REMINDER</span>
-                        <h2>{noticeStudent.name}｜家長學習提醒</h2>
-                        <p className="reminder-recipient">寄給：{noticeDraft.email}</p>
-                        <div className="reminder-preview">
-                            <strong>{noticeDraft.subject}</strong>
-                            <pre>{noticeDraft.message}</pre>
-                        </div>
-                        <div className="reminder-notice">第一版會開啟你裝置上的 Email App 並自動填好收件人、主旨與內容；網站本身目前不會自動寄出。</div>
-                        <div className="reminder-modal-actions">
-                            <button type="button" className="open-mail-button" onClick={openMailClient}>開啟 Email 寄送</button>
-                            <button type="button" onClick={markReminderSent}>我已寄出，記錄完成</button>
+                <div className="guardian-reminder-modal-backdrop" onClick={() => setNoticeDraft(null)} role="presentation">
+                    <div className="guardian-reminder-modal" onClick={event => event.stopPropagation()} role="dialog" aria-modal="true">
+                        <span>GUARDIAN REMINDER</span>
+                        <h2>提醒 {noticeStudent.name} 的家長</h2>
+                        <label>
+                            <span>寄送至</span>
+                            <input value={noticeDraft.email || ""} readOnly />
+                        </label>
+                        <label>
+                            <span>主旨</span>
+                            <input value={noticeDraft.subject || ""} readOnly />
+                        </label>
+                        <label>
+                            <span>通知內容</span>
+                            <textarea value={noticeDraft.message || ""} readOnly rows="8" />
+                        </label>
+                        <p>目前這一步會開啟裝置上的 Email App；網站會保留提醒紀錄，但不會假裝已經由伺服器自動寄出。</p>
+                        <div className="guardian-reminder-actions">
                             <button type="button" onClick={() => setNoticeDraft(null)}>取消</button>
+                            <button type="button" onClick={openMailClient}>開啟 Email</button>
+                            <button type="button" className="primary" onClick={markReminderSent}>我已寄出</button>
                         </div>
                     </div>
                 </div>
