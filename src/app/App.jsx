@@ -19,6 +19,7 @@ import NotFound from "../components/Pages/NotFound";
 import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
 import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
+import ConversationPractice from "../components/Pages/ConversationPractice";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -83,6 +84,15 @@ const App = () => {
                         element={
                             <ProtectedRoute allowedRoles={["student"]}>
                                 <Containerfull><User /></Containerfull>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/student/conversation"
+                        element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                                <Containerfull><ConversationPractice /></Containerfull>
                             </ProtectedRoute>
                         }
                     />
