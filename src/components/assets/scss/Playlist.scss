@@ -211,21 +211,6 @@
   pointer-events: none;
 }
 
-.playlist-homework-track__label {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  z-index: 2;
-  padding: 5px 9px;
-  background: #eaf8f4;
-  color: #26755f;
-  border: 1px solid #cae6dd;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 900;
-  box-shadow: none;
-}
-
 // ==========================================
 // Music List
 // ==========================================
@@ -396,11 +381,6 @@
 
   .playlist-homework-banner h2 {
     font-size: 18px;
-  }
-
-  .playlist-homework-track__label {
-    top: 6px;
-    right: 7px;
   }
 
   .playlist-homework-track .music-card {

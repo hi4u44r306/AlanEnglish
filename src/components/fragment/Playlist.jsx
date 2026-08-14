@@ -220,7 +220,6 @@ function Playlist() {
                     <div className="playlist-list">
                         {visibleTracks.length > 0 ? visibleTracks.map(track => (
                             <div className={homeworkTrackSet.has(String(track.id)) ? "playlist-homework-track" : ""} key={track.id}>
-                                {homeworkTrackSet.has(String(track.id)) && <div className="playlist-homework-track__label">本日任務</div>}
                                 <MusicCard
                                     music={track}
                                     playbackQueue={visibleTracks}
