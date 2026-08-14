@@ -190,12 +190,25 @@
 
 .playlist-homework-track {
   position: relative;
-  margin-bottom: 10px;
-  padding: 4px 4px 4px 8px;
-  background: linear-gradient(90deg, #35a789 0 8px, #f7fbfa 8px 100%);
-  border: 1px solid #d8e8e3;
-  border-radius: 18px;
-  box-shadow: 0 7px 24px rgba(40, 91, 78, 0.06);
+  margin-bottom: 12px;
+}
+
+.playlist-homework-track .music-card {
+  position: relative;
+  margin-bottom: 0;
+  padding-left: 22px;
+  overflow: hidden;
+}
+
+.playlist-homework-track .music-card::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  background: #35a789;
+  content: "";
+  pointer-events: none;
 }
 
 .playlist-homework-track__label {
@@ -388,6 +401,10 @@
   .playlist-homework-track__label {
     top: 6px;
     right: 7px;
+  }
+
+  .playlist-homework-track .music-card {
+    padding-left: 18px;
   }
 
   .playlist-empty {
