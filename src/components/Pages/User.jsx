@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     FiArrowRight,
+    FiBarChart2,
     FiBookOpen,
     FiCheck,
     FiClock,
@@ -481,6 +482,16 @@ const User = () => {
                         </article>
                     </div>
                 </section>
+
+                <Link to="/student/weekly-report" className="student-home__weekly-report">
+                    <div className="student-home__weekly-report-icon"><FiBarChart2 /></div>
+                    <div>
+                        <span>WEEKLY GROWTH REPORT</span>
+                        <strong>看看這週累積了多少英文實力</strong>
+                        <p>聽力、作業、AI、複習與口說，一次整理成家長也看得懂的成果。</p>
+                    </div>
+                    <div className="student-home__weekly-report-action">查看週報 <FiArrowRight /></div>
+                </Link>
 
                 <section className="student-home__account">
                     <div className="student-home__identity">

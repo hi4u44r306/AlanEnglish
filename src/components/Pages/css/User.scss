@@ -507,6 +507,79 @@
   border-radius: 18px;
 }
 
+.student-home__weekly-report {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 21px 23px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(255, 217, 119, 0.28), transparent 25%),
+    linear-gradient(135deg, #173c64, #286d9f);
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(31, 80, 121, 0.16);
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 39px rgba(31, 80, 121, 0.21);
+  }
+
+  > div:nth-child(2) {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  span {
+    color: #ffdb7e;
+    font-size: 0.55rem;
+    font-weight: 950;
+    letter-spacing: 0.14em;
+  }
+
+  strong {
+    margin-top: 2px;
+    font-size: 1rem;
+    font-weight: 950;
+  }
+
+  p {
+    margin: 3px 0 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.67rem;
+    font-weight: 650;
+  }
+}
+
+.student-home__weekly-report-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 14px;
+  font-size: 1.25rem;
+}
+
+.student-home__weekly-report-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 11px;
+  color: #183b60;
+  background: #fff;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
 .student-home__identity {
   min-width: 0;
   display: flex;
@@ -829,6 +902,35 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 13px;
     padding: 15px;
+  }
+
+  .student-home__weekly-report {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+    padding: 17px 14px;
+    border-radius: 16px;
+
+    strong {
+      font-size: 0.84rem;
+    }
+
+    p {
+      font-size: 0.62rem;
+      line-height: 1.45;
+    }
+  }
+
+  .student-home__weekly-report-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  .student-home__weekly-report-action {
+    grid-column: 2;
+    justify-content: center;
+    margin-top: 2px;
   }
 
   .student-home__account-tags {

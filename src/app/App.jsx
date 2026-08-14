@@ -25,6 +25,7 @@ import ConversationPractice from "../components/Pages/ConversationPractice";
 import TeacherAssignments from "../components/Pages/TeacherAssignments";
 import StudentAssignments from "../components/Pages/StudentAssignments";
 import ReviewCenter from "../components/Pages/ReviewCenter";
+import WeeklyReport from "../components/Pages/WeeklyReport";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -100,11 +101,13 @@ const App = () => {
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/assignments" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><TeacherAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/accounts" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/accounts/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><Signup /></Containerfull></ProtectedRoute>} />
@@ -112,6 +115,7 @@ const App = () => {
                     <Route path="/teacher/music/manage" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/navbar" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><EditMainNavbar /></Containerfull></ProtectedRoute>} />
 

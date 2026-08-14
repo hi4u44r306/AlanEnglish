@@ -70,6 +70,7 @@ function ManagementDashboard() {
     const [noticeMessage, setNoticeMessage] = useState("");
 
     const isAdmin = role === "admin";
+    const reportPath = isAdmin ? "/admin/reports" : "/teacher/reports";
 
     const fetchDashboardData = useCallback(async () => {
         if (!firebaseUser) return;
@@ -219,7 +220,7 @@ function ManagementDashboard() {
                     <h1>{studentProfile?.name || (isAdmin ? "Admin" : "Teacher")}，歡迎回來</h1>
                     <p>查看學生最後登入、實際活躍與學習狀況，快速找到需要提醒的學生。</p>
                 </div>
-                <Link to="/student/conversation" className="management-primary-link">💬 Conversation 示範</Link>
+                <Link to={reportPath} className="management-primary-link">📊 每週學習報告</Link>
             </section>
 
             {loading ? (
@@ -328,6 +329,7 @@ function ManagementDashboard() {
                                                     </td>
                                                     <td>
                                                         <div className="activity-row-actions">
+                                                            <Link to={`${reportPath}?student=${student.id}`}>每週報告</Link>
                                                             <button type="button" onClick={() => openGuardianEditor(student)}>家長資料</button>
                                                             <button
                                                                 type="button"
@@ -405,6 +407,10 @@ function ManagementDashboard() {
                     <section className="dashboard-actions">
                         <h2>快速管理</h2>
                         <div className="dashboard-action-grid">
+                            <Link to={reportPath} className="dashboard-action-card">
+                                <strong>每週學習報告</strong>
+                                <span>整理學生進度並寄給家長</span>
+                            </Link>
                             <Link to={isAdmin ? "/admin/accounts" : "/teacher/accounts"} className="dashboard-action-card">
                                 <strong>帳號管理</strong>
                                 <span>查看與編輯學生帳號資料</span>
