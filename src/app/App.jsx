@@ -88,8 +88,9 @@ const App = () => {
                 />
 
                 <Helmet>
-                    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=ae-20260813-logo-2" />
-                    <link rel="shortcut icon" href="/favicon.svg?v=ae-20260813-logo-2" />
+                    <link rel="icon" type="image/jpeg" sizes="1254x1254" href="/ae-icon.jpeg" />
+                    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+                    <link rel="apple-touch-icon" href="/ae-icon.jpeg" />
                     <meta name="theme-color" content="#fff8ed" />
                 </Helmet>
 
