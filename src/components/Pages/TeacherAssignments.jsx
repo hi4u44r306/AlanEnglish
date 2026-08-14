@@ -24,6 +24,17 @@ const todayTaiwan = () => new Intl.DateTimeFormat("en-CA", {
     day: "2-digit"
 }).format(new Date());
 
+const formatDateTime = value => {
+    if (!value) return "";
+    return new Intl.DateTimeFormat("zh-TW", {
+        timeZone: "Asia/Taipei",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(new Date(value));
+};
+
 const includesAi = sourceType => (
     sourceType === "ai_material" || sourceType === "mission_pack"
 );
@@ -674,14 +685,64 @@ const TeacherAssignments = () => {
                                 <span>成績 / 進度</span>
                                 <span>狀態</span>
                             </div>
-                            {(results.rows || []).map(row => (
-                                <div className="assignment-result-row" key={row.student.id}>
-                                    <span>{row.student.name}</span>
-                                    <span>{row.student.class || "—"}</span>
-                                    <span>{resultSummary(results.assignment, row)}</span>
-                                    <span>{row.completed ? "✅ 已完成" : "⏳ 未完成"}</span>
-                                </div>
-                            ))}
+                            {(results.rows || []).map(row => {
+                                const latestAttempt = row.latest_attempt;
+                                const wrongQuestions = latestAttempt?.wrong_questions || [];
+
+                                return (
+                                    <div className="assignment-result-entry" key={row.student.id}>
+                                        <div className="assignment-result-row">
+                                            <span>{row.student.name}</span>
+                                            <span>{row.student.class || "—"}</span>
+                                            <span>{resultSummary(results.assignment, row)}</span>
+                                            <span>{row.completed ? "✅ 已完成" : "⏳ 未完成"}</span>
+                                        </div>
+
+                                        {latestAttempt && (
+                                            <details className={
+                                                "assignment-wrong-review "
+                                                + (wrongQuestions.length ? "has-wrong" : "perfect")
+                                            }>
+                                                <summary>
+                                                    <span>
+                                                        最近一次 {latestAttempt.score} 分
+                                                        {latestAttempt.attempted_at
+                                                            ? " · " + formatDateTime(latestAttempt.attempted_at)
+                                                            : ""}
+                                                    </span>
+                                                    <strong>
+                                                        {wrongQuestions.length
+                                                            ? "查看 " + wrongQuestions.length + " 題錯題"
+                                                            : "本次沒有錯題"}
+                                                    </strong>
+                                                </summary>
+
+                                                {wrongQuestions.length > 0 && (
+                                                    <div className="assignment-wrong-list">
+                                                        {wrongQuestions.map((question, index) => (
+                                                            <article key={`${row.student.id}-${question.index}-${index}`}>
+                                                                <span>Q{Number(question.index || 0) + 1}</span>
+                                                                <div>
+                                                                    <strong>{question.question || "題目內容"}</strong>
+                                                                    <p className="student-answer">
+                                                                        學生答案：{question.selected_answer || "未作答"}
+                                                                    </p>
+                                                                    <p className="correct-answer">
+                                                                        正確答案：{question.correct_answer || "—"}
+                                                                    </p>
+                                                                    {question.explanation && (
+                                                                        <small>{question.explanation}</small>
+                                                                    )}
+                                                                </div>
+                                                            </article>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </details>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </section>

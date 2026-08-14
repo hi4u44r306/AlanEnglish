@@ -18,6 +18,7 @@ import {
     getStudentAssignments,
     submitAssignment
 } from "../../services/assignmentService";
+import ListeningTTSPlayer from "./ListeningTTSPlayer";
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
 
@@ -674,12 +675,24 @@ const StudentAssignments = () => {
                             <p>全部作答後再提交；提交前不會顯示答案。</p>
                         </div>
 
-                        {activeAssignment.material.content?.passage && (
+                        {activeAssignment.material.content?.passage
+                            && activeAssignment.material.material_type === "listening"
+                            && (
+                                <div className="assignment-listening-practice">
+                                    <ListeningTTSPlayer
+                                        script={activeAssignment.material.content.passage}
+                                    />
+                                </div>
+                            )}
+
+                        {activeAssignment.material.content?.passage
+                            && activeAssignment.material.material_type !== "listening"
+                            && (
                             <div className="assignment-passage">
                                 <h3>Reading</h3>
                                 <p>{activeAssignment.material.content.passage}</p>
                             </div>
-                        )}
+                            )}
 
                         <div className="assignment-question-list">
                             {(activeAssignment.material.content?.questions || []).map(

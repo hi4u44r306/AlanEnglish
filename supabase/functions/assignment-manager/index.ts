@@ -452,16 +452,50 @@ Deno.serve(async (req: Request) => {
             const studentIds = (students || []).map((student: any) => student.id);
 
             let aiProgressMap = new Map<number, any>();
+            let latestAttemptMap = new Map<number, any>();
+            let assignmentQuestions: any[] = [];
             if (hasAiTask(assignment.source_type)) {
-                const { data, error } = await admin
-                    .from("assignment_progress")
-                    .select("*")
-                    .eq("assignment_id", assignmentId)
-                    .in("student_id", studentIds.length ? studentIds : [-1]);
-                if (error) throw error;
-                aiProgressMap = new Map(
-                    (data || []).map((item: any) => [Number(item.student_id), item])
+                const [progressRes, attemptRes, materialRes] = await Promise.all([
+                    admin
+                        .from("assignment_progress")
+                        .select("*")
+                        .eq("assignment_id", assignmentId)
+                        .in("student_id", studentIds.length ? studentIds : [-1]),
+                    admin
+                        .from("assignment_attempts")
+                        .select("student_id,score,correct_count,total_questions,passed,wrong_questions,created_at")
+                        .eq("assignment_id", assignmentId)
+                        .in("student_id", studentIds.length ? studentIds : [-1])
+                        .order("created_at", { ascending: false })
+                        .limit(2000),
+                    assignment.ai_material_id
+                        ? admin
+                            .from("ai_generated_materials")
+                            .select("content")
+                            .eq("id", assignment.ai_material_id)
+                            .maybeSingle()
+                        : Promise.resolve({ data: null, error: null })
+                ]);
+
+                const aiResultError = (
+                    progressRes.error || attemptRes.error || materialRes.error
                 );
+                if (aiResultError) throw aiResultError;
+                aiProgressMap = new Map(
+                    (progressRes.data || []).map((item: any) => [
+                        Number(item.student_id),
+                        item
+                    ])
+                );
+                for (const attempt of attemptRes.data || []) {
+                    const studentId = Number(attempt.student_id);
+                    if (!latestAttemptMap.has(studentId)) {
+                        latestAttemptMap.set(studentId, attempt);
+                    }
+                }
+                assignmentQuestions = Array.isArray(materialRes.data?.content?.questions)
+                    ? materialRes.data.content.questions
+                    : [];
             }
 
             let trackItems: any[] = [];
@@ -485,6 +519,26 @@ Deno.serve(async (req: Request) => {
 
             const rows = (students || []).map((student: any) => {
                 const aiProgress = aiProgressMap.get(Number(student.id));
+                const latestAttempt = latestAttemptMap.get(Number(student.id));
+                const latestWrongQuestions = Array.isArray(latestAttempt?.wrong_questions)
+                    ? latestAttempt.wrong_questions.map((item: any) => {
+                        const questionIndex = Number(item?.index);
+                        const question = assignmentQuestions[questionIndex] || {};
+                        return {
+                            index: Number.isFinite(questionIndex) ? questionIndex : 0,
+                            question: String(question?.question || ""),
+                            selected_answer: String(
+                                item?.selected_answer ?? item?.selected ?? ""
+                            ),
+                            correct_answer: String(
+                                item?.correct_answer ?? question?.answer ?? ""
+                            ),
+                            explanation: String(
+                                item?.explanation ?? question?.explanation ?? ""
+                            )
+                        };
+                    })
+                    : [];
                 const aiCompleted = hasAiTask(assignment.source_type)
                     ? Boolean(aiProgress?.completed)
                     : true;
@@ -528,6 +582,16 @@ Deno.serve(async (req: Request) => {
                         attempt_count: Number(aiProgress?.attempt_count || 0),
                         completed: hasAiTask(assignment.source_type) && aiCompleted
                     },
+                    latest_attempt: latestAttempt
+                        ? {
+                            score: Number(latestAttempt.score || 0),
+                            correct_count: Number(latestAttempt.correct_count || 0),
+                            total_questions: Number(latestAttempt.total_questions || 0),
+                            passed: Boolean(latestAttempt.passed),
+                            attempted_at: latestAttempt.created_at || null,
+                            wrong_questions: latestWrongQuestions
+                        }
+                        : null,
                     listening: {
                         completed_count: completedCount,
                         total_tracks: listeningTracks.length,
