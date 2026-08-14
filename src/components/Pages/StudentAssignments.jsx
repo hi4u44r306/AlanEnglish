@@ -8,11 +8,16 @@ import {
     CheckCircle2,
     Clock3,
     Headphones,
+    Layers3,
     Sparkles,
-    Target
+    Target,
+    Trophy
 } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
-import { getStudentAssignments, submitAssignment } from "../../services/assignmentService";
+import {
+    getStudentAssignments,
+    submitAssignment
+} from "../../services/assignmentService";
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
 
@@ -38,17 +43,42 @@ const formatToday = value => {
     }).format(new Date(value));
 };
 
+const hasAiTask = assignment => (
+    assignment?.source_type === "ai_material"
+    || assignment?.source_type === "mission_pack"
+    || Boolean(assignment?.has_ai_task)
+);
+
+const hasListeningTask = assignment => (
+    assignment?.source_type === "music_track"
+    || assignment?.source_type === "mission_pack"
+    || Boolean(assignment?.has_listening_task)
+);
+
 const normalizeListeningTracks = assignment => {
     if (Array.isArray(assignment?.tracks) && assignment.tracks.length) {
         return assignment.tracks.map((item, index) => {
             const track = item?.track || item || {};
-            const requiredListens = Number(item?.required_listens || assignment?.required_listens || 7);
+            const requiredListens = Number(
+                item?.required_listens || assignment?.required_listens || 7
+            );
             const playCount = Number(item?.play_count ?? track?.play_count ?? 0);
             return {
                 key: track?.id || item?.track_id || item?.id || index,
                 id: track?.id || item?.track_id || item?.id || null,
-                label: track?.display_page || track?.page || track?.title || track?.music_name || `音檔 ${index + 1}`,
-                book: track?.book || item?.book || assignment?.track?.book || null,
+                label: (
+                    track?.display_page
+                    || track?.page
+                    || track?.title
+                    || track?.music_name
+                    || "音檔 " + (index + 1)
+                ),
+                book: (
+                    track?.book
+                    || item?.book
+                    || assignment?.track?.book
+                    || null
+                ),
                 requiredListens,
                 playCount,
                 completed: Boolean(item?.completed) || playCount >= requiredListens
@@ -62,16 +92,79 @@ const normalizeListeningTracks = assignment => {
         return [{
             key: assignment.track.id,
             id: assignment.track.id,
-            label: assignment.track.display_page || assignment.track.page || assignment.track.title || "音檔",
+            label: (
+                assignment.track.display_page
+                || assignment.track.page
+                || assignment.track.title
+                || "音檔"
+            ),
             book: assignment.track.book || null,
             requiredListens,
             playCount,
-            completed: Boolean(assignment?.progress?.completed) || playCount >= requiredListens
+            completed: (
+                Boolean(assignment?.progress?.completed)
+                || playCount >= requiredListens
+            )
         }];
     }
 
     return [];
 };
+
+const getListeningMeta = assignment => {
+    const tracks = normalizeListeningTracks(assignment);
+    const completedTracks = tracks.filter(track => track.completed).length;
+    const bookCode = tracks[0]?.book?.code || assignment?.track?.book?.code || "";
+    const trackIds = tracks.map(track => track.id).filter(Boolean).join(",");
+    const requiredListens = Number(
+        assignment?.required_listens || tracks[0]?.requiredListens || 7
+    );
+    const url = (
+        bookCode && trackIds
+            ? (
+                "/student/books/"
+                + bookCode
+                + "?assignment="
+                + encodeURIComponent(assignment.id)
+                + "&tracks="
+                + encodeURIComponent(trackIds)
+                + "&required="
+                + requiredListens
+            )
+            : ""
+    );
+
+    return {
+        tracks,
+        completedTracks,
+        totalTracks: tracks.length,
+        rate: tracks.length
+            ? Math.round((completedTracks / tracks.length) * 100)
+            : 0,
+        url
+    };
+};
+
+const ListeningTrackList = ({ tracks }) => (
+    <div className="student-homework-listening__tracks">
+        {tracks.length ? tracks.map(track => (
+            <div
+                className={"student-homework-track " + (track.completed ? "completed" : "")}
+                key={track.key}
+            >
+                <span className="student-homework-track__check">
+                    {track.completed ? <Check size={14} /> : <Headphones size={14} />}
+                </span>
+                <strong>{track.label}</strong>
+                <span>{track.playCount} / {track.requiredListens} 次</span>
+            </div>
+        )) : (
+            <div className="student-homework-track syncing">
+                正在同步老師指定的音檔...
+            </div>
+        )}
+    </div>
+);
 
 const StudentAssignments = () => {
     const { firebaseUser } = useAuth();
@@ -84,23 +177,40 @@ const StudentAssignments = () => {
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState(null);
 
-    const load = useCallback(async () => {
+    const load = useCallback(async ({ silent = false } = {}) => {
         if (!firebaseUser) return;
-        setLoading(true);
+        if (!silent) setLoading(true);
         setMessage("");
         try {
             const response = await getStudentAssignments(firebaseUser);
             setAssignments(response.assignments || []);
             setToday(response.today || "");
+            setActiveAssignment(current => {
+                if (!current) return current;
+                return (
+                    (response.assignments || []).find(item => item.id === current.id)
+                    || current
+                );
+            });
         } catch (error) {
             setMessage(error.message);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, [firebaseUser]);
 
     useEffect(() => {
         load();
+    }, [load]);
+
+    useEffect(() => {
+        const refresh = () => load({ silent: true });
+        window.addEventListener("focus", refresh);
+        window.addEventListener("ae:track-progress-updated", refresh);
+        return () => {
+            window.removeEventListener("focus", refresh);
+            window.removeEventListener("ae:track-progress-updated", refresh);
+        };
     }, [load]);
 
     const counts = useMemo(() => ({
@@ -109,7 +219,9 @@ const StudentAssignments = () => {
         pending: assignments.filter(item => !item.progress?.completed).length
     }), [assignments]);
 
-    const completionRate = counts.total ? Math.round((counts.completed / counts.total) * 100) : 0;
+    const completionRate = counts.total
+        ? Math.round((counts.completed / counts.total) * 100)
+        : 0;
 
     const openQuiz = assignment => {
         const questionCount = assignment.material?.content?.questions?.length || 0;
@@ -117,7 +229,12 @@ const StudentAssignments = () => {
         setAnswers(Array(questionCount).fill(""));
         setResult(null);
         setMessage("");
-        window.setTimeout(() => document.getElementById("assignment-quiz")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+        window.setTimeout(() => {
+            document.getElementById("assignment-quiz")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }, 80);
     };
 
     const handleSubmit = async () => {
@@ -130,11 +247,21 @@ const StudentAssignments = () => {
         setSubmitting(true);
         setMessage("");
         try {
-            const response = await submitAssignment(firebaseUser, activeAssignment.id, answers);
+            const response = await submitAssignment(
+                firebaseUser,
+                activeAssignment.id,
+                answers
+            );
             setResult(response);
-            setAssignments(current => current.map(item => item.id === activeAssignment.id
-                ? { ...item, progress: response.progress }
-                : item
+            setAssignments(current => current.map(item => (
+                item.id === activeAssignment.id
+                    ? { ...item, progress: response.progress }
+                    : item
+            )));
+            setActiveAssignment(current => (
+                current
+                    ? { ...current, progress: response.progress }
+                    : current
             ));
         } catch (error) {
             setMessage(error.message);
@@ -142,6 +269,10 @@ const StudentAssignments = () => {
             setSubmitting(false);
         }
     };
+
+    const activeListening = activeAssignment
+        ? getListeningMeta(activeAssignment)
+        : null;
 
     return (
         <main className="assignment-page student-homework-page">
@@ -152,12 +283,30 @@ const StudentAssignments = () => {
                             <CalendarDays aria-hidden="true" size={17} />
                             {formatToday(today)}
                         </span>
-                        <h1>{counts.pending ? `今天還有 ${counts.pending} 項任務` : "今天的任務都完成了"}</h1>
-                        <p>{counts.pending ? "照自己的節奏完成，每一次練習都會累積進步。" : "做得很好！你已經完成老師今天安排的所有練習。"}</p>
+                        <h1>
+                            {counts.pending
+                                ? "今天還有 " + counts.pending + " 份任務包"
+                                : "今天的任務都完成了"}
+                        </h1>
+                        <p>
+                            {counts.pending
+                                ? "依序完成每個步驟，全部達標才會正式交作業。"
+                                : "做得很好！你已經完成老師安排的所有練習。"}
+                        </p>
                     </div>
 
-                    <div className="student-homework-progress" role="progressbar" aria-label="今日作業完成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={completionRate}>
-                        <div className="student-homework-progress__ring" style={{ "--homework-progress": `${completionRate * 3.6}deg` }}>
+                    <div
+                        className="student-homework-progress"
+                        role="progressbar"
+                        aria-label="今日作業完成進度"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow={completionRate}
+                    >
+                        <div
+                            className="student-homework-progress__ring"
+                            style={{ "--homework-progress": completionRate * 3.6 + "deg" }}
+                        >
                             <div>
                                 <strong>{completionRate}</strong>
                                 <span>%</span>
@@ -181,7 +330,10 @@ const StudentAssignments = () => {
                     </div>
                     <div className="student-homework-summary__tip">
                         <Target aria-hidden="true" size={20} />
-                        <span>AI 教材達到老師設定的及格分數，聽力完成指定次數，就會自動記錄完成。</span>
+                        <span>
+                            完整任務包必須同時完成指定聽力與 AI 測驗；
+                            選擇題達到老師設定分數才算通過。
+                        </span>
                     </div>
                 </section>
 
@@ -191,9 +343,9 @@ const StudentAssignments = () => {
                     <div className="student-homework-section-heading">
                         <div>
                             <span>TODAY'S PLAN</span>
-                            <h2>今天的學習任務</h2>
+                            <h2>今天的課後任務</h2>
                         </div>
-                        <span>{counts.total} 項作業</span>
+                        <span>{counts.total} 份作業</span>
                     </div>
 
                     <div className="student-homework-task-list">
@@ -205,23 +357,63 @@ const StudentAssignments = () => {
                             </div>
                         ) : assignments.length === 0 ? (
                             <div className="student-homework-state empty">
-                                <span className="student-homework-state__icon"><BookOpenCheck aria-hidden="true" size={30} /></span>
+                                <span className="student-homework-state__icon">
+                                    <BookOpenCheck aria-hidden="true" size={30} />
+                                </span>
                                 <strong>今天沒有新作業</strong>
                                 <p>目前沒有老師發布的任務，可以自由複習之前學過的內容。</p>
                             </div>
                         ) : assignments.map((item, itemIndex) => {
-                            const listeningTracks = normalizeListeningTracks(item);
-                            const completedTracks = listeningTracks.filter(track => track.completed).length;
-                            const bookCode = listeningTracks[0]?.book?.code || item.track?.book?.code || "";
-                            const assignmentTrackIds = listeningTracks.map(track => track.id).filter(Boolean).join(",");
-                            const requiredListens = Number(item.required_listens || listeningTracks[0]?.requiredListens || 7);
-                            const listeningUrl = `/student/books/${bookCode}?assignment=${encodeURIComponent(item.id)}&tracks=${encodeURIComponent(assignmentTrackIds)}&required=${requiredListens}`;
+                            const listening = getListeningMeta(item);
+                            const includesAi = hasAiTask(item);
+                            const includesListening = hasListeningTask(item);
+                            const isMissionPack = item.source_type === "mission_pack";
                             const isCompleted = Boolean(item.progress?.completed);
-                            const isAiMaterial = item.source_type === "ai_material";
-                            const listeningRate = listeningTracks.length ? Math.round((completedTracks / listeningTracks.length) * 100) : 0;
+                            const aiProgress = item.progress?.ai || {
+                                best_score: Number(item.progress?.best_score || 0),
+                                attempt_count: Number(item.progress?.attempt_count || 0),
+                                completed: (
+                                    includesAi
+                                    && Boolean(item.progress?.completed)
+                                    && !includesListening
+                                )
+                            };
+                            const listeningProgress = item.progress?.listening || {
+                                completed_count: listening.completedTracks,
+                                total_tracks: listening.totalTracks,
+                                completed: (
+                                    includesListening
+                                    && listening.totalTracks > 0
+                                    && listening.completedTracks === listening.totalTracks
+                                )
+                            };
+                            const totalTasks = Number(
+                                item.progress?.total_tasks
+                                || item.total_tasks
+                                || (Number(includesAi) + Number(includesListening))
+                            );
+                            const completedTasks = Number(
+                                item.progress?.task_completed_count
+                                ?? (
+                                    Number(aiProgress.completed)
+                                    + Number(listeningProgress.completed)
+                                )
+                            );
+                            const cardTone = isMissionPack
+                                ? "mission-pack"
+                                : includesAi
+                                    ? "ai-material"
+                                    : "listening";
 
                             return (
-                                <article className={`student-homework-task ${isAiMaterial ? "ai-material" : "listening"} ${isCompleted ? "completed" : ""}`} key={item.id}>
+                                <article
+                                    className={
+                                        "student-homework-task "
+                                        + cardTone
+                                        + (isCompleted ? " completed" : "")
+                                    }
+                                    key={item.id}
+                                >
                                     <div className="student-homework-task__rail" aria-hidden="true">
                                         <span>{String(itemIndex + 1).padStart(2, "0")}</span>
                                     </div>
@@ -229,14 +421,37 @@ const StudentAssignments = () => {
                                     <div className="student-homework-task__body">
                                         <div className="student-homework-task__top">
                                             <div className="student-homework-task__type">
-                                                <span>{isAiMaterial ? <Sparkles size={20} /> : <Headphones size={20} />}</span>
+                                                <span>
+                                                    {isMissionPack
+                                                        ? <Layers3 size={20} />
+                                                        : includesAi
+                                                            ? <Sparkles size={20} />
+                                                            : <Headphones size={20} />}
+                                                </span>
                                                 <div>
-                                                    <small>{isAiMaterial ? "AI PRACTICE" : "LISTENING"}</small>
-                                                    <strong>{isAiMaterial ? "AI 教材" : "聽力練習"}</strong>
+                                                    <small>
+                                                        {isMissionPack
+                                                            ? "MISSION PACK"
+                                                            : includesAi
+                                                                ? "AI PRACTICE"
+                                                                : "LISTENING"}
+                                                    </small>
+                                                    <strong>
+                                                        {isMissionPack
+                                                            ? "完整課後任務"
+                                                            : includesAi
+                                                                ? "AI 教材"
+                                                                : "聽力練習"}
+                                                    </strong>
                                                 </div>
                                             </div>
-                                            <span className={`student-homework-status ${isCompleted ? "completed" : "pending"}`}>
-                                                {isCompleted ? <Check size={15} /> : <Clock3 size={15} />}
+                                            <span className={
+                                                "student-homework-status "
+                                                + (isCompleted ? "completed" : "pending")
+                                            }>
+                                                {isCompleted
+                                                    ? <Check size={15} />
+                                                    : <Clock3 size={15} />}
                                                 {isCompleted ? "已完成" : "待完成"}
                                             </span>
                                         </div>
@@ -247,23 +462,143 @@ const StudentAssignments = () => {
                                         </div>
 
                                         <div className="student-homework-task__meta">
-                                            <span><CalendarDays aria-hidden="true" size={15} />{item.assigned_date} 發布</span>
-                                            <span><Clock3 aria-hidden="true" size={15} />{formatDateTime(item.due_at)} 截止</span>
+                                            <span>
+                                                <CalendarDays aria-hidden="true" size={15} />
+                                                {item.assigned_date} 發布
+                                            </span>
+                                            <span>
+                                                <Clock3 aria-hidden="true" size={15} />
+                                                {formatDateTime(item.due_at)} 截止
+                                            </span>
                                         </div>
 
-                                        {isAiMaterial ? (
+                                        {isMissionPack ? (
+                                            <>
+                                                <div className="student-homework-pack-progress">
+                                                    <div>
+                                                        <span>整份作業進度</span>
+                                                        <strong>{completedTasks} / {totalTasks} 個步驟</strong>
+                                                    </div>
+                                                    <div aria-hidden="true">
+                                                        <span style={{
+                                                            width: (
+                                                                totalTasks
+                                                                    ? Math.round(completedTasks / totalTasks * 100)
+                                                                    : 0
+                                                            ) + "%"
+                                                        }} />
+                                                    </div>
+                                                </div>
+
+                                                <div className="student-homework-pack-steps">
+                                                    <section className={
+                                                        "student-homework-pack-step listening-step "
+                                                        + (listeningProgress.completed ? "completed" : "")
+                                                    }>
+                                                        <div className="student-homework-pack-step__heading">
+                                                            <span>
+                                                                {listeningProgress.completed
+                                                                    ? <Check size={17} />
+                                                                    : <Headphones size={17} />}
+                                                            </span>
+                                                            <div>
+                                                                <small>STEP 1</small>
+                                                                <strong>完成指定聽力</strong>
+                                                            </div>
+                                                            <em>
+                                                                {listening.completedTracks}
+                                                                /
+                                                                {listening.totalTracks}
+                                                            </em>
+                                                        </div>
+                                                        <div className="student-homework-listening__bar" aria-hidden="true">
+                                                            <span style={{ width: listening.rate + "%" }} />
+                                                        </div>
+                                                        <ListeningTrackList tracks={listening.tracks} />
+                                                        {listening.url ? (
+                                                            <Link
+                                                                className="student-homework-pack-action"
+                                                                to={listening.url}
+                                                            >
+                                                                {listeningProgress.completed
+                                                                    ? "再次聆聽"
+                                                                    : "開始聆聽"}
+                                                                <ArrowRight size={17} />
+                                                            </Link>
+                                                        ) : (
+                                                            <button
+                                                                className="student-homework-pack-action"
+                                                                type="button"
+                                                                disabled
+                                                            >
+                                                                音檔同步中...
+                                                            </button>
+                                                        )}
+                                                    </section>
+
+                                                    <section className={
+                                                        "student-homework-pack-step ai-step "
+                                                        + (aiProgress.completed ? "completed" : "")
+                                                    }>
+                                                        <div className="student-homework-pack-step__heading">
+                                                            <span>
+                                                                {aiProgress.completed
+                                                                    ? <Check size={17} />
+                                                                    : <Sparkles size={17} />}
+                                                            </span>
+                                                            <div>
+                                                                <small>STEP 2</small>
+                                                                <strong>AI 教材選擇題</strong>
+                                                            </div>
+                                                            <em>{aiProgress.best_score || 0} 分</em>
+                                                        </div>
+                                                        <div className="student-homework-pack-ai">
+                                                            <div>
+                                                                <span>最高分</span>
+                                                                <strong>{aiProgress.best_score || 0}</strong>
+                                                            </div>
+                                                            <div>
+                                                                <span>作答次數</span>
+                                                                <strong>{aiProgress.attempt_count || 0}</strong>
+                                                            </div>
+                                                            <div>
+                                                                <span>通過標準</span>
+                                                                <strong>{item.passing_score}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            className="student-homework-pack-action"
+                                                            onClick={() => openQuiz(item)}
+                                                        >
+                                                            {aiProgress.completed ? "再次複習" : "開始測驗"}
+                                                            <ArrowRight size={17} />
+                                                        </button>
+                                                    </section>
+                                                </div>
+                                            </>
+                                        ) : includesAi ? (
                                             <div className="student-homework-ai">
                                                 <div className="student-homework-ai__metric">
                                                     <span>最高分</span>
-                                                    <strong>{item.progress?.best_score || 0}<small>分</small></strong>
+                                                    <strong>
+                                                        {aiProgress.best_score || 0}
+                                                        <small>分</small>
+                                                    </strong>
                                                 </div>
                                                 <div className="student-homework-ai__metric">
                                                     <span>已作答</span>
-                                                    <strong>{item.progress?.attempt_count || 0}<small>次</small></strong>
+                                                    <strong>
+                                                        {aiProgress.attempt_count || 0}
+                                                        <small>次</small>
+                                                    </strong>
                                                 </div>
                                                 <div className="student-homework-ai__metric highlight">
                                                     <span>完成標準</span>
-                                                    <strong>{item.passing_score}<small>分</small></strong>
+                                                    <strong>
+                                                        {item.passing_score}
+                                                        <small>分</small>
+                                                    </strong>
                                                 </div>
                                             </div>
                                         ) : (
@@ -271,43 +606,59 @@ const StudentAssignments = () => {
                                                 <div className="student-homework-listening__heading">
                                                     <div>
                                                         <strong>指定音檔</strong>
-                                                        <span>{completedTracks} / {listeningTracks.length} 個已完成</span>
+                                                        <span>
+                                                            {listening.completedTracks}
+                                                            {" / "}
+                                                            {listening.totalTracks}
+                                                            {" 個已完成"}
+                                                        </span>
                                                     </div>
-                                                    <strong>{listeningRate}%</strong>
+                                                    <strong>{listening.rate}%</strong>
                                                 </div>
                                                 <div className="student-homework-listening__bar" aria-hidden="true">
-                                                    <span style={{ width: `${listeningRate}%` }} />
+                                                    <span style={{ width: listening.rate + "%" }} />
                                                 </div>
-                                                <div className="student-homework-listening__tracks">
-                                                    {listeningTracks.length ? listeningTracks.map(track => (
-                                                        <div className={`student-homework-track ${track.completed ? "completed" : ""}`} key={track.key}>
-                                                            <span className="student-homework-track__check">{track.completed ? <Check size={14} /> : <Headphones size={14} />}</span>
-                                                            <strong>{track.label}</strong>
-                                                            <span>{track.playCount} / {track.requiredListens} 次</span>
-                                                        </div>
-                                                    )) : (
-                                                        <div className="student-homework-track syncing">正在同步老師指定的音檔...</div>
-                                                    )}
-                                                </div>
+                                                <ListeningTrackList tracks={listening.tracks} />
                                             </div>
                                         )}
 
-                                        <div className="student-homework-task__footer">
-                                            <span>{isCompleted ? "這項任務已完成，可以再次複習。" : isAiMaterial ? `達到 ${item.passing_score} 分即可完成` : "每個指定音檔都要聽滿次數"}</span>
-                                            {isAiMaterial ? (
-                                                <button type="button" className="student-homework-action" onClick={() => openQuiz(item)}>
-                                                    {isCompleted ? "再次複習" : "開始作業"}
-                                                    <ArrowRight aria-hidden="true" size={18} />
-                                                </button>
-                                            ) : bookCode && assignmentTrackIds ? (
-                                                <Link className="student-homework-action" to={listeningUrl}>
-                                                    {isCompleted ? "再次聆聽" : "開始聆聽"}
-                                                    <ArrowRight aria-hidden="true" size={18} />
-                                                </Link>
-                                            ) : (
-                                                <button className="student-homework-action" type="button" disabled>音檔同步中...</button>
-                                            )}
-                                        </div>
+                                        {!isMissionPack && (
+                                            <div className="student-homework-task__footer">
+                                                <span>
+                                                    {isCompleted
+                                                        ? "這項任務已完成，可以再次複習。"
+                                                        : includesAi
+                                                            ? "達到 " + item.passing_score + " 分即可完成"
+                                                            : "每個指定音檔都要聽滿次數"}
+                                                </span>
+                                                {includesAi ? (
+                                                    <button
+                                                        type="button"
+                                                        className="student-homework-action"
+                                                        onClick={() => openQuiz(item)}
+                                                    >
+                                                        {isCompleted ? "再次複習" : "開始作業"}
+                                                        <ArrowRight aria-hidden="true" size={18} />
+                                                    </button>
+                                                ) : listening.url ? (
+                                                    <Link
+                                                        className="student-homework-action"
+                                                        to={listening.url}
+                                                    >
+                                                        {isCompleted ? "再次聆聽" : "開始聆聽"}
+                                                        <ArrowRight aria-hidden="true" size={18} />
+                                                    </Link>
+                                                ) : (
+                                                    <button
+                                                        className="student-homework-action"
+                                                        type="button"
+                                                        disabled
+                                                    >
+                                                        音檔同步中...
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </article>
                             );
@@ -331,48 +682,132 @@ const StudentAssignments = () => {
                         )}
 
                         <div className="assignment-question-list">
-                            {(activeAssignment.material.content?.questions || []).map((question, questionIndex) => (
-                                <div className="assignment-question" key={questionIndex}>
-                                    <strong>Q{questionIndex + 1}. {question.question}</strong>
-                                    <div className="assignment-options">
-                                        {(question.options || []).map((option, optionIndex) => {
-                                            const checked = answers[questionIndex] === option;
-                                            const questionResult = result?.results?.[questionIndex];
-                                            const isCorrectAnswer = questionResult && questionResult.correct_answer === option;
-                                            const isWrongSelected = questionResult && checked && !questionResult.correct;
-                                            return (
-                                                <label className={`${checked ? "selected" : ""} ${isCorrectAnswer ? "correct" : ""} ${isWrongSelected ? "wrong" : ""}`} key={optionIndex}>
-                                                    <input
-                                                        type="radio"
-                                                        name={`assignment-question-${questionIndex}`}
-                                                        checked={checked}
-                                                        disabled={Boolean(result)}
-                                                        onChange={() => setAnswers(current => current.map((answer, index) => index === questionIndex ? option : answer))}
-                                                    />
-                                                    <span>{String.fromCharCode(65 + optionIndex)}.</span>
-                                                    <em>{option}</em>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                    {result?.results?.[questionIndex] && (
-                                        <div className={`assignment-explanation ${result.results[questionIndex].correct ? "correct" : "wrong"}`}>
-                                            <strong>{result.results[questionIndex].correct ? "答對了" : `正確答案：${result.results[questionIndex].correct_answer}`}</strong>
-                                            {result.results[questionIndex].explanation && <p>{result.results[questionIndex].explanation}</p>}
+                            {(activeAssignment.material.content?.questions || []).map(
+                                (question, questionIndex) => (
+                                    <div className="assignment-question" key={questionIndex}>
+                                        <strong>
+                                            Q{questionIndex + 1}. {question.question}
+                                        </strong>
+                                        <div className="assignment-options">
+                                            {(question.options || []).map((option, optionIndex) => {
+                                                const checked = answers[questionIndex] === option;
+                                                const questionResult = result?.results?.[questionIndex];
+                                                const isCorrectAnswer = (
+                                                    questionResult
+                                                    && questionResult.correct_answer === option
+                                                );
+                                                const isWrongSelected = (
+                                                    questionResult
+                                                    && checked
+                                                    && !questionResult.correct
+                                                );
+                                                return (
+                                                    <label
+                                                        className={
+                                                            (checked ? "selected " : "")
+                                                            + (isCorrectAnswer ? "correct " : "")
+                                                            + (isWrongSelected ? "wrong" : "")
+                                                        }
+                                                        key={optionIndex}
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            name={"assignment-question-" + questionIndex}
+                                                            checked={checked}
+                                                            disabled={Boolean(result)}
+                                                            onChange={() => setAnswers(current => (
+                                                                current.map((answer, index) => (
+                                                                    index === questionIndex
+                                                                        ? option
+                                                                        : answer
+                                                                ))
+                                                            ))}
+                                                        />
+                                                        <span>
+                                                            {String.fromCharCode(65 + optionIndex)}.
+                                                        </span>
+                                                        <em>{option}</em>
+                                                    </label>
+                                                );
+                                            })}
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                        {result?.results?.[questionIndex] && (
+                                            <div className={
+                                                "assignment-explanation "
+                                                + (
+                                                    result.results[questionIndex].correct
+                                                        ? "correct"
+                                                        : "wrong"
+                                                )
+                                            }>
+                                                <strong>
+                                                    {result.results[questionIndex].correct
+                                                        ? "答對了"
+                                                        : (
+                                                            "正確答案："
+                                                            + result.results[questionIndex].correct_answer
+                                                        )}
+                                                </strong>
+                                                {result.results[questionIndex].explanation && (
+                                                    <p>
+                                                        {result.results[questionIndex].explanation}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            )}
                         </div>
 
                         {result ? (
-                            <div className={`assignment-score-result ${result.passed ? "passed" : "failed"}`}>
+                            <div className={
+                                "assignment-score-result "
+                                + (result.passed ? "passed" : "failed")
+                            }>
+                                {result.passed
+                                    ? <Trophy aria-hidden="true" size={31} />
+                                    : <Target aria-hidden="true" size={31} />}
                                 <strong>{result.score} 分</strong>
-                                <span>{result.passed ? "🎉 作業完成" : `尚未完成，需要 ${result.passing_score} 分以上`}</span>
-                                {!result.passed && <button type="button" onClick={() => openQuiz(activeAssignment)}>重新挑戰</button>}
+                                <span>
+                                    {result.assignment_completed
+                                        ? "🎉 整份作業已完成"
+                                        : result.passed
+                                            ? "AI 測驗已通過，完成聽力後就能交作業"
+                                            : (
+                                                "尚未通過，需要 "
+                                                + result.passing_score
+                                                + " 分以上"
+                                            )}
+                                </span>
+                                {!result.passed && (
+                                    <button
+                                        type="button"
+                                        onClick={() => openQuiz(activeAssignment)}
+                                    >
+                                        重新挑戰
+                                    </button>
+                                )}
+                                {result.passed
+                                    && !result.assignment_completed
+                                    && activeListening?.url
+                                    && (
+                                        <Link
+                                            className="assignment-score-next"
+                                            to={activeListening.url}
+                                        >
+                                            前往完成聽力
+                                            <ArrowRight size={17} />
+                                        </Link>
+                                    )}
                             </div>
                         ) : (
-                            <button type="button" className="assignment-primary" onClick={handleSubmit} disabled={submitting}>
+                            <button
+                                type="button"
+                                className="assignment-primary"
+                                onClick={handleSubmit}
+                                disabled={submitting}
+                            >
                                 {submitting ? "批改中..." : "提交答案"}
                             </button>
                         )}
