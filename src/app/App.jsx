@@ -24,6 +24,7 @@ import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import ConversationPractice from "../components/Pages/ConversationPractice";
 import TeacherAssignments from "../components/Pages/TeacherAssignments";
 import StudentAssignments from "../components/Pages/StudentAssignments";
+import ReviewCenter from "../components/Pages/ReviewCenter";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -98,6 +99,7 @@ const App = () => {
 
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />

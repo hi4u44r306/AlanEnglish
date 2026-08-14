@@ -323,6 +323,11 @@
     --task-soft: #ebf8f2;
   }
 
+  &--review {
+    --task-color: #278d79;
+    --task-soft: #e9f8f4;
+  }
+
   &.is-completed {
     border-color: #dcece4;
 

@@ -10,7 +10,7 @@ import 'react-circular-progressbar/dist/styles.css';
 import BlueBook from '../assets/img/blue book.png';
 import Menu from '../assets/img/menu.png';
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FiBookOpen, FiHelpCircle, FiHome, FiLogOut, FiMessageCircle, FiSettings, FiStar, FiUsers } from "react-icons/fi";
+import { FiBookOpen, FiHelpCircle, FiHome, FiLogOut, FiMessageCircle, FiRefreshCw, FiSettings, FiStar, FiUsers } from "react-icons/fi";
 import Brand from "./Brand";
 import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
@@ -41,6 +41,7 @@ function MainNavbar() {
     const { role, isAuthenticated, logout, studentProfile } = useAuth();
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
+    const isStudent = role === "student";
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
 
@@ -128,6 +129,7 @@ function MainNavbar() {
                     <Navbar.Brand as={Link} to={homePath} className="ae-brand" data-tour="home"><Brand /></Navbar.Brand>
                     <Nav className="ae-desktop-nav d-none d-xl-flex">
                         {isAuthenticated && <Nav.Link as={Link} to={homePath} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><span className="ae-nav-inline"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</span></Nav.Link>}
+                        {isStudent && <Nav.Link as={Link} to="/student/review" className={isPathActive("/student/review") ? "active" : ""}><span className="ae-nav-inline"><FiRefreshCw />智慧複習</span></Nav.Link>}
                         {isAuthenticated && <Nav.Link as={Link} to="/student/conversation" className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation"><span className="ae-nav-inline"><FiMessageCircle />{isTeacher ? "英文對話示範" : "英文對話"}</span></Nav.Link>}
                         {isAuthenticated && <Nav.Link as={Link} to="/student/ai-generator" className={isPathActive("/student/ai-generator") ? "active" : ""}><span className="ae-nav-inline"><FiStar />AI 教材</span></Nav.Link>}
                         {loading ? <Nav.Link disabled>教材載入中...</Nav.Link> : navError ? <Nav.Link disabled>教材載入失敗</Nav.Link> : categories.map(renderDesktopCategory)}
@@ -144,7 +146,7 @@ function MainNavbar() {
                 <Offcanvas.Header closeButton><div className="ae-mobile-brand"><Brand /></div></Offcanvas.Header>
                 <Offcanvas.Body>
                     {isAuthenticated && <div className="ae-mobile-profile"><div className="ae-mobile-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</div><div><strong>{studentProfile?.name || "Alan English User"}</strong><span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span></div></div>}
-                    <section className="ae-mobile-section"><span className="ae-mobile-section-title">主要功能</span><Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span></Link><Link to="/student/conversation" onClick={closeMobileMenu} className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation"><FiMessageCircle /><span>{isTeacher ? "英文對話示範" : "英文對話"}</span></Link>{isAuthenticated && <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar /><span>AI 教材</span></Link>}</section>
+                    <section className="ae-mobile-section"><span className="ae-mobile-section-title">主要功能</span><Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span></Link>{isStudent && <Link to="/student/review" onClick={closeMobileMenu} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw /><span>智慧複習</span></Link>}<Link to="/student/conversation" onClick={closeMobileMenu} className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation"><FiMessageCircle /><span>{isTeacher ? "英文對話示範" : "英文對話"}</span></Link>{isAuthenticated && <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar /><span>AI 教材</span></Link>}</section>
                     <section className="ae-mobile-section"><span className="ae-mobile-section-title">教材</span>{renderMobileCategories()}</section>
                     {isTeacher && <section className="ae-mobile-section" data-tour="accounts"><span className="ae-mobile-section-title">管理</span><Link to={accountManagementPath} onClick={closeMobileMenu}><FiUsers /><span>帳號管理</span></Link><Link to="/teacher/accounts/create" onClick={closeMobileMenu}><FiUsers /><span>建立帳號</span></Link></section>}
                     {isTeacher && <section className="ae-mobile-section"><span className="ae-mobile-section-title">音檔</span><Link to="/teacher/music/create" onClick={closeMobileMenu}><FiBookOpen /><span>建立音檔</span></Link><Link to="/teacher/music/manage" onClick={closeMobileMenu}><FiSettings /><span>管理音檔</span></Link></section>}

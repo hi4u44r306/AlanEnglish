@@ -18,6 +18,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { supabase } from "./supabase-config";
 import { getAiMaterialUsage } from "../../services/aiMaterialService";
 import { getStudentAssignments } from "../../services/assignmentService";
+import { getReviewDashboard } from "../../services/reviewService";
 import { getConversationProgress } from "../../services/learningActivityService";
 import { getDashboardStats } from "../../services/listeningService";
 import "./css/User.scss";
@@ -37,6 +38,12 @@ const EMPTY_HOME_DATA = {
         total: 0,
         completed: 0,
         pending: 0
+    },
+    review: {
+        due: 0,
+        learning: 0,
+        mastered: 0,
+        total: 0
     },
     ai: {
         used: 0,
@@ -135,6 +142,7 @@ const User = () => {
         const requests = await Promise.allSettled([
             getDashboardStats(firebaseUser),
             getStudentAssignments(firebaseUser),
+            getReviewDashboard(firebaseUser),
             getAiMaterialUsage(firebaseUser),
             getConversationProgress(firebaseUser),
             supabase
@@ -146,7 +154,7 @@ const User = () => {
                 .maybeSingle()
         ]);
 
-        const [listeningResult, assignmentResult, aiResult, conversationResult, bookResult] = requests;
+        const [listeningResult, assignmentResult, reviewResult, aiResult, conversationResult, bookResult] = requests;
         const failedCount = requests.filter(result => result.status === "rejected").length;
 
         setHomeData(current => {
@@ -163,6 +171,16 @@ const User = () => {
             if (assignmentResult.status === "fulfilled") {
                 next.today = assignmentResult.value?.today || "";
                 next.assignments = normalizeAssignments(assignmentResult.value);
+            }
+
+            if (reviewResult.status === "fulfilled") {
+                const reviewStats = reviewResult.value?.stats || {};
+                next.review = {
+                    due: Number(reviewStats.due || 0),
+                    learning: Number(reviewStats.learning || 0),
+                    mastered: Number(reviewStats.mastered || 0),
+                    total: Number(reviewStats.total || 0)
+                };
             }
 
             if (aiResult.status === "fulfilled") {
@@ -198,10 +216,12 @@ const User = () => {
         const refreshProgress = () => loadHomeData({ silent: true });
 
         window.addEventListener("ae:track-progress-updated", refreshProgress);
+        window.addEventListener("ae:review-progress-updated", refreshProgress);
         window.addEventListener("focus", refreshProgress);
 
         return () => {
             window.removeEventListener("ae:track-progress-updated", refreshProgress);
+            window.removeEventListener("ae:review-progress-updated", refreshProgress);
             window.removeEventListener("focus", refreshProgress);
         };
     }, [loadHomeData]);
@@ -222,6 +242,24 @@ const User = () => {
                 path: "/student/assignments",
                 action: homeData.assignments.pending > 0 ? "開始作業" : "再次複習",
                 tone: "blue"
+            });
+        }
+
+        if (homeData.review.total > 0) {
+            tasks.push({
+                id: "review",
+                title: "智慧錯題複習",
+                description: homeData.review.due > 0
+                    ? `今天有 ${homeData.review.due} 題需要重新想一次`
+                    : `今天已完成，累計掌握 ${homeData.review.mastered} 題`,
+                meta: homeData.review.due > 0
+                    ? `${homeData.review.due} 題待複習`
+                    : "今日完成",
+                completed: homeData.review.due === 0,
+                icon: FiRefreshCw,
+                path: "/student/review",
+                action: homeData.review.due > 0 ? "開始複習" : "查看進度",
+                tone: "review"
             });
         }
 
