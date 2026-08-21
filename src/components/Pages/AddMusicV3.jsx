@@ -4,10 +4,14 @@ import {
     checkMusicTrack,
     createMusicBook,
     createMusicUpload,
+    confirmR2AudioTest,
     deleteMusicTrack,
     finalizeMusicUpload,
     getMusicAdminBootstrap,
+    getR2AudioStatus,
     listMusicTracks,
+    migrateR2AudioBatch,
+    prepareR2AudioTest,
     updateMusicTrackDisplayName
 } from "../../services/musicAdminService";
 import { supabase } from "./supabase-config";
@@ -36,8 +40,23 @@ const TYPE_SORT_OFFSET = {
     answer: 30
 };
 
+const R2_CORS_POLICY = JSON.stringify([
+    {
+        AllowedOrigins: [
+            "https://alanenglish.com.tw",
+            "https://www.alanenglish.com.tw",
+            "https://alan-english-listening.web.app",
+            "https://alan-english-listening.firebaseapp.com"
+        ],
+        AllowedMethods: ["GET", "HEAD", "PUT"],
+        AllowedHeaders: ["Content-Type", "Range"],
+        ExposeHeaders: ["ETag", "Content-Length"],
+        MaxAgeSeconds: 3600
+    }
+], null, 2);
+
 const AddMusicV3 = () => {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, role } = useAuth();
     const fileInputRef = useRef(null);
     const [books, setBooks] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -56,6 +75,9 @@ const AddMusicV3 = () => {
     const [editName, setEditName] = useState("");
     const [savingTrackId, setSavingTrackId] = useState(null);
     const [deletingTrackId, setDeletingTrackId] = useState(null);
+    const [r2Status, setR2Status] = useState(null);
+    const [r2Busy, setR2Busy] = useState(false);
+    const [migrationMessage, setMigrationMessage] = useState("");
 
     const selectedBook = useMemo(
         () => books.find(book => Number(book.id) === Number(selectedBookId)),
@@ -90,6 +112,18 @@ const AddMusicV3 = () => {
         }
     }, [firebaseUser, selectedBookId]);
 
+    const fetchR2Status = useCallback(async () => {
+        if (role !== "admin") return null;
+        try {
+            const result = await getR2AudioStatus(firebaseUser);
+            setR2Status(result);
+            return result;
+        } catch (error) {
+            setMigrationMessage(error.message || "無法讀取 R2 狀態");
+            return null;
+        }
+    }, [firebaseUser, role]);
+
     useEffect(() => {
         const load = async () => {
             setLoading(true);
@@ -102,6 +136,10 @@ const AddMusicV3 = () => {
     useEffect(() => {
         fetchExistingTracks();
     }, [fetchExistingTracks]);
+
+    useEffect(() => {
+        fetchR2Status();
+    }, [fetchR2Status]);
 
     const handleCreateBook = async () => {
         const categoryId = Number(newBook.category_id);
@@ -281,7 +319,8 @@ const AddMusicV3 = () => {
                     track_key: item.trackKey,
                     music_name: item.storageFileName,
                     storage_path: item.storagePath,
-                    sort_order: item.sortOrder
+                    sort_order: item.sortOrder,
+                    storage_provider: item.storageProvider || "supabase"
                 });
                 return { success: true, alreadyExists: Boolean(result?.already_exists) };
             } catch (error) {
@@ -312,18 +351,32 @@ const AddMusicV3 = () => {
 
         updateQueueItem(item.id, { status: "uploading", message: "上傳 Storage..." });
 
+        let storageProvider = "supabase";
         try {
             const signed = await createMusicUpload(firebaseUser, Number(selectedBookId), item.trackKey, item.storagePath);
             const uploadPath = signed?.upload?.path || item.storagePath;
-            const uploadToken = signed?.upload?.token;
-            if (!uploadToken) throw new Error("無法建立安全上傳網址");
-            const { error: uploadError } = await supabase.storage
-                .from("music")
-                .uploadToSignedUrl(uploadPath, uploadToken, item.file, {
-                    cacheControl: "3600",
-                    contentType: "audio/mpeg"
+            if (signed?.provider === "r2") {
+                const signedUrl = signed?.upload?.signed_url;
+                if (!signedUrl) throw new Error("無法建立 R2 安全上傳網址");
+                const response = await fetch(signedUrl, {
+                    method: signed.upload.method || "PUT",
+                    headers: signed.upload.headers || { "Content-Type": "audio/mpeg" },
+                    body: item.file
                 });
-            if (uploadError) throw uploadError;
+                if (!response.ok) throw new Error(`R2 上傳失敗（HTTP ${response.status}）`);
+                storageProvider = "r2";
+            } else {
+                const uploadToken = signed?.upload?.token;
+                if (!uploadToken) throw new Error("無法建立安全上傳網址");
+                const { error: uploadError } = await supabase.storage
+                    .from("music")
+                    .uploadToSignedUrl(uploadPath, uploadToken, item.file, {
+                        cacheControl: "3600",
+                        contentType: "audio/mpeg"
+                    });
+                if (uploadError) throw uploadError;
+                storageProvider = "supabase";
+            }
         } catch (uploadError) {
             if (uploadError?.code === "track_exists") {
                 updateQueueItem(item.id, { status: "skipped", message: `${item.displayPage} 已存在` });
@@ -335,7 +388,7 @@ const AddMusicV3 = () => {
         }
 
         updateQueueItem(item.id, { status: "database", message: "建立 Playlist..." });
-        const result = await insertTrackWithRetry(item, 3);
+        const result = await insertTrackWithRetry({ ...item, storageProvider }, 3);
 
         if (!result.success) {
             updateQueueItem(item.id, { status: "failed", message: `資料庫：${result.error?.message || "未知錯誤"}` });
@@ -348,6 +401,75 @@ const AddMusicV3 = () => {
         });
         removeFromPending(item.id);
         await sleep(250);
+    };
+
+    const handleConfigureR2 = async () => {
+        setR2Busy(true);
+        setMigrationMessage("正在驗證 R2，並從這個瀏覽器測試跨網域上傳...");
+        try {
+            const prepared = await prepareR2AudioTest(firebaseUser);
+            const response = await fetch(prepared.upload.signed_url, {
+                method: prepared.upload.method || "PUT",
+                headers: prepared.upload.headers || { "Content-Type": "text/plain" },
+                body: "Alan English R2 CORS verification"
+            });
+            if (!response.ok) throw new Error(`瀏覽器 R2 測試失敗（HTTP ${response.status}）`);
+            await confirmR2AudioTest(firebaseUser, prepared.test_key);
+            await fetchR2Status();
+            setMigrationMessage("R2 連線與瀏覽器 CORS 測試成功；之後新上傳的 MP3 將直接存入 R2。");
+        } catch (error) {
+            setMigrationMessage(`${error.message || "R2 設定失敗"}。若 R2 連線顯示正常，請先到 Bucket Settings 新增下方 CORS Policy。`);
+        } finally {
+            setR2Busy(false);
+        }
+    };
+
+    const migrateBatch = async limit => {
+        const result = await migrateR2AudioBatch(firebaseUser, limit);
+        if (result.failed > 0) {
+            const firstError = result.results?.find(item => !item.success)?.error;
+            throw new Error(firstError || `${result.failed} 首搬移失敗`);
+        }
+        return result;
+    };
+
+    const handleMigrateOne = async () => {
+        setR2Busy(true);
+        setMigrationMessage("正在複製第 1 首測試音檔；Supabase 原檔會保留...");
+        try {
+            const result = await migrateBatch(1);
+            await Promise.all([fetchR2Status(), fetchExistingTracks()]);
+            setMigrationMessage(result.complete
+                ? "沒有待搬移的音檔。"
+                : `已安全搬移 ${result.migrated} 首。請先播放 R2 標記的音檔，確認後再搬移全部。`);
+        } catch (error) {
+            await fetchR2Status();
+            setMigrationMessage(`測試停止：${error.message}`);
+        } finally {
+            setR2Busy(false);
+        }
+    };
+
+    const handleMigrateAll = async () => {
+        if (!window.confirm("將逐批複製剩餘 MP3 到 R2，Supabase 原檔仍會全部保留。搬移期間請保持此頁開啟。確定繼續？")) return;
+        setR2Busy(true);
+        let migrated = 0;
+        try {
+            while (true) {
+                setMigrationMessage(`安全搬移中，這次已完成 ${migrated} 首...`);
+                const result = await migrateBatch(5);
+                migrated += result.migrated;
+                if (result.complete || result.processed === 0) break;
+                await sleep(300);
+            }
+            await Promise.all([fetchR2Status(), fetchExistingTracks()]);
+            setMigrationMessage(`搬移完成：本次 ${migrated} 首。Supabase 原檔仍保留，尚未刪除。`);
+        } catch (error) {
+            await fetchR2Status();
+            setMigrationMessage(`已安全停止；完成的檔案不受影響。原因：${error.message}`);
+        } finally {
+            setR2Busy(false);
+        }
     };
 
     const handleUploadAll = async () => {
@@ -594,6 +716,50 @@ const AddMusicV3 = () => {
                 </section>
             </div>
 
+            {role === "admin" && (
+                <section className="admin-card r2-panel">
+                    <div className="library-header">
+                        <div>
+                            <span className="admin-eyebrow">PRIVATE AUDIO STORAGE</span>
+                            <h2>Cloudflare R2 安全搬移</h2>
+                            <p>逐首驗證後才切換播放來源；Supabase 原始 MP3 會保留，這裡不會刪除備份。</p>
+                        </div>
+                        <button type="button" className="text-button" onClick={fetchR2Status} disabled={r2Busy}>↻ 更新狀態</button>
+                    </div>
+                    <div className="r2-status-grid">
+                        <div><span>R2 連線</span><strong className={r2Status?.connection?.ok ? "r2-ok" : "r2-error"}>{r2Status?.connection?.ok ? "正常" : "待設定"}</strong></div>
+                        <div><span>Supabase</span><strong>{r2Status?.totals?.supabase ?? "—"}</strong></div>
+                        <div><span>R2</span><strong>{r2Status?.totals?.r2 ?? "—"}</strong></div>
+                        <div><span>錯誤</span><strong>{r2Status?.totals?.errors ?? "—"}</strong></div>
+                    </div>
+                    {r2Status?.connection?.error && <div className="r2-message r2-message-error">{r2Status.connection.error}</div>}
+                    {migrationMessage && <div className="r2-message">{migrationMessage}</div>}
+                    <div className="r2-actions">
+                        <button type="button" onClick={handleConfigureR2} disabled={r2Busy}>
+                            {r2Busy ? "處理中..." : r2Status?.settings?.upload_provider === "r2" ? "重新驗證 R2／CORS" : "驗證 R2 並啟用新上傳"}
+                        </button>
+                        <button type="button" onClick={handleMigrateOne} disabled={r2Busy || !r2Status?.connection?.ok}>
+                            複製 1 首測試
+                        </button>
+                        <button type="button" className="r2-migrate-all" onClick={handleMigrateAll} disabled={r2Busy || !r2Status?.connection?.ok || !r2Status?.totals?.r2 || !r2Status?.totals?.supabase}>
+                            搬移其餘全部
+                        </button>
+                    </div>
+                    <small>「搬移其餘全部」會在至少 1 首測試成功後才開放。請先播放有 R2 標記的測試音檔。</small>
+                    {r2Status?.settings?.upload_provider !== "r2" && (
+                        <details className="r2-cors-guide">
+                            <summary>R2 瀏覽器測試失敗時：查看要貼到 Cloudflare 的 CORS Policy</summary>
+                            <ol>
+                                <li>Cloudflare → R2 → alanenglish-audio → Settings</li>
+                                <li>CORS Policy → Add CORS policy → JSON</li>
+                                <li>貼上下方內容、儲存，再回來按「驗證 R2 並啟用新上傳」</li>
+                            </ol>
+                            <pre>{R2_CORS_POLICY}</pre>
+                        </details>
+                    )}
+                </section>
+            )}
+
             <section className="admin-card library-panel">
                 <div className="library-header">
                     <div><span className="admin-eyebrow">Library</span><h2>{selectedBook ? `${selectedBook.name} 音檔` : "教材音檔"}</h2></div>
@@ -610,7 +776,10 @@ const AddMusicV3 = () => {
                             <div className="track-card track-card-v3" key={track.id}>
                                 <div className="track-top">
                                     <span className="track-page">{track.display_page || track.page}</span>
-                                    <span className={track.enabled ? "track-enabled" : "track-disabled"}>{track.enabled ? "顯示中" : "已隱藏"}</span>
+                                    <div className="track-badges">
+                                        <span className={`storage-badge ${track.storage_provider === "r2" ? "storage-r2" : "storage-supabase"}`}>{track.storage_provider === "r2" ? "R2" : "Supabase"}</span>
+                                        <span className={track.enabled ? "track-enabled" : "track-disabled"}>{track.enabled ? "顯示中" : "已隱藏"}</span>
+                                    </div>
                                 </div>
                                 <strong>{track.music_name}</strong>
                                 <span className="track-path">{TRACK_TYPE_LABELS[track.track_type] || track.track_type}{track.part_number ? ` · 第 ${track.part_number} 段` : ""}</span>
