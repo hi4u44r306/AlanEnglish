@@ -16,6 +16,7 @@ function MembershipCenter() {
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(true);
     const [working, setWorking] = useState("");
+    const [verificationCooldown, setVerificationCooldown] = useState(0);
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
@@ -33,6 +34,11 @@ function MembershipCenter() {
     }, [firebaseUser, setStudentProfile]);
 
     useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        if (verificationCooldown <= 0) return undefined;
+        const timer = window.setInterval(() => setVerificationCooldown(current => Math.max(0, current - 1)), 1000);
+        return () => window.clearInterval(timer);
+    }, [verificationCooldown]);
     const membership = profile?.membership;
     const publicPlans = useMemo(() => plans.filter(plan => plan.is_public), [plans]);
 
@@ -77,10 +83,30 @@ function MembershipCenter() {
     const resendVerification = async () => {
         setWorking("verification");
         try {
-            await sendEmailVerification(firebaseUser, { url: `${window.location.origin}/` });
+            firebaseUser.auth.languageCode = "zh-TW";
+            await sendEmailVerification(firebaseUser, { url: `${window.location.origin}/student/membership` });
+            setVerificationCooldown(60);
             toast.success("驗證信已重新寄出，請檢查收件匣與垃圾郵件");
         } catch (error) {
             toast.error(error?.code === "auth/too-many-requests" ? "寄送次數過多，請稍後再試" : error.message || "驗證信寄送失敗");
+        } finally {
+            setWorking("");
+        }
+    };
+
+    const confirmVerification = async () => {
+        setWorking("confirm-verification");
+        try {
+            await firebaseUser.reload();
+            await firebaseUser.getIdToken(true);
+            if (!firebaseUser.emailVerified) {
+                toast.error("目前仍未完成驗證，請先點擊 Email 中的驗證連結");
+                return;
+            }
+            await load();
+            toast.success("Email 驗證完成，7 天免費試用已開始");
+        } catch (error) {
+            toast.error(error.message || "目前無法確認驗證狀態");
         } finally {
             setWorking("");
         }
@@ -95,7 +121,7 @@ function MembershipCenter() {
                 <div><span>目前狀態</span><h2>{STATUS_LABELS[membership?.status] || membership?.status || "尚未建立"}</h2><p>{membership?.plan?.name || "尚未選擇方案"}</p></div>
                 <div className="platform-status-meta"><div><span>可使用至</span><strong>{formatDate(membership?.effective_access_end)}</strong></div><div><span>剩餘天數</span><strong>{membership?.days_remaining == null ? "不限" : `${membership.days_remaining} 天`}</strong></div></div>
             </section>
-            {membership?.requires_email_verification && <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h2>先完成 Email 驗證</h2><p>驗證完成後重新登入，7 天免費試用才會開始計時。</p></div><button className="platform-secondary" onClick={resendVerification} disabled={working === "verification"}>{working === "verification" ? "寄送中…" : "重新寄送驗證信"}</button></div></section>}
+            {membership?.requires_email_verification && <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h2>先完成 Email 驗證</h2><p>驗證信會寄到 {firebaseUser?.email}。完成驗證後，7 天免費試用才會開始計時。</p></div><div className="platform-verification-actions"><button className="platform-secondary" onClick={resendVerification} disabled={working === "verification" || verificationCooldown > 0}>{working === "verification" ? "寄送中…" : verificationCooldown > 0 ? `${verificationCooldown} 秒後可重寄` : "重新寄送驗證信"}</button><button className="platform-primary" onClick={confirmVerification} disabled={working === "confirm-verification"}>{working === "confirm-verification" ? "確認中…" : "我已完成驗證"}</button></div></div><p className="platform-footnote">仍未收到時，請搜尋寄件者包含 noreply 的郵件，並檢查垃圾郵件或促銷內容。</p></section>}
             <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">ACTIVATION CODE</span><h2>教材啟用碼</h2></div><p>購買實體教材附贈的聽力權限，可在這裡啟用。</p></div><form className="platform-inline-form" onSubmit={redeem}><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="AE-XXXX-XXXX-XXXX" autoComplete="off" /><button className="platform-primary" disabled={working === "redeem"}>{working === "redeem" ? "啟用中…" : "啟用權限"}</button></form></section>
             <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">PLANS</span><h2>月費方案</h2></div>{membership?.stripe_subscription_status && <button className="platform-secondary" onClick={portal} disabled={working === "portal"}>管理目前訂閱</button>}</div>{publicPlans.length === 0 ? <div className="platform-empty"><strong>線上訂閱尚未開放</strong><p>目前可以使用免費試用或教材啟用碼。正式價格完成設定後，月費方案會自動顯示在這裡。</p></div> : <div className="platform-plan-grid">{publicPlans.map(plan => <article className="platform-plan" key={plan.id}><span>{plan.trial_days} 天試用</span><h3>{plan.name}</h3><p>{plan.description}</p><strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong><ul>{Object.entries(plan.features || {}).filter(([, enabled]) => enabled).map(([feature]) => <li key={feature}>✓ {feature.replaceAll("_", " ")}</li>)}</ul><button className="platform-primary" onClick={() => checkout(plan)} disabled={!plan.checkout_ready || working === `plan-${plan.id}`}>{working === `plan-${plan.id}` ? "前往付款中…" : "選擇方案"}</button></article>)}</div>}</section>
         </main>

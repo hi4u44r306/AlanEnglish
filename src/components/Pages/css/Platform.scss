@@ -147,6 +147,10 @@ textarea { resize: vertical; }
 .platform-form-error strong { color: #b42318; }
 .platform-form-error a { width: fit-content; margin-top: 3px; color: #b42318; font-weight: 800; }
 .platform-form input[aria-invalid="true"] { border-color: #f04438; box-shadow: 0 0 0 4px rgba(240, 68, 56, .1); }
+.platform-verification-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.platform-verification-notice { margin-top: 18px; padding: 13px 15px; border-radius: 12px; font-weight: 700; }
+.platform-verification-notice.success { color: #05603a; border: 1px solid #a6f4c5; background: #ecfdf3; }
+.platform-verification-notice.error { color: #912018; border: 1px solid #fda29b; background: #fff1f0; }
 .platform-inline-form { display: flex; gap: 12px; }
 .platform-inline-form input { flex: 1; text-transform: uppercase; letter-spacing: .08em; }
 .platform-check { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; }

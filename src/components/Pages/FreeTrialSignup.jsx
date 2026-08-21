@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { browserLocalPersistence, createUserWithEmailAndPassword, sendEmailVerification, setPersistence } from "firebase/auth";
 import { toast } from "react-toastify";
 import { authentication } from "./firebase-config";
 import { completePublicSignup } from "../../services/membershipService";
 import { saveStudentSession } from "../../auth/authService";
+import { useAuth } from "../../auth/AuthContext";
 import "./css/Platform.scss";
+
+const RESEND_COOLDOWN_SECONDS = 60;
 
 const friendlyAuthError = error => {
     if (error?.code === "auth/email-already-in-use") return "這個 Email 已經註冊，請直接登入。";
@@ -17,19 +20,62 @@ const friendlyAuthError = error => {
     return error?.message || "註冊失敗，請稍後再試。";
 };
 
+const friendlyVerificationError = error => {
+    if (error?.code === "auth/too-many-requests") return "寄送次數過多，請稍候幾分鐘再試。";
+    if (error?.code === "auth/network-request-failed") return "網路連線失敗，請確認連線後重新寄送。";
+    if (error?.code === "auth/unauthorized-continue-uri") return "網站驗證網址尚未授權，請聯絡管理員。";
+    return "驗證信寄送失敗，請稍後重新寄送。";
+};
+
 function FreeTrialSignup() {
     const navigate = useNavigate();
+    const { firebaseUser } = useAuth();
     const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", guardianName: "", guardianEmail: "" });
     const [submitting, setSubmitting] = useState(false);
-    const [verificationSent, setVerificationSent] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorField, setErrorField] = useState("");
+    const [verificationUser, setVerificationUser] = useState(null);
+    const [sendingVerification, setSendingVerification] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [verificationNotice, setVerificationNotice] = useState(null);
+
+    useEffect(() => {
+        if (firebaseUser && !firebaseUser.emailVerified) setVerificationUser(firebaseUser);
+    }, [firebaseUser]);
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return undefined;
+        const timer = window.setInterval(() => {
+            setResendCooldown(current => Math.max(0, current - 1));
+        }, 1000);
+        return () => window.clearInterval(timer);
+    }, [resendCooldown]);
 
     const update = event => {
         setForm(current => ({ ...current, [event.target.name]: event.target.value }));
         if (errorMessage) {
             setErrorMessage("");
             setErrorField("");
+        }
+    };
+
+    const sendVerification = async user => {
+        if (!user || user.emailVerified) return;
+        setSendingVerification(true);
+        setVerificationNotice(null);
+        try {
+            authentication.languageCode = "zh-TW";
+            await sendEmailVerification(user, { url: `${window.location.origin}/student/membership` });
+            setResendCooldown(RESEND_COOLDOWN_SECONDS);
+            setVerificationNotice({ type: "success", text: "驗證信已寄出，請檢查收件匣、垃圾郵件與促銷內容。" });
+            toast.success("驗證信已寄出");
+        } catch (error) {
+            console.error("Email 驗證信寄送失敗:", error);
+            const message = friendlyVerificationError(error);
+            setVerificationNotice({ type: "error", text: message });
+            toast.error(message);
+        } finally {
+            setSendingVerification(false);
         }
     };
 
@@ -49,6 +95,7 @@ function FreeTrialSignup() {
         try {
             await setPersistence(authentication, browserLocalPersistence);
             const credential = await createUserWithEmailAndPassword(authentication, form.email.trim().toLowerCase(), form.password);
+            setVerificationUser(credential.user);
             const result = await completePublicSignup(credential.user, {
                 name: form.name.trim(),
                 guardian_name: form.guardianName.trim() || undefined,
@@ -56,9 +103,7 @@ function FreeTrialSignup() {
             });
             saveStudentSession(credential.user, result.profile);
             if (result.email_verification_required) {
-                await sendEmailVerification(credential.user, { url: `${window.location.origin}/` });
-                setVerificationSent(true);
-                toast.success("驗證信已寄出");
+                await sendVerification(credential.user);
             } else {
                 navigate("/student/dashboard", { replace: true });
             }
@@ -71,8 +116,13 @@ function FreeTrialSignup() {
         }
     };
 
-    if (verificationSent) {
-        return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>請先驗證 Email</h1><p>驗證信已寄到 <strong>{form.email}</strong>。完成驗證後回到登入頁，即可開始 7 天免費試用。</p><Link className="platform-primary" to="/">回到登入頁</Link></section></main>;
+    if (verificationUser && !verificationUser.emailVerified) {
+        const resendLabel = sendingVerification
+            ? "寄送中…"
+            : resendCooldown > 0
+                ? `${resendCooldown} 秒後可重新寄送`
+                : "重新寄送驗證信";
+        return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>請先驗證 Email</h1><p>驗證信會寄到 <strong>{verificationUser.email || form.email}</strong>。完成驗證後，7 天免費試用才會開始計時。</p>{verificationNotice && <div className={`platform-verification-notice ${verificationNotice.type}`} role="status" aria-live="polite">{verificationNotice.text}</div>}<div className="platform-verification-actions"><button className="platform-primary" type="button" onClick={() => sendVerification(verificationUser)} disabled={sendingVerification || resendCooldown > 0}>{resendLabel}</button><Link className="platform-secondary" to="/student/membership">前往會員中心</Link></div><p className="platform-footnote">仍未收到時，請搜尋寄件者包含 <strong>noreply</strong> 的郵件，並檢查垃圾郵件或促銷內容。</p></section></main>;
     }
 
     return (
