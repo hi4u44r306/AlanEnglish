@@ -1,16 +1,20 @@
 .app-shell {
   width: 100%;
   min-height: 100vh;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  padding-top: 72px;
   background: #f7f9fc;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .app-header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 1000;
+  left: 0;
+  right: 0;
+  z-index: 1030;
   width: 100%;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.96);
@@ -208,6 +212,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  .app-shell {
+    padding-top: 66px;
+  }
+
   .app-content.has-player {
     padding-bottom: 95px;
   }
