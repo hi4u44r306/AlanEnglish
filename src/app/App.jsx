@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { ToastContainer } from "react-toastify";
-import { off, onValue, ref } from "firebase/database";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.scss";
 import "./MobileNavFix.scss";
@@ -13,10 +12,8 @@ import SolvePage from "../components/Pages/SolvePage";
 import Showcase from "../components/Pages/Showcase";
 import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
-import { rtdb } from "../components/Pages/firebase-config";
 import User from "../components/Pages/User";
 import AddMusic from "../components/Pages/AddMusicV3";
-import EditMainNavbar from "../components/fragment/EditMainNavbar";
 import NotFound from "../components/Pages/NotFound";
 import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
@@ -26,6 +23,16 @@ import TeacherAssignments from "../components/Pages/TeacherAssignments";
 import StudentAssignments from "../components/Pages/StudentAssignments";
 import ReviewCenter from "../components/Pages/ReviewCenter";
 import WeeklyReport from "../components/Pages/WeeklyReport";
+import FreeTrialSignup from "../components/Pages/FreeTrialSignup";
+import MembershipCenter from "../components/Pages/MembershipCenter";
+import BillingResult from "../components/Pages/BillingResult";
+import LearningLevel from "../components/Pages/LearningLevel";
+import LearningLeaderboard from "../components/Pages/LearningLeaderboard";
+import ApiUsageAdmin from "../components/Pages/ApiUsageAdmin";
+import MembershipAdmin from "../components/Pages/MembershipAdmin";
+import LevelAdmin from "../components/Pages/LevelAdmin";
+import CatalogAdmin from "../components/Pages/CatalogAdmin";
+import LegacyCleanupAdmin from "../components/Pages/LegacyCleanupAdmin";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -36,40 +43,6 @@ const LegacyPlaylistRedirect = () => {
 };
 
 const App = () => {
-    useEffect(() => {
-        const musicRef = ref(rtdb, "Music");
-        const navItemsRef = ref(rtdb, "WebsiteNavbar/");
-        const teachingResourcesRef = ref(rtdb, "TeachingResources/");
-
-        const unsubscribeMusic = onValue(musicRef, snapshot => {
-            if (snapshot.exists()) localStorage.setItem("ae-playlistData", JSON.stringify(snapshot.val()));
-        });
-
-        const unsubscribeNavbar = onValue(navItemsRef, snapshot => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                localStorage.setItem("ae-navData", JSON.stringify(data));
-                localStorage.setItem("ae-NavItems", JSON.stringify(Object.keys(data)));
-            }
-        });
-
-        const unsubscribeTeachingResources = onValue(teachingResourcesRef, snapshot => {
-            if (snapshot.exists()) {
-                const dataArray = Object.entries(snapshot.val()).map(([date, details]) => ({ date, ...details }));
-                localStorage.setItem("teachingResourcesData", JSON.stringify(dataArray));
-            }
-        });
-
-        return () => {
-            unsubscribeMusic();
-            unsubscribeNavbar();
-            unsubscribeTeachingResources();
-            off(musicRef);
-            off(navItemsRef);
-            off(teachingResourcesRef);
-        };
-    }, []);
-
     return (
         <Router>
             <AuthProvider>
@@ -98,14 +71,20 @@ const App = () => {
                     <Route path="/" element={<Login />} />
                     <Route path="/solve" element={<SolvePage />} />
                     <Route path="/showcase" element={<Showcase />} />
+                    <Route path="/freetrial" element={<FreeTrialSignup />} />
 
-                    <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><User /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><MembershipCenter /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/level" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLevel /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
+                    <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><BillingResult /></Containerfull></ProtectedRoute>} />
+                    <Route path="/billing/cancel" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><BillingResult cancelled /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
@@ -118,7 +97,12 @@ const App = () => {
                     <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
-                    <Route path="/admin/navbar" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><EditMainNavbar /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/navbar" element={<Navigate to="/admin/catalog" replace />} />
+                    <Route path="/admin/membership" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><MembershipAdmin /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/api-usage" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ApiUsageAdmin /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/levels" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LevelAdmin /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/catalog" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><CatalogAdmin /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/legacy-cleanup" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LegacyCleanupAdmin /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/userinfo" element={<RoleHomeRedirect />} />
                     <Route path="/teacher/add-music" element={<Navigate to="/teacher/music/create" replace />} />

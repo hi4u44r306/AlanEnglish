@@ -30,3 +30,6 @@ src/api/swl.js
 /node_modules
 
 src/del.json
+
+# Supabase CLI local metadata
+/supabase/.temp/

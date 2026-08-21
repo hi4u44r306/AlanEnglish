@@ -16,7 +16,7 @@ import {
 } from "react-icons/fi";
 import Logout from "./Logout";
 import { useAuth } from "../../auth/AuthContext";
-import { supabase } from "./supabase-config";
+import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getAiMaterialUsage } from "../../services/aiMaterialService";
 import { getStudentAssignments } from "../../services/assignmentService";
 import { getReviewDashboard } from "../../services/reviewService";
@@ -146,13 +146,7 @@ const User = () => {
             getReviewDashboard(firebaseUser),
             getAiMaterialUsage(firebaseUser),
             getConversationProgress(firebaseUser),
-            supabase
-                .from("books")
-                .select("code")
-                .eq("enabled", true)
-                .order("sort_order", { ascending: true })
-                .limit(1)
-                .maybeSingle()
+            getAccessibleCatalog(firebaseUser)
         ]);
 
         const [listeningResult, assignmentResult, reviewResult, aiResult, conversationResult, bookResult] = requests;
@@ -197,8 +191,13 @@ const User = () => {
                 next.conversation = normalizeConversation(conversationResult.value);
             }
 
-            if (bookResult.status === "fulfilled" && !bookResult.value?.error && bookResult.value?.data?.code) {
-                next.firstBookPath = `/student/books/${bookResult.value.data.code}`;
+            if (bookResult.status === "fulfilled") {
+                const firstUnlockedBook = (bookResult.value?.categories || [])
+                    .flatMap(category => category.books || [])
+                    .find(book => !book.locked);
+                next.firstBookPath = firstUnlockedBook?.code
+                    ? `/student/books/${firstUnlockedBook.code}`
+                    : "/student/level";
             }
 
             return next;

@@ -9,7 +9,7 @@ const getRoleHome = (role) => {
 };
 
 const RoleHomeRedirect = () => {
-    const { authLoading, isAuthenticated, role } = useAuth();
+    const { authLoading, isAuthenticated, role, studentProfile } = useAuth();
 
     if (authLoading) {
         return (
@@ -26,6 +26,10 @@ const RoleHomeRedirect = () => {
     }
 
     if (!isAuthenticated) return <Navigate to="/" replace />;
+
+    if (role === "student" && !studentProfile?.membership?.is_active) {
+        return <Navigate to="/student/membership" replace />;
+    }
 
     return <Navigate to={getRoleHome(role)} replace />;
 };

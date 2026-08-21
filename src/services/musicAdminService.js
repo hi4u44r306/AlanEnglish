@@ -24,6 +24,38 @@ const callMusicAdminFunction = async (firebaseUser, body = {}) => {
     return result;
 };
 
+export const getMusicAdminBootstrap = firebaseUser => callMusicAdminFunction(firebaseUser, {
+    action: "bootstrap"
+});
+
+export const createMusicBook = (firebaseUser, payload) => callMusicAdminFunction(firebaseUser, {
+    action: "create_book",
+    ...payload
+});
+
+export const listMusicTracks = (firebaseUser, bookId) => callMusicAdminFunction(firebaseUser, {
+    action: "list_tracks",
+    book_id: bookId
+});
+
+export const checkMusicTrack = (firebaseUser, bookId, trackKey) => callMusicAdminFunction(firebaseUser, {
+    action: "check_track",
+    book_id: bookId,
+    track_key: trackKey
+});
+
+export const createMusicUpload = (firebaseUser, bookId, trackKey, storagePath) => callMusicAdminFunction(firebaseUser, {
+    action: "create_upload",
+    book_id: bookId,
+    track_key: trackKey,
+    storage_path: storagePath
+});
+
+export const finalizeMusicUpload = (firebaseUser, payload) => callMusicAdminFunction(firebaseUser, {
+    action: "finalize_upload",
+    ...payload
+});
+
 export const deleteMusicTrack = (firebaseUser, trackId) => callMusicAdminFunction(firebaseUser, {
     action: "delete_track",
     track_id: trackId

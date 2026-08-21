@@ -117,3 +117,29 @@ export const submitAiMaterialAttempt = async (
         }
     );
 };
+
+export const getAiCostDashboard = async (
+    firebaseUser,
+    month
+) => {
+    return await callAiMaterialFunction(
+        firebaseUser,
+        {
+            action: "cost_dashboard",
+            month
+        }
+    );
+};
+
+export const updateAiCostBudget = async (
+    firebaseUser,
+    payload
+) => {
+    return await callAiMaterialFunction(
+        firebaseUser,
+        {
+            action: "update_cost_budget",
+            ...payload
+        }
+    );
+};

@@ -3,11 +3,12 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Headphones } from "lucide-react";
 import MusicCard from "./MusicCard";
 import "../assets/scss/Playlist.scss";
-import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
 import { getBookPlaybackProgress } from "../../services/listeningService";
+import { getAccessibleBook } from "../../services/contentAccessService";
 
 const PLAYLIST_CACHE_PREFIX = "ae-playlist-cache:";
+const PLAYLIST_CACHE_TTL = 45 * 60 * 1000;
 const getPlaylistCacheKey = playlistId => `${PLAYLIST_CACHE_PREFIX}${playlistId}`;
 
 function readPlaylistCache(playlistId) {
@@ -16,6 +17,10 @@ function readPlaylistCache(playlistId) {
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         if (!parsed || !parsed.book || !Array.isArray(parsed.tracks)) return null;
+        if (!parsed.cachedAt || Date.now() - parsed.cachedAt > PLAYLIST_CACHE_TTL) {
+            sessionStorage.removeItem(getPlaylistCacheKey(playlistId));
+            return null;
+        }
         return parsed;
     } catch (error) {
         console.warn("讀取 Playlist 快取失敗:", error);
@@ -65,29 +70,18 @@ function Playlist() {
                 setLoading(true);
             }
             try {
-                const { data: bookData, error: bookError } = await supabase.from("books").select("id,name,code,category_id,sort_order,enabled").eq("code", playlistId).eq("enabled", true).maybeSingle();
+                const result = await getAccessibleBook(firebaseUser, playlistId);
                 if (cancelled) return;
-                if (bookError) throw bookError;
+                const bookData = result?.book;
                 if (!bookData) throw new Error("找不到這本教材");
-                const { data: trackData, error: trackError } = await supabase.from("music_tracks").select("*").eq("book_id", bookData.id).eq("enabled", true).order("sort_order", { ascending: true });
-                if (cancelled) return;
-                if (trackError) throw trackError;
-                const convertedTracks = (trackData || []).map(track => {
-                    const { data: publicUrlData } = supabase.storage.from("music").getPublicUrl(track.audio_url);
-                    return {
-                        id: track.id,
-                        book_id: track.book_id,
-                        page: track.page,
-                        title: track.title,
-                        sort_order: track.sort_order,
-                        bookname: bookData.name,
-                        type: playlistId,
-                        musicName: track.music_name,
-                        audioURL: publicUrlData.publicUrl,
-                        audio_url: publicUrlData.publicUrl,
-                        image: track.image
-                    };
-                });
+                const convertedTracks = (result?.tracks || []).map(track => ({
+                    ...track,
+                    bookname: bookData.name,
+                    type: playlistId,
+                    musicName: track.music_name,
+                    audioURL: track.audio_url,
+                    audio_url: track.audio_url
+                }));
                 if (cancelled) return;
                 setBook(bookData);
                 setTracks(convertedTracks);
