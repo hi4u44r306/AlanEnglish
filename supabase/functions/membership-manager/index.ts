@@ -608,7 +608,7 @@ Deno.serve(async (req: Request) => {
                 .select(`
                     id,firebase_uid,email,name,role,class,plan,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at,
                     memberships(${membershipSelect}),
-                    student_level_progress(student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,badge_color))
+                    student_level_progress:student_level_progress!student_level_progress_student_id_fkey(student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,badge_color))
                 `)
                 .order("name", { ascending: true });
             if (caller.role === "teacher") query = query.eq("role", "student");
