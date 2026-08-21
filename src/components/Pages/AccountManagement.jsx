@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../auth/AuthContext";
 import { getManagedAccounts, updateManagedAccount } from "../../services/membershipService";
@@ -323,14 +323,6 @@ function AccountManagement() {
                 )}
             </section>
 
-            <ToastContainer
-                position="top-center"
-                autoClose={2200}
-                hideProgressBar={false}
-                closeOnClick
-                pauseOnHover={false}
-                draggable
-            />
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Signup.scss";
 
@@ -387,17 +387,6 @@ function Signup() {
                     {isLoading ? "建立中..." : `建立${accountRole === "student" ? "學生" : accountRole === "teacher" ? "教師" : "管理員"}帳號`}
                 </button>
 
-                <ToastContainer
-                    position="top-center"
-                    autoClose={2000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                />
             </form>
         </div>
     );

@@ -135,6 +135,18 @@ textarea { resize: vertical; }
 .platform-admin-card input:focus,
 .platform-admin-card textarea:focus { border-color: var(--ae-primary); box-shadow: 0 0 0 4px rgba(255, 138, 76, .12); }
 .platform-footnote { text-align: center; margin: 22px 0 0; }
+.platform-form-error {
+    display: grid;
+    gap: 4px;
+    padding: 13px 15px;
+    border: 1px solid #fda29b;
+    border-radius: 12px;
+    color: #7a271a;
+    background: #fff4f3;
+}
+.platform-form-error strong { color: #b42318; }
+.platform-form-error a { width: fit-content; margin-top: 3px; color: #b42318; font-weight: 800; }
+.platform-form input[aria-invalid="true"] { border-color: #f04438; box-shadow: 0 0 0 4px rgba(240, 68, 56, .1); }
 .platform-inline-form { display: flex; gap: 12px; }
 .platform-inline-form input { flex: 1; text-transform: uppercase; letter-spacing: .08em; }
 .platform-check { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; }

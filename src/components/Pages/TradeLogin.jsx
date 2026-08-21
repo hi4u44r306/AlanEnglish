@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import './css/TradeLogin.scss';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { authentication, rtdb } from "./firebase-config";
@@ -123,18 +123,6 @@ function TradeLogin() {
                             >
                                 {isLoading ? "登入中..." : "登入"}
                             </button>
-                            <ToastContainer
-                                position="top-center"
-                                autoClose={2000}
-                                limit={1}
-                                hideProgressBar={false}
-                                newestOnTop={false}
-                                closeOnClick
-                                rtl={false}
-                                pauseOnFocusLoss
-                                draggable
-                                pauseOnHover
-                            />
                             <div className="logincopyrightcontainer">
                                 <span className="logincopyright" href="/">© 2024 桃園課後照顧服務中心版權所有</span>
                             </div>

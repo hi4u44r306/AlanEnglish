@@ -6,7 +6,7 @@ import {
     setPlayPauseStatus,
     setNoInteractionCount
 } from "../../actions/actions";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import Name from "./Name";
 import "../assets/scss/FooterPlayer.scss";
 import "react-h5-audio-player/lib/styles.css";
@@ -834,17 +834,6 @@ function MusicPlayer({ music }) {
                 ]}
             />
 
-            <ToastContainer
-                position="top-center"
-                autoClose={2000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
         </div>
     );
 }
