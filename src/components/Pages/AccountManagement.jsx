@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../auth/AuthContext";
-import { authentication } from "./firebase-config";
-import { supabase, supabaseKey, supabaseUrl } from "./supabase-config";
+import { getManagedAccounts, updateManagedAccount } from "../../services/membershipService";
 import "./css/ManagementDashboard.scss";
 
 const ROLE_LABELS = {
@@ -19,7 +18,7 @@ const PLAN_LABELS = {
 };
 
 function AccountManagement() {
-    const { role, studentProfile } = useAuth();
+    const { firebaseUser, role, studentProfile } = useAuth();
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -41,27 +40,17 @@ function AccountManagement() {
         setLoading(true);
         setErrorMessage("");
 
-        let query = supabase
-            .from("students")
-            .select("id, firebase_uid, email, name, role, class, plan, updated_at")
-            .order("name", { ascending: true });
-
-        if (!isAdmin) {
-            query = query.eq("role", "student");
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
+        try {
+            const result = await getManagedAccounts(firebaseUser);
+            setAccounts(result?.accounts || []);
+        } catch (error) {
             console.error("讀取帳號清單失敗:", error);
-            setErrorMessage("帳號清單讀取失敗");
+            setErrorMessage(error?.message || "帳號清單讀取失敗");
             setAccounts([]);
-        } else {
-            setAccounts(data || []);
         }
 
         setLoading(false);
-    }, [isAdmin]);
+    }, [firebaseUser]);
 
     useEffect(() => {
         fetchAccounts();
@@ -124,9 +113,7 @@ function AccountManagement() {
             return;
         }
 
-        const currentUser = authentication.currentUser;
-
-        if (!currentUser) {
+        if (!firebaseUser) {
             toast.error("登入狀態已失效，請重新登入");
             return;
         }
@@ -134,38 +121,15 @@ function AccountManagement() {
         setSaving(true);
 
         try {
-            const idToken = await currentUser.getIdToken(true);
-
-            const response = await fetch(`${supabaseUrl}/functions/v1/update-user`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${idToken}`,
-                    "apikey": supabaseKey
-                },
-                body: JSON.stringify({
-                    id: editingAccount.id,
-                    name: editForm.name.trim(),
-                    role: isAdmin ? editForm.role : "student",
-                    class: editForm.role === "student" ? editForm.class : null,
-                    plan: editForm.role === "student" ? editForm.plan : null
-                })
+            const result = await updateManagedAccount(firebaseUser, {
+                id: editingAccount.id,
+                name: editForm.name.trim(),
+                role: isAdmin ? editForm.role : "student",
+                class: editForm.role === "student" ? editForm.class : null,
+                plan: editForm.role === "student" ? editForm.plan : null
             });
-
-            let result = null;
-
-            try {
-                result = await response.json();
-            } catch (error) {
-                console.error("update-user 回傳格式錯誤:", error);
-            }
-
-            if (!response.ok) {
-                throw new Error(result?.error || `帳號更新失敗（HTTP ${response.status}）`);
-            }
-
             setAccounts(prev => prev.map(account => (
-                account.id === result.user.id ? result.user : account
+                account.id === result.account.id ? result.account : account
             )));
 
             setEditingAccount(null);

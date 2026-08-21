@@ -47,6 +47,16 @@ const addDays = (value: Date, days: number) => {
     return next.toISOString();
 };
 
+const membershipIsActive = (membership: any) => {
+    const status = String(membership?.status || "");
+    if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
+    const endTimes = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
+        .map(value => value ? new Date(value).getTime() : Number.NaN)
+        .filter(Number.isFinite);
+    if (status === "cancelled" && endTimes.length === 0) return false;
+    return endTimes.length === 0 || Math.max(...endTimes) > Date.now();
+};
+
 const cleanOptions = (value: unknown) => (
     Array.isArray(value)
         ? value.map(option => String(option ?? "").trim()).filter(Boolean).slice(0, 8)
@@ -77,7 +87,6 @@ const sanitizeReviewItem = (item: any) => ({
     first_wrong_at: item.first_wrong_at,
     next_review_at: item.next_review_at
 });
-
 const buildStats = (items: any[]) => {
     const now = Date.now();
     const learning = items.filter(item => item.status === "learning");
@@ -317,6 +326,20 @@ Deno.serve(async (req: Request) => {
         if (!caller) return json(404, { error: "找不到 Alan English 帳號" });
         if (caller.role !== "student") {
             return json(403, { error: "智慧複習中心目前提供學生帳號使用" });
+        }
+
+        const { data: membership, error: membershipError } = await admin
+            .from("memberships")
+            .select("status,trial_ends_at,access_ends_at,current_period_end,subscription_plans(features)")
+            .eq("student_id", caller.id)
+            .maybeSingle();
+        if (membershipError) throw membershipError;
+        if (!membershipIsActive(membership)) {
+            return json(402, { error: "會員使用期限已結束，無法使用智慧複習", code: "membership_required" });
+        }
+        const reviewPlan = Array.isArray(membership?.subscription_plans) ? membership.subscription_plans[0] : membership?.subscription_plans;
+        if (reviewPlan && reviewPlan.features?.review !== true) {
+            return json(403, { error: "目前方案不包含智慧複習，請升級為全方位方案", code: "plan_upgrade_required" });
         }
 
         const body = await req.json().catch(() => ({}));

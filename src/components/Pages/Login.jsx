@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { loginWithEmail } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
@@ -254,6 +254,11 @@ function Login() {
                                 </>
                             ) : "登入"}
                         </button>
+
+                        <div className="login-trial">
+                            <span>還沒有帳號？</span>
+                            <Link to="/freetrial">立即開始 7 天免費試用</Link>
+                        </div>
 
                         <div className="login-tip">
                             <span>🎧</span>

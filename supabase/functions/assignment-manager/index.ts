@@ -39,6 +39,16 @@ const hasListeningTask = (sourceType: string) => (
     sourceType === "music_track" || sourceType === "mission_pack"
 );
 
+const membershipIsActive = (membership: any) => {
+    const status = String(membership?.status || "");
+    if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
+    const endTimes = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
+        .map(value => value ? new Date(value).getTime() : Number.NaN)
+        .filter(Number.isFinite);
+    if (status === "cancelled" && endTimes.length === 0) return false;
+    return endTimes.length === 0 || Math.max(...endTimes) > Date.now();
+};
+
 async function verifyFirebaseIdToken(token: string) {
     const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
         issuer: FIREBASE_ISSUER,
@@ -190,6 +200,22 @@ Deno.serve(async (req: Request) => {
         const body = await req.json().catch(() => ({}));
         const action = String(body?.action || "");
         const isManager = caller.role === "teacher" || caller.role === "admin";
+
+        if (!isManager) {
+            const { data: membership, error: membershipError } = await admin
+                .from("memberships")
+                .select("status,trial_ends_at,access_ends_at,current_period_end,subscription_plans(features)")
+                .eq("student_id", caller.id)
+                .maybeSingle();
+            if (membershipError) throw membershipError;
+            if (!membershipIsActive(membership)) {
+                return json(402, { error: "會員使用期限已結束，無法使用學生作業", code: "membership_required" });
+            }
+            const assignmentPlan = Array.isArray(membership?.subscription_plans) ? membership.subscription_plans[0] : membership?.subscription_plans;
+            if (assignmentPlan && assignmentPlan.features?.assignments !== true) {
+                return json(403, { error: "目前方案不包含學生作業，請升級方案", code: "plan_upgrade_required" });
+            }
+        }
 
         if (action === "teacher_bootstrap") {
             if (!isManager) {

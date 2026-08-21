@@ -1,6 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
-import { deleteMusicTrack, updateMusicTrackDisplayName } from "../../services/musicAdminService";
+import {
+    checkMusicTrack,
+    createMusicBook,
+    createMusicUpload,
+    deleteMusicTrack,
+    finalizeMusicUpload,
+    getMusicAdminBootstrap,
+    listMusicTracks,
+    updateMusicTrackDisplayName
+} from "../../services/musicAdminService";
 import { supabase } from "./supabase-config";
 import "./css/AddMusic.scss";
 import "./css/AddMusicV3.scss";
@@ -55,72 +64,44 @@ const AddMusicV3 = () => {
 
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    const fetchBooks = async () => {
-        const { data, error } = await supabase
-            .from("books")
-            .select("id,name,code,category_id,sort_order,enabled")
-            .eq("enabled", true)
-            .order("category_id", { ascending: true })
-            .order("sort_order", { ascending: true });
-
-        if (error) {
+    const fetchBooks = useCallback(async () => {
+        try {
+            const result = await getMusicAdminBootstrap(firebaseUser);
+            setBooks(result?.books || []);
+            setCategories(result?.categories || []);
+            return result?.books || [];
+        } catch (error) {
             console.error("讀取教材失敗:", error);
             return [];
         }
+    }, [firebaseUser]);
 
-        setBooks(data || []);
-        return data || [];
-    };
-
-    const fetchCategories = async () => {
-        const { data, error } = await supabase
-            .from("book_categories")
-            .select("id,name,code,sort_order,enabled")
-            .eq("enabled", true)
-            .order("sort_order", { ascending: true });
-
-        if (error) {
-            console.error("讀取分類失敗:", error);
-            return [];
-        }
-
-        setCategories(data || []);
-        return data || [];
-    };
-
-    const fetchExistingTracks = async () => {
+    const fetchExistingTracks = useCallback(async () => {
         if (!selectedBookId) {
             setExistingTracks([]);
             return;
         }
 
-        const { data, error } = await supabase
-            .from("music_tracks")
-            .select("*")
-            .eq("book_id", Number(selectedBookId))
-            .order("sort_order", { ascending: true })
-            .order("id", { ascending: true });
-
-        if (error) {
+        try {
+            const result = await listMusicTracks(firebaseUser, Number(selectedBookId));
+            setExistingTracks(result?.tracks || []);
+        } catch (error) {
             console.error("讀取音檔失敗:", error);
-            return;
         }
-
-        setExistingTracks(data || []);
-    };
+    }, [firebaseUser, selectedBookId]);
 
     useEffect(() => {
         const load = async () => {
             setLoading(true);
-            await Promise.all([fetchBooks(), fetchCategories()]);
+            await fetchBooks();
             setLoading(false);
         };
         load();
-    }, []);
+    }, [fetchBooks]);
 
     useEffect(() => {
         fetchExistingTracks();
-    }, [selectedBookId]);
+    }, [fetchExistingTracks]);
 
     const handleCreateBook = async () => {
         const categoryId = Number(newBook.category_id);
@@ -132,19 +113,8 @@ const AddMusicV3 = () => {
 
         setCreatingBook(true);
         try {
-            const sameCategoryBooks = books.filter(book => Number(book.category_id) === categoryId);
-            const nextSortOrder = sameCategoryBooks.length
-                ? Math.max(...sameCategoryBooks.map(book => Number(book.sort_order) || 0)) + 1
-                : 1;
-
-            const { data, error } = await supabase
-                .from("books")
-                .insert({ category_id: categoryId, name, code, sort_order: nextSortOrder, enabled: true })
-                .select("id,name,code,category_id,sort_order,enabled")
-                .single();
-
-            if (error) throw error;
-
+            const result = await createMusicBook(firebaseUser, { category_id: categoryId, name, code });
+            const data = result.book;
             await fetchBooks();
             setSelectedBookId(String(data.id));
             setSelectedFiles([]);
@@ -285,19 +255,13 @@ const AddMusicV3 = () => {
     };
 
     const checkTrackExists = async trackKey => {
-        const { data, error } = await supabase
-            .from("music_tracks")
-            .select("id,track_key,display_page,music_name,audio_url")
-            .eq("book_id", Number(selectedBookId))
-            .eq("track_key", trackKey)
-            .maybeSingle();
-
-        if (error) {
+        try {
+            const result = await checkMusicTrack(firebaseUser, Number(selectedBookId), trackKey);
+            return Boolean(result?.exists);
+        } catch (error) {
             console.warn("檢查音檔是否存在失敗:", error);
             return false;
         }
-
-        return Boolean(data);
     };
 
     const insertTrackWithRetry = async (item, maxRetries = 3) => {
@@ -306,9 +270,8 @@ const AddMusicV3 = () => {
         for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
             if (await checkTrackExists(item.trackKey)) return { success: true, alreadyExists: true };
 
-            const { error } = await supabase
-                .from("music_tracks")
-                .insert({
+            try {
+                const result = await finalizeMusicUpload(firebaseUser, {
                     book_id: Number(selectedBookId),
                     page: item.page,
                     base_page: item.basePage,
@@ -316,17 +279,16 @@ const AddMusicV3 = () => {
                     track_type: item.trackType,
                     part_number: item.partNumber,
                     track_key: item.trackKey,
-                    title: `${selectedBook.name} ${item.displayPage}`,
                     music_name: item.storageFileName,
-                    audio_url: item.storagePath,
-                    sort_order: item.sortOrder,
-                    enabled: true
+                    storage_path: item.storagePath,
+                    sort_order: item.sortOrder
                 });
+                return { success: true, alreadyExists: Boolean(result?.already_exists) };
+            } catch (error) {
+                lastError = error;
+            }
 
-            if (!error) return { success: true, alreadyExists: false };
-            lastError = error;
-
-            const retryable = /timeout|connection|network|fetch|500|502|503|504/i.test(error?.message || "");
+            const retryable = /timeout|connection|network|fetch|500|502|503|504/i.test(lastError?.message || "");
             if (!retryable || attempt === maxRetries) break;
 
             updateQueueItem(item.id, { status: "database", message: `資料庫忙碌，自動重試 ${attempt}/${maxRetries}...` });
@@ -350,16 +312,25 @@ const AddMusicV3 = () => {
 
         updateQueueItem(item.id, { status: "uploading", message: "上傳 Storage..." });
 
-        const { error: uploadError } = await supabase.storage
-            .from("music")
-            .upload(item.storagePath, item.file, {
-                cacheControl: "3600",
-                contentType: "audio/mpeg",
-                upsert: false
-            });
-
-        if (uploadError && !/already exists|duplicate|resource already exists/i.test(uploadError.message || "")) {
-            updateQueueItem(item.id, { status: "failed", message: `Storage：${uploadError.message}` });
+        try {
+            const signed = await createMusicUpload(firebaseUser, Number(selectedBookId), item.trackKey, item.storagePath);
+            const uploadPath = signed?.upload?.path || item.storagePath;
+            const uploadToken = signed?.upload?.token;
+            if (!uploadToken) throw new Error("無法建立安全上傳網址");
+            const { error: uploadError } = await supabase.storage
+                .from("music")
+                .uploadToSignedUrl(uploadPath, uploadToken, item.file, {
+                    cacheControl: "3600",
+                    contentType: "audio/mpeg"
+                });
+            if (uploadError) throw uploadError;
+        } catch (uploadError) {
+            if (uploadError?.code === "track_exists") {
+                updateQueueItem(item.id, { status: "skipped", message: `${item.displayPage} 已存在` });
+                removeFromPending(item.id);
+                return;
+            }
+            updateQueueItem(item.id, { status: "failed", message: `Storage：${uploadError?.message || "上傳失敗"}` });
             return;
         }
 
@@ -469,7 +440,6 @@ const AddMusicV3 = () => {
             .some(value => value?.toLowerCase().includes(keyword));
     });
 
-    const getPublicUrl = path => supabase.storage.from("music").getPublicUrl(path).data.publicUrl;
     const successCount = uploadQueue.filter(item => item.status === "success").length;
     const failedCount = uploadQueue.filter(item => item.status === "failed").length;
     const skippedCount = uploadQueue.filter(item => item.status === "skipped").length;
@@ -645,7 +615,7 @@ const AddMusicV3 = () => {
                                 <strong>{track.music_name}</strong>
                                 <span className="track-path">{TRACK_TYPE_LABELS[track.track_type] || track.track_type}{track.part_number ? ` · 第 ${track.part_number} 段` : ""}</span>
                                 <span className="track-path">{track.audio_url}</span>
-                                <LibraryAudio src={getPublicUrl(track.audio_url)} />
+                                {track.preview_url ? <LibraryAudio src={track.preview_url} /> : <span className="track-path">預覽網址暫時無法使用</span>}
                                 <div className="track-admin-actions">
                                     <button type="button" className="track-edit-button" onClick={() => openRename(track)} disabled={savingTrackId === track.id || deletingTrackId === track.id}>修改名稱</button>
                                     <button type="button" className="track-delete-button" onClick={() => handleDeleteTrack(track)} disabled={deletingTrackId === track.id || savingTrackId === track.id}>

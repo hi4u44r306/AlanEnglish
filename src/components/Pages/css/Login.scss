@@ -442,6 +442,28 @@
   }
 }
 
+.login-trial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 16px;
+    color: #6f675f;
+    font-size: 14px;
+
+    a {
+        color: #c85b35;
+        font-weight: 800;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            text-decoration: underline;
+        }
+    }
+}
+
 .login-copyright {
   margin-top: 21px;
   color: #a0a9b5;
