@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -137,17 +138,6 @@ const sanitizeMaterial = (material: any) => ({
     content: sanitizeContent(material?.content)
 });
 
-const membershipIsActive = (membership: any, role: string) => {
-    if (STAFF_ROLES.has(role)) return true;
-    const status = String(membership?.status || "");
-    if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
-    const endTimes = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
-        .map(value => value ? new Date(value).getTime() : Number.NaN)
-        .filter(Number.isFinite);
-    if (status === "cancelled" && endTimes.length === 0) return false;
-    return endTimes.length === 0 || Math.max(...endTimes) > Date.now();
-};
-
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -187,21 +177,13 @@ Deno.serve(async (req: Request) => {
         const action = String(body?.action || "generate");
         const today = taiwanDate();
 
-        const { data: membership, error: membershipError } = await admin
-            .from("memberships")
-            .select("status,trial_ends_at,access_ends_at,current_period_end,subscription_plans(ai_daily_limit,features)")
-            .eq("student_id", student.id)
-            .maybeSingle();
-        if (membershipError) return json(500, { error: "無法確認會員使用權限" });
-        if (role === "student" && !membershipIsActive(membership, role) && !["status", "history"].includes(action)) {
+        const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
+        if (role === "student" && !effectiveAccess.is_active && !["status", "history"].includes(action)) {
             return json(402, { error: "會員使用期限已結束，請續訂或輸入教材啟用碼", code: "membership_required" });
         }
-        const relatedPlan = Array.isArray(membership?.subscription_plans)
-            ? membership.subscription_plans[0]
-            : membership?.subscription_plans;
-        const configuredLimit = Number(relatedPlan?.ai_daily_limit);
-        if (role === "student" && action === "generate" && relatedPlan?.features?.ai_materials === false) {
-            return json(403, { error: "目前方案不包含 AI 教材，請升級為全方位方案", code: "plan_upgrade_required" });
+        const configuredLimit = Number(effectiveAccess.ai_daily_limit);
+        if (role === "student" && action === "generate" && !effectiveAccess.features.ai_materials) {
+            return json(403, { error: "目前帳號不包含 AI 教材", code: "ai_materials_not_available" });
         }
         const dailyLimit = role === "student" && Number.isInteger(configuredLimit) && configuredLimit >= 0
             ? configuredLimit

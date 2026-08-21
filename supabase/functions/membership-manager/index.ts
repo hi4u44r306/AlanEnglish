@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "npm:jose@5";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -123,19 +124,26 @@ const getEffectiveAccessEnd = (membership: any) => {
     return candidates.length > 0 ? new Date(Math.max(...candidates)).toISOString() : null;
 };
 
-const serializeMembership = (membership: any, role: string) => {
+const serializeMembership = (membership: any, role: string, effectiveAccess: any = null) => {
     const staff = STAFF_ROLES.has(role);
     const status = cleanText(membership?.status || (staff ? "complimentary" : "expired"), 40);
-    const effectiveEnd = getEffectiveAccessEnd(membership);
+    const hasEffectiveAccess = effectiveAccess && typeof effectiveAccess === "object";
+    const effectiveEnd = hasEffectiveAccess
+        ? effectiveAccess.effective_access_end || null
+        : getEffectiveAccessEnd(membership);
     const endTime = effectiveEnd ? new Date(effectiveEnd).getTime() : null;
     const timeActive = status === "cancelled"
         ? endTime !== null && endTime > Date.now()
         : endTime === null || endTime > Date.now();
     const statusActive = ["trialing", "active", "cancelled", "complimentary"].includes(status);
-    const isActive = staff || (statusActive && timeActive);
-    const daysRemaining = endTime === null
-        ? null
-        : Math.max(0, Math.ceil((endTime - Date.now()) / (24 * 60 * 60 * 1000)));
+    const isActive = hasEffectiveAccess
+        ? effectiveAccess.is_active === true
+        : staff || (statusActive && timeActive);
+    const daysRemaining = hasEffectiveAccess
+        ? effectiveAccess.days_remaining ?? null
+        : endTime === null
+            ? null
+            : Math.max(0, Math.ceil((endTime - Date.now()) / (24 * 60 * 60 * 1000)));
 
     return {
         id: membership?.id || null,
@@ -152,7 +160,8 @@ const serializeMembership = (membership: any, role: string) => {
         is_active: isActive,
         days_remaining: daysRemaining,
         requires_email_verification: status === "pending_verification",
-        plan: relationOne(membership?.subscription_plans) || membership?.plan || null
+        plan: relationOne(membership?.subscription_plans) || membership?.plan || null,
+        effective_access: hasEffectiveAccess ? effectiveAccess : null
     };
 };
 
@@ -316,7 +325,12 @@ const ensureLevelProgress = async (admin: any, student: any, publicSignup = fals
     };
 };
 
-const profilePayload = (student: any, membership: any, levelProgress: any) => ({
+const profilePayload = (
+    student: any,
+    membership: any,
+    levelProgress: any,
+    effectiveAccess: any = null
+) => ({
     id: student.id,
     firebase_uid: student.firebase_uid,
     name: student.name,
@@ -332,7 +346,7 @@ const profilePayload = (student: any, membership: any, levelProgress: any) => ({
     last_login_at: student.last_login_at,
     last_active_at: student.last_active_at,
     last_learning_at: student.last_learning_at,
-    membership: serializeMembership(membership, student.role || "student"),
+    membership: serializeMembership(membership, student.role || "student", effectiveAccess),
     level: levelProgress ? {
         current_level_id: levelProgress.current_level_id,
         unlocked_rank: levelProgress.unlocked_rank,
@@ -386,7 +400,8 @@ const loadCompleteProfile = async (
         ensureMembership(admin, student, firebaseUser, { publicSignup }),
         ensureLevelProgress(admin, student, publicSignup)
     ]);
-    return profilePayload(student, membership, levelProgress);
+    const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
+    return profilePayload(student, membership, levelProgress, effectiveAccess);
 };
 
 Deno.serve(async (req: Request) => {
@@ -578,10 +593,11 @@ Deno.serve(async (req: Request) => {
                 throw error;
             }
             const membership = await loadMembership(admin, Number(caller.id));
+            const effectiveAccess = await loadEffectiveAccess(admin, Number(caller.id));
             return json(200, {
                 success: true,
                 redemption: data,
-                membership: serializeMembership(membership, caller.role)
+                membership: serializeMembership(membership, caller.role, effectiveAccess)
             });
         }
 
@@ -598,15 +614,23 @@ Deno.serve(async (req: Request) => {
             if (caller.role === "teacher") query = query.eq("role", "student");
             const { data: accounts, error } = await query;
             if (error) throw error;
-            return json(200, {
-                success: true,
-                accounts: (accounts || []).map((account: any) => ({
+            const normalizedAccounts = await Promise.all((accounts || []).map(async (account: any) => {
+                const effectiveAccess = await loadEffectiveAccess(admin, Number(account.id));
+                return {
                     ...account,
-                    membership: serializeMembership(relationOne(account.memberships), account.role),
+                    membership: serializeMembership(
+                        relationOne(account.memberships),
+                        account.role,
+                        effectiveAccess
+                    ),
                     level: normalizeLevelProgress(relationOne(account.student_level_progress)),
                     memberships: undefined,
                     student_level_progress: undefined
-                }))
+                };
+            }));
+            return json(200, {
+                success: true,
+                accounts: normalizedAccounts
             });
         }
 
@@ -671,7 +695,11 @@ Deno.serve(async (req: Request) => {
                 membership = await loadMembership(admin, Number(updated.id));
             }
             const level = await ensureLevelProgress(admin, updated, false);
-            return json(200, { success: true, account: profilePayload(updated, membership, level) });
+            const effectiveAccess = await loadEffectiveAccess(admin, Number(updated.id));
+            return json(200, {
+                success: true,
+                account: profilePayload(updated, membership, level, effectiveAccess)
+            });
         }
 
         if (action === "admin_dashboard") {
@@ -689,14 +717,21 @@ Deno.serve(async (req: Request) => {
             ]);
             const firstError = [plansResult.error, codesResult.error, membersResult.error, emailSettingsResult.error].find(Boolean);
             if (firstError) throw firstError;
-            const members = (membersResult.data || []).map((account: any) => ({
-                id: account.id,
-                name: account.name,
-                email: account.email,
-                role: account.role,
-                class: account.class,
-                plan: account.plan,
-                membership: serializeMembership(relationOne(account.memberships), account.role)
+            const members = await Promise.all((membersResult.data || []).map(async (account: any) => {
+                const effectiveAccess = await loadEffectiveAccess(admin, Number(account.id));
+                return {
+                    id: account.id,
+                    name: account.name,
+                    email: account.email,
+                    role: account.role,
+                    class: account.class,
+                    plan: account.plan,
+                    membership: serializeMembership(
+                        relationOne(account.memberships),
+                        account.role,
+                        effectiveAccess
+                    )
+                };
             }));
             const summary = members.reduce((acc: Record<string, number>, item: any) => {
                 const key = item.membership.status || "missing";
@@ -838,8 +873,8 @@ Deno.serve(async (req: Request) => {
             const planId = numberOrNull(body?.plan_id);
             const durationDays = Number(body?.duration_days || 30);
             const source = cleanText(body?.source || "admin_grant", 40);
-            if (!studentId || !Number.isInteger(durationDays) || durationDays < 1 || durationDays > 3660) {
-                return json(400, { error: "會員與使用天數設定不正確" });
+            if (!studentId || !planId || !Number.isInteger(durationDays) || durationDays < 1 || durationDays > 3660) {
+                return json(400, { error: "會員、方案與使用天數設定不正確" });
             }
             if (!MEMBERSHIP_SOURCES.has(source) || source === "public_signup" || source === "stripe") {
                 return json(400, { error: "權限來源設定不正確" });
@@ -852,39 +887,63 @@ Deno.serve(async (req: Request) => {
             if (targetError) throw targetError;
             if (!target || target.role !== "student") return json(404, { error: "找不到學生帳號" });
 
-            let membership = await loadMembership(admin, studentId);
-            const baseTime = Math.max(
-                Date.now(),
-                membership?.access_ends_at ? new Date(membership.access_ends_at).getTime() : 0
-            );
-            const accessEnd = new Date(baseTime + (durationDays * 24 * 60 * 60 * 1000)).toISOString();
-            if (!membership) {
-                const { error } = await admin.from("memberships").insert({
+            const { data: plan, error: planError } = await admin
+                .from("subscription_plans")
+                .select("id,code,name,enabled")
+                .eq("id", planId)
+                .eq("enabled", true)
+                .maybeSingle();
+            if (planError) throw planError;
+            if (!plan) return json(400, { error: "找不到可用方案" });
+
+            const { data: existingGrants, error: grantsError } = await admin
+                .from("student_access_grants")
+                .select("id,ends_at")
+                .eq("student_id", studentId)
+                .eq("plan_id", planId)
+                .eq("status", "active")
+                .is("revoked_at", null)
+                .order("ends_at", { ascending: false, nullsFirst: true })
+                .limit(1);
+            if (grantsError) throw grantsError;
+
+            const latestGrant = existingGrants?.[0] || null;
+            if (latestGrant && latestGrant.ends_at === null) {
+                return json(409, { error: "此學生已擁有這個方案的永久使用權" });
+            }
+
+            const now = new Date();
+            const existingEndTime = latestGrant?.ends_at
+                ? new Date(latestGrant.ends_at).getTime()
+                : 0;
+            const startsAt = new Date(Math.max(now.getTime(), existingEndTime));
+            const endsAt = new Date(startsAt.getTime() + (durationDays * 24 * 60 * 60 * 1000));
+            const { data: grant, error: grantError } = await admin
+                .from("student_access_grants")
+                .insert({
                     student_id: studentId,
                     plan_id: planId,
-                    status: "active",
                     source,
-                    access_started_at: new Date().toISOString(),
-                    access_ends_at: accessEnd
-                });
-                if (error) throw error;
-            } else {
-                const { error } = await admin
-                    .from("memberships")
-                    .update({
-                        plan_id: planId || relationOne(membership.subscription_plans)?.id || null,
-                        status: "active",
-                        source,
-                        access_started_at: membership.access_started_at || new Date().toISOString(),
-                        access_ends_at: accessEnd,
-                        cancel_at_period_end: false,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq("id", membership.id);
-                if (error) throw error;
-            }
-            membership = await loadMembership(admin, studentId);
-            return json(200, { success: true, membership: serializeMembership(membership, "student") });
+                    status: "active",
+                    starts_at: startsAt.toISOString(),
+                    ends_at: endsAt.toISOString(),
+                    metadata: {
+                        granted_by_student_id: caller.id,
+                        duration_days: durationDays,
+                        plan_code: plan.code
+                    }
+                })
+                .select("*")
+                .single();
+            if (grantError) throw grantError;
+
+            const membership = await loadMembership(admin, studentId);
+            const effectiveAccess = await loadEffectiveAccess(admin, studentId);
+            return json(200, {
+                success: true,
+                grant,
+                membership: serializeMembership(membership, "student", effectiveAccess)
+            });
         }
 
         if (action === "admin_set_membership_status") {
@@ -904,7 +963,11 @@ Deno.serve(async (req: Request) => {
                 .select(membershipSelect)
                 .single();
             if (error) throw error;
-            return json(200, { success: true, membership: serializeMembership(membership, "student") });
+            const effectiveAccess = await loadEffectiveAccess(admin, studentId);
+            return json(200, {
+                success: true,
+                membership: serializeMembership(membership, "student", effectiveAccess)
+            });
         }
 
         if (action === "admin_update_email_settings") {

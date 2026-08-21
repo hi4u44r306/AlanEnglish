@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -38,16 +39,6 @@ const hasAiTask = (sourceType: string) => (
 const hasListeningTask = (sourceType: string) => (
     sourceType === "music_track" || sourceType === "mission_pack"
 );
-
-const membershipIsActive = (membership: any) => {
-    const status = String(membership?.status || "");
-    if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
-    const endTimes = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
-        .map(value => value ? new Date(value).getTime() : Number.NaN)
-        .filter(Number.isFinite);
-    if (status === "cancelled" && endTimes.length === 0) return false;
-    return endTimes.length === 0 || Math.max(...endTimes) > Date.now();
-};
 
 async function verifyFirebaseIdToken(token: string) {
     const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
@@ -202,18 +193,12 @@ Deno.serve(async (req: Request) => {
         const isManager = caller.role === "teacher" || caller.role === "admin";
 
         if (!isManager) {
-            const { data: membership, error: membershipError } = await admin
-                .from("memberships")
-                .select("status,trial_ends_at,access_ends_at,current_period_end,subscription_plans(features)")
-                .eq("student_id", caller.id)
-                .maybeSingle();
-            if (membershipError) throw membershipError;
-            if (!membershipIsActive(membership)) {
+            const effectiveAccess = await loadEffectiveAccess(admin, Number(caller.id));
+            if (!effectiveAccess.is_active) {
                 return json(402, { error: "會員使用期限已結束，無法使用學生作業", code: "membership_required" });
             }
-            const assignmentPlan = Array.isArray(membership?.subscription_plans) ? membership.subscription_plans[0] : membership?.subscription_plans;
-            if (assignmentPlan && assignmentPlan.features?.assignments !== true) {
-                return json(403, { error: "目前方案不包含學生作業，請升級方案", code: "plan_upgrade_required" });
+            if (!effectiveAccess.features.assignments) {
+                return json(403, { error: "目前帳號不包含班級作業", code: "assignments_not_available" });
             }
         }
 
