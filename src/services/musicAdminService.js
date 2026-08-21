@@ -67,6 +67,29 @@ export const updateMusicTrackDisplayName = (firebaseUser, trackId, displayPage) 
     display_page: displayPage
 });
 
+export const getR2AudioStatus = firebaseUser => callMusicAdminFunction(firebaseUser, {
+    action: "r2_status"
+});
+
+export const prepareR2AudioTest = firebaseUser => callMusicAdminFunction(firebaseUser, {
+    action: "prepare_r2_test"
+});
+
+export const confirmR2AudioTest = (firebaseUser, testKey) => callMusicAdminFunction(firebaseUser, {
+    action: "confirm_r2_test",
+    test_key: testKey
+});
+
+export const migrateR2AudioBatch = (firebaseUser, limit = 1) => callMusicAdminFunction(firebaseUser, {
+    action: "migrate_r2_batch",
+    limit
+});
+
+export const rollbackR2AudioTrack = (firebaseUser, trackId) => callMusicAdminFunction(firebaseUser, {
+    action: "rollback_r2_track",
+    track_id: trackId
+});
+
 export const getMusicBookManagementStatus = (firebaseUser, bookId) => callMusicAdminFunction(firebaseUser, {
     action: "book_status",
     book_id: bookId

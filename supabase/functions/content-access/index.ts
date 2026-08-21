@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { createR2PresignedUrl } from "../_shared/r2.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -217,14 +218,16 @@ Deno.serve(async (req: Request) => {
 
             const { data: tracks, error: tracksError } = await admin
                 .from("music_tracks")
-                .select("id,book_id,page,title,music_name,audio_url,image,sort_order,track_type,part_number,display_page,track_key,base_page")
+                .select("id,book_id,page,title,music_name,audio_url,image,sort_order,track_type,part_number,display_page,track_key,base_page,storage_provider")
                 .eq("book_id", normalizedBook.id)
                 .eq("enabled", true)
                 .order("sort_order", { ascending: true });
             if (tracksError) throw tracksError;
 
-            const paths = (tracks || []).map((track: any) => normalizeStoragePath(track.audio_url));
-            const validPaths = [...new Set(paths.filter(Boolean))];
+            const supabasePaths = (tracks || [])
+                .filter((track: any) => track.storage_provider !== "r2")
+                .map((track: any) => normalizeStoragePath(track.audio_url));
+            const validPaths = [...new Set(supabasePaths.filter(Boolean))];
             const signedUrlMap = new Map<string, string>();
             if (validPaths.length > 0) {
                 const { data: signedRows, error: signedError } = await admin.storage
@@ -235,6 +238,12 @@ Deno.serve(async (req: Request) => {
                     if (row.path && row.signedUrl) signedUrlMap.set(row.path, row.signedUrl);
                 }
             }
+
+            const r2Tracks = (tracks || []).filter((track: any) => track.storage_provider === "r2");
+            await Promise.all(r2Tracks.map(async (track: any) => {
+                const path = normalizeStoragePath(track.audio_url);
+                if (path) signedUrlMap.set(`r2:${path}`, await createR2PresignedUrl(path, "GET", SIGNED_URL_SECONDS));
+            }));
 
             return json(200, {
                 success: true,
@@ -248,7 +257,7 @@ Deno.serve(async (req: Request) => {
                     return {
                         ...track,
                         storage_path: path,
-                        audio_url: signedUrlMap.get(path) || null
+                        audio_url: signedUrlMap.get(track.storage_provider === "r2" ? `r2:${path}` : path) || null
                     };
                 }),
                 signed_url_expires_in: SIGNED_URL_SECONDS
