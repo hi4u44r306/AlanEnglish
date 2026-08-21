@@ -47,7 +47,6 @@ const App = () => {
         <Router>
             <AuthProvider>
                 <ToastContainer
-                    containerId="app-notifications"
                     position="top-center"
                     autoClose={2000}
                     limit={2}

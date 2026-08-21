@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { authentication, rtdb } from './firebase-config';
 import { ref, push, update, child } from 'firebase/database';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './css/OrderPage.scss'; // Import the SCSS file
 import meatimg from '../assets/img/meat.png';
@@ -261,14 +261,6 @@ function OrderPage({ meat, vegetable, egg, unusedMoney, setUnusedMoney, handleOr
 
     return (
         <div className='order-page'>
-            <ToastContainer
-                position="top-center"
-                className={"notification"}
-                autoClose={2200}
-                limit={1}
-                newestOnTop={true}
-            />
-
             <div className='Ordertitle'>
                 <button className='back-button' onClick={handleOrderClose}>返回</button>
                 下單頁面

@@ -5,7 +5,7 @@ import './css/ControlPanel.scss';
 import { FcCollapse } from "react-icons/fc";
 import { FcExpand } from "react-icons/fc";
 import { FcFilledFilter } from "react-icons/fc";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -341,7 +341,6 @@ const ControlPanel = () => {
                     ))}
                 </tbody>
             </table>
-            <ToastContainer />
         </div>
     );
 };

@@ -7,8 +7,6 @@ import HeadPhone from "../assets/img/Login2.png";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.scss";
 
-const APP_TOAST_CONTAINER_ID = "app-notifications";
-
 function Login() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -32,7 +30,6 @@ function Login() {
 
     const showError = (message) => {
         toast.error(message, {
-            containerId: APP_TOAST_CONTAINER_ID,
             position: "top-center",
             autoClose: 2500,
             hideProgressBar: false,
@@ -45,7 +42,6 @@ function Login() {
 
     const showSuccess = (name) => {
         toast.success(`歡迎回來 ${name}！`, {
-            containerId: APP_TOAST_CONTAINER_ID,
             position: "top-center",
             autoClose: 2000,
             hideProgressBar: false,

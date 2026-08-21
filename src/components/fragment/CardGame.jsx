@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../assets/scss/Game.scss';
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 import Name from './Name';
 import ContainerGame from './ContainerGame';
 // import CheckMark from '../assets/img/checkmark.png'
@@ -213,17 +213,6 @@ export default function CardGame({ open, onClose, bookname, pagename, musicName,
 
               <div className='questionsection'>
                 <div className='deckcontainer'>
-                  <ToastContainer
-                    position="top-center"
-                    autoClose={2000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                  />
                   {
                     !questions[0][currentQuestion].questiondeck || questions[0][currentQuestion].questiondeck.sort(() => Math.random() - 0.3).map((card) => (
                       <div className="deck" key={card.image} onClick={() => handleCardClick(card)}>
@@ -239,7 +228,6 @@ export default function CardGame({ open, onClose, bookname, pagename, musicName,
     </>
   )
 }
-
 
 
 

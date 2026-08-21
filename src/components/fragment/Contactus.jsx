@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import '../assets/scss/Contactus.scss';
 import SchoolImage from "../assets/img/school.jpg";
 import emailjs from '@emailjs/browser';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -92,17 +92,6 @@ const Contact = () => {
                             </div>
                             <div className="row mx-auto d-flex justify-content-center">
                                 <button className='submitbtn' onClick={inputValidate}>傳送</button>
-                                <ToastContainer
-                                position="top-center"
-                                autoClose={2000}
-                                hideProgressBar={false}
-                                newestOnTop={false}
-                                closeOnClick
-                                rtl={false}
-                                pauseOnFocusLoss
-                                draggable
-                                pauseOnHover
-                                />
                             </div>
                     </form>
                 </div>

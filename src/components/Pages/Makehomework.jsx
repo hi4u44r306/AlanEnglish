@@ -2,7 +2,7 @@ import React from 'react'
 import Containerfull from '../fragment/Containerfull'
 import './css/Makehomework.scss'
 import firebase from "./firebase";
-import { toast, ToastContainer } from "react-toastify"
+import { toast } from "react-toastify"
 
 function Makehomework() {
 
@@ -43,17 +43,6 @@ function Makehomework() {
 
     return (
         <Containerfull>
-            <ToastContainer
-                position="top-center"
-                autoClose={2000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
             <div className='mhmain'>
                 <div className='mhcontainer'>
                     <div className='mhtitle'>指派功課</div>
