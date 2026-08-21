@@ -10,9 +10,9 @@ import { toast, ToastContainer } from "react-toastify";
 import Name from "./Name";
 import "../assets/scss/FooterPlayer.scss";
 import "react-h5-audio-player/lib/styles.css";
-import { supabase } from "../Pages/supabase-config";
 import { useAuth } from "../../auth/AuthContext";
 import { recordTrackPlay } from "../../services/listeningService";
+import { getAccessibleBook } from "../../services/contentAccessService";
 
 const NO_INTERACTION_STORAGE_KEY = "ae-no-interaction";
 const NO_INTERACTION_WARNING_COUNT = 5;
@@ -109,97 +109,41 @@ function MusicPlayer({ music }) {
                 return;
             }
 
-            if (!book_id) {
+            if (!book_id || !firebaseUser || !music?.type) {
                 setPlaylist(
-                    []
+                    currTrack ? [currTrack] : []
                 );
 
                 return;
             }
 
-            const {
-                data,
-                error
-            } = await supabase
-                .from(
-                    "music_tracks"
-                )
-                .select(
-                    "*"
-                )
-                .eq(
-                    "book_id",
-                    book_id
-                )
-                .eq(
-                    "enabled",
-                    true
-                )
-                .order(
-                    "sort_order",
-                    {
-                        ascending: true
-                    }
-                );
+            try {
+                const result = await getAccessibleBook(firebaseUser, music.type);
+                const resolvedBookName = result?.book?.name || bookname;
+                const convertedTracks = (result?.tracks || []).map(track => ({
+                    ...track,
+                    bookname: resolvedBookName,
+                    musicName: track.music_name,
+                    audioURL: track.audio_url,
+                    audio_url: track.audio_url,
+                    type: music.type
+                }));
 
-            if (error) {
+                setPlaylist(convertedTracks.length ? convertedTracks : (currTrack ? [currTrack] : []));
+            } catch (error) {
                 console.error(
                     "MusicPlayer 讀取 Playlist 失敗:",
                     error
                 );
-
-                return;
             }
-
-            const convertedTracks = (
-                data ||
-                []
-            ).map(track => {
-                const {
-                    data: publicUrlData
-                } = supabase.storage
-                    .from(
-                        "music"
-                    )
-                    .getPublicUrl(
-                        track.audio_url
-                    );
-
-                return {
-                    id:
-                        track.id,
-                    book_id:
-                        track.book_id,
-                    page:
-                        track.page,
-                    title:
-                        track.title,
-                    sort_order:
-                        track.sort_order,
-                    bookname:
-                        bookname,
-                    musicName:
-                        track.music_name,
-                    audioURL:
-                        publicUrlData.publicUrl,
-                    audio_url:
-                        publicUrlData.publicUrl,
-                    image:
-                        track.image,
-                    type:
-                        music?.type
-                };
-            });
-
-            setPlaylist(
-                convertedTracks
-            );
         };
 
         fetchPlaylist();
     }, [
         book_id,
         bookname,
+        currTrack,
+        firebaseUser,
         music?.type,
         music?.playbackQueue
     ]);
