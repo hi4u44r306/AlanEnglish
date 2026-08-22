@@ -58,7 +58,7 @@ function MusicPlayer({ music }) {
     const coverageRangesRef = useRef([]);
     const lastListenTimeRef = useRef(null);
     const isSeekingRef = useRef(false);
-    const hasAcceleratedRef = useRef(false);
+    const isAcceleratedPlaybackRef = useRef(false);
     const completionSentRef = useRef(false);
     const sessionStartedAtRef = useRef(null);
     const listeningSessionIdRef = useRef(null);
@@ -97,7 +97,7 @@ function MusicPlayer({ music }) {
         coverageRangesRef.current = [];
         lastListenTimeRef.current = null;
         isSeekingRef.current = false;
-        hasAcceleratedRef.current = false;
+        isAcceleratedPlaybackRef.current = false;
         completionSentRef.current = false;
         sessionStartedAtRef.current = new Date().toISOString();
         listeningSessionIdRef.current = null;
@@ -446,14 +446,6 @@ function MusicPlayer({ music }) {
             return null;
         }
 
-        if (hasAcceleratedRef.current) {
-            toast.info(
-                "本次曾使用加速播放，因此不會列入聽力次數。請以 1x 或較慢速度重新練習。",
-                { position: "top-center", autoClose: 3500 }
-            );
-            return null;
-        }
-
         if (coverage < MINIMUM_LISTENING_COVERAGE) {
             return null;
         }
@@ -708,7 +700,7 @@ function MusicPlayer({ music }) {
         let finalCoverage = coveragePercent;
 
         if (
-            !hasAcceleratedRef.current &&
+            !isAcceleratedPlaybackRef.current &&
             Number.isFinite(lastListenTime) &&
             Number.isFinite(duration) &&
             duration > lastListenTime
@@ -901,7 +893,7 @@ function MusicPlayer({ music }) {
 
         if (
             !isSeekingRef.current &&
-            !hasAcceleratedRef.current &&
+            !isAcceleratedPlaybackRef.current &&
             Number.isFinite(previousTime) &&
             currentTime > previousTime &&
             currentTime - previousTime <= MAX_NATURAL_LISTEN_GAP_SECONDS
@@ -920,13 +912,14 @@ function MusicPlayer({ music }) {
             return;
         }
 
-        if (nextRate > 1) {
-            hasAcceleratedRef.current = true;
-            setSessionIneligible(true);
-        }
+        const isAccelerated = nextRate > 1;
+        isAcceleratedPlaybackRef.current = isAccelerated;
+        setSessionIneligible(isAccelerated);
 
         if (audio) {
             audio.playbackRate = nextRate;
+            // 切換速度的瞬間不算作聆聽區段；回到正常速度後才重新累積。
+            lastListenTimeRef.current = audio.currentTime;
         }
 
         setPlaybackRate(nextRate);
@@ -962,7 +955,7 @@ function MusicPlayer({ music }) {
                 </div>
                 <span className="player-track-status">
                     {sessionIneligible
-                        ? "加速播放中，不計入次數"
+                        ? "加速播放中，這段不計入次數"
                         : `有效聆聽 ${Math.floor(coveragePercent)}%`}
                 </span>
             </div>
@@ -1047,7 +1040,7 @@ function MusicPlayer({ music }) {
 
             <div className="listening-coverage-status" aria-live="polite">
                 {sessionIneligible
-                    ? "加速播放中：本次不列入聽力次數"
+                    ? "加速播放中：這段不列入有效聆聽"
                     : `本次有效聆聽 ${Math.floor(coveragePercent)}%（聽滿 80% 才計一次）`}
             </div>
 
