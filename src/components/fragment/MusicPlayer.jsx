@@ -1,5 +1,6 @@
 import AudioPlayer, { RHAP_UI } from "react-h5-audio-player";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch } from "react-redux";
 import {
     setCurrentPlaying,
@@ -24,6 +25,13 @@ const MAX_NATURAL_LISTEN_GAP_SECONDS = 3;
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5];
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const formatTime = value => {
+    const safeValue = Math.max(0, Number(value) || 0);
+    const minutes = Math.floor(safeValue / 60);
+    const seconds = Math.floor(safeValue % 60).toString().padStart(2, "0");
+
+    return `${minutes}:${seconds}`;
+};
 
 const mergeCoverageRange = (ranges, nextRange) => {
     const sortedRanges = [...ranges, nextRange]
@@ -86,6 +94,10 @@ function MusicPlayer({ music }) {
     const [sessionIneligible, setSessionIneligible] = useState(false);
     const [repeatTrack, setRepeatTrack] = useState(false);
     const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+    const [playbackPosition, setPlaybackPosition] = useState(0);
+    const [audioDuration, setAudioDuration] = useState(0);
+    const [isPlaybackActive, setIsPlaybackActive] = useState(false);
+    const [playerVolume, setPlayerVolume] = useState(0.5);
 
     const {
         id: trackId,
@@ -174,6 +186,19 @@ function MusicPlayer({ music }) {
     useEffect(() => {
         resetListeningSession();
     }, [resetListeningSession, trackId]);
+
+    useEffect(() => {
+        if (!isMobileExpanded) {
+            return undefined;
+        }
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isMobileExpanded]);
 
     // =====================================
     // 讀取目前這本書全部音檔
@@ -831,7 +856,13 @@ function MusicPlayer({ music }) {
             )
         );
 
+        setIsPlaybackActive(true);
+
         const audio = audioElement.current?.audio?.current;
+        if (audio) {
+            setPlaybackPosition(audio.currentTime);
+            setAudioDuration(audio.duration || 0);
+        }
         if (audio && !Number.isFinite(lastListenTimeRef.current)) {
             lastListenTimeRef.current = audio.currentTime;
         }
@@ -894,6 +925,8 @@ function MusicPlayer({ music }) {
             )
         );
 
+        setIsPlaybackActive(false);
+
         resetNoInteraction();
     };
 
@@ -906,6 +939,9 @@ function MusicPlayer({ music }) {
         if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) {
             return;
         }
+
+        setPlaybackPosition(currentTime);
+        setAudioDuration(duration);
 
         if (
             !isSeekingRef.current &&
@@ -941,6 +977,44 @@ function MusicPlayer({ music }) {
         setPlaybackRate(nextRate);
     };
 
+    const togglePlayback = () => {
+        const audio = audioElement.current?.audio?.current;
+
+        if (!audio) {
+            return;
+        }
+
+        if (audio.paused) {
+            void audio.play();
+        } else {
+            audio.pause();
+        }
+    };
+
+    const handleOverlaySeek = event => {
+        const audio = audioElement.current?.audio?.current;
+        const nextPosition = Number(event.target.value);
+
+        if (!audio || !Number.isFinite(nextPosition)) {
+            return;
+        }
+
+        audio.currentTime = nextPosition;
+        lastListenTimeRef.current = nextPosition;
+        setPlaybackPosition(nextPosition);
+    };
+
+    const handleOverlayVolume = event => {
+        const audio = audioElement.current?.audio?.current;
+        const nextVolume = clamp(Number(event.target.value), 0, 1);
+
+        if (audio) {
+            audio.volume = nextVolume;
+        }
+
+        setPlayerVolume(nextVolume);
+    };
+
     // =====================================
     // 沒有音樂
     // =====================================
@@ -954,7 +1028,7 @@ function MusicPlayer({ music }) {
     // =====================================
 
     return (
-        <div className={`footer-player${isMobileExpanded ? " is-mobile-expanded" : ""}`}>
+        <div className="footer-player">
             <button
                 type="button"
                 className="player-mobile-expand"
@@ -981,14 +1055,6 @@ function MusicPlayer({ music }) {
                             : `有效聆聽 ${Math.floor(coveragePercent)}%`}
                     </span>
                 </span>
-            </button>
-            <button
-                type="button"
-                className="mobile-player-close"
-                onClick={() => setIsMobileExpanded(false)}
-                aria-label="縮小播放器"
-            >
-                ⌄
             </button>
             <AudioPlayer
                 autoPlay={true}
@@ -1021,8 +1087,10 @@ function MusicPlayer({ music }) {
                 onSeeked={event => {
                     isSeekingRef.current = false;
                     lastListenTimeRef.current = event.currentTarget.currentTime;
+                    setPlaybackPosition(event.currentTarget.currentTime);
                 }}
                 onCanPlay={event => {
+                    setAudioDuration(event.currentTarget.duration || 0);
                     requestPlayback(
                         event.currentTarget
                     );
@@ -1084,6 +1152,68 @@ function MusicPlayer({ music }) {
                     ? "加速播放中：這段不列入有效聆聽"
                     : `本次有效聆聽 ${Math.floor(coveragePercent)}%（聽滿 80% 才計一次）`}
             </div>
+
+            {isMobileExpanded && createPortal(
+                <div className="mobile-player-overlay" role="dialog" aria-modal="true" aria-label="全螢幕播放器">
+                    <button
+                        type="button"
+                        className="mobile-overlay-close"
+                        onClick={() => setIsMobileExpanded(false)}
+                        aria-label="縮小播放器"
+                    >
+                        ⌄
+                    </button>
+                    <div className="mobile-overlay-art" aria-hidden="true">♫</div>
+                    <div className="mobile-overlay-title">
+                        <strong>{bookname || "未命名教材"}{page ? ` · ${page}` : ""}</strong>
+                        <span>{sessionIneligible ? "加速播放中，這段不計入次數" : `有效聆聽 ${Math.floor(coveragePercent)}%`}</span>
+                    </div>
+                    <div className="mobile-overlay-progress">
+                        <input
+                            type="range"
+                            min="0"
+                            max={Math.max(audioDuration, 1)}
+                            step="0.1"
+                            value={Math.min(playbackPosition, Math.max(audioDuration, 1))}
+                            onChange={handleOverlaySeek}
+                            aria-label="播放進度"
+                        />
+                        <div>
+                            <span>{formatTime(playbackPosition)}</span>
+                            <span>{formatTime(audioDuration)}</span>
+                        </div>
+                    </div>
+                    <div className="mobile-overlay-controls">
+                        <button type="button" onClick={handleClickPrev} aria-label="上一首">|◀</button>
+                        <button type="button" className="mobile-overlay-play" onClick={togglePlayback} aria-label={isPlaybackActive ? "暫停" : "播放"}>
+                            {isPlaybackActive ? "Ⅱ" : "▶"}
+                        </button>
+                        <button type="button" onClick={handleClickNext} aria-label="下一首">▶|</button>
+                        <button
+                            type="button"
+                            className={repeatTrack ? "is-active" : ""}
+                            onClick={() => setRepeatTrack(current => !current)}
+                            aria-label={repeatTrack ? "關閉重複播放" : "開啟重複播放"}
+                            aria-pressed={repeatTrack}
+                        >
+                            ↻
+                        </button>
+                    </div>
+                    <div className="mobile-overlay-options">
+                        <label>
+                            速度
+                            <select value={playbackRate} onChange={handlePlaybackRateChange} aria-label="播放速度">
+                                {PLAYBACK_RATES.map(rate => <option key={rate} value={rate}>{rate}x</option>)}
+                            </select>
+                        </label>
+                        <label>
+                            音量
+                            <input type="range" min="0" max="1" step="0.05" value={playerVolume} onChange={handleOverlayVolume} aria-label="音量" />
+                        </label>
+                    </div>
+                </div>,
+                document.body
+            )}
 
         </div>
     );
