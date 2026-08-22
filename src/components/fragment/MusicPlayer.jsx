@@ -84,6 +84,8 @@ function MusicPlayer({ music }) {
     const [coveragePercent, setCoveragePercent] = useState(0);
     const [playbackRate, setPlaybackRate] = useState(1);
     const [sessionIneligible, setSessionIneligible] = useState(false);
+    const [repeatTrack, setRepeatTrack] = useState(false);
+    const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
     const {
         id: trackId,
@@ -684,7 +686,7 @@ function MusicPlayer({ music }) {
     // 播放完整首
     // =====================================
 
-    const handleEnd = event => {
+    const handleEnd = async event => {
         console.log(
             "Track End:",
             currTrack
@@ -708,7 +710,7 @@ function MusicPlayer({ music }) {
             finalCoverage = updateCoverage(lastListenTime, duration, duration);
         }
 
-        void saveCompletedPlay({ duration, coverage: finalCoverage });
+        await saveCompletedPlay({ duration, coverage: finalCoverage });
 
         // =================================
         // 自動播放次數 +1
@@ -755,6 +757,20 @@ function MusicPlayer({ music }) {
                         "colored"
                 }
             );
+
+            return;
+        }
+
+        if (repeatTrack) {
+            audio.currentTime = 0;
+            lastListenTimeRef.current = 0;
+            const replayPromise = audio.play();
+
+            if (replayPromise && typeof replayPromise.catch === "function") {
+                replayPromise.catch(error => {
+                    console.warn("重複播放失敗:", error);
+                });
+            }
 
             return;
         }
@@ -938,12 +954,18 @@ function MusicPlayer({ music }) {
     // =====================================
 
     return (
-        <div className="footer-player">
-            <span className="player-track-art" aria-hidden="true">
-                ♫
-            </span>
-            <div className="player-track-summary" aria-live="polite">
-                <div className="player-track-title">
+        <div className={`footer-player${isMobileExpanded ? " is-mobile-expanded" : ""}`}>
+            <button
+                type="button"
+                className="player-mobile-expand"
+                onClick={() => setIsMobileExpanded(true)}
+                aria-label="展開播放器"
+            >
+                <span className="player-track-art" aria-hidden="true">
+                    ♫
+                </span>
+                <span className="player-track-summary" aria-live="polite">
+                    <span className="player-track-title">
                     <span className="player-track-book">
                         {bookname || "未命名教材"}
                     </span>
@@ -952,13 +974,22 @@ function MusicPlayer({ music }) {
                             {page}
                         </span>
                     )}
-                </div>
-                <span className="player-track-status">
-                    {sessionIneligible
-                        ? "加速播放中，這段不計入次數"
-                        : `有效聆聽 ${Math.floor(coveragePercent)}%`}
+                    </span>
+                    <span className="player-track-status">
+                        {sessionIneligible
+                            ? "加速播放中，這段不計入次數"
+                            : `有效聆聽 ${Math.floor(coveragePercent)}%`}
+                    </span>
                 </span>
-            </div>
+            </button>
+            <button
+                type="button"
+                className="mobile-player-close"
+                onClick={() => setIsMobileExpanded(false)}
+                aria-label="縮小播放器"
+            >
+                ⌄
+            </button>
             <AudioPlayer
                 autoPlay={true}
                 autoPlayAfterSrcChange={true}
@@ -1020,6 +1051,16 @@ function MusicPlayer({ music }) {
                 ]}
                 customControlsSection={[
                     RHAP_UI.MAIN_CONTROLS,
+                    <button
+                        key="repeat-track"
+                        type="button"
+                        className={`repeat-track-control${repeatTrack ? " is-active" : ""}`}
+                        onClick={() => setRepeatTrack(current => !current)}
+                        aria-label={repeatTrack ? "關閉重複播放" : "開啟重複播放"}
+                        aria-pressed={repeatTrack}
+                    >
+                        ↻
+                    </button>,
                     <label key="playback-rate" className="playback-rate-control">
                         <span className="sr-only">播放速度</span>
                         <select
