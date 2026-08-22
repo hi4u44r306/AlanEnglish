@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -54,17 +55,6 @@ async function verifyFirebaseIdToken(token: string) {
     if (!uid) throw new Error("Firebase token 缺少 uid");
     return uid;
 }
-
-const membershipIsActive = (membership: any, role: string) => {
-    if (STAFF_ROLES.has(role)) return true;
-    const status = cleanText(membership?.status, 40);
-    if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
-    const candidates = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
-        .map(value => value ? new Date(value).getTime() : Number.NaN)
-        .filter(Number.isFinite);
-    if (status === "cancelled" && candidates.length === 0) return false;
-    return candidates.length === 0 || Math.max(...candidates) > Date.now();
-};
 
 const sanitizeQuestions = (questions: any[]) => (questions || []).map((question: any, index: number) => ({
     index,
@@ -182,12 +172,8 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const [membershipResult, progressResult, levelsResult] = await Promise.all([
-            admin
-                .from("memberships")
-                .select("status,trial_ends_at,access_ends_at,current_period_end")
-                .eq("student_id", student.id)
-                .maybeSingle(),
+        const [effectiveAccess, progressResult, levelsResult] = await Promise.all([
+            loadEffectiveAccess(admin, Number(student.id)),
             admin
                 .from("student_level_progress")
                 .select("student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,description,badge_color)")
@@ -199,9 +185,9 @@ Deno.serve(async (req: Request) => {
                 .eq("enabled", true)
                 .order("rank", { ascending: true })
         ]);
-        const firstError = [membershipResult.error, progressResult.error, levelsResult.error].find(Boolean);
+        const firstError = [progressResult.error, levelsResult.error].find(Boolean);
         if (firstError) throw firstError;
-        const membershipActive = membershipIsActive(membershipResult.data, student.role);
+        const membershipActive = effectiveAccess.is_active;
         const progress = normalizeLevelProgress(progressResult.data);
         const levels = levelsResult.data || [];
         const unlockedRank = STAFF_ROLES.has(student.role) ? 999 : Number(progress?.unlocked_rank || 1);
@@ -258,6 +244,7 @@ Deno.serve(async (req: Request) => {
             return json(200, {
                 success: true,
                 membership_active: membershipActive,
+                effective_access: effectiveAccess,
                 progress: progress || null,
                 levels,
                 books: (booksResult.data || []).map((rawBook: any) => {

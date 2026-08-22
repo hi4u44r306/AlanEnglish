@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,16 +28,6 @@ async function verifyFirebaseIdToken(token: string) {
   if (!uid) throw new Error("Firebase token 缺少 uid");
   return uid;
 }
-
-const membershipIsActive = (membership: any) => {
-  const status = String(membership?.status || "");
-  if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
-  const endTimes = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
-    .map(value => value ? new Date(value).getTime() : Number.NaN)
-    .filter(Number.isFinite);
-  if (status === "cancelled" && endTimes.length === 0) return false;
-  return endTimes.length === 0 || Math.max(...endTimes) > Date.now();
-};
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -79,14 +70,12 @@ Deno.serve(async (req: Request) => {
     if (!student) return json(404, { error: "找不到學生帳號" });
     if (student.role !== "student") return json(403, { error: "只有學生帳號會累計播放紀錄" });
 
-    const { data: membership, error: membershipError } = await admin
-      .from("memberships")
-      .select("status,trial_ends_at,access_ends_at,current_period_end")
-      .eq("student_id", student.id)
-      .maybeSingle();
-    if (membershipError) return json(500, { error: "無法確認會員使用權限" });
-    if (!membershipIsActive(membership)) {
+    const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
+    if (!effectiveAccess.is_active) {
       return json(402, { error: "會員使用期限已結束，播放紀錄不會再累計", code: "membership_required" });
+    }
+    if (!effectiveAccess.features.listening) {
+      return json(403, { error: "目前帳號不包含聽力教材", code: "listening_not_available" });
     }
 
     const { data: track, error: trackError } = await admin

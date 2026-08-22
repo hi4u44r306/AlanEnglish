@@ -1,178 +1,583 @@
-.Signup {
-  position: relative;
-  min-height: 100%;
+.academy-account-page {
+  min-height: calc(100vh - 72px);
+  padding: 34px 20px 70px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(74, 124, 224, 0.12),
+      transparent 34%
+    ),
+    #f4f7fc;
+  color: #17213a;
+}
+
+.academy-account-container {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+
+.academy-account-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 42px 20px;
-  overflow: hidden;
-  background: linear-gradient(
-    135deg,
-    rgba(247, 250, 255, 0.98),
-    rgba(237, 245, 255, 0.96)
-  );
-}
-
-.background-image {
-  position: absolute;
-  inset: 0;
-  background-image: url("../../assets/img/signupbackground.webp");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.07;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.signupsection {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 560px;
-  padding: 34px;
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid #e3e8f0;
-  border-radius: 22px;
-  box-shadow: 0 20px 55px rgba(25, 45, 80, 0.11);
-  backdrop-filter: blur(12px);
-}
-
-.signup-header {
-  margin-bottom: 26px;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 30px;
+  border: 1px solid #e2e8f3;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 48px rgba(29, 48, 85, 0.08);
 
   h1 {
-    margin: 8px 0 6px;
-    color: #172033;
-    font-size: 1.8rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    margin: 7px 0 8px;
+    color: #17213a;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.16;
   }
 
   p {
     margin: 0;
-    color: #7b8492;
-    font-size: 0.92rem;
+    color: #68748c;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+}
+
+.academy-account-eyebrow {
+  color: #3f73d8;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.academy-account-back {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #dbe3f0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #40506e;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    border-color: #3f73d8;
+    color: #2f63c8;
+    transform: translateY(-1px);
+  }
+}
+
+.academy-account-form {
+  display: grid;
+  gap: 20px;
+}
+
+.academy-account-section {
+  padding: 30px;
+  border: 1px solid #e2e8f3;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 14px 38px rgba(29, 48, 85, 0.06);
+}
+
+.academy-account-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 25px;
+
+  > span {
+    display: grid;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 13px;
+    background: #edf3ff;
+    color: #376acb;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  h2 {
+    margin: 0 0 5px;
+    color: #17213a;
+    font-size: 21px;
+  }
+
+  p {
+    margin: 0;
+    color: #79849a;
+    font-size: 14px;
     line-height: 1.6;
   }
 }
 
-.signup-badge {
-  display: inline-flex;
-  padding: 5px 10px;
-  color: #2563eb;
-  background: #eef5ff;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+.academy-account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 21px;
 }
 
-.signupinput {
-  width: 100%;
+.academy-account-field {
   display: flex;
+  min-width: 0;
   flex-direction: column;
-  margin-bottom: 17px;
+  gap: 8px;
 
-  label {
-    margin-bottom: 7px;
-    color: #4b5563;
-    font-size: 0.88rem;
-    font-weight: 700;
+  > span {
+    color: #34415d;
+    font-size: 14px;
+    font-weight: 750;
+  }
+
+  em {
+    margin-left: 4px;
+    color: #d34747;
+    font-style: normal;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d7dfeb;
+    border-radius: 13px;
+    outline: none;
+    background: #fbfcff;
+    color: #17213a;
+    font: inherit;
+    transition:
+      border-color 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   input,
   select {
-    width: 100%;
-    min-height: 46px;
-    padding: 10px 13px;
-    color: #111827;
-    background: #fff;
-    border: 1px solid #d9e0e9;
-    border-radius: 10px;
-    outline: none;
-    font-size: 0.95rem;
-    transition: 0.2s ease;
-    box-sizing: border-box;
-
-    &:hover {
-      border-color: #b9c3d0;
-    }
-
-    &:focus {
-      border-color: #3478db;
-      box-shadow: 0 0 0 3px rgba(52, 120, 219, 0.11);
-    }
-
-    &::placeholder {
-      color: #a8b0bd;
-    }
+    min-height: 48px;
+    padding: 0 14px;
   }
 
-  select {
+  textarea {
+    min-height: 112px;
+    padding: 13px 14px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #4b7ddd;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(75, 125, 221, 0.12);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #a0a9b9;
+  }
+
+  select:disabled,
+  input:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+
+  small {
+    color: #8993a6;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+.academy-account-field--wide {
+  grid-column: 1 / -1;
+}
+
+.academy-account-class-status {
+  display: flex;
+  align-items: flex-end;
+
+  p {
+    margin: 0;
+    color: #77839a;
+    font-size: 13px;
+  }
+
+  div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    p {
+      color: #b05245;
+    }
+
+    button {
+      padding: 7px 11px;
+      border: 0;
+      border-radius: 9px;
+      background: #eef3ff;
+      color: #376acb;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  }
+}
+
+.academy-account-error {
+  padding: 17px 20px;
+  border: 1px solid #f0c9c4;
+  border-radius: 15px;
+  background: #fff5f3;
+  color: #a33f34;
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
+
+.academy-account-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 24px 28px;
+  border: 1px solid #dfe7f2;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 14px 38px rgba(29, 48, 85, 0.06);
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #2e3c59;
+    font-size: 14px;
+  }
+
+  p {
+    margin: 0;
+    color: #7b879c;
+    font-size: 13px;
+  }
+}
+
+.academy-account-primary-button,
+.academy-account-secondary-button {
+  min-height: 48px;
+  padding: 0 21px;
+  border-radius: 13px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.academy-account-primary-button {
+  border: 0;
+  background: linear-gradient(135deg, #477fe4, #2f62c7);
+  color: #ffffff;
+  box-shadow: 0 10px 23px rgba(47, 98, 199, 0.24);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 27px rgba(47, 98, 199, 0.3);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+    box-shadow: none;
+  }
+}
+
+.academy-account-secondary-button {
+  border: 1px solid #d8e0ed;
+  background: #ffffff;
+  color: #3e4c68;
+
+  &:hover {
+    border-color: #4b7ddd;
+    color: #376acb;
+    transform: translateY(-2px);
+  }
+}
+
+.academy-account-success {
+  padding: 35px;
+  border: 1px solid #cfe7da;
+  border-radius: 25px;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(29, 48, 85, 0.08);
+}
+
+.academy-account-success-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 20px;
+  place-items: center;
+  border-radius: 18px;
+  background: #e5f7ec;
+  color: #218552;
+  font-size: 29px;
+  font-weight: 900;
+}
+
+.academy-account-success-heading {
+  span {
+    color: #218552;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 6px 0 7px;
+    color: #17213a;
+    font-size: 28px;
+  }
+
+  p {
+    margin: 0;
+    color: #6f7b90;
+    line-height: 1.7;
+  }
+}
+
+.academy-account-credentials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 27px 0 18px;
+
+  div {
+    min-width: 0;
+    padding: 17px 18px;
+    border: 1px solid #dde5ef;
+    border-radius: 15px;
+    background: #f8faff;
+  }
+
+  span {
+    display: block;
+    margin-bottom: 7px;
+    color: #7b879b;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  strong {
+    display: block;
+    overflow-wrap: anywhere;
+    color: #24314c;
+    font-size: 16px;
+  }
+}
+
+.academy-account-password {
+  color: #b3483d !important;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  letter-spacing: 0.035em;
+}
+
+.academy-account-copy-message {
+  margin: 0 0 15px;
+  color: #277c53;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.academy-account-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.academy-account-security-note {
+  margin-top: 25px;
+  padding: 17px 19px;
+  border-radius: 15px;
+  background: #fff8e9;
+  color: #79591c;
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+}
+
+.academy-account-state {
+  display: grid;
+  width: min(560px, 100%);
+  min-height: 260px;
+  margin: 60px auto;
+  padding: 35px;
+  box-sizing: border-box;
+  place-items: center;
+  align-content: center;
+  gap: 15px;
+  border: 1px solid #e1e7f0;
+  border-radius: 24px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 18px 48px rgba(29, 48, 85, 0.08);
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: #727e92;
+    line-height: 1.7;
+  }
+
+  button {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 12px;
+    background: #376acb;
+    color: #ffffff;
+    font-weight: 800;
     cursor: pointer;
   }
 }
 
-.signup-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.academy-account-state--error {
+  border-color: #efd3cf;
 
-  .signupinput {
-    margin-bottom: 17px;
+  h1 {
+    color: #a33f34;
   }
 }
 
-.signupbtn {
-  width: 100%;
-  min-height: 48px;
-  margin-top: 4px;
-  padding: 11px 18px;
-  border: none;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #2d7dd2, #4387f5);
-  color: #fff;
-  font-family: "Noto Sans TC", sans-serif;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  cursor: pointer;
-  box-shadow: 0 9px 22px rgba(45, 125, 210, 0.22);
-  transition: 0.2s ease;
+.academy-account-spinner {
+  width: 34px;
+  height: 34px;
+  border: 4px solid #dbe5f6;
+  border-top-color: #3f73d8;
+  border-radius: 50%;
+  animation: academy-account-spin 0.8s linear infinite;
+}
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 26px rgba(45, 125, 210, 0.28);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-    transform: none;
+@keyframes academy-account-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@media screen and (max-width: 700px) {
-  .Signup {
-    padding: 24px 14px;
+@media (max-width: 720px) {
+  .academy-account-page {
+    min-height: calc(100vh - 66px);
+    padding: 18px 12px 45px;
   }
 
-  .signupsection {
-    max-width: 500px;
-    padding: 26px 20px;
-    border-radius: 18px;
+  .academy-account-header {
+    display: block;
+    padding: 21px;
+    border-radius: 19px;
+
+    h1 {
+      margin-top: 14px;
+      font-size: 27px;
+    }
   }
 
-  .signup-header h1 {
-    font-size: 1.55rem;
+  .academy-account-back {
+    margin-bottom: 4px;
   }
 
-  .signup-row {
+  .academy-account-section {
+    padding: 22px 18px;
+    border-radius: 19px;
+  }
+
+  .academy-account-section-heading {
+    margin-bottom: 20px;
+
+    > span {
+      flex-basis: 38px;
+      width: 38px;
+      height: 38px;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+  }
+
+  .academy-account-grid {
     grid-template-columns: 1fr;
-    gap: 0;
+    gap: 17px;
+  }
+
+  .academy-account-field--wide {
+    grid-column: auto;
+  }
+
+  .academy-account-class-status {
+    align-items: flex-start;
+  }
+
+  .academy-account-form-footer {
+    display: grid;
+    padding: 20px;
+    border-radius: 18px;
+
+    .academy-account-primary-button {
+      width: 100%;
+    }
+  }
+
+  .academy-account-success {
+    padding: 25px 19px;
+    border-radius: 20px;
+  }
+
+  .academy-account-success-heading {
+    h2 {
+      font-size: 24px;
+    }
+  }
+
+  .academy-account-credentials {
+    grid-template-columns: 1fr;
+  }
+
+  .academy-account-success-actions {
+    display: grid;
+
+    button {
+      width: 100%;
+    }
   }
 }

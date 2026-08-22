@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,16 +50,6 @@ const getActivityStatus = (lastActiveAt: string | null, lastLoginAt: string | nu
   return { code: "critical", label: "長期未使用", inactive_days: days };
 };
 
-const membershipIsActive = (membership: any) => {
-  const status = String(membership?.status || "");
-  if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
-  const endTimes = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
-    .map(value => value ? new Date(value).getTime() : Number.NaN)
-    .filter(Number.isFinite);
-  if (status === "cancelled" && endTimes.length === 0) return false;
-  return endTimes.length === 0 || Math.max(...endTimes) > Date.now();
-};
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -101,18 +92,12 @@ Deno.serve(async (req: Request) => {
     const now = new Date().toISOString();
 
     if (account.role === "student" && ["conversation_get", "conversation_save"].includes(action)) {
-      const { data: membership, error: membershipError } = await admin
-        .from("memberships")
-        .select("status,trial_ends_at,access_ends_at,current_period_end,subscription_plans(features)")
-        .eq("student_id", account.id)
-        .maybeSingle();
-      if (membershipError) return json(500, { error: "無法確認會員使用權限" });
-      if (!membershipIsActive(membership)) {
+      const effectiveAccess = await loadEffectiveAccess(admin, Number(account.id));
+      if (!effectiveAccess.is_active) {
         return json(402, { error: "會員使用期限已結束，無法使用英文對話", code: "membership_required" });
       }
-      const conversationPlan = Array.isArray(membership?.subscription_plans) ? membership.subscription_plans[0] : membership?.subscription_plans;
-      if (conversationPlan && conversationPlan.features?.conversation !== true) {
-        return json(403, { error: "目前方案不包含英文對話，請升級為全方位方案", code: "plan_upgrade_required" });
+      if (!effectiveAccess.features.conversation) {
+        return json(403, { error: "目前帳號不包含英文對話", code: "conversation_not_available" });
       }
     }
 

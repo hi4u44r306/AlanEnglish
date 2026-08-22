@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -45,16 +46,6 @@ const addDays = (value: Date, days: number) => {
     const next = new Date(value);
     next.setUTCDate(next.getUTCDate() + days);
     return next.toISOString();
-};
-
-const membershipIsActive = (membership: any) => {
-    const status = String(membership?.status || "");
-    if (!["trialing", "active", "cancelled", "complimentary"].includes(status)) return false;
-    const endTimes = [membership?.trial_ends_at, membership?.access_ends_at, membership?.current_period_end]
-        .map(value => value ? new Date(value).getTime() : Number.NaN)
-        .filter(Number.isFinite);
-    if (status === "cancelled" && endTimes.length === 0) return false;
-    return endTimes.length === 0 || Math.max(...endTimes) > Date.now();
 };
 
 const cleanOptions = (value: unknown) => (
@@ -328,18 +319,12 @@ Deno.serve(async (req: Request) => {
             return json(403, { error: "智慧複習中心目前提供學生帳號使用" });
         }
 
-        const { data: membership, error: membershipError } = await admin
-            .from("memberships")
-            .select("status,trial_ends_at,access_ends_at,current_period_end,subscription_plans(features)")
-            .eq("student_id", caller.id)
-            .maybeSingle();
-        if (membershipError) throw membershipError;
-        if (!membershipIsActive(membership)) {
+        const effectiveAccess = await loadEffectiveAccess(admin, Number(caller.id));
+        if (!effectiveAccess.is_active) {
             return json(402, { error: "會員使用期限已結束，無法使用智慧複習", code: "membership_required" });
         }
-        const reviewPlan = Array.isArray(membership?.subscription_plans) ? membership.subscription_plans[0] : membership?.subscription_plans;
-        if (reviewPlan && reviewPlan.features?.review !== true) {
-            return json(403, { error: "目前方案不包含智慧複習，請升級為全方位方案", code: "plan_upgrade_required" });
+        if (!effectiveAccess.features.review) {
+            return json(403, { error: "目前帳號不包含智慧複習", code: "review_not_available" });
         }
 
         const body = await req.json().catch(() => ({}));

@@ -1,0 +1,507 @@
+begin;
+
+-- =========================================================
+-- Alan English - Phase 01
+-- Student types, official academy classes and enrollments
+-- =========================================================
+
+-- 1. Extend the existing students table without removing legacy fields.
+--    students.name remains the display name.
+--    students.email remains the Firebase login email.
+--    students.class remains a temporary compatibility field.
+
+alter table public.students
+    add column if not exists chinese_name text,
+    add column if not exists english_name text,
+    add column if not exists learner_type text;
+
+comment on column public.students.name is
+    'Legacy-compatible display name. Keep this column until every client reads chinese_name and english_name.';
+
+comment on column public.students.email is
+    'Unique Firebase login email. Guardian email is stored separately in public.guardian_contacts.email.';
+
+comment on column public.students.class is
+    'Legacy-compatible class code. Official enrollment history is stored in public.academy_enrollments.';
+
+comment on column public.students.chinese_name is
+    'Student Chinese name. Nullable for accounts that do not have a Chinese name.';
+
+comment on column public.students.english_name is
+    'Student English name. Nullable for accounts that do not have an English name.';
+
+comment on column public.students.learner_type is
+    'academy_student, textbook_customer or trial_user. Null is allowed for teacher/admin accounts and during the compatibility period.';
+
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint
+        where conrelid = 'public.students'::regclass
+          and conname = 'students_learner_type_check'
+    ) then
+        alter table public.students
+            add constraint students_learner_type_check
+            check (
+                learner_type is null
+                or learner_type in (
+                    'academy_student',
+                    'textbook_customer',
+                    'trial_user'
+                )
+            );
+    end if;
+end;
+$$;
+
+-- Backfill names conservatively. The original display name is never overwritten.
+update public.students
+set chinese_name = name
+where chinese_name is null
+  and name ~ '[一-龥]';
+
+update public.students
+set english_name = name
+where english_name is null
+  and name ~ '[A-Za-z]';
+
+-- Existing students with any legacy class are treated as academy students.
+-- Existing students without a class are treated as trial users for now.
+-- The second phase can later change a student to textbook_customer when a
+-- purchase or activation-code entitlement is created.
+update public.students
+set learner_type = case
+    when nullif(btrim(class), '') is not null then 'academy_student'
+    else 'trial_user'
+end
+where role = 'student'
+  and learner_type is null;
+
+-- Keep legacy account-creation code compatible. Existing Edge Functions do
+-- not yet send learner_type, so student accounts receive a safe value here.
+create or replace function public.ensure_student_learner_type()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public, pg_temp
+as $$
+begin
+    if new.role = 'student' and new.learner_type is null then
+        new.learner_type := case
+            when nullif(btrim(new.class), '') is not null then 'academy_student'
+            else 'trial_user'
+        end;
+    end if;
+
+    return new;
+end;
+$$;
+
+revoke all on function public.ensure_student_learner_type()
+    from public, anon, authenticated;
+
+grant execute on function public.ensure_student_learner_type()
+    to service_role;
+
+drop trigger if exists students_ensure_learner_type
+    on public.students;
+
+create trigger students_ensure_learner_type
+before insert or update of role, class, learner_type
+on public.students
+for each row
+execute function public.ensure_student_learner_type();
+
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint
+        where conrelid = 'public.students'::regclass
+          and conname = 'students_student_learner_type_required_check'
+    ) then
+        alter table public.students
+            add constraint students_student_learner_type_required_check
+            check (
+                role is distinct from 'student'
+                or learner_type is not null
+            );
+    end if;
+end;
+$$;
+
+create index if not exists students_learner_type_idx
+    on public.students (learner_type)
+    where role = 'student';
+
+create index if not exists students_login_email_lower_idx
+    on public.students (lower(email))
+    where email is not null;
+
+-- A guardian email is deliberately not unique because siblings may share it.
+create index if not exists guardian_contacts_email_lower_idx
+    on public.guardian_contacts (lower(email))
+    where email is not null;
+
+-- 2. Create the official academy class catalog.
+
+create table if not exists public.academy_classes (
+    id smallint generated by default as identity primary key,
+    code text not null unique,
+    name_zh text not null,
+    sort_order integer not null default 0,
+    is_active boolean not null default true,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    constraint academy_classes_code_check
+        check (code in ('E1', 'E3', 'E5', 'E7')),
+    constraint academy_classes_name_zh_not_blank_check
+        check (btrim(name_zh) <> '')
+);
+
+comment on table public.academy_classes is
+    'Official Alan English academy classes. Online textbook customers and trial users do not belong to these classes.';
+
+insert into public.academy_classes (
+    code,
+    name_zh,
+    sort_order,
+    is_active
+)
+values
+    ('E1', 'E1 英文班', 10, true),
+    ('E3', 'E3 英文班', 20, true),
+    ('E5', 'E5 英文班', 30, true),
+    ('E7', 'E7 英文班', 40, true)
+on conflict (code) do update
+set name_zh = excluded.name_zh,
+    sort_order = excluded.sort_order,
+    is_active = excluded.is_active,
+    updated_at = now();
+
+drop trigger if exists academy_classes_set_updated_at
+    on public.academy_classes;
+
+create trigger academy_classes_set_updated_at
+before update on public.academy_classes
+for each row
+execute function public.set_updated_at_now();
+
+-- 3. Store academy enrollment history separately from students.class.
+
+create table if not exists public.academy_enrollments (
+    id bigint generated by default as identity primary key,
+    student_id bigint not null
+        references public.students(id)
+        on delete cascade,
+    class_id smallint not null
+        references public.academy_classes(id)
+        on delete restrict,
+    status text not null default 'active',
+    enrolled_at date not null default current_date,
+    access_ends_at date,
+    status_changed_at timestamptz not null default now(),
+    notes text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    constraint academy_enrollments_status_check
+        check (status in ('active', 'paused', 'withdrawn', 'graduated')),
+    constraint academy_enrollments_access_dates_check
+        check (access_ends_at is null or access_ends_at >= enrolled_at),
+    constraint academy_enrollments_notes_length_check
+        check (notes is null or char_length(notes) <= 1000)
+);
+
+comment on table public.academy_enrollments is
+    'Academy enrollment history. Do not create rows here for textbook customers or trial users.';
+
+comment on column public.academy_enrollments.status is
+    'active, paused, withdrawn or graduated.';
+
+comment on column public.academy_enrollments.access_ends_at is
+    'Optional final day of academy access. Null means no scheduled end date.';
+
+create unique index if not exists academy_enrollments_one_current_per_student_idx
+    on public.academy_enrollments (student_id)
+    where status in ('active', 'paused');
+
+create index if not exists academy_enrollments_student_history_idx
+    on public.academy_enrollments (student_id, enrolled_at desc, id desc);
+
+create index if not exists academy_enrollments_class_status_idx
+    on public.academy_enrollments (class_id, status, student_id);
+
+create index if not exists academy_enrollments_access_ends_at_idx
+    on public.academy_enrollments (access_ends_at)
+    where status in ('active', 'paused')
+      and access_ends_at is not null;
+
+drop trigger if exists academy_enrollments_set_updated_at
+    on public.academy_enrollments;
+
+create trigger academy_enrollments_set_updated_at
+before update on public.academy_enrollments
+for each row
+execute function public.set_updated_at_now();
+
+-- Reject enrollment records that point to teacher/admin accounts.
+create or replace function public.validate_academy_enrollment_student()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public, pg_temp
+as $$
+declare
+    target_role text;
+begin
+    select role
+    into target_role
+    from public.students
+    where id = new.student_id;
+
+    if target_role is distinct from 'student' then
+        raise exception 'academy_enrollments.student_id must reference a student account';
+    end if;
+
+    return new;
+end;
+$$;
+
+revoke all on function public.validate_academy_enrollment_student()
+    from public, anon, authenticated;
+
+grant execute on function public.validate_academy_enrollment_student()
+    to service_role;
+
+drop trigger if exists academy_enrollments_validate_student
+    on public.academy_enrollments;
+
+create trigger academy_enrollments_validate_student
+before insert or update of student_id
+on public.academy_enrollments
+for each row
+execute function public.validate_academy_enrollment_student();
+
+-- Keep students.class synchronized temporarily so the existing React pages,
+-- assignments and leaderboard continue to work during later phases.
+create or replace function public.sync_student_legacy_class_from_enrollment()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public, pg_temp
+as $$
+declare
+    affected_student_id bigint;
+    current_class_code text;
+begin
+    if tg_op = 'DELETE' then
+        affected_student_id := old.student_id;
+    else
+        affected_student_id := new.student_id;
+    end if;
+
+    select academy_classes.code
+    into current_class_code
+    from public.academy_enrollments
+    join public.academy_classes
+      on academy_classes.id = academy_enrollments.class_id
+    where academy_enrollments.student_id = affected_student_id
+      and academy_enrollments.status in ('active', 'paused')
+    order by
+        case academy_enrollments.status
+            when 'active' then 0
+            else 1
+        end,
+        academy_enrollments.enrolled_at desc,
+        academy_enrollments.id desc
+    limit 1;
+
+    update public.students
+    set class = current_class_code,
+        learner_type = case
+            when current_class_code is not null then 'academy_student'
+            else learner_type
+        end,
+        updated_at = now()
+    where id = affected_student_id;
+
+    if tg_op = 'UPDATE'
+       and old.student_id is distinct from new.student_id then
+        update public.students
+        set class = (
+                select academy_classes.code
+                from public.academy_enrollments
+                join public.academy_classes
+                  on academy_classes.id = academy_enrollments.class_id
+                where academy_enrollments.student_id = old.student_id
+                  and academy_enrollments.status in ('active', 'paused')
+                order by
+                    case academy_enrollments.status
+                        when 'active' then 0
+                        else 1
+                    end,
+                    academy_enrollments.enrolled_at desc,
+                    academy_enrollments.id desc
+                limit 1
+            ),
+            updated_at = now()
+        where id = old.student_id;
+    end if;
+
+    if tg_op = 'DELETE' then
+        return old;
+    end if;
+
+    return new;
+end;
+$$;
+
+revoke all on function public.sync_student_legacy_class_from_enrollment()
+    from public, anon, authenticated;
+
+grant execute on function public.sync_student_legacy_class_from_enrollment()
+    to service_role;
+
+drop trigger if exists academy_enrollments_sync_legacy_class
+    on public.academy_enrollments;
+
+create trigger academy_enrollments_sync_legacy_class
+after insert or update or delete
+on public.academy_enrollments
+for each row
+execute function public.sync_student_legacy_class_from_enrollment();
+
+-- 4. Import only existing official E-class values into enrollment history.
+--    Legacy A/B/C/D values stay untouched until the administrator maps them.
+
+insert into public.academy_enrollments (
+    student_id,
+    class_id,
+    status,
+    enrolled_at,
+    notes
+)
+select
+    students.id,
+    academy_classes.id,
+    'active',
+    coalesce(students.created_at::date, current_date),
+    'Automatically migrated from students.class during phase 01.'
+from public.students
+join public.academy_classes
+  on academy_classes.code = upper(btrim(students.class))
+where students.role = 'student'
+  and students.class is not null
+  and not exists (
+      select 1
+      from public.academy_enrollments
+      where academy_enrollments.student_id = students.id
+        and academy_enrollments.status in ('active', 'paused')
+  );
+
+-- 5. Secure new tables. Alan English currently authenticates with Firebase,
+--    so browser clients must use verified Edge Functions instead of querying
+--    these tables directly with the anon key.
+
+alter table public.academy_classes enable row level security;
+alter table public.academy_enrollments enable row level security;
+
+revoke all on table public.academy_classes
+    from anon, authenticated;
+
+revoke all on table public.academy_enrollments
+    from anon, authenticated;
+
+revoke all on sequence public.academy_classes_id_seq
+    from anon, authenticated;
+
+revoke all on sequence public.academy_enrollments_id_seq
+    from anon, authenticated;
+
+grant all on table public.academy_classes
+    to service_role;
+
+grant all on table public.academy_enrollments
+    to service_role;
+
+grant usage, select on sequence public.academy_classes_id_seq
+    to service_role;
+
+grant usage, select on sequence public.academy_enrollments_id_seq
+    to service_role;
+
+-- 6. Migration assertions. Any failure rolls back the whole transaction.
+
+do $$
+declare
+    official_codes text[];
+    missing_student_types integer;
+    invalid_current_enrollments integer;
+begin
+    select array_agg(code order by sort_order)
+    into official_codes
+    from public.academy_classes
+    where code in ('E1', 'E3', 'E5', 'E7');
+
+    if official_codes is distinct from array['E1', 'E3', 'E5', 'E7']::text[] then
+        raise exception 'Phase 01 failed: official academy classes are incomplete';
+    end if;
+
+    select count(*)
+    into missing_student_types
+    from public.students
+    where role = 'student'
+      and learner_type is null;
+
+    if missing_student_types <> 0 then
+        raise exception 'Phase 01 failed: % student accounts have no learner_type',
+            missing_student_types;
+    end if;
+
+    select count(*)
+    into invalid_current_enrollments
+    from public.academy_enrollments
+    join public.students
+      on students.id = academy_enrollments.student_id
+    where academy_enrollments.status in ('active', 'paused')
+      and (
+          students.role is distinct from 'student'
+          or students.learner_type is distinct from 'academy_student'
+      );
+
+    if invalid_current_enrollments <> 0 then
+        raise exception 'Phase 01 failed: % current enrollments are invalid',
+            invalid_current_enrollments;
+    end if;
+end;
+$$;
+
+commit;
+
+-- Verification result shown by the Supabase SQL editor after success.
+select
+    (select count(*) from public.academy_classes) as academy_class_count,
+    (
+        select count(*)
+        from public.academy_enrollments
+        where status in ('active', 'paused')
+    ) as current_academy_enrollment_count,
+    (
+        select count(*)
+        from public.students
+        where role = 'student'
+          and learner_type = 'academy_student'
+    ) as academy_student_count,
+    (
+        select count(*)
+        from public.students
+        where role = 'student'
+          and learner_type = 'textbook_customer'
+    ) as textbook_customer_count,
+    (
+        select count(*)
+        from public.students
+        where role = 'student'
+          and learner_type = 'trial_user'
+    ) as trial_user_count;
