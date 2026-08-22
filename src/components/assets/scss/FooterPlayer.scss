@@ -158,7 +158,11 @@
 }
 .desktop-player-actions {
   display: flex;
-  margin-left: auto;
+  position: absolute;
+  right: 166px;
+  top: 50%;
+  margin-left: 0;
+  transform: translateY(-50%);
   align-items: center;
   gap: 4px;
 }
@@ -393,6 +397,10 @@
   color: #36577f !important;
 }
 .rhap_volume-controls {
+  position: absolute;
+  top: 50%;
+  right: 28px;
+  transform: translateY(-50%);
   width: 128px;
   justify-content: flex-end;
 }
