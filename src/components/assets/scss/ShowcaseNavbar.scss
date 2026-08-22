@@ -51,7 +51,7 @@
     left: 13px;
     height: 2px;
     border-radius: 999px;
-    background: #ff4f70;
+    background: #315bc8;
     content: "";
     opacity: 0;
     transform: scaleX(0.4);
@@ -109,18 +109,18 @@
 }
 
 .showcase-navbar-trial {
-  background: #ff4f70;
+  background: #315bc8;
   color: #ffffff;
-  box-shadow: 0 9px 24px rgba(255, 79, 112, 0.22);
+  box-shadow: 0 9px 24px rgba(49, 91, 200, 0.22);
 
   svg {
     font-size: 18px;
   }
 
   &:hover {
-    background: #e63f5f;
+    background: #2449a9;
     color: #ffffff;
-    box-shadow: 0 12px 28px rgba(255, 79, 112, 0.28);
+    box-shadow: 0 12px 28px rgba(49, 91, 200, 0.28);
   }
 }
 
