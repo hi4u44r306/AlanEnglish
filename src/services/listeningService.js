@@ -63,13 +63,32 @@ export const getBookPlaybackProgress = async (
 
 export const recordTrackPlay = async (
     firebaseUser,
-    trackId
+    trackId,
+    listeningSession = {}
 ) => {
     return await callListeningFunction(
         "record-play",
         firebaseUser,
         {
-            track_id: trackId
+            track_id: trackId,
+            action: "complete",
+            listening_session: listeningSession
+        }
+    );
+};
+
+export const startListeningSession = async (
+    firebaseUser,
+    trackId,
+    durationSeconds
+) => {
+    return await callListeningFunction(
+        "record-play",
+        firebaseUser,
+        {
+            track_id: trackId,
+            action: "start",
+            duration_seconds: durationSeconds
         }
     );
 };
