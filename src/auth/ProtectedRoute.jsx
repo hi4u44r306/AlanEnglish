@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children, allowedRoles, requiresActiveMembership = fal
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/" replace state={{ from: location }} />;
+        return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
     if (Array.isArray(allowedRoles) && allowedRoles.length > 0 && !allowedRoles.includes(role)) {

@@ -1,1 +1,63 @@
-.assignment-shortcut{position:fixed;right:22px;bottom:24px;z-index:1040;display:inline-flex;align-items:center;gap:9px;padding:12px 16px;border-radius:999px;background:#14213d;color:#fff;text-decoration:none;box-shadow:0 14px 34px rgba(20,33,61,.22);font-size:14px}.assignment-shortcut:hover{color:#fff;transform:translateY(-1px)}.assignment-shortcut span{font-size:16px}@media(max-width:640px){.assignment-shortcut{right:14px;bottom:16px;padding:11px 14px}}
+.assignment-shortcut {
+  position: fixed;
+  right: 22px;
+  bottom: 24px;
+  z-index: 1027;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: #14213d;
+  color: #ffffff;
+  text-decoration: none;
+  box-shadow:
+    0 14px 34px
+    rgba(20, 33, 61, 0.22);
+  font-size: 14px;
+  transition:
+    bottom 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+
+  &:hover {
+    color: #ffffff;
+    transform:
+      translateY(-2px);
+    box-shadow:
+      0 17px 38px
+      rgba(20, 33, 61, 0.28);
+  }
+
+  span {
+    font-size: 16px;
+  }
+
+  &.with-player {
+    bottom: 128px;
+  }
+
+  &.with-compact-player {
+    bottom: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .assignment-shortcut {
+    right: 14px;
+    bottom: 16px;
+    padding: 11px 14px;
+
+    &.with-player,
+    &.with-compact-player {
+      bottom:
+        calc(
+          126px +
+          env(
+            safe-area-inset-bottom,
+            0px
+          )
+        );
+    }
+  }
+}

@@ -1,8 +1,8 @@
 .app-shell {
+  display: flex;
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
-  display: flex;
   flex-direction: column;
   padding-top: 72px;
   background: #f7f9fc;
@@ -12,14 +12,16 @@
 .app-header {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
+  left: 0;
   z-index: 1030;
   width: 100%;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.96);
   border-bottom: 1px solid #edf0f4;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 4px 16px
+    rgba(15, 23, 42, 0.04);
   backdrop-filter: blur(12px);
 }
 
@@ -34,84 +36,70 @@
   }
 
   &.has-mini-player {
-    padding-bottom: 24px;
+    padding-bottom: 132px;
   }
 }
 
 .app-player {
   position: fixed;
-  left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1100;
+  left: 0;
+  z-index: 1025;
   width: 100%;
-  background: rgba(255, 255, 255, 0.98);
-  border-top: 1px solid #e5e7eb;
-  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.08);
-  transition: width 180ms ease, left 180ms ease, right 180ms ease, bottom 180ms ease, border-radius 180ms ease, box-shadow 180ms ease;
+  border-top:
+    1px solid #e5e7eb;
+  background:
+    rgba(255, 255, 255, 0.98);
+  box-shadow:
+    0 -8px 24px
+    rgba(15, 23, 42, 0.08);
+  transition:
+    width 180ms ease,
+    left 180ms ease,
+    right 180ms ease,
+    bottom 180ms ease,
+    border-radius 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.app-player-toggle,
-.app-player-drag-handle {
+.app-player-toggle {
   display: none;
 }
 
 .app-player.mini {
-  left: auto;
-  right: 24px;
-  bottom: 24px;
-  width: min(360px, calc(100vw - 48px));
-  border: 1px solid #dfe5ef;
-  border-radius: 18px;
+  right: auto;
+  bottom: 18px;
+  left: 24px;
+  width: min(
+    390px,
+    calc(100vw - 48px)
+  );
   overflow: hidden;
-  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.18);
-  touch-action: none;
-
-  &.dragging {
-    transition: none;
-    box-shadow: 0 24px 58px rgba(15, 23, 42, 0.28);
-  }
-
-  .app-player-drag-handle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 8px;
-    left: 10px;
-    z-index: 5;
-    border: 0;
-    border-radius: 999px;
-    padding: 6px 10px;
-    background: #eef2f8;
-    color: #4b5872;
-    font-family: "Nunito", sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: grab;
-    user-select: none;
-    touch-action: none;
-
-    &:active {
-      cursor: grabbing;
-    }
-  }
+  border:
+    1px solid #dfe5ef;
+  border-radius: 18px;
+  box-shadow:
+    0 18px 46px
+    rgba(15, 23, 42, 0.18);
 
   .app-player-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
     position: absolute;
     top: 8px;
     right: 10px;
     z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     border: 0;
     border-radius: 999px;
-    padding: 6px 10px;
+    padding: 6px 11px;
     background: #17233f;
-    color: #fff;
-    font-family: "Nunito", sans-serif;
+    color: #ffffff;
+    font-family:
+      "Nunito",
+      sans-serif;
     font-size: 12px;
     font-weight: 800;
     cursor: pointer;
@@ -124,7 +112,8 @@
   .rhap_container {
     min-height: 78px;
     height: auto;
-    padding: 42px 12px 10px;
+    padding:
+      42px 12px 10px;
     box-shadow: none;
   }
 
@@ -156,7 +145,9 @@
     margin-top: 0;
   }
 
-  .rhap_main-controls-button:not(.rhap_play-pause-button),
+  .rhap_main-controls-button:not(
+    .rhap_play-pause-button
+  ),
   .rhap_volume-controls {
     display: none;
   }
@@ -172,23 +163,29 @@
   }
 }
 
-.app-player:not(.mini) > .app-player-toggle {
-  display: flex;
+.app-player:not(.mini)
+> .app-player-toggle {
+  position: absolute;
+  top: -34px;
+  right: 18px;
+  z-index: 4;
+  display: inline-flex;
+  height: 34px;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  position: absolute;
-  right: 18px;
-  top: -34px;
-  z-index: 4;
-  height: 34px;
-  border: 1px solid #dfe5ef;
+  border:
+    1px solid #dfe5ef;
   border-bottom: 0;
-  border-radius: 12px 12px 0 0;
+  border-radius:
+    12px 12px 0 0;
   padding: 0 14px;
-  background: rgba(255, 255, 255, 0.98);
+  background:
+    rgba(255, 255, 255, 0.98);
   color: #17233f;
-  font-family: "Nunito", sans-serif;
+  font-family:
+    "Nunito",
+    sans-serif;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
@@ -206,8 +203,8 @@ body {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #c7cdd6;
     border-radius: 999px;
+    background: #c7cdd6;
   }
 }
 
@@ -217,22 +214,37 @@ body {
   }
 
   .app-content.has-player {
-    padding-bottom: 95px;
+    padding-bottom: 100px;
   }
 
   .app-content.has-mini-player {
-    padding-bottom: 18px;
+    padding-bottom: 126px;
   }
 
   .app-player.mini {
-    right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    width: min(320px, calc(100vw - 24px));
+    right: 8px;
+    bottom:
+      calc(
+        8px +
+        env(
+          safe-area-inset-bottom,
+          0px
+        )
+      );
+    left: 8px;
+    width: auto;
     border-radius: 16px;
   }
 
-  .app-player.mini .rhap_container {
+  .app-player.mini
+  .rhap_container {
     min-height: 70px;
-    padding: 40px 10px 8px;
+    padding:
+      40px 10px 8px;
+  }
+
+  .app-player:not(.mini)
+  > .app-player-toggle {
+    right: 10px;
   }
 }

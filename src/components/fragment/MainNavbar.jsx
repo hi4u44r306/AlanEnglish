@@ -152,7 +152,15 @@ function MainNavbar() {
                 </Container>
             </Navbar>
             <Offcanvas show={mobileOpen} onHide={closeMobileMenu} onExited={restoreDocumentScroll} placement="end" className="ae-mobile-offcanvas d-xl-none" backdrop scroll={false}>
-                <Offcanvas.Header closeButton><div className="ae-mobile-brand"><Brand /></div></Offcanvas.Header>
+                <Offcanvas.Header closeButton>
+                    <div className="ae-mobile-brand">
+                        <span className="ae-mobile-brand-mark">AE</span>
+                        <div className="ae-mobile-brand-copy">
+                            <strong>ALAN ENGLISH</strong>
+                            <small>{isAdmin ? "ADMIN CONSOLE" : isTeacher ? "TEACHER SPACE" : "STUDENT SPACE"}</small>
+                        </div>
+                    </div>
+                </Offcanvas.Header>
                 <Offcanvas.Body>
                     {isAuthenticated && <div className="ae-mobile-profile"><div className="ae-mobile-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</div><div><strong>{studentProfile?.name || "Alan English User"}</strong><span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span></div></div>}
                     <section className="ae-mobile-section"><span className="ae-mobile-section-title">主要功能</span><Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span></Link>{isStudent && <Link to="/student/review" onClick={closeMobileMenu} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw /><span>智慧複習</span></Link>}{isStudent && <Link to="/student/weekly-report" onClick={closeMobileMenu} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 /><span>每週報告</span></Link>}{isStudent && <Link to="/student/level" onClick={closeMobileMenu}><FiAward /><span>等級晉級</span></Link>}{isStudent && <Link to="/student/leaderboard" onClick={closeMobileMenu}><FiTrendingUp /><span>學習排行榜</span></Link>}{isStudent && <Link to="/student/membership" onClick={closeMobileMenu}><FiCreditCard /><span>會員方案</span></Link>}<Link to="/student/conversation" onClick={closeMobileMenu} className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation"><FiMessageCircle /><span>{isTeacher ? "英文對話示範" : "英文對話"}</span></Link>{isAuthenticated && <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar /><span>AI 教材</span></Link>}</section>

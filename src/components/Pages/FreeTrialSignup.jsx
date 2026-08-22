@@ -142,10 +142,10 @@ function FreeTrialSignup() {
                         <label><span>家長姓名（選填）</span><input name="guardianName" value={form.guardianName} onChange={update} maxLength="80" /></label>
                         <label><span>家長 Email（選填）</span><input name="guardianEmail" type="email" value={form.guardianEmail} onChange={update} /></label>
                     </div>
-                    {errorMessage && <div id="free-trial-error" className="platform-form-error" role="alert" aria-live="assertive"><strong>無法建立帳號</strong><span>{errorMessage}</span>{errorMessage.includes("已經註冊") && <Link to="/">前往登入</Link>}</div>}
+                    {errorMessage && <div id="free-trial-error" className="platform-form-error" role="alert" aria-live="assertive"><strong>無法建立帳號</strong><span>{errorMessage}</span>{errorMessage.includes("已經註冊") && <Link to="/login">前往登入</Link>}</div>}
                     <button className="platform-primary" type="submit" disabled={submitting}>{submitting ? "建立帳號中…" : "開始 7 天免費試用"}</button>
                 </form>
-                <p className="platform-footnote">已經有帳號？ <Link to="/">回到登入</Link></p>
+                <p className="platform-footnote">已經有帳號？ <Link to="/login">回到登入</Link></p>
             </section>
         </main>
     );
