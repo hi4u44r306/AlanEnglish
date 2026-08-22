@@ -1,6 +1,22 @@
 import AudioPlayer, { RHAP_UI } from "react-h5-audio-player";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import {
+    MdCheck,
+    MdKeyboardArrowDown,
+    MdMusicNote,
+    MdMoreVert,
+    MdPause,
+    MdPlayArrow,
+    MdRepeat,
+    MdSkipNext,
+    MdSkipPrevious,
+    MdSpeed,
+    MdThumbDown,
+    MdThumbDownOffAlt,
+    MdThumbUp,
+    MdThumbUpOffAlt
+} from "react-icons/md";
 import { useDispatch } from "react-redux";
 import {
     setCurrentPlaying,
@@ -57,6 +73,51 @@ const getCoveredSeconds = ranges => ranges.reduce(
     0
 );
 
+function PlayerOptionsPanel({
+    repeatTrack,
+    playbackRate,
+    onToggleRepeat,
+    onSelectRate
+}) {
+    return (
+        <div className="player-options-menu" role="dialog" aria-label="播放設定">
+            <button
+                type="button"
+                className={`player-options-repeat${repeatTrack ? " is-active" : ""}`}
+                onClick={onToggleRepeat}
+                aria-pressed={repeatTrack}
+            >
+                <MdRepeat aria-hidden="true" />
+                <span>
+                    <strong>重複播放</strong>
+                    <small>{repeatTrack ? "已開啟單曲重複" : "播放結束後再播一次"}</small>
+                </span>
+                <span className="player-options-switch" aria-hidden="true" />
+            </button>
+            <div className="player-options-speed">
+                <span className="player-options-speed-title">
+                    <MdSpeed aria-hidden="true" />
+                    播放速度
+                </span>
+                <div className="player-options-rates">
+                    {PLAYBACK_RATES.map(rate => (
+                        <button
+                            key={rate}
+                            type="button"
+                            className={playbackRate === rate ? "is-active" : ""}
+                            onClick={() => onSelectRate(rate)}
+                            aria-pressed={playbackRate === rate}
+                        >
+                            {rate}x
+                            {playbackRate === rate && <MdCheck aria-hidden="true" />}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function MusicPlayer({ music }) {
     const dispatch = useDispatch();
     const audioElement = useRef(null);
@@ -71,6 +132,8 @@ function MusicPlayer({ music }) {
     const sessionStartedAtRef = useRef(null);
     const listeningSessionIdRef = useRef(null);
     const startingSessionRef = useRef(false);
+    const desktopOptionsRef = useRef(null);
+    const mobileOptionsRef = useRef(null);
 
     const { firebaseUser, role } = useAuth();
 
@@ -94,10 +157,12 @@ function MusicPlayer({ music }) {
     const [sessionIneligible, setSessionIneligible] = useState(false);
     const [repeatTrack, setRepeatTrack] = useState(false);
     const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+    const [isDesktopOptionsOpen, setIsDesktopOptionsOpen] = useState(false);
+    const [isMobileOptionsOpen, setIsMobileOptionsOpen] = useState(false);
+    const [trackReaction, setTrackReaction] = useState(null);
     const [playbackPosition, setPlaybackPosition] = useState(0);
     const [audioDuration, setAudioDuration] = useState(0);
     const [isPlaybackActive, setIsPlaybackActive] = useState(false);
-    const [playerVolume, setPlayerVolume] = useState(0.5);
 
     const {
         id: trackId,
@@ -185,6 +250,9 @@ function MusicPlayer({ music }) {
 
     useEffect(() => {
         resetListeningSession();
+        setTrackReaction(null);
+        setIsDesktopOptionsOpen(false);
+        setIsMobileOptionsOpen(false);
     }, [resetListeningSession, trackId]);
 
     useEffect(() => {
@@ -195,10 +263,57 @@ function MusicPlayer({ music }) {
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
 
+        const handleOverlayKeyDown = event => {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            if (isMobileOptionsOpen) {
+                setIsMobileOptionsOpen(false);
+                return;
+            }
+
+            setIsMobileExpanded(false);
+        };
+
+        window.addEventListener("keydown", handleOverlayKeyDown);
+
         return () => {
             document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", handleOverlayKeyDown);
         };
-    }, [isMobileExpanded]);
+    }, [isMobileExpanded, isMobileOptionsOpen]);
+
+    useEffect(() => {
+        if (!isDesktopOptionsOpen && !isMobileOptionsOpen) {
+            return undefined;
+        }
+
+        const handleOutsidePointerDown = event => {
+            const clickedDesktopMenu = desktopOptionsRef.current?.contains(event.target);
+            const clickedMobileMenu = mobileOptionsRef.current?.contains(event.target);
+
+            if (!clickedDesktopMenu && !clickedMobileMenu) {
+                setIsDesktopOptionsOpen(false);
+                setIsMobileOptionsOpen(false);
+            }
+        };
+
+        const handleOptionsKeyDown = event => {
+            if (event.key === "Escape") {
+                setIsDesktopOptionsOpen(false);
+                setIsMobileOptionsOpen(false);
+            }
+        };
+
+        document.addEventListener("pointerdown", handleOutsidePointerDown);
+        window.addEventListener("keydown", handleOptionsKeyDown);
+
+        return () => {
+            document.removeEventListener("pointerdown", handleOutsidePointerDown);
+            window.removeEventListener("keydown", handleOptionsKeyDown);
+        };
+    }, [isDesktopOptionsOpen, isMobileOptionsOpen]);
 
     // =====================================
     // 讀取目前這本書全部音檔
@@ -956,8 +1071,8 @@ function MusicPlayer({ music }) {
         lastListenTimeRef.current = currentTime;
     };
 
-    const handlePlaybackRateChange = event => {
-        const nextRate = Number(event.target.value);
+    const updatePlaybackRate = nextValue => {
+        const nextRate = Number(nextValue);
         const audio = audioElement.current?.audio?.current;
 
         if (!PLAYBACK_RATES.includes(nextRate)) {
@@ -975,6 +1090,20 @@ function MusicPlayer({ music }) {
         }
 
         setPlaybackRate(nextRate);
+    };
+
+    const handleOptionsPlaybackRateChange = rate => {
+        updatePlaybackRate(rate);
+        setIsDesktopOptionsOpen(false);
+        setIsMobileOptionsOpen(false);
+    };
+
+    const toggleTrackReaction = nextReaction => {
+        setTrackReaction(currentReaction => (
+            currentReaction === nextReaction
+                ? null
+                : nextReaction
+        ));
     };
 
     const togglePlayback = () => {
@@ -1004,17 +1133,6 @@ function MusicPlayer({ music }) {
         setPlaybackPosition(nextPosition);
     };
 
-    const handleOverlayVolume = event => {
-        const audio = audioElement.current?.audio?.current;
-        const nextVolume = clamp(Number(event.target.value), 0, 1);
-
-        if (audio) {
-            audio.volume = nextVolume;
-        }
-
-        setPlayerVolume(nextVolume);
-    };
-
     // =====================================
     // 沒有音樂
     // =====================================
@@ -1036,7 +1154,7 @@ function MusicPlayer({ music }) {
                 aria-label="展開播放器"
             >
                 <span className="player-track-art" aria-hidden="true">
-                    ♫
+                    <MdMusicNote />
                 </span>
                 <span className="player-track-summary" aria-live="polite">
                     <span className="player-track-title">
@@ -1113,36 +1231,76 @@ function MusicPlayer({ music }) {
                     );
                 }}
                 customProgressBarSection={[
-                    RHAP_UI.CURRENT_TIME,
-                    RHAP_UI.PROGRESS_BAR,
-                    RHAP_UI.DURATION
+                    RHAP_UI.PROGRESS_BAR
                 ]}
                 customControlsSection={[
                     RHAP_UI.MAIN_CONTROLS,
-                    <button
-                        key="repeat-track"
-                        type="button"
-                        className={`repeat-track-control${repeatTrack ? " is-active" : ""}`}
-                        onClick={() => setRepeatTrack(current => !current)}
-                        aria-label={repeatTrack ? "關閉重複播放" : "開啟重複播放"}
-                        aria-pressed={repeatTrack}
-                    >
-                        ↻
-                    </button>,
-                    <label key="playback-rate" className="playback-rate-control">
-                        <span className="sr-only">播放速度</span>
-                        <select
-                            aria-label="播放速度"
-                            value={playbackRate}
-                            onChange={handlePlaybackRateChange}
+                    <div key="desktop-time" className="desktop-player-time">
+                        {formatTime(playbackPosition)} / {formatTime(audioDuration)}
+                    </div>,
+                    <div key="desktop-track" className="desktop-player-track">
+                        <span className="desktop-player-art" aria-hidden="true">
+                            <MdMusicNote />
+                        </span>
+                        <span className="desktop-player-copy">
+                            <strong>
+                                {bookname || "未命名教材"}{page ? ` · ${page}` : ""}
+                                {playbackRate !== 1 ? `（${playbackRate}x）` : ""}
+                            </strong>
+                            <small>
+                                {sessionIneligible
+                                    ? "加速播放中，這段不計入次數"
+                                    : `有效聆聽 ${Math.floor(coveragePercent)}%`}
+                            </small>
+                        </span>
+                    </div>,
+                    <div key="desktop-actions" className="desktop-player-actions">
+                        <button
+                            type="button"
+                            className={trackReaction === "like" ? "is-active" : ""}
+                            onClick={() => toggleTrackReaction("like")}
+                            aria-label="喜歡這個音檔"
+                            aria-pressed={trackReaction === "like"}
                         >
-                            {PLAYBACK_RATES.map(rate => (
-                                <option key={rate} value={rate}>
-                                    {rate}x
-                                </option>
-                            ))}
-                        </select>
-                    </label>,
+                            {trackReaction === "like"
+                                ? <MdThumbUp aria-hidden="true" />
+                                : <MdThumbUpOffAlt aria-hidden="true" />}
+                        </button>
+                        <button
+                            type="button"
+                            className={trackReaction === "dislike" ? "is-active" : ""}
+                            onClick={() => toggleTrackReaction("dislike")}
+                            aria-label="不喜歡這個音檔"
+                            aria-pressed={trackReaction === "dislike"}
+                        >
+                            {trackReaction === "dislike"
+                                ? <MdThumbDown aria-hidden="true" />
+                                : <MdThumbDownOffAlt aria-hidden="true" />}
+                        </button>
+                        <div className="desktop-player-options" ref={desktopOptionsRef}>
+                            <button
+                                type="button"
+                                className="desktop-player-more"
+                                onClick={() => {
+                                    setIsMobileOptionsOpen(false);
+                                    setIsDesktopOptionsOpen(current => !current);
+                                }}
+                                aria-label="更多播放設定"
+                                aria-haspopup="dialog"
+                                aria-expanded={isDesktopOptionsOpen}
+                            >
+                                <MdMoreVert aria-hidden="true" />
+                            </button>
+                            {isDesktopOptionsOpen && (
+                                <PlayerOptionsPanel
+                                    repeatTrack={repeatTrack}
+                                    playbackRate={playbackRate}
+                                    onToggleRepeat={() => setRepeatTrack(current => !current)}
+                                    onSelectRate={handleOptionsPlaybackRateChange}
+                                />
+                            )}
+                        </div>
+                    </div>,
                     RHAP_UI.VOLUME_CONTROLS
                 ]}
             />
@@ -1158,58 +1316,96 @@ function MusicPlayer({ music }) {
                     <button
                         type="button"
                         className="mobile-overlay-close"
-                        onClick={() => setIsMobileExpanded(false)}
+                        onClick={() => {
+                            setIsMobileOptionsOpen(false);
+                            setIsMobileExpanded(false);
+                        }}
                         aria-label="縮小播放器"
                     >
-                        ⌄
+                        <MdKeyboardArrowDown aria-hidden="true" />
                     </button>
-                    <div className="mobile-overlay-art" aria-hidden="true">♫</div>
-                    <div className="mobile-overlay-title">
-                        <strong>{bookname || "未命名教材"}{page ? ` · ${page}` : ""}</strong>
-                        <span>{sessionIneligible ? "加速播放中，這段不計入次數" : `有效聆聽 ${Math.floor(coveragePercent)}%`}</span>
-                    </div>
-                    <div className="mobile-overlay-progress">
-                        <input
-                            type="range"
-                            min="0"
-                            max={Math.max(audioDuration, 1)}
-                            step="0.1"
-                            value={Math.min(playbackPosition, Math.max(audioDuration, 1))}
-                            onChange={handleOverlaySeek}
-                            aria-label="播放進度"
-                        />
-                        <div>
-                            <span>{formatTime(playbackPosition)}</span>
-                            <span>{formatTime(audioDuration)}</span>
+                    <div className="mobile-overlay-content">
+                        <div className="mobile-overlay-art" aria-hidden="true">
+                            <MdMusicNote />
                         </div>
-                    </div>
-                    <div className="mobile-overlay-controls">
-                        <button type="button" onClick={handleClickPrev} aria-label="上一首">|◀</button>
-                        <button type="button" className="mobile-overlay-play" onClick={togglePlayback} aria-label={isPlaybackActive ? "暫停" : "播放"}>
-                            {isPlaybackActive ? "Ⅱ" : "▶"}
-                        </button>
-                        <button type="button" onClick={handleClickNext} aria-label="下一首">▶|</button>
-                        <button
-                            type="button"
-                            className={repeatTrack ? "is-active" : ""}
-                            onClick={() => setRepeatTrack(current => !current)}
-                            aria-label={repeatTrack ? "關閉重複播放" : "開啟重複播放"}
-                            aria-pressed={repeatTrack}
-                        >
-                            ↻
-                        </button>
-                    </div>
-                    <div className="mobile-overlay-options">
-                        <label>
-                            速度
-                            <select value={playbackRate} onChange={handlePlaybackRateChange} aria-label="播放速度">
-                                {PLAYBACK_RATES.map(rate => <option key={rate} value={rate}>{rate}x</option>)}
-                            </select>
-                        </label>
-                        <label>
-                            音量
-                            <input type="range" min="0" max="1" step="0.05" value={playerVolume} onChange={handleOverlayVolume} aria-label="音量" />
-                        </label>
+                        <div className="mobile-overlay-title">
+                            <strong>{bookname || "未命名教材"}{page ? ` · ${page}` : ""}</strong>
+                            <span>{sessionIneligible ? "加速播放中，這段不計入次數" : `有效聆聽 ${Math.floor(coveragePercent)}%`}</span>
+                        </div>
+                        <div className="mobile-overlay-progress">
+                            <input
+                                type="range"
+                                min="0"
+                                max={Math.max(audioDuration, 1)}
+                                step="0.1"
+                                value={Math.min(playbackPosition, Math.max(audioDuration, 1))}
+                                onChange={handleOverlaySeek}
+                                aria-label="播放進度"
+                            />
+                            <div>
+                                <span>{formatTime(playbackPosition)}</span>
+                                <span>{formatTime(audioDuration)}</span>
+                            </div>
+                        </div>
+                        <div className="mobile-overlay-controls">
+                            <button type="button" onClick={handleClickPrev} aria-label="上一首">
+                                <MdSkipPrevious aria-hidden="true" />
+                            </button>
+                            <button type="button" className="mobile-overlay-play" onClick={togglePlayback} aria-label={isPlaybackActive ? "暫停" : "播放"}>
+                                {isPlaybackActive
+                                    ? <MdPause aria-hidden="true" />
+                                    : <MdPlayArrow aria-hidden="true" />}
+                            </button>
+                            <button type="button" onClick={handleClickNext} aria-label="下一首">
+                                <MdSkipNext aria-hidden="true" />
+                            </button>
+                        </div>
+                        <div className="mobile-overlay-actions">
+                            <button
+                                type="button"
+                                className={trackReaction === "like" ? "is-active" : ""}
+                                onClick={() => toggleTrackReaction("like")}
+                                aria-label="喜歡這個音檔"
+                                aria-pressed={trackReaction === "like"}
+                            >
+                                {trackReaction === "like"
+                                    ? <MdThumbUp aria-hidden="true" />
+                                    : <MdThumbUpOffAlt aria-hidden="true" />}
+                            </button>
+                            <button
+                                type="button"
+                                className={trackReaction === "dislike" ? "is-active" : ""}
+                                onClick={() => toggleTrackReaction("dislike")}
+                                aria-label="不喜歡這個音檔"
+                                aria-pressed={trackReaction === "dislike"}
+                            >
+                                {trackReaction === "dislike"
+                                    ? <MdThumbDown aria-hidden="true" />
+                                    : <MdThumbDownOffAlt aria-hidden="true" />}
+                            </button>
+                            <div className="mobile-player-options" ref={mobileOptionsRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsDesktopOptionsOpen(false);
+                                        setIsMobileOptionsOpen(current => !current);
+                                    }}
+                                    aria-label="更多播放設定"
+                                    aria-haspopup="dialog"
+                                    aria-expanded={isMobileOptionsOpen}
+                                >
+                                    <MdMoreVert aria-hidden="true" />
+                                </button>
+                                {isMobileOptionsOpen && (
+                                    <PlayerOptionsPanel
+                                        repeatTrack={repeatTrack}
+                                        playbackRate={playbackRate}
+                                        onToggleRepeat={() => setRepeatTrack(current => !current)}
+                                        onSelectRate={handleOptionsPlaybackRateChange}
+                                    />
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>,
                 document.body
