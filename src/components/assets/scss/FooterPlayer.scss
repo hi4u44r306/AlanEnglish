@@ -54,8 +54,7 @@
   top: 48px;
   left: 18%;
   right: 18%;
-  display: flex;
-  gap: 7px;
+  display: block;
   justify-content: center;
   align-items: center;
   width: auto;
@@ -68,6 +67,12 @@
   line-height: 1.3;
   pointer-events: none;
 }
+.player-track-title {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  min-width: 0;
+}
 .player-track-book,
 .player-track-page {
   overflow: hidden;
@@ -77,6 +82,10 @@
 .player-track-page {
   flex: 0 0 auto;
   color: #2f80ed;
+}
+.player-track-status,
+.player-track-art {
+  display: none;
 }
 .rhap_controls-section {
   margin-top: 31px;
@@ -205,32 +214,120 @@
   }
 }
 @media only screen and (max-width: 675px) {
+  .footer-player {
+    min-height: calc(84px + env(safe-area-inset-bottom));
+  }
   .rhap_container {
-    min-height: 146px;
-    padding: 12px 16px 37px;
+    min-height: calc(84px + env(safe-area-inset-bottom));
+    padding: 0 8px env(safe-area-inset-bottom);
+    background: #ffffff;
   }
   .rhap_progress-section {
-    gap: 6px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    min-height: 4px;
+    gap: 0;
+    padding: 0;
+  }
+  .rhap_progress-section .rhap_time {
+    display: none;
   }
   .rhap_progress-container {
-    min-width: 54px;
+    min-width: 0;
+    height: 4px;
+  }
+  .rhap_progress-bar,
+  .rhap_progress-filled {
+    height: 4px;
+  }
+  .rhap_progress-indicator {
+    display: none;
   }
   .player-track-summary {
-    top: 43px;
-    left: 18%;
-    right: 18%;
-    max-width: none;
+    z-index: 3;
+    top: 23px;
+    right: 181px;
+    left: 69px;
+    overflow: visible;
+    text-align: left;
     font-size: 0.82rem;
+  }
+  .player-track-title {
+    display: block;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .player-track-book {
+    max-width: 100%;
+  }
+  .player-track-page::before {
+    content: " · ";
+  }
+  .player-track-status {
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    color: #627d98;
+    font-size: 0.67rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .player-track-art {
+    position: absolute;
+    z-index: 3;
+    top: 19px;
+    left: 12px;
+    display: grid;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    border-radius: 11px;
+    background: linear-gradient(145deg, #14213d, #2f80ed);
+    box-shadow: 0 6px 15px rgba(20, 33, 61, 0.24);
+    color: #f6c344;
+    font-size: 1.35rem;
+    font-weight: 800;
   }
   .playback-rate-control select {
     min-height: 32px;
-    padding: 0 5px;
+    width: 46px;
+    padding: 0 2px;
     font-size: 0.78rem;
   }
+  .rhap_controls-section {
+    position: absolute;
+    top: 23px;
+    right: 7px;
+    width: 172px;
+    margin: 0;
+    justify-content: flex-end;
+  }
+  .rhap_main-controls {
+    gap: 1px;
+  }
+  .rhap_main-controls > button {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    font-size: 33px;
+  }
+  .rhap_main-controls .rhap_play-pause-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    font-size: 40px;
+  }
+  .rhap_volume-controls {
+    display: none;
+  }
   .listening-coverage-status {
-    left: 14px;
-    right: auto;
-    bottom: 8px;
+    display: none;
   }
 }
 // @media only screen and (max-width: 675px) {
