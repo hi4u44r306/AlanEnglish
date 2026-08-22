@@ -29,6 +29,7 @@
 }
 
 .ae-desktop-nav {
+  display: flex;
   flex: 1;
   align-items: center;
   justify-content: flex-end;
@@ -158,7 +159,7 @@
 .ae-mobile-toggle {
   width: 46px;
   height: 46px;
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
   margin-left: auto;
@@ -169,10 +170,11 @@
   box-shadow: 0 5px 16px rgba(15, 23, 42, 0.06);
 }
 
-.ae-mobile-toggle img {
-  width: 27px;
-  height: 27px;
-  object-fit: contain;
+.ae-mobile-toggle svg {
+  width: 23px;
+  height: 23px;
+  color: #1e3a62;
+  stroke-width: 2.4;
 }
 
 .ae-mobile-toggle:active {
@@ -454,7 +456,7 @@
   opacity: 0.6;
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: 1500px) {
   .ae-navbar,
   .ae-navbar-container {
     min-height: 66px;
@@ -466,6 +468,14 @@
 
   .ae-brand {
     max-width: calc(100% - 68px);
+  }
+
+  .ae-desktop-nav {
+    display: none;
+  }
+
+  .ae-mobile-toggle {
+    display: inline-flex;
   }
 }
 
@@ -480,7 +490,7 @@
 }
 
 /* Branded mobile application drawer */
-@media (max-width: 1199.98px) {
+@media (max-width: 1500px) {
   .ae-mobile-offcanvas {
     width: min(92vw, 400px) !important;
     border-left: 0 !important;
