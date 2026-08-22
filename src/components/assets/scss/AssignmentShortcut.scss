@@ -33,8 +33,16 @@
     font-size: 16px;
   }
 
-  &.with-player {
-    bottom: 128px;
+  &.with-player:not(
+    .with-compact-player
+  ) {
+    bottom:
+      calc(
+        var(
+          --app-player-space,
+          110px
+        ) + 48px
+      );
   }
 
   &.with-compact-player {
@@ -48,7 +56,23 @@
     bottom: 16px;
     padding: 11px 14px;
 
-    &.with-player,
+    &.with-player:not(
+      .with-compact-player
+    ) {
+      bottom:
+        calc(
+          var(
+            --app-player-space,
+            100px
+          ) +
+          46px +
+          env(
+            safe-area-inset-bottom,
+            0px
+          )
+        );
+    }
+
     &.with-compact-player {
       bottom:
         calc(
