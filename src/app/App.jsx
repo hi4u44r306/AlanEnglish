@@ -67,9 +67,10 @@ const App = () => {
                 </Helmet>
 
                 <Routes>
-                    <Route path="/" element={<Login />} />
+                    <Route path="/" element={<Showcase />} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/solve" element={<SolvePage />} />
-                    <Route path="/showcase" element={<Showcase />} />
+                    <Route path="/showcase" element={<Navigate to="/" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
 
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
