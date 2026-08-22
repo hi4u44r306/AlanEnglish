@@ -98,7 +98,11 @@
   display: none;
 }
 .desktop-player-time {
+  position: absolute;
+  top: 50%;
+  left: 184px;
   margin-left: 0;
+  transform: translateY(-50%);
   color: #62718a;
   font-size: 0.78rem;
   font-weight: 700;
