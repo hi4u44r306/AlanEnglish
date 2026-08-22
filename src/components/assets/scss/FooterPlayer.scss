@@ -1,4 +1,5 @@
 .footer-player {
+  position: relative;
   user-select: none;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -34,6 +35,38 @@
 .rhap_progress-section {
   height: 30px;
   justify-content: space-between;
+  min-width: 0;
+}
+.rhap_progress-container {
+  min-width: 90px;
+}
+.playback-rate-control select {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e3a5f;
+  font-weight: 700;
+}
+.listening-coverage-status {
+  position: absolute;
+  right: 14px;
+  bottom: 4px;
+  color: #486581;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .musicnotification {
   font-family: "Nunito", sans-serif;
@@ -111,6 +144,28 @@
   align-items: center;
   .music-detail {
     display: flex;
+  }
+}
+@media only screen and (max-width: 675px) {
+  .rhap_container {
+    height: 118px;
+    padding-bottom: 20px;
+  }
+  .rhap_progress-section {
+    gap: 6px;
+  }
+  .rhap_progress-container {
+    min-width: 54px;
+  }
+  .playback-rate-control select {
+    min-height: 32px;
+    padding: 0 5px;
+    font-size: 0.78rem;
+  }
+  .listening-coverage-status {
+    left: 14px;
+    right: auto;
+    bottom: 3px;
   }
 }
 // @media only screen and (max-width: 675px) {
