@@ -56,6 +56,11 @@ const Containerfull = ({ children }) => {
         !playerExpanded
     );
 
+    const playerSpace =
+        typeof curr_margin === 'number'
+            ? `${curr_margin}px`
+            : curr_margin || '110px';
+
     useEffect(() => {
         try {
             localStorage.removeItem(
@@ -89,7 +94,13 @@ const Containerfull = ({ children }) => {
     }, [location.pathname]);
 
     return (
-        <div className="app-shell">
+        <div
+            className="app-shell"
+            style={{
+                '--app-player-space':
+                    playerSpace
+            }}
+        >
             <MobileOffcanvasScrollGuard />
 
             <header className="app-header">
