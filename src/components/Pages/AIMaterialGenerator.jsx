@@ -43,6 +43,13 @@ const DIFFICULTIES = [
     { value: "國小高年級", label: "高年級（5～6 年級・課綱第三階段）" },
     { value: "國中基礎", label: "國中基礎（七年級銜接）" }
 ];
+
+const TOPIC_IDEAS = {
+    reading: ["校園生活", "動物園的一天", "生日派對", "野餐時間", "迷路問路", "我的家人", "天氣與穿著", "去超市購物"],
+    vocabulary: ["動物", "食物與飲料", "顏色與形狀", "身體部位", "教室用品", "家庭成員", "運動", "天氣"],
+    grammar: ["be 動詞", "can 與能力", "like 與喜好", "have / has", "現在進行式", "there is / are", "Wh- 問句", "時間與日常作息"],
+    listening: ["在學校打招呼", "在餐廳點餐", "生日邀請", "動物園導覽", "放學後的計畫", "天氣預報", "問路對話", "購物對話"]
+};
 const DEFAULT_PASSING_SCORE = 90;
 
 const formatDate = value => {
@@ -89,6 +96,7 @@ function AIMaterialGenerator() {
     );
 
     const visibleMaterials = activeTab === "favorites" ? favoriteMaterials : materials;
+    const topicIdeas = TOPIC_IDEAS[materialType] || [];
 
     const roleLabel = useMemo(() => {
         if (usage.role === "admin") return "管理者";
@@ -134,6 +142,16 @@ function AIMaterialGenerator() {
     const resetQuiz = () => {
         setAnswers({});
         setAttemptResult(null);
+    };
+
+    const chooseTopic = nextTopic => {
+        setTopic(nextTopic);
+        setError("");
+    };
+
+    const chooseRandomTopic = () => {
+        if (!topicIdeas.length) return;
+        chooseTopic(topicIdeas[Math.floor(Math.random() * topicIdeas.length)]);
     };
 
     const scrollToMaterial = () => {
@@ -379,7 +397,16 @@ function AIMaterialGenerator() {
                             <label className="ai-field"><span>學生程度</span><select value={difficulty} onChange={event => setDifficulty(event.target.value)}>{DIFFICULTIES.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
                             <label className="ai-field"><span>題目數量</span><select value={questionCount} onChange={event => setQuestionCount(Number(event.target.value))}>{[5, 8, 10, 15].map(count => <option key={count} value={count}>{count} 題</option>)}</select></label>
                         </div>
-                        {materialType !== "custom" && <label className="ai-field ai-field-full"><span>教材主題</span><input type="text" value={topic} onChange={event => setTopic(event.target.value)} placeholder={materialType === "grammar" ? "例如：be 動詞、can、現在進行式（系統會依年級限制）" : "例如：動物、學校、旅行、運動"} maxLength={120} /></label>}
+                        {materialType !== "custom" && <div className="ai-topic-picker">
+                            <div className="ai-topic-picker-heading">
+                                <div><span>需要一點靈感嗎？</span><p>選一個主題就可以開始，也可以自己輸入。</p></div>
+                                <button type="button" onClick={chooseRandomTopic}><FiRefreshCw /> 幫我想一個</button>
+                            </div>
+                            <div className="ai-topic-chips" aria-label="教材主題建議">
+                                {topicIdeas.map(item => <button type="button" key={item} className={topic === item ? "active" : ""} onClick={() => chooseTopic(item)}>{item}</button>)}
+                            </div>
+                            <label className="ai-field ai-field-full"><span>教材主題</span><input type="text" value={topic} onChange={event => setTopic(event.target.value)} placeholder={materialType === "grammar" ? "例如：be 動詞、can、現在進行式（系統會依年級限制）" : "例如：動物、學校、旅行、運動"} maxLength={120} /></label>
+                        </div>}
                         <label className="ai-field ai-field-full"><span>{materialType === "custom" ? "告訴 AI 你想要什麼" : "額外需求（選填）"}</span><textarea value={customRequest} onChange={event => setCustomRequest(event.target.value)} placeholder={materialType === "custom" ? "例如：我要國小五年級程度，主題是去日本旅行，要有單字、短文和閱讀理解題。" : "例如：希望多練習疑問句，題目不要太難。"} rows={4} maxLength={600} /></label>
                         {error && <div className="ai-error-message">{error}</div>}
                         <button type="submit" className="ai-generate-button" disabled={generating || loadingUsage || usage.remaining <= 0}>{generating ? <><FiRefreshCw className="ai-spin" /> AI 正在製作教材...</> : <><FiStar /> 生成 {selectedType?.title || "AI 教材"}</>}</button>
