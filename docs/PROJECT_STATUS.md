@@ -260,6 +260,8 @@ academy-student-manager
 
 桌面 Navbar 固定於頂部。
 
+登入後 Navbar 在視窗寬度 `1500px` 以下會切換為側邊欄漢堡選單。
+
 手機版已有漢堡選單，但仍需要與登入後頁面的 Sidebar 進一步統一視覺及互動。
 
 ## 10. MusicPlayer 現況
