@@ -76,16 +76,22 @@
   color: inherit;
 }
 .rhap_controls-section {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(250px, auto) auto minmax(0, 1fr);
+  display: flex !important;
   align-items: center;
-  gap: clamp(12px, 1.5vw, 24px);
+  justify-content: center;
+  gap: clamp(10px, 1.35vw, 22px);
   height: 76px;
-  margin: 0;
+  margin: 0 !important;
+}
+.rhap_stacked .rhap_controls-section {
+  margin-top: 0 !important;
+}
+.rhap_controls-section > * {
+  flex: 0 0 auto;
 }
 .rhap_main-controls {
   gap: 5px;
-  justify-content: flex-end;
+  justify-content: center;
 }
 .listening-coverage-status {
   display: none;
@@ -99,6 +105,7 @@
 }
 .desktop-player-track {
   display: flex;
+  flex: 0 1 min(460px, 32vw);
   min-width: 0;
   align-items: center;
   justify-content: center;
@@ -467,7 +474,7 @@
 }
 .app-player.mini {
   .rhap_controls-section {
-    display: grid;
+    display: grid !important;
     grid-template-columns: auto minmax(0, 1fr);
     gap: 10px;
   }
