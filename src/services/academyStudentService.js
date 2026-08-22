@@ -1,0 +1,203 @@
+import {
+    supabaseKey,
+    supabaseUrl
+} from "../components/Pages/supabase-config";
+
+export class AcademyStudentServiceError extends Error {
+    constructor(message, options = {}) {
+        super(message);
+        this.name = "AcademyStudentServiceError";
+        this.code = options.code || "ACADEMY_STUDENT_SERVICE_ERROR";
+        this.status = options.status || 0;
+        this.details = options.details || null;
+    }
+}
+
+const requireFirebaseUser = firebaseUser => {
+    if (!firebaseUser || typeof firebaseUser.getIdToken !== "function") {
+        throw new AcademyStudentServiceError("請先登入後再操作", {
+            code: "AUTH_REQUIRED",
+            status: 401
+        });
+    }
+};
+
+const callAcademyStudentManager = async (
+    firebaseUser,
+    body
+) => {
+    requireFirebaseUser(firebaseUser);
+
+    const firebaseToken = await firebaseUser.getIdToken();
+
+    let response;
+
+    try {
+        response = await fetch(
+            `${supabaseUrl}/functions/v1/academy-student-manager`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${firebaseToken}`,
+                    apikey: supabaseKey
+                },
+                body: JSON.stringify(body)
+            }
+        );
+    } catch (error) {
+        throw new AcademyStudentServiceError(
+            "無法連線至學生帳號服務，請檢查網路後重試",
+            {
+                code: "NETWORK_ERROR",
+                details: error
+            }
+        );
+    }
+
+    const result = await response
+        .json()
+        .catch(() => ({}));
+
+    if (!response.ok || result?.success === false) {
+        throw new AcademyStudentServiceError(
+            result?.error || "學生帳號服務暫時無法使用",
+            {
+                code: result?.code || "REQUEST_FAILED",
+                status: response.status,
+                details: result
+            }
+        );
+    }
+
+    return result;
+};
+
+const normalizeOptionalText = value => {
+    if (typeof value !== "string") return null;
+
+    const normalized = value.trim();
+    return normalized || null;
+};
+
+const normalizeStudentPayload = student => ({
+    login_email: String(
+        student?.login_email ??
+        student?.loginEmail ??
+        student?.email ??
+        ""
+    ).trim().toLowerCase(),
+
+    chinese_name: String(
+        student?.chinese_name ??
+        student?.chineseName ??
+        ""
+    ).trim(),
+
+    english_name: normalizeOptionalText(
+        student?.english_name ??
+        student?.englishName
+    ),
+
+    class_code: String(
+        student?.class_code ??
+        student?.classCode ??
+        student?.class ??
+        ""
+    ).trim().toUpperCase(),
+
+    guardian_name: normalizeOptionalText(
+        student?.guardian_name ??
+        student?.guardianName
+    ),
+
+    guardian_email: normalizeOptionalText(
+        student?.guardian_email ??
+        student?.guardianEmail
+    )?.toLowerCase() || null,
+
+    guardian_phone: normalizeOptionalText(
+        student?.guardian_phone ??
+        student?.guardianPhone
+    ),
+
+    enrolled_at: String(
+        student?.enrolled_at ??
+        student?.enrolledAt ??
+        ""
+    ).trim(),
+
+    access_ends_at: normalizeOptionalText(
+        student?.access_ends_at ??
+        student?.accessEndsAt
+    ),
+
+    notes: normalizeOptionalText(student?.notes)
+});
+
+export const listAcademyClasses = async firebaseUser => {
+    const result = await callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "list_classes"
+        }
+    );
+
+    return Array.isArray(result?.classes)
+        ? result.classes
+        : [];
+};
+
+export const createAcademyStudent = async (
+    firebaseUser,
+    student
+) => {
+    return callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "create_student",
+            ...normalizeStudentPayload(student)
+        }
+    );
+};
+
+export const previewAcademyStudents = async (
+    firebaseUser,
+    students
+) => {
+    if (!Array.isArray(students) || students.length === 0) {
+        throw new AcademyStudentServiceError(
+            "沒有可以預覽的學生資料",
+            {
+                code: "STUDENT_ROWS_REQUIRED",
+                status: 400
+            }
+        );
+    }
+
+    return callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "preview_students",
+            rows: students.map(normalizeStudentPayload)
+        }
+    );
+};
+
+export const markAcademyPasswordChanged = async firebaseUser => {
+    return callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "mark_password_changed"
+        }
+    );
+};
+
+const academyStudentService = {
+    listAcademyClasses,
+    createAcademyStudent,
+    previewAcademyStudents,
+    markAcademyPasswordChanged
+};
+
+export default academyStudentService;

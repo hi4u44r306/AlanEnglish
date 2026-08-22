@@ -1,394 +1,670 @@
-import React, { useState } from "react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import React, {
+    useCallback,
+    useEffect,
+    useState
+} from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { authentication } from "./firebase-config";
+import {
+    createAcademyStudent,
+    listAcademyClasses
+} from "../../services/academyStudentService";
 import "./css/Signup.scss";
 
-import {
-    createUserWithEmailAndPassword,
-    deleteUser,
-    getAuth,
-    signInWithEmailAndPassword,
-    signOut
-} from "firebase/auth";
-import { deleteApp, initializeApp } from "firebase/app";
-import { authentication, firebaseConfig } from "./firebase-config";
-import { supabaseKey, supabaseUrl } from "./supabase-config";
-import { useAuth } from "../../auth/AuthContext";
+const FALLBACK_CLASSES = [
+    {
+        id: "E1",
+        code: "E1",
+        name_zh: "E1 班"
+    },
+    {
+        id: "E3",
+        code: "E3",
+        name_zh: "E3 班"
+    },
+    {
+        id: "E5",
+        code: "E5",
+        name_zh: "E5 班"
+    },
+    {
+        id: "E7",
+        code: "E7",
+        name_zh: "E7 班"
+    }
+];
+
+const getTaiwanToday = () => {
+    return new Intl.DateTimeFormat(
+        "en-CA",
+        {
+            timeZone: "Asia/Taipei",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }
+    ).format(new Date());
+};
+
+const createInitialForm = (
+    classCode = "E1",
+    enrolledAt = getTaiwanToday(),
+    accessEndsAt = ""
+) => ({
+    chineseName: "",
+    englishName: "",
+    loginEmail: "",
+    classCode,
+    guardianName: "",
+    guardianEmail: "",
+    guardianPhone: "",
+    enrolledAt,
+    accessEndsAt,
+    notes: ""
+});
 
 function Signup() {
-    const { role: currentRole } = useAuth();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [name, setName] = useState("");
-    const [accountRole, setAccountRole] = useState("student");
-    const [classtype, setClassType] = useState("");
-    const [plan, setPlan] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
-    const isAdmin = currentRole === "admin";
-    const isStudentAccount = accountRole === "student";
+    const [firebaseUser, setFirebaseUser] = useState(null);
+    const [authReady, setAuthReady] = useState(false);
 
-    const showSuccess = (message = "帳號建立成功") => {
-        toast.success(message, {
-            className: "notification",
-            position: "top-center",
-            autoClose: 1800,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true
-        });
-    };
+    const [classes, setClasses] = useState([]);
+    const [classLoading, setClassLoading] = useState(false);
+    const [classError, setClassError] = useState("");
 
-    const showError = (message) => {
-        toast.error(message || "建立失敗", {
-            className: "notification",
-            position: "top-center",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true
-        });
-    };
+    const [form, setForm] = useState(
+        createInitialForm()
+    );
 
-    const clearForm = () => {
-        setEmail("");
-        setPassword("");
-        setName("");
-        setAccountRole("student");
-        setClassType("");
-        setPlan("");
+    const [submitting, setSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [credentials, setCredentials] = useState(null);
+    const [copyMessage, setCopyMessage] = useState("");
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(
+            authentication,
+            user => {
+                setFirebaseUser(user);
+                setAuthReady(true);
+            }
+        );
+
+        return unsubscribe;
+    }, []);
+
+    const loadClasses = useCallback(async () => {
+        if (!firebaseUser) return;
+
+        setClassLoading(true);
+        setClassError("");
+
+        try {
+            const result = await listAcademyClasses(
+                firebaseUser
+            );
+
+            setClasses(result);
+
+            if (
+                result.length > 0 &&
+                !result.some(
+                    item => item.code === form.classCode
+                )
+            ) {
+                setForm(current => ({
+                    ...current,
+                    classCode: result[0].code
+                }));
+            }
+        } catch (error) {
+            setClassError(
+                error?.message ||
+                "無法讀取班級清單"
+            );
+        } finally {
+            setClassLoading(false);
+        }
+    }, [firebaseUser, form.classCode]);
+
+    useEffect(() => {
+        if (firebaseUser) {
+            loadClasses();
+        }
+    }, [firebaseUser, loadClasses]);
+
+    const classOptions = classes.length > 0
+        ? classes
+        : FALLBACK_CLASSES;
+
+    const handleChange = event => {
+        const {
+            name,
+            value
+        } = event.target;
+
+        setForm(current => ({
+            ...current,
+            [name]: value
+        }));
+
+        setErrorMessage("");
     };
 
     const validateForm = () => {
-        if (!email.trim()) {
-            showError("請輸入 Email");
-            return false;
+        if (!form.chineseName.trim()) {
+            return "請輸入學生中文姓名";
         }
 
-        if (!password) {
-            showError("請輸入密碼");
-            return false;
+        if (!form.loginEmail.trim()) {
+            return "請輸入學生登入 Email";
         }
 
-        if (password.length < 6) {
-            showError("密碼至少需要 6 個字元");
-            return false;
+        if (!form.classCode) {
+            return "請選擇學生班級";
         }
 
-        if (!name.trim()) {
-            showError("請輸入 English Name");
-            return false;
+        if (!form.enrolledAt) {
+            return "請選擇入班日期";
         }
 
-        if (!isAdmin && accountRole !== "student") {
-            showError("教師只能建立學生帳號");
-            return false;
+        if (
+            form.accessEndsAt &&
+            form.accessEndsAt < form.enrolledAt
+        ) {
+            return "權限截止日不可早於入班日期";
         }
 
-        if (isStudentAccount) {
-            if (!classtype) {
-                showError("請選擇 Class");
-                return false;
-            }
-
-            if (!plan) {
-                showError("請選擇 Plan");
-                return false;
-            }
-        }
-
-        return true;
+        return "";
     };
 
-    const createUserInDatabase = async (firebaseUid) => {
-        const creatorUser = authentication.currentUser;
+    const handleSubmit = async event => {
+        event.preventDefault();
 
-        if (!creatorUser) {
-            throw new Error("找不到目前登入狀態，請重新登入");
+        setErrorMessage("");
+        setCopyMessage("");
+
+        const validationError = validateForm();
+
+        if (validationError) {
+            setErrorMessage(validationError);
+            return;
         }
 
-        const creatorIdToken = await creatorUser.getIdToken(true);
+        if (!firebaseUser) {
+            setErrorMessage(
+                "登入狀態已失效，請重新登入"
+            );
+            return;
+        }
 
-        const response = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${creatorIdToken}`,
-                "apikey": supabaseKey
-            },
-            body: JSON.stringify({
-                firebase_uid: firebaseUid,
-                email: email.trim().toLowerCase(),
-                name: name.trim(),
-                role: accountRole,
-                class: isStudentAccount ? classtype : null,
-                plan: isStudentAccount ? plan : null
-            })
-        });
-
-        let result = null;
+        setSubmitting(true);
 
         try {
-            result = await response.json();
+            const result = await createAcademyStudent(
+                firebaseUser,
+                form
+            );
+
+            setCredentials(
+                result?.credentials || null
+            );
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
         } catch (error) {
-            console.error("create-user 回傳格式錯誤:", error);
+            setErrorMessage(
+                error?.message ||
+                "學生帳號建立失敗"
+            );
+        } finally {
+            setSubmitting(false);
         }
-
-        if (!response.ok) {
-            throw new Error(result?.error || `帳號資料建立失敗（HTTP ${response.status}）`);
-        }
-
-        return result;
     };
 
-    const signupUser = async (e) => {
-        e.preventDefault();
-        if (!validateForm()) return;
+    const handleCopyCredentials = async () => {
+        if (!credentials) return;
 
-        setIsLoading(true);
-
-        let secondaryApp = null;
-        let secondaryAuth = null;
-        let secondaryUser = null;
-        let firebaseAccountCreatedNow = false;
+        const accountText = [
+            "Alan English 學生帳號",
+            `登入 Email：${credentials.email}`,
+            `臨時密碼：${credentials.temporary_password}`,
+            "首次登入後請立即更改密碼。"
+        ].join("\n");
 
         try {
-            const secondaryAppName = `accountCreator-${Date.now()}`;
-            secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-            secondaryAuth = getAuth(secondaryApp);
+            await navigator.clipboard.writeText(
+                accountText
+            );
 
-            try {
-                const credentials = await createUserWithEmailAndPassword(
-                    secondaryAuth,
-                    email.trim().toLowerCase(),
-                    password
-                );
-
-                secondaryUser = credentials.user;
-                firebaseAccountCreatedNow = true;
-            } catch (firebaseCreateError) {
-                if (firebaseCreateError.code !== "auth/email-already-in-use") {
-                    throw firebaseCreateError;
-                }
-
-                console.warn("Firebase 帳號已存在，嘗試修復既有帳號資料");
-
-                try {
-                    const existingCredentials = await signInWithEmailAndPassword(
-                        secondaryAuth,
-                        email.trim().toLowerCase(),
-                        password
-                    );
-
-                    secondaryUser = existingCredentials.user;
-                } catch (existingLoginError) {
-                    if (
-                        existingLoginError.code === "auth/invalid-credential" ||
-                        existingLoginError.code === "auth/wrong-password"
-                    ) {
-                        throw new Error(
-                            "這個 Email 已存在 Firebase，但輸入的密碼不正確。請確認原本建立此帳號時使用的密碼。"
-                        );
-                    }
-
-                    throw existingLoginError;
-                }
-            }
-
-            if (!secondaryUser?.uid) {
-                throw new Error("無法取得 Firebase UID");
-            }
-
-            try {
-                const result = await createUserInDatabase(secondaryUser.uid);
-
-                if (secondaryAuth.currentUser) {
-                    await signOut(secondaryAuth);
-                }
-
-                if (result?.repaired) {
-                    showSuccess("既有帳號已修復並同步完成");
-                } else if (accountRole === "teacher") {
-                    showSuccess("教師帳號建立成功");
-                } else if (accountRole === "admin") {
-                    showSuccess("管理員帳號建立成功");
-                } else {
-                    showSuccess("學生帳號建立成功");
-                }
-
-                clearForm();
-            } catch (databaseError) {
-                if (firebaseAccountCreatedNow && secondaryUser) {
-                    try {
-                        await deleteUser(secondaryUser);
-                        console.warn("資料庫建立失敗，已回滾剛建立的 Firebase 帳號");
-                    } catch (rollbackError) {
-                        console.error("Firebase 帳號回滾失敗:", rollbackError);
-                    }
-                }
-
-                throw databaseError;
-            }
-        } catch (err) {
-            console.error("建立帳號發生錯誤:", err);
-
-            if (err.code === "auth/invalid-email") {
-                showError("Email 格式不正確");
-            } else if (err.code === "auth/weak-password") {
-                showError("密碼強度不足");
-            } else if (err.code === "auth/too-many-requests") {
-                showError("操作次數過多，請稍後再試");
-            } else if (err.code === "auth/network-request-failed") {
-                showError("Firebase 連線失敗，請確認網路後再試");
-            } else if (err.message) {
-                showError(err.message);
-            } else {
-                showError("建立帳號失敗");
-            }
-        } finally {
-            if (secondaryAuth?.currentUser) {
-                try {
-                    await signOut(secondaryAuth);
-                } catch (signOutError) {
-                    console.warn("Secondary Firebase Auth 登出失敗:", signOutError);
-                }
-            }
-
-            if (secondaryApp) {
-                try {
-                    await deleteApp(secondaryApp);
-                } catch (deleteError) {
-                    console.warn("Secondary Firebase App 移除失敗:", deleteError);
-                }
-            }
-
-            setIsLoading(false);
+            setCopyMessage(
+                "帳號與臨時密碼已複製"
+            );
+        } catch (error) {
+            setCopyMessage(
+                "無法自動複製，請手動選取帳號資料"
+            );
         }
     };
 
-    const handleRoleChange = (e) => {
-        const nextRole = e.target.value;
-        setAccountRole(nextRole);
+    const handleCreateNext = () => {
+        setCredentials(null);
+        setCopyMessage("");
+        setErrorMessage("");
 
-        if (nextRole !== "student") {
-            setClassType("");
-            setPlan("");
-        }
+        setForm(
+            createInitialForm(
+                form.classCode,
+                form.enrolledAt,
+                form.accessEndsAt
+            )
+        );
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
     };
+
+    if (!authReady) {
+        return (
+            <main className="academy-account-page">
+                <section className="academy-account-state">
+                    <div className="academy-account-spinner" />
+                    <p>正在確認登入狀態⋯</p>
+                </section>
+            </main>
+        );
+    }
+
+    if (!firebaseUser) {
+        return (
+            <main className="academy-account-page">
+                <section className="academy-account-state academy-account-state--error">
+                    <h1>登入狀態已失效</h1>
+                    <p>
+                        請重新登入管理員或老師帳號後再建立學生。
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={() => navigate("/login")}
+                    >
+                        前往登入
+                    </button>
+                </section>
+            </main>
+        );
+    }
 
     return (
-        <div className="Signup">
-            <div className="background-image" />
+        <main className="academy-account-page">
+            <div className="academy-account-container">
+                <header className="academy-account-header">
+                    <button
+                        type="button"
+                        className="academy-account-back"
+                        onClick={() => navigate(-1)}
+                    >
+                        ← 返回
+                    </button>
 
-            <form className="signupsection" onSubmit={signupUser}>
-                <div className="signup-header">
-                    <div className="signup-badge">Account Management</div>
-                    <h1>建立 Alan English 帳號</h1>
-                    <p>
-                        {isAdmin
-                            ? "管理員可以建立學生、教師與管理員帳號。"
-                            : "教師可以建立學生登入帳號並同步新增至 Alan English 資料庫。"}
-                    </p>
-                </div>
+                    <div>
+                        <span className="academy-account-eyebrow">
+                            Academy Student
+                        </span>
 
-                {isAdmin && (
-                    <div className="signupinput">
-                        <label>帳號角色</label>
-                        <select
-                            value={accountRole}
-                            onChange={handleRoleChange}
-                            disabled={isLoading}
-                        >
-                            <option value="student">Student 學生</option>
-                            <option value="teacher">Teacher 教師</option>
-                            <option value="admin">Admin 管理員</option>
-                        </select>
+                        <h1>建立英文班學生帳號</h1>
+
+                        <p>
+                            建立 Firebase 登入帳號、學生資料、班級與英文班權限。
+                        </p>
                     </div>
-                )}
+                </header>
 
-                <div className="signupinput">
-                    <label>帳號 Email</label>
-                    <input
-                        type="email"
-                        placeholder="user@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        autoComplete="off"
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="signupinput">
-                    <label>初始密碼</label>
-                    <input
-                        type="password"
-                        placeholder="至少 6 個字元"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        autoComplete="new-password"
-                        disabled={isLoading}
-                    />
-                </div>
-
-                <div className="signupinput">
-                    <label>English Name</label>
-                    <input
-                        type="text"
-                        placeholder="例如 Alan"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
-
-                {isStudentAccount && (
-                    <div className="signup-row">
-                        <div className="signupinput">
-                            <label>Class</label>
-                            <select
-                                value={classtype}
-                                onChange={(e) => setClassType(e.target.value)}
-                                disabled={isLoading}
-                            >
-                                <option value="" disabled>選擇 Class...</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
-                            </select>
+                {credentials ? (
+                    <section className="academy-account-success">
+                        <div className="academy-account-success-icon">
+                            ✓
                         </div>
 
-                        <div className="signupinput">
-                            <label>Plan</label>
-                            <select
-                                value={plan}
-                                onChange={(e) => setPlan(e.target.value)}
-                                disabled={isLoading}
-                            >
-                                <option value="" disabled>選擇 Plan...</option>
-                                <option value="listeningonly">純聽力</option>
-                                <option value="allcover">全方位</option>
-                            </select>
+                        <div className="academy-account-success-heading">
+                            <span>Account Created</span>
+                            <h2>學生帳號建立成功</h2>
+                            <p>
+                                臨時密碼只會在這個畫面顯示一次，請先複製並交給學生或家長。
+                            </p>
                         </div>
-                    </div>
+
+                        <div className="academy-account-credentials">
+                            <div>
+                                <span>登入 Email</span>
+                                <strong>
+                                    {credentials.email}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>臨時密碼</span>
+                                <strong className="academy-account-password">
+                                    {credentials.temporary_password}
+                                </strong>
+                            </div>
+                        </div>
+
+                        {copyMessage && (
+                            <p
+                                className="academy-account-copy-message"
+                                aria-live="polite"
+                            >
+                                {copyMessage}
+                            </p>
+                        )}
+
+                        <div className="academy-account-success-actions">
+                            <button
+                                type="button"
+                                className="academy-account-primary-button"
+                                onClick={handleCopyCredentials}
+                            >
+                                複製帳號與密碼
+                            </button>
+
+                            <button
+                                type="button"
+                                className="academy-account-secondary-button"
+                                onClick={handleCreateNext}
+                            >
+                                建立下一位學生
+                            </button>
+                        </div>
+
+                        <div className="academy-account-security-note">
+                            <strong>安全提醒</strong>
+                            <p>
+                                系統不會保存明文臨時密碼。學生第一次登入後，必須設定自己的新密碼。
+                            </p>
+                        </div>
+                    </section>
+                ) : (
+                    <form
+                        className="academy-account-form"
+                        onSubmit={handleSubmit}
+                    >
+                        <section className="academy-account-section">
+                            <div className="academy-account-section-heading">
+                                <span>01</span>
+
+                                <div>
+                                    <h2>學生基本資料</h2>
+                                    <p>
+                                        中文姓名、登入 Email 與班級為必填。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="academy-account-grid">
+                                <label className="academy-account-field">
+                                    <span>
+                                        中文姓名
+                                        <em>*</em>
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        name="chineseName"
+                                        value={form.chineseName}
+                                        onChange={handleChange}
+                                        maxLength={100}
+                                        autoComplete="off"
+                                        placeholder="例如：王小明"
+                                        required
+                                    />
+                                </label>
+
+                                <label className="academy-account-field">
+                                    <span>英文姓名</span>
+
+                                    <input
+                                        type="text"
+                                        name="englishName"
+                                        value={form.englishName}
+                                        onChange={handleChange}
+                                        maxLength={100}
+                                        autoComplete="off"
+                                        placeholder="例如：David"
+                                    />
+                                </label>
+
+                                <label className="academy-account-field academy-account-field--wide">
+                                    <span>
+                                        學生登入 Email
+                                        <em>*</em>
+                                    </span>
+
+                                    <input
+                                        type="email"
+                                        name="loginEmail"
+                                        value={form.loginEmail}
+                                        onChange={handleChange}
+                                        maxLength={320}
+                                        autoComplete="off"
+                                        placeholder="student@example.com"
+                                        required
+                                    />
+
+                                    <small>
+                                        每位學生的登入 Email 必須唯一。
+                                    </small>
+                                </label>
+
+                                <label className="academy-account-field">
+                                    <span>
+                                        班級
+                                        <em>*</em>
+                                    </span>
+
+                                    <select
+                                        name="classCode"
+                                        value={form.classCode}
+                                        onChange={handleChange}
+                                        disabled={classLoading}
+                                        required
+                                    >
+                                        {classOptions.map(item => (
+                                            <option
+                                                key={item.id || item.code}
+                                                value={item.code}
+                                            >
+                                                {item.code}
+                                                {item.name_zh &&
+                                                    item.name_zh !== item.code
+                                                    ? `｜${item.name_zh}`
+                                                    : ""}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+
+                                <div className="academy-account-class-status">
+                                    {classLoading && (
+                                        <p>正在讀取班級⋯</p>
+                                    )}
+
+                                    {classError && (
+                                        <div>
+                                            <p>{classError}</p>
+
+                                            <button
+                                                type="button"
+                                                onClick={loadClasses}
+                                            >
+                                                重新讀取
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="academy-account-section">
+                            <div className="academy-account-section-heading">
+                                <span>02</span>
+
+                                <div>
+                                    <h2>家長聯絡資料</h2>
+                                    <p>
+                                        家長 Email 可供兄弟姊妹共用，不會作為學生登入帳號。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="academy-account-grid">
+                                <label className="academy-account-field">
+                                    <span>家長姓名</span>
+
+                                    <input
+                                        type="text"
+                                        name="guardianName"
+                                        value={form.guardianName}
+                                        onChange={handleChange}
+                                        maxLength={100}
+                                        autoComplete="off"
+                                        placeholder="例如：王先生"
+                                    />
+                                </label>
+
+                                <label className="academy-account-field">
+                                    <span>家長電話</span>
+
+                                    <input
+                                        type="tel"
+                                        name="guardianPhone"
+                                        value={form.guardianPhone}
+                                        onChange={handleChange}
+                                        maxLength={30}
+                                        autoComplete="off"
+                                        placeholder="例如：0912-345-678"
+                                    />
+                                </label>
+
+                                <label className="academy-account-field academy-account-field--wide">
+                                    <span>家長 Email</span>
+
+                                    <input
+                                        type="email"
+                                        name="guardianEmail"
+                                        value={form.guardianEmail}
+                                        onChange={handleChange}
+                                        maxLength={320}
+                                        autoComplete="off"
+                                        placeholder="parent@example.com"
+                                    />
+                                </label>
+                            </div>
+                        </section>
+
+                        <section className="academy-account-section">
+                            <div className="academy-account-section-heading">
+                                <span>03</span>
+
+                                <div>
+                                    <h2>在學與權限資料</h2>
+                                    <p>
+                                        英文班權限會與學生在學紀錄分開保存。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="academy-account-grid">
+                                <label className="academy-account-field">
+                                    <span>
+                                        入班日期
+                                        <em>*</em>
+                                    </span>
+
+                                    <input
+                                        type="date"
+                                        name="enrolledAt"
+                                        value={form.enrolledAt}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </label>
+
+                                <label className="academy-account-field">
+                                    <span>權限截止日</span>
+
+                                    <input
+                                        type="date"
+                                        name="accessEndsAt"
+                                        value={form.accessEndsAt}
+                                        min={form.enrolledAt}
+                                        onChange={handleChange}
+                                    />
+
+                                    <small>
+                                        留空代表目前不設定固定截止日。
+                                    </small>
+                                </label>
+
+                                <label className="academy-account-field academy-account-field--wide">
+                                    <span>備註</span>
+
+                                    <textarea
+                                        name="notes"
+                                        value={form.notes}
+                                        onChange={handleChange}
+                                        maxLength={1000}
+                                        rows={4}
+                                        placeholder="例如：程度、家長需求或其他注意事項"
+                                    />
+                                </label>
+                            </div>
+                        </section>
+
+                        {errorMessage && (
+                            <div
+                                className="academy-account-error"
+                                role="alert"
+                            >
+                                <strong>無法建立帳號</strong>
+                                <p>{errorMessage}</p>
+                            </div>
+                        )}
+
+                        <footer className="academy-account-form-footer">
+                            <div>
+                                <strong>
+                                    系統將自動產生臨時密碼
+                                </strong>
+
+                                <p>
+                                    建立後請立即複製，系統不會再次顯示。
+                                </p>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="academy-account-primary-button"
+                                disabled={
+                                    submitting ||
+                                    classLoading
+                                }
+                            >
+                                {submitting
+                                    ? "正在建立帳號⋯"
+                                    : "建立學生帳號"}
+                            </button>
+                        </footer>
+                    </form>
                 )}
-
-                {!isStudentAccount && (
-                    <div className="signup-role-note">
-                        {accountRole === "teacher"
-                            ? "教師帳號不需要 Class 與 Plan。"
-                            : "管理員帳號不需要 Class 與 Plan。"}
-                    </div>
-                )}
-
-                <button type="submit" className="signupbtn" disabled={isLoading}>
-                    {isLoading ? "建立中..." : `建立${accountRole === "student" ? "學生" : accountRole === "teacher" ? "教師" : "管理員"}帳號`}
-                </button>
-
-            </form>
-        </div>
+            </div>
+        </main>
     );
 }
 

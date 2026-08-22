@@ -438,3 +438,6 @@ verify_jwt = false
 
 [functions.generate-ai-material]
 verify_jwt = false
+
+[functions.academy-student-manager]
+verify_jwt = false
