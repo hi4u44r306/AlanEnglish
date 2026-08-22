@@ -11,12 +11,44 @@ import Name from "./Name";
 import "../assets/scss/FooterPlayer.scss";
 import "react-h5-audio-player/lib/styles.css";
 import { useAuth } from "../../auth/AuthContext";
-import { recordTrackPlay } from "../../services/listeningService";
+import {
+    recordTrackPlay,
+    startListeningSession
+} from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
 
 const NO_INTERACTION_STORAGE_KEY = "ae-no-interaction";
 const NO_INTERACTION_WARNING_COUNT = 5;
 const NO_INTERACTION_STOP_COUNT = 10;
+const MINIMUM_LISTENING_COVERAGE = 80;
+const MAX_NATURAL_LISTEN_GAP_SECONDS = 3;
+const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5];
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const mergeCoverageRange = (ranges, nextRange) => {
+    const sortedRanges = [...ranges, nextRange]
+        .map(([start, end]) => [Math.max(0, start), Math.max(0, end)])
+        .filter(([start, end]) => end > start)
+        .sort((first, second) => first[0] - second[0]);
+
+    return sortedRanges.reduce((mergedRanges, [start, end]) => {
+        const previousRange = mergedRanges[mergedRanges.length - 1];
+
+        if (!previousRange || start > previousRange[1] + 0.15) {
+            mergedRanges.push([start, end]);
+            return mergedRanges;
+        }
+
+        previousRange[1] = Math.max(previousRange[1], end);
+        return mergedRanges;
+    }, []);
+};
+
+const getCoveredSeconds = ranges => ranges.reduce(
+    (total, [start, end]) => total + Math.max(0, end - start),
+    0
+);
 
 function MusicPlayer({ music }) {
     const dispatch = useDispatch();
@@ -24,6 +56,14 @@ function MusicPlayer({ music }) {
     const automaticTrackChangeRef = useRef(false);
     const internalTrackChangeRef = useRef(false);
     const pendingPlaybackRef = useRef(Boolean(music));
+    const coverageRangesRef = useRef([]);
+    const lastListenTimeRef = useRef(null);
+    const isSeekingRef = useRef(false);
+    const hasAcceleratedRef = useRef(false);
+    const completionSentRef = useRef(false);
+    const sessionStartedAtRef = useRef(null);
+    const listeningSessionIdRef = useRef(null);
+    const startingSessionRef = useRef(false);
 
     const { firebaseUser, role } = useAuth();
 
@@ -42,6 +82,9 @@ function MusicPlayer({ music }) {
             ? savedCount
             : 0;
     });
+    const [coveragePercent, setCoveragePercent] = useState(0);
+    const [playbackRate, setPlaybackRate] = useState(1);
+    const [sessionIneligible, setSessionIneligible] = useState(false);
 
     const {
         id: trackId,
@@ -50,6 +93,40 @@ function MusicPlayer({ music }) {
         audioURL,
         book_id
     } = currTrack || {};
+
+    const resetListeningSession = useCallback(() => {
+        coverageRangesRef.current = [];
+        lastListenTimeRef.current = null;
+        isSeekingRef.current = false;
+        hasAcceleratedRef.current = false;
+        completionSentRef.current = false;
+        sessionStartedAtRef.current = new Date().toISOString();
+        listeningSessionIdRef.current = null;
+        startingSessionRef.current = false;
+        setCoveragePercent(0);
+        setPlaybackRate(1);
+        setSessionIneligible(false);
+    }, []);
+
+    const updateCoverage = useCallback((start, end, duration) => {
+        if (!Number.isFinite(duration) || duration <= 0) {
+            return 0;
+        }
+
+        coverageRangesRef.current = mergeCoverageRange(
+            coverageRangesRef.current,
+            [clamp(start, 0, duration), clamp(end, 0, duration)]
+        );
+
+        const nextCoverage = clamp(
+            (getCoveredSeconds(coverageRangesRef.current) / duration) * 100,
+            0,
+            100
+        );
+
+        setCoveragePercent(nextCoverage);
+        return nextCoverage;
+    }, []);
 
     // =====================================
     // 初始化 noInteraction Redux
@@ -90,7 +167,12 @@ function MusicPlayer({ music }) {
         setCurrTrack(
             music
         );
+
     }, [music]);
+
+    useEffect(() => {
+        resetListeningSession();
+    }, [resetListeningSession, trackId]);
 
     // =====================================
     // 讀取目前這本書全部音檔
@@ -327,7 +409,7 @@ function MusicPlayer({ music }) {
     // 儲存播放完成紀錄
     // =====================================
 
-    const saveCompletedPlay = async () => {
+    const saveCompletedPlay = async ({ duration, coverage } = {}) => {
         if (
             role !==
             "student"
@@ -356,11 +438,44 @@ function MusicPlayer({ music }) {
             return null;
         }
 
+        if (completionSentRef.current) {
+            return null;
+        }
+
+        if (!listeningSessionIdRef.current) {
+            console.warn("播放工作階段尚未建立，因此不計入聽力次數");
+            return null;
+        }
+
+        if (hasAcceleratedRef.current) {
+            toast.info(
+                "本次曾使用加速播放，因此不會列入聽力次數。請以 1x 或較慢速度重新練習。",
+                { position: "top-center", autoClose: 3500 }
+            );
+            return null;
+        }
+
+        if (coverage < MINIMUM_LISTENING_COVERAGE) {
+            return null;
+        }
+
+        completionSentRef.current = true;
+
         try {
             const result =
                 await recordTrackPlay(
                     firebaseUser,
-                    trackId
+                    trackId,
+                    {
+                        duration_seconds: Number(duration.toFixed(2)),
+                        coverage_percent: Number(coverage.toFixed(2)),
+                        coverage_ranges: coverageRangesRef.current.map(([start, end]) => [
+                            Number(start.toFixed(2)),
+                            Number(end.toFixed(2))
+                        ]),
+                        used_accelerated_playback: false,
+                        session_id: listeningSessionIdRef.current
+                    }
                 );
 
             const progress =
@@ -385,6 +500,7 @@ function MusicPlayer({ music }) {
 
             return progress;
         } catch (error) {
+            completionSentRef.current = false;
             console.error(
                 "更新 Supabase 播放紀錄失敗:",
                 error
@@ -577,7 +693,7 @@ function MusicPlayer({ music }) {
     // 播放完整首
     // =====================================
 
-    const handleEnd = () => {
+    const handleEnd = event => {
         console.log(
             "Track End:",
             currTrack
@@ -587,7 +703,21 @@ function MusicPlayer({ music }) {
         // 一定先記錄現在這首
         // =================================
 
-        void saveCompletedPlay();
+        const audio = event.currentTarget;
+        const duration = Number(audio.duration);
+        const lastListenTime = lastListenTimeRef.current;
+        let finalCoverage = coveragePercent;
+
+        if (
+            !hasAcceleratedRef.current &&
+            Number.isFinite(lastListenTime) &&
+            Number.isFinite(duration) &&
+            duration > lastListenTime
+        ) {
+            finalCoverage = updateCoverage(lastListenTime, duration, duration);
+        }
+
+        void saveCompletedPlay({ duration, coverage: finalCoverage });
 
         // =================================
         // 自動播放次數 +1
@@ -694,6 +824,39 @@ function MusicPlayer({ music }) {
             )
         );
 
+        const audio = audioElement.current?.audio?.current;
+        if (audio && !Number.isFinite(lastListenTimeRef.current)) {
+            lastListenTimeRef.current = audio.currentTime;
+        }
+
+        if (
+            role === "student" &&
+            firebaseUser &&
+            trackId &&
+            audio &&
+            Number.isFinite(audio.duration) &&
+            audio.duration > 0 &&
+            !listeningSessionIdRef.current &&
+            !startingSessionRef.current
+        ) {
+            startingSessionRef.current = true;
+
+            void startListeningSession(
+                firebaseUser,
+                trackId,
+                Number(audio.duration.toFixed(2))
+            )
+                .then(result => {
+                    listeningSessionIdRef.current = result?.session?.id || null;
+                })
+                .catch(error => {
+                    console.error("建立有效聆聽工作階段失敗:", error);
+                })
+                .finally(() => {
+                    startingSessionRef.current = false;
+                });
+        }
+
         if (
             automaticTrackChangeRef.current
         ) {
@@ -727,6 +890,49 @@ function MusicPlayer({ music }) {
         resetNoInteraction();
     };
 
+    const handleListen = event => {
+        const audio = event.currentTarget;
+        const currentTime = Number(audio.currentTime);
+        const duration = Number(audio.duration);
+        const previousTime = lastListenTimeRef.current;
+
+        if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) {
+            return;
+        }
+
+        if (
+            !isSeekingRef.current &&
+            !hasAcceleratedRef.current &&
+            Number.isFinite(previousTime) &&
+            currentTime > previousTime &&
+            currentTime - previousTime <= MAX_NATURAL_LISTEN_GAP_SECONDS
+        ) {
+            updateCoverage(previousTime, currentTime, duration);
+        }
+
+        lastListenTimeRef.current = currentTime;
+    };
+
+    const handlePlaybackRateChange = event => {
+        const nextRate = Number(event.target.value);
+        const audio = audioElement.current?.audio?.current;
+
+        if (!PLAYBACK_RATES.includes(nextRate)) {
+            return;
+        }
+
+        if (nextRate > 1) {
+            hasAcceleratedRef.current = true;
+            setSessionIneligible(true);
+        }
+
+        if (audio) {
+            audio.playbackRate = nextRate;
+        }
+
+        setPlaybackRate(nextRate);
+    };
+
     // =====================================
     // 沒有音樂
     // =====================================
@@ -748,6 +954,7 @@ function MusicPlayer({ music }) {
                 volume={0.5}
                 loop={false}
                 progressUpdateInterval={50}
+                listenInterval={1000}
                 ref={audioElement}
                 src={
                     audioURL ||
@@ -764,6 +971,14 @@ function MusicPlayer({ music }) {
                 onEnded={
                     handleEnd
                 }
+                onListen={handleListen}
+                onSeeking={() => {
+                    isSeekingRef.current = true;
+                }}
+                onSeeked={event => {
+                    isSeekingRef.current = false;
+                    lastListenTimeRef.current = event.currentTarget.currentTime;
+                }}
                 onCanPlay={event => {
                     requestPlayback(
                         event.currentTarget
@@ -788,6 +1003,7 @@ function MusicPlayer({ music }) {
                 }}
                 customProgressBarSection={[
                     RHAP_UI.CURRENT_TIME,
+                    RHAP_UI.PROGRESS_BAR,
                     <div
                         key="music-name"
                         className="footer-track-name"
@@ -830,9 +1046,29 @@ function MusicPlayer({ music }) {
                 ]}
                 customControlsSection={[
                     RHAP_UI.MAIN_CONTROLS,
+                    <label key="playback-rate" className="playback-rate-control">
+                        <span className="sr-only">播放速度</span>
+                        <select
+                            aria-label="播放速度"
+                            value={playbackRate}
+                            onChange={handlePlaybackRateChange}
+                        >
+                            {PLAYBACK_RATES.map(rate => (
+                                <option key={rate} value={rate}>
+                                    {rate}x
+                                </option>
+                            ))}
+                        </select>
+                    </label>,
                     RHAP_UI.VOLUME_CONTROLS
                 ]}
             />
+
+            <div className="listening-coverage-status" aria-live="polite">
+                {sessionIneligible
+                    ? "加速播放中：本次不列入聽力次數"
+                    : `本次有效聆聽 ${Math.floor(coveragePercent)}%（聽滿 80% 才計一次）`}
+            </div>
 
         </div>
     );
