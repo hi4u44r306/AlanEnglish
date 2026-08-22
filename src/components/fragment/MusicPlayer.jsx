@@ -946,15 +946,25 @@ function MusicPlayer({ music }) {
 
     return (
         <div className="footer-player">
+            <span className="player-track-art" aria-hidden="true">
+                ♫
+            </span>
             <div className="player-track-summary" aria-live="polite">
-                <span className="player-track-book">
-                    {bookname || "未命名教材"}
-                </span>
-                {page && (
-                    <span className="player-track-page">
-                        {page}
+                <div className="player-track-title">
+                    <span className="player-track-book">
+                        {bookname || "未命名教材"}
                     </span>
-                )}
+                    {page && (
+                        <span className="player-track-page">
+                            {page}
+                        </span>
+                    )}
+                </div>
+                <span className="player-track-status">
+                    {sessionIneligible
+                        ? "加速播放中，不計入次數"
+                        : `有效聆聽 ${Math.floor(coveragePercent)}%`}
+                </span>
             </div>
             <AudioPlayer
                 autoPlay={true}
