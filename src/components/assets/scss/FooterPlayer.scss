@@ -9,6 +9,12 @@
   background: #171a1f;
   box-shadow: 0 -10px 28px rgba(5, 10, 18, 0.28);
 }
+.footer-player,
+.footer-player *,
+.mobile-player-overlay,
+.mobile-player-overlay * {
+  box-sizing: border-box;
+}
 .rhap_container {
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -45,12 +51,22 @@
   display: block;
   min-height: 4px;
   height: 4px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 .rhap_progress-container {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   height: 4px;
   margin: 0;
+}
+.rhap_progress-container,
+.rhap_progress-bar,
+.rhap_progress-filled {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
 }
 .player-mobile-expand {
   display: none;
@@ -61,14 +77,15 @@
 }
 .rhap_controls-section {
   display: grid;
-  grid-template-columns: auto auto minmax(220px, 1fr) auto auto;
+  grid-template-columns: minmax(176px, auto) auto minmax(240px, 1fr) auto minmax(130px, auto);
   align-items: center;
-  gap: clamp(12px, 1.8vw, 28px);
+  gap: clamp(12px, 1.5vw, 24px);
   height: 76px;
   margin: 0;
 }
 .rhap_main-controls {
   gap: 5px;
+  justify-content: flex-start;
 }
 .listening-coverage-status {
   display: none;
@@ -84,7 +101,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
 }
 .desktop-player-art {
@@ -105,7 +122,7 @@
 .desktop-player-copy {
   display: block;
   min-width: 0;
-  max-width: min(38vw, 540px);
+  max-width: min(34vw, 480px);
 }
 .desktop-player-copy strong,
 .desktop-player-copy small {
@@ -455,16 +472,23 @@
     min-height: 4px;
     gap: 0;
     padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
   .rhap_progress-section .rhap_time {
     display: none;
   }
   .rhap_progress-container {
     min-width: 0;
+    width: 100% !important;
+    max-width: 100% !important;
     height: 4px;
   }
   .rhap_progress-bar,
   .rhap_progress-filled {
+    min-width: 0 !important;
+    max-width: 100% !important;
     height: 4px;
   }
   .rhap_progress-bar {
@@ -588,14 +612,19 @@
 
 .mobile-player-overlay {
   position: fixed;
-  z-index: 2147483646;
-  inset: 0;
+  z-index: 1028;
+  top: calc(62px + env(safe-area-inset-top));
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
-  padding: max(18px, env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  padding: 16px 20px calc(18px + env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
   background: radial-gradient(circle at 50% 12%, #244c7d 0%, #0c1a2b 38%, #071321 72%);
+  box-shadow: 0 -16px 42px rgba(3, 11, 23, 0.35);
   color: #ffffff;
 }
 .mobile-overlay-content {
@@ -609,7 +638,7 @@
 }
 .mobile-overlay-close {
   position: absolute;
-  top: max(16px, env(safe-area-inset-top));
+  top: 12px;
   left: 18px;
   display: grid;
   width: 42px;
@@ -636,7 +665,7 @@
   display: grid;
   width: min(66vw, 290px);
   height: min(66vw, 290px);
-  margin-top: clamp(70px, 9dvh, 96px);
+  margin-top: clamp(48px, 7dvh, 76px);
   place-items: center;
   border-radius: 26px;
   background: linear-gradient(145deg, #153867, #2f80ed);
@@ -672,11 +701,14 @@
 }
 .mobile-overlay-progress {
   width: 100%;
-  margin-top: clamp(28px, 5dvh, 46px);
+  max-width: 100%;
+  margin-top: clamp(22px, 4dvh, 34px);
 }
 .mobile-overlay-progress input {
   display: block;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: 24px;
   margin: 0;
   accent-color: #f6c344;
@@ -696,7 +728,7 @@
   justify-content: center;
   gap: 24px;
   width: 100%;
-  margin: 18px 0 22px;
+  margin: 16px 0 16px;
 }
 .mobile-overlay-controls button {
   display: grid;
@@ -776,7 +808,7 @@
   .mobile-overlay-art {
     width: min(50vw, 210px);
     height: min(50vw, 210px);
-    margin-top: 50px;
+    margin-top: 42px;
   }
   .mobile-overlay-art svg {
     width: 68px;
@@ -789,7 +821,26 @@
     margin-top: 22px;
   }
   .mobile-overlay-controls {
-    margin: 12px 0 16px;
+    margin: 10px 0 12px;
+  }
+}
+
+@media only screen and (min-width: 676px) and (max-width: 1080px) {
+  .rhap_container {
+    min-height: 92px;
+    height: 92px;
+  }
+  .rhap_controls-section {
+    grid-template-columns: auto minmax(180px, 1fr) auto auto;
+    gap: 12px;
+    height: 88px;
+  }
+  .desktop-player-time,
+  .rhap_volume-controls {
+    display: none;
+  }
+  .desktop-player-copy {
+    max-width: min(42vw, 360px);
   }
 }
 // @media only screen and (max-width: 675px) {

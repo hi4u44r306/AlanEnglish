@@ -339,6 +339,14 @@ noInteraction
 
 ## 12. 後續待辦順序
 
+### 2026-08-22 本機測試分支更新
+
+- 分支：`feature/listening-coverage`
+- MusicPlayer 已完成桌面橫向播放器與手機迷你／展開模式第一版。
+- 手機展開播放器改為保留固定 Header 的下方播放頁，並修正時間軸容器溢出限制。
+- 此分支尚未合併 `main`，Supabase migration 與 Edge Function 也尚未部署。
+- 驗證：`npm run build`、`git diff --check` 成功；仍需於實機手機瀏覽器確認 Header 高度與安全區。
+
 完成播放器後，依序處理：
 
 1. 七天引導式試用內容
