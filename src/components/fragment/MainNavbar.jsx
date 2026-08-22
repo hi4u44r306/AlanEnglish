@@ -151,7 +151,7 @@ function MainNavbar() {
                     <button type="button" className="ae-mobile-toggle" onClick={() => setMobileOpen(true)} aria-label="開啟選單"><HiOutlineBars3 aria-hidden="true" /></button>
                 </Container>
             </Navbar>
-            <Offcanvas show={mobileOpen} onHide={closeMobileMenu} onExited={restoreDocumentScroll} placement="end" className="ae-mobile-offcanvas d-xl-none" backdrop scroll={false}>
+            <Offcanvas show={mobileOpen} onHide={closeMobileMenu} onExited={restoreDocumentScroll} placement="end" className="ae-mobile-offcanvas" backdrop scroll={false}>
                 <Offcanvas.Header closeButton>
                     <div className="ae-mobile-brand">
                         <span className="ae-mobile-brand-mark">AE</span>
