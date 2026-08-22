@@ -36,37 +36,24 @@
   height: 30px;
 }
 .rhap_progress-section {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 48px;
-  grid-template-areas:
-    "current timeline duration"
-    ". title .";
-  column-gap: 10px;
-  row-gap: 8px;
-  min-height: 53px;
-  height: auto;
+  display: flex;
+  min-height: 28px;
+  height: 28px;
+  gap: 10px;
   align-items: center;
   min-width: 0;
-}
-.rhap_progress-section > :nth-child(1) {
-  grid-area: current;
-  text-align: left;
-}
-.rhap_progress-section > :nth-child(2) {
-  grid-area: timeline;
-}
-.rhap_progress-section > .footer-track-name {
-  grid-area: title;
-}
-.rhap_progress-section > :nth-child(4) {
-  grid-area: duration;
-  text-align: right;
 }
 .rhap_progress-container {
   width: 100%;
   min-width: 90px;
+  flex: 1 1 auto !important;
 }
 .footer-track-name {
+  position: absolute;
+  top: 48px;
+  left: 92px;
+  right: 92px;
+  display: flex !important;
   justify-content: center;
   width: 100%;
   overflow: hidden;
@@ -81,7 +68,7 @@
   width: auto !important;
 }
 .rhap_controls-section {
-  margin-top: 7px;
+  margin-top: 31px;
 }
 .rhap_main-controls {
   gap: 8px;
@@ -212,12 +199,16 @@
     padding: 12px 16px 37px;
   }
   .rhap_progress-section {
-    grid-template-columns: 43px minmax(0, 1fr) 43px;
-    column-gap: 6px;
-    row-gap: 7px;
+    gap: 6px;
   }
   .rhap_progress-container {
     min-width: 54px;
+  }
+  .footer-track-name {
+    top: 43px;
+    left: 72px;
+    right: 72px;
+    font-size: 0.82rem;
   }
   .playback-rate-control select {
     min-height: 32px;
