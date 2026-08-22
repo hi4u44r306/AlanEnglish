@@ -1,6 +1,7 @@
 import {
     balanceCorrectAnswerPositions,
-    getDifficultyGuide
+    getDifficultyGuide,
+    TAIWAN_CURRICULUM_REFERENCE
 } from "./ai-material-quality.ts";
 
 const assert = (condition: unknown, message: string) => {
@@ -35,12 +36,41 @@ Deno.test("balances correct answers across A B C D without changing answer text"
     assert(original.questions[0].options[0] === "Correct 1", "不得直接修改原始教材物件");
 });
 
-Deno.test("provides explicit Taiwan elementary grade constraints", () => {
+Deno.test("maps elementary grade bands to Taiwan national curriculum stages", () => {
     const lower = getDifficultyGuide("國小低年級");
     const middle = getDifficultyGuide("國小中年級");
     const upper = getDifficultyGuide("國小高年級");
 
-    assert(lower.includes("一至二年級") && lower.includes("3～7"), "低年級規格必須包含年級與句長");
-    assert(middle.includes("三至四年級") && middle.includes("5～10"), "中年級規格必須包含年級與句長");
-    assert(upper.includes("五至六年級") && upper.includes("7～14"), "高年級規格必須包含年級與句長");
+    assert(
+        TAIWAN_CURRICULUM_REFERENCE.nationalEnglishStartsAtGrade === 3,
+        "全國部定英語起始年級必須是三年級"
+    );
+    assert(
+        lower.includes("課綱前導") && lower.includes("部定英語從三年級"),
+        "低年級必須明確標示為課綱前導，而非部定英語階段"
+    );
+    assert(
+        middle.includes("第二學習階段")
+        && middle.includes("每週 1 節")
+        && middle.includes("自然發音"),
+        "中年級必須對齊第二學習階段與基礎自然發音"
+    );
+    assert(
+        upper.includes("第三學習階段")
+        && upper.includes("每週 2 節")
+        && upper.includes("300 字詞")
+        && upper.includes("180 字詞"),
+        "高年級必須對齊第三學習階段與國小畢業字詞目標"
+    );
+});
+
+Deno.test("keeps elementary materials below junior-high grammar", () => {
+    const lower = getDifficultyGuide("國小低年級");
+    const middle = getDifficultyGuide("國小中年級");
+    const upper = getDifficultyGuide("國小高年級");
+
+    assert(lower.includes("不得使用過去式"), "低年級必須排除過去式");
+    assert(middle.includes("不得使用完成式"), "中年級必須排除完成式");
+    assert(upper.includes("不得使用現在完成式"), "高年級必須排除國中以上複雜文法");
+    assert(upper.includes("最多一題單步推論"), "高年級推論題必須限制數量與層級");
 });
