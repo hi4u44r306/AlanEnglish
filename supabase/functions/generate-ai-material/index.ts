@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
+import { balanceCorrectAnswerPositions, getDifficultyGuide } from "../_shared/ai-material-quality.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -641,6 +642,7 @@ Deno.serve(async (req: Request) => {
         const materialType = String(body?.material_type || "reading").trim();
         const topic = String(body?.topic || "").trim().slice(0, 120);
         const difficulty = String(body?.difficulty || "國小中年級").trim().slice(0, 40);
+        const difficultyGuide = getDifficultyGuide(difficulty);
         const questionCount = Math.min(15, Math.max(3, Number(body?.question_count) || 5));
         const customRequest = String(body?.custom_request || "").trim().slice(0, 600);
 
@@ -656,7 +658,38 @@ Deno.serve(async (req: Request) => {
             custom: "自訂英文教材"
         };
 
-        const prompt = `你是 Alan English 的專業兒童英語教材編寫老師。\n請生成一份適合「${difficulty}」的「${typeLabels[materialType]}」。\n主題：${topic || "由需求自行決定"}\n題目數：${questionCount}\n自訂需求：${customRequest || "無"}\n\n規則：\n1. 內容必須適合台灣國小學生，不使用成人或不適齡內容。\n2. 英文自然、正確，難度符合指定程度。\n3. explanation 使用繁體中文，簡潔清楚。\n4. reading/listening 類型需提供一篇 passage；其他類型 passage 可為空字串。\n5. vocabulary 至少提供 5 個重要單字，每個含 word、meaning（繁中）、example。\n6. questions 必須剛好 ${questionCount} 題，而且全部都是單選選擇題；每題必須有四個不同的 options。\n7. answer 必須是四個 options 其中一個選項的完整文字，不可使用 A/B/C/D 代號。\n8. listening 類型的 passage 視為語音朗讀的聽力稿，題目必須能靠聽力稿回答。\n9. 不要在 question 或 options 文字中洩漏正確答案。\n10. 只輸出 JSON，不要 markdown code fence。\n\nJSON 格式：\n{\n  "title": "教材標題",\n  "subtitle": "一句教材說明",\n  "passage": "英文文章或聽力稿",\n  "vocabulary": [{"word":"","meaning":"","example":""}],\n  "questions": [{"question":"","options":["","","",""],"answer":"","explanation":""}],\n  "study_tip": "繁體中文學習提示"\n}`;
+        const prompt = `你是 Alan English 的專業兒童英語教材編寫老師。
+請生成一份適合「${difficulty}」的「${typeLabels[materialType]}」。
+主題：${topic || "由需求自行決定"}
+題目數：${questionCount}
+自訂需求：${customRequest || "無"}
+
+台灣學齡難度規格（必須優先遵守）：
+${difficultyGuide}
+
+出題規則：
+1. 內容必須適合台灣學生的年齡、生活經驗與英語課程，不使用成人、暴力或不適齡內容。
+2. 字彙、句長、時態、文章長度與推論層級不得超過上述難度規格；寧可稍微簡單，也不要超齡。
+3. explanation 一律使用繁體中文，以一至三句說明學生為什麼答對或答錯。
+4. reading/listening 類型需提供一篇 passage；其他類型 passage 可為空字串。
+5. vocabulary 提供 5～8 個真正出現在教材中的重要單字，每個含 word、meaning（繁中）、example。
+6. questions 必須剛好 ${questionCount} 題，全部為四選一單選題；每題四個 options 必須不同且文法形式一致。
+7. 每題只能有一個無爭議的正確答案；干擾選項要合理，但不可靠冷僻知識或文字陷阱判斷。
+8. answer 必須是四個 options 其中一個選項的完整文字，不可使用 A/B/C/D 代號。
+9. 正確答案在原始 options 中的位置要分散，不要固定放第一個；系統仍會在儲存前再次平衡位置。
+10. listening 類型的 passage 視為語音朗讀稿，使用自然口語，題目必須只靠聽力稿即可回答。
+11. 不要在 question、options、title 或 subtitle 中洩漏正確答案。
+12. 只輸出 JSON，不要加入 markdown code fence 或額外說明。
+
+JSON 格式：
+{
+  "title": "教材標題",
+  "subtitle": "一句教材說明",
+  "passage": "英文文章或聽力稿",
+  "vocabulary": [{"word":"","meaning":"","example":""}],
+  "questions": [{"question":"","options":["","","",""],"answer":"","explanation":""}],
+  "study_tip": "繁體中文學習提示"
+}`;
 
         const recordApiUsage = async ({
             requestStatus,
@@ -728,7 +761,7 @@ Deno.serve(async (req: Request) => {
         const outputText = extractOutputText(openaiData);
         let content: any;
         try {
-            content = JSON.parse(outputText);
+            content = balanceCorrectAnswerPositions(JSON.parse(outputText));
         } catch (error) {
             console.error("AI JSON parse error", error, {
                 response_id: openaiData?.id || null,
@@ -746,9 +779,16 @@ Deno.serve(async (req: Request) => {
         const validQuestions = Array.isArray(content?.questions)
             && content.questions.length === questionCount
             && content.questions.every((question: any) => (
-                Array.isArray(question?.options)
+                typeof question?.question === "string"
+                && question.question.trim().length > 0
+                && Array.isArray(question?.options)
                 && question.options.length === 4
-                && question.options.includes(question?.answer)
+                && question.options.every((option: any) => typeof option === "string" && option.trim().length > 0)
+                && new Set(question.options).size === 4
+                && typeof question?.answer === "string"
+                && question.options.includes(question.answer)
+                && typeof question?.explanation === "string"
+                && question.explanation.trim().length > 0
             ));
 
         if (!content?.title || !validQuestions) {
