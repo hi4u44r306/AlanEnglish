@@ -7,7 +7,6 @@ import {
     setNoInteractionCount
 } from "../../actions/actions";
 import { toast } from "react-toastify";
-import Name from "./Name";
 import "../assets/scss/FooterPlayer.scss";
 import "react-h5-audio-player/lib/styles.css";
 import { useAuth } from "../../auth/AuthContext";
@@ -947,6 +946,16 @@ function MusicPlayer({ music }) {
 
     return (
         <div className="footer-player">
+            <div className="player-track-summary" aria-live="polite">
+                <span className="player-track-book">
+                    {bookname || "未命名教材"}
+                </span>
+                {page && (
+                    <span className="player-track-page">
+                        {page}
+                    </span>
+                )}
+            </div>
             <AudioPlayer
                 autoPlay={true}
                 autoPlayAfterSrcChange={true}
@@ -1004,44 +1013,6 @@ function MusicPlayer({ music }) {
                 customProgressBarSection={[
                     RHAP_UI.CURRENT_TIME,
                     RHAP_UI.PROGRESS_BAR,
-                    <div
-                        key="music-name"
-                        className="footer-track-name"
-                        style={{
-                            display:
-                                "flex",
-                            gap:
-                                "5px",
-                            alignItems:
-                                "center"
-                        }}
-                    >
-                        <Name
-                            name={
-                                bookname ||
-                                ""
-                            }
-                            className="marqueename"
-                            length={
-                                bookname
-                                    ? bookname.length
-                                    : 0
-                            }
-                        />
-
-                        <Name
-                            name={
-                                page ||
-                                ""
-                            }
-                            className="marqueename"
-                            length={
-                                page
-                                    ? page.length
-                                    : 0
-                            }
-                        />
-                    </div>,
                     RHAP_UI.DURATION
                 ]}
                 customControlsSection={[
