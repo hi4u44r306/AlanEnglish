@@ -77,9 +77,10 @@
 }
 .rhap_controls-section {
   display: flex !important;
+  position: relative;
   align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 1.35vw, 22px);
+  justify-content: flex-start;
+  gap: clamp(8px, 1vw, 18px);
   height: 76px;
   margin: 0 !important;
 }
@@ -91,12 +92,13 @@
 }
 .rhap_main-controls {
   gap: 5px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .listening-coverage-status {
   display: none;
 }
 .desktop-player-time {
+  margin-left: auto;
   color: #62718a;
   font-size: 0.78rem;
   font-weight: 700;
@@ -105,7 +107,11 @@
 }
 .desktop-player-track {
   display: flex;
-  flex: 0 1 min(460px, 32vw);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(460px, 32vw);
+  transform: translate(-50%, -50%);
   min-width: 0;
   align-items: center;
   justify-content: center;
@@ -484,6 +490,10 @@
     display: none;
   }
   .desktop-player-track {
+    position: static;
+    flex: 1 1 auto;
+    width: auto;
+    transform: none;
     justify-content: flex-start;
   }
   .desktop-player-art {
