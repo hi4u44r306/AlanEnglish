@@ -4,20 +4,23 @@
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: "50px";
+  display: block;
+  border-top: 1px solid #d9e6f5;
+  background: #ffffff;
+  box-shadow: 0 -10px 28px rgba(26, 55, 91, 0.12);
 }
 .rhap_container {
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  position: relative;
   cursor: default;
   visibility: visible;
-  height: 100px;
+  min-height: 126px;
+  height: auto;
+  padding: 14px 26px 33px;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%);
 }
 .marquee {
   flex: none !important;
@@ -33,20 +36,63 @@
   height: 30px;
 }
 .rhap_progress-section {
-  height: 30px;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  grid-template-areas:
+    "current timeline duration"
+    ". title .";
+  column-gap: 10px;
+  row-gap: 8px;
+  min-height: 53px;
+  height: auto;
+  align-items: center;
   min-width: 0;
 }
+.rhap_progress-section > :nth-child(1) {
+  grid-area: current;
+  text-align: left;
+}
+.rhap_progress-section > :nth-child(2) {
+  grid-area: timeline;
+}
+.rhap_progress-section > .footer-track-name {
+  grid-area: title;
+}
+.rhap_progress-section > :nth-child(4) {
+  grid-area: duration;
+  text-align: right;
+}
 .rhap_progress-container {
+  width: 100%;
   min-width: 90px;
+}
+.footer-track-name {
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  color: #14213d;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.footer-track-name .marquee,
+.footer-track-name .rfm-marquee-container {
+  min-width: 0 !important;
+  width: auto !important;
+}
+.rhap_controls-section {
+  margin-top: 7px;
+}
+.rhap_main-controls {
+  gap: 8px;
 }
 .playback-rate-control select {
   min-height: 36px;
   padding: 0 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #bcd4ef;
   border-radius: 8px;
-  background: #ffffff;
-  color: #1e3a5f;
+  background: #edf5ff;
+  color: #14213d;
   font-weight: 700;
 }
 .listening-coverage-status {
@@ -93,16 +139,19 @@
 .rhap_time {
   font-size: 0.85rem;
   font-weight: 700;
+  color: #405572;
+  font-variant-numeric: tabular-nums;
 }
 .rhap_play-pause-button {
-  font-size: 50px;
-  width: 50px;
-  height: 50px;
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
 }
 
 // 時間軸點點顏色
 .rhap_progress-indicator {
-  background-color: rgb(255, 0, 0) !important;
+  background-color: #f6c344 !important;
+  box-shadow: 0 0 0 3px rgba(246, 195, 68, 0.18);
 }
 // 音量點點顏色
 .rhap_volume-indicator {
@@ -113,13 +162,24 @@
   color: rgb(255, 0, 0) !important;
 }
 .rhap_progress-filled {
-  background-color: rgb(255, 0, 0) !important;
+  background-color: #2f80ed !important;
+  border-radius: 999px;
+}
+.rhap_progress-bar {
+  background-color: #dce8f5 !important;
+  border-radius: 999px;
 }
 .rhap_volume-button {
   color: rgb(73, 73, 73) !important;
 }
 .rhap_main-controls > button {
-  color: rgb(73, 73, 73) !important;
+  color: #14213d !important;
+  transition: color 160ms ease, transform 160ms ease;
+}
+.rhap_main-controls > button:hover,
+.rhap_main-controls > button:focus-visible {
+  color: #2f80ed !important;
+  transform: translateY(-1px);
 }
 .rhap_additional-controls {
   color: rgb(0, 145, 255) !important;
@@ -148,11 +208,13 @@
 }
 @media only screen and (max-width: 675px) {
   .rhap_container {
-    height: 118px;
-    padding-bottom: 20px;
+    min-height: 146px;
+    padding: 12px 16px 37px;
   }
   .rhap_progress-section {
-    gap: 6px;
+    grid-template-columns: 43px minmax(0, 1fr) 43px;
+    column-gap: 6px;
+    row-gap: 7px;
   }
   .rhap_progress-container {
     min-width: 54px;
@@ -165,7 +227,7 @@
   .listening-coverage-status {
     left: 14px;
     right: auto;
-    bottom: 3px;
+    bottom: 8px;
   }
 }
 // @media only screen and (max-width: 675px) {
