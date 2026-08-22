@@ -24,10 +24,10 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
     }, []);
 
     const navItems = [
-        { label: "關於 AE", href: nav1 },
+        { label: "功能特色", href: nav1 },
         { label: "學習方式", href: nav2 },
-        { label: "平台特色", href: nav3 },
-        { label: "開始學習", href: nav4 }
+        { label: "會員方案", href: nav3 },
+        { label: "常見問題", href: nav4 }
     ];
 
     return (
