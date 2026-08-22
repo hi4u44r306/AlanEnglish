@@ -77,7 +77,7 @@
 }
 .rhap_controls-section {
   display: grid;
-  grid-template-columns: minmax(176px, auto) auto minmax(240px, 1fr) auto minmax(130px, auto);
+  grid-template-columns: minmax(0, 1fr) auto minmax(250px, auto) auto minmax(0, 1fr);
   align-items: center;
   gap: clamp(12px, 1.5vw, 24px);
   height: 76px;
@@ -85,13 +85,13 @@
 }
 .rhap_main-controls {
   gap: 5px;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 .listening-coverage-status {
   display: none;
 }
 .desktop-player-time {
-  color: #b4bdc9;
+  color: #62718a;
   font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -101,7 +101,7 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 12px;
 }
 .desktop-player-art {
@@ -122,7 +122,8 @@
 .desktop-player-copy {
   display: block;
   min-width: 0;
-  max-width: min(34vw, 480px);
+  max-width: min(30vw, 420px);
+  text-align: center;
 }
 .desktop-player-copy strong,
 .desktop-player-copy small {
@@ -132,13 +133,13 @@
   white-space: nowrap;
 }
 .desktop-player-copy strong {
-  color: #ffffff;
+  color: #172b4d;
   font-size: 0.88rem;
   font-weight: 800;
 }
 .desktop-player-copy small {
   margin-top: 3px;
-  color: #aeb8c5;
+  color: #60738e;
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -156,15 +157,15 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #e8edf3;
+  color: #536987;
   transition: background 150ms ease, color 150ms ease, transform 150ms ease;
 }
 .desktop-player-actions > button:hover,
 .desktop-player-actions > button:focus-visible,
 .desktop-player-more:hover,
 .desktop-player-more:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: #edf5ff;
+  color: #2678d6;
 }
 .desktop-player-actions > button:active,
 .desktop-player-more:active {
@@ -346,7 +347,7 @@
 .rhap_time {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #b4bdc9;
+  color: #62718a;
   font-variant-numeric: tabular-nums;
 }
 .rhap_play-pause-button {
@@ -375,7 +376,7 @@
   border-radius: 0;
 }
 .rhap_volume-button {
-  color: #e7edf4 !important;
+  color: #36577f !important;
 }
 .rhap_volume-controls {
   width: 128px;
@@ -385,18 +386,18 @@
   flex: 0 1 118px;
 }
 .rhap_volume-bar {
-  background: #57616e;
+  background: #dbe5f0;
 }
 .rhap_volume-filled {
   background: #2f80ed;
 }
 .rhap_main-controls > button {
-  color: #f5f7fa !important;
+  color: #1b355c !important;
   transition: color 160ms ease, transform 160ms ease;
 }
 .rhap_main-controls > button:hover,
 .rhap_main-controls > button:focus-visible {
-  color: #f6c344 !important;
+  color: #2f80ed !important;
   transform: translateY(-1px);
 }
 .rhap_main-controls > button:not(.rhap_play-pause-button) {
@@ -404,6 +405,43 @@
   min-width: 36px;
   height: 36px;
   font-size: 34px;
+}
+
+// 固定播放器的外層樣式會覆蓋第三方播放器預設色彩；桌面版統一採用品牌淺色控制列。
+@media only screen and (min-width: 676px) {
+  .app-player .footer-player,
+  .app-player .rhap_container {
+    border-top-color: #dbe7f4;
+    background: #ffffff;
+  }
+  .app-player .footer-player {
+    box-shadow: 0 -10px 28px rgba(33, 67, 108, 0.12);
+  }
+  .app-player .rhap_container {
+    padding: 5px 28px 0;
+  }
+  .app-player .rhap_progress-section,
+  .app-player .rhap_progress-container,
+  .app-player .rhap_progress-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .app-player .rhap_progress-bar,
+  .app-player .rhap_progress-filled {
+    height: 5px;
+  }
+  .app-player .rhap_progress-bar {
+    background: #dce6f1 !important;
+  }
+  .app-player .rhap_progress-filled {
+    background: linear-gradient(90deg, #2f80ed, #5a9cf2) !important;
+  }
+  .app-player .rhap_volume-controls {
+    justify-content: flex-start;
+  }
+  .app-player .desktop-player-actions {
+    justify-content: center;
+  }
 }
 // .nomusicname {
 //   font-weight: bolder;
@@ -622,7 +660,7 @@
   align-items: center;
   overflow: hidden;
   padding: 16px 20px calc(18px + env(safe-area-inset-bottom));
-  border-radius: 24px 24px 0 0;
+  border-radius: 0;
   background: radial-gradient(circle at 50% 12%, #244c7d 0%, #0c1a2b 38%, #071321 72%);
   box-shadow: 0 -16px 42px rgba(3, 11, 23, 0.35);
   color: #ffffff;
@@ -635,6 +673,8 @@
   width: 100%;
   max-width: 480px;
   min-height: 0;
+  justify-content: center;
+  padding-bottom: 28px;
 }
 .mobile-overlay-close {
   position: absolute;
@@ -665,7 +705,7 @@
   display: grid;
   width: min(66vw, 290px);
   height: min(66vw, 290px);
-  margin-top: clamp(48px, 7dvh, 76px);
+  margin-top: 0;
   place-items: center;
   border-radius: 26px;
   background: linear-gradient(145deg, #153867, #2f80ed);
@@ -681,7 +721,7 @@
 .mobile-overlay-title {
   width: 100%;
   margin-top: 28px;
-  text-align: left;
+  text-align: center;
 }
 .mobile-overlay-title strong,
 .mobile-overlay-title span {
@@ -808,7 +848,7 @@
   .mobile-overlay-art {
     width: min(50vw, 210px);
     height: min(50vw, 210px);
-    margin-top: 42px;
+    margin-top: 0;
   }
   .mobile-overlay-art svg {
     width: 68px;
