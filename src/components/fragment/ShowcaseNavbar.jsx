@@ -36,7 +36,7 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
             className={`showcase-navbar ${scrolled ? "is-scrolled" : ""}`}
         >
             <Container className="showcase-navbar-container">
-                <Navbar.Brand className="showcase-navbar-brand" as={Link} to="/showcase">
+                <Navbar.Brand className="showcase-navbar-brand" as={Link} to="/">
                     <Brand />
                 </Navbar.Brand>
 
@@ -75,12 +75,12 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
                         </Nav>
 
                         <div className="showcase-navbar-actions">
-                            <Link className="showcase-navbar-login" to="/">
+                            <Link className="showcase-navbar-login" to="/login">
                                 <BiLogIn />
                                 登入
                             </Link>
                             <Link className="showcase-navbar-trial" to="/freetrial">
-                                開通帳號
+                                免費試用 7 天
                                 <BiChevronRight />
                             </Link>
                         </div>
