@@ -1,7 +1,9 @@
 .showcase-navbar {
-  position: sticky !important;
-  z-index: 1000;
+  position: fixed !important;
+  z-index: 1100;
   top: 0;
+  right: 0;
+  left: 0;
   width: 100%;
   min-height: 72px;
   border-bottom: 1px solid transparent;
@@ -15,6 +17,14 @@
     background: rgba(255, 255, 255, 0.96) !important;
     box-shadow: 0 8px 28px rgba(16, 24, 40, 0.06);
   }
+}
+
+.showcase-navbar + main {
+  padding-top: 72px;
+}
+
+.showcase main section[id] {
+  scroll-margin-top: 80px;
 }
 
 .showcase-navbar-container {
@@ -155,6 +165,14 @@
 @media (max-width: 1199.98px) {
   .showcase-navbar {
     min-height: 66px;
+  }
+
+  .showcase-navbar + main {
+    padding-top: 66px;
+  }
+
+  .showcase main section[id] {
+    scroll-margin-top: 74px;
   }
 
   .showcase-navbar-container {
