@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import {
     BiBarChartAlt2,
     BiBookOpen,
@@ -44,6 +45,22 @@ const features = [
 const Showcase = () => {
     return (
         <div className="showcase">
+            <Helmet>
+                <title>Alan English｜兒童英文聽力與 AI 英語學習平台</title>
+                <meta
+                    name="description"
+                    content="Alan English 結合教材音檔、AI 英文教材、情境會話與學習進度，幫助國小學生養成每天主動學英文的習慣。"
+                />
+                <link rel="canonical" href="https://alanenglish.com.tw/" />
+                <meta property="og:title" content="Alan English｜每天聽一點，英文進步一點" />
+                <meta
+                    property="og:description"
+                    content="專為國小學生設計的英文聽力與 AI 學習平台，免費體驗 7 天。"
+                />
+                <meta property="og:url" content="https://alanenglish.com.tw/" />
+                <meta property="og:type" content="website" />
+            </Helmet>
+
             <ShowcaseNavbar
                 nav1="#about-ae"
                 nav2="#learning-system"
@@ -60,22 +77,22 @@ const Showcase = () => {
                                 Alan English Listening
                             </div>
                             <h1>
-                                讓孩子真正
-                                <span>聽懂英文，</span>
+                                每天聽一點，
+                                <span>讓孩子聽懂英文，</span>
                                 <br />
-                                而不只是寫完題目。
+                                也更有自信說出來。
                             </h1>
                             <p className="showcase-hero-description">
-                                專為學生設計的英文聽力學習平台。從教材、播放、重複練習到學習紀錄，
-                                把每天的英文練習變得更清楚、更簡單，也更容易持續。
+                                專為國小學生設計的英文聽力與 AI 學習平台。結合教材音檔、情境會話、
+                                智慧練習與學習紀錄，讓每天的英文練習更清楚，也更容易持續。
                             </p>
                             <div className="showcase-hero-actions">
-                                <Link className="showcase-primary-btn" to="/">
-                                    開始學習
+                                <Link className="showcase-primary-btn" to="/freetrial">
+                                    免費試用 7 天
                                     <BiChevronRight />
                                 </Link>
-                                <a className="showcase-secondary-btn" href="#about-ae">
-                                    了解 Alan English
+                                <a className="showcase-secondary-btn" href="#learning-system">
+                                    看看如何學習
                                 </a>
                             </div>
                             <div className="showcase-trust-row">
@@ -251,12 +268,12 @@ const Showcase = () => {
                             <p>登入 Alan English，讓英文練習成為每天都做得到的事。</p>
                         </div>
                         <div className="showcase-cta-actions">
-                            <Link className="showcase-primary-btn" to="/">
-                                前往登入
+                            <Link className="showcase-primary-btn" to="/freetrial">
+                                免費試用 7 天
                                 <BiChevronRight />
                             </Link>
-                            <Link className="showcase-secondary-btn" to="/freetrial">
-                                開通帳號
+                            <Link className="showcase-secondary-btn" to="/login">
+                                已有帳號，前往登入
                             </Link>
                         </div>
                     </div>
