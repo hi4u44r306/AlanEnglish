@@ -120,21 +120,40 @@ const loadLinks = async (admin: any) => {
 };
 
 const importFirebaseLinks = async (admin: any, firebaseToken: string, callerId: number) => {
+    const databaseSecret = cleanText(Deno.env.get("FIREBASE_DATABASE_SECRET"), 4000);
+    const firebaseCredential = databaseSecret || firebaseToken;
     const firebaseUrl = new URL(FIREBASE_LINKS_URL);
-    firebaseUrl.searchParams.set("auth", firebaseToken);
+    firebaseUrl.searchParams.set("auth", firebaseCredential);
 
     const response = await fetch(firebaseUrl.toString(), {
         method: "GET",
         headers: { "Accept": "application/json" }
     });
     const payload = await response.json().catch(() => null);
+
     if (!response.ok) {
-        const detail = payload?.error ? `：${cleanText(payload.error, 200)}` : "";
+        const firebaseMessage = cleanText(payload?.error, 200);
+        const permissionDenied = response.status === 401 || response.status === 403 || /permission denied/i.test(firebaseMessage);
+
+        if (permissionDenied && !databaseSecret) {
+            const error = new Error(
+                "Firebase links 目前受 Realtime Database Rules 保護，且 Supabase 尚未設定 FIREBASE_DATABASE_SECRET。"
+            );
+            (error as any).code = "FIREBASE_DATABASE_CREDENTIAL_REQUIRED";
+            throw error;
+        }
+
+        const detail = firebaseMessage ? `：${firebaseMessage}` : "";
         throw new Error(`Firebase links 讀取失敗${detail}`);
     }
 
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-        return { imported: 0, skipped: 0, total: 0 };
+        return {
+            imported: 0,
+            skipped: 0,
+            total: 0,
+            credential: databaseSecret ? "database_secret" : "firebase_user_token"
+        };
     }
 
     const now = new Date().toISOString();
@@ -167,7 +186,12 @@ const importFirebaseLinks = async (admin: any, firebaseToken: string, callerId: 
     });
 
     if (rows.length === 0) {
-        return { imported: 0, skipped, total: Object.keys(payload).length };
+        return {
+            imported: 0,
+            skipped,
+            total: Object.keys(payload).length,
+            credential: databaseSecret ? "database_secret" : "firebase_user_token"
+        };
     }
 
     const { error } = await admin
@@ -175,7 +199,12 @@ const importFirebaseLinks = async (admin: any, firebaseToken: string, callerId: 
         .upsert(rows, { onConflict: "firebase_key" });
     if (error) throw error;
 
-    return { imported: rows.length, skipped, total: Object.keys(payload).length };
+    return {
+        imported: rows.length,
+        skipped,
+        total: Object.keys(payload).length,
+        credential: databaseSecret ? "database_secret" : "firebase_user_token"
+    };
 };
 
 Deno.serve(async (req: Request) => {
@@ -285,8 +314,10 @@ Deno.serve(async (req: Request) => {
         return json(400, { error: "不支援的教材連結操作" });
     } catch (error) {
         console.error("link-manager unexpected error", error);
-        return json(500, {
-            error: error instanceof Error ? error.message : "教材連結服務暫時無法使用"
+        const code = cleanText((error as any)?.code, 100) || null;
+        return json(code === "FIREBASE_DATABASE_CREDENTIAL_REQUIRED" ? 409 : 500, {
+            error: error instanceof Error ? error.message : "教材連結服務暫時無法使用",
+            code
         });
     }
 });
