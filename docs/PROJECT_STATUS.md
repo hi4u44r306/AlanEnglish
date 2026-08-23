@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-22
+最後更新：2026-08-23
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -31,12 +31,12 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 目前下一個主要開發方向：
 
-1. MusicPlayer 新版介面
-2. 真正聆聽覆蓋率
-3. 聽滿 80% 才算一次
-4. 防止拖曳時間軸作弊
-5. 手機 Sidebar 與播放器重疊修正
-6. 七天引導式試用內容
+1. 建立 P0 Unit Test 基礎
+2. 登入、Session、Route 與角色權限測試
+3. 會員、試用、啟用碼與有效權限測試
+4. MusicPlayer 80% 聆聽與防作弊測試
+5. 作業、AI 教材與前後端 action contract 測試
+6. Supabase RLS、GRANT、RPC 與 migration 整合測試
 
 ## 2. 目前正式版本
 
@@ -276,48 +276,51 @@ academy-student-manager
 - 作業捷徑會避開播放器
 - 進入作業頁後會隱藏重複的浮動作業捷徑
 
+已完成：
+
+- 桌面與手機播放器第一版
+- 真正聆聽不重複區段覆蓋率
+- 聽滿 80% 才送出有效完成
+- 拖曳與重複小段不列入完整聆聽
+- 伺服器 listening session 驗證
+- `record-play` Edge Function v16 已部署並為 ACTIVE
+- `listening_coverage_sessions` migration 已部署
+
 仍需處理：
 
-- 整體視覺不夠精緻
-- 手機版空間配置
-- Sidebar 開啟時播放器層級
-- 真正聆聽百分比
-- 80% 有效完成規則
-- 時間軸防作弊
+- 用真實學生帳號完成「聽滿 80% → 次數 +1」端到端驗收
+- 曾使用加速播放後，整個 session 是否永久失效的規則與測試
+- 播放器實機手機視覺驗收
 - 字幕與逐字稿
 - 播放進度更直覺的提示
 
-## 11. 下一個優先任務：MusicPlayer 與 80% 聆聽
+## 11. 已完成：MusicPlayer 與 80% 聆聽
 
 ### 目標
 
 重新設計播放器，並將播放次數改成學生真正聆聽至少 80% 才算一次。
 
-### 必須先唯讀檢查
+### 已部署內容
 
-Codex 應先定位並檢查：
+- Migration：`20260822174726_listening_coverage_sessions`
+- `music_tracks.duration_seconds`
+- `listening_coverage_sessions`
+- RLS 已啟用
+- `anon`、`authenticated` 無直接讀取權限
+- `service_role` 具必要 DML 權限
+- `record-play` Edge Function v16
+- 無登入請求已驗證回傳 401
 
-```text
-src/components/fragment/MusicPlayer.jsx
-src/components/fragment/Containerfull.jsx
-src/components/fragment/MusicCard.jsx
-src/components/assets/scss/Containerfull.scss
+### GitHub migration 注意事項
+
+正式 Supabase 部署時追加了明確的：
+
+```sql
+revoke all on table public.listening_coverage_sessions from anon, authenticated;
+grant select, insert, update, delete on table public.listening_coverage_sessions to service_role;
 ```
 
-並使用 `rg` 搜尋：
-
-```text
-recordTrackPlay
-record-play
-onEnded
-onListen
-onSeeked
-musicplay
-complete
-noInteraction
-```
-
-只讀取搜尋到的直接相關檔案，不要掃描整個專案。
+分支中的 migration 原始檔仍需確認是否已同步上述權限。不得直接修改已在正式環境執行的 migration；如需補正，建立新的 additive migration。
 
 ### 預期規則
 
@@ -331,45 +334,55 @@ noInteraction
 - 管理員與老師播放不計入學生次數。
 - noInteraction 防掛機功能必須保留。
 
-### 完成標準
+### 尚未完成的驗收
 
-- 播放器視覺符合首頁設計系統。
-- 桌面版與手機版正常。
-- Sidebar 不被播放器遮住。
-- 拖曳不能作弊。
-- 真正聽滿 80% 才增加一次。
-- `npm run build` 成功。
-- 相關角色與權限測試成功。
+- 真實學生 Token 的 start／complete 完整流程
+- 80% 前不得增加次數
+- 80% 後只增加一次
+- Seek、重播小段、加速播放不可作弊
+- teacher/admin 播放不累計
+- 進度 event 能即時更新 Playlist 與作業
 
-## 12. 後續待辦順序
+## 12. 下一個優先任務：P0 Unit Test
 
-### 2026-08-22 本機測試分支更新
+### 現有測試基準
 
 - 分支：`feature/listening-coverage`
-- MusicPlayer 已完成桌面橫向播放器與手機迷你／展開模式第一版。
-- 手機展開播放器改為保留固定 Header 的下方播放頁，並修正時間軸容器溢出限制。
-- 播放器視覺調整持續於本機測試：桌面採用置中淺色控制列；手機展開模式取消頂部圓角並將內容群組置中。
-- 桌面控制列已改回 Flex 並移除 `.rhap_stacked` 預設上方間距，避免第三方播放器的堆疊樣式造成錯位。
-- 桌面控制列採左側播放、中央教材與有效聆聽、右側時間與操作按鈕的固定三區結構。
-- 讚、倒讚、更多設定與音量改為固定貼齊桌面播放器最右側。
-- 桌面播放時間改為固定顯示在上一首／播放／下一首控制的右邊。
-- 此分支尚未合併 `main`，Supabase migration 與 Edge Function 也尚未部署。
-- 驗證：`npm run build`、`git diff --check` 成功；仍需於實機手機瀏覽器確認 Header 高度與安全區。
+- 目前只有 2 份測試檔、共 5 個案例。
+- `FreeTrialSignup.test.jsx` 有一個 `/` 與實際 `/login` 不一致的舊預期，先確認後修正。
+- `musicAdminService` 已呼叫 `book_status`、`delete_book_tracks`、`archive_book`、`restore_book`、`delete_book`，但目前 `music-admin` Function 沒有對應 action；先建立 contract test，測試應先失敗以證明問題存在。
 
-完成播放器後，依序處理：
+### P0 實作順序
 
-1. 七天引導式試用內容
-2. 字幕與逐字稿資料結構
-3. 作業權限最終隔離驗收
-4. CSV 批次匯入英文班學生
-5. 商品與教材權限
-6. 開通碼綁定商品
-7. 我的教材
-8. 管理員教材權限後台
-9. Stripe 付款及訂閱
-10. 訂單 Email 與開通碼寄送
-11. 退款、補發與帳號合併
-12. 完整 Production 驗收
+1. `authService`、`AuthContext`、Login
+2. `ProtectedRoute`、`RoleHomeRedirect`
+3. `edgeFunctionClient` 與所有 service action/body contract
+4. Redux actions 與 `musicReducer`
+5. MusicPlayer 純函式：coverage merge、covered seconds、time、clamp
+6. MusicPlayer component：session、80%、Seek、加速、冪等、noInteraction
+7. membership／trial／activation code／effective access
+8. assignment mission pack 完成規則
+9. AI 額度、選擇題、90 分通過、教材庫
+10. Supabase RLS／GRANT／RPC／migration integration tests
+
+### 第一批完成標準
+
+- 不改功能，只建立可重複執行的測試基礎。
+- `npm test -- --watchAll=false` 成功。
+- `npm run build` 成功。
+- P0 核心規則有正常、邊界、未授權與失敗路徑。
+- 不為了讓測試通過而降低 Firebase、Supabase 或角色權限。
+
+### P1 後續順序
+
+1. Conversation 9 關、語音 timeout 與 Demo 不寫入
+2. 智慧複習、連續答對 3 次與排程
+3. 等級、升級考試與排行榜
+4. Dashboard、週報與家長 Email
+5. 英文班帳號與 E1／E3／E5／E7 規則
+6. 音檔上傳、R2 搬移與 rollback
+7. Navbar、Guided Tour、TTS component tests
+8. Playwright responsive、Stripe、Storage 與完整 Production E2E
 
 ## 13. 已知注意事項
 
@@ -389,22 +402,52 @@ noInteraction
 ```text
 請先閱讀根目錄 AGENTS.md 與 docs/PROJECT_STATUS.md。
 
-本次只處理 MusicPlayer 與真正聆聽 80% 的規則。
-請不要掃描整個專案，也不要修改其他會員、商品、付款或 CSV 功能。
+使用「極度節省流量模式」接手 Alan English：
 
-請先唯讀檢查相關檔案，確認目前播放完成與 record-play 的實際流程。
-完成後列出：
-1. 現有流程
-2. 可作弊的位置
-3. 需要修改的檔案
-4. 前端與後端的最小實作方案
-5. 資料庫是否需要新增 migration
-6. 測試方式
+1. 不得重新掃描或閱讀整個專案。
+2. PROJECT_STATUS.md 已提供的內容視為可信基準，不要為確認而重讀相同檔案。
+3. 每次只處理一個 P0 測試群組。
+4. 先用 rg 定位符號，再只讀命中的直接相關區段；禁止無目的讀完整大檔。
+5. 已讀過的檔案在同一任務內不得重複讀取，除非修改後驗證差異。
+6. 優先使用 git diff、git status、rg 與精準行段，不輸出大量 build log。
+7. 不要讀取 mp3、圖片、SCSS、map、zip 或 node_modules，除非測試明確需要。
+8. 不要同時重構功能與建立測試；測試先忠實記錄現有規則。
+9. 發現現有 bug 時先建立可重現的 failing test，回報後再修正。
+10. 每完成一批，只回報修改檔案、測試數、通過結果、發現問題與下一批。
 
-在我同意之前不要修改檔案、部署 Function、執行 migration、Push 或合併 PR。
+本次從 P0 第一批開始：
+- authService
+- AuthContext
+- ProtectedRoute
+- RoleHomeRedirect
+- edgeFunctionClient
+- Redux actions／musicReducer
+
+最低必要讀取範圍：
+- docs/PROJECT_STATUS.md
+- AGENTS.md
+- package.json 的 scripts/dependencies 區段
+- 本批測試直接對應的原始檔
+- 現有 2 份測試檔只各讀一次
+
+在修改 GitHub、部署 Function、執行 migration、Push 或合併前仍須取得使用者明確同意。
 ```
 
-## 15. 每次任務完成後如何更新本文件
+## 15. 極度節省流量工作協定
+
+桌面版 Codex 必須長期遵守：
+
+- 一個任務只讀一組相關檔案，不做全專案 review。
+- 若 `PROJECT_STATUS.md` 已寫出狀態，不再重新查證歷史完成項目。
+- 建立簡短的已讀檔案清單，避免同一輪重複讀取。
+- 大檔先 `rg -n` 找函式，再用 `sed` 讀必要行段。
+- 測試失敗只讀第一個相關錯誤，不重跑多次相同指令。
+- Build 成功只記錄成功，不貼完整輸出。
+- 不自動更新依賴、Browserslist 或 lockfile。
+- 不讀未使用的 legacy 頁面，除非目前 Router 或 import chain 真的引用。
+- 工作完成後只更新本文件發生變化的段落，不重寫整份文件。
+
+## 16. 每次任務完成後如何更新本文件
 
 只更新以下內容：
 
