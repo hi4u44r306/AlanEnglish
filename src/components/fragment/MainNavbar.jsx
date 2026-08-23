@@ -8,9 +8,9 @@ import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import 'react-circular-progressbar/dist/styles.css';
 import BlueBook from '../assets/img/blue book.png';
-import Menu from '../assets/img/menu.png';
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiAward, FiBarChart2, FiBookOpen, FiCreditCard, FiHelpCircle, FiHome, FiLock, FiLogOut, FiMessageCircle, FiRefreshCw, FiSettings, FiStar, FiTrendingUp, FiUsers } from "react-icons/fi";
+import { HiOutlineBars3 } from "react-icons/hi2";
 import Brand from "./Brand";
 import { useAuth } from "../../auth/AuthContext";
 import { getRoleHome } from "../../auth/RoleHomeRedirect";
@@ -132,7 +132,7 @@ function MainNavbar() {
             <Navbar className={`ae-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
                     <Navbar.Brand as={Link} to={homePath} className="ae-brand" data-tour="home"><Brand /></Navbar.Brand>
-                    <Nav className="ae-desktop-nav d-none d-xl-flex">
+                    <Nav className="ae-desktop-nav">
                         {isAuthenticated && <Nav.Link as={Link} to={homePath} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><span className="ae-nav-inline"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</span></Nav.Link>}
                         {isStudent && <Nav.Link as={Link} to="/student/review" className={isPathActive("/student/review") ? "active" : ""}><span className="ae-nav-inline"><FiRefreshCw />智慧複習</span></Nav.Link>}
                         {isStudent && <Nav.Link as={Link} to="/student/weekly-report" className={isPathActive("/student/weekly-report") ? "active" : ""}><span className="ae-nav-inline"><FiBarChart2 />每週報告</span></Nav.Link>}
@@ -148,10 +148,10 @@ function MainNavbar() {
                         <button type="button" className="ae-desktop-help" onClick={openTour} data-tour="help"><FiHelpCircle />使用教學</button>
                         {isAuthenticated && <NavDropdown id="desktop-user-menu" title={<span className="ae-user-chip"><span>{studentProfile?.name?.slice(0, 1) || "A"}</span>{studentProfile?.name || displayRole}</span>} className="ae-user-dropdown" align="end"><NavDropdown.Item as={Link} to={homePath} className="ae-dropdown-item"><FiHome />{isTeacher ? "管理首頁" : "我的帳號"}</NavDropdown.Item><NavDropdown.Item as="button" onClick={handleLogout} disabled={loggingOut} className="ae-dropdown-item"><FiLogOut />{loggingOut ? "登出中..." : "登出"}</NavDropdown.Item></NavDropdown>}
                     </Nav>
-                    <button type="button" className="ae-mobile-toggle d-xl-none" onClick={() => setMobileOpen(true)} aria-label="開啟選單"><img src={Menu} alt="" /></button>
+                    <button type="button" className="ae-mobile-toggle" onClick={() => setMobileOpen(true)} aria-label="開啟選單"><HiOutlineBars3 aria-hidden="true" /></button>
                 </Container>
             </Navbar>
-            <Offcanvas show={mobileOpen} onHide={closeMobileMenu} onExited={restoreDocumentScroll} placement="end" className="ae-mobile-offcanvas d-xl-none" backdrop scroll={false}>
+            <Offcanvas show={mobileOpen} onHide={closeMobileMenu} onExited={restoreDocumentScroll} placement="end" className="ae-mobile-offcanvas" backdrop scroll={false}>
                 <Offcanvas.Header closeButton>
                     <div className="ae-mobile-brand">
                         <span className="ae-mobile-brand-mark">AE</span>
