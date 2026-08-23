@@ -183,13 +183,13 @@ const Showcase = () => {
                     name="description"
                     content="Alan English 結合教材音檔、AI 英文教材、情境會話與學習進度，幫助國小學生養成每天主動學英文的習慣。"
                 />
-                <link rel="canonical" href="https://alanenglish.com.tw/" />
+                <link rel="canonical" href="https://alanenglish.com.tw/home" />
                 <meta property="og:title" content="Alan English｜每天聽一點，英文進步一點" />
                 <meta
                     property="og:description"
                     content="專為國小學生設計的英文聽力與 AI 學習平台，免費體驗 7 天。"
                 />
-                <meta property="og:url" content="https://alanenglish.com.tw/" />
+                <meta property="og:url" content="https://alanenglish.com.tw/home" />
                 <meta property="og:type" content="website" />
             </Helmet>
 
@@ -579,7 +579,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
+                    <div className="showcase-footer-links"><Link to="/">教材音檔</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>
