@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import { onValue, ref } from "firebase/database";
 import {
     BiBookOpen,
     BiHeadphone,
@@ -12,7 +11,7 @@ import {
     BiStar
 } from "react-icons/bi";
 import Brand from "../fragment/Brand";
-import { rtdb } from "./firebase-config";
+import { getPublicLinks } from "../../services/linkService";
 import "./css/Links.scss";
 
 const CATEGORY_CONFIG = [
@@ -23,39 +22,6 @@ const CATEGORY_CONFIG = [
     { key: "speedphonics", label: "Speed Phonics", description: "自然發音與基礎拼讀練習", icon: BiPlayCircle }
 ];
 
-const CATEGORY_ALIASES = {
-    special: "special",
-    exercise: "exercise",
-    workbook: "exercise",
-    listening: "listening",
-    discovery: "discovery",
-    speedphonics: "speedphonics",
-    "speed-phonics": "speedphonics",
-    "speed phonics": "speedphonics"
-};
-
-const getCategoryKey = item => {
-    const explicitCategory = String(item?.category || "").trim().toLowerCase();
-    if (CATEGORY_ALIASES[explicitCategory]) return CATEGORY_ALIASES[explicitCategory];
-
-    const title = String(item?.title || "").trim().toLowerCase();
-    if (title.includes("習作本")) return "exercise";
-    if (title.includes("聽力本")) return "listening";
-    if (title.includes("discovery")) return "discovery";
-    if (title.includes("speed phonics") || title.includes("speedphonics")) return "speedphonics";
-    return "special";
-};
-
-const normalizeLinks = data => Object.entries(data || {})
-    .map(([id, item]) => ({
-        id,
-        title: String(item?.title || "").trim(),
-        url: String(item?.url || "").trim(),
-        category: getCategoryKey(item)
-    }))
-    .filter(item => item.title && item.url)
-    .sort((a, b) => a.title.localeCompare(b.title, "zh-Hant", { numeric: true, sensitivity: "base" }));
-
 function Links() {
     const [items, setItems] = useState([]);
     const [query, setQuery] = useState("");
@@ -63,22 +29,29 @@ function Links() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const linksRef = ref(rtdb, "links");
-        const unsubscribe = onValue(
-            linksRef,
-            snapshot => {
-                setItems(normalizeLinks(snapshot.val()));
-                setError("");
-                setLoading(false);
-            },
-            firebaseError => {
-                console.error("Links 載入失敗:", firebaseError);
-                setError("連結暫時無法載入，請稍後再試。");
-                setLoading(false);
-            }
-        );
+        let cancelled = false;
 
-        return () => unsubscribe();
+        const loadLinks = async () => {
+            try {
+                setLoading(true);
+                setError("");
+                const nextItems = await getPublicLinks();
+                if (!cancelled) setItems(nextItems);
+            } catch (loadError) {
+                console.error("Supabase Links 載入失敗:", loadError);
+                if (!cancelled) {
+                    setItems([]);
+                    setError("連結暫時無法載入，請稍後再試。");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadLinks();
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     const normalizedQuery = query.trim().toLowerCase();
@@ -88,7 +61,7 @@ function Links() {
         items: items.filter(item => {
             if (item.category !== category.key) return false;
             if (!normalizedQuery) return true;
-            return item.title.toLowerCase().includes(normalizedQuery);
+            return String(item.title || "").toLowerCase().includes(normalizedQuery);
         })
     })).filter(category => category.items.length > 0), [items, normalizedQuery]);
 
@@ -190,7 +163,7 @@ function Links() {
                         {!loading && !error && items.length === 0 && (
                             <div className="links-page__state">
                                 <strong>目前還沒有教材連結</strong>
-                                <p>若 Firebase 的 links 資料仍存在，重新整理後就會顯示在這裡。</p>
+                                <p>教材連結正在整理中，請稍後再回來查看。</p>
                             </div>
                         )}
 
