@@ -10,6 +10,8 @@ import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
 import SolvePage from "../components/Pages/SolvePage";
 import Showcase from "../components/Pages/Showcase";
+import Links from "../components/Pages/Links";
+import LinkAdmin from "../components/Pages/LinkAdmin";
 import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
 import User from "../components/Pages/User";
@@ -67,10 +69,12 @@ const App = () => {
                 </Helmet>
 
                 <Routes>
-                    <Route path="/" element={<Showcase />} />
+                    <Route path="/" element={<Links />} />
+                    <Route path="/links" element={<Navigate to="/" replace />} />
+                    <Route path="/home" element={<Showcase />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/solve" element={<SolvePage />} />
-                    <Route path="/showcase" element={<Navigate to="/" replace />} />
+                    <Route path="/showcase" element={<Navigate to="/home" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
 
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
@@ -98,6 +102,7 @@ const App = () => {
                     <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/navbar" element={<Navigate to="/admin/catalog" replace />} />
+                    <Route path="/admin/links" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LinkAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/membership" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><MembershipAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/api-usage" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ApiUsageAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/levels" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LevelAdmin /></Containerfull></ProtectedRoute>} />
@@ -113,6 +118,7 @@ const App = () => {
                     <Route path="/teacher/navbar" element={<Navigate to="/admin/navbar" replace />} />
                     <Route path="/editnavbar" element={<Navigate to="/admin/navbar" replace />} />
                     <Route path="/signup" element={<Navigate to="/teacher/accounts/create" replace />} />
+                    <Route path="/linksadmin" element={<Navigate to="/admin/links" replace />} />
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
