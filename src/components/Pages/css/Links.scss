@@ -528,16 +528,39 @@
 
   .links-page__nav {
     min-height: 68px;
+    gap: 8px;
   }
 
-  .links-page__nav-link {
-    display: none;
+  .links-page__brand {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
   }
 
+  .links-page__brand .brand {
+    font-size: 20px !important;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .links-page__nav-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .links-page__nav-link,
   .links-page__login {
-    min-height: 39px;
-    padding: 0 12px;
-    font-size: 12px;
+    display: inline-flex;
+    min-height: 38px;
+    gap: 5px;
+    padding: 0 9px;
+    border-radius: 11px;
+    font-size: 11px;
+    white-space: nowrap;
+
+    svg {
+      font-size: 16px;
+    }
   }
 
   .links-page__hero {
@@ -611,5 +634,17 @@
     justify-content: center;
     flex-direction: column;
     gap: 5px;
+  }
+}
+
+@media (max-width: 390px) {
+  .links-page__brand .brand {
+    font-size: 17px !important;
+  }
+
+  .links-page__nav-link,
+  .links-page__login {
+    padding: 0 7px;
+    font-size: 10px;
   }
 }
