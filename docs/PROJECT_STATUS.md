@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-23
+最後更新：2026-08-24
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -49,7 +49,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 目前已知的正式基準 commit：
 
 ```text
-6a9c34dd67c5ede0f90b514e4287696f2ed339ca
+45e6459
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
@@ -125,7 +125,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 
 - 免費七天
 - 目前不需要信用卡
-- 每天最多五次 AI 教材
+- AI 教材共 7 次、每日最多 2 次
 - 不提供英文班作業
 - 尚需建立不依賴實體教材的七天引導內容
 
@@ -141,6 +141,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 - 在校期間免費使用網站
 - 英文班月費目前為 NT$2,800
 - 可以收到班級作業
+- 不包含 AI 教材生成；可加購 AI 教材方案（NT$99／月、每日 5 次、每月最多 150 次且不累積）
 
 ### 英文班離校學生
 
@@ -177,6 +178,26 @@ supabase/migrations/20260821161809_phase_02_additive_membership_access.sql
 ```text
 supabase/functions/_shared/effective-access.ts
 ```
+
+### AI 教材加購與試用額度
+
+```text
+supabase/migrations/20260823090000_ai_material_addon_access.sql
+```
+
+已於正式 Supabase 套用：
+
+- 英文班在學方案不包含 AI 教材生成。
+- 新增 `ai_materials_addon_monthly`（NT$99／月、每日 5 次）。
+- 七天試用可使用 AI 教材每日 2 次；7 天共 7 次總額度已由 `generate-ai-material` v19 實施。
+- 會員後台已在本機拆分核心方案資料與家長週報狀態載入；週報請求失敗不再清空方案及會員資料，且會常駐顯示實際錯誤訊息。此前端修正尚未推送 GitHub／部署 Netlify。
+- 會員後台方案卡片已在本機調整為桌面 3 欄、平板 2 欄、手機 1 欄，長方案代碼及表單欄位不再溢出卡片；尚未推送 GitHub／部署 Netlify。
+- Stripe 測試環境的 NT$99 recurring Price 已填入 AI 加購方案；方案目前維持不公開，避免付款授權流程部署前被學生看到。
+- Checkout、Customer Portal、Webhook 與獨立 `student_access_grants` 授權流程已完成；付款不會覆蓋英文班、教材或其他既有權限。Migration `20260823230023_stripe_additive_subscription_grants.sql` 已套用正式 Supabase。
+- AI 加購額度為每日 5 次、台灣時間每月 150 次；每月 150 次只套用 AI 加購，不影響其他完整付費方案。
+- 新註冊及既有未轉付費的公開試用會員會使用 `trial_7_day` 方案，讓 7 天內總共 7 次、每日 2 次的限制可以正確辨識；正式資料已校正 3 筆，剩餘不一致為 0。
+- 2026-08-24 已部署：`membership-manager` v15、`billing-manager` v12、`stripe-webhook` v12、`generate-ai-material` v19，狀態均為 ACTIVE。
+- 正式 Supabase 尚未設定 `STRIPE_SECRET_KEY` 與 `STRIPE_WEBHOOK_SECRET`；付款與 Webhook 會安全拒絕請求，設定前不得公開 AI 加購方案。
 
 ### 第三階段：分班週期
 
@@ -370,6 +391,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 不改功能，只建立可重複執行的測試基礎。
 - `npm test -- --watchAll=false` 成功。
 - `npm run build` 成功。
+- 2026-08-23：新增會員加購顯示／防重複付款與 Checkout Session 欄位 contract 測試；2 個測試檔、2 個案例皆通過，Production build 成功。
 - P0 核心規則有正常、邊界、未授權與失敗路徑。
 - 不為了讓測試通過而降低 Firebase、Supabase 或角色權限。
 
@@ -396,6 +418,8 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - Node deprecation warning 目前不是 build 失敗。
 - 不得直接修改已執行的 migration。
 - 不得覆蓋使用者未提交的本機修改。
+- AI 教材加購方案已填入 Stripe 測試 Price，但仍未公開；付款 migration 與 Functions 已部署，尚缺 Stripe Secret、Webhook endpoint 及測試付款驗收。
+- AI 教材學生額度以台灣時間每月 1 日重新計算；老師與管理員維持獨立額度。
 
 ## 14. 下一個 Codex 對話建議提示詞
 

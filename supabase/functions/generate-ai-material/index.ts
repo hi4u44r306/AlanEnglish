@@ -22,6 +22,8 @@ const ALLOWED_ROLES = ["student", "teacher", "admin"];
 const STAFF_ROLES = new Set(["teacher", "admin"]);
 const PASSING_SCORE = 90;
 const AI_MODEL = "gpt-5-mini";
+const AI_ADDON_MONTHLY_LIMIT = 150;
+const TRIAL_AI_TOTAL_LIMIT = 7;
 const DASHBOARD_PAGE_SIZE = 1000;
 const DASHBOARD_MAX_ROWS = 50000;
 const DEFAULT_BUDGET = {
@@ -109,6 +111,8 @@ const taiwanDate = () => new Intl.DateTimeFormat("en-CA", {
     day: "2-digit"
 }).format(new Date());
 
+const taiwanMonthStart = (date: string) => `${date.slice(0, 7)}-01`;
+
 const extractOutputText = (data: any) => {
     if (typeof data?.output_text === "string" && data.output_text.trim()) return data.output_text.trim();
     const parts: string[] = [];
@@ -166,7 +170,7 @@ Deno.serve(async (req: Request) => {
 
         const { data: student, error: studentError } = await admin
             .from("students")
-            .select("id,name,role")
+            .select("id,name,role,learner_type")
             .eq("firebase_uid", firebaseUid)
             .maybeSingle();
 
@@ -199,7 +203,64 @@ Deno.serve(async (req: Request) => {
 
         const used = Number(usage?.generation_count || 0);
         const remaining = Math.max(0, dailyLimit - used);
-        const usagePayload = { date: today, used, limit: dailyLimit, remaining, role };
+        const monthlyPeriodStart = taiwanMonthStart(today);
+        let monthlyUsed = 0;
+        const hasMonthlyAddon = role === "student"
+            && effectiveAccess.plan_codes.includes("ai_materials_addon_monthly");
+        const monthlyLimit = hasMonthlyAddon ? AI_ADDON_MONTHLY_LIMIT : null;
+        const isTrialUser = role === "student"
+            && student.learner_type === "trial_user"
+            && effectiveAccess.plan_codes.includes("trial_7_day");
+        let trialUsed = 0;
+        let trialStartedOn: string | null = null;
+        const trialLimit = isTrialUser ? TRIAL_AI_TOTAL_LIMIT : null;
+
+        if (monthlyLimit !== null) {
+            const { data: monthlyUsage, error: monthlyUsageError } = await admin
+                .from("ai_usage_daily")
+                .select("generation_count")
+                .eq("student_id", student.id)
+                .gte("usage_date", monthlyPeriodStart)
+                .lte("usage_date", today);
+            if (monthlyUsageError) return json(500, { error: "無法讀取本月 AI 使用額度" });
+            monthlyUsed = (monthlyUsage || []).reduce((total: number, row: any) => total + Number(row.generation_count || 0), 0);
+        }
+
+        if (trialLimit !== null) {
+            const { data: trialMembership, error: trialMembershipError } = await admin
+                .from("memberships")
+                .select("trial_started_at")
+                .eq("student_id", student.id)
+                .maybeSingle();
+            if (trialMembershipError || !trialMembership?.trial_started_at) {
+                return json(500, { error: "無法確認免費試用的 AI 額度" });
+            }
+            trialStartedOn = taiwanDateFromValue(trialMembership.trial_started_at);
+            const { data: trialUsage, error: trialUsageError } = await admin
+                .from("ai_usage_daily")
+                .select("generation_count")
+                .eq("student_id", student.id)
+                .gte("usage_date", trialStartedOn)
+                .lte("usage_date", today);
+            if (trialUsageError) return json(500, { error: "無法讀取免費試用的 AI 額度" });
+            trialUsed = (trialUsage || []).reduce((total: number, row: any) => total + Number(row.generation_count || 0), 0);
+        }
+
+        const usagePayload = {
+            date: today,
+            used,
+            limit: dailyLimit,
+            remaining,
+            monthly_period_start: monthlyPeriodStart,
+            monthly_used: monthlyUsed,
+            monthly_limit: monthlyLimit,
+            monthly_remaining: monthlyLimit === null ? null : Math.max(0, monthlyLimit - monthlyUsed),
+            trial_started_on: trialStartedOn,
+            trial_used: trialUsed,
+            trial_limit: trialLimit,
+            trial_remaining: trialLimit === null ? null : Math.max(0, trialLimit - trialUsed),
+            role
+        };
 
         if (action === "cost_dashboard") {
             if (role !== "admin") return json(403, { error: "只有管理者可以查看 API 成本" });
@@ -639,6 +700,22 @@ Deno.serve(async (req: Request) => {
             });
         }
 
+        if (monthlyLimit !== null && monthlyUsed >= monthlyLimit) {
+            return json(429, {
+                error: `本月 AI 教材生成額度已用完；每月最多 ${monthlyLimit} 次，將於下個月 1 日重新計算。`,
+                code: "ai_monthly_limit_reached",
+                usage: usagePayload
+            });
+        }
+
+        if (trialLimit !== null && trialUsed >= trialLimit) {
+            return json(429, {
+                error: `免費試用的 AI 教材額度已用完；7 天內最多 ${trialLimit} 次。升級後即可繼續使用。`,
+                code: "trial_ai_limit_reached",
+                usage: usagePayload
+            });
+        }
+
         const materialType = String(body?.material_type || "reading").trim();
         const topic = String(body?.topic || "").trim().slice(0, 120);
         const difficulty = String(body?.difficulty || "國小中年級").trim().slice(0, 40);
@@ -883,6 +960,14 @@ JSON 格式：
                 used: nextUsed,
                 limit: dailyLimit,
                 remaining: Math.max(0, dailyLimit - nextUsed),
+                monthly_period_start: monthlyPeriodStart,
+                monthly_used: monthlyUsed + 1,
+                monthly_limit: monthlyLimit,
+                monthly_remaining: monthlyLimit === null ? null : Math.max(0, monthlyLimit - monthlyUsed - 1),
+                trial_started_on: trialStartedOn,
+                trial_used: trialUsed + 1,
+                trial_limit: trialLimit,
+                trial_remaining: trialLimit === null ? null : Math.max(0, trialLimit - trialUsed - 1),
                 role
             },
             passing_score: PASSING_SCORE

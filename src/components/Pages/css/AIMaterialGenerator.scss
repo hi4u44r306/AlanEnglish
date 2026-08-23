@@ -121,6 +121,18 @@
     box-shadow: 0 30px 80px rgba(31, 46, 91, .08);
 }
 
+.ai-access-notice {
+    display: grid;
+    gap: 16px;
+    max-width: 720px;
+    text-align: center;
+}
+
+.ai-access-notice .ai-eyebrow { justify-content: center; }
+.ai-access-notice h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); }
+.ai-access-notice p { margin: 0; color: #65708a; font-size: 17px; line-height: 1.75; }
+.ai-access-notice .ai-generate-button { justify-self: center; text-decoration: none; }
+
 .ai-section-heading > span {
     color: #5267e8;
     font-size: 11px;

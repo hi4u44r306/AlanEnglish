@@ -439,5 +439,11 @@ verify_jwt = false
 [functions.generate-ai-material]
 verify_jwt = false
 
+[functions.billing-manager]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
 [functions.academy-student-manager]
 verify_jwt = false

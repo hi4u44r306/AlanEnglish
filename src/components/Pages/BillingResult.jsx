@@ -22,8 +22,9 @@ function BillingResult({ cancelled = false }) {
                 const profileResult = await getMembershipProfile(firebaseUser);
                 if (disposed) return;
                 setStudentProfile(profileResult.profile);
-                setState(result?.membership?.is_active ? "success" : "pending");
-                setMessage(result?.membership?.is_active ? "付款已確認，會員權限已更新。" : result?.message || "付款仍在處理中，請稍後重新整理會員頁。 ");
+                const accessUpdated = result?.access_grant?.status === "active" || result?.membership?.is_active;
+                setState(accessUpdated ? "success" : "pending");
+                setMessage(accessUpdated ? "付款已確認，使用權限已更新。" : result?.message || "付款仍在處理中，請稍後重新整理會員頁。 ");
             } catch (error) {
                 if (!disposed) { setState("error"); setMessage(error.message || "付款結果確認失敗"); }
             }

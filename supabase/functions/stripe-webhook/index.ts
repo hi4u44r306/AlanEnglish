@@ -31,6 +31,17 @@ const subscriptionPeriodEnd = (subscription: any) => {
     return candidates.length > 0 ? Math.max(...candidates) : null;
 };
 
+const subscriptionPeriodStart = (subscription: any) => {
+    const candidates = [
+        subscription?.current_period_start,
+        subscription?.start_date,
+        ...(Array.isArray(subscription?.items?.data)
+            ? subscription.items.data.map((item: any) => item?.current_period_start)
+            : [])
+    ].map(Number).filter(value => Number.isFinite(value) && value > 0);
+    return candidates.length > 0 ? Math.min(...candidates) : null;
+};
+
 const invoicePeriodEnd = (invoice: any) => {
     const candidates = [
         invoice?.period_end,
@@ -103,6 +114,22 @@ const mapSubscriptionStatus = (status: string) => {
     }
     if (status === "canceled") return "cancelled";
     return "past_due";
+};
+
+const invoicePeriodStart = (invoice: any) => {
+    const candidates = [
+        invoice?.period_start,
+        ...(Array.isArray(invoice?.lines?.data)
+            ? invoice.lines.data.map((line: any) => line?.period?.start)
+            : [])
+    ].map(Number).filter(value => Number.isFinite(value) && value > 0);
+    return candidates.length > 0 ? Math.min(...candidates) : null;
+};
+
+const mapSubscriptionGrantStatus = (status: string) => {
+    if (["active", "trialing"].includes(status)) return "active";
+    if (status === "canceled") return "expired";
+    return "paused";
 };
 
 Deno.serve(async (req: Request) => {
@@ -193,8 +220,10 @@ Deno.serve(async (req: Request) => {
 
     const object = event?.data?.object || {};
     const metadata = object?.metadata || {};
-    const studentId = Number(metadata.student_id || object.client_reference_id || 0) || null;
-    const planId = Number(metadata.plan_id || 0) || null;
+    const subscriptionMetadata = object?.parent?.subscription_details?.metadata || {};
+    const eventMetadata = { ...subscriptionMetadata, ...metadata };
+    const studentId = Number(eventMetadata.student_id || object.client_reference_id || 0) || null;
+    const planId = Number(eventMetadata.plan_id || 0) || null;
 
     try {
         let handled = false;
@@ -206,25 +235,98 @@ Deno.serve(async (req: Request) => {
             }
             const customerId = stripeId(object.customer) || null;
             const subscriptionId = stripeId(object.subscription) || null;
-            const checkoutMembershipStatus = object.payment_status === "paid" ? "active" : "trialing";
-            let query = admin.from("memberships").update({
-                plan_id: planId,
-                status: checkoutMembershipStatus,
-                source: "stripe",
-                stripe_customer_id: customerId,
-                stripe_subscription_id: subscriptionId,
-                stripe_subscription_status: checkoutMembershipStatus,
-                updated_at: new Date().toISOString()
-            });
-            query = query.eq("id", membershipId).eq("student_id", studentId);
-            const { data: memberships, error: membershipError } = await query.select("id,student_id");
+            const { data: membership, error: membershipError } = await admin
+                .from("memberships")
+                .select("id,student_id")
+                .eq("id", membershipId)
+                .eq("student_id", studentId)
+                .maybeSingle();
             if (membershipError) throw membershipError;
-            const membership = memberships?.[0] || null;
             if (!membership) throw new Error("Checkout Session does not match a membership");
+
+            let accessGrantId: number | null = null;
+            if (eventMetadata.grant_mode === "additive") {
+                if (!subscriptionId) throw new Error("Add-on Checkout Session is missing a subscription");
+                const { data: addonPlan, error: addonPlanError } = await admin
+                    .from("subscription_plans")
+                    .select("id,code,access_model")
+                    .eq("id", planId)
+                    .eq("enabled", true)
+                    .maybeSingle();
+                if (addonPlanError) throw addonPlanError;
+                if (!addonPlan || addonPlan.access_model !== "addon") {
+                    throw new Error("Checkout Session plan is not an add-on");
+                }
+                const { data: existingGrant, error: existingGrantError } = await admin
+                    .from("student_access_grants")
+                    .select("id")
+                    .eq("stripe_subscription_id", subscriptionId)
+                    .maybeSingle();
+                if (existingGrantError) throw existingGrantError;
+
+                // Stripe 不保證不同事件類型的抵達順序。若 subscription 或 invoice
+                // 已先啟用權限，晚到的 checkout 事件只能補齊識別欄位，不能降回 pending。
+                const grantMutation = existingGrant
+                    ? admin
+                        .from("student_access_grants")
+                        .update({
+                            stripe_customer_id: customerId,
+                            stripe_checkout_session_id: cleanText(object.id, 300),
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq("id", existingGrant.id)
+                    : admin
+                        .from("student_access_grants")
+                        .insert({
+                            student_id: studentId,
+                            plan_id: planId,
+                            source: "stripe",
+                            status: "pending",
+                            starts_at: new Date().toISOString(),
+                            stripe_customer_id: customerId,
+                            stripe_subscription_id: subscriptionId,
+                            stripe_checkout_session_id: cleanText(object.id, 300),
+                            stripe_subscription_status: cleanText(object.payment_status || object.status, 60),
+                            metadata: {
+                                plan_code: addonPlan.code,
+                                grant_mode: "additive",
+                                checkout_payment_status: cleanText(object.payment_status, 60)
+                            },
+                            updated_at: new Date().toISOString()
+                        });
+                const { data: accessGrant, error: grantError } = await grantMutation
+                    .select("id")
+                    .single();
+                if (grantError) throw grantError;
+                accessGrantId = Number(accessGrant.id);
+                if (customerId) {
+                    const { error: customerSaveError } = await admin
+                        .from("memberships")
+                        .update({ stripe_customer_id: customerId, updated_at: new Date().toISOString() })
+                        .eq("id", membership.id);
+                    if (customerSaveError) throw customerSaveError;
+                }
+            } else {
+                const checkoutMembershipStatus = object.payment_status === "paid" ? "active" : "trialing";
+                const { error: membershipUpdateError } = await admin
+                    .from("memberships")
+                    .update({
+                        plan_id: planId,
+                        status: checkoutMembershipStatus,
+                        source: "stripe",
+                        stripe_customer_id: customerId,
+                        stripe_subscription_id: subscriptionId,
+                        stripe_subscription_status: checkoutMembershipStatus,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq("id", membership.id);
+                if (membershipUpdateError) throw membershipUpdateError;
+            }
 
             const { error: transactionError } = await admin.from("payment_transactions").upsert({
                 student_id: membership?.student_id || studentId,
                 membership_id: membership?.id || membershipId,
+                access_grant_id: accessGrantId,
                 stripe_event_id: eventId,
                 stripe_checkout_session_id: cleanText(object.id, 300),
                 stripe_payment_intent_id: stripeId(object.payment_intent) || null,
@@ -240,98 +342,194 @@ Deno.serve(async (req: Request) => {
             const customerId = stripeId(object.customer);
             const stripeStatus = cleanText(object.status, 60);
             const currentPeriodEnd = toIsoFromSeconds(subscriptionPeriodEnd(object));
-            const mappedStatus = eventType === "customer.subscription.deleted"
-                ? "cancelled"
-                : mapSubscriptionStatus(stripeStatus);
-            let lookup = admin
-                .from("memberships")
-                .select("id,student_id,access_ends_at")
-                .eq("stripe_subscription_id", subscriptionId)
-                .maybeSingle();
-            let { data: membership, error: membershipLookupError } = await lookup;
-            if (membershipLookupError) throw membershipLookupError;
-            if (!membership && customerId) {
-                const result = await admin
+            if (eventMetadata.grant_mode === "additive") {
+                if (!subscriptionId || !studentId || !planId) {
+                    throw new Error("Add-on subscription metadata is incomplete");
+                }
+                const { data: addonPlan, error: addonPlanError } = await admin
+                    .from("subscription_plans")
+                    .select("id,code,access_model")
+                    .eq("id", planId)
+                    .eq("enabled", true)
+                    .maybeSingle();
+                if (addonPlanError) throw addonPlanError;
+                if (!addonPlan || addonPlan.access_model !== "addon") {
+                    throw new Error("Subscription plan is not an add-on");
+                }
+                const startsAt = toIsoFromSeconds(subscriptionPeriodStart(object)) || new Date().toISOString();
+                const grantStatus = eventType === "customer.subscription.deleted"
+                    ? "expired"
+                    : mapSubscriptionGrantStatus(stripeStatus);
+                const endsAt = currentPeriodEnd || (grantStatus === "expired" ? new Date().toISOString() : null);
+                if (grantStatus === "active" && !endsAt) {
+                    throw new Error("Active add-on subscription is missing its period end");
+                }
+                const { error: grantError } = await admin
+                    .from("student_access_grants")
+                    .upsert({
+                        student_id: studentId,
+                        plan_id: planId,
+                        source: "stripe",
+                        status: grantStatus,
+                        starts_at: startsAt,
+                        ends_at: endsAt,
+                        revoked_at: grantStatus === "expired" ? new Date().toISOString() : null,
+                        revoke_reason: grantStatus === "expired" ? "stripe_subscription_cancelled" : null,
+                        stripe_customer_id: customerId || null,
+                        stripe_subscription_id: subscriptionId,
+                        stripe_subscription_status: stripeStatus,
+                        current_period_end: currentPeriodEnd,
+                        cancel_at_period_end: Boolean(object.cancel_at_period_end),
+                        metadata: {
+                            plan_code: addonPlan.code,
+                            grant_mode: "additive",
+                            last_event_type: eventType
+                        },
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: "stripe_subscription_id" });
+                if (grantError) throw grantError;
+            } else {
+                const mappedStatus = eventType === "customer.subscription.deleted"
+                    ? "cancelled"
+                    : mapSubscriptionStatus(stripeStatus);
+                let lookup = admin
                     .from("memberships")
                     .select("id,student_id,access_ends_at")
-                    .eq("stripe_customer_id", customerId)
+                    .eq("stripe_subscription_id", subscriptionId)
                     .maybeSingle();
-                if (result.error) throw result.error;
-                membership = result.data;
-            }
-            if (!membership && studentId) {
-                const result = await admin
-                    .from("memberships")
-                    .select("id,student_id,access_ends_at")
-                    .eq("student_id", studentId)
-                    .maybeSingle();
-                if (result.error) throw result.error;
-                membership = result.data;
-            }
-            if (membership) {
-                const membershipUpdates: Record<string, unknown> = {
-                    status: mappedStatus,
-                    source: "stripe",
-                    stripe_subscription_id: subscriptionId,
-                    stripe_subscription_status: stripeStatus,
-                    current_period_end: currentPeriodEnd,
-                    access_ends_at: currentPeriodEnd || membership.access_ends_at,
-                    cancel_at_period_end: Boolean(object.cancel_at_period_end),
-                    updated_at: new Date().toISOString()
-                };
-                if (planId) membershipUpdates.plan_id = planId;
-                if (customerId) membershipUpdates.stripe_customer_id = customerId;
-                const { error: updateError } = await admin
-                    .from("memberships")
-                    .update(membershipUpdates)
-                    .eq("id", membership.id);
-                if (updateError) throw updateError;
+                let { data: membership, error: membershipLookupError } = await lookup;
+                if (membershipLookupError) throw membershipLookupError;
+                if (!membership && customerId) {
+                    const result = await admin
+                        .from("memberships")
+                        .select("id,student_id,access_ends_at")
+                        .eq("stripe_customer_id", customerId)
+                        .maybeSingle();
+                    if (result.error) throw result.error;
+                    membership = result.data;
+                }
+                if (!membership && studentId) {
+                    const result = await admin
+                        .from("memberships")
+                        .select("id,student_id,access_ends_at")
+                        .eq("student_id", studentId)
+                        .maybeSingle();
+                    if (result.error) throw result.error;
+                    membership = result.data;
+                }
+                if (membership) {
+                    const membershipUpdates: Record<string, unknown> = {
+                        status: mappedStatus,
+                        source: "stripe",
+                        stripe_subscription_id: subscriptionId,
+                        stripe_subscription_status: stripeStatus,
+                        current_period_end: currentPeriodEnd,
+                        access_ends_at: currentPeriodEnd || membership.access_ends_at,
+                        cancel_at_period_end: Boolean(object.cancel_at_period_end),
+                        updated_at: new Date().toISOString()
+                    };
+                    if (planId) membershipUpdates.plan_id = planId;
+                    if (customerId) membershipUpdates.stripe_customer_id = customerId;
+                    const { error: updateError } = await admin
+                        .from("memberships")
+                        .update(membershipUpdates)
+                        .eq("id", membership.id);
+                    if (updateError) throw updateError;
+                }
             }
         } else if (eventType === "invoice.paid" || eventType === "invoice.payment_failed") {
             handled = true;
             const customerId = stripeId(object.customer);
             const subscriptionId = invoiceSubscriptionId(object);
-            let membership: any = null;
-            if (customerId) {
+            const paid = eventType === "invoice.paid";
+            const periodEnd = toIsoFromSeconds(invoicePeriodEnd(object));
+            let accessGrant: any = null;
+            if (subscriptionId) {
                 const result = await admin
-                    .from("memberships")
-                    .select("id,student_id")
-                    .eq("stripe_customer_id", customerId)
-                    .maybeSingle();
-                if (result.error) throw result.error;
-                membership = result.data;
-            }
-            if (!membership && subscriptionId) {
-                const result = await admin
-                    .from("memberships")
-                    .select("id,student_id")
+                    .from("student_access_grants")
+                    .select("id,student_id,ends_at")
                     .eq("stripe_subscription_id", subscriptionId)
                     .maybeSingle();
                 if (result.error) throw result.error;
-                membership = result.data;
+                accessGrant = result.data;
             }
-            if (membership) {
-                const paid = eventType === "invoice.paid";
-                const periodEnd = toIsoFromSeconds(invoicePeriodEnd(object));
-                const membershipUpdates: Record<string, unknown> = {
-                    status: paid ? "active" : "past_due",
-                    source: "stripe",
+
+            if (!accessGrant && eventMetadata.grant_mode === "additive") {
+                if (!subscriptionId || !studentId || !planId) {
+                    throw new Error("Add-on invoice metadata is incomplete");
+                }
+                if (paid && !periodEnd) {
+                    throw new Error("Paid add-on invoice is missing its period end");
+                }
+                const { data: addonPlan, error: addonPlanError } = await admin
+                    .from("subscription_plans")
+                    .select("id,code,access_model")
+                    .eq("id", planId)
+                    .eq("enabled", true)
+                    .maybeSingle();
+                if (addonPlanError) throw addonPlanError;
+                if (!addonPlan || addonPlan.access_model !== "addon") {
+                    throw new Error("Invoice plan is not an add-on");
+                }
+                const startsAt = toIsoFromSeconds(invoicePeriodStart(object)) || new Date().toISOString();
+                const { data: createdGrant, error: createGrantError } = await admin
+                    .from("student_access_grants")
+                    .upsert({
+                        student_id: studentId,
+                        plan_id: planId,
+                        source: "stripe",
+                        status: paid ? "active" : "paused",
+                        starts_at: startsAt,
+                        ends_at: periodEnd,
+                        stripe_customer_id: customerId || null,
+                        stripe_subscription_id: subscriptionId,
+                        stripe_subscription_status: paid ? "active" : "past_due",
+                        current_period_end: periodEnd,
+                        last_payment_at: paid ? new Date().toISOString() : null,
+                        metadata: {
+                            plan_code: addonPlan.code,
+                            grant_mode: "additive",
+                            created_from: eventType
+                        },
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: "stripe_subscription_id" })
+                    .select("id,student_id,ends_at")
+                    .single();
+                if (createGrantError) throw createGrantError;
+                accessGrant = createdGrant;
+            }
+
+            if (accessGrant) {
+                if (paid && !periodEnd) {
+                    throw new Error("Paid add-on invoice is missing its period end");
+                }
+                const grantUpdates: Record<string, unknown> = {
+                    status: paid ? "active" : "paused",
+                    stripe_customer_id: customerId || null,
+                    stripe_subscription_status: paid ? "active" : "past_due",
                     updated_at: new Date().toISOString()
                 };
-                if (paid) membershipUpdates.last_payment_at = new Date().toISOString();
+                if (paid) grantUpdates.last_payment_at = new Date().toISOString();
                 if (periodEnd) {
-                    membershipUpdates.current_period_end = periodEnd;
-                    membershipUpdates.access_ends_at = periodEnd;
+                    grantUpdates.current_period_end = periodEnd;
+                    grantUpdates.ends_at = periodEnd;
                 }
-                const { error: updateError } = await admin
-                    .from("memberships")
-                    .update(membershipUpdates)
-                    .eq("id", membership.id);
-                if (updateError) throw updateError;
+                const { error: grantUpdateError } = await admin
+                    .from("student_access_grants")
+                    .update(grantUpdates)
+                    .eq("id", accessGrant.id);
+                if (grantUpdateError) throw grantUpdateError;
 
+                const { data: ownerMembership, error: ownerMembershipError } = await admin
+                    .from("memberships")
+                    .select("id")
+                    .eq("student_id", accessGrant.student_id)
+                    .maybeSingle();
+                if (ownerMembershipError) throw ownerMembershipError;
                 const { error: transactionError } = await admin.from("payment_transactions").upsert({
-                    student_id: membership.student_id,
-                    membership_id: membership.id,
+                    student_id: accessGrant.student_id,
+                    membership_id: ownerMembership?.id || null,
+                    access_grant_id: accessGrant.id,
                     stripe_event_id: eventId,
                     stripe_invoice_id: cleanText(object.id, 300),
                     stripe_payment_intent_id: invoicePaymentIntentId(object) || null,
@@ -343,6 +541,58 @@ Deno.serve(async (req: Request) => {
                     occurred_at: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString()
                 }, { onConflict: "stripe_invoice_id" });
                 if (transactionError) throw transactionError;
+            } else {
+                let membership: any = null;
+                if (customerId) {
+                    const result = await admin
+                        .from("memberships")
+                        .select("id,student_id")
+                        .eq("stripe_customer_id", customerId)
+                        .maybeSingle();
+                    if (result.error) throw result.error;
+                    membership = result.data;
+                }
+                if (!membership && subscriptionId) {
+                    const result = await admin
+                        .from("memberships")
+                        .select("id,student_id")
+                        .eq("stripe_subscription_id", subscriptionId)
+                        .maybeSingle();
+                    if (result.error) throw result.error;
+                    membership = result.data;
+                }
+                if (membership) {
+                    const membershipUpdates: Record<string, unknown> = {
+                        status: paid ? "active" : "past_due",
+                        source: "stripe",
+                        updated_at: new Date().toISOString()
+                    };
+                    if (paid) membershipUpdates.last_payment_at = new Date().toISOString();
+                    if (periodEnd) {
+                        membershipUpdates.current_period_end = periodEnd;
+                        membershipUpdates.access_ends_at = periodEnd;
+                    }
+                    const { error: updateError } = await admin
+                        .from("memberships")
+                        .update(membershipUpdates)
+                        .eq("id", membership.id);
+                    if (updateError) throw updateError;
+
+                    const { error: transactionError } = await admin.from("payment_transactions").upsert({
+                        student_id: membership.student_id,
+                        membership_id: membership.id,
+                        stripe_event_id: eventId,
+                        stripe_invoice_id: cleanText(object.id, 300),
+                        stripe_payment_intent_id: invoicePaymentIntentId(object) || null,
+                        amount_total: Number.isFinite(Number(object.amount_paid ?? object.amount_due))
+                            ? Number(object.amount_paid ?? object.amount_due)
+                            : null,
+                        currency: cleanText(object.currency, 20) || null,
+                        status: paid ? "paid" : "failed",
+                        occurred_at: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString()
+                    }, { onConflict: "stripe_invoice_id" });
+                    if (transactionError) throw transactionError;
+                }
             }
         }
 

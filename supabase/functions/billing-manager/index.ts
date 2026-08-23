@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import Stripe from "npm:stripe@22.4.0";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -51,6 +52,23 @@ const subscriptionPeriodEnd = (subscription: any) => {
     return candidates.length > 0 ? Math.max(...candidates) : null;
 };
 
+const subscriptionPeriodStart = (subscription: any) => {
+    const candidates = [
+        subscription?.current_period_start,
+        subscription?.start_date,
+        ...(Array.isArray(subscription?.items?.data)
+            ? subscription.items.data.map((item: any) => item?.current_period_start)
+            : [])
+    ].map(Number).filter(value => Number.isFinite(value) && value > 0);
+    return candidates.length > 0 ? Math.min(...candidates) : null;
+};
+
+const grantStatusFromStripe = (status: string) => {
+    if (["active", "trialing"].includes(status)) return "active";
+    if (status === "canceled") return "expired";
+    return "paused";
+};
+
 async function verifyFirebaseIdToken(token: string) {
     const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
         issuer: FIREBASE_ISSUER,
@@ -63,33 +81,6 @@ async function verifyFirebaseIdToken(token: string) {
         email: cleanText(payload.email, 320).toLowerCase()
     };
 }
-
-const stripeRequest = async (
-    stripeKey: string,
-    path: string,
-    options: {
-        method?: "GET" | "POST";
-        params?: URLSearchParams;
-    } = {}
-) => {
-    const method = options.method || "POST";
-    const response = await fetch(`https://api.stripe.com${path}`, {
-        method,
-        headers: {
-            Authorization: `Bearer ${stripeKey}`,
-            ...(method === "POST" ? { "Content-Type": "application/x-www-form-urlencoded" } : {})
-        },
-        body: method === "POST" ? options.params?.toString() || "" : undefined
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-        const error = new Error(data?.error?.message || `Stripe request failed (${response.status})`);
-        (error as any).status = response.status;
-        (error as any).code = data?.error?.code || null;
-        throw error;
-    }
-    return data;
-};
 
 const getSiteUrl = () => {
     const configured = cleanText(Deno.env.get("SITE_URL"), 500) || DEFAULT_SITE_URL;
@@ -128,13 +119,14 @@ Deno.serve(async (req: Request) => {
                 code: "stripe_not_configured"
             });
         }
+        const stripe = new Stripe(stripeKey, { apiVersion: "2026-07-29.dahlia" });
 
         const admin = createClient(supabaseUrl, serviceRoleKey, {
             auth: { persistSession: false, autoRefreshToken: false }
         });
         const { data: student, error: studentError } = await admin
             .from("students")
-            .select("id,firebase_uid,name,email,role")
+            .select("id,firebase_uid,name,email,role,learner_type")
             .eq("firebase_uid", firebaseUser.uid)
             .maybeSingle();
         if (studentError) throw studentError;
@@ -160,7 +152,7 @@ Deno.serve(async (req: Request) => {
             if (!planId) return json(400, { error: "請選擇訂閱方案" });
             const { data: plan, error: planError } = await admin
                 .from("subscription_plans")
-                .select("id,code,name,price_twd,billing_interval,stripe_price_id,enabled,is_public")
+                .select("id,code,name,price_twd,billing_interval,stripe_price_id,enabled,is_public,access_model")
                 .eq("id", planId)
                 .maybeSingle();
             if (planError) throw planError;
@@ -170,7 +162,43 @@ Deno.serve(async (req: Request) => {
             if (!plan.stripe_price_id || plan.price_twd === null) {
                 return json(409, { error: "這個方案尚未完成付款設定" });
             }
+            const isAdditivePlan = plan.access_model === "addon";
+            if (isAdditivePlan) {
+                if (plan.code !== "ai_materials_addon_monthly") {
+                    return json(409, { error: "目前不支援這個加購方案" });
+                }
+                if (student.learner_type !== "academy_student") {
+                    return json(403, { error: "AI 教材加購目前只提供在學英文班學生" });
+                }
+                const { data: enrollment, error: enrollmentError } = await admin
+                    .from("academy_enrollments")
+                    .select("id")
+                    .eq("student_id", student.id)
+                    .eq("status", "active")
+                    .maybeSingle();
+                if (enrollmentError) throw enrollmentError;
+                if (!enrollment) return json(403, { error: "只有目前在學的英文班學生可以加購 AI 教材" });
+
+                const { data: existingGrant, error: existingGrantError } = await admin
+                    .from("student_access_grants")
+                    .select("id,stripe_subscription_id,status")
+                    .eq("student_id", student.id)
+                    .eq("plan_id", plan.id)
+                    .eq("source", "stripe")
+                    .in("status", ["pending", "active", "paused"])
+                    .limit(1)
+                    .maybeSingle();
+                if (existingGrantError) throw existingGrantError;
+                if (existingGrant?.stripe_subscription_id) {
+                    return json(409, {
+                        error: "這個帳號已有 AI 教材加購訂閱，請使用訂閱管理",
+                        code: "addon_subscription_already_exists"
+                    });
+                }
+            }
             if (
+                !isAdditivePlan
+                &&
                 membership.stripe_subscription_id
                 && !["cancelled", "expired"].includes(String(membership.status || ""))
             ) {
@@ -180,11 +208,7 @@ Deno.serve(async (req: Request) => {
                 });
             }
 
-            const stripePrice = await stripeRequest(
-                stripeKey,
-                `/v1/prices/${encodeURIComponent(plan.stripe_price_id)}`,
-                { method: "GET" }
-            );
+            const stripePrice = await stripe.prices.retrieve(plan.stripe_price_id);
             const configuredAmount = Number(stripePrice.unit_amount);
             if (
                 stripePrice.active !== true
@@ -202,14 +226,13 @@ Deno.serve(async (req: Request) => {
 
             let customerId = cleanText(membership.stripe_customer_id, 200);
             if (!customerId) {
-                const customerParams = new URLSearchParams();
-                customerParams.set("email", student.email || firebaseUser.email);
-                customerParams.set("name", student.name || "Alan English Student");
-                customerParams.set("metadata[student_id]", String(student.id));
-                customerParams.set("metadata[firebase_uid]", student.firebase_uid);
-                const customer = await stripeRequest(stripeKey, "/v1/customers", {
-                    method: "POST",
-                    params: customerParams
+                const customer = await stripe.customers.create({
+                    email: student.email || firebaseUser.email,
+                    name: student.name || "Alan English Student",
+                    metadata: {
+                        student_id: String(student.id),
+                        firebase_uid: student.firebase_uid
+                    }
                 });
                 customerId = customer.id;
                 const { error: customerSaveError } = await admin
@@ -219,35 +242,38 @@ Deno.serve(async (req: Request) => {
                 if (customerSaveError) throw customerSaveError;
             }
 
-            const checkoutParams = new URLSearchParams();
-            checkoutParams.set("mode", "subscription");
-            checkoutParams.set("customer", customerId);
-            checkoutParams.set("client_reference_id", String(student.id));
-            checkoutParams.set("line_items[0][price]", plan.stripe_price_id);
-            checkoutParams.set("line_items[0][quantity]", "1");
-            checkoutParams.set("success_url", `${siteUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`);
-            checkoutParams.set("cancel_url", `${siteUrl}/membership?checkout=cancelled`);
-            checkoutParams.set("allow_promotion_codes", "true");
-            checkoutParams.set("billing_address_collection", "auto");
-            checkoutParams.set("metadata[student_id]", String(student.id));
-            checkoutParams.set("metadata[membership_id]", String(membership.id));
-            checkoutParams.set("metadata[plan_id]", String(plan.id));
-            checkoutParams.set("subscription_data[metadata][student_id]", String(student.id));
-            checkoutParams.set("subscription_data[metadata][membership_id]", String(membership.id));
-            checkoutParams.set("subscription_data[metadata][plan_id]", String(plan.id));
+            const integrationSuffix = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+                .map(value => String.fromCharCode(97 + (value % 26)))
+                .join("");
+            const checkoutMetadata = {
+                student_id: String(student.id),
+                membership_id: String(membership.id),
+                plan_id: String(plan.id),
+                grant_mode: isAdditivePlan ? "additive" : "membership"
+            };
+            const checkoutParams: any = {
+                mode: "subscription",
+                customer: customerId,
+                client_reference_id: String(student.id),
+                line_items: [{ price: plan.stripe_price_id, quantity: 1 }],
+                success_url: `${siteUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${siteUrl}/student/membership?checkout=cancelled`,
+                allow_promotion_codes: true,
+                billing_address_collection: "auto",
+                integration_identifier: `alanenglish_ai_${integrationSuffix}`,
+                metadata: checkoutMetadata,
+                subscription_data: { metadata: checkoutMetadata }
+            };
 
-            const trialEnd = membership.status === "trialing" && membership.trial_ends_at
+            const trialEnd = !isAdditivePlan && membership.status === "trialing" && membership.trial_ends_at
                 ? Math.floor(new Date(membership.trial_ends_at).getTime() / 1000)
                 : 0;
             const minimumTrialEnd = Math.floor(Date.now() / 1000) + (48 * 60 * 60);
             if (trialEnd > minimumTrialEnd) {
-                checkoutParams.set("subscription_data[trial_end]", String(trialEnd));
+                checkoutParams.subscription_data.trial_end = trialEnd;
             }
 
-            const session = await stripeRequest(stripeKey, "/v1/checkout/sessions", {
-                method: "POST",
-                params: checkoutParams
-            });
+            const session = await stripe.checkout.sessions.create(checkoutParams);
             return json(200, {
                 success: true,
                 checkout_session_id: session.id,
@@ -258,12 +284,9 @@ Deno.serve(async (req: Request) => {
         if (action === "create_portal") {
             const customerId = cleanText(membership.stripe_customer_id, 200);
             if (!customerId) return json(409, { error: "這個帳號還沒有付款紀錄" });
-            const params = new URLSearchParams();
-            params.set("customer", customerId);
-            params.set("return_url", `${siteUrl}/membership`);
-            const session = await stripeRequest(stripeKey, "/v1/billing_portal/sessions", {
-                method: "POST",
-                params
+            const session = await stripe.billingPortal.sessions.create({
+                customer: customerId,
+                return_url: `${siteUrl}/student/membership`
             });
             return json(200, { success: true, url: session.url });
         }
@@ -273,16 +296,13 @@ Deno.serve(async (req: Request) => {
             let subscriptionId = cleanText(membership.stripe_subscription_id, 300);
             let sessionPlanId: number | null = null;
             let sessionCustomerId = "";
+            let sessionGrantMode = "";
 
             if (checkoutSessionId) {
                 if (!/^cs_[A-Za-z0-9_]+$/.test(checkoutSessionId)) {
                     return json(400, { error: "付款工作階段編號格式不正確" });
                 }
-                const session = await stripeRequest(
-                    stripeKey,
-                    `/v1/checkout/sessions/${encodeURIComponent(checkoutSessionId)}`,
-                    { method: "GET" }
-                );
+                const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
                 const sessionStudentId = positiveInteger(
                     session?.client_reference_id || session?.metadata?.student_id
                 );
@@ -303,7 +323,10 @@ Deno.serve(async (req: Request) => {
                 }
 
                 const sessionSubscriptionId = stripeId(session?.subscription);
+                sessionGrantMode = cleanText(session?.metadata?.grant_mode, 40);
                 if (
+                    sessionGrantMode !== "additive"
+                    &&
                     subscriptionId
                     && sessionSubscriptionId
                     && subscriptionId !== sessionSubscriptionId
@@ -327,21 +350,10 @@ Deno.serve(async (req: Request) => {
             if (!subscriptionId) {
                 return json(200, { success: true, synced: false, message: "尚無 Stripe 訂閱" });
             }
-            const subscription = await stripeRequest(
-                stripeKey,
-                `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`,
-                { method: "GET" }
-            );
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             const stripeStatus = cleanText(subscription.status, 40);
-            const status = stripeStatus === "trialing"
-                ? "trialing"
-                : stripeStatus === "active"
-                    ? "active"
-                    : ["past_due", "unpaid", "incomplete", "incomplete_expired", "paused"].includes(stripeStatus)
-                        ? "past_due"
-                        : stripeStatus === "canceled"
-                            ? "cancelled"
-                            : membership.status;
+            const subscriptionPlanId = positiveInteger(subscription?.metadata?.plan_id) || sessionPlanId;
+            const grantMode = cleanText(subscription?.metadata?.grant_mode, 40) || sessionGrantMode;
             const currentPeriodEnd = toIsoFromSeconds(subscriptionPeriodEnd(subscription));
             const subscriptionCustomerId = stripeId(subscription.customer);
             if (
@@ -351,6 +363,70 @@ Deno.serve(async (req: Request) => {
             ) {
                 return json(403, { error: "Stripe 訂閱客戶與目前帳號不一致" });
             }
+
+            if (grantMode === "additive") {
+                if (!subscriptionPlanId) return json(409, { error: "AI 加購訂閱缺少方案資料" });
+                const { data: addonPlan, error: addonPlanError } = await admin
+                    .from("subscription_plans")
+                    .select("id,code,access_model")
+                    .eq("id", subscriptionPlanId)
+                    .eq("enabled", true)
+                    .maybeSingle();
+                if (addonPlanError) throw addonPlanError;
+                if (!addonPlan || addonPlan.access_model !== "addon") {
+                    return json(409, { error: "Stripe 訂閱不是有效的加購方案" });
+                }
+                const grantStatus = grantStatusFromStripe(stripeStatus);
+                if (grantStatus === "active" && !currentPeriodEnd) {
+                    return json(409, { error: "Stripe 訂閱缺少目前計費週期" });
+                }
+                const startsAt = toIsoFromSeconds(subscriptionPeriodStart(subscription)) || new Date().toISOString();
+                const endsAt = currentPeriodEnd || (grantStatus === "expired" ? new Date().toISOString() : null);
+                const { data: accessGrant, error: grantError } = await admin
+                    .from("student_access_grants")
+                    .upsert({
+                        student_id: student.id,
+                        plan_id: addonPlan.id,
+                        source: "stripe",
+                        status: grantStatus,
+                        starts_at: startsAt,
+                        ends_at: endsAt,
+                        revoked_at: grantStatus === "expired" ? new Date().toISOString() : null,
+                        revoke_reason: grantStatus === "expired" ? "stripe_subscription_cancelled" : null,
+                        stripe_customer_id: subscriptionCustomerId || sessionCustomerId || membership.stripe_customer_id,
+                        stripe_subscription_id: subscriptionId,
+                        stripe_checkout_session_id: checkoutSessionId || null,
+                        stripe_subscription_status: stripeStatus,
+                        current_period_end: currentPeriodEnd,
+                        cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+                        metadata: {
+                            plan_code: addonPlan.code,
+                            grant_mode: "additive",
+                            synced_by: "billing-manager"
+                        },
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: "stripe_subscription_id" })
+                    .select("id,status,ends_at,stripe_subscription_status,cancel_at_period_end")
+                    .single();
+                if (grantError) throw grantError;
+                return json(200, {
+                    success: true,
+                    synced: true,
+                    checkout_session_id: checkoutSessionId || null,
+                    access_grant: accessGrant,
+                    membership: { is_active: grantStatus === "active" }
+                });
+            }
+
+            const status = stripeStatus === "trialing"
+                ? "trialing"
+                : stripeStatus === "active"
+                    ? "active"
+                    : ["past_due", "unpaid", "incomplete", "incomplete_expired", "paused"].includes(stripeStatus)
+                        ? "past_due"
+                        : stripeStatus === "canceled"
+                            ? "cancelled"
+                            : membership.status;
             const updates: Record<string, unknown> = {
                 status,
                 source: "stripe",
@@ -381,7 +457,7 @@ Deno.serve(async (req: Request) => {
         return json(400, { error: "不支援的付款操作" });
     } catch (error) {
         console.error("billing-manager unexpected error", error);
-        const status = Number((error as any)?.status || 0);
+        const status = Number((error as any)?.statusCode || (error as any)?.status || 0);
         return json(status >= 400 && status < 500 ? 400 : 500, {
             error: error instanceof Error ? error.message : "付款服務暫時無法使用"
         });

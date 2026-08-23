@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
     FiAward,
@@ -65,14 +66,14 @@ const formatDate = value => {
 const getTypeLabel = type => MATERIAL_TYPES.find(item => item.id === type)?.title || "AI 教材";
 
 function AIMaterialGenerator() {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, role, studentProfile } = useAuth();
     const [activeTab, setActiveTab] = useState("generator");
     const [materialType, setMaterialType] = useState("reading");
     const [difficulty, setDifficulty] = useState("國小中年級");
     const [topic, setTopic] = useState("");
     const [questionCount, setQuestionCount] = useState(5);
     const [customRequest, setCustomRequest] = useState("");
-    const [usage, setUsage] = useState({ used: 0, limit: 5, remaining: 5, role: "student" });
+    const [usage, setUsage] = useState({ used: 0, limit: 5, remaining: 5, monthly_used: 0, monthly_limit: null, monthly_remaining: null, trial_used: 0, trial_limit: null, trial_remaining: null, role: "student" });
     const [passingScore, setPassingScore] = useState(DEFAULT_PASSING_SCORE);
     const [material, setMaterial] = useState(null);
     const [materials, setMaterials] = useState([]);
@@ -108,6 +109,10 @@ function AIMaterialGenerator() {
     const questions = Array.isArray(content?.questions) ? content.questions : [];
     const answeredCount = questions.filter((_, index) => Boolean(answers[index])).length;
     const allAnswered = questions.length > 0 && answeredCount === questions.length;
+    const isAcademyStudent = studentProfile?.learner_type === "academy_student";
+    const canGenerate = role === "teacher"
+        || role === "admin"
+        || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
 
     useEffect(() => {
         const loadData = async () => {
@@ -172,8 +177,12 @@ function AIMaterialGenerator() {
             setError("請告訴 AI 你想生成什麼教材。");
             return;
         }
-        if (usage.remaining <= 0) {
-            setError(`今天的 ${usage.limit} 次 AI 生成額度已經使用完畢，明天再回來練習吧！`);
+        if (usage.remaining <= 0 || usage.monthly_remaining === 0 || usage.trial_remaining === 0) {
+            setError(usage.trial_remaining === 0
+                ? `免費試用的 ${usage.trial_limit} 次 AI 教材額度已經使用完畢，升級後即可繼續使用。`
+                : usage.monthly_remaining === 0
+                ? `本月的 ${usage.monthly_limit} 次 AI 生成額度已經使用完畢，下個月再回來練習吧！`
+                : `今天的 ${usage.limit} 次 AI 生成額度已經使用完畢，明天再回來練習吧！`);
             return;
         }
 
@@ -365,6 +374,8 @@ function AIMaterialGenerator() {
                         {Array.from({ length: usage.limit || 5 }).map((_, index) => <span key={index} className={index < usage.used ? "used" : "available"} />)}
                     </div>
                     <p>今天已使用 {usage.used} / {usage.limit} 次 · 成功生成才扣額度</p>
+                    {usage.trial_limit !== null && <p>免費試用已使用 {usage.trial_used} / {usage.trial_limit} 次</p>}
+                    {usage.monthly_limit !== null && <p>本月已使用 {usage.monthly_used} / {usage.monthly_limit} 次</p>}
                 </div>
             </section>
 
@@ -376,7 +387,18 @@ function AIMaterialGenerator() {
 
             {error && activeTab !== "generator" && <div className="ai-library-error">{error}</div>}
 
-            {activeTab === "generator" ? (
+            {activeTab === "generator" && !canGenerate ? (
+                <section className="ai-generator-shell">
+                    <div className="ai-generator-panel ai-access-notice">
+                        <span className="ai-eyebrow"><FiZap /> AI MATERIAL ADD-ON</span>
+                        <h2>{isAcademyStudent ? "AI 教材生成是加購功能" : "AI 教材生成是付費會員功能"}</h2>
+                        <p>{isAcademyStudent
+                            ? "英文班課程已包含教材、聽力、作業、會話與智慧複習；AI 專屬教材生成可另外以每月 NT$99 加購，每日可生成 5 次。"
+                            : "AI 專屬教材生成僅提供付費會員使用。升級自主學習方案後，即可使用 AI 教材生成。"}</p>
+                        <Link className="ai-generate-button" to="/student/membership"><FiZap /> {isAcademyStudent ? "查看加購方案" : "查看會員方案"}</Link>
+                    </div>
+                </section>
+            ) : activeTab === "generator" ? (
                 <section className="ai-generator-shell">
                     <form className="ai-generator-panel" onSubmit={handleGenerate}>
                         <div className="ai-section-heading"><span>STEP 01</span><h2>想練習什麼？</h2><p>選擇教材類型，AI 會產生四選一題目供學生實際作答。</p></div>
@@ -409,7 +431,7 @@ function AIMaterialGenerator() {
                         </div>}
                         <label className="ai-field ai-field-full"><span>{materialType === "custom" ? "告訴 AI 你想要什麼" : "額外需求（選填）"}</span><textarea value={customRequest} onChange={event => setCustomRequest(event.target.value)} placeholder={materialType === "custom" ? "例如：我要國小五年級程度，主題是去日本旅行，要有單字、短文和閱讀理解題。" : "例如：希望多練習疑問句，題目不要太難。"} rows={4} maxLength={600} /></label>
                         {error && <div className="ai-error-message">{error}</div>}
-                        <button type="submit" className="ai-generate-button" disabled={generating || loadingUsage || usage.remaining <= 0}>{generating ? <><FiRefreshCw className="ai-spin" /> AI 正在製作教材...</> : <><FiStar /> 生成 {selectedType?.title || "AI 教材"}</>}</button>
+                        <button type="submit" className="ai-generate-button" disabled={generating || loadingUsage || usage.remaining <= 0 || usage.monthly_remaining === 0 || usage.trial_remaining === 0}>{generating ? <><FiRefreshCw className="ai-spin" /> AI 正在製作教材...</> : <><FiStar /> 生成 {selectedType?.title || "AI 教材"}</>}</button>
                         <p className="ai-generate-note">成功生成後自動保存；重新開啟與重新作答既有教材不扣 AI 生成額度。</p>
                     </form>
                 </section>
