@@ -1,28 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { onValue, push, ref, remove } from "firebase/database";
 import { BiLinkExternal, BiPlus, BiTrash } from "react-icons/bi";
-import { rtdb } from "./firebase-config";
+import { useAuth } from "../../auth/AuthContext";
+import {
+    LINK_CATEGORIES,
+    bootstrapManagedLinks,
+    createManagedLink,
+    deleteManagedLink,
+    getManagedLinks
+} from "../../services/linkService";
 import "./css/LinkAdmin.scss";
-
-const CATEGORY_OPTIONS = [
-    { value: "special", label: "Special" },
-    { value: "exercise", label: "習作本" },
-    { value: "listening", label: "聽力本" },
-    { value: "discovery", label: "Discovery" },
-    { value: "speedphonics", label: "Speed Phonics" }
-];
-
-const getLegacyCategory = item => {
-    const explicitCategory = String(item?.category || "").trim().toLowerCase();
-    if (CATEGORY_OPTIONS.some(option => option.value === explicitCategory)) return explicitCategory;
-
-    const title = String(item?.title || "").trim().toLowerCase();
-    if (title.includes("習作本")) return "exercise";
-    if (title.includes("聽力本")) return "listening";
-    if (title.includes("discovery")) return "discovery";
-    if (title.includes("speed phonics") || title.includes("speedphonics")) return "speedphonics";
-    return "special";
-};
 
 const isValidHttpUrl = value => {
     try {
@@ -33,7 +19,19 @@ const isValidHttpUrl = value => {
     }
 };
 
+const sortItems = items => [...(items || [])].sort((a, b) => {
+    const categoryCompare = String(a.category || "").localeCompare(String(b.category || ""));
+    if (categoryCompare !== 0) return categoryCompare;
+    const orderCompare = Number(a.sort_order || 0) - Number(b.sort_order || 0);
+    if (orderCompare !== 0) return orderCompare;
+    return String(a.title || "").localeCompare(String(b.title || ""), "zh-Hant", {
+        numeric: true,
+        sensitivity: "base"
+    });
+});
+
 function LinkAdmin() {
+    const { firebaseUser } = useAuth();
     const [title, setTitle] = useState("");
     const [url, setUrl] = useState("");
     const [category, setCategory] = useState("exercise");
@@ -44,33 +42,43 @@ function LinkAdmin() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const linksRef = ref(rtdb, "links");
-        const unsubscribe = onValue(
-            linksRef,
-            snapshot => {
-                const nextItems = Object.entries(snapshot.val() || {})
-                    .map(([id, item]) => ({
-                        id,
-                        title: String(item?.title || "").trim(),
-                        url: String(item?.url || "").trim(),
-                        category: getLegacyCategory(item)
-                    }))
-                    .filter(item => item.title || item.url)
-                    .sort((a, b) => a.title.localeCompare(b.title, "zh-Hant", { numeric: true, sensitivity: "base" }));
-                setItems(nextItems);
-                setLoading(false);
-            },
-            firebaseError => {
-                console.error("Links 後台載入失敗:", firebaseError);
-                setError("無法讀取 Firebase links 資料。請確認 Realtime Database 權限設定。");
-                setLoading(false);
+        if (!firebaseUser) return undefined;
+        let cancelled = false;
+
+        const bootstrap = async () => {
+            try {
+                setLoading(true);
+                setError("");
+                const result = await bootstrapManagedLinks(firebaseUser);
+                if (cancelled) return;
+                setItems(sortItems(result?.links || []));
+                if (result?.migration) {
+                    const imported = Number(result.migration.imported || 0);
+                    const skipped = Number(result.migration.skipped || 0);
+                    setMessage(
+                        imported > 0
+                            ? `已從 Firebase 安全匯入 ${imported} 筆舊連結${skipped > 0 ? `，略過 ${skipped} 筆格式不完整資料` : ""}。之後將完全使用 Supabase。`
+                            : "Supabase links 已完成初始化，未找到需要匯入的 Firebase 連結。"
+                    );
+                }
+            } catch (bootstrapError) {
+                console.error("Supabase Links 後台初始化失敗:", bootstrapError);
+                if (!cancelled) {
+                    setItems([]);
+                    setError(bootstrapError?.message || "無法載入 Supabase links 資料。");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
             }
-        );
+        };
 
-        return () => unsubscribe();
-    }, []);
+        bootstrap();
+        return () => {
+            cancelled = true;
+        };
+    }, [firebaseUser]);
 
-    const groupedCount = useMemo(() => CATEGORY_OPTIONS.reduce((result, option) => {
+    const groupedCount = useMemo(() => LINK_CATEGORIES.reduce((result, option) => {
         result[option.value] = items.filter(item => item.category === option.value).length;
         return result;
     }, {}), [items]);
@@ -80,9 +88,14 @@ function LinkAdmin() {
         setError("");
     };
 
+    const refreshLinks = async () => {
+        const result = await getManagedLinks(firebaseUser);
+        setItems(sortItems(result?.links || []));
+    };
+
     const handleSubmit = async event => {
         event.preventDefault();
-        if (saving) return;
+        if (saving || !firebaseUser) return;
         clearNotice();
 
         const cleanTitle = title.trim();
@@ -100,38 +113,40 @@ function LinkAdmin() {
 
         setSaving(true);
         try {
-            await push(ref(rtdb, "links"), {
+            await createManagedLink(firebaseUser, {
                 title: cleanTitle,
                 url: cleanUrl,
-                category,
-                createdAt: Date.now()
+                category
             });
+            await refreshLinks();
             setTitle("");
             setUrl("");
-            setMessage("連結已新增。首頁會立即同步顯示。");
+            setMessage("連結已新增到 Supabase，公開首頁會直接讀取新資料。");
         } catch (submitError) {
-            console.error("新增連結失敗:", submitError);
-            setError("新增失敗，請確認 Firebase Realtime Database 寫入權限。");
+            console.error("新增 Supabase 連結失敗:", submitError);
+            setError(submitError?.message || "新增失敗，請稍後再試。");
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async item => {
+        if (!firebaseUser) return;
         const confirmed = window.confirm(`確定要刪除「${item.title || "未命名連結"}」嗎？`);
         if (!confirmed) return;
 
         clearNotice();
         try {
-            await remove(ref(rtdb, `links/${item.id}`));
-            setMessage(`已刪除「${item.title || "未命名連結"}」。`);
+            await deleteManagedLink(firebaseUser, item.id);
+            setItems(current => current.filter(link => link.id !== item.id));
+            setMessage(`已從 Supabase 刪除「${item.title || "未命名連結"}」。`);
         } catch (deleteError) {
-            console.error("刪除連結失敗:", deleteError);
-            setError("刪除失敗，請確認 Firebase Realtime Database 寫入權限。");
+            console.error("刪除 Supabase 連結失敗:", deleteError);
+            setError(deleteError?.message || "刪除失敗，請稍後再試。");
         }
     };
 
-    const getCategoryLabel = value => CATEGORY_OPTIONS.find(option => option.value === value)?.label || "Special";
+    const getCategoryLabel = value => LINK_CATEGORIES.find(option => option.value === value)?.label || "Special";
 
     return (
         <div className="link-admin-page">
@@ -139,7 +154,7 @@ function LinkAdmin() {
                 <div>
                     <span className="link-admin-page__kicker">PUBLIC LINKS</span>
                     <h1>教材連結管理</h1>
-                    <p>管理首頁教材快捷連結。舊 Firebase 資料可以直接沿用，不需要重新輸入。</p>
+                    <p>公開教材連結已改由 Supabase 管理；首次進入此頁時會自動嘗試匯入舊 Firebase links。</p>
                 </div>
                 <a href="/" target="_blank" rel="noopener noreferrer" className="link-admin-page__preview">
                     <BiLinkExternal />
@@ -149,7 +164,7 @@ function LinkAdmin() {
 
             <div className="link-admin-page__stats">
                 <article><span>全部連結</span><strong>{items.length}</strong></article>
-                {CATEGORY_OPTIONS.map(option => (
+                {LINK_CATEGORIES.map(option => (
                     <article key={option.value}>
                         <span>{option.label}</span>
                         <strong>{groupedCount[option.value] || 0}</strong>
@@ -163,7 +178,7 @@ function LinkAdmin() {
                         <span className="link-admin-page__panel-icon"><BiPlus /></span>
                         <div>
                             <h2>新增連結</h2>
-                            <p>新資料會多存一個 category 欄位；舊資料仍會依名稱自動分類。</p>
+                            <p>新資料會直接寫入 Supabase links，並使用固定分類與結構化欄位。</p>
                         </div>
                     </div>
 
@@ -175,14 +190,14 @@ function LinkAdmin() {
                                 value={title}
                                 onChange={event => setTitle(event.target.value)}
                                 placeholder="例如：習作本 3"
-                                maxLength={100}
+                                maxLength={120}
                             />
                         </label>
 
                         <label>
                             <span>分類</span>
                             <select value={category} onChange={event => setCategory(event.target.value)}>
-                                {CATEGORY_OPTIONS.map(option => (
+                                {LINK_CATEGORIES.map(option => (
                                     <option value={option.value} key={option.value}>{option.label}</option>
                                 ))}
                             </select>
@@ -199,7 +214,7 @@ function LinkAdmin() {
                             />
                         </label>
 
-                        <button type="submit" disabled={saving}>
+                        <button type="submit" disabled={saving || loading}>
                             <BiPlus />
                             {saving ? "新增中..." : "新增連結"}
                         </button>
@@ -213,13 +228,13 @@ function LinkAdmin() {
                     <div className="link-admin-page__list-heading">
                         <div>
                             <h2>目前連結</h2>
-                            <p>直接讀取 Firebase Realtime Database 的 <code>links</code> 節點。</p>
+                            <p>資料來源：Supabase <code>public.links</code>。</p>
                         </div>
                         <span>{items.length} 筆</span>
                     </div>
 
                     {loading ? (
-                        <div className="link-admin-page__empty">正在載入...</div>
+                        <div className="link-admin-page__empty">正在載入 Supabase links...</div>
                     ) : items.length === 0 ? (
                         <div className="link-admin-page__empty">目前沒有連結資料。</div>
                     ) : (
