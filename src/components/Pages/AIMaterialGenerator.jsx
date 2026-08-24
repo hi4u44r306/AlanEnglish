@@ -126,6 +126,7 @@ function AIMaterialGenerator() {
     const answeredCount = questions.filter((_, index) => Boolean(answers[index])).length;
     const allAnswered = questions.length > 0 && answeredCount === questions.length;
     const isAcademyStudent = studentProfile?.learner_type === "academy_student";
+    const hasAiPremium = studentProfile?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
     const canGenerate = role === "teacher"
         || role === "admin"
         || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
@@ -380,6 +381,20 @@ function AIMaterialGenerator() {
 
     return (
         <main className="ai-studio">
+            {!canGenerate && (
+                <section className="ai-addon-banner" aria-labelledby="ai-addon-banner-title">
+                    <div className="ai-addon-banner-icon"><FiZap aria-hidden="true" /></div>
+                    <div className="ai-addon-banner-copy">
+                        <span>AI MATERIAL ADD-ON</span>
+                        <h2 id="ai-addon-banner-title">{isAcademyStudent ? "讓 AI 幫你做出專屬練習" : "升級後解鎖 AI 專屬教材"}</h2>
+                        <p>{isAcademyStudent
+                            ? "英文班學生專屬加購，每日可生成 5 次、每月最多 150 次。"
+                            : "升級自主學習方案，即可使用 AI 產生閱讀、單字、文法與聽力練習。"}</p>
+                    </div>
+                    {isAcademyStudent && <div className="ai-addon-banner-price"><strong>NT$99</strong><span>／月</span></div>}
+                    <Link className="ai-addon-banner-button" to="/student/membership"><FiZap aria-hidden="true" />{isAcademyStudent ? "立即加購" : "查看會員方案"}</Link>
+                </section>
+            )}
             <section className="ai-studio-hero">
                 <div className="ai-studio-hero-copy">
                     <span className="ai-eyebrow"><FiStar /> ALAN ENGLISH AI</span>
@@ -388,7 +403,7 @@ function AIMaterialGenerator() {
                 </div>
                 <div className="ai-quota-card">
                     <div className="ai-quota-heading">
-                        <div><span>{roleLabel} · 今日 AI 額度</span><strong>{loadingUsage ? "—" : `${usage.remaining} 次`}</strong></div>
+                        <div><span>{roleLabel} · 今日 AI 額度</span><strong>{loadingUsage ? "—" : `${usage.remaining} 次`}</strong>{hasAiPremium && <small className="ai-quota-premium"><FiZap aria-hidden="true" />AI PREMIUM 已啟用</small>}</div>
                         <div className="ai-quota-icon"><FiZap /></div>
                     </div>
                     <div className="ai-quota-dots" style={{ gridTemplateColumns: `repeat(${Math.max(1, usage.limit || 5)}, 1fr)` }}>
@@ -428,18 +443,7 @@ function AIMaterialGenerator() {
 
             {error && activeTab !== "generator" && <div className="ai-library-error">{error}</div>}
 
-            {activeTab === "generator" && !canGenerate ? (
-                <section className="ai-generator-shell">
-                    <div className="ai-generator-panel ai-access-notice">
-                        <span className="ai-eyebrow"><FiZap /> AI MATERIAL ADD-ON</span>
-                        <h2>{isAcademyStudent ? "AI 教材生成是加購功能" : "AI 教材生成是付費會員功能"}</h2>
-                        <p>{isAcademyStudent
-                            ? "英文班課程已包含教材、聽力、作業、會話與智慧複習；AI 專屬教材生成可另外以每月 NT$99 加購，每日可生成 5 次。"
-                            : "AI 專屬教材生成僅提供付費會員使用。升級自主學習方案後，即可使用 AI 教材生成。"}</p>
-                        <Link className="ai-generate-button" to="/student/membership"><FiZap /> {isAcademyStudent ? "查看加購方案" : "查看會員方案"}</Link>
-                    </div>
-                </section>
-            ) : activeTab === "generator" ? (
+            {activeTab === "generator" && !canGenerate ? null : activeTab === "generator" ? (
                 <section className="ai-generator-shell">
                     <form className="ai-generator-panel" onSubmit={handleGenerate}>
                         <div className="ai-section-heading"><span>STEP 01</span><h2>想練習什麼？</h2><p>選擇教材類型，AI 會產生四選一題目供學生實際作答。</p></div>
