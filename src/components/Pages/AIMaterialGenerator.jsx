@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
@@ -130,6 +130,12 @@ function AIMaterialGenerator() {
     const canGenerate = role === "teacher"
         || role === "admin"
         || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
+
+    useLayoutEffect(() => {
+        if (role === "student" && !canGenerate) {
+            window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        }
+    }, [canGenerate, role]);
 
     useEffect(() => {
         const timer = window.setInterval(() => setClockNow(Date.now()), 1000);

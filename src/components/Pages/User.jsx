@@ -226,6 +226,9 @@ const User = () => {
         };
     }, [loadHomeData]);
 
+    const hasAiAccess = user?.membership?.effective_access?.features?.ai_materials === true;
+    const hasAiPremium = user?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
+
     const dailyTasks = useMemo(() => {
         const tasks = [];
 
@@ -278,20 +281,22 @@ const User = () => {
             tone: "orange"
         });
 
-        tasks.push({
-            id: "ai",
-            title: "AI 專屬練習",
-            description: homeData.ai.used > 0
-                ? `今天已建立 ${homeData.ai.used} 份練習，既有教材可免費複習`
-                : "依照你的程度，建立一份今天想加強的教材",
-            metaValue: `${homeData.ai.remaining}`,
-            metaLabel: "次可用",
-            completed: homeData.ai.used > 0,
-            icon: FiStar,
-            path: "/student/ai-generator",
-            action: homeData.ai.used > 0 ? "前往教材庫" : "開始練習",
-            tone: "purple"
-        });
+        if (hasAiAccess) {
+            tasks.push({
+                id: "ai",
+                title: "AI 專屬練習",
+                description: homeData.ai.used > 0
+                    ? `今天已建立 ${homeData.ai.used} 份練習，既有教材可免費複習`
+                    : "依照你的程度，建立一份今天想加強的教材",
+                metaValue: `${homeData.ai.remaining}`,
+                metaLabel: "次可用",
+                completed: homeData.ai.used > 0,
+                icon: FiStar,
+                path: "/student/ai-generator",
+                action: homeData.ai.used > 0 ? "前往教材庫" : "開始練習",
+                tone: "purple"
+            });
+        }
 
         if (!homeData.conversation.completed) {
             tasks.push({
@@ -311,10 +316,9 @@ const User = () => {
         }
 
         return tasks;
-    }, [homeData]);
+    }, [hasAiAccess, homeData]);
 
     const completedTaskCount = dailyTasks.filter(task => task.completed).length;
-    const hasAiPremium = user?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
     const dailyProgress = dailyTasks.length
         ? Math.round((completedTaskCount / dailyTasks.length) * 100)
         : 0;
@@ -329,11 +333,16 @@ const User = () => {
             };
         }
 
-        return {
-            path: "/student/ai-generator",
-            label: "自由複習"
-        };
-    }, [dailyTasks]);
+        return hasAiAccess
+            ? {
+                path: "/student/ai-generator",
+                label: "自由複習"
+            }
+            : {
+                path: "/student/review",
+                label: "智慧複習"
+            };
+    }, [dailyTasks, hasAiAccess]);
 
     if (authLoading || loading) {
         return (
@@ -425,7 +434,7 @@ const User = () => {
                                 <FiZap />
                                 <strong>
                                     {homeData.assignments.total > 0
-                                        ? "完成老師作業可獲得 +30 XP 與 +5 AE Points，90 分以上還有加碼！"
+                                        ? "完成老師作業可獲得 +30 XP 與 +5 AE Points"
                                         : "完成聽力、作業與遊戲，可以累積 XP 與 AE Points！"}
                                 </strong>
                             </div>
