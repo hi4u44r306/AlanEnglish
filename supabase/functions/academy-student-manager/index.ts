@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.95.0";
+import { importPKCS8, SignJWT } from "npm:jose@5";
 
 type JsonObject = Record<string, unknown>;
 
@@ -44,6 +45,13 @@ type FirebaseSignupResponse = {
     idToken: string;
     refreshToken?: string;
     expiresIn?: string;
+};
+
+type FirebaseServiceAccount = {
+    project_id: string;
+    client_email: string;
+    private_key: string;
+    token_uri?: string;
 };
 
 class HttpError extends Error {
@@ -92,6 +100,8 @@ const RESERVED_EMAIL_DOMAINS = new Set([
     "example.invalid",
     "localhost"
 ]);
+
+let firebaseAdminTokenCache: { token: string; expiresAt: number } | null = null;
 
 const cleanText = (value: unknown, maxLength: number): string => {
     if (typeof value !== "string") return "";
@@ -203,6 +213,117 @@ const firebaseRequest = async <T>(
     }
 
     return payload as T;
+};
+
+const getFirebaseServiceAccount = (): FirebaseServiceAccount => {
+    const raw = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON")?.trim();
+    if (!raw) {
+        throw new HttpError(
+            503,
+            "FIREBASE_ADMIN_NOT_CONFIGURED",
+            "Firebase 管理員刪除尚未設定，請先使用停用功能"
+        );
+    }
+
+    try {
+        const account = JSON.parse(raw) as Partial<FirebaseServiceAccount>;
+        if (!account.project_id || !account.client_email || !account.private_key) {
+            throw new Error("missing service account fields");
+        }
+        return account as FirebaseServiceAccount;
+    } catch {
+        throw new HttpError(
+            503,
+            "FIREBASE_ADMIN_CONFIG_INVALID",
+            "Firebase 管理員刪除設定不完整，請先使用停用功能"
+        );
+    }
+};
+
+const getFirebaseAdminAccessToken = async (): Promise<string> => {
+    if (
+        firebaseAdminTokenCache
+        && firebaseAdminTokenCache.expiresAt > Date.now() + 60_000
+    ) {
+        return firebaseAdminTokenCache.token;
+    }
+
+    const account = getFirebaseServiceAccount();
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const privateKey = await importPKCS8(account.private_key, "RS256");
+    const assertion = await new SignJWT({
+        scope: "https://www.googleapis.com/auth/firebase"
+    })
+        .setProtectedHeader({ alg: "RS256", typ: "JWT" })
+        .setIssuer(account.client_email)
+        .setSubject(account.client_email)
+        .setAudience(account.token_uri || "https://oauth2.googleapis.com/token")
+        .setIssuedAt(issuedAt)
+        .setExpirationTime(issuedAt + 3600)
+        .sign(privateKey);
+
+    const response = await fetch(
+        account.token_uri || "https://oauth2.googleapis.com/token",
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                assertion
+            })
+        }
+    );
+    const payload = await response.json().catch(() => ({})) as {
+        access_token?: string;
+        expires_in?: number;
+    };
+
+    if (!response.ok || !payload.access_token) {
+        throw new HttpError(
+            503,
+            "FIREBASE_ADMIN_AUTH_FAILED",
+            "Firebase 管理員驗證失敗，帳號尚未刪除"
+        );
+    }
+
+    firebaseAdminTokenCache = {
+        token: payload.access_token,
+        expiresAt: Date.now() + Math.max(300, Number(payload.expires_in) || 3600) * 1000
+    };
+    return payload.access_token;
+};
+
+const deleteFirebaseAccountByUid = async (firebaseUid: string): Promise<void> => {
+    if (!firebaseUid) return;
+
+    const account = getFirebaseServiceAccount();
+    const accessToken = await getFirebaseAdminAccessToken();
+    const response = await fetch(
+        "https://identitytoolkit.googleapis.com/v1/accounts:delete",
+        {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                localId: firebaseUid,
+                targetProjectId: account.project_id
+            })
+        }
+    );
+    const payload = await response.json().catch(() => ({})) as {
+        error?: { message?: string };
+    };
+    const errorCode = cleanText(payload?.error?.message, 160);
+
+    if (!response.ok && !errorCode.includes("USER_NOT_FOUND")) {
+        throw new HttpError(
+            502,
+            "FIREBASE_ACCOUNT_DELETE_FAILED",
+            "Firebase 帳號刪除失敗，Supabase 資料未變更"
+        );
+    }
 };
 
 const extractFirebaseToken = (req: Request): string => {
@@ -653,7 +774,7 @@ const listInvitations = async (
 
     const { data, error } = await admin
         .from("academy_account_invitations")
-        .select("id,status,invited_email,chinese_name,english_name,enrolled_at,access_ends_at,expires_at,claimed_at,completed_at,created_at,academy_classes(code,name_zh)")
+        .select("id,status,invited_email,chinese_name,english_name,enrolled_at,access_ends_at,expires_at,claimed_by_student_id,claimed_at,completed_at,created_at,academy_classes(code,name_zh)")
         .order("created_at", { ascending: false })
         .limit(500);
 
@@ -680,6 +801,7 @@ const listInvitations = async (
             enrolled_at: invitation.enrolled_at,
             access_ends_at: invitation.access_ends_at,
             expires_at: invitation.expires_at,
+            claimed_by_student_id: invitation.claimed_by_student_id,
             claimed_at: invitation.claimed_at,
             completed_at: invitation.completed_at,
             created_at: invitation.created_at
@@ -687,6 +809,153 @@ const listInvitations = async (
     });
 
     return json(req, 200, { success: true, invitations });
+};
+
+const ACCOUNT_DELETE_BLOCKER_LABELS: Record<string, string> = {
+    payment_or_access_history: "付款、兌換或加購紀錄",
+    learning_history: "學習、作業、聽力或 AI 紀錄",
+    academic_history: "分班或班級異動紀錄",
+    reward_history: "XP、AE Points 或獎品兌換紀錄",
+    support_history: "客服案件紀錄",
+    staff_created_records: "由此帳號建立的管理資料"
+};
+
+const deleteStudentAccount = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    requireAdmin(caller);
+    const studentId = Number(body.student_id);
+    const confirmationEmail = normalizeEmail(body.confirmation_email);
+    if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+        throw new HttpError(400, "STUDENT_ID_REQUIRED", "缺少要刪除的學生帳號編號");
+    }
+
+    const { data: eligibilityData, error: eligibilityError } = await admin.rpc(
+        "get_student_account_deletion_eligibility",
+        {
+            p_actor_id: caller.id,
+            p_target_student_id: studentId
+        }
+    );
+    if (eligibilityError) {
+        const message = String(eligibilityError.message || "");
+        if (message.includes("student_account_not_found")) {
+            throw new HttpError(404, "ACCOUNT_NOT_FOUND", "找不到要刪除的學生帳號");
+        }
+        if (message.includes("staff_account_delete_forbidden")) {
+            throw new HttpError(403, "STAFF_DELETE_FORBIDDEN", "教師與管理員帳號不可永久刪除");
+        }
+        throw new HttpError(500, "DELETE_PREFLIGHT_FAILED", "無法確認帳號是否可安全刪除");
+    }
+
+    const eligibility = (eligibilityData || {}) as {
+        email?: string;
+        firebase_uid?: string;
+        can_delete?: boolean;
+        blockers?: string[];
+    };
+    const targetEmail = normalizeEmail(eligibility.email);
+    if (!targetEmail || confirmationEmail !== targetEmail) {
+        throw new HttpError(400, "CONFIRMATION_EMAIL_MISMATCH", "請輸入完整 Email 確認永久刪除");
+    }
+
+    if (!eligibility.can_delete) {
+        const blockerText = (eligibility.blockers || [])
+            .map(code => ACCOUNT_DELETE_BLOCKER_LABELS[code] || code)
+            .join("、");
+        throw new HttpError(
+            409,
+            "ACCOUNT_HAS_HISTORY",
+            `此帳號有${blockerText || "需保留的正式紀錄"}，只能停用，不能永久刪除`
+        );
+    }
+
+    await deleteFirebaseAccountByUid(cleanText(eligibility.firebase_uid, 200));
+
+    const { data: deleted, error: deleteError } = await admin.rpc(
+        "delete_unstarted_student_account",
+        {
+            p_actor_id: caller.id,
+            p_target_student_id: studentId
+        }
+    );
+    if (deleteError) {
+        const message = String(deleteError.message || "");
+        if (message.includes("account_delete_blocked")) {
+            throw new HttpError(
+                409,
+                "ACCOUNT_BECAME_INELIGIBLE",
+                "帳號狀態剛剛發生變更；Firebase 已移除，但學習資料已保留，請聯絡系統管理員確認"
+            );
+        }
+        throw new HttpError(
+            500,
+            "DATABASE_ACCOUNT_DELETE_FAILED",
+            "Firebase 已移除，但 Supabase 帳號清理失敗，請聯絡系統管理員確認"
+        );
+    }
+
+    return json(req, 200, {
+        success: true,
+        deletion: deleted
+    });
+};
+
+const deleteInvitation = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    requireAdmin(caller);
+    const invitationId = Number(body.invitation_id);
+    const confirmationEmail = normalizeEmail(body.confirmation_email);
+    if (!Number.isSafeInteger(invitationId) || invitationId <= 0) {
+        throw new HttpError(400, "INVITATION_ID_REQUIRED", "缺少待開通邀請編號");
+    }
+
+    const { data: invitation, error: invitationError } = await admin
+        .from("academy_account_invitations")
+        .select("id,status,invited_email,claimed_by_student_id")
+        .eq("id", invitationId)
+        .maybeSingle();
+    if (invitationError) {
+        throw new HttpError(500, "INVITATION_LOOKUP_FAILED", "無法確認待開通邀請");
+    }
+    if (!invitation?.id) {
+        throw new HttpError(404, "INVITATION_NOT_FOUND", "找不到待開通邀請");
+    }
+    if (normalizeEmail(invitation.invited_email) !== confirmationEmail) {
+        throw new HttpError(400, "CONFIRMATION_EMAIL_MISMATCH", "請輸入完整 Email 確認刪除邀請");
+    }
+    if (invitation.claimed_by_student_id) {
+        throw new HttpError(
+            409,
+            "INVITATION_ALREADY_CLAIMED",
+            "學生已建立 Firebase 帳號，請從帳號清單永久刪除該學生"
+        );
+    }
+    if (invitation.status === "completed") {
+        throw new HttpError(409, "INVITATION_COMPLETED", "已完成的開通紀錄不可單獨刪除");
+    }
+
+    const { error: deleteError } = await admin
+        .from("academy_account_invitations")
+        .delete()
+        .eq("id", invitation.id)
+        .is("claimed_by_student_id", null);
+    if (deleteError) {
+        throw new HttpError(500, "INVITATION_DELETE_FAILED", "待開通邀請刪除失敗");
+    }
+
+    return json(req, 200, {
+        success: true,
+        invitation_id: invitation.id,
+        deleted: true
+    });
 };
 
 const sendPasswordReset = async (
@@ -1243,6 +1512,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "list_invitations") {
             return await listInvitations(req, admin, caller);
+        }
+        if (action === "delete_student_account") {
+            return await deleteStudentAccount(req, admin, caller, body);
+        }
+        if (action === "delete_invitation") {
+            return await deleteInvitation(req, admin, caller, body);
         }
         if (action === "send_password_reset") {
             return await sendPasswordReset(req, admin, caller, body);

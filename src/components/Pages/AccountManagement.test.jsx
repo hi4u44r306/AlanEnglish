@@ -9,6 +9,8 @@ import {
     restoreManagedAccount
 } from "../../services/membershipService";
 import {
+    deleteAcademyInvitation,
+    deleteAcademyStudentAccount,
     listAcademyInvitations,
     sendAcademyPasswordReset
 } from "../../services/academyStudentService";
@@ -26,6 +28,8 @@ jest.mock("../../services/membershipService", () => ({
 }));
 
 jest.mock("../../services/academyStudentService", () => ({
+    deleteAcademyInvitation: jest.fn(),
+    deleteAcademyStudentAccount: jest.fn(),
     listAcademyInvitations: jest.fn(),
     sendAcademyPasswordReset: jest.fn()
 }));
@@ -74,6 +78,8 @@ describe("AccountManagement", () => {
             accounts: [academyStudent]
         });
         listAcademyInvitations.mockResolvedValue([]);
+        deleteAcademyStudentAccount.mockResolvedValue({ success: true });
+        deleteAcademyInvitation.mockResolvedValue({ success: true });
         sendAcademyPasswordReset.mockResolvedValue({ success: true });
         jest.spyOn(window, "confirm").mockReturnValue(true);
     });
@@ -122,5 +128,59 @@ describe("AccountManagement", () => {
             );
         });
         expect(await screen.findByText("使用中")).toBeInTheDocument();
+    });
+
+    test("requires the full email before permanently deleting an eligible student", async () => {
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("button", { name: "永久刪除" }));
+        const dialog = screen.getByRole("dialog", { name: "永久刪除學生帳號" });
+        const confirmButton = screen.getByRole("button", { name: "確認永久刪除" });
+
+        expect(confirmButton).toBeDisabled();
+        fireEvent.change(
+            screen.getByLabelText("輸入完整 Email 確認"),
+            { target: { value: academyStudent.email } }
+        );
+        expect(confirmButton).toBeEnabled();
+        fireEvent.click(confirmButton);
+
+        await waitFor(() => {
+            expect(deleteAcademyStudentAccount).toHaveBeenCalledWith(
+                firebaseUser,
+                academyStudent.id,
+                academyStudent.email
+            );
+        });
+        await waitFor(() => expect(dialog).not.toBeInTheDocument());
+    });
+
+    test("allows admin to delete an unclaimed pending invitation", async () => {
+        getManagedAccounts.mockResolvedValue({ accounts: [] });
+        listAcademyInvitations.mockResolvedValue([{
+            id: 91,
+            status: "expired",
+            invited_email: "pending@gmail.com",
+            chinese_name: "待開通學生",
+            class_code: "E1",
+            expires_at: "2026-08-01T00:00:00Z",
+            claimed_by_student_id: null
+        }]);
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("button", { name: "刪除邀請" }));
+        fireEvent.change(
+            screen.getByLabelText("輸入完整 Email 確認"),
+            { target: { value: "pending@gmail.com" } }
+        );
+        fireEvent.click(screen.getByRole("button", { name: "確認永久刪除" }));
+
+        await waitFor(() => {
+            expect(deleteAcademyInvitation).toHaveBeenCalledWith(
+                firebaseUser,
+                91,
+                "pending@gmail.com"
+            );
+        });
     });
 });

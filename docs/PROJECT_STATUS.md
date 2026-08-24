@@ -45,7 +45,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 - 英文班在校生由後台直接建立登入帳號與一次性臨時密碼，首次登入後自行修改密碼。
 - 後台顯示待開通／等待 Email 驗證／已開通狀態，並提供寄送 Firebase 密碼重設信。
-- 後台帳號生命週期改為安全停用／恢復，保留作業、進度與 AI 教材紀錄，不提供直接永久刪除。
+- 後台帳號生命週期預設使用安全停用／恢復；管理員另可永久刪除沒有付款、權限、學習、作業、教務、點數、獎品或客服紀錄的測試／待開通學生，正式帳號仍只能停用。
 - 後台方案顯示依學生類型與有效權限自動判定，不再讓櫃檯編輯舊版 `allcover`／`listeningonly` 欄位。
 - 學生 Dashboard 對尚未購買 AI 教材加購的帳號顯示 AI POWER-UP 宣傳卡；已購買者不顯示。
 - 後續階段：CSV 批次建立學生開通資料與批次結果匯出。
@@ -59,7 +59,8 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 智慧錯題複習只使用既有錯題資料與間隔排程，不呼叫生成式 AI、不消耗 AI 額度，因此維持所有具 `review` 權限的學生可用。
 - CSV 批次建立學生第一版已完成：範本下載、CSV 解析、伺服器預覽、E1／E3／E5／E7 與 Email 驗證、每批 25 位上限、admin-only 批次建立、逐列成功／失敗、結果下載、request ID 防重複提交與不保存臨時密碼的操作紀錄。
 - 新增 additive migration `20260824124647_academy_student_csv_batches.sql`；尚未套用遠端 Supabase，`academy-student-manager` 也尚未部署。
-- 全部 13 份測試檔共 29 個案例通過，Production build 成功；發布作業跨教材選取已完成登入後 412px 瀏覽器驗收且無水平溢出。本機沒有 Deno，`assignment-manager` 尚未執行 Deno 型別檢查。
+- 管理員帳號管理已新增永久刪除測試／待開通學生與未領取邀請：必須輸入完整 Email，後端重新驗證 admin 與可刪除條件，教師／管理員與具有正式歷史的學生不可永久刪除。新增 additive migration `20260824143810_admin_safe_account_deletion.sql`；Firebase 帳號刪除需由 Edge Function Secret `FIREBASE_SERVICE_ACCOUNT_JSON` 提供管理端憑證。Migration、Secret 與 Edge Function 尚未套用或部署。
+- 全部 13 份測試檔共 33 個案例通過，Production build 成功；發布作業跨教材選取與帳號刪除確認視窗皆已完成登入後 412px 瀏覽器驗收且無水平溢出，帳號頁 Console 無錯誤。本機沒有 Deno，Edge Function 尚未執行 Deno 型別檢查。
 
 目前下一個主要開發方向：
 

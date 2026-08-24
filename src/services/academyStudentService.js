@@ -260,6 +260,32 @@ export const listAcademyInvitations = async firebaseUser => {
         : [];
 };
 
+export const deleteAcademyStudentAccount = async (
+    firebaseUser,
+    studentId,
+    confirmationEmail
+) => callAcademyStudentManager(
+    firebaseUser,
+    {
+        action: "delete_student_account",
+        student_id: Number(studentId),
+        confirmation_email: String(confirmationEmail || "").trim().toLowerCase()
+    }
+);
+
+export const deleteAcademyInvitation = async (
+    firebaseUser,
+    invitationId,
+    confirmationEmail
+) => callAcademyStudentManager(
+    firebaseUser,
+    {
+        action: "delete_invitation",
+        invitation_id: Number(invitationId),
+        confirmation_email: String(confirmationEmail || "").trim().toLowerCase()
+    }
+);
+
 export const sendAcademyPasswordReset = async (firebaseUser, email) => (
     callAcademyStudentManager(
         firebaseUser,
@@ -289,6 +315,8 @@ const academyStudentService = {
     previewAcademyStudents,
     createAcademyStudentsBatch,
     listAcademyInvitations,
+    deleteAcademyStudentAccount,
+    deleteAcademyInvitation,
     sendAcademyPasswordReset,
     markAcademyPasswordChanged
 };

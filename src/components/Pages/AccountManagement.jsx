@@ -9,7 +9,12 @@ import {
     restoreManagedAccount,
     updateManagedAccount
 } from "../../services/membershipService";
-import { listAcademyInvitations, sendAcademyPasswordReset } from "../../services/academyStudentService";
+import {
+    deleteAcademyInvitation,
+    deleteAcademyStudentAccount,
+    listAcademyInvitations,
+    sendAcademyPasswordReset
+} from "../../services/academyStudentService";
 import "./css/ManagementDashboard.scss";
 
 const ROLE_LABELS = {
@@ -51,6 +56,9 @@ function AccountManagement() {
     const [saving, setSaving] = useState(false);
     const [resettingEmail, setResettingEmail] = useState("");
     const [changingStatusId, setChangingStatusId] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleteConfirmation, setDeleteConfirmation] = useState("");
+    const [deleting, setDeleting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [searchText, setSearchText] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
@@ -229,6 +237,76 @@ function AccountManagement() {
         }
     };
 
+    const openAccountDelete = account => {
+        if (!isAdmin || account?.role !== "student") return;
+        setDeleteTarget({
+            type: "account",
+            id: account.id,
+            email: String(account.email || "").toLowerCase(),
+            name: account.name || account.email || "學生帳號"
+        });
+        setDeleteConfirmation("");
+    };
+
+    const openInvitationDelete = invitation => {
+        if (!isAdmin) return;
+        const claimedStudentId = Number(invitation.claimed_by_student_id) || null;
+        setDeleteTarget({
+            type: claimedStudentId ? "account" : "invitation",
+            id: claimedStudentId || invitation.id,
+            invitationId: invitation.id,
+            email: String(invitation.invited_email || "").toLowerCase(),
+            name: invitation.chinese_name || invitation.invited_email || "待開通學生"
+        });
+        setDeleteConfirmation("");
+    };
+
+    const closeDeleteDialog = () => {
+        if (deleting) return;
+        setDeleteTarget(null);
+        setDeleteConfirmation("");
+    };
+
+    const confirmPermanentDelete = async event => {
+        event.preventDefault();
+        if (!firebaseUser || !deleteTarget) return;
+        const normalizedConfirmation = deleteConfirmation.trim().toLowerCase();
+        if (normalizedConfirmation !== deleteTarget.email) {
+            toast.error("請輸入完整 Email 確認永久刪除");
+            return;
+        }
+
+        setDeleting(true);
+        try {
+            if (deleteTarget.type === "account") {
+                await deleteAcademyStudentAccount(
+                    firebaseUser,
+                    deleteTarget.id,
+                    normalizedConfirmation
+                );
+                setAccounts(prev => prev.filter(account => account.id !== deleteTarget.id));
+                setInvitations(prev => prev.filter(invitation => (
+                    String(invitation.invited_email || "").toLowerCase() !== deleteTarget.email
+                )));
+                toast.success("測試／待開通學生帳號已永久刪除");
+            } else {
+                await deleteAcademyInvitation(
+                    firebaseUser,
+                    deleteTarget.id,
+                    normalizedConfirmation
+                );
+                setInvitations(prev => prev.filter(invitation => invitation.id !== deleteTarget.id));
+                toast.success("待開通邀請已刪除");
+            }
+            setDeleteTarget(null);
+            setDeleteConfirmation("");
+        } catch (error) {
+            toast.error(error?.message || "永久刪除失敗");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     const editingOwnAdminAccount = Boolean(
         isAdmin &&
         editingAccount &&
@@ -354,18 +432,27 @@ function AccountManagement() {
                                                             </button>
                                                         )}
                                                         {isAdmin && account.role === "student" && (
-                                                            <button
-                                                                type="button"
-                                                                className={account.account_status === "archived"
-                                                                    ? "management-restore-button"
-                                                                    : "management-archive-button"}
-                                                                onClick={() => changeAccountStatus(account)}
-                                                                disabled={changingStatusId === account.id}
-                                                            >
-                                                                {changingStatusId === account.id
-                                                                    ? "處理中…"
-                                                                    : account.account_status === "archived" ? "恢復" : "停用"}
-                                                            </button>
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    className={account.account_status === "archived"
+                                                                        ? "management-restore-button"
+                                                                        : "management-archive-button"}
+                                                                    onClick={() => changeAccountStatus(account)}
+                                                                    disabled={changingStatusId === account.id}
+                                                                >
+                                                                    {changingStatusId === account.id
+                                                                        ? "處理中…"
+                                                                        : account.account_status === "archived" ? "恢復" : "停用"}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    className="management-delete-button"
+                                                                    onClick={() => openAccountDelete(account)}
+                                                                >
+                                                                    永久刪除
+                                                                </button>
+                                                            </>
                                                         )}
                                                     </div>
                                                 </td>
@@ -473,6 +560,7 @@ function AccountManagement() {
                                 <th>班級</th>
                                 <th>開通狀態</th>
                                 <th>開通期限</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -487,14 +575,72 @@ function AccountManagement() {
                                         </span>
                                     </td>
                                     <td>{invitation.expires_at ? new Date(invitation.expires_at).toLocaleDateString("zh-TW") : "-"}</td>
+                                    <td>
+                                        {isAdmin && (
+                                            <button
+                                                type="button"
+                                                className="management-delete-button"
+                                                onClick={() => openInvitationDelete(invitation)}
+                                            >
+                                                {invitation.claimed_by_student_id ? "刪除待開通帳號" : "刪除邀請"}
+                                            </button>
+                                        )}
+                                    </td>
                                 </tr>
                             )) : (
-                                <tr><td colSpan="5" className="management-empty">目前沒有待開通學生</td></tr>
+                                <tr><td colSpan="6" className="management-empty">目前沒有待開通學生</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
             </section>
+
+            {deleteTarget && (
+                <div className="management-delete-backdrop" role="presentation">
+                    <section
+                        className="management-delete-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="management-delete-title"
+                    >
+                        <span className="management-eyebrow">Permanent deletion</span>
+                        <h2 id="management-delete-title">
+                            {deleteTarget.type === "account" ? "永久刪除學生帳號" : "刪除待開通邀請"}
+                        </h2>
+                        <p>
+                            {deleteTarget.type === "account"
+                                ? "系統只允許刪除沒有付款、學習、作業、點數或獎品紀錄的測試／待開通學生。其他帳號必須改用停用。"
+                                : "這會永久移除尚未被領取的學生邀請。"}
+                        </p>
+                        <div className="management-delete-target">
+                            <strong>{deleteTarget.name}</strong>
+                            <span>{deleteTarget.email}</span>
+                        </div>
+                        <form onSubmit={confirmPermanentDelete}>
+                            <label>
+                                <span>輸入完整 Email 確認</span>
+                                <input
+                                    type="email"
+                                    value={deleteConfirmation}
+                                    onChange={event => setDeleteConfirmation(event.target.value)}
+                                    placeholder={deleteTarget.email}
+                                    autoFocus
+                                    disabled={deleting}
+                                />
+                            </label>
+                            <div className="management-delete-dialog__actions">
+                                <button type="button" onClick={closeDeleteDialog} disabled={deleting}>取消</button>
+                                <button
+                                    type="submit"
+                                    disabled={deleting || deleteConfirmation.trim().toLowerCase() !== deleteTarget.email}
+                                >
+                                    {deleting ? "刪除中…" : "確認永久刪除"}
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            )}
 
         </div>
     );

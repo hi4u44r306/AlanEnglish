@@ -185,6 +185,7 @@
 .management-reset-button,
 .management-archive-button,
 .management-restore-button,
+.management-delete-button,
 .management-save-button,
 .management-cancel-button {
   border: none;
@@ -285,6 +286,123 @@
   &:disabled {
     opacity: 0.55;
     cursor: wait;
+  }
+}
+
+.management-delete-button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: #a32636;
+  background: #fff;
+  border: 1px solid #efc8ce;
+
+  &:hover:not(:disabled) {
+    color: #851b29;
+    background: #fff0f2;
+  }
+}
+
+.management-delete-backdrop {
+  position: fixed;
+  z-index: 1600;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  background: rgba(15, 27, 48, 0.64);
+  overflow-y: auto;
+}
+
+.management-delete-dialog {
+  width: min(100%, 520px);
+  padding: 26px;
+  border: 1px solid #f0d4d8;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 27, 48, 0.24);
+
+  h2 {
+    margin: 12px 0 8px;
+    color: #8f2130;
+    font-size: 1.45rem;
+  }
+
+  > p {
+    margin: 0 0 16px;
+    color: #5f6878;
+    line-height: 1.65;
+  }
+
+  form label {
+    display: grid;
+    gap: 7px;
+    color: #4b5565;
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  form input {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 11px;
+    border: 1px solid #d7dee9;
+    border-radius: 10px;
+    box-sizing: border-box;
+    outline: none;
+
+    &:focus {
+      border-color: #c64c5d;
+      box-shadow: 0 0 0 3px rgba(198, 76, 93, 0.11);
+    }
+  }
+}
+
+.management-delete-target {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: #fff4f5;
+
+  strong {
+    color: #7f2030;
+  }
+
+  span {
+    color: #687385;
+    overflow-wrap: anywhere;
+  }
+}
+
+.management-delete-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 18px;
+
+  button {
+    min-height: 44px;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 10px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  button:first-child {
+    color: #505a6b;
+    background: #eef1f5;
+  }
+
+  button:last-child {
+    color: #fff;
+    background: #b52f42;
+  }
+
+  button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
   }
 }
 
@@ -476,5 +594,17 @@
 
   .management-edit-actions {
     flex-direction: column;
+  }
+
+  .management-delete-dialog {
+    padding: 22px 18px;
+  }
+
+  .management-delete-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .management-delete-dialog__actions button {
+    width: 100%;
   }
 }

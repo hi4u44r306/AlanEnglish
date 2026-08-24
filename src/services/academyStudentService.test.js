@@ -1,5 +1,7 @@
 import {
     createAcademyStudentsBatch,
+    deleteAcademyInvitation,
+    deleteAcademyStudentAccount,
     previewAcademyStudents
 } from "./academyStudentService";
 
@@ -71,5 +73,33 @@ describe("academyStudentService CSV contracts", () => {
         expect(body.rows[0].login_email).toBe("parent@example.com");
         expect(body).not.toHaveProperty("role");
         expect(body.rows[0]).not.toHaveProperty("role");
+    });
+
+    test("永久刪除學生帳號需傳入學生 ID 與完整 Email 確認", async () => {
+        await deleteAcademyStudentAccount(
+            firebaseUser,
+            67,
+            "student@gmail.com"
+        );
+
+        expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
+            action: "delete_student_account",
+            student_id: 67,
+            confirmation_email: "student@gmail.com"
+        });
+    });
+
+    test("刪除未領取邀請需傳入邀請 ID 與完整 Email 確認", async () => {
+        await deleteAcademyInvitation(
+            firebaseUser,
+            91,
+            "pending@gmail.com"
+        );
+
+        expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
+            action: "delete_invitation",
+            invitation_id: 91,
+            confirmation_email: "pending@gmail.com"
+        });
     });
 });
