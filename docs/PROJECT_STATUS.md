@@ -23,9 +23,9 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 學生類型與疊加式會員權限
 - 英文班分班週期
 - 英文班學生帳號建立
-- 英文班學生邀請式帳號建立（本機功能分支完成，尚未部署）
-- Firebase 忘記／修改密碼與客服案件流程（本機功能分支完成，尚未部署）
-- AI 教材額度卡顯示每日及每月重新計算倒數（本機功能分支完成，尚未部署）
+- 英文班學生邀請式帳號建立（已部署）
+- Firebase 忘記／修改密碼與客服案件流程（已部署）
+- AI 教材額度卡顯示每日及每月重新計算倒數（已部署）
 - 公開產品首頁
 - 會員方案展示
 - 固定 Navbar
@@ -48,11 +48,12 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - PR #9：固定 Navbar 與 iPhone 捲動修正
 - PR #10：英文班學生帳號建立
 - PR #11：公開產品首頁、方案版面、固定播放器與手機 Sidebar
+- PR #15：Stripe AI 加購、學生邀請、密碼復原、客服與 AI 額度倒數
 
 目前已知的正式基準 commit：
 
 ```text
-45e6459
+38a421f
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
@@ -193,26 +194,26 @@ supabase/migrations/20260823090000_ai_material_addon_access.sql
 - 英文班在學方案不包含 AI 教材生成。
 - 新增 `ai_materials_addon_monthly`（NT$99／月、每日 5 次）。
 - 七天試用可使用 AI 教材每日 2 次；7 天共 7 次總額度已由 `generate-ai-material` v19 實施。
-- 會員後台已拆分核心方案資料與家長週報狀態載入；週報請求失敗不再清空方案及會員資料，且會常駐顯示實際錯誤訊息。已推送功能分支，尚未合併 `main`／部署正式 Netlify。
-- 會員後台方案卡片已調整為桌面 3 欄、平板 2 欄、手機 1 欄，長方案代碼及表單欄位不再溢出卡片；已推送功能分支，尚未合併 `main`／部署正式 Netlify。
+- 會員後台已拆分核心方案資料與家長週報狀態載入；週報請求失敗不再清空方案及會員資料，且會常駐顯示實際錯誤訊息。已部署正式 Netlify。
+- 會員後台方案卡片已調整為桌面 3 欄、平板 2 欄、手機 1 欄，長方案代碼及表單欄位不再溢出卡片；已部署正式 Netlify。
 - Stripe 測試環境的 NT$99 recurring Price 已填入 AI 加購方案；方案目前維持不公開，避免付款授權流程部署前被學生看到。
 - Checkout、Customer Portal、Webhook 與獨立 `student_access_grants` 授權流程已完成；付款不會覆蓋英文班、教材或其他既有權限。Migration `20260823230023_stripe_additive_subscription_grants.sql` 已套用正式 Supabase。
 - AI 加購額度為每日 5 次、台灣時間每月 150 次；每月 150 次只套用 AI 加購，不影響其他完整付費方案。
 - 新註冊及既有未轉付費的公開試用會員會使用 `trial_7_day` 方案，讓 7 天內總共 7 次、每日 2 次的限制可以正確辨識；正式資料已校正 3 筆，剩餘不一致為 0。
-- 2026-08-24 已部署：`membership-manager` v15、`billing-manager` v12、`stripe-webhook` v12、`generate-ai-material` v19，狀態均為 ACTIVE。
+- 2026-08-24 已部署：`membership-manager` v18、`billing-manager` v14、`stripe-webhook` v14、`generate-ai-material` v21，狀態均為 ACTIVE。
 - Supabase 的 Stripe Secrets 已由專案擁有者在 Dashboard 儲存；不得從終端機讀取或顯示其內容。
 - Stripe 沙盒 NT$99 訂閱付款、Webhook、AI 權限啟用、教材生成與撤銷後剩餘 0 次已完成端到端驗收；未使用真實付款。
-- GitHub 功能分支 `codex/ai-material-paid-access` 的付款整合基準 commit 為 `42da564`；後續帳號邀請與客服修改亦已推送，尚未獲授權合併正式分支。
+- PR #15 已合併至 `main`，正式合併 commit 為 `38a421f`，Netlify Production 狀態為 `ready`。
 
-### 帳號邀請、Email 與客服（尚未部署）
+### 帳號邀請、Email 與客服（已部署）
 
 - 管理員／老師改為建立 72 小時單次邀請連結，不再產生、顯示或保管學生臨時密碼。
 - 學生或家長使用邀請指定的可收信 Email，自行設定密碼；完成 Firebase Email 驗證後才啟用英文班權限。
 - 公開註冊頁明確要求可收信 Email，並拒絕 `example.*`、`.invalid` 與 `localhost` 等測試地址。
 - 網路購買教材者可自行註冊，登入會員中心後輸入教材兌換碼；英文班在校生仍由工作人員建立邀請，以避免自行選班取得英文班權限。
 - 新增 Firebase 密碼重設、登入後修改密碼、公開客服表單與管理員客服案件頁。
-- 新增 additive migration `20260824093000_academy_account_invitations_and_support.sql` 與 `support-manager` Function；兩者目前只有本機程式碼，尚未套用或部署。
-- AI 教材額度卡新增「今日總次數／剩餘」與「本月總次數／剩餘」的明確顯示。
+- Additive migration `20260824093000_academy_account_invitations_and_support.sql` 已套用；`academy-student-manager` v5、`membership-manager` v18、`support-manager` v1 已部署並為 ACTIVE。
+- AI 教材額度卡新增「今日總次數／剩餘」、「本月總次數／剩餘」及台灣時間重新計算倒數。
 
 ### 第三階段：分班週期
 
@@ -435,8 +436,8 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 不得覆蓋使用者未提交的本機修改。
 - AI 教材加購方案已填入 Stripe 測試 Price，沙盒付款與 Webhook 已驗收；方案是否公開仍應在正式上線前另行確認。
 - AI 教材學生額度以台灣時間每月 1 日重新計算；老師與管理員維持獨立額度。
-- 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 更新尚未套用或部署；部署前需先完成 preview 驗收並另行取得明確同意。
-- 本輪環境沒有安裝 `react-scripts`，離線 `npm ci` 又缺少 npm cache，因此 Unit Test 與 Production build 尚未在本機執行成功；需在可取得既有依賴的環境補跑。
+- 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 已部署；兩張新表均啟用 RLS，且 `anon`／`authenticated` 無直接讀取權限。
+- 本輪環境沒有安裝 `react-scripts`，因此本機未補跑完整測試；PR #15 Deploy Preview 與 Netlify Production build 均已成功。
 
 ## 14. 下一個 Codex 對話建議提示詞
 
