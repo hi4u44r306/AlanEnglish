@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { authentication } from "./firebase-config";
 import {
-    createAcademyInvitation,
+    createAcademyStudent,
     listAcademyClasses
 } from "../../services/academyStudentService";
 import {
@@ -84,7 +84,7 @@ function Signup() {
 
     const [submitting, setSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [invitation, setInvitation] = useState(null);
+    const [createdAccount, setCreatedAccount] = useState(null);
     const [copyMessage, setCopyMessage] = useState("");
 
     useEffect(() => {
@@ -211,14 +211,12 @@ function Signup() {
         setSubmitting(true);
 
         try {
-            const result = await createAcademyInvitation(
+            const result = await createAcademyStudent(
                 firebaseUser,
                 form
             );
 
-            setInvitation(
-                result?.invitation || null
-            );
+            setCreatedAccount(result?.credentials ? result : null);
 
             window.scrollTo({
                 top: 0,
@@ -227,7 +225,7 @@ function Signup() {
         } catch (error) {
             setErrorMessage(
                 error?.message ||
-                "學生邀請建立失敗"
+                "學生帳號建立失敗"
             );
         } finally {
             setSubmitting(false);
@@ -235,42 +233,41 @@ function Signup() {
     };
 
     const copyText = async (text, successMessage) => {
-        if (!invitation) return;
+        if (!createdAccount) return;
 
         try {
             await navigator.clipboard.writeText(text);
             setCopyMessage(successMessage);
         } catch (error) {
-            setCopyMessage("無法自動複製，請長按邀請連結手動複製");
+            setCopyMessage("無法自動複製，請長按內容手動複製");
         }
     };
 
     const handleCopyAccount = () => {
-        copyText(invitation.invited_email, "登入帳號已複製");
+        copyText(createdAccount.credentials.email, "登入帳號已複製");
     };
 
-    const handleCopyCode = () => {
-        copyText(invitation.activation_code, "一次性開通碼已複製");
+    const handleCopyPassword = () => {
+        copyText(createdAccount.credentials.temporary_password, "臨時密碼已複製");
     };
 
-    const handleCopyInvitation = () => {
-        if (!invitation) return;
+    const handleCopyCredentials = () => {
+        if (!createdAccount) return;
 
         const accountText = [
-            "Alan English 英文班帳號邀請",
-            `註冊 Email：${invitation.invited_email}`,
-            `班級：${invitation.class_code}`,
-            `一次性開通碼：${invitation.activation_code}`,
-            `開通期限：${new Date(invitation.expires_at).toLocaleString("zh-TW")}`,
-            "請前往以下頁面，自行設定密碼並完成 Email 驗證：",
-            invitation.activation_url || `${window.location.origin}/academy/activate`
+            "Alan English 英文班登入資料",
+            `登入 Email：${createdAccount.credentials.email}`,
+            `班級：${form.classCode}`,
+            `臨時密碼：${createdAccount.credentials.temporary_password}`,
+            "首次登入後請立即改成自己的密碼：",
+            `${window.location.origin}/login`
         ].join("\n");
 
-        copyText(accountText, "完整邀請訊息已複製");
+        copyText(accountText, "完整登入資料已複製");
     };
 
     const handleCreateNext = () => {
-        setInvitation(null);
+        setCreatedAccount(null);
         setCopyMessage("");
         setErrorMessage("");
 
@@ -336,43 +333,43 @@ function Signup() {
                             Academy Student
                         </span>
 
-                        <h1>建立英文班學生邀請</h1>
+                        <h1>快速建立英文班學生</h1>
 
                         <p>
-                            填寫學生資料後產生登入帳號與一次性開通碼；學生或家長自行設定密碼並完成 Email 驗證。
+                            填寫資料後立即建立帳號與一次性臨時密碼，不需要開通碼；學生首次登入後再改成自己的密碼。
                         </p>
                     </div>
                 </header>
 
-                {invitation ? (
+                {createdAccount ? (
                     <section className="academy-account-success">
                         <div className="academy-account-success-icon">
                             ✓
                         </div>
 
                         <div className="academy-account-success-heading">
-                            <span>Invitation Created</span>
-                            <h2>學生邀請建立成功</h2>
+                            <span>Account Created</span>
+                            <h2>學生帳號建立成功</h2>
                             <p>
-                                請將登入帳號與一次性開通碼交給學生或家長；櫃檯人員不需要建立、查看或保管密碼。
+                                請立即複製登入資料交給學生或家長。臨時密碼只顯示這一次，系統不會保存明文。
                             </p>
                         </div>
 
                         <div className="academy-account-credentials">
                             <div>
-                                <span>註冊與收信 Email</span>
+                                <span>登入與收信 Email</span>
                                 <strong>
-                                    {invitation.invited_email}
+                                    {createdAccount.credentials.email}
                                 </strong>
                             </div>
 
                             <div>
-                                <span>一次性開通碼</span>
+                                <span>一次性臨時密碼</span>
                                 <strong className="academy-account-password academy-account-invite-link">
-                                    {invitation.activation_code}
+                                    {createdAccount.credentials.temporary_password}
                                 </strong>
                                 <small>
-                                    有效至 {new Date(invitation.expires_at).toLocaleString("zh-TW")}
+                                    學生首次登入後必須改成自己的密碼
                                 </small>
                             </div>
                         </div>
@@ -398,17 +395,17 @@ function Signup() {
                             <button
                                 type="button"
                                 className="academy-account-primary-button"
-                                onClick={handleCopyCode}
+                                onClick={handleCopyPassword}
                             >
-                                複製開通碼
+                                複製臨時密碼
                             </button>
 
                             <button
                                 type="button"
                                 className="academy-account-secondary-button"
-                                onClick={handleCopyInvitation}
+                                onClick={handleCopyCredentials}
                             >
-                                複製完整邀請訊息
+                                複製完整登入資料
                             </button>
 
                             <button
@@ -423,7 +420,7 @@ function Signup() {
                         <div className="academy-account-security-note">
                             <strong>安全提醒</strong>
                             <p>
-                                開通碼會在 30 天後失效，而且只能使用一次。英文班權限要等學生完成 Email 驗證才會啟用。
+                                臨時密碼不會寫入資料庫；請勿用聊天群組長期保存。若遺失，可由後台寄送密碼重設信。
                             </p>
                         </div>
                     </section>
@@ -669,7 +666,7 @@ function Signup() {
                                 className="academy-account-error"
                                 role="alert"
                             >
-                            <strong>無法建立邀請</strong>
+                            <strong>無法建立帳號</strong>
                                 <p>{errorMessage}</p>
                             </div>
                         )}
@@ -677,11 +674,11 @@ function Signup() {
                         <footer className="academy-account-form-footer">
                             <div>
                                 <strong>
-                                    學生自行設定密碼
+                                    系統產生一次性臨時密碼
                                 </strong>
 
                                 <p>
-                                    邀請完成前不會啟用英文班權限。
+                                    帳號建立後即可登入，首次登入會要求修改密碼。
                                 </p>
                             </div>
 
@@ -694,8 +691,8 @@ function Signup() {
                                 }
                             >
                                 {submitting
-                                    ? "正在建立邀請⋯"
-                                    : "建立學生邀請"}
+                                    ? "正在建立帳號⋯"
+                                    : "建立學生帳號"}
                             </button>
                         </footer>
                     </form>

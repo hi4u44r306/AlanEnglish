@@ -384,6 +384,9 @@ const profilePayload = (
     class: student.class,
     role: student.role || "student",
     plan: student.plan,
+    learner_type: student.learner_type || null,
+    account_status: student.account_status || "active",
+    archived_at: student.archived_at || null,
     user_image: student.user_image,
     total_time_played: student.total_time_played,
     current_time_played: student.current_time_played,
@@ -603,6 +606,13 @@ Deno.serve(async (req: Request) => {
         }
         if (!caller) return json(404, { error: "找不到 Alan English 帳號" });
 
+        if ((caller.account_status || "active") !== "active") {
+            return json(403, {
+                error: "這個帳號目前已停用，請聯絡 Alan English 客服或櫃檯",
+                code: "ACCOUNT_ARCHIVED"
+            });
+        }
+
         if (action === "profile" || action === "status") {
             const profile = await loadCompleteProfile(
                 admin,
@@ -679,7 +689,7 @@ Deno.serve(async (req: Request) => {
             let query = admin
                 .from("students")
                 .select(`
-                    id,firebase_uid,email,name,role,class,plan,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at,
+                    id,firebase_uid,email,name,role,class,plan,learner_type,account_status,archived_at,archive_reason,must_change_password,password_changed_at,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at,
                     memberships(${membershipSelect}),
                     student_level_progress:student_level_progress!student_level_progress_student_id_fkey(student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,badge_color))
                 `)
@@ -713,12 +723,11 @@ Deno.serve(async (req: Request) => {
             const name = cleanText(body?.name, 80);
             const requestedRole = cleanText(body?.role, 20);
             const classType = cleanText(body?.class, 20) || null;
-            const plan = cleanText(body?.plan, 40) || null;
             if (!targetId || !name) return json(400, { error: "帳號資料不完整" });
 
             const { data: target, error: targetError } = await admin
                 .from("students")
-                .select("id,firebase_uid,email,name,role,class,plan")
+                .select("id,firebase_uid,email,name,role,class,plan,learner_type,account_status")
                 .eq("id", targetId)
                 .maybeSingle();
             if (targetError) throw targetError;
@@ -736,8 +745,8 @@ Deno.serve(async (req: Request) => {
                 nextRole = requestedRole;
             }
 
-            if (nextRole === "student" && (!classType || !plan)) {
-                return json(400, { error: "學生必須設定班級與方案" });
+            if (nextRole === "student" && !classType) {
+                return json(400, { error: "英文班學生必須設定班級" });
             }
             const { data: updated, error: updateError } = await admin
                 .from("students")
@@ -745,7 +754,7 @@ Deno.serve(async (req: Request) => {
                     name,
                     role: nextRole,
                     class: nextRole === "student" ? classType : null,
-                    plan: nextRole === "student" ? plan : null,
+                    learner_type: nextRole === "student" ? "academy_student" : null,
                     updated_at: new Date().toISOString()
                 })
                 .eq("id", target.id)
@@ -767,6 +776,57 @@ Deno.serve(async (req: Request) => {
                 if (staffMembershipError) throw staffMembershipError;
                 membership = await loadMembership(admin, Number(updated.id));
             }
+            const level = await ensureLevelProgress(admin, updated, false);
+            const effectiveAccess = await loadEffectiveAccess(admin, Number(updated.id));
+            return json(200, {
+                success: true,
+                account: profilePayload(updated, membership, level, effectiveAccess)
+            });
+        }
+
+        if (action === "archive_account" || action === "restore_account") {
+            if (caller.role !== "admin") return json(403, { error: "只有管理員可以停用或恢復帳號" });
+            const targetId = numberOrNull(body?.id);
+            if (!targetId) return json(400, { error: "缺少帳號編號" });
+            if (Number(targetId) === Number(caller.id)) {
+                return json(403, { error: "不能停用目前登入的管理員帳號" });
+            }
+
+            const { data: target, error: targetError } = await admin
+                .from("students")
+                .select("id,role,account_status")
+                .eq("id", targetId)
+                .maybeSingle();
+            if (targetError) throw targetError;
+            if (!target) return json(404, { error: "找不到帳號" });
+            if (target.role !== "student") {
+                return json(403, { error: "教師與管理員帳號不可在此停用" });
+            }
+
+            const restoring = action === "restore_account";
+            const now = new Date().toISOString();
+            const reason = cleanText(body?.reason, 300) || null;
+            const { data: updated, error: updateError } = await admin
+                .from("students")
+                .update(restoring ? {
+                    account_status: "active",
+                    archived_at: null,
+                    archived_by: null,
+                    archive_reason: null,
+                    updated_at: now
+                } : {
+                    account_status: "archived",
+                    archived_at: now,
+                    archived_by: caller.id,
+                    archive_reason: reason,
+                    updated_at: now
+                })
+                .eq("id", target.id)
+                .select("id,firebase_uid,email,name,role,class,plan,learner_type,account_status,archived_at,archive_reason,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at")
+                .single();
+            if (updateError) throw updateError;
+
+            const membership = await loadMembership(admin, Number(updated.id));
             const level = await ensureLevelProgress(admin, updated, false);
             const effectiveAccess = await loadEffectiveAccess(admin, Number(updated.id));
             return json(200, {

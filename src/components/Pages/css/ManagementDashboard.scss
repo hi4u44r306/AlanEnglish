@@ -231,6 +231,8 @@
 
 .management-edit-button,
 .management-reset-button,
+.management-archive-button,
+.management-restore-button,
 .management-save-button,
 .management-cancel-button {
   border: none;
@@ -283,6 +285,11 @@
   background: #edf5ff;
 }
 
+.activation-direct_pending {
+  color: #6f4c0e;
+  background: #fff8e8;
+}
+
 .activation-completed {
   color: #087443;
   background: #eafbf2;
@@ -297,6 +304,54 @@
 .activation-legacy {
   color: #596579;
   background: #f0f2f5;
+}
+
+.account-status-badge {
+  display: inline-flex;
+  width: max-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.account-status-active {
+  color: #087443;
+  background: #eafbf2;
+}
+
+.account-status-archived {
+  color: #7b3341;
+  background: #fff0f2;
+}
+
+.management-archive-button,
+.management-restore-button {
+  min-height: 34px;
+  padding: 0 10px;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+}
+
+.management-archive-button {
+  color: #9b2c26;
+  background: #fff0ef;
+
+  &:hover:not(:disabled) {
+    background: #ffe0dd;
+  }
+}
+
+.management-restore-button {
+  color: #087443;
+  background: #eafbf2;
+
+  &:hover:not(:disabled) {
+    background: #d8f7e7;
+  }
 }
 
 .management-pending-heading {
