@@ -4,6 +4,7 @@ import { recordLoginActivity } from "../services/learningActivityService";
 import { getMembershipProfile } from "../services/membershipService";
 
 const PROFILE_CACHE_KEY = "ae-profile-cache-v1";
+const pendingProfileRequests = new Map();
 
 const STORAGE_KEYS = [
     "ae-useruid",
@@ -59,10 +60,26 @@ export const clearStudentSession = () => {
 
 export const loadStudentProfile = async firebaseUser => {
     if (!firebaseUser?.uid) throw new Error("找不到 Firebase 使用者資料");
-    const result = await getMembershipProfile(firebaseUser);
-    if (!result?.profile?.id) throw new Error("Firebase 登入成功，但找不到 Alan English 使用者資料");
-    saveStudentSession(firebaseUser, result.profile);
-    return result.profile;
+
+    const existingRequest = pendingProfileRequests.get(firebaseUser.uid);
+    if (existingRequest) return existingRequest;
+
+    const request = (async () => {
+        const result = await getMembershipProfile(firebaseUser);
+        if (!result?.profile?.id) throw new Error("Firebase 登入成功，但找不到 Alan English 使用者資料");
+        saveStudentSession(firebaseUser, result.profile);
+        return result.profile;
+    })();
+
+    pendingProfileRequests.set(firebaseUser.uid, request);
+
+    try {
+        return await request;
+    } finally {
+        if (pendingProfileRequests.get(firebaseUser.uid) === request) {
+            pendingProfileRequests.delete(firebaseUser.uid);
+        }
+    }
 };
 
 export const loginWithEmail = async (email, password) => {
