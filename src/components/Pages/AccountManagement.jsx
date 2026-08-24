@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../auth/AuthContext";
 import { getManagedAccounts, updateManagedAccount } from "../../services/membershipService";
+import { listAcademyInvitations, sendAcademyPasswordReset } from "../../services/academyStudentService";
 import "./css/ManagementDashboard.scss";
 
 const ROLE_LABELS = {
@@ -17,11 +18,21 @@ const PLAN_LABELS = {
     allcover: "全方位"
 };
 
+const ACTIVATION_LABELS = {
+    active: "尚未開通",
+    claimed: "等待 Email 驗證",
+    completed: "已開通",
+    expired: "開通碼已過期",
+    revoked: "已撤銷"
+};
+
 function AccountManagement() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const [accounts, setAccounts] = useState([]);
+    const [invitations, setInvitations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [resettingEmail, setResettingEmail] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [searchText, setSearchText] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
@@ -41,12 +52,17 @@ function AccountManagement() {
         setErrorMessage("");
 
         try {
-            const result = await getManagedAccounts(firebaseUser);
-            setAccounts(result?.accounts || []);
+            const [accountResult, invitationResult] = await Promise.all([
+                getManagedAccounts(firebaseUser),
+                listAcademyInvitations(firebaseUser)
+            ]);
+            setAccounts(accountResult?.accounts || []);
+            setInvitations(invitationResult);
         } catch (error) {
             console.error("讀取帳號清單失敗:", error);
             setErrorMessage(error?.message || "帳號清單讀取失敗");
             setAccounts([]);
+            setInvitations([]);
         }
 
         setLoading(false);
@@ -71,6 +87,19 @@ function AccountManagement() {
         });
     }, [accounts, searchText, roleFilter, classFilter]);
 
+    const invitationByEmail = useMemo(() => {
+        const result = new Map();
+        invitations.forEach(invitation => {
+            const email = String(invitation.invited_email || "").toLowerCase();
+            if (email && !result.has(email)) result.set(email, invitation);
+        });
+        return result;
+    }, [invitations]);
+
+    const pendingInvitations = useMemo(() => invitations.filter(invitation => (
+        ["active", "claimed", "expired"].includes(invitation.status)
+    )), [invitations]);
+
     const startEdit = account => {
         if (!isAdmin && account.role !== "student") return;
 
@@ -86,6 +115,21 @@ function AccountManagement() {
     const cancelEdit = () => {
         if (saving) return;
         setEditingAccount(null);
+    };
+
+    const sendPasswordReset = async account => {
+        if (!firebaseUser || !account?.email) return;
+        if (!window.confirm(`要寄送密碼重設信給 ${account.email} 嗎？`)) return;
+
+        setResettingEmail(account.email);
+        try {
+            await sendAcademyPasswordReset(firebaseUser, account.email);
+            toast.success("密碼重設信已寄出");
+        } catch (error) {
+            toast.error(error?.message || "密碼重設信寄送失敗");
+        } finally {
+            setResettingEmail("");
+        }
     };
 
     const handleRoleChange = event => {
@@ -210,6 +254,7 @@ function AccountManagement() {
                                         <th>Role</th>
                                         <th>Class</th>
                                         <th>Plan</th>
+                                        <th>開通狀態</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -227,19 +272,42 @@ function AccountManagement() {
                                                 <td>{account.role === "student" ? account.class || "-" : "-"}</td>
                                                 <td>{account.role === "student" ? PLAN_LABELS[account.plan] || account.plan || "-" : "-"}</td>
                                                 <td>
-                                                    <button
-                                                        type="button"
-                                                        className="management-edit-button"
-                                                        onClick={() => startEdit(account)}
-                                                    >
-                                                        編輯
-                                                    </button>
+                                                    {account.role === "student" ? (() => {
+                                                        const invitation = invitationByEmail.get(String(account.email || "").toLowerCase());
+                                                        const status = invitation?.status || "legacy";
+                                                        return (
+                                                            <span className={`activation-badge activation-${status}`}>
+                                                                {ACTIVATION_LABELS[status] || "既有帳號"}
+                                                            </span>
+                                                        );
+                                                    })() : "-"}
+                                                </td>
+                                                <td>
+                                                    <div className="management-row-actions">
+                                                        <button
+                                                            type="button"
+                                                            className="management-edit-button"
+                                                            onClick={() => startEdit(account)}
+                                                        >
+                                                            編輯
+                                                        </button>
+                                                        {isAdmin && account.email && (
+                                                            <button
+                                                                type="button"
+                                                                className="management-reset-button"
+                                                                onClick={() => sendPasswordReset(account)}
+                                                                disabled={resettingEmail === account.email}
+                                                            >
+                                                                {resettingEmail === account.email ? "寄送中…" : "寄送密碼重設信"}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
 
                                             {editingAccount?.id === account.id && (
                                                 <tr className="management-edit-row">
-                                                    <td colSpan="6">
+                                                    <td colSpan="7">
                                                         <form className="management-edit-form" onSubmit={saveAccount}>
                                                             <div className="management-edit-grid">
                                                                 <label>
@@ -313,7 +381,7 @@ function AccountManagement() {
                                         </React.Fragment>
                                     )) : (
                                         <tr>
-                                            <td colSpan="6" className="management-empty">沒有符合條件的帳號</td>
+                                            <td colSpan="7" className="management-empty">沒有符合條件的帳號</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -321,6 +389,48 @@ function AccountManagement() {
                         </div>
                     </>
                 )}
+            </section>
+
+            <section className="management-panel">
+                <div className="management-pending-heading">
+                    <div>
+                        <span className="management-eyebrow">Account Activation</span>
+                        <h2>待開通學生</h2>
+                        <p>學生完成設定密碼與 Email 驗證後，狀態會自動更新為已開通。</p>
+                    </div>
+                    <strong>{pendingInvitations.length} 位</strong>
+                </div>
+
+                <div className="management-table-wrap">
+                    <table className="management-table">
+                        <thead>
+                            <tr>
+                                <th>學生</th>
+                                <th>登入 Email</th>
+                                <th>班級</th>
+                                <th>開通狀態</th>
+                                <th>開通期限</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {pendingInvitations.length > 0 ? pendingInvitations.map(invitation => (
+                                <tr key={invitation.id}>
+                                    <td>{invitation.chinese_name || "-"}</td>
+                                    <td>{invitation.invited_email || "-"}</td>
+                                    <td>{invitation.class_code || "-"}</td>
+                                    <td>
+                                        <span className={`activation-badge activation-${invitation.status}`}>
+                                            {ACTIVATION_LABELS[invitation.status] || invitation.status}
+                                        </span>
+                                    </td>
+                                    <td>{invitation.expires_at ? new Date(invitation.expires_at).toLocaleDateString("zh-TW") : "-"}</td>
+                                </tr>
+                            )) : (
+                                <tr><td colSpan="5" className="management-empty">目前沒有待開通學生</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
         </div>

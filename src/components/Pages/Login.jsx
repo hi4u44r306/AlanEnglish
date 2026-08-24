@@ -16,6 +16,7 @@ function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const loginAttemptRef = useRef(false);
+    const accountActivated = new URLSearchParams(location.search).get("activated") === "1";
     const requestedLocation = location.state?.from;
     const destination = requestedLocation
         ? `${requestedLocation.pathname || ""}${requestedLocation.search || ""}`
@@ -200,6 +201,13 @@ function Login() {
                             <p>登入 Alan English，開始今天的英文練習。</p>
                         </div>
 
+                        {accountActivated && (
+                            <div className="login-activation-success" role="status">
+                                <strong>帳號已開通</strong>
+                                <span>請使用剛才設定的 Email 與密碼登入。</span>
+                            </div>
+                        )}
+
                         <div className="login-field">
                             <label htmlFor="email">Email</label>
                             <div className="login-input-wrapper">
@@ -253,6 +261,11 @@ function Login() {
                                 </>
                             ) : "登入"}
                         </button>
+
+                        <div className="login-trial">
+                            <span>英文班第一次使用？</span>
+                            <Link to="/academy/activate">開通帳號</Link>
+                        </div>
 
                         <div className="login-trial">
                             <span>還沒有帳號？</span>

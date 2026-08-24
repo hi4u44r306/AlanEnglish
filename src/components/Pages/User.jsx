@@ -311,6 +311,7 @@ const User = () => {
     }, [homeData]);
 
     const completedTaskCount = dailyTasks.filter(task => task.completed).length;
+    const hasAiPremium = user?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
     const dailyProgress = dailyTasks.length
         ? Math.round((completedTaskCount / dailyTasks.length) * 100)
         : 0;
@@ -361,6 +362,18 @@ const User = () => {
     return (
         <div className="User">
             <div className="student-home">
+                {!hasAiPremium && (
+                    <Link className="student-home__ai-upgrade" to="/student/membership">
+                        <div className="student-home__ai-upgrade-icon"><FiZap /></div>
+                        <div>
+                            <span>AI POWER-UP</span>
+                            <strong>把今天想練的英文，變成你的專屬教材</strong>
+                            <p>升級 AI 教材加購，每天可生成 5 次個人化練習。</p>
+                        </div>
+                        <div className="student-home__ai-upgrade-action">了解方案 <FiArrowRight /></div>
+                    </Link>
+                )}
+
                 <section className="student-home__hero">
                     <div className="student-home__hero-copy">
                         <span className="student-home__eyebrow">
