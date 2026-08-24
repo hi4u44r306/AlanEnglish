@@ -18,7 +18,7 @@ function Homework() {
         <Containerfull>
             <div className='mhmain'>
                 <div className='mhcontainer'>
-                    <div className='mhtitle'>今日功課 (測試中)</div>
+                    <div className='mhtitle'>今日功課</div>
                     {
                         book === '' ?
                             <div>今日無功課</div>

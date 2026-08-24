@@ -283,11 +283,8 @@ function ManagementDashboard() {
                                 <thead>
                                     <tr>
                                         <th>學生</th>
-                                        <th>最後登入</th>
-                                        <th>最後活躍</th>
-                                        <th>最後學習</th>
-                                        <th>Conversation</th>
-                                        <th>聽力完成</th>
+                                        <th>最近動態</th>
+                                        <th>學習進度</th>
                                         <th>狀態</th>
                                         <th>家長</th>
                                         <th>操作</th>
@@ -307,16 +304,20 @@ function ManagementDashboard() {
                                                         <strong className="student-name-cell">{student.name}</strong>
                                                         <span className="student-meta-cell">{student.class ? `${student.class} 班` : "未分班"} · {student.email || "無 Email"}</span>
                                                     </td>
-                                                    <td title={formatDateTime(student.last_login_at)}>{relativeText(student.last_login_at)}</td>
-                                                    <td title={formatDateTime(student.last_active_at)}>{relativeText(student.last_active_at)}</td>
-                                                    <td title={formatDateTime(student.last_learning_at)}>{relativeText(student.last_learning_at)}</td>
                                                     <td>
+                                                        <dl className="student-activity-summary">
+                                                            <div title={formatDateTime(student.last_login_at)}><dt>登入</dt><dd>{relativeText(student.last_login_at)}</dd></div>
+                                                            <div title={formatDateTime(student.last_active_at)}><dt>活躍</dt><dd>{relativeText(student.last_active_at)}</dd></div>
+                                                            <div title={formatDateTime(student.last_learning_at)}><dt>學習</dt><dd>{relativeText(student.last_learning_at)}</dd></div>
+                                                        </dl>
+                                                    </td>
+                                                    <td className="student-learning-cell">
                                                         <div className="mini-progress-cell">
-                                                            <strong>{conversationCompleted} / {conversationTotal}</strong>
+                                                            <strong>Conversation {conversationCompleted} / {conversationTotal}</strong>
                                                             <span><i style={{ width: `${Math.min(100, (conversationCompleted / conversationTotal) * 100)}%` }} /></span>
                                                         </div>
+                                                        <span>聽力完成 {student.listening?.completed || 0} 首</span>
                                                     </td>
-                                                    <td><strong>{student.listening?.completed || 0}</strong> 首</td>
                                                     <td>
                                                         <span className={`activity-status ${getStatusClass(student.status?.code)}`}>
                                                             {student.status?.label || "未知"}
@@ -330,7 +331,6 @@ function ManagementDashboard() {
                                                     <td>
                                                         <div className="activity-row-actions">
                                                             <Link to={`${reportPath}?student=${student.id}`}>每週報告</Link>
-                                                            <button type="button" onClick={() => openGuardianEditor(student)}>家長資料</button>
                                                             <button
                                                                 type="button"
                                                                 className="reminder-button"
@@ -345,12 +345,12 @@ function ManagementDashboard() {
 
                                                 {editingGuardianId === student.id && (
                                                     <tr className="guardian-editor-row">
-                                                        <td colSpan="9">
+                                                        <td colSpan="6">
                                                             <div className="guardian-editor">
                                                                 <div className="guardian-editor-heading">
                                                                     <div>
                                                                         <strong>{student.name}｜家長聯絡資料</strong>
-                                                                        <span>第一版使用 Email 手動寄送；未來可再接 LINE 官方帳號與自動提醒。</span>
+                                                                        <span>儲存可收信的 Email，供學習提醒使用。</span>
                                                                     </div>
                                                                     <button type="button" onClick={() => setEditingGuardianId(null)}>關閉</button>
                                                                 </div>
@@ -366,14 +366,6 @@ function ManagementDashboard() {
                                                                     <label>
                                                                         <span>手機</span>
                                                                         <input value={guardianForm.phone} onChange={event => setGuardianForm(previous => ({ ...previous, phone: event.target.value }))} />
-                                                                    </label>
-                                                                    <label>
-                                                                        <span>偏好通知</span>
-                                                                        <select value={guardianForm.preferred_channel} onChange={event => setGuardianForm(previous => ({ ...previous, preferred_channel: event.target.value }))}>
-                                                                            <option value="email">Email</option>
-                                                                            <option value="line">LINE（預留）</option>
-                                                                            <option value="none">不通知</option>
-                                                                        </select>
                                                                     </label>
                                                                 </div>
                                                                 <label className="guardian-notification-toggle">
@@ -404,27 +396,6 @@ function ManagementDashboard() {
                         {filteredStudents.length === 0 && <div className="management-empty">沒有符合條件的學生。</div>}
                     </section>
 
-                    <section className="dashboard-actions">
-                        <h2>快速管理</h2>
-                        <div className="dashboard-action-grid">
-                            <Link to={reportPath} className="dashboard-action-card">
-                                <strong>每週學習報告</strong>
-                                <span>整理學生進度並寄給家長</span>
-                            </Link>
-                            <Link to={isAdmin ? "/admin/accounts" : "/teacher/accounts"} className="dashboard-action-card">
-                                <strong>帳號管理</strong>
-                                <span>查看與編輯學生帳號資料</span>
-                            </Link>
-                            <Link to="/teacher/students" className="dashboard-action-card">
-                                <strong>建立學生邀請</strong>
-                                <span>填寫學生資料並傳送註冊連結</span>
-                            </Link>
-                            <Link to="/teacher/add-music" className="dashboard-action-card">
-                                <strong>教材音檔</strong>
-                                <span>新增教材、上傳與管理音檔</span>
-                            </Link>
-                        </div>
-                    </section>
                 </>
             )}
 
