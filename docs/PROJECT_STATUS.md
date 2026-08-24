@@ -33,6 +33,11 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 手機 Sidebar 第一版
 - 作業頁固定迷你播放器
 
+目前進行中（尚未提交或部署）：
+
+- `feature/ai-premium-membership-ui`：AI 加購付款按鈕載入狀態、AI Premium 啟用卡、每月續訂日與 Navbar／手機 Sidebar 徽章。
+- `membership-manager` 將只回傳 AI 加購的續訂日期與週期結束取消狀態，不回傳 Stripe 識別碼或任何金鑰。
+
 目前下一個主要開發方向：
 
 1. 建立 P0 Unit Test 基礎
@@ -55,7 +60,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 目前已知的正式基準 commit：
 
 ```text
-0af9aec
+65598e7
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
@@ -442,6 +447,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - AI 教材學生額度以台灣時間每月 1 日重新計算；老師與管理員維持獨立額度。
 - 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 已部署；兩張新表均啟用 RLS，且 `anon`／`authenticated` 無直接讀取權限。
 - 本輪環境沒有安裝 `react-scripts`，因此登入競態的 2 個新增測試尚未在本機執行；PR #18 Deploy Preview 與 Netlify Production build 均已成功。
+- AI Premium UI 本機已完成靜態差異檢查，但目前工作目錄同樣沒有安裝 `react-scripts`；相關 3 個會員中心測試與 Production build 需在提交前的可用 CI／Netlify Preview 驗證。
 
 ## 14. 下一個 Codex 對話建議提示詞
 

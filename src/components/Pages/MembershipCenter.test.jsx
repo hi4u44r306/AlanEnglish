@@ -1,8 +1,9 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
+import { createCheckoutSession } from "../../services/billingService";
 import { getMembershipProfile, getPublicPlans } from "../../services/membershipService";
 import MembershipCenter from "./MembershipCenter";
 
@@ -32,7 +33,19 @@ describe("MembershipCenter AI add-on", () => {
                     status: "active",
                     is_active: true,
                     has_stripe_customer: true,
-                    effective_access: { plan_codes: ["academy_internal", "ai_materials_addon_monthly"] }
+                    ai_addon_subscription: {
+                        current_period_end: "2026-09-24T00:00:00.000Z",
+                        cancel_at_period_end: false
+                    },
+                    effective_access: {
+                        plan_codes: ["academy_internal", "ai_materials_addon_monthly"],
+                        grants: [{
+                            id: 42,
+                            plan_code: "ai_materials_addon_monthly",
+                            source: "stripe",
+                            ends_at: "2026-09-24T00:00:00.000Z"
+                        }]
+                    }
                 }
             }
         });
@@ -59,9 +72,71 @@ describe("MembershipCenter AI add-on", () => {
             </MemoryRouter>
         );
 
-        expect(await screen.findByText("AI 教材加購已啟用")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "方案已啟用" })).toBeDisabled();
+        expect(await screen.findByText("你的 AI 學習力已升級")).toBeInTheDocument();
+        expect(screen.getByText("每月 24 日")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "AI Premium 使用中" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "管理目前訂閱" })).toBeEnabled();
+        expect(screen.getByRole("link", { name: "開始使用 AI 教材" })).toHaveAttribute("href", "/student/ai-generator");
         expect(screen.getByText(/每月最多/, { selector: "li" })).toHaveTextContent("每月最多 150 次");
+    });
+
+    it("shows a spinner while opening Stripe Checkout", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    effective_access: { plan_codes: ["academy_internal"], grants: [] }
+                }
+            }
+        });
+        createCheckoutSession.mockReturnValue(new Promise(() => {}));
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(await screen.findByRole("button", { name: "選擇方案" }));
+
+        const loadingButton = await screen.findByRole("button", { name: "正在開啟安全付款…" });
+        expect(loadingButton).toBeDisabled();
+        expect(loadingButton).toHaveAttribute("aria-busy", "true");
+        expect(createCheckoutSession).toHaveBeenCalledWith(expect.anything(), 99);
+    });
+
+    it("does not describe a subscription pending cancellation as an automatic renewal", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    ai_addon_subscription: {
+                        current_period_end: "2026-09-24T00:00:00.000Z",
+                        cancel_at_period_end: true
+                    },
+                    effective_access: {
+                        plan_codes: ["academy_internal", "ai_materials_addon_monthly"],
+                        grants: [{
+                            id: 42,
+                            plan_code: "ai_materials_addon_monthly",
+                            source: "stripe",
+                            ends_at: "2026-09-24T00:00:00.000Z"
+                        }]
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText("方案使用至")).toBeInTheDocument();
+        expect(screen.getByText("到期後不會再次扣款")).toBeInTheDocument();
+        expect(screen.queryByText("自動續訂")).not.toBeInTheDocument();
     });
 });
