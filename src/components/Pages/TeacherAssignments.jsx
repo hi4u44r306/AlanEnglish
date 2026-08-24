@@ -14,6 +14,11 @@ import {
     getTeacherAssignmentBootstrap,
     getTeacherAssignments
 } from "../../services/assignmentService";
+import {
+    groupSelectedTracks,
+    mergeTrackIds,
+    removeTrackIds
+} from "./assignmentTrackSelection";
 import "./css/Assignments.scss";
 
 const todayTaiwan = () => new Intl.DateTimeFormat("en-CA", {
@@ -114,6 +119,21 @@ const TeacherAssignments = () => {
         [tracks, bookId]
     );
 
+    const selectedTrackGroups = useMemo(
+        () => groupSelectedTracks(tracks, trackIds),
+        [tracks, trackIds]
+    );
+
+    const selectedTrackIdsByBook = useMemo(() => {
+        const counts = new Map();
+        selectedTrackGroups.forEach(group => {
+            counts.set(String(group.book.id), group.tracks.length);
+        });
+        return counts;
+    }, [selectedTrackGroups]);
+
+    const currentBookSelectedCount = selectedTrackIdsByBook.get(String(bookId)) || 0;
+
     const rangeType = useMemo(() => {
         const counts = { P: 0, Unit: 0, Track: 0 };
         visibleTracks.forEach(track => {
@@ -195,9 +215,9 @@ const TeacherAssignments = () => {
             return;
         }
 
-        setTrackIds(selectedIds);
+        setTrackIds(current => mergeTrackIds(current, selectedIds));
         setMessage(
-            "已選取 "
+            "已加入 "
             + rangeType
             + " "
             + min
@@ -369,22 +389,76 @@ const TeacherAssignments = () => {
 
                             <div className="assignment-track-picker">
                                 <label>
-                                    <span>選擇教材</span>
+                                    <span>新增或切換教材</span>
                                     <select
                                         value={bookId}
                                         onChange={event => {
                                             setBookId(event.target.value);
-                                            setTrackIds([]);
                                             setRangeStart("");
                                             setRangeEnd("");
                                         }}
                                     >
                                         <option value="">請選擇教材...</option>
                                         {books.map(book => (
-                                            <option key={book.id} value={book.id}>{book.name}</option>
+                                            <option key={book.id} value={book.id}>
+                                                {book.name}
+                                                {selectedTrackIdsByBook.get(String(book.id))
+                                                    ? "（已選 " + selectedTrackIdsByBook.get(String(book.id)) + "）"
+                                                    : ""}
+                                            </option>
                                         ))}
                                     </select>
                                 </label>
+
+                                {trackIds.length > 0 && (
+                                    <section className="assignment-selected-tracks" aria-label="已選聽力內容">
+                                        <div className="assignment-selected-tracks__heading">
+                                            <div>
+                                                <strong>已選聽力內容</strong>
+                                                <span>
+                                                    {selectedTrackGroups.length} 本教材 · {trackIds.length} 個音檔
+                                                </span>
+                                            </div>
+                                            <button type="button" onClick={() => setTrackIds([])}>全部清除</button>
+                                        </div>
+                                        <div className="assignment-selected-tracks__groups">
+                                            {selectedTrackGroups.map(group => (
+                                                <article key={group.book.id}>
+                                                    <div>
+                                                        <strong>{group.book.name}</strong>
+                                                        <span>{group.tracks.length} 個音檔</span>
+                                                    </div>
+                                                    <p>
+                                                        {group.tracks.map(track => (
+                                                            <span key={track.id}>{track.display_page || track.page}</span>
+                                                        ))}
+                                                    </p>
+                                                    <div className="assignment-selected-tracks__actions">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setBookId(String(group.book.id));
+                                                                setRangeStart("");
+                                                                setRangeEnd("");
+                                                            }}
+                                                        >
+                                                            繼續選擇
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setTrackIds(current => removeTrackIds(
+                                                                current,
+                                                                group.tracks.map(track => track.id)
+                                                            ))}
+                                                        >
+                                                            移除此教材
+                                                        </button>
+                                                    </div>
+                                                </article>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
 
                                 {bookId && (
                                     <>
@@ -410,15 +484,28 @@ const TeacherAssignments = () => {
                                         </div>
 
                                         <div className="assignment-track-toolbar">
-                                            <strong>選擇音檔（已選 {trackIds.length}）</strong>
+                                            <strong>
+                                                選擇音檔（此教材已選 {currentBookSelectedCount}，全部 {trackIds.length}）
+                                            </strong>
                                             <div>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setTrackIds(visibleTracks.map(track => track.id))}
+                                                    onClick={() => setTrackIds(current => mergeTrackIds(
+                                                        current,
+                                                        visibleTracks.map(track => track.id)
+                                                    ))}
                                                 >
-                                                    全選
+                                                    全選此教材
                                                 </button>
-                                                <button type="button" onClick={() => setTrackIds([])}>清除</button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTrackIds(current => removeTrackIds(
+                                                        current,
+                                                        visibleTracks.map(track => track.id)
+                                                    ))}
+                                                >
+                                                    清除此教材
+                                                </button>
                                             </div>
                                         </div>
 

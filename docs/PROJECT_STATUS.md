@@ -50,16 +50,16 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 學生 Dashboard 對尚未購買 AI 教材加購的帳號顯示 AI POWER-UP 宣傳卡；已購買者不顯示。
 - 後續階段：CSV 批次建立學生開通資料與批次結果匯出。
 
-本機尚未部署（`codex/admin-ui-csv-student-import`）：
+尚未完整部署（`codex/admin-ui-csv-student-import`）：
 
 - 管理 Dashboard 已將 9 欄資訊合併為 6 欄、移除重複快速管理卡與未啟用的 LINE 預留欄位，並降低管理頁字重、提高小字與表單可讀性。
 - 學生 Dashboard 已放大今日學習路線的任務進度數字，加入老師作業 XP／AE Points 獎勵提示，並將學習累積卡改為圖示與數據並排，減少手機版空白。
-- 發布作業介面已移除需要學生個別加購的 AI 測驗／完整任務包，只保留全體英文班學生可完成的聽力作業；已發布作業可由建立者或管理員安全停用，學生不再看到但既有進度仍保留。
+- 發布作業介面已移除需要學生個別加購的 AI 測驗／完整任務包，只保留全體英文班學生可完成的聽力作業；一份作業可跨多本教材累加音檔，並依教材顯示已選頁碼／Unit 摘要。已發布作業可由建立者或管理員安全停用，學生不再看到但既有進度仍保留。`assignment-manager` v18 已於 2026-08-24 部署並為 ACTIVE；前端介面尚未部署 Netlify。
 - 學生 Dashboard 的 AI 專屬練習只對有效 AI 權限顯示；未加購者從其他入口進入 AI 教材頁時會回到頁首看到加購卡。既有 AI 類作業也由後端依有效 AI 權限過濾與拒絕提交。
 - 智慧錯題複習只使用既有錯題資料與間隔排程，不呼叫生成式 AI、不消耗 AI 額度，因此維持所有具 `review` 權限的學生可用。
 - CSV 批次建立學生第一版已完成：範本下載、CSV 解析、伺服器預覽、E1／E3／E5／E7 與 Email 驗證、每批 25 位上限、admin-only 批次建立、逐列成功／失敗、結果下載、request ID 防重複提交與不保存臨時密碼的操作紀錄。
 - 新增 additive migration `20260824124647_academy_student_csv_batches.sql`；尚未套用遠端 Supabase，`academy-student-manager` 也尚未部署。
-- 全部 12 份測試檔共 26 個案例通過，Production build 成功；本機沒有 Deno，`assignment-manager` 尚未執行 Deno 型別檢查，登入後的 412px 實機視覺仍待驗收。
+- 全部 13 份測試檔共 29 個案例通過，Production build 成功；發布作業跨教材選取已完成登入後 412px 瀏覽器驗收且無水平溢出。本機沒有 Deno，`assignment-manager` 尚未執行 Deno 型別檢查。
 
 目前下一個主要開發方向：
 
@@ -470,7 +470,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 已部署；兩張新表均啟用 RLS，且 `anon`／`authenticated` 無直接讀取權限。
 - 本輪環境沒有安裝 `react-scripts`，因此登入競態的 2 個新增測試尚未在本機執行；PR #18 Deploy Preview 與 Netlify Production build 均已成功。
 - AI Premium UI 的 3 個會員中心測試已加入；本機環境缺少 `react-scripts`，未直接執行測試。PR #21 Deploy Preview 與 Netlify Production build 均成功，正式部署 commit 為 `43e5982`。
-- 2026-08-24 本機 CSV 批次建立學生、學生 Dashboard UI 與作業／AI 權限一致性：12 份測試檔共 26 個案例通過，`npm run build` 成功；尚未執行遠端 migration、Edge Function 部署、正式資料驗收、Deno 型別檢查或登入後 412px 實機視覺驗收。
+- 2026-08-24 本機 CSV 批次建立學生、學生 Dashboard UI 與作業／AI 權限一致性：13 份測試檔共 29 個案例通過，`npm run build` 成功；`assignment-manager` v18 已部署並以匿名 POST 驗證回傳 401，發布作業跨教材選取已完成登入後 412px 瀏覽器驗收。CSV audit migration、`academy-student-manager` 部署、正式資料驗收、Deno 型別檢查與其他登入後頁面視覺驗收仍未執行。
 
 ## 14. 下一個 Codex 對話建議提示詞
 
