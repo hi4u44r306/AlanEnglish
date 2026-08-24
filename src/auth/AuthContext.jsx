@@ -60,6 +60,15 @@ export const AuthProvider = ({ children }) => {
                 if (!disposed) setStudentProfile(profile);
             } catch (error) {
                 console.error("恢復登入狀態失敗:", error);
+
+                const recoveredProfile = getCachedStudentProfile(user.uid);
+
+                if (recoveredProfile) {
+                    setFirebaseUser(user);
+                    setStudentProfile(recoveredProfile);
+                    return;
+                }
+
                 clearStudentSession();
                 setStudentProfile(null);
 
