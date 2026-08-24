@@ -50,11 +50,12 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - PR #10：英文班學生帳號建立
 - PR #11：公開產品首頁、方案版面、固定播放器與手機 Sidebar
 - PR #15：Stripe AI 加購、學生邀請、密碼復原、客服與 AI 額度倒數
+- PR #18：修正首次登入 Session 競態並公開 Stripe 沙盒 AI 加購方案
 
 目前已知的正式基準 commit：
 
 ```text
-38a421f
+0af9aec
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
@@ -436,10 +437,10 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - Node deprecation warning 目前不是 build 失敗。
 - 不得直接修改已執行的 migration。
 - 不得覆蓋使用者未提交的本機修改。
-- AI 教材加購方案已填入 Stripe 測試 Price，沙盒付款與 Webhook 已驗收；方案是否公開仍應在正式上線前另行確認。
+- AI 教材加購方案已填入 Stripe 測試 Price，沙盒付款與 Webhook 已驗收；目前已公開給有效在校英文班學生測試。
 - AI 教材學生額度以台灣時間每月 1 日重新計算；老師與管理員維持獨立額度。
 - 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 已部署；兩張新表均啟用 RLS，且 `anon`／`authenticated` 無直接讀取權限。
-- 本輪環境沒有安裝 `react-scripts`，因此本機未補跑完整測試；PR #15 Deploy Preview 與 Netlify Production build 均已成功。
+- 本輪環境沒有安裝 `react-scripts`，因此登入競態的 2 個新增測試尚未在本機執行；PR #18 Deploy Preview 與 Netlify Production build 均已成功。
 
 ## 14. 下一個 Codex 對話建議提示詞
 
