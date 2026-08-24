@@ -82,6 +82,7 @@ const ALLOWED_ORIGINS = new Set([
 const CLASS_CODES = new Set(["E1", "E3", "E5", "E7"]);
 const MAX_BODY_BYTES = 512 * 1024;
 const MAX_PREVIEW_ROWS = 200;
+const MAX_BATCH_ROWS = 25;
 const INVITATION_TTL_HOURS = 30 * 24;
 const ACTIVATION_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const RESERVED_EMAIL_DOMAINS = new Set([
@@ -287,6 +288,12 @@ const getCallerProfile = async (
 const requireStaff = (caller: CallerProfile): void => {
     if (caller.role !== "teacher" && caller.role !== "admin") {
         throw new HttpError(403, "STAFF_REQUIRED", "只有老師或管理員可以建立學生帳號");
+    }
+};
+
+const requireAdmin = (caller: CallerProfile): void => {
+    if (caller.role !== "admin") {
+        throw new HttpError(403, "ADMIN_REQUIRED", "只有管理員可以批次建立學生帳號");
     }
 };
 
@@ -728,15 +735,11 @@ const sendPasswordReset = async (
     });
 };
 
-const createStudent = async (
-    req: Request,
+const createStudentAccount = async (
     admin: SupabaseClient,
     caller: CallerProfile,
-    body: JsonObject
-): Promise<Response> => {
-    requireStaff(caller);
-    const input = normalizeStudentInput(body);
-
+    input: StudentInput
+): Promise<{ account: unknown; credentials: JsonObject }> => {
     const { data: existing, error: existingError } = await admin
         .from("students")
         .select("id,email,firebase_uid")
@@ -796,8 +799,7 @@ const createStudent = async (
         );
     }
 
-    return json(req, 201, {
-        success: true,
+    return {
         account: data,
         credentials: {
             email: input.loginEmail,
@@ -805,6 +807,25 @@ const createStudent = async (
             must_change_password: true,
             shown_once: true
         }
+    };
+};
+
+const createStudent = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    requireStaff(caller);
+    const result = await createStudentAccount(
+        admin,
+        caller,
+        normalizeStudentInput(body)
+    );
+
+    return json(req, 201, {
+        success: true,
+        ...result
     });
 };
 
@@ -926,6 +947,199 @@ const previewStudents = async (
     });
 };
 
+const createdStudentId = (account: unknown): number | null => {
+    if (!account || typeof account !== "object") return null;
+    const student = (account as JsonObject).student;
+    if (!student || typeof student !== "object") return null;
+    const value = (student as JsonObject).id;
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
+};
+
+const batchCreateStudents = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    requireAdmin(caller);
+
+    const requestId = cleanText(body.request_id, 36).toLowerCase();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(requestId)) {
+        throw new HttpError(400, "INVALID_REQUEST_ID", "批次識別碼格式不正確，請重新載入後再試");
+    }
+    if (!Array.isArray(body.rows) || body.rows.length === 0) {
+        throw new HttpError(400, "ROWS_REQUIRED", "沒有可以批次建立的學生資料");
+    }
+    if (body.rows.length > MAX_BATCH_ROWS) {
+        throw new HttpError(400, "TOO_MANY_BATCH_ROWS", `一次最多建立 ${MAX_BATCH_ROWS} 位學生`);
+    }
+
+    const preparedRows = body.rows.map((rawRow, index) => {
+        const source = rawRow && typeof rawRow === "object"
+            ? rawRow as JsonObject
+            : {};
+        const fallbackEmail = normalizeEmail(source.login_email ?? source.email)
+            || `第 ${index + 1} 列未提供 Email`;
+
+        try {
+            return {
+                rowNumber: index + 1,
+                email: fallbackEmail,
+                input: normalizeStudentInput(source),
+                error: null as HttpError | null
+            };
+        } catch (error) {
+            return {
+                rowNumber: index + 1,
+                email: fallbackEmail,
+                input: null as StudentInput | null,
+                error: error instanceof HttpError
+                    ? error
+                    : new HttpError(400, "INVALID_ROW", "資料格式不正確")
+            };
+        }
+    });
+
+    const emailCounts = new Map<string, number>();
+    for (const row of preparedRows) {
+        if (row.input) {
+            emailCounts.set(row.input.loginEmail, (emailCounts.get(row.input.loginEmail) || 0) + 1);
+        }
+    }
+    for (const row of preparedRows) {
+        if (row.input && (emailCounts.get(row.input.loginEmail) || 0) > 1) {
+            row.error = new HttpError(400, "DUPLICATE_EMAIL_IN_BATCH", "CSV 內有重複的登入 Email");
+            row.input = null;
+        }
+    }
+
+    const { data: batch, error: batchError } = await admin
+        .from("academy_student_import_batches")
+        .insert({
+            request_id: requestId,
+            created_by: caller.id,
+            total_rows: preparedRows.length,
+            status: "processing"
+        })
+        .select("id")
+        .single();
+
+    if (batchError) {
+        if (batchError.code === "23505") {
+            throw new HttpError(
+                409,
+                "BATCH_ALREADY_SUBMITTED",
+                "這批資料已送出過。為避免重複建立，請重新載入並確認帳號管理結果"
+            );
+        }
+        throw new HttpError(500, "BATCH_AUDIT_CREATE_FAILED", "無法建立批次操作紀錄");
+    }
+
+    const results: JsonObject[] = [];
+    let successCount = 0;
+    let failureCount = 0;
+    let auditComplete = true;
+
+    for (const row of preparedRows) {
+        let result: JsonObject;
+
+        if (row.error || !row.input) {
+            const error = row.error || new HttpError(400, "INVALID_ROW", "資料格式不正確");
+            failureCount += 1;
+            result = {
+                row_number: row.rowNumber,
+                login_email: row.email,
+                status: "failed",
+                code: error.code,
+                error: error.message
+            };
+        } else {
+            try {
+                const created = await createStudentAccount(admin, caller, row.input);
+                successCount += 1;
+                result = {
+                    row_number: row.rowNumber,
+                    login_email: row.input.loginEmail,
+                    status: "success",
+                    account: created.account,
+                    credentials: created.credentials
+                };
+            } catch (error) {
+                const handled = error instanceof HttpError
+                    ? error
+                    : new HttpError(500, "ROW_CREATE_FAILED", "學生帳號建立失敗");
+                failureCount += 1;
+                result = {
+                    row_number: row.rowNumber,
+                    login_email: row.input.loginEmail,
+                    status: "failed",
+                    code: handled.code,
+                    error: handled.message
+                };
+            }
+        }
+
+        results.push(result);
+
+        const { error: resultAuditError } = await admin
+            .from("academy_student_import_results")
+            .insert({
+                batch_id: batch.id,
+                row_number: result.row_number,
+                login_email: result.login_email,
+                student_id: result.status === "success"
+                    ? createdStudentId(result.account)
+                    : null,
+                status: result.status,
+                error_code: result.code || null,
+                error_message: result.error || null
+            });
+
+        if (resultAuditError) {
+            auditComplete = false;
+            console.error("academy student batch row audit failed", {
+                batchId: batch.id,
+                rowNumber: row.rowNumber,
+                code: resultAuditError.code,
+                message: resultAuditError.message
+            });
+        }
+    }
+
+    const finalStatus = failureCount === 0 ? "completed" : "completed_with_errors";
+    const { error: batchUpdateError } = await admin
+        .from("academy_student_import_batches")
+        .update({
+            status: finalStatus,
+            success_count: successCount,
+            failure_count: failureCount,
+            completed_at: new Date().toISOString()
+        })
+        .eq("id", batch.id);
+
+    if (batchUpdateError) {
+        auditComplete = false;
+        console.error("academy student batch audit update failed", {
+            batchId: batch.id,
+            code: batchUpdateError.code,
+            message: batchUpdateError.message
+        });
+    }
+
+    return json(req, 200, {
+        success: true,
+        batch_id: batch.id,
+        request_id: requestId,
+        audit_complete: auditComplete,
+        summary: {
+            total: preparedRows.length,
+            succeeded: successCount,
+            failed: failureCount
+        },
+        results
+    });
+};
+
 const markPasswordChanged = async (
     req: Request,
     admin: SupabaseClient,
@@ -1035,6 +1249,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "create_student") {
             return await createStudent(req, admin, caller, body);
+        }
+        if (action === "batch_create_students") {
+            return await batchCreateStudents(req, admin, caller, body);
         }
         if (action === "create_invitation") {
             return await createInvitation(req, admin, caller, body);

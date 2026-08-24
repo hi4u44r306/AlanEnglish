@@ -18,6 +18,7 @@ import AddMusic from "../components/Pages/AddMusicV3";
 import NotFound from "../components/Pages/NotFound";
 import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
+import AcademyStudentCsvImport from "../components/Pages/AcademyStudentCsvImport";
 import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import ConversationPractice from "../components/Pages/ConversationPractice";
 import TeacherAssignments from "../components/Pages/TeacherAssignments";
@@ -114,6 +115,7 @@ const App = () => {
                     <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/accounts/import" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AcademyStudentCsvImport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/leaderboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/rewards" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><RewardsAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/navbar" element={<Navigate to="/admin/catalog" replace />} />

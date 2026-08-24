@@ -50,14 +50,20 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 學生 Dashboard 對尚未購買 AI 教材加購的帳號顯示 AI POWER-UP 宣傳卡；已購買者不顯示。
 - 後續階段：CSV 批次建立學生開通資料與批次結果匯出。
 
+本機尚未部署（`codex/admin-ui-csv-student-import`）：
+
+- 管理 Dashboard 已將 9 欄資訊合併為 6 欄、移除重複快速管理卡與未啟用的 LINE 預留欄位，並降低管理頁字重、提高小字與表單可讀性。
+- CSV 批次建立學生第一版已完成：範本下載、CSV 解析、伺服器預覽、E1／E3／E5／E7 與 Email 驗證、每批 25 位上限、admin-only 批次建立、逐列成功／失敗、結果下載、request ID 防重複提交與不保存臨時密碼的操作紀錄。
+- 新增 additive migration `20260824124647_academy_student_csv_batches.sql`；尚未套用遠端 Supabase，`academy-student-manager` 也尚未部署。
+- CSV 相關 3 份測試檔共 8 個案例通過，Production build 成功。
+
 目前下一個主要開發方向：
 
-1. 建立 P0 Unit Test 基礎
-2. 登入、Session、Route 與角色權限測試
-3. 會員、試用、啟用碼與有效權限測試
-4. MusicPlayer 80% 聆聽與防作弊測試
-5. 作業、AI 教材與前後端 action contract 測試
-6. Supabase RLS、GRANT、RPC 與 migration 整合測試
+1. 在本機／沙盒套用 CSV audit migration，執行小批量 Firebase／Supabase 端到端驗收
+2. 驗證重複 Email、單列失敗不中止、request ID 重複提交與一次性密碼結果下載
+3. 建立 P0 Unit Test 基礎
+4. 登入、Session、Route 與角色權限測試
+5. MusicPlayer 80% 聆聽與防作弊測試
 
 ## 2. 目前正式版本
 
@@ -72,7 +78,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 目前已知的正式基準 commit：
 
 ```text
-0ed71a7
+17a8456
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
@@ -460,6 +466,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 已部署；兩張新表均啟用 RLS，且 `anon`／`authenticated` 無直接讀取權限。
 - 本輪環境沒有安裝 `react-scripts`，因此登入競態的 2 個新增測試尚未在本機執行；PR #18 Deploy Preview 與 Netlify Production build 均已成功。
 - AI Premium UI 的 3 個會員中心測試已加入；本機環境缺少 `react-scripts`，未直接執行測試。PR #21 Deploy Preview 與 Netlify Production build 均成功，正式部署 commit 為 `43e5982`。
+- 2026-08-24 本機 CSV 批次建立學生：3 份測試檔共 8 個案例通過，`npm run build` 成功；尚未執行遠端 migration、Edge Function 部署或正式資料驗收。
 
 ## 14. 下一個 Codex 對話建議提示詞
 

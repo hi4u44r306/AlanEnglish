@@ -224,6 +224,31 @@ export const previewAcademyStudents = async (
     );
 };
 
+export const createAcademyStudentsBatch = async (
+    firebaseUser,
+    students,
+    requestId
+) => {
+    if (!Array.isArray(students) || students.length === 0) {
+        throw new AcademyStudentServiceError(
+            "沒有可以批次建立的學生資料",
+            {
+                code: "STUDENT_ROWS_REQUIRED",
+                status: 400
+            }
+        );
+    }
+
+    return callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "batch_create_students",
+            request_id: String(requestId || "").trim(),
+            rows: students.map(normalizeStudentPayload)
+        }
+    );
+};
+
 export const listAcademyInvitations = async firebaseUser => {
     const result = await callAcademyStudentManager(
         firebaseUser,
@@ -262,6 +287,7 @@ const academyStudentService = {
     claimAcademyInvitation,
     activateAcademyInvitation,
     previewAcademyStudents,
+    createAcademyStudentsBatch,
     listAcademyInvitations,
     sendAcademyPasswordReset,
     markAcademyPasswordChanged
