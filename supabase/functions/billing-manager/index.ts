@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import Stripe from "npm:stripe@22.4.0";
+import { toStripeTwdMinorUnits } from "../_shared/stripe-price.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -210,13 +211,15 @@ Deno.serve(async (req: Request) => {
 
             const stripePrice = await stripe.prices.retrieve(plan.stripe_price_id);
             const configuredAmount = Number(stripePrice.unit_amount);
+            const expectedAmount = toStripeTwdMinorUnits(plan.price_twd);
             if (
                 stripePrice.active !== true
                 || stripePrice.type !== "recurring"
                 || stripePrice.currency !== "twd"
                 || stripePrice.recurring?.interval !== plan.billing_interval
                 || !Number.isInteger(configuredAmount)
-                || configuredAmount !== Number(plan.price_twd)
+                || expectedAmount === null
+                || configuredAmount !== expectedAmount
             ) {
                 return json(409, {
                     error: "Stripe 價格與網站方案設定不一致，請通知管理員檢查價格、幣別與週期",
