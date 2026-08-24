@@ -59,6 +59,18 @@ function MembershipCenter() {
     const membership = profile?.membership;
     const publicPlans = useMemo(() => plans.filter(plan => plan.is_public), [plans]);
     const activePlanCodes = useMemo(() => new Set(membership?.effective_access?.plan_codes || []), [membership]);
+    const academyGrant = useMemo(() => (
+        membership?.effective_access?.grants?.find(grant => grant?.plan_code === "academy_internal") || null
+    ), [membership]);
+    const isActiveAcademyStudent = membership?.is_active === true
+        && membership?.effective_access?.learner_type === "academy_student"
+        && activePlanCodes.has("academy_internal");
+    const membershipStatusLabel = isActiveAcademyStudent
+        ? "英文班在校生"
+        : STATUS_LABELS[membership?.status] || membership?.status || "尚未建立";
+    const membershipPlanLabel = isActiveAcademyStudent
+        ? academyGrant?.plan_name || "英文班在學方案"
+        : membership?.plan?.name || "尚未選擇方案";
     const hasAiAddon = activePlanCodes.has("ai_materials_addon_monthly");
     const aiAddonGrant = useMemo(() => (
         membership?.effective_access?.grants?.find(grant => grant?.plan_code === "ai_materials_addon_monthly") || null
@@ -146,8 +158,17 @@ function MembershipCenter() {
         <main className="platform-page">
             <header className="platform-hero"><div><span className="platform-eyebrow">MEMBERSHIP</span><h1>會員方案與啟用碼</h1><p>查看試用期限、輸入教材附贈啟用碼，或管理月費訂閱。</p></div></header>
             <section className={`platform-status-card ${membership?.is_active ? "is-active" : "is-expired"}`}>
-                <div><span>目前狀態</span><h2>{STATUS_LABELS[membership?.status] || membership?.status || "尚未建立"}</h2><p>{membership?.plan?.name || "尚未選擇方案"}</p></div>
-                <div className="platform-status-meta"><div><span>可使用至</span><strong>{formatDate(membership?.effective_access_end)}</strong></div><div><span>剩餘天數</span><strong>{membership?.days_remaining == null ? "不限" : `${membership.days_remaining} 天`}</strong></div></div>
+                <div><span>目前狀態</span><h2>{membershipStatusLabel}</h2><p>{membershipPlanLabel}</p></div>
+                <div className="platform-status-meta">
+                    <div>
+                        <span>{isActiveAcademyStudent ? "使用期間" : "可使用至"}</span>
+                        <strong>{isActiveAcademyStudent ? "在校期間有效" : formatDate(membership?.effective_access_end)}</strong>
+                    </div>
+                    <div>
+                        <span>{isActiveAcademyStudent ? "在學權限" : "剩餘天數"}</span>
+                        <strong>{isActiveAcademyStudent ? "已啟用" : membership?.days_remaining == null ? "不限" : `${membership.days_remaining} 天`}</strong>
+                    </div>
+                </div>
             </section>
             {membership?.requires_email_verification && <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h2>先完成 Email 驗證</h2><p>驗證信會寄到 {firebaseUser?.email}。完成驗證後，7 天免費試用才會開始計時。</p></div><div className="platform-verification-actions"><button className="platform-secondary" onClick={resendVerification} disabled={working === "verification" || verificationCooldown > 0}>{working === "verification" ? "寄送中…" : verificationCooldown > 0 ? `${verificationCooldown} 秒後可重寄` : "重新寄送驗證信"}</button><button className="platform-primary" onClick={confirmVerification} disabled={working === "confirm-verification"}>{working === "confirm-verification" ? "確認中…" : "我已完成驗證"}</button></div></div><p className="platform-footnote">仍未收到時，請搜尋寄件者包含 noreply 的郵件，並檢查垃圾郵件或促銷內容。</p></section>}
             <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">ACTIVATION CODE</span><h2>教材啟用碼</h2></div><p>購買實體教材附贈的聽力權限，可在這裡啟用。</p></div><form className="platform-inline-form" onSubmit={redeem}><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="AE-XXXX-XXXX-XXXX" autoComplete="off" /><button className="platform-primary" disabled={working === "redeem"}>{working === "redeem" ? "啟用中…" : "啟用權限"}</button></form></section>

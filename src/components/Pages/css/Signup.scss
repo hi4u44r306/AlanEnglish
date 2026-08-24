@@ -147,6 +147,8 @@
   select,
   textarea {
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
     box-sizing: border-box;
     border: 1px solid #d7dfeb;
     border-radius: 13px;
@@ -162,8 +164,13 @@
 
   input,
   select {
+    display: block;
     min-height: 48px;
     padding: 0 14px;
+  }
+
+  input[type="date"] {
+    min-inline-size: 0;
   }
 
   textarea {
