@@ -26,6 +26,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 英文班學生邀請式帳號建立（已部署）
 - Firebase 忘記／修改密碼與客服案件流程（已部署）
 - AI 教材額度卡顯示每日及每月重新計算倒數（已部署）
+- 首次登入與全站 Session 同時載入資料時共用請求，避免成功後被競態登出
 - 公開產品首頁
 - 會員方案展示
 - 固定 Navbar
@@ -196,7 +197,8 @@ supabase/migrations/20260823090000_ai_material_addon_access.sql
 - 七天試用可使用 AI 教材每日 2 次；7 天共 7 次總額度已由 `generate-ai-material` v19 實施。
 - 會員後台已拆分核心方案資料與家長週報狀態載入；週報請求失敗不再清空方案及會員資料，且會常駐顯示實際錯誤訊息。已部署正式 Netlify。
 - 會員後台方案卡片已調整為桌面 3 欄、平板 2 欄、手機 1 欄，長方案代碼及表單欄位不再溢出卡片；已部署正式 Netlify。
-- Stripe 測試環境的 NT$99 recurring Price 已填入 AI 加購方案；方案目前維持不公開，避免付款授權流程部署前被學生看到。
+- Stripe 測試環境的 NT$99 recurring Price 已填入 AI 加購方案；經專案擁有者同意，方案已開放給有效在校英文班學生進行沙盒付款測試。
+- Additive migration `20260824033104_publish_ai_materials_sandbox_plan.sql` 已套用；方案維持 Stripe 沙盒模式，不會真實扣款。
 - Checkout、Customer Portal、Webhook 與獨立 `student_access_grants` 授權流程已完成；付款不會覆蓋英文班、教材或其他既有權限。Migration `20260823230023_stripe_additive_subscription_grants.sql` 已套用正式 Supabase。
 - AI 加購額度為每日 5 次、台灣時間每月 150 次；每月 150 次只套用 AI 加購，不影響其他完整付費方案。
 - 新註冊及既有未轉付費的公開試用會員會使用 `trial_7_day` 方案，讓 7 天內總共 7 次、每日 2 次的限制可以正確辨識；正式資料已校正 3 筆，剩餘不一致為 0。
