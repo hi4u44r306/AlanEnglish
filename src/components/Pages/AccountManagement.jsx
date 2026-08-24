@@ -162,7 +162,7 @@ function AccountManagement() {
                 </div>
 
                 <Link to="/teacher/students" className="management-primary-link">
-                    建立帳號
+                    建立學生邀請
                 </Link>
             </section>
 

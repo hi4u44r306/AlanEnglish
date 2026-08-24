@@ -52,6 +52,11 @@ const normalizeLevelProgress = (progress: any) => progress ? ({
 const normalizeEmail = (value: unknown) => cleanText(value, 320).toLowerCase();
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const RESERVED_EMAIL_DOMAINS = new Set(["example.com", "example.net", "example.org", "example.invalid", "localhost"]);
+const isReceivableEmail = (value: string) => {
+    const domain = value.split("@").pop() || "";
+    return isEmail(value) && !domain.endsWith(".invalid") && !RESERVED_EMAIL_DOMAINS.has(domain);
+};
 
 const numberOrNull = (value: unknown) => {
     if (value === null || value === undefined || value === "") return null;
@@ -436,8 +441,8 @@ Deno.serve(async (req: Request) => {
         if (action === "complete_signup") {
             const requestedName = cleanText(body?.name, 80);
             const guardianEmail = normalizeEmail(body?.guardian_email);
-            if (!firebaseUser.email || !isEmail(firebaseUser.email)) {
-                return json(400, { error: "Firebase 帳號缺少有效 Email" });
+            if (!firebaseUser.email || !isReceivableEmail(firebaseUser.email)) {
+                return json(400, { error: "請使用本人或家長可以正常收信的 Email，不可使用虛構或臨時信箱" });
             }
             if (!requestedName) return json(400, { error: "請輸入學生姓名" });
             if (guardianEmail && !isEmail(guardianEmail)) {

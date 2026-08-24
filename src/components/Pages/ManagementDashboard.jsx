@@ -416,8 +416,8 @@ function ManagementDashboard() {
                                 <span>查看與編輯學生帳號資料</span>
                             </Link>
                             <Link to="/teacher/students" className="dashboard-action-card">
-                                <strong>建立帳號</strong>
-                                <span>新增學生與管理使用者</span>
+                                <strong>建立學生邀請</strong>
+                                <span>填寫學生資料並傳送註冊連結</span>
                             </Link>
                             <Link to="/teacher/add-music" className="dashboard-action-card">
                                 <strong>教材音檔</strong>

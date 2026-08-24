@@ -23,6 +23,8 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 學生類型與疊加式會員權限
 - 英文班分班週期
 - 英文班學生帳號建立
+- 英文班學生邀請式帳號建立（本機功能分支完成，尚未部署）
+- Firebase 忘記／修改密碼與客服案件流程（本機功能分支完成，尚未部署）
 - 公開產品首頁
 - 會員方案展示
 - 固定 Navbar
@@ -197,8 +199,19 @@ supabase/migrations/20260823090000_ai_material_addon_access.sql
 - AI 加購額度為每日 5 次、台灣時間每月 150 次；每月 150 次只套用 AI 加購，不影響其他完整付費方案。
 - 新註冊及既有未轉付費的公開試用會員會使用 `trial_7_day` 方案，讓 7 天內總共 7 次、每日 2 次的限制可以正確辨識；正式資料已校正 3 筆，剩餘不一致為 0。
 - 2026-08-24 已部署：`membership-manager` v15、`billing-manager` v12、`stripe-webhook` v12、`generate-ai-material` v19，狀態均為 ACTIVE。
-- 正式 Supabase 尚未設定 `STRIPE_SECRET_KEY` 與 `STRIPE_WEBHOOK_SECRET`；付款與 Webhook 會安全拒絕請求，設定前不得公開 AI 加購方案。
-- GitHub 功能分支 `codex/ai-material-paid-access` 已推送；主要功能 commit 為 `d89b010`。該分支相對 `origin/main` 包含 34 個提交，尚未獲授權合併正式分支。
+- Supabase 的 Stripe Secrets 已由專案擁有者在 Dashboard 儲存；不得從終端機讀取或顯示其內容。
+- Stripe 沙盒 NT$99 訂閱付款、Webhook、AI 權限啟用、教材生成與撤銷後剩餘 0 次已完成端到端驗收；未使用真實付款。
+- GitHub 功能分支 `codex/ai-material-paid-access` 已推送至 commit `42da564`；尚未獲授權合併正式分支。
+
+### 帳號邀請、Email 與客服（尚未部署）
+
+- 管理員／老師改為建立 72 小時單次邀請連結，不再產生、顯示或保管學生臨時密碼。
+- 學生或家長使用邀請指定的可收信 Email，自行設定密碼；完成 Firebase Email 驗證後才啟用英文班權限。
+- 公開註冊頁明確要求可收信 Email，並拒絕 `example.*`、`.invalid` 與 `localhost` 等測試地址。
+- 網路購買教材者可自行註冊，登入會員中心後輸入教材兌換碼；英文班在校生仍由工作人員建立邀請，以避免自行選班取得英文班權限。
+- 新增 Firebase 密碼重設、登入後修改密碼、公開客服表單與管理員客服案件頁。
+- 新增 additive migration `20260824093000_academy_account_invitations_and_support.sql` 與 `support-manager` Function；兩者目前只有本機程式碼，尚未套用或部署。
+- AI 教材額度卡新增「今日總次數／剩餘」與「本月總次數／剩餘」的明確顯示。
 
 ### 第三階段：分班週期
 
@@ -419,8 +432,10 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - Node deprecation warning 目前不是 build 失敗。
 - 不得直接修改已執行的 migration。
 - 不得覆蓋使用者未提交的本機修改。
-- AI 教材加購方案已填入 Stripe 測試 Price，但仍未公開；付款 migration 與 Functions 已部署，尚缺 Stripe Secret、Webhook endpoint 及測試付款驗收。
+- AI 教材加購方案已填入 Stripe 測試 Price，沙盒付款與 Webhook 已驗收；方案是否公開仍應在正式上線前另行確認。
 - AI 教材學生額度以台灣時間每月 1 日重新計算；老師與管理員維持獨立額度。
+- 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 更新尚未套用或部署；部署前需先完成 preview 驗收並另行取得明確同意。
+- 本輪環境沒有安裝 `react-scripts`，離線 `npm ci` 又缺少 npm cache，因此 Unit Test 與 Production build 尚未在本機執行成功；需在可取得既有依賴的環境補跑。
 
 ## 14. 下一個 Codex 對話建議提示詞
 

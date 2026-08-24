@@ -24,11 +24,14 @@ const requireFirebaseUser = firebaseUser => {
 
 const callAcademyStudentManager = async (
     firebaseUser,
-    body
+    body,
+    { allowAnonymous = false } = {}
 ) => {
-    requireFirebaseUser(firebaseUser);
+    if (!allowAnonymous) requireFirebaseUser(firebaseUser);
 
-    const firebaseToken = await firebaseUser.getIdToken();
+    const firebaseToken = firebaseUser && typeof firebaseUser.getIdToken === "function"
+        ? await firebaseUser.getIdToken(true)
+        : null;
 
     let response;
 
@@ -39,7 +42,7 @@ const callAcademyStudentManager = async (
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${firebaseToken}`,
+                    ...(firebaseToken ? { Authorization: `Bearer ${firebaseToken}` } : {}),
                     apikey: supabaseKey
                 },
                 body: JSON.stringify(body)
@@ -161,6 +164,39 @@ export const createAcademyStudent = async (
     );
 };
 
+export const createAcademyInvitation = async (
+    firebaseUser,
+    student
+) => callAcademyStudentManager(
+    firebaseUser,
+    {
+        action: "create_invitation",
+        ...normalizeStudentPayload(student)
+    }
+);
+
+export const previewAcademyInvitation = async token => callAcademyStudentManager(
+    null,
+    { action: "preview_invitation", token },
+    { allowAnonymous: true }
+);
+
+export const claimAcademyInvitation = async (
+    firebaseUser,
+    token
+) => callAcademyStudentManager(
+    firebaseUser,
+    { action: "claim_invitation", token }
+);
+
+export const activateAcademyInvitation = async (
+    firebaseUser,
+    token
+) => callAcademyStudentManager(
+    firebaseUser,
+    { action: "activate_invitation", token }
+);
+
 export const previewAcademyStudents = async (
     firebaseUser,
     students
@@ -196,6 +232,10 @@ export const markAcademyPasswordChanged = async firebaseUser => {
 const academyStudentService = {
     listAcademyClasses,
     createAcademyStudent,
+    createAcademyInvitation,
+    previewAcademyInvitation,
+    claimAcademyInvitation,
+    activateAcademyInvitation,
     previewAcademyStudents,
     markAcademyPasswordChanged
 };

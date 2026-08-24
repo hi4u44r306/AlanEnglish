@@ -41,11 +41,12 @@ describe("FreeTrialSignup", () => {
         </MemoryRouter>
     );
 
-    const completeForm = (email = "student@example.com") => {
+    const completeForm = (email = "student@gmail.com") => {
         fireEvent.change(screen.getByLabelText("學生姓名"), { target: { value: "測試學生" } });
-        fireEvent.change(screen.getByLabelText("登入 Email"), { target: { value: email } });
+        fireEvent.change(screen.getByLabelText("登入與收信 Email"), { target: { value: email } });
         fireEvent.change(screen.getByLabelText("密碼"), { target: { value: "secret123" } });
         fireEvent.change(screen.getByLabelText("再次輸入密碼"), { target: { value: "secret123" } });
+        fireEvent.click(screen.getByLabelText(/我確認可以登入這個信箱/));
     };
 
     it("shows an inline error and restores the button when the Email already exists", async () => {
@@ -53,18 +54,18 @@ describe("FreeTrialSignup", () => {
 
         renderSignup();
 
-        completeForm("existing@example.com");
+        completeForm("existing@gmail.com");
         fireEvent.click(screen.getByRole("button", { name: "開始 7 天免費試用" }));
 
         const alert = await screen.findByRole("alert");
         expect(alert).toHaveTextContent("這個 Email 已經註冊，請直接登入。");
-        expect(screen.getByRole("link", { name: "前往登入" })).toHaveAttribute("href", "/");
+        expect(screen.getByRole("link", { name: "前往登入" })).toHaveAttribute("href", "/login");
         await waitFor(() => expect(screen.getByRole("button", { name: "開始 7 天免費試用" })).toBeEnabled());
         expect(toast.error).toHaveBeenCalledWith("這個 Email 已經註冊，請直接登入。");
     });
 
     it("keeps the created account recoverable when the first verification email fails", async () => {
-        const user = { email: "student@example.com", emailVerified: false };
+        const user = { email: "student@gmail.com", emailVerified: false };
         createUserWithEmailAndPassword.mockResolvedValue({ user });
         completePublicSignup.mockResolvedValue({
             profile: { id: 123, role: "student" },

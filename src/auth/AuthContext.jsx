@@ -61,8 +61,19 @@ export const AuthProvider = ({ children }) => {
             } catch (error) {
                 console.error("恢復登入狀態失敗:", error);
                 clearStudentSession();
-                setFirebaseUser(null);
                 setStudentProfile(null);
+
+                const isOnboardingRoute = [
+                    "/academy/invite",
+                    "/freetrial"
+                ].some(path => window.location.pathname.startsWith(path));
+
+                if (isOnboardingRoute) {
+                    setFirebaseUser(user);
+                    return;
+                }
+
+                setFirebaseUser(null);
 
                 try {
                     await signOut(authentication);

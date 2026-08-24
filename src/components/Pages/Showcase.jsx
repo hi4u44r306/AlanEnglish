@@ -365,7 +365,7 @@ const Showcase = () => {
                                 <div className="showcase-path-label">ALAN ENGLISH CLASS</div>
                                 <div className="showcase-path-icon"><BiShieldQuarter /></div>
                                 <h3>英文班學生</h3>
-                                <p>由老師建立帳號，依 E1、E3、E5、E7 班級安排教材與作業。</p>
+                                <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生或家長自行設定密碼與驗證 Email。</p>
                                 <ul>
                                     <li><span>✓</span> 在學期間免費使用</li>
                                     <li><span>✓</span> 接收老師發布的班級作業</li>

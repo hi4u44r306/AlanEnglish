@@ -46,6 +46,7 @@
 .platform-public-card h1 { margin: 8px 0 12px; font-size: clamp(30px, 5vw, 46px); }
 .platform-public-card > p { color: var(--ae-muted); line-height: 1.8; }
 .platform-center { text-align: center; }
+.platform-center-left { text-align: left; }
 .platform-icon { font-size: 52px; margin-bottom: 14px; }
 
 .platform-eyebrow {
@@ -155,6 +156,12 @@ textarea { resize: vertical; }
 .platform-inline-form input { flex: 1; text-transform: uppercase; letter-spacing: .08em; }
 .platform-check { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; }
 .platform-check input { width: 18px; min-height: 18px; }
+.platform-honeypot { position: absolute !important; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.platform-support-ticket { align-items: stretch !important; }
+.platform-support-ticket > div:first-child { flex: 1; min-width: 0; }
+.platform-support-ticket h3 { margin: 5px 0; }
+.platform-support-ticket p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.platform-support-actions { width: min(340px, 42%); display: grid; gap: 10px; }
 .platform-compact-form { align-items: end; }
 
 .platform-loading,
@@ -323,4 +330,6 @@ textarea { resize: vertical; }
     .platform-ranking article { grid-template-columns: 45px 1fr auto; padding: 14px 12px; }
     .platform-cleanup-actions { grid-template-columns: 1fr; }
     .platform-section-title { align-items: flex-start; flex-direction: column; }
+    .platform-support-ticket { display: grid !important; }
+    .platform-support-actions { width: 100%; }
 }

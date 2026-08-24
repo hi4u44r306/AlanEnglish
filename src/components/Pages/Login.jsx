@@ -16,7 +16,10 @@ function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const loginAttemptRef = useRef(false);
-    const destination = location.state?.from?.pathname || "/userinfo";
+    const requestedLocation = location.state?.from;
+    const destination = requestedLocation
+        ? `${requestedLocation.pathname || ""}${requestedLocation.search || ""}`
+        : "/userinfo";
 
     useEffect(() => {
         if (
@@ -217,7 +220,7 @@ function Login() {
                         <div className="login-field">
                             <div className="password-label">
                                 <label htmlFor="password">密碼</label>
-                                <a href="/solve">忘記密碼？</a>
+                                <Link to="/forgot-password">忘記密碼？</Link>
                             </div>
 
                             <div className="login-input-wrapper">
@@ -253,7 +256,12 @@ function Login() {
 
                         <div className="login-trial">
                             <span>還沒有帳號？</span>
-                            <Link to="/freetrial">立即開始 7 天免費試用</Link>
+                            <Link to="/freetrial">自行註冊／輸入教材兌換碼</Link>
+                        </div>
+
+                        <div className="login-trial">
+                            <span>登入或付款遇到問題？</span>
+                            <Link to="/support">聯絡客服</Link>
                         </div>
 
                         <div className="login-tip">

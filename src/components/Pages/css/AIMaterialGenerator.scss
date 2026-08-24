@@ -107,6 +107,24 @@
 .ai-quota-dots .available { background: #5267e8; }
 .ai-quota-dots .used { background: #dfe4ef; }
 
+.ai-quota-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0;
+}
+
+.ai-quota-stats div {
+    padding: 10px 12px;
+    border-radius: 13px;
+    background: #f4f6fb;
+}
+
+.ai-quota-stats span,
+.ai-quota-stats strong { display: block; }
+.ai-quota-stats span { color: #7c879d; font-size: 11px; font-weight: 700; }
+.ai-quota-stats strong { margin-top: 2px; color: #14213d; font-size: 20px; }
+
 .ai-quota-card p {
     margin: 0;
     color: #8b94a7;

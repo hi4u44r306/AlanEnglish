@@ -373,6 +373,12 @@ function AIMaterialGenerator() {
                     <div className="ai-quota-dots" style={{ gridTemplateColumns: `repeat(${Math.max(1, usage.limit || 5)}, 1fr)` }}>
                         {Array.from({ length: usage.limit || 5 }).map((_, index) => <span key={index} className={index < usage.used ? "used" : "available"} />)}
                     </div>
+                    <div className="ai-quota-stats">
+                        <div><span>今日總次數</span><strong>{loadingUsage ? "—" : usage.limit}</strong></div>
+                        <div><span>今日剩餘</span><strong>{loadingUsage ? "—" : usage.remaining}</strong></div>
+                        <div><span>本月總次數</span><strong>{loadingUsage ? "—" : usage.monthly_limit ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
+                        <div><span>本月剩餘</span><strong>{loadingUsage ? "—" : usage.monthly_remaining ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
+                    </div>
                     <p>今天已使用 {usage.used} / {usage.limit} 次 · 成功生成才扣額度</p>
                     {usage.trial_limit !== null && <p>免費試用已使用 {usage.trial_used} / {usage.trial_limit} 次</p>}
                     {usage.monthly_limit !== null && <p>本月已使用 {usage.monthly_used} / {usage.monthly_limit} 次</p>}
