@@ -10,6 +10,16 @@ export const getPublicPlans = firebaseUser => callMembership(firebaseUser, "plan
 export const redeemActivationCode = (firebaseUser, code) => callMembership(firebaseUser, "redeem_code", { code });
 export const getManagedAccounts = firebaseUser => callMembership(firebaseUser, "list_accounts");
 export const updateManagedAccount = (firebaseUser, account) => callMembership(firebaseUser, "update_account", account);
+export const archiveManagedAccount = (firebaseUser, accountId, reason = "") => callMembership(
+    firebaseUser,
+    "archive_account",
+    { id: accountId, reason }
+);
+export const restoreManagedAccount = (firebaseUser, accountId) => callMembership(
+    firebaseUser,
+    "restore_account",
+    { id: accountId }
+);
 export const getMembershipAdminDashboard = firebaseUser => callMembership(firebaseUser, "admin_dashboard");
 export const updateSubscriptionPlan = (firebaseUser, plan) => callMembership(firebaseUser, "admin_update_plan", plan);
 export const generateActivationCodes = (firebaseUser, payload) => callMembership(firebaseUser, "admin_generate_codes", payload);

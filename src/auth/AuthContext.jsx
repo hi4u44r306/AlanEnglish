@@ -44,6 +44,17 @@ export const AuthProvider = ({ children }) => {
                     const freshProfile = await loadStudentProfile(user);
                     if (!disposed) setStudentProfile(freshProfile);
                 } catch (error) {
+                    if (error?.code === "ACCOUNT_ARCHIVED") {
+                        clearStudentSession();
+                        setStudentProfile(null);
+                        setFirebaseUser(null);
+                        try {
+                            await signOut(authentication);
+                        } catch (signOutError) {
+                            console.error("清除已停用帳號 Session 失敗:", signOutError);
+                        }
+                        return;
+                    }
                     console.warn("背景更新帳號資料失敗，暫時保留已驗證 Session 的快取資料:", error);
                 } finally {
                     if (!disposed) setProfileRefreshing(false);

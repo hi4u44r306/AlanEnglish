@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../auth/AuthContext";
-import { getManagedAccounts, updateManagedAccount } from "../../services/membershipService";
+import {
+    archiveManagedAccount,
+    getManagedAccounts,
+    restoreManagedAccount,
+    updateManagedAccount
+} from "../../services/membershipService";
 import { listAcademyInvitations, sendAcademyPasswordReset } from "../../services/academyStudentService";
 import "./css/ManagementDashboard.scss";
 
@@ -13,10 +18,17 @@ const ROLE_LABELS = {
     admin: "Admin"
 };
 
-const PLAN_LABELS = {
-    listeningonly: "純聽力",
-    allcover: "全方位"
+const LEARNER_TYPE_LABELS = {
+    academy_student: "英文班在學方案",
+    textbook_customer: "網購教材聽力權限",
+    trial_user: "7 天免費試用"
 };
+
+const getAccountPlanLabel = account => (
+    LEARNER_TYPE_LABELS[account?.learner_type]
+    || account?.membership?.plan?.name
+    || "尚未設定"
+);
 
 const ACTIVATION_LABELS = {
     active: "尚未開通",
@@ -26,6 +38,11 @@ const ACTIVATION_LABELS = {
     revoked: "已撤銷"
 };
 
+const ACCOUNT_STATUS_LABELS = {
+    active: "使用中",
+    archived: "已停用"
+};
+
 function AccountManagement() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const [accounts, setAccounts] = useState([]);
@@ -33,6 +50,7 @@ function AccountManagement() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [resettingEmail, setResettingEmail] = useState("");
+    const [changingStatusId, setChangingStatusId] = useState(null);
     const [errorMessage, setErrorMessage] = useState("");
     const [searchText, setSearchText] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
@@ -152,8 +170,8 @@ function AccountManagement() {
             return;
         }
 
-        if (editForm.role === "student" && (!editForm.class || !editForm.plan)) {
-            toast.error("學生必須選擇 Class 與 Plan");
+        if (editForm.role === "student" && !editForm.class) {
+            toast.error("英文班學生必須選擇班級");
             return;
         }
 
@@ -170,10 +188,10 @@ function AccountManagement() {
                 name: editForm.name.trim(),
                 role: isAdmin ? editForm.role : "student",
                 class: editForm.role === "student" ? editForm.class : null,
-                plan: editForm.role === "student" ? editForm.plan : null
+                plan: editingAccount.plan || null
             });
             setAccounts(prev => prev.map(account => (
-                account.id === result.account.id ? result.account : account
+                account.id === result.account.id ? { ...account, ...result.account } : account
             )));
 
             setEditingAccount(null);
@@ -183,6 +201,31 @@ function AccountManagement() {
             toast.error(error.message || "帳號更新失敗");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const changeAccountStatus = async account => {
+        if (!isAdmin || !firebaseUser || account?.role !== "student") return;
+        const isArchived = account.account_status === "archived";
+        const actionLabel = isArchived ? "恢復" : "停用";
+        const confirmation = isArchived
+            ? `要恢復 ${account.name || account.email} 的登入與使用權嗎？`
+            : `要停用 ${account.name || account.email} 嗎？\n\n學習紀錄會保留，之後仍可恢復。`;
+        if (!window.confirm(confirmation)) return;
+
+        setChangingStatusId(account.id);
+        try {
+            const result = isArchived
+                ? await restoreManagedAccount(firebaseUser, account.id)
+                : await archiveManagedAccount(firebaseUser, account.id, "由帳號管理頁停用");
+            setAccounts(prev => prev.map(item => (
+                item.id === result.account.id ? { ...item, ...result.account } : item
+            )));
+            toast.success(`帳號已${actionLabel}`);
+        } catch (error) {
+            toast.error(error?.message || `帳號${actionLabel}失敗`);
+        } finally {
+            setChangingStatusId(null);
         }
     };
 
@@ -206,7 +249,7 @@ function AccountManagement() {
                 </div>
 
                 <Link to="/teacher/students" className="management-primary-link">
-                    建立學生邀請
+                    快速建立學生
                 </Link>
             </section>
 
@@ -230,10 +273,10 @@ function AccountManagement() {
 
                     <select value={classFilter} onChange={e => setClassFilter(e.target.value)}>
                         <option value="all">全部班級</option>
-                        <option value="A">A 班</option>
-                        <option value="B">B 班</option>
-                        <option value="C">C 班</option>
-                        <option value="D">D 班</option>
+                        <option value="E1">E1 班</option>
+                        <option value="E3">E3 班</option>
+                        <option value="E5">E5 班</option>
+                        <option value="E7">E7 班</option>
                     </select>
                 </div>
 
@@ -255,6 +298,7 @@ function AccountManagement() {
                                         <th>Class</th>
                                         <th>Plan</th>
                                         <th>開通狀態</th>
+                                        <th>帳號狀態</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -270,17 +314,25 @@ function AccountManagement() {
                                                     </span>
                                                 </td>
                                                 <td>{account.role === "student" ? account.class || "-" : "-"}</td>
-                                                <td>{account.role === "student" ? PLAN_LABELS[account.plan] || account.plan || "-" : "-"}</td>
+                                                <td>{account.role === "student" ? getAccountPlanLabel(account) : "-"}</td>
                                                 <td>
                                                     {account.role === "student" ? (() => {
                                                         const invitation = invitationByEmail.get(String(account.email || "").toLowerCase());
-                                                        const status = invitation?.status || "legacy";
+                                                        const status = invitation?.status
+                                                            || (account.must_change_password ? "direct_pending" : "legacy");
                                                         return (
                                                             <span className={`activation-badge activation-${status}`}>
-                                                                {ACTIVATION_LABELS[status] || "既有帳號"}
+                                                                {status === "direct_pending"
+                                                                    ? "待首次改密碼"
+                                                                    : ACTIVATION_LABELS[status] || "已開通"}
                                                             </span>
                                                         );
                                                     })() : "-"}
+                                                </td>
+                                                <td>
+                                                    <span className={`account-status-badge account-status-${account.account_status || "active"}`}>
+                                                        {ACCOUNT_STATUS_LABELS[account.account_status || "active"]}
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     <div className="management-row-actions">
@@ -301,13 +353,27 @@ function AccountManagement() {
                                                                 {resettingEmail === account.email ? "寄送中…" : "寄送密碼重設信"}
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.role === "student" && (
+                                                            <button
+                                                                type="button"
+                                                                className={account.account_status === "archived"
+                                                                    ? "management-restore-button"
+                                                                    : "management-archive-button"}
+                                                                onClick={() => changeAccountStatus(account)}
+                                                                disabled={changingStatusId === account.id}
+                                                            >
+                                                                {changingStatusId === account.id
+                                                                    ? "處理中…"
+                                                                    : account.account_status === "archived" ? "恢復" : "停用"}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
 
                                             {editingAccount?.id === account.id && (
                                                 <tr className="management-edit-row">
-                                                    <td colSpan="7">
+                                                    <td colSpan="8">
                                                         <form className="management-edit-form" onSubmit={saveAccount}>
                                                             <div className="management-edit-grid">
                                                                 <label>
@@ -343,24 +409,21 @@ function AccountManagement() {
                                                                                 disabled={saving}
                                                                             >
                                                                                 <option value="">選擇 Class</option>
-                                                                                <option value="A">A</option>
-                                                                                <option value="B">B</option>
-                                                                                <option value="C">C</option>
-                                                                                <option value="D">D</option>
+                                                                                <option value="E1">E1</option>
+                                                                                <option value="E3">E3</option>
+                                                                                <option value="E5">E5</option>
+                                                                                <option value="E7">E7</option>
                                                                             </select>
                                                                         </label>
 
                                                                         <label>
-                                                                            <span>Plan</span>
-                                                                            <select
-                                                                                value={editForm.plan}
-                                                                                onChange={e => setEditForm(prev => ({ ...prev, plan: e.target.value }))}
-                                                                                disabled={saving}
-                                                                            >
-                                                                                <option value="">選擇 Plan</option>
-                                                                                <option value="listeningonly">純聽力</option>
-                                                                                <option value="allcover">全方位</option>
-                                                                            </select>
+                                                                            <span>Plan（自動判定）</span>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={getAccountPlanLabel(editingAccount)}
+                                                                                disabled
+                                                                                readOnly
+                                                                            />
                                                                         </label>
                                                                     </>
                                                                 )}
@@ -381,7 +444,7 @@ function AccountManagement() {
                                         </React.Fragment>
                                     )) : (
                                         <tr>
-                                            <td colSpan="7" className="management-empty">沒有符合條件的帳號</td>
+                                            <td colSpan="8" className="management-empty">沒有符合條件的帳號</td>
                                         </tr>
                                     )}
                                 </tbody>

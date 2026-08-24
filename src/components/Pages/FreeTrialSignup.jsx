@@ -137,7 +137,7 @@ function FreeTrialSignup() {
                 <p>建立學生帳號，完成 Email 驗證後立即開始 7 天全方位試用。網路購買教材的讀者也可先在這裡註冊，再到會員中心輸入教材兌換碼。</p>
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>學生姓名</span><input name="name" value={form.name} onChange={update} maxLength="80" autoComplete="name" required /></label>
-                    <label><span>登入與收信 Email</span><input name="email" type="email" value={form.email} onChange={update} placeholder="name@gmail.com" autoComplete="email" aria-invalid={errorField === "email"} aria-describedby="free-trial-email-help" required /><small id="free-trial-email-help">{RECEIVABLE_EMAIL_HELP}</small></label>
+                    <label><span>登入與收信 Email</span><input name="email" type="email" value={form.email} onChange={update} placeholder="name@gmail.com" autoComplete="email" aria-label="登入與收信 Email" aria-invalid={errorField === "email"} aria-describedby="free-trial-email-help" required /><small id="free-trial-email-help">{RECEIVABLE_EMAIL_HELP}</small></label>
                     <div className="platform-form-grid">
                         <label><span>密碼</span><input name="password" type="password" value={form.password} onChange={update} minLength="8" autoComplete="new-password" required /></label>
                         <label><span>再次輸入密碼</span><input name="confirmPassword" type="password" value={form.confirmPassword} onChange={update} minLength="8" autoComplete="new-password" required /></label>
