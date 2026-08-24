@@ -10,7 +10,6 @@ import {
 } from "../../services/membershipService";
 import {
     deleteAcademyInvitation,
-    deleteAcademyStudentAccount,
     listAcademyInvitations,
     sendAcademyPasswordReset
 } from "../../services/academyStudentService";
@@ -29,7 +28,6 @@ jest.mock("../../services/membershipService", () => ({
 
 jest.mock("../../services/academyStudentService", () => ({
     deleteAcademyInvitation: jest.fn(),
-    deleteAcademyStudentAccount: jest.fn(),
     listAcademyInvitations: jest.fn(),
     sendAcademyPasswordReset: jest.fn()
 }));
@@ -51,9 +49,29 @@ const academyStudent = {
     account_status: "active",
     must_change_password: false,
     membership: {
+        is_active: true,
         plan: {
             code: "academy_internal",
             name: "英文班在學方案"
+        }
+    }
+};
+
+const archivedTrialStudent = {
+    ...academyStudent,
+    id: 68,
+    firebase_uid: "archived-student-firebase-uid",
+    name: "已停用試用學生",
+    email: "archived@gmail.com",
+    class: "E1",
+    learner_type: "trial_user",
+    account_status: "archived",
+    must_change_password: true,
+    membership: {
+        is_active: false,
+        plan: {
+            code: "trial_7_day",
+            name: "7 天免費試用"
         }
     }
 };
@@ -78,7 +96,6 @@ describe("AccountManagement", () => {
             accounts: [academyStudent]
         });
         listAcademyInvitations.mockResolvedValue([]);
-        deleteAcademyStudentAccount.mockResolvedValue({ success: true });
         deleteAcademyInvitation.mockResolvedValue({ success: true });
         sendAcademyPasswordReset.mockResolvedValue({ success: true });
         jest.spyOn(window, "confirm").mockReturnValue(true);
@@ -92,12 +109,12 @@ describe("AccountManagement", () => {
         renderPage();
 
         expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
-        expect(screen.getByText("英文班在學方案")).toBeInTheDocument();
+        expect(screen.getAllByText("英文班在學方案")).toHaveLength(2);
         expect(screen.queryByText("全方位")).not.toBeInTheDocument();
         expect(screen.getByText("E3")).toBeInTheDocument();
     });
 
-    test("archives a student without deleting the row and then offers restore", async () => {
+    test("hides an archived student by default and allows restoring it from the status filter", async () => {
         archiveManagedAccount.mockResolvedValue({
             account: {
                 ...academyStudent,
@@ -118,41 +135,72 @@ describe("AccountManagement", () => {
                 "由帳號管理頁停用"
             );
         });
-        expect(await screen.findByText("已停用")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByText("E3 測試學生")).not.toBeInTheDocument();
+        });
 
-        fireEvent.click(screen.getByRole("button", { name: "恢復" }));
+        fireEvent.change(screen.getByRole("combobox", { name: "帳號狀態" }), {
+            target: { value: "archived" }
+        });
+        fireEvent.click(await screen.findByRole("button", { name: "恢復" }));
         await waitFor(() => {
             expect(restoreManagedAccount).toHaveBeenCalledWith(
                 firebaseUser,
                 academyStudent.id
             );
         });
+        await waitFor(() => {
+            expect(screen.queryByText("E3 測試學生")).not.toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByRole("combobox", { name: "帳號狀態" }), {
+            target: { value: "active" }
+        });
         expect(await screen.findByText("使用中")).toBeInTheDocument();
     });
 
-    test("requires the full email before permanently deleting an eligible student", async () => {
+    test("does not offer permanent deletion for an existing student account", async () => {
         renderPage();
 
-        fireEvent.click(await screen.findByRole("button", { name: "永久刪除" }));
-        const dialog = screen.getByRole("dialog", { name: "永久刪除學生帳號" });
-        const confirmButton = screen.getByRole("button", { name: "確認永久刪除" });
+        expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "永久刪除" })).not.toBeInTheDocument();
+    });
 
-        expect(confirmButton).toBeDisabled();
-        fireEvent.change(
-            screen.getByLabelText("輸入完整 Email 確認"),
-            { target: { value: academyStudent.email } }
-        );
-        expect(confirmButton).toBeEnabled();
-        fireEvent.click(confirmButton);
-
-        await waitFor(() => {
-            expect(deleteAcademyStudentAccount).toHaveBeenCalledWith(
-                firebaseUser,
-                academyStudent.id,
-                academyStudent.email
-            );
+    test("filters by role, class, plan, activation, account and access status", async () => {
+        getManagedAccounts.mockResolvedValue({
+            accounts: [academyStudent, archivedTrialStudent]
         });
-        await waitFor(() => expect(dialog).not.toBeInTheDocument());
+        renderPage();
+
+        expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
+        expect(screen.queryByText("已停用試用學生")).not.toBeInTheDocument();
+
+        fireEvent.change(screen.getByRole("combobox", { name: "Role" }), {
+            target: { value: "student" }
+        });
+        fireEvent.change(screen.getByRole("combobox", { name: "Class" }), {
+            target: { value: "E1" }
+        });
+        fireEvent.change(screen.getByRole("combobox", { name: "Plan" }), {
+            target: { value: "trial_user" }
+        });
+        fireEvent.change(screen.getByRole("combobox", { name: "開通狀態" }), {
+            target: { value: "direct_pending" }
+        });
+        fireEvent.change(screen.getByRole("combobox", { name: "帳號狀態" }), {
+            target: { value: "archived" }
+        });
+        fireEvent.change(screen.getByRole("combobox", { name: "是否啟用" }), {
+            target: { value: "disabled" }
+        });
+
+        expect(await screen.findByText("已停用試用學生")).toBeInTheDocument();
+        expect(screen.queryByText("E3 測試學生")).not.toBeInTheDocument();
+        expect(screen.getAllByText("未啟用")).toHaveLength(2);
+
+        fireEvent.click(screen.getByRole("button", { name: "清除篩選" }));
+        expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
+        expect(screen.queryByText("已停用試用學生")).not.toBeInTheDocument();
     });
 
     test("allows admin to delete an unclaimed pending invitation", async () => {
@@ -173,7 +221,7 @@ describe("AccountManagement", () => {
             screen.getByLabelText("輸入完整 Email 確認"),
             { target: { value: "pending@gmail.com" } }
         );
-        fireEvent.click(screen.getByRole("button", { name: "確認永久刪除" }));
+        fireEvent.click(screen.getByRole("button", { name: "確認刪除邀請" }));
 
         await waitFor(() => {
             expect(deleteAcademyInvitation).toHaveBeenCalledWith(

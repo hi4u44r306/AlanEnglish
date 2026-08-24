@@ -102,9 +102,10 @@
 
 .management-toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 180px 180px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
-  margin-bottom: 18px;
+  align-items: end;
+  margin-bottom: 10px;
 
   input,
   select {
@@ -259,7 +260,8 @@
   background: #f0f2f5;
 }
 
-.account-status-badge {
+.account-status-badge,
+.access-status-badge {
   display: inline-flex;
   width: max-content;
   padding: 5px 9px;
@@ -276,6 +278,16 @@
 .account-status-archived {
   color: #7b3341;
   background: #fff0f2;
+}
+
+.access-status-enabled {
+  color: #087443;
+  background: #eafbf2;
+}
+
+.access-status-disabled {
+  color: #6b7280;
+  background: #f0f2f5;
 }
 
 .management-archive-button,
@@ -300,6 +312,45 @@
     color: #851b29;
     background: #fff0f2;
   }
+}
+
+.management-filter {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+
+  > span {
+    color: #596579;
+    font-size: 0.8rem;
+    font-weight: 650;
+  }
+}
+
+.management-search-filter {
+  grid-column: span 2;
+}
+
+.management-filter-reset {
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid #d8e0ea;
+  border-radius: 10px;
+  color: #40516a;
+  background: #f7f9fc;
+  font-weight: 650;
+  cursor: pointer;
+
+  &:hover {
+    background: #edf2f8;
+  }
+}
+
+.management-filter-hint {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 0.84rem;
+  line-height: 1.55;
 }
 
 .management-delete-backdrop {
@@ -570,6 +621,10 @@
   .management-toolbar,
   .management-edit-grid {
     grid-template-columns: 1fr;
+  }
+
+  .management-search-filter {
+    grid-column: span 1;
   }
 }
 

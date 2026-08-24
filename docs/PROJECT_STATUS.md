@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-24
+最後更新：2026-08-25
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -45,7 +45,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 - 英文班在校生由後台直接建立登入帳號與一次性臨時密碼，首次登入後自行修改密碼。
 - 後台顯示待開通／等待 Email 驗證／已開通狀態，並提供寄送 Firebase 密碼重設信。
-- 後台帳號生命週期預設使用安全停用／恢復；管理員另可永久刪除沒有付款、權限、學習、作業、教務、點數、獎品或客服紀錄的測試／待開通學生，正式帳號仍只能停用。
+- 後台帳號生命週期使用安全停用／恢復；已停用帳號預設從清單隱藏，管理員可切換帳號狀態篩選後恢復。已建立的學生帳號不再提供永久刪除入口，未領取且尚未建立帳號的邀請仍可刪除。
 - 後台方案顯示依學生類型與有效權限自動判定，不再讓櫃檯編輯舊版 `allcover`／`listeningonly` 欄位。
 - 學生 Dashboard 對尚未購買 AI 教材加購的帳號顯示 AI POWER-UP 宣傳卡；已購買者不顯示。
 - 後續階段：使用小批量測試學生驗證 CSV 實際建立、部分失敗與結果下載。
@@ -59,14 +59,14 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 - 智慧錯題複習只使用既有錯題資料與間隔排程，不呼叫生成式 AI、不消耗 AI 額度，因此維持所有具 `review` 權限的學生可用。
 - CSV 批次建立學生第一版已完成：範本下載、CSV 解析、伺服器預覽、E1／E3／E5／E7 與 Email 驗證、每批 25 位上限、admin-only 批次建立、逐列成功／失敗、結果下載、request ID 防重複提交與不保存臨時密碼的操作紀錄。
 - Additive migration `20260824124647_academy_student_csv_batches.sql` 已於 2026-08-24 套用遠端 Supabase；兩張資料表啟用 RLS，`anon` 無讀取權，`service_role` 可執行伺服器 audit 寫入。
-- 管理員帳號管理已新增永久刪除測試／待開通學生與未領取邀請：必須輸入完整 Email，後端重新驗證 admin 與可刪除條件，教師／管理員與具有正式歷史的學生不可永久刪除。Additive migration `20260824143810_admin_safe_account_deletion.sql` 已套用，RPC 只授權 `service_role`；`academy-student-manager` v7 已部署並為 ACTIVE。
-- Firebase 已建立帳號的永久刪除仍需由專案擁有者在 Supabase Dashboard 設定 Edge Function Secret `FIREBASE_SERVICE_ACCOUNT_JSON`；目前只有 `FIREBASE_WEB_API_KEY`，不得用公開 Web API Key 取代管理端權限。未領取邀請刪除與其他 v7 功能不受此 Secret 影響。
+- 管理員帳號清單已改為預設只顯示使用中帳號，並新增 Role、Class、Plan、開通狀態、帳號狀態與是否啟用的組合篩選；停用後從預設清單隱藏，切換為「已停用」即可恢復。已建立學生帳號的永久刪除入口已移除，未領取邀請仍需輸入完整 Email 才能刪除。
+- Additive migration `20260824143810_admin_safe_account_deletion.sql` 已套用，RPC 只授權 `service_role`；一次性 Sandbox Test 刪除嘗試未刪除 Firebase 或 Supabase 資料，`20260824154915` 與 `20260824155347` 已依序套用並恢復原本嚴格刪除政策。專案擁有者已設定 `FIREBASE_SERVICE_ACCOUNT_JSON`，未讀取或輸出內容；因產品改採停用隱藏，不再繼續帳號永久刪除流程。
 - PR #29 可合併且無衝突，兩個 Netlify Deploy Preview 均為 success：`https://deploy-preview-29--alanenglish.netlify.app` 與 `https://deploy-preview-29--iridescent-cheesecake-4ceaca.netlify.app`。尚未合併 `main`，也未部署正式 Netlify Production。
-- 全部 13 份測試檔共 33 個案例通過，Production build 成功，Supabase security advisors 無警告；412px Preview 公開頁／登入導向正常，登入後 CSV 伺服器預覽已用虛構資料驗證且未寫入學生，Console 無錯誤。本機沒有 Deno，Edge Function 的正式型別驗證由 Supabase 部署 bundling 完成。
+- 全部 13 份測試檔共 34 個案例通過，Production build 成功，Supabase security advisors 無警告；帳號管理已於本機管理員 Session 驗證預設隱藏、已停用篩選、恢復入口與永久刪除按鈕移除。412px Preview 公開頁／登入導向正常，登入後 CSV 伺服器預覽已用虛構資料驗證且未寫入學生，Console 無錯誤。本機沒有 Deno，Edge Function 的正式型別驗證由 Supabase 部署 bundling 完成。
 
 目前下一個主要開發方向：
 
-1. 專案擁有者在 Supabase Dashboard 設定 `FIREBASE_SERVICE_ACCOUNT_JSON`（不得貼入對話或終端機），再驗證無正式紀錄的測試學生可同時從 Firebase 與 Supabase 刪除
+1. 使用管理員帳號驗收帳號篩選、停用後隱藏與從「已停用」篩選恢復的完整流程
 2. 使用明確標記的沙盒學生驗證 CSV 實際建立、重複 Email、單列失敗不中止、request ID 重複提交與一次性密碼結果下載
 3. PR #29 驗收後由專案擁有者確認是否合併 `main` 並觸發正式 Netlify Production
 4. 登入、Session、Route 與角色權限測試
@@ -473,7 +473,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 已部署；兩張新表均啟用 RLS，且 `anon`／`authenticated` 無直接讀取權限。
 - 本輪環境沒有安裝 `react-scripts`，因此登入競態的 2 個新增測試尚未在本機執行；PR #18 Deploy Preview 與 Netlify Production build 均已成功。
 - AI Premium UI 的 3 個會員中心測試已加入；本機環境缺少 `react-scripts`，未直接執行測試。PR #21 Deploy Preview 與 Netlify Production build 均成功，正式部署 commit 為 `43e5982`。
-- 2026-08-24 PR #29：13 份測試檔共 33 個案例通過，`npm run build` 成功；兩筆 CSV／安全帳號刪除 migration 已套用並核對 history，`academy-student-manager` v7 與既有 `assignment-manager` v18 均為 ACTIVE。Netlify Deploy Preview 成功，412px 公開頁／登入導向與登入後 CSV 伺服器預覽無 Console error。已建立 Firebase 帳號的永久刪除尚待 Dashboard 設定 `FIREBASE_SERVICE_ACCOUNT_JSON` 後才能驗證；PR 尚未合併 `main` 或部署正式 Netlify。
+- 2026-08-25 PR #29：帳號管理改採停用後預設隱藏與篩選恢復，新增 Role／Class／Plan／開通狀態／帳號狀態／是否啟用篩選；已建立帳號不再顯示永久刪除。Sandbox Test 刪除嘗試安全失敗且資料未變更，遠端嚴格刪除政策已恢復。13 份測試檔共 34 個案例與 Production build 均成功；PR 尚未合併 `main` 或部署正式 Netlify。
 
 ## 14. 下一個 Codex 對話建議提示詞
 

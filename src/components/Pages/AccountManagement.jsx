@@ -11,7 +11,6 @@ import {
 } from "../../services/membershipService";
 import {
     deleteAcademyInvitation,
-    deleteAcademyStudentAccount,
     listAcademyInvitations,
     sendAcademyPasswordReset
 } from "../../services/academyStudentService";
@@ -35,6 +34,13 @@ const getAccountPlanLabel = account => (
     || "尚未設定"
 );
 
+const getAccountPlanKey = account => (
+    account?.learner_type
+    || account?.membership?.plan?.code
+    || account?.plan
+    || "unassigned"
+);
+
 const ACTIVATION_LABELS = {
     active: "尚未開通",
     claimed: "等待 Email 驗證",
@@ -46,6 +52,17 @@ const ACTIVATION_LABELS = {
 const ACCOUNT_STATUS_LABELS = {
     active: "使用中",
     archived: "已停用"
+};
+
+const ACCESS_STATUS_LABELS = {
+    enabled: "已啟用",
+    disabled: "未啟用"
+};
+
+const getAccountActivationStatus = (account, invitationByEmail) => {
+    if (account?.role !== "student") return "not_applicable";
+    const invitation = invitationByEmail.get(String(account.email || "").toLowerCase());
+    return invitation?.status || (account.must_change_password ? "direct_pending" : "legacy");
 };
 
 function AccountManagement() {
@@ -63,6 +80,10 @@ function AccountManagement() {
     const [searchText, setSearchText] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [classFilter, setClassFilter] = useState("all");
+    const [planFilter, setPlanFilter] = useState("all");
+    const [activationFilter, setActivationFilter] = useState("all");
+    const [accountStatusFilter, setAccountStatusFilter] = useState("active");
+    const [accessFilter, setAccessFilter] = useState("all");
     const [editingAccount, setEditingAccount] = useState(null);
     const [editForm, setEditForm] = useState({
         name: "",
@@ -98,21 +119,6 @@ function AccountManagement() {
         fetchAccounts();
     }, [fetchAccounts]);
 
-    const filteredAccounts = useMemo(() => {
-        const keyword = searchText.trim().toLowerCase();
-
-        return accounts.filter(account => {
-            const matchKeyword = !keyword ||
-                String(account.name || "").toLowerCase().includes(keyword) ||
-                String(account.email || "").toLowerCase().includes(keyword);
-
-            const matchRole = roleFilter === "all" || account.role === roleFilter;
-            const matchClass = classFilter === "all" || account.class === classFilter;
-
-            return matchKeyword && matchRole && matchClass;
-        });
-    }, [accounts, searchText, roleFilter, classFilter]);
-
     const invitationByEmail = useMemo(() => {
         const result = new Map();
         invitations.forEach(invitation => {
@@ -121,6 +127,60 @@ function AccountManagement() {
         });
         return result;
     }, [invitations]);
+
+    const planOptions = useMemo(() => {
+        const options = new Map();
+        accounts.forEach(account => {
+            if (account.role !== "student") return;
+            const key = getAccountPlanKey(account);
+            if (!options.has(key)) options.set(key, getAccountPlanLabel(account));
+        });
+        return Array.from(options, ([value, label]) => ({ value, label }))
+            .sort((a, b) => a.label.localeCompare(b.label, "zh-Hant"));
+    }, [accounts]);
+
+    const filteredAccounts = useMemo(() => {
+        const keyword = searchText.trim().toLowerCase();
+
+        return accounts.filter(account => {
+            const matchKeyword = !keyword ||
+                String(account.name || "").toLowerCase().includes(keyword) ||
+                String(account.email || "").toLowerCase().includes(keyword);
+            const matchRole = roleFilter === "all" || account.role === roleFilter;
+            const matchClass = classFilter === "all" || account.class === classFilter;
+            const matchPlan = planFilter === "all" || (
+                account.role === "student" && getAccountPlanKey(account) === planFilter
+            );
+            const activationStatus = getAccountActivationStatus(account, invitationByEmail);
+            const matchActivation = activationFilter === "all"
+                || activationStatus === activationFilter;
+            const accountStatus = account.account_status || "active";
+            const matchAccountStatus = accountStatusFilter === "all"
+                || accountStatus === accountStatusFilter;
+            const accessStatus = account?.membership?.is_active === true ? "enabled" : "disabled";
+            const matchAccess = accessFilter === "all" || (
+                account.role === "student" && accessStatus === accessFilter
+            );
+
+            return matchKeyword
+                && matchRole
+                && matchClass
+                && matchPlan
+                && matchActivation
+                && matchAccountStatus
+                && matchAccess;
+        });
+    }, [
+        accounts,
+        searchText,
+        roleFilter,
+        classFilter,
+        planFilter,
+        activationFilter,
+        accountStatusFilter,
+        accessFilter,
+        invitationByEmail
+    ]);
 
     const pendingInvitations = useMemo(() => invitations.filter(invitation => (
         ["active", "claimed", "expired"].includes(invitation.status)
@@ -229,7 +289,9 @@ function AccountManagement() {
             setAccounts(prev => prev.map(item => (
                 item.id === result.account.id ? { ...item, ...result.account } : item
             )));
-            toast.success(`帳號已${actionLabel}`);
+            toast.success(isArchived
+                ? "帳號已恢復，會重新出現在使用中清單"
+                : "帳號已停用並從預設清單隱藏；可切換帳號狀態為已停用後恢復");
         } catch (error) {
             toast.error(error?.message || `帳號${actionLabel}失敗`);
         } finally {
@@ -237,24 +299,11 @@ function AccountManagement() {
         }
     };
 
-    const openAccountDelete = account => {
-        if (!isAdmin || account?.role !== "student") return;
-        setDeleteTarget({
-            type: "account",
-            id: account.id,
-            email: String(account.email || "").toLowerCase(),
-            name: account.name || account.email || "學生帳號"
-        });
-        setDeleteConfirmation("");
-    };
-
     const openInvitationDelete = invitation => {
-        if (!isAdmin) return;
-        const claimedStudentId = Number(invitation.claimed_by_student_id) || null;
+        if (!isAdmin || invitation.claimed_by_student_id) return;
         setDeleteTarget({
-            type: claimedStudentId ? "account" : "invitation",
-            id: claimedStudentId || invitation.id,
-            invitationId: invitation.id,
+            type: "invitation",
+            id: invitation.id,
             email: String(invitation.invited_email || "").toLowerCase(),
             name: invitation.chinese_name || invitation.invited_email || "待開通學生"
         });
@@ -267,41 +316,28 @@ function AccountManagement() {
         setDeleteConfirmation("");
     };
 
-    const confirmPermanentDelete = async event => {
+    const confirmInvitationDelete = async event => {
         event.preventDefault();
         if (!firebaseUser || !deleteTarget) return;
         const normalizedConfirmation = deleteConfirmation.trim().toLowerCase();
         if (normalizedConfirmation !== deleteTarget.email) {
-            toast.error("請輸入完整 Email 確認永久刪除");
+            toast.error("請輸入完整 Email 確認刪除邀請");
             return;
         }
 
         setDeleting(true);
         try {
-            if (deleteTarget.type === "account") {
-                await deleteAcademyStudentAccount(
-                    firebaseUser,
-                    deleteTarget.id,
-                    normalizedConfirmation
-                );
-                setAccounts(prev => prev.filter(account => account.id !== deleteTarget.id));
-                setInvitations(prev => prev.filter(invitation => (
-                    String(invitation.invited_email || "").toLowerCase() !== deleteTarget.email
-                )));
-                toast.success("測試／待開通學生帳號已永久刪除");
-            } else {
-                await deleteAcademyInvitation(
-                    firebaseUser,
-                    deleteTarget.id,
-                    normalizedConfirmation
-                );
-                setInvitations(prev => prev.filter(invitation => invitation.id !== deleteTarget.id));
-                toast.success("待開通邀請已刪除");
-            }
+            await deleteAcademyInvitation(
+                firebaseUser,
+                deleteTarget.id,
+                normalizedConfirmation
+            );
+            setInvitations(prev => prev.filter(invitation => invitation.id !== deleteTarget.id));
+            toast.success("待開通邀請已刪除");
             setDeleteTarget(null);
             setDeleteConfirmation("");
         } catch (error) {
-            toast.error(error?.message || "永久刪除失敗");
+            toast.error(error?.message || "刪除邀請失敗");
         } finally {
             setDeleting(false);
         }
@@ -312,6 +348,16 @@ function AccountManagement() {
         editingAccount &&
         editingAccount.firebase_uid === studentProfile?.firebase_uid
     );
+
+    const resetFilters = () => {
+        setSearchText("");
+        setRoleFilter("all");
+        setClassFilter("all");
+        setPlanFilter("all");
+        setActivationFilter("all");
+        setAccountStatusFilter("active");
+        setAccessFilter("all");
+    };
 
     return (
         <div className="management-page">
@@ -333,30 +379,91 @@ function AccountManagement() {
 
             <section className="management-panel">
                 <div className="management-toolbar">
-                    <input
-                        type="search"
-                        placeholder="搜尋姓名或 Email"
-                        value={searchText}
-                        onChange={e => setSearchText(e.target.value)}
-                    />
+                    <label className="management-filter management-search-filter">
+                        <span>搜尋</span>
+                        <input
+                            type="search"
+                            placeholder="姓名或 Email"
+                            value={searchText}
+                            onChange={e => setSearchText(e.target.value)}
+                        />
+                    </label>
 
                     {isAdmin && (
-                        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-                            <option value="all">全部角色</option>
-                            <option value="student">Student</option>
-                            <option value="teacher">Teacher</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                        <label className="management-filter">
+                            <span>Role</span>
+                            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+                                <option value="all">全部角色</option>
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </label>
                     )}
 
-                    <select value={classFilter} onChange={e => setClassFilter(e.target.value)}>
-                        <option value="all">全部班級</option>
-                        <option value="E1">E1 班</option>
-                        <option value="E3">E3 班</option>
-                        <option value="E5">E5 班</option>
-                        <option value="E7">E7 班</option>
-                    </select>
+                    <label className="management-filter">
+                        <span>Class</span>
+                        <select value={classFilter} onChange={e => setClassFilter(e.target.value)}>
+                            <option value="all">全部班級</option>
+                            <option value="E1">E1 班</option>
+                            <option value="E3">E3 班</option>
+                            <option value="E5">E5 班</option>
+                            <option value="E7">E7 班</option>
+                        </select>
+                    </label>
+
+                    <label className="management-filter">
+                        <span>Plan</span>
+                        <select value={planFilter} onChange={e => setPlanFilter(e.target.value)}>
+                            <option value="all">全部方案</option>
+                            {planOptions.map(option => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label className="management-filter">
+                        <span>開通狀態</span>
+                        <select value={activationFilter} onChange={e => setActivationFilter(e.target.value)}>
+                            <option value="all">全部開通狀態</option>
+                            <option value="direct_pending">待首次改密碼</option>
+                            <option value="active">尚未開通</option>
+                            <option value="claimed">等待 Email 驗證</option>
+                            <option value="completed">已開通（邀請）</option>
+                            <option value="legacy">已開通</option>
+                            <option value="expired">開通碼已過期</option>
+                            <option value="revoked">已撤銷</option>
+                            <option value="not_applicable">不適用</option>
+                        </select>
+                    </label>
+
+                    <label className="management-filter">
+                        <span>帳號狀態</span>
+                        <select value={accountStatusFilter} onChange={e => setAccountStatusFilter(e.target.value)}>
+                            <option value="active">使用中（預設）</option>
+                            <option value="archived">已停用</option>
+                            <option value="all">全部帳號狀態</option>
+                        </select>
+                    </label>
+
+                    <label className="management-filter">
+                        <span>是否啟用</span>
+                        <select value={accessFilter} onChange={e => setAccessFilter(e.target.value)}>
+                            <option value="all">全部啟用狀態</option>
+                            <option value="enabled">已啟用</option>
+                            <option value="disabled">未啟用</option>
+                        </select>
+                    </label>
+
+                    <button type="button" className="management-filter-reset" onClick={resetFilters}>
+                        清除篩選
+                    </button>
                 </div>
+
+                <p className="management-filter-hint">
+                    已停用帳號預設隱藏；將「帳號狀態」切換為「已停用」即可查看並恢復。
+                    「是否啟用」代表目前是否具有有效學習權限。
+                </p>
 
                 {loading ? (
                     <div className="management-state">正在讀取帳號資料...</div>
@@ -364,7 +471,9 @@ function AccountManagement() {
                     <div className="management-state management-error">{errorMessage}</div>
                 ) : (
                     <>
-                        <div className="management-count">共 {filteredAccounts.length} 筆帳號</div>
+                        <div className="management-count">
+                            顯示 {filteredAccounts.length} 筆／全部 {accounts.length} 筆帳號
+                        </div>
 
                         <div className="management-table-wrap">
                             <table className="management-table">
@@ -377,6 +486,7 @@ function AccountManagement() {
                                         <th>Plan</th>
                                         <th>開通狀態</th>
                                         <th>帳號狀態</th>
+                                        <th>是否啟用</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -395,9 +505,7 @@ function AccountManagement() {
                                                 <td>{account.role === "student" ? getAccountPlanLabel(account) : "-"}</td>
                                                 <td>
                                                     {account.role === "student" ? (() => {
-                                                        const invitation = invitationByEmail.get(String(account.email || "").toLowerCase());
-                                                        const status = invitation?.status
-                                                            || (account.must_change_password ? "direct_pending" : "legacy");
+                                                        const status = getAccountActivationStatus(account, invitationByEmail);
                                                         return (
                                                             <span className={`activation-badge activation-${status}`}>
                                                                 {status === "direct_pending"
@@ -411,6 +519,18 @@ function AccountManagement() {
                                                     <span className={`account-status-badge account-status-${account.account_status || "active"}`}>
                                                         {ACCOUNT_STATUS_LABELS[account.account_status || "active"]}
                                                     </span>
+                                                </td>
+                                                <td>
+                                                    {account.role === "student" ? (() => {
+                                                        const status = account?.membership?.is_active === true
+                                                            ? "enabled"
+                                                            : "disabled";
+                                                        return (
+                                                            <span className={`access-status-badge access-status-${status}`}>
+                                                                {ACCESS_STATUS_LABELS[status]}
+                                                            </span>
+                                                        );
+                                                    })() : "-"}
                                                 </td>
                                                 <td>
                                                     <div className="management-row-actions">
@@ -432,27 +552,18 @@ function AccountManagement() {
                                                             </button>
                                                         )}
                                                         {isAdmin && account.role === "student" && (
-                                                            <>
-                                                                <button
-                                                                    type="button"
-                                                                    className={account.account_status === "archived"
-                                                                        ? "management-restore-button"
-                                                                        : "management-archive-button"}
-                                                                    onClick={() => changeAccountStatus(account)}
-                                                                    disabled={changingStatusId === account.id}
-                                                                >
-                                                                    {changingStatusId === account.id
-                                                                        ? "處理中…"
-                                                                        : account.account_status === "archived" ? "恢復" : "停用"}
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    className="management-delete-button"
-                                                                    onClick={() => openAccountDelete(account)}
-                                                                >
-                                                                    永久刪除
-                                                                </button>
-                                                            </>
+                                                            <button
+                                                                type="button"
+                                                                className={account.account_status === "archived"
+                                                                    ? "management-restore-button"
+                                                                    : "management-archive-button"}
+                                                                onClick={() => changeAccountStatus(account)}
+                                                                disabled={changingStatusId === account.id}
+                                                            >
+                                                                {changingStatusId === account.id
+                                                                    ? "處理中…"
+                                                                    : account.account_status === "archived" ? "恢復" : "停用"}
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </td>
@@ -460,7 +571,7 @@ function AccountManagement() {
 
                                             {editingAccount?.id === account.id && (
                                                 <tr className="management-edit-row">
-                                                    <td colSpan="8">
+                                                    <td colSpan="9">
                                                         <form className="management-edit-form" onSubmit={saveAccount}>
                                                             <div className="management-edit-grid">
                                                                 <label>
@@ -531,7 +642,7 @@ function AccountManagement() {
                                         </React.Fragment>
                                     )) : (
                                         <tr>
-                                            <td colSpan="8" className="management-empty">沒有符合條件的帳號</td>
+                                            <td colSpan="9" className="management-empty">沒有符合條件的帳號</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -576,15 +687,15 @@ function AccountManagement() {
                                     </td>
                                     <td>{invitation.expires_at ? new Date(invitation.expires_at).toLocaleDateString("zh-TW") : "-"}</td>
                                     <td>
-                                        {isAdmin && (
+                                        {isAdmin && !invitation.claimed_by_student_id ? (
                                             <button
                                                 type="button"
                                                 className="management-delete-button"
                                                 onClick={() => openInvitationDelete(invitation)}
                                             >
-                                                {invitation.claimed_by_student_id ? "刪除待開通帳號" : "刪除邀請"}
+                                                刪除邀請
                                             </button>
-                                        )}
+                                        ) : invitation.claimed_by_student_id ? "請於上方停用帳號" : "-"}
                                     </td>
                                 </tr>
                             )) : (
@@ -603,20 +714,14 @@ function AccountManagement() {
                         aria-modal="true"
                         aria-labelledby="management-delete-title"
                     >
-                        <span className="management-eyebrow">Permanent deletion</span>
-                        <h2 id="management-delete-title">
-                            {deleteTarget.type === "account" ? "永久刪除學生帳號" : "刪除待開通邀請"}
-                        </h2>
-                        <p>
-                            {deleteTarget.type === "account"
-                                ? "系統只允許刪除沒有付款、學習、作業、點數或獎品紀錄的測試／待開通學生。其他帳號必須改用停用。"
-                                : "這會永久移除尚未被領取的學生邀請。"}
-                        </p>
+                        <span className="management-eyebrow">Invitation cleanup</span>
+                        <h2 id="management-delete-title">刪除待開通邀請</h2>
+                        <p>這會永久移除尚未被領取、且尚未建立學生帳號的邀請。</p>
                         <div className="management-delete-target">
                             <strong>{deleteTarget.name}</strong>
                             <span>{deleteTarget.email}</span>
                         </div>
-                        <form onSubmit={confirmPermanentDelete}>
+                        <form onSubmit={confirmInvitationDelete}>
                             <label>
                                 <span>輸入完整 Email 確認</span>
                                 <input
@@ -634,7 +739,7 @@ function AccountManagement() {
                                     type="submit"
                                     disabled={deleting || deleteConfirmation.trim().toLowerCase() !== deleteTarget.email}
                                 >
-                                    {deleting ? "刪除中…" : "確認永久刪除"}
+                                    {deleting ? "刪除中…" : "確認刪除邀請"}
                                 </button>
                             </div>
                         </form>
