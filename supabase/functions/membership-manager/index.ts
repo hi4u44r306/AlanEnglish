@@ -129,7 +129,12 @@ const getEffectiveAccessEnd = (membership: any) => {
     return candidates.length > 0 ? new Date(Math.max(...candidates)).toISOString() : null;
 };
 
-const serializeMembership = (membership: any, role: string, effectiveAccess: any = null) => {
+const serializeMembership = (
+    membership: any,
+    role: string,
+    effectiveAccess: any = null,
+    aiAddonSubscription: any = null
+) => {
     const staff = STAFF_ROLES.has(role);
     const status = cleanText(membership?.status || (staff ? "complimentary" : "expired"), 40);
     const hasEffectiveAccess = effectiveAccess && typeof effectiveAccess === "object";
@@ -167,7 +172,34 @@ const serializeMembership = (membership: any, role: string, effectiveAccess: any
         days_remaining: daysRemaining,
         requires_email_verification: status === "pending_verification",
         plan: relationOne(membership?.subscription_plans) || membership?.plan || null,
-        effective_access: hasEffectiveAccess ? effectiveAccess : null
+        effective_access: hasEffectiveAccess ? effectiveAccess : null,
+        ai_addon_subscription: aiAddonSubscription
+    };
+};
+
+const loadAiAddonSubscription = async (admin: any, effectiveAccess: any) => {
+    const grant = Array.isArray(effectiveAccess?.grants)
+        ? effectiveAccess.grants.find((item: any) => (
+            item?.plan_code === "ai_materials_addon_monthly"
+            && item?.source === "stripe"
+        ))
+        : null;
+    const grantId = Number(grant?.id || 0);
+    if (!Number.isInteger(grantId) || grantId <= 0) return null;
+
+    const { data, error } = await admin
+        .from("student_access_grants")
+        .select("status,stripe_subscription_status,current_period_end,ends_at,cancel_at_period_end")
+        .eq("id", grantId)
+        .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+
+    return {
+        status: cleanText(data.status, 40) || null,
+        stripe_subscription_status: cleanText(data.stripe_subscription_status, 60) || null,
+        current_period_end: isoOrNull(data.current_period_end || data.ends_at),
+        cancel_at_period_end: data.cancel_at_period_end === true
     };
 };
 
@@ -342,7 +374,8 @@ const profilePayload = (
     student: any,
     membership: any,
     levelProgress: any,
-    effectiveAccess: any = null
+    effectiveAccess: any = null,
+    aiAddonSubscription: any = null
 ) => ({
     id: student.id,
     firebase_uid: student.firebase_uid,
@@ -359,7 +392,12 @@ const profilePayload = (
     last_login_at: student.last_login_at,
     last_active_at: student.last_active_at,
     last_learning_at: student.last_learning_at,
-    membership: serializeMembership(membership, student.role || "student", effectiveAccess),
+    membership: serializeMembership(
+        membership,
+        student.role || "student",
+        effectiveAccess,
+        aiAddonSubscription
+    ),
     level: levelProgress ? {
         current_level_id: levelProgress.current_level_id,
         unlocked_rank: levelProgress.unlocked_rank,
@@ -414,7 +452,14 @@ const loadCompleteProfile = async (
         ensureLevelProgress(admin, student, publicSignup)
     ]);
     const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
-    return profilePayload(student, membership, levelProgress, effectiveAccess);
+    const aiAddonSubscription = await loadAiAddonSubscription(admin, effectiveAccess);
+    return profilePayload(
+        student,
+        membership,
+        levelProgress,
+        effectiveAccess,
+        aiAddonSubscription
+    );
 };
 
 Deno.serve(async (req: Request) => {

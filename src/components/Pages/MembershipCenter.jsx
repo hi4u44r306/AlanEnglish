@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { sendEmailVerification } from "firebase/auth";
+import { FiCheck, FiCreditCard, FiStar, FiZap } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { createBillingPortal, createCheckoutSession } from "../../services/billingService";
@@ -15,6 +17,14 @@ const FEATURE_LABELS = {
     review: "智慧複習"
 };
 const formatDate = value => value ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeZone: "Asia/Taipei" }).format(new Date(value)) : "無期限";
+const formatRenewalDay = value => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return null;
+    return new Intl.DateTimeFormat("zh-TW", { day: "numeric", timeZone: "Asia/Taipei" })
+        .formatToParts(date)
+        .find(part => part.type === "day")?.value || null;
+};
 
 function MembershipCenter() {
     const { firebaseUser, setStudentProfile } = useAuth();
@@ -50,6 +60,15 @@ function MembershipCenter() {
     const publicPlans = useMemo(() => plans.filter(plan => plan.is_public), [plans]);
     const activePlanCodes = useMemo(() => new Set(membership?.effective_access?.plan_codes || []), [membership]);
     const hasAiAddon = activePlanCodes.has("ai_materials_addon_monthly");
+    const aiAddonGrant = useMemo(() => (
+        membership?.effective_access?.grants?.find(grant => grant?.plan_code === "ai_materials_addon_monthly") || null
+    ), [membership]);
+    const aiAddonSubscription = membership?.ai_addon_subscription;
+    const aiRenewalAt = aiAddonSubscription?.current_period_end || (
+        aiAddonGrant?.source === "stripe" ? aiAddonGrant?.ends_at : null
+    );
+    const aiRenewalDay = formatRenewalDay(aiRenewalAt);
+    const aiAddonCancelling = aiAddonSubscription?.cancel_at_period_end === true;
 
     const redeem = async event => {
         event.preventDefault();
@@ -132,21 +151,42 @@ function MembershipCenter() {
             </section>
             {membership?.requires_email_verification && <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h2>先完成 Email 驗證</h2><p>驗證信會寄到 {firebaseUser?.email}。完成驗證後，7 天免費試用才會開始計時。</p></div><div className="platform-verification-actions"><button className="platform-secondary" onClick={resendVerification} disabled={working === "verification" || verificationCooldown > 0}>{working === "verification" ? "寄送中…" : verificationCooldown > 0 ? `${verificationCooldown} 秒後可重寄` : "重新寄送驗證信"}</button><button className="platform-primary" onClick={confirmVerification} disabled={working === "confirm-verification"}>{working === "confirm-verification" ? "確認中…" : "我已完成驗證"}</button></div></div><p className="platform-footnote">仍未收到時，請搜尋寄件者包含 noreply 的郵件，並檢查垃圾郵件或促銷內容。</p></section>}
             <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">ACTIVATION CODE</span><h2>教材啟用碼</h2></div><p>購買實體教材附贈的聽力權限，可在這裡啟用。</p></div><form className="platform-inline-form" onSubmit={redeem}><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="AE-XXXX-XXXX-XXXX" autoComplete="off" /><button className="platform-primary" disabled={working === "redeem"}>{working === "redeem" ? "啟用中…" : "啟用權限"}</button></form></section>
-            {hasAiAddon && <section className="platform-alert platform-addon-active" role="status"><strong>AI 教材加購已啟用</strong><p>每日最多 5 次、每月最多 150 次；可前往 AI 教材頁使用。</p></section>}
+            {hasAiAddon && (
+                <section className="platform-ai-premium" role="status" aria-label="AI Premium 已啟用">
+                    <div className="platform-ai-premium-copy">
+                        <span className="platform-ai-premium-badge"><FiStar aria-hidden="true" /> AI PREMIUM</span>
+                        <h2><span className="platform-ai-premium-icon"><FiZap aria-hidden="true" /></span>你的 AI 學習力已升級</h2>
+                        <p>AI 教材加購已啟用，現在可以生成更貼近自己的專屬練習。</p>
+                        <div className="platform-ai-premium-benefits">
+                            <span><FiCheck aria-hidden="true" />每日最多 5 次</span>
+                            <span><FiCheck aria-hidden="true" />每月最多 150 次</span>
+                        </div>
+                    </div>
+                    <div className="platform-ai-premium-renewal">
+                        <span>{aiAddonCancelling ? "方案使用至" : aiRenewalDay ? "自動續訂" : "目前狀態"}</span>
+                        <strong>{aiAddonCancelling ? formatDate(aiRenewalAt) : aiRenewalDay ? `每月 ${aiRenewalDay} 日` : "AI 教材已啟用"}</strong>
+                        <small>{aiAddonCancelling ? "到期後不會再次扣款" : aiRenewalAt ? `下次預計 ${formatDate(aiRenewalAt)} 續訂` : "可立即使用專屬教材生成"}</small>
+                        <Link className="platform-ai-premium-action" to="/student/ai-generator"><FiZap aria-hidden="true" />開始使用 AI 教材</Link>
+                    </div>
+                </section>
+            )}
             <section className="platform-card">
-                <div className="platform-section-title"><div><span className="platform-eyebrow">PLANS</span><h2>月費方案</h2></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" onClick={portal} disabled={working === "portal"}>管理目前訂閱</button>}</div>
+                <div className="platform-section-title"><div><span className="platform-eyebrow">PLANS</span><h2>月費方案</h2></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
                 {publicPlans.length === 0
                     ? <div className="platform-empty"><strong>線上訂閱尚未開放</strong><p>目前可以使用免費試用或教材啟用碼。正式價格完成設定後，月費方案會自動顯示在這裡。</p></div>
                     : <div className="platform-plan-grid">{publicPlans.map(plan => {
                         const planActive = activePlanCodes.has(plan.code);
                         const booleanFeatures = Object.entries(plan.features || {}).filter(([, enabled]) => enabled === true);
-                        return <article className={`platform-plan ${planActive ? "is-active" : ""}`} key={plan.id}>
+                        const planWorking = working === `plan-${plan.id}`;
+                        return <article className={`platform-plan ${planActive ? "is-active" : ""} ${plan.code === "ai_materials_addon_monthly" ? "is-ai-addon" : ""}`} key={plan.id}>
                             <span>{plan.access_model === "addon" ? "英文班學生加購" : plan.trial_days > 0 ? `${plan.trial_days} 天試用` : "月費訂閱"}</span>
                             <h3>{plan.name}</h3>
                             <p>{plan.description}</p>
                             <strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong>
                             <ul>{booleanFeatures.map(([feature]) => <li key={feature}>✓ {FEATURE_LABELS[feature] || feature.replaceAll("_", " ")}</li>)}{Number(plan.features?.ai_monthly_limit) > 0 && <li>✓ 每月最多 {Number(plan.features.ai_monthly_limit)} 次</li>}</ul>
-                            <button className="platform-primary" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || working === `plan-${plan.id}`}>{planActive ? "方案已啟用" : working === `plan-${plan.id}` ? "前往付款中…" : plan.checkout_ready ? "選擇方案" : "付款設定中"}</button>
+                            <button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>
+                                {planActive ? <><FiZap aria-hidden="true" />AI Premium 使用中</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}
+                            </button>
                         </article>;
                     })}</div>}
             </section>

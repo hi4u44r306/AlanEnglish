@@ -143,7 +143,7 @@
   gap: 8px;
 }
 
-.ae-user-chip > span {
+.ae-user-chip-avatar {
   width: 28px;
   height: 28px;
   display: inline-flex;
@@ -154,6 +154,38 @@
   color: #ffffff;
   font-size: 12px;
   font-weight: 900;
+}
+
+.ae-user-chip-name {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ae-ai-premium-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid rgba(222, 173, 50, 0.38);
+  border-radius: 999px;
+  color: #5b3c99;
+  background: linear-gradient(135deg, #fff7d6, #f1e7ff);
+  box-shadow: 0 5px 14px rgba(63, 45, 128, 0.11);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ae-ai-premium-badge svg {
+  width: 12px;
+  height: 12px;
+  color: #d69418;
+  fill: rgba(255, 202, 71, 0.22);
 }
 
 .ae-mobile-toggle {
@@ -276,6 +308,13 @@
   color: #7a859a;
   font-size: 12px;
   font-weight: 750;
+}
+
+.ae-mobile-profile .ae-ai-premium-badge {
+  width: fit-content;
+  margin-top: 6px;
+  color: #5b3c99;
+  font-size: 9px;
 }
 
 .ae-mobile-section {
@@ -596,6 +635,14 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
+  .ae-mobile-profile.has-ai-premium {
+    border-color: rgba(255, 216, 108, 0.42);
+    background:
+      radial-gradient(circle at 88% 12%, rgba(142, 112, 232, 0.3), transparent 38%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(88, 66, 172, 0.16));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 15px 35px rgba(5, 10, 30, 0.16);
+  }
+
   .ae-mobile-avatar {
     display: grid;
     width: 46px;
@@ -619,6 +666,17 @@
     color: #9eabd0;
     font-size: 12px;
     font-weight: 750;
+  }
+
+  .ae-mobile-profile .ae-ai-premium-badge {
+    color: #fff0b3;
+    border-color: rgba(255, 221, 118, 0.34);
+    background: linear-gradient(135deg, rgba(255, 213, 91, 0.18), rgba(150, 112, 255, 0.24));
+    box-shadow: 0 7px 18px rgba(4, 8, 27, 0.2);
+  }
+
+  .ae-mobile-profile .ae-ai-premium-badge svg {
+    color: #ffd45f;
   }
 
   .ae-mobile-section {
