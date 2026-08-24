@@ -175,9 +175,13 @@ export const createAcademyInvitation = async (
     }
 );
 
-export const previewAcademyInvitation = async token => callAcademyStudentManager(
+export const previewAcademyInvitation = async (token, accountEmail = "") => callAcademyStudentManager(
     null,
-    { action: "preview_invitation", token },
+    {
+        action: "preview_invitation",
+        token,
+        account_email: String(accountEmail || "").trim().toLowerCase()
+    },
     { allowAnonymous: true }
 );
 
@@ -220,6 +224,27 @@ export const previewAcademyStudents = async (
     );
 };
 
+export const listAcademyInvitations = async firebaseUser => {
+    const result = await callAcademyStudentManager(
+        firebaseUser,
+        { action: "list_invitations" }
+    );
+
+    return Array.isArray(result?.invitations)
+        ? result.invitations
+        : [];
+};
+
+export const sendAcademyPasswordReset = async (firebaseUser, email) => (
+    callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "send_password_reset",
+            email: String(email || "").trim().toLowerCase()
+        }
+    )
+);
+
 export const markAcademyPasswordChanged = async firebaseUser => {
     return callAcademyStudentManager(
         firebaseUser,
@@ -237,6 +262,8 @@ const academyStudentService = {
     claimAcademyInvitation,
     activateAcademyInvitation,
     previewAcademyStudents,
+    listAcademyInvitations,
+    sendAcademyPasswordReset,
     markAcademyPasswordChanged
 };
 

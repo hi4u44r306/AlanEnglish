@@ -464,6 +464,22 @@
     }
 }
 
+.login-activation-success {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    color: #05603a;
+    background: #ecfdf3;
+    border: 1px solid #a6f4c5;
+    border-radius: 10px;
+    font-size: 14px;
+
+    strong {
+        color: #027a48;
+    }
+}
+
 .login-copyright {
   margin-top: 21px;
   color: #a0a9b5;

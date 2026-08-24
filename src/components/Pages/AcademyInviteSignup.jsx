@@ -29,18 +29,20 @@ const friendlyError = error => {
     return error?.message || "無法完成邀請，請聯絡客服。";
 };
 
-function AcademyInviteSignup() {
+function AcademyInviteSignup({ manualEntry = false }) {
     const [params] = useSearchParams();
-    const token = params.get("token") || "";
+    const tokenFromUrl = params.get("token") || "";
     const { firebaseUser, logout } = useAuth();
+    const [token, setToken] = useState(tokenFromUrl);
     const [invitation, setInvitation] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(Boolean(tokenFromUrl));
     const [submitting, setSubmitting] = useState(false);
     const [sending, setSending] = useState(false);
     const [cooldown, setCooldown] = useState(0);
     const [error, setError] = useState("");
     const [notice, setNotice] = useState("");
     const [claimedUser, setClaimedUser] = useState(null);
+    const [lookup, setLookup] = useState({ email: "", code: "" });
     const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", emailConfirmed: false });
 
     useEffect(() => {
@@ -48,7 +50,6 @@ function AcademyInviteSignup() {
 
         const load = async () => {
             if (!token) {
-                setError("邀請連結不完整，請向英文班索取新的邀請連結。");
                 setLoading(false);
                 return;
             }
@@ -68,6 +69,29 @@ function AcademyInviteSignup() {
         load();
         return () => { cancelled = true; };
     }, [token]);
+
+    const lookupInvitation = async event => {
+        event.preventDefault();
+        setError("");
+        setNotice("");
+
+        const email = lookup.email.trim().toLowerCase();
+        const code = lookup.code.trim().toUpperCase();
+        if (!isReceivableEmail(email)) return setError(RECEIVABLE_EMAIL_HELP);
+        if (!code) return setError("請輸入英文班提供的一次性開通碼。");
+
+        setLoading(true);
+        try {
+            const result = await previewAcademyInvitation(code, email);
+            setInvitation(result.invitation);
+            setForm(current => ({ ...current, email: result.invitation?.invited_email || email }));
+            setToken(code);
+        } catch (lookupError) {
+            setError(lookupError?.message || "帳號或開通碼不正確，請重新確認。");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (
@@ -149,7 +173,8 @@ function AcademyInviteSignup() {
             }
             await user.getIdToken(true);
             await activateAcademyInvitation(user, token);
-            window.location.assign("/student/dashboard");
+            await logout();
+            window.location.assign("/login?activated=1");
         } catch (activateError) {
             setError(friendlyError(activateError));
         } finally {
@@ -159,7 +184,50 @@ function AcademyInviteSignup() {
 
     if (loading) return <main className="platform-public"><section className="platform-public-card platform-center"><p>正在確認邀請⋯</p></section></main>;
 
-    if (!invitation) return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">⚠️</div><h1>無法使用這份邀請</h1><p>{error}</p><Link className="platform-secondary" to="/support">聯絡客服</Link></section></main>;
+    if (manualEntry && !invitation && !token) {
+        return (
+            <main className="platform-public">
+                <section className="platform-public-card">
+                    <span className="platform-eyebrow">ACADEMY ACCOUNT ACTIVATION</span>
+                    <h1>開通英文班帳號</h1>
+                    <p>輸入櫃檯提供的登入 Email 與一次性開通碼，接著就能自行設定密碼。</p>
+                    <form className="platform-form" onSubmit={lookupInvitation}>
+                        <label>
+                            <span>登入與收信 Email</span>
+                            <input
+                                type="email"
+                                value={lookup.email}
+                                onChange={event => setLookup(current => ({ ...current, email: event.target.value }))}
+                                placeholder="name@gmail.com"
+                                autoComplete="email"
+                                required
+                            />
+                            <small>{RECEIVABLE_EMAIL_HELP}</small>
+                        </label>
+                        <label>
+                            <span>一次性開通碼</span>
+                            <input
+                                className="platform-activation-code"
+                                type="text"
+                                value={lookup.code}
+                                onChange={event => setLookup(current => ({ ...current, code: event.target.value.toUpperCase() }))}
+                                placeholder="AE-XXXX-XXXX-XXXX"
+                                autoComplete="one-time-code"
+                                autoCapitalize="characters"
+                                spellCheck="false"
+                                required
+                            />
+                        </label>
+                        {error && <div className="platform-form-error" role="alert"><strong>無法確認開通資料</strong><span>{error}</span></div>}
+                        <button className="platform-primary platform-wide" type="submit">確認帳號並設定密碼</button>
+                    </form>
+                    <p className="platform-footnote">已經開通？ <Link to="/login">返回登入</Link>　·　<Link to="/support">聯絡客服</Link></p>
+                </section>
+            </main>
+        );
+    }
+
+    if (!invitation) return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">⚠️</div><h1>無法使用這份邀請</h1><p>{error || "邀請連結不完整，請向英文班索取新的邀請連結或開通碼。"}</p><Link className="platform-secondary" to="/support">聯絡客服</Link></section></main>;
 
     if (claimedUser || invitation.status === "claimed") {
         const inviteSessionUser = claimedUser || (firebaseUser?.email?.toLowerCase() === invitation.invited_email ? firebaseUser : null);

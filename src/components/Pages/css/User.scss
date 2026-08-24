@@ -26,6 +26,87 @@
   margin: 0 auto;
 }
 
+.student-home__ai-upgrade {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  padding: 18px 22px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 78% 15%, rgba(255, 217, 109, 0.24), transparent 26%),
+    linear-gradient(120deg, #101d43 0%, #263d85 62%, #5b3f92 100%);
+  border: 1px solid rgba(255, 220, 131, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 16px 38px rgba(24, 34, 83, 0.2);
+  text-decoration: none;
+
+  &:hover {
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  &::after {
+    position: absolute;
+    top: -38px;
+    right: 18%;
+    width: 112px;
+    height: 112px;
+    content: "";
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50%;
+  }
+
+  span {
+    color: #ffdb78;
+    font-size: 0.62rem;
+    font-weight: 950;
+    letter-spacing: 0.17em;
+  }
+
+  strong {
+    display: block;
+    margin-top: 3px;
+    font-size: 1.02rem;
+    font-weight: 950;
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.74rem;
+    font-weight: 650;
+  }
+}
+
+.student-home__ai-upgrade-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: #172552;
+  background: linear-gradient(135deg, #ffe492, #f9bd4d);
+  border-radius: 14px;
+  box-shadow: 0 9px 22px rgba(255, 204, 92, 0.25);
+}
+
+.student-home__ai-upgrade-action {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  color: #172552;
+  background: #fff;
+  border-radius: 11px;
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
 .student-home__hero {
   position: relative;
   min-height: 280px;
@@ -769,6 +850,35 @@
 }
 
 @media screen and (max-width: 650px) {
+  .student-home__ai-upgrade {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 15px;
+    border-radius: 16px;
+
+    strong {
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+
+    p {
+      font-size: 0.66rem;
+      line-height: 1.45;
+    }
+  }
+
+  .student-home__ai-upgrade-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .student-home__ai-upgrade-action {
+    grid-column: 2;
+    width: fit-content;
+    padding: 7px 10px;
+  }
+
   .User {
     padding: 12px 10px 42px;
   }

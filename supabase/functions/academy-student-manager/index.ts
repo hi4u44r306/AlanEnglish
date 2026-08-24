@@ -82,7 +82,8 @@ const ALLOWED_ORIGINS = new Set([
 const CLASS_CODES = new Set(["E1", "E3", "E5", "E7"]);
 const MAX_BODY_BYTES = 512 * 1024;
 const MAX_PREVIEW_ROWS = 200;
-const INVITATION_TTL_HOURS = 72;
+const INVITATION_TTL_HOURS = 30 * 24;
+const ACTIVATION_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const RESERVED_EMAIL_DOMAINS = new Set([
     "example.com",
     "example.net",
@@ -406,12 +407,25 @@ const rollbackFirebaseAccount = async (idToken: string): Promise<boolean> => {
 };
 
 const createInvitationToken = (): string => {
-    const bytes = crypto.getRandomValues(new Uint8Array(32));
-    const binary = Array.from(bytes, byte => String.fromCharCode(byte)).join("");
-    return btoa(binary)
-        .replaceAll("+", "-")
-        .replaceAll("/", "_")
-        .replaceAll("=", "");
+    const bytes = crypto.getRandomValues(new Uint8Array(12));
+    const characters = Array.from(
+        bytes,
+        byte => ACTIVATION_CODE_ALPHABET[byte % ACTIVATION_CODE_ALPHABET.length]
+    ).join("");
+
+    return `AE-${characters.slice(0, 4)}-${characters.slice(4, 8)}-${characters.slice(8, 12)}`;
+};
+
+const normalizeInvitationToken = (value: unknown): string => {
+    const token = cleanText(value, 500);
+    const compact = token.toUpperCase().replaceAll(/[^A-Z0-9]/g, "");
+
+    if (/^AE[A-HJ-NP-Z2-9]{12}$/.test(compact)) {
+        return `AE-${compact.slice(2, 6)}-${compact.slice(6, 10)}-${compact.slice(10, 14)}`;
+    }
+
+    // Keep legacy URL-safe invitation tokens case-sensitive.
+    return token;
 };
 
 const hashInvitationToken = async (token: string): Promise<string> => {
@@ -507,6 +521,7 @@ const createInvitation = async (
         ? requestOrigin(req)!
         : "https://alanenglish.com.tw";
     const setupUrl = `${origin}/academy/invite?token=${encodeURIComponent(rawToken)}`;
+    const activationUrl = `${origin}/academy/activate`;
 
     return json(req, 201, {
         success: true,
@@ -514,6 +529,8 @@ const createInvitation = async (
             ...data,
             class_code: classRow.code,
             class_name: classRow.name_zh,
+            activation_code: rawToken,
+            activation_url: activationUrl,
             setup_url: setupUrl,
             expires_in_hours: INVITATION_TTL_HOURS
         }
@@ -525,8 +542,12 @@ const previewInvitation = async (
     admin: SupabaseClient,
     body: JsonObject
 ): Promise<Response> => {
-    const token = cleanText(body.token, 500);
+    const token = normalizeInvitationToken(body.token);
     if (!token) throw new HttpError(400, "INVITATION_TOKEN_REQUIRED", "學生邀請連結不完整");
+    const accountEmail = normalizeEmail(body.account_email);
+    if (body.account_email && !isReceivableEmail(accountEmail)) {
+        throw new HttpError(400, "RECEIVABLE_EMAIL_REQUIRED", "請輸入可正常收信的登入 Email");
+    }
     const tokenHash = await hashInvitationToken(token);
 
     const { data, error } = await admin
@@ -537,6 +558,9 @@ const previewInvitation = async (
 
     if (error) throw new HttpError(500, "INVITATION_PREVIEW_FAILED", "無法讀取學生邀請");
     if (!data?.id) throw new HttpError(404, "INVITATION_NOT_FOUND", "找不到這份學生邀請");
+    if (accountEmail && data.invited_email.toLowerCase() !== accountEmail) {
+        throw new HttpError(404, "INVITATION_NOT_FOUND", "帳號或開通碼不正確");
+    }
     if (new Date(data.expires_at).getTime() <= Date.now() || data.status === "expired") {
         throw new HttpError(410, "INVITATION_EXPIRED", "學生邀請已過期，請聯絡櫃檯重新建立");
     }
@@ -570,7 +594,7 @@ const claimInvitation = async (
     firebaseUser: FirebaseUser,
     body: JsonObject
 ): Promise<Response> => {
-    const token = cleanText(body.token, 500);
+    const token = normalizeInvitationToken(body.token);
     if (!token) throw new HttpError(400, "INVITATION_TOKEN_REQUIRED", "學生邀請連結不完整");
     if (!firebaseUser.email || !isReceivableEmail(firebaseUser.email)) {
         throw new HttpError(400, "RECEIVABLE_EMAIL_REQUIRED", "請使用本人或家長可以正常收信的 Email");
@@ -601,7 +625,7 @@ const activateInvitation = async (
     if (!firebaseUser.emailVerified) {
         throw new HttpError(403, "EMAIL_NOT_VERIFIED", "請先完成 Email 驗證");
     }
-    const token = cleanText(body.token, 500);
+    const token = normalizeInvitationToken(body.token);
     if (!token) throw new HttpError(400, "INVITATION_TOKEN_REQUIRED", "學生邀請連結不完整");
     const tokenHash = await hashInvitationToken(token);
     const { data, error } = await admin.rpc("activate_academy_account_invitation", {
@@ -611,6 +635,97 @@ const activateInvitation = async (
 
     if (error) throw invitationError(error.message || "");
     return json(req, 200, { success: true, activation: data });
+};
+
+const listInvitations = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile
+): Promise<Response> => {
+    requireStaff(caller);
+
+    const { data, error } = await admin
+        .from("academy_account_invitations")
+        .select("id,status,invited_email,chinese_name,english_name,enrolled_at,access_ends_at,expires_at,claimed_at,completed_at,created_at,academy_classes(code,name_zh)")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+    if (error) {
+        throw new HttpError(500, "INVITATION_LIST_FAILED", "無法讀取學生開通狀態");
+    }
+
+    const invitations = (data || []).map(invitation => {
+        const academyClass = Array.isArray(invitation.academy_classes)
+            ? invitation.academy_classes[0]
+            : invitation.academy_classes;
+        const status = invitation.status === "active" && new Date(invitation.expires_at).getTime() <= Date.now()
+            ? "expired"
+            : invitation.status;
+
+        return {
+            id: invitation.id,
+            status,
+            invited_email: invitation.invited_email,
+            chinese_name: invitation.chinese_name,
+            english_name: invitation.english_name,
+            class_code: academyClass?.code || null,
+            class_name: academyClass?.name_zh || null,
+            enrolled_at: invitation.enrolled_at,
+            access_ends_at: invitation.access_ends_at,
+            expires_at: invitation.expires_at,
+            claimed_at: invitation.claimed_at,
+            completed_at: invitation.completed_at,
+            created_at: invitation.created_at
+        };
+    });
+
+    return json(req, 200, { success: true, invitations });
+};
+
+const sendPasswordReset = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    requireStaff(caller);
+    const email = normalizeEmail(body.email);
+    if (!isReceivableEmail(email)) {
+        throw new HttpError(400, "RECEIVABLE_EMAIL_REQUIRED", "請使用可以正常收信的 Email");
+    }
+
+    let targetQuery = admin
+        .from("students")
+        .select("id,role,email")
+        .eq("email", email);
+    if (caller.role === "teacher") targetQuery = targetQuery.eq("role", "student");
+
+    const { data: target, error: targetError } = await targetQuery.maybeSingle();
+    if (targetError) throw new HttpError(500, "ACCOUNT_LOOKUP_FAILED", "無法確認學生帳號");
+    if (!target?.id) throw new HttpError(404, "ACCOUNT_NOT_FOUND", "找不到可管理的學生帳號");
+
+    try {
+        await firebaseRequest<JsonObject>("accounts:sendOobCode", {
+            requestType: "PASSWORD_RESET",
+            email
+        });
+    } catch (error) {
+        if (error instanceof FirebaseApiError) {
+            if (error.code.includes("TOO_MANY_ATTEMPTS")) {
+                throw new HttpError(429, "FIREBASE_RATE_LIMITED", "重設信寄送次數過多，請稍後再試");
+            }
+            if (error.code.includes("EMAIL_NOT_FOUND")) {
+                throw new HttpError(404, "FIREBASE_ACCOUNT_NOT_FOUND", "Firebase 找不到這個學生帳號");
+            }
+        }
+        throw error;
+    }
+
+    return json(req, 200, {
+        success: true,
+        email,
+        message: "密碼重設信已寄出"
+    });
 };
 
 const createStudent = async (
@@ -911,6 +1026,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "preview_students") {
             return await previewStudents(req, admin, caller, body);
+        }
+        if (action === "list_invitations") {
+            return await listInvitations(req, admin, caller);
+        }
+        if (action === "send_password_reset") {
+            return await sendPasswordReset(req, admin, caller, body);
         }
         if (action === "create_student") {
             return await createStudent(req, admin, caller, body);

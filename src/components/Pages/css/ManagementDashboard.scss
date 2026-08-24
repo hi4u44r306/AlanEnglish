@@ -230,6 +230,7 @@
 }
 
 .management-edit-button,
+.management-reset-button,
 .management-save-button,
 .management-cancel-button {
   border: none;
@@ -237,6 +238,94 @@
   font-weight: 800;
   cursor: pointer;
   transition: 0.18s ease;
+}
+
+.management-row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 170px;
+}
+
+.management-reset-button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: #6f4c0e;
+  background: #fff8e8;
+
+  &:hover:not(:disabled) {
+    background: #ffefc4;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+}
+
+.activation-badge {
+  display: inline-flex;
+  width: max-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.activation-active {
+  color: #8a5d17;
+  background: #fff7e6;
+}
+
+.activation-claimed {
+  color: #315f9d;
+  background: #edf5ff;
+}
+
+.activation-completed {
+  color: #087443;
+  background: #eafbf2;
+}
+
+.activation-expired,
+.activation-revoked {
+  color: #9b2c26;
+  background: #fff0ef;
+}
+
+.activation-legacy {
+  color: #596579;
+  background: #f0f2f5;
+}
+
+.management-pending-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+
+  h2 {
+    margin: 4px 0;
+    color: #172033;
+    font-size: 1.3rem;
+  }
+
+  p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.84rem;
+  }
+
+  > strong {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    color: #2563eb;
+    background: #eef5ff;
+    border-radius: 999px;
+    font-size: 0.78rem;
+  }
 }
 
 .management-edit-button {

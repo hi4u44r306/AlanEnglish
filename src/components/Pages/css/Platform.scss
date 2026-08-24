@@ -160,6 +160,11 @@ textarea { resize: vertical; }
 .platform-form-error strong { color: #b42318; }
 .platform-form-error a { width: fit-content; margin-top: 3px; color: #b42318; font-weight: 800; }
 .platform-form input[aria-invalid="true"] { border-color: #f04438; box-shadow: 0 0 0 4px rgba(240, 68, 56, .1); }
+.platform-form .platform-activation-code {
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-weight: 800;
+}
 .platform-verification-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
 .platform-verification-notice { margin-top: 18px; padding: 13px 15px; border-radius: 12px; font-weight: 700; }
 .platform-verification-notice.success { color: #05603a; border: 1px solid #a6f4c5; background: #ecfdf3; }

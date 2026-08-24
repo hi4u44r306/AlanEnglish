@@ -245,8 +245,12 @@ function Signup() {
         }
     };
 
-    const handleCopyLink = () => {
-        copyText(invitation.setup_url, "邀請連結已複製");
+    const handleCopyAccount = () => {
+        copyText(invitation.invited_email, "登入帳號已複製");
+    };
+
+    const handleCopyCode = () => {
+        copyText(invitation.activation_code, "一次性開通碼已複製");
     };
 
     const handleCopyInvitation = () => {
@@ -256,9 +260,10 @@ function Signup() {
             "Alan English 英文班帳號邀請",
             `註冊 Email：${invitation.invited_email}`,
             `班級：${invitation.class_code}`,
-            `邀請期限：${new Date(invitation.expires_at).toLocaleString("zh-TW")}`,
-            "請開啟以下連結，自行設定密碼並完成 Email 驗證：",
-            invitation.setup_url
+            `一次性開通碼：${invitation.activation_code}`,
+            `開通期限：${new Date(invitation.expires_at).toLocaleString("zh-TW")}`,
+            "請前往以下頁面，自行設定密碼並完成 Email 驗證：",
+            invitation.activation_url || `${window.location.origin}/academy/activate`
         ].join("\n");
 
         copyText(accountText, "完整邀請訊息已複製");
@@ -334,7 +339,7 @@ function Signup() {
                         <h1>建立英文班學生邀請</h1>
 
                         <p>
-                            填寫學生資料後產生邀請連結；學生或家長自行設定密碼並完成 Email 驗證。
+                            填寫學生資料後產生登入帳號與一次性開通碼；學生或家長自行設定密碼並完成 Email 驗證。
                         </p>
                     </div>
                 </header>
@@ -349,7 +354,7 @@ function Signup() {
                             <span>Invitation Created</span>
                             <h2>學生邀請建立成功</h2>
                             <p>
-                                請將邀請連結傳給學生或家長；櫃檯人員不需要建立、查看或保管密碼。
+                                請將登入帳號與一次性開通碼交給學生或家長；櫃檯人員不需要建立、查看或保管密碼。
                             </p>
                         </div>
 
@@ -362,9 +367,9 @@ function Signup() {
                             </div>
 
                             <div>
-                                <span>邀請連結</span>
+                                <span>一次性開通碼</span>
                                 <strong className="academy-account-password academy-account-invite-link">
-                                    {invitation.setup_url}
+                                    {invitation.activation_code}
                                 </strong>
                                 <small>
                                     有效至 {new Date(invitation.expires_at).toLocaleString("zh-TW")}
@@ -385,9 +390,17 @@ function Signup() {
                             <button
                                 type="button"
                                 className="academy-account-primary-button"
-                                onClick={handleCopyLink}
+                                onClick={handleCopyAccount}
                             >
-                                複製邀請連結
+                                複製登入帳號
+                            </button>
+
+                            <button
+                                type="button"
+                                className="academy-account-primary-button"
+                                onClick={handleCopyCode}
+                            >
+                                複製開通碼
                             </button>
 
                             <button
@@ -410,7 +423,7 @@ function Signup() {
                         <div className="academy-account-security-note">
                             <strong>安全提醒</strong>
                             <p>
-                                邀請連結會在 72 小時後失效。英文班權限要等學生完成 Email 驗證才會啟用。
+                                開通碼會在 30 天後失效，而且只能使用一次。英文班權限要等學生完成 Email 驗證才會啟用。
                             </p>
                         </div>
                     </section>

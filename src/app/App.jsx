@@ -80,6 +80,7 @@ const App = () => {
                     <Route path="/solve" element={<Navigate to="/forgot-password" replace />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/academy/invite" element={<AcademyInviteSignup />} />
+                    <Route path="/academy/activate" element={<AcademyInviteSignup manualEntry />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/home" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
