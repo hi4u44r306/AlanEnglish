@@ -236,7 +236,8 @@ const User = () => {
                 description: homeData.assignments.pending > 0
                     ? `還有 ${homeData.assignments.pending} 項老師指定的任務`
                     : `今天的 ${homeData.assignments.total} 項作業都完成了`,
-                meta: `${homeData.assignments.completed} / ${homeData.assignments.total}`,
+                metaValue: `${homeData.assignments.completed}/${homeData.assignments.total}`,
+                metaLabel: "完成",
                 completed: homeData.assignments.pending === 0,
                 icon: FiBookOpen,
                 path: "/student/assignments",
@@ -252,9 +253,8 @@ const User = () => {
                 description: homeData.review.due > 0
                     ? `今天有 ${homeData.review.due} 題需要重新想一次`
                     : `今天已完成，累計掌握 ${homeData.review.mastered} 題`,
-                meta: homeData.review.due > 0
-                    ? `${homeData.review.due} 題待複習`
-                    : "今日完成",
+                metaValue: homeData.review.due > 0 ? `${homeData.review.due}` : "完成",
+                metaLabel: homeData.review.due > 0 ? "題待複習" : "今日",
                 completed: homeData.review.due === 0,
                 icon: FiRefreshCw,
                 path: "/student/review",
@@ -269,7 +269,8 @@ const User = () => {
             description: homeData.listening.dailyCount >= DAILY_LISTENING_GOAL
                 ? "今天的聽力目標已經達成"
                 : `再聽 ${Math.max(0, DAILY_LISTENING_GOAL - homeData.listening.dailyCount)} 次，完成今日暖身`,
-            meta: `${Math.min(homeData.listening.dailyCount, DAILY_LISTENING_GOAL)} / ${DAILY_LISTENING_GOAL}`,
+            metaValue: `${Math.min(homeData.listening.dailyCount, DAILY_LISTENING_GOAL)}/${DAILY_LISTENING_GOAL}`,
+            metaLabel: "完成",
             completed: homeData.listening.dailyCount >= DAILY_LISTENING_GOAL,
             icon: FiHeadphones,
             path: homeData.firstBookPath || "/student/assignments",
@@ -283,7 +284,8 @@ const User = () => {
             description: homeData.ai.used > 0
                 ? `今天已建立 ${homeData.ai.used} 份練習，既有教材可免費複習`
                 : "依照你的程度，建立一份今天想加強的教材",
-            meta: `${homeData.ai.remaining} 次可用`,
+            metaValue: `${homeData.ai.remaining}`,
+            metaLabel: "次可用",
             completed: homeData.ai.used > 0,
             icon: FiStar,
             path: "/student/ai-generator",
@@ -298,7 +300,8 @@ const User = () => {
                 description: homeData.conversation.completedSteps > 0
                     ? "從上次進度繼續，練習遇到外國人的英文反應"
                     : "用名字、年級、家庭與問路完成真實對話",
-                meta: `${homeData.conversation.completedSteps} / ${homeData.conversation.totalSteps}`,
+                metaValue: `${homeData.conversation.completedSteps}/${homeData.conversation.totalSteps}`,
+                metaLabel: "完成",
                 completed: false,
                 icon: FiMessageCircle,
                 path: "/student/conversation",
@@ -418,6 +421,14 @@ const User = () => {
                             <span>LEARNING PATH</span>
                             <h2>今天的學習路線</h2>
                             <p>照順序完成，不用自己煩惱下一步要做什麼。</p>
+                            <div className="student-home__reward-note">
+                                <FiZap />
+                                <strong>
+                                    {homeData.assignments.total > 0
+                                        ? "完成老師作業可獲得 +30 XP 與 +5 AE Points，90 分以上還有加碼！"
+                                        : "完成聽力、作業與遊戲，可以累積 XP 與 AE Points！"}
+                                </strong>
+                            </div>
                         </div>
                         <div className="student-home__completion-chip">
                             <FiCheck /> {completedTaskCount} / {dailyTasks.length} 完成
@@ -444,7 +455,10 @@ const User = () => {
                                     <div className="student-home__task-copy">
                                         <div>
                                             <h3>{task.title}</h3>
-                                            <span>{task.meta}</span>
+                                            <span className="student-home__task-meta">
+                                                <strong>{task.metaValue}</strong>
+                                                <small>{task.metaLabel}</small>
+                                            </span>
                                         </div>
                                         <p>{task.description}</p>
                                     </div>
@@ -470,27 +484,43 @@ const User = () => {
                     <div className="student-home__stats">
                         <article>
                             <div className="student-home__stat-icon student-home__stat-icon--today"><FiZap /></div>
-                            <span>今日聽力</span>
-                            <strong>{formatNumber(homeData.listening.dailyCount)}</strong>
-                            <small>次播放</small>
+                            <div className="student-home__stat-copy">
+                                <span>今日聽力</span>
+                                <div className="student-home__stat-value">
+                                    <strong>{formatNumber(homeData.listening.dailyCount)}</strong>
+                                    <small>次播放</small>
+                                </div>
+                            </div>
                         </article>
                         <article>
                             <div className="student-home__stat-icon student-home__stat-icon--month"><FiHeadphones /></div>
-                            <span>本月聽力</span>
-                            <strong>{formatNumber(homeData.listening.monthlyCount)}</strong>
-                            <small>次播放</small>
+                            <div className="student-home__stat-copy">
+                                <span>本月聽力</span>
+                                <div className="student-home__stat-value">
+                                    <strong>{formatNumber(homeData.listening.monthlyCount)}</strong>
+                                    <small>次播放</small>
+                                </div>
+                            </div>
                         </article>
                         <article>
                             <div className="student-home__stat-icon student-home__stat-icon--total"><FiTrendingUp /></div>
-                            <span>累計聽力</span>
-                            <strong>{formatNumber(homeData.listening.totalCount)}</strong>
-                            <small>次播放</small>
+                            <div className="student-home__stat-copy">
+                                <span>累計聽力</span>
+                                <div className="student-home__stat-value">
+                                    <strong>{formatNumber(homeData.listening.totalCount)}</strong>
+                                    <small>次播放</small>
+                                </div>
+                            </div>
                         </article>
                         <article>
                             <div className="student-home__stat-icon student-home__stat-icon--speaking"><FiMessageCircle /></div>
-                            <span>口說任務</span>
-                            <strong>{homeData.conversation.completedSteps}</strong>
-                            <small>/ {homeData.conversation.totalSteps} 關</small>
+                            <div className="student-home__stat-copy">
+                                <span>口說任務</span>
+                                <div className="student-home__stat-value">
+                                    <strong>{homeData.conversation.completedSteps}</strong>
+                                    <small>/ {homeData.conversation.totalSteps} 關</small>
+                                </div>
+                            </div>
                         </article>
                     </div>
                 </section>
