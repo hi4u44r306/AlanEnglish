@@ -56,7 +56,10 @@ export const loadEffectiveAccess = async (
         effective_access_end: value.effective_access_end
             ? String(value.effective_access_end)
             : null,
-        days_remaining: Number.isInteger(Number(value.days_remaining))
+        days_remaining: value.days_remaining !== null
+            && value.days_remaining !== undefined
+            && value.days_remaining !== ""
+            && Number.isInteger(Number(value.days_remaining))
             ? Number(value.days_remaining)
             : null,
         ai_daily_limit: Math.max(0, Number(value.ai_daily_limit || 0)),

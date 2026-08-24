@@ -106,6 +106,43 @@ describe("MembershipCenter AI add-on", () => {
         expect(createCheckoutSession).toHaveBeenCalledWith(expect.anything(), 99);
     });
 
+    it("labels active academy access as an in-school plan instead of complimentary access", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                membership: {
+                    status: "complimentary",
+                    is_active: true,
+                    days_remaining: 0,
+                    effective_access_end: null,
+                    plan: { name: "全方位月訂閱" },
+                    effective_access: {
+                        learner_type: "academy_student",
+                        plan_codes: ["academy_internal"],
+                        grants: [{
+                            plan_code: "academy_internal",
+                            plan_name: "英文班在學方案",
+                            ends_at: null
+                        }]
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByRole("heading", { name: "英文班在校生" })).toBeInTheDocument();
+        expect(screen.getByText("英文班在學方案")).toBeInTheDocument();
+        expect(screen.getByText("在校期間有效")).toBeInTheDocument();
+        expect(screen.getByText("已啟用")).toBeInTheDocument();
+        expect(screen.queryByText("贈送使用權")).not.toBeInTheDocument();
+        expect(screen.queryByText("全方位月訂閱")).not.toBeInTheDocument();
+        expect(screen.queryByText("0 天")).not.toBeInTheDocument();
+    });
+
     it("does not describe a subscription pending cancellation as an automatic renewal", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {

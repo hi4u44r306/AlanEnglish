@@ -38,6 +38,11 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - PR #21：AI 加購付款按鈕載入狀態、AI Premium 啟用卡、每月續訂日與 Navbar／手機 Sidebar 徽章；已合併並部署正式 Netlify。
 - `membership-manager` v19：只回傳 AI 加購的續訂日期與週期結束取消狀態，不回傳 Stripe 識別碼或任何金鑰；已部署且為 ACTIVE。
 
+進行中：
+
+- 在校英文班學生的會員狀態改為顯示「英文班在校生／英文班在學方案」，避免舊會員欄位誤顯示為贈送使用權或全方位月訂閱。
+- 修正無期限權限被轉成剩餘 0 天，以及後台建立學生頁的日期欄位在 iPhone Safari 超出卡片寬度。
+
 目前下一個主要開發方向：
 
 1. 建立 P0 Unit Test 基礎
