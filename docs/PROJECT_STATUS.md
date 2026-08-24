@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-22
+最後更新：2026-08-24
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -23,6 +23,9 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 學生類型與疊加式會員權限
 - 英文班分班週期
 - 英文班學生帳號建立
+- 英文班學生邀請式帳號建立（本機功能分支完成，尚未部署）
+- Firebase 忘記／修改密碼與客服案件流程（本機功能分支完成，尚未部署）
+- AI 教材額度卡顯示每日及每月重新計算倒數（本機功能分支完成，尚未部署）
 - 公開產品首頁
 - 會員方案展示
 - 固定 Navbar
@@ -31,12 +34,12 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 目前下一個主要開發方向：
 
-1. MusicPlayer 新版介面
-2. 真正聆聽覆蓋率
-3. 聽滿 80% 才算一次
-4. 防止拖曳時間軸作弊
-5. 手機 Sidebar 與播放器重疊修正
-6. 七天引導式試用內容
+1. 建立 P0 Unit Test 基礎
+2. 登入、Session、Route 與角色權限測試
+3. 會員、試用、啟用碼與有效權限測試
+4. MusicPlayer 80% 聆聽與防作弊測試
+5. 作業、AI 教材與前後端 action contract 測試
+6. Supabase RLS、GRANT、RPC 與 migration 整合測試
 
 ## 2. 目前正式版本
 
@@ -49,7 +52,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 目前已知的正式基準 commit：
 
 ```text
-6a9c34dd67c5ede0f90b514e4287696f2ed339ca
+45e6459
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
@@ -125,7 +128,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 
 - 免費七天
 - 目前不需要信用卡
-- 每天最多五次 AI 教材
+- AI 教材共 7 次、每日最多 2 次
 - 不提供英文班作業
 - 尚需建立不依賴實體教材的七天引導內容
 
@@ -141,6 +144,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 - 在校期間免費使用網站
 - 英文班月費目前為 NT$2,800
 - 可以收到班級作業
+- 不包含 AI 教材生成；可加購 AI 教材方案（NT$99／月、每日 5 次、每月最多 150 次且不累積）
 
 ### 英文班離校學生
 
@@ -177,6 +181,38 @@ supabase/migrations/20260821161809_phase_02_additive_membership_access.sql
 ```text
 supabase/functions/_shared/effective-access.ts
 ```
+
+### AI 教材加購與試用額度
+
+```text
+supabase/migrations/20260823090000_ai_material_addon_access.sql
+```
+
+已於正式 Supabase 套用：
+
+- 英文班在學方案不包含 AI 教材生成。
+- 新增 `ai_materials_addon_monthly`（NT$99／月、每日 5 次）。
+- 七天試用可使用 AI 教材每日 2 次；7 天共 7 次總額度已由 `generate-ai-material` v19 實施。
+- 會員後台已拆分核心方案資料與家長週報狀態載入；週報請求失敗不再清空方案及會員資料，且會常駐顯示實際錯誤訊息。已推送功能分支，尚未合併 `main`／部署正式 Netlify。
+- 會員後台方案卡片已調整為桌面 3 欄、平板 2 欄、手機 1 欄，長方案代碼及表單欄位不再溢出卡片；已推送功能分支，尚未合併 `main`／部署正式 Netlify。
+- Stripe 測試環境的 NT$99 recurring Price 已填入 AI 加購方案；方案目前維持不公開，避免付款授權流程部署前被學生看到。
+- Checkout、Customer Portal、Webhook 與獨立 `student_access_grants` 授權流程已完成；付款不會覆蓋英文班、教材或其他既有權限。Migration `20260823230023_stripe_additive_subscription_grants.sql` 已套用正式 Supabase。
+- AI 加購額度為每日 5 次、台灣時間每月 150 次；每月 150 次只套用 AI 加購，不影響其他完整付費方案。
+- 新註冊及既有未轉付費的公開試用會員會使用 `trial_7_day` 方案，讓 7 天內總共 7 次、每日 2 次的限制可以正確辨識；正式資料已校正 3 筆，剩餘不一致為 0。
+- 2026-08-24 已部署：`membership-manager` v15、`billing-manager` v12、`stripe-webhook` v12、`generate-ai-material` v19，狀態均為 ACTIVE。
+- Supabase 的 Stripe Secrets 已由專案擁有者在 Dashboard 儲存；不得從終端機讀取或顯示其內容。
+- Stripe 沙盒 NT$99 訂閱付款、Webhook、AI 權限啟用、教材生成與撤銷後剩餘 0 次已完成端到端驗收；未使用真實付款。
+- GitHub 功能分支 `codex/ai-material-paid-access` 的付款整合基準 commit 為 `42da564`；後續帳號邀請與客服修改亦已推送，尚未獲授權合併正式分支。
+
+### 帳號邀請、Email 與客服（尚未部署）
+
+- 管理員／老師改為建立 72 小時單次邀請連結，不再產生、顯示或保管學生臨時密碼。
+- 學生或家長使用邀請指定的可收信 Email，自行設定密碼；完成 Firebase Email 驗證後才啟用英文班權限。
+- 公開註冊頁明確要求可收信 Email，並拒絕 `example.*`、`.invalid` 與 `localhost` 等測試地址。
+- 網路購買教材者可自行註冊，登入會員中心後輸入教材兌換碼；英文班在校生仍由工作人員建立邀請，以避免自行選班取得英文班權限。
+- 新增 Firebase 密碼重設、登入後修改密碼、公開客服表單與管理員客服案件頁。
+- 新增 additive migration `20260824093000_academy_account_invitations_and_support.sql` 與 `support-manager` Function；兩者目前只有本機程式碼，尚未套用或部署。
+- AI 教材額度卡新增「今日總次數／剩餘」與「本月總次數／剩餘」的明確顯示。
 
 ### 第三階段：分班週期
 
@@ -260,6 +296,10 @@ academy-student-manager
 
 桌面 Navbar 固定於頂部。
 
+登入後 Navbar 在視窗寬度 `1500px` 以下會切換為側邊欄漢堡選單。
+
+側邊欄已移除舊的 `xl` 隱藏類別，確保 `1200px` 至 `1500px` 之間亦可正常開啟。
+
 手機版已有漢堡選單，但仍需要與登入後頁面的 Sidebar 進一步統一視覺及互動。
 
 ## 10. MusicPlayer 現況
@@ -272,48 +312,51 @@ academy-student-manager
 - 作業捷徑會避開播放器
 - 進入作業頁後會隱藏重複的浮動作業捷徑
 
+已完成：
+
+- 桌面與手機播放器第一版
+- 真正聆聽不重複區段覆蓋率
+- 聽滿 80% 才送出有效完成
+- 拖曳與重複小段不列入完整聆聽
+- 伺服器 listening session 驗證
+- `record-play` Edge Function v16 已部署並為 ACTIVE
+- `listening_coverage_sessions` migration 已部署
+
 仍需處理：
 
-- 整體視覺不夠精緻
-- 手機版空間配置
-- Sidebar 開啟時播放器層級
-- 真正聆聽百分比
-- 80% 有效完成規則
-- 時間軸防作弊
+- 用真實學生帳號完成「聽滿 80% → 次數 +1」端到端驗收
+- 曾使用加速播放後，整個 session 是否永久失效的規則與測試
+- 播放器實機手機視覺驗收
 - 字幕與逐字稿
 - 播放進度更直覺的提示
 
-## 11. 下一個優先任務：MusicPlayer 與 80% 聆聽
+## 11. 已完成：MusicPlayer 與 80% 聆聽
 
 ### 目標
 
 重新設計播放器，並將播放次數改成學生真正聆聽至少 80% 才算一次。
 
-### 必須先唯讀檢查
+### 已部署內容
 
-Codex 應先定位並檢查：
+- Migration：`20260822174726_listening_coverage_sessions`
+- `music_tracks.duration_seconds`
+- `listening_coverage_sessions`
+- RLS 已啟用
+- `anon`、`authenticated` 無直接讀取權限
+- `service_role` 具必要 DML 權限
+- `record-play` Edge Function v16
+- 無登入請求已驗證回傳 401
 
-```text
-src/components/fragment/MusicPlayer.jsx
-src/components/fragment/Containerfull.jsx
-src/components/fragment/MusicCard.jsx
-src/components/assets/scss/Containerfull.scss
+### GitHub migration 注意事項
+
+正式 Supabase 部署時追加了明確的：
+
+```sql
+revoke all on table public.listening_coverage_sessions from anon, authenticated;
+grant select, insert, update, delete on table public.listening_coverage_sessions to service_role;
 ```
 
-並使用 `rg` 搜尋：
-
-```text
-recordTrackPlay
-record-play
-onEnded
-onListen
-onSeeked
-musicplay
-complete
-noInteraction
-```
-
-只讀取搜尋到的直接相關檔案，不要掃描整個專案。
+分支中的 migration 原始檔仍需確認是否已同步上述權限。不得直接修改已在正式環境執行的 migration；如需補正，建立新的 additive migration。
 
 ### 預期規則
 
@@ -327,32 +370,56 @@ noInteraction
 - 管理員與老師播放不計入學生次數。
 - noInteraction 防掛機功能必須保留。
 
-### 完成標準
+### 尚未完成的驗收
 
-- 播放器視覺符合首頁設計系統。
-- 桌面版與手機版正常。
-- Sidebar 不被播放器遮住。
-- 拖曳不能作弊。
-- 真正聽滿 80% 才增加一次。
+- 真實學生 Token 的 start／complete 完整流程
+- 80% 前不得增加次數
+- 80% 後只增加一次
+- Seek、重播小段、加速播放不可作弊
+- teacher/admin 播放不累計
+- 進度 event 能即時更新 Playlist 與作業
+
+## 12. 下一個優先任務：P0 Unit Test
+
+### 現有測試基準
+
+- 分支：`feature/listening-coverage`
+- 目前只有 2 份測試檔、共 5 個案例。
+- `FreeTrialSignup.test.jsx` 有一個 `/` 與實際 `/login` 不一致的舊預期，先確認後修正。
+- `musicAdminService` 已呼叫 `book_status`、`delete_book_tracks`、`archive_book`、`restore_book`、`delete_book`，但目前 `music-admin` Function 沒有對應 action；先建立 contract test，測試應先失敗以證明問題存在。
+
+### P0 實作順序
+
+1. `authService`、`AuthContext`、Login
+2. `ProtectedRoute`、`RoleHomeRedirect`
+3. `edgeFunctionClient` 與所有 service action/body contract
+4. Redux actions 與 `musicReducer`
+5. MusicPlayer 純函式：coverage merge、covered seconds、time、clamp
+6. MusicPlayer component：session、80%、Seek、加速、冪等、noInteraction
+7. membership／trial／activation code／effective access
+8. assignment mission pack 完成規則
+9. AI 額度、選擇題、90 分通過、教材庫
+10. Supabase RLS／GRANT／RPC／migration integration tests
+
+### 第一批完成標準
+
+- 不改功能，只建立可重複執行的測試基礎。
+- `npm test -- --watchAll=false` 成功。
 - `npm run build` 成功。
-- 相關角色與權限測試成功。
+- 2026-08-23：新增會員加購顯示／防重複付款與 Checkout Session 欄位 contract 測試；2 個測試檔、2 個案例皆通過，Production build 成功。
+- P0 核心規則有正常、邊界、未授權與失敗路徑。
+- 不為了讓測試通過而降低 Firebase、Supabase 或角色權限。
 
-## 12. 後續待辦順序
+### P1 後續順序
 
-完成播放器後，依序處理：
-
-1. 七天引導式試用內容
-2. 字幕與逐字稿資料結構
-3. 作業權限最終隔離驗收
-4. CSV 批次匯入英文班學生
-5. 商品與教材權限
-6. 開通碼綁定商品
-7. 我的教材
-8. 管理員教材權限後台
-9. Stripe 付款及訂閱
-10. 訂單 Email 與開通碼寄送
-11. 退款、補發與帳號合併
-12. 完整 Production 驗收
+1. Conversation 9 關、語音 timeout 與 Demo 不寫入
+2. 智慧複習、連續答對 3 次與排程
+3. 等級、升級考試與排行榜
+4. Dashboard、週報與家長 Email
+5. 英文班帳號與 E1／E3／E5／E7 規則
+6. 音檔上傳、R2 搬移與 rollback
+7. Navbar、Guided Tour、TTS component tests
+8. Playwright responsive、Stripe、Storage 與完整 Production E2E
 
 ## 13. 已知注意事項
 
@@ -366,28 +433,62 @@ noInteraction
 - Node deprecation warning 目前不是 build 失敗。
 - 不得直接修改已執行的 migration。
 - 不得覆蓋使用者未提交的本機修改。
+- AI 教材加購方案已填入 Stripe 測試 Price，沙盒付款與 Webhook 已驗收；方案是否公開仍應在正式上線前另行確認。
+- AI 教材學生額度以台灣時間每月 1 日重新計算；老師與管理員維持獨立額度。
+- 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 更新尚未套用或部署；部署前需先完成 preview 驗收並另行取得明確同意。
+- 本輪環境沒有安裝 `react-scripts`，離線 `npm ci` 又缺少 npm cache，因此 Unit Test 與 Production build 尚未在本機執行成功；需在可取得既有依賴的環境補跑。
 
 ## 14. 下一個 Codex 對話建議提示詞
 
 ```text
 請先閱讀根目錄 AGENTS.md 與 docs/PROJECT_STATUS.md。
 
-本次只處理 MusicPlayer 與真正聆聽 80% 的規則。
-請不要掃描整個專案，也不要修改其他會員、商品、付款或 CSV 功能。
+使用「極度節省流量模式」接手 Alan English：
 
-請先唯讀檢查相關檔案，確認目前播放完成與 record-play 的實際流程。
-完成後列出：
-1. 現有流程
-2. 可作弊的位置
-3. 需要修改的檔案
-4. 前端與後端的最小實作方案
-5. 資料庫是否需要新增 migration
-6. 測試方式
+1. 不得重新掃描或閱讀整個專案。
+2. PROJECT_STATUS.md 已提供的內容視為可信基準，不要為確認而重讀相同檔案。
+3. 每次只處理一個 P0 測試群組。
+4. 先用 rg 定位符號，再只讀命中的直接相關區段；禁止無目的讀完整大檔。
+5. 已讀過的檔案在同一任務內不得重複讀取，除非修改後驗證差異。
+6. 優先使用 git diff、git status、rg 與精準行段，不輸出大量 build log。
+7. 不要讀取 mp3、圖片、SCSS、map、zip 或 node_modules，除非測試明確需要。
+8. 不要同時重構功能與建立測試；測試先忠實記錄現有規則。
+9. 發現現有 bug 時先建立可重現的 failing test，回報後再修正。
+10. 每完成一批，只回報修改檔案、測試數、通過結果、發現問題與下一批。
 
-在我同意之前不要修改檔案、部署 Function、執行 migration、Push 或合併 PR。
+本次從 P0 第一批開始：
+- authService
+- AuthContext
+- ProtectedRoute
+- RoleHomeRedirect
+- edgeFunctionClient
+- Redux actions／musicReducer
+
+最低必要讀取範圍：
+- docs/PROJECT_STATUS.md
+- AGENTS.md
+- package.json 的 scripts/dependencies 區段
+- 本批測試直接對應的原始檔
+- 現有 2 份測試檔只各讀一次
+
+在修改 GitHub、部署 Function、執行 migration、Push 或合併前仍須取得使用者明確同意。
 ```
 
-## 15. 每次任務完成後如何更新本文件
+## 15. 極度節省流量工作協定
+
+桌面版 Codex 必須長期遵守：
+
+- 一個任務只讀一組相關檔案，不做全專案 review。
+- 若 `PROJECT_STATUS.md` 已寫出狀態，不再重新查證歷史完成項目。
+- 建立簡短的已讀檔案清單，避免同一輪重複讀取。
+- 大檔先 `rg -n` 找函式，再用 `sed` 讀必要行段。
+- 測試失敗只讀第一個相關錯誤，不重跑多次相同指令。
+- Build 成功只記錄成功，不貼完整輸出。
+- 不自動更新依賴、Browserslist 或 lockfile。
+- 不讀未使用的 legacy 頁面，除非目前 Router 或 import chain 真的引用。
+- 工作完成後只更新本文件發生變化的段落，不重寫整份文件。
+
+## 16. 每次任務完成後如何更新本文件
 
 只更新以下內容：
 

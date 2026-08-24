@@ -8,7 +8,6 @@ import "./MobileNavFix.scss";
 import "../components/assets/scss/BrowserCompatibility.scss";
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
-import SolvePage from "../components/Pages/SolvePage";
 import Showcase from "../components/Pages/Showcase";
 import Links from "../components/Pages/Links";
 import LinkAdmin from "../components/Pages/LinkAdmin";
@@ -35,6 +34,11 @@ import MembershipAdmin from "../components/Pages/MembershipAdmin";
 import LevelAdmin from "../components/Pages/LevelAdmin";
 import CatalogAdmin from "../components/Pages/CatalogAdmin";
 import LegacyCleanupAdmin from "../components/Pages/LegacyCleanupAdmin";
+import AcademyInviteSignup from "../components/Pages/AcademyInviteSignup";
+import ForgotPassword from "../components/Pages/ForgotPassword";
+import AccountSecurity from "../components/Pages/AccountSecurity";
+import Support from "../components/Pages/Support";
+import AdminSupport from "../components/Pages/AdminSupport";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
@@ -73,7 +77,10 @@ const App = () => {
                     <Route path="/links" element={<Navigate to="/" replace />} />
                     <Route path="/home" element={<Showcase />} />
                     <Route path="/login" element={<Login />} />
-                    <Route path="/solve" element={<SolvePage />} />
+                    <Route path="/solve" element={<Navigate to="/forgot-password" replace />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/academy/invite" element={<AcademyInviteSignup />} />
+                    <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/home" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
 
@@ -89,6 +96,7 @@ const App = () => {
                     <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
                     <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><BillingResult /></Containerfull></ProtectedRoute>} />
                     <Route path="/billing/cancel" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><BillingResult cancelled /></Containerfull></ProtectedRoute>} />
+                    <Route path="/account/security" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><AccountSecurity /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
@@ -108,6 +116,7 @@ const App = () => {
                     <Route path="/admin/levels" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LevelAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/catalog" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><CatalogAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/legacy-cleanup" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LegacyCleanupAdmin /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminSupport /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/userinfo" element={<RoleHomeRedirect />} />
                     <Route path="/teacher/add-music" element={<Navigate to="/teacher/music/create" replace />} />

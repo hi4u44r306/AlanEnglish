@@ -61,7 +61,7 @@ const plans = [
         price: "免費",
         period: "使用 7 天",
         description: "適合第一次認識 Alan English 的學生與家長，不需要先購買教材。",
-        points: ["不需信用卡", "每日最多 5 次 AI 教材", "體驗聽力與自主學習功能"],
+        points: ["不需信用卡", "7 天內可生成 AI 教材共 7 次", "體驗聽力與自主學習功能"],
         action: "立即免費試用",
         href: "/freetrial",
         badge: "",
@@ -150,7 +150,7 @@ const faqs = [
     },
     {
         question: "免費試用需要先付款或綁信用卡嗎？",
-        answer: "不需要。完成 Email 驗證後即可開始 7 天免費試用，試用期間每天最多可產生 5 次 AI 教材，試用結束後也不會自動扣款。"
+        answer: "不需要。完成 Email 驗證後即可開始 7 天免費試用，可生成 AI 教材共 7 次、每天最多 2 次；試用結束後也不會自動扣款。"
     },
     {
         question: "購買教材為什麼會送三個月網站權限？",
@@ -365,7 +365,7 @@ const Showcase = () => {
                                 <div className="showcase-path-label">ALAN ENGLISH CLASS</div>
                                 <div className="showcase-path-icon"><BiShieldQuarter /></div>
                                 <h3>英文班學生</h3>
-                                <p>由老師建立帳號，依 E1、E3、E5、E7 班級安排教材與作業。</p>
+                                <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生或家長自行設定密碼與驗證 Email。</p>
                                 <ul>
                                     <li><span>✓</span> 在學期間免費使用</li>
                                     <li><span>✓</span> 接收老師發布的班級作業</li>

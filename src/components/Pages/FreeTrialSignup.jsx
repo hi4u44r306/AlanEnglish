@@ -6,13 +6,14 @@ import { authentication } from "./firebase-config";
 import { completePublicSignup } from "../../services/membershipService";
 import { saveStudentSession } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
+import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValidation";
 import "./css/Platform.scss";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 const friendlyAuthError = error => {
     if (error?.code === "auth/email-already-in-use") return "這個 Email 已經註冊，請直接登入。";
-    if (error?.code === "auth/weak-password") return "密碼至少需要 6 個字元。";
+    if (error?.code === "auth/weak-password") return "密碼至少需要 8 個字元。";
     if (error?.code === "auth/invalid-email") return "Email 格式不正確。";
     if (error?.code === "auth/network-request-failed") return "網路連線失敗，請稍後再試。";
     if (error?.code === "auth/too-many-requests") return "嘗試次數過多，請稍後再試。";
@@ -30,7 +31,7 @@ const friendlyVerificationError = error => {
 function FreeTrialSignup() {
     const navigate = useNavigate();
     const { firebaseUser } = useAuth();
-    const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", guardianName: "", guardianEmail: "" });
+    const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", guardianName: "", guardianEmail: "", emailConfirmed: false });
     const [submitting, setSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [errorField, setErrorField] = useState("");
@@ -52,7 +53,8 @@ function FreeTrialSignup() {
     }, [resendCooldown]);
 
     const update = event => {
-        setForm(current => ({ ...current, [event.target.name]: event.target.value }));
+        const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
+        setForm(current => ({ ...current, [event.target.name]: value }));
         if (errorMessage) {
             setErrorMessage("");
             setErrorField("");
@@ -89,7 +91,9 @@ function FreeTrialSignup() {
             toast.error(message);
         };
         if (!form.name.trim()) return showFormError("請輸入學生姓名", "name");
-        if (form.password.length < 6) return showFormError("密碼至少需要 6 個字元", "password");
+        if (!isReceivableEmail(form.email)) return showFormError(RECEIVABLE_EMAIL_HELP, "email");
+        if (!form.emailConfirmed) return showFormError("請先確認這個 Email 可以正常收信", "email");
+        if (form.password.length < 8) return showFormError("密碼至少需要 8 個字元", "password");
         if (form.password !== form.confirmPassword) return showFormError("兩次輸入的密碼不一致", "confirmPassword");
         setSubmitting(true);
         try {
@@ -130,14 +134,15 @@ function FreeTrialSignup() {
             <section className="platform-public-card">
                 <span className="platform-eyebrow">7-DAY FREE TRIAL</span>
                 <h1>免費體驗 Alan English</h1>
-                <p>建立學生帳號，完成 Email 驗證後立即開始 7 天全方位試用。試用期間每天可產生 5 次 AI 教材。</p>
+                <p>建立學生帳號，完成 Email 驗證後立即開始 7 天全方位試用。網路購買教材的讀者也可先在這裡註冊，再到會員中心輸入教材兌換碼。</p>
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>學生姓名</span><input name="name" value={form.name} onChange={update} maxLength="80" autoComplete="name" required /></label>
-                    <label><span>登入 Email</span><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" aria-invalid={errorField === "email"} aria-describedby={errorMessage ? "free-trial-error" : undefined} required /></label>
+                    <label><span>登入與收信 Email</span><input name="email" type="email" value={form.email} onChange={update} placeholder="name@gmail.com" autoComplete="email" aria-invalid={errorField === "email"} aria-describedby="free-trial-email-help" required /><small id="free-trial-email-help">{RECEIVABLE_EMAIL_HELP}</small></label>
                     <div className="platform-form-grid">
-                        <label><span>密碼</span><input name="password" type="password" value={form.password} onChange={update} minLength="6" autoComplete="new-password" required /></label>
-                        <label><span>再次輸入密碼</span><input name="confirmPassword" type="password" value={form.confirmPassword} onChange={update} minLength="6" autoComplete="new-password" required /></label>
+                        <label><span>密碼</span><input name="password" type="password" value={form.password} onChange={update} minLength="8" autoComplete="new-password" required /></label>
+                        <label><span>再次輸入密碼</span><input name="confirmPassword" type="password" value={form.confirmPassword} onChange={update} minLength="8" autoComplete="new-password" required /></label>
                     </div>
+                    <label className="platform-check"><input name="emailConfirmed" type="checkbox" checked={form.emailConfirmed} onChange={update} required /><span>我確認可以登入這個信箱，並能收到驗證與密碼重設信。</span></label>
                     <div className="platform-form-grid">
                         <label><span>家長姓名（選填）</span><input name="guardianName" value={form.guardianName} onChange={update} maxLength="80" /></label>
                         <label><span>家長 Email（選填）</span><input name="guardianEmail" type="email" value={form.guardianEmail} onChange={update} /></label>

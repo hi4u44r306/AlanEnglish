@@ -6,4 +6,4 @@ const callBilling = (firebaseUser, action, payload = {}) => (
 
 export const createCheckoutSession = (firebaseUser, planId) => callBilling(firebaseUser, "create_checkout", { plan_id: planId });
 export const createBillingPortal = firebaseUser => callBilling(firebaseUser, "create_portal");
-export const syncBillingSession = (firebaseUser, sessionId) => callBilling(firebaseUser, "sync", { session_id: sessionId || undefined });
+export const syncBillingSession = (firebaseUser, sessionId) => callBilling(firebaseUser, "sync", { checkout_session_id: sessionId || undefined });

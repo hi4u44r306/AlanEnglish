@@ -52,6 +52,11 @@ const normalizeLevelProgress = (progress: any) => progress ? ({
 const normalizeEmail = (value: unknown) => cleanText(value, 320).toLowerCase();
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const RESERVED_EMAIL_DOMAINS = new Set(["example.com", "example.net", "example.org", "example.invalid", "localhost"]);
+const isReceivableEmail = (value: string) => {
+    const domain = value.split("@").pop() || "";
+    return isEmail(value) && !domain.endsWith(".invalid") && !RESERVED_EMAIL_DOMAINS.has(domain);
+};
 
 const numberOrNull = (value: unknown) => {
     if (value === null || value === undefined || value === "") return null;
@@ -156,6 +161,7 @@ const serializeMembership = (membership: any, role: string, effectiveAccess: any
         current_period_end: membership?.current_period_end || null,
         cancel_at_period_end: Boolean(membership?.cancel_at_period_end),
         stripe_subscription_status: membership?.stripe_subscription_status || null,
+        has_stripe_customer: Boolean(membership?.stripe_customer_id),
         effective_access_end: effectiveEnd,
         is_active: isActive,
         days_remaining: daysRemaining,
@@ -221,7 +227,14 @@ const ensureMembership = async (
         const { data: defaultPlan } = await admin
             .from("subscription_plans")
             .select("id")
-            .eq("code", student.plan === "listeningonly" ? "listening_monthly" : "all_access_monthly")
+            .eq(
+                "code",
+                options.publicSignup
+                    ? "trial_7_day"
+                    : student.plan === "listeningonly"
+                        ? "listening_monthly"
+                        : "all_access_monthly"
+            )
             .maybeSingle();
 
         const initialStatus = options.publicSignup && !firebaseUser.emailVerified
@@ -428,8 +441,8 @@ Deno.serve(async (req: Request) => {
         if (action === "complete_signup") {
             const requestedName = cleanText(body?.name, 80);
             const guardianEmail = normalizeEmail(body?.guardian_email);
-            if (!firebaseUser.email || !isEmail(firebaseUser.email)) {
-                return json(400, { error: "Firebase 帳號缺少有效 Email" });
+            if (!firebaseUser.email || !isReceivableEmail(firebaseUser.email)) {
+                return json(400, { error: "請使用本人或家長可以正常收信的 Email，不可使用虛構或臨時信箱" });
             }
             if (!requestedName) return json(400, { error: "請輸入學生姓名" });
             if (guardianEmail && !isEmail(guardianEmail)) {
@@ -441,7 +454,7 @@ Deno.serve(async (req: Request) => {
                 const { data: defaultPlan, error: planError } = await admin
                     .from("subscription_plans")
                     .select("id")
-                    .eq("code", "all_access_monthly")
+                    .eq("code", "trial_7_day")
                     .single();
                 if (planError) throw planError;
 
@@ -556,15 +569,30 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "plans") {
+            let canBuyAiAddon = caller.role === "admin";
+            if (caller.role === "student" && caller.learner_type === "academy_student") {
+                const { data: activeEnrollment, error: enrollmentError } = await admin
+                    .from("academy_enrollments")
+                    .select("id")
+                    .eq("student_id", caller.id)
+                    .eq("status", "active")
+                    .maybeSingle();
+                if (enrollmentError) throw enrollmentError;
+                canBuyAiAddon = Boolean(activeEnrollment);
+            }
             const { data: plans, error } = await admin
                 .from("subscription_plans")
-                .select("id,code,name,description,price_twd,billing_interval,trial_days,ai_daily_limit,features,stripe_price_id,is_public,enabled,sort_order")
+                .select("id,code,name,description,price_twd,billing_interval,trial_days,ai_daily_limit,features,stripe_price_id,is_public,enabled,sort_order,access_model")
                 .eq("enabled", true)
                 .order("sort_order", { ascending: true });
             if (error) throw error;
+            const visiblePlans = (plans || []).filter((plan: any) => (
+                plan.access_model !== "addon"
+                || (plan.code === "ai_materials_addon_monthly" && canBuyAiAddon)
+            ));
             return json(200, {
                 success: true,
-                plans: (plans || []).map((plan: any) => ({
+                plans: visiblePlans.map((plan: any) => ({
                     ...plan,
                     checkout_ready: Boolean(plan.stripe_price_id && plan.price_twd !== null),
                     stripe_price_id: caller.role === "admin" ? plan.stripe_price_id : undefined
