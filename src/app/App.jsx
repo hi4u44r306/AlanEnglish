@@ -29,6 +29,8 @@ import MembershipCenter from "../components/Pages/MembershipCenter";
 import BillingResult from "../components/Pages/BillingResult";
 import LearningLevel from "../components/Pages/LearningLevel";
 import LearningLeaderboard from "../components/Pages/LearningLeaderboard";
+import Rewards from "../components/Pages/Rewards";
+import RewardsAdmin from "../components/Pages/RewardsAdmin";
 import ApiUsageAdmin from "../components/Pages/ApiUsageAdmin";
 import MembershipAdmin from "../components/Pages/MembershipAdmin";
 import LevelAdmin from "../components/Pages/LevelAdmin";
@@ -92,6 +94,7 @@ const App = () => {
                     <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><MembershipCenter /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/level" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLevel /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><Rewards /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
@@ -106,10 +109,13 @@ const App = () => {
                     <Route path="/teacher/accounts/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><Signup /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/music/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/music/manage" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/leaderboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/leaderboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/rewards" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><RewardsAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/navbar" element={<Navigate to="/admin/catalog" replace />} />
                     <Route path="/admin/links" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LinkAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/membership" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><MembershipAdmin /></Containerfull></ProtectedRoute>} />
