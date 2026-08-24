@@ -27,6 +27,11 @@ import {
     submitAiMaterialAttempt,
     updateAiMaterialFavorite
 } from "../../services/aiMaterialService";
+import {
+    formatResetCountdown,
+    getNextTaipeiDailyResetAt,
+    getNextTaipeiMonthlyResetAt
+} from "../../utils/quotaResetCountdown";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
 import "./css/AIMaterialGenerator.scss";
 
@@ -85,6 +90,7 @@ function AIMaterialGenerator() {
     const [submittingAttempt, setSubmittingAttempt] = useState(false);
     const [libraryActionId, setLibraryActionId] = useState(null);
     const [error, setError] = useState("");
+    const [clockNow, setClockNow] = useState(() => Date.now());
 
     const selectedType = useMemo(
         () => MATERIAL_TYPES.find(type => type.id === materialType),
@@ -105,6 +111,16 @@ function AIMaterialGenerator() {
         return "學生";
     }, [usage.role]);
 
+    const dailyResetCountdown = useMemo(
+        () => formatResetCountdown(getNextTaipeiDailyResetAt(clockNow) - clockNow),
+        [clockNow]
+    );
+
+    const monthlyResetCountdown = useMemo(
+        () => formatResetCountdown(getNextTaipeiMonthlyResetAt(clockNow) - clockNow),
+        [clockNow]
+    );
+
     const content = material?.content || null;
     const questions = Array.isArray(content?.questions) ? content.questions : [];
     const answeredCount = questions.filter((_, index) => Boolean(answers[index])).length;
@@ -113,6 +129,11 @@ function AIMaterialGenerator() {
     const canGenerate = role === "teacher"
         || role === "admin"
         || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
+
+    useEffect(() => {
+        const timer = window.setInterval(() => setClockNow(Date.now()), 1000);
+        return () => window.clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         const loadData = async () => {
@@ -378,6 +399,20 @@ function AIMaterialGenerator() {
                         <div><span>今日剩餘</span><strong>{loadingUsage ? "—" : usage.remaining}</strong></div>
                         <div><span>本月總次數</span><strong>{loadingUsage ? "—" : usage.monthly_limit ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
                         <div><span>本月剩餘</span><strong>{loadingUsage ? "—" : usage.monthly_remaining ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
+                    </div>
+                    <div className="ai-quota-reset-list">
+                        <div className="ai-quota-reset-row">
+                            <FiClock />
+                            <div><span>今日次數重新計算</span><small>台灣時間每日 00:00</small></div>
+                            <strong>{dailyResetCountdown}</strong>
+                        </div>
+                        {usage.monthly_limit !== null && (
+                            <div className="ai-quota-reset-row">
+                                <FiRefreshCw />
+                                <div><span>本月次數重新計算</span><small>台灣時間下月 1 日 00:00</small></div>
+                                <strong>{monthlyResetCountdown}</strong>
+                            </div>
+                        )}
                     </div>
                     <p>今天已使用 {usage.used} / {usage.limit} 次 · 成功生成才扣額度</p>
                     {usage.trial_limit !== null && <p>免費試用已使用 {usage.trial_used} / {usage.trial_limit} 次</p>}
