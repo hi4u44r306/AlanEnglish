@@ -201,7 +201,7 @@ supabase/migrations/20260823090000_ai_material_addon_access.sql
 - 2026-08-24 已部署：`membership-manager` v15、`billing-manager` v12、`stripe-webhook` v12、`generate-ai-material` v19，狀態均為 ACTIVE。
 - Supabase 的 Stripe Secrets 已由專案擁有者在 Dashboard 儲存；不得從終端機讀取或顯示其內容。
 - Stripe 沙盒 NT$99 訂閱付款、Webhook、AI 權限啟用、教材生成與撤銷後剩餘 0 次已完成端到端驗收；未使用真實付款。
-- GitHub 功能分支 `codex/ai-material-paid-access` 已推送至 commit `42da564`；尚未獲授權合併正式分支。
+- GitHub 功能分支 `codex/ai-material-paid-access` 的付款整合基準 commit 為 `42da564`；後續帳號邀請與客服修改亦已推送，尚未獲授權合併正式分支。
 
 ### 帳號邀請、Email 與客服（尚未部署）
 
