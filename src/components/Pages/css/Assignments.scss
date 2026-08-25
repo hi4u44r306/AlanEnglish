@@ -1198,6 +1198,56 @@
     font-weight: 700;
 }
 
+.assignment-workload-preview {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.assignment-workload-preview > div {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px;
+    border: 1px solid #dce3f5;
+    border-radius: 14px;
+    background: #f7f9ff;
+}
+
+.assignment-workload-preview svg {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: var(--mission-blue);
+}
+
+.assignment-workload-preview > div:nth-child(2) svg {
+    color: #c17c0e;
+}
+
+.assignment-workload-preview span,
+.assignment-workload-preview strong,
+.assignment-workload-preview small {
+    display: block;
+    min-width: 0;
+}
+
+.assignment-workload-preview strong {
+    color: #26334f;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.45;
+}
+
+.assignment-workload-preview small {
+    margin-top: 3px;
+    color: #758198;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
 @media (max-width: 520px) {
     .assignment-history-actions {
         align-items: stretch;
@@ -1358,5 +1408,9 @@
 
     .assignment-selected-tracks__actions button {
         flex: 1 1 0;
+    }
+
+    .assignment-workload-preview {
+        grid-template-columns: 1fr;
     }
 }

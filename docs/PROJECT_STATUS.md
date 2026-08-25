@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-25
+最後更新：2026-08-26
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -51,6 +51,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 後台帳號生命週期使用安全停用／恢復；已停用帳號預設從清單隱藏，管理員可切換帳號狀態篩選後恢復。已建立的學生帳號不再提供永久刪除入口，未領取且尚未建立帳號的邀請仍可刪除。
 - 後台方案顯示依學生類型與有效權限自動判定，不再讓櫃檯編輯舊版 `allcover`／`listeningonly` 欄位。
 - 學生 Dashboard 對尚未購買 AI 教材加購的帳號顯示 AI POWER-UP 宣傳卡；已購買者不顯示。
+- `feature/assignment-effort-rewards`：已完成本機實作，待 code review 與部署。新作業發布時，`assignment-manager` 依所有音檔的 `duration_seconds × 指定聆聽次數`，再加 90 秒開啟作業與每首 15 秒切換緩衝，將預估秒數與完成獎勵寫入作業；10 分鐘內為 30 XP／5 AE Points、11–20 分鐘為 40／7、21–35 分鐘為 55／10、超過 35 分鐘為 70／14。缺少任一音檔長度時不估造分鐘數，學生端顯示「暫無法估算時間」並維持基本獎勵。`ae_try_grant_assignment_completion` 改為讀取已保存獎勵，依既有 ledger source key 只發一次。老師發布預覽與歷史、學生 Dashboard、作業頁均顯示相同資料；既有私有學生頭像上傳及排行榜顯示功能已確認保留。新增 migration `20260825233223_assignment_effort_rewards.sql` 尚未套用，`assignment-manager` 尚未部署，尚需桌機／412px／iPhone Safari 實機驗收。
 - 後續階段：使用小批量測試學生驗證 CSV 實際建立、部分失敗與結果下載。
 
 PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：

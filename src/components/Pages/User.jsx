@@ -38,7 +38,10 @@ const EMPTY_HOME_DATA = {
     assignments: {
         total: 0,
         completed: 0,
-        pending: 0
+        pending: 0,
+        pendingEstimatedSeconds: null,
+        pendingXp: 0,
+        pendingAePoints: 0
     },
     review: {
         due: 0,
@@ -90,11 +93,31 @@ const normalizeAssignments = result => {
         ? result.assignments
         : [];
     const completed = assignments.filter(item => item?.progress?.completed).length;
+    const pendingAssignments = assignments.filter(item => !item?.progress?.completed);
+    const hasCompleteEstimate = pendingAssignments.length > 0
+        && pendingAssignments.every(item => {
+            const estimatedSeconds = Number(item?.estimated_seconds);
+            return Number.isFinite(estimatedSeconds) && estimatedSeconds > 0;
+        });
 
     return {
         total: assignments.length,
         completed,
-        pending: Math.max(0, assignments.length - completed)
+        pending: pendingAssignments.length,
+        pendingEstimatedSeconds: hasCompleteEstimate
+            ? pendingAssignments.reduce(
+                (total, item) => total + Number(item.estimated_seconds),
+                0
+            )
+            : null,
+        pendingXp: pendingAssignments.reduce(
+            (total, item) => total + (Number(item?.completion_xp) || 30),
+            0
+        ),
+        pendingAePoints: pendingAssignments.reduce(
+            (total, item) => total + (Number(item?.completion_ae_points) || 5),
+            0
+        )
     };
 };
 
@@ -230,13 +253,20 @@ const User = () => {
 
     const dailyTasks = useMemo(() => {
         const tasks = [];
+        const pendingEstimate = Number(homeData.assignments.pendingEstimatedSeconds);
+        const hasPendingEstimate = Number.isFinite(pendingEstimate) && pendingEstimate > 0;
 
         if (homeData.assignments.total > 0) {
             tasks.push({
                 id: "assignment",
                 title: "完成今日作業",
                 description: homeData.assignments.pending > 0
-                    ? `還有 ${homeData.assignments.pending} 項老師指定的任務`
+                    ? (
+                        `還有 ${homeData.assignments.pending} 項老師指定的任務`
+                        + (hasPendingEstimate
+                            ? `，約需 ${Math.ceil(pendingEstimate / 60)} 分鐘`
+                            : "，時間暫無法完整估算")
+                    )
                     : `今天的 ${homeData.assignments.total} 項作業都完成了`,
                 metaValue: `${homeData.assignments.completed}/${homeData.assignments.total}`,
                 metaLabel: "完成",
@@ -394,7 +424,12 @@ const User = () => {
                         <p>
                             {dailyProgress === 100
                                 ? "太棒了，今天的學習任務全部完成，可以自由複習最喜歡的內容。"
-                                : `已完成 ${completedTaskCount} 項，跟著順序練習，大約 10 分鐘就能完成。`}
+                                : (
+                                    homeData.assignments.pending > 0
+                                    && Number(homeData.assignments.pendingEstimatedSeconds) > 0
+                                        ? `已完成 ${completedTaskCount} 項，待完成作業約需 ${Math.ceil(Number(homeData.assignments.pendingEstimatedSeconds) / 60)} 分鐘。`
+                                        : `已完成 ${completedTaskCount} 項，跟著順序練習，慢慢完成今天的任務。`
+                                )}
                         </p>
                         <Link className="student-home__primary" to={primaryAction.path}>
                             <span>
@@ -432,8 +467,8 @@ const User = () => {
                             <div className="student-home__reward-note">
                                 <FiZap />
                                 <strong>
-                                    {homeData.assignments.total > 0
-                                        ? "完成老師作業可獲得 +30 XP 與 +5 AE Points"
+                                    {homeData.assignments.pending > 0
+                                        ? `待完成老師作業可獲得 +${homeData.assignments.pendingXp} XP 與 +${homeData.assignments.pendingAePoints} AE Points`
                                         : "完成聽力、作業與遊戲，可以累積 XP 與 AE Points！"}
                                 </strong>
                             </div>
