@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,7 +12,8 @@ import {
 } from "../../services/membershipService";
 import {
     deleteAcademyInvitation,
-    listAcademyInvitations
+    listAcademyInvitations,
+    reissueAcademyStudentLoginCard
 } from "../../services/academyStudentService";
 import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
 import "./css/ManagementDashboard.scss";
@@ -75,6 +77,9 @@ function AccountManagement() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [resettingEmail, setResettingEmail] = useState("");
+    const [reissuingStudentId, setReissuingStudentId] = useState(null);
+    const [reissuedLoginCard, setReissuedLoginCard] = useState(null);
+    const [reissuedLoginCardQr, setReissuedLoginCardQr] = useState("");
     const [changingStatusId, setChangingStatusId] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -121,6 +126,19 @@ function AccountManagement() {
     useEffect(() => {
         fetchAccounts();
     }, [fetchAccounts]);
+
+    useEffect(() => {
+        const activationUrl = reissuedLoginCard?.credentials?.activation_url;
+        if (!activationUrl) {
+            setReissuedLoginCardQr("");
+            return undefined;
+        }
+        let active = true;
+        Promise.resolve(QRCode.toDataURL(activationUrl, { width: 220, margin: 1, errorCorrectionLevel: "M" }))
+            .then(value => { if (active) setReissuedLoginCardQr(value); })
+            .catch(() => { if (active) setReissuedLoginCardQr(""); });
+        return () => { active = false; };
+    }, [reissuedLoginCard]);
 
     const invitationByEmail = useMemo(() => {
         const result = new Map();
@@ -300,6 +318,23 @@ function AccountManagement() {
             toast.error(error?.message || `帳號${actionLabel}失敗`);
         } finally {
             setChangingStatusId(null);
+        }
+    };
+
+    const reissueLoginCard = async account => {
+        if (!isAdmin || !firebaseUser || !account?.id) return;
+        const accountName = account.name || account.login_username || "這位學生";
+        if (!window.confirm(`要為 ${accountName} 重新發登入卡嗎？\n\n舊的 QR Code 與所有未使用的復原碼會立刻失效。`)) return;
+
+        setReissuingStudentId(account.id);
+        try {
+            const result = await reissueAcademyStudentLoginCard(firebaseUser, account.id);
+            setReissuedLoginCard(result);
+            toast.success("新的登入卡已建立，請立即交給學生或家長保存");
+        } catch (error) {
+            toast.error(error?.message || "重新發登入卡失敗");
+        } finally {
+            setReissuingStudentId(null);
         }
     };
 
@@ -562,6 +597,16 @@ function AccountManagement() {
                                                                 {resettingEmail === account.email ? "寄送中…" : "寄送密碼重設信"}
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.authentication_method === "academy_username" && !account.activated_at && account.account_status !== "archived" && (
+                                                            <button
+                                                                type="button"
+                                                                className="management-reset-button"
+                                                                onClick={() => reissueLoginCard(account)}
+                                                                disabled={reissuingStudentId === account.id}
+                                                            >
+                                                                {reissuingStudentId === account.id ? "發卡中…" : "重新發登入卡"}
+                                                            </button>
+                                                        )}
                                                         {isAdmin && account.role === "student" && (
                                                             <button
                                                                 type="button"
@@ -662,6 +707,38 @@ function AccountManagement() {
                     </>
                 )}
             </section>
+
+            {reissuedLoginCard?.credentials && (
+                <section className="management-panel management-login-card-panel" aria-live="polite">
+                    <div className="management-pending-heading">
+                        <div>
+                            <span className="management-eyebrow">New login card</span>
+                            <h2>新的學生登入卡</h2>
+                            <p>此資料只在目前畫面顯示；請立即列印或交給學生／家長保存。</p>
+                        </div>
+                        <button type="button" className="management-edit-button" onClick={() => window.print()}>列印登入卡</button>
+                    </div>
+                    <div className="management-login-card">
+                        <div>
+                            <span>學生</span>
+                            <strong>{reissuedLoginCard.account?.name || "-"}</strong>
+                            <span>登入帳號</span>
+                            <strong>{reissuedLoginCard.credentials.username || "-"}</strong>
+                            <small>首次使用請掃 QR Code，並設定至少 6 個字元的密碼。</small>
+                        </div>
+                        <div className="management-login-card-qr">
+                            {reissuedLoginCardQr
+                                ? <img src={reissuedLoginCardQr} alt="學生帳號啟用 QR Code" width="180" height="180" />
+                                : <span>QR Code 產生中…</span>}
+                        </div>
+                        <div className="management-login-card-recovery">
+                            <span>一次性復原碼</span>
+                            <strong>{reissuedLoginCard.credentials.recovery_codes?.join("　")}</strong>
+                            <small>每組只能使用一次；新卡建立後，舊卡已立即失效。</small>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             <section className="management-panel">
                 <div className="management-pending-heading">

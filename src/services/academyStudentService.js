@@ -164,6 +164,16 @@ export const createAcademyStudent = async (
     );
 };
 
+export const reissueAcademyStudentLoginCard = async (firebaseUser, studentId) => (
+    callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "reissue_student_login_card",
+            student_id: Number(studentId)
+        }
+    )
+);
+
 export const createAcademyInvitation = async (
     firebaseUser,
     student

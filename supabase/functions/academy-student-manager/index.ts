@@ -1211,6 +1211,97 @@ const createStudent = async (
     });
 };
 
+const reissueStudentLoginCard = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    requireAdmin(caller);
+    const studentId = Number(body.student_id);
+    if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+        throw new HttpError(400, "STUDENT_ID_REQUIRED", "缺少要重新發卡的學生帳號");
+    }
+
+    const { data: student, error: studentError } = await admin
+        .from("students")
+        .select("id,name,login_username,authentication_method,account_status,activated_at")
+        .eq("id", studentId)
+        .maybeSingle();
+    if (studentError) throw new HttpError(500, "STUDENT_LOOKUP_FAILED", "目前無法確認學生帳號");
+    if (!student?.id || student.authentication_method !== "academy_username") {
+        throw new HttpError(404, "ACADEMY_LOGIN_NOT_FOUND", "找不到可重新發卡的英文班學生帳號");
+    }
+    if (student.account_status === "archived") {
+        throw new HttpError(409, "ACCOUNT_ARCHIVED", "已停用帳號無法重新發登入卡，請先恢復帳號");
+    }
+    if (student.activated_at) {
+        throw new HttpError(409, "ACCOUNT_ALREADY_ACTIVATED", "這個學生帳號已啟用，請改用登入卡復原碼重設密碼");
+    }
+
+    const activationToken = createStudentActivationToken();
+    const recoveryCodes = [createStudentRecoveryCode(), createStudentRecoveryCode()];
+    const [activationTokenHash, ...recoveryCodeHashes] = await Promise.all([
+        hashInvitationToken(activationToken),
+        ...recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
+    ]);
+    const now = new Date().toISOString();
+    const activationExpiresAt = new Date(
+        Date.now() + STUDENT_ACTIVATION_TTL_HOURS * 60 * 60 * 1000
+    ).toISOString();
+
+    const [{ error: oldTokenError }, { error: oldCodeError }] = await Promise.all([
+        admin.from("academy_student_activation_tokens").update({ revoked_at: now })
+            .eq("student_id", student.id).is("used_at", null).is("revoked_at", null),
+        admin.from("academy_student_recovery_codes").update({ revoked_at: now })
+            .eq("student_id", student.id).is("used_at", null).is("revoked_at", null)
+    ]);
+    if (oldTokenError || oldCodeError) {
+        throw new HttpError(500, "LOGIN_CARD_REVOKE_FAILED", "無法使舊登入卡失效，請稍後再試");
+    }
+
+    const { error: tokenError } = await admin.from("academy_student_activation_tokens").insert({
+        student_id: student.id,
+        token_hash: activationTokenHash,
+        token_hint: activationToken.slice(-8),
+        expires_at: activationExpiresAt,
+        created_by: caller.id
+    });
+    if (tokenError) {
+        throw new HttpError(500, "LOGIN_CARD_CREATE_FAILED", "新的登入卡建立失敗，請稍後再試");
+    }
+
+    const { error: recoveryError } = await admin.from("academy_student_recovery_codes").insert(
+        recoveryCodes.map((code, index) => ({
+            student_id: student.id,
+            code_hash: recoveryCodeHashes[index],
+            code_hint: code.slice(-4),
+            created_by: caller.id
+        }))
+    );
+    if (recoveryError) {
+        await admin.from("academy_student_activation_tokens").update({ revoked_at: now })
+            .eq("student_id", student.id).eq("token_hash", activationTokenHash)
+            .is("used_at", null).is("revoked_at", null);
+        throw new HttpError(500, "RECOVERY_CARD_CREATE_FAILED", "新的復原碼建立失敗，請稍後再試");
+    }
+
+    const origin = requestOrigin(req) && ALLOWED_ORIGINS.has(requestOrigin(req)!)
+        ? requestOrigin(req)!
+        : "https://alanenglish.com.tw";
+    return json(req, 200, {
+        success: true,
+        account: { id: student.id, name: student.name, username: student.login_username },
+        credentials: {
+            username: student.login_username,
+            activation_url: `${origin}/academy/student-setup?token=${encodeURIComponent(activationToken)}`,
+            activation_expires_at: activationExpiresAt,
+            recovery_codes: recoveryCodes,
+            shown_once: true
+        }
+    });
+};
+
 const listClasses = async (
     req: Request,
     admin: SupabaseClient,
@@ -1798,6 +1889,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "create_student") {
             return await createStudent(req, admin, caller, body);
+        }
+        if (action === "reissue_student_login_card") {
+            return await reissueStudentLoginCard(req, admin, caller, body);
         }
         if (action === "batch_create_students") {
             return await batchCreateStudents(req, admin, caller, body);

@@ -788,3 +788,68 @@
     width: 100%;
   }
 }
+
+.management-login-card-panel {
+  border: 1px solid #d9e3ff;
+}
+
+.management-login-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid #e1e7f0;
+  border-radius: 16px;
+  background: #f8faff;
+}
+
+.management-login-card > div {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
+.management-login-card span,
+.management-login-card small {
+  color: #687385;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.management-login-card strong {
+  color: #1c2b46;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.management-login-card-qr {
+  grid-row: span 2;
+  align-items: center;
+  justify-items: center;
+  min-width: 180px;
+}
+
+.management-login-card-qr img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+}
+
+.management-login-card-recovery {
+  grid-column: 1 / -1;
+  padding-top: 14px;
+  border-top: 1px dashed #cbd6e5;
+}
+
+@media screen and (max-width: 560px) {
+  .management-login-card {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .management-login-card-qr {
+    grid-row: auto;
+    justify-items: start;
+  }
+}

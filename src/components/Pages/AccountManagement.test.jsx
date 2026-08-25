@@ -11,6 +11,7 @@ import {
 import {
     deleteAcademyInvitation,
     listAcademyInvitations,
+    reissueAcademyStudentLoginCard,
     sendAcademyPasswordReset
 } from "../../services/academyStudentService";
 import AccountManagement from "./AccountManagement";
@@ -29,7 +30,15 @@ jest.mock("../../services/membershipService", () => ({
 jest.mock("../../services/academyStudentService", () => ({
     deleteAcademyInvitation: jest.fn(),
     listAcademyInvitations: jest.fn(),
+    reissueAcademyStudentLoginCard: jest.fn(),
     sendAcademyPasswordReset: jest.fn()
+}));
+
+jest.mock("qrcode", () => ({
+    __esModule: true,
+    default: {
+        toDataURL: jest.fn().mockResolvedValue("data:image/png;base64,test")
+    }
 }));
 
 const firebaseUser = {
@@ -47,6 +56,9 @@ const academyStudent = {
     plan: "allcover",
     learner_type: "academy_student",
     account_status: "active",
+    authentication_method: "academy_username",
+    login_username: "e3teststudent",
+    activated_at: null,
     must_change_password: false,
     membership: {
         is_active: true,
@@ -97,6 +109,15 @@ describe("AccountManagement", () => {
         });
         listAcademyInvitations.mockResolvedValue([]);
         deleteAcademyInvitation.mockResolvedValue({ success: true });
+        reissueAcademyStudentLoginCard.mockResolvedValue({
+            success: true,
+            account: { id: 67, name: "E3 測試學生", username: "e3teststudent" },
+            credentials: {
+                username: "e3teststudent",
+                activation_url: "https://alanenglish.com.tw/academy/student-setup?token=test",
+                recovery_codes: ["AE-AAAA-BBBB-CCCC", "AE-DDDD-EEEE-FFFF"]
+            }
+        });
         sendAcademyPasswordReset.mockResolvedValue({ success: true });
         jest.spyOn(window, "confirm").mockReturnValue(true);
     });
@@ -165,6 +186,17 @@ describe("AccountManagement", () => {
 
         expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "永久刪除" })).not.toBeInTheDocument();
+    });
+
+    test("allows an admin to reissue a login card for an unactivated academy student", async () => {
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("button", { name: "重新發登入卡" }));
+        await waitFor(() => {
+            expect(reissueAcademyStudentLoginCard).toHaveBeenCalledWith(firebaseUser, 67);
+        });
+        expect(await screen.findByText("新的學生登入卡")).toBeInTheDocument();
+        expect(screen.getByText(/AE-AAAA-BBBB-CCCC/)).toBeInTheDocument();
     });
 
     test("filters by role, class, plan, activation, account and access status", async () => {
