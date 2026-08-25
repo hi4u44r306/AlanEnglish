@@ -1629,7 +1629,7 @@ const getActivationRecord = async (
     const tokenHash = await hashInvitationToken(token);
     const { data, error } = await admin
         .from("academy_student_activation_tokens")
-        .select("id,student_id,expires_at,used_at,revoked_at")
+        .select("id,student_id,expires_at,used_at,revoked_at,students!inner(id,name,firebase_uid,login_username,authentication_method,account_status)")
         .eq("token_hash", tokenHash)
         .maybeSingle();
     if (error) throw new HttpError(500, "ACTIVATION_LOOKUP_FAILED", "目前無法確認啟用資料");
@@ -1638,15 +1638,9 @@ const getActivationRecord = async (
     if (new Date(data.expires_at).getTime() <= Date.now()) {
         throw new HttpError(410, "ACTIVATION_EXPIRED", "啟用期限已過，請向老師重新領取登入卡");
     }
-    const { data: student, error: studentError } = await admin
-        .from("students")
-        .select("id,name,firebase_uid,login_username,authentication_method,account_status")
-        .eq("id", data.student_id)
-        .maybeSingle();
+    const student = Array.isArray(data.students) ? data.students[0] : data.students;
     if (
-        studentError
-        || !student?.id
-        || !student?.firebase_uid
+        !student?.firebase_uid
         || student.authentication_method !== "academy_username"
         || student.account_status === "archived"
     ) {
@@ -1731,19 +1725,12 @@ const recoverStudentLogin = async (
     const codeHash = await hashInvitationToken(recoveryCode);
     const { data, error } = await admin
         .from("academy_student_recovery_codes")
-        .select("id,student_id,used_at,revoked_at")
+        .select("id,student_id,used_at,revoked_at,students!inner(id,firebase_uid,login_username,authentication_method,account_status)")
         .eq("code_hash", codeHash)
         .maybeSingle();
-    const { data: student, error: studentError } = data?.id
-        ? await admin
-            .from("students")
-            .select("id,firebase_uid,login_username,authentication_method,account_status")
-            .eq("id", data.student_id)
-            .maybeSingle()
-        : { data: null, error: null };
+    const student = Array.isArray(data?.students) ? data.students[0] : data?.students;
     if (
         error
-        || studentError
         || !data?.id
         || data.used_at
         || data.revoked_at
