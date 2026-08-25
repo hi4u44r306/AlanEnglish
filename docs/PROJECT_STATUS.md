@@ -9,6 +9,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 正式部署分支：`main`
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
+> 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
 
 ## 1. 專案目前階段
 
@@ -64,6 +65,7 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 - PR #29 可合併且無衝突，兩個 Netlify Deploy Preview 均為 success：`https://deploy-preview-29--alanenglish.netlify.app` 與 `https://deploy-preview-29--iridescent-cheesecake-4ceaca.netlify.app`。尚未合併 `main`，也未部署正式 Netlify Production。
 - 全部 13 份測試檔共 34 個案例通過，Production build 成功，Supabase security advisors 無警告；帳號管理已於本機管理員 Session 驗證預設隱藏、已停用篩選、恢復入口與永久刪除按鈕移除。412px Preview 公開頁／登入導向正常，登入後 CSV 伺服器預覽已用虛構資料驗證且未寫入學生，Console 無錯誤。本機沒有 Deno，Edge Function 的正式型別驗證由 Supabase 部署 bundling 完成。
 - 2026-08-25 本機未推送：完成全站 Router 與共用顯示邏輯第一階段稽核。帳號管理在 760px 以下改用卡片，已停用帳號為紅底紅框且只保留恢復操作；管理 Dashboard 統計改為手機 2×2，學生學習狀況改為手機卡片；全站內容預留浮動作業按鈕底部空間。學生作業捷徑改依有效權限 `features.assignments` 顯示，AI 宣傳改依 `features.ai_materials` 判斷，避免已有試用 AI 權限仍被重複推銷。15 份測試檔共 38 個案例通過，Production build 成功；尚未 push、合併或部署。
+- 2026-08-25 本機未推送：新增根目錄 `PROJECT_LOGIC.md`，集中記錄身分、疊加式權限、方案、頁面顯示、AI、作業、聽力、帳號生命週期、CSV、付款與 RWD 邏輯；並明列試用 AI 額度及作業獎勵仍需統一／驗證的項目。
 
 目前下一個主要開發方向：
 
