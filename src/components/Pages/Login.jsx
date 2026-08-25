@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { loginWithEmail } from "../../auth/authService";
+import { loginWithIdentifier } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
 import HeadPhone from "../assets/img/Login2.png";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,7 +11,7 @@ function Login() {
     const navigate = useNavigate();
     const location = useLocation();
     const { authLoading, isAuthenticated } = useAuth();
-    const [email, setEmail] = useState("");
+    const [identifier, setIdentifier] = useState(() => new URLSearchParams(location.search).get("username") || "");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -65,16 +65,16 @@ function Login() {
         e.preventDefault();
         releaseFormFocus();
 
-        const cleanEmail = email.trim().toLowerCase();
+        const cleanIdentifier = identifier.trim().toLowerCase();
 
-        if (!cleanEmail) return showError("請輸入 Email");
+        if (!cleanIdentifier) return showError("請輸入帳號或 Email");
         if (!password) return showError("請輸入密碼");
 
         loginAttemptRef.current = true;
         setIsLoading(true);
 
         try {
-            const { student } = await loginWithEmail(cleanEmail, password);
+            const { student } = await loginWithIdentifier(cleanIdentifier, password);
             showSuccess(student.name || "同學");
             window.scrollTo(0, 0);
             loginAttemptRef.current = false;
@@ -85,7 +85,8 @@ function Login() {
 
             switch (error.code) {
                 case "auth/invalid-email":
-                    showError("Email 格式不正確");
+                case "auth/invalid-login-identifier":
+                    showError("帳號或 Email 格式不正確");
                     break;
                 case "auth/invalid-credential":
                 case "auth/wrong-password":
@@ -204,23 +205,23 @@ function Login() {
                         {accountActivated && (
                             <div className="login-activation-success" role="status">
                                 <strong>帳號已開通</strong>
-                                <span>請使用剛才設定的 Email 與密碼登入。</span>
+                            <span>請使用剛才設定的帳號與 6 位數字登入。</span>
                             </div>
                         )}
 
                         <div className="login-field">
-                            <label htmlFor="email">Email</label>
+                            <label htmlFor="identifier">帳號或 Email</label>
                             <div className="login-input-wrapper">
                                 <span className="login-input-icon">✉</span>
                                 <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    placeholder="輸入你的 Email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    id="identifier"
+                                    name="identifier"
+                                    type="text"
+                                    placeholder="英文班帳號或 Email"
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
                                     disabled={isLoading}
-                                    autoComplete="email"
+                                    autoComplete="username"
                                 />
                             </div>
                         </div>
@@ -264,7 +265,12 @@ function Login() {
 
                         <div className="login-trial">
                             <span>英文班第一次使用？</span>
-                            <Link to="/academy/activate">開通帳號</Link>
+                            <Link to="/academy/student-setup">掃描登入卡啟用</Link>
+                        </div>
+
+                        <div className="login-trial">
+                            <span>英文班忘記 6 位數字？</span>
+                            <Link to="/academy/recover">使用登入卡復原碼</Link>
                         </div>
 
                         <div className="login-trial">

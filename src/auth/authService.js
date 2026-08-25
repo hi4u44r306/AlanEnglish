@@ -82,12 +82,25 @@ export const loadStudentProfile = async firebaseUser => {
     }
 };
 
-export const loginWithEmail = async (email, password) => {
+const ACADEMY_LOGIN_DOMAIN = "login.alanenglish.com.tw";
+
+export const normalizeLoginIdentifier = identifier => {
+    const normalized = String(identifier || "").trim().toLowerCase();
+    if (normalized.includes("@")) return normalized;
+    if (!/^[a-z][a-z0-9]{4,31}$/.test(normalized)) {
+        const error = new Error("登入帳號格式不正確");
+        error.code = "auth/invalid-login-identifier";
+        throw error;
+    }
+    return `${normalized}@${ACADEMY_LOGIN_DOMAIN}`;
+};
+
+export const loginWithIdentifier = async (identifier, password) => {
     await setPersistence(authentication, browserLocalPersistence);
 
     const credential = await signInWithEmailAndPassword(
         authentication,
-        email.trim().toLowerCase(),
+        normalizeLoginIdentifier(identifier),
         password
     );
 
@@ -107,6 +120,8 @@ export const loginWithEmail = async (email, password) => {
         throw error;
     }
 };
+
+export const loginWithEmail = loginWithIdentifier;
 
 export const logoutCurrentUser = async () => {
     try {

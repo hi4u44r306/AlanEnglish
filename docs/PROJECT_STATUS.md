@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-24
+最後更新：2026-08-25
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -9,6 +9,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 正式部署分支：`main`
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
+> 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
 
 ## 1. 專案目前階段
 
@@ -24,7 +25,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 英文班分班週期
 - 英文班學生帳號建立
 - 英文班學生邀請式帳號建立（已部署）
-- 英文班學生快速建立即時帳號（開發中：一次性臨時密碼、免開通碼）
+- 英文班學生帳號名稱＋6 位數字登入卡流程（本機開發完成，尚未部署）
 - Firebase 忘記／修改密碼與客服案件流程（已部署）
 - AI 教材額度卡顯示每日及每月重新計算倒數（已部署）
 - 首次登入與全站 Session 同時載入資料時共用請求，避免成功後被競態登出
@@ -43,21 +44,37 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
-- 英文班在校生由後台直接建立登入帳號與一次性臨時密碼，首次登入後自行修改密碼。
-- 後台顯示待開通／等待 Email 驗證／已開通狀態，並提供寄送 Firebase 密碼重設信。
-- 後台帳號生命週期改為安全停用／恢復，保留作業、進度與 AI 教材紀錄，不提供直接永久刪除。
+- 新建立英文班在校生改用唯一帳號、一次性 QR 啟用卡、兩組復原碼與自行設定 6 位數字；家長 Email 改為選填聯絡資料。
+- 非英文班帳號的 Firebase 驗證／重設 action link 改由 Edge Function 產生，再使用既有 Resend 寄件網域寄出品牌信件。
+- 後台帳號生命週期使用安全停用／恢復；已停用帳號預設從清單隱藏，管理員可切換帳號狀態篩選後恢復。已建立的學生帳號不再提供永久刪除入口，未領取且尚未建立帳號的邀請仍可刪除。
 - 後台方案顯示依學生類型與有效權限自動判定，不再讓櫃檯編輯舊版 `allcover`／`listeningonly` 欄位。
 - 學生 Dashboard 對尚未購買 AI 教材加購的帳號顯示 AI POWER-UP 宣傳卡；已購買者不顯示。
-- 後續階段：CSV 批次建立學生開通資料與批次結果匯出。
+- 後續階段：使用小批量測試學生驗證 CSV 實際建立、部分失敗與結果下載。
+
+PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
+
+- 管理 Dashboard 已將 9 欄資訊合併為 6 欄、移除重複快速管理卡與未啟用的 LINE 預留欄位，並降低管理頁字重、提高小字與表單可讀性。
+- 學生 Dashboard 已放大今日學習路線的任務進度數字，加入老師作業 XP／AE Points 獎勵提示，並將學習累積卡改為圖示與數據並排，減少手機版空白。
+- 發布作業介面已移除需要學生個別加購的 AI 測驗／完整任務包，只保留全體英文班學生可完成的聽力作業；一份作業可跨多本教材累加音檔，並依教材顯示已選頁碼／Unit 摘要。已發布作業可由建立者或管理員安全停用，學生不再看到但既有進度仍保留。`assignment-manager` v18 已於 2026-08-24 部署並為 ACTIVE；前端介面尚未部署 Netlify。
+- 學生 Dashboard 的 AI 專屬練習只對有效 AI 權限顯示；未加購者從其他入口進入 AI 教材頁時會回到頁首看到加購卡。既有 AI 類作業也由後端依有效 AI 權限過濾與拒絕提交。
+- 智慧錯題複習只使用既有錯題資料與間隔排程，不呼叫生成式 AI、不消耗 AI 額度，因此維持所有具 `review` 權限的學生可用。
+- CSV 批次建立學生第一版已完成：範本下載、CSV 解析、伺服器預覽、E1／E3／E5／E7 與 Email 驗證、每批 25 位上限、admin-only 批次建立、逐列成功／失敗、結果下載、request ID 防重複提交與不保存臨時密碼的操作紀錄。
+- Additive migration `20260824124647_academy_student_csv_batches.sql` 已於 2026-08-24 套用遠端 Supabase；兩張資料表啟用 RLS，`anon` 無讀取權，`service_role` 可執行伺服器 audit 寫入。
+- 管理員帳號清單已改為預設只顯示使用中帳號，並新增 Role、Class、Plan、開通狀態、帳號狀態與是否啟用的組合篩選；停用後從預設清單隱藏，切換為「已停用」即可恢復。已建立學生帳號的永久刪除入口已移除，未領取邀請仍需輸入完整 Email 才能刪除。
+- Additive migration `20260824143810_admin_safe_account_deletion.sql` 已套用，RPC 只授權 `service_role`；一次性 Sandbox Test 刪除嘗試未刪除 Firebase 或 Supabase 資料，`20260824154915` 與 `20260824155347` 已依序套用並恢復原本嚴格刪除政策。專案擁有者已設定 `FIREBASE_SERVICE_ACCOUNT_JSON`，未讀取或輸出內容；因產品改採停用隱藏，不再繼續帳號永久刪除流程。
+- PR #29 可合併且無衝突，兩個 Netlify Deploy Preview 均為 success：`https://deploy-preview-29--alanenglish.netlify.app` 與 `https://deploy-preview-29--iridescent-cheesecake-4ceaca.netlify.app`。尚未合併 `main`，也未部署正式 Netlify Production。
+- 全部 13 份測試檔共 34 個案例通過，Production build 成功，Supabase security advisors 無警告；帳號管理已於本機管理員 Session 驗證預設隱藏、已停用篩選、恢復入口與永久刪除按鈕移除。412px Preview 公開頁／登入導向正常，登入後 CSV 伺服器預覽已用虛構資料驗證且未寫入學生，Console 無錯誤。本機沒有 Deno，Edge Function 的正式型別驗證由 Supabase 部署 bundling 完成。
+- 2026-08-25 本機未推送：完成全站 Router 與共用顯示邏輯第一階段稽核。帳號管理在 760px 以下改用卡片，已停用帳號為紅底紅框且只保留恢復操作；管理 Dashboard 統計改為手機 2×2，學生學習狀況改為手機卡片；全站內容預留浮動作業按鈕底部空間。學生作業捷徑改依有效權限 `features.assignments` 顯示，AI 宣傳改依 `features.ai_materials` 判斷，避免已有試用 AI 權限仍被重複推銷。15 份測試檔共 38 個案例通過，Production build 成功；尚未 push、合併或部署。
+- 2026-08-25 本機未推送：新增根目錄 `PROJECT_LOGIC.md`，集中記錄身分、疊加式權限、方案、頁面顯示、AI、作業、聽力、帳號生命週期、CSV、付款與 RWD 邏輯；並明列試用 AI 額度及作業獎勵仍需統一／驗證的項目。
+- 2026-08-25 分支 `codex/student-login-activation-email` 本機未推送：第一階段將新英文班帳號改為 `login_username`＋6 位數字，新增 30 天一次性 QR 啟用卡、兩組一次性復原碼、CSV 選填家長 Email／自動帳號、A4 列印卡與管理清單隱藏 Firebase 內部識別 Email。另新增 `auth-email`，以 Firebase Admin action link＋Resend 寄送非英文班驗證／重設信並加入不洩漏帳號存在性的回應與每小時節流。16 份測試檔共 41 個案例通過，Production build 成功；412px 驗收的學生啟用、復原、CSV 匯入與帳號管理頁皆無水平溢位。Additive migration 與三個 Edge Function 變更皆尚未套用／部署，既有英文班假 Email 帳號尚未轉換。
 
 目前下一個主要開發方向：
 
-1. 建立 P0 Unit Test 基礎
-2. 登入、Session、Route 與角色權限測試
-3. 會員、試用、啟用碼與有效權限測試
-4. MusicPlayer 80% 聆聽與防作弊測試
-5. 作業、AI 教材與前後端 action contract 測試
-6. Supabase RLS、GRANT、RPC 與 migration 整合測試
+1. 本機差異審查後，由專案擁有者另行批准 migration、`academy-student-manager`、`membership-manager`、`auth-email` 與 Netlify 預覽部署
+2. 以明確標記的沙盒學生驗證「CSV 建立 → 列印登入卡 → 掃碼啟用 → 帳號登入 → 復原碼重設」完整流程
+3. 確認 Resend 寄件子網域的 SPF、DKIM、DMARC 與寄件設定後，以非英文班沙盒 Email 驗證收件匣／垃圾郵件結果
+4. 盤點既有英文班假 Email 帳號並產生只讀轉換預覽；未經逐批確認不得改正式帳號
+5. MusicPlayer 80% 聆聽與防作弊測試
 
 ## 2. 目前正式版本
 
@@ -72,7 +89,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 目前已知的正式基準 commit：
 
 ```text
-0ed71a7
+17a8456
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
@@ -460,6 +477,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 帳號邀請／客服 migration 與 `academy-student-manager`、`membership-manager`、`support-manager` 已部署；兩張新表均啟用 RLS，且 `anon`／`authenticated` 無直接讀取權限。
 - 本輪環境沒有安裝 `react-scripts`，因此登入競態的 2 個新增測試尚未在本機執行；PR #18 Deploy Preview 與 Netlify Production build 均已成功。
 - AI Premium UI 的 3 個會員中心測試已加入；本機環境缺少 `react-scripts`，未直接執行測試。PR #21 Deploy Preview 與 Netlify Production build 均成功，正式部署 commit 為 `43e5982`。
+- 2026-08-25 PR #29：帳號管理改採停用後預設隱藏與篩選恢復，新增 Role／Class／Plan／開通狀態／帳號狀態／是否啟用篩選；已建立帳號不再顯示永久刪除。Sandbox Test 刪除嘗試安全失敗且資料未變更，遠端嚴格刪除政策已恢復。13 份測試檔共 34 個案例與 Production build 均成功；PR 尚未合併 `main` 或部署正式 Netlify。
 
 ## 14. 下一個 Codex 對話建議提示詞
 

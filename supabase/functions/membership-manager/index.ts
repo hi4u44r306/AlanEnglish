@@ -380,7 +380,10 @@ const profilePayload = (
     id: student.id,
     firebase_uid: student.firebase_uid,
     name: student.name,
-    email: student.email,
+    email: student.authentication_method === "academy_username" ? null : student.email,
+    login_username: student.login_username || null,
+    authentication_method: student.authentication_method || "email",
+    activated_at: student.activated_at || null,
     class: student.class,
     role: student.role || "student",
     plan: student.plan,
@@ -689,7 +692,7 @@ Deno.serve(async (req: Request) => {
             let query = admin
                 .from("students")
                 .select(`
-                    id,firebase_uid,email,name,role,class,plan,learner_type,account_status,archived_at,archive_reason,must_change_password,password_changed_at,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at,
+                    id,firebase_uid,email,login_username,authentication_method,activated_at,name,role,class,plan,learner_type,account_status,archived_at,archive_reason,must_change_password,password_changed_at,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at,
                     memberships(${membershipSelect}),
                     student_level_progress:student_level_progress!student_level_progress_student_id_fkey(student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,badge_color))
                 `)
@@ -822,7 +825,7 @@ Deno.serve(async (req: Request) => {
                     updated_at: now
                 })
                 .eq("id", target.id)
-                .select("id,firebase_uid,email,name,role,class,plan,learner_type,account_status,archived_at,archive_reason,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at")
+                .select("id,firebase_uid,email,login_username,authentication_method,activated_at,name,role,class,plan,learner_type,account_status,archived_at,archive_reason,user_image,created_at,updated_at,last_login_at,last_active_at,last_learning_at")
                 .single();
             if (updateError) throw updateError;
 

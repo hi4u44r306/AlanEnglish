@@ -4,7 +4,6 @@ import {
     browserLocalPersistence,
     createUserWithEmailAndPassword,
     deleteUser,
-    sendEmailVerification,
     setPersistence
 } from "firebase/auth";
 import { authentication } from "./firebase-config";
@@ -14,6 +13,7 @@ import {
     previewAcademyInvitation
 } from "../../services/academyStudentService";
 import { useAuth } from "../../auth/AuthContext";
+import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 import {
     isReceivableEmail,
     RECEIVABLE_EMAIL_HELP
@@ -114,10 +114,7 @@ function AcademyInviteSignup({ manualEntry = false }) {
         setSending(true);
         setError("");
         try {
-            authentication.languageCode = "zh-TW";
-            await sendEmailVerification(user, {
-                url: `${window.location.origin}/academy/invite?token=${encodeURIComponent(token)}`
-            });
+            await sendBrandedVerificationEmail(user, `/academy/invite?token=${encodeURIComponent(token)}`);
             setCooldown(RESEND_SECONDS);
             setNotice("驗證信已寄出，請檢查收件匣、垃圾郵件與促銷內容。");
         } catch (sendError) {

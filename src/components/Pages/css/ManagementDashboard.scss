@@ -10,8 +10,7 @@
 }
 
 .management-hero,
-.management-panel,
-.dashboard-actions {
+.management-panel {
   max-width: 1180px;
   margin: 0 auto 24px;
   background: #fff;
@@ -30,7 +29,7 @@
   h1 {
     margin: 8px 0;
     font-size: 2rem;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   p {
@@ -45,8 +44,8 @@
   border-radius: 999px;
   background: #eef5ff;
   color: #2563eb;
-  font-size: 0.76rem;
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
 }
 
@@ -60,7 +59,7 @@
   background: #3478db;
   color: #fff;
   text-decoration: none;
-  font-weight: 800;
+  font-weight: 700;
 
   &:hover {
     color: #fff;
@@ -88,59 +87,12 @@
     margin-bottom: 10px;
     color: #6b7280;
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   strong {
     font-size: 2rem;
-    font-weight: 900;
-  }
-}
-
-.dashboard-actions {
-  padding: 26px 30px;
-
-  h2 {
-    margin: 0 0 18px;
-    font-size: 1.2rem;
     font-weight: 800;
-  }
-}
-
-.dashboard-action-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.dashboard-action-card {
-  display: flex;
-  min-height: 115px;
-  flex-direction: column;
-  justify-content: center;
-  padding: 20px;
-  border: 1px solid #dfe6ef;
-  border-radius: 14px;
-  color: #172033;
-  text-decoration: none;
-  transition: 0.18s ease;
-
-  strong {
-    margin-bottom: 7px;
-    font-size: 1rem;
-    font-weight: 800;
-  }
-
-  span {
-    color: #6b7280;
-    font-size: 0.88rem;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    border-color: #9fc2f2;
-    box-shadow: 0 10px 25px rgba(52, 120, 219, 0.08);
-    color: #172033;
   }
 }
 
@@ -150,9 +102,10 @@
 
 .management-toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 180px 180px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
-  margin-bottom: 18px;
+  align-items: end;
+  margin-bottom: 10px;
 
   input,
   select {
@@ -175,7 +128,7 @@
   margin-bottom: 12px;
   color: #6b7280;
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .management-table-wrap {
@@ -196,8 +149,8 @@
 
   th {
     color: #687385;
-    font-size: 0.82rem;
-    font-weight: 800;
+    font-size: 0.86rem;
+    font-weight: 700;
     text-transform: uppercase;
   }
 
@@ -210,8 +163,8 @@
   display: inline-flex;
   padding: 5px 9px;
   border-radius: 999px;
-  font-size: 0.76rem;
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .role-student {
@@ -233,11 +186,12 @@
 .management-reset-button,
 .management-archive-button,
 .management-restore-button,
+.management-delete-button,
 .management-save-button,
 .management-cancel-button {
   border: none;
   border-radius: 9px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
   transition: 0.18s ease;
 }
@@ -271,8 +225,8 @@
   width: max-content;
   padding: 5px 9px;
   border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 850;
+  font-size: 0.82rem;
+  font-weight: 750;
 }
 
 .activation-active {
@@ -306,13 +260,14 @@
   background: #f0f2f5;
 }
 
-.account-status-badge {
+.account-status-badge,
+.access-status-badge {
   display: inline-flex;
   width: max-content;
   padding: 5px 9px;
   border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 850;
+  font-size: 0.82rem;
+  font-weight: 750;
 }
 
 .account-status-active {
@@ -325,6 +280,40 @@
   background: #fff0f2;
 }
 
+.management-account-name,
+.management-account-archived-note {
+  display: block;
+}
+
+.management-account-archived-note {
+  width: max-content;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #a32636;
+  background: #ffe2e6;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.management-account-row.is-archived td {
+  background: #fff5f6;
+}
+
+.management-account-row.is-archived td:first-child {
+  box-shadow: inset 4px 0 0 #d94b5d;
+}
+
+.access-status-enabled {
+  color: #087443;
+  background: #eafbf2;
+}
+
+.access-status-disabled {
+  color: #6b7280;
+  background: #f0f2f5;
+}
+
 .management-archive-button,
 .management-restore-button {
   min-height: 34px;
@@ -333,6 +322,162 @@
   &:disabled {
     opacity: 0.55;
     cursor: wait;
+  }
+}
+
+.management-delete-button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: #a32636;
+  background: #fff;
+  border: 1px solid #efc8ce;
+
+  &:hover:not(:disabled) {
+    color: #851b29;
+    background: #fff0f2;
+  }
+}
+
+.management-filter {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+
+  > span {
+    color: #596579;
+    font-size: 0.8rem;
+    font-weight: 650;
+  }
+}
+
+.management-search-filter {
+  grid-column: span 2;
+}
+
+.management-filter-reset {
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid #d8e0ea;
+  border-radius: 10px;
+  color: #40516a;
+  background: #f7f9fc;
+  font-weight: 650;
+  cursor: pointer;
+
+  &:hover {
+    background: #edf2f8;
+  }
+}
+
+.management-filter-hint {
+  margin: 0 0 16px;
+  color: #6b7280;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.management-delete-backdrop {
+  position: fixed;
+  z-index: 1600;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  background: rgba(15, 27, 48, 0.64);
+  overflow-y: auto;
+}
+
+.management-delete-dialog {
+  width: min(100%, 520px);
+  padding: 26px;
+  border: 1px solid #f0d4d8;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 27, 48, 0.24);
+
+  h2 {
+    margin: 12px 0 8px;
+    color: #8f2130;
+    font-size: 1.45rem;
+  }
+
+  > p {
+    margin: 0 0 16px;
+    color: #5f6878;
+    line-height: 1.65;
+  }
+
+  form label {
+    display: grid;
+    gap: 7px;
+    color: #4b5565;
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  form input {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 11px;
+    border: 1px solid #d7dee9;
+    border-radius: 10px;
+    box-sizing: border-box;
+    outline: none;
+
+    &:focus {
+      border-color: #c64c5d;
+      box-shadow: 0 0 0 3px rgba(198, 76, 93, 0.11);
+    }
+  }
+}
+
+.management-delete-target {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: #fff4f5;
+
+  strong {
+    color: #7f2030;
+  }
+
+  span {
+    color: #687385;
+    overflow-wrap: anywhere;
+  }
+}
+
+.management-delete-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 18px;
+
+  button {
+    min-height: 44px;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 10px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  button:first-child {
+    color: #505a6b;
+    background: #eef1f5;
+  }
+
+  button:last-child {
+    color: #fff;
+    background: #b52f42;
+  }
+
+  button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
   }
 }
 
@@ -379,7 +524,7 @@
     color: #2563eb;
     background: #eef5ff;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.84rem;
   }
 }
 
@@ -415,8 +560,8 @@
 
     span {
       color: #687385;
-      font-size: 0.8rem;
-      font-weight: 800;
+      font-size: 0.84rem;
+      font-weight: 700;
     }
   }
 
@@ -497,13 +642,13 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .dashboard-action-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .management-toolbar,
   .management-edit-grid {
     grid-template-columns: 1fr;
+  }
+
+  .management-search-filter {
+    grid-column: span 1;
   }
 }
 
@@ -518,17 +663,128 @@
     font-size: 1.55rem;
   }
 
-  .dashboard-stat-grid,
-  .dashboard-action-grid {
-    grid-template-columns: 1fr;
+  .dashboard-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
-  .dashboard-actions,
+  .dashboard-stat-card {
+    min-height: 112px;
+    padding: 16px;
+
+    span {
+      min-height: 2.5em;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
+      line-height: 1.25;
+    }
+
+    strong {
+      font-size: 1.65rem;
+    }
+  }
+
   .management-panel {
     padding: 20px;
   }
 
   .management-edit-actions {
     flex-direction: column;
+  }
+
+  .management-delete-dialog {
+    padding: 22px 18px;
+  }
+
+  .management-delete-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .management-delete-dialog__actions button {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .management-account-table-wrap {
+    overflow: visible;
+  }
+
+  .management-account-table,
+  .management-account-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .management-account-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .management-account-table > tbody > .management-account-row {
+    display: block;
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 1px solid #dfe5ee;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(31, 45, 61, 0.05);
+  }
+
+  .management-account-table > tbody > .management-account-row.is-archived {
+    border-color: #e9a7b0;
+    background: #fff5f6;
+    box-shadow: 0 8px 22px rgba(163, 38, 54, 0.08);
+  }
+
+  .management-account-table > tbody > .management-account-row > td {
+    display: grid;
+    grid-template-columns: minmax(86px, 32%) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 11px 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .management-account-table > tbody > .management-account-row > td::before {
+    content: attr(data-label);
+    color: #687385;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .management-account-table > tbody > .management-account-row > td:first-child {
+    padding-top: 15px;
+  }
+
+  .management-account-table > tbody > .management-account-row > td:last-child {
+    padding-bottom: 15px;
+  }
+
+  .management-account-row.is-archived td:first-child {
+    box-shadow: inset 4px 0 0 #d94b5d;
+  }
+
+  .management-account-table .management-row-actions {
+    min-width: 0;
+  }
+
+  .management-account-table .management-row-actions button {
+    min-height: 44px;
+  }
+
+  .management-account-table > tbody > .management-edit-row {
+    display: block;
+    margin: -8px 0 14px;
+  }
+
+  .management-account-table > tbody > .management-edit-row > td {
+    display: block;
+    width: 100%;
   }
 }

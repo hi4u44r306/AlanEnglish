@@ -12,7 +12,8 @@ const AssignmentShortcut = ({
 }) => {
     const {
         role,
-        isAuthenticated
+        isAuthenticated,
+        studentProfile
     } = useAuth();
 
     const location = useLocation();
@@ -24,6 +25,14 @@ const AssignmentShortcut = ({
     const manager =
         role === "teacher" ||
         role === "admin";
+
+    const studentCanUseAssignments =
+        role === "student" &&
+        studentProfile?.membership?.effective_access?.features?.assignments === true;
+
+    if (!manager && !studentCanUseAssignments) {
+        return null;
+    }
 
     const path = manager
         ? "/teacher/assignments"

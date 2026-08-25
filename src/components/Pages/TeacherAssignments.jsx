@@ -1,20 +1,24 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
     BookOpenCheck,
     CheckCircle2,
     Headphones,
-    Layers3,
-    Sparkles,
-    Target
+    Target,
+    Trash2
 } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
     createAssignment,
+    deleteAssignment,
     getAssignmentResults,
     getTeacherAssignmentBootstrap,
     getTeacherAssignments
 } from "../../services/assignmentService";
+import {
+    groupSelectedTracks,
+    mergeTrackIds,
+    removeTrackIds
+} from "./assignmentTrackSelection";
 import "./css/Assignments.scss";
 
 const todayTaiwan = () => new Intl.DateTimeFormat("en-CA", {
@@ -34,14 +38,6 @@ const formatDateTime = value => {
         minute: "2-digit"
     }).format(new Date(value));
 };
-
-const includesAi = sourceType => (
-    sourceType === "ai_material" || sourceType === "mission_pack"
-);
-
-const includesListening = sourceType => (
-    sourceType === "music_track" || sourceType === "mission_pack"
-);
 
 const parseTrackLabel = value => {
     const text = String(value || "").trim();
@@ -88,11 +84,11 @@ const resultSummary = (assignment, row) => {
 const TeacherAssignments = () => {
     const { firebaseUser } = useAuth();
     const [classes, setClasses] = useState([]);
-    const [materials, setMaterials] = useState([]);
     const [tracks, setTracks] = useState([]);
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
     const [message, setMessage] = useState("");
     const [results, setResults] = useState(null);
     const [resultsLoading, setResultsLoading] = useState(false);
@@ -103,12 +99,10 @@ const TeacherAssignments = () => {
     const [form, setForm] = useState({
         title: "",
         description: "",
-        source_type: "mission_pack",
-        source_id: "",
+        source_type: "music_track",
         target_class: "",
         assigned_date: todayTaiwan(),
         due_date: todayTaiwan(),
-        passing_score: 90,
         required_listens: 3
     });
 
@@ -124,6 +118,21 @@ const TeacherAssignments = () => {
         () => tracks.filter(track => String(track.book_id) === String(bookId)),
         [tracks, bookId]
     );
+
+    const selectedTrackGroups = useMemo(
+        () => groupSelectedTracks(tracks, trackIds),
+        [tracks, trackIds]
+    );
+
+    const selectedTrackIdsByBook = useMemo(() => {
+        const counts = new Map();
+        selectedTrackGroups.forEach(group => {
+            counts.set(String(group.book.id), group.tracks.length);
+        });
+        return counts;
+    }, [selectedTrackGroups]);
+
+    const currentBookSelectedCount = selectedTrackIdsByBook.get(String(bookId)) || 0;
 
     const rangeType = useMemo(() => {
         const counts = { P: 0, Unit: 0, Track: 0 };
@@ -144,7 +153,6 @@ const TeacherAssignments = () => {
                 getTeacherAssignments(firebaseUser)
             ]);
             setClasses(bootstrap.classes || []);
-            setMaterials(bootstrap.materials || []);
             setTracks(bootstrap.tracks || []);
             setAssignments(list.assignments || []);
         } catch (error) {
@@ -160,11 +168,6 @@ const TeacherAssignments = () => {
 
     const updateForm = (field, value) => {
         setForm(current => ({ ...current, [field]: value }));
-    };
-
-    const changeType = sourceType => {
-        updateForm("source_type", sourceType);
-        setMessage("");
     };
 
     const toggleTrack = id => {
@@ -212,9 +215,9 @@ const TeacherAssignments = () => {
             return;
         }
 
-        setTrackIds(selectedIds);
+        setTrackIds(current => mergeTrackIds(current, selectedIds));
         setMessage(
-            "已選取 "
+            "已加入 "
             + rangeType
             + " "
             + min
@@ -230,18 +233,12 @@ const TeacherAssignments = () => {
 
     const submit = async event => {
         event.preventDefault();
-        const hasAi = includesAi(form.source_type);
-        const hasListening = includesListening(form.source_type);
 
         if (!form.title.trim()) {
             setMessage("請輸入作業名稱");
             return;
         }
-        if (hasAi && !form.source_id) {
-            setMessage("請選擇 AI 教材");
-            return;
-        }
-        if (hasListening && !trackIds.length) {
+        if (!trackIds.length) {
             setMessage("請至少選擇一個聽力音檔");
             return;
         }
@@ -252,35 +249,22 @@ const TeacherAssignments = () => {
             await createAssignment(firebaseUser, {
                 title: form.title.trim(),
                 description: form.description.trim(),
-                source_type: form.source_type,
-                ai_material_id: hasAi ? Number(form.source_id) : null,
-                track_ids: hasListening ? trackIds : [],
+                source_type: "music_track",
+                track_ids: trackIds,
                 required_listens: Number(form.required_listens) || 3,
                 target_class: form.target_class || null,
                 assigned_date: form.assigned_date,
                 due_at: form.due_date
                     ? new Date(form.due_date + "T23:59:00+08:00").toISOString()
-                    : null,
-                passing_score: Number(form.passing_score) || 90
+                    : null
             });
 
-            if (form.source_type === "mission_pack") {
-                setMessage(
-                    "完整任務包已發布："
-                    + trackIds.length
-                    + " 個音檔＋1 份 AI 測驗。"
-                );
-            } else if (form.source_type === "music_track") {
-                setMessage("聽力作業已發布，共 " + trackIds.length + " 個音檔。");
-            } else {
-                setMessage("AI 測驗作業已發布。");
-            }
+            setMessage("聽力作業已發布，共 " + trackIds.length + " 個音檔。");
 
             setForm(current => ({
                 ...current,
                 title: "",
-                description: "",
-                source_id: ""
+                description: ""
             }));
             setTrackIds([]);
             setBookId("");
@@ -312,17 +296,35 @@ const TeacherAssignments = () => {
         }
     };
 
-    const hasAi = includesAi(form.source_type);
-    const hasListening = includesListening(form.source_type);
-    const taskCount = Number(hasAi) + Number(hasListening);
+    const handleDelete = async assignment => {
+        const confirmed = window.confirm(
+            `確定要刪除「${assignment.title}」嗎？刪除後學生將不再看到這份作業，既有進度紀錄會保留。`
+        );
+        if (!confirmed) return;
+
+        setDeletingId(assignment.id);
+        setMessage("");
+        try {
+            await deleteAssignment(firebaseUser, assignment.id);
+            setAssignments(current => current.filter(item => item.id !== assignment.id));
+            setResults(null);
+            setMessage(`已刪除「${assignment.title}」。`);
+        } catch (error) {
+            setMessage(error.message);
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const taskCount = 1;
 
     return (
         <main className="assignment-page teacher-assignment-page">
             <section className="assignment-hero">
                 <div>
                     <span>TEACHER MISSION BUILDER</span>
-                    <h1>發布課後任務包</h1>
-                    <p>一次安排聽力、AI 教材與選擇題；學生必須完成所有步驟才算交作業。</p>
+                    <h1>發布課後聽力作業</h1>
+                    <p>指定課堂教材音檔與完成次數，讓學生依照班級進度完成練習。</p>
                 </div>
                 <div className="assignment-date-card">
                     <strong>{todayTaiwan()}</strong>
@@ -337,44 +339,15 @@ const TeacherAssignments = () => {
                     <div className="assignment-card-heading">
                         <span>NEW MISSION</span>
                         <h2>建立新的學習任務</h2>
-                        <p>建議使用完整任務包，讓學生先聽、再讀、最後完成測驗。</p>
+                        <p>AI 教材屬於額外加購功能，因此班級作業目前只發布所有英文班學生都能完成的聽力任務。</p>
                     </div>
 
-                    <div className="assignment-source-tabs assignment-source-tabs--cards">
-                        <button
-                            type="button"
-                            className={form.source_type === "mission_pack" ? "active" : ""}
-                            onClick={() => changeType("mission_pack")}
-                        >
-                            <Layers3 aria-hidden="true" size={21} />
-                            <span>
-                                <strong>完整任務包</strong>
-                                <small>聽力＋AI 測驗</small>
-                            </span>
-                            <em>推薦</em>
-                        </button>
-                        <button
-                            type="button"
-                            className={form.source_type === "ai_material" ? "active" : ""}
-                            onClick={() => changeType("ai_material")}
-                        >
-                            <Sparkles aria-hidden="true" size={21} />
-                            <span>
-                                <strong>AI 測驗</strong>
-                                <small>閱讀＋選擇題</small>
-                            </span>
-                        </button>
-                        <button
-                            type="button"
-                            className={form.source_type === "music_track" ? "active" : ""}
-                            onClick={() => changeType("music_track")}
-                        >
-                            <Headphones aria-hidden="true" size={21} />
-                            <span>
-                                <strong>聽力練習</strong>
-                                <small>指定教材音檔</small>
-                            </span>
-                        </button>
+                    <div className="assignment-listening-only-note">
+                        <Headphones aria-hidden="true" size={21} />
+                        <span>
+                            <strong>聽力練習</strong>
+                            <small>指定教材音檔，不要求學生另外購買 AI 功能</small>
+                        </span>
                     </div>
 
                     <div className="assignment-form-section">
@@ -399,13 +372,12 @@ const TeacherAssignments = () => {
                                 rows="3"
                                 value={form.description}
                                 onChange={event => updateForm("description", event.target.value)}
-                                placeholder="例如：先完成指定音檔，再閱讀 AI 教材並挑戰 90 分。"
+                                placeholder="例如：請完成 Workbook 1 P22～P32，每個音檔聆聽 3 次。"
                             />
                         </label>
                     </div>
 
-                    {hasListening && (
-                        <div className="assignment-form-section assignment-form-section--listening">
+                    <div className="assignment-form-section assignment-form-section--listening">
                             <div className="assignment-form-section__heading">
                                 <span>2</span>
                                 <div>
@@ -417,22 +389,76 @@ const TeacherAssignments = () => {
 
                             <div className="assignment-track-picker">
                                 <label>
-                                    <span>選擇教材</span>
+                                    <span>新增或切換教材</span>
                                     <select
                                         value={bookId}
                                         onChange={event => {
                                             setBookId(event.target.value);
-                                            setTrackIds([]);
                                             setRangeStart("");
                                             setRangeEnd("");
                                         }}
                                     >
                                         <option value="">請選擇教材...</option>
                                         {books.map(book => (
-                                            <option key={book.id} value={book.id}>{book.name}</option>
+                                            <option key={book.id} value={book.id}>
+                                                {book.name}
+                                                {selectedTrackIdsByBook.get(String(book.id))
+                                                    ? "（已選 " + selectedTrackIdsByBook.get(String(book.id)) + "）"
+                                                    : ""}
+                                            </option>
                                         ))}
                                     </select>
                                 </label>
+
+                                {trackIds.length > 0 && (
+                                    <section className="assignment-selected-tracks" aria-label="已選聽力內容">
+                                        <div className="assignment-selected-tracks__heading">
+                                            <div>
+                                                <strong>已選聽力內容</strong>
+                                                <span>
+                                                    {selectedTrackGroups.length} 本教材 · {trackIds.length} 個音檔
+                                                </span>
+                                            </div>
+                                            <button type="button" onClick={() => setTrackIds([])}>全部清除</button>
+                                        </div>
+                                        <div className="assignment-selected-tracks__groups">
+                                            {selectedTrackGroups.map(group => (
+                                                <article key={group.book.id}>
+                                                    <div>
+                                                        <strong>{group.book.name}</strong>
+                                                        <span>{group.tracks.length} 個音檔</span>
+                                                    </div>
+                                                    <p>
+                                                        {group.tracks.map(track => (
+                                                            <span key={track.id}>{track.display_page || track.page}</span>
+                                                        ))}
+                                                    </p>
+                                                    <div className="assignment-selected-tracks__actions">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setBookId(String(group.book.id));
+                                                                setRangeStart("");
+                                                                setRangeEnd("");
+                                                            }}
+                                                        >
+                                                            繼續選擇
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setTrackIds(current => removeTrackIds(
+                                                                current,
+                                                                group.tracks.map(track => track.id)
+                                                            ))}
+                                                        >
+                                                            移除此教材
+                                                        </button>
+                                                    </div>
+                                                </article>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
 
                                 {bookId && (
                                     <>
@@ -458,15 +484,28 @@ const TeacherAssignments = () => {
                                         </div>
 
                                         <div className="assignment-track-toolbar">
-                                            <strong>選擇音檔（已選 {trackIds.length}）</strong>
+                                            <strong>
+                                                選擇音檔（此教材已選 {currentBookSelectedCount}，全部 {trackIds.length}）
+                                            </strong>
                                             <div>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setTrackIds(visibleTracks.map(track => track.id))}
+                                                    onClick={() => setTrackIds(current => mergeTrackIds(
+                                                        current,
+                                                        visibleTracks.map(track => track.id)
+                                                    ))}
                                                 >
-                                                    全選
+                                                    全選此教材
                                                 </button>
-                                                <button type="button" onClick={() => setTrackIds([])}>清除</button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setTrackIds(current => removeTrackIds(
+                                                        current,
+                                                        visibleTracks.map(track => track.id)
+                                                    ))}
+                                                >
+                                                    清除此教材
+                                                </button>
                                             </div>
                                         </div>
 
@@ -488,44 +527,7 @@ const TeacherAssignments = () => {
                                     </>
                                 )}
                             </div>
-                        </div>
-                    )}
-
-                    {hasAi && (
-                        <div className="assignment-form-section assignment-form-section--ai">
-                            <div className="assignment-form-section__heading">
-                                <span>{hasListening ? "3" : "2"}</span>
-                                <div>
-                                    <strong>AI 教材與選擇題</strong>
-                                    <small>提交前不顯示答案，達標才完成</small>
-                                </div>
-                                <Sparkles aria-hidden="true" size={19} />
-                            </div>
-                            <label>
-                                <span>選擇我的 AI 教材</span>
-                                <select
-                                    value={form.source_id}
-                                    onChange={event => updateForm("source_id", event.target.value)}
-                                >
-                                    <option value="">請選擇...</option>
-                                    {materials.map(material => (
-                                        <option key={material.id} value={material.id}>
-                                            {material.title}
-                                            {material.difficulty ? " · " + material.difficulty : ""}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                            <div className="assignment-ai-helper">
-                                <span>
-                                    {materials.length
-                                        ? "找不到適合教材？可以先建立一份新的 AI 練習。"
-                                        : "目前還沒有可發布的 AI 教材。"}
-                                </span>
-                                <Link to="/student/ai-generator">前往 AI 教材產生器</Link>
-                            </div>
-                        </div>
-                    )}
+                    </div>
 
                     <div className="assignment-form-section assignment-form-section--rules">
                         <div className="assignment-form-section__heading">
@@ -553,33 +555,17 @@ const TeacherAssignments = () => {
                                 </select>
                             </label>
 
-                            {hasListening && (
-                                <label>
-                                    <span>每個音檔需聽</span>
-                                    <select
-                                        value={form.required_listens}
-                                        onChange={event => updateForm("required_listens", event.target.value)}
-                                    >
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 10].map(number => (
-                                            <option key={number} value={number}>{number} 次</option>
-                                        ))}
-                                    </select>
-                                </label>
-                            )}
-
-                            {hasAi && (
-                                <label>
-                                    <span>測驗及格標準</span>
-                                    <select
-                                        value={form.passing_score}
-                                        onChange={event => updateForm("passing_score", event.target.value)}
-                                    >
-                                        <option value="90">90 分</option>
-                                        <option value="80">80 分</option>
-                                        <option value="100">100 分</option>
-                                    </select>
-                                </label>
-                            )}
+                            <label>
+                                <span>每個音檔需聽</span>
+                                <select
+                                    value={form.required_listens}
+                                    onChange={event => updateForm("required_listens", event.target.value)}
+                                >
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 10].map(number => (
+                                        <option key={number} value={number}>{number} 次</option>
+                                    ))}
+                                </select>
+                            </label>
 
                             <label>
                                 <span>發布日期</span>
@@ -606,11 +592,7 @@ const TeacherAssignments = () => {
                             <CheckCircle2 aria-hidden="true" size={21} />
                             <span>
                                 <strong>{taskCount} 個完成條件</strong>
-                                <small>
-                                    {hasListening && (trackIds.length + " 個音檔")}
-                                    {hasListening && hasAi && " ＋ "}
-                                    {hasAi && ("AI 測驗 " + form.passing_score + " 分")}
-                                </small>
+                                <small>{trackIds.length} 個音檔</small>
                             </span>
                         </div>
                         <button
@@ -618,7 +600,7 @@ const TeacherAssignments = () => {
                             type="submit"
                             disabled={saving || loading}
                         >
-                            {saving ? "發布中..." : "發布任務包"}
+                            {saving ? "發布中..." : "發布作業"}
                         </button>
                     </div>
                 </form>
@@ -650,9 +632,20 @@ const TeacherAssignments = () => {
                                         <span className={"assignment-kind " + assignment.source_type}>
                                             {sourceLabel(assignment)}
                                         </span>
-                                        <button type="button" onClick={() => openResults(assignment)}>
-                                            查看進度
-                                        </button>
+                                        <div className="assignment-history-buttons">
+                                            <button type="button" onClick={() => openResults(assignment)}>
+                                                查看進度
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="assignment-delete"
+                                                onClick={() => handleDelete(assignment)}
+                                                disabled={deletingId === assignment.id}
+                                            >
+                                                <Trash2 aria-hidden="true" size={15} />
+                                                {deletingId === assignment.id ? "刪除中..." : "刪除功課"}
+                                            </button>
+                                        </div>
                                     </div>
                                 </article>
                             ))}
@@ -661,7 +654,7 @@ const TeacherAssignments = () => {
                         <div className="assignment-empty">
                             <BookOpenCheck aria-hidden="true" size={28} />
                             <strong>尚未發布作業</strong>
-                            <span>建立第一份課後任務包吧。</span>
+                            <span>建立第一份課後聽力作業吧。</span>
                         </div>
                     )}
                 </section>

@@ -84,12 +84,12 @@ const normalizeOptionalText = value => {
 };
 
 const normalizeStudentPayload = student => ({
-    login_email: String(
-        student?.login_email ??
-        student?.loginEmail ??
-        student?.email ??
+    login_username: String(
+        student?.login_username ??
+        student?.loginUsername ??
+        student?.username ??
         ""
-    ).trim().toLowerCase(),
+    ).trim().toLowerCase().replace(/[^a-z0-9]/g, ""),
 
     chinese_name: String(
         student?.chinese_name ??
@@ -171,7 +171,10 @@ export const createAcademyInvitation = async (
     firebaseUser,
     {
         action: "create_invitation",
-        ...normalizeStudentPayload(student)
+        ...normalizeStudentPayload(student),
+        login_email: String(
+            student?.login_email ?? student?.loginEmail ?? student?.email ?? ""
+        ).trim().toLowerCase()
     }
 );
 
@@ -224,6 +227,31 @@ export const previewAcademyStudents = async (
     );
 };
 
+export const createAcademyStudentsBatch = async (
+    firebaseUser,
+    students,
+    requestId
+) => {
+    if (!Array.isArray(students) || students.length === 0) {
+        throw new AcademyStudentServiceError(
+            "沒有可以批次建立的學生資料",
+            {
+                code: "STUDENT_ROWS_REQUIRED",
+                status: 400
+            }
+        );
+    }
+
+    return callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "batch_create_students",
+            request_id: String(requestId || "").trim(),
+            rows: students.map(normalizeStudentPayload)
+        }
+    );
+};
+
 export const listAcademyInvitations = async firebaseUser => {
     const result = await callAcademyStudentManager(
         firebaseUser,
@@ -234,6 +262,59 @@ export const listAcademyInvitations = async firebaseUser => {
         ? result.invitations
         : [];
 };
+
+export const deleteAcademyStudentAccount = async (
+    firebaseUser,
+    studentId,
+    confirmationEmail
+) => callAcademyStudentManager(
+    firebaseUser,
+    {
+        action: "delete_student_account",
+        student_id: Number(studentId),
+        confirmation_email: String(confirmationEmail || "").trim().toLowerCase()
+    }
+);
+
+export const previewStudentActivation = async token => callAcademyStudentManager(
+    null,
+    { action: "preview_student_activation", token: String(token || "").trim() },
+    { allowAnonymous: true }
+);
+
+export const activateStudentLogin = async (token, pin) => callAcademyStudentManager(
+    null,
+    {
+        action: "activate_student_login",
+        token: String(token || "").trim(),
+        pin: String(pin || "").trim()
+    },
+    { allowAnonymous: true }
+);
+
+export const recoverStudentLogin = async (username, recoveryCode, pin) => callAcademyStudentManager(
+    null,
+    {
+        action: "recover_student_login",
+        username: String(username || "").trim().toLowerCase(),
+        recovery_code: String(recoveryCode || "").trim(),
+        pin: String(pin || "").trim()
+    },
+    { allowAnonymous: true }
+);
+
+export const deleteAcademyInvitation = async (
+    firebaseUser,
+    invitationId,
+    confirmationEmail
+) => callAcademyStudentManager(
+    firebaseUser,
+    {
+        action: "delete_invitation",
+        invitation_id: Number(invitationId),
+        confirmation_email: String(confirmationEmail || "").trim().toLowerCase()
+    }
+);
 
 export const sendAcademyPasswordReset = async (firebaseUser, email) => (
     callAcademyStudentManager(
@@ -261,8 +342,14 @@ const academyStudentService = {
     previewAcademyInvitation,
     claimAcademyInvitation,
     activateAcademyInvitation,
+    previewStudentActivation,
+    activateStudentLogin,
+    recoverStudentLogin,
     previewAcademyStudents,
+    createAcademyStudentsBatch,
     listAcademyInvitations,
+    deleteAcademyStudentAccount,
+    deleteAcademyInvitation,
     sendAcademyPasswordReset,
     markAcademyPasswordChanged
 };

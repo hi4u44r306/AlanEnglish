@@ -1,5 +1,5 @@
 import { getMembershipProfile } from "../services/membershipService";
-import { loadStudentProfile } from "./authService";
+import { loadStudentProfile, normalizeLoginIdentifier } from "./authService";
 
 jest.mock("firebase/auth", () => ({
     browserLocalPersistence: {},
@@ -34,5 +34,16 @@ describe("loadStudentProfile", () => {
 
         await expect(Promise.all([loginRequest, authContextRequest])).resolves.toEqual([profile, profile]);
         expect(JSON.parse(localStorage.getItem("ae-profile-cache-v1"))).toMatchObject(profile);
+    });
+});
+
+describe("normalizeLoginIdentifier", () => {
+    it("keeps real email accounts and maps academy usernames to the internal Firebase identifier", () => {
+        expect(normalizeLoginIdentifier(" Parent@Gmail.com ")).toBe("parent@gmail.com");
+        expect(normalizeLoginIdentifier(" alanchen01 ")).toBe("alanchen01@login.alanenglish.com.tw");
+    });
+
+    it("rejects malformed academy usernames before calling Firebase", () => {
+        expect(() => normalizeLoginIdentifier("12")).toThrow("登入帳號格式不正確");
     });
 });

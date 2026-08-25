@@ -30,15 +30,15 @@
     display: block;
     margin-bottom: 5px;
     color: #3478db;
-    font-size: .72rem;
-    font-weight: 900;
+    font-size: .82rem;
+    font-weight: 700;
     letter-spacing: .12em;
 }
 
 .student-activity-heading h2 {
     margin: 0 0 5px;
     font-size: 1.35rem;
-    font-weight: 900;
+    font-weight: 700;
 }
 
 .student-activity-heading p {
@@ -55,7 +55,7 @@
 .reminder-modal-actions button {
     border: 0;
     border-radius: 10px;
-    font-weight: 800;
+    font-weight: 700;
     cursor: pointer;
 }
 
@@ -96,12 +96,12 @@
     border-radius: 10px;
     background: #eef8f3;
     color: #246c50;
-    font-size: .85rem;
-    font-weight: 800;
+    font-size: .9rem;
+    font-weight: 700;
 }
 
 .student-activity-table {
-    min-width: 1080px;
+    min-width: 820px;
 }
 
 .student-name-cell,
@@ -113,11 +113,45 @@
     margin-bottom: 4px;
 }
 
+.student-activity-summary {
+    display: grid;
+    gap: 3px;
+    min-width: 120px;
+    margin: 0;
+}
+
+.student-activity-summary > div {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 7px;
+}
+
+.student-activity-summary dt,
+.student-activity-summary dd {
+    margin: 0;
+}
+
+.student-activity-summary dt {
+    color: #7a8494;
+}
+
+.student-activity-summary dd {
+    color: #344054;
+    font-weight: 600;
+}
+
+.student-learning-cell > span {
+    display: block;
+    margin-top: 8px;
+    color: #667085;
+    font-size: .86rem;
+}
+
 .student-meta-cell {
     max-width: 230px;
     overflow: hidden;
     color: #7a8494;
-    font-size: .76rem;
+    font-size: .84rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -132,8 +166,8 @@
     min-height: 27px;
     padding: 0 9px;
     border-radius: 999px;
-    font-size: .74rem;
-    font-weight: 900;
+    font-size: .82rem;
+    font-weight: 700;
     white-space: nowrap;
 }
 
@@ -163,13 +197,13 @@
 }
 
 .mini-progress-cell {
-    min-width: 95px;
+    min-width: 150px;
 }
 
 .mini-progress-cell > strong {
     display: block;
     margin-bottom: 5px;
-    font-size: .8rem;
+    font-size: .86rem;
 }
 
 .mini-progress-cell > span {
@@ -193,7 +227,7 @@
     padding: 0 10px;
     background: #f1f3f7;
     color: #5c6573;
-    font-size: .75rem;
+    font-size: .82rem;
 }
 
 .guardian-status-button.ready {
@@ -216,8 +250,8 @@
     color: #2563eb;
     border: 0;
     border-radius: 10px;
-    font-size: .73rem;
-    font-weight: 800;
+    font-size: .82rem;
+    font-weight: 700;
     text-decoration: none;
     white-space: nowrap;
 }
@@ -260,7 +294,7 @@
 
 .guardian-editor-heading span {
     color: #748094;
-    font-size: .8rem;
+    font-size: .86rem;
 }
 
 .guardian-editor-heading button {
@@ -271,7 +305,7 @@
 
 .guardian-editor-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -283,8 +317,8 @@
 
 .guardian-editor-grid label > span {
     color: #667085;
-    font-size: .76rem;
-    font-weight: 800;
+    font-size: .84rem;
+    font-weight: 700;
 }
 
 .guardian-editor-grid input,
@@ -302,8 +336,8 @@
     gap: 8px;
     margin: 15px 0;
     color: #4d596c;
-    font-size: .84rem;
-    font-weight: 800;
+    font-size: .9rem;
+    font-weight: 600;
 }
 
 .guardian-save-button {
@@ -337,13 +371,13 @@
 .reminder-modal h2 {
     margin: 8px 0 5px;
     font-size: 1.3rem;
-    font-weight: 900;
+    font-weight: 700;
 }
 
 .reminder-recipient {
     margin: 0 0 14px;
     color: #6b7280;
-    font-size: .85rem;
+    font-size: .9rem;
 }
 
 .reminder-preview {
@@ -362,7 +396,7 @@
     margin: 0;
     white-space: pre-wrap;
     font-family: inherit;
-    font-size: .86rem;
+    font-size: .92rem;
     line-height: 1.7;
 }
 
@@ -372,7 +406,7 @@
     border-radius: 10px;
     background: #fff8e9;
     color: #755b21;
-    font-size: .79rem;
+    font-size: .86rem;
     line-height: 1.55;
 }
 
@@ -414,6 +448,82 @@
     .activity-filter-bar,
     .guardian-editor-grid {
         grid-template-columns: 1fr;
+    }
+
+    .student-activity-panel .management-table-wrap {
+        overflow: visible;
+    }
+
+    .student-activity-table,
+    .student-activity-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .student-activity-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .student-activity-table > tbody > .student-activity-row {
+        display: block;
+        margin-bottom: 14px;
+        overflow: hidden;
+        border: 1px solid #dfe5ee;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(31, 45, 61, 0.05);
+    }
+
+    .student-activity-table > tbody > .student-activity-row.activity-attention-row {
+        border-color: #efc0c0;
+        background: #fffafa;
+    }
+
+    .student-activity-table > tbody > .student-activity-row > td {
+        display: grid;
+        grid-template-columns: minmax(86px, 30%) minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        padding: 11px 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .student-activity-table > tbody > .student-activity-row > td::before {
+        content: attr(data-label);
+        color: #687385;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    .student-activity-table .student-meta-cell {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .student-activity-table .activity-row-actions {
+        flex-wrap: wrap;
+    }
+
+    .student-activity-table .activity-row-actions button,
+    .student-activity-table .activity-row-actions a,
+    .student-activity-table .guardian-status-button {
+        min-height: 44px;
+    }
+
+    .student-activity-table > tbody > .guardian-editor-row {
+        display: block;
+        margin: -8px 0 14px;
+    }
+
+    .student-activity-table > tbody > .guardian-editor-row > td {
+        display: block;
+        width: 100%;
     }
 
     .reminder-modal-actions {

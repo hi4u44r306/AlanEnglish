@@ -6,14 +6,11 @@ import React, {
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { authentication } from "./firebase-config";
+import QRCode from "qrcode";
 import {
     createAcademyStudent,
     listAcademyClasses
 } from "../../services/academyStudentService";
-import {
-    isReceivableEmail,
-    RECEIVABLE_EMAIL_HELP
-} from "../../utils/emailValidation";
 import "./css/Signup.scss";
 
 const FALLBACK_CLASSES = [
@@ -58,7 +55,7 @@ const createInitialForm = (
 ) => ({
     chineseName: "",
     englishName: "",
-    loginEmail: "",
+    loginUsername: "",
     classCode,
     guardianName: "",
     guardianEmail: "",
@@ -86,6 +83,20 @@ function Signup() {
     const [errorMessage, setErrorMessage] = useState("");
     const [createdAccount, setCreatedAccount] = useState(null);
     const [copyMessage, setCopyMessage] = useState("");
+    const [activationQr, setActivationQr] = useState("");
+
+    useEffect(() => {
+        const activationUrl = createdAccount?.credentials?.activation_url;
+        if (!activationUrl) {
+            setActivationQr("");
+            return;
+        }
+        let active = true;
+        QRCode.toDataURL(activationUrl, { width: 240, margin: 1, errorCorrectionLevel: "M" })
+            .then(value => { if (active) setActivationQr(value); })
+            .catch(() => { if (active) setActivationQr(""); });
+        return () => { active = false; };
+    }, [createdAccount]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(
@@ -162,12 +173,8 @@ function Signup() {
             return "請輸入學生中文姓名";
         }
 
-        if (!form.loginEmail.trim()) {
-            return "請輸入學生登入 Email";
-        }
-
-        if (!isReceivableEmail(form.loginEmail)) {
-            return RECEIVABLE_EMAIL_HELP;
+        if (form.loginUsername && !/^[a-z][a-z0-9]{4,31}$/.test(form.loginUsername.trim().toLowerCase())) {
+            return "登入帳號需為 5～32 個小寫英文字母或數字，且第一個字必須是英文字母";
         }
 
         if (!form.classCode) {
@@ -244,11 +251,11 @@ function Signup() {
     };
 
     const handleCopyAccount = () => {
-        copyText(createdAccount.credentials.email, "登入帳號已複製");
+        copyText(createdAccount.credentials.username, "登入帳號已複製");
     };
 
-    const handleCopyPassword = () => {
-        copyText(createdAccount.credentials.temporary_password, "臨時密碼已複製");
+    const handleCopyActivation = () => {
+        copyText(createdAccount.credentials.activation_url, "啟用連結已複製");
     };
 
     const handleCopyCredentials = () => {
@@ -256,11 +263,12 @@ function Signup() {
 
         const accountText = [
             "Alan English 英文班登入資料",
-            `登入 Email：${createdAccount.credentials.email}`,
+            `登入帳號：${createdAccount.credentials.username}`,
             `班級：${form.classCode}`,
-            `臨時密碼：${createdAccount.credentials.temporary_password}`,
-            "首次登入後請立即改成自己的密碼：",
-            `${window.location.origin}/login`
+            `啟用連結：${createdAccount.credentials.activation_url}`,
+            `復原碼 1：${createdAccount.credentials.recovery_codes?.[0]}`,
+            `復原碼 2：${createdAccount.credentials.recovery_codes?.[1]}`,
+            "首次使用請開啟啟用連結並設定 6 位數字。"
         ].join("\n");
 
         copyText(accountText, "完整登入資料已複製");
@@ -336,7 +344,7 @@ function Signup() {
                         <h1>快速建立英文班學生</h1>
 
                         <p>
-                            填寫資料後立即建立帳號與一次性臨時密碼，不需要開通碼；學生首次登入後再改成自己的密碼。
+                            填寫資料後建立登入帳號與一次性啟用卡；學生掃描 QR Code 後自行設定 6 位數字。
                         </p>
                     </div>
                 </header>
@@ -351,25 +359,25 @@ function Signup() {
                             <span>Account Created</span>
                             <h2>學生帳號建立成功</h2>
                             <p>
-                                請立即複製登入資料交給學生或家長。臨時密碼只顯示這一次，系統不會保存明文。
+                                請立即列印或複製登入資料交給學生或家長。啟用與復原原碼只顯示這一次。
                             </p>
                         </div>
 
                         <div className="academy-account-credentials">
                             <div>
-                                <span>登入與收信 Email</span>
+                                <span>登入帳號</span>
                                 <strong>
-                                    {createdAccount.credentials.email}
+                                    {createdAccount.credentials.username}
                                 </strong>
                             </div>
 
                             <div>
-                                <span>一次性臨時密碼</span>
+                                <span>一次性啟用 QR Code</span>
                                 <strong className="academy-account-password academy-account-invite-link">
-                                    {createdAccount.credentials.temporary_password}
+                                    {activationQr ? <img src={activationQr} alt="學生帳號啟用 QR Code" width="180" height="180" /> : "QR Code 產生中…"}
                                 </strong>
                                 <small>
-                                    學生首次登入後必須改成自己的密碼
+                                    掃描後設定 6 位數字；復原碼：{createdAccount.credentials.recovery_codes?.join("、")}
                                 </small>
                             </div>
                         </div>
@@ -395,9 +403,9 @@ function Signup() {
                             <button
                                 type="button"
                                 className="academy-account-primary-button"
-                                onClick={handleCopyPassword}
+                                onClick={handleCopyActivation}
                             >
-                                複製臨時密碼
+                                複製啟用連結
                             </button>
 
                             <button
@@ -420,7 +428,7 @@ function Signup() {
                         <div className="academy-account-security-note">
                             <strong>安全提醒</strong>
                             <p>
-                                臨時密碼不會寫入資料庫；請勿用聊天群組長期保存。若遺失，可由後台寄送密碼重設信。
+                                系統只保存啟用與復原碼雜湊；請將登入卡交給家長保存，不要貼到公開群組。
                             </p>
                         </div>
                     </section>
@@ -436,7 +444,7 @@ function Signup() {
                                 <div>
                                     <h2>學生基本資料</h2>
                                     <p>
-                                        中文姓名、登入 Email 與班級為必填。
+                                        中文姓名與班級為必填；登入帳號可由系統自動產生。
                                     </p>
                                 </div>
                             </div>
@@ -476,23 +484,21 @@ function Signup() {
 
                                 <label className="academy-account-field academy-account-field--wide">
                                     <span>
-                                        登入與收信 Email
-                                        <em>*</em>
+                                        登入帳號（選填）
                                     </span>
 
                                     <input
-                                        type="email"
-                                        name="loginEmail"
-                                        value={form.loginEmail}
+                                        type="text"
+                                        name="loginUsername"
+                                        value={form.loginUsername}
                                         onChange={handleChange}
-                                        maxLength={320}
+                                        maxLength={32}
                                         autoComplete="off"
-                                        placeholder="name@gmail.com"
-                                        required
+                                        placeholder="例如 davidchen；留空由系統產生"
                                     />
 
                                     <small>
-                                        {RECEIVABLE_EMAIL_HELP}
+                                        學生之後使用此帳號與 6 位數字登入，不需要 Email 驗證。
                                     </small>
                                 </label>
 
@@ -674,11 +680,11 @@ function Signup() {
                         <footer className="academy-account-form-footer">
                             <div>
                                 <strong>
-                                    系統產生一次性臨時密碼
+                                    系統產生一次性啟用卡
                                 </strong>
 
                                 <p>
-                                    帳號建立後即可登入，首次登入會要求修改密碼。
+                                    學生掃描 QR Code 後設定自己的 6 位數字。
                                 </p>
                             </div>
 

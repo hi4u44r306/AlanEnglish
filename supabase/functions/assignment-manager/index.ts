@@ -191,9 +191,10 @@ Deno.serve(async (req: Request) => {
         const body = await req.json().catch(() => ({}));
         const action = String(body?.action || "");
         const isManager = caller.role === "teacher" || caller.role === "admin";
+        let effectiveAccess: any = null;
 
         if (!isManager) {
-            const effectiveAccess = await loadEffectiveAccess(admin, Number(caller.id));
+            effectiveAccess = await loadEffectiveAccess(admin, Number(caller.id));
             if (!effectiveAccess.is_active) {
                 return json(402, { error: "會員使用期限已結束，無法使用學生作業", code: "membership_required" });
             }
@@ -207,14 +208,8 @@ Deno.serve(async (req: Request) => {
                 return json(403, { error: "只有老師與管理者可以發布作業" });
             }
 
-            const [studentRes, materialRes, trackRes, bookRes] = await Promise.all([
+            const [studentRes, trackRes, bookRes] = await Promise.all([
                 admin.from("students").select("class").eq("role", "student"),
-                admin
-                    .from("ai_generated_materials")
-                    .select("id,title,material_type,difficulty,topic,created_at")
-                    .eq("student_id", caller.id)
-                    .order("created_at", { ascending: false })
-                    .limit(100),
                 admin
                     .from("music_tracks")
                     .select("id,book_id,page,display_page,track_type,part_number,sort_order")
@@ -228,9 +223,7 @@ Deno.serve(async (req: Request) => {
                     .eq("enabled", true)
             ]);
 
-            const bootstrapError = (
-                studentRes.error || materialRes.error || trackRes.error || bookRes.error
-            );
+            const bootstrapError = studentRes.error || trackRes.error || bookRes.error;
             if (bootstrapError) throw bootstrapError;
 
             const classes = Array.from(new Set(
@@ -245,7 +238,6 @@ Deno.serve(async (req: Request) => {
             return json(200, {
                 success: true,
                 classes,
-                materials: materialRes.data || [],
                 books: bookRes.data || [],
                 tracks: (trackRes.data || []).map((track: any) => ({
                     ...track,
@@ -277,8 +269,10 @@ Deno.serve(async (req: Request) => {
             );
 
             if (!title) return json(400, { error: "請輸入作業名稱" });
-            if (!["ai_material", "music_track", "mission_pack"].includes(sourceType)) {
-                return json(400, { error: "作業類型不正確" });
+            if (sourceType !== "music_track") {
+                return json(403, {
+                    error: "AI 教材需要學生個別加購，目前班級作業只能發布聽力練習"
+                });
             }
 
             let aiMaterialId: number | null = null;
@@ -381,12 +375,59 @@ Deno.serve(async (req: Request) => {
             });
         }
 
+        if (action === "delete_assignment") {
+            if (!isManager) {
+                return json(403, { error: "只有老師與管理者可以刪除作業" });
+            }
+
+            const assignmentId = Number(body?.assignment_id);
+            if (!Number.isFinite(assignmentId)) {
+                return json(400, { error: "作業編號不正確" });
+            }
+
+            let assignmentQuery = admin
+                .from("assignments")
+                .select("id,creator_id,title,enabled")
+                .eq("id", assignmentId);
+
+            if (caller.role !== "admin") {
+                assignmentQuery = assignmentQuery.eq("creator_id", caller.id);
+            }
+
+            const { data: assignment, error: assignmentError } = await assignmentQuery.maybeSingle();
+            if (assignmentError) throw assignmentError;
+            if (!assignment) {
+                return json(404, { error: "找不到可刪除的作業" });
+            }
+
+            let deleteQuery = admin
+                .from("assignments")
+                .update({ enabled: false })
+                .eq("id", assignment.id);
+
+            if (caller.role !== "admin") {
+                deleteQuery = deleteQuery.eq("creator_id", caller.id);
+            }
+
+            const { error: deleteError } = await deleteQuery;
+
+            if (deleteError) {
+                return json(500, { error: "刪除作業失敗" });
+            }
+
+            return json(200, {
+                success: true,
+                assignment_id: assignment.id
+            });
+        }
+
         if (action === "teacher_assignments") {
             if (!isManager) return json(403, { error: "權限不足" });
 
             let query = admin
                 .from("assignments")
                 .select("*")
+                .eq("enabled", true)
                 .order("assigned_date", { ascending: false })
                 .order("created_at", { ascending: false })
                 .limit(100);
@@ -645,7 +686,11 @@ Deno.serve(async (req: Request) => {
 
             const assignments = (allAssignments || []).filter(
                 (assignment: any) => (
-                    !assignment.target_class || assignment.target_class === caller.class
+                    (!assignment.target_class || assignment.target_class === caller.class)
+                    && (
+                        !hasAiTask(assignment.source_type)
+                        || effectiveAccess?.features?.ai_materials === true
+                    )
                 )
             );
             const assignmentIds = assignments.map((assignment: any) => assignment.id);
@@ -866,6 +911,12 @@ Deno.serve(async (req: Request) => {
             if (assignmentError) throw assignmentError;
             if (!assignment || !hasAiTask(assignment.source_type)) {
                 return json(400, { error: "這份作業不能提交選擇題" });
+            }
+            if (effectiveAccess?.features?.ai_materials !== true) {
+                return json(403, {
+                    error: "這份 AI 作業需要先加購 AI 教材功能",
+                    code: "ai_materials_required"
+                });
             }
             if (
                 assignment.target_class

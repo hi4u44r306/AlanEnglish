@@ -18,6 +18,7 @@ import AddMusic from "../components/Pages/AddMusicV3";
 import NotFound from "../components/Pages/NotFound";
 import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
+import AcademyStudentCsvImport from "../components/Pages/AcademyStudentCsvImport";
 import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import ConversationPractice from "../components/Pages/ConversationPractice";
 import TeacherAssignments from "../components/Pages/TeacherAssignments";
@@ -38,6 +39,7 @@ import CatalogAdmin from "../components/Pages/CatalogAdmin";
 import LegacyCleanupAdmin from "../components/Pages/LegacyCleanupAdmin";
 import AcademyInviteSignup from "../components/Pages/AcademyInviteSignup";
 import ForgotPassword from "../components/Pages/ForgotPassword";
+import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import Support from "../components/Pages/Support";
 import AdminSupport from "../components/Pages/AdminSupport";
@@ -83,6 +85,8 @@ const App = () => {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/academy/invite" element={<AcademyInviteSignup />} />
                     <Route path="/academy/activate" element={<AcademyInviteSignup manualEntry />} />
+                    <Route path="/academy/student-setup" element={<AcademyStudentSetup />} />
+                    <Route path="/academy/recover" element={<AcademyStudentSetup recoveryOnly />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/home" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
@@ -114,6 +118,7 @@ const App = () => {
                     <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/accounts" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/accounts/import" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AcademyStudentCsvImport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/leaderboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/rewards" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><RewardsAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/navbar" element={<Navigate to="/admin/catalog" replace />} />
