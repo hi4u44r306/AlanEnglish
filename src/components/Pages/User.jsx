@@ -227,7 +227,6 @@ const User = () => {
     }, [loadHomeData]);
 
     const hasAiAccess = user?.membership?.effective_access?.features?.ai_materials === true;
-    const hasAiPremium = user?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
 
     const dailyTasks = useMemo(() => {
         const tasks = [];
@@ -374,7 +373,7 @@ const User = () => {
     return (
         <div className="User">
             <div className="student-home">
-                {!hasAiPremium && (
+                {!hasAiAccess && (
                     <Link className="student-home__ai-upgrade" to="/student/membership">
                         <div className="student-home__ai-upgrade-icon"><FiZap /></div>
                         <div>
@@ -447,7 +446,12 @@ const User = () => {
                     {homeData.assignments.total === 0 && (
                         <div className="student-home__no-homework">
                             <FiClock />
-                            <span><strong>今天沒有老師指定的新作業</strong>，可以完成聽力、AI 與口說自主練習。</span>
+                            <span>
+                                <strong>今天沒有老師指定的新作業</strong>
+                                {hasAiAccess
+                                    ? "，可以完成聽力、AI 與口說自主練習。"
+                                    : "，可以完成聽力、智慧複習與口說自主練習。"}
+                            </span>
                         </div>
                     )}
 

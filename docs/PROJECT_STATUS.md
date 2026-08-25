@@ -63,6 +63,7 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 - Additive migration `20260824143810_admin_safe_account_deletion.sql` 已套用，RPC 只授權 `service_role`；一次性 Sandbox Test 刪除嘗試未刪除 Firebase 或 Supabase 資料，`20260824154915` 與 `20260824155347` 已依序套用並恢復原本嚴格刪除政策。專案擁有者已設定 `FIREBASE_SERVICE_ACCOUNT_JSON`，未讀取或輸出內容；因產品改採停用隱藏，不再繼續帳號永久刪除流程。
 - PR #29 可合併且無衝突，兩個 Netlify Deploy Preview 均為 success：`https://deploy-preview-29--alanenglish.netlify.app` 與 `https://deploy-preview-29--iridescent-cheesecake-4ceaca.netlify.app`。尚未合併 `main`，也未部署正式 Netlify Production。
 - 全部 13 份測試檔共 34 個案例通過，Production build 成功，Supabase security advisors 無警告；帳號管理已於本機管理員 Session 驗證預設隱藏、已停用篩選、恢復入口與永久刪除按鈕移除。412px Preview 公開頁／登入導向正常，登入後 CSV 伺服器預覽已用虛構資料驗證且未寫入學生，Console 無錯誤。本機沒有 Deno，Edge Function 的正式型別驗證由 Supabase 部署 bundling 完成。
+- 2026-08-25 本機未推送：完成全站 Router 與共用顯示邏輯第一階段稽核。帳號管理在 760px 以下改用卡片，已停用帳號為紅底紅框且只保留恢復操作；管理 Dashboard 統計改為手機 2×2，學生學習狀況改為手機卡片；全站內容預留浮動作業按鈕底部空間。學生作業捷徑改依有效權限 `features.assignments` 顯示，AI 宣傳改依 `features.ai_materials` 判斷，避免已有試用 AI 權限仍被重複推銷。15 份測試檔共 38 個案例通過，Production build 成功；尚未 push、合併或部署。
 
 目前下一個主要開發方向：
 

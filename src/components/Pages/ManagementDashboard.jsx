@@ -299,36 +299,36 @@ function ManagementDashboard() {
 
                                         return (
                                             <React.Fragment key={student.id}>
-                                                <tr className={student.status?.code === "critical" || student.status?.code === "never" ? "activity-attention-row" : ""}>
-                                                    <td>
+                                                <tr className={`student-activity-row ${student.status?.code === "critical" || student.status?.code === "never" ? "activity-attention-row" : ""}`}>
+                                                    <td data-label="學生">
                                                         <strong className="student-name-cell">{student.name}</strong>
                                                         <span className="student-meta-cell">{student.class ? `${student.class} 班` : "未分班"} · {student.email || "無 Email"}</span>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="最近動態">
                                                         <dl className="student-activity-summary">
                                                             <div title={formatDateTime(student.last_login_at)}><dt>登入</dt><dd>{relativeText(student.last_login_at)}</dd></div>
                                                             <div title={formatDateTime(student.last_active_at)}><dt>活躍</dt><dd>{relativeText(student.last_active_at)}</dd></div>
                                                             <div title={formatDateTime(student.last_learning_at)}><dt>學習</dt><dd>{relativeText(student.last_learning_at)}</dd></div>
                                                         </dl>
                                                     </td>
-                                                    <td className="student-learning-cell">
+                                                    <td className="student-learning-cell" data-label="學習進度">
                                                         <div className="mini-progress-cell">
                                                             <strong>Conversation {conversationCompleted} / {conversationTotal}</strong>
                                                             <span><i style={{ width: `${Math.min(100, (conversationCompleted / conversationTotal) * 100)}%` }} /></span>
                                                         </div>
                                                         <span>聽力完成 {student.listening?.completed || 0} 首</span>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="狀態">
                                                         <span className={`activity-status ${getStatusClass(student.status?.code)}`}>
                                                             {student.status?.label || "未知"}
                                                         </span>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="家長">
                                                         <button type="button" className={`guardian-status-button ${guardianReady ? "ready" : ""}`} onClick={() => openGuardianEditor(student)}>
                                                             {guardianReady ? "✓ 已設定" : "＋ 設定家長"}
                                                         </button>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="操作">
                                                         <div className="activity-row-actions">
                                                             <Link to={`${reportPath}?student=${student.id}`}>每週報告</Link>
                                                             <button

@@ -280,6 +280,30 @@
   background: #fff0f2;
 }
 
+.management-account-name,
+.management-account-archived-note {
+  display: block;
+}
+
+.management-account-archived-note {
+  width: max-content;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #a32636;
+  background: #ffe2e6;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.management-account-row.is-archived td {
+  background: #fff5f6;
+}
+
+.management-account-row.is-archived td:first-child {
+  box-shadow: inset 4px 0 0 #d94b5d;
+}
+
 .access-status-enabled {
   color: #087443;
   background: #eafbf2;
@@ -640,7 +664,24 @@
   }
 
   .dashboard-stat-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .dashboard-stat-card {
+    min-height: 112px;
+    padding: 16px;
+
+    span {
+      min-height: 2.5em;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
+      line-height: 1.25;
+    }
+
+    strong {
+      font-size: 1.65rem;
+    }
   }
 
   .management-panel {
@@ -660,6 +701,90 @@
   }
 
   .management-delete-dialog__actions button {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .management-account-table-wrap {
+    overflow: visible;
+  }
+
+  .management-account-table,
+  .management-account-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .management-account-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .management-account-table > tbody > .management-account-row {
+    display: block;
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 1px solid #dfe5ee;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(31, 45, 61, 0.05);
+  }
+
+  .management-account-table > tbody > .management-account-row.is-archived {
+    border-color: #e9a7b0;
+    background: #fff5f6;
+    box-shadow: 0 8px 22px rgba(163, 38, 54, 0.08);
+  }
+
+  .management-account-table > tbody > .management-account-row > td {
+    display: grid;
+    grid-template-columns: minmax(86px, 32%) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 11px 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .management-account-table > tbody > .management-account-row > td::before {
+    content: attr(data-label);
+    color: #687385;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .management-account-table > tbody > .management-account-row > td:first-child {
+    padding-top: 15px;
+  }
+
+  .management-account-table > tbody > .management-account-row > td:last-child {
+    padding-bottom: 15px;
+  }
+
+  .management-account-row.is-archived td:first-child {
+    box-shadow: inset 4px 0 0 #d94b5d;
+  }
+
+  .management-account-table .management-row-actions {
+    min-width: 0;
+  }
+
+  .management-account-table .management-row-actions button {
+    min-height: 44px;
+  }
+
+  .management-account-table > tbody > .management-edit-row {
+    display: block;
+    margin: -8px 0 14px;
+  }
+
+  .management-account-table > tbody > .management-edit-row > td {
+    display: block;
     width: 100%;
   }
 }

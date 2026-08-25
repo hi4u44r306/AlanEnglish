@@ -450,6 +450,82 @@
         grid-template-columns: 1fr;
     }
 
+    .student-activity-panel .management-table-wrap {
+        overflow: visible;
+    }
+
+    .student-activity-table,
+    .student-activity-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .student-activity-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .student-activity-table > tbody > .student-activity-row {
+        display: block;
+        margin-bottom: 14px;
+        overflow: hidden;
+        border: 1px solid #dfe5ee;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 8px 22px rgba(31, 45, 61, 0.05);
+    }
+
+    .student-activity-table > tbody > .student-activity-row.activity-attention-row {
+        border-color: #efc0c0;
+        background: #fffafa;
+    }
+
+    .student-activity-table > tbody > .student-activity-row > td {
+        display: grid;
+        grid-template-columns: minmax(86px, 30%) minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        padding: 11px 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .student-activity-table > tbody > .student-activity-row > td::before {
+        content: attr(data-label);
+        color: #687385;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    .student-activity-table .student-meta-cell {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .student-activity-table .activity-row-actions {
+        flex-wrap: wrap;
+    }
+
+    .student-activity-table .activity-row-actions button,
+    .student-activity-table .activity-row-actions a,
+    .student-activity-table .guardian-status-button {
+        min-height: 44px;
+    }
+
+    .student-activity-table > tbody > .guardian-editor-row {
+        display: block;
+        margin: -8px 0 14px;
+    }
+
+    .student-activity-table > tbody > .guardian-editor-row > td {
+        display: block;
+        width: 100%;
+    }
+
     .reminder-modal-actions {
         flex-direction: column;
     }

@@ -30,6 +30,7 @@
   width: 100%;
   flex: 1;
   box-sizing: border-box;
+  padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
 
   &.has-player {
     padding-bottom: 110px;

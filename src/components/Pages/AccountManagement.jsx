@@ -475,8 +475,8 @@ function AccountManagement() {
                             顯示 {filteredAccounts.length} 筆／全部 {accounts.length} 筆帳號
                         </div>
 
-                        <div className="management-table-wrap">
-                            <table className="management-table">
+                        <div className="management-table-wrap management-account-table-wrap">
+                            <table className="management-table management-account-table">
                                 <thead>
                                     <tr>
                                         <th>Name</th>
@@ -493,17 +493,22 @@ function AccountManagement() {
                                 <tbody>
                                     {filteredAccounts.length > 0 ? filteredAccounts.map(account => (
                                         <React.Fragment key={account.id}>
-                                            <tr>
-                                                <td>{account.name || "-"}</td>
-                                                <td>{account.email || "-"}</td>
-                                                <td>
+                                            <tr className={`management-account-row ${account.account_status === "archived" ? "is-archived" : ""}`}>
+                                                <td data-label="Name">
+                                                    <span className="management-account-name">{account.name || "-"}</span>
+                                                    {account.account_status === "archived" && (
+                                                        <span className="management-account-archived-note">已停用帳號</span>
+                                                    )}
+                                                </td>
+                                                <td data-label="Email">{account.email || "-"}</td>
+                                                <td data-label="Role">
                                                     <span className={`role-badge role-${account.role || "student"}`}>
                                                         {ROLE_LABELS[account.role] || account.role || "Student"}
                                                     </span>
                                                 </td>
-                                                <td>{account.role === "student" ? account.class || "-" : "-"}</td>
-                                                <td>{account.role === "student" ? getAccountPlanLabel(account) : "-"}</td>
-                                                <td>
+                                                <td data-label="Class">{account.role === "student" ? account.class || "-" : "-"}</td>
+                                                <td data-label="Plan">{account.role === "student" ? getAccountPlanLabel(account) : "-"}</td>
+                                                <td data-label="開通狀態">
                                                     {account.role === "student" ? (() => {
                                                         const status = getAccountActivationStatus(account, invitationByEmail);
                                                         return (
@@ -515,12 +520,12 @@ function AccountManagement() {
                                                         );
                                                     })() : "-"}
                                                 </td>
-                                                <td>
+                                                <td data-label="帳號狀態">
                                                     <span className={`account-status-badge account-status-${account.account_status || "active"}`}>
                                                         {ACCOUNT_STATUS_LABELS[account.account_status || "active"]}
                                                     </span>
                                                 </td>
-                                                <td>
+                                                <td data-label="是否啟用">
                                                     {account.role === "student" ? (() => {
                                                         const status = account?.membership?.is_active === true
                                                             ? "enabled"
@@ -532,16 +537,18 @@ function AccountManagement() {
                                                         );
                                                     })() : "-"}
                                                 </td>
-                                                <td>
+                                                <td data-label="操作">
                                                     <div className="management-row-actions">
-                                                        <button
-                                                            type="button"
-                                                            className="management-edit-button"
-                                                            onClick={() => startEdit(account)}
-                                                        >
-                                                            編輯
-                                                        </button>
-                                                        {isAdmin && account.email && (
+                                                        {account.account_status !== "archived" && (
+                                                            <button
+                                                                type="button"
+                                                                className="management-edit-button"
+                                                                onClick={() => startEdit(account)}
+                                                            >
+                                                                編輯
+                                                            </button>
+                                                        )}
+                                                        {isAdmin && account.email && account.account_status !== "archived" && (
                                                             <button
                                                                 type="button"
                                                                 className="management-reset-button"

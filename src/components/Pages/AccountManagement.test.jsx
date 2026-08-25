@@ -142,6 +142,7 @@ describe("AccountManagement", () => {
         fireEvent.change(screen.getByRole("combobox", { name: "帳號狀態" }), {
             target: { value: "archived" }
         });
+        expect(await screen.findByText("已停用帳號")).toBeInTheDocument();
         fireEvent.click(await screen.findByRole("button", { name: "恢復" }));
         await waitFor(() => {
             expect(restoreManagedAccount).toHaveBeenCalledWith(
