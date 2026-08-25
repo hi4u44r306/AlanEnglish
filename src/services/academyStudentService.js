@@ -84,12 +84,12 @@ const normalizeOptionalText = value => {
 };
 
 const normalizeStudentPayload = student => ({
-    login_email: String(
-        student?.login_email ??
-        student?.loginEmail ??
-        student?.email ??
+    login_username: String(
+        student?.login_username ??
+        student?.loginUsername ??
+        student?.username ??
         ""
-    ).trim().toLowerCase(),
+    ).trim().toLowerCase().replace(/[^a-z0-9]/g, ""),
 
     chinese_name: String(
         student?.chinese_name ??
@@ -171,7 +171,10 @@ export const createAcademyInvitation = async (
     firebaseUser,
     {
         action: "create_invitation",
-        ...normalizeStudentPayload(student)
+        ...normalizeStudentPayload(student),
+        login_email: String(
+            student?.login_email ?? student?.loginEmail ?? student?.email ?? ""
+        ).trim().toLowerCase()
     }
 );
 
@@ -273,6 +276,33 @@ export const deleteAcademyStudentAccount = async (
     }
 );
 
+export const previewStudentActivation = async token => callAcademyStudentManager(
+    null,
+    { action: "preview_student_activation", token: String(token || "").trim() },
+    { allowAnonymous: true }
+);
+
+export const activateStudentLogin = async (token, pin) => callAcademyStudentManager(
+    null,
+    {
+        action: "activate_student_login",
+        token: String(token || "").trim(),
+        pin: String(pin || "").trim()
+    },
+    { allowAnonymous: true }
+);
+
+export const recoverStudentLogin = async (username, recoveryCode, pin) => callAcademyStudentManager(
+    null,
+    {
+        action: "recover_student_login",
+        username: String(username || "").trim().toLowerCase(),
+        recovery_code: String(recoveryCode || "").trim(),
+        pin: String(pin || "").trim()
+    },
+    { allowAnonymous: true }
+);
+
 export const deleteAcademyInvitation = async (
     firebaseUser,
     invitationId,
@@ -312,6 +342,9 @@ const academyStudentService = {
     previewAcademyInvitation,
     claimAcademyInvitation,
     activateAcademyInvitation,
+    previewStudentActivation,
+    activateStudentLogin,
+    recoverStudentLogin,
     previewAcademyStudents,
     createAcademyStudentsBatch,
     listAcademyInvitations,

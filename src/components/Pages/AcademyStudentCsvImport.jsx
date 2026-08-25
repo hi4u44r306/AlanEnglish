@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
@@ -40,6 +41,78 @@ const downloadCsv = (contents, filename) => {
 };
 
 const displayDate = value => value || "無期限";
+
+function StudentLoginCards({ results, rows }) {
+    const successful = useMemo(() => results
+        .filter(result => result.status === "success" && result.credentials?.activation_url)
+        .map(result => ({
+            ...result,
+            student: rows.find(row => row.source_row === result.source_row) || {}
+        })), [results, rows]);
+    const [qrCodes, setQrCodes] = useState({});
+
+    useEffect(() => {
+        let active = true;
+        Promise.all(successful.map(async result => [
+            result.source_row,
+            await QRCode.toDataURL(result.credentials.activation_url, {
+                width: 220,
+                margin: 1,
+                errorCorrectionLevel: "M",
+                color: { dark: "#142443", light: "#ffffff" }
+            })
+        ])).then(entries => {
+            if (active) setQrCodes(Object.fromEntries(entries));
+        }).catch(() => {
+            if (active) setQrCodes({});
+        });
+        return () => { active = false; };
+    }, [successful]);
+
+    if (successful.length === 0) return null;
+    return (
+        <section className="academy-login-cards-section">
+            <div className="academy-csv-results-heading academy-login-cards-heading">
+                <div>
+                    <h2>學生登入卡</h2>
+                    <p>QR Code 在這台裝置本機產生。請立即列印或另存 PDF；復原碼不會再次顯示。</p>
+                </div>
+                <button type="button" onClick={() => window.print()}>列印 A4 登入卡</button>
+            </div>
+            <div className="academy-login-cards-print">
+                {successful.map(result => (
+                    <article className="academy-login-card" key={`card-${result.source_row}`}>
+                        <header><span>ALAN ENGLISH</span><strong>英文班學生登入卡</strong></header>
+                        <div className="academy-login-card-body">
+                            <div>
+                                <span>學生</span>
+                                <h3>{result.student.chinese_name || "學生"}{result.student.english_name ? ` · ${result.student.english_name}` : ""}</h3>
+                                <span>登入帳號</span>
+                                <strong className="academy-login-card-username">{result.credentials.username}</strong>
+                                <ol>
+                                    <li>掃描 QR Code 開啟啟用頁。</li>
+                                    <li>設定自己的 6 位數字登入密碼。</li>
+                                    <li>之後用「帳號＋6 位數字」登入。</li>
+                                </ol>
+                            </div>
+                            <div className="academy-login-card-qr">
+                                {qrCodes[result.source_row]
+                                    ? <img src={qrCodes[result.source_row]} alt={`${result.credentials.username} 啟用 QR Code`} />
+                                    : <span>QR 產生中…</span>}
+                                <small>首次啟用專用</small>
+                            </div>
+                        </div>
+                        <footer>
+                            <span>忘記密碼時使用一次性復原碼（每組只能用一次）</span>
+                            <strong>{result.credentials.recovery_codes?.[0]}　　{result.credentials.recovery_codes?.[1]}</strong>
+                            <small>請家長保存此卡；不要把復原碼拍到公開群組。</small>
+                        </footer>
+                    </article>
+                ))}
+            </div>
+        </section>
+    );
+}
 
 function AcademyStudentCsvImport() {
     const { firebaseUser } = useAuth();
@@ -152,7 +225,7 @@ function AcademyStudentCsvImport() {
                 <div className="academy-csv-upload-grid">
                     <article>
                         <h2>下載 CSV 範本</h2>
-                        <p>欄位包含中文姓名、英文姓名、可收信 Email、班級、入班日期、權限截止日與備註。</p>
+                        <p>欄位包含姓名、選填登入帳號、班級、日期、選填家長 Email 與備註；未填帳號時由系統自動產生。</p>
                         <button
                             type="button"
                             className="academy-csv-secondary"
@@ -164,7 +237,7 @@ function AcademyStudentCsvImport() {
 
                     <article>
                         <h2>選擇填好的 CSV</h2>
-                        <p>班級只接受 E1、E3、E5、E7；Email 必須可正常收信。</p>
+                        <p>班級只接受 E1、E3、E5、E7；家長 Email 可留空，也可供兄弟姊妹共用。</p>
                         <label className="academy-csv-file-button">
                             <span>{loading ? "驗證中..." : "選擇 CSV 檔案"}</span>
                             <input
@@ -199,7 +272,7 @@ function AcademyStudentCsvImport() {
                                     <tr>
                                         <th>CSV 列</th>
                                         <th>學生</th>
-                                        <th>登入 Email</th>
+                                        <th>登入帳號</th>
                                         <th>班級</th>
                                         <th>入班／截止</th>
                                         <th>驗證結果</th>
@@ -209,10 +282,10 @@ function AcademyStudentCsvImport() {
                                     {previewRows.map((item, index) => {
                                         const source = rows[index] || {};
                                         return (
-                                            <tr key={`${source.source_row}-${source.login_email}`} className={item.valid ? "" : "academy-csv-invalid-row"}>
+                                            <tr key={`${source.source_row}-${source.login_username || index}`} className={item.valid ? "" : "academy-csv-invalid-row"}>
                                                 <td>{source.source_row}</td>
                                                 <td><strong>{source.chinese_name}</strong>{source.english_name && <small>{source.english_name}</small>}</td>
-                                                <td>{source.login_email}</td>
+                                                <td>{source.login_username || <span>系統自動產生</span>}</td>
                                                 <td>{source.class_code}</td>
                                                 <td><span>{displayDate(source.enrolled_at)}</span><small>至 {displayDate(source.access_ends_at)}</small></td>
                                                 <td>{item.valid
@@ -229,7 +302,7 @@ function AcademyStudentCsvImport() {
                         <div className="academy-csv-create-bar">
                             <div>
                                 <strong>建立前請再次確認</strong>
-                                <span>臨時密碼只在完成結果顯示一次，不會儲存在系統中。</span>
+                                <span>建立後會產生一次性啟用卡與兩組復原碼；原碼不會儲存在系統中。</span>
                             </div>
                             <button type="button" disabled={!canCreate} onClick={handleCreate}>
                                 {submitting ? "建立中，請勿關閉..." : `建立 ${preview.summary?.valid || 0} 位學生`}
@@ -243,26 +316,27 @@ function AcademyStudentCsvImport() {
                         <div className="academy-csv-results-heading">
                             <div>
                                 <h2>批次建立結果</h2>
-                                <p>請立即下載並妥善交付。離開或重新整理後，臨時密碼不會再次顯示。</p>
+                                <p>請立即下載結果並列印登入卡。離開或重新整理後，啟用與復原原碼不會再次顯示。</p>
                             </div>
                             <button type="button" onClick={downloadResults}>下載成功／失敗結果</button>
                         </div>
                         {!auditComplete && <div className="academy-csv-audit-warning">部分操作紀錄寫入失敗，請暫停下一批並檢查 Function Logs。</div>}
                         <div className="management-table-wrap">
                             <table className="management-table academy-csv-result-table">
-                                <thead><tr><th>CSV 列</th><th>登入 Email</th><th>結果</th><th>一次性臨時密碼</th></tr></thead>
+                                <thead><tr><th>CSV 列</th><th>登入帳號</th><th>結果</th><th>啟用與復原資料</th></tr></thead>
                                 <tbody>
                                     {results.map(result => (
-                                        <tr key={`${result.source_row}-${result.login_email}`}>
+                                        <tr key={`${result.source_row}-${result.login_username || "result"}`}>
                                             <td>{result.source_row}</td>
-                                            <td>{result.credentials?.email || result.login_email}</td>
+                                            <td>{result.credentials?.username || result.login_username || "—"}</td>
                                             <td>{result.status === "success" ? "成功" : result.error}</td>
-                                            <td><strong className="academy-csv-password">{result.credentials?.temporary_password || "—"}</strong></td>
+                                            <td>{result.status === "success" ? <><strong className="academy-csv-password">啟用連結已建立</strong><small>復原碼 2 組，只顯示於下載結果與登入卡</small></> : "—"}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
+                        <StudentLoginCards results={results} rows={rows} />
                     </section>
                 )}
 

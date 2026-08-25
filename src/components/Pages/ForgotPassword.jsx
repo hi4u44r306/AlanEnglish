@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { authentication } from "./firebase-config";
+import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
 import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValidation";
 import "./css/Platform.scss";
 
@@ -19,10 +18,7 @@ function ForgotPassword() {
 
         setSubmitting(true);
         try {
-            authentication.languageCode = "zh-TW";
-            await sendPasswordResetEmail(authentication, normalizedEmail, {
-                url: `${window.location.origin}/login`
-            });
+            await sendBrandedPasswordResetEmail(normalizedEmail);
             setSent(true);
         } catch (sendError) {
             if (sendError?.code === "auth/too-many-requests") setError("寄送次數過多，請稍後再試。");
@@ -41,7 +37,7 @@ function ForgotPassword() {
                 <h1>忘記密碼</h1>
                 {sent ? (
                     <>
-                        <p>如果 <strong>{email.trim().toLowerCase()}</strong> 已有帳號，Google Firebase 會寄出密碼重設信。請同時檢查垃圾郵件。</p>
+                        <p>如果 <strong>{email.trim().toLowerCase()}</strong> 已有帳號，Alan English 會寄出密碼重設信。請同時檢查垃圾郵件。</p>
                         <div className="platform-verification-actions"><Link className="platform-primary" to="/login">回到登入</Link><button className="platform-secondary" type="button" onClick={() => setSent(false)}>重新輸入 Email</button></div>
                     </>
                 ) : (
@@ -52,6 +48,11 @@ function ForgotPassword() {
                         <button className="platform-primary platform-wide" type="submit" disabled={submitting}>{submitting ? "寄送中…" : "寄送密碼重設信"}</button>
                     </form>
                 )}
+                <div className="platform-verification-notice">
+                    <strong>英文班學生使用帳號登入？</strong>
+                    <p>不需要收 Email。請使用登入卡上的一次性復原碼設定新的 6 位數字。</p>
+                    <Link className="platform-secondary" to="/academy/recover">使用復原碼</Link>
+                </div>
                 <p className="platform-footnote"><Link to="/login">回到登入</Link>　·　<Link to="/support">聯絡客服</Link></p>
             </section>
         </main>

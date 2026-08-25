@@ -5,7 +5,8 @@ import { markAcademyPasswordChanged } from "../../services/academyStudentService
 import "./css/Platform.scss";
 
 function AccountSecurity() {
-    const { firebaseUser, role } = useAuth();
+    const { firebaseUser, role, studentProfile } = useAuth();
+    const usesStudentPin = studentProfile?.authentication_method === "academy_username";
     const [form, setForm] = useState({ currentPassword: "", password: "", confirmPassword: "" });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
@@ -17,8 +18,10 @@ function AccountSecurity() {
         event.preventDefault();
         setError("");
         setSuccess("");
-        if (!firebaseUser?.email) return setError("這個帳號沒有可用的 Email，請聯絡客服。");
-        if (form.password.length < 8) return setError("新密碼至少需要 8 個字元。");
+        if (!firebaseUser?.email) return setError("這個帳號目前無法更新登入資料，請聯絡客服。");
+        if (usesStudentPin && !/^\d{6}$/.test(form.password)) return setError("請輸入 6 位數字的新密碼。");
+        if (usesStudentPin && ["123456", "654321", "000000", "111111", "222222", "333333", "444444", "555555", "666666", "777777", "888888", "999999"].includes(form.password)) return setError("這組數字太容易猜，請換一組 6 位數字。");
+        if (!usesStudentPin && form.password.length < 8) return setError("新密碼至少需要 8 個字元。");
         if (form.password !== form.confirmPassword) return setError("兩次輸入的新密碼不一致。");
 
         setSubmitting(true);
@@ -45,9 +48,9 @@ function AccountSecurity() {
             <header className="platform-hero"><div><span className="platform-eyebrow">ACCOUNT SECURITY</span><h1>帳號與密碼</h1><p>你可以隨時更換自己的密碼；管理員與櫃檯人員不會看到密碼。</p></div></header>
             <section className="platform-card">
                 <form className="platform-form" onSubmit={submit}>
-                    <label><span>登入 Email</span><input value={firebaseUser?.email || ""} readOnly /></label>
+                    <label><span>{usesStudentPin ? "登入帳號" : "登入 Email"}</span><input value={usesStudentPin ? studentProfile?.login_username || "" : firebaseUser?.email || ""} readOnly /></label>
                     <label><span>目前密碼</span><input name="currentPassword" type="password" value={form.currentPassword} onChange={update} autoComplete="current-password" required /></label>
-                    <div className="platform-form-grid"><label><span>新密碼</span><input name="password" type="password" value={form.password} onChange={update} minLength="8" autoComplete="new-password" required /></label><label><span>再次輸入新密碼</span><input name="confirmPassword" type="password" value={form.confirmPassword} onChange={update} minLength="8" autoComplete="new-password" required /></label></div>
+                    <div className="platform-form-grid"><label><span>{usesStudentPin ? "新的 6 位數字" : "新密碼"}</span><input name="password" type="password" inputMode={usesStudentPin ? "numeric" : undefined} pattern={usesStudentPin ? "[0-9]{6}" : undefined} value={form.password} onChange={update} minLength={usesStudentPin ? 6 : 8} maxLength={usesStudentPin ? 6 : undefined} autoComplete="new-password" required /></label><label><span>再次輸入新密碼</span><input name="confirmPassword" type="password" inputMode={usesStudentPin ? "numeric" : undefined} pattern={usesStudentPin ? "[0-9]{6}" : undefined} value={form.confirmPassword} onChange={update} minLength={usesStudentPin ? 6 : 8} maxLength={usesStudentPin ? 6 : undefined} autoComplete="new-password" required /></label></div>
                     {error && <div className="platform-form-error" role="alert"><strong>無法更新密碼</strong><span>{error}</span></div>}
                     {success && <div className="platform-verification-notice success" role="status">{success}</div>}
                     <button className="platform-primary" type="submit" disabled={submitting}>{submitting ? "更新中…" : "更新密碼"}</button>

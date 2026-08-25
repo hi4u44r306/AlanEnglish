@@ -2,15 +2,15 @@ import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { toast } from "react-toastify";
 import { completePublicSignup } from "../../services/membershipService";
 import FreeTrialSignup from "./FreeTrialSignup";
+import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 
 jest.mock("firebase/auth", () => ({
     browserLocalPersistence: {},
     createUserWithEmailAndPassword: jest.fn(),
-    sendEmailVerification: jest.fn(),
     setPersistence: jest.fn().mockResolvedValue(undefined)
 }));
 
@@ -23,6 +23,7 @@ jest.mock("react-toastify", () => ({
 
 jest.mock("./firebase-config", () => ({ authentication: {} }));
 jest.mock("../../services/membershipService", () => ({ completePublicSignup: jest.fn() }));
+jest.mock("../../services/authEmailService", () => ({ sendBrandedVerificationEmail: jest.fn() }));
 jest.mock("../../auth/authService", () => ({ saveStudentSession: jest.fn() }));
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: null }) }));
 
@@ -71,7 +72,7 @@ describe("FreeTrialSignup", () => {
             profile: { id: 123, role: "student" },
             email_verification_required: true
         });
-        sendEmailVerification.mockRejectedValueOnce({ code: "auth/network-request-failed" });
+        sendBrandedVerificationEmail.mockRejectedValueOnce({ code: "auth/network-request-failed" });
 
         renderSignup();
         completeForm();
@@ -81,10 +82,10 @@ describe("FreeTrialSignup", () => {
         expect(await screen.findByRole("status")).toHaveTextContent("網路連線失敗，請確認連線後重新寄送。");
         expect(screen.getByRole("button", { name: "重新寄送驗證信" })).toBeEnabled();
 
-        sendEmailVerification.mockResolvedValueOnce(undefined);
+        sendBrandedVerificationEmail.mockResolvedValueOnce(undefined);
         fireEvent.click(screen.getByRole("button", { name: "重新寄送驗證信" }));
 
-        await waitFor(() => expect(sendEmailVerification).toHaveBeenCalledTimes(2));
+        await waitFor(() => expect(sendBrandedVerificationEmail).toHaveBeenCalledTimes(2));
         expect(await screen.findByRole("status")).toHaveTextContent("驗證信已寄出");
         expect(screen.getByRole("button", { name: /秒後可重新寄送/ })).toBeDisabled();
     });

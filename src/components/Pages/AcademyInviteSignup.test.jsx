@@ -10,7 +10,6 @@ jest.mock("firebase/auth", () => ({
     browserLocalPersistence: {},
     createUserWithEmailAndPassword: jest.fn(),
     deleteUser: jest.fn(),
-    sendEmailVerification: jest.fn(),
     setPersistence: jest.fn()
 }));
 
@@ -26,6 +25,7 @@ jest.mock("../../services/academyStudentService", () => ({
     claimAcademyInvitation: jest.fn(),
     previewAcademyInvitation: jest.fn()
 }));
+jest.mock("../../services/authEmailService", () => ({ sendBrandedVerificationEmail: jest.fn() }));
 
 describe("AcademyInviteSignup manual activation", () => {
     beforeEach(() => {

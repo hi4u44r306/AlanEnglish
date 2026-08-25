@@ -11,9 +11,9 @@ import {
 } from "../../services/membershipService";
 import {
     deleteAcademyInvitation,
-    listAcademyInvitations,
-    sendAcademyPasswordReset
+    listAcademyInvitations
 } from "../../services/academyStudentService";
+import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
 import "./css/ManagementDashboard.scss";
 
 const ROLE_LABELS = {
@@ -61,6 +61,9 @@ const ACCESS_STATUS_LABELS = {
 
 const getAccountActivationStatus = (account, invitationByEmail) => {
     if (account?.role !== "student") return "not_applicable";
+    if (account.authentication_method === "academy_username") {
+        return account.activated_at ? "completed" : "direct_pending";
+    }
     const invitation = invitationByEmail.get(String(account.email || "").toLowerCase());
     return invitation?.status || (account.must_change_password ? "direct_pending" : "legacy");
 };
@@ -145,6 +148,7 @@ function AccountManagement() {
         return accounts.filter(account => {
             const matchKeyword = !keyword ||
                 String(account.name || "").toLowerCase().includes(keyword) ||
+                String(account.login_username || "").toLowerCase().includes(keyword) ||
                 String(account.email || "").toLowerCase().includes(keyword);
             const matchRole = roleFilter === "all" || account.role === roleFilter;
             const matchClass = classFilter === "all" || account.class === classFilter;
@@ -209,7 +213,7 @@ function AccountManagement() {
 
         setResettingEmail(account.email);
         try {
-            await sendAcademyPasswordReset(firebaseUser, account.email);
+            await sendBrandedPasswordResetEmail(account.email);
             toast.success("密碼重設信已寄出");
         } catch (error) {
             toast.error(error?.message || "密碼重設信寄送失敗");
@@ -480,7 +484,7 @@ function AccountManagement() {
                                 <thead>
                                     <tr>
                                         <th>Name</th>
-                                        <th>Email</th>
+                                        <th>帳號／Email</th>
                                         <th>Role</th>
                                         <th>Class</th>
                                         <th>Plan</th>
@@ -500,7 +504,7 @@ function AccountManagement() {
                                                         <span className="management-account-archived-note">已停用帳號</span>
                                                     )}
                                                 </td>
-                                                <td data-label="Email">{account.email || "-"}</td>
+                                                <td data-label="帳號／Email">{account.authentication_method === "academy_username" ? account.login_username || "-" : account.email || "-"}</td>
                                                 <td data-label="Role">
                                                     <span className={`role-badge role-${account.role || "student"}`}>
                                                         {ROLE_LABELS[account.role] || account.role || "Student"}
@@ -514,7 +518,7 @@ function AccountManagement() {
                                                         return (
                                                             <span className={`activation-badge activation-${status}`}>
                                                                 {status === "direct_pending"
-                                                                    ? "待首次改密碼"
+                                                                    ? "待掃碼啟用"
                                                                     : ACTIVATION_LABELS[status] || "已開通"}
                                                             </span>
                                                         );
@@ -548,7 +552,7 @@ function AccountManagement() {
                                                                 編輯
                                                             </button>
                                                         )}
-                                                        {isAdmin && account.email && account.account_status !== "archived" && (
+                                                        {isAdmin && account.email && account.authentication_method !== "academy_username" && account.account_status !== "archived" && (
                                                             <button
                                                                 type="button"
                                                                 className="management-reset-button"

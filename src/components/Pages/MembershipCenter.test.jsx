@@ -7,8 +7,8 @@ import { createCheckoutSession } from "../../services/billingService";
 import { getMembershipProfile, getPublicPlans } from "../../services/membershipService";
 import MembershipCenter from "./MembershipCenter";
 
-jest.mock("firebase/auth", () => ({ sendEmailVerification: jest.fn() }));
 jest.mock("react-toastify", () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
+jest.mock("../../services/authEmailService", () => ({ sendBrandedVerificationEmail: jest.fn() }));
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/billingService", () => ({
     createBillingPortal: jest.fn(),

@@ -5,6 +5,7 @@ type JsonObject = Record<string, unknown>;
 
 type StudentInput = {
     loginEmail: string;
+    loginUsername: string | null;
     chineseName: string;
     englishName: string | null;
     classCode: "E1" | "E3" | "E5" | "E7";
@@ -92,6 +93,8 @@ const MAX_BODY_BYTES = 512 * 1024;
 const MAX_PREVIEW_ROWS = 200;
 const MAX_BATCH_ROWS = 25;
 const INVITATION_TTL_HOURS = 30 * 24;
+const STUDENT_ACTIVATION_TTL_HOURS = 30 * 24;
+const ACADEMY_LOGIN_DOMAIN = "login.alanenglish.com.tw";
 const ACTIVATION_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const RESERVED_EMAIL_DOMAINS = new Set([
     "example.com",
@@ -252,7 +255,7 @@ const getFirebaseAdminAccessToken = async (): Promise<string> => {
     const issuedAt = Math.floor(Date.now() / 1000);
     const privateKey = await importPKCS8(account.private_key, "RS256");
     const assertion = await new SignJWT({
-        scope: "https://www.googleapis.com/auth/firebase"
+        scope: "https://www.googleapis.com/auth/identitytoolkit"
     })
         .setProtectedHeader({ alg: "RS256", typ: "JWT" })
         .setIssuer(account.client_email)
@@ -323,6 +326,40 @@ const deleteFirebaseAccountByUid = async (firebaseUid: string): Promise<void> =>
             "FIREBASE_ACCOUNT_DELETE_FAILED",
             "Firebase 帳號刪除失敗，Supabase 資料未變更"
         );
+    }
+};
+
+const updateFirebasePasswordByUid = async (
+    firebaseUid: string,
+    password: string
+): Promise<void> => {
+    const account = getFirebaseServiceAccount();
+    const accessToken = await getFirebaseAdminAccessToken();
+    const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/projects/${encodeURIComponent(account.project_id)}/accounts:update`,
+        {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                localId: firebaseUid,
+                password,
+                validSince: String(Math.floor(Date.now() / 1000))
+            })
+        }
+    );
+    const payload = await response.json().catch(() => ({})) as {
+        error?: { message?: string };
+    };
+
+    if (!response.ok) {
+        console.error("Firebase password update failed", {
+            status: response.status,
+            code: cleanText(payload?.error?.message, 120) || "UNKNOWN"
+        });
+        throw new HttpError(502, "FIREBASE_PASSWORD_UPDATE_FAILED", "目前無法設定登入密碼，請稍後再試");
     }
 };
 
@@ -418,10 +455,29 @@ const requireAdmin = (caller: CallerProfile): void => {
     }
 };
 
-const normalizeStudentInput = (body: JsonObject): StudentInput => {
-    const loginEmail = normalizeEmail(body.login_email ?? body.email);
+const normalizeLoginUsername = (value: unknown): string => cleanText(value, 32)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const generatedLoginUsername = (englishName: string | null): string => {
+    const namePart = normalizeLoginUsername(englishName).slice(0, 20);
+    const prefix = /^[a-z]/.test(namePart) ? namePart : "student";
+    return `${prefix}${randomCharacters(5).toLowerCase()}`;
+};
+
+const normalizeStudentInput = (
+    body: JsonObject,
+    options: { requireReceivableEmail?: boolean } = {}
+): StudentInput => {
     const chineseName = cleanText(body.chinese_name, 100);
     const englishName = optionalText(body.english_name, 100);
+    const requestedUsername = normalizeLoginUsername(body.login_username ?? body.username);
+    const loginUsername = options.requireReceivableEmail
+        ? null
+        : requestedUsername || generatedLoginUsername(englishName);
+    const loginEmail = options.requireReceivableEmail
+        ? normalizeEmail(body.login_email ?? body.email)
+        : `${loginUsername}@${ACADEMY_LOGIN_DOMAIN}`;
     const classCode = cleanText(body.class_code ?? body.class, 10).toUpperCase();
     const guardianName = optionalText(body.guardian_name, 100);
     const guardianEmail = normalizeEmail(body.guardian_email) || null;
@@ -434,8 +490,12 @@ const normalizeStudentInput = (body: JsonObject): StudentInput => {
         throw new HttpError(400, "INVALID_LOGIN_EMAIL", "學生登入 Email 格式不正確");
     }
 
-    if (!isReceivableEmail(loginEmail)) {
+    if (options.requireReceivableEmail && !isReceivableEmail(loginEmail)) {
         throw new HttpError(400, "UNRECEIVABLE_LOGIN_EMAIL", "請使用本人或家長可以正常收信的 Email，不可使用虛構或測試信箱");
+    }
+
+    if (loginUsername && !/^[a-z][a-z0-9]{4,31}$/.test(loginUsername)) {
+        throw new HttpError(400, "INVALID_LOGIN_USERNAME", "登入帳號需為 5～32 個小寫英文字母或數字，且第一個字必須是英文字母");
     }
 
     if (!chineseName) {
@@ -464,6 +524,7 @@ const normalizeStudentInput = (body: JsonObject): StudentInput => {
 
     return {
         loginEmail,
+        loginUsername,
         chineseName,
         englishName,
         classCode: classCode as StudentInput["classCode"],
@@ -583,7 +644,7 @@ const createInvitation = async (
     body: JsonObject
 ): Promise<Response> => {
     requireStaff(caller);
-    const input = normalizeStudentInput(body);
+    const input = normalizeStudentInput(body, { requireReceivableEmail: true });
 
     const [{ data: existingStudent, error: studentError }, { data: classRow, error: classError }] = await Promise.all([
         admin.from("students").select("id").eq("email", input.loginEmail).maybeSingle(),
@@ -811,6 +872,33 @@ const listInvitations = async (
     return json(req, 200, { success: true, invitations });
 };
 
+const createStudentActivationToken = (): string => randomCharacters(40);
+
+const createStudentRecoveryCode = (): string => {
+    const compact = randomCharacters(12).toUpperCase();
+    return `AE-${compact.slice(0, 4)}-${compact.slice(4, 8)}-${compact.slice(8, 12)}`;
+};
+
+const normalizeRecoveryCode = (value: unknown): string => cleanText(value, 32)
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+
+const validateStudentPin = (value: unknown): string => {
+    const pin = cleanText(value, 12);
+    const weakPins = new Set([
+        "000000", "111111", "222222", "333333", "444444",
+        "555555", "666666", "777777", "888888", "999999",
+        "123456", "654321", "012345", "543210"
+    ]);
+    if (!/^\d{6}$/.test(pin)) {
+        throw new HttpError(400, "INVALID_STUDENT_PIN", "請設定 6 位數字登入密碼");
+    }
+    if (weakPins.has(pin)) {
+        throw new HttpError(400, "WEAK_STUDENT_PIN", "這組數字太容易猜，請換一組 6 位數字");
+    }
+    return pin;
+};
+
 const ACCOUNT_DELETE_BLOCKER_LABELS: Record<string, string> = {
     payment_or_access_history: "付款、兌換或加購紀錄",
     learning_history: "學習、作業、聽力或 AI 紀錄",
@@ -1005,6 +1093,7 @@ const sendPasswordReset = async (
 };
 
 const createStudentAccount = async (
+    req: Request,
     admin: SupabaseClient,
     caller: CallerProfile,
     input: StudentInput
@@ -1016,25 +1105,40 @@ const createStudentAccount = async (
         .maybeSingle();
 
     if (existingError) {
-        throw new HttpError(500, "DUPLICATE_CHECK_FAILED", "無法檢查重複的學生 Email");
+        throw new HttpError(500, "DUPLICATE_CHECK_FAILED", "無法檢查重複的學生帳號");
     }
     if (existing?.id) {
-        throw new HttpError(409, "LOGIN_EMAIL_EXISTS", "這個 Email 已經存在學生資料");
+        throw new HttpError(409, "LOGIN_USERNAME_EXISTS", "這個登入帳號已經存在，請換一個帳號名稱");
     }
 
-    const temporaryPassword = createTemporaryPassword();
-    const firebaseAccount = await createFirebaseAccount(input, temporaryPassword);
+    const hiddenBootstrapPassword = createTemporaryPassword();
+    const activationToken = createStudentActivationToken();
+    const recoveryCodes = [createStudentRecoveryCode(), createStudentRecoveryCode()];
+    const [activationTokenHash, ...recoveryCodeHashes] = await Promise.all([
+        hashInvitationToken(activationToken),
+        ...recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
+    ]);
+    const firebaseAccount = await createFirebaseAccount(input, hiddenBootstrapPassword);
 
     if (!firebaseAccount.localId || !firebaseAccount.idToken) {
         throw new HttpError(502, "INVALID_FIREBASE_RESPONSE", "Firebase 未回傳完整帳號資料");
     }
 
-    const { data, error } = await admin.rpc("create_academy_student_account_record", {
+    const activationExpiresAt = new Date(
+        Date.now() + STUDENT_ACTIVATION_TTL_HOURS * 60 * 60 * 1000
+    ).toISOString();
+    const { data, error } = await admin.rpc("create_academy_student_login_record", {
         p_firebase_uid: firebaseAccount.localId,
-        p_login_email: input.loginEmail,
+        p_internal_email: input.loginEmail,
+        p_login_username: input.loginUsername,
         p_chinese_name: input.chineseName,
         p_class_code: input.classCode,
         p_created_by: caller.id,
+        p_activation_token_hash: activationTokenHash,
+        p_activation_token_hint: activationToken.slice(-8),
+        p_activation_expires_at: activationExpiresAt,
+        p_recovery_code_hashes: recoveryCodeHashes,
+        p_recovery_code_hints: recoveryCodes.map(code => code.slice(-4)),
         p_english_name: input.englishName,
         p_guardian_name: input.guardianName,
         p_guardian_email: input.guardianEmail,
@@ -1053,7 +1157,7 @@ const createStudentAccount = async (
         });
 
         if (error.code === "23505") {
-            throw new HttpError(409, "ACADEMY_STUDENT_EXISTS", "學生 Email 或 Firebase 帳號已存在");
+            throw new HttpError(409, "ACADEMY_STUDENT_EXISTS", "學生登入帳號已存在，請重新建立");
         }
         if (error.code === "42501") {
             throw new HttpError(403, "STAFF_PERMISSION_REQUIRED", "目前帳號沒有建立學生的權限");
@@ -1068,11 +1172,27 @@ const createStudentAccount = async (
         );
     }
 
+    const safeAccount = data && typeof data === "object"
+        ? structuredClone(data) as JsonObject
+        : data;
+    if (safeAccount && typeof safeAccount === "object") {
+        const student = safeAccount.student;
+        if (student && typeof student === "object") {
+            delete (student as JsonObject).email;
+        }
+    }
+    const origin = requestOrigin(req) && ALLOWED_ORIGINS.has(requestOrigin(req)!)
+        ? requestOrigin(req)!
+        : "https://alanenglish.com.tw";
+
     return {
-        account: data,
+        account: safeAccount,
         credentials: {
-            email: input.loginEmail,
-            temporary_password: temporaryPassword,
+            username: input.loginUsername,
+            activation_url: `${origin}/academy/student-setup?token=${encodeURIComponent(activationToken)}`,
+            activation_code: activationToken,
+            activation_expires_at: activationExpiresAt,
+            recovery_codes: recoveryCodes,
             must_change_password: true,
             shown_once: true
         }
@@ -1087,6 +1207,7 @@ const createStudent = async (
 ): Promise<Response> => {
     requireStaff(caller);
     const result = await createStudentAccount(
+        req,
         admin,
         caller,
         normalizeStudentInput(body)
@@ -1147,7 +1268,10 @@ const previewStudents = async (
                 row_number: index + 1,
                 valid: true,
                 errors: [] as string[],
-                normalized
+                normalized: {
+                    ...normalized,
+                    loginEmail: undefined
+                }
             };
         } catch (error) {
             const message = error instanceof HttpError ? error.message : "資料格式不正確";
@@ -1160,45 +1284,45 @@ const previewStudents = async (
         }
     });
 
-    const emailCounts = new Map<string, number>();
+    const usernameCounts = new Map<string, number>();
     for (const row of previews) {
-        const email = row.normalized?.loginEmail;
-        if (email) emailCounts.set(email, (emailCounts.get(email) || 0) + 1);
+        const username = row.normalized?.loginUsername;
+        if (username) usernameCounts.set(username, (usernameCounts.get(username) || 0) + 1);
     }
 
     for (const row of previews) {
-        const email = row.normalized?.loginEmail;
-        if (email && (emailCounts.get(email) || 0) > 1) {
+        const username = row.normalized?.loginUsername;
+        if (username && (usernameCounts.get(username) || 0) > 1) {
             row.valid = false;
-            row.errors.push("CSV 內有重複的登入 Email");
+            row.errors.push("CSV 內有重複的登入帳號");
         }
     }
 
-    const emails = Array.from(new Set(
+    const usernames = Array.from(new Set(
         previews
-            .filter(row => row.normalized?.loginEmail)
-            .map(row => row.normalized!.loginEmail)
+            .filter(row => row.normalized?.loginUsername)
+            .map(row => row.normalized!.loginUsername!)
     ));
 
-    if (emails.length > 0) {
+    if (usernames.length > 0) {
         const { data: existingStudents, error } = await admin
             .from("students")
-            .select("email")
-            .in("email", emails);
+            .select("login_username")
+            .in("login_username", usernames);
 
         if (error) {
-            throw new HttpError(500, "PREVIEW_DUPLICATE_CHECK_FAILED", "無法檢查既有學生 Email");
+            throw new HttpError(500, "PREVIEW_DUPLICATE_CHECK_FAILED", "無法檢查既有學生帳號");
         }
 
-        const existingEmails = new Set(
-            (existingStudents || []).map(item => normalizeEmail(item.email))
+        const existingUsernames = new Set(
+            (existingStudents || []).map(item => normalizeLoginUsername(item.login_username))
         );
 
         for (const row of previews) {
-            const email = row.normalized?.loginEmail;
-            if (email && existingEmails.has(email)) {
+            const username = row.normalized?.loginUsername;
+            if (username && existingUsernames.has(username)) {
                 row.valid = false;
-                row.errors.push("這個登入 Email 已經存在");
+                row.errors.push("這個登入帳號已經存在");
             }
         }
     }
@@ -1247,20 +1371,20 @@ const batchCreateStudents = async (
         const source = rawRow && typeof rawRow === "object"
             ? rawRow as JsonObject
             : {};
-        const fallbackEmail = normalizeEmail(source.login_email ?? source.email)
-            || `第 ${index + 1} 列未提供 Email`;
+        const fallbackUsername = normalizeLoginUsername(source.login_username ?? source.username)
+            || `第 ${index + 1} 列自動產生`;
 
         try {
             return {
                 rowNumber: index + 1,
-                email: fallbackEmail,
+                identifier: fallbackUsername,
                 input: normalizeStudentInput(source),
                 error: null as HttpError | null
             };
         } catch (error) {
             return {
                 rowNumber: index + 1,
-                email: fallbackEmail,
+                identifier: fallbackUsername,
                 input: null as StudentInput | null,
                 error: error instanceof HttpError
                     ? error
@@ -1269,15 +1393,16 @@ const batchCreateStudents = async (
         }
     });
 
-    const emailCounts = new Map<string, number>();
+    const usernameCounts = new Map<string, number>();
     for (const row of preparedRows) {
         if (row.input) {
-            emailCounts.set(row.input.loginEmail, (emailCounts.get(row.input.loginEmail) || 0) + 1);
+            const username = row.input.loginUsername || "";
+            usernameCounts.set(username, (usernameCounts.get(username) || 0) + 1);
         }
     }
     for (const row of preparedRows) {
-        if (row.input && (emailCounts.get(row.input.loginEmail) || 0) > 1) {
-            row.error = new HttpError(400, "DUPLICATE_EMAIL_IN_BATCH", "CSV 內有重複的登入 Email");
+        if (row.input && (usernameCounts.get(row.input.loginUsername || "") || 0) > 1) {
+            row.error = new HttpError(400, "DUPLICATE_USERNAME_IN_BATCH", "CSV 內有重複的登入帳號");
             row.input = null;
         }
     }
@@ -1317,18 +1442,20 @@ const batchCreateStudents = async (
             failureCount += 1;
             result = {
                 row_number: row.rowNumber,
-                login_email: row.email,
+                login_username: row.identifier,
+                audit_login_email: row.input?.loginEmail || `${row.identifier}@${ACADEMY_LOGIN_DOMAIN}`,
                 status: "failed",
                 code: error.code,
                 error: error.message
             };
         } else {
             try {
-                const created = await createStudentAccount(admin, caller, row.input);
+                const created = await createStudentAccount(req, admin, caller, row.input);
                 successCount += 1;
                 result = {
                     row_number: row.rowNumber,
-                    login_email: row.input.loginEmail,
+                    login_username: row.input.loginUsername,
+                    audit_login_email: row.input.loginEmail,
                     status: "success",
                     account: created.account,
                     credentials: created.credentials
@@ -1340,7 +1467,8 @@ const batchCreateStudents = async (
                 failureCount += 1;
                 result = {
                     row_number: row.rowNumber,
-                    login_email: row.input.loginEmail,
+                    login_username: row.input.loginUsername,
+                    audit_login_email: row.input.loginEmail,
                     status: "failed",
                     code: handled.code,
                     error: handled.message
@@ -1355,7 +1483,7 @@ const batchCreateStudents = async (
             .insert({
                 batch_id: batch.id,
                 row_number: result.row_number,
-                login_email: result.login_email,
+                login_email: result.audit_login_email,
                 student_id: result.status === "success"
                     ? createdStudentId(result.account)
                     : null,
@@ -1373,6 +1501,8 @@ const batchCreateStudents = async (
                 message: resultAuditError.message
             });
         }
+
+        delete result.audit_login_email;
     }
 
     const finalStatus = failureCount === 0 ? "completed" : "completed_with_errors";
@@ -1407,6 +1537,149 @@ const batchCreateStudents = async (
         },
         results
     });
+};
+
+const getActivationRecord = async (
+    admin: SupabaseClient,
+    token: string
+): Promise<any> => {
+    const tokenHash = await hashInvitationToken(token);
+    const { data, error } = await admin
+        .from("academy_student_activation_tokens")
+        .select("id,student_id,expires_at,used_at,revoked_at,students!inner(id,name,firebase_uid,login_username,authentication_method,account_status)")
+        .eq("token_hash", tokenHash)
+        .maybeSingle();
+    if (error) throw new HttpError(500, "ACTIVATION_LOOKUP_FAILED", "目前無法確認啟用資料");
+    if (!data?.id) throw new HttpError(404, "ACTIVATION_NOT_FOUND", "啟用連結不存在或已失效");
+    if (data.revoked_at || data.used_at) throw new HttpError(409, "ACTIVATION_ALREADY_USED", "這份啟用資料已使用或已失效");
+    if (new Date(data.expires_at).getTime() <= Date.now()) {
+        throw new HttpError(410, "ACTIVATION_EXPIRED", "啟用期限已過，請向老師重新領取登入卡");
+    }
+    const student = Array.isArray(data.students) ? data.students[0] : data.students;
+    if (
+        !student?.firebase_uid
+        || student.authentication_method !== "academy_username"
+        || student.account_status === "archived"
+    ) {
+        throw new HttpError(409, "ACTIVATION_ACCOUNT_UNAVAILABLE", "這個學生帳號目前無法啟用");
+    }
+    return { ...data, student };
+};
+
+const previewStudentActivation = async (
+    req: Request,
+    admin: SupabaseClient,
+    body: JsonObject
+): Promise<Response> => {
+    const token = cleanText(body.token, 200);
+    if (!token) throw new HttpError(400, "ACTIVATION_TOKEN_REQUIRED", "啟用連結不完整");
+    const record = await getActivationRecord(admin, token);
+    return json(req, 200, {
+        success: true,
+        student: {
+            name: record.student.name,
+            username: record.student.login_username
+        },
+        expires_at: record.expires_at
+    });
+};
+
+const activateStudentLogin = async (
+    req: Request,
+    admin: SupabaseClient,
+    body: JsonObject
+): Promise<Response> => {
+    const token = cleanText(body.token, 200);
+    if (!token) throw new HttpError(400, "ACTIVATION_TOKEN_REQUIRED", "啟用連結不完整");
+    const pin = validateStudentPin(body.pin);
+    const record = await getActivationRecord(admin, token);
+
+    await updateFirebasePasswordByUid(record.student.firebase_uid, pin);
+    const now = new Date().toISOString();
+    const [{ error: tokenError }, { error: studentError }] = await Promise.all([
+        admin
+            .from("academy_student_activation_tokens")
+            .update({ used_at: now })
+            .eq("id", record.id)
+            .is("used_at", null)
+            .is("revoked_at", null),
+        admin
+            .from("students")
+            .update({
+                must_change_password: false,
+                password_changed_at: now,
+                activated_at: now,
+                temporary_password_issued_at: null
+            })
+            .eq("id", record.student.id)
+    ]);
+    if (tokenError || studentError) {
+        console.error("Academy student activation audit failed", {
+            tokenCode: tokenError?.code || null,
+            studentCode: studentError?.code || null
+        });
+        throw new HttpError(500, "ACTIVATION_SAVE_FAILED", "密碼已設定，但啟用狀態寫入失敗，請聯絡老師");
+    }
+
+    return json(req, 200, {
+        success: true,
+        username: record.student.login_username,
+        message: "登入密碼設定完成"
+    });
+};
+
+const recoverStudentLogin = async (
+    req: Request,
+    admin: SupabaseClient,
+    body: JsonObject
+): Promise<Response> => {
+    const username = normalizeLoginUsername(body.username);
+    const recoveryCode = normalizeRecoveryCode(body.recovery_code);
+    const pin = validateStudentPin(body.pin);
+    if (!/^[a-z][a-z0-9]{4,31}$/.test(username) || recoveryCode.length < 10) {
+        throw new HttpError(400, "INVALID_RECOVERY_DETAILS", "帳號或復原碼不正確");
+    }
+    const codeHash = await hashInvitationToken(recoveryCode);
+    const { data, error } = await admin
+        .from("academy_student_recovery_codes")
+        .select("id,student_id,used_at,revoked_at,students!inner(id,firebase_uid,login_username,authentication_method,account_status)")
+        .eq("code_hash", codeHash)
+        .maybeSingle();
+    const student = Array.isArray(data?.students) ? data.students[0] : data?.students;
+    if (
+        error
+        || !data?.id
+        || data.used_at
+        || data.revoked_at
+        || normalizeLoginUsername(student?.login_username) !== username
+        || student?.authentication_method !== "academy_username"
+        || student?.account_status === "archived"
+    ) {
+        throw new HttpError(404, "RECOVERY_NOT_FOUND", "帳號或復原碼不正確，或這組復原碼已使用");
+    }
+
+    await updateFirebasePasswordByUid(student.firebase_uid, pin);
+    const now = new Date().toISOString();
+    const [{ error: codeError }, { error: studentError }] = await Promise.all([
+        admin
+            .from("academy_student_recovery_codes")
+            .update({ used_at: now })
+            .eq("id", data.id)
+            .is("used_at", null)
+            .is("revoked_at", null),
+        admin
+            .from("students")
+            .update({ must_change_password: false, password_changed_at: now })
+            .eq("id", student.id)
+    ]);
+    if (codeError || studentError) {
+        console.error("Academy student recovery audit failed", {
+            codeError: codeError?.code || null,
+            studentError: studentError?.code || null
+        });
+        throw new HttpError(500, "RECOVERY_SAVE_FAILED", "密碼已更新，但復原狀態寫入失敗，請聯絡老師");
+    }
+    return json(req, 200, { success: true, username, message: "新的登入密碼已設定" });
 };
 
 const markPasswordChanged = async (
@@ -1490,6 +1763,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         if (action === "preview_invitation") {
             return await previewInvitation(req, admin, body);
+        }
+        if (action === "preview_student_activation") {
+            return await previewStudentActivation(req, admin, body);
+        }
+        if (action === "activate_student_login") {
+            return await activateStudentLogin(req, admin, body);
+        }
+        if (action === "recover_student_login") {
+            return await recoverStudentLogin(req, admin, body);
         }
 
         const token = extractFirebaseToken(req);

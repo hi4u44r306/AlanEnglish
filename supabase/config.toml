@@ -450,3 +450,6 @@ verify_jwt = false
 
 [functions.support-manager]
 verify_jwt = false
+
+[functions.auth-email]
+verify_jwt = false

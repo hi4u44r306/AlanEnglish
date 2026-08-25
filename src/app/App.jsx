@@ -39,6 +39,7 @@ import CatalogAdmin from "../components/Pages/CatalogAdmin";
 import LegacyCleanupAdmin from "../components/Pages/LegacyCleanupAdmin";
 import AcademyInviteSignup from "../components/Pages/AcademyInviteSignup";
 import ForgotPassword from "../components/Pages/ForgotPassword";
+import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import Support from "../components/Pages/Support";
 import AdminSupport from "../components/Pages/AdminSupport";
@@ -84,6 +85,8 @@ const App = () => {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/academy/invite" element={<AcademyInviteSignup />} />
                     <Route path="/academy/activate" element={<AcademyInviteSignup manualEntry />} />
+                    <Route path="/academy/student-setup" element={<AcademyStudentSetup />} />
+                    <Route path="/academy/recover" element={<AcademyStudentSetup recoveryOnly />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/home" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />

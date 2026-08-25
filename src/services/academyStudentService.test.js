@@ -19,7 +19,7 @@ const firebaseUser = {
 const student = {
     chineseName: "王小明",
     englishName: "Alan",
-    loginEmail: "PARENT@EXAMPLE.COM",
+    loginUsername: "AlanWang01",
     classCode: "e3",
     enrolledAt: "2026-08-24",
     accessEndsAt: "",
@@ -37,7 +37,7 @@ describe("academyStudentService CSV contracts", () => {
         });
     });
 
-    test("預覽 action 正規化 Email 與班級", async () => {
+    test("預覽 action 正規化登入帳號與班級", async () => {
         await previewAcademyStudents(firebaseUser, [student]);
 
         const request = fetch.mock.calls[0][1];
@@ -45,7 +45,7 @@ describe("academyStudentService CSV contracts", () => {
         expect(JSON.parse(request.body)).toEqual({
             action: "preview_students",
             rows: [{
-                login_email: "parent@example.com",
+                login_username: "alanwang01",
                 chinese_name: "王小明",
                 english_name: "Alan",
                 class_code: "E3",
@@ -70,7 +70,7 @@ describe("academyStudentService CSV contracts", () => {
         expect(body.action).toBe("batch_create_students");
         expect(body.request_id).toBe("0f9b7f16-a25d-4cf5-bcb6-6d85a5f0d712");
         expect(body.rows).toHaveLength(1);
-        expect(body.rows[0].login_email).toBe("parent@example.com");
+        expect(body.rows[0].login_username).toBe("alanwang01");
         expect(body).not.toHaveProperty("role");
         expect(body.rows[0]).not.toHaveProperty("role");
     });

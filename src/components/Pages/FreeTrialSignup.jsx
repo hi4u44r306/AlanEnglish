@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { browserLocalPersistence, createUserWithEmailAndPassword, sendEmailVerification, setPersistence } from "firebase/auth";
+import { browserLocalPersistence, createUserWithEmailAndPassword, setPersistence } from "firebase/auth";
 import { toast } from "react-toastify";
 import { authentication } from "./firebase-config";
 import { completePublicSignup } from "../../services/membershipService";
 import { saveStudentSession } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
 import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValidation";
+import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 import "./css/Platform.scss";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -66,8 +67,7 @@ function FreeTrialSignup() {
         setSendingVerification(true);
         setVerificationNotice(null);
         try {
-            authentication.languageCode = "zh-TW";
-            await sendEmailVerification(user, { url: `${window.location.origin}/student/membership` });
+            await sendBrandedVerificationEmail(user);
             setResendCooldown(RESEND_COOLDOWN_SECONDS);
             setVerificationNotice({ type: "success", text: "驗證信已寄出，請檢查收件匣、垃圾郵件與促銷內容。" });
             toast.success("驗證信已寄出");
@@ -126,7 +126,7 @@ function FreeTrialSignup() {
             : resendCooldown > 0
                 ? `${resendCooldown} 秒後可重新寄送`
                 : "重新寄送驗證信";
-        return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>請先驗證 Email</h1><p>驗證信會寄到 <strong>{verificationUser.email || form.email}</strong>。完成驗證後，7 天免費試用才會開始計時。</p>{verificationNotice && <div className={`platform-verification-notice ${verificationNotice.type}`} role="status" aria-live="polite">{verificationNotice.text}</div>}<div className="platform-verification-actions"><button className="platform-primary" type="button" onClick={() => sendVerification(verificationUser)} disabled={sendingVerification || resendCooldown > 0}>{resendLabel}</button><Link className="platform-secondary" to="/student/membership">前往會員中心</Link></div><p className="platform-footnote">仍未收到時，請搜尋寄件者包含 <strong>noreply</strong> 的郵件，並檢查垃圾郵件或促銷內容。</p></section></main>;
+        return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>請先驗證 Email</h1><p>驗證信會寄到 <strong>{verificationUser.email || form.email}</strong>。完成驗證後，7 天免費試用才會開始計時。</p>{verificationNotice && <div className={`platform-verification-notice ${verificationNotice.type}`} role="status" aria-live="polite">{verificationNotice.text}</div>}<div className="platform-verification-actions"><button className="platform-primary" type="button" onClick={() => sendVerification(verificationUser)} disabled={sendingVerification || resendCooldown > 0}>{resendLabel}</button><Link className="platform-secondary" to="/student/membership">前往會員中心</Link></div><p className="platform-footnote">仍未收到時，請搜尋 Alan English 寄件者，並檢查垃圾郵件或促銷內容。</p></section></main>;
     }
 
     return (

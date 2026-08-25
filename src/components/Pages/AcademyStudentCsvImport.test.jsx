@@ -30,8 +30,8 @@ describe("AcademyStudentCsvImport", () => {
         );
 
         const csv = [
-            "中文姓名,英文姓名,可收信Email,班級,入班日期,權限截止日,備註",
-            "王小明,Alan,parent@example.com,E1,2026-08-24,,"
+            "中文姓名,英文姓名,登入帳號(選填),班級,入班日期,權限截止日,家長Email(選填),備註",
+            "王小明,Alan,alanwang,E1,2026-08-24,,parent@example.com,"
         ].join("\n");
         const file = new File([csv], "students.csv", { type: "text/csv" });
         file.text = jest.fn().mockResolvedValue(csv);
@@ -43,6 +43,6 @@ describe("AcademyStudentCsvImport", () => {
         await waitFor(() => expect(previewAcademyStudents).toHaveBeenCalledTimes(1));
         expect(await screen.findByText("1 列可建立")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "建立 1 位學生" })).toBeEnabled();
-        expect(screen.getByText("parent@example.com")).toBeInTheDocument();
+        expect(screen.getByText("alanwang")).toBeInTheDocument();
     });
 });

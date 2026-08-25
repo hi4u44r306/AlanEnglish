@@ -3,29 +3,31 @@ export const ACADEMY_STUDENT_CSV_MAX_ROWS = 25;
 export const ACADEMY_STUDENT_CSV_HEADERS = [
     "中文姓名",
     "英文姓名",
-    "可收信Email",
+    "登入帳號(選填)",
     "班級",
     "入班日期",
     "權限截止日",
+    "家長Email(選填)",
     "備註"
 ];
 
 const HEADER_FIELDS = new Map([
     ["中文姓名", "chinese_name"],
     ["英文姓名", "english_name"],
-    ["可收信email", "login_email"],
-    ["可收信 email", "login_email"],
-    ["登入email", "login_email"],
-    ["email", "login_email"],
+    ["登入帳號(選填)", "login_username"],
+    ["登入帳號（選填）", "login_username"],
+    ["登入帳號", "login_username"],
     ["班級", "class_code"],
     ["入班日期", "enrolled_at"],
     ["權限截止日", "access_ends_at"],
+    ["家長email(選填)", "guardian_email"],
+    ["家長email（選填）", "guardian_email"],
+    ["家長email", "guardian_email"],
     ["備註", "notes"]
 ]);
 
 const REQUIRED_FIELDS = new Map([
     ["chinese_name", "中文姓名"],
-    ["login_email", "可收信 Email"],
     ["class_code", "班級"],
     ["enrolled_at", "入班日期"]
 ]);
@@ -142,12 +144,14 @@ export const buildAcademyStudentCsvTemplate = () => (
 );
 
 export const buildAcademyStudentResultCsv = results => {
-    const headers = ["原始列號", "建立結果", "登入Email", "一次性臨時密碼", "錯誤代碼", "錯誤訊息"];
+    const headers = ["原始列號", "建立結果", "登入帳號", "啟用連結", "復原碼1", "復原碼2", "錯誤代碼", "錯誤訊息"];
     const rows = (Array.isArray(results) ? results : []).map(result => [
         Number(result?.source_row || result?.row_number || 0),
         result?.status === "success" ? "成功" : "失敗",
-        result?.credentials?.email || result?.login_email || "",
-        result?.credentials?.temporary_password || "",
+        result?.credentials?.username || result?.login_username || "",
+        result?.credentials?.activation_url || "",
+        result?.credentials?.recovery_codes?.[0] || "",
+        result?.credentials?.recovery_codes?.[1] || "",
         result?.code || "",
         result?.error || ""
     ]);

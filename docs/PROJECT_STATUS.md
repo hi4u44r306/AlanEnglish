@@ -25,7 +25,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 英文班分班週期
 - 英文班學生帳號建立
 - 英文班學生邀請式帳號建立（已部署）
-- 英文班學生快速建立即時帳號（開發中：一次性臨時密碼、免開通碼）
+- 英文班學生帳號名稱＋6 位數字登入卡流程（本機開發完成，尚未部署）
 - Firebase 忘記／修改密碼與客服案件流程（已部署）
 - AI 教材額度卡顯示每日及每月重新計算倒數（已部署）
 - 首次登入與全站 Session 同時載入資料時共用請求，避免成功後被競態登出
@@ -44,8 +44,8 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
-- 英文班在校生由後台直接建立登入帳號與一次性臨時密碼，首次登入後自行修改密碼。
-- 後台顯示待開通／等待 Email 驗證／已開通狀態，並提供寄送 Firebase 密碼重設信。
+- 新建立英文班在校生改用唯一帳號、一次性 QR 啟用卡、兩組復原碼與自行設定 6 位數字；家長 Email 改為選填聯絡資料。
+- 非英文班帳號的 Firebase 驗證／重設 action link 改由 Edge Function 產生，再使用既有 Resend 寄件網域寄出品牌信件。
 - 後台帳號生命週期使用安全停用／恢復；已停用帳號預設從清單隱藏，管理員可切換帳號狀態篩選後恢復。已建立的學生帳號不再提供永久刪除入口，未領取且尚未建立帳號的邀請仍可刪除。
 - 後台方案顯示依學生類型與有效權限自動判定，不再讓櫃檯編輯舊版 `allcover`／`listeningonly` 欄位。
 - 學生 Dashboard 對尚未購買 AI 教材加購的帳號顯示 AI POWER-UP 宣傳卡；已購買者不顯示。
@@ -66,13 +66,14 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 - 全部 13 份測試檔共 34 個案例通過，Production build 成功，Supabase security advisors 無警告；帳號管理已於本機管理員 Session 驗證預設隱藏、已停用篩選、恢復入口與永久刪除按鈕移除。412px Preview 公開頁／登入導向正常，登入後 CSV 伺服器預覽已用虛構資料驗證且未寫入學生，Console 無錯誤。本機沒有 Deno，Edge Function 的正式型別驗證由 Supabase 部署 bundling 完成。
 - 2026-08-25 本機未推送：完成全站 Router 與共用顯示邏輯第一階段稽核。帳號管理在 760px 以下改用卡片，已停用帳號為紅底紅框且只保留恢復操作；管理 Dashboard 統計改為手機 2×2，學生學習狀況改為手機卡片；全站內容預留浮動作業按鈕底部空間。學生作業捷徑改依有效權限 `features.assignments` 顯示，AI 宣傳改依 `features.ai_materials` 判斷，避免已有試用 AI 權限仍被重複推銷。15 份測試檔共 38 個案例通過，Production build 成功；尚未 push、合併或部署。
 - 2026-08-25 本機未推送：新增根目錄 `PROJECT_LOGIC.md`，集中記錄身分、疊加式權限、方案、頁面顯示、AI、作業、聽力、帳號生命週期、CSV、付款與 RWD 邏輯；並明列試用 AI 額度及作業獎勵仍需統一／驗證的項目。
+- 2026-08-25 分支 `codex/student-login-activation-email` 本機未推送：第一階段將新英文班帳號改為 `login_username`＋6 位數字，新增 30 天一次性 QR 啟用卡、兩組一次性復原碼、CSV 選填家長 Email／自動帳號、A4 列印卡與管理清單隱藏 Firebase 內部識別 Email。另新增 `auth-email`，以 Firebase Admin action link＋Resend 寄送非英文班驗證／重設信並加入不洩漏帳號存在性的回應與每小時節流。16 份測試檔共 41 個案例通過，Production build 成功；412px 驗收的學生啟用、復原、CSV 匯入與帳號管理頁皆無水平溢位。Additive migration 與三個 Edge Function 變更皆尚未套用／部署，既有英文班假 Email 帳號尚未轉換。
 
 目前下一個主要開發方向：
 
-1. 使用管理員帳號驗收帳號篩選、停用後隱藏與從「已停用」篩選恢復的完整流程
-2. 使用明確標記的沙盒學生驗證 CSV 實際建立、重複 Email、單列失敗不中止、request ID 重複提交與一次性密碼結果下載
-3. PR #29 驗收後由專案擁有者確認是否合併 `main` 並觸發正式 Netlify Production
-4. 登入、Session、Route 與角色權限測試
+1. 本機差異審查後，由專案擁有者另行批准 migration、`academy-student-manager`、`membership-manager`、`auth-email` 與 Netlify 預覽部署
+2. 以明確標記的沙盒學生驗證「CSV 建立 → 列印登入卡 → 掃碼啟用 → 帳號登入 → 復原碼重設」完整流程
+3. 確認 Resend 寄件子網域的 SPF、DKIM、DMARC 與寄件設定後，以非英文班沙盒 Email 驗證收件匣／垃圾郵件結果
+4. 盤點既有英文班假 Email 帳號並產生只讀轉換預覽；未經逐批確認不得改正式帳號
 5. MusicPlayer 80% 聆聽與防作弊測試
 
 ## 2. 目前正式版本
