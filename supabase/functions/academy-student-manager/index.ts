@@ -1629,7 +1629,7 @@ const getActivationRecord = async (
     const tokenHash = await hashInvitationToken(token);
     const { data, error } = await admin
         .from("academy_student_activation_tokens")
-        .select("id,student_id,expires_at,used_at,revoked_at,students!inner(id,name,firebase_uid,login_username,authentication_method,account_status)")
+        .select("id,student_id,expires_at,used_at,revoked_at,students!academy_student_activation_tokens_student_id_fkey!inner(id,name,firebase_uid,login_username,authentication_method,account_status)")
         .eq("token_hash", tokenHash)
         .maybeSingle();
     if (error) throw new HttpError(500, "ACTIVATION_LOOKUP_FAILED", "目前無法確認啟用資料");
@@ -1725,7 +1725,7 @@ const recoverStudentLogin = async (
     const codeHash = await hashInvitationToken(recoveryCode);
     const { data, error } = await admin
         .from("academy_student_recovery_codes")
-        .select("id,student_id,used_at,revoked_at,students!inner(id,firebase_uid,login_username,authentication_method,account_status)")
+        .select("id,student_id,used_at,revoked_at,students!academy_student_recovery_codes_student_id_fkey!inner(id,firebase_uid,login_username,authentication_method,account_status)")
         .eq("code_hash", codeHash)
         .maybeSingle();
     const student = Array.isArray(data?.students) ? data.students[0] : data?.students;
