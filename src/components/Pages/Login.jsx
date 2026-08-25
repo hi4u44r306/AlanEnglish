@@ -205,7 +205,7 @@ function Login() {
                         {accountActivated && (
                             <div className="login-activation-success" role="status">
                                 <strong>帳號已開通</strong>
-                            <span>請使用剛才設定的帳號與 6 位數字登入。</span>
+                            <span>請使用剛才設定的帳號與密碼登入。</span>
                             </div>
                         )}
 
@@ -269,7 +269,7 @@ function Login() {
                         </div>
 
                         <div className="login-trial">
-                            <span>英文班忘記 6 位數字？</span>
+                            <span>英文班忘記密碼？</span>
                             <Link to="/academy/recover">使用登入卡復原碼</Link>
                         </div>
 

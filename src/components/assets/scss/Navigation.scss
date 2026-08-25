@@ -40,6 +40,7 @@
 .ae-desktop-nav > .nav-link,
 .ae-desktop-nav .ae-desktop-dropdown > .nav-link,
 .ae-desktop-help,
+.ae-desktop-all-functions,
 .ae-user-dropdown > .nav-link {
   min-height: 42px;
   display: inline-flex !important;
@@ -61,6 +62,7 @@
 .ae-desktop-nav > .nav-link:hover,
 .ae-desktop-nav .ae-desktop-dropdown > .nav-link:hover,
 .ae-desktop-help:hover,
+.ae-desktop-all-functions:hover,
 .ae-user-dropdown > .nav-link:hover,
 .ae-desktop-nav > .nav-link.active {
   background: #f1f4ff;
@@ -68,7 +70,8 @@
 }
 
 .ae-desktop-nav > .nav-link:active,
-.ae-desktop-help:active {
+.ae-desktop-help:active,
+.ae-desktop-all-functions:active {
   transform: scale(0.98);
 }
 
@@ -132,9 +135,17 @@
   gap: 7px;
 }
 
-.ae-desktop-help svg {
+.ae-desktop-help svg,
+.ae-desktop-all-functions svg {
   width: 18px;
   height: 18px;
+}
+
+.ae-desktop-all-functions {
+  display: inline-flex;
+  gap: 7px;
+  border: 1px solid #dce3f0;
+  background: #f8faff;
 }
 
 .ae-user-chip {

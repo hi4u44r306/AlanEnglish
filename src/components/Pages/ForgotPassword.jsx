@@ -50,7 +50,7 @@ function ForgotPassword() {
                 )}
                 <div className="platform-verification-notice">
                     <strong>英文班學生使用帳號登入？</strong>
-                    <p>不需要收 Email。請使用登入卡上的一次性復原碼設定新的 6 位數字。</p>
+                    <p>不需要收 Email。請使用登入卡上的一次性復原碼設定新的登入密碼。</p>
                     <Link className="platform-secondary" to="/academy/recover">使用復原碼</Link>
                 </div>
                 <p className="platform-footnote"><Link to="/login">回到登入</Link>　·　<Link to="/support">聯絡客服</Link></p>

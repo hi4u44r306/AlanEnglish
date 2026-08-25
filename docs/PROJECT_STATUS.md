@@ -25,7 +25,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 - 英文班分班週期
 - 英文班學生帳號建立
 - 英文班學生邀請式帳號建立（已部署）
-- 英文班學生帳號名稱＋6 位數字登入卡流程（本機開發完成，尚未部署）
+- 英文班學生帳號名稱＋登入卡流程（已部署）
 - Firebase 忘記／修改密碼與客服案件流程（已部署）
 - AI 教材額度卡顯示每日及每月重新計算倒數（已部署）
 - 首次登入與全站 Session 同時載入資料時共用請求，避免成功後被競態登出
@@ -44,7 +44,8 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
-- 新建立英文班在校生改用唯一帳號、一次性 QR 啟用卡、兩組復原碼與自行設定 6 位數字；家長 Email 改為選填聯絡資料。
+- 新建立英文班在校生改用唯一帳號、一次性 QR 啟用卡、兩組復原碼與自行設定密碼；家長 Email 改為選填聯絡資料。
+- 重新發登入卡功能已完成本機實作：僅管理員可對尚未啟用、使用中的英文班帳號產生新 QR 與兩組復原碼，舊卡會撤銷；待部署 `academy-student-manager` 與 Netlify 前端後才能在正式站使用。
 - 非英文班帳號的 Firebase 驗證／重設 action link 改由 Edge Function 產生，再使用既有 Resend 寄件網域寄出品牌信件。
 - 後台帳號生命週期使用安全停用／恢復；已停用帳號預設從清單隱藏，管理員可切換帳號狀態篩選後恢復。已建立的學生帳號不再提供永久刪除入口，未領取且尚未建立帳號的邀請仍可刪除。
 - 後台方案顯示依學生類型與有效權限自動判定，不再讓櫃檯編輯舊版 `allcover`／`listeningonly` 欄位。
@@ -67,6 +68,7 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 - 2026-08-25：全站 Router／顯示邏輯稽核、管理員手機卡片、停用帳號標示、Dashboard RWD、權限式作業捷徑與 AI 宣傳判斷已隨 PR #30 合併並部署。
 - 2026-08-25：根目錄 `PROJECT_LOGIC.md` 已隨 PR #30 合併，集中記錄身分、疊加式權限、方案、頁面顯示、AI、作業、聽力、帳號生命週期、CSV、付款與 RWD 邏輯。
 - 2026-08-25：英文班登入第一階段已隨 PR #30 合併並部署。正式 Supabase migration `20260825125826_academy_student_login_activation` 已成功套用；`membership-manager` v23、`academy-student-manager` v9、`auth-email` v1 均為 ACTIVE，OPTIONS 健康檢查成功。Netlify Production 已發布 `main` commit `199b02a`；首頁、學生啟用與復原路由皆回應 HTTP 200。16 份測試檔共 41 個案例通過，Production build 成功；既有英文班假 Email 帳號尚未轉換，真實寄信收件與垃圾郵件表現尚未驗證。
+- 2026-08-25：`codex/student-nav-password` 已推送 GitHub。學生桌面 Navbar 改為常用入口＋完整 Sidebar；英文班首次啟用、復原與帳號安全頁改為學生自訂至少 6 個字元的密碼，並加入小寫鍵盤提示、顯示／隱藏與清楚的長度錯誤。17 份測試檔共 43 個案例、Edge Function TypeScript 語法解析、Production build 與 `git diff --check` 均成功；412px 密碼頁欄位、顯示切換與 Console 已驗收。`academy-student-manager` v10 已部署為 ACTIVE，未修改 migration 或正式資料，OPTIONS 健康檢查回應 204。桌面學生 Navbar 尚未用登入中的真實學生 Session 做視覺驗收；PR 與 Netlify Deploy Preview 尚未建立。
 - Supabase CLI `db push --dry-run` 仍會被歷史 migration 時間戳差異阻擋；本次只透過 migration API 套用已確認缺少的新 migration，未將任何正式 migration 標記為 reverted。後續不得直接使用 `db push --include-all` 或盲目 repair。
 
 目前下一個主要開發方向：
@@ -91,7 +93,7 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 目前已知的正式基準 commit：
 
 ```text
-17a8456
+b5204ca
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：

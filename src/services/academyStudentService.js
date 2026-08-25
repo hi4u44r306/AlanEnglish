@@ -164,6 +164,16 @@ export const createAcademyStudent = async (
     );
 };
 
+export const reissueAcademyStudentLoginCard = async (firebaseUser, studentId) => (
+    callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "reissue_student_login_card",
+            student_id: Number(studentId)
+        }
+    )
+);
+
 export const createAcademyInvitation = async (
     firebaseUser,
     student
@@ -282,23 +292,23 @@ export const previewStudentActivation = async token => callAcademyStudentManager
     { allowAnonymous: true }
 );
 
-export const activateStudentLogin = async (token, pin) => callAcademyStudentManager(
+export const activateStudentLogin = async (token, password) => callAcademyStudentManager(
     null,
     {
         action: "activate_student_login",
         token: String(token || "").trim(),
-        pin: String(pin || "").trim()
+        password: String(password || "")
     },
     { allowAnonymous: true }
 );
 
-export const recoverStudentLogin = async (username, recoveryCode, pin) => callAcademyStudentManager(
+export const recoverStudentLogin = async (username, recoveryCode, password) => callAcademyStudentManager(
     null,
     {
         action: "recover_student_login",
         username: String(username || "").trim().toLowerCase(),
         recovery_code: String(recoveryCode || "").trim(),
-        pin: String(pin || "").trim()
+        password: String(password || "")
     },
     { allowAnonymous: true }
 );

@@ -91,8 +91,8 @@ function StudentLoginCards({ results, rows }) {
                                 <strong className="academy-login-card-username">{result.credentials.username}</strong>
                                 <ol>
                                     <li>掃描 QR Code 開啟啟用頁。</li>
-                                    <li>設定自己的 6 位數字登入密碼。</li>
-                                    <li>之後用「帳號＋6 位數字」登入。</li>
+                                    <li>設定自己至少 6 個字元的登入密碼。</li>
+                                    <li>之後用「帳號＋密碼」登入。</li>
                                 </ol>
                             </div>
                             <div className="academy-login-card-qr">
