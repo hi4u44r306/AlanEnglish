@@ -44,6 +44,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/dark-gamified-sidebar`：學生 Sidebar 已統一為深藍遊戲化視覺，桌機寬視窗不再回退成白色；學生名稱下方新增目前 Lv、總 XP、金色 XP 進度條與距離下一級提示，資料僅讀取既有 `gamification` summary。`MainNavbar` 單元測試與 Production build 已通過；尚未以登入中的真實學生帳號完成視覺驗收、建立 PR 或部署。
 - 新建立英文班在校生改用唯一帳號、一次性 QR 啟用卡、兩組復原碼與自行設定密碼；家長 Email 改為選填聯絡資料。
 - 重新發登入卡功能已部署：僅管理員可對尚未啟用、使用中的英文班帳號產生新 QR 與兩組復原碼，舊卡會撤銷。QR 啟用與復原碼查詢必須以 `student_id` 外鍵明確嵌入學生資料，因為兩張資料表同時另有 `created_by` 外鍵；不得使用未指定關聯的 `students!inner` 嵌入。此最小修正已部署為 `academy-student-manager` v14；以不存在的測試權杖驗證會正確回傳 404「啟用連結不存在或已失效」，沒有再出現 500 查詢錯誤。
 - 非英文班帳號的 Firebase 驗證／重設 action link 改由 Edge Function 產生，再使用既有 Resend 寄件網域寄出品牌信件。

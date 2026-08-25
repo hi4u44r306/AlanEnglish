@@ -15,6 +15,7 @@ import Brand from "./Brand";
 import { useAuth } from "../../auth/AuthContext";
 import { getRoleHome } from "../../auth/RoleHomeRedirect";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
+import { getGamificationSummary } from "../../services/gamificationService";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -36,6 +37,7 @@ function MainNavbar() {
     const [navError, setNavError] = useState(null);
     const [loggingOut, setLoggingOut] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [gamificationSummary, setGamificationSummary] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
     const { firebaseUser, role, isAuthenticated, logout, studentProfile } = useAuth();
@@ -48,6 +50,12 @@ function MainNavbar() {
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
     const reportPath = isAdmin ? "/admin/reports" : "/teacher/reports";
     const leaderboardPath = isAdmin ? "/admin/leaderboard" : "/teacher/leaderboard";
+    const gamificationBalance = gamificationSummary?.balance;
+    const gamificationLevel = Math.max(1, Number(gamificationBalance?.level || 1));
+    const totalXp = Math.max(0, Number(gamificationBalance?.total_xp || 0));
+    const nextLevelXp = Math.max(totalXp, Number(gamificationBalance?.next_level_xp || 100));
+    const xpToNextLevel = Math.max(0, nextLevelXp - totalXp);
+    const xpProgressPercent = Math.min(100, Math.max(0, Number(gamificationBalance?.progress_percent || 0)));
 
     const displayRole = useMemo(() => {
         if (isAdmin) return "Admin";
@@ -69,6 +77,22 @@ function MainNavbar() {
     }, [location.pathname]);
 
     useEffect(() => () => restoreDocumentScroll(), []);
+
+    useEffect(() => {
+        if (!firebaseUser || !isStudent) {
+            setGamificationSummary(null);
+            return undefined;
+        }
+        let cancelled = false;
+        getGamificationSummary(firebaseUser)
+            .then(result => {
+                if (!cancelled) setGamificationSummary(result || null);
+            })
+            .catch(() => {
+                if (!cancelled) setGamificationSummary(null);
+            });
+        return () => { cancelled = true; };
+    }, [firebaseUser, isStudent]);
 
     useEffect(() => {
         if (!firebaseUser) {
@@ -164,6 +188,7 @@ function MainNavbar() {
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     {isAuthenticated && <div className={`ae-mobile-profile ${hasAiPremium ? "has-ai-premium" : ""}`}><div className="ae-mobile-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</div><div><strong>{studentProfile?.name || "Alan English User"}</strong><span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span>{hasAiPremium && <span className="ae-ai-premium-badge"><FiZap aria-hidden="true" />AI PREMIUM</span>}</div></div>}
+                    {isStudent && <section className="ae-mobile-xp-card" aria-label="學習榮譽進度"><div className="ae-mobile-xp-heading"><span><FiZap aria-hidden="true" />學習榮譽</span><strong>Lv.{gamificationLevel}</strong></div><div className="ae-mobile-xp-track" role="progressbar" aria-label={`目前等級 Lv.${gamificationLevel} 的經驗值進度`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={xpProgressPercent}><span style={{ width: `${xpProgressPercent}%` }} /></div><div className="ae-mobile-xp-meta"><span>目前等級 Lv.{gamificationLevel}</span><strong>{totalXp.toLocaleString("zh-TW")} XP</strong></div><p>距離 Lv.{gamificationLevel + 1} 還差 {xpToNextLevel.toLocaleString("zh-TW")} XP</p></section>}
                     <section className="ae-mobile-section"><span className="ae-mobile-section-title">主要功能</span><Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span></Link>{isStudent && <Link to="/student/review" onClick={closeMobileMenu} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw /><span>智慧複習</span></Link>}{isStudent && <Link to="/student/weekly-report" onClick={closeMobileMenu} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 /><span>每週報告</span></Link>}{isStudent && <Link to="/student/level" onClick={closeMobileMenu}><FiAward /><span>等級晉級</span></Link>}{isStudent && <Link to="/student/leaderboard" onClick={closeMobileMenu}><FiTrendingUp /><span>學習排行榜</span></Link>}{isStudent && <Link to="/student/rewards" onClick={closeMobileMenu}><FiGift /><span>獎品商城</span></Link>}{isStudent && <Link to="/student/membership" onClick={closeMobileMenu}><FiCreditCard /><span>會員方案</span></Link>}<Link to="/student/conversation" onClick={closeMobileMenu} className={isPathActive("/student/conversation") ? "active" : ""} data-tour="conversation"><FiMessageCircle /><span>{isTeacher ? "英文對話示範" : "英文對話"}</span></Link>{isAuthenticated && <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar /><span>{hasAiAccess ? "AI 教材" : "AI 教材方案"}</span></Link>}</section>
                     <section className="ae-mobile-section"><span className="ae-mobile-section-title">教材</span>{renderMobileCategories()}</section>
                     {isTeacher && <section className="ae-mobile-section" data-tour="accounts"><span className="ae-mobile-section-title">管理</span><Link to={reportPath} onClick={closeMobileMenu}><FiBarChart2 /><span>每週學習報告</span></Link><Link to={leaderboardPath} onClick={closeMobileMenu}><FiTrendingUp /><span>班級排行榜</span></Link><Link to={accountManagementPath} onClick={closeMobileMenu}><FiUsers /><span>帳號管理</span></Link><Link to="/teacher/accounts/create" onClick={closeMobileMenu}><FiUsers /><span>建立單一學生</span></Link>{isAdmin && <Link to="/admin/accounts/import" onClick={closeMobileMenu}><FiUpload /><span>CSV 批次建立</span></Link>}</section>}
