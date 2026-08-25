@@ -9,6 +9,7 @@ function AccountSecurity() {
     const usesStudentPin = studentProfile?.authentication_method === "academy_username";
     const [form, setForm] = useState({ currentPassword: "", password: "", confirmPassword: "" });
     const [submitting, setSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
@@ -19,8 +20,7 @@ function AccountSecurity() {
         setError("");
         setSuccess("");
         if (!firebaseUser?.email) return setError("這個帳號目前無法更新登入資料，請聯絡客服。");
-        if (usesStudentPin && !/^\d{6}$/.test(form.password)) return setError("請輸入 6 位數字的新密碼。");
-        if (usesStudentPin && ["123456", "654321", "000000", "111111", "222222", "333333", "444444", "555555", "666666", "777777", "888888", "999999"].includes(form.password)) return setError("這組數字太容易猜，請換一組 6 位數字。");
+        if (usesStudentPin && form.password.length < 6) return setError("新密碼至少需要 6 個字元。");
         if (!usesStudentPin && form.password.length < 8) return setError("新密碼至少需要 8 個字元。");
         if (form.password !== form.confirmPassword) return setError("兩次輸入的新密碼不一致。");
 
@@ -49,8 +49,10 @@ function AccountSecurity() {
             <section className="platform-card">
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>{usesStudentPin ? "登入帳號" : "登入 Email"}</span><input value={usesStudentPin ? studentProfile?.login_username || "" : firebaseUser?.email || ""} readOnly /></label>
-                    <label><span>目前密碼</span><input name="currentPassword" type="password" value={form.currentPassword} onChange={update} autoComplete="current-password" required /></label>
-                    <div className="platform-form-grid"><label><span>{usesStudentPin ? "新的 6 位數字" : "新密碼"}</span><input name="password" type="password" inputMode={usesStudentPin ? "numeric" : undefined} pattern={usesStudentPin ? "[0-9]{6}" : undefined} value={form.password} onChange={update} minLength={usesStudentPin ? 6 : 8} maxLength={usesStudentPin ? 6 : undefined} autoComplete="new-password" required /></label><label><span>再次輸入新密碼</span><input name="confirmPassword" type="password" inputMode={usesStudentPin ? "numeric" : undefined} pattern={usesStudentPin ? "[0-9]{6}" : undefined} value={form.confirmPassword} onChange={update} minLength={usesStudentPin ? 6 : 8} maxLength={usesStudentPin ? 6 : undefined} autoComplete="new-password" required /></label></div>
+                    <label><span>目前密碼</span><input name="currentPassword" type={showPassword ? "text" : "password"} value={form.currentPassword} onChange={update} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="current-password" required /></label>
+                    <div className="platform-form-grid"><label><span>新密碼</span><input name="password" type={showPassword ? "text" : "password"} inputMode="text" value={form.password} onChange={update} minLength={usesStudentPin ? 6 : 8} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="new-password" required /></label><label><span>再次輸入新密碼</span><input name="confirmPassword" type={showPassword ? "text" : "password"} inputMode="text" value={form.confirmPassword} onChange={update} minLength={usesStudentPin ? 6 : 8} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="new-password" required /></label></div>
+                    <button type="button" className="platform-password-toggle" onClick={() => setShowPassword(current => !current)} aria-pressed={showPassword}>{showPassword ? "隱藏密碼" : "顯示密碼"}</button>
+                    {usesStudentPin && <small className="platform-password-help">英文班帳號的密碼至少 6 個字元，可使用小寫英文、數字或符號。</small>}
                     {error && <div className="platform-form-error" role="alert"><strong>無法更新密碼</strong><span>{error}</span></div>}
                     {success && <div className="platform-verification-notice success" role="status">{success}</div>}
                     <button className="platform-primary" type="submit" disabled={submitting}>{submitting ? "更新中…" : "更新密碼"}</button>

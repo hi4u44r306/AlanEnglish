@@ -268,7 +268,7 @@ function Signup() {
             `啟用連結：${createdAccount.credentials.activation_url}`,
             `復原碼 1：${createdAccount.credentials.recovery_codes?.[0]}`,
             `復原碼 2：${createdAccount.credentials.recovery_codes?.[1]}`,
-            "首次使用請開啟啟用連結並設定 6 位數字。"
+            "首次使用請開啟啟用連結並設定至少 6 個字元的密碼。"
         ].join("\n");
 
         copyText(accountText, "完整登入資料已複製");
@@ -344,7 +344,7 @@ function Signup() {
                         <h1>快速建立英文班學生</h1>
 
                         <p>
-                            填寫資料後建立登入帳號與一次性啟用卡；學生掃描 QR Code 後自行設定 6 位數字。
+                            填寫資料後建立登入帳號與一次性啟用卡；學生掃描 QR Code 後自行設定至少 6 個字元的密碼。
                         </p>
                     </div>
                 </header>
@@ -377,7 +377,7 @@ function Signup() {
                                     {activationQr ? <img src={activationQr} alt="學生帳號啟用 QR Code" width="180" height="180" /> : "QR Code 產生中…"}
                                 </strong>
                                 <small>
-                                    掃描後設定 6 位數字；復原碼：{createdAccount.credentials.recovery_codes?.join("、")}
+                                    掃描後設定登入密碼；復原碼：{createdAccount.credentials.recovery_codes?.join("、")}
                                 </small>
                             </div>
                         </div>
@@ -498,7 +498,7 @@ function Signup() {
                                     />
 
                                     <small>
-                                        學生之後使用此帳號與 6 位數字登入，不需要 Email 驗證。
+                                        學生之後使用此帳號與密碼登入，不需要 Email 驗證。
                                     </small>
                                 </label>
 
@@ -684,7 +684,7 @@ function Signup() {
                                 </strong>
 
                                 <p>
-                                    學生掃描 QR Code 後設定自己的 6 位數字。
+                                    學生掃描 QR Code 後設定自己至少 6 個字元的密碼。
                                 </p>
                             </div>
 

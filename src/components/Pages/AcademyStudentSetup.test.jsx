@@ -14,7 +14,7 @@ jest.mock("../../services/academyStudentService", () => ({
 describe("AcademyStudentSetup", () => {
     beforeEach(() => jest.clearAllMocks());
 
-    it("previews a one-time login card and activates a non-weak six-digit PIN", async () => {
+    it("accepts a student-chosen password with at least six characters", async () => {
         previewStudentActivation.mockResolvedValue({
             student: { name: "王小明", username: "alanwang01" },
             expires_at: "2026-09-24T00:00:00.000Z"
@@ -31,11 +31,38 @@ describe("AcademyStudentSetup", () => {
         );
 
         expect(await screen.findByDisplayValue("alanwang01")).toHaveAttribute("readonly");
-        fireEvent.change(screen.getByLabelText("新的 6 位數字"), { target: { value: "482731" } });
-        fireEvent.change(screen.getByLabelText("再輸入一次"), { target: { value: "482731" } });
+        const password = screen.getByLabelText("新的登入密碼");
+        expect(password).toHaveAttribute("autocapitalize", "none");
+        fireEvent.change(password, { target: { value: "green7" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次"), { target: { value: "green7" } });
+        fireEvent.click(screen.getByRole("button", { name: "顯示密碼" }));
+        expect(password).toHaveAttribute("type", "text");
         fireEvent.click(screen.getByRole("button", { name: "完成啟用" }));
 
-        await waitFor(() => expect(activateStudentLogin).toHaveBeenCalledWith("one-time-token", "482731"));
+        await waitFor(() => expect(activateStudentLogin).toHaveBeenCalledWith("one-time-token", "green7"));
         expect(await screen.findByText("已前往登入")).toBeInTheDocument();
+    });
+
+    it("explains why a password shorter than six characters cannot be submitted", async () => {
+        previewStudentActivation.mockResolvedValue({
+            student: { name: "王小明", username: "alanwang01" },
+            expires_at: "2026-09-24T00:00:00.000Z"
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/academy/student-setup?token=one-time-token"]}>
+                <Routes>
+                    <Route path="/academy/student-setup" element={<AcademyStudentSetup />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        fireEvent.change(await screen.findByLabelText("新的登入密碼"), { target: { value: "abc" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次"), { target: { value: "abc" } });
+        expect(screen.getByText("還需要 3 個字元。")).toBeInTheDocument();
+
+        fireEvent.submit(screen.getByRole("button", { name: "完成啟用" }).closest("form"));
+        expect(await screen.findByRole("alert")).toHaveTextContent("密碼至少需要 6 個字元");
+        expect(activateStudentLogin).not.toHaveBeenCalled();
     });
 });

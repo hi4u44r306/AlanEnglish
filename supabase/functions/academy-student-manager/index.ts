@@ -883,20 +883,12 @@ const normalizeRecoveryCode = (value: unknown): string => cleanText(value, 32)
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
 
-const validateStudentPin = (value: unknown): string => {
-    const pin = cleanText(value, 12);
-    const weakPins = new Set([
-        "000000", "111111", "222222", "333333", "444444",
-        "555555", "666666", "777777", "888888", "999999",
-        "123456", "654321", "012345", "543210"
-    ]);
-    if (!/^\d{6}$/.test(pin)) {
-        throw new HttpError(400, "INVALID_STUDENT_PIN", "請設定 6 位數字登入密碼");
+const validateStudentPassword = (value: unknown): string => {
+    const password = typeof value === "string" ? value : "";
+    if (password.length < 6) {
+        throw new HttpError(400, "INVALID_STUDENT_PASSWORD", "登入密碼至少需要 6 個字元");
     }
-    if (weakPins.has(pin)) {
-        throw new HttpError(400, "WEAK_STUDENT_PIN", "這組數字太容易猜，請換一組 6 位數字");
-    }
-    return pin;
+    return password;
 };
 
 const ACCOUNT_DELETE_BLOCKER_LABELS: Record<string, string> = {
@@ -1591,10 +1583,10 @@ const activateStudentLogin = async (
 ): Promise<Response> => {
     const token = cleanText(body.token, 200);
     if (!token) throw new HttpError(400, "ACTIVATION_TOKEN_REQUIRED", "啟用連結不完整");
-    const pin = validateStudentPin(body.pin);
+    const password = validateStudentPassword(body.password ?? body.pin);
     const record = await getActivationRecord(admin, token);
 
-    await updateFirebasePasswordByUid(record.student.firebase_uid, pin);
+    await updateFirebasePasswordByUid(record.student.firebase_uid, password);
     const now = new Date().toISOString();
     const [{ error: tokenError }, { error: studentError }] = await Promise.all([
         admin
@@ -1635,7 +1627,7 @@ const recoverStudentLogin = async (
 ): Promise<Response> => {
     const username = normalizeLoginUsername(body.username);
     const recoveryCode = normalizeRecoveryCode(body.recovery_code);
-    const pin = validateStudentPin(body.pin);
+    const password = validateStudentPassword(body.password ?? body.pin);
     if (!/^[a-z][a-z0-9]{4,31}$/.test(username) || recoveryCode.length < 10) {
         throw new HttpError(400, "INVALID_RECOVERY_DETAILS", "帳號或復原碼不正確");
     }
@@ -1658,7 +1650,7 @@ const recoverStudentLogin = async (
         throw new HttpError(404, "RECOVERY_NOT_FOUND", "帳號或復原碼不正確，或這組復原碼已使用");
     }
 
-    await updateFirebasePasswordByUid(student.firebase_uid, pin);
+    await updateFirebasePasswordByUid(student.firebase_uid, password);
     const now = new Date().toISOString();
     const [{ error: codeError }, { error: studentError }] = await Promise.all([
         admin
