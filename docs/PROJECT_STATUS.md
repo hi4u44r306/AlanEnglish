@@ -44,7 +44,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
-- `codex/mobile-header-actions`：學生手機版 Header 將通知與漢堡按鈕整合為右側操作群組，修正通知貼近 Logo、漢堡單獨靠右的不自然間距；`MainNavbar` 測試、`git diff --check` 與 Production build 已通過，尚待固定學生測試站與手機實機視覺驗收、GitHub push 及部署。
+- `codex/mobile-header-actions`：學生手機版 Header 將通知與漢堡按鈕整合為右側操作群組，修正通知貼近 Logo、漢堡單獨靠右的不自然間距；`MainNavbar` 測試、`git diff --check` 與 Production build 已通過，分支已推送 GitHub，固定學生測試站 deploy `6a8ef77517662da3aeca86a2` 已發布，實際 CSS／JS 均包含新版群組。登入 Session 已回到登入頁，因此尚待使用者登入後進行手機實機視覺驗收；尚未合併 `main` 或部署正式站。
 - `codex/membership-ai-pricing`（功能 commit `e08445a`）：本機實作新定價與資格規則。基本自主學習會員為 NT$299／月；一般會員 AI 加購為 NT$129／月，合計 NT$428；英文班在校生與離校生 AI 優惠為 NT$99／月，離校生需搭配基本會員，合計 NT$398。已建立 additive migration `20260826132237_membership_ai_pricing.sql`，同步調整公開首頁、會員中心、AI 入口、付款資格、Webhook 白名單與額度辨識。19 份前端測試共 52 個案例、8 個純後端資格／Stripe 金額測試、8 支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功。前端已發布固定測試站 `https://alanenglish-student-test.netlify.app`，deploy `6a8ef18c17f4000b6f8d792b` 的首頁與新版 JS 均回應 HTTP 200；測試站沒有獨立 Supabase，因此尚未建立 Stripe NT$299／NT$129 Price、套用遠端 migration、部署 Edge Functions 或發布正式 Netlify。
 - PR #45：預設頭像與完成裁切的自訂照片都必須經過最後確認才會儲存；確認前不呼叫套用／上傳 API，取消預設頭像不變更資料，自訂照片則可返回繼續調整。已合併至 `main` commit `3654e2bc`，Netlify production deploy `6a8ee69aa4ba77000897303a` 已發布且為 ready。相關 `StudentSettings` 3 個測試案例、`git diff --check` 與 Production build 已通過；固定學生測試站已用登入中的學生帳號驗證預設頭像確認／取消流程與 Console，自訂照片仍待手機實機選檔驗收。
 - PR #40：生日欄位手機版垂直排列、頭像裁切的 iPhone Touch 支援，以及獨立 `/student/notifications` 通知頁已合併至 `main` commit `5518922c` 並完成 Netlify 正式部署；`membership-manager` v25 已部署且為 ACTIVE。
