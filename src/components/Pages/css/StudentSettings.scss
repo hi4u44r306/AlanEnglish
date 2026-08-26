@@ -105,24 +105,17 @@
 .student-settings-birthday-form button { min-height: 44px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #244680; font-weight: 850; cursor: pointer; white-space: nowrap; }
 .student-settings-birthday-form button:disabled { opacity: .65; cursor: wait; }
 
-.student-settings-notifications { scroll-margin-top: 94px; }
-.student-settings-empty { padding: 14px 0 4px; }
-.student-settings-notification-list { display: grid; gap: 9px; }
-.student-settings-notification-list button { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 11px; width: 100%; padding: 13px; border: 1px solid #dbe5fd; border-radius: 15px; text-align: left; background: #f8faff; cursor: pointer; }
-.student-settings-notification-list button.is-read { border-color: #edf0f4; background: #fff; opacity: .72; }
-.student-settings-notification-dot { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 10px; color: #fff; background: #4268c7; }
-.student-settings-notification-list button.is-read .student-settings-notification-dot { color: #78869c; background: #eef1f5; }
-.student-settings-notification-list button > span:last-child { display: grid; min-width: 0; gap: 3px; }
-.student-settings-notification-list strong { color: #283957; font-size: 14px; }
-.student-settings-notification-list small { overflow-wrap: anywhere; color: #64728b; line-height: 1.5; }
-.student-settings-notification-list time { color: #8a96a7; font-size: 11px; }
-
 @media (max-width: 720px) {
     .student-settings-page { width: min(100% - 20px, 1080px); padding-top: 22px; }
     .student-settings-profile-card { grid-template-columns: auto minmax(0, 1fr); padding: 19px; }
     .student-settings-premium { grid-column: 1 / -1; min-width: 0; }
     .student-settings-grid { grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
     .student-settings-stats strong { font-size: 16px; }
+}
+
+@media (max-width: 560px) {
+    .student-settings-birthday-form { align-items: stretch; flex-direction: column; }
+    .student-settings-birthday-form button { width: 100%; }
 }
 
 @media (max-width: 420px) {
@@ -132,7 +125,6 @@
     .student-settings-stats { grid-template-columns: 1fr; }
     .student-settings-stats div { border-right: 0; border-bottom: 1px solid #e9edf3; }
     .student-settings-stats div:last-child { border-bottom: 0; }
-    .student-settings-birthday-form { align-items: stretch; flex-direction: column; }
     .student-avatar-editor { padding: 18px; border-radius: 21px; }
     .student-avatar-crop-canvas { width: min(280px, calc(100vw - 76px)); height: min(280px, calc(100vw - 76px)); }
 }

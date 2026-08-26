@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 import StudentSettings from "./StudentSettings";
 import { useAuth } from "../../auth/AuthContext";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, uploadGamificationImage } from "../../services/gamificationService";
-import { getStudentNotifications, updateStudentProfile } from "../../services/membershipService";
+import { updateStudentProfile } from "../../services/membershipService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({
@@ -14,8 +14,6 @@ jest.mock("../../services/gamificationService", () => ({
     uploadGamificationImage: jest.fn()
 }));
 jest.mock("../../services/membershipService", () => ({
-    getStudentNotifications: jest.fn(),
-    markStudentNotificationRead: jest.fn(),
     updateStudentProfile: jest.fn()
 }));
 
@@ -43,7 +41,6 @@ describe("StudentSettings", () => {
             profile: { avatar_url: null },
             balance: { level: 3, total_xp: 390, points_balance: 21 }
         });
-        getStudentNotifications.mockResolvedValue({ notifications: [] });
     });
 
     it("shows student profile, protected learning honors, and birthday controls", async () => {
@@ -80,6 +77,7 @@ describe("StudentSettings", () => {
         Object.defineProperty(preview, "naturalWidth", { configurable: true, value: 1000 });
         Object.defineProperty(preview, "naturalHeight", { configurable: true, value: 700 });
         fireEvent.load(preview);
+        await waitFor(() => expect(preview.style.width).toBe("400px"));
         createSquareAvatarImage.mockResolvedValue(file);
         prepareAvatarImage.mockResolvedValue(file);
         uploadGamificationImage.mockResolvedValue({ path: "avatars/student-1.webp", image_url: "https://example.com/avatar.webp" });
