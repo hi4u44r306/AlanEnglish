@@ -44,7 +44,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
-- `codex/avatar-square-crop`：學生設定頁的頭像流程改為選檔後先進入方形裁切視窗；可拖移照片、調整 100%～300% 縮放並取消／確認，儲存時在瀏覽器端輸出 800×800 WebP，維持既有 5MB 上傳限制與 20MB 原圖保護。排行榜與個人卡的學生頭像統一為略圓角正方形；手機個人卡右側改為目前等級徽章，XP／AE Points 改成全寬資訊列以消除無效空白。`StudentSettings` 2 個測試通過、`git diff --check` 通過且 Production build 已產生新版資產；尚未以真實學生帳號完成桌機、412px 與 iPhone Safari 視覺驗收，也尚未推送或部署。
+- PR #38：方形頭像裁切與排行榜個人卡調整已於 2026-08-26 合併至 `main` commit `93842070` 並由 Netlify 正式發布。學生設定頁選檔後會進入方形裁切視窗；可拖移照片、調整 100%～300% 縮放並取消／確認，儲存時在瀏覽器端輸出 800×800 WebP，維持既有 5MB 上傳限制與 20MB 原圖保護。排行榜與個人卡的學生頭像統一為略圓角正方形；手機個人卡右側改為目前等級徽章，XP／AE Points 改成全寬資訊列以消除無效空白。`StudentSettings` 2 個測試與 `git diff --check` 通過，Production build 已驗證；尚未以真實學生帳號完成桌機、412px 與 iPhone Safari 視覺驗收。
 - PR #36：學生「我的設定」頁面已於 2026-08-26 合併至 `main` commit `29e1e567`，並由 Netlify 正式發布。頁面集中顯示／安全管理頭像、中文／英文姓名、班級、等級、XP、AE Points、AI Premium／AI 教材權限與出生年月日；排行榜改為導向設定頁更換頭像。Header／手機 Navbar 新增通知入口與未讀徽章，通知資料表僅供受 Firebase 驗證的 Edge Function 依自己的 `student_id` 讀取與標記已讀。新邀請啟用卡在密碼欄位下新增出生年月日與基本資料預覽。頭像接受 JPG／PNG／WebP，儲存桶與後端上限同步改為 5MB，超過上限且不超過 20MB 的照片會先在瀏覽器縮放／壓縮。`student_profile_notifications` migration 已套用；已確認 `students.date_of_birth` 與 `student_notifications` 存在，後者啟用 RLS 且 `anon`／`authenticated` 無直接 DML 權限。`membership-manager` v24、`academy-student-manager` v15 與 `gamification` v3 已部署且為 ACTIVE，儲存桶限制已確認為 5MB。三個相關 Jest 測試與 Production build 成功，仍需以學生帳號進行桌機、412px 與 iPhone Safari 實機驗收。
 - `codex/dark-gamified-sidebar`：學生 Sidebar 已統一為深藍遊戲化視覺，桌機寬視窗不再回退成白色；學生名稱下方新增目前 Lv、總 XP、金色 XP 進度條與距離下一級提示，資料僅讀取既有 `gamification` summary。`MainNavbar` 單元測試與 Production build 已通過，2026-08-25 已直接快轉至 `main` commit `a21146d`；本機未安裝 GitHub CLI，因此未建立 PR，Netlify 自動部署狀態尚未驗證。仍需以登入中的真實學生帳號完成視覺驗收。
 - 新建立英文班在校生改用唯一帳號、一次性 QR 啟用卡、兩組復原碼與自行設定密碼；家長 Email 改為選填聯絡資料。
@@ -96,7 +96,7 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 目前已知的正式基準 commit：
 
 ```text
-29e1e567
+93842070
 ```
 
 接手前仍應執行以下指令確認最新狀態，不可假設上述 commit 永遠不變：
