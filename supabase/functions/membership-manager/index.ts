@@ -70,6 +70,29 @@ const isoOrNull = (value: unknown) => {
     return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 };
 
+const normalizeDateOfBirth = (value: unknown): string => {
+    const date = cleanText(value, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("出生年月日格式不正確");
+    const parsed = new Date(`${date}T00:00:00Z`);
+    if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date || date < "1900-01-01") {
+        throw new Error("出生年月日格式不正確");
+    }
+    const taipeiParts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Taipei",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).formatToParts(new Date());
+    const taipeiToday = `${taipeiParts.find(part => part.type === "year")?.value}-${taipeiParts.find(part => part.type === "month")?.value}-${taipeiParts.find(part => part.type === "day")?.value}`;
+    if (date > taipeiToday) throw new Error("出生年月日不可晚於今天");
+    return date;
+};
+
+const positiveInteger = (value: unknown) => {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
 const sha256 = async (value: string) => {
     const bytes = new TextEncoder().encode(value);
     const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
@@ -380,6 +403,9 @@ const profilePayload = (
     id: student.id,
     firebase_uid: student.firebase_uid,
     name: student.name,
+    chinese_name: student.chinese_name || student.name,
+    english_name: student.english_name || null,
+    date_of_birth: student.date_of_birth || null,
     email: student.authentication_method === "academy_username" ? null : student.email,
     login_username: student.login_username || null,
     authentication_method: student.authentication_method || "email",
@@ -624,6 +650,58 @@ Deno.serve(async (req: Request) => {
                 autoCreatedPublicSignup
             );
             return json(200, { success: true, profile });
+        }
+
+        if (action === "update_student_profile") {
+            if (caller.role !== "student") return json(403, { error: "目前只有學生可以更新自己的基本資料" });
+            let dateOfBirth = "";
+            try {
+                dateOfBirth = normalizeDateOfBirth(body?.date_of_birth);
+            } catch (error) {
+                return json(400, { error: error instanceof Error ? error.message : "出生年月日格式不正確" });
+            }
+            const { data, error } = await admin
+                .from("students")
+                .update({ date_of_birth: dateOfBirth, updated_at: new Date().toISOString() })
+                .eq("id", caller.id)
+                .eq("firebase_uid", firebaseUser.uid)
+                .select("date_of_birth")
+                .single();
+            if (error) throw error;
+            return json(200, { success: true, profile: { date_of_birth: data?.date_of_birth || null } });
+        }
+
+        if (action === "notifications") {
+            const { data, error } = await admin
+                .from("student_notifications")
+                .select("id,notification_type,title,body,metadata,read_at,expires_at,created_at")
+                .eq("student_id", caller.id)
+                .order("created_at", { ascending: false })
+                .limit(30);
+            if (error) throw error;
+            const now = Date.now();
+            const notifications = (data || []).filter((item: any) => {
+                const expiry = item?.expires_at ? new Date(item.expires_at).getTime() : null;
+                return expiry === null || !Number.isFinite(expiry) || expiry > now;
+            });
+            return json(200, {
+                success: true,
+                notifications,
+                unread_count: notifications.filter((item: any) => !item.read_at).length
+            });
+        }
+
+        if (action === "mark_notification_read") {
+            const notificationId = positiveInteger(body?.notification_id);
+            if (!notificationId) return json(400, { error: "通知資料不正確" });
+            const { error } = await admin
+                .from("student_notifications")
+                .update({ read_at: new Date().toISOString() })
+                .eq("id", notificationId)
+                .eq("student_id", caller.id)
+                .is("read_at", null);
+            if (error) throw error;
+            return json(200, { success: true });
         }
 
         if (action === "plans") {

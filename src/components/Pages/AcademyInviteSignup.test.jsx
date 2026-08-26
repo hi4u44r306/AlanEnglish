@@ -67,5 +67,6 @@ describe("AcademyInviteSignup manual activation", () => {
 
         expect(await screen.findByRole("heading", { name: "設定你的英文班帳號" })).toBeTruthy();
         expect(screen.getByText(/王小明，你受邀加入 E7 班/)).toBeTruthy();
+        expect(screen.getByLabelText("出生年月日").type).toBe("date");
     });
 });

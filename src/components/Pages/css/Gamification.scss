@@ -201,6 +201,17 @@
         font-size: 18px;
         font-weight: 900;
     }
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        width: fit-content;
+        color: #3655ad;
+        font-size: 12px;
+        font-weight: 800;
+        text-decoration: none;
+    }
 }
 
 .gamification-stat {

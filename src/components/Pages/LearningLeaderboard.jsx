@@ -1,13 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FiCamera, FiGift, FiRefreshCw, FiStar, FiTrendingUp } from "react-icons/fi";
+import React, { useCallback, useEffect, useState } from "react";
+import { FiGift, FiRefreshCw, FiSettings, FiStar, FiTrendingUp } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import {
     getGamificationClasses,
     getGamificationLeaderboard,
-    getGamificationSummary,
-    uploadGamificationImage
+    getGamificationSummary
 } from "../../services/gamificationService";
 import "./css/Gamification.scss";
 
@@ -24,7 +23,6 @@ function LearningLeaderboard() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const isStudent = role === "student";
     const isStaff = role === "teacher" || role === "admin";
-    const fileInputRef = useRef(null);
     const [period, setPeriod] = useState("week");
     const [classCode, setClassCode] = useState(studentProfile?.class || "");
     const [classes, setClasses] = useState([]);
@@ -32,7 +30,6 @@ function LearningLeaderboard() {
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [uploading, setUploading] = useState(false);
 
     const load = useCallback(async ({ silent = false } = {}) => {
         if (!firebaseUser) return;
@@ -64,26 +61,6 @@ function LearningLeaderboard() {
     useEffect(() => {
         load();
     }, [load]);
-
-    const handleAvatarChange = async event => {
-        const file = event.target.files?.[0];
-        event.target.value = "";
-        if (!file || !firebaseUser || !isStudent) return;
-        setUploading(true);
-        try {
-            const result = await uploadGamificationImage(firebaseUser, "avatar", file);
-            setSummary(current => current ? {
-                ...current,
-                profile: { ...current.profile, avatar_url: result.image_url }
-            } : current);
-            toast.success("排行榜照片已更新");
-            await load({ silent: true });
-        } catch (error) {
-            toast.error(error.message || "照片上傳失敗");
-        } finally {
-            setUploading(false);
-        }
-    };
 
     const rows = data?.leaderboard || [];
     const currentClass = data?.class_code || classCode || studentProfile?.class || "";
@@ -130,15 +107,11 @@ function LearningLeaderboard() {
                         {summary.profile?.avatar_url
                             ? <img className="gamification-avatar gamification-avatar--large" src={summary.profile.avatar_url} alt={`${summary.profile?.name || "學生"} 的排行榜照片`} />
                             : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback">{getInitial(summary.profile?.name)}</div>}
-                        <button type="button" className="gamification-avatar-edit" onClick={() => fileInputRef.current?.click()} disabled={uploading} aria-label="更換排行榜照片">
-                            <FiCamera />
-                        </button>
-                        <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarChange} />
                     </div>
                     <div className="gamification-me-card__identity">
                         <span>我的學習角色</span>
                         <strong>{summary.profile?.name || studentProfile?.name}</strong>
-                        <small>{uploading ? "照片上傳中…" : "點相機可以更換排行榜照片"}</small>
+                        <Link to="/student/settings"><FiSettings />到設定更換頭像</Link>
                     </div>
                     <div className="gamification-stat">
                         <span>LEVEL</span>

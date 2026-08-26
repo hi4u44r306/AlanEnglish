@@ -17,6 +17,7 @@ const ADMIN_ROLE = "admin";
 const PERIODS = new Set(["week", "month", "all"]);
 const AVATAR_BUCKET = "student-avatars";
 const REWARD_BUCKET = "reward-images";
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const IMAGE_TYPES = new Map([
     ["image/jpeg", "jpg"],
     ["image/png", "png"],
@@ -148,7 +149,7 @@ Deno.serve(async (req: Request) => {
             if (!extension) return json(400, { error: "只支援 JPG、PNG、WebP 圖片" });
 
             if (kind === "avatar") {
-                if (file.size > 2 * 1024 * 1024) return json(400, { error: "學生照片請控制在 2MB 以內" });
+                if (file.size > MAX_AVATAR_BYTES) return json(400, { error: "學生頭像請控制在 5MB 以內" });
                 const path = `student-${student.id}/${crypto.randomUUID()}.${extension}`;
                 const { error: uploadError } = await admin.storage.from(AVATAR_BUCKET).upload(path, file, {
                     contentType: file.type,

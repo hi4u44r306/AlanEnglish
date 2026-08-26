@@ -788,12 +788,14 @@ const claimInvitation = async (
     if (!firebaseUser.email || !isReceivableEmail(firebaseUser.email)) {
         throw new HttpError(400, "RECEIVABLE_EMAIL_REQUIRED", "請使用本人或家長可以正常收信的 Email");
     }
+    const dateOfBirth = normalizeDateOfBirth(body.date_of_birth);
 
     const tokenHash = await hashInvitationToken(token);
     const { data, error } = await admin.rpc("claim_academy_account_invitation", {
         p_token_hash: tokenHash,
         p_firebase_uid: firebaseUser.uid,
-        p_login_email: firebaseUser.email
+        p_login_email: firebaseUser.email,
+        p_date_of_birth: dateOfBirth
     });
 
     if (error) throw invitationError(error.message || "");
@@ -889,6 +891,18 @@ const validateStudentPassword = (value: unknown): string => {
         throw new HttpError(400, "INVALID_STUDENT_PASSWORD", "登入密碼至少需要 6 個字元");
     }
     return password;
+};
+
+const normalizeDateOfBirth = (value: unknown, { required = false } = {}): string | null => {
+    const date = cleanText(value, 10);
+    if (!date) {
+        if (required) throw new HttpError(400, "DATE_OF_BIRTH_REQUIRED", "請填寫出生年月日");
+        return null;
+    }
+    if (!isIsoDate(date) || date < "1900-01-01" || date > taiwanToday()) {
+        throw new HttpError(400, "INVALID_DATE_OF_BIRTH", "出生年月日格式不正確");
+    }
+    return date;
 };
 
 const ACCOUNT_DELETE_BLOCKER_LABELS: Record<string, string> = {
