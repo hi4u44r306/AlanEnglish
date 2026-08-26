@@ -173,6 +173,48 @@
   text-overflow: ellipsis;
 }
 
+.ae-notification-trigger,
+.ae-mobile-notification {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: #33405b;
+}
+
+.ae-notification-trigger > svg,
+.ae-mobile-notification > svg { width: 20px; height: 20px; }
+
+.ae-notification-trigger b,
+.ae-mobile-notification b {
+  position: absolute;
+  top: -4px;
+  right: -7px;
+  min-width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #fff;
+  background: #e65252;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ae-notification-dropdown .dropdown-menu { min-width: min(360px, calc(100vw - 28px)) !important; }
+.ae-notification-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 9px 11px 11px; color: #243351; }
+.ae-notification-heading span { color: #74819a; font-size: 11px; }
+.ae-notification-empty { padding: 15px 11px; color: #768399; font-size: 13px; }
+.ae-notification-item { align-items: flex-start !important; }
+.ae-notification-item.is-read { opacity: .65; }
+.ae-notification-item > span { display: grid; min-width: 0; gap: 3px; }
+.ae-notification-item strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ae-notification-item small { overflow: hidden; color: #77839a; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+
 .ae-ai-premium-badge {
   display: inline-flex;
   align-items: center;
@@ -211,6 +253,19 @@
   border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 5px 16px rgba(15, 23, 42, 0.06);
+}
+
+.ae-mobile-notification {
+  display: none;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  border: 1px solid #e5e9f0;
+  border-radius: 14px;
+  color: #1e3a62;
+  background: #fff;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, .06);
+  text-decoration: none;
 }
 
 .ae-mobile-toggle svg {
@@ -526,6 +581,10 @@
 
   .ae-mobile-toggle {
     display: inline-flex;
+  }
+
+  .ae-mobile-notification {
+    display: inline-grid;
   }
 }
 

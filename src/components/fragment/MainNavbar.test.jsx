@@ -6,10 +6,12 @@ import MainNavbar from "./MainNavbar";
 import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
+import { getStudentNotifications } from "../../services/membershipService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
+jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, id }) => show ? ReactModule.createElement("aside", { id }, children) : null;
@@ -38,6 +40,7 @@ describe("MainNavbar student navigation", () => {
         getGamificationSummary.mockResolvedValue({
             balance: { total_xp: 180, level: 2, next_level_xp: 250, progress_percent: 53 }
         });
+        getStudentNotifications.mockResolvedValue({ notifications: [] });
     });
 
     it("keeps common links in the desktop bar and moves secondary links into the full menu", async () => {
@@ -52,6 +55,7 @@ describe("MainNavbar student navigation", () => {
 
         expect(await screen.findByRole("link", { name: "學習排行榜" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
+        expect(screen.getAllByRole("link", { name: "我的設定" }).length).toBeGreaterThan(0);
         expect(await screen.findByText("Lv.2")).toBeInTheDocument();
         expect(screen.getByRole("progressbar", { name: "目前等級 Lv.2 的經驗值進度" })).toHaveAttribute("aria-valuenow", "53");
         await waitFor(() => expect(screen.getByText("聽力本")).toBeInTheDocument());

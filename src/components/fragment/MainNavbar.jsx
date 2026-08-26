@@ -9,13 +9,14 @@ import '../assets/scss/Navigation.scss';
 import 'react-circular-progressbar/dist/styles.css';
 import BlueBook from '../assets/img/blue book.png';
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FiAward, FiBarChart2, FiBookOpen, FiCreditCard, FiGift, FiHelpCircle, FiHome, FiLock, FiLogOut, FiMessageCircle, FiRefreshCw, FiSettings, FiStar, FiTrendingUp, FiUpload, FiUsers, FiZap } from "react-icons/fi";
+import { FiAward, FiBarChart2, FiBell, FiBookOpen, FiCreditCard, FiGift, FiHelpCircle, FiHome, FiLock, FiLogOut, FiMessageCircle, FiRefreshCw, FiSettings, FiStar, FiTrendingUp, FiUpload, FiUsers, FiZap } from "react-icons/fi";
 import { HiOutlineBars3 } from "react-icons/hi2";
 import Brand from "./Brand";
 import { useAuth } from "../../auth/AuthContext";
 import { getRoleHome } from "../../auth/RoleHomeRedirect";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
+import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -38,6 +39,7 @@ function MainNavbar() {
     const [loggingOut, setLoggingOut] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [gamificationSummary, setGamificationSummary] = useState(null);
+    const [notifications, setNotifications] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
     const { firebaseUser, role, isAuthenticated, logout, studentProfile } = useAuth();
@@ -56,6 +58,7 @@ function MainNavbar() {
     const nextLevelXp = Math.max(totalXp, Number(gamificationBalance?.next_level_xp || 100));
     const xpToNextLevel = Math.max(0, nextLevelXp - totalXp);
     const xpProgressPercent = Math.min(100, Math.max(0, Number(gamificationBalance?.progress_percent || 0)));
+    const unreadNotificationCount = notifications.filter(item => !item.read_at).length;
 
     const displayRole = useMemo(() => {
         if (isAdmin) return "Admin";
@@ -90,6 +93,22 @@ function MainNavbar() {
             })
             .catch(() => {
                 if (!cancelled) setGamificationSummary(null);
+            });
+        return () => { cancelled = true; };
+    }, [firebaseUser, isStudent]);
+
+    useEffect(() => {
+        if (!firebaseUser || !isStudent) {
+            setNotifications([]);
+            return undefined;
+        }
+        let cancelled = false;
+        getStudentNotifications(firebaseUser)
+            .then(result => {
+                if (!cancelled) setNotifications(result?.notifications || []);
+            })
+            .catch(() => {
+                if (!cancelled) setNotifications([]);
             });
         return () => { cancelled = true; };
     }, [firebaseUser, isStudent]);
@@ -137,6 +156,15 @@ function MainNavbar() {
         closeMobileMenu();
         window.setTimeout(() => window.dispatchEvent(new CustomEvent("ae:open-tour")), 220);
     };
+    const markNotificationRead = async notification => {
+        if (!notification || notification.read_at || !firebaseUser) return;
+        setNotifications(current => current.map(item => item.id === notification.id ? { ...item, read_at: new Date().toISOString() } : item));
+        try {
+            await markStudentNotificationRead(firebaseUser, notification.id);
+        } catch (error) {
+            setNotifications(current => current.map(item => item.id === notification.id ? notification : item));
+        }
+    };
     const isPathActive = path => location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`));
     const renderDesktopCategory = (category, index) => (
         <NavDropdown id={`desktop-category-${category.id}`} key={category.id} title={<span className="ae-nav-inline"><FiBookOpen />{category.name}</span>} className="ae-desktop-dropdown" data-tour={index === 0 ? "materials" : undefined} align="end">
@@ -171,8 +199,10 @@ function MainNavbar() {
                         {isTeacher && <NavDropdown id="desktop-music-management" title={<span className="ae-nav-inline"><FiBookOpen />音檔</span>} className="ae-desktop-dropdown" align="end"><NavDropdown.Item as={Link} to="/teacher/music/create" className="ae-dropdown-item"><FiBookOpen />建立音檔</NavDropdown.Item><NavDropdown.Item as={Link} to="/teacher/music/manage" className="ae-dropdown-item"><FiSettings />管理音檔</NavDropdown.Item></NavDropdown>}
                         {isAdmin && <NavDropdown id="desktop-system-tools" title={<span className="ae-nav-inline"><FiSettings />系統</span>} className="ae-desktop-dropdown" align="end"><NavDropdown.Item as={Link} to="/admin/rewards" className="ae-dropdown-item"><FiGift />獎品與兌換管理</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/membership" className="ae-dropdown-item"><FiCreditCard />會員與啟用碼</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/support" className="ae-dropdown-item"><FiHelpCircle />客服案件</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/api-usage" className="ae-dropdown-item"><FiBarChart2 />API 成本</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/levels" className="ae-dropdown-item"><FiAward />等級與晉級測驗</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/catalog" className="ae-dropdown-item"><FiBookOpen />教材導覽管理</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/legacy-cleanup" className="ae-dropdown-item"><FiRefreshCw />Firebase 清理</NavDropdown.Item></NavDropdown>}
                         {!isStudent && <button type="button" className="ae-desktop-help" onClick={openTour} data-tour="help"><FiHelpCircle />使用教學</button>}
-                        {isAuthenticated && <NavDropdown id="desktop-user-menu" title={<span className="ae-user-chip"><span className="ae-user-chip-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</span><span className="ae-user-chip-name">{studentProfile?.name || displayRole}</span>{hasAiPremium && <span className="ae-ai-premium-badge" title="AI 教材加購已啟用"><FiZap aria-hidden="true" />AI PREMIUM</span>}</span>} className="ae-user-dropdown" align="end"><NavDropdown.Item as={Link} to={homePath} className="ae-dropdown-item"><FiHome />{isTeacher ? "管理首頁" : "我的帳號"}</NavDropdown.Item><NavDropdown.Item as={Link} to="/account/security" className="ae-dropdown-item"><FiLock />帳號與密碼</NavDropdown.Item><NavDropdown.Item as={Link} to="/support" className="ae-dropdown-item"><FiHelpCircle />聯絡客服</NavDropdown.Item><NavDropdown.Item as="button" onClick={handleLogout} disabled={loggingOut} className="ae-dropdown-item"><FiLogOut />{loggingOut ? "登出中..." : "登出"}</NavDropdown.Item></NavDropdown>}
+                        {isStudent && <NavDropdown id="desktop-notifications" title={<span className="ae-notification-trigger"><FiBell aria-hidden="true" />{unreadNotificationCount > 0 && <b>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</b>}</span>} className="ae-notification-dropdown" align="end"><div className="ae-notification-heading"><strong>通知</strong><span>{unreadNotificationCount > 0 ? `${unreadNotificationCount} 則未讀` : "已讀取最新消息"}</span></div>{notifications.length === 0 ? <div className="ae-notification-empty">目前沒有新通知</div> : notifications.slice(0, 4).map(notification => <NavDropdown.Item as="button" type="button" key={notification.id} onClick={() => markNotificationRead(notification)} className={`ae-notification-item ${notification.read_at ? "is-read" : ""}`}><FiBell /><span><strong>{notification.title}</strong><small>{notification.body}</small></span></NavDropdown.Item>)}<NavDropdown.Divider /><NavDropdown.Item as={Link} to="/student/settings#notifications" className="ae-dropdown-item"><FiBell />查看全部通知</NavDropdown.Item></NavDropdown>}
+                        {isAuthenticated && <NavDropdown id="desktop-user-menu" title={<span className="ae-user-chip"><span className="ae-user-chip-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</span><span className="ae-user-chip-name">{studentProfile?.name || displayRole}</span>{hasAiPremium && <span className="ae-ai-premium-badge" title="AI 教材加購已啟用"><FiZap aria-hidden="true" />AI PREMIUM</span>}</span>} className="ae-user-dropdown" align="end"><NavDropdown.Item as={Link} to={homePath} className="ae-dropdown-item"><FiHome />{isTeacher ? "管理首頁" : "我的帳號"}</NavDropdown.Item>{isStudent && <NavDropdown.Item as={Link} to="/student/settings" className="ae-dropdown-item"><FiSettings />我的設定</NavDropdown.Item>}<NavDropdown.Item as={Link} to="/account/security" className="ae-dropdown-item"><FiLock />帳號與密碼</NavDropdown.Item><NavDropdown.Item as={Link} to="/support" className="ae-dropdown-item"><FiHelpCircle />聯絡客服</NavDropdown.Item><NavDropdown.Item as="button" onClick={handleLogout} disabled={loggingOut} className="ae-dropdown-item"><FiLogOut />{loggingOut ? "登出中..." : "登出"}</NavDropdown.Item></NavDropdown>}
                     </Nav>
+                    {isStudent && <Link to="/student/settings#notifications" className="ae-mobile-notification" aria-label={unreadNotificationCount > 0 ? `查看通知，目前有 ${unreadNotificationCount} 則未讀` : "查看通知"}><FiBell aria-hidden="true" />{unreadNotificationCount > 0 && <b>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</b>}</Link>}
                     <button type="button" className="ae-mobile-toggle" onClick={() => setMobileOpen(true)} aria-label="開啟全部功能選單" aria-expanded={mobileOpen} aria-controls="main-navigation-drawer"><HiOutlineBars3 aria-hidden="true" /></button>
                 </Container>
             </Navbar>
@@ -194,7 +224,7 @@ function MainNavbar() {
                     {isTeacher && <section className="ae-mobile-section" data-tour="accounts"><span className="ae-mobile-section-title">管理</span><Link to={reportPath} onClick={closeMobileMenu}><FiBarChart2 /><span>每週學習報告</span></Link><Link to={leaderboardPath} onClick={closeMobileMenu}><FiTrendingUp /><span>班級排行榜</span></Link><Link to={accountManagementPath} onClick={closeMobileMenu}><FiUsers /><span>帳號管理</span></Link><Link to="/teacher/accounts/create" onClick={closeMobileMenu}><FiUsers /><span>建立單一學生</span></Link>{isAdmin && <Link to="/admin/accounts/import" onClick={closeMobileMenu}><FiUpload /><span>CSV 批次建立</span></Link>}</section>}
                     {isTeacher && <section className="ae-mobile-section"><span className="ae-mobile-section-title">音檔</span><Link to="/teacher/music/create" onClick={closeMobileMenu}><FiBookOpen /><span>建立音檔</span></Link><Link to="/teacher/music/manage" onClick={closeMobileMenu}><FiSettings /><span>管理音檔</span></Link></section>}
                     {isAdmin && <section className="ae-mobile-section"><span className="ae-mobile-section-title">系統</span><Link to="/admin/rewards" onClick={closeMobileMenu}><FiGift /><span>獎品與兌換管理</span></Link><Link to="/admin/membership" onClick={closeMobileMenu}><FiCreditCard /><span>會員與啟用碼</span></Link><Link to="/admin/support" onClick={closeMobileMenu}><FiHelpCircle /><span>客服案件</span></Link><Link to="/admin/api-usage" onClick={closeMobileMenu}><FiBarChart2 /><span>API 成本</span></Link><Link to="/admin/levels" onClick={closeMobileMenu}><FiAward /><span>等級與晉級測驗</span></Link><Link to="/admin/catalog" onClick={closeMobileMenu}><FiBookOpen /><span>教材導覽管理</span></Link><Link to="/admin/legacy-cleanup" onClick={closeMobileMenu}><FiRefreshCw /><span>Firebase 清理</span></Link></section>}
-                    <section className="ae-mobile-section ae-mobile-other"><span className="ae-mobile-section-title">其他</span><button type="button" onClick={openTour} data-tour="help"><FiHelpCircle /><span>使用教學</span></button>{isAuthenticated && <Link to="/account/security" onClick={closeMobileMenu}><FiLock /><span>帳號與密碼</span></Link>}<Link to="/support" onClick={closeMobileMenu}><FiHelpCircle /><span>聯絡客服</span></Link><Link to="/showcase" onClick={closeMobileMenu}><FiBookOpen /><span>關於 AE</span></Link></section>
+                    <section className="ae-mobile-section ae-mobile-other"><span className="ae-mobile-section-title">其他</span><button type="button" onClick={openTour} data-tour="help"><FiHelpCircle /><span>使用教學</span></button>{isStudent && <Link to="/student/settings" onClick={closeMobileMenu}><FiSettings /><span>我的設定</span></Link>}{isAuthenticated && <Link to="/account/security" onClick={closeMobileMenu}><FiLock /><span>帳號與密碼</span></Link>}<Link to="/support" onClick={closeMobileMenu}><FiHelpCircle /><span>聯絡客服</span></Link><Link to="/showcase" onClick={closeMobileMenu}><FiBookOpen /><span>關於 AE</span></Link></section>
                     {isAuthenticated && <button type="button" className="ae-mobile-logout" onClick={handleLogout} disabled={loggingOut}><FiLogOut /><span>{loggingOut ? "登出中..." : "登出"}</span></button>}
                 </Offcanvas.Body>
             </Offcanvas>

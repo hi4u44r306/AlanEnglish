@@ -43,7 +43,7 @@ function AcademyInviteSignup({ manualEntry = false }) {
     const [notice, setNotice] = useState("");
     const [claimedUser, setClaimedUser] = useState(null);
     const [lookup, setLookup] = useState({ email: "", code: "" });
-    const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", emailConfirmed: false });
+    const [form, setForm] = useState({ email: "", password: "", confirmPassword: "", dateOfBirth: "", emailConfirmed: false });
 
     useEffect(() => {
         let cancelled = false;
@@ -135,6 +135,7 @@ function AcademyInviteSignup({ manualEntry = false }) {
         if (!form.emailConfirmed) return setError("請先確認這個 Email 可以正常收信。");
         if (form.password.length < 8) return setError("密碼至少需要 8 個字元。");
         if (form.password !== form.confirmPassword) return setError("兩次輸入的密碼不一致。");
+        if (!form.dateOfBirth) return setError("請填寫出生年月日。");
 
         setSubmitting(true);
         let createdUser = null;
@@ -143,7 +144,7 @@ function AcademyInviteSignup({ manualEntry = false }) {
             await setPersistence(authentication, browserLocalPersistence);
             const credential = await createUserWithEmailAndPassword(authentication, email, form.password);
             createdUser = credential.user;
-            await claimAcademyInvitation(createdUser, token);
+            await claimAcademyInvitation(createdUser, token, form.dateOfBirth);
             claimed = true;
             setClaimedUser(createdUser);
             await sendVerification(createdUser);
@@ -237,12 +238,18 @@ function AcademyInviteSignup({ manualEntry = false }) {
                 <span className="platform-eyebrow">ACADEMY INVITATION</span>
                 <h1>設定你的英文班帳號</h1>
                 <p>{invitation.chinese_name}，你受邀加入 {invitation.class_code} 班。請自行設定密碼，櫃檯與老師都看不到你的密碼。</p>
+                <div className="platform-student-preview" aria-label="學生基本資料預覽">
+                    <span>基本資料預覽</span>
+                    <strong>{invitation.chinese_name}{invitation.english_name ? ` · ${invitation.english_name}` : ""}</strong>
+                    <small>{invitation.class_code} 班 · Lv.1 · 0 XP · 0 AE Points · AI Premium 尚未啟用</small>
+                </div>
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>登入與收信 Email</span><input type="email" value={form.email} readOnly autoComplete="email" /><small>{RECEIVABLE_EMAIL_HELP}</small></label>
                     <div className="platform-form-grid">
                         <label><span>設定密碼</span><input type="password" value={form.password} onChange={event => setForm(current => ({ ...current, password: event.target.value }))} minLength="8" autoComplete="new-password" required /></label>
                         <label><span>再次輸入密碼</span><input type="password" value={form.confirmPassword} onChange={event => setForm(current => ({ ...current, confirmPassword: event.target.value }))} minLength="8" autoComplete="new-password" required /></label>
                     </div>
+                    <label><span>出生年月日</span><input aria-label="出生年月日" type="date" value={form.dateOfBirth} onChange={event => setForm(current => ({ ...current, dateOfBirth: event.target.value }))} max={new Date().toISOString().slice(0, 10)} required /><small>僅供帳號基本資料與日後生日獎勵使用，不會出現在排行榜。</small></label>
                     <label className="platform-check"><input type="checkbox" checked={form.emailConfirmed} onChange={event => setForm(current => ({ ...current, emailConfirmed: event.target.checked }))} required /><span>我確認可以登入這個信箱並收取驗證信與密碼重設信。</span></label>
                     {error && <div className="platform-form-error" role="alert"><strong>無法完成註冊</strong><span>{error}</span></div>}
                     <button className="platform-primary platform-wide" type="submit" disabled={submitting}>{submitting ? "建立帳號中…" : "設定密碼並寄送驗證信"}</button>

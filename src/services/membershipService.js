@@ -5,6 +5,11 @@ const callMembership = (firebaseUser, action, payload = {}) => (
 );
 
 export const getMembershipProfile = firebaseUser => callMembership(firebaseUser, "profile");
+export const updateStudentProfile = (firebaseUser, payload) => callMembership(firebaseUser, "update_student_profile", payload);
+export const getStudentNotifications = firebaseUser => callMembership(firebaseUser, "notifications");
+export const markStudentNotificationRead = (firebaseUser, notificationId) => (
+    callMembership(firebaseUser, "mark_notification_read", { notification_id: notificationId })
+);
 export const completePublicSignup = (firebaseUser, payload) => callMembership(firebaseUser, "complete_signup", payload);
 export const getPublicPlans = firebaseUser => callMembership(firebaseUser, "plans");
 export const redeemActivationCode = (firebaseUser, code) => callMembership(firebaseUser, "redeem_code", { code });

@@ -200,10 +200,11 @@ export const previewAcademyInvitation = async (token, accountEmail = "") => call
 
 export const claimAcademyInvitation = async (
     firebaseUser,
-    token
+    token,
+    dateOfBirth = null
 ) => callAcademyStudentManager(
     firebaseUser,
-    { action: "claim_invitation", token }
+    { action: "claim_invitation", token, date_of_birth: dateOfBirth }
 );
 
 export const activateAcademyInvitation = async (

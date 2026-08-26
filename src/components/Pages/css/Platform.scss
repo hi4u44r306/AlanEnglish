@@ -49,6 +49,19 @@
 .platform-center-left { text-align: left; }
 .platform-icon { font-size: 52px; margin-bottom: 14px; }
 
+.platform-student-preview {
+    display: grid;
+    gap: 5px;
+    margin: 20px 0;
+    padding: 16px 18px;
+    border: 1px solid #dce5fb;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f5f8ff, #fffaf0);
+}
+.platform-student-preview > span { color: #526586; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+.platform-student-preview > strong { color: #172b54; font-size: 18px; }
+.platform-student-preview > small { color: #68758c; line-height: 1.6; }
+
 .platform-eyebrow {
     display: block;
     color: var(--ae-primary-dark);
