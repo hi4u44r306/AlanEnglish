@@ -158,6 +158,7 @@ Deno.serve(async (req: Request) => {
 
     const eventId = cleanText(event?.id, 300);
     const eventType = cleanText(event?.type, 200);
+    const eventLivemode = event?.livemode === true;
     if (!eventId || !eventType) return json(400, { error: "Invalid Stripe event" });
 
     const admin = createClient(supabaseUrl, serviceRoleKey, {
@@ -169,7 +170,7 @@ Deno.serve(async (req: Request) => {
         .insert({
             stripe_event_id: eventId,
             event_type: eventType,
-            livemode: event?.livemode === true,
+            livemode: eventLivemode,
             payload: event,
             status: "received"
         })
@@ -199,7 +200,7 @@ Deno.serve(async (req: Request) => {
                 .from("payment_events")
                 .update({
                     event_type: eventType,
-                    livemode: event?.livemode === true,
+                    livemode: eventLivemode,
                     payload: event,
                     status: "received",
                     error_message: null,
@@ -273,6 +274,7 @@ Deno.serve(async (req: Request) => {
                         .update({
                             stripe_customer_id: customerId,
                             stripe_checkout_session_id: cleanText(object.id, 300),
+                            stripe_livemode: eventLivemode,
                             updated_at: new Date().toISOString()
                         })
                         .eq("id", existingGrant.id)
@@ -288,6 +290,7 @@ Deno.serve(async (req: Request) => {
                             stripe_subscription_id: subscriptionId,
                             stripe_checkout_session_id: cleanText(object.id, 300),
                             stripe_subscription_status: cleanText(object.payment_status || object.status, 60),
+                            stripe_livemode: eventLivemode,
                             metadata: {
                                 plan_code: addonPlan.code,
                                 grant_mode: "additive",
@@ -303,7 +306,11 @@ Deno.serve(async (req: Request) => {
                 if (customerId) {
                     const { error: customerSaveError } = await admin
                         .from("memberships")
-                        .update({ stripe_customer_id: customerId, updated_at: new Date().toISOString() })
+                        .update({
+                            stripe_customer_id: customerId,
+                            stripe_livemode: eventLivemode,
+                            updated_at: new Date().toISOString()
+                        })
                         .eq("id", membership.id);
                     if (customerSaveError) throw customerSaveError;
                 }
@@ -318,6 +325,7 @@ Deno.serve(async (req: Request) => {
                         stripe_customer_id: customerId,
                         stripe_subscription_id: subscriptionId,
                         stripe_subscription_status: checkoutMembershipStatus,
+                        stripe_livemode: eventLivemode,
                         updated_at: new Date().toISOString()
                     })
                     .eq("id", membership.id);
@@ -379,6 +387,7 @@ Deno.serve(async (req: Request) => {
                         stripe_customer_id: customerId || null,
                         stripe_subscription_id: subscriptionId,
                         stripe_subscription_status: stripeStatus,
+                        stripe_livemode: eventLivemode,
                         current_period_end: currentPeriodEnd,
                         cancel_at_period_end: Boolean(object.cancel_at_period_end),
                         metadata: {
@@ -424,6 +433,7 @@ Deno.serve(async (req: Request) => {
                         source: "stripe",
                         stripe_subscription_id: subscriptionId,
                         stripe_subscription_status: stripeStatus,
+                        stripe_livemode: eventLivemode,
                         current_period_end: currentPeriodEnd,
                         access_ends_at: currentPeriodEnd || membership.access_ends_at,
                         cancel_at_period_end: Boolean(object.cancel_at_period_end),
@@ -485,6 +495,7 @@ Deno.serve(async (req: Request) => {
                         stripe_customer_id: customerId || null,
                         stripe_subscription_id: subscriptionId,
                         stripe_subscription_status: paid ? "active" : "past_due",
+                        stripe_livemode: eventLivemode,
                         current_period_end: periodEnd,
                         last_payment_at: paid ? new Date().toISOString() : null,
                         metadata: {
@@ -508,6 +519,7 @@ Deno.serve(async (req: Request) => {
                     status: paid ? "active" : "paused",
                     stripe_customer_id: customerId || null,
                     stripe_subscription_status: paid ? "active" : "past_due",
+                    stripe_livemode: eventLivemode,
                     updated_at: new Date().toISOString()
                 };
                 if (paid) grantUpdates.last_payment_at = new Date().toISOString();
@@ -566,6 +578,7 @@ Deno.serve(async (req: Request) => {
                     const membershipUpdates: Record<string, unknown> = {
                         status: paid ? "active" : "past_due",
                         source: "stripe",
+                        stripe_livemode: eventLivemode,
                         updated_at: new Date().toISOString()
                     };
                     if (paid) membershipUpdates.last_payment_at = new Date().toISOString();

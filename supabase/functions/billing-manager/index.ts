@@ -43,6 +43,12 @@ const stripeId = (value: unknown) => {
     return "";
 };
 
+const stripeLivemodeValue = (value: unknown): boolean | null => {
+    if (value === true) return true;
+    if (value === false) return false;
+    return null;
+};
+
 const toIsoFromSeconds = (value: unknown) => {
     const seconds = Number(value);
     return Number.isFinite(seconds) && seconds > 0
@@ -296,7 +302,11 @@ Deno.serve(async (req: Request) => {
                 customerId = customer.id;
                 const { error: customerSaveError } = await admin
                     .from("memberships")
-                    .update({ stripe_customer_id: customerId, updated_at: new Date().toISOString() })
+                    .update({
+                        stripe_customer_id: customerId,
+                        stripe_livemode: stripeLivemodeValue(customer.livemode),
+                        updated_at: new Date().toISOString()
+                    })
                     .eq("id", membership.id);
                 if (customerSaveError) throw customerSaveError;
             }
@@ -356,12 +366,14 @@ Deno.serve(async (req: Request) => {
             let sessionPlanId: number | null = null;
             let sessionCustomerId = "";
             let sessionGrantMode = "";
+            let sessionLivemode: boolean | null = null;
 
             if (checkoutSessionId) {
                 if (!/^cs_[A-Za-z0-9_]+$/.test(checkoutSessionId)) {
                     return json(400, { error: "付款工作階段編號格式不正確" });
                 }
                 const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+                sessionLivemode = stripeLivemodeValue(session?.livemode);
                 const sessionStudentId = positiveInteger(
                     session?.client_reference_id || session?.metadata?.student_id
                 );
@@ -410,6 +422,8 @@ Deno.serve(async (req: Request) => {
                 return json(200, { success: true, synced: false, message: "尚無 Stripe 訂閱" });
             }
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const subscriptionLivemode = stripeLivemodeValue(subscription?.livemode);
+            const verifiedLivemode = subscriptionLivemode ?? sessionLivemode;
             const stripeStatus = cleanText(subscription.status, 40);
             const subscriptionPlanId = positiveInteger(subscription?.metadata?.plan_id) || sessionPlanId;
             const grantMode = cleanText(subscription?.metadata?.grant_mode, 40) || sessionGrantMode;
@@ -456,6 +470,7 @@ Deno.serve(async (req: Request) => {
                         stripe_subscription_id: subscriptionId,
                         stripe_checkout_session_id: checkoutSessionId || null,
                         stripe_subscription_status: stripeStatus,
+                        stripe_livemode: verifiedLivemode,
                         current_period_end: currentPeriodEnd,
                         cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
                         metadata: {
@@ -492,6 +507,7 @@ Deno.serve(async (req: Request) => {
                 stripe_customer_id: subscriptionCustomerId || sessionCustomerId || membership.stripe_customer_id,
                 stripe_subscription_id: subscriptionId,
                 stripe_subscription_status: stripeStatus,
+                stripe_livemode: verifiedLivemode,
                 current_period_end: currentPeriodEnd,
                 access_ends_at: currentPeriodEnd || membership.access_ends_at,
                 cancel_at_period_end: Boolean(subscription.cancel_at_period_end),

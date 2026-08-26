@@ -341,22 +341,29 @@ function AccountManagement() {
 
     const openInvitationDelete = invitation => {
         if (!isAdmin || invitation.claimed_by_student_id) return;
+        const email = String(invitation.invited_email || "").toLowerCase();
         setDeleteTarget({
             type: "invitation",
             id: invitation.id,
-            email: String(invitation.invited_email || "").toLowerCase(),
+            identifier: email,
+            identifierLabel: "Email",
+            email,
             name: invitation.chinese_name || invitation.invited_email || "待開通學生"
         });
         setDeleteConfirmation("");
     };
 
     const openAccountDelete = account => {
-        if (!isAdmin || account?.role !== "student" || !account?.email) return;
+        const usesUsername = account?.authentication_method === "academy_username";
+        const identifier = usesUsername ? account?.login_username : account?.email;
+        if (!isAdmin || account?.role !== "student" || !identifier) return;
         setDeleteTarget({
             type: "account",
             id: account.id,
-            email: String(account.email).toLowerCase(),
-            name: account.name || account.email || "學生帳號"
+            identifier: String(identifier).toLowerCase(),
+            identifierLabel: usesUsername ? "登入名稱" : "Email",
+            email: String(account.email || "").toLowerCase(),
+            name: account.name || identifier || "學生帳號"
         });
         setDeleteConfirmation("");
     };
@@ -371,8 +378,8 @@ function AccountManagement() {
         event.preventDefault();
         if (!firebaseUser || !deleteTarget) return;
         const normalizedConfirmation = deleteConfirmation.trim().toLowerCase();
-        if (normalizedConfirmation !== deleteTarget.email) {
-            toast.error("請輸入完整 Email 確認永久刪除");
+        if (normalizedConfirmation !== deleteTarget.identifier) {
+            toast.error(`請輸入完整${deleteTarget.identifierLabel}確認永久刪除`);
             return;
         }
 
@@ -646,7 +653,7 @@ function AccountManagement() {
                                                                     : account.account_status === "archived" ? "恢復" : "停用"}
                                                             </button>
                                                         )}
-                                                        {isAdmin && account.role === "student" && account.email && (
+                                                        {isAdmin && account.role === "student" && (account.email || account.login_username) && (
                                                             <button
                                                                 type="button"
                                                                 className="management-delete-button"
@@ -844,21 +851,21 @@ function AccountManagement() {
                         </h2>
                         <p>
                             {deleteTarget.type === "account"
-                                ? "這會永久刪除 Firebase 登入帳號，以及相關的測試、學習、作業、AI 與獎勵紀錄，無法復原。若有付款、教材購買或啟用碼兌換紀錄，系統會拒絕刪除。"
+                                ? "這會永久刪除 Firebase 登入帳號，以及相關的測試、學習、作業、AI 與獎勵紀錄，無法復原。Stripe 測試模式付款可一併清理；正式、無法確認模式的付款、教材購買或啟用碼兌換紀錄會拒絕刪除。"
                                 : "這會永久移除尚未被領取、且尚未建立學生帳號的邀請。"}
                         </p>
                         <div className="management-delete-target">
                             <strong>{deleteTarget.name}</strong>
-                            <span>{deleteTarget.email}</span>
+                            <span>{deleteTarget.identifier}</span>
                         </div>
                         <form onSubmit={confirmPermanentDelete}>
                             <label>
-                                <span>輸入完整 Email 確認</span>
+                                <span>{`輸入完整 ${deleteTarget.identifierLabel} 確認`}</span>
                                 <input
-                                    type="email"
+                                    type={deleteTarget.identifierLabel === "Email" ? "email" : "text"}
                                     value={deleteConfirmation}
                                     onChange={event => setDeleteConfirmation(event.target.value)}
-                                    placeholder={deleteTarget.email}
+                                    placeholder={deleteTarget.identifier}
                                     autoFocus
                                     disabled={deleting}
                                 />
@@ -867,7 +874,7 @@ function AccountManagement() {
                                 <button type="button" onClick={closeDeleteDialog} disabled={deleting}>取消</button>
                                 <button
                                     type="submit"
-                                    disabled={deleting || deleteConfirmation.trim().toLowerCase() !== deleteTarget.email}
+                                    disabled={deleting || deleteConfirmation.trim().toLowerCase() !== deleteTarget.identifier}
                                 >
                                     {deleting
                                         ? "刪除中…"

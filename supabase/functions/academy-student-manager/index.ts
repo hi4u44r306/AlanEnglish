@@ -329,6 +329,90 @@ const deleteFirebaseAccountByUid = async (firebaseUid: string): Promise<void> =>
     }
 };
 
+const stripeTestIds = (value: unknown, prefix: "cus" | "sub"): string[] => {
+    if (!Array.isArray(value)) return [];
+    const pattern = prefix === "cus" ? /^cus_[A-Za-z0-9_]+$/ : /^sub_[A-Za-z0-9_]+$/;
+    return Array.from(new Set(
+        value
+            .map(item => cleanText(item, 300))
+            .filter(item => pattern.test(item))
+    ));
+};
+
+const stripeTestRequest = async (
+    secretKey: string,
+    method: "GET" | "DELETE",
+    path: string
+): Promise<JsonObject | null> => {
+    const response = await fetch(`https://api.stripe.com/v1/${path}`, {
+        method,
+        headers: { Authorization: `Bearer ${secretKey}` }
+    });
+    const payload = await response.json().catch(() => ({})) as JsonObject;
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`stripe_test_cleanup_${response.status}`);
+    return payload;
+};
+
+const cleanupStripeTestBilling = async (eligibility: {
+    test_stripe_customer_ids?: string[];
+    test_stripe_subscription_ids?: string[];
+}): Promise<void> => {
+    const customerIds = stripeTestIds(eligibility.test_stripe_customer_ids, "cus");
+    const subscriptionIds = stripeTestIds(eligibility.test_stripe_subscription_ids, "sub");
+    if (customerIds.length === 0 && subscriptionIds.length === 0) return;
+
+    const secretKey = cleanText(Deno.env.get("STRIPE_SECRET_KEY"), 500);
+    if (!secretKey.startsWith("sk_test_")) {
+        throw new HttpError(
+            409,
+            "STRIPE_TEST_CLEANUP_UNAVAILABLE",
+            "此帳號含有 Stripe 測試訂閱，但目前無法安全清理；帳號尚未刪除"
+        );
+    }
+
+    try {
+        for (const subscriptionId of subscriptionIds) {
+            const subscription = await stripeTestRequest(
+                secretKey,
+                "GET",
+                `subscriptions/${encodeURIComponent(subscriptionId)}`
+            );
+            if (!subscription) continue;
+            if (subscription.livemode !== false) throw new Error("stripe_subscription_not_test_mode");
+            await stripeTestRequest(
+                secretKey,
+                "DELETE",
+                `subscriptions/${encodeURIComponent(subscriptionId)}`
+            );
+        }
+
+        for (const customerId of customerIds) {
+            const customer = await stripeTestRequest(
+                secretKey,
+                "GET",
+                `customers/${encodeURIComponent(customerId)}`
+            );
+            if (!customer || customer.deleted === true) continue;
+            if (customer.livemode !== false) throw new Error("stripe_customer_not_test_mode");
+            await stripeTestRequest(
+                secretKey,
+                "DELETE",
+                `customers/${encodeURIComponent(customerId)}`
+            );
+        }
+    } catch (error) {
+        console.error("Stripe test cleanup failed", {
+            code: error instanceof Error ? cleanText(error.message, 120) : "unknown"
+        });
+        throw new HttpError(
+            409,
+            "STRIPE_TEST_CLEANUP_FAILED",
+            "Stripe 測試訂閱清理失敗，帳號尚未刪除，請稍後再試"
+        );
+    }
+};
+
 const updateFirebasePasswordByUid = async (
     firebaseUid: string,
     password: string
@@ -926,7 +1010,10 @@ const deleteStudentAccount = async (
 ): Promise<Response> => {
     requireAdmin(caller);
     const studentId = Number(body.student_id);
-    const confirmationEmail = normalizeEmail(body.confirmation_email);
+    const confirmationIdentifier = cleanText(
+        body.confirmation_identifier ?? body.confirmation_email,
+        320
+    ).toLowerCase();
     if (!Number.isSafeInteger(studentId) || studentId <= 0) {
         throw new HttpError(400, "STUDENT_ID_REQUIRED", "缺少要刪除的學生帳號編號");
     }
@@ -951,13 +1038,25 @@ const deleteStudentAccount = async (
 
     const eligibility = (eligibilityData || {}) as {
         email?: string;
+        login_username?: string;
+        authentication_method?: string;
         firebase_uid?: string;
         can_delete?: boolean;
         blockers?: string[];
+        has_test_payment_history?: boolean;
+        test_stripe_customer_ids?: string[];
+        test_stripe_subscription_ids?: string[];
     };
-    const targetEmail = normalizeEmail(eligibility.email);
-    if (!targetEmail || confirmationEmail !== targetEmail) {
-        throw new HttpError(400, "CONFIRMATION_EMAIL_MISMATCH", "請輸入完整 Email 確認永久刪除");
+    const usesUsername = eligibility.authentication_method === "academy_username";
+    const targetIdentifier = usesUsername
+        ? normalizeLoginUsername(eligibility.login_username)
+        : normalizeEmail(eligibility.email);
+    if (!targetIdentifier || confirmationIdentifier !== targetIdentifier) {
+        throw new HttpError(
+            400,
+            "CONFIRMATION_IDENTIFIER_MISMATCH",
+            usesUsername ? "請輸入完整登入名稱確認永久刪除" : "請輸入完整 Email 確認永久刪除"
+        );
     }
 
     if (!eligibility.can_delete) {
@@ -971,6 +1070,7 @@ const deleteStudentAccount = async (
         );
     }
 
+    await cleanupStripeTestBilling(eligibility);
     await deleteFirebaseAccountByUid(cleanText(eligibility.firebase_uid, 200));
 
     const { data: deleted, error: deleteError } = await admin.rpc(

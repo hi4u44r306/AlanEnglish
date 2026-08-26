@@ -76,7 +76,7 @@ describe("academyStudentService CSV contracts", () => {
         expect(body.rows[0]).not.toHaveProperty("role");
     });
 
-    test("永久刪除學生帳號需傳入學生 ID 與完整 Email 確認", async () => {
+    test("永久刪除學生帳號需傳入學生 ID 與完整帳號識別碼確認", async () => {
         await deleteAcademyStudentAccount(
             firebaseUser,
             67,
@@ -86,7 +86,7 @@ describe("academyStudentService CSV contracts", () => {
         expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
             action: "delete_student_account",
             student_id: 67,
-            confirmation_email: "student@gmail.com"
+            confirmation_identifier: "student@gmail.com"
         });
     });
 

@@ -277,13 +277,13 @@ export const listAcademyInvitations = async firebaseUser => {
 export const deleteAcademyStudentAccount = async (
     firebaseUser,
     studentId,
-    confirmationEmail
+    confirmationIdentifier
 ) => callAcademyStudentManager(
     firebaseUser,
     {
         action: "delete_student_account",
         student_id: Number(studentId),
-        confirmation_email: String(confirmationEmail || "").trim().toLowerCase()
+        confirmation_identifier: String(confirmationIdentifier || "").trim().toLowerCase()
     }
 );
 

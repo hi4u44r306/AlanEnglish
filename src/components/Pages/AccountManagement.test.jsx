@@ -184,18 +184,19 @@ describe("AccountManagement", () => {
         expect(await screen.findByText("使用中")).toBeInTheDocument();
     });
 
-    test("allows an admin to permanently delete a student after entering the full Email", async () => {
+    test("allows an admin to permanently delete an academy student after entering the full username", async () => {
         renderPage();
 
         expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "永久刪除" }));
         expect(screen.getByText("永久刪除學生帳號")).toBeInTheDocument();
-        expect(screen.getByText(/有付款、教材購買或啟用碼兌換紀錄/)).toBeInTheDocument();
+        expect(screen.getByText(/Stripe 測試模式付款可一併清理/)).toBeInTheDocument();
+        expect(screen.getByText(/正式、無法確認模式的付款/)).toBeInTheDocument();
 
         const confirmButton = screen.getByRole("button", { name: "確認永久刪除帳號" });
         expect(confirmButton).toBeDisabled();
-        fireEvent.change(screen.getByLabelText("輸入完整 Email 確認"), {
-            target: { value: "student@gmail.com" }
+        fireEvent.change(screen.getByLabelText("輸入完整 登入名稱 確認"), {
+            target: { value: "e3teststudent" }
         });
         fireEvent.click(confirmButton);
 
@@ -203,7 +204,7 @@ describe("AccountManagement", () => {
             expect(deleteAcademyStudentAccount).toHaveBeenCalledWith(
                 firebaseUser,
                 academyStudent.id,
-                "student@gmail.com"
+                "e3teststudent"
             );
         });
         await waitFor(() => {
