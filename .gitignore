@@ -33,3 +33,6 @@ src/del.json
 
 # Supabase CLI local metadata
 /supabase/.temp/
+
+# Netlify CLI local metadata
+/.netlify/
