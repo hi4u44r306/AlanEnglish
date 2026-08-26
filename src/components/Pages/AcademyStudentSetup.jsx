@@ -18,7 +18,7 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [form, setForm] = useState({ username: "", recoveryCode: "", password: "", confirmPassword: "" });
+    const [form, setForm] = useState({ username: "", chineseName: "", englishName: "", recoveryCode: "", password: "", confirmPassword: "" });
 
     useEffect(() => {
         if (recoveryOnly) return;
@@ -32,7 +32,12 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
             .then(result => {
                 if (!active) return;
                 setPreview(result);
-                setForm(current => ({ ...current, username: result?.student?.username || "" }));
+                setForm(current => ({
+                    ...current,
+                    username: result?.student?.username || "",
+                    chineseName: result?.student?.chinese_name || result?.student?.name || "",
+                    englishName: result?.student?.english_name || ""
+                }));
             })
             .catch(requestError => {
                 if (active) setError(requestError?.message || "啟用連結無法使用");
@@ -51,13 +56,16 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
 
     const submit = async event => {
         event.preventDefault();
+        if (!recoveryOnly && !form.chineseName.trim()) return setError("請輸入學生中文姓名");
+        if (!recoveryOnly && !form.englishName.trim()) return setError("請輸入學生英文姓名");
+        if (!recoveryOnly && !/^[A-Za-z][A-Za-z .'-]*$/.test(form.englishName.trim())) return setError("英文姓名請使用英文字母，可包含空格、句點、撇號或連字號");
         if (form.password.length < 6) return setError("密碼至少需要 6 個字元");
         if (form.password !== form.confirmPassword) return setError("兩次輸入的密碼不一致");
         setSubmitting(true);
         try {
             const result = recoveryOnly
                 ? await recoverStudentLogin(form.username, form.recoveryCode, form.password)
-                : await activateStudentLogin(token, form.password);
+                : await activateStudentLogin(token, form.password, { chineseName: form.chineseName, englishName: form.englishName });
             navigate(`/login?activated=1&username=${encodeURIComponent(result.username || form.username)}`, { replace: true });
         } catch (requestError) {
             setError(requestError?.message || "目前無法設定登入密碼");
@@ -85,6 +93,10 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
                         <span>一次性復原碼</span>
                         <input name="recoveryCode" value={form.recoveryCode} onChange={update} placeholder="AE-XXXX-XXXX-XXXX" autoCapitalize="characters" autoComplete="off" required />
                     </label>}
+                    {!recoveryOnly && <div className="platform-form-grid">
+                        <label><span>中文姓名</span><input name="chineseName" value={form.chineseName} onChange={update} maxLength="100" autoComplete="name" required /></label>
+                        <label><span>英文姓名</span><input name="englishName" value={form.englishName} onChange={update} maxLength="100" autoCapitalize="words" autoComplete="off" pattern="^[A-Za-z][A-Za-z .'-]*$" required /></label>
+                    </div>}
                     <div className="platform-form-grid">
                         <label><span>新的登入密碼</span><input name="password" type={showPassword ? "text" : "password"} inputMode="text" minLength="6" value={form.password} onChange={update} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="new-password" required /></label>
                         <label><span>再輸入一次</span><input name="confirmPassword" type={showPassword ? "text" : "password"} inputMode="text" minLength="6" value={form.confirmPassword} onChange={update} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="new-password" required /></label>

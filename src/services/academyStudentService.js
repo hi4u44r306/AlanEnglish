@@ -293,12 +293,14 @@ export const previewStudentActivation = async token => callAcademyStudentManager
     { allowAnonymous: true }
 );
 
-export const activateStudentLogin = async (token, password) => callAcademyStudentManager(
+export const activateStudentLogin = async (token, password, { chineseName, englishName } = {}) => callAcademyStudentManager(
     null,
     {
         action: "activate_student_login",
         token: String(token || "").trim(),
-        password: String(password || "")
+        password: String(password || ""),
+        chinese_name: String(chineseName || "").trim(),
+        english_name: String(englishName || "").trim()
     },
     { allowAnonymous: true }
 );

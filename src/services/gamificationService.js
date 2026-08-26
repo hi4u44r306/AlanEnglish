@@ -11,6 +11,7 @@ const callGamification = (firebaseUser, action, payload = {}) => (
 );
 
 export const getGamificationSummary = firebaseUser => callGamification(firebaseUser, "summary");
+export const selectStudentAvatarPreset = (firebaseUser, avatarPath) => callGamification(firebaseUser, "select_avatar_preset", { avatar_path: avatarPath });
 export const getGamificationClasses = firebaseUser => callGamification(firebaseUser, "classes");
 export const getGamificationLeaderboard = (firebaseUser, period = "week", classCode = null) => (
     callGamification(firebaseUser, "leaderboard", { period, class_code: classCode })

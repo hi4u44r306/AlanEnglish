@@ -3,6 +3,7 @@ import { FiGift, FiRefreshCw, FiSettings, FiStar, FiTrendingUp } from "react-ico
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
+import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import {
     getGamificationClasses,
     getGamificationLeaderboard,
@@ -105,7 +106,7 @@ function LearningLeaderboard() {
                 <section className="gamification-me-card">
                     <div className="gamification-avatar-wrap">
                         {summary.profile?.avatar_url
-                            ? <img className="gamification-avatar gamification-avatar--large" src={summary.profile.avatar_url} alt={`${summary.profile?.name || "學生"} 的排行榜照片`} />
+                            ? <img className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(summary.profile.avatar_url, 240)} alt={`${summary.profile?.name || "學生"} 的排行榜照片`} />
                             : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback">{getInitial(summary.profile?.name)}</div>}
                     </div>
                     <div className="gamification-me-card__identity">
@@ -154,7 +155,7 @@ function LearningLeaderboard() {
                                     <div className="gamification-rank">{medal}</div>
                                     <div className="gamification-row-avatar">
                                         {row.avatar_url
-                                            ? <img className="gamification-avatar" src={row.avatar_url} alt="" />
+                                            ? <img className="gamification-avatar" src={getStudentAvatarDisplayUrl(row.avatar_url, 128)} alt="" />
                                             : <div className="gamification-avatar gamification-avatar--fallback">{getInitial(row.student_name)}</div>}
                                     </div>
                                     <div className="gamification-student-copy">

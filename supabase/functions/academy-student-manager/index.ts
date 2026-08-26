@@ -470,7 +470,7 @@ const normalizeStudentInput = (
     options: { requireReceivableEmail?: boolean } = {}
 ): StudentInput => {
     const chineseName = cleanText(body.chinese_name, 100);
-    const englishName = optionalText(body.english_name, 100);
+    const englishName = cleanText(body.english_name, 100);
     const requestedUsername = normalizeLoginUsername(body.login_username ?? body.username);
     const loginUsername = options.requireReceivableEmail
         ? null
@@ -500,6 +500,14 @@ const normalizeStudentInput = (
 
     if (!chineseName) {
         throw new HttpError(400, "CHINESE_NAME_REQUIRED", "請輸入學生中文姓名");
+    }
+
+    if (!englishName) {
+        throw new HttpError(400, "ENGLISH_NAME_REQUIRED", "請輸入學生英文姓名");
+    }
+
+    if (!/^[A-Za-z][A-Za-z .'-]*$/.test(englishName)) {
+        throw new HttpError(400, "INVALID_ENGLISH_NAME", "英文姓名請使用英文字母，可包含空格、句點、撇號或連字號");
     }
 
     if (!CLASS_CODES.has(classCode)) {
@@ -1643,7 +1651,7 @@ const getActivationRecord = async (
     const tokenHash = await hashInvitationToken(token);
     const { data, error } = await admin
         .from("academy_student_activation_tokens")
-        .select("id,student_id,expires_at,used_at,revoked_at,students!inner(id,name,firebase_uid,login_username,authentication_method,account_status)")
+        .select("id,student_id,expires_at,used_at,revoked_at,students!academy_student_activation_tokens_student_id_fkey!inner(id,name,chinese_name,english_name,firebase_uid,login_username,authentication_method,account_status)")
         .eq("token_hash", tokenHash)
         .maybeSingle();
     if (error) throw new HttpError(500, "ACTIVATION_LOOKUP_FAILED", "目前無法確認啟用資料");
@@ -1675,6 +1683,8 @@ const previewStudentActivation = async (
         success: true,
         student: {
             name: record.student.name,
+            chinese_name: record.student.chinese_name || record.student.name,
+            english_name: record.student.english_name,
             username: record.student.login_username
         },
         expires_at: record.expires_at
@@ -1689,6 +1699,13 @@ const activateStudentLogin = async (
     const token = cleanText(body.token, 200);
     if (!token) throw new HttpError(400, "ACTIVATION_TOKEN_REQUIRED", "啟用連結不完整");
     const password = validateStudentPassword(body.password ?? body.pin);
+    const chineseName = cleanText(body.chinese_name, 100);
+    const englishName = cleanText(body.english_name, 100);
+    if (!chineseName) throw new HttpError(400, "CHINESE_NAME_REQUIRED", "請輸入學生中文姓名");
+    if (!englishName) throw new HttpError(400, "ENGLISH_NAME_REQUIRED", "請輸入學生英文姓名");
+    if (!/^[A-Za-z][A-Za-z .'-]*$/.test(englishName)) {
+        throw new HttpError(400, "INVALID_ENGLISH_NAME", "英文姓名請使用英文字母，可包含空格、句點、撇號或連字號");
+    }
     const record = await getActivationRecord(admin, token);
 
     await updateFirebasePasswordByUid(record.student.firebase_uid, password);
@@ -1703,6 +1720,9 @@ const activateStudentLogin = async (
         admin
             .from("students")
             .update({
+                name: chineseName,
+                chinese_name: chineseName,
+                english_name: englishName,
                 must_change_password: false,
                 password_changed_at: now,
                 activated_at: now,
@@ -1739,7 +1759,7 @@ const recoverStudentLogin = async (
     const codeHash = await hashInvitationToken(recoveryCode);
     const { data, error } = await admin
         .from("academy_student_recovery_codes")
-        .select("id,student_id,used_at,revoked_at,students!inner(id,firebase_uid,login_username,authentication_method,account_status)")
+        .select("id,student_id,used_at,revoked_at,students!academy_student_recovery_codes_student_id_fkey!inner(id,firebase_uid,login_username,authentication_method,account_status)")
         .eq("code_hash", codeHash)
         .maybeSingle();
     const student = Array.isArray(data?.students) ? data.students[0] : data?.students;

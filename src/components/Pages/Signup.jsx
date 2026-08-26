@@ -173,6 +173,14 @@ function Signup() {
             return "請輸入學生中文姓名";
         }
 
+        if (!form.englishName.trim()) {
+            return "請輸入學生英文姓名";
+        }
+
+        if (!/^[A-Za-z][A-Za-z .'-]*$/.test(form.englishName.trim())) {
+            return "英文姓名請使用英文字母，可包含空格、句點、撇號或連字號";
+        }
+
         if (form.loginUsername && !/^[a-z][a-z0-9]{4,31}$/.test(form.loginUsername.trim().toLowerCase())) {
             return "登入帳號需為 5～32 個小寫英文字母或數字，且第一個字必須是英文字母";
         }
@@ -444,7 +452,7 @@ function Signup() {
                                 <div>
                                     <h2>學生基本資料</h2>
                                     <p>
-                                        中文姓名與班級為必填；登入帳號可由系統自動產生。
+                                        中文姓名、英文姓名與班級為必填；登入帳號可由系統自動產生。
                                     </p>
                                 </div>
                             </div>
@@ -469,7 +477,7 @@ function Signup() {
                                 </label>
 
                                 <label className="academy-account-field">
-                                    <span>英文姓名</span>
+                                    <span>英文姓名<em>*</em></span>
 
                                     <input
                                         type="text"
@@ -479,6 +487,8 @@ function Signup() {
                                         maxLength={100}
                                         autoComplete="off"
                                         placeholder="例如：David"
+                                        pattern="^[A-Za-z][A-Za-z .'-]*$"
+                                        required
                                     />
                                 </label>
 

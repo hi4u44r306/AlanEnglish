@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import StudentSettings from "./StudentSettings";
 import { useAuth } from "../../auth/AuthContext";
-import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, uploadGamificationImage } from "../../services/gamificationService";
+import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import { updateStudentProfile } from "../../services/membershipService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
@@ -11,6 +11,7 @@ jest.mock("../../services/gamificationService", () => ({
     getGamificationSummary: jest.fn(),
     createSquareAvatarImage: jest.fn(),
     prepareAvatarImage: jest.fn(),
+    selectStudentAvatarPreset: jest.fn(),
     uploadGamificationImage: jest.fn()
 }));
 jest.mock("../../services/membershipService", () => ({
@@ -67,13 +68,32 @@ describe("StudentSettings", () => {
         expect(screen.getByText("390 XP")).toBeInTheDocument();
         expect(screen.getByText("AI PREMIUM 已啟用")).toBeInTheDocument();
 
-        fireEvent.change(screen.getByLabelText("出生年月日"), { target: { value: "2015-06-01" } });
+        expect(screen.queryByDisplayValue("2015-05-12")).not.toBeInTheDocument();
+        fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
+        fireEvent.change(screen.getByLabelText("出生日"), { target: { value: "01" } });
         updateStudentProfile.mockResolvedValue({ profile: { date_of_birth: "2015-06-01" } });
         fireEvent.click(screen.getByRole("button", { name: "儲存生日資料" }));
 
         await waitFor(() => expect(updateStudentProfile).toHaveBeenCalledWith(
             { uid: "student-1" },
             { date_of_birth: "2015-06-01" }
+        ));
+    });
+
+    it("lets a student replace a personal photo with one of five preset avatars", async () => {
+        render(<StudentSettings />);
+        await screen.findByRole("heading", { name: "我的設定" });
+
+        expect(screen.getAllByRole("button", { name: /使用.+頭像/ })).toHaveLength(5);
+        selectStudentAvatarPreset.mockResolvedValue({
+            path: "/default-avatars/alan-owl.png",
+            image_url: "/default-avatars/alan-owl.png"
+        });
+        fireEvent.click(screen.getByRole("button", { name: "使用智慧貓頭鷹頭像" }));
+
+        await waitFor(() => expect(selectStudentAvatarPreset).toHaveBeenCalledWith(
+            { uid: "student-1" },
+            "/default-avatars/alan-owl.png"
         ));
     });
 
