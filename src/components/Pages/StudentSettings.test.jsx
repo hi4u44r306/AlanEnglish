@@ -80,7 +80,7 @@ describe("StudentSettings", () => {
         ));
     });
 
-    it("lets a student replace a personal photo with one of five preset avatars", async () => {
+    it("requires final confirmation before applying one of five preset avatars", async () => {
         render(<StudentSettings />);
         await screen.findByRole("heading", { name: "我的設定" });
 
@@ -91,6 +91,14 @@ describe("StudentSettings", () => {
         });
         fireEvent.click(screen.getByRole("button", { name: "使用智慧貓頭鷹頭像" }));
 
+        expect(await screen.findByRole("alertdialog", { name: "確認更換頭像" })).toBeInTheDocument();
+        expect(screen.getByAltText("即將套用的智慧貓頭鷹頭像")).toBeInTheDocument();
+        expect(selectStudentAvatarPreset).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "取消" }));
+        expect(selectStudentAvatarPreset).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole("button", { name: "使用智慧貓頭鷹頭像" }));
+        fireEvent.click(screen.getByRole("button", { name: "確認更換頭像" }));
         await waitFor(() => expect(selectStudentAvatarPreset).toHaveBeenCalledWith(
             { uid: "student-1" },
             "/default-avatars/alan-owl.png"
@@ -123,9 +131,24 @@ describe("StudentSettings", () => {
         createSquareAvatarImage.mockResolvedValue(file);
         prepareAvatarImage.mockResolvedValue(file);
         uploadGamificationImage.mockResolvedValue({ path: "avatars/student-1.webp", image_url: "https://example.com/avatar.webp" });
-        fireEvent.click(screen.getByRole("button", { name: "使用這張頭像" }));
+        fireEvent.click(screen.getByRole("button", { name: "預覽並確認" }));
 
         await waitFor(() => expect(createSquareAvatarImage).toHaveBeenCalledWith(file, expect.objectContaining({ previewSize: 280, zoom: 1, offsetX: 40, offsetY: 0 })));
+        expect(await screen.findByRole("alertdialog", { name: "確認更換頭像" })).toBeInTheDocument();
+        expect(uploadGamificationImage).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole("button", { name: "返回調整" }));
+        expect(uploadGamificationImage).not.toHaveBeenCalled();
+        expect(screen.getByRole("dialog", { name: "調整正方形頭像" })).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "預覽並確認" }));
+        await screen.findByRole("alertdialog", { name: "確認更換頭像" });
+        fireEvent.click(screen.getByRole("button", { name: "確認更換頭像" }));
+        await waitFor(() => expect(uploadGamificationImage).toHaveBeenCalledWith(
+            { uid: "student-1" },
+            "avatar",
+            file
+        ));
 
         fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
         fireEvent.click(screen.getByRole("button", { name: "關閉頭像調整視窗" }));

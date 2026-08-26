@@ -44,6 +44,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/avatar-double-confirmation`：學生選擇五款預設頭像或完成自訂照片裁切後，都必須進入最後確認視窗；確認前不呼叫套用／上傳 API，取消預設頭像不變更資料，自訂照片則可返回繼續調整。相關 `StudentSettings` 3 個測試案例、`git diff --check` 與 Production build 已通過；尚待 GitHub push、固定學生測試站與正式站部署。
 - `codex/fixed-student-staging-site`：獨立固定學生測試站 <https://alanenglish-student-test.netlify.app> 已完成首次 deploy，避免 PR Preview 網域每次變動而被 Firebase／Edge Function 擋下；`staging--alanenglish.netlify.app` Branch Deploy 保留為備援來源。登入頁與登入後 Navbar 都會標示測試站，並提醒操作仍會寫入正式 Firebase／Supabase；三支學生登入相關 Edge Function 只加入兩個明確測試 origin，不開放任意 Netlify 子網域。`academy-student-manager` v18、`support-manager` v4、`auth-email` v3 已部署為 ACTIVE，新固定來源 CORS 預檢成功；Google Cloud Firebase Web API Key 已新增 `https://alanenglish-student-test.netlify.app/*` HTTP referrer。2 份測試共 3 個案例、`git diff --check` 與 Production build 成功，固定站登入頁 HTTP／SPA route 與 Console 均正常；用不存在的假帳號驗證已正常進入 Firebase 並回傳 `user-not-found`，不再出現 referrer blocked。仍待使用者自行以既有學生帳密驗證登入後頁面，不建立新的正式學生資料。
 - PR #40：生日欄位手機版垂直排列、頭像裁切的 iPhone Touch 支援，以及獨立 `/student/notifications` 通知頁已合併至 `main` commit `5518922c` 並完成 Netlify 正式部署；`membership-manager` v25 已部署且為 ACTIVE。
 - PR #42：修正頭像拖移座標回傳欄位錯誤，並讓 Pointer capture 使用數字型 ID、保留舊版 Safari Touch fallback；已合併至 `main` commit `87cf36a4` 並完成 Netlify 正式部署。
