@@ -222,7 +222,10 @@ function StudentSettings() {
                                 src={avatarDraft.previewUrl}
                                 alt="頭像裁切預覽"
                                 draggable="false"
-                                onLoad={event => setAvatarDraft(current => current ? { ...current, width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight } : current)}
+                                onLoad={event => {
+                                    const { naturalWidth, naturalHeight } = event.currentTarget;
+                                    setAvatarDraft(current => current ? { ...current, width: naturalWidth, height: naturalHeight } : current);
+                                }}
                                 style={avatarDraft.width && avatarDraft.height ? (() => {
                                     const scale = Math.max(AVATAR_CROP_SIZE / avatarDraft.width, AVATAR_CROP_SIZE / avatarDraft.height) * avatarDraft.zoom;
                                     return { width: `${avatarDraft.width * scale}px`, height: `${avatarDraft.height * scale}px`, left: `calc(50% + ${avatarDraft.offsetX}px)`, top: `calc(50% + ${avatarDraft.offsetY}px)` };
