@@ -12,6 +12,7 @@ import {
 } from "../../services/membershipService";
 import {
     deleteAcademyInvitation,
+    deleteAcademyStudentAccount,
     listAcademyInvitations,
     reissueAcademyStudentLoginCard
 } from "../../services/academyStudentService";
@@ -349,34 +350,58 @@ function AccountManagement() {
         setDeleteConfirmation("");
     };
 
+    const openAccountDelete = account => {
+        if (!isAdmin || account?.role !== "student" || !account?.email) return;
+        setDeleteTarget({
+            type: "account",
+            id: account.id,
+            email: String(account.email).toLowerCase(),
+            name: account.name || account.email || "學生帳號"
+        });
+        setDeleteConfirmation("");
+    };
+
     const closeDeleteDialog = () => {
         if (deleting) return;
         setDeleteTarget(null);
         setDeleteConfirmation("");
     };
 
-    const confirmInvitationDelete = async event => {
+    const confirmPermanentDelete = async event => {
         event.preventDefault();
         if (!firebaseUser || !deleteTarget) return;
         const normalizedConfirmation = deleteConfirmation.trim().toLowerCase();
         if (normalizedConfirmation !== deleteTarget.email) {
-            toast.error("請輸入完整 Email 確認刪除邀請");
+            toast.error("請輸入完整 Email 確認永久刪除");
             return;
         }
 
         setDeleting(true);
         try {
-            await deleteAcademyInvitation(
-                firebaseUser,
-                deleteTarget.id,
-                normalizedConfirmation
-            );
-            setInvitations(prev => prev.filter(invitation => invitation.id !== deleteTarget.id));
-            toast.success("待開通邀請已刪除");
+            if (deleteTarget.type === "account") {
+                await deleteAcademyStudentAccount(
+                    firebaseUser,
+                    deleteTarget.id,
+                    normalizedConfirmation
+                );
+                setAccounts(prev => prev.filter(account => account.id !== deleteTarget.id));
+                setInvitations(prev => prev.filter(invitation => (
+                    String(invitation.invited_email || "").toLowerCase() !== deleteTarget.email
+                )));
+                toast.success("學生帳號與測試紀錄已永久刪除");
+            } else {
+                await deleteAcademyInvitation(
+                    firebaseUser,
+                    deleteTarget.id,
+                    normalizedConfirmation
+                );
+                setInvitations(prev => prev.filter(invitation => invitation.id !== deleteTarget.id));
+                toast.success("待開通邀請已刪除");
+            }
             setDeleteTarget(null);
             setDeleteConfirmation("");
         } catch (error) {
-            toast.error(error?.message || "刪除邀請失敗");
+            toast.error(error?.message || "永久刪除失敗");
         } finally {
             setDeleting(false);
         }
@@ -621,6 +646,15 @@ function AccountManagement() {
                                                                     : account.account_status === "archived" ? "恢復" : "停用"}
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.role === "student" && account.email && (
+                                                            <button
+                                                                type="button"
+                                                                className="management-delete-button"
+                                                                onClick={() => openAccountDelete(account)}
+                                                            >
+                                                                永久刪除
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -802,14 +836,22 @@ function AccountManagement() {
                         aria-modal="true"
                         aria-labelledby="management-delete-title"
                     >
-                        <span className="management-eyebrow">Invitation cleanup</span>
-                        <h2 id="management-delete-title">刪除待開通邀請</h2>
-                        <p>這會永久移除尚未被領取、且尚未建立學生帳號的邀請。</p>
+                        <span className="management-eyebrow">
+                            {deleteTarget.type === "account" ? "Account cleanup" : "Invitation cleanup"}
+                        </span>
+                        <h2 id="management-delete-title">
+                            {deleteTarget.type === "account" ? "永久刪除學生帳號" : "刪除待開通邀請"}
+                        </h2>
+                        <p>
+                            {deleteTarget.type === "account"
+                                ? "這會永久刪除 Firebase 登入帳號，以及相關的測試、學習、作業、AI 與獎勵紀錄，無法復原。若有付款、教材購買或啟用碼兌換紀錄，系統會拒絕刪除。"
+                                : "這會永久移除尚未被領取、且尚未建立學生帳號的邀請。"}
+                        </p>
                         <div className="management-delete-target">
                             <strong>{deleteTarget.name}</strong>
                             <span>{deleteTarget.email}</span>
                         </div>
-                        <form onSubmit={confirmInvitationDelete}>
+                        <form onSubmit={confirmPermanentDelete}>
                             <label>
                                 <span>輸入完整 Email 確認</span>
                                 <input
@@ -827,7 +869,9 @@ function AccountManagement() {
                                     type="submit"
                                     disabled={deleting || deleteConfirmation.trim().toLowerCase() !== deleteTarget.email}
                                 >
-                                    {deleting ? "刪除中…" : "確認刪除邀請"}
+                                    {deleting
+                                        ? "刪除中…"
+                                        : deleteTarget.type === "account" ? "確認永久刪除帳號" : "確認刪除邀請"}
                                 </button>
                             </div>
                         </form>

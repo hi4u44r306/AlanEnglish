@@ -914,11 +914,7 @@ const normalizeDateOfBirth = (value: unknown, { required = false } = {}): string
 };
 
 const ACCOUNT_DELETE_BLOCKER_LABELS: Record<string, string> = {
-    payment_or_access_history: "付款、兌換或加購紀錄",
-    learning_history: "學習、作業、聽力或 AI 紀錄",
-    academic_history: "分班或班級異動紀錄",
-    reward_history: "XP、AE Points 或獎品兌換紀錄",
-    support_history: "客服案件紀錄",
+    payment_or_access_history: "付款、教材購買、兌換或加購紀錄",
     staff_created_records: "由此帳號建立的管理資料"
 };
 
@@ -971,7 +967,7 @@ const deleteStudentAccount = async (
         throw new HttpError(
             409,
             "ACCOUNT_HAS_HISTORY",
-            `此帳號有${blockerText || "需保留的正式紀錄"}，只能停用，不能永久刪除`
+            `此帳號有${blockerText || "需保留的付款紀錄"}，只能停用，不能永久刪除`
         );
     }
 

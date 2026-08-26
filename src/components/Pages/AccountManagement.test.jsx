@@ -10,6 +10,7 @@ import {
 } from "../../services/membershipService";
 import {
     deleteAcademyInvitation,
+    deleteAcademyStudentAccount,
     listAcademyInvitations,
     reissueAcademyStudentLoginCard,
     sendAcademyPasswordReset
@@ -29,6 +30,7 @@ jest.mock("../../services/membershipService", () => ({
 
 jest.mock("../../services/academyStudentService", () => ({
     deleteAcademyInvitation: jest.fn(),
+    deleteAcademyStudentAccount: jest.fn(),
     listAcademyInvitations: jest.fn(),
     reissueAcademyStudentLoginCard: jest.fn(),
     sendAcademyPasswordReset: jest.fn()
@@ -109,6 +111,7 @@ describe("AccountManagement", () => {
         });
         listAcademyInvitations.mockResolvedValue([]);
         deleteAcademyInvitation.mockResolvedValue({ success: true });
+        deleteAcademyStudentAccount.mockResolvedValue({ success: true });
         reissueAcademyStudentLoginCard.mockResolvedValue({
             success: true,
             account: { id: 67, name: "E3 測試學生", username: "e3teststudent" },
@@ -181,11 +184,31 @@ describe("AccountManagement", () => {
         expect(await screen.findByText("使用中")).toBeInTheDocument();
     });
 
-    test("does not offer permanent deletion for an existing student account", async () => {
+    test("allows an admin to permanently delete a student after entering the full Email", async () => {
         renderPage();
 
         expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: "永久刪除" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "永久刪除" }));
+        expect(screen.getByText("永久刪除學生帳號")).toBeInTheDocument();
+        expect(screen.getByText(/有付款、教材購買或啟用碼兌換紀錄/)).toBeInTheDocument();
+
+        const confirmButton = screen.getByRole("button", { name: "確認永久刪除帳號" });
+        expect(confirmButton).toBeDisabled();
+        fireEvent.change(screen.getByLabelText("輸入完整 Email 確認"), {
+            target: { value: "student@gmail.com" }
+        });
+        fireEvent.click(confirmButton);
+
+        await waitFor(() => {
+            expect(deleteAcademyStudentAccount).toHaveBeenCalledWith(
+                firebaseUser,
+                academyStudent.id,
+                "student@gmail.com"
+            );
+        });
+        await waitFor(() => {
+            expect(screen.queryByText("E3 測試學生")).not.toBeInTheDocument();
+        });
     });
 
     test("allows an admin to reissue a login card for an unactivated academy student", async () => {

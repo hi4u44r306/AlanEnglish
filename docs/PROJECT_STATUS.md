@@ -44,6 +44,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/delete-test-accounts`：後台帳號管理新增管理員專用「永久刪除」入口，必須輸入完整 Email 確認。新增 additive migration `20260826143450_allow_admin_test_account_deletion.sql`，允許刪除沒有付款／購買證據的學生測試帳號及其 Firebase、學習、作業、AI、獎勵與其他關聯資料；只要有付款交易、Stripe、教材購買或啟用碼兌換紀錄，後端即拒絕並要求改用停用。19 份前端測試共 52 個案例、Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功；尚未 push、套用遠端 migration、部署 `academy-student-manager` 或刪除任何遠端帳號。
 - `codex/membership-ai-pricing`（功能 commit `e08445a`）：本機實作新定價與資格規則。基本自主學習會員為 NT$299／月；一般會員 AI 加購為 NT$129／月，合計 NT$428；英文班在校生與離校生 AI 優惠為 NT$99／月，離校生需搭配基本會員，合計 NT$398。已建立 additive migration `20260826132237_membership_ai_pricing.sql`，同步調整公開首頁、會員中心、AI 入口、付款資格、Webhook 白名單與額度辨識。19 份前端測試共 52 個案例、8 個純後端資格／Stripe 金額測試、8 支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功。前端已發布固定測試站 `https://alanenglish-student-test.netlify.app`，deploy `6a8ef18c17f4000b6f8d792b` 的首頁與新版 JS 均回應 HTTP 200；測試站沒有獨立 Supabase，因此尚未建立 Stripe NT$299／NT$129 Price、套用遠端 migration、部署 Edge Functions 或發布正式 Netlify。
 - PR #45：預設頭像與完成裁切的自訂照片都必須經過最後確認才會儲存；確認前不呼叫套用／上傳 API，取消預設頭像不變更資料，自訂照片則可返回繼續調整。已合併至 `main` commit `3654e2bc`，Netlify production deploy `6a8ee69aa4ba77000897303a` 已發布且為 ready。相關 `StudentSettings` 3 個測試案例、`git diff --check` 與 Production build 已通過；固定學生測試站已用登入中的學生帳號驗證預設頭像確認／取消流程與 Console，自訂照片仍待手機實機選檔驗收。
 - PR #40：生日欄位手機版垂直排列、頭像裁切的 iPhone Touch 支援，以及獨立 `/student/notifications` 通知頁已合併至 `main` commit `5518922c` 並完成 Netlify 正式部署；`membership-manager` v25 已部署且為 ACTIVE。
