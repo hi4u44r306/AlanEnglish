@@ -672,22 +672,27 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "notifications") {
-            const { data, error } = await admin
+            const limit = Math.min(100, Math.max(1, positiveInteger(body?.limit) || 30));
+            const beforeTimestamp = typeof body?.before === "string" ? Date.parse(body.before) : NaN;
+            const before = Number.isFinite(beforeTimestamp) ? new Date(beforeTimestamp).toISOString() : null;
+            const nowIso = new Date().toISOString();
+            let query = admin
                 .from("student_notifications")
                 .select("id,notification_type,title,body,metadata,read_at,expires_at,created_at")
                 .eq("student_id", caller.id)
-                .order("created_at", { ascending: false })
-                .limit(30);
+                .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+                .order("created_at", { ascending: false });
+            if (before) query = query.lt("created_at", before);
+            const { data, error } = await query.limit(limit + 1);
             if (error) throw error;
-            const now = Date.now();
-            const notifications = (data || []).filter((item: any) => {
-                const expiry = item?.expires_at ? new Date(item.expires_at).getTime() : null;
-                return expiry === null || !Number.isFinite(expiry) || expiry > now;
-            });
+            const hasMore = (data || []).length > limit;
+            const notifications = (data || []).slice(0, limit);
             return json(200, {
                 success: true,
                 notifications,
-                unread_count: notifications.filter((item: any) => !item.read_at).length
+                unread_count: notifications.filter((item: any) => !item.read_at).length,
+                has_more: hasMore,
+                next_before: hasMore ? notifications.at(-1)?.created_at || null : null
             });
         }
 

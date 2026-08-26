@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FiBell, FiCamera, FiCheck, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { FiCamera, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, uploadGamificationImage } from "../../services/gamificationService";
-import { getStudentNotifications, markStudentNotificationRead, updateStudentProfile } from "../../services/membershipService";
+import { updateStudentProfile } from "../../services/membershipService";
 import "./css/StudentSettings.scss";
 
 const number = value => Number(value || 0).toLocaleString("zh-TW");
 const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
-const formatDateTime = value => value ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "";
 const AVATAR_CROP_SIZE = 280;
 const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
 
@@ -30,8 +29,6 @@ function StudentSettings() {
     const { firebaseUser, studentProfile, setStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
     const [summary, setSummary] = useState(null);
-    const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [savingBirthday, setSavingBirthday] = useState(false);
     const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
@@ -40,18 +37,11 @@ function StudentSettings() {
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
-        setLoading(true);
         try {
-            const [summaryResult, notificationResult] = await Promise.all([
-                getGamificationSummary(firebaseUser),
-                getStudentNotifications(firebaseUser)
-            ]);
+            const summaryResult = await getGamificationSummary(firebaseUser);
             setSummary(summaryResult || null);
-            setNotifications(notificationResult?.notifications || []);
         } catch (error) {
             toast.error(error.message || "設定資料讀取失敗");
-        } finally {
-            setLoading(false);
         }
     }, [firebaseUser]);
 
@@ -129,20 +119,58 @@ function StudentSettings() {
         } : current);
     };
 
-    const startAvatarDrag = event => {
+    const beginAvatarDrag = ({ pointerId, clientX, clientY, target, capture = false }) => {
         if (!avatarDraft?.width || !avatarDraft?.height) return;
-        event.currentTarget.setPointerCapture?.(event.pointerId);
-        avatarDragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, offsetX: avatarDraft.offsetX, offsetY: avatarDraft.offsetY };
+        if (capture) target?.setPointerCapture?.(pointerId);
+        avatarDragRef.current = { pointerId, x: clientX, y: clientY, offsetX: avatarDraft.offsetX, offsetY: avatarDraft.offsetY };
     };
 
-    const moveAvatarDrag = event => {
+    const continueAvatarDrag = ({ pointerId, clientX, clientY }) => {
         const drag = avatarDragRef.current;
-        if (!drag || drag.pointerId !== event.pointerId) return;
-        updateAvatarPosition(drag.offsetX + event.clientX - drag.x, drag.offsetY + event.clientY - drag.y);
+        if (!drag || drag.pointerId !== pointerId) return;
+        updateAvatarPosition(drag.offsetX + clientX - drag.x, drag.offsetY + clientY - drag.y);
     };
 
-    const stopAvatarDrag = event => {
-        if (avatarDragRef.current?.pointerId === event.pointerId) avatarDragRef.current = null;
+    const endAvatarDrag = pointerId => {
+        if (avatarDragRef.current?.pointerId === pointerId) avatarDragRef.current = null;
+    };
+
+    const startAvatarPointerDrag = event => {
+        if (event.pointerType === "touch") return;
+        beginAvatarDrag({ pointerId: `pointer-${event.pointerId}`, clientX: event.clientX, clientY: event.clientY, target: event.currentTarget, capture: true });
+    };
+
+    const moveAvatarPointerDrag = event => {
+        if (event.pointerType === "touch") return;
+        continueAvatarDrag({ pointerId: `pointer-${event.pointerId}`, clientX: event.clientX, clientY: event.clientY });
+    };
+
+    const stopAvatarPointerDrag = event => {
+        if (event.pointerType === "touch") return;
+        endAvatarDrag(`pointer-${event.pointerId}`);
+    };
+
+    const getTrackedTouch = touches => {
+        const activePointerId = avatarDragRef.current?.pointerId;
+        return Array.from(touches || []).find(touch => `touch-${touch.identifier}` === activePointerId);
+    };
+
+    const startAvatarTouchDrag = event => {
+        const touch = event.changedTouches?.[0];
+        if (!touch) return;
+        beginAvatarDrag({ pointerId: `touch-${touch.identifier}`, clientX: touch.clientX, clientY: touch.clientY });
+    };
+
+    const moveAvatarTouchDrag = event => {
+        const touch = getTrackedTouch(event.touches);
+        if (!touch) return;
+        event.preventDefault();
+        continueAvatarDrag({ pointerId: `touch-${touch.identifier}`, clientX: touch.clientX, clientY: touch.clientY });
+    };
+
+    const stopAvatarTouchDrag = event => {
+        const touch = getTrackedTouch(event.changedTouches);
+        if (touch) endAvatarDrag(`touch-${touch.identifier}`);
     };
 
     const saveBirthday = async event => {
@@ -159,18 +187,6 @@ function StudentSettings() {
             toast.error(error.message || "無法更新出生年月日");
         } finally {
             setSavingBirthday(false);
-        }
-    };
-
-    const markRead = async id => {
-        const item = notifications.find(notification => notification.id === id);
-        if (!item || item.read_at || !firebaseUser) return;
-        setNotifications(current => current.map(notification => notification.id === id ? { ...notification, read_at: new Date().toISOString() } : notification));
-        try {
-            await markStudentNotificationRead(firebaseUser, id);
-        } catch (error) {
-            setNotifications(current => current.map(notification => notification.id === id ? item : notification));
-            toast.error(error.message || "通知狀態更新失敗");
         }
     };
 
@@ -217,7 +233,7 @@ function StudentSettings() {
                             <button type="button" onClick={closeAvatarEditor} disabled={uploading} aria-label="關閉頭像調整視窗"><FiX /></button>
                         </header>
                         <p>拖移照片，讓想保留的內容落在方形範圍內。儲存後每個學生的頭像都會是略圓角的正方形。</p>
-                        <div className="student-avatar-crop-canvas" onPointerDown={startAvatarDrag} onPointerMove={moveAvatarDrag} onPointerUp={stopAvatarDrag} onPointerCancel={stopAvatarDrag}>
+                        <div className="student-avatar-crop-canvas" onPointerDown={startAvatarPointerDrag} onPointerMove={moveAvatarPointerDrag} onPointerUp={stopAvatarPointerDrag} onPointerCancel={stopAvatarPointerDrag} onTouchStart={startAvatarTouchDrag} onTouchMove={moveAvatarTouchDrag} onTouchEnd={stopAvatarTouchDrag} onTouchCancel={stopAvatarTouchDrag}>
                             <img
                                 src={avatarDraft.previewUrl}
                                 alt="頭像裁切預覽"
@@ -279,11 +295,6 @@ function StudentSettings() {
                         <button type="submit" disabled={savingBirthday}>{savingBirthday ? "儲存中…" : "儲存生日資料"}</button>
                     </form>
                 </article>
-            </section>
-
-            <section className="student-settings-panel student-settings-notifications" id="notifications">
-                <header><FiBell /><div><span>NOTIFICATIONS</span><h2>通知</h2></div></header>
-                {loading ? <p className="student-settings-empty">通知載入中…</p> : notifications.length === 0 ? <p className="student-settings-empty">目前沒有新通知。作業提醒、獎勵與未來生日點數通知會顯示在這裡。</p> : <div className="student-settings-notification-list">{notifications.map(notification => <button type="button" className={notification.read_at ? "is-read" : ""} key={notification.id} onClick={() => markRead(notification.id)}><span className="student-settings-notification-dot">{notification.read_at ? <FiCheck /> : <FiBell />}</span><span><strong>{notification.title}</strong><small>{notification.body}</small><time>{formatDateTime(notification.created_at)}</time></span></button>)}</div>}
             </section>
         </main>
     );
