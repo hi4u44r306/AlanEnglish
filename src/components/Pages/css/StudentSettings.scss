@@ -73,6 +73,14 @@
 .student-avatar-editor-cancel { border: 1px solid #dfe5ef; color: #53617a; background: #fff; }
 .student-avatar-editor-save { border: 0; color: #fff; background: #23447f; box-shadow: 0 8px 17px rgba(35, 68, 127, .2); }
 .student-avatar-editor-actions button:disabled { cursor: wait; opacity: .6; }
+.student-avatar-confirmation-comparison { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 14px; padding: 18px; border: 1px solid #e3e8f1; border-radius: 20px; background: #f7f9fd; }
+.student-avatar-confirmation-comparison > div { display: grid; place-items: center; min-width: 0; gap: 8px; }
+.student-avatar-confirmation-comparison > div > span { color: #6f7c92; font-size: 11px; font-weight: 900; letter-spacing: .06em; }
+.student-avatar-confirmation-comparison > strong { color: #8a97ad; font-size: 24px; }
+.student-avatar-confirmation-comparison img,
+.student-avatar-confirmation-fallback { width: min(128px, 100%); aspect-ratio: 1; border: 3px solid #fff; border-radius: 24px; object-fit: cover; box-shadow: 0 9px 22px rgba(31, 50, 94, .16); }
+.student-avatar-confirmation-comparison .pending img { outline: 3px solid #f0c04c; outline-offset: 2px; }
+.student-avatar-confirmation-fallback { display: grid; place-items: center; color: #503303; background: linear-gradient(145deg, #ffdb76, #ffaf4f); font-size: 31px; font-weight: 950; }
 
 .student-settings-profile-copy { min-width: 0; }
 .student-settings-profile-copy > span,
@@ -137,4 +145,6 @@
     .student-settings-stats div:last-child { border-bottom: 0; }
     .student-avatar-editor { padding: 18px; border-radius: 21px; }
     .student-avatar-crop-canvas { width: min(280px, calc(100vw - 76px)); height: min(280px, calc(100vw - 76px)); }
+    .student-avatar-confirmation-comparison { gap: 9px; padding: 13px; }
+    .student-avatar-confirmation-comparison > strong { font-size: 19px; }
 }

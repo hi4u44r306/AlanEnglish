@@ -38,6 +38,7 @@ function StudentSettings() {
     const [savingBirthday, setSavingBirthday] = useState(false);
     const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
     const [avatarDraft, setAvatarDraft] = useState(null);
+    const [avatarConfirmation, setAvatarConfirmation] = useState(null);
     const avatarDragRef = useRef(null);
 
     const load = useCallback(async () => {
@@ -52,6 +53,11 @@ function StudentSettings() {
 
     useEffect(() => { load(); }, [load]);
     useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
+    useEffect(() => () => {
+        if (avatarConfirmation?.revokePreview && avatarConfirmation.previewUrl) {
+            URL.revokeObjectURL(avatarConfirmation.previewUrl);
+        }
+    }, [avatarConfirmation]);
 
     const closeAvatarEditor = () => {
         setAvatarDraft(current => {
@@ -85,7 +91,7 @@ function StudentSettings() {
         });
     };
 
-    const saveAvatar = async () => {
+    const reviewCustomAvatar = async () => {
         if (!avatarDraft || !firebaseUser) return;
         setUploading(true);
         try {
@@ -96,34 +102,53 @@ function StudentSettings() {
                 previewSize: AVATAR_CROP_SIZE
             });
             const file = await prepareAvatarImage(croppedFile);
-            const result = await uploadGamificationImage(firebaseUser, "avatar", file);
-            setSummary(current => current ? {
-                ...current,
-                profile: { ...current.profile, avatar_url: result.image_url }
-            } : current);
-            setStudentProfile(current => current ? { ...current, user_image: result.path } : current);
-            closeAvatarEditor();
-            toast.success("頭像已更新");
+            setAvatarConfirmation({
+                kind: "upload",
+                file,
+                label: "自選照片",
+                previewUrl: URL.createObjectURL(file),
+                revokePreview: true
+            });
         } catch (error) {
-            toast.error(error.message || "頭像上傳失敗");
+            toast.error(error.message || "頭像預覽建立失敗");
         } finally {
             setUploading(false);
         }
     };
 
-    const selectPresetAvatar = async avatar => {
+    const reviewPresetAvatar = avatar => {
         if (!firebaseUser || uploading) return;
+        setAvatarConfirmation({
+            kind: "preset",
+            avatar,
+            label: avatar.name,
+            previewUrl: getStudentAvatarDisplayUrl(avatar.path, 256),
+            revokePreview: false
+        });
+    };
+
+    const closeAvatarConfirmation = () => {
+        if (uploading) return;
+        setAvatarConfirmation(null);
+    };
+
+    const confirmAvatarChange = async () => {
+        if (!firebaseUser || !avatarConfirmation || uploading) return;
         setUploading(true);
         try {
-            const result = await selectStudentAvatarPreset(firebaseUser, avatar.path);
+            const result = avatarConfirmation.kind === "preset"
+                ? await selectStudentAvatarPreset(firebaseUser, avatarConfirmation.avatar.path)
+                : await uploadGamificationImage(firebaseUser, "avatar", avatarConfirmation.file);
             setSummary(current => current ? {
                 ...current,
                 profile: { ...current.profile, avatar_url: result.image_url }
             } : current);
             setStudentProfile(current => current ? { ...current, user_image: result.path } : current);
-            toast.success(`已套用${avatar.name}`);
+            setAvatarConfirmation(null);
+            closeAvatarEditor();
+            toast.success(avatarConfirmation.kind === "preset" ? `已套用${avatarConfirmation.label}` : "頭像已更新");
         } catch (error) {
-            toast.error(error.message || "預設頭像設定失敗");
+            toast.error(error.message || "頭像更新失敗");
         } finally {
             setUploading(false);
         }
@@ -256,7 +281,7 @@ function StudentSettings() {
                     <div><strong>選擇預設頭像</strong><span>不想使用自己的照片時，可以隨時換回下列角色。</span></div>
                     <div className="student-settings-avatar-preset-grid">
                         {DEFAULT_STUDENT_AVATARS.map(avatar => (
-                            <button key={avatar.id} type="button" onClick={() => selectPresetAvatar(avatar)} disabled={uploading} aria-pressed={avatarUrl === avatar.path} aria-label={`使用${avatar.name}頭像`}>
+                            <button key={avatar.id} type="button" onClick={() => reviewPresetAvatar(avatar)} disabled={uploading} aria-pressed={avatarUrl === avatar.path} aria-label={`使用${avatar.name}頭像`}>
                                 <img src={getStudentAvatarDisplayUrl(avatar.path, 160)} alt="" />
                                 <span>{avatar.name}</span>
                             </button>
@@ -265,7 +290,7 @@ function StudentSettings() {
                 </div>
             </section>
 
-            {avatarDraft && (
+            {avatarDraft && !avatarConfirmation && (
                 <div className="student-avatar-editor-backdrop" role="presentation">
                     <section className="student-avatar-editor" role="dialog" aria-modal="true" aria-labelledby="avatar-editor-title">
                         <header>
@@ -290,7 +315,36 @@ function StudentSettings() {
                             <span className="student-avatar-crop-frame" aria-hidden="true"><FiMove /><small>拖移照片</small></span>
                         </div>
                         <label className="student-avatar-zoom"><span><FiZoomIn />縮放</span><input aria-label="頭像縮放" type="range" min="1" max="3" step="0.05" value={avatarDraft.zoom} onChange={handleAvatarZoom} /><strong>{Math.round(avatarDraft.zoom * 100)}%</strong></label>
-                        <div className="student-avatar-editor-actions"><button type="button" className="student-avatar-editor-cancel" onClick={closeAvatarEditor} disabled={uploading}>取消</button><button type="button" className="student-avatar-editor-save" onClick={saveAvatar} disabled={uploading || !avatarDraft.width}>{uploading ? "儲存中…" : "使用這張頭像"}</button></div>
+                        <div className="student-avatar-editor-actions"><button type="button" className="student-avatar-editor-cancel" onClick={closeAvatarEditor} disabled={uploading}>取消</button><button type="button" className="student-avatar-editor-save" onClick={reviewCustomAvatar} disabled={uploading || !avatarDraft.width}>{uploading ? "建立預覽中…" : "預覽並確認"}</button></div>
+                    </section>
+                </div>
+            )}
+
+            {avatarConfirmation && (
+                <div className="student-avatar-editor-backdrop" role="presentation">
+                    <section className="student-avatar-editor student-avatar-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="avatar-confirmation-title">
+                        <header>
+                            <div><span>FINAL CONFIRMATION</span><h2 id="avatar-confirmation-title">確認更換頭像</h2></div>
+                            <button type="button" onClick={closeAvatarConfirmation} disabled={uploading} aria-label="關閉頭像確認視窗"><FiX /></button>
+                        </header>
+                        <p>這是最後一步。請確認下方頭像會顯示在個人資料與排行榜；只有按下確認才會真正儲存。</p>
+                        <div className="student-avatar-confirmation-comparison">
+                            <div>
+                                <span>目前頭像</span>
+                                {avatarDisplayUrl
+                                    ? <img src={avatarDisplayUrl} alt="目前使用的頭像" />
+                                    : <div className="student-avatar-confirmation-fallback" aria-label="目前使用的文字頭像">{initial(profile.chinese_name || profile.name)}</div>}
+                            </div>
+                            <strong aria-hidden="true">→</strong>
+                            <div className="pending">
+                                <span>即將套用</span>
+                                <img src={avatarConfirmation.previewUrl} alt={`即將套用的${avatarConfirmation.label}頭像`} />
+                            </div>
+                        </div>
+                        <div className="student-avatar-editor-actions">
+                            <button type="button" className="student-avatar-editor-cancel" onClick={closeAvatarConfirmation} disabled={uploading}>{avatarConfirmation.kind === "upload" ? "返回調整" : "取消"}</button>
+                            <button type="button" className="student-avatar-editor-save" onClick={confirmAvatarChange} disabled={uploading}>{uploading ? "儲存中…" : "確認更換頭像"}</button>
+                        </div>
                     </section>
                 </div>
             )}
