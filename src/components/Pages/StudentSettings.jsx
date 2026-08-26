@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FiCamera, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
-import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, uploadGamificationImage } from "../../services/gamificationService";
+import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
+import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import { updateStudentProfile } from "../../services/membershipService";
+import BirthdaySelect from "../fragment/BirthdaySelect";
 import "./css/StudentSettings.scss";
 
 const number = value => Number(value || 0).toLocaleString("zh-TW");
@@ -109,6 +111,24 @@ function StudentSettings() {
         }
     };
 
+    const selectPresetAvatar = async avatar => {
+        if (!firebaseUser || uploading) return;
+        setUploading(true);
+        try {
+            const result = await selectStudentAvatarPreset(firebaseUser, avatar.path);
+            setSummary(current => current ? {
+                ...current,
+                profile: { ...current.profile, avatar_url: result.image_url }
+            } : current);
+            setStudentProfile(current => current ? { ...current, user_image: result.path } : current);
+            toast.success(`已套用${avatar.name}`);
+        } catch (error) {
+            toast.error(error.message || "預設頭像設定失敗");
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const updateAvatarPosition = (offsetX, offsetY, zoom = avatarDraft?.zoom || 1) => {
         setAvatarDraft(current => current ? { ...current, ...getCropPosition(current, offsetX, offsetY, zoom), zoom } : current);
     };
@@ -201,6 +221,7 @@ function StudentSettings() {
     const profile = studentProfile || {};
     const balance = summary?.balance || {};
     const avatarUrl = summary?.profile?.avatar_url || null;
+    const avatarDisplayUrl = getStudentAvatarDisplayUrl(avatarUrl, 256);
     const hasAiPremium = profile?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
     const hasAiMaterials = profile?.membership?.effective_access?.features?.ai_materials === true;
 
@@ -214,8 +235,8 @@ function StudentSettings() {
 
             <section className="student-settings-profile-card">
                 <div className="student-settings-avatar-wrap">
-                    {avatarUrl
-                        ? <img src={avatarUrl} className="student-settings-avatar" alt={`${profile.chinese_name || profile.name || "學生"} 的頭像`} />
+                    {avatarDisplayUrl
+                        ? <img src={avatarDisplayUrl} className="student-settings-avatar" alt={`${profile.chinese_name || profile.name || "學生"} 的頭像`} />
                         : <div className="student-settings-avatar fallback">{initial(profile.chinese_name || profile.name)}</div>}
                     <button type="button" className="student-settings-avatar-button" onClick={() => fileInputRef.current?.click()} disabled={uploading} aria-label="更換學生頭像"><FiCamera /></button>
                     <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarChange} />
@@ -230,6 +251,17 @@ function StudentSettings() {
                     <FiZap />
                     <strong>{hasAiPremium ? "AI PREMIUM 已啟用" : "AI PREMIUM 未加購"}</strong>
                     <span>{hasAiMaterials ? "AI 教材可使用" : "目前沒有 AI 教材權限"}</span>
+                </div>
+                <div className="student-settings-avatar-presets">
+                    <div><strong>選擇預設頭像</strong><span>不想使用自己的照片時，可以隨時換回下列角色。</span></div>
+                    <div className="student-settings-avatar-preset-grid">
+                        {DEFAULT_STUDENT_AVATARS.map(avatar => (
+                            <button key={avatar.id} type="button" onClick={() => selectPresetAvatar(avatar)} disabled={uploading} aria-pressed={avatarUrl === avatar.path} aria-label={`使用${avatar.name}頭像`}>
+                                <img src={getStudentAvatarDisplayUrl(avatar.path, 160)} alt="" />
+                                <span>{avatar.name}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </section>
 
@@ -299,7 +331,7 @@ function StudentSettings() {
                     <header><FiGift /><div><span>BIRTHDAY</span><h2>出生年月日</h2></div></header>
                     <p>資料僅用於帳號基本資料與未來的生日獎勵，不會顯示在排行榜。</p>
                     <form className="student-settings-birthday-form" onSubmit={saveBirthday}>
-                        <label><span>出生年月日</span><input aria-label="出生年月日" type="date" value={dateOfBirth} onChange={event => setDateOfBirth(event.target.value)} max={new Date().toISOString().slice(0, 10)} required /></label>
+                        <div className="student-settings-birthday-field"><span>出生年月日</span><BirthdaySelect value={dateOfBirth} onChange={setDateOfBirth} disabled={savingBirthday} required idPrefix="student-settings-birthday" /></div>
                         <button type="submit" disabled={savingBirthday}>{savingBirthday ? "儲存中…" : "儲存生日資料"}</button>
                     </form>
                 </article>

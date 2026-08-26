@@ -41,6 +41,15 @@
 .student-settings-avatar.fallback { background: linear-gradient(145deg, #ffdb76, #ffaf4f); color: #503303; font-size: 31px; font-weight: 950; }
 .student-settings-avatar-button { position: absolute; right: -7px; bottom: -7px; width: 36px; height: 36px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; color: #fff; background: #1d3771; box-shadow: 0 5px 13px rgba(16, 30, 64, .23); cursor: pointer; }
 .student-settings-avatar-button:disabled { cursor: wait; opacity: .65; }
+.student-settings-avatar-presets { grid-column: 1 / -1; display: grid; gap: 13px; width: 100%; min-width: 0; padding-top: 18px; border-top: 1px solid #e8edf5; }
+.student-settings-avatar-presets > div:first-child { display: grid; gap: 3px; }
+.student-settings-avatar-presets > div:first-child strong { color: #243754; font-size: 14px; }
+.student-settings-avatar-presets > div:first-child span { color: #74819a; font-size: 12px; }
+.student-settings-avatar-preset-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; min-width: 0; }
+.student-settings-avatar-preset-grid button { display: grid; place-items: center; min-width: 0; gap: 7px; padding: 9px 5px; border: 2px solid transparent; border-radius: 16px; color: #52617a; background: #f5f7fb; font-size: 11px; font-weight: 800; cursor: pointer; }
+.student-settings-avatar-preset-grid button[aria-pressed="true"] { border-color: #e7b12e; color: #1d3771; background: #fff8df; box-shadow: 0 6px 16px rgba(42, 69, 126, .12); }
+.student-settings-avatar-preset-grid button:disabled { cursor: wait; opacity: .62; }
+.student-settings-avatar-preset-grid img { width: 64px; max-width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover; }
 
 .student-avatar-editor-backdrop { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 20px; background: rgba(12, 24, 51, .72); backdrop-filter: blur(8px); }
 .student-avatar-editor { width: min(100%, 470px); padding: 22px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 25px; color: #243454; background: #fff; box-shadow: 0 28px 70px rgba(4, 14, 40, .35); }
@@ -99,29 +108,30 @@
 .student-settings-data-list dd { margin: 0; color: #263754; font-weight: 900; text-align: right; }
 .student-settings-readonly { display: flex; align-items: flex-start; gap: 7px; margin-top: 14px !important; padding: 11px 12px; border-radius: 12px; color: #687691 !important; background: #f6f8fc; font-size: 12px !important; }
 
-.student-settings-birthday-form { display: flex; align-items: end; width: 100%; max-width: 100%; min-width: 0; gap: 10px; margin-top: 16px; }
-.student-settings-birthday-form label { display: grid; flex: 1; width: 100%; max-width: 100%; min-width: 0; gap: 6px; color: #52617a; font-size: 12px; font-weight: 800; }
-.student-settings-birthday-form input { display: block; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; min-height: 44px; padding: 9px 11px; border: 1px solid #d8dfeb; border-radius: 11px; color: #223451; background: #fff; }
-.student-settings-birthday-form button { box-sizing: border-box; max-width: 100%; min-height: 44px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #244680; font-weight: 850; cursor: pointer; white-space: nowrap; }
+.student-settings-birthday-form { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 10px; margin-top: 16px; }
+.student-settings-birthday-field { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 6px; color: #52617a; font-size: 12px; font-weight: 800; }
+.birthday-select { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); width: 100%; max-width: 100%; min-width: 0; gap: 7px; }
+.birthday-select label { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 4px; }
+.birthday-select label > span { color: #78869d; font-size: 10px; }
+.birthday-select select { display: block; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; min-height: 44px; padding: 8px 25px 8px 8px; border: 1px solid #d8dfeb; border-radius: 11px; color: #223451; background-color: #fff; font: inherit; font-size: 16px; font-weight: 700; }
+.student-settings-birthday-form button { box-sizing: border-box; width: 100%; max-width: 100%; min-height: 44px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #244680; font-weight: 850; cursor: pointer; white-space: nowrap; }
 .student-settings-birthday-form button:disabled { opacity: .65; cursor: wait; }
 
 @media (max-width: 720px) {
     .student-settings-page { width: min(100% - 20px, 1080px); padding-top: 22px; }
     .student-settings-profile-card { grid-template-columns: auto minmax(0, 1fr); padding: 19px; }
     .student-settings-premium { grid-column: 1 / -1; min-width: 0; }
+    .student-settings-avatar-preset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .student-settings-grid { grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
     .student-settings-stats strong { font-size: 16px; }
-}
-
-@media (max-width: 560px) {
-    .student-settings-birthday-form { align-items: stretch; flex-direction: column; }
-    .student-settings-birthday-form button { width: 100%; }
 }
 
 @media (max-width: 420px) {
     .student-settings-profile-card { grid-template-columns: 1fr; text-align: center; }
     .student-settings-avatar-wrap { margin: 0 auto; }
     .student-settings-profile-copy small { justify-content: center; text-align: left; }
+    .student-settings-avatar-presets { text-align: left; }
+    .student-settings-avatar-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .student-settings-stats { grid-template-columns: 1fr; }
     .student-settings-stats div { border-right: 0; border-bottom: 1px solid #e9edf3; }
     .student-settings-stats div:last-child { border-bottom: 0; }

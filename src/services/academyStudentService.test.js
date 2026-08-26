@@ -1,4 +1,5 @@
 import {
+    activateStudentLogin,
     createAcademyStudentsBatch,
     deleteAcademyInvitation,
     deleteAcademyStudentAccount,
@@ -100,6 +101,21 @@ describe("academyStudentService CSV contracts", () => {
             action: "delete_invitation",
             invitation_id: 91,
             confirmation_email: "pending@gmail.com"
+        });
+    });
+
+    test("首次啟用會同時提交中英文姓名", async () => {
+        await activateStudentLogin("one-time-token", "green7", {
+            chineseName: "王小明",
+            englishName: "Alan Wang"
+        });
+
+        expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
+            action: "activate_student_login",
+            token: "one-time-token",
+            password: "green7",
+            chinese_name: "王小明",
+            english_name: "Alan Wang"
         });
     });
 });

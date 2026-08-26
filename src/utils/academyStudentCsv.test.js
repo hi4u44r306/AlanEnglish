@@ -24,18 +24,23 @@ describe("academyStudentCsv", () => {
         }]);
     });
 
-    test("登入帳號與家長 Email 可省略", () => {
+    test("英文姓名必填，登入帳號與家長 Email 可省略", () => {
+        expect(() => parseAcademyStudentCsv([
+            "中文姓名,英文姓名,班級,入班日期",
+            "王小明,Alan,E1,2026-08-24"
+        ].join("\n"))).not.toThrow();
+
         expect(() => parseAcademyStudentCsv([
             "中文姓名,班級,入班日期",
             "王小明,E1,2026-08-24"
-        ].join("\n"))).not.toThrow();
+        ].join("\n"))).toThrow("缺少必要欄位：英文姓名");
     });
 
     test("保留空白列之後的原始 CSV 列號", () => {
         const rows = parseAcademyStudentCsv([
-            "中文姓名,班級,入班日期",
+            "中文姓名,英文姓名,班級,入班日期",
             "",
-            "王小明,E1,2026-08-24"
+            "王小明,Alan,E1,2026-08-24"
         ].join("\n"));
 
         expect(rows[0].source_row).toBe(3);
@@ -44,11 +49,11 @@ describe("academyStudentCsv", () => {
     test("超過單批上限時拒絕預覽", () => {
         const rows = Array.from(
             { length: ACADEMY_STUDENT_CSV_MAX_ROWS + 1 },
-            (_, index) => `學生${index},E1,2026-08-24`
+            (_, index) => `學生${index},Alan${index},E1,2026-08-24`
         );
 
         expect(() => parseAcademyStudentCsv([
-            "中文姓名,班級,入班日期",
+            "中文姓名,英文姓名,班級,入班日期",
             ...rows
         ].join("\n"))).toThrow(`一次最多匯入 ${ACADEMY_STUDENT_CSV_MAX_ROWS} 位學生`);
     });

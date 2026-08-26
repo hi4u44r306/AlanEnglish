@@ -17,6 +17,13 @@ const ADMIN_ROLE = "admin";
 const PERIODS = new Set(["week", "month", "all"]);
 const AVATAR_BUCKET = "student-avatars";
 const REWARD_BUCKET = "reward-images";
+const DEFAULT_AVATAR_PATHS = new Set([
+    "/default-avatars/alan-cat.png",
+    "/default-avatars/alan-fox.png",
+    "/default-avatars/alan-rabbit.png",
+    "/default-avatars/alan-bear.png",
+    "/default-avatars/alan-owl.png"
+]);
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const IMAGE_TYPES = new Map([
     ["image/jpeg", "jpg"],
@@ -89,6 +96,7 @@ const getLevelInfo = (xpValue: unknown) => {
 const signedImage = async (admin: any, bucket: string, path: unknown, expiresIn = 3600) => {
     const normalized = cleanText(path, 1000);
     if (!normalized) return null;
+    if (DEFAULT_AVATAR_PATHS.has(normalized)) return normalized;
     if (/^https?:\/\//i.test(normalized)) return normalized;
     const { data, error } = await admin.storage.from(bucket).createSignedUrl(normalized, expiresIn);
     if (error) return null;
@@ -167,7 +175,7 @@ Deno.serve(async (req: Request) => {
                     await admin.storage.from(AVATAR_BUCKET).remove([path]);
                     throw updateError;
                 }
-                if (oldPath && !/^https?:\/\//i.test(oldPath) && oldPath !== path) {
+                if (oldPath && !DEFAULT_AVATAR_PATHS.has(oldPath) && !/^https?:\/\//i.test(oldPath) && oldPath !== path) {
                     await admin.storage.from(AVATAR_BUCKET).remove([oldPath]).catch(() => null);
                 }
                 return json(200, {
@@ -222,6 +230,23 @@ Deno.serve(async (req: Request) => {
                 },
                 recent_ledger: ledger || []
             });
+        }
+
+        if (action === "select_avatar_preset") {
+            const path = cleanText(body?.avatar_path, 200);
+            if (!DEFAULT_AVATAR_PATHS.has(path)) return json(400, { error: "請選擇系統提供的預設頭像" });
+
+            const oldPath = cleanText(student.user_image, 1000);
+            const { error: updateError } = await admin.from("students").update({
+                user_image: path,
+                updated_at: new Date().toISOString()
+            }).eq("id", student.id);
+            if (updateError) throw updateError;
+
+            if (oldPath && !DEFAULT_AVATAR_PATHS.has(oldPath) && !/^https?:\/\//i.test(oldPath)) {
+                await admin.storage.from(AVATAR_BUCKET).remove([oldPath]).catch(() => null);
+            }
+            return json(200, { success: true, path, image_url: path });
         }
 
         if (action === "classes") {

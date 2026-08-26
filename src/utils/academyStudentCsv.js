@@ -28,6 +28,7 @@ const HEADER_FIELDS = new Map([
 
 const REQUIRED_FIELDS = new Map([
     ["chinese_name", "中文姓名"],
+    ["english_name", "英文姓名"],
     ["class_code", "班級"],
     ["enrolled_at", "入班日期"]
 ]);
