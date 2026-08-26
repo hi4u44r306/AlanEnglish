@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-26
+最後更新：2026-08-27
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -44,8 +44,8 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
-- `codex/delete-test-accounts`（checkpoint `75f8d5f`，已推送）：後台帳號管理新增管理員專用「永久刪除」入口，Email 帳號需輸入完整 Email，校內帳號則需輸入完整登入名稱確認。Migration `20260826143450_allow_admin_test_account_deletion.sql` 允許清除一般測試資料；後續 `20260826145459_stripe_test_account_cleanup.sql` 增加 Stripe test/live 標記，使測試模式訂閱與付款可在刪除帳號前一併安全清理，正式或無法確認模式的付款、教材購買及啟用碼兌換仍會拒絕刪除。Webhook 與付款同步會保存 Stripe 模式。19 份前端測試共 52 個案例、Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 已通過。兩個刪除 migrations 已套用，`academy-student-manager` v19、`billing-manager` v17、`stripe-webhook` v16 為 ACTIVE；固定測試站 deploy `6a8f036f97d14d06abc85be8` 已發布。尚待建立 Stripe NT$299／NT$129 測試 Price 與多方案遠端測試帳號。
-- `codex/membership-ai-pricing`（功能 commit `e08445a`）：本機實作新定價與資格規則。基本自主學習會員為 NT$299／月；一般會員 AI 加購為 NT$129／月，合計 NT$428；英文班在校生與離校生 AI 優惠為 NT$99／月，離校生需搭配基本會員，合計 NT$398。已建立 additive migration `20260826132237_membership_ai_pricing.sql`，同步調整公開首頁、會員中心、AI 入口、付款資格、Webhook 白名單與額度辨識。19 份前端測試共 52 個案例、8 個純後端資格／Stripe 金額測試、8 支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功。定價 migration 已套用，NT$99 方案沿用既有 Stripe 測試 Price；NT$299 與 NT$129 Price 尚待在 Stripe 沙盒建立並寫回方案。前端已重新發布固定測試站 `https://alanenglish-student-test.netlify.app`，deploy `6a8f036f97d14d06abc85be8`。
+- `codex/delete-test-accounts`：後台帳號管理新增管理員專用「永久刪除」入口，Email 帳號需輸入完整 Email，校內帳號則需輸入完整登入名稱確認。Migration `20260826143450_allow_admin_test_account_deletion.sql` 允許清除一般測試資料；後續 `20260826145459_stripe_test_account_cleanup.sql` 增加 Stripe test/live 標記，使測試模式訂閱與付款可在刪除帳號前一併安全清理，正式或無法確認模式的付款、教材購買及啟用碼兌換仍會拒絕刪除。Webhook 與付款同步會保存 Stripe 模式。兩個刪除 migrations 已套用，`academy-student-manager` v20、`billing-manager` v17、`stripe-webhook` v16 為 ACTIVE；v20 僅新增固定測試站來源白名單。三組零付款測試帳號已建立、啟用、登入並驗證目前皆可刪除：一般會員無英文班歷史、在校生保有有效在學、離校生保留已退班歷史。
+- `codex/membership-ai-pricing`（功能 commit `e08445a`）：基本自主學習會員為 NT$299／月；一般會員 AI 加購為 NT$129／月，合計 NT$428；英文班在校生與離校生 AI 優惠為 NT$99／月，離校生需搭配基本會員，合計 NT$398。Additive migration `20260826132237_membership_ai_pricing.sql` 已套用；Stripe 沙盒 NT$299／NT$129 Price 已建立並寫回方案，NT$99 沿用既有測試 Price。`membership-manager` v26 已部署正確資格篩選；測試站已驗證一般會員只先顯示 NT$299、在校生只顯示 NT$99、離校生只先顯示 NT$299。NT$299 付款完成後的 NT$129／NT$99 解鎖仍待實際 Stripe 測試付款驗收。19 份前端測試共 52 個案例、8 個純後端資格／Stripe 金額測試、8 支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功；固定測試站 deploy `6a8f036f97d14d06abc85be8` 已發布。
 - PR #45：預設頭像與完成裁切的自訂照片都必須經過最後確認才會儲存；確認前不呼叫套用／上傳 API，取消預設頭像不變更資料，自訂照片則可返回繼續調整。已合併至 `main` commit `3654e2bc`，Netlify production deploy `6a8ee69aa4ba77000897303a` 已發布且為 ready。相關 `StudentSettings` 3 個測試案例、`git diff --check` 與 Production build 已通過；固定學生測試站已用登入中的學生帳號驗證預設頭像確認／取消流程與 Console，自訂照片仍待手機實機選檔驗收。
 - PR #40：生日欄位手機版垂直排列、頭像裁切的 iPhone Touch 支援，以及獨立 `/student/notifications` 通知頁已合併至 `main` commit `5518922c` 並完成 Netlify 正式部署；`membership-manager` v25 已部署且為 ACTIVE。
 - PR #42：修正頭像拖移座標回傳欄位錯誤，並讓 Pointer capture 使用數字型 ID、保留舊版 Safari Touch fallback；已合併至 `main` commit `87cf36a4` 並完成 Netlify 正式部署。
