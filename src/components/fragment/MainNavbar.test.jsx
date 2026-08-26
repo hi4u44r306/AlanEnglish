@@ -50,6 +50,10 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
+        const mobileNotification = screen.getByRole("link", { name: "查看通知" });
+        const mobileMenu = screen.getByRole("button", { name: "開啟全部功能選單" });
+        expect(mobileNotification.parentElement).toBe(mobileMenu.parentElement);
+        expect(mobileMenu.parentElement).toHaveClass("ae-mobile-actions");
 
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
 

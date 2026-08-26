@@ -241,13 +241,21 @@
   fill: rgba(255, 202, 71, 0.22);
 }
 
+.ae-mobile-actions {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
 .ae-mobile-toggle {
   width: 46px;
   height: 46px;
   display: none;
   align-items: center;
   justify-content: center;
-  margin-left: auto;
+  margin-left: 0;
   padding: 0;
   border: 1px solid #e5e9f0;
   border-radius: 14px;
@@ -577,6 +585,10 @@
 
   .ae-desktop-nav {
     display: none;
+  }
+
+  .ae-mobile-actions {
+    display: flex;
   }
 
   .ae-mobile-toggle {
