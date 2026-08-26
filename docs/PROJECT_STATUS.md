@@ -44,6 +44,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/membership-ai-pricing`（基準 commit `80f6286`）：本機實作新定價與資格規則。基本自主學習會員為 NT$299／月；一般會員 AI 加購為 NT$129／月，合計 NT$428；英文班在校生與離校生 AI 優惠為 NT$99／月，離校生需搭配基本會員，合計 NT$398。已建立 additive migration `20260826132237_membership_ai_pricing.sql`，同步調整公開首頁、會員中心、AI 入口、付款資格、Webhook 白名單與額度辨識。19 份前端測試共 52 個案例、8 個純後端資格／Stripe 金額測試、8 支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功；尚未建立 Stripe NT$299／NT$129 Price、套用遠端 migration、部署 Edge Functions 或發布 Netlify。
 - PR #45：預設頭像與完成裁切的自訂照片都必須經過最後確認才會儲存；確認前不呼叫套用／上傳 API，取消預設頭像不變更資料，自訂照片則可返回繼續調整。已合併至 `main` commit `3654e2bc`，Netlify production deploy `6a8ee69aa4ba77000897303a` 已發布且為 ready。相關 `StudentSettings` 3 個測試案例、`git diff --check` 與 Production build 已通過；固定學生測試站已用登入中的學生帳號驗證預設頭像確認／取消流程與 Console，自訂照片仍待手機實機選檔驗收。
 - PR #40：生日欄位手機版垂直排列、頭像裁切的 iPhone Touch 支援，以及獨立 `/student/notifications` 通知頁已合併至 `main` commit `5518922c` 並完成 Netlify 正式部署；`membership-manager` v25 已部署且為 ACTIVE。
 - PR #42：修正頭像拖移座標回傳欄位錯誤，並讓 Pointer capture 使用數字型 ID、保留舊版 Safari Touch fallback；已合併至 `main` commit `87cf36a4` 並完成 Netlify 正式部署。
@@ -183,7 +184,8 @@ Netlify 已確認該版本正式部署為 `ready`。
 
 - 購買教材後提供三個月線上權限
 - 權限從兌換日開始
-- 到期後可選擇每月 NT$399
+- 到期後可選擇每月 NT$299 的基本自主學習會員
+- AI 教材不因購書或基本會員自動取得；一般會員可另加購 NT$129／月
 - 教材最終售價尚未決定
 
 ### 英文班在校學生
@@ -197,7 +199,8 @@ Netlify 已確認該版本正式部署為 `ready`。
 
 - 保留歷史學習紀錄
 - 不再收到新作業
-- 可用每月 NT$299 繼續使用
+- 可用每月 NT$299 的基本會員繼續使用
+- 可另加購 AI 教材 NT$99／月；基本會員加 AI 合計 NT$398／月
 
 ## 6. 已完成的資料庫 Migration
 

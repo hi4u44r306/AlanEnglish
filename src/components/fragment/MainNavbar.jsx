@@ -17,6 +17,7 @@ import { getRoleHome } from "../../auth/RoleHomeRedirect";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
+import { hasAiAddonPlan } from "../../constants/membershipPlans";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -46,7 +47,7 @@ function MainNavbar() {
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
     const isStudent = role === "student";
-    const hasAiPremium = studentProfile?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
+    const hasAiPremium = hasAiAddonPlan(studentProfile?.membership?.effective_access?.plan_codes);
     const hasAiAccess = !isStudent || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";

@@ -32,6 +32,7 @@ import {
     getNextTaipeiDailyResetAt,
     getNextTaipeiMonthlyResetAt
 } from "../../utils/quotaResetCountdown";
+import { hasAiAddonPlan } from "../../constants/membershipPlans";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
 import "./css/AIMaterialGenerator.scss";
 
@@ -126,7 +127,8 @@ function AIMaterialGenerator() {
     const answeredCount = questions.filter((_, index) => Boolean(answers[index])).length;
     const allAnswered = questions.length > 0 && answeredCount === questions.length;
     const isAcademyStudent = studentProfile?.learner_type === "academy_student";
-    const hasAiPremium = studentProfile?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
+    const isActiveAcademyStudent = studentProfile?.membership?.effective_access?.plan_codes?.includes("academy_internal") === true;
+    const hasAiPremium = hasAiAddonPlan(studentProfile?.membership?.effective_access?.plan_codes);
     const canGenerate = role === "teacher"
         || role === "admin"
         || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
@@ -393,12 +395,14 @@ function AIMaterialGenerator() {
                     <div className="ai-addon-banner-copy">
                         <span>AI MATERIAL ADD-ON</span>
                         <h2 id="ai-addon-banner-title">{isAcademyStudent ? "讓 AI 幫你做出專屬練習" : "升級後解鎖 AI 專屬教材"}</h2>
-                        <p>{isAcademyStudent
-                            ? "英文班學生專屬加購，每日可生成 5 次、每月最多 150 次。"
-                            : "升級自主學習方案，即可使用 AI 產生閱讀、單字、文法與聽力練習。"}</p>
+                        <p>{isActiveAcademyStudent
+                            ? "英文班在校生可用每月 NT$99 加購，每日最多 5 次、每月最多 150 次。"
+                            : isAcademyStudent
+                                ? "離校生先啟用 NT$299 基本會員，再以 NT$99 加購 AI，兩項合計每月 NT$398。"
+                                : "一般會員先啟用 NT$299 基本會員，再以 NT$129 加購 AI，兩項合計每月 NT$428。"}</p>
                     </div>
-                    {isAcademyStudent && <div className="ai-addon-banner-price"><strong>NT$99</strong><span>／月</span></div>}
-                    <Link className="ai-addon-banner-button" to="/student/membership"><FiZap aria-hidden="true" />{isAcademyStudent ? "立即加購" : "查看會員方案"}</Link>
+                    <div className="ai-addon-banner-price"><strong>{isAcademyStudent ? "NT$99" : "NT$129"}</strong><span>／月 AI 加購</span></div>
+                    <Link className="ai-addon-banner-button" to="/student/membership"><FiZap aria-hidden="true" />查看會員方案</Link>
                 </section>
             )}
             <section className="ai-studio-hero">

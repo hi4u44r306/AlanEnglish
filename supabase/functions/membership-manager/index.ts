@@ -1,6 +1,13 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "npm:jose@5";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
+import {
+    ACADEMY_AI_ADDON_PLAN_CODE,
+    BASIC_MEMBERSHIP_PLAN_CODE,
+    GENERAL_AI_ADDON_PLAN_CODE,
+    getMembershipPricingEligibility,
+    isAiAddonPlanCode
+} from "../_shared/membership-pricing.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -203,7 +210,7 @@ const serializeMembership = (
 const loadAiAddonSubscription = async (admin: any, effectiveAccess: any) => {
     const grant = Array.isArray(effectiveAccess?.grants)
         ? effectiveAccess.grants.find((item: any) => (
-            item?.plan_code === "ai_materials_addon_monthly"
+            isAiAddonPlanCode(item?.plan_code)
             && item?.source === "stripe"
         ))
         : null;
@@ -710,16 +717,32 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "plans") {
-            let canBuyAiAddon = caller.role === "admin";
-            if (caller.role === "student" && caller.learner_type === "academy_student") {
-                const { data: activeEnrollment, error: enrollmentError } = await admin
+            let pricingEligibility = getMembershipPricingEligibility({
+                role: caller.role,
+                learnerType: caller.learner_type || null,
+                hasActiveAcademyEnrollment: false,
+                hasAcademyHistory: false,
+                hasActiveBasicMembership: false
+            });
+            let activePlanCodes = new Set<string>();
+            if (caller.role === "student") {
+                const [enrollmentResult, effectiveAccess] = await Promise.all([
+                    admin
                     .from("academy_enrollments")
-                    .select("id")
-                    .eq("student_id", caller.id)
-                    .eq("status", "active")
-                    .maybeSingle();
-                if (enrollmentError) throw enrollmentError;
-                canBuyAiAddon = Boolean(activeEnrollment);
+                    .select("id,status")
+                    .eq("student_id", caller.id),
+                    loadEffectiveAccess(admin, Number(caller.id))
+                ]);
+                if (enrollmentResult.error) throw enrollmentResult.error;
+                const enrollments = Array.isArray(enrollmentResult.data) ? enrollmentResult.data : [];
+                activePlanCodes = new Set(effectiveAccess.plan_codes);
+                pricingEligibility = getMembershipPricingEligibility({
+                    role: caller.role,
+                    learnerType: caller.learner_type || null,
+                    hasActiveAcademyEnrollment: enrollments.some((item: any) => item?.status === "active"),
+                    hasAcademyHistory: enrollments.length > 0,
+                    hasActiveBasicMembership: activePlanCodes.has(BASIC_MEMBERSHIP_PLAN_CODE)
+                });
             }
             const { data: plans, error } = await admin
                 .from("subscription_plans")
@@ -727,14 +750,31 @@ Deno.serve(async (req: Request) => {
                 .eq("enabled", true)
                 .order("sort_order", { ascending: true });
             if (error) throw error;
-            const visiblePlans = (plans || []).filter((plan: any) => (
-                plan.access_model !== "addon"
-                || (plan.code === "ai_materials_addon_monthly" && canBuyAiAddon)
-            ));
+            const visiblePlans = (plans || []).filter((plan: any) => {
+                if (caller.role === "admin") return true;
+                if (plan.is_public !== true) return false;
+                if (plan.code === BASIC_MEMBERSHIP_PLAN_CODE) {
+                    return pricingEligibility.canUseBasicMembership;
+                }
+                if (plan.code === ACADEMY_AI_ADDON_PLAN_CODE) {
+                    return pricingEligibility.canUseAcademyAiAddon || activePlanCodes.has(plan.code);
+                }
+                if (plan.code === GENERAL_AI_ADDON_PLAN_CODE) {
+                    return pricingEligibility.canUseGeneralAiAddon || activePlanCodes.has(plan.code);
+                }
+                return false;
+            });
             return json(200, {
                 success: true,
                 plans: visiblePlans.map((plan: any) => ({
                     ...plan,
+                    offer_label: plan.code === BASIC_MEMBERSHIP_PLAN_CODE
+                        ? "基本會員"
+                        : plan.code === ACADEMY_AI_ADDON_PLAN_CODE
+                            ? "英文班／離校生 AI 優惠"
+                            : plan.code === GENERAL_AI_ADDON_PLAN_CODE
+                                ? "一般會員 AI 加購"
+                                : "月費訂閱",
                     checkout_ready: Boolean(plan.stripe_price_id && plan.price_twd !== null),
                     stripe_price_id: caller.role === "admin" ? plan.stripe_price_id : undefined
                 }))

@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import { updateStudentProfile } from "../../services/membershipService";
+import { hasAiAddonPlan } from "../../constants/membershipPlans";
 import BirthdaySelect from "../fragment/BirthdaySelect";
 import "./css/StudentSettings.scss";
 
@@ -247,7 +248,7 @@ function StudentSettings() {
     const balance = summary?.balance || {};
     const avatarUrl = summary?.profile?.avatar_url || null;
     const avatarDisplayUrl = getStudentAvatarDisplayUrl(avatarUrl, 256);
-    const hasAiPremium = profile?.membership?.effective_access?.plan_codes?.includes("ai_materials_addon_monthly") === true;
+    const hasAiPremium = hasAiAddonPlan(profile?.membership?.effective_access?.plan_codes);
     const hasAiMaterials = profile?.membership?.effective_access?.features?.ai_materials === true;
 
     return (

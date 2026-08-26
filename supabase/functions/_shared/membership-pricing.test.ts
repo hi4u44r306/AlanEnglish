@@ -1,0 +1,73 @@
+import {
+    getMembershipPricingEligibility,
+    isAiAddonPlanCode
+} from "./membership-pricing.ts";
+
+const assertEquals = (actual: unknown, expected: unknown) => {
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+        throw new Error(`Expected ${JSON.stringify(expected)}, received ${JSON.stringify(actual)}`);
+    }
+};
+
+Deno.test("active academy students can buy the NT$99 AI add-on without a basic membership", () => {
+    const result = getMembershipPricingEligibility({
+        role: "student",
+        learnerType: "academy_student",
+        hasActiveAcademyEnrollment: true,
+        hasAcademyHistory: true,
+        hasActiveBasicMembership: false
+    });
+
+    assertEquals(result, {
+        canUseBasicMembership: false,
+        canUseAcademyAiAddon: true,
+        canUseGeneralAiAddon: false
+    });
+});
+
+Deno.test("alumni need the NT$299 membership before buying the NT$99 AI add-on", () => {
+    const withoutMembership = getMembershipPricingEligibility({
+        role: "student",
+        learnerType: "academy_student",
+        hasActiveAcademyEnrollment: false,
+        hasAcademyHistory: true,
+        hasActiveBasicMembership: false
+    });
+    const withMembership = getMembershipPricingEligibility({
+        role: "student",
+        learnerType: "academy_student",
+        hasActiveAcademyEnrollment: false,
+        hasAcademyHistory: true,
+        hasActiveBasicMembership: true
+    });
+
+    assertEquals(withoutMembership.canUseAcademyAiAddon, false);
+    assertEquals(withMembership.canUseAcademyAiAddon, true);
+});
+
+Deno.test("general members need the NT$299 membership before buying the NT$129 AI add-on", () => {
+    const withoutMembership = getMembershipPricingEligibility({
+        role: "student",
+        learnerType: "textbook_customer",
+        hasActiveAcademyEnrollment: false,
+        hasAcademyHistory: false,
+        hasActiveBasicMembership: false
+    });
+    const withMembership = getMembershipPricingEligibility({
+        role: "student",
+        learnerType: "textbook_customer",
+        hasActiveAcademyEnrollment: false,
+        hasAcademyHistory: false,
+        hasActiveBasicMembership: true
+    });
+
+    assertEquals(withoutMembership.canUseGeneralAiAddon, false);
+    assertEquals(withMembership.canUseGeneralAiAddon, true);
+    assertEquals(withMembership.canUseAcademyAiAddon, false);
+});
+
+Deno.test("only the two supported AI add-on codes are accepted", () => {
+    assertEquals(isAiAddonPlanCode("ai_materials_addon_monthly"), true);
+    assertEquals(isAiAddonPlanCode("ai_materials_general_monthly"), true);
+    assertEquals(isAiAddonPlanCode("unknown_addon"), false);
+});
