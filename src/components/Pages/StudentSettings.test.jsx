@@ -22,6 +22,7 @@ describe("StudentSettings", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        Object.defineProperty(window, "PointerEvent", { configurable: true, writable: true, value: MouseEvent });
         Object.defineProperty(URL, "createObjectURL", { writable: true, value: jest.fn(() => "blob:avatar-preview") });
         Object.defineProperty(URL, "revokeObjectURL", { writable: true, value: jest.fn() });
         useAuth.mockReturnValue({
@@ -42,6 +43,20 @@ describe("StudentSettings", () => {
             balance: { level: 3, total_xp: 390, points_balance: 21 }
         });
     });
+
+    const firePointerEvent = (target, type, properties) => {
+        const event = new MouseEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            clientX: properties.clientX,
+            clientY: properties.clientY
+        });
+        Object.defineProperties(event, {
+            pointerId: { value: properties.pointerId },
+            pointerType: { value: properties.pointerType }
+        });
+        fireEvent(target, event);
+    };
 
     it("shows student profile, protected learning honors, and birthday controls", async () => {
         render(<StudentSettings />);
@@ -78,12 +93,19 @@ describe("StudentSettings", () => {
         Object.defineProperty(preview, "naturalHeight", { configurable: true, value: 700 });
         fireEvent.load(preview);
         await waitFor(() => expect(preview.style.width).toBe("400px"));
+        const cropCanvas = container.querySelector(".student-avatar-crop-canvas");
+        cropCanvas.setPointerCapture = jest.fn();
+        firePointerEvent(cropCanvas, "pointerdown", { pointerId: 7, pointerType: "touch", clientX: 80, clientY: 120 });
+        expect(cropCanvas.setPointerCapture).toHaveBeenCalledWith(7);
+        firePointerEvent(cropCanvas, "pointermove", { pointerId: 7, pointerType: "touch", clientX: 120, clientY: 170 });
+        await waitFor(() => expect(preview.style.left).toBe("calc(50% + 40px)"));
+        firePointerEvent(cropCanvas, "pointerup", { pointerId: 7, pointerType: "touch", clientX: 120, clientY: 170 });
         createSquareAvatarImage.mockResolvedValue(file);
         prepareAvatarImage.mockResolvedValue(file);
         uploadGamificationImage.mockResolvedValue({ path: "avatars/student-1.webp", image_url: "https://example.com/avatar.webp" });
         fireEvent.click(screen.getByRole("button", { name: "使用這張頭像" }));
 
-        await waitFor(() => expect(createSquareAvatarImage).toHaveBeenCalledWith(file, expect.objectContaining({ previewSize: 280, zoom: 1, offsetX: 0, offsetY: 0 })));
+        await waitFor(() => expect(createSquareAvatarImage).toHaveBeenCalledWith(file, expect.objectContaining({ previewSize: 280, zoom: 1, offsetX: 40, offsetY: 0 })));
 
         fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
         fireEvent.click(screen.getByRole("button", { name: "關閉頭像調整視窗" }));
