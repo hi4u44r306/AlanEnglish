@@ -77,6 +77,45 @@ async function verifyFirebaseIdToken(token: string) {
   return uid;
 }
 
+async function isTrackAuthorized(admin: any, student: any, effectiveAccess: any, track: any) {
+  const book = Array.isArray(track.books) ? track.books[0] : track.books;
+  if (!book) return false;
+  if (book.content_scope === "trial") {
+    return effectiveAccess.learner_type === "trial_user" && effectiveAccess.plan_codes.includes("trial_7_day");
+  }
+  if (book.content_scope !== "formal") return false;
+  const now = new Date().toISOString(), today = now.slice(0, 10);
+  const direct = await admin.from("student_book_entitlements").select("id").eq("student_id", student.id)
+    .eq("book_id", book.id).eq("status", "active").lte("starts_at", now).is("revoked_at", null)
+    .or(`is_permanent.eq.true,ends_at.is.null,ends_at.gt.${now}`).limit(1);
+  if (direct.error) throw direct.error;
+  if (direct.data?.length) return true;
+  const enrollment = await admin.from("academy_enrollments").select("class_id")
+    .eq("student_id", student.id).eq("status", "active").lte("enrolled_at", today)
+    .or(`access_ends_at.is.null,access_ends_at.gte.${today}`).or(`scheduled_departure_at.is.null,scheduled_departure_at.gt.${today}`)
+    .limit(1).maybeSingle();
+  if (enrollment.error) throw enrollment.error;
+  if (enrollment.data) {
+    const settings = await admin.from("academy_class_material_settings").select("id")
+      .eq("class_id", enrollment.data.class_id).eq("is_active", true).lte("effective_from", today)
+      .or(`effective_to.is.null,effective_to.gte.${today}`).order("version", { ascending: false }).limit(1).maybeSingle();
+    if (settings.error) throw settings.error;
+    if (settings.data) {
+      const allowed = await admin.from("academy_class_material_books").select("id").eq("setting_id", settings.data.id).eq("book_id", book.id).limit(1);
+      if (allowed.error) throw allowed.error;
+      if (allowed.data?.length) return true;
+    }
+  }
+  const assignments = await admin.from("assignments").select("id,due_at").eq("target_class", student.class).eq("enabled", true);
+  if (assignments.error) throw assignments.error;
+  const assignmentIds = (assignments.data || []).filter((item: any) => !item.due_at || item.due_at > now).map((item: any) => item.id);
+  if (!assignmentIds.length) return false;
+  const items = await admin.from("assignment_track_items").select("track_id,track_id_snapshot,book_id_snapshot").in("assignment_id", assignmentIds);
+  if (items.error) throw items.error;
+  return (items.data || []).some((item: any) => Number(item.book_id_snapshot) === Number(book.id)
+    || Number(item.track_id_snapshot || item.track_id) === Number(track.id));
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -114,7 +153,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: student, error: studentError } = await admin
       .from("students")
-      .select("id, role")
+      .select("id,role,class,learner_type")
       .eq("firebase_uid", firebaseUid)
       .maybeSingle();
 
@@ -132,12 +171,15 @@ Deno.serve(async (req: Request) => {
 
     const { data: track, error: trackError } = await admin
       .from("music_tracks")
-      .select("id, enabled, duration_seconds")
+      .select("id,book_id,enabled,duration_seconds,books(id,content_scope)")
       .eq("id", trackId)
       .maybeSingle();
 
     if (trackError) return json(500, { error: "無法讀取音檔資料" });
     if (!track || !track.enabled) return json(404, { error: "找不到可用音檔" });
+    if (!await isTrackAuthorized(admin, student, effectiveAccess, track)) {
+      return json(403, { error: "沒有這個教材或音檔的有效權限", code: "book_entitlement_required" });
+    }
 
     if (action === "start") {
       const requestedDuration = Number(body?.duration_seconds);

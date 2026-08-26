@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { isAiAddonPlanCode } from "../_shared/membership-pricing.ts";
+import { toStripeTwdMinorUnits } from "../_shared/stripe-price.ts";
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -133,6 +134,32 @@ const mapSubscriptionGrantStatus = (status: string) => {
     return "paused";
 };
 
+const recordPaymentFailure = async (admin: any, failedStudentId: number, eventId: string, effectiveAt: string | null) => {
+    const eventKey = `payment_failed:${eventId}`;
+    const { data: notificationEvent, error } = await admin.from("notification_events").upsert({
+        event_key: eventKey, student_id: failedStudentId, event_type: "payment_failed",
+        effective_at: effectiveAt, payload: { title: "方案付款失敗" }
+    }, { onConflict: "event_key", ignoreDuplicates: true }).select("id").maybeSingle();
+    if (error) throw error;
+    const eventRow = notificationEvent || (await admin.from("notification_events").select("id").eq("event_key", eventKey).single()).data;
+    const inbox = await admin.from("student_notifications").upsert({
+        student_id: failedStudentId, notification_type: "membership", event_key: eventKey,
+        title: "方案付款失敗", body: "請由家長至付款管理頁更新付款方式，避免方案在寬限期後到期。",
+        metadata: { event_type: "payment_failed", effective_at: effectiveAt }
+    }, { onConflict: "student_id,event_key", ignoreDuplicates: true });
+    if (inbox.error) throw inbox.error;
+    const guardian = await admin.from("guardian_contacts").select("email,notification_enabled").eq("student_id", failedStudentId).maybeSingle();
+    if (guardian.error) throw guardian.error;
+    if (eventRow?.id && guardian.data?.notification_enabled !== false && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanText(guardian.data?.email, 320))) {
+        const queued = await admin.from("email_delivery_queue").upsert({
+            notification_event_id: eventRow.id, student_id: failedStudentId,
+            recipient_email: cleanText(guardian.data.email, 320).toLowerCase(), template_key: "payment_failed",
+            template_data: { title: "方案付款失敗", body: "請更新付款方式，避免方案在寬限期後到期。" }
+        }, { onConflict: "notification_event_id,recipient_email", ignoreDuplicates: true });
+        if (queued.error) throw queued.error;
+    }
+};
+
 Deno.serve(async (req: Request) => {
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
 
@@ -220,6 +247,14 @@ Deno.serve(async (req: Request) => {
     }
     if (!eventRecordId) return json(500, { error: "Unable to identify recorded event" });
 
+    if (eventLivemode) {
+        await admin.from("payment_events").update({
+            status: "ignored", error_message: "live_mode_event_rejected",
+            processed_at: new Date().toISOString()
+        }).eq("id", eventRecordId);
+        return json(200, { received: true, ignored: true });
+    }
+
     const object = event?.data?.object || {};
     const metadata = object?.metadata || {};
     const subscriptionMetadata = object?.parent?.subscription_details?.metadata || {};
@@ -231,6 +266,75 @@ Deno.serve(async (req: Request) => {
         let handled = false;
         if (eventType === "checkout.session.completed" || eventType === "checkout.session.async_payment_succeeded") {
             handled = true;
+            if (metadata.commerce_type === "material_package") {
+                const purchaseId = Number(metadata.purchase_id || 0) || null;
+                const packageId = Number(metadata.package_id || 0) || null;
+                if (!purchaseId || !packageId || !studentId) throw new Error("Material Checkout metadata is incomplete");
+                const { data: purchase, error: purchaseError } = await admin
+                    .from("material_purchases")
+                    .select("id,student_id,package_id,status,amount_twd,currency,includes_90_day_access,package_snapshot,stripe_checkout_session_id,stripe_livemode")
+                    .eq("id", purchaseId).eq("student_id", studentId).eq("package_id", packageId).maybeSingle();
+                if (purchaseError) throw purchaseError;
+                if (!purchase) throw new Error("Material Checkout does not match a purchase");
+                if (
+                    purchase.stripe_checkout_session_id !== cleanText(object.id, 300)
+                    || purchase.stripe_livemode !== false || eventLivemode !== false
+                    || cleanText(object.currency, 20) !== "twd"
+                    || Number(object.amount_total) !== toStripeTwdMinorUnits(purchase.amount_twd)
+                    || object.payment_status !== "paid"
+                ) throw new Error("Material Checkout amount, mode or ownership mismatch");
+
+                const paidAt = new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString();
+                const { error: paidError } = await admin.from("material_purchases").update({
+                    status: "paid", stripe_payment_intent_id: stripeId(object.payment_intent) || null,
+                    paid_at: paidAt, updated_at: new Date().toISOString()
+                }).eq("id", purchase.id).in("status", ["pending", "paid"]);
+                if (paidError) throw paidError;
+
+                for (const item of Array.isArray(purchase.package_snapshot?.books) ? purchase.package_snapshot.books : []) {
+                    const bookId = Number(item?.book_id || 0);
+                    if (!Number.isInteger(bookId) || bookId <= 0) continue;
+                    const { data: entitlement, error: entitlementError } = await admin.from("student_book_entitlements").upsert({
+                        student_id: studentId, book_id: bookId, source: "material_purchase",
+                        source_reference_type: "material_purchase", source_reference_id: purchase.id,
+                        status: "active", is_permanent: true, metadata: { package_id: packageId }
+                    }, { onConflict: "student_id,book_id,source,source_reference_type,source_reference_id" }).select("id").single();
+                    if (entitlementError) throw entitlementError;
+                    const linked = await admin.from("material_purchase_entitlements").upsert({
+                        purchase_id: purchase.id, book_entitlement_id: entitlement.id
+                    }, { onConflict: "purchase_id,book_entitlement_id", ignoreDuplicates: true });
+                    if (linked.error) throw linked.error;
+                }
+
+                let accessGrantId: number | null = null;
+                if (purchase.includes_90_day_access === true) {
+                    const { data: plan, error: planError } = await admin.from("subscription_plans").select("id").eq("code", "material_bonus_90_day").single();
+                    if (planError) throw planError;
+                    const startsAt = paidAt;
+                    const endsAtDate = new Date(startsAt); endsAtDate.setUTCDate(endsAtDate.getUTCDate() + 90);
+                    const { data: grant, error: grantError } = await admin.from("student_access_grants").upsert({
+                        student_id: studentId, plan_id: plan.id, source: "material_purchase",
+                        source_reference_type: "material_purchase", source_reference_id: purchase.id,
+                        status: "active", starts_at: startsAt, ends_at: endsAtDate.toISOString(),
+                        cancel_at_period_end: false, stripe_livemode: false,
+                        metadata: { non_recurring: true, auto_renews: false, package_id: packageId }
+                    }, { onConflict: "student_id,source,source_reference_type,source_reference_id" }).select("id").single();
+                    if (grantError) throw grantError;
+                    accessGrantId = Number(grant.id);
+                }
+
+                const membershipResult = await admin.from("memberships").select("id").eq("student_id", studentId).maybeSingle();
+                if (membershipResult.error) throw membershipResult.error;
+                const { error: transactionError } = await admin.from("payment_transactions").upsert({
+                    student_id: studentId, membership_id: membershipResult.data?.id || null,
+                    access_grant_id: accessGrantId, stripe_event_id: eventId,
+                    stripe_checkout_session_id: cleanText(object.id, 300),
+                    stripe_payment_intent_id: stripeId(object.payment_intent) || null,
+                    amount_total: Number(object.amount_total), currency: "twd", status: "paid", occurred_at: paidAt
+                }, { onConflict: "stripe_checkout_session_id" });
+                if (transactionError) throw transactionError;
+                if (!paid) await recordPaymentFailure(admin, Number(accessGrant.student_id), eventId, periodEnd);
+            } else {
             const membershipId = Number(metadata.membership_id || 0) || null;
             if (!membershipId || !studentId || !planId) {
                 throw new Error("Checkout Session metadata is incomplete");
@@ -345,6 +449,14 @@ Deno.serve(async (req: Request) => {
                 occurred_at: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString()
             }, { onConflict: "stripe_checkout_session_id" });
             if (transactionError) throw transactionError;
+            }
+        } else if (eventType === "checkout.session.async_payment_failed" && metadata.commerce_type === "material_package") {
+            handled = true;
+            const purchaseId = Number(metadata.purchase_id || 0) || null;
+            if (purchaseId) {
+                const { error } = await admin.from("material_purchases").update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", purchaseId).eq("student_id", studentId);
+                if (error) throw error;
+            }
         } else if (eventType.startsWith("customer.subscription.")) {
             handled = true;
             const subscriptionId = stripeId(object.id);
@@ -606,6 +718,7 @@ Deno.serve(async (req: Request) => {
                         occurred_at: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString()
                     }, { onConflict: "stripe_invoice_id" });
                     if (transactionError) throw transactionError;
+                    if (!paid) await recordPaymentFailure(admin, Number(membership.student_id), eventId, periodEnd);
                 }
             }
         }

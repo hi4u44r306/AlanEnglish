@@ -25,3 +25,19 @@ export const callEdgeFunction = async (functionName, firebaseUser, body = {}) =>
 
     return result;
 };
+
+export const callPublicEdgeFunction = async (functionName, body = {}, firebaseUser = null) => {
+    const headers = { "Content-Type": "application/json", apikey: supabaseKey };
+    if (firebaseUser) headers.Authorization = `Bearer ${await firebaseUser.getIdToken()}`;
+    const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
+        method: "POST", headers, body: JSON.stringify(body)
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        const error = new Error(result?.error || `${functionName} 服務暫時無法使用`);
+        error.status = response.status;
+        error.code = result?.code || null;
+        throw error;
+    }
+    return result;
+};

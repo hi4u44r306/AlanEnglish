@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FiCheck, FiCreditCard, FiStar, FiZap } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
-import { createBillingPortal, createCheckoutSession } from "../../services/billingService";
+import { cancelSubscriptionAtPeriodEnd, createBillingPortal, createCheckoutSession, resumeSubscription } from "../../services/billingService";
 import { getMembershipProfile, getPublicPlans, redeemActivationCode } from "../../services/membershipService";
 import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 import { hasAiAddonPlan, isAiAddonPlanCode } from "../../constants/membershipPlans";
@@ -30,6 +30,7 @@ const formatRenewalDay = value => {
 
 function MembershipCenter() {
     const { firebaseUser, setStudentProfile } = useAuth();
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [plans, setPlans] = useState([]);
     const [code, setCode] = useState("");
@@ -106,9 +107,20 @@ function MembershipCenter() {
             const result = await createCheckoutSession(firebaseUser, plan.id);
             window.location.assign(result.url);
         } catch (error) {
-            toast.error(error.message || "目前無法前往付款");
+            if (error.code === "guardian_email_required") { toast.info("請先補上家長 Email"); navigate("/student/settings"); }
+            else toast.error(error.message || "目前無法前往付款");
             setWorking("");
         }
+    };
+
+    const updateRenewal = async (resume, subscriptionId = null) => {
+        setWorking(resume ? "resume" : "cancel");
+        try {
+            await (resume ? resumeSubscription(firebaseUser, subscriptionId) : cancelSubscriptionAtPeriodEnd(firebaseUser, subscriptionId));
+            toast.success(resume ? "已恢復到期前續訂" : "已排程於本期結束取消；到期前仍可使用");
+            await load();
+        } catch (error) { toast.error(error.message || "方案狀態更新失敗"); }
+        finally { setWorking(""); }
     };
 
     const portal = async () => {
@@ -171,6 +183,7 @@ function MembershipCenter() {
                     </div>
                 </div>
             </section>
+            <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">MATERIAL OWNERSHIP</span><h2>下一級教材包</h2><p>基本月費只延續你已擁有教材的聽力、進度、智慧複習與情境會話，不包含實體教材，也不會自動解鎖下一級。</p></div><Link className="platform-primary" to="/materials"><FiCreditCard />查看與購買下一級教材</Link></div></section>
             {membership?.requires_email_verification && <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h2>先完成 Email 驗證</h2><p>驗證信會寄到 {firebaseUser?.email}。完成驗證後，7 天免費試用才會開始計時。</p></div><div className="platform-verification-actions"><button className="platform-secondary" onClick={resendVerification} disabled={working === "verification" || verificationCooldown > 0}>{working === "verification" ? "寄送中…" : verificationCooldown > 0 ? `${verificationCooldown} 秒後可重寄` : "重新寄送驗證信"}</button><button className="platform-primary" onClick={confirmVerification} disabled={working === "confirm-verification"}>{working === "confirm-verification" ? "確認中…" : "我已完成驗證"}</button></div></div><p className="platform-footnote">仍未收到時，請搜尋 Alan English 寄件者，並檢查垃圾郵件或促銷內容。</p></section>}
             <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">ACTIVATION CODE</span><h2>教材啟用碼</h2></div><p>購買實體教材附贈的聽力權限，可在這裡啟用。</p></div><form className="platform-inline-form" onSubmit={redeem}><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="AE-XXXX-XXXX-XXXX" autoComplete="off" /><button className="platform-primary" disabled={working === "redeem"}>{working === "redeem" ? "啟用中…" : "啟用權限"}</button></form></section>
             {hasAiAddon && (
@@ -189,11 +202,13 @@ function MembershipCenter() {
                         <strong>{aiAddonCancelling ? formatDate(aiRenewalAt) : aiRenewalDay ? `每月 ${aiRenewalDay} 日` : "AI 教材已啟用"}</strong>
                         <small>{aiAddonCancelling ? "到期後不會再次扣款" : aiRenewalAt ? `下次預計 ${formatDate(aiRenewalAt)} 續訂` : "可立即使用專屬教材生成"}</small>
                         <Link className="platform-ai-premium-action" to="/student/ai-generator"><FiZap aria-hidden="true" />開始使用 AI 教材</Link>
+                        {aiAddonSubscription?.stripe_subscription_id && <button type="button" className="platform-secondary" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "到期前恢復續訂" : "本期結束取消 AI"}</button>}
                     </div>
                 </section>
             )}
             <section className="platform-card">
                 <div className="platform-section-title"><div><span className="platform-eyebrow">PLANS</span><h2>月費方案</h2></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
+                {membership?.stripe_subscription_status && !isActiveAcademyStudent && <div className="platform-inline-form"><p>{membership.cancel_at_period_end ? `已排程於 ${formatDate(membership.current_period_end)} 取消，到期前可恢復。` : membership.stripe_subscription_status === "past_due" ? "付款失敗，請由 Customer Portal 更新付款方式。" : `目前付款週期至 ${formatDate(membership.current_period_end)}。`}</p>{membership.stripe_subscription_status !== "canceled" && <button className="platform-secondary" type="button" disabled={Boolean(working)} onClick={() => updateRenewal(membership.cancel_at_period_end)}>{membership.cancel_at_period_end ? "到期前恢復續訂" : "本期結束取消"}</button>}</div>}
                 {publicPlans.length === 0
                     ? <div className="platform-empty"><strong>線上訂閱尚未開放</strong><p>目前可以使用免費試用或教材啟用碼。正式價格完成設定後，月費方案會自動顯示在這裡。</p></div>
                     : <div className="platform-plan-grid">{publicPlans.map(plan => {

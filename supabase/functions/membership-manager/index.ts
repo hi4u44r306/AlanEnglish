@@ -219,7 +219,7 @@ const loadAiAddonSubscription = async (admin: any, effectiveAccess: any) => {
 
     const { data, error } = await admin
         .from("student_access_grants")
-        .select("status,stripe_subscription_status,current_period_end,ends_at,cancel_at_period_end")
+        .select("status,stripe_subscription_id,stripe_subscription_status,current_period_end,ends_at,cancel_at_period_end")
         .eq("id", grantId)
         .maybeSingle();
     if (error) throw error;
@@ -227,6 +227,7 @@ const loadAiAddonSubscription = async (admin: any, effectiveAccess: any) => {
 
     return {
         status: cleanText(data.status, 40) || null,
+        stripe_subscription_id: cleanText(data.stripe_subscription_id, 300) || null,
         stripe_subscription_status: cleanText(data.stripe_subscription_status, 60) || null,
         current_period_end: isoOrNull(data.current_period_end || data.ends_at),
         cancel_at_period_end: data.cancel_at_period_end === true
@@ -661,11 +662,13 @@ Deno.serve(async (req: Request) => {
 
         if (action === "update_student_profile") {
             if (caller.role !== "student") return json(403, { error: "目前只有學生可以更新自己的基本資料" });
-            let dateOfBirth = "";
-            try {
-                dateOfBirth = normalizeDateOfBirth(body?.date_of_birth);
-            } catch (error) {
-                return json(400, { error: error instanceof Error ? error.message : "出生年月日格式不正確" });
+            let dateOfBirth = caller.date_of_birth || null;
+            if (Object.prototype.hasOwnProperty.call(body || {}, "date_of_birth")) {
+                try {
+                    dateOfBirth = normalizeDateOfBirth(body?.date_of_birth);
+                } catch (error) {
+                    return json(400, { error: error instanceof Error ? error.message : "出生年月日格式不正確" });
+                }
             }
             const { data, error } = await admin
                 .from("students")
@@ -675,7 +678,16 @@ Deno.serve(async (req: Request) => {
                 .select("date_of_birth")
                 .single();
             if (error) throw error;
-            return json(200, { success: true, profile: { date_of_birth: data?.date_of_birth || null } });
+            const guardianEmail = normalizeEmail(body?.guardian_email);
+            if (guardianEmail && !isReceivableEmail(guardianEmail)) return json(400, { error: "請輸入可收信的家長 Email" });
+            if (Object.prototype.hasOwnProperty.call(body || {}, "guardian_email")) {
+                const guardianUpdate = await admin.from("guardian_contacts").upsert({
+                    student_id: caller.id, email: guardianEmail || null,
+                    notification_enabled: true, updated_at: new Date().toISOString()
+                }, { onConflict: "student_id" });
+                if (guardianUpdate.error) throw guardianUpdate.error;
+            }
+            return json(200, { success: true, profile: { date_of_birth: data?.date_of_birth || null, guardian_email: guardianEmail || null } });
         }
 
         if (action === "notifications") {
@@ -786,6 +798,8 @@ Deno.serve(async (req: Request) => {
             const normalizedCode = normalizeActivationCode(body?.code);
             if (normalizedCode.length < 10) return json(400, { error: "啟用碼格式不正確" });
             const codeHash = await sha256(normalizedCode);
+            const codeLookup = await admin.from("activation_codes").select("id,book_id").eq("code_hash", codeHash).maybeSingle();
+            if (codeLookup.error) throw codeLookup.error;
             const { data, error } = await admin.rpc("redeem_activation_code", {
                 p_student_id: caller.id,
                 p_code_hash: codeHash
@@ -800,6 +814,17 @@ Deno.serve(async (req: Request) => {
                 if (message.includes("code_already_redeemed")) return json(409, { error: "你已經使用過這組啟用碼" });
                 if (message.includes("membership_already_unlimited")) return json(409, { error: "你的帳號目前已有永久使用權" });
                 throw error;
+            }
+            if (codeLookup.data?.book_id) {
+                const { data: entitlement, error: entitlementError } = await admin.from("student_book_entitlements").upsert({
+                    student_id: caller.id, book_id: codeLookup.data.book_id, source: "activation_code",
+                    source_reference_type: "activation_code", source_reference_id: codeLookup.data.id,
+                    status: "active", is_permanent: true,
+                    metadata: { redemption_id: data?.redemption_id || null }
+                }, { onConflict: "student_id,book_id,source,source_reference_type,source_reference_id" }).select("id").single();
+                if (entitlementError) throw entitlementError;
+                const linked = await admin.from("activation_code_redemptions").update({ book_entitlement_id: entitlement.id }).eq("id", data?.redemption_id).eq("student_id", caller.id);
+                if (linked.error) throw linked.error;
             }
             const membership = await loadMembership(admin, Number(caller.id));
             const effectiveAccess = await loadEffectiveAccess(admin, Number(caller.id));
@@ -963,18 +988,19 @@ Deno.serve(async (req: Request) => {
 
         if (action === "admin_dashboard") {
             if (caller.role !== "admin") return json(403, { error: "只有管理員可以查看會員管理" });
-            const [plansResult, codesResult, membersResult, emailSettingsResult] = await Promise.all([
+            const [plansResult, codesResult, membersResult, emailSettingsResult, booksResult] = await Promise.all([
                 admin.from("subscription_plans").select("*").order("sort_order", { ascending: true }),
                 admin.from("activation_codes")
-                    .select("id,code_hint,plan_id,duration_days,max_redemptions,redemption_count,status,expires_at,note,created_at,subscription_plans(id,code,name)")
+                    .select("id,code_hint,plan_id,book_id,duration_days,max_redemptions,redemption_count,status,expires_at,note,created_at,subscription_plans(id,code,name),books(id,name,code)")
                     .order("created_at", { ascending: false })
                     .limit(200),
                 admin.from("students")
                     .select(`id,name,email,role,class,plan,memberships(${membershipSelect})`)
                     .order("name", { ascending: true }),
-                admin.from("guardian_email_settings").select("*").eq("id", 1).maybeSingle()
+                admin.from("guardian_email_settings").select("*").eq("id", 1).maybeSingle(),
+                admin.from("books").select("id,name,code").eq("enabled", true).is("archived_at", null).order("category_id").order("sort_order")
             ]);
-            const firstError = [plansResult.error, codesResult.error, membersResult.error, emailSettingsResult.error].find(Boolean);
+            const firstError = [plansResult.error, codesResult.error, membersResult.error, emailSettingsResult.error, booksResult.error].find(Boolean);
             if (firstError) throw firstError;
             const members = await Promise.all((membersResult.data || []).map(async (account: any) => {
                 const effectiveAccess = await loadEffectiveAccess(admin, Number(account.id));
@@ -1004,10 +1030,12 @@ Deno.serve(async (req: Request) => {
                 plans: plansResult.data || [],
                 codes: (codesResult.data || []).map((code: any) => ({
                     ...code,
-                    subscription_plans: relationOne(code.subscription_plans)
+                    subscription_plans: relationOne(code.subscription_plans),
+                    books: relationOne(code.books)
                 })),
                 members,
                 email_settings: emailSettingsResult.data || null,
+                books: booksResult.data || [],
                 summary
             });
         }
@@ -1071,6 +1099,7 @@ Deno.serve(async (req: Request) => {
             const durationDays = Number(body?.duration_days || 30);
             const maxRedemptions = Number(body?.max_redemptions || 1);
             const planId = numberOrNull(body?.plan_id);
+            const bookId = numberOrNull(body?.book_id);
             const expiresAt = isoOrNull(body?.expires_at);
             const note = cleanText(body?.note, 300) || null;
             if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
@@ -1095,6 +1124,11 @@ Deno.serve(async (req: Request) => {
                 if (planError) throw planError;
                 if (!plan) return json(400, { error: "找不到指定方案" });
             }
+            if (bookId) {
+                const { data: book, error: bookError } = await admin.from("books").select("id").eq("id", bookId).eq("enabled", true).is("archived_at", null).maybeSingle();
+                if (bookError) throw bookError;
+                if (!book) return json(400, { error: "找不到指定教材" });
+            }
 
             const plainCodes: string[] = [];
             const rows: any[] = [];
@@ -1106,6 +1140,7 @@ Deno.serve(async (req: Request) => {
                     code_hash: await sha256(normalized),
                     code_hint: `${code.slice(0, 7)}••••${code.slice(-4)}`,
                     plan_id: planId,
+                    book_id: bookId,
                     duration_days: durationDays,
                     max_redemptions: maxRedemptions,
                     status: "active",
@@ -1117,7 +1152,7 @@ Deno.serve(async (req: Request) => {
             const { data: saved, error } = await admin
                 .from("activation_codes")
                 .insert(rows)
-                .select("id,code_hint,plan_id,duration_days,max_redemptions,status,expires_at,note,created_at");
+                .select("id,code_hint,plan_id,book_id,duration_days,max_redemptions,status,expires_at,note,created_at");
             if (error) throw error;
             return json(201, {
                 success: true,

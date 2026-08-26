@@ -166,7 +166,106 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action || "create_checkout", 60);
         const siteUrl = getSiteUrl();
 
+        const loadGuardianEmail = async () => {
+            const { data, error } = await admin
+                .from("guardian_contacts")
+                .select("email")
+                .eq("student_id", student.id)
+                .maybeSingle();
+            if (error) throw error;
+            const guardianEmail = cleanText(data?.email, 320).toLowerCase();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail)) {
+                throw Object.assign(new Error("付費前請先在學生設定補上有效的家長 Email"), {
+                    status: 409,
+                    code: "guardian_email_required"
+                });
+            }
+            return guardianEmail;
+        };
+
+        if (action === "create_material_checkout") {
+            const guardianEmail = await loadGuardianEmail();
+            const packageId = positiveInteger(body?.package_id);
+            if (!packageId) return json(400, { error: "請選擇教材商品包" });
+            const { data: materialPackage, error: packageError } = await admin
+                .from("material_packages")
+                .select(`
+                    id,name,standard_price_twd,member_price_twd,includes_90_day_access,status,
+                    stripe_product_id,stripe_standard_price_id,stripe_member_price_id,stripe_livemode,
+                    material_package_books(book_id,role),material_package_tracks(track_id,role)
+                `)
+                .eq("id", packageId)
+                .eq("status", "published")
+                .eq("stripe_livemode", false)
+                .maybeSingle();
+            if (packageError) throw packageError;
+            if (!materialPackage) return json(404, { error: "這個教材商品包目前沒有上架" });
+
+            const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
+            const memberPrice = effectiveAccess.plan_codes.includes(BASIC_MEMBERSHIP_PLAN_CODE);
+            const amountTwd = Number(memberPrice ? materialPackage.member_price_twd : materialPackage.standard_price_twd);
+            const selectedPriceId = cleanText(memberPrice ? materialPackage.stripe_member_price_id : materialPackage.stripe_standard_price_id, 300);
+            if (!Number.isInteger(amountTwd) || amountTwd <= 0 || !selectedPriceId) {
+                return json(409, { error: "教材商品包價格尚未確認，暫時無法購買", code: "material_price_unconfirmed" });
+            }
+            const price = await stripe.prices.retrieve(selectedPriceId);
+            if (
+                price.active !== true || price.type !== "one_time" || price.currency !== "twd"
+                || price.livemode !== false || Number(price.unit_amount) !== toStripeTwdMinorUnits(amountTwd)
+                || stripeId(price.product) !== cleanText(materialPackage.stripe_product_id, 300)
+            ) return json(409, { error: "Stripe 教材價格與網站商品包設定不一致", code: "stripe_price_mismatch" });
+
+            let customerId = cleanText(membership.stripe_customer_id, 200);
+            if (!customerId) {
+                const customer = await stripe.customers.create({
+                    email: guardianEmail,
+                    name: student.name || "Alan English Student",
+                    metadata: { student_id: String(student.id), firebase_uid: student.firebase_uid }
+                });
+                if (customer.livemode !== false) return json(409, { error: "教材付款僅允許 Stripe 測試模式" });
+                customerId = customer.id;
+                const saved = await admin.from("memberships").update({
+                    stripe_customer_id: customerId, stripe_livemode: false, updated_at: new Date().toISOString()
+                }).eq("id", membership.id);
+                if (saved.error) throw saved.error;
+            }
+
+            const snapshot = {
+                package_id: materialPackage.id,
+                package_name: materialPackage.name,
+                books: materialPackage.material_package_books || [],
+                tracks: materialPackage.material_package_tracks || [],
+                includes_90_day_access: !memberPrice && materialPackage.includes_90_day_access === true
+            };
+            const { data: purchase, error: purchaseError } = await admin.from("material_purchases").insert({
+                student_id: student.id, package_id: materialPackage.id, status: "pending",
+                price_type: memberPrice ? "member" : "standard", amount_twd: amountTwd,
+                includes_90_day_access: snapshot.includes_90_day_access, package_snapshot: snapshot,
+                stripe_livemode: false
+            }).select("id").single();
+            if (purchaseError) throw purchaseError;
+            const suffix = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+            const metadata = {
+                commerce_type: "material_package",
+                purchase_id: String(purchase.id), package_id: String(materialPackage.id), student_id: String(student.id)
+            };
+            const session = await stripe.checkout.sessions.create({
+                mode: "payment", customer: customerId, client_reference_id: String(student.id),
+                line_items: [{ price: selectedPriceId, quantity: 1 }],
+                success_url: `${siteUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${siteUrl}/materials?checkout=cancelled`,
+                customer_update: { address: "auto", name: "auto" },
+                billing_address_collection: "auto",
+                integration_identifier: `alanenglish_material_${suffix}`,
+                metadata, payment_intent_data: { metadata }
+            });
+            const saved = await admin.from("material_purchases").update({ stripe_checkout_session_id: session.id }).eq("id", purchase.id);
+            if (saved.error) throw saved.error;
+            return json(200, { success: true, checkout_session_id: session.id, url: session.url });
+        }
+
         if (action === "create_checkout") {
+            const guardianEmail = await loadGuardianEmail();
             const planId = positiveInteger(body?.plan_id);
             if (!planId) return json(400, { error: "請選擇訂閱方案" });
             const { data: plan, error: planError } = await admin
@@ -292,7 +391,7 @@ Deno.serve(async (req: Request) => {
             let customerId = cleanText(membership.stripe_customer_id, 200);
             if (!customerId) {
                 const customer = await stripe.customers.create({
-                    email: student.email || firebaseUser.email,
+                    email: guardianEmail,
                     name: student.name || "Alan English Student",
                     metadata: {
                         student_id: String(student.id),
@@ -358,6 +457,60 @@ Deno.serve(async (req: Request) => {
                 return_url: `${siteUrl}/student/membership`
             });
             return json(200, { success: true, url: session.url });
+        }
+
+        if (action === "cancel_at_period_end" || action === "resume_subscription") {
+            const requestedSubscriptionId = cleanText(body?.subscription_id, 300);
+            let subscriptionId = cleanText(membership.stripe_subscription_id, 300);
+            let grantId: number | null = null;
+            if (requestedSubscriptionId && requestedSubscriptionId !== subscriptionId) {
+                const { data: grant, error: grantError } = await admin
+                    .from("student_access_grants")
+                    .select("id,stripe_subscription_id")
+                    .eq("student_id", student.id)
+                    .eq("stripe_subscription_id", requestedSubscriptionId)
+                    .eq("source", "stripe")
+                    .maybeSingle();
+                if (grantError) throw grantError;
+                if (!grant) return json(403, { error: "這筆訂閱不屬於目前登入帳號" });
+                subscriptionId = requestedSubscriptionId;
+                grantId = Number(grant.id);
+            }
+            if (!subscriptionId) return json(409, { error: "這個帳號目前沒有可管理的 Stripe 訂閱" });
+            const existing = await stripe.subscriptions.retrieve(subscriptionId);
+            if (existing.status === "canceled") {
+                return json(409, {
+                    error: "這個方案已真正到期，請重新完成 Checkout 開始新的付款週期",
+                    code: "subscription_expired"
+                });
+            }
+            const cancelAtPeriodEnd = action === "cancel_at_period_end";
+            const updated = await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: cancelAtPeriodEnd });
+            const currentPeriodEnd = toIsoFromSeconds(subscriptionPeriodEnd(updated));
+            if (grantId) {
+                const saved = await admin.from("student_access_grants").update({
+                    cancel_at_period_end: cancelAtPeriodEnd,
+                    current_period_end: currentPeriodEnd,
+                    ends_at: currentPeriodEnd,
+                    stripe_subscription_status: updated.status,
+                    updated_at: new Date().toISOString()
+                }).eq("id", grantId);
+                if (saved.error) throw saved.error;
+            } else {
+                const saved = await admin.from("memberships").update({
+                    cancel_at_period_end: cancelAtPeriodEnd,
+                    current_period_end: currentPeriodEnd,
+                    access_ends_at: currentPeriodEnd,
+                    stripe_subscription_status: updated.status,
+                    updated_at: new Date().toISOString()
+                }).eq("id", membership.id);
+                if (saved.error) throw saved.error;
+            }
+            return json(200, {
+                success: true,
+                cancel_at_period_end: cancelAtPeriodEnd,
+                current_period_end: currentPeriodEnd
+            });
         }
 
         if (action === "sync") {
@@ -533,8 +686,9 @@ Deno.serve(async (req: Request) => {
     } catch (error) {
         console.error("billing-manager unexpected error", error);
         const status = Number((error as any)?.statusCode || (error as any)?.status || 0);
-        return json(status >= 400 && status < 500 ? 400 : 500, {
-            error: error instanceof Error ? error.message : "付款服務暫時無法使用"
+        return json(status >= 400 && status < 500 ? status : 500, {
+            error: error instanceof Error ? error.message : "付款服務暫時無法使用",
+            code: cleanText((error as any)?.code, 100) || null
         });
     }
 });

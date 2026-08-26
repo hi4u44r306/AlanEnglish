@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import { updateStudentProfile } from "../../services/membershipService";
+import { loadStudentCommerceProfile } from "../../services/commerceService";
 import { hasAiAddonPlan } from "../../constants/membershipPlans";
 import BirthdaySelect from "../fragment/BirthdaySelect";
 import "./css/StudentSettings.scss";
@@ -35,9 +36,12 @@ function StudentSettings() {
     const { firebaseUser, studentProfile, setStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
     const [summary, setSummary] = useState(null);
+    const [commerce, setCommerce] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [savingBirthday, setSavingBirthday] = useState(false);
     const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
+    const [guardianEmail, setGuardianEmail] = useState("");
+    const [savingGuardian, setSavingGuardian] = useState(false);
     const [avatarDraft, setAvatarDraft] = useState(null);
     const [avatarConfirmation, setAvatarConfirmation] = useState(null);
     const avatarDragRef = useRef(null);
@@ -45,8 +49,13 @@ function StudentSettings() {
     const load = useCallback(async () => {
         if (!firebaseUser) return;
         try {
-            const summaryResult = await getGamificationSummary(firebaseUser);
-            setSummary(summaryResult || null);
+            const [summaryResult, commerceResult] = await Promise.allSettled([
+                getGamificationSummary(firebaseUser),
+                loadStudentCommerceProfile(firebaseUser)
+            ]);
+            if (summaryResult.status === "fulfilled") setSummary(summaryResult.value || null);
+            if (commerceResult.status === "fulfilled") setCommerce(commerceResult.value?.profile || null);
+            if (summaryResult.status === "rejected" && commerceResult.status === "rejected") throw summaryResult.reason;
         } catch (error) {
             toast.error(error.message || "設定資料讀取失敗");
         }
@@ -54,6 +63,7 @@ function StudentSettings() {
 
     useEffect(() => { load(); }, [load]);
     useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
+    useEffect(() => { setGuardianEmail(commerce?.guardian?.email || ""); }, [commerce?.guardian?.email]);
     useEffect(() => () => {
         if (avatarConfirmation?.revokePreview && avatarConfirmation.previewUrl) {
             URL.revokeObjectURL(avatarConfirmation.previewUrl);
@@ -244,12 +254,32 @@ function StudentSettings() {
         }
     };
 
+    const saveGuardianEmail = async event => {
+        event.preventDefault();
+        if (!firebaseUser) return;
+        setSavingGuardian(true);
+        try {
+            await updateStudentProfile(firebaseUser, { guardian_email: guardianEmail });
+            setCommerce(current => current ? { ...current, guardian: { ...(current.guardian || {}), email: guardianEmail } } : current);
+            toast.success("家長 Email 已更新");
+        } catch (error) { toast.error(error.message || "無法更新家長 Email"); }
+        finally { setSavingGuardian(false); }
+    };
+
     const profile = studentProfile || {};
     const balance = summary?.balance || {};
     const avatarUrl = summary?.profile?.avatar_url || null;
     const avatarDisplayUrl = getStudentAvatarDisplayUrl(avatarUrl, 256);
     const hasAiPremium = hasAiAddonPlan(profile?.membership?.effective_access?.plan_codes);
     const hasAiMaterials = profile?.membership?.effective_access?.features?.ai_materials === true;
+    const statusLabel = commerce?.enrollment_status === "active" ? "在校" : commerce?.enrollment_status === "scheduled_departure" ? "預定離校" : commerce?.enrollment_status === "departed" ? "離校" : "非在校生";
+    const currentEnrollment = commerce?.current_enrollment || null;
+    const directBooks = commerce?.direct_entitlements || [];
+    const booksBySource = source => directBooks.filter(item => item.source === source);
+    const planName = plan => {
+        const value = Array.isArray(plan?.subscription_plans) ? plan.subscription_plans[0] : plan?.subscription_plans;
+        return value?.name || value?.code || "方案";
+    };
 
     return (
         <main className="student-settings-page">
@@ -367,6 +397,29 @@ function StudentSettings() {
                         <div><dt>AI Premium</dt><dd>{hasAiPremium ? "已加購" : "未加購"}</dd></div>
                         <div><dt>AI 教材方案</dt><dd>{hasAiMaterials ? "可使用" : "目前不可使用"}</dd></div>
                         <div><dt>帳號類型</dt><dd>{profile.learner_type === "academy_student" ? "英文班學生" : profile.learner_type === "textbook_customer" ? "教材購買者" : "試用／一般學生"}</dd></div>
+                        <div><dt>在校狀態</dt><dd>{statusLabel}</dd></div>
+                        <div><dt>入學日期</dt><dd>{currentEnrollment?.enrolled_at || "—"}</dd></div>
+                        <div><dt>預定離校</dt><dd>{currentEnrollment?.scheduled_departure_at || "—"}</dd></div>
+                        <div><dt>實際離校</dt><dd>{currentEnrollment?.departed_at || "—"}</dd></div>
+                    </dl>
+                </article>
+            </section>
+
+            <section className="student-settings-grid">
+                <article className="student-settings-panel">
+                    <header><FiGift /><div><span>BOOK OWNERSHIP</span><h2>教材權限來源</h2></div></header>
+                    <dl className="student-settings-data-list">
+                        <div><dt>班級取得教材</dt><dd>{commerce?.class_books?.map(book => book?.name).filter(Boolean).join("、") || "—"}</dd></div>
+                        <div><dt>已購買教材</dt><dd>{booksBySource("material_purchase").map(item => item.books?.name).filter(Boolean).join("、") || "—"}</dd></div>
+                        <div><dt>管理員贈送</dt><dd>{booksBySource("admin_grant").map(item => item.books?.name).filter(Boolean).join("、") || "—"}</dd></div>
+                        <div><dt>開通碼教材</dt><dd>{booksBySource("activation_code").map(item => item.books?.name).filter(Boolean).join("、") || "—"}</dd></div>
+                    </dl>
+                    <p>教材擁有權永久保留；網站使用權由班級、90 天贈送、試用或會員方案分別疊加。</p>
+                </article>
+                <article className="student-settings-panel">
+                    <header><FiCreditCard /><div><span>PLAN STATUS</span><h2>基本會員與 AI 方案</h2></div></header>
+                    <dl className="student-settings-data-list">
+                        {(commerce?.plans || []).length ? commerce.plans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{plan.stripe_subscription_status === "past_due" ? "付款失敗" : plan.cancel_at_period_end ? `本期結束取消（${plan.current_period_end?.slice(0, 10) || "—"}）` : plan.current_period_end ? `續訂日 ${plan.current_period_end.slice(0, 10)}` : plan.ends_at ? `到期日 ${plan.ends_at.slice(0, 10)}` : plan.status}</dd></div>) : <div><dt>方案</dt><dd>目前無方案</dd></div>}
                     </dl>
                 </article>
             </section>
@@ -388,6 +441,15 @@ function StudentSettings() {
                     <form className="student-settings-birthday-form" onSubmit={saveBirthday}>
                         <div className="student-settings-birthday-field"><span>出生年月日</span><BirthdaySelect value={dateOfBirth} onChange={setDateOfBirth} disabled={savingBirthday} required idPrefix="student-settings-birthday" /></div>
                         <button type="submit" disabled={savingBirthday}>{savingBirthday ? "儲存中…" : "儲存生日資料"}</button>
+                    </form>
+                </article>
+
+                <article className="student-settings-panel">
+                    <header><FiCreditCard /><div><span>GUARDIAN</span><h2>家長 Email</h2></div></header>
+                    <p>Checkout 與到期前三天提醒會使用這個 Email；缺少有效 Email 時無法開始付款。</p>
+                    <form className="student-settings-birthday-form" onSubmit={saveGuardianEmail}>
+                        <label className="student-settings-birthday-field"><span>家長 Email</span><input type="email" required value={guardianEmail} onChange={event => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label>
+                        <button type="submit" disabled={savingGuardian}>{savingGuardian ? "儲存中…" : "儲存家長 Email"}</button>
                     </form>
                 </article>
             </section>

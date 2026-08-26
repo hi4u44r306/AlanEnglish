@@ -50,8 +50,8 @@ const features = [
 const learningSteps = [
     { number: "01", title: "免費體驗", text: "先用 7 天體驗聽力、AI 教材與自主學習流程。" },
     { number: "02", title: "選擇教材", text: "依孩子目前程度選擇 E1、E3、E5 或 E7 教材。" },
-    { number: "03", title: "開通三個月", text: "購買教材後輸入專屬開通碼，從開通日開始使用 90 天。" },
-    { number: "04", title: "決定是否續訂", text: "三個月到期後，可選擇每月 NT$299 繼續自主學習；AI 教材可另外加購。" }
+    { number: "03", title: "開通 90 天", text: "購買教材後輸入專屬開通碼，從兌換日開始使用 90 天。" },
+    { number: "04", title: "決定是否續用", text: "90 天到期後，可選擇每月 NT$299 延續已擁有教材；AI 教材可另外加購。" }
 ];
 
 const plans = [
@@ -69,13 +69,13 @@ const plans = [
     },
     {
         label: "線上購買實體教材",
-        name: "教材＋3 個月權限",
+        name: "教材＋90 天權限",
         price: "依教材組合",
         period: "一次購買",
-        description: "購買適合孩子程度的教材，免費取得對應線上內容三個月。",
+        description: "購買適合孩子程度的教材，永久取得教材擁有權並附贈 90 天網站使用權。",
         points: ["從開通當天起算 90 天", "解鎖所購買教材與音檔", "包含進度與智慧複習；AI 教材另購"],
         action: "先免費體驗",
-        href: "/freetrial",
+        href: "/materials",
         badge: "最推薦",
         featured: true
     },
@@ -84,10 +84,10 @@ const plans = [
         name: "一般自主學習會員",
         price: "NT$299",
         period: "／月",
-        description: "適合教材三個月權限結束後，希望繼續固定學習的家庭。",
+        description: "適合教材 90 天權限結束後，希望繼續使用已擁有教材的家庭；不包含新教材。",
         points: ["延續已購／已開通教材", "包含情境會話與智慧複習", "AI 教材可加購 NT$129／月"],
         action: "先免費體驗",
-        href: "/freetrial",
+        href: "/materials",
         badge: "",
         featured: false
     },
@@ -160,11 +160,11 @@ const faqs = [
         answer: "不需要。完成 Email 驗證後即可開始 7 天免費試用，可生成 AI 教材共 7 次、每天最多 2 次；試用結束後也不會自動扣款。"
     },
     {
-        question: "購買教材為什麼會送三個月網站權限？",
+        question: "購買教材為什麼會送 90 天網站權限？",
         answer: "購買實體教材後輸入專屬開通碼，即可從開通當天開始使用對應教材、音檔、進度與智慧複習功能 90 天；AI 教材為獨立加購功能。"
     },
     {
-        question: "教材三個月權限到期後會自動扣款嗎？",
+        question: "教材 90 天權限到期後會自動扣款嗎？",
         answer: "不會。到期後家長可以自行決定是否以每月 NT$299 訂閱基本會員。若需要 AI 教材，一般會員可再加購每月 NT$129；只有完成付款授權後才會按月扣款。"
     },
     {
@@ -386,7 +386,7 @@ const Showcase = () => {
                                 <h3>網購教材／自主學習</h3>
                                 <p>先免費體驗，再購買適合程度的教材；開通後按照孩子自己的時間安排進度。</p>
                                 <ul>
-                                    <li><span>✓</span> 購買教材免費使用網站三個月</li>
+                                    <li><span>✓</span> 購買教材附贈網站使用權 90 天</li>
                                     <li><span>✓</span> 只顯示已購買或已開通的教材</li>
                                     <li><span>✓</span> 自主學習，不會收到英文班作業</li>
                                 </ul>
@@ -436,7 +436,7 @@ const Showcase = () => {
                         <div className="showcase-section-heading showcase-section-heading-center">
                             <span className="showcase-kicker">CHOOSE YOUR PLAN</span>
                             <h2>先免費體驗，再購買適合孩子的教材。</h2>
-                            <p>購買教材免費取得三個月網站權限；到期後再決定是否以每月 NT$299 繼續使用，AI 教材則依身分另外加購。</p>
+                            <p>購買教材永久保留教材擁有權，並附贈 90 天網站權限；到期後再決定是否以每月 NT$299 延續已擁有教材，AI 教材則依身分另外加購。</p>
                         </div>
                         <div className="showcase-trial-banner">
                             <div className="showcase-trial-copy">
@@ -573,7 +573,7 @@ const Showcase = () => {
                         <div>
                             <span className="showcase-kicker">START TODAY</span>
                             <h2>今天，就從第一段英文聽力開始。</h2>
-                            <p>先免費體驗 7 天，再選擇適合程度的教材，免費取得三個月完整學習權限。</p>
+                            <p>先免費體驗 7 天，再選擇適合程度的教材，附贈 90 天完整網站使用權。</p>
                         </div>
                         <div className="showcase-cta-actions">
                             <Link className="showcase-primary-btn" to="/freetrial">免費試用 7 天 <BiChevronRight /></Link>
@@ -586,7 +586,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/">教材音檔</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
+                    <div className="showcase-footer-links"><Link to="/materials">教材商品包</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>

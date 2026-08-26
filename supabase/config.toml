@@ -453,3 +453,9 @@ verify_jwt = false
 
 [functions.auth-email]
 verify_jwt = false
+
+[functions.commerce-manager]
+verify_jwt = false
+
+[functions.notification-manager]
+verify_jwt = false
