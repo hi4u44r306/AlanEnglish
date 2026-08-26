@@ -422,7 +422,7 @@ Dashboard 目前用「完成老師作業可獲得 30 XP 與 5 AE Points」作為
 - 手機表格應改為卡片或可理解的響應式結構，不可只靠水平捲動隱藏重要欄位。
 - 學生桌面 Navbar 只保留首頁、智慧複習、每週報告、英文對話與 AI 教材等常用入口；等級、排行榜、獎品、方案、教材與其他功能集中在「全部功能」Sidebar。
 - Sidebar 開啟時鎖定背景捲動，且可用 X、遮罩或返回操作關閉。
-- 學生登入測試使用固定 `staging--alanenglish.netlify.app` Branch Deploy，不使用每次 PR 編號都不同的 Deploy Preview 網域。
+- 學生登入測試使用獨立固定站 `alanenglish-student-test.netlify.app`，不使用每次 PR 編號都不同的 Deploy Preview 網域；`staging--alanenglish.netlify.app` 僅保留為未來可啟用的 Branch Deploy 備援來源。
 - 固定測試站仍須通過 Firebase Authentication、Firebase ID Token 與 Edge Function 權限驗證；不得為方便測試開放任意 `*.netlify.app` 或把學生資料表開放給匿名使用者。
 - 測試站目前連接正式 Firebase／Supabase，畫面必須標示「學生測試站」，不得用於測試付款、建立真實學生或任意修改正式資料。
 

@@ -17,6 +17,7 @@ const corsHeaders = {
 const ALLOWED_CONTINUE_ORIGINS = new Set([
     "https://alanenglish.com.tw",
     "https://www.alanenglish.com.tw",
+    "https://alanenglish-student-test.netlify.app",
     "https://staging--alanenglish.netlify.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000"
