@@ -23,6 +23,7 @@
 .student-notifications-hero h1 { margin: 0; font-size: clamp(30px, 5vw, 44px); font-weight: 950; letter-spacing: -.045em; }
 .student-notifications-hero p { max-width: 630px; margin: 0; color: #dce7ff; line-height: 1.65; }
 .student-notifications-hero strong { width: fit-content; margin-top: 4px; padding: 8px 11px; border-radius: 11px; color: #fff5cd; background: rgba(255, 255, 255, .13); font-size: 13px; }
+.student-notifications-mark-all { width: fit-content; min-height: 44px; padding: 0 15px; border: 1px solid rgba(255,255,255,.35); border-radius: 12px; color: #102852; background: #ffdc73; font-weight: 900; cursor: pointer; }
 
 .student-notifications-list { display: grid; gap: 11px; }
 .student-notifications-empty { display: flex; align-items: center; gap: 10px; min-height: 108px; margin: 0; padding: 24px; border: 1px solid #e2e8f2; border-radius: 21px; color: #667590; background: #fff; line-height: 1.6; box-shadow: 0 11px 27px rgba(31, 52, 91, .06); }

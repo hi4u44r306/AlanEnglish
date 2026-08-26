@@ -10,6 +10,9 @@ export const getStudentNotifications = (firebaseUser, payload = {}) => callMembe
 export const markStudentNotificationRead = (firebaseUser, notificationId) => (
     callMembership(firebaseUser, "mark_notification_read", { notification_id: notificationId })
 );
+export const markAllStudentNotificationsRead = firebaseUser => (
+    callEdgeFunction("notification-manager", firebaseUser, { action: "mark_all_read" })
+);
 export const completePublicSignup = (firebaseUser, payload) => callMembership(firebaseUser, "complete_signup", payload);
 export const getPublicPlans = firebaseUser => callMembership(firebaseUser, "plans");
 export const redeemActivationCode = (firebaseUser, code) => callMembership(firebaseUser, "redeem_code", { code });

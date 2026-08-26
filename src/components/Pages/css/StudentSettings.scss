@@ -118,6 +118,7 @@
 
 .student-settings-birthday-form { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 10px; margin-top: 16px; }
 .student-settings-birthday-field { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 6px; color: #52617a; font-size: 12px; font-weight: 800; }
+.student-settings-birthday-field > input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid #d8dfeb; border-radius: 11px; color: #223451; background: #fff; font: inherit; font-size: 16px; }
 .birthday-select { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); width: 100%; max-width: 100%; min-width: 0; gap: 7px; }
 .birthday-select label { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 4px; }
 .birthday-select label > span { color: #78869d; font-size: 10px; }

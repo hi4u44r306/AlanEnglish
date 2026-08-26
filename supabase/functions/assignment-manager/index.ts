@@ -40,6 +40,35 @@ const hasListeningTask = (sourceType: string) => (
     sourceType === "music_track" || sourceType === "mission_pack"
 );
 
+const CLASS_CODES = new Set(["E1", "E3", "E5", "E7"]);
+
+const getManagedClassCodes = async (admin: any, caller: any) => {
+    if (caller.role === "admin") return [...CLASS_CODES];
+    if (caller.role !== "teacher") return [];
+    const today = taiwanDate();
+    const { data, error } = await admin.from("teacher_class_permissions")
+        .select("can_publish,starts_at,ends_at,academy_classes(code)")
+        .eq("teacher_id", caller.id).eq("can_publish", true).lte("starts_at", today)
+        .or(`ends_at.is.null,ends_at.gte.${today}`);
+    if (error) throw error;
+    return (data || []).map((row: any) => Array.isArray(row.academy_classes) ? row.academy_classes[0]?.code : row.academy_classes?.code)
+        .filter((code: string) => CLASS_CODES.has(code));
+};
+
+const getClassMaterial = async (admin: any, classCode: string) => {
+    const today = taiwanDate();
+    const { data: klass, error: classError } = await admin.from("academy_classes").select("id,code,name_zh")
+        .eq("code", classCode).eq("is_active", true).maybeSingle();
+    if (classError) throw classError;
+    if (!klass) return null;
+    const { data: setting, error } = await admin.from("academy_class_material_settings")
+        .select("id,version,effective_from,effective_to,academy_class_material_books(book_id,books(id,name,code))")
+        .eq("class_id", klass.id).eq("is_active", true).lte("effective_from", today)
+        .or(`effective_to.is.null,effective_to.gte.${today}`).order("version", { ascending: false }).limit(1).maybeSingle();
+    if (error) throw error;
+    return setting ? { klass, setting } : null;
+};
+
 async function verifyFirebaseIdToken(token: string) {
     const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
         issuer: FIREBASE_ISSUER,
@@ -208,37 +237,29 @@ Deno.serve(async (req: Request) => {
                 return json(403, { error: "只有老師與管理者可以發布作業" });
             }
 
-            const [studentRes, trackRes, bookRes] = await Promise.all([
-                admin.from("students").select("class").eq("role", "student"),
-                admin
-                    .from("music_tracks")
-                    .select("id,book_id,page,display_page,track_type,part_number,sort_order")
-                    .eq("enabled", true)
-                    .order("book_id")
-                    .order("sort_order")
-                    .limit(2000),
-                admin
-                    .from("books")
-                    .select("id,name,code")
-                    .eq("enabled", true)
-            ]);
-
-            const bootstrapError = studentRes.error || trackRes.error || bookRes.error;
-            if (bootstrapError) throw bootstrapError;
-
-            const classes = Array.from(new Set(
-                (studentRes.data || [])
-                    .map((row: any) => row.class)
-                    .filter(Boolean)
-            )).sort();
-            const booksById = new Map(
-                (bookRes.data || []).map((book: any) => [Number(book.id), book])
-            );
+            const classes = await getManagedClassCodes(admin, caller);
+            const classMaterials = (await Promise.all(classes.map(code => getClassMaterial(admin, code)))).filter(Boolean);
+            const bookRows = classMaterials.flatMap((entry: any) => entry.setting.academy_class_material_books || []);
+            const books = [...new Map(bookRows.map((row: any) => {
+                const book = Array.isArray(row.books) ? row.books[0] : row.books;
+                return [Number(row.book_id), book];
+            })).values()].filter(Boolean);
+            const bookIds = books.map((book: any) => Number(book.id));
+            const trackRes = bookIds.length ? await admin.from("music_tracks")
+                .select("id,book_id,page,display_page,track_type,part_number,sort_order")
+                .in("book_id", bookIds).eq("enabled", true).order("book_id").order("sort_order").limit(2000)
+                : { data: [], error: null };
+            if (trackRes.error) throw trackRes.error;
+            const booksById = new Map(books.map((book: any) => [Number(book.id), book]));
 
             return json(200, {
                 success: true,
                 classes,
-                books: bookRes.data || [],
+                class_materials: classMaterials.map((entry: any) => ({
+                    class_code: entry.klass.code, setting_id: entry.setting.id,
+                    books: (entry.setting.academy_class_material_books || []).map((row: any) => Array.isArray(row.books) ? row.books[0] : row.books)
+                })),
+                books,
                 tracks: (trackRes.data || []).map((track: any) => ({
                     ...track,
                     book: booksById.get(Number(track.book_id)) || null
@@ -254,7 +275,7 @@ Deno.serve(async (req: Request) => {
             const title = String(body?.title || "").trim().slice(0, 160);
             const description = String(body?.description || "").trim().slice(0, 1000) || null;
             const sourceType = String(body?.source_type || "");
-            const targetClass = String(body?.target_class || "").trim().slice(0, 80) || null;
+            const targetClass = String(body?.target_class || "").trim().slice(0, 80);
             const assignedDate = String(body?.assigned_date || taiwanDate());
             const dueAt = body?.due_at
                 ? new Date(String(body.due_at)).toISOString()
@@ -269,6 +290,11 @@ Deno.serve(async (req: Request) => {
             );
 
             if (!title) return json(400, { error: "請輸入作業名稱" });
+            if (!CLASS_CODES.has(targetClass)) return json(400, { error: "必須選擇 E1、E3、E5 或 E7 目標班級，不能使用空白代表全部學生" });
+            const managedCodes = await getManagedClassCodes(admin, caller);
+            if (!managedCodes.includes(targetClass)) return json(403, { error: "你沒有管理這個班級的權限" });
+            const classMaterial = await getClassMaterial(admin, targetClass);
+            if (!classMaterial) return json(409, { error: "這個班級尚未設定生效教材" });
             if (sourceType !== "music_track") {
                 return json(403, {
                     error: "AI 教材需要學生個別加購，目前班級作業只能發布聽力練習"
@@ -278,6 +304,7 @@ Deno.serve(async (req: Request) => {
             let aiMaterialId: number | null = null;
             let trackId: number | null = null;
             let trackIds: number[] = [];
+            let validTracks: any[] = [];
 
             if (hasAiTask(sourceType)) {
                 aiMaterialId = Number(body?.ai_material_id);
@@ -313,15 +340,19 @@ Deno.serve(async (req: Request) => {
                     return json(400, { error: "請至少選擇一個聽力音檔" });
                 }
 
-                const { data: validTracks, error } = await admin
+                const validTrackResult = await admin
                     .from("music_tracks")
-                    .select("id")
+                    .select("id,book_id")
                     .in("id", trackIds)
                     .eq("enabled", true);
-
-                if (error) throw error;
+                if (validTrackResult.error) throw validTrackResult.error;
+                validTracks = validTrackResult.data || [];
                 if ((validTracks || []).length !== trackIds.length) {
                     return json(404, { error: "部分音檔不存在或已停用" });
+                }
+                const allowedBookIds = (classMaterial.setting.academy_class_material_books || []).map((row: any) => Number(row.book_id));
+                if (validTracks.some((track: any) => !allowedBookIds.includes(Number(track.book_id)))) {
+                    return json(403, { error: "音檔必須來自目標班級已啟用的教材" });
                 }
                 trackId = trackIds[0];
             }
@@ -340,6 +371,7 @@ Deno.serve(async (req: Request) => {
                     due_at: dueAt,
                     passing_score: passingScore,
                     required_listens: requiredListens,
+                    class_material_setting_id: classMaterial.setting.id,
                     enabled: true
                 })
                 .select("*")
@@ -353,6 +385,10 @@ Deno.serve(async (req: Request) => {
                 const { error: itemError } = await admin
                     .from("assignment_track_items")
                     .insert(trackIds.map((id, index) => ({
+                        ...(() => {
+                            const selected = validTracks.find((track: any) => Number(track.id) === Number(id));
+                            return { book_id_snapshot: selected?.book_id || null, track_id_snapshot: id };
+                        })(),
                         assignment_id: assignment.id,
                         track_id: id,
                         required_listens: requiredListens,
@@ -387,7 +423,7 @@ Deno.serve(async (req: Request) => {
 
             let assignmentQuery = admin
                 .from("assignments")
-                .select("id,creator_id,title,enabled")
+                .select("id,creator_id,title,target_class,enabled")
                 .eq("id", assignmentId);
 
             if (caller.role !== "admin") {
@@ -399,6 +435,8 @@ Deno.serve(async (req: Request) => {
             if (!assignment) {
                 return json(404, { error: "找不到可刪除的作業" });
             }
+            const managedCodes = await getManagedClassCodes(admin, caller);
+            if (!managedCodes.includes(assignment.target_class)) return json(403, { error: "你已沒有管理這個班級的權限" });
 
             let deleteQuery = admin
                 .from("assignments")
@@ -438,8 +476,10 @@ Deno.serve(async (req: Request) => {
 
             const { data: assignments, error } = await query;
             if (error) return json(500, { error: "讀取作業失敗" });
+            const managedCodes = await getManagedClassCodes(admin, caller);
+            const visibleAssignments = (assignments || []).filter((assignment: any) => managedCodes.includes(assignment.target_class));
 
-            const listeningAssignmentIds = (assignments || [])
+            const listeningAssignmentIds = visibleAssignments
                 .filter((assignment: any) => hasListeningTask(assignment.source_type))
                 .map((assignment: any) => assignment.id);
             const { data: items, error: itemError } = listeningAssignmentIds.length
@@ -459,7 +499,7 @@ Deno.serve(async (req: Request) => {
 
             return json(200, {
                 success: true,
-                assignments: (assignments || []).map((assignment: any) => ({
+                assignments: visibleAssignments.map((assignment: any) => ({
                     ...assignment,
                     track_count: counts.get(Number(assignment.id)) || 0,
                     total_tasks: (
@@ -488,6 +528,8 @@ Deno.serve(async (req: Request) => {
             ) {
                 return json(403, { error: "你不能查看這份作業" });
             }
+            const managedCodes = await getManagedClassCodes(admin, caller);
+            if (!managedCodes.includes(assignment.target_class)) return json(403, { error: "你已沒有管理這個班級的權限" });
 
             let studentQuery = admin
                 .from("students")
@@ -674,6 +716,14 @@ Deno.serve(async (req: Request) => {
             }
 
             const today = taiwanDate();
+            const { data: enrollment, error: enrollmentError } = await admin.from("academy_enrollments")
+                .select("id,scheduled_departure_at,academy_classes(code)")
+                .eq("student_id", caller.id).eq("status", "active").limit(1).maybeSingle();
+            if (enrollmentError) throw enrollmentError;
+            const enrollmentClass = Array.isArray(enrollment?.academy_classes) ? enrollment.academy_classes[0]?.code : enrollment?.academy_classes?.code;
+            if (!enrollment || !CLASS_CODES.has(enrollmentClass) || (enrollment.scheduled_departure_at && enrollment.scheduled_departure_at <= today)) {
+                return json(200, { success: true, assignments: [], today, student_class: null });
+            }
             const { data: allAssignments, error } = await admin
                 .from("assignments")
                 .select("*")
@@ -686,7 +736,7 @@ Deno.serve(async (req: Request) => {
 
             const assignments = (allAssignments || []).filter(
                 (assignment: any) => (
-                    (!assignment.target_class || assignment.target_class === caller.class)
+                    assignment.target_class === enrollmentClass
                     && (
                         !hasAiTask(assignment.source_type)
                         || effectiveAccess?.features?.ai_materials === true
@@ -890,7 +940,7 @@ Deno.serve(async (req: Request) => {
                 success: true,
                 assignments: result,
                 today,
-                student_class: caller.class || null
+                student_class: enrollmentClass
             });
         }
 
@@ -918,10 +968,12 @@ Deno.serve(async (req: Request) => {
                     code: "ai_materials_required"
                 });
             }
-            if (
-                assignment.target_class
-                && assignment.target_class !== caller.class
-            ) {
+            const today = taiwanDate();
+            const { data: enrollment, error: enrollmentError } = await admin.from("academy_enrollments")
+                .select("scheduled_departure_at,academy_classes(code)").eq("student_id", caller.id).eq("status", "active").limit(1).maybeSingle();
+            if (enrollmentError) throw enrollmentError;
+            const enrollmentClass = Array.isArray(enrollment?.academy_classes) ? enrollment.academy_classes[0]?.code : enrollment?.academy_classes?.code;
+            if (!enrollment || enrollment.scheduled_departure_at && enrollment.scheduled_departure_at <= today || assignment.target_class !== enrollmentClass) {
                 return json(403, { error: "這份作業不屬於你的班級" });
             }
 

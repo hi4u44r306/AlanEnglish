@@ -3,7 +3,7 @@ import { FiBell, FiCheck, FiChevronLeft, FiClock, FiLoader } from "react-icons/f
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
-import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
+import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
 import "./css/StudentNotifications.scss";
 
 const PAGE_SIZE = 30;
@@ -53,6 +53,14 @@ function StudentNotifications() {
     };
 
     const unreadCount = notifications.filter(notification => !notification.read_at).length;
+    const markAllRead = async () => {
+        if (!firebaseUser || unreadCount === 0) return;
+        const readAt = new Date().toISOString();
+        const previous = notifications;
+        setNotifications(current => current.map(item => ({ ...item, read_at: item.read_at || readAt })));
+        try { await markAllStudentNotificationsRead(firebaseUser); }
+        catch (error) { setNotifications(previous); toast.error(error.message || "通知狀態更新失敗"); }
+    };
 
     return (
         <main className="student-notifications-page">
@@ -62,6 +70,7 @@ function StudentNotifications() {
                 <h1>所有通知</h1>
                 <p>作業提醒、學習獎勵、會員訊息與未來生日點數都會保留在這裡。</p>
                 <strong>{unreadCount > 0 ? `本頁有 ${unreadCount} 則未讀通知` : "目前沒有未讀通知"}</strong>
+                {unreadCount > 0 && <button type="button" className="student-notifications-mark-all" onClick={markAllRead}>全部標示已讀</button>}
             </section>
 
             <section className="student-notifications-list" aria-live="polite">

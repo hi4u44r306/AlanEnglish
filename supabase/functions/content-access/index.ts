@@ -36,6 +36,57 @@ const normalizeBook = (book: any) => ({
     learning_levels: relationOne(book?.learning_levels)
 });
 
+const isBookAuthorized = async (admin: any, student: any, effectiveAccess: any, book: any) => {
+    if (STAFF_ROLES.has(student.role)) return true;
+    if (!effectiveAccess.is_active || !effectiveAccess.features.listening) return false;
+    if (book.content_scope === "showcase") return false;
+    if (book.content_scope === "trial") {
+        return effectiveAccess.learner_type === "trial_user"
+            && effectiveAccess.plan_codes.includes("trial_7_day");
+    }
+    const now = new Date().toISOString();
+    const today = now.slice(0, 10);
+    const direct = await admin.from("student_book_entitlements").select("id").eq("student_id", student.id)
+        .eq("book_id", book.id).eq("status", "active").lte("starts_at", now)
+        .is("revoked_at", null).or(`is_permanent.eq.true,ends_at.is.null,ends_at.gt.${now}`).limit(1);
+    if (direct.error) throw direct.error;
+    if (direct.data?.length) return true;
+
+    const enrollment = await admin.from("academy_enrollments").select("id,class_id")
+        .eq("student_id", student.id).eq("status", "active").lte("enrolled_at", today)
+        .or(`access_ends_at.is.null,access_ends_at.gte.${today}`)
+        .or(`scheduled_departure_at.is.null,scheduled_departure_at.gt.${today}`).limit(1).maybeSingle();
+    if (enrollment.error) throw enrollment.error;
+    if (enrollment.data) {
+        const setting = await admin.from("academy_class_material_settings").select("id")
+            .eq("class_id", enrollment.data.class_id).eq("is_active", true).lte("effective_from", today)
+            .or(`effective_to.is.null,effective_to.gte.${today}`).order("version", { ascending: false }).limit(1).maybeSingle();
+        if (setting.error) throw setting.error;
+        if (setting.data) {
+            const allowed = await admin.from("academy_class_material_books").select("id")
+                .eq("setting_id", setting.data.id).eq("book_id", book.id).limit(1).maybeSingle();
+            if (allowed.error) throw allowed.error;
+            if (allowed.data) return true;
+        }
+    }
+    const assignments = await admin.from("assignments").select("id,due_at")
+        .eq("target_class", student.class).eq("enabled", true);
+    if (assignments.error) throw assignments.error;
+    const activeAssignmentIds = (assignments.data || [])
+        .filter((assignment: any) => !assignment.due_at || assignment.due_at > now)
+        .map((assignment: any) => assignment.id);
+    if (!activeAssignmentIds.length) return false;
+    const items = await admin.from("assignment_track_items").select("book_id_snapshot,track_id_snapshot,track_id")
+        .in("assignment_id", activeAssignmentIds);
+    if (items.error) throw items.error;
+    if ((items.data || []).some((item: any) => Number(item.book_id_snapshot) === Number(book.id))) return true;
+    const trackIds = [...new Set((items.data || []).map((item: any) => Number(item.track_id_snapshot || item.track_id)).filter(Boolean))];
+    if (!trackIds.length) return false;
+    const legacyTrack = await admin.from("music_tracks").select("id").in("id", trackIds).eq("book_id", book.id).limit(1);
+    if (legacyTrack.error) throw legacyTrack.error;
+    return Boolean(legacyTrack.data?.length);
+};
+
 async function verifyFirebaseIdToken(token: string) {
     const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
         issuer: FIREBASE_ISSUER,
@@ -121,7 +172,7 @@ Deno.serve(async (req: Request) => {
                     .order("sort_order", { ascending: true }),
                 admin
                     .from("books")
-                    .select("id,category_id,name,code,sort_order,enabled,required_level_id,learning_levels(id,code,name_zh,name_en,rank,badge_color)")
+                    .select("id,category_id,name,code,sort_order,enabled,required_level_id,content_scope,description,preview_image_url,learning_levels(id,code,name_zh,name_en,rank,badge_color)")
                     .eq("enabled", true)
                     .is("archived_at", null)
                     .order("sort_order", { ascending: true }),
@@ -133,15 +184,19 @@ Deno.serve(async (req: Request) => {
             ]);
             const firstError = [categoriesResult.error, booksResult.error, levelsResult.error].find(Boolean);
             if (firstError) throw firstError;
-            const books = (booksResult.data || []).map((rawBook: any) => {
+            const books = await Promise.all((booksResult.data || []).map(async (rawBook: any) => {
                 const book = normalizeBook(rawBook);
                 const requiredRank = Number(book.learning_levels?.rank || 1);
+                const authorized = await isBookAuthorized(admin, student, effectiveAccess, book);
                 return {
                     ...book,
                     required_rank: requiredRank,
-                    locked: !staff && (!active || !listeningAllowed || requiredRank > unlockedRank)
+                    entitled: authorized,
+                    locked: !staff && (!active || !listeningAllowed || !authorized || requiredRank > unlockedRank),
+                    lock_reason: !active ? "membership_required" : !authorized ? "book_entitlement_required" : requiredRank > unlockedRank ? "level_locked" : null,
+                    acquisition: authorized ? null : book.content_scope === "trial" ? "/freetrial" : "/materials"
                 };
-            });
+            }));
             return json(200, {
                 success: true,
                 access: {
@@ -176,7 +231,7 @@ Deno.serve(async (req: Request) => {
             if (!bookCode) return json(400, { error: "缺少教材代碼" });
             const { data: book, error: bookError } = await admin
                 .from("books")
-                .select("id,category_id,name,code,sort_order,enabled,required_level_id,learning_levels(id,code,name_zh,name_en,rank,badge_color)")
+                .select("id,category_id,name,code,sort_order,enabled,required_level_id,content_scope,description,preview_image_url,learning_levels(id,code,name_zh,name_en,rank,badge_color)")
                 .eq("code", bookCode)
                 .eq("enabled", true)
                 .is("archived_at", null)
@@ -184,6 +239,14 @@ Deno.serve(async (req: Request) => {
             if (bookError) throw bookError;
             if (!book) return json(404, { error: "找不到教材" });
             const normalizedBook = normalizeBook(book);
+
+            if (!await isBookAuthorized(admin, student, effectiveAccess, normalizedBook)) {
+                return json(403, {
+                    error: "尚未取得這本教材，請購買教材包或使用有效班級／贈送權限",
+                    code: "book_entitlement_required",
+                    acquisition: normalizedBook.content_scope === "trial" ? "/freetrial" : "/materials"
+                });
+            }
 
             const requiredRank = Number(normalizedBook.learning_levels?.rank || 1);
             if (!staff && requiredRank > unlockedRank) {
@@ -197,7 +260,7 @@ Deno.serve(async (req: Request) => {
 
             const { data: tracks, error: tracksError } = await admin
                 .from("music_tracks")
-                .select("id,book_id,page,title,music_name,audio_url,image,sort_order,track_type,part_number,display_page,track_key,base_page,storage_provider")
+                .select("id,book_id,page,title,music_name,audio_url,image,sort_order,track_type,part_number,display_page,track_key,base_page,storage_provider,transcript_en,transcript_zh,subtitle_cues,subtitle_status")
                 .eq("book_id", normalizedBook.id)
                 .eq("enabled", true)
                 .order("sort_order", { ascending: true });
@@ -235,6 +298,9 @@ Deno.serve(async (req: Request) => {
                     const path = normalizeStoragePath(track.audio_url);
                     return {
                         ...track,
+                        transcript_en: track.subtitle_status === "published" ? track.transcript_en : null,
+                        transcript_zh: track.subtitle_status === "published" ? track.transcript_zh : null,
+                        subtitle_cues: track.subtitle_status === "published" ? track.subtitle_cues : [],
                         storage_path: path,
                         audio_url: signedUrlMap.get(track.storage_provider === "r2" ? `r2:${path}` : path) || null
                     };

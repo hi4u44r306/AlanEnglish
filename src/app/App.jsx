@@ -43,6 +43,10 @@ import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
 import StudentNotifications from "../components/Pages/StudentNotifications";
+import MaterialCatalog from "../components/Pages/MaterialCatalog";
+import AdminClassMaterials from "../components/Pages/AdminClassMaterials";
+import AdminMaterialPackages from "../components/Pages/AdminMaterialPackages";
+import AdminStudentLifecycle from "../components/Pages/AdminStudentLifecycle";
 import Support from "../components/Pages/Support";
 import AdminSupport from "../components/Pages/AdminSupport";
 import { AuthProvider } from "../auth/AuthContext";
@@ -92,6 +96,7 @@ const App = () => {
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/home" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
+                    <Route path="/materials" element={<MaterialCatalog />} />
 
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
@@ -118,6 +123,7 @@ const App = () => {
                     <Route path="/teacher/music/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/music/manage" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/leaderboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/class-materials" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AdminClassMaterials /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
@@ -133,6 +139,9 @@ const App = () => {
                     <Route path="/admin/catalog" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><CatalogAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/legacy-cleanup" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LegacyCleanupAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminSupport /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/class-materials" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminClassMaterials /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/material-packages" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminMaterialPackages /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/student-lifecycle" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminStudentLifecycle /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/userinfo" element={<RoleHomeRedirect />} />
                     <Route path="/teacher/add-music" element={<Navigate to="/teacher/music/create" replace />} />

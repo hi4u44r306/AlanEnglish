@@ -13,6 +13,20 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 ## 1. 專案目前階段
 
+## 已確認待實作：會員續用、班級教材與教材商品包
+
+以下規則已確認並由 `feature/membership-class-material-commerce` 實作；正式 migration、Edge Function 與 Netlify 部署結果須在合併後補記：
+
+- 教材擁有權與網站使用權分開。購買／兌換教材永久保留教材擁有權與歷史紀錄，另附自兌換日起 90 天網站使用權，且不自動續費。
+- 七天試用不需信用卡、不自動續費，只能使用獨立體驗內容，不能查看正式教材或英文班作業。
+- 基本會員每月 NT$299，只延續已擁有教材的網站功能，不包含新實體教材，也不解鎖下一級；AI 方案維持 NT$99／NT$129 獨立加購。
+- 教材來源採疊加式 ledger：在校班級、自購、管理員贈送、開通碼與試用互不覆蓋。班級固定 E1、E3、E5、E7。
+- 離校不是停用帳號；班級來源與新作業於生效日結束，自購／贈送教材、XP、AE Points、等級、歷史作業與進度保留。已付款月費與 AI 使用至 `current_period_end`。
+- 月費支援 Customer Portal、本期結束取消、到期前恢復與付款失敗；Checkout 前必須有有效家長 Email。通知事件、學生收件匣、去重鍵與 Email 佇列已納入實作，寄送沿用既有 Resend adapter，未設定 provider 時保留待送。
+- 班級教材設定與教材商品包分開管理。商品包必須有一本 Workbook、一本聽力本、完整價格及 Stripe 測試 Product／Price 才能上架。
+- 教材包正式一般售價與有效會員教材價尚未確認，不得猜測、不得建立正式 Stripe Price；目前只允許可設定草稿與 Stripe 測試模式驗收。
+- 目前不建立年費。累積月費續訂率、取消原因與客服資料後，才評估年費的折扣、退款、教材升級與客服成本條件。
+
 Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentication、Supabase、Cloudflare R2 與 Netlify 的產品化階段。
 
 目前已完成：
@@ -185,7 +199,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 
 ### 教材購買
 
-- 購買教材後提供三個月線上權限
+- 購買教材後提供 90 天非自動續費網站權限
 - 權限從兌換日開始
 - 到期後可選擇每月 NT$299 的基本自主學習會員
 - AI 教材不因購書或基本會員自動取得；一般會員可另加購 NT$129／月

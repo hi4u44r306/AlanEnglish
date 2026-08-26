@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
     MdCheck,
+    MdClosedCaption,
     MdKeyboardArrowDown,
     MdMusicNote,
     MdMoreVert,
@@ -163,14 +164,25 @@ function MusicPlayer({ music }) {
     const [playbackPosition, setPlaybackPosition] = useState(0);
     const [audioDuration, setAudioDuration] = useState(0);
     const [isPlaybackActive, setIsPlaybackActive] = useState(false);
+    const [transcriptMode, setTranscriptMode] = useState("none");
 
     const {
         id: trackId,
         bookname,
         page,
         audioURL,
-        book_id
+        book_id,
+        transcript_en,
+        transcript_zh,
+        subtitle_status
     } = currTrack || {};
+    const hasTranscript = subtitle_status === "published" && Boolean(transcript_en || transcript_zh);
+    const cycleTranscript = () => setTranscriptMode(current => {
+        if (current === "none") return transcript_en ? "en" : "zh";
+        if (current === "en" && transcript_zh) return "zh";
+        if (current !== "full") return "full";
+        return "none";
+    });
 
     const resetListeningSession = useCallback(() => {
         coverageRangesRef.current = [];
@@ -253,6 +265,7 @@ function MusicPlayer({ music }) {
         setTrackReaction(null);
         setIsDesktopOptionsOpen(false);
         setIsMobileOptionsOpen(false);
+        setTranscriptMode("none");
     }, [resetListeningSession, trackId]);
 
     useEffect(() => {
@@ -1255,6 +1268,7 @@ function MusicPlayer({ music }) {
                         </span>
                     </div>,
                     <div key="desktop-actions" className="desktop-player-actions">
+                        {hasTranscript && <button type="button" className={transcriptMode !== "none" ? "is-active" : ""} onClick={cycleTranscript} aria-label="切換字幕與逐字稿" aria-pressed={transcriptMode !== "none"}><MdClosedCaption aria-hidden="true" /></button>}
                         <button
                             type="button"
                             className={trackReaction === "like" ? "is-active" : ""}
@@ -1310,6 +1324,7 @@ function MusicPlayer({ music }) {
                     ? "加速播放中：這段不列入有效聆聽"
                     : `本次有效聆聽 ${Math.floor(coveragePercent)}%（聽滿 80% 才計一次）`}
             </div>
+            {hasTranscript && transcriptMode !== "none" && <section className="desktop-transcript-panel" aria-live="polite"><header><strong>{transcriptMode === "en" ? "英文字幕" : transcriptMode === "zh" ? "中文提示" : "完整逐字稿"}</strong><button type="button" onClick={() => setTranscriptMode("none")}>關閉字幕再練習</button></header>{(transcriptMode === "en" || transcriptMode === "full") && transcript_en && <p lang="en">{transcript_en}</p>}{(transcriptMode === "zh" || transcriptMode === "full") && transcript_zh && <p>{transcript_zh}</p>}</section>}
 
             {isMobileExpanded && createPortal(
                 <div className="mobile-player-overlay" role="dialog" aria-modal="true" aria-label="全螢幕播放器">
@@ -1361,6 +1376,7 @@ function MusicPlayer({ music }) {
                             </button>
                         </div>
                         <div className="mobile-overlay-actions">
+                            {hasTranscript && <button type="button" className={transcriptMode !== "none" ? "is-active" : ""} onClick={cycleTranscript} aria-label="切換字幕與逐字稿"><MdClosedCaption aria-hidden="true" /></button>}
                             <button
                                 type="button"
                                 className={trackReaction === "like" ? "is-active" : ""}
@@ -1406,6 +1422,7 @@ function MusicPlayer({ music }) {
                                 )}
                             </div>
                         </div>
+                        {hasTranscript && transcriptMode !== "none" && <section className="mobile-transcript-panel"><header><strong>{transcriptMode === "en" ? "英文字幕" : transcriptMode === "zh" ? "中文提示" : "完整逐字稿"}</strong><button type="button" onClick={() => setTranscriptMode("none")}>關閉</button></header>{(transcriptMode === "en" || transcriptMode === "full") && transcript_en && <p lang="en">{transcript_en}</p>}{(transcriptMode === "zh" || transcriptMode === "full") && transcript_zh && <p>{transcript_zh}</p>}</section>}
                     </div>
                 </div>,
                 document.body
