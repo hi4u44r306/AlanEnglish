@@ -113,17 +113,19 @@ function LearningLeaderboard() {
                         <strong>{summary.profile?.name || studentProfile?.name}</strong>
                         <Link to="/student/settings"><FiSettings />到設定更換頭像</Link>
                     </div>
-                    <div className="gamification-stat">
-                        <span>LEVEL</span>
+                    <div className="gamification-level-badge">
+                        <span>目前等級</span>
                         <strong>Lv.{summary.balance?.level || 1}</strong>
                     </div>
-                    <div className="gamification-stat">
-                        <span>TOTAL XP</span>
-                        <strong>{formatNumber(summary.balance?.total_xp)} XP</strong>
-                    </div>
-                    <div className="gamification-stat">
-                        <span>AE POINTS</span>
-                        <strong>{formatNumber(summary.balance?.points_balance)} P</strong>
+                    <div className="gamification-me-card__stats">
+                        <div className="gamification-stat">
+                            <span>TOTAL XP</span>
+                            <strong>{formatNumber(summary.balance?.total_xp)} XP</strong>
+                        </div>
+                        <div className="gamification-stat">
+                            <span>AE POINTS</span>
+                            <strong>{formatNumber(summary.balance?.points_balance)} P</strong>
+                        </div>
                     </div>
                     <Link className="gamification-reward-link" to="/student/rewards"><FiGift />獎品商城</Link>
                 </section>

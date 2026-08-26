@@ -4,6 +4,7 @@ import { supabaseKey, supabaseUrl } from "../components/Pages/supabase-config";
 export const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_AVATAR_SOURCE_SIZE = 20 * 1024 * 1024;
 const MAX_AVATAR_DIMENSION = 1600;
+const AVATAR_OUTPUT_SIZE = 800;
 
 const callGamification = (firebaseUser, action, payload = {}) => (
     callEdgeFunction("gamification", firebaseUser, { action, ...payload })
@@ -81,11 +82,41 @@ const loadImage = file => new Promise((resolve, reject) => {
 
 const canvasToWebp = (canvas, quality) => new Promise(resolve => canvas.toBlob(resolve, "image/webp", quality));
 
-export const prepareAvatarImage = async file => {
+const assertAvatarSource = file => {
     if (!(file instanceof File)) throw new Error("請選擇圖片檔案");
     if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("只支援 JPG、PNG、WebP 圖片");
-    if (file.size <= MAX_AVATAR_FILE_SIZE) return file;
     if (file.size > MAX_AVATAR_SOURCE_SIZE) throw new Error("原始照片請控制在 20MB 以內");
+};
+
+const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
+
+export const createSquareAvatarImage = async (file, { zoom = 1, offsetX = 0, offsetY = 0, previewSize = 280 } = {}) => {
+    assertAvatarSource(file);
+
+    const image = await loadImage(file);
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    const safePreviewSize = Math.max(1, Number(previewSize) || 280);
+    const safeZoom = clamp(Number(zoom) || 1, 1, 3);
+    const displayScale = Math.max(safePreviewSize / sourceWidth, safePreviewSize / sourceHeight) * safeZoom;
+    const cropSize = Math.min(sourceWidth, sourceHeight, safePreviewSize / displayScale);
+    const cropLeft = clamp((sourceWidth - cropSize) / 2 - (Number(offsetX) || 0) / displayScale, 0, sourceWidth - cropSize);
+    const cropTop = clamp((sourceHeight - cropSize) / 2 - (Number(offsetY) || 0) / displayScale, 0, sourceHeight - cropSize);
+    const canvas = document.createElement("canvas");
+    canvas.width = AVATAR_OUTPUT_SIZE;
+    canvas.height = AVATAR_OUTPUT_SIZE;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("目前瀏覽器無法處理頭像裁切");
+    context.drawImage(image, cropLeft, cropTop, cropSize, cropSize, 0, 0, AVATAR_OUTPUT_SIZE, AVATAR_OUTPUT_SIZE);
+
+    const blob = await canvasToWebp(canvas, 0.92);
+    if (!blob) throw new Error("頭像裁切失敗，請再試一次");
+    return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "avatar"}.webp`, { type: "image/webp" });
+};
+
+export const prepareAvatarImage = async file => {
+    assertAvatarSource(file);
+    if (file.size <= MAX_AVATAR_FILE_SIZE) return file;
 
     const image = await loadImage(file);
     const largestEdge = Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height, 1);

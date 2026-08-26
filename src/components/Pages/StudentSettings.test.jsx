@@ -9,6 +9,7 @@ import { getStudentNotifications, updateStudentProfile } from "../../services/me
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({
     getGamificationSummary: jest.fn(),
+    createSquareAvatarImage: jest.fn(),
     prepareAvatarImage: jest.fn(),
     uploadGamificationImage: jest.fn()
 }));
@@ -23,6 +24,8 @@ describe("StudentSettings", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        Object.defineProperty(URL, "createObjectURL", { writable: true, value: jest.fn(() => "blob:avatar-preview") });
+        Object.defineProperty(URL, "revokeObjectURL", { writable: true, value: jest.fn() });
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-1" },
             setStudentProfile,
@@ -60,5 +63,20 @@ describe("StudentSettings", () => {
             { uid: "student-1" },
             { date_of_birth: "2015-06-01" }
         ));
+    });
+
+    it("opens a square avatar adjustment window before uploading", async () => {
+        const { container } = render(<StudentSettings />);
+        await screen.findByRole("heading", { name: "我的設定" });
+
+        const file = new File(["avatar"], "avatar.png", { type: "image/png" });
+        fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
+
+        expect(screen.getByRole("dialog", { name: "調整正方形頭像" })).toBeInTheDocument();
+        expect(screen.getByText("拖移照片")).toBeInTheDocument();
+        expect(screen.getByLabelText("頭像縮放")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "關閉頭像調整視窗" }));
+        expect(screen.queryByRole("dialog", { name: "調整正方形頭像" })).not.toBeInTheDocument();
     });
 });
