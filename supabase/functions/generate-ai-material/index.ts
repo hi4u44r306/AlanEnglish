@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { balanceCorrectAnswerPositions, getDifficultyGuide } from "../_shared/ai-material-quality.ts";
+import { isAiAddonPlanCode } from "../_shared/membership-pricing.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -206,7 +207,7 @@ Deno.serve(async (req: Request) => {
         const monthlyPeriodStart = taiwanMonthStart(today);
         let monthlyUsed = 0;
         const hasMonthlyAddon = role === "student"
-            && effectiveAccess.plan_codes.includes("ai_materials_addon_monthly");
+            && effectiveAccess.plan_codes.some(isAiAddonPlanCode);
         const monthlyLimit = hasMonthlyAddon ? AI_ADDON_MONTHLY_LIMIT : null;
         const isTrialUser = role === "student"
             && student.learner_type === "trial_user"

@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { createBillingPortal, createCheckoutSession } from "../../services/billingService";
 import { getMembershipProfile, getPublicPlans, redeemActivationCode } from "../../services/membershipService";
 import { sendBrandedVerificationEmail } from "../../services/authEmailService";
+import { hasAiAddonPlan, isAiAddonPlanCode } from "../../constants/membershipPlans";
 import "./css/Platform.scss";
 
 const STATUS_LABELS = { pending_verification: "等待 Email 驗證", trialing: "免費試用中", active: "使用中", past_due: "付款待處理", cancelled: "已取消，期限前可使用", expired: "已到期", suspended: "已停用", complimentary: "贈送使用權" };
@@ -14,7 +15,8 @@ const FEATURE_LABELS = {
     ai_materials: "AI 教材生成",
     conversation: "英文情境對話",
     assignments: "英文班作業",
-    review: "智慧複習"
+    review: "智慧複習",
+    requires_book_entitlement: "依已購或已開通教材使用"
 };
 const formatDate = value => value ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeZone: "Asia/Taipei" }).format(new Date(value)) : "無期限";
 const formatRenewalDay = value => {
@@ -71,9 +73,9 @@ function MembershipCenter() {
     const membershipPlanLabel = isActiveAcademyStudent
         ? academyGrant?.plan_name || "英文班在學方案"
         : membership?.plan?.name || "尚未選擇方案";
-    const hasAiAddon = activePlanCodes.has("ai_materials_addon_monthly");
+    const hasAiAddon = hasAiAddonPlan([...activePlanCodes]);
     const aiAddonGrant = useMemo(() => (
-        membership?.effective_access?.grants?.find(grant => grant?.plan_code === "ai_materials_addon_monthly") || null
+        membership?.effective_access?.grants?.find(grant => isAiAddonPlanCode(grant?.plan_code)) || null
     ), [membership]);
     const aiAddonSubscription = membership?.ai_addon_subscription;
     const aiRenewalAt = aiAddonSubscription?.current_period_end || (
@@ -198,14 +200,14 @@ function MembershipCenter() {
                         const planActive = activePlanCodes.has(plan.code);
                         const booleanFeatures = Object.entries(plan.features || {}).filter(([, enabled]) => enabled === true);
                         const planWorking = working === `plan-${plan.id}`;
-                        return <article className={`platform-plan ${planActive ? "is-active" : ""} ${plan.code === "ai_materials_addon_monthly" ? "is-ai-addon" : ""}`} key={plan.id}>
-                            <span>{plan.access_model === "addon" ? "英文班學生加購" : plan.trial_days > 0 ? `${plan.trial_days} 天試用` : "月費訂閱"}</span>
+                        return <article className={`platform-plan ${planActive ? "is-active" : ""} ${isAiAddonPlanCode(plan.code) ? "is-ai-addon" : ""}`} key={plan.id}>
+                            <span>{plan.offer_label || (plan.access_model === "addon" ? "AI 教材加購" : plan.trial_days > 0 ? `${plan.trial_days} 天試用` : "月費訂閱")}</span>
                             <h3>{plan.name}</h3>
                             <p>{plan.description}</p>
                             <strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong>
                             <ul>{booleanFeatures.map(([feature]) => <li key={feature}>✓ {FEATURE_LABELS[feature] || feature.replaceAll("_", " ")}</li>)}{Number(plan.features?.ai_monthly_limit) > 0 && <li>✓ 每月最多 {Number(plan.features.ai_monthly_limit)} 次</li>}</ul>
                             <button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>
-                                {planActive ? <><FiZap aria-hidden="true" />AI Premium 使用中</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}
+                                {planActive ? <>{isAiAddonPlanCode(plan.code) && <FiZap aria-hidden="true" />}{isAiAddonPlanCode(plan.code) ? "AI Premium 使用中" : "目前方案使用中"}</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}
                             </button>
                         </article>;
                     })}</div>}

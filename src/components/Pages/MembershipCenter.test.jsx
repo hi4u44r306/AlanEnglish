@@ -176,4 +176,62 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByText("到期後不會再次扣款")).toBeInTheDocument();
         expect(screen.queryByText("自動續訂")).not.toBeInTheDocument();
     });
+
+    it("shows the active NT$299 base membership and the NT$129 general AI add-on", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    plan: { name: "基本自主學習會員" },
+                    effective_access: {
+                        learner_type: "textbook_customer",
+                        plan_codes: ["basic_membership_monthly"],
+                        grants: []
+                    }
+                }
+            }
+        });
+        getPublicPlans.mockResolvedValue({
+            plans: [{
+                id: 299,
+                code: "basic_membership_monthly",
+                name: "基本自主學習會員",
+                description: "延續已購教材",
+                price_twd: 299,
+                trial_days: 0,
+                access_model: "subscription",
+                offer_label: "基本會員",
+                is_public: true,
+                checkout_ready: true,
+                features: { listening: true, review: true, requires_book_entitlement: true }
+            }, {
+                id: 129,
+                code: "ai_materials_general_monthly",
+                name: "一般會員 AI 加購",
+                description: "需搭配基本會員",
+                price_twd: 129,
+                trial_days: 0,
+                access_model: "addon",
+                offer_label: "一般會員 AI 加購",
+                is_public: true,
+                checkout_ready: true,
+                features: { ai_materials: true, ai_monthly_limit: 150 }
+            }]
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        const generalAiHeading = await screen.findByRole("heading", { name: "一般會員 AI 加購" });
+        expect(screen.getByText("基本會員")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "目前方案使用中" })).toBeDisabled();
+        expect(screen.getByText(/依已購或已開通教材使用/, { selector: "li" })).toBeInTheDocument();
+        expect(generalAiHeading.closest("article")).toHaveTextContent("NT$ 129／月");
+
+        expect(screen.getByRole("button", { name: "選擇方案" })).toBeEnabled();
+    });
 });

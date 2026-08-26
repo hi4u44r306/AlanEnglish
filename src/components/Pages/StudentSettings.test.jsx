@@ -80,6 +80,28 @@ describe("StudentSettings", () => {
         ));
     });
 
+    it("recognizes the general-member AI add-on as AI Premium", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "student-2" },
+            setStudentProfile,
+            studentProfile: {
+                name: "林小美",
+                learner_type: "textbook_customer",
+                membership: {
+                    effective_access: {
+                        plan_codes: ["basic_membership_monthly", "ai_materials_general_monthly"],
+                        features: { ai_materials: true }
+                    }
+                }
+            }
+        });
+
+        render(<StudentSettings />);
+
+        expect(await screen.findByText("AI PREMIUM 已啟用")).toBeInTheDocument();
+        expect(screen.getByText("AI 教材可使用")).toBeInTheDocument();
+    });
+
     it("requires final confirmation before applying one of five preset avatars", async () => {
         render(<StudentSettings />);
         await screen.findByRole("heading", { name: "我的設定" });

@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
+import { isAiAddonPlanCode } from "../_shared/membership-pricing.ts";
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -254,7 +255,7 @@ Deno.serve(async (req: Request) => {
                     .eq("enabled", true)
                     .maybeSingle();
                 if (addonPlanError) throw addonPlanError;
-                if (!addonPlan || addonPlan.access_model !== "addon") {
+                if (!addonPlan || addonPlan.access_model !== "addon" || !isAiAddonPlanCode(addonPlan.code)) {
                     throw new Error("Checkout Session plan is not an add-on");
                 }
                 const { data: existingGrant, error: existingGrantError } = await admin
@@ -353,7 +354,7 @@ Deno.serve(async (req: Request) => {
                     .eq("enabled", true)
                     .maybeSingle();
                 if (addonPlanError) throw addonPlanError;
-                if (!addonPlan || addonPlan.access_model !== "addon") {
+                if (!addonPlan || addonPlan.access_model !== "addon" || !isAiAddonPlanCode(addonPlan.code)) {
                     throw new Error("Subscription plan is not an add-on");
                 }
                 const startsAt = toIsoFromSeconds(subscriptionPeriodStart(object)) || new Date().toISOString();
@@ -468,7 +469,7 @@ Deno.serve(async (req: Request) => {
                     .eq("enabled", true)
                     .maybeSingle();
                 if (addonPlanError) throw addonPlanError;
-                if (!addonPlan || addonPlan.access_model !== "addon") {
+                if (!addonPlan || addonPlan.access_model !== "addon" || !isAiAddonPlanCode(addonPlan.code)) {
                     throw new Error("Invoice plan is not an add-on");
                 }
                 const startsAt = toIsoFromSeconds(invoicePeriodStart(object)) || new Date().toISOString();

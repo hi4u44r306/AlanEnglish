@@ -1,6 +1,15 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import Stripe from "npm:stripe@22.4.0";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
+import {
+    ACADEMY_AI_ADDON_PLAN_CODE,
+    AI_ADDON_PLAN_CODES,
+    BASIC_MEMBERSHIP_PLAN_CODE,
+    GENERAL_AI_ADDON_PLAN_CODE,
+    getMembershipPricingEligibility,
+    isAiAddonPlanCode
+} from "../_shared/membership-pricing.ts";
 import { toStripeTwdMinorUnits } from "../_shared/stripe-price.ts";
 
 const corsHeaders = {
@@ -127,13 +136,16 @@ Deno.serve(async (req: Request) => {
         });
         const { data: student, error: studentError } = await admin
             .from("students")
-            .select("id,firebase_uid,name,email,role,learner_type")
+            .select("id,firebase_uid,name,email,role,learner_type,account_status")
             .eq("firebase_uid", firebaseUser.uid)
             .maybeSingle();
         if (studentError) throw studentError;
         if (!student) return json(404, { error: "找不到 Alan English 帳號" });
         if (student.role !== "student") {
             return json(400, { error: "工作人員帳號不需要訂閱" });
+        }
+        if (student.account_status && student.account_status !== "active") {
+            return json(403, { error: "這個帳號目前已停用，無法建立或管理訂閱" });
         }
 
         const { data: membership, error: membershipError } = await admin
@@ -163,39 +175,83 @@ Deno.serve(async (req: Request) => {
             if (!plan.stripe_price_id || plan.price_twd === null) {
                 return json(409, { error: "這個方案尚未完成付款設定" });
             }
+            if (
+                plan.code !== BASIC_MEMBERSHIP_PLAN_CODE
+                && !isAiAddonPlanCode(plan.code)
+            ) {
+                return json(409, { error: "目前不支援這個訂閱方案" });
+            }
+
+            const [enrollmentResult, effectiveAccess] = await Promise.all([
+                admin
+                    .from("academy_enrollments")
+                    .select("id,status")
+                    .eq("student_id", student.id),
+                loadEffectiveAccess(admin, Number(student.id))
+            ]);
+            if (enrollmentResult.error) throw enrollmentResult.error;
+            const enrollments = Array.isArray(enrollmentResult.data) ? enrollmentResult.data : [];
+            const pricingEligibility = getMembershipPricingEligibility({
+                role: student.role,
+                learnerType: student.learner_type || null,
+                hasActiveAcademyEnrollment: enrollments.some((item: any) => item?.status === "active"),
+                hasAcademyHistory: enrollments.length > 0,
+                hasActiveBasicMembership: effectiveAccess.plan_codes.includes(BASIC_MEMBERSHIP_PLAN_CODE)
+            });
+
             const isAdditivePlan = plan.access_model === "addon";
             if (isAdditivePlan) {
-                if (plan.code !== "ai_materials_addon_monthly") {
+                if (!isAiAddonPlanCode(plan.code)) {
                     return json(409, { error: "目前不支援這個加購方案" });
                 }
-                if (student.learner_type !== "academy_student") {
-                    return json(403, { error: "AI 教材加購目前只提供在學英文班學生" });
+                if (
+                    plan.code === ACADEMY_AI_ADDON_PLAN_CODE
+                    && !pricingEligibility.canUseAcademyAiAddon
+                ) {
+                    return json(403, {
+                        error: "英文班在校生可直接加購 AI；離校生需先啟用每月 NT$299 基本會員",
+                        code: "academy_ai_membership_required"
+                    });
                 }
-                const { data: enrollment, error: enrollmentError } = await admin
-                    .from("academy_enrollments")
-                    .select("id")
-                    .eq("student_id", student.id)
-                    .eq("status", "active")
-                    .maybeSingle();
-                if (enrollmentError) throw enrollmentError;
-                if (!enrollment) return json(403, { error: "只有目前在學的英文班學生可以加購 AI 教材" });
+                if (
+                    plan.code === GENERAL_AI_ADDON_PLAN_CODE
+                    && !pricingEligibility.canUseGeneralAiAddon
+                ) {
+                    return json(403, {
+                        error: "一般會員需先啟用每月 NT$299 基本會員，才能加購 AI 教材",
+                        code: "general_ai_membership_required"
+                    });
+                }
 
-                const { data: existingGrant, error: existingGrantError } = await admin
+                const { data: aiPlans, error: aiPlansError } = await admin
+                    .from("subscription_plans")
+                    .select("id")
+                    .in("code", [...AI_ADDON_PLAN_CODES]);
+                if (aiPlansError) throw aiPlansError;
+                const aiPlanIds = (aiPlans || []).map((item: any) => Number(item.id)).filter(Number.isInteger);
+
+                const existingGrantQuery = admin
                     .from("student_access_grants")
                     .select("id,stripe_subscription_id,status")
                     .eq("student_id", student.id)
-                    .eq("plan_id", plan.id)
                     .eq("source", "stripe")
                     .in("status", ["pending", "active", "paused"])
-                    .limit(1)
-                    .maybeSingle();
+                    .limit(1);
+                const { data: existingGrants, error: existingGrantError } = aiPlanIds.length > 0
+                    ? await existingGrantQuery.in("plan_id", aiPlanIds)
+                    : { data: [], error: null };
                 if (existingGrantError) throw existingGrantError;
-                if (existingGrant?.stripe_subscription_id) {
+                if ((existingGrants || []).length > 0) {
                     return json(409, {
                         error: "這個帳號已有 AI 教材加購訂閱，請使用訂閱管理",
                         code: "addon_subscription_already_exists"
                     });
                 }
+            } else if (
+                plan.code === BASIC_MEMBERSHIP_PLAN_CODE
+                && !pricingEligibility.canUseBasicMembership
+            ) {
+                return json(403, { error: "英文班在校生已包含核心網站權限，不需要購買基本會員" });
             }
             if (
                 !isAdditivePlan
@@ -263,7 +319,7 @@ Deno.serve(async (req: Request) => {
                 cancel_url: `${siteUrl}/student/membership?checkout=cancelled`,
                 allow_promotion_codes: true,
                 billing_address_collection: "auto",
-                integration_identifier: `alanenglish_ai_${integrationSuffix}`,
+                integration_identifier: `alanenglish_subscription_${integrationSuffix}`,
                 metadata: checkoutMetadata,
                 subscription_data: { metadata: checkoutMetadata }
             };
@@ -376,7 +432,7 @@ Deno.serve(async (req: Request) => {
                     .eq("enabled", true)
                     .maybeSingle();
                 if (addonPlanError) throw addonPlanError;
-                if (!addonPlan || addonPlan.access_model !== "addon") {
+                if (!addonPlan || addonPlan.access_model !== "addon" || !isAiAddonPlanCode(addonPlan.code)) {
                     return json(409, { error: "Stripe 訂閱不是有效的加購方案" });
                 }
                 const grantStatus = grantStatusFromStripe(stripeStatus);
