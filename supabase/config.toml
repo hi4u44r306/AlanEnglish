@@ -448,6 +448,9 @@ verify_jwt = false
 [functions.academy-student-manager]
 verify_jwt = false
 
+[functions.gamification]
+verify_jwt = false
+
 [functions.support-manager]
 verify_jwt = false
 
