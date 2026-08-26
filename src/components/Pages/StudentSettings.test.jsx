@@ -3,12 +3,13 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import StudentSettings from "./StudentSettings";
 import { useAuth } from "../../auth/AuthContext";
-import { getGamificationSummary } from "../../services/gamificationService";
+import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, uploadGamificationImage } from "../../services/gamificationService";
 import { getStudentNotifications, updateStudentProfile } from "../../services/membershipService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({
     getGamificationSummary: jest.fn(),
+    createSquareAvatarImage: jest.fn(),
     prepareAvatarImage: jest.fn(),
     uploadGamificationImage: jest.fn()
 }));
@@ -23,6 +24,8 @@ describe("StudentSettings", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        Object.defineProperty(URL, "createObjectURL", { writable: true, value: jest.fn(() => "blob:avatar-preview") });
+        Object.defineProperty(URL, "revokeObjectURL", { writable: true, value: jest.fn() });
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-1" },
             setStudentProfile,
@@ -60,5 +63,32 @@ describe("StudentSettings", () => {
             { uid: "student-1" },
             { date_of_birth: "2015-06-01" }
         ));
+    });
+
+    it("opens a square avatar adjustment window before uploading", async () => {
+        const { container } = render(<StudentSettings />);
+        await screen.findByRole("heading", { name: "我的設定" });
+
+        const file = new File(["avatar"], "avatar.png", { type: "image/png" });
+        fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
+
+        expect(screen.getByRole("dialog", { name: "調整正方形頭像" })).toBeInTheDocument();
+        expect(screen.getByText("拖移照片")).toBeInTheDocument();
+        expect(screen.getByLabelText("頭像縮放")).toBeInTheDocument();
+
+        const preview = screen.getByAltText("頭像裁切預覽");
+        Object.defineProperty(preview, "naturalWidth", { configurable: true, value: 1000 });
+        Object.defineProperty(preview, "naturalHeight", { configurable: true, value: 700 });
+        fireEvent.load(preview);
+        createSquareAvatarImage.mockResolvedValue(file);
+        prepareAvatarImage.mockResolvedValue(file);
+        uploadGamificationImage.mockResolvedValue({ path: "avatars/student-1.webp", image_url: "https://example.com/avatar.webp" });
+        fireEvent.click(screen.getByRole("button", { name: "使用這張頭像" }));
+
+        await waitFor(() => expect(createSquareAvatarImage).toHaveBeenCalledWith(file, expect.objectContaining({ previewSize: 280, zoom: 1, offsetX: 0, offsetY: 0 })));
+
+        fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
+        fireEvent.click(screen.getByRole("button", { name: "關閉頭像調整視窗" }));
+        expect(screen.queryByRole("dialog", { name: "調整正方形頭像" })).not.toBeInTheDocument();
     });
 });

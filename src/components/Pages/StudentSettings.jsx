@@ -1,14 +1,30 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FiBell, FiCamera, FiCheck, FiCreditCard, FiGift, FiImage, FiLock, FiStar, FiUser, FiZap } from "react-icons/fi";
+import { FiBell, FiCamera, FiCheck, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
-import { getGamificationSummary, prepareAvatarImage, uploadGamificationImage } from "../../services/gamificationService";
+import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, uploadGamificationImage } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead, updateStudentProfile } from "../../services/membershipService";
 import "./css/StudentSettings.scss";
 
 const number = value => Number(value || 0).toLocaleString("zh-TW");
 const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
 const formatDateTime = value => value ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "";
+const AVATAR_CROP_SIZE = 280;
+const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
+
+const getCropLimits = (draft, zoom = draft?.zoom || 1) => {
+    if (!draft?.width || !draft?.height) return { x: 0, y: 0 };
+    const scale = Math.max(AVATAR_CROP_SIZE / draft.width, AVATAR_CROP_SIZE / draft.height) * zoom;
+    return {
+        x: Math.max(0, (draft.width * scale - AVATAR_CROP_SIZE) / 2),
+        y: Math.max(0, (draft.height * scale - AVATAR_CROP_SIZE) / 2)
+    };
+};
+
+const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
+    const limits = getCropLimits(draft, zoom);
+    return { x: clamp(offsetX, -limits.x, limits.x), y: clamp(offsetY, -limits.y, limits.y) };
+};
 
 function StudentSettings() {
     const { firebaseUser, studentProfile, setStudentProfile } = useAuth();
@@ -19,6 +35,8 @@ function StudentSettings() {
     const [uploading, setUploading] = useState(false);
     const [savingBirthday, setSavingBirthday] = useState(false);
     const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
+    const [avatarDraft, setAvatarDraft] = useState(null);
+    const avatarDragRef = useRef(null);
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
@@ -40,26 +58,91 @@ function StudentSettings() {
     useEffect(() => { load(); }, [load]);
     useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
 
-    const handleAvatarChange = async event => {
+    const closeAvatarEditor = () => {
+        setAvatarDraft(current => {
+            if (current?.previewUrl) URL.revokeObjectURL(current.previewUrl);
+            return null;
+        });
+        avatarDragRef.current = null;
+    };
+
+    const handleAvatarChange = event => {
         const selectedFile = event.target.files?.[0];
         event.target.value = "";
         if (!selectedFile || !firebaseUser) return;
 
+        if (!/^image\/(jpeg|png|webp)$/.test(selectedFile.type)) {
+            toast.error("只支援 JPG、PNG、WebP 圖片");
+            return;
+        }
+        if (selectedFile.size > 20 * 1024 * 1024) {
+            toast.error("原始照片請控制在 20MB 以內");
+            return;
+        }
+        setAvatarDraft({
+            file: selectedFile,
+            previewUrl: URL.createObjectURL(selectedFile),
+            width: 0,
+            height: 0,
+            zoom: 1,
+            offsetX: 0,
+            offsetY: 0
+        });
+    };
+
+    const saveAvatar = async () => {
+        if (!avatarDraft || !firebaseUser) return;
         setUploading(true);
         try {
-            const file = await prepareAvatarImage(selectedFile);
+            const croppedFile = await createSquareAvatarImage(avatarDraft.file, {
+                zoom: avatarDraft.zoom,
+                offsetX: avatarDraft.offsetX,
+                offsetY: avatarDraft.offsetY,
+                previewSize: AVATAR_CROP_SIZE
+            });
+            const file = await prepareAvatarImage(croppedFile);
             const result = await uploadGamificationImage(firebaseUser, "avatar", file);
             setSummary(current => current ? {
                 ...current,
                 profile: { ...current.profile, avatar_url: result.image_url }
             } : current);
             setStudentProfile(current => current ? { ...current, user_image: result.path } : current);
+            closeAvatarEditor();
             toast.success("頭像已更新");
         } catch (error) {
             toast.error(error.message || "頭像上傳失敗");
         } finally {
             setUploading(false);
         }
+    };
+
+    const updateAvatarPosition = (offsetX, offsetY, zoom = avatarDraft?.zoom || 1) => {
+        setAvatarDraft(current => current ? { ...current, ...getCropPosition(current, offsetX, offsetY, zoom), zoom } : current);
+    };
+
+    const handleAvatarZoom = event => {
+        const zoom = Number(event.target.value);
+        setAvatarDraft(current => current ? {
+            ...current,
+            ...getCropPosition(current, current.offsetX, current.offsetY, zoom),
+            zoom
+        } : current);
+    };
+
+    const startAvatarDrag = event => {
+        if (!avatarDraft?.width || !avatarDraft?.height) return;
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        avatarDragRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, offsetX: avatarDraft.offsetX, offsetY: avatarDraft.offsetY };
+    };
+
+    const moveAvatarDrag = event => {
+        const drag = avatarDragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        updateAvatarPosition(drag.offsetX + event.clientX - drag.x, drag.offsetY + event.clientY - drag.y);
+    };
+
+    const stopAvatarDrag = event => {
+        if (avatarDragRef.current?.pointerId === event.pointerId) avatarDragRef.current = null;
     };
 
     const saveBirthday = async event => {
@@ -125,6 +208,36 @@ function StudentSettings() {
                     <span>{hasAiMaterials ? "AI 教材可使用" : "目前沒有 AI 教材權限"}</span>
                 </div>
             </section>
+
+            {avatarDraft && (
+                <div className="student-avatar-editor-backdrop" role="presentation">
+                    <section className="student-avatar-editor" role="dialog" aria-modal="true" aria-labelledby="avatar-editor-title">
+                        <header>
+                            <div><span>ADJUST YOUR PHOTO</span><h2 id="avatar-editor-title">調整正方形頭像</h2></div>
+                            <button type="button" onClick={closeAvatarEditor} disabled={uploading} aria-label="關閉頭像調整視窗"><FiX /></button>
+                        </header>
+                        <p>拖移照片，讓想保留的內容落在方形範圍內。儲存後每個學生的頭像都會是略圓角的正方形。</p>
+                        <div className="student-avatar-crop-canvas" onPointerDown={startAvatarDrag} onPointerMove={moveAvatarDrag} onPointerUp={stopAvatarDrag} onPointerCancel={stopAvatarDrag}>
+                            <img
+                                src={avatarDraft.previewUrl}
+                                alt="頭像裁切預覽"
+                                draggable="false"
+                                onLoad={event => {
+                                    const { naturalWidth, naturalHeight } = event.currentTarget;
+                                    setAvatarDraft(current => current ? { ...current, width: naturalWidth, height: naturalHeight } : current);
+                                }}
+                                style={avatarDraft.width && avatarDraft.height ? (() => {
+                                    const scale = Math.max(AVATAR_CROP_SIZE / avatarDraft.width, AVATAR_CROP_SIZE / avatarDraft.height) * avatarDraft.zoom;
+                                    return { width: `${avatarDraft.width * scale}px`, height: `${avatarDraft.height * scale}px`, left: `calc(50% + ${avatarDraft.offsetX}px)`, top: `calc(50% + ${avatarDraft.offsetY}px)` };
+                                })() : undefined}
+                            />
+                            <span className="student-avatar-crop-frame" aria-hidden="true"><FiMove /><small>拖移照片</small></span>
+                        </div>
+                        <label className="student-avatar-zoom"><span><FiZoomIn />縮放</span><input aria-label="頭像縮放" type="range" min="1" max="3" step="0.05" value={avatarDraft.zoom} onChange={handleAvatarZoom} /><strong>{Math.round(avatarDraft.zoom * 100)}%</strong></label>
+                        <div className="student-avatar-editor-actions"><button type="button" className="student-avatar-editor-cancel" onClick={closeAvatarEditor} disabled={uploading}>取消</button><button type="button" className="student-avatar-editor-save" onClick={saveAvatar} disabled={uploading || !avatarDraft.width}>{uploading ? "儲存中…" : "使用這張頭像"}</button></div>
+                    </section>
+                </div>
+            )}
 
             <section className="student-settings-grid">
                 <article className="student-settings-panel">
