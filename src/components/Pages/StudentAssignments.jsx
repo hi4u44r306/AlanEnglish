@@ -405,6 +405,10 @@ const StudentAssignments = () => {
                                 : includesAi
                                     ? "ai-material"
                                     : "listening";
+                            const estimatedSeconds = Number(item.estimated_seconds);
+                            const hasEstimate = Number.isFinite(estimatedSeconds) && estimatedSeconds > 0;
+                            const completionXp = Number(item.completion_xp) || 30;
+                            const completionAePoints = Number(item.completion_ae_points) || 5;
 
                             return (
                                 <article
@@ -470,6 +474,20 @@ const StudentAssignments = () => {
                                             <span>
                                                 <Clock3 aria-hidden="true" size={15} />
                                                 {formatDateTime(item.due_at)} 截止
+                                            </span>
+                                        </div>
+
+                                        <div className="student-homework-task__effort">
+                                            <span className={hasEstimate ? "" : "unavailable"}>
+                                                <Clock3 aria-hidden="true" size={16} />
+                                                {hasEstimate
+                                                    ? "預估投入：約 " + Math.ceil(estimatedSeconds / 60) + " 分鐘"
+                                                    : "預估投入：暫無法估算時間"}
+                                            </span>
+                                            <span className="reward">
+                                                <Trophy aria-hidden="true" size={16} />
+                                                {isCompleted ? "已獲得" : "完成可得"}
+                                                {" +" + completionXp + " XP／+" + completionAePoints + " AE Points"}
                                             </span>
                                         </div>
 

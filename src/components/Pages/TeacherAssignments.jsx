@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     BookOpenCheck,
     CheckCircle2,
+    Clock3,
     Headphones,
     Target,
-    Trash2
+    Trash2,
+    Zap
 } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
@@ -19,6 +21,10 @@ import {
     mergeTrackIds,
     removeTrackIds
 } from "./assignmentTrackSelection";
+import {
+    calculateListeningAssignmentWorkload,
+    formatAssignmentEstimate
+} from "../../utils/assignmentWorkload";
 import "./css/Assignments.scss";
 
 const todayTaiwan = () => new Intl.DateTimeFormat("en-CA", {
@@ -122,6 +128,19 @@ const TeacherAssignments = () => {
     const selectedTrackGroups = useMemo(
         () => groupSelectedTracks(tracks, trackIds),
         [tracks, trackIds]
+    );
+
+    const selectedTracks = useMemo(
+        () => tracks.filter(track => trackIds.includes(track.id)),
+        [tracks, trackIds]
+    );
+
+    const assignmentWorkload = useMemo(
+        () => calculateListeningAssignmentWorkload(
+            selectedTracks,
+            Number(form.required_listens) || 3
+        ),
+        [form.required_listens, selectedTracks]
     );
 
     const selectedTrackIdsByBook = useMemo(() => {
@@ -246,7 +265,7 @@ const TeacherAssignments = () => {
         setSaving(true);
         setMessage("");
         try {
-            await createAssignment(firebaseUser, {
+            const result = await createAssignment(firebaseUser, {
                 title: form.title.trim(),
                 description: form.description.trim(),
                 source_type: "music_track",
@@ -259,7 +278,18 @@ const TeacherAssignments = () => {
                     : null
             });
 
-            setMessage("聽力作業已發布，共 " + trackIds.length + " 個音檔。");
+            const published = result.assignment || {};
+            setMessage(
+                "聽力作業已發布，共 "
+                + trackIds.length
+                + " 個音檔；"
+                + formatAssignmentEstimate(published.estimated_seconds)
+                + "，完成可得 +"
+                + (published.completion_xp || 30)
+                + " XP／+"
+                + (published.completion_ae_points || 5)
+                + " AE Points。"
+            );
 
             setForm(current => ({
                 ...current,
@@ -457,6 +487,28 @@ const TeacherAssignments = () => {
                                                 </article>
                                             ))}
                                         </div>
+                                        <div className="assignment-workload-preview">
+                                            <div>
+                                                <Clock3 aria-hidden="true" size={18} />
+                                                <span>
+                                                    <strong>{formatAssignmentEstimate(assignmentWorkload.estimatedSeconds)}</strong>
+                                                    <small>
+                                                        {assignmentWorkload.hasUnknownDuration
+                                                            ? "部分音檔尚無長度資料，發布後學生端會明確標示暫無法估算。"
+                                                            : "已含開啟作業與每首音檔切換緩衝。"}
+                                                    </small>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <Zap aria-hidden="true" size={18} />
+                                                <span>
+                                                    <strong>
+                                                        完成可得 +{assignmentWorkload.reward.xp} XP／+{assignmentWorkload.reward.aePoints} AE Points
+                                                    </strong>
+                                                    <small>依估計工作量級距由後端於發布時重新計算並固定。</small>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </section>
                                 )}
 
@@ -592,7 +644,10 @@ const TeacherAssignments = () => {
                             <CheckCircle2 aria-hidden="true" size={21} />
                             <span>
                                 <strong>{taskCount} 個完成條件</strong>
-                                <small>{trackIds.length} 個音檔</small>
+                                <small>
+                                    {trackIds.length} 個音檔 · {formatAssignmentEstimate(assignmentWorkload.estimatedSeconds)}
+                                    {" · +" + assignmentWorkload.reward.xp + " XP／+" + assignmentWorkload.reward.aePoints + " AE Points"}
+                                </small>
                             </span>
                         </div>
                         <button
@@ -626,6 +681,8 @@ const TeacherAssignments = () => {
                                                 : "全部學生"}
                                             {" · "}
                                             {assignment.assigned_date}
+                                            {" · " + formatAssignmentEstimate(assignment.estimated_seconds)}
+                                            {" · +" + (assignment.completion_xp || 30) + " XP／+" + (assignment.completion_ae_points || 5) + " AE Points"}
                                         </span>
                                     </div>
                                     <div className="assignment-history-actions">

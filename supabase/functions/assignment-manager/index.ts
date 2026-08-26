@@ -40,6 +40,66 @@ const hasListeningTask = (sourceType: string) => (
     sourceType === "music_track" || sourceType === "mission_pack"
 );
 
+const ASSIGNMENT_BASE_XP = 30;
+const ASSIGNMENT_BASE_AE_POINTS = 5;
+const ASSIGNMENT_OPENING_BUFFER_SECONDS = 90;
+const ASSIGNMENT_PER_TRACK_BUFFER_SECONDS = 15;
+
+const calculateListeningAssignmentWorkload = (
+    tracks: any[],
+    requiredListens: number
+) => {
+    const durations = tracks.map(track => Number(track?.duration_seconds));
+    const hasUnknownDuration = durations.some(duration => (
+        !Number.isFinite(duration) || duration <= 0
+    ));
+    const baseReward = {
+        completion_xp: ASSIGNMENT_BASE_XP,
+        completion_ae_points: ASSIGNMENT_BASE_AE_POINTS
+    };
+
+    if (!tracks.length || hasUnknownDuration) {
+        return {
+            estimated_seconds: null,
+            ...baseReward
+        };
+    }
+
+    const listeningSeconds = durations.reduce(
+        (total, duration) => total + duration * requiredListens,
+        0
+    );
+    const estimatedSeconds = Math.ceil(
+        listeningSeconds
+        + ASSIGNMENT_OPENING_BUFFER_SECONDS
+        + tracks.length * ASSIGNMENT_PER_TRACK_BUFFER_SECONDS
+    );
+    const estimatedMinutes = Math.ceil(estimatedSeconds / 60);
+
+    if (estimatedMinutes <= 10) {
+        return { estimated_seconds: estimatedSeconds, ...baseReward };
+    }
+    if (estimatedMinutes <= 20) {
+        return {
+            estimated_seconds: estimatedSeconds,
+            completion_xp: 40,
+            completion_ae_points: 7
+        };
+    }
+    if (estimatedMinutes <= 35) {
+        return {
+            estimated_seconds: estimatedSeconds,
+            completion_xp: 55,
+            completion_ae_points: 10
+        };
+    }
+    return {
+        estimated_seconds: estimatedSeconds,
+        completion_xp: 70,
+        completion_ae_points: 14
+    };
+};
+
 async function verifyFirebaseIdToken(token: string) {
     const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
         issuer: FIREBASE_ISSUER,
@@ -212,7 +272,7 @@ Deno.serve(async (req: Request) => {
                 admin.from("students").select("class").eq("role", "student"),
                 admin
                     .from("music_tracks")
-                    .select("id,book_id,page,display_page,track_type,part_number,sort_order")
+                    .select("id,book_id,page,display_page,track_type,part_number,sort_order,duration_seconds")
                     .eq("enabled", true)
                     .order("book_id")
                     .order("sort_order")
@@ -278,6 +338,7 @@ Deno.serve(async (req: Request) => {
             let aiMaterialId: number | null = null;
             let trackId: number | null = null;
             let trackIds: number[] = [];
+            let selectedTracks: any[] = [];
 
             if (hasAiTask(sourceType)) {
                 aiMaterialId = Number(body?.ai_material_id);
@@ -315,7 +376,7 @@ Deno.serve(async (req: Request) => {
 
                 const { data: validTracks, error } = await admin
                     .from("music_tracks")
-                    .select("id")
+                    .select("id,duration_seconds")
                     .in("id", trackIds)
                     .eq("enabled", true);
 
@@ -323,8 +384,17 @@ Deno.serve(async (req: Request) => {
                 if ((validTracks || []).length !== trackIds.length) {
                     return json(404, { error: "部分音檔不存在或已停用" });
                 }
+                selectedTracks = validTracks || [];
                 trackId = trackIds[0];
             }
+
+            const workload = hasListeningTask(sourceType)
+                ? calculateListeningAssignmentWorkload(selectedTracks, requiredListens)
+                : {
+                    estimated_seconds: null,
+                    completion_xp: ASSIGNMENT_BASE_XP,
+                    completion_ae_points: ASSIGNMENT_BASE_AE_POINTS
+                };
 
             const { data: assignment, error } = await admin
                 .from("assignments")
@@ -340,6 +410,9 @@ Deno.serve(async (req: Request) => {
                     due_at: dueAt,
                     passing_score: passingScore,
                     required_listens: requiredListens,
+                    estimated_seconds: workload.estimated_seconds,
+                    completion_xp: workload.completion_xp,
+                    completion_ae_points: workload.completion_ae_points,
                     enabled: true
                 })
                 .select("*")
