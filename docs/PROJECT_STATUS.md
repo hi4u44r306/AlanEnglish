@@ -37,6 +37,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 最近完成：
 
+- 離校生會員 grant 同步錯誤已修正：additive migration `20260826163017_fix_membership_grant_plan_sync.sql` 讓 Stripe 會員保留實際方案與來源，並停止舊版在校會員鏡像產生第二份 `academy_internal` 權限；在校資格只由 `academy_enrollments` 管理。Migration 已套用正式 Supabase，7 筆有效／暫停中的錯誤 grant 已整理，整體有效不一致數量為 0。`aeplanalumni` 已確認為無有效在校 enrollment、有效 `basic_membership_monthly` Stripe 方案，作業權限為 false、AI 權限為 false，可再選購離校生 NT$99 AI 加購。會員中心測試 5/5、Production build 與 `git diff --check` 通過。
 - PR #21：AI 加購付款按鈕載入狀態、AI Premium 啟用卡、每月續訂日與 Navbar／手機 Sidebar 徽章；已合併並部署正式 Netlify。
 - `membership-manager` v19：只回傳 AI 加購的續訂日期與週期結束取消狀態，不回傳 Stripe 識別碼或任何金鑰；已部署且為 ACTIVE。
 - PR #23：在校生會員名稱與 iPhone 日期欄位寬度修正；已合併至 `main` 並完成 Netlify 正式部署。
