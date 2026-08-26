@@ -49,7 +49,7 @@
 .student-avatar-editor h2 { margin: 4px 0 0; font-size: 24px; font-weight: 950; }
 .student-avatar-editor header button { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #dfe5ef; border-radius: 12px; color: #54627a; background: #fff; cursor: pointer; }
 .student-avatar-editor > p { margin: 0 0 17px; color: #6a7790; font-size: 13px; line-height: 1.65; }
-.student-avatar-crop-canvas { position: relative; width: 280px; height: 280px; margin: 0 auto; overflow: hidden; border-radius: 20px; background: repeating-conic-gradient(#e7ebf2 0% 25%, #f7f8fb 0% 50%) 50% / 24px 24px; box-shadow: inset 0 0 0 1px #d9e0eb, 0 13px 30px rgba(36, 54, 91, .16); touch-action: none; cursor: grab; user-select: none; }
+.student-avatar-crop-canvas { position: relative; width: 280px; height: 280px; margin: 0 auto; overflow: hidden; border-radius: 20px; background: repeating-conic-gradient(#e7ebf2 0% 25%, #f7f8fb 0% 50%) 50% / 24px 24px; box-shadow: inset 0 0 0 1px #d9e0eb, 0 13px 30px rgba(36, 54, 91, .16); touch-action: none; overscroll-behavior: contain; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .student-avatar-crop-canvas:active { cursor: grabbing; }
 .student-avatar-crop-canvas img { position: absolute; max-width: none; pointer-events: none; transform: translate(-50%, -50%); }
 .student-avatar-crop-frame { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 8px; border: 3px solid rgba(255, 255, 255, .92); border-radius: 20px; box-shadow: inset 0 0 0 1px rgba(15, 31, 65, .36), inset 0 0 0 999px rgba(10, 24, 52, .06); color: rgba(255, 255, 255, .94); pointer-events: none; text-align: center; text-shadow: 0 1px 5px rgba(14, 27, 55, .7); }
@@ -99,10 +99,10 @@
 .student-settings-data-list dd { margin: 0; color: #263754; font-weight: 900; text-align: right; }
 .student-settings-readonly { display: flex; align-items: flex-start; gap: 7px; margin-top: 14px !important; padding: 11px 12px; border-radius: 12px; color: #687691 !important; background: #f6f8fc; font-size: 12px !important; }
 
-.student-settings-birthday-form { display: flex; align-items: end; gap: 10px; margin-top: 16px; }
-.student-settings-birthday-form label { display: grid; flex: 1; gap: 6px; color: #52617a; font-size: 12px; font-weight: 800; }
-.student-settings-birthday-form input { width: 100%; min-height: 44px; padding: 9px 11px; border: 1px solid #d8dfeb; border-radius: 11px; color: #223451; background: #fff; }
-.student-settings-birthday-form button { min-height: 44px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #244680; font-weight: 850; cursor: pointer; white-space: nowrap; }
+.student-settings-birthday-form { display: flex; align-items: end; width: 100%; max-width: 100%; min-width: 0; gap: 10px; margin-top: 16px; }
+.student-settings-birthday-form label { display: grid; flex: 1; width: 100%; max-width: 100%; min-width: 0; gap: 6px; color: #52617a; font-size: 12px; font-weight: 800; }
+.student-settings-birthday-form input { display: block; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; min-height: 44px; padding: 9px 11px; border: 1px solid #d8dfeb; border-radius: 11px; color: #223451; background: #fff; }
+.student-settings-birthday-form button { box-sizing: border-box; max-width: 100%; min-height: 44px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #244680; font-weight: 850; cursor: pointer; white-space: nowrap; }
 .student-settings-birthday-form button:disabled { opacity: .65; cursor: wait; }
 
 @media (max-width: 720px) {

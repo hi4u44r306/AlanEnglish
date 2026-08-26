@@ -22,7 +22,10 @@ const getCropLimits = (draft, zoom = draft?.zoom || 1) => {
 
 const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
     const limits = getCropLimits(draft, zoom);
-    return { x: clamp(offsetX, -limits.x, limits.x), y: clamp(offsetY, -limits.y, limits.y) };
+    return {
+        offsetX: clamp(offsetX, -limits.x, limits.x),
+        offsetY: clamp(offsetY, -limits.y, limits.y)
+    };
 };
 
 function StudentSettings() {
@@ -119,9 +122,8 @@ function StudentSettings() {
         } : current);
     };
 
-    const beginAvatarDrag = ({ pointerId, clientX, clientY, target, capture = false }) => {
+    const beginAvatarDrag = ({ pointerId, clientX, clientY }) => {
         if (!avatarDraft?.width || !avatarDraft?.height) return;
-        if (capture) target?.setPointerCapture?.(pointerId);
         avatarDragRef.current = { pointerId, x: clientX, y: clientY, offsetX: avatarDraft.offsetX, offsetY: avatarDraft.offsetY };
     };
 
@@ -136,17 +138,21 @@ function StudentSettings() {
     };
 
     const startAvatarPointerDrag = event => {
-        if (event.pointerType === "touch") return;
-        beginAvatarDrag({ pointerId: `pointer-${event.pointerId}`, clientX: event.clientX, clientY: event.clientY, target: event.currentTarget, capture: true });
+        event.preventDefault();
+        try {
+            event.currentTarget.setPointerCapture?.(event.pointerId);
+        } catch {
+            // Older Safari may not support pointer capture; movement still works while inside the crop area.
+        }
+        beginAvatarDrag({ pointerId: `pointer-${event.pointerId}`, clientX: event.clientX, clientY: event.clientY });
     };
 
     const moveAvatarPointerDrag = event => {
-        if (event.pointerType === "touch") return;
+        event.preventDefault();
         continueAvatarDrag({ pointerId: `pointer-${event.pointerId}`, clientX: event.clientX, clientY: event.clientY });
     };
 
     const stopAvatarPointerDrag = event => {
-        if (event.pointerType === "touch") return;
         endAvatarDrag(`pointer-${event.pointerId}`);
     };
 
@@ -156,8 +162,10 @@ function StudentSettings() {
     };
 
     const startAvatarTouchDrag = event => {
+        if (String(avatarDragRef.current?.pointerId || "").startsWith("pointer-")) return;
         const touch = event.changedTouches?.[0];
         if (!touch) return;
+        event.preventDefault();
         beginAvatarDrag({ pointerId: `touch-${touch.identifier}`, clientX: touch.clientX, clientY: touch.clientY });
     };
 
@@ -233,7 +241,7 @@ function StudentSettings() {
                             <button type="button" onClick={closeAvatarEditor} disabled={uploading} aria-label="關閉頭像調整視窗"><FiX /></button>
                         </header>
                         <p>拖移照片，讓想保留的內容落在方形範圍內。儲存後每個學生的頭像都會是略圓角的正方形。</p>
-                        <div className="student-avatar-crop-canvas" onPointerDown={startAvatarPointerDrag} onPointerMove={moveAvatarPointerDrag} onPointerUp={stopAvatarPointerDrag} onPointerCancel={stopAvatarPointerDrag} onTouchStart={startAvatarTouchDrag} onTouchMove={moveAvatarTouchDrag} onTouchEnd={stopAvatarTouchDrag} onTouchCancel={stopAvatarTouchDrag}>
+                        <div className="student-avatar-crop-canvas" onPointerDown={startAvatarPointerDrag} onPointerMove={moveAvatarPointerDrag} onPointerUp={stopAvatarPointerDrag} onPointerCancel={stopAvatarPointerDrag} onLostPointerCapture={stopAvatarPointerDrag} onTouchStart={startAvatarTouchDrag} onTouchMove={moveAvatarTouchDrag} onTouchEnd={stopAvatarTouchDrag} onTouchCancel={stopAvatarTouchDrag}>
                             <img
                                 src={avatarDraft.previewUrl}
                                 alt="頭像裁切預覽"
