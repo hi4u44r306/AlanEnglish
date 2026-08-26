@@ -1,3 +1,22 @@
+.ae-staging-banner {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 6px 16px;
+  color: #352600;
+  background: #ffd968;
+  border-bottom: 1px solid #e5b933;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.ae-staging-banner strong { font-weight: 950; }
+.ae-staging-banner span { font-weight: 750; }
+.ae-staging-environment .app-shell { padding-top: 104px; }
+
 .ae-navbar {
   width: 100%;
   min-height: 72px;
@@ -6,6 +25,17 @@
   border-bottom: 1px solid rgba(226, 232, 240, 0.86);
   backdrop-filter: blur(14px);
   transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .ae-staging-banner {
+    min-height: 30px;
+    gap: 5px;
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+
+  .ae-staging-environment .app-shell { padding-top: 96px; }
 }
 
 .ae-navbar.scrolled {

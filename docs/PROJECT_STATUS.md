@@ -44,6 +44,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/fixed-student-staging-site`：建立固定 `staging--alanenglish.netlify.app` 學生測試站，使用 Netlify `staging` Branch Deploy，避免 PR Preview 網域每次變動而被 Firebase／Edge Function 擋下。登入頁與登入後 Navbar 都會標示測試站，並提醒操作仍會寫入正式 Firebase／Supabase；三支學生登入相關 Edge Function 僅加入固定 staging origin，不開放任意 Netlify 子網域。2 份測試共 3 個案例、Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 已成功；尚待推送 `staging` 分支、部署 Edge Functions、加入 Firebase Authorized Domain／API Key HTTP referrer，並用既有學生帳號驗證完整登入。
 - PR #40：生日欄位手機版垂直排列、頭像裁切的 iPhone Touch 支援，以及獨立 `/student/notifications` 通知頁已合併至 `main` commit `5518922c` 並完成 Netlify 正式部署；`membership-manager` v25 已部署且為 ACTIVE。
 - PR #42：修正頭像拖移座標回傳欄位錯誤，並讓 Pointer capture 使用數字型 ID、保留舊版 Safari Touch fallback；已合併至 `main` commit `87cf36a4` 並完成 Netlify 正式部署。
 - `codex/default-avatars-required-names`：將生日欄位改為年／月／日三個原生選單，避開 iPhone Safari 日期控制項的固有寬度；新增五款遊戲化預設頭像與後端白名單選擇 action，切換預設頭像時移除舊的私人上傳檔，正式站透過 Netlify Image CDN 提供縮圖。新建／CSV 學生與首次登入卡啟用均要求中英文姓名，前後端同步驗證；同時保留 activation／recovery 查詢的明確 `student_id` 外鍵，避免 relation ambiguity 回歸。4 份相關測試共 16 個案例、兩支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功；尚待 iPhone Safari 實機視覺驗收、GitHub push、Netlify 與兩個 Edge Functions 部署。

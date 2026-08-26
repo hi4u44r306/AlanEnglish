@@ -17,6 +17,7 @@ import { getRoleHome } from "../../auth/RoleHomeRedirect";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
+import { isStudentStagingSite } from "../../utils/siteEnvironment";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -59,6 +60,7 @@ function MainNavbar() {
     const xpToNextLevel = Math.max(0, nextLevelXp - totalXp);
     const xpProgressPercent = Math.min(100, Math.max(0, Number(gamificationBalance?.progress_percent || 0)));
     const unreadNotificationCount = notifications.filter(item => !item.read_at).length;
+    const isStagingSite = isStudentStagingSite();
 
     const displayRole = useMemo(() => {
         if (isAdmin) return "Admin";
@@ -80,6 +82,12 @@ function MainNavbar() {
     }, [location.pathname]);
 
     useEffect(() => () => restoreDocumentScroll(), []);
+
+    useEffect(() => {
+        if (!isStagingSite || typeof document === "undefined") return undefined;
+        document.documentElement.classList.add("ae-staging-environment");
+        return () => document.documentElement.classList.remove("ae-staging-environment");
+    }, [isStagingSite]);
 
     useEffect(() => {
         if (!firebaseUser || !isStudent) {
@@ -184,6 +192,7 @@ function MainNavbar() {
 
     return (
         <>
+            {isStagingSite && <div className="ae-staging-banner" role="status"><strong>學生測試站</strong><span>操作會寫入正式帳號紀錄，請勿測試付款或建立真實學生。</span></div>}
             <Navbar className={`ae-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
                     <Navbar.Brand as={Link} to={homePath} className="ae-brand" data-tour="home"><Brand /></Navbar.Brand>

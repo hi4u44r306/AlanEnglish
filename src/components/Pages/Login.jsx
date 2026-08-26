@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { loginWithIdentifier } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
+import { isStudentStagingSite } from "../../utils/siteEnvironment";
 import HeadPhone from "../assets/img/Login2.png";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.scss";
@@ -17,6 +18,7 @@ function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const loginAttemptRef = useRef(false);
     const accountActivated = new URLSearchParams(location.search).get("activated") === "1";
+    const isStagingSite = isStudentStagingSite();
     const requestedLocation = location.state?.from;
     const destination = requestedLocation
         ? `${requestedLocation.pathname || ""}${requestedLocation.search || ""}`
@@ -188,6 +190,12 @@ function Login() {
 
                 <div className="login-right">
                     <form className="login-card" onSubmit={login}>
+                        {isStagingSite && (
+                            <div className="login-staging-notice" role="status">
+                                <strong>學生測試站</strong>
+                                <span>操作會寫入正式帳號紀錄，請勿測試付款或建立真實學生。</span>
+                            </div>
+                        )}
                         <div className="mobile-brand">
                             <div className="mobile-brand-word">
                                 <span>A</span><span>L</span><span>A</span><span>N</span>

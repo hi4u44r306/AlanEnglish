@@ -82,6 +82,7 @@ class FirebaseApiError extends Error {
 const ALLOWED_ORIGINS = new Set([
     "https://alanenglish.com.tw",
     "https://www.alanenglish.com.tw",
+    "https://staging--alanenglish.netlify.app",
     "https://alan-english-listening.web.app",
     "https://alan-english-listening.firebaseapp.com",
     "http://localhost:3000",

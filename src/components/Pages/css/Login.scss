@@ -49,6 +49,28 @@
   box-shadow: 0 28px 80px rgba(37, 61, 95, 0.13);
 }
 
+.login-staging-notice {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  color: #5b3a00;
+  background: #fff3c4;
+  border: 1px solid #f2c94c;
+  border-radius: 12px;
+  line-height: 1.45;
+
+  strong {
+    font-size: 0.9rem;
+    font-weight: 900;
+  }
+
+  span {
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+}
+
 .login-left {
   position: relative;
   display: flex;
