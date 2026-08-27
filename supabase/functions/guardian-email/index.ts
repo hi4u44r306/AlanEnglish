@@ -345,8 +345,29 @@ Deno.serve(async (req: Request) => {
         if (!["send_one", "send_batch"].includes(action)) {
             return json(400, { error: "不支援的寄信操作" });
         }
+        let reminderResult: any = null;
+        if (requestedAction === "scheduled_batch" && cronAuthorized) {
+            try {
+                const reminderResponse = await fetch(`${supabaseUrl}/functions/v1/notification-manager`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-cron-secret": headerSecret
+                    },
+                    body: JSON.stringify({ action: "run_due" })
+                });
+                const reminderBody = await reminderResponse.json().catch(() => ({}));
+                reminderResult = reminderResponse.ok
+                    ? { success: true, events_processed: Number(reminderBody?.events_processed || 0), email: reminderBody?.email || null }
+                    : { success: false, status: reminderResponse.status };
+                if (!reminderResponse.ok) console.error("Membership reminder dispatch failed", reminderResponse.status);
+            } catch (error) {
+                reminderResult = { success: false, status: 0 };
+                console.error("Membership reminder dispatch failed", error instanceof Error ? error.message : "unknown");
+            }
+        }
         if (requestedAction === "scheduled_batch" && !settings?.enabled) {
-            return json(200, { success: true, skipped: true, reason: "automatic_email_disabled" });
+            return json(200, { success: true, skipped: true, reason: "automatic_email_disabled", reminders: reminderResult });
         }
         if (requestedAction === "scheduled_batch") {
             const taipeiNow = new Date(Date.now() + TAIPEI_OFFSET_MS);
@@ -358,7 +379,8 @@ Deno.serve(async (req: Request) => {
                     skipped: true,
                     reason: "outside_scheduled_time",
                     taipei_weekday: weekday,
-                    taipei_hour: hour
+                    taipei_hour: hour,
+                    reminders: reminderResult
                 });
             }
         }
@@ -494,6 +516,7 @@ Deno.serve(async (req: Request) => {
                 skipped: results.filter(item => item.status === "skipped").length,
                 failed: results.filter(item => item.status === "failed").length
             },
+            reminders: reminderResult,
             results
         });
     } catch (error) {

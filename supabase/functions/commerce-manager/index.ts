@@ -3,6 +3,7 @@ import Stripe from "npm:stripe@22.4.0";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest, type VerifiedAlanUser } from "../_shared/firebase-auth.ts";
+import { BASIC_MEMBERSHIP_PLAN_CODE } from "../_shared/membership-pricing.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -60,7 +61,7 @@ async function publicPackages(admin: any, caller: VerifiedAlanUser | null) {
     let memberPrice = false;
     if (caller?.role === "student") {
         const access = await loadEffectiveAccess(admin, caller.id);
-        memberPrice = access.plan_codes.includes("basic_monthly_299");
+        memberPrice = access.plan_codes.includes(BASIC_MEMBERSHIP_PLAN_CODE);
     }
     const { data, error } = await admin.from("material_packages").select(`
         id,name,level_code,suitable_for,learning_goals,description,cover_url,recommendation_rank,
@@ -250,6 +251,14 @@ async function savePackage(admin: any, caller: VerifiedAlanUser, body: any) {
     const packageId = int(body.id);
     const name = cleanText(body.name, 160);
     if (!name) throw Object.assign(new Error("請填寫商品包名稱"), { status: 400 });
+    if (packageId) {
+        const { data: existing, error: existingError } = await admin.from("material_packages").select("status").eq("id", packageId).maybeSingle();
+        if (existingError) throw existingError;
+        if (!existing) throw Object.assign(new Error("找不到商品包"), { status: 404 });
+        if (existing.status === "published") {
+            throw Object.assign(new Error("已上架商品包請先停售，再修改價格或教材內容"), { status: 409 });
+        }
+    }
     const nullablePrice = (v: unknown) => v === null || v === "" || v === undefined ? null : int(v);
     const payload = {
         name, level_code: cleanText(body.level_code, 80) || null, suitable_for: cleanText(body.suitable_for, 300) || null,
@@ -298,8 +307,13 @@ async function changeDeparture(admin: any, caller: VerifiedAlanUser, body: any, 
     if (caller.role !== "admin") throw Object.assign(new Error("只有管理員可以管理離校流程"), { status: 403 });
     const studentId = int(body.student_id); if (!studentId) throw Object.assign(new Error("學生編號不正確"), { status: 400 });
     const detail = await lifecycleDetail(admin, caller, studentId);
-    const enrollment = detail.current_enrollment;
+    const enrollment = detail.current_enrollment
+        || (action === "restore_student" ? detail.enrollment_history?.[0] || null : null);
     if (!enrollment) throw Object.assign(new Error("學生目前沒有在校紀錄"), { status: 409 });
+    const { data: stripeGrants, error: stripeGrantError } = await admin.from("student_access_grants")
+        .select("id,stripe_subscription_id,stripe_subscription_status,cancel_at_period_end")
+        .eq("student_id", studentId).eq("source", "stripe");
+    if (stripeGrantError) throw stripeGrantError;
     if (action === "departure_preview") return { preview: true, detail };
     if (action === "schedule_departure") {
         const date = isoDate(body.effective_date);
@@ -307,7 +321,7 @@ async function changeDeparture(admin: any, caller: VerifiedAlanUser, body: any, 
         if (!body.confirmed) return { preview: true, detail };
         const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
         const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: "2026-07-29.dahlia" }) : null;
-        for (const grant of detail.plans || []) {
+        for (const grant of stripeGrants || []) {
             if (stripe && grant.stripe_subscription_id && ["active", "trialing", "past_due"].includes(grant.stripe_subscription_status)) {
                 await stripe.subscriptions.update(grant.stripe_subscription_id, { cancel_at_period_end: true });
                 await admin.from("student_access_grants").update({ cancel_at_period_end: true }).eq("id", grant.id);
@@ -321,7 +335,7 @@ async function changeDeparture(admin: any, caller: VerifiedAlanUser, body: any, 
     if (action === "cancel_departure" || action === "restore_student") {
         const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
         const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: "2026-07-29.dahlia" }) : null;
-        for (const grant of detail.plans || []) {
+        for (const grant of stripeGrants || []) {
             if (stripe && grant.stripe_subscription_id && grant.cancel_at_period_end && grant.stripe_subscription_status !== "canceled") {
                 await stripe.subscriptions.update(grant.stripe_subscription_id, { cancel_at_period_end: false });
                 await admin.from("student_access_grants").update({ cancel_at_period_end: false }).eq("id", grant.id);

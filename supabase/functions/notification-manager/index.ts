@@ -117,7 +117,16 @@ Deno.serve(async (req: Request) => {
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body.action || "mark_all_read", 50);
         const cronSecret = Deno.env.get("GUARDIAN_CRON_SECRET") || "";
-        const cronAuthorized = Boolean(cronSecret) && req.headers.get("x-cron-secret") === cronSecret;
+        const headerSecret = req.headers.get("x-cron-secret") || "";
+        let cronAuthorized = Boolean(cronSecret) && headerSecret === cronSecret;
+        if (!cronAuthorized && headerSecret) {
+            const { data: verifiedByVault, error: verifyError } = await admin.rpc(
+                "verify_guardian_cron_secret",
+                { p_secret: headerSecret }
+            );
+            if (verifyError) console.error("Notification cron secret verification failed", verifyError.message);
+            cronAuthorized = verifiedByVault === true;
+        }
         const caller = cronAuthorized ? null : await verifyFirebaseRequest(req, admin);
         if (action === "mark_all_read") {
             if (!caller || caller.role !== "student") return json(403, { error: "只有學生可以更新自己的通知" });

@@ -52,7 +52,7 @@ const isBookAuthorized = async (admin: any, student: any, effectiveAccess: any, 
     if (direct.error) throw direct.error;
     if (direct.data?.length) return true;
 
-    const enrollment = await admin.from("academy_enrollments").select("id,class_id")
+    const enrollment = await admin.from("academy_enrollments").select("id,class_id,academy_classes(code)")
         .eq("student_id", student.id).eq("status", "active").lte("enrolled_at", today)
         .or(`access_ends_at.is.null,access_ends_at.gte.${today}`)
         .or(`scheduled_departure_at.is.null,scheduled_departure_at.gt.${today}`).limit(1).maybeSingle();
@@ -69,8 +69,11 @@ const isBookAuthorized = async (admin: any, student: any, effectiveAccess: any, 
             if (allowed.data) return true;
         }
     }
+    if (!enrollment.data) return false;
+    const enrolledClass = relationOne(enrollment.data.academy_classes)?.code;
+    if (!enrolledClass) return false;
     const assignments = await admin.from("assignments").select("id,due_at")
-        .eq("target_class", student.class).eq("enabled", true);
+        .eq("target_class", enrolledClass).eq("enabled", true);
     if (assignments.error) throw assignments.error;
     const activeAssignmentIds = (assignments.data || [])
         .filter((assignment: any) => !assignment.due_at || assignment.due_at > now)
