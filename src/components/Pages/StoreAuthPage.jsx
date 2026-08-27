@@ -18,6 +18,7 @@ export default function StoreAuthPage({ register = false }) {
     const [resending, setResending] = useState(false);
     const [resendCooldown, setResendCooldown] = useState(0);
     const [verificationNotice, setVerificationNotice] = useState("");
+    const verificationRedirect = `${window.location.origin}/shop/verified?next=${encodeURIComponent(next)}`;
 
     useEffect(() => {
         if (resendCooldown <= 0) return undefined;
@@ -37,7 +38,7 @@ export default function StoreAuthPage({ register = false }) {
                     email: form.email.trim().toLowerCase(), password: form.password,
                     options: {
                         data: { display_name: form.name.trim() },
-                        emailRedirectTo: `${window.location.origin}/shop/login?next=${encodeURIComponent(next)}`
+                        emailRedirectTo: verificationRedirect
                     }
                 });
                 if (error) throw error;
@@ -65,13 +66,13 @@ export default function StoreAuthPage({ register = false }) {
                 type: "signup",
                 email,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/shop/login?next=${encodeURIComponent(next)}`
+                    emailRedirectTo: verificationRedirect
                 }
             });
             if (error) throw error;
             setResendCooldown(60);
-            setVerificationNotice("驗證信已重新寄送。如果這個 Email 尚未完成驗證，請檢查收件匣、垃圾郵件與促銷內容。");
-            toast.success("商城驗證信已重新寄送");
+            setVerificationNotice("已送出重新寄送請求。若這個帳號尚未完成驗證，請檢查收件匣、垃圾郵件與促銷內容；若已經驗證完成，系統不會再寄送，請直接登入。");
+            toast.success("已送出商城驗證信請求");
         } catch (error) {
             const rateLimited = /rate limit|security purposes|seconds/i.test(error?.message || "");
             toast.error(rateLimited ? "寄送次數過多，請稍後再試" : "驗證信寄送失敗，請稍後再試");

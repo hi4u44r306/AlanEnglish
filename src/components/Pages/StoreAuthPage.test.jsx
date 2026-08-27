@@ -50,9 +50,9 @@ describe("StoreAuthPage 商城驗證信", () => {
         await waitFor(() => expect(mockResend).toHaveBeenCalledWith({
             type: "signup",
             email: "buyer@example.com",
-            options: { emailRedirectTo: "http://localhost/shop/login?next=%2Fshop" }
+            options: { emailRedirectTo: "http://localhost/shop/verified?next=%2Fshop" }
         }));
-        expect(await screen.findByRole("status")).toHaveTextContent("驗證信已重新寄送");
+        expect(await screen.findByRole("status")).toHaveTextContent("已送出重新寄送請求");
         expect(screen.getByRole("button", { name: /秒後可重新寄送/ })).toBeDisabled();
     });
 
