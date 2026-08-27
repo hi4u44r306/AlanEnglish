@@ -31,6 +31,14 @@ const json = (status: number, body: unknown) => new Response(JSON.stringify(body
 const cleanText = (value: unknown, maxLength = 300) => String(value || "")
     .trim()
     .slice(0, maxLength);
+const RESERVED_EMAIL_DOMAINS = new Set(["example.com", "example.net", "example.org", "example.invalid", "localhost"]);
+const isReceivableEmail = (value: unknown) => {
+    const email = cleanText(value, 320).toLowerCase();
+    const domain = email.split("@")[1] || "";
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        && !RESERVED_EMAIL_DOMAINS.has(domain)
+        && !domain.endsWith(".invalid");
+};
 
 const positiveInteger = (value: unknown) => {
     const parsed = Number(value);
@@ -174,7 +182,7 @@ Deno.serve(async (req: Request) => {
                 .maybeSingle();
             if (error) throw error;
             const guardianEmail = cleanText(data?.email, 320).toLowerCase();
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail)) {
+            if (!isReceivableEmail(guardianEmail)) {
                 throw Object.assign(new Error("付費前請先在學生設定補上有效的家長 Email"), {
                     status: 409,
                     code: "guardian_email_required"

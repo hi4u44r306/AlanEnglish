@@ -333,7 +333,6 @@ Deno.serve(async (req: Request) => {
                     amount_total: Number(object.amount_total), currency: "twd", status: "paid", occurred_at: paidAt
                 }, { onConflict: "stripe_checkout_session_id" });
                 if (transactionError) throw transactionError;
-                if (!paid) await recordPaymentFailure(admin, Number(accessGrant.student_id), eventId, periodEnd);
             } else {
             const membershipId = Number(metadata.membership_id || 0) || null;
             if (!membershipId || !studentId || !planId) {

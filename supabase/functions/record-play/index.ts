@@ -90,7 +90,7 @@ async function isTrackAuthorized(admin: any, student: any, effectiveAccess: any,
     .or(`is_permanent.eq.true,ends_at.is.null,ends_at.gt.${now}`).limit(1);
   if (direct.error) throw direct.error;
   if (direct.data?.length) return true;
-  const enrollment = await admin.from("academy_enrollments").select("class_id")
+  const enrollment = await admin.from("academy_enrollments").select("class_id,academy_classes(code)")
     .eq("student_id", student.id).eq("status", "active").lte("enrolled_at", today)
     .or(`access_ends_at.is.null,access_ends_at.gte.${today}`).or(`scheduled_departure_at.is.null,scheduled_departure_at.gt.${today}`)
     .limit(1).maybeSingle();
@@ -106,7 +106,12 @@ async function isTrackAuthorized(admin: any, student: any, effectiveAccess: any,
       if (allowed.data?.length) return true;
     }
   }
-  const assignments = await admin.from("assignments").select("id,due_at").eq("target_class", student.class).eq("enabled", true);
+  if (!enrollment.data) return false;
+  const enrolledClass = Array.isArray(enrollment.data.academy_classes)
+    ? enrollment.data.academy_classes[0]?.code
+    : enrollment.data.academy_classes?.code;
+  if (!enrolledClass) return false;
+  const assignments = await admin.from("assignments").select("id,due_at").eq("target_class", enrolledClass).eq("enabled", true);
   if (assignments.error) throw assignments.error;
   const assignmentIds = (assignments.data || []).filter((item: any) => !item.due_at || item.due_at > now).map((item: any) => item.id);
   if (!assignmentIds.length) return false;

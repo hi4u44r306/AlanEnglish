@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const migration = read("supabase/migrations/20260826160525_membership_class_material_commerce.sql");
+const migration = read("supabase/migrations/20260826233335_membership_class_material_commerce.sql");
+const hardeningMigration = read("supabase/migrations/20260827004141_membership_commerce_authorization_hardening.sql");
 const commerce = read("supabase/functions/commerce-manager/index.ts");
 const content = read("supabase/functions/content-access/index.ts");
 const recordPlay = read("supabase/functions/record-play/index.ts");
@@ -12,6 +13,7 @@ const billing = read("supabase/functions/billing-manager/index.ts");
 const webhook = read("supabase/functions/stripe-webhook/index.ts");
 const membership = read("supabase/functions/membership-manager/index.ts");
 const notifications = read("supabase/functions/notification-manager/index.ts");
+const guardianEmail = read("supabase/functions/guardian-email/index.ts");
 const routes = read("src/app/App.jsx");
 const player = read("src/components/fragment/MusicPlayer.jsx");
 
@@ -31,6 +33,9 @@ test("3. 未授權教材、音檔、逐字稿及偽造 ID 都被拒絕", () => {
     assert.match(content, /book_entitlement_required/);
     assert.match(recordPlay, /isTrackAuthorized/);
     assert.match(content, /subtitle_status === "published"/);
+    assert.match(content, /if \(!enrollment\.data\) return false/);
+    assert.match(recordPlay, /if \(!enrollment\.data\) return false/);
+    assert.match(hardeningMigration, /e\.status='active'/);
 });
 
 test("4. 教師只能替授權班級發布該班教材作業", () => {
@@ -71,12 +76,15 @@ test("10. 下一級教材包購買後正確疊加", () => {
     assert.match(webhook, /source: "material_purchase"/);
     assert.match(webhook, /is_permanent: true/);
     assert.match(billing, /memberPrice.*basic_monthly_299|BASIC_MEMBERSHIP_PLAN_CODE/s);
+    assert.match(commerce, /plan_codes\.includes\(BASIC_MEMBERSHIP_PLAN_CODE\)/);
+    assert.doesNotMatch(commerce, /basic_monthly_299/);
 });
 
 test("11. 在校轉離校不刪除歷史紀錄", () => {
     assert.match(commerce, /status: "withdrawn"/);
     assert.doesNotMatch(commerce, /from\("students"\)\.delete/);
     assert.doesNotMatch(commerce, /from\("student_book_entitlements"\)\.delete/);
+    assert.match(commerce, /action === "restore_student" \? detail\.enrollment_history\?\.\[0\]/);
 });
 
 test("12. 已付款 AI 可使用至 current_period_end", () => {
@@ -95,17 +103,22 @@ test("14. Stripe Webhook 重送不會重複授權", () => {
     assert.match(webhook, /stripe_event_id/);
     assert.match(webhook, /duplicate: true/);
     assert.match(webhook, /onConflict: "student_id,book_id,source,source_reference_type,source_reference_id"/);
+    assert.doesNotMatch(webhook, /if \(!paid\).*accessGrant\.student_id.*periodEnd/);
 });
 
 test("15. 家長 Email 缺失時禁止 Checkout", () => {
     assert.match(billing, /guardian_email_required/);
     assert.match(billing, /loadGuardianEmail/);
+    assert.match(billing, /RESERVED_EMAIL_DOMAINS/);
 });
 
 test("16. 到期前三天只建立一次通知", () => {
     assert.match(notifications, /setUTCDate\(target\.getUTCDate\(\) \+ 3\)/);
     assert.match(migration, /event_key text not null unique/);
     assert.match(notifications, /ignoreDuplicates: true/);
+    assert.match(notifications, /verify_guardian_cron_secret/);
+    assert.match(guardianEmail, /notification-manager/);
+    assert.match(guardianEmail, /action: "run_due"/);
 });
 
 test("17. 七天試用不能看正式教材及班級作業", () => {
@@ -132,4 +145,6 @@ test("20. RLS、安全後端與 Production build 契約完整", () => {
     assert.match(migration, /revoke all on table[\s\S]*from anon,authenticated/);
     assert.match(commerce, /verifyFirebaseRequest/);
     assert.match(membership, /book_entitlement_id/);
+    assert.match(hardeningMigration, /before insert or update on public\.material_packages/);
+    assert.match(commerce, /已上架商品包請先停售/);
 });
