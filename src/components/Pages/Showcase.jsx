@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet";
 import {
     BiBarChartAlt2,
     BiBookOpen,
@@ -12,6 +11,7 @@ import {
     BiTrendingUp
 } from "react-icons/bi";
 import ShowcaseNavbar from "../fragment/ShowcaseNavbar";
+import SeoHead from "../fragment/SeoHead";
 import "./css/Showcase.scss";
 
 const features = [
@@ -184,21 +184,7 @@ const faqs = [
 const Showcase = () => {
     return (
         <div className="showcase">
-            <Helmet>
-                <title>Alan English｜兒童英文聽力與 AI 英語學習平台</title>
-                <meta
-                    name="description"
-                    content="Alan English 結合教材音檔、AI 英文教材、情境會話與學習進度，幫助國小學生養成每天主動學英文的習慣。"
-                />
-                <link rel="canonical" href="https://alanenglish.com.tw/home" />
-                <meta property="og:title" content="Alan English｜每天聽一點，英文進步一點" />
-                <meta
-                    property="og:description"
-                    content="專為國小學生設計的英文聽力與 AI 學習平台，免費體驗 7 天。"
-                />
-                <meta property="og:url" content="https://alanenglish.com.tw/home" />
-                <meta property="og:type" content="website" />
-            </Helmet>
+            <SeoHead path="/" />
 
             <ShowcaseNavbar
                 nav1="#features"

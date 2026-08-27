@@ -26,7 +26,7 @@ const renderCatalog = ({ location = { pathname: "/materials", key: "default" } }
     <MemoryRouter initialEntries={[location]}>
         <Routes>
             <Route path="/materials" element={<MaterialCatalog />} />
-            <Route path="/home" element={<div>公開首頁</div>} />
+            <Route path="/" element={<div>公開首頁</div>} />
             <Route path="/userinfo" element={<div>我的首頁</div>} />
         </Routes>
     </MemoryRouter>

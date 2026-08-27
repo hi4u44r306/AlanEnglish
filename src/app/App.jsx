@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -62,10 +62,25 @@ import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
 import { StoreProvider } from "../store/StoreContext";
+import publicSeo from "../config/publicSeo.json";
 
 const LegacyPlaylistRedirect = () => {
     const { playlistId } = useParams();
     return <Navigate to={`/student/books/${playlistId}`} replace />;
+};
+
+const RouteSeoPolicy = () => {
+    const { pathname } = useLocation();
+    const normalizedPath = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+    const isIndexable = Boolean(publicSeo[normalizedPath]);
+    const policy = isIndexable ? "index,follow" : "noindex,nofollow";
+
+    return (
+        <Helmet>
+            <meta name="robots" content={policy} />
+            <meta name="googlebot" content={policy} />
+        </Helmet>
+    );
 };
 
 const App = () => {
@@ -93,10 +108,12 @@ const App = () => {
                     <meta name="theme-color" content="#fff8ed" />
                 </Helmet>
 
+                <RouteSeoPolicy />
+
                 <Routes>
-                    <Route path="/" element={<Links />} />
-                    <Route path="/links" element={<Navigate to="/" replace />} />
-                    <Route path="/home" element={<Showcase />} />
+                    <Route path="/" element={<Showcase />} />
+                    <Route path="/links" element={<Links />} />
+                    <Route path="/home" element={<Navigate to="/" replace />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/solve" element={<Navigate to="/forgot-password" replace />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -105,7 +122,7 @@ const App = () => {
                     <Route path="/academy/student-setup" element={<AcademyStudentSetup />} />
                     <Route path="/academy/recover" element={<AcademyStudentSetup recoveryOnly />} />
                     <Route path="/support" element={<Support />} />
-                    <Route path="/showcase" element={<Navigate to="/home" replace />} />
+                    <Route path="/showcase" element={<Navigate to="/" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
                     <Route path="/materials" element={<MaterialCatalog />} />
                     <Route path="/shop" element={<StoreCatalog />} />

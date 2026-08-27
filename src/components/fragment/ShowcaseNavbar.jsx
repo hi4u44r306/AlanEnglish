@@ -41,7 +41,7 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
             className={`showcase-navbar ${scrolled ? "is-scrolled" : ""}`}
         >
             <Container className="showcase-navbar-container">
-                <Navbar.Brand className="showcase-navbar-brand" as={Link} to="/home">
+                <Navbar.Brand className="showcase-navbar-brand" as={Link} to="/">
                     <Brand />
                 </Navbar.Brand>
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet";
 import {
     BiBookOpen,
     BiHeadphone,
@@ -11,6 +10,7 @@ import {
     BiStar
 } from "react-icons/bi";
 import Brand from "../fragment/Brand";
+import SeoHead from "../fragment/SeoHead";
 import { getPublicLinks } from "../../services/linkService";
 import "./css/Links.scss";
 
@@ -69,29 +69,15 @@ function Links() {
 
     return (
         <div className="links-page">
-            <Helmet>
-                <title>教材音檔連結｜Alan English</title>
-                <meta
-                    name="description"
-                    content="Alan English 教材音檔快捷入口，依習作本、聽力本、Discovery、Speed Phonics 等分類快速找到教材連結。"
-                />
-                <link rel="canonical" href="https://alanenglish.com.tw/" />
-                <meta property="og:title" content="Alan English｜教材音檔快捷入口" />
-                <meta
-                    property="og:description"
-                    content="快速找到 Alan English 習作本、聽力本與系列教材音檔。"
-                />
-                <meta property="og:url" content="https://alanenglish.com.tw/" />
-                <meta property="og:type" content="website" />
-            </Helmet>
+            <SeoHead path="/links" />
 
             <header className="links-page__header">
                 <div className="links-page__shell links-page__nav">
-                    <Link className="links-page__brand" to="/home" aria-label="前往 Alan English 首頁">
+                    <Link className="links-page__brand" to="/" aria-label="前往 Alan English 首頁">
                         <Brand />
                     </Link>
                     <div className="links-page__nav-actions">
-                        <Link className="links-page__nav-link" to="/home">
+                        <Link className="links-page__nav-link" to="/">
                             <BiHomeAlt2 />
                             <span>網站介紹</span>
                         </Link>
@@ -220,7 +206,7 @@ function Links() {
             <footer className="links-page__footer">
                 <div className="links-page__shell">
                     <span>© {new Date().getFullYear()} Alan English</span>
-                    <Link to="/home">了解 Alan English</Link>
+                    <Link to="/">了解 Alan English</Link>
                 </div>
             </footer>
         </div>
