@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = read("supabase/migrations/20260826233335_membership_class_material_commerce.sql");
-const hardeningMigration = read("supabase/migrations/20260827004141_membership_commerce_authorization_hardening.sql");
+const hardeningMigration = read("supabase/migrations/20260827013903_membership_commerce_authorization_hardening.sql");
 const commerce = read("supabase/functions/commerce-manager/index.ts");
 const content = read("supabase/functions/content-access/index.ts");
 const recordPlay = read("supabase/functions/record-play/index.ts");
