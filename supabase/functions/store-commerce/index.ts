@@ -250,7 +250,7 @@ async function createCheckout(admin: any, req: Request, body: any) {
             cancel_url: `${siteUrl}/shop/checkout?cancelled=1`,
             billing_address_collection: "auto",
             expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
-            locale: "zh_TW"
+            locale: "zh-TW"
         }, { idempotencyKey: `alanenglish_store_${checkoutRequestId}` });
         if (checkout.livemode) fail("商城目前只允許 Stripe 測試模式", 503, "stripe_mode_mismatch");
         const saved = await admin.from("store_orders").update({

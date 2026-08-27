@@ -46,6 +46,7 @@ import StudentNotifications from "../components/Pages/StudentNotifications";
 import MaterialCatalog from "../components/Pages/MaterialCatalog";
 import StoreCatalog from "../components/Pages/StoreCatalog";
 import StoreAuthPage from "../components/Pages/StoreAuthPage";
+import StoreVerificationPage from "../components/Pages/StoreVerificationPage";
 import StoreCart from "../components/Pages/StoreCart";
 import StoreCheckout from "../components/Pages/StoreCheckout";
 import StoreOrders from "../components/Pages/StoreOrders";
@@ -111,6 +112,7 @@ const App = () => {
                     <Route path="/shop/cart" element={<StoreCart />} />
                     <Route path="/shop/login" element={<StoreAuthPage />} />
                     <Route path="/shop/register" element={<StoreAuthPage register />} />
+                    <Route path="/shop/verified" element={<StoreVerificationPage />} />
                     <Route path="/shop/forgot-password" element={<StorePasswordPage />} />
                     <Route path="/shop/reset-password" element={<StorePasswordPage update />} />
                     <Route path="/shop/checkout" element={<StoreCheckout />} />
