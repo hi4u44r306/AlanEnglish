@@ -1,5 +1,6 @@
 import { supabase } from "../components/Pages/supabase-config";
 import { callEdgeFunction } from "./edgeFunctionClient";
+import { sortLinkItemsAscending } from "../utils/linkSort";
 
 export const LINK_CATEGORIES = [
     { value: "special", label: "Special" },
@@ -9,28 +10,17 @@ export const LINK_CATEGORIES = [
     { value: "speedphonics", label: "Speed Phonics" }
 ];
 
-const sortLinks = items => [...(items || [])].sort((a, b) => {
-    const categoryCompare = String(a.category || "").localeCompare(String(b.category || ""));
-    if (categoryCompare !== 0) return categoryCompare;
-    const orderCompare = Number(a.sort_order || 0) - Number(b.sort_order || 0);
-    if (orderCompare !== 0) return orderCompare;
-    return String(a.title || "").localeCompare(String(b.title || ""), "zh-Hant", {
-        numeric: true,
-        sensitivity: "base"
-    });
-});
-
 export const getPublicLinks = async () => {
     const { data, error } = await supabase
         .from("links")
         .select("id,title,url,category,sort_order")
         .eq("is_active", true)
         .order("category", { ascending: true })
-        .order("sort_order", { ascending: true })
-        .order("title", { ascending: true });
+        .order("title", { ascending: true })
+        .order("sort_order", { ascending: true });
 
     if (error) throw error;
-    return sortLinks(data || []);
+    return sortLinkItemsAscending(data || []);
 };
 
 const callLinkManager = (firebaseUser, action, payload = {}) => (

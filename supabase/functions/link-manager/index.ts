@@ -113,8 +113,9 @@ const loadLinks = async (admin: any) => {
         .from("links")
         .select("id,firebase_key,title,url,category,sort_order,is_active,source,created_by,created_at,updated_at")
         .order("category", { ascending: true })
+        .order("title", { ascending: true })
         .order("sort_order", { ascending: true })
-        .order("title", { ascending: true });
+        .order("id", { ascending: true });
     if (error) throw error;
     return data || [];
 };

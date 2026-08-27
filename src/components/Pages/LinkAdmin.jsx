@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BiLinkExternal, BiPlus, BiTrash } from "react-icons/bi";
+import { BiEditAlt, BiLinkExternal, BiPlus, BiSave, BiTrash, BiX } from "react-icons/bi";
 import { useAuth } from "../../auth/AuthContext";
 import {
     LINK_CATEGORIES,
     bootstrapManagedLinks,
     createManagedLink,
     deleteManagedLink,
-    getManagedLinks
+    getManagedLinks,
+    updateManagedLink
 } from "../../services/linkService";
+import { sortLinkItemsAscending } from "../../utils/linkSort";
 import "./css/LinkAdmin.scss";
 
 const isValidHttpUrl = value => {
@@ -19,17 +21,6 @@ const isValidHttpUrl = value => {
     }
 };
 
-const sortItems = items => [...(items || [])].sort((a, b) => {
-    const categoryCompare = String(a.category || "").localeCompare(String(b.category || ""));
-    if (categoryCompare !== 0) return categoryCompare;
-    const orderCompare = Number(a.sort_order || 0) - Number(b.sort_order || 0);
-    if (orderCompare !== 0) return orderCompare;
-    return String(a.title || "").localeCompare(String(b.title || ""), "zh-Hant", {
-        numeric: true,
-        sensitivity: "base"
-    });
-});
-
 function LinkAdmin() {
     const { firebaseUser } = useAuth();
     const [title, setTitle] = useState("");
@@ -38,6 +29,10 @@ function LinkAdmin() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editUrl, setEditUrl] = useState("");
+    const [updating, setUpdating] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -51,7 +46,7 @@ function LinkAdmin() {
                 setError("");
                 const result = await bootstrapManagedLinks(firebaseUser);
                 if (cancelled) return;
-                setItems(sortItems(result?.links || []));
+                setItems(sortLinkItemsAscending(result?.links || []));
                 if (result?.migration) {
                     const imported = Number(result.migration.imported || 0);
                     const skipped = Number(result.migration.skipped || 0);
@@ -90,7 +85,59 @@ function LinkAdmin() {
 
     const refreshLinks = async () => {
         const result = await getManagedLinks(firebaseUser);
-        setItems(sortItems(result?.links || []));
+        setItems(sortLinkItemsAscending(result?.links || []));
+    };
+
+    const startEditing = item => {
+        clearNotice();
+        setEditingId(item.id);
+        setEditTitle(item.title || "");
+        setEditUrl(item.url || "");
+    };
+
+    const cancelEditing = () => {
+        if (updating) return;
+        setEditingId(null);
+        setEditTitle("");
+        setEditUrl("");
+    };
+
+    const handleUpdate = async item => {
+        if (updating || !firebaseUser) return;
+        clearNotice();
+
+        const cleanTitle = editTitle.trim();
+        const cleanUrl = editUrl.trim();
+        if (!cleanTitle || !cleanUrl) {
+            setError("請輸入連結名稱與網址。");
+            return;
+        }
+        if (!isValidHttpUrl(cleanUrl)) {
+            setError("網址格式不正確，請輸入以 http:// 或 https:// 開頭的完整網址。");
+            return;
+        }
+
+        setUpdating(true);
+        try {
+            await updateManagedLink(firebaseUser, {
+                id: item.id,
+                title: cleanTitle,
+                url: cleanUrl,
+                category: item.category,
+                sort_order: item.sort_order,
+                is_active: item.is_active
+            });
+            await refreshLinks();
+            setEditingId(null);
+            setEditTitle("");
+            setEditUrl("");
+            setMessage(`已更新「${cleanTitle}」，公開頁面會直接顯示新名稱與網址。`);
+        } catch (updateError) {
+            console.error("更新 Supabase 連結失敗:", updateError);
+            setError(updateError?.message || "更新失敗，請稍後再試。");
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleSubmit = async event => {
@@ -241,19 +288,60 @@ function LinkAdmin() {
                         <div className="link-admin-page__list">
                             {items.map(item => (
                                 <article className="link-admin-page__item" key={item.id}>
-                                    <div className="link-admin-page__item-copy">
-                                        <span>{getCategoryLabel(item.category)}</span>
-                                        <strong>{item.title || "未命名連結"}</strong>
-                                        <a href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a>
-                                    </div>
-                                    <div className="link-admin-page__item-actions">
-                                        <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`開啟 ${item.title}`}>
-                                            <BiLinkExternal />
-                                        </a>
-                                        <button type="button" onClick={() => handleDelete(item)} aria-label={`刪除 ${item.title}`}>
-                                            <BiTrash />
-                                        </button>
-                                    </div>
+                                    {editingId === item.id ? (
+                                        <div className="link-admin-page__edit-form">
+                                            <label>
+                                                <span>連結名稱</span>
+                                                <input
+                                                    aria-label="編輯連結名稱"
+                                                    value={editTitle}
+                                                    onChange={event => setEditTitle(event.target.value)}
+                                                    maxLength={120}
+                                                    disabled={updating}
+                                                />
+                                            </label>
+                                            <label>
+                                                <span>URL</span>
+                                                <input
+                                                    type="url"
+                                                    aria-label="編輯連結網址"
+                                                    value={editUrl}
+                                                    onChange={event => setEditUrl(event.target.value)}
+                                                    inputMode="url"
+                                                    disabled={updating}
+                                                />
+                                            </label>
+                                            <div className="link-admin-page__edit-actions">
+                                                <button type="button" onClick={() => handleUpdate(item)} disabled={updating} aria-label={`儲存 ${item.title}`}>
+                                                    <BiSave />
+                                                    {updating ? "儲存中..." : "儲存"}
+                                                </button>
+                                                <button type="button" onClick={cancelEditing} disabled={updating} className="secondary" aria-label={`取消編輯 ${item.title}`}>
+                                                    <BiX />
+                                                    取消
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="link-admin-page__item-copy">
+                                                <span>{getCategoryLabel(item.category)}</span>
+                                                <strong>{item.title || "未命名連結"}</strong>
+                                                <a href={item.url} target="_blank" rel="noopener noreferrer">{item.url}</a>
+                                            </div>
+                                            <div className="link-admin-page__item-actions">
+                                                <button type="button" onClick={() => startEditing(item)} aria-label={`編輯 ${item.title}`}>
+                                                    <BiEditAlt />
+                                                </button>
+                                                <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`開啟 ${item.title}`}>
+                                                    <BiLinkExternal />
+                                                </a>
+                                                <button type="button" onClick={() => handleDelete(item)} aria-label={`刪除 ${item.title}`}>
+                                                    <BiTrash />
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
                                 </article>
                             ))}
                         </div>
