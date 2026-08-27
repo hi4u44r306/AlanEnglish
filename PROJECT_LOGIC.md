@@ -1,6 +1,6 @@
 # Alan English 專案邏輯
 
-最後核對日期：2026-08-25
+最後核對日期：2026-08-27
 
 本文件是 Alan English 目前產品行為、角色、權限、帳號生命週期與跨功能不變條件的單一參考文件。開發新功能或調整頁面顯示前，應先確認修改沒有違反本文件。
 
@@ -29,7 +29,7 @@
 
 ### 1.2 Firebase Authentication
 
-Firebase Authentication 是唯一登入身分來源，負責 Email／密碼登入、英文班帳號對應、Email 驗證、密碼重設與登入 Session。
+Firebase Authentication 是聽力與學習平台的唯一登入身分來源，負責 Email／密碼登入、英文班帳號對應、Email 驗證、密碼重設與登入 Session。獨立教材商城帳號是下節明定的例外。
 
 - 不改用 Supabase Auth。
 - Firebase UID 必須對應 Supabase `students` 資料。
@@ -37,6 +37,14 @@ Firebase Authentication 是唯一登入身分來源，負責 Email／密碼登�
 - 新建立的英文班在校生使用唯一 `login_username` 與學生自行設定的密碼登入；密碼至少 6 個字元，Firebase 內部仍使用系統識別 Email，但不得顯示給學生或當成可收信 Email。
 - 除非使用者主動登出、帳號被停用或 Session 失效，重新開啟網站後應保持登入。
 - 前端呼叫受保護的 Edge Function 時必須附上有效 Firebase ID Token。
+
+### 1.2.1 獨立教材商城帳號例外
+
+- 實體教材商城使用獨立的 Supabase Auth Email／密碼帳號；不得讀取、取代或同步聽力平台的 Firebase Session。
+- 同一個 Email 可以分別註冊商城與聽力平台帳號，兩邊的密碼、Email 驗證與登入狀態彼此獨立。
+- 商城帳號只用於購物車結帳、收件資料、付款訂單及物流查詢，不因此建立 `students`、取得教材 entitlement 或開通聽力平台。
+- 若日後需要把實體訂單轉成線上教材權限，必須另設具驗證能力的開通碼或綁定流程，不得只以相同 Email 自動合併帳號。
+- 商城客戶資料只能由驗證商城 access token 的 Edge Function 依 `auth.users.id` 讀寫；商城管理操作仍使用 Firebase 管理員身分。
 
 ### 1.3 Supabase
 
@@ -175,6 +183,18 @@ NT$299、NT$129 與既有 NT$99 月費 Price 已建立於 Stripe 沙盒。三本
 - 程式與介面應維持目前已部署的每日 2 次、總共 7 次。
 - 不得僅為配合舊文字而放寬正式額度。
 - 決策後必須同時更新本文件、`AGENTS.md`、方案資料、後端限制、介面與測試。
+
+### 4.3 實體教材商城訂單
+
+- `/shop` 對所有人公開瀏覽；加入購物車不需登入，結帳與歷史訂單需使用獨立商城帳號。
+- 商品、數量、庫存、售價與運費一律由後端重新查詢，不信任購物車保存的價格。
+- 商城固定使用商品包的一般售價；聽力平台會員價與 Firebase 學生身分不會自動套用到獨立商城。
+- 建立 Stripe Checkout 前由資料庫原子保留有限庫存；建立失敗、付款失敗或 Checkout 逾時要釋放保留庫存。
+- 只有通過 Stripe webhook 簽章、訂單所有權、測試／正式模式、幣別與金額核對後，付款狀態才能變成 `paid`。
+- 付款狀態與出貨狀態分開。未付款是 `awaiting_payment`；確認收款後才是 `preparing`，之後只能依序前進為 `shipping`、`completed`，不能由前端自行改變。
+- 訂單保存購買當下的商品名稱、單價、數量、運費與收件地址快照；日後修改商品不改寫歷史訂單。
+- 管理員填寫物流公司與單號後才可設為運送中；客戶只能查看自己的訂單與物流資料。
+- 商城目前只支援台灣地址與 TWD。正式啟用前必須確認運費、退換貨／隱私條款、Supabase Email 驗證 redirect、Stripe webhook 事件與測試付款流程。
 
 ## 5. 路由、頁面與入口顯示
 

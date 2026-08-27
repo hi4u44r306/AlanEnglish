@@ -44,6 +44,14 @@ import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
 import StudentNotifications from "../components/Pages/StudentNotifications";
 import MaterialCatalog from "../components/Pages/MaterialCatalog";
+import StoreCatalog from "../components/Pages/StoreCatalog";
+import StoreAuthPage from "../components/Pages/StoreAuthPage";
+import StoreCart from "../components/Pages/StoreCart";
+import StoreCheckout from "../components/Pages/StoreCheckout";
+import StoreOrders from "../components/Pages/StoreOrders";
+import StorePaymentResult from "../components/Pages/StorePaymentResult";
+import StorePasswordPage from "../components/Pages/StorePasswordPage";
+import AdminStoreOrders from "../components/Pages/AdminStoreOrders";
 import AdminClassMaterials from "../components/Pages/AdminClassMaterials";
 import AdminMaterialPackages from "../components/Pages/AdminMaterialPackages";
 import AdminStudentLifecycle from "../components/Pages/AdminStudentLifecycle";
@@ -52,6 +60,7 @@ import AdminSupport from "../components/Pages/AdminSupport";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
+import { StoreProvider } from "../store/StoreContext";
 
 const LegacyPlaylistRedirect = () => {
     const { playlistId } = useParams();
@@ -62,6 +71,7 @@ const App = () => {
     return (
         <Router>
             <AuthProvider>
+                <StoreProvider>
                 <ToastContainer
                     position="top-center"
                     autoClose={2000}
@@ -97,6 +107,16 @@ const App = () => {
                     <Route path="/showcase" element={<Navigate to="/home" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
                     <Route path="/materials" element={<MaterialCatalog />} />
+                    <Route path="/shop" element={<StoreCatalog />} />
+                    <Route path="/shop/cart" element={<StoreCart />} />
+                    <Route path="/shop/login" element={<StoreAuthPage />} />
+                    <Route path="/shop/register" element={<StoreAuthPage register />} />
+                    <Route path="/shop/forgot-password" element={<StorePasswordPage />} />
+                    <Route path="/shop/reset-password" element={<StorePasswordPage update />} />
+                    <Route path="/shop/checkout" element={<StoreCheckout />} />
+                    <Route path="/shop/orders" element={<StoreOrders />} />
+                    <Route path="/shop/orders/:orderNumber" element={<StoreOrders />} />
+                    <Route path="/shop/payment/success" element={<StorePaymentResult />} />
 
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
@@ -141,6 +161,7 @@ const App = () => {
                     <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminSupport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/class-materials" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminClassMaterials /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/material-packages" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminMaterialPackages /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/store-orders" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminStoreOrders /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/student-lifecycle" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminStudentLifecycle /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/userinfo" element={<RoleHomeRedirect />} />
@@ -156,6 +177,7 @@ const App = () => {
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
+                </StoreProvider>
             </AuthProvider>
         </Router>
     );

@@ -1,0 +1,57 @@
+.store-admin-shipping {
+    margin-bottom: 22px;
+    padding: 20px;
+    border: 1px solid #e0e7f2;
+    border-radius: 20px;
+    background: #fff;
+}
+
+.store-admin-shipping h2 {
+    margin: 0 0 14px;
+}
+
+.store-admin-shipping > div {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.store-admin-shipping label {
+    display: grid;
+    gap: 6px;
+    color: #53627a;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.store-admin-shipping label.check {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    gap: 7px;
+}
+
+.store-admin-shipping input:not([type="checkbox"]) {
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid #d5deeb;
+    border-radius: 11px;
+    font: inherit;
+}
+
+.store-admin-shipping button {
+    min-height: 46px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 11px;
+    color: #fff;
+    background: #214b92;
+    font-weight: 850;
+}
+
+@media (max-width: 700px) {
+    .store-admin-shipping > div {
+        grid-template-columns: 1fr;
+    }
+}
