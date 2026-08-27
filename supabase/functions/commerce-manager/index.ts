@@ -65,7 +65,7 @@ async function publicPackages(admin: any, caller: VerifiedAlanUser | null) {
     }
     const { data, error } = await admin.from("material_packages").select(`
         id,name,level_code,suitable_for,learning_goals,description,cover_url,recommendation_rank,
-        standard_price_twd,member_price_twd,includes_90_day_access,status,
+        standard_price_twd,member_price_twd,includes_90_day_access,status,inventory_quantity,max_quantity_per_order,
         prerequisite_package_id,next_package_id,
         material_package_books(id,role,sort_order,books(id,name,code,description,preview_image_url)),
         material_package_tracks(id,role,sort_order,music_tracks(id,book_id,title,music_name,audio_url,storage_provider,preview_enabled))
@@ -260,15 +260,23 @@ async function savePackage(admin: any, caller: VerifiedAlanUser, body: any) {
         }
     }
     const nullablePrice = (v: unknown) => v === null || v === "" || v === undefined ? null : int(v);
+    const nullableInventory = (v: unknown) => {
+        if (v === null || v === "" || v === undefined) return null;
+        const parsed = Number(v);
+        if (!Number.isInteger(parsed) || parsed < 0) throw Object.assign(new Error("實體庫存必須是 0 以上的整數，或留空表示不追蹤"), { status: 400 });
+        return parsed;
+    };
     const payload = {
         name, level_code: cleanText(body.level_code, 80) || null, suitable_for: cleanText(body.suitable_for, 300) || null,
         learning_goals: cleanText(body.learning_goals, 3000), description: cleanText(body.description, 5000), cover_url: cleanText(body.cover_url, 1000) || null,
         prerequisite_package_id: int(body.prerequisite_package_id), next_package_id: int(body.next_package_id), recommendation_rank: Number(body.recommendation_rank || 0),
         standard_price_twd: nullablePrice(body.standard_price_twd), member_price_twd: nullablePrice(body.member_price_twd),
+        inventory_quantity: nullableInventory(body.inventory_quantity), max_quantity_per_order: int(body.max_quantity_per_order) || 10,
         includes_90_day_access: body.includes_90_day_access !== false, stripe_product_id: cleanText(body.stripe_product_id, 300) || null,
         stripe_standard_price_id: cleanText(body.stripe_standard_price_id, 300) || null, stripe_member_price_id: cleanText(body.stripe_member_price_id, 300) || null,
         stripe_livemode: false, updated_by: caller.id
     };
+    if (payload.max_quantity_per_order > 20) throw Object.assign(new Error("每筆最多購買數量必須介於 1 到 20"), { status: 400 });
     if (payload.standard_price_twd && payload.member_price_twd && payload.member_price_twd > payload.standard_price_twd) throw Object.assign(new Error("會員教材價不得高於一般售價"), { status: 400 });
     const result = packageId ? await admin.from("material_packages").update(payload).eq("id", packageId).select("*").single()
         : await admin.from("material_packages").insert({ ...payload, created_by: caller.id }).select("*").single();

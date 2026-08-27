@@ -74,8 +74,8 @@ const plans = [
         period: "一次購買",
         description: "購買適合孩子程度的教材，永久取得教材擁有權並附贈 90 天網站使用權。",
         points: ["從開通當天起算 90 天", "解鎖所購買教材與音檔", "包含進度與智慧複習；AI 教材另購"],
-        action: "先免費體驗",
-        href: "/materials",
+        action: "前往教材商城",
+        href: "/shop",
         badge: "最推薦",
         featured: true
     },
@@ -586,7 +586,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/materials">教材商品包</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
+                    <div className="showcase-footer-links"><Link to="/shop">教材商城</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>

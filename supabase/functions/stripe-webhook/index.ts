@@ -266,7 +266,33 @@ Deno.serve(async (req: Request) => {
         let handled = false;
         if (eventType === "checkout.session.completed" || eventType === "checkout.session.async_payment_succeeded") {
             handled = true;
-            if (metadata.commerce_type === "material_package") {
+            if (metadata.commerce_type === "store_order") {
+                const orderId = Number(metadata.store_order_id || 0) || null;
+                const orderNumber = cleanText(metadata.order_number, 40);
+                const storeUserId = cleanText(metadata.store_user_id, 100);
+                if (!orderId || !orderNumber || !storeUserId) throw new Error("Store Checkout metadata is incomplete");
+                const { data: order, error: orderError } = await admin.from("store_orders")
+                    .select("id,order_number,customer_user_id,total_twd,currency,payment_status,stripe_checkout_session_id,stripe_livemode")
+                    .eq("id", orderId).eq("order_number", orderNumber).eq("customer_user_id", storeUserId).maybeSingle();
+                if (orderError) throw orderError;
+                if (!order) throw new Error("Store Checkout does not match an order");
+                if (
+                    order.stripe_checkout_session_id !== cleanText(object.id, 300)
+                    || order.stripe_livemode !== false || eventLivemode !== false
+                    || cleanText(object.currency, 20) !== "twd"
+                    || Number(object.amount_total) !== toStripeTwdMinorUnits(order.total_twd)
+                ) throw new Error("Store Checkout amount, mode or ownership mismatch");
+                if (object.payment_status === "paid") {
+                    const paidAt = new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString();
+                    const { error: confirmError } = await admin.rpc("confirm_store_order_payment", {
+                        p_order_id: order.id,
+                        p_checkout_session_id: cleanText(object.id, 300),
+                        p_payment_intent_id: stripeId(object.payment_intent) || null,
+                        p_paid_at: paidAt
+                    });
+                    if (confirmError) throw confirmError;
+                }
+            } else if (metadata.commerce_type === "material_package") {
                 const purchaseId = Number(metadata.purchase_id || 0) || null;
                 const packageId = Number(metadata.package_id || 0) || null;
                 if (!purchaseId || !packageId || !studentId) throw new Error("Material Checkout metadata is incomplete");
@@ -449,12 +475,61 @@ Deno.serve(async (req: Request) => {
             }, { onConflict: "stripe_checkout_session_id" });
             if (transactionError) throw transactionError;
             }
+        } else if (["checkout.session.async_payment_failed", "checkout.session.expired"].includes(eventType) && metadata.commerce_type === "store_order") {
+            handled = true;
+            const orderId = Number(metadata.store_order_id || 0) || null;
+            const storeUserId = cleanText(metadata.store_user_id, 100);
+            if (orderId && storeUserId) {
+                const paymentStatus = eventType === "checkout.session.expired" ? "expired" : "failed";
+                const { data: changed, error: updateError } = await admin.from("store_orders").update({
+                    payment_status: paymentStatus,
+                    fulfillment_status: "cancelled",
+                    updated_at: new Date().toISOString()
+                }).eq("id", orderId).eq("customer_user_id", storeUserId).eq("stripe_checkout_session_id", cleanText(object.id, 300))
+                    .eq("payment_status", "pending").select("id").maybeSingle();
+                if (updateError) throw updateError;
+                if (changed) {
+                    const { error: releaseError } = await admin.rpc("release_store_order_inventory", { p_order_id: orderId });
+                    if (releaseError) throw releaseError;
+                    const { error: historyError } = await admin.from("store_order_status_history").insert({
+                        order_id: orderId, payment_status: paymentStatus, fulfillment_status: "cancelled",
+                        note: paymentStatus === "expired" ? "Stripe 付款期限已過，訂單不會出貨。" : "Stripe 回報付款失敗，訂單不會出貨。",
+                        changed_by: "stripe_webhook"
+                    });
+                    if (historyError) throw historyError;
+                }
+            }
         } else if (eventType === "checkout.session.async_payment_failed" && metadata.commerce_type === "material_package") {
             handled = true;
             const purchaseId = Number(metadata.purchase_id || 0) || null;
             if (purchaseId) {
                 const { error } = await admin.from("material_purchases").update({ status: "failed", updated_at: new Date().toISOString() }).eq("id", purchaseId).eq("student_id", studentId);
                 if (error) throw error;
+            }
+        } else if (eventType === "charge.refunded" && object.refunded === true) {
+            const paymentIntentId = stripeId(object.payment_intent);
+            if (paymentIntentId) {
+                const { data: order, error: orderError } = await admin.from("store_orders")
+                    .select("id,payment_status,fulfillment_status")
+                    .eq("stripe_payment_intent_id", paymentIntentId).maybeSingle();
+                if (orderError) throw orderError;
+                if (order) {
+                    handled = true;
+                    const fulfillment = order.fulfillment_status === "preparing" ? "cancelled" : order.fulfillment_status;
+                    if (fulfillment === "cancelled") {
+                        const { error: releaseError } = await admin.rpc("release_store_order_inventory", { p_order_id: order.id });
+                        if (releaseError) throw releaseError;
+                    }
+                    const { error: refundError } = await admin.from("store_orders").update({
+                        payment_status: "refunded", fulfillment_status: fulfillment, updated_at: new Date().toISOString()
+                    }).eq("id", order.id).eq("payment_status", "paid");
+                    if (refundError) throw refundError;
+                    const { error: historyError } = await admin.from("store_order_status_history").insert({
+                        order_id: order.id, payment_status: "refunded", fulfillment_status: fulfillment,
+                        note: "Stripe 已完成全額退款。", changed_by: "stripe_webhook"
+                    });
+                    if (historyError) throw historyError;
+                }
             }
         } else if (eventType.startsWith("customer.subscription.")) {
             handled = true;
