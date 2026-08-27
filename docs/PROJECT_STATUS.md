@@ -8,7 +8,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-正式基準 commit：`558437c`（Netlify production deploy `6a8f95142703d100093c816b`，狀態 `ready`）
+正式基準 commit：`96b7877`（Netlify production deploy `6a8fdd817ae3a3d38f4c6e7c`，狀態 `ready`）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
@@ -53,6 +53,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 最近完成：
 
+- PR #55：公開 `/shop` 獨立教材商城已合併至 `main` commit `96b7877` 並正式發布。商城商品與程度推薦可匿名瀏覽，購物車保存於瀏覽器；結帳、寄送資料與歷史訂單使用獨立 Supabase Auth 商城帳號，不讀取或覆蓋聽力平台 Firebase Session，同一 Email 可分別註冊。新增商城訂單／地址／商品快照／狀態歷程／配送方式資料模型、有限庫存原子保留與逾時釋放、Stripe Hosted Checkout、簽章 webhook 付款核對、全額退款、客戶訂單／物流查詢，以及 Firebase 管理員出貨與運費設定。正式 migration `storefront_orders` 與 `store_order_foreign_key_indexes` 已套用；`store-commerce` v1、`commerce-manager` v4、`stripe-webhook` v19 均為 ACTIVE，商品目錄遠端呼叫回傳 200。11 個商城契約、22 個教材商務契約、10 支 Edge Function 語法檢查、Production build 與 Netlify Deploy Preview 均成功；Netlify production deploy `6a8fdd817ae3a3d38f4c6e7c` 已發布，正式 `/shop`、登入、購物車、訂單、管理員訂單與 sitemap 路由皆回傳 200。仍需由管理員確認退換貨／隱私條款、Supabase 驗證信 redirect、Stripe Webhook 事件訂閱，並完成 Stripe 沙盒端到端付款。
 - PR #54：網站使用手冊、教材商品頁導覽與正式根路徑懸浮 Header 已完成；一次性教材 Checkout 不再被 `sync` 誤判為月費訂閱，付款成功頁會核對登入學生、Stripe Customer、purchase、package 與 Checkout Session 後顯示教材付款結果並返回教材頁。`commerce-manager` v3、`billing-manager` v20 均為 ACTIVE，後者無登入請求仍回傳 401；22 個教材商務契約測試、`git diff --check` 與 Production build 通過。Netlify production deploy `6a8fb5de1cfd58cc7c08cda3` 已發布至 `alanenglish.com.tw`。
 - PR #50／#51／#52：會員續用、班級教材與教材商品包已合併至 `main`；安全稽核修正教材 Checkout webhook、離校生班級教材存取、會員教材價方案代碼、已上架商品包完整性、離校生恢復與 Stripe 訂閱取消／恢復、家長 Email 驗證及到期通知排程。正式 migration `20260827013903_membership_commerce_authorization_hardening.sql` 已套用並驗證函式、三個 trigger 及角色權限；`record-play` v21、`content-access` v17、`billing-manager` v19、`stripe-webhook` v18、`guardian-email` v14、`commerce-manager` v2、`notification-manager` v2 均為 ACTIVE 且維持 `verify_jwt=false`。20 項商務 contract、9 支 Edge Function 語法檢查、3 份前端測試共 10 項及 Production build 均成功；Netlify production deploy `6a8f95142703d100093c816b` 已發布 `558437c` 且為 `ready`。
 - PR #48：離校生會員 grant 同步錯誤已修正並合併至 `main` commit `86e519e`；additive migration `20260826163017_fix_membership_grant_plan_sync.sql` 讓 Stripe 會員保留實際方案與來源，並停止舊版在校會員鏡像產生第二份 `academy_internal` 權限，在校資格只由 `academy_enrollments` 管理。Migration 已套用正式 Supabase，7 筆有效／暫停中的錯誤 grant 已整理，整體有效不一致數量為 0。`aeplanalumni` 已確認為無有效在校 enrollment、有效 `basic_membership_monthly` Stripe 方案，作業權限為 false、AI 權限為 false，可再選購離校生 NT$99 AI 加購。會員中心測試 5/5、Production build 與 `git diff --check` 通過；Netlify Production deploy `6a8f1813ccd0757e9a9d75a6` 已發布且為 ready。
@@ -63,7 +64,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
-- `codex/storefront-orders`（基準 `origin/main` `c5f07cc`，前端待合併發布）：新增公開 `/shop` 獨立教材商城，並保留 `/materials` 原本依 Firebase 學生身分購買下一期教材與線上權限的流程。商城商品與程度推薦可匿名瀏覽，購物車保存於瀏覽器；結帳、寄送資料與歷史訂單使用獨立 Supabase Auth 商城帳號，不讀取或覆蓋聽力平台 Firebase Session，同一 Email 可分別註冊。新增商城訂單／地址／商品快照／狀態歷程／配送方式資料模型、有限庫存原子保留與逾時釋放、Stripe Hosted Checkout、簽章 webhook 付款核對、全額退款、客戶訂單／物流查詢，以及 Firebase 管理員出貨與運費設定。付款與出貨分離，僅已付款訂單可依準備中、運送中、已完成向前更新。正式 migration `storefront_orders` 與 `store_order_foreign_key_indexes` 已套用；`store-commerce` v1、`commerce-manager` v4、`stripe-webhook` v19 均為 ACTIVE，商品目錄遠端呼叫回傳 200。正式啟用後仍需由管理員確認退換貨／隱私條款、Supabase 驗證信 redirect、Stripe Webhook 事件訂閱，並完成 Stripe 沙盒端到端付款。
+- `codex/store-email-verification-resend`：商城註冊頁新增「重新寄送驗證信」，可只輸入既有商城 Email 取得新連結，不需再次送出密碼；每次重寄明確附上目前網站的 `/shop/login` 回網址、成功後有 60 秒冷卻，並使用不洩漏帳號是否存在的提示。新增 2 個前端測試皆通過，11 個商城契約與 Production build 成功。尚未 push、建立 PR 或部署；Supabase Auth 後台仍需把 Site URL 設為 `https://alanenglish.com.tw`，並將正式／測試站商城登入路徑加入 Redirect URLs，否則不在允許清單的回網址仍可能降級到 localhost。
 - PR #47：學生手機版 Header 將通知與漢堡按鈕整合為右側操作群組，修正通知貼近 Logo、漢堡單獨靠右的不自然間距；已合併至 `main` commit `fca1612`。`MainNavbar` 測試、`git diff --check` 與 Production build 已通過，固定學生測試站 deploy `6a8ef77517662da3aeca86a2` 已發布；仍待手機實機視覺驗收。
 - `codex/delete-test-accounts`：後台帳號管理新增管理員專用「永久刪除」入口，Email 帳號需輸入完整 Email，校內帳號則需輸入完整登入名稱確認。Migration `20260826143450_allow_admin_test_account_deletion.sql` 允許清除一般測試資料；後續 `20260826145459_stripe_test_account_cleanup.sql` 增加 Stripe test/live 標記，使測試模式訂閱與付款可在刪除帳號前一併安全清理，正式或無法確認模式的付款、教材購買及啟用碼兌換仍會拒絕刪除。Webhook 與付款同步會保存 Stripe 模式。兩個刪除 migrations 已套用，`academy-student-manager` v20、`billing-manager` v17、`stripe-webhook` v16 為 ACTIVE；v20 僅新增固定測試站來源白名單。三組零付款測試帳號已建立、啟用、登入並驗證目前皆可刪除：一般會員無英文班歷史、在校生保有有效在學、離校生保留已退班歷史。
 - `codex/membership-ai-pricing`（功能 commit `e08445a`）：基本自主學習會員為 NT$299／月；一般會員 AI 加購為 NT$129／月，合計 NT$428；英文班在校生與離校生 AI 優惠為 NT$99／月，離校生需搭配基本會員，合計 NT$398。Additive migration `20260826132237_membership_ai_pricing.sql` 已套用；Stripe 沙盒 NT$299／NT$129 Price 已建立並寫回方案，NT$99 沿用既有測試 Price。`membership-manager` v26 已部署正確資格篩選；測試站已驗證一般會員只先顯示 NT$299、在校生只顯示 NT$99、離校生只先顯示 NT$299。NT$299 付款完成後的 NT$129／NT$99 解鎖仍待實際 Stripe 測試付款驗收。19 份前端測試共 52 個案例、8 個純後端資格／Stripe 金額測試、8 支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功；固定測試站 deploy `6a8f036f97d14d06abc85be8` 已發布。
