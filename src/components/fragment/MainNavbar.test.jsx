@@ -64,4 +64,49 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("progressbar", { name: "目前等級 Lv.2 的經驗值進度" })).toHaveAttribute("aria-valuenow", "53");
         await waitFor(() => expect(screen.getByText("聽力本")).toBeInTheDocument());
     });
+
+    it("shows one music-management link and the links admin entry to admins", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "admin-test" },
+            role: "admin",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: { name: "管理員" }
+        });
+        getAccessibleCatalog.mockResolvedValue({ categories: [] });
+
+        render(<MemoryRouter initialEntries={["/admin/dashboard"]}><MainNavbar /></MemoryRouter>);
+        fireEvent.click(screen.getByRole("button", { name: "音檔" }));
+
+        const musicManagementLink = screen.getByRole("link", { name: "音檔管理" });
+        expect(musicManagementLink).toHaveAttribute("href", "/teacher/music/manage");
+        expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
+
+        const linksAdminEntry = screen.getByRole("link", { name: "新增連結" });
+        expect(linksAdminEntry).toHaveAttribute("href", "/admin/links");
+
+        fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
+
+        expect(await screen.findAllByRole("link", { name: "音檔管理" })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "新增連結" })).toHaveLength(2);
+        expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
+    });
+
+    it("does not show the links admin entry to teachers", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "teacher-test" },
+            role: "teacher",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: { name: "老師" }
+        });
+        getAccessibleCatalog.mockResolvedValue({ categories: [] });
+
+        render(<MemoryRouter initialEntries={["/teacher/dashboard"]}><MainNavbar /></MemoryRouter>);
+        await waitFor(() => expect(screen.queryByText("教材載入中...")).not.toBeInTheDocument());
+        fireEvent.click(screen.getByRole("button", { name: "音檔" }));
+
+        expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");
+        expect(screen.queryByRole("link", { name: "新增連結" })).not.toBeInTheDocument();
+    });
 });
