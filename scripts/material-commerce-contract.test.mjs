@@ -16,6 +16,7 @@ const notifications = read("supabase/functions/notification-manager/index.ts");
 const guardianEmail = read("supabase/functions/guardian-email/index.ts");
 const routes = read("src/app/App.jsx");
 const player = read("src/components/fragment/MusicPlayer.jsx");
+const billingResult = read("src/components/Pages/BillingResult.jsx");
 
 test("1. E1、E3、E5、E7 學生只能取得正確班級教材", () => {
     assert.match(migration, /code in \('E1',\s*'E3',\s*'E5',\s*'E7'\)/);
@@ -147,4 +148,16 @@ test("20. RLS、安全後端與 Production build 契約完整", () => {
     assert.match(membership, /book_entitlement_id/);
     assert.match(hardeningMigration, /before insert or update on public\.material_packages/);
     assert.match(commerce, /已上架商品包請先停售/);
+});
+
+test("21. 教材商務後台明確使用學生在學關聯", () => {
+    assert.match(commerce, /academy_enrollments!academy_enrollments_student_id_fkey/);
+    assert.doesNotMatch(commerce, /account_status,academy_enrollments\(/);
+});
+
+test("22. 取消訂閱後的一次性教材付款可由成功頁正確確認", () => {
+    assert.match(billing, /sessionCommerceType === "material_package"/);
+    assert.match(billing, /session\?\.mode !== "payment"/);
+    assert.match(billing, /from\("material_purchases"\)[\s\S]*stripe_checkout_session_id/);
+    assert.match(billingResult, /material_purchase\?\.status === "paid"/);
 });

@@ -26,7 +26,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 - 離校不是停用帳號；班級來源與新作業於生效日結束，自購／贈送教材、XP、AE Points、等級、歷史作業與進度保留。已付款月費與 AI 使用至 `current_period_end`。
 - 月費支援 Customer Portal、本期結束取消、到期前恢復與付款失敗；Checkout 前必須有有效家長 Email。通知事件、學生收件匣、去重鍵與 Email 佇列已納入實作，寄送沿用既有 Resend adapter，未設定 provider 時保留待送。
 - 班級教材設定與教材商品包分開管理。商品包必須有一本 Workbook、一本聽力本、完整價格及 Stripe 測試 Product／Price 才能上架。
-- 教材包正式一般售價與有效會員教材價尚未確認，不得猜測、不得建立正式 Stripe Price；目前只允許可設定草稿與 Stripe 測試模式驗收。
+- 三本組合教材包的一般售價已確認為 NT$1,380；有效會員教材價尚未確認，不得猜測或建立正式 Price。目前已建立一組同價 NT$1,380 的 Stripe 沙盒 Level 1 試賣商品供購買流程驗收，正式上線前仍須另建確認後的會員價 Price。
 - 目前不建立年費。累積月費續訂率、取消原因與客服資料後，才評估年費的折扣、退款、教材升級與客服成本條件。
 
 Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentication、Supabase、Cloudflare R2 與 Netlify 的產品化階段。
@@ -53,6 +53,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 最近完成：
 
+- PR #54：網站使用手冊、教材商品頁導覽與正式根路徑懸浮 Header 已完成；一次性教材 Checkout 不再被 `sync` 誤判為月費訂閱，付款成功頁會核對登入學生、Stripe Customer、purchase、package 與 Checkout Session 後顯示教材付款結果並返回教材頁。`commerce-manager` v3、`billing-manager` v20 均為 ACTIVE，後者無登入請求仍回傳 401；22 個教材商務契約測試、`git diff --check` 與 Production build 通過。Netlify production deploy `6a8fb5de1cfd58cc7c08cda3` 已發布至 `alanenglish.com.tw`。
 - PR #50／#51／#52：會員續用、班級教材與教材商品包已合併至 `main`；安全稽核修正教材 Checkout webhook、離校生班級教材存取、會員教材價方案代碼、已上架商品包完整性、離校生恢復與 Stripe 訂閱取消／恢復、家長 Email 驗證及到期通知排程。正式 migration `20260827013903_membership_commerce_authorization_hardening.sql` 已套用並驗證函式、三個 trigger 及角色權限；`record-play` v21、`content-access` v17、`billing-manager` v19、`stripe-webhook` v18、`guardian-email` v14、`commerce-manager` v2、`notification-manager` v2 均為 ACTIVE 且維持 `verify_jwt=false`。20 項商務 contract、9 支 Edge Function 語法檢查、3 份前端測試共 10 項及 Production build 均成功；Netlify production deploy `6a8f95142703d100093c816b` 已發布 `558437c` 且為 `ready`。
 - PR #48：離校生會員 grant 同步錯誤已修正並合併至 `main` commit `86e519e`；additive migration `20260826163017_fix_membership_grant_plan_sync.sql` 讓 Stripe 會員保留實際方案與來源，並停止舊版在校會員鏡像產生第二份 `academy_internal` 權限，在校資格只由 `academy_enrollments` 管理。Migration 已套用正式 Supabase，7 筆有效／暫停中的錯誤 grant 已整理，整體有效不一致數量為 0。`aeplanalumni` 已確認為無有效在校 enrollment、有效 `basic_membership_monthly` Stripe 方案，作業權限為 false、AI 權限為 false，可再選購離校生 NT$99 AI 加購。會員中心測試 5/5、Production build 與 `git diff --check` 通過；Netlify Production deploy `6a8f1813ccd0757e9a9d75a6` 已發布且為 ready。
 - PR #21：AI 加購付款按鈕載入狀態、AI Premium 啟用卡、每月續訂日與 Navbar／手機 Sidebar 徽章；已合併並部署正式 Netlify。
@@ -206,7 +207,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 - 權限從兌換日開始
 - 到期後可選擇每月 NT$299 的基本自主學習會員
 - AI 教材不因購書或基本會員自動取得；一般會員可另加購 NT$129／月
-- 教材最終售價尚未決定
+- 三本組合教材包一般售價已決定為 NT$1,380；有效會員教材價仍待確認
 
 ### 英文班在校學生
 

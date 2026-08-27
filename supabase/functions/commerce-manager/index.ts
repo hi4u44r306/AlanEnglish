@@ -187,7 +187,7 @@ async function staffBootstrap(admin: any, caller: VerifiedAlanUser) {
         classIds.length ? admin.from("academy_class_material_audit_log").select("*,students!academy_class_material_audit_log_created_by_fkey(id,name)").in("class_id", classIds).order("created_at", { ascending: false }).limit(100) : { data: [], error: null },
         caller.role === "admin" ? admin.from("material_packages").select("*,material_package_books(*),material_package_tracks(*)").order("created_at", { ascending: false }) : { data: [], error: null },
         caller.role === "admin" ? admin.from("music_tracks").select("id,book_id,title,music_name,preview_enabled,subtitle_status").eq("enabled", true).order("book_id").order("sort_order") : { data: [], error: null },
-        caller.role === "admin" ? admin.from("students").select("id,name,chinese_name,english_name,class,learner_type,account_status,academy_enrollments(id,status,enrolled_at,scheduled_departure_at,departed_at,access_ends_at,class_id)").eq("role", "student").order("name") : { data: [], error: null }
+        caller.role === "admin" ? admin.from("students").select("id,name,chinese_name,english_name,class,learner_type,account_status,academy_enrollments!academy_enrollments_student_id_fkey(id,status,enrolled_at,scheduled_departure_at,departed_at,access_ends_at,class_id)").eq("role", "student").order("name") : { data: [], error: null }
     ]);
     const firstError = [books.error, settings.error, audit.error, packages.error, tracks.error, students.error].find(Boolean);
     if (firstError) throw firstError;

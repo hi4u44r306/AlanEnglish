@@ -539,6 +539,64 @@ Deno.serve(async (req: Request) => {
                     session?.client_reference_id || session?.metadata?.student_id
                 );
                 sessionCustomerId = stripeId(session?.customer);
+                const sessionCommerceType = cleanText(session?.metadata?.commerce_type, 40);
+
+                if (sessionCommerceType === "material_package") {
+                    const purchaseId = positiveInteger(session?.metadata?.purchase_id);
+                    const packageId = positiveInteger(session?.metadata?.package_id);
+                    if (
+                        session?.mode !== "payment"
+                        || sessionStudentId !== Number(student.id)
+                        || !purchaseId
+                        || !packageId
+                        || sessionLivemode !== false
+                        || (membership.stripe_customer_id && sessionCustomerId !== membership.stripe_customer_id)
+                    ) {
+                        return json(403, { error: "這筆教材付款不屬於目前登入帳號" });
+                    }
+
+                    const { data: purchase, error: purchaseError } = await admin
+                        .from("material_purchases")
+                        .select("id,student_id,package_id,status,stripe_checkout_session_id")
+                        .eq("id", purchaseId)
+                        .eq("student_id", student.id)
+                        .eq("package_id", packageId)
+                        .eq("stripe_checkout_session_id", checkoutSessionId)
+                        .maybeSingle();
+                    if (purchaseError) throw purchaseError;
+                    if (!purchase) {
+                        return json(403, { error: "這筆教材付款不屬於目前登入帳號" });
+                    }
+
+                    const stripePaymentComplete = session?.status === "complete"
+                        && session?.payment_status === "paid";
+                    if (!stripePaymentComplete || purchase.status !== "paid") {
+                        return json(200, {
+                            success: true,
+                            synced: false,
+                            message: stripePaymentComplete
+                                ? "付款已完成，教材權限正在建立中，請稍後重新整理。"
+                                : "Stripe 教材付款工作階段尚未完成",
+                            material_purchase: {
+                                id: purchase.id,
+                                package_id: purchase.package_id,
+                                status: purchase.status
+                            }
+                        });
+                    }
+
+                    return json(200, {
+                        success: true,
+                        synced: true,
+                        message: "教材付款已確認，教材權限已更新。",
+                        material_purchase: {
+                            id: purchase.id,
+                            package_id: purchase.package_id,
+                            status: purchase.status
+                        }
+                    });
+                }
+
                 if (
                     session?.mode !== "subscription"
                     || sessionStudentId !== Number(student.id)
