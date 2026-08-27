@@ -70,8 +70,8 @@ function LearningLeaderboard() {
         <main className="gamification-page">
             <section className="gamification-hero">
                 <div>
-                    <span className="gamification-eyebrow"><FiTrendingUp /> CLASS LEADERBOARD</span>
-                    <h1>{currentClass ? `${currentClass} 班排行榜` : "班級排行榜"}</h1>
+                    <span className="gamification-eyebrow"><FiTrendingUp /> {currentClass ? "CLASS LEADERBOARD" : "LEARNING LEADERBOARD"}</span>
+                    <h1>{currentClass ? `${currentClass} 班排行榜` : "學習排行榜"}</h1>
                     <p>完成聽力、作業與遊戲都能累積 XP；排行榜以 XP 排名，兌換獎品不會讓排名下降。</p>
                 </div>
                 <div className="gamification-hero__actions">

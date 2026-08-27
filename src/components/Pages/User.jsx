@@ -79,10 +79,11 @@ const getInitial = name => {
     return name.trim().charAt(0).toUpperCase();
 };
 
-const getPlanName = plan => {
-    if (plan === "listeningonly") return "純聽力方案";
-    if (plan === "allcover") return "全方位方案";
-    return "一般方案";
+const getAccessStatusLabel = membership => {
+    const planCodes = membership?.effective_access?.plan_codes || [];
+    if (membership?.is_active !== true) return "學習權限未啟用";
+    if (planCodes.includes("academy_internal")) return "英文班在學權限";
+    return membership?.plan?.name || "學習權限使用中";
 };
 
 const normalizeAssignments = result => {
@@ -559,7 +560,7 @@ const User = () => {
                     </div>
                     <div className="student-home__account-tags">
                         {user.class && <span>{user.class} 班</span>}
-                        <span>{getPlanName(user.plan)}</span>
+                        <span>{getAccessStatusLabel(user.membership)}</span>
                     </div>
                     <div className="student-home__logout"><Logout /></div>
                 </section>
