@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FiArrowRight, FiBookOpen, FiCheckCircle, FiHeadphones, FiLock, FiPlay, FiShoppingBag, FiStar } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { FiArrowLeft, FiArrowRight, FiBookOpen, FiCheckCircle, FiHeadphones, FiHome, FiLock, FiLogIn, FiPlay, FiShoppingBag, FiStar } from "react-icons/fi";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
+import Brand from "../fragment/Brand";
 import { createMaterialCheckout } from "../../services/billingService";
 import { loadMaterialPackages, loadPlacementAssessment, submitPlacementAssessment } from "../../services/commerceService";
 import "./css/Commerce.scss";
@@ -15,6 +16,7 @@ const groupBy = (items, key) => Object.groupBy ? Object.groupBy(items, key) : it
 function MaterialCatalog() {
     const { firebaseUser } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [packages, setPackages] = useState([]);
     const [assessment, setAssessment] = useState(null);
     const [answers, setAnswers] = useState({});
@@ -34,6 +36,9 @@ function MaterialCatalog() {
         finally { setLoading(false); }
     }, [firebaseUser]);
     useEffect(() => { load(); }, [load]);
+
+    const returnPath = firebaseUser ? "/userinfo" : "/home";
+    const goBack = () => location.key && location.key !== "default" ? navigate(-1) : navigate(returnPath);
 
     const questions = useMemo(() => assessment?.questions || [], [assessment]);
     const groupedQuestions = useMemo(() => groupBy(questions, question => question.skill), [questions]);
@@ -87,7 +92,18 @@ function MaterialCatalog() {
         </article>;
     };
 
-    return <main className="commerce-page">
+    return <>
+        <header className="commerce-site-header">
+            <Link className="commerce-site-brand" to="/home" aria-label="回到 Alan English 首頁"><Brand /></Link>
+            <nav aria-label="教材商品頁導覽">
+                <button type="button" onClick={goBack}><FiArrowLeft />返回上一頁</button>
+                <Link to={firebaseUser ? "/userinfo" : "/login?next=/materials"}>
+                    {firebaseUser ? <FiHome /> : <FiLogIn />}
+                    {firebaseUser ? "我的首頁" : "登入"}
+                </Link>
+            </nav>
+        </header>
+        <main className="commerce-page">
         <section className="commerce-hero">
             <div><span>ALAN ENGLISH MATERIALS</span><h1>教材是你的，網站使用權分開續用。</h1><p>購買教材永久保留教材擁有權與歷史學習紀錄，並附贈 90 天網站使用權。基本月費只延續已擁有教材，不會自動解鎖下一級。</p><div><a href="#placement"><FiHeadphones />先做三向程度測驗</a><Link to="/freetrial">不需信用卡，先試用 7 天<FiArrowRight /></Link></div></div>
             <aside><FiLock /><strong>付費教材維持私有</strong><span>未授權時不會取得完整音檔、字幕、逐字稿或播放 URL。</span></aside>
@@ -107,7 +123,8 @@ function MaterialCatalog() {
         </section>}
 
         {recommendations.length > 0 && <section className="commerce-results" id="placement-results"><header><span>YOUR RESULTS</span><h2>你的教材建議</h2></header><div>{recommendations.map(result => <div key={result.label}><h3>{result.label}</h3><PackageCard item={result.package} compact /></div>)}</div></section>}
-    </main>;
+        </main>
+    </>;
 }
 
 export default MaterialCatalog;

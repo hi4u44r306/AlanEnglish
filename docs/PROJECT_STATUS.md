@@ -26,7 +26,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 - 離校不是停用帳號；班級來源與新作業於生效日結束，自購／贈送教材、XP、AE Points、等級、歷史作業與進度保留。已付款月費與 AI 使用至 `current_period_end`。
 - 月費支援 Customer Portal、本期結束取消、到期前恢復與付款失敗；Checkout 前必須有有效家長 Email。通知事件、學生收件匣、去重鍵與 Email 佇列已納入實作，寄送沿用既有 Resend adapter，未設定 provider 時保留待送。
 - 班級教材設定與教材商品包分開管理。商品包必須有一本 Workbook、一本聽力本、完整價格及 Stripe 測試 Product／Price 才能上架。
-- 教材包正式一般售價與有效會員教材價尚未確認，不得猜測、不得建立正式 Stripe Price；目前只允許可設定草稿與 Stripe 測試模式驗收。
+- 三本組合教材包的一般售價已確認為 NT$1,380；有效會員教材價尚未確認，不得猜測或建立正式 Price。目前已建立一組同價 NT$1,380 的 Stripe 沙盒 Level 1 試賣商品供購買流程驗收，正式上線前仍須另建確認後的會員價 Price。
 - 目前不建立年費。累積月費續訂率、取消原因與客服資料後，才評估年費的折扣、退款、教材升級與客服成本條件。
 
 Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentication、Supabase、Cloudflare R2 與 Netlify 的產品化階段。
@@ -62,6 +62,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `docs/site-user-manual`：新增 `docs/網站使用手冊.md` 文字母檔，依學生／家長、老師與管理員拆分操作章節，加入教材推薦必要條件、教材商品包上架流程、常見問題、圖片／影片素材編號及版本更新檢查表；`AGENTS.md` 與 `PROJECT_LOGIC.md` 已加入新功能同步更新手冊的永久規則。教材商品頁新增精簡 Header、返回上一頁及登入／我的首頁入口，並對齊三本組合一般價 NT$1,380。2026-08-27 已修正 `commerce-manager` 後台學生在學關聯歧義並部署 v3 ACTIVE；Stripe 沙盒及遠端資料庫已建立並發布 Level 1 試賣教材（Workbook 1＋Listening 1、一般價／暫用會員價皆 NT$1,380、附 90 天權限），公開教材頁已確認可顯示商品。正式根路徑教材音檔頁 Header 已改為固定在畫面最上方的懸浮卡片，包含桌機／手機間距與 iPhone safe area；另修正一次性教材 Checkout 被 `sync` 誤判為訂閱付款而顯示「這筆付款不屬於目前登入帳號」，成功頁現在會核對教材購買紀錄並返回教材頁。`billing-manager` v20 已部署 ACTIVE，無登入請求仍回傳 401；22 個教材商務契約測試與 Production build 通過。尚待 GitHub push、合併與 Netlify 部署前端。
 - PR #47：學生手機版 Header 將通知與漢堡按鈕整合為右側操作群組，修正通知貼近 Logo、漢堡單獨靠右的不自然間距；已合併至 `main` commit `fca1612`。`MainNavbar` 測試、`git diff --check` 與 Production build 已通過，固定學生測試站 deploy `6a8ef77517662da3aeca86a2` 已發布；仍待手機實機視覺驗收。
 - `codex/delete-test-accounts`：後台帳號管理新增管理員專用「永久刪除」入口，Email 帳號需輸入完整 Email，校內帳號則需輸入完整登入名稱確認。Migration `20260826143450_allow_admin_test_account_deletion.sql` 允許清除一般測試資料；後續 `20260826145459_stripe_test_account_cleanup.sql` 增加 Stripe test/live 標記，使測試模式訂閱與付款可在刪除帳號前一併安全清理，正式或無法確認模式的付款、教材購買及啟用碼兌換仍會拒絕刪除。Webhook 與付款同步會保存 Stripe 模式。兩個刪除 migrations 已套用，`academy-student-manager` v20、`billing-manager` v17、`stripe-webhook` v16 為 ACTIVE；v20 僅新增固定測試站來源白名單。三組零付款測試帳號已建立、啟用、登入並驗證目前皆可刪除：一般會員無英文班歷史、在校生保有有效在學、離校生保留已退班歷史。
 - `codex/membership-ai-pricing`（功能 commit `e08445a`）：基本自主學習會員為 NT$299／月；一般會員 AI 加購為 NT$129／月，合計 NT$428；英文班在校生與離校生 AI 優惠為 NT$99／月，離校生需搭配基本會員，合計 NT$398。Additive migration `20260826132237_membership_ai_pricing.sql` 已套用；Stripe 沙盒 NT$299／NT$129 Price 已建立並寫回方案，NT$99 沿用既有測試 Price。`membership-manager` v26 已部署正確資格篩選；測試站已驗證一般會員只先顯示 NT$299、在校生只顯示 NT$99、離校生只先顯示 NT$299。NT$299 付款完成後的 NT$129／NT$99 解鎖仍待實際 Stripe 測試付款驗收。19 份前端測試共 52 個案例、8 個純後端資格／Stripe 金額測試、8 支 Edge Function TypeScript 語法解析、`git diff --check` 與 Production build 均成功；固定測試站 deploy `6a8f036f97d14d06abc85be8` 已發布。
@@ -206,7 +207,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 - 權限從兌換日開始
 - 到期後可選擇每月 NT$299 的基本自主學習會員
 - AI 教材不因購書或基本會員自動取得；一般會員可另加購 NT$129／月
-- 教材最終售價尚未決定
+- 三本組合教材包一般售價已決定為 NT$1,380；有效會員教材價仍待確認
 
 ### 英文班在校學生
 
