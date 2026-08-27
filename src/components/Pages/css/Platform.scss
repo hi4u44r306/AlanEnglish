@@ -224,6 +224,51 @@ textarea { resize: vertical; }
 .platform-status-meta { display: flex; align-items: center; gap: 32px; }
 .platform-status-meta div { display: grid; gap: 4px; }
 
+.platform-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+}
+.platform-access-item {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--ae-line);
+    border-radius: 18px;
+    background: #f8fafc;
+}
+.platform-access-item.is-available { border-color: #a6e3bf; background: #f2fbf6; }
+.platform-access-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; color: #667085; background: #edf0f5; font-size: 21px; }
+.platform-access-item.is-available .platform-access-icon { color: #067647; background: #dff7e9; }
+.platform-access-state { display: inline-flex; align-items: center; gap: 5px; color: #667085; font-size: 12px; font-weight: 850; }
+.platform-access-item.is-available .platform-access-state { color: #067647; }
+.platform-access-item h3 { margin: 6px 0; font-size: 19px; }
+.platform-access-item p { margin: 0; color: var(--ae-muted); font-size: 14px; line-height: 1.6; }
+.platform-access-item > a { width: fit-content; color: #2453a6; font-weight: 800; text-decoration: none; }
+.platform-access-item.is-available > a { color: #067647; }
+
+.platform-material-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 13px; }
+.platform-material-item { display: flex; align-items: center; gap: 14px; min-width: 0; padding: 17px; border: 1px solid #b7e4c9; border-radius: 17px; color: var(--ae-ink); background: #f4fbf7; text-decoration: none; }
+.platform-material-item:hover { color: var(--ae-ink); border-color: #6fca94; transform: translateY(-1px); }
+.platform-material-item > span { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 14px; color: #067647; background: #dcfae6; font-size: 22px; }
+.platform-material-item > div { display: grid; min-width: 0; gap: 3px; }
+.platform-material-item small { overflow: hidden; color: var(--ae-muted); text-overflow: ellipsis; white-space: nowrap; }
+.platform-material-item strong { overflow-wrap: anywhere; }
+.platform-material-item em { display: inline-flex; align-items: center; gap: 5px; color: #067647; font-size: 12px; font-style: normal; font-weight: 800; }
+.platform-locked-materials { margin-top: 18px; border: 1px solid var(--ae-line); border-radius: 16px; background: #fbfcfe; }
+.platform-locked-materials summary { display: flex; justify-content: space-between; align-items: center; gap: 14px; min-height: 52px; padding: 13px 17px; cursor: pointer; }
+.platform-locked-materials summary > span { display: inline-flex; align-items: center; gap: 8px; color: #475467; font-weight: 750; }
+.platform-locked-materials summary > strong { color: #2453a6; font-size: 13px; }
+.platform-locked-materials > div { border-top: 1px solid var(--ae-line); }
+.platform-locked-materials article { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 13px 17px; border-bottom: 1px solid var(--ae-line); }
+.platform-locked-materials article:last-child { border-bottom: 0; }
+.platform-locked-materials article div { display: grid; gap: 2px; }
+.platform-locked-materials article small,
+.platform-locked-materials article > span { color: var(--ae-muted); font-size: 12px; }
+.platform-locked-materials article > span { text-align: right; }
+
 .platform-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
 .platform-admin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .platform-plan,
@@ -444,6 +489,9 @@ textarea { resize: vertical; }
     .platform-inline-form { flex-direction: column; }
     .platform-status-card { padding: 22px; }
     .platform-status-meta { gap: 14px; }
+    .platform-access-grid,
+    .platform-material-grid { grid-template-columns: 1fr; }
+    .platform-locked-materials article { align-items: flex-start; }
     .platform-level-summary { grid-template-columns: auto 1fr; }
     .platform-level-summary > strong { grid-column: 1 / -1; }
     .platform-level-path article { grid-template-columns: 1fr; }

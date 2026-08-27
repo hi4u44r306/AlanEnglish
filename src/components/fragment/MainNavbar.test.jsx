@@ -46,9 +46,10 @@ describe("MainNavbar student navigation", () => {
     it("keeps common links in the desktop bar and moves secondary links into the full menu", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        expect(screen.getByRole("link", { name: "我的首頁" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
+        expect(screen.getAllByRole("link", { name: "我的首頁" }).length).toBeGreaterThan(0);
+        expect(screen.getByRole("link", { name: "教材與功能" })).toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         const mobileNotification = screen.getByRole("link", { name: "查看通知" });
         const mobileMenu = screen.getByRole("button", { name: "開啟全部功能選單" });
@@ -57,11 +58,17 @@ describe("MainNavbar student navigation", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
 
+        expect(await screen.findByRole("link", { name: "我的教材與功能" })).toBeInTheDocument();
+        expect(screen.getByText("開始學習")).toBeInTheDocument();
+        expect(screen.getByText("學習成果")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(await screen.findByRole("link", { name: "學習排行榜" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
         expect(screen.getAllByRole("link", { name: "我的設定" }).length).toBeGreaterThan(0);
         expect(await screen.findByText("Lv.2")).toBeInTheDocument();
         expect(screen.getByRole("progressbar", { name: "目前等級 Lv.2 的經驗值進度" })).toHaveAttribute("aria-valuenow", "53");
-        await waitFor(() => expect(screen.getByText("聽力本")).toBeInTheDocument());
+        await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
+        expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
     });
 });

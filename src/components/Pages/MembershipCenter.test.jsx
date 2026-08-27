@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { createCheckoutSession } from "../../services/billingService";
 import { getMembershipProfile, getPublicPlans } from "../../services/membershipService";
+import { getAccessibleCatalog } from "../../services/contentAccessService";
 import MembershipCenter from "./MembershipCenter";
 
 jest.mock("react-toastify", () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
@@ -19,6 +20,7 @@ jest.mock("../../services/membershipService", () => ({
     getPublicPlans: jest.fn(),
     redeemActivationCode: jest.fn()
 }));
+jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 
 describe("MembershipCenter AI add-on", () => {
     beforeEach(() => {
@@ -63,6 +65,43 @@ describe("MembershipCenter AI add-on", () => {
                 features: { ai_materials: true, ai_monthly_limit: 150 }
             }]
         });
+        getAccessibleCatalog.mockResolvedValue({
+            categories: [{
+                id: "workbook",
+                name: "習作本",
+                books: [{ id: "book-1", code: "Workbook_1", name: "Workbook 1", locked: false }, { id: "book-2", code: "Workbook_2", name: "Workbook 2", locked: true, lock_reason: "book_entitlement_required" }]
+            }]
+        });
+    });
+
+    it("shows available features and separates usable books from locked books", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    effective_access: {
+                        plan_codes: ["basic_membership_monthly"],
+                        grants: [],
+                        features: { listening: true, conversation: true, review: true, assignments: false, ai_materials: false }
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByRole("heading", { name: "我的教材與功能" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "目前可用功能" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /Workbook 1/ })).toHaveAttribute("href", "/student/books/Workbook_1");
+        expect(screen.getByText("已取得使用權")).toBeInTheDocument();
+        expect(screen.getByText("另有 1 本教材尚未取得使用權")).toBeInTheDocument();
+        expect(screen.getByText("僅英文班在校生")).toBeInTheDocument();
+        expect(screen.getByText("查看 AI 方案")).toBeInTheDocument();
     });
 
     it("shows the active add-on and prevents a duplicate checkout", async () => {
