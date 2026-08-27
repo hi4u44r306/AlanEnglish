@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./supabase-config";
 import "./css/AddMusic.scss";
+import { sortMusicTracksAscending } from "../../utils/musicTrackSort";
 
 // Library 音樂播放器：預設音量 50%
 const LibraryAudio = ({ src }) => {
@@ -75,14 +76,15 @@ const AddMusic = () => {
                 .from("music_tracks")
                 .select("*")
                 .eq("book_id", Number(selectedBookId))
-                .order("sort_order", { ascending: true });
+                .order("sort_order", { ascending: true })
+                .order("id", { ascending: true });
 
             if (error) {
                 console.error("讀取音檔失敗:", error);
                 return;
             }
 
-            setExistingTracks(data || []);
+            setExistingTracks(sortMusicTracksAscending(data || []));
         };
 
         fetchExistingTracks();
@@ -174,14 +176,15 @@ const AddMusic = () => {
             .from("music_tracks")
             .select("*")
             .eq("book_id", Number(selectedBookId))
-            .order("sort_order", { ascending: true });
+            .order("sort_order", { ascending: true })
+            .order("id", { ascending: true });
 
         if (error) {
             console.error("讀取音檔失敗:", error);
             return;
         }
 
-        setExistingTracks(data || []);
+        setExistingTracks(sortMusicTracksAscending(data || []));
     };
 
     // =========================
@@ -840,7 +843,7 @@ const AddMusic = () => {
     // Library
     // =========================
 
-    const filteredTracks =
+    const filteredTracks = sortMusicTracksAscending(
         existingTracks.filter(track => {
             const keyword =
                 searchText
@@ -857,7 +860,8 @@ const AddMusic = () => {
                     ?.toLowerCase()
                     .includes(keyword)
             );
-        });
+        })
+    );
 
     const getPublicUrl = path => {
         return supabase.storage
