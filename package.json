@@ -40,10 +40,11 @@
   },
   "scripts": {
     "start": "react-scripts start node index.js",
-    "build": "react-scripts build",
+    "build": "react-scripts build && node scripts/generate-static-seo-pages.mjs",
     "test": "react-scripts test",
     "test:material-commerce-contracts": "node --test scripts/material-commerce-contract.test.mjs",
     "test:storefront-contracts": "node --test scripts/storefront-contract.test.mjs",
+    "test:seo-foundation": "node --test scripts/seo-foundation.test.mjs",
     "test:edge-syntax": "node --experimental-strip-types --check supabase/functions/store-commerce/index.ts && node --experimental-strip-types --check supabase/functions/commerce-manager/index.ts && node --experimental-strip-types --check supabase/functions/notification-manager/index.ts && node --experimental-strip-types --check supabase/functions/guardian-email/index.ts && node --experimental-strip-types --check supabase/functions/billing-manager/index.ts && node --experimental-strip-types --check supabase/functions/stripe-webhook/index.ts && node --experimental-strip-types --check supabase/functions/content-access/index.ts && node --experimental-strip-types --check supabase/functions/record-play/index.ts && node --experimental-strip-types --check supabase/functions/assignment-manager/index.ts && node --experimental-strip-types --check supabase/functions/membership-manager/index.ts",
     "eject": "react-scripts eject"
   },

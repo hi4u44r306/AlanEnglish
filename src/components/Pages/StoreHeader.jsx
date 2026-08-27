@@ -9,7 +9,7 @@ export default function StoreHeader() {
     return <header className="commerce-site-header store-header">
         <Link className="commerce-site-brand" to="/shop" aria-label="回到教材商城"><Brand /></Link>
         <nav aria-label="教材商城導覽">
-            <Link to="/home" className="store-header-home"><FiHome />網站首頁</Link>
+            <Link to="/" className="store-header-home"><FiHome />網站首頁</Link>
             <Link to="/shop/cart"><FiShoppingCart />購物車{cartCount > 0 && <b>{cartCount}</b>}</Link>
             {!authLoading && (user
                 ? <><Link to="/shop/orders"><FiPackage />我的訂單</Link><button type="button" onClick={signOut}><FiLogOut />商城登出</button></>

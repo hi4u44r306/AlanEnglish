@@ -1,1 +1,6 @@
-/*    /index.html    200
+/home       /                   301
+/showcase   /                   301
+/links      /seo-links.html      200
+/shop       /seo-shop.html       200
+/materials  /seo-materials.html  200
+/*          /noindex.html       200

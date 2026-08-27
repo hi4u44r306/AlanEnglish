@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import Brand from "../fragment/Brand";
+import SeoHead from "../fragment/SeoHead";
 import { createMaterialCheckout } from "../../services/billingService";
 import { loadMaterialPackages, loadPlacementAssessment, submitPlacementAssessment } from "../../services/commerceService";
 import "./css/Commerce.scss";
@@ -37,7 +38,7 @@ function MaterialCatalog() {
     }, [firebaseUser]);
     useEffect(() => { load(); }, [load]);
 
-    const returnPath = firebaseUser ? "/userinfo" : "/home";
+    const returnPath = firebaseUser ? "/userinfo" : "/";
     const goBack = () => location.key && location.key !== "default" ? navigate(-1) : navigate(returnPath);
 
     const questions = useMemo(() => assessment?.questions || [], [assessment]);
@@ -93,8 +94,9 @@ function MaterialCatalog() {
     };
 
     return <>
+        <SeoHead path="/materials" />
         <header className="commerce-site-header">
-            <Link className="commerce-site-brand" to="/home" aria-label="回到 Alan English 首頁"><Brand /></Link>
+            <Link className="commerce-site-brand" to="/" aria-label="回到 Alan English 首頁"><Brand /></Link>
             <nav aria-label="教材商品頁導覽">
                 <button type="button" onClick={goBack}><FiArrowLeft />返回上一頁</button>
                 <Link to={firebaseUser ? "/userinfo" : "/login?next=/materials"}>
