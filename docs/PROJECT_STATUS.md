@@ -46,6 +46,15 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 - `git diff --check`、Production build（含 4 個公開路由 SEO HTML）與本機瀏覽器引用驗證成功；正式 `favicon-32x32.png` 回應 HTTP 200，SHA-256 與本機新版完全一致，正式頁面載入新版 32px／16px／ICO／Apple Touch Icon，Console 0 errors。
 - 白邊修正 PR #65 已合併至 `main` merge commit `7dbe705` 並由 Netlify production 發布：外圍白色畫布改為真正透明，保留白色 A 與原有 AE 圖示；已重新輸出 PNG、ICO、Apple Touch Icon 與 Web App 圖示。`git diff --check` 與 Production build（含 4 個公開路由 SEO HTML）成功；正式 `favicon-32x32.png` 回應 HTTP 200、SHA-256 與本機透明版一致，四個角的 alpha 均為 0。
 
+### UI／UX Playwright 導覽測試（2026-08-28）
+
+- 分支：`codex/playwright-navigation-tests`，尚未 push、建立 PR 或部署。
+- 新增 Playwright 桌面 1600×900 與手機 412×915 Chromium 測試，涵蓋公開頁面、公開頁站內連結、舊路由重新導向、正式 404，以及未登入時 34 個受保護路由必須回到登入頁。
+- 新增學生、老師與管理員登入後的入口顯示、允許路由及直接輸入未授權網址測試；帳密只接受 Shell 環境變數，沒有專用測試帳密時安全略過，不建立或修改遠端學生資料。
+- 新增 `docs/UI_UX_ROLE_ACCEPTANCE.md`，提供訪客、英文班學生、試用者、教材購買者、離校生、老師及管理員的桌面／412px／iPhone Safari 驗收表。
+- 驗證結果：Playwright 公開／未登入測試 30 個通過，登入角色測試 16 個因未提供測試帳密略過；`MainNavbar.test.jsx` 3 個案例通過；Production build 成功。
+- 尚待驗證：以既有專用測試帳號執行 16 個登入角色案例，以及 iPhone Safari 實機 safe area、鍵盤與音檔行為。
+
 ## 已部署：會員續用、班級教材與教材商品包
 
 以下規則已由 PR #50 實作、PR #51 對齊第一版 migration，並由 PR #52 完成授權與商務安全強化；正式 migration、Edge Functions 與 Netlify production 均已部署：
