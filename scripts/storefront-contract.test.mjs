@@ -10,6 +10,10 @@ const routes = read("src/app/App.jsx");
 const storeClient = read("src/store/storeSupabase.js");
 const storeContext = read("src/store/StoreContext.jsx");
 const catalog = read("src/components/Pages/StoreCatalog.jsx");
+const checkoutPage = read("src/components/Pages/StoreCheckout.jsx");
+const ordersPage = read("src/components/Pages/StoreOrders.jsx");
+const storeStyles = read("src/components/Pages/css/Store.scss");
+const cancelMigration = read("supabase/migrations/20260828145308_store_order_customer_cancelled_status.sql");
 
 test("商城與聽力平台使用互不覆蓋的登入 session", () => {
     assert.match(storeClient, /storageKey: "ae-store-auth"/);
@@ -94,7 +98,22 @@ test("Stripe 完成與取消頁只回到建立結帳的允許商城網域", () =
     assert.match(store, /ALLOWED_CHECKOUT_ORIGINS\.has\(requestOrigin\)/);
     assert.match(store, /checkout_origin_forbidden/);
     assert.match(store, /success_url: `\$\{siteUrl\}\/shop\/payment\/success/);
-    assert.match(store, /cancel_url: `\$\{siteUrl\}\/shop\/checkout\?cancelled=1`/);
+    assert.match(store, /cancel_url: `\$\{siteUrl\}\/shop\/checkout\?cancelled=1&order=\$\{encodeURIComponent\(order\.order_number\)\}`/);
+});
+
+test("顧客取消 Stripe 付款後會終止付款頁、釋放庫存並以紅色標示", () => {
+    assert.match(store, /case "cancel_checkout": result = await cancelCheckout/);
+    assert.match(store, /checkout\.sessions\.expire\(sessionId\)/);
+    assert.match(store, /rpc\("release_store_order_inventory"/);
+    assert.match(store, /checkout_state_changed/);
+    assert.match(cancelMigration, /payment_status in \('pending','paid','failed','expired','refunded','cancelled'\)/);
+    assert.match(store, /payment_status: "cancelled", fulfillment_status: "cancelled"/);
+    assert.match(store, /顧客已取消 Stripe 付款，訂單不會出貨/);
+    assert.match(checkoutPage, /cancelStoreCheckout\(session, cancelledOrder\)/);
+    assert.match(ordersPage, /取消這筆付款/);
+    assert.match(ordersPage, /已取消付款/);
+    assert.match(storeStyles, /\.payment-cancelled/);
+    assert.match(storeStyles, /\.store-order-progress\.is-cancelled/);
 });
 
 test("全額退款會留下獨立付款狀態紀錄", () => {
