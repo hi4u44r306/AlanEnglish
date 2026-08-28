@@ -16,7 +16,7 @@ jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, id }) => show ? ReactModule.createElement("aside", { id }, children) : null;
     Offcanvas.Header = ({ children }) => ReactModule.createElement("header", null, children);
-    Offcanvas.Body = ({ children }) => ReactModule.createElement("div", null, children);
+    Offcanvas.Body = ReactModule.forwardRef(({ children }, ref) => ReactModule.createElement("div", { ref }, children));
     return { __esModule: true, default: Offcanvas };
 });
 
@@ -108,5 +108,12 @@ describe("MainNavbar student navigation", () => {
 
         expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");
         expect(screen.queryByRole("link", { name: "新增連結" })).not.toBeInTheDocument();
+    });
+
+    it("highlights the active student route in the full menu", () => {
+        render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
+        fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
+        expect(screen.getByRole("link", { name: "會員方案" })).toHaveClass("active");
+        expect(screen.getByRole("link", { name: "我的首頁" })).not.toHaveClass("active");
     });
 });
