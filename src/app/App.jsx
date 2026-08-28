@@ -11,10 +11,10 @@ import Showcase from "../components/Pages/Showcase";
 import { onAuthStateChanged } from "firebase/auth";
 import { off, onValue, ref } from "firebase/database";
 // import Playlist from "../components/fragment/Playlist";
-// import Containerfull from "../components/fragment/Containerfull";
+import Containerfull from "../components/fragment/Containerfull";
 import { authentication, rtdb } from "../components/Pages/firebase-config";
 // import Search from "../components/Pages/Search";
-// import User from "../components/Pages/User";
+import User from "../components/Pages/User";
 // import Leaderboard from "../components/Pages/Leaderboard";
 // import Trade from "../components/Pages/Trade";
 // import TradeSignup from "../components/Pages/TradeSignup";
@@ -160,11 +160,16 @@ const App = () => {
                         </React.Fragment>
                     } /> */}
 
-                    {/* <Route path="/home/playlist/userinfo" element={
+                    <Route path="/home/playlist/userinfo" element={
                         <Containerfull>
                             <User />
                         </Containerfull>
-                    } /> */}
+                    } />
+                    <Route path="/home/userinfo" element={
+                        <Containerfull>
+                            <User />
+                        </Containerfull>
+                    } />
                     {/* <Route path="/home/playlist/contact" element={
                         <Containerfull>
                             <Contact />
