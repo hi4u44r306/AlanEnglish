@@ -1,6 +1,9 @@
 .showcase-navbar {
   position: fixed !important;
-  z-index: 1100;
+  // Keep the fixed header below Bootstrap overlays such as the mobile
+  // offcanvas (1045) and its backdrop (1040), so the drawer header remains
+  // fully visible instead of being covered by the navbar.
+  z-index: 1030;
   top: 0;
   right: 0;
   left: 0;
