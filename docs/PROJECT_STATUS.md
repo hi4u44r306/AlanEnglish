@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-27
+最後更新：2026-08-28
 
 本次進行中（2026-08-28，尚未推送／部署）：
 
@@ -71,6 +71,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/pronunciation-coach-mvp`：AI 發音教練第一階段已完成本機原型，新增登入後 `/student/pronunciation` 與桌機／手機導覽入口，先提供「日常問候」4 個國小生朗讀關卡。學生可聽慢速示範、錄製最多 12 秒語音、回聽後送出；瀏覽器會轉為 16 kHz 單聲道 PCM WAV，後端會再次檢查實際 WAV 標頭，只接受固定關卡與正確音檔格式，重新驗證 Firebase 帳號、有效會員及既有 `ai_materials` 權限，再由 Azure Speech Pronunciation Assessment 回傳整體、正確度、流暢度、完整度、自然語調與逐字綠／黃／紅結果。原始錄音不寫入資料庫或 Storage。`AZURE_SPEECH_KEY`、`AZURE_SPEECH_REGION` 與 `AZURE_SPEECH_ENDPOINT` 已由專案擁有者保存至 Supabase Secrets，且名稱已完成唯讀確認；程式以區域建立 Azure 官方 Speech-to-Text 端點，不會將金鑰傳到前端。目前尚未部署 `pronunciation-coach`、建立持久用量紀錄或調整 NT$299 方案，因此尚未產生本功能的語音 API 費用，也未完成真實錄音端到端驗收。前端 3 份測試共 5 個案例、Edge Function TypeScript 本機打包、`git diff --check` 與 Production build 均成功；尚未 commit、push、建立 PR 或部署。
 - `codex/link-edit-track-order`：教材連結管理新增名稱與 URL 編輯、HTTP(S) 格式驗證與管理員後端 update contract；公開連結改為分類內依名稱自然升冪，音檔管理頁依 `sort_order`、頁碼／檔名與 id 穩定升冪。2 份測試共 4 個案例、`link-manager` TypeScript 語法檢查、`git diff --check` 與 Production build 已成功；尚未 push、建立 PR、部署 Netlify 或重新部署 `link-manager`。
 - `codex/seo-public-foundation`：SEO 第一階段已在隔離工作樹完成但尚未推送或部署。品牌首頁改為 `/`，教材音檔入口固定為 `/links`，`/home` 與 `/showcase` 在 Netlify 回傳 301 至 `/`；`/`、`/links`、`/shop`、`/materials` 的 build 會產生各自獨立 title、description、canonical 與社群分享 metadata。其他登入、付款、會員、後台與未知路由首次 HTML 回應統一使用 `noindex,nofollow` 且不輸出 canonical，sitemap 只列四個公開可索引頁。本機 Netlify 模擬已確認四頁皆為 200 且 canonical 正確、兩個舊首頁為 301、私人／未知路由為 noindex；SEO 合約 4/4、相關元件 6/6 與 Production build 成功。下一階段才新增方案、功能、家長／老師與商品詳情內容頁，部署後才提交 Search Console。
 - `codex/store-email-verification-resend`：商城註冊頁新增真正呼叫 Supabase `auth.resend` 的「重新寄送驗證信」，成功請求有 60 秒冷卻，提示不洩漏帳號是否存在或是否已驗證；新驗證信導向獨立 `/shop/verified`，成功時顯示「謝謝，已完成驗證」與 5 秒倒數，清除目前商城 session 後回到原結帳目的地的商城登入頁，過期／已使用連結則提供登入與重寄入口。Supabase Auth 已允許正式站與固定測試站的 `/shop/login`、`/shop/verified` 共 4 個 Redirect URLs。商城 Checkout 500 已由 Edge Function log 確認為 Stripe locale 誤用 `zh_TW`，修正為 `zh-TW` 後 `store-commerce` v2 已部署並為 ACTIVE；失敗訂單仍安全標為 failed／cancelled、不會出貨。驗證／重寄前端測試 4/4、商城契約 11/11、`git diff --check` 與 Production build 成功。功能 commit `d43af95` 已推送並建立 PR #57，兩個 Netlify Deploy Preview 皆通過；固定測試站 deploy `6a8ffd01012805d73b60bf2d` 已發布且為 `ready`，已確認 `/shop/verified` 的失效提示、重寄入口與 `/shop/register` 重寄按鈕。正式 `main` 尚未合併／發布，需使用者再次明確授權；另待以未驗證的可收信沙盒地址完成「重寄、收信、驗證完成頁、重新登入、Stripe 沙盒結帳」端到端驗收。Supabase 專案目前仍使用預設寄信服務；正式開放一般學生收信前必須設定既有 Resend 或其他自訂 SMTP，且不得把 SMTP 密碼提交到 Git。
