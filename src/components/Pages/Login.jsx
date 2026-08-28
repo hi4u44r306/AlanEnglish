@@ -262,11 +262,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { authentication, rtdb } from "./firebase-config";
 import { child, get, ref, update } from "firebase/database";
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         if (e.target.name === "email") setEmail(e.target.value);
@@ -352,17 +354,28 @@ function Login() {
                         success: {
                             render: () => <div className="notification">歡迎回來 {userName} !!</div>
                         }
-                    },
-                    setTimeout(() => window.location = "/home/playlist/userinfo", 2500)
-                );
+                    }
+                    );
+                    // 使用 react-router 的 navigate 進行 SPA 導向（避免整頁重新載入）
+                    setTimeout(() => navigate('/home/playlist/userinfo'), 1200);
             });
 
 
         } catch (error) {
-            toast.promise(
-                new Promise((resolve, reject) => setTimeout(reject, 2500)),
-                { pending: 'Loading...', error: { render: () => <div className="notification">帳號密碼錯誤 🤯</div> } }
-            );
+            // Log error for debugging and show a clearer message to the user
+            console.error('Login failed:', error);
+            const errMsg = (error && (error.message || error.code)) ? (error.message || error.code) : '登入失敗，請稍後再試';
+            toast.error(`登入失敗：${errMsg}`, {
+                className: "notification",
+                position: "top-center",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+            });
         }
     }
 

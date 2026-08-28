@@ -362,6 +362,7 @@
 
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './css/User.scss';
 import Logout from './Logout';
 import 'react-circular-progressbar/dist/styles.css';
@@ -370,35 +371,60 @@ import { rtdb } from './firebase-config';
 import { child, onValue, ref } from 'firebase/database';
 
 const User = () => {
+    const navigate = useNavigate();
     const Month = new Date().toJSON().slice(5, 7);
     const [dayplaytime, setDayPlayTime] = useState();
     const [monthplaytime, setMonthPlayTime] = useState();
     const [classname, setClassname] = useState();
     const [username, setUsername] = useState();
+    const [loading, setLoading] = useState(true);
     // const [musicpass, setMusicPass] = useState();
     const useruid = localStorage.getItem('ae-useruid');
     const dbRef = ref(rtdb);
 
     useEffect(() => {
+        // Guard: if no user uid, redirect to links/login after showing message
+        if (!useruid) {
+            setLoading(false);
+            // don't navigate immediately to avoid abrupt redirect; show message instead
+            return;
+        }
+
+        setLoading(true);
         const musicplayRef = child(dbRef, `student/${useruid}`);
         // const musicpassRef = child(dbRef, `student/${useruid}/MusicLogfile`);
 
-        const musicplayUnsubscribe = onValue(musicplayRef, (snapshot) => {
-            if (snapshot.exists()) {
-                setDayPlayTime(snapshot.val().Daytotaltimeplayed);
-                setMonthPlayTime(snapshot.val().Monthtotaltimeplayed);
-                setClassname(snapshot.val().class);
-                setUsername(snapshot.val().name);
-            } else {
-                setDayPlayTime();
-            }
-        }, (error) => {
-            console.error("Error fetching complete value:", error);
-        });
+        let musicplayUnsubscribe = null;
+        try {
+            musicplayUnsubscribe = onValue(musicplayRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const val = snapshot.val();
+                    setDayPlayTime(val.Daytotaltimeplayed || 0);
+                    setMonthPlayTime(val.Monthtotaltimeplayed || 0);
+                    setClassname(val.class || '');
+                    setUsername((val.name || '').toString());
+                } else {
+                    setDayPlayTime(0);
+                    setMonthPlayTime(0);
+                    setClassname('');
+                    setUsername('');
+                }
+                setLoading(false);
+            }, (error) => {
+                console.error("Error fetching complete value:", error);
+                setLoading(false);
+            });
+        } catch (e) {
+            console.error('Failed to subscribe to user data', e);
+            setLoading(false);
+        }
 
-        // const musicpassUnsubscribe = onValue(musicpassRef, (snapshot) => {
-        //     if (snapshot.exists()) {
-        //         const data = snapshot.val();
+        return () => {
+            try {
+                if (typeof musicplayUnsubscribe === 'function') musicplayUnsubscribe();
+            } catch (e) { /* ignore */ }
+            // musicpassUnsubscribe();
+        };
         //         const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
         //             if (value.musicplay >= 7) {
         //                 acc[key] = value;
@@ -421,6 +447,30 @@ const User = () => {
 
     }, [useruid, dbRef]);
 
+    if (!useruid) {
+        return (
+            <div className="User">
+                <div className="User-container">
+                    <div style={{ padding: 20 }}>
+                        <h3>請先登入</h3>
+                        <p>沒有登入資訊，請先登入以查看個人資料。</p>
+                        <button onClick={() => navigate('/')} style={{ padding: '8px 12px', marginTop: 8 }}>前往主頁 / 登入</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    if (loading) {
+        return (
+            <div className="User">
+                <div className="User-container">
+                    <div style={{ padding: 20 }}>
+                        <p>載入中...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="User">
             <div className="User-container">
@@ -432,45 +482,23 @@ const User = () => {
                         <div className="user-info-container">
                             <div className='user-info'>
                                 <div className='user-info-label'>姓名</div>
-                                <div className='second-title-text'>{username || ''}</div>
+                                <div className='second-title-text'>{(username || '').toString()}</div>
                             </div>
                             <div className='user-info'>
                                 <div className='user-info-label'>班級</div>
-                                <div className='second-title-text'>{classname || ''} 班</div>
+                                <div className='second-title-text'>{(classname || '') + ' 班'}</div>
                             </div>
                             <div className='user-info'>
                                 <div className='user-info-label'>{Month} 月聽力次數 </div>
-                                <div className='second-title-text'>{monthplaytime || '0'} 次</div>
+                                <div className='second-title-text'>{(monthplaytime || 0)} 次</div>
                             </div>
                             <div className='user-info'>
                                 <div className='user-info-label'>今日聽力次數 </div>
-                                <div className='second-title-text'>{dayplaytime || '0'} 次</div>
+                                <div className='second-title-text'>{(dayplaytime || 0)} 次</div>
                             </div>
                         </div>
-
                     </div>
                 </div>
-                {/* <div className="User-right">
-                    <div className='User-passed-items'>
-                        <div className='User-passed-items-title'>已通過的項目</div>
-                        <div className='User-passed-items-list'>
-                            {musicpass && Object.keys(musicpass).length > 0 ? (
-                                <div className='User-passed-items-ul'>
-                                    {Object.entries(musicpass).map(([key, value]) => (
-                                        <li key={key} className='User-passed-items-li'>
-                                            <div className='User-passed-items-item'>
-                                                <span className='User-passed-items-key'>{key}</span>
-                                                <span className='User-passed-items-playcount'>已聽過 {value.musicplay} 次</span>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className='User-passed-items-none'>目前無通過項目</p>
-                            )}
-                        </div>
-                    </div>
-                </div> */}
                 <Logout />
                 <ToastContainer
                     position="top-center"

@@ -19,7 +19,6 @@
     "dotenv": "^16.4.5",
     "emailjs-com": "^3.2.0",
     "firebase": "^10.14.1",
-    "firebase-admin": "^13.0.1",
     "font-awesome": "^4.7.0",
     "framer-motion": "^12.23.24",
     "grade-js": "^1.0.10",
@@ -50,7 +49,7 @@
     "uid": "^2.0.2"
   },
   "scripts": {
-    "start": "react-scripts start node index.js",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

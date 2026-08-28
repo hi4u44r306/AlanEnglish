@@ -8,13 +8,13 @@ const Containerfull = ({ children }) => {
 
     const { playing, curr_margin } = useSelector(state => state.musicReducer);
     const [currMusic, setCurrMusic] = useState(null);
-    const noInteractionCount = localStorage.getItem('ae-no-interaction');
-
+    const noInteractionCountRaw = localStorage.getItem('ae-no-interaction');
+    const noInteractionCount = Number.isFinite(Number(noInteractionCountRaw)) ? parseInt(noInteractionCountRaw, 10) : 0;
     useEffect(() => {
         if (noInteractionCount >= 10) {
-            setCurrMusic('');
+            setCurrMusic(null);
         } else {
-            setCurrMusic(playing);
+            setCurrMusic(playing || null);
         }
     }, [noInteractionCount, playing])
     return (
