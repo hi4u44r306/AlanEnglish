@@ -7,7 +7,7 @@
 - 跨站導覽：商城 Header 在手機版保留網站首頁並新增學習平台入口；公開首頁導覽及登入後桌面／手機選單新增實體教材商城入口，讓公開網站、學習平台與商城可以雙向往返。已由 commit `59f3986` 部署測試站（Netlify deploy `6a917f42b66a63870fe478de`），412px 手機版無水平溢位且導覽按鈕均可見；尚未合併 `main`。
 - Sidebar：補齊學生主要功能路由的目前頁面反白，開啟手機 Sidebar 時自動將目前路由捲動至接近中段；教材分類也會依目前教材路由標示 active。
 - 公開首頁手機 Sidebar：修正固定 Navbar 層級高於 Offcanvas，導致 Sidebar 品牌與關閉區被蓋住，並讓頂端關閉按鈕固定靠右；待重新建置、推送及部署測試站。
-- 商城 Stripe 回跳：修正固定測試站建立 Checkout 後仍被 `PUBLIC_SITE_URL` 導回正式站，造成跨網域商城 Session 不存在並誤顯示「付款不屬於目前帳號」。`store-commerce` 改為讀取瀏覽器 `Origin`，且只允許正式站與固定測試站兩個來源；付款成功與取消都回到原始商城網域，未知來源會被拒絕。Stripe 沙盒實際訂單已由 Webhook 正確標為 `paid`／`preparing`；本機商城契約 12/12 與 Edge Function 語法檢查通過，尚未部署新版 `store-commerce`，仍待重新結帳驗收回跳。
+- 商城 Stripe 回跳：修正固定測試站建立 Checkout 後仍被 `PUBLIC_SITE_URL` 導回正式站，造成跨網域商城 Session 不存在並誤顯示「付款不屬於目前帳號」。`store-commerce` 改為讀取瀏覽器 `Origin`，且只允許正式站與固定測試站兩個來源；付款成功與取消都回到原始商城網域，未知來源會被拒絕。Stripe 沙盒實際訂單已由 Webhook 正確標為 `paid`／`preparing`；本機商城契約 12/12、Edge Function 語法檢查與 Production build 通過，修正 commit `7e87458` 已推送至 `codex/test-integration-20260828`，`store-commerce` v6 已部署並為 ACTIVE，仍待使用固定測試站重新結帳驗收付款成功與取消回跳。
 - 商城教材自動開通：新增付款商城訂單以已驗證 email 對應新建立的 Firebase 學生帳號，將已付款商品包的 Workbook／聽力本／網站教材寫入教材權限，並建立 90 天網站使用權；商城登入與聽力平台登入仍維持分離。正式套用 migration、部署 Edge Function 與付款端到端驗收尚未完成。
 
 正式網站：<https://alanenglish.com.tw>
