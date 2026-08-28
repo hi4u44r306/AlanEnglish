@@ -36,9 +36,11 @@ $env:E2E_TEACHER_PASSWORD="測試密碼"
 $env:E2E_ADMIN_IDENTIFIER="測試管理員帳號"
 $env:E2E_ADMIN_PASSWORD="測試密碼"
 npm run test:e2e
+$testExitCode = $LASTEXITCODE
 Remove-Item Env:E2E_STUDENT_IDENTIFIER, Env:E2E_STUDENT_PASSWORD
 Remove-Item Env:E2E_TEACHER_IDENTIFIER, Env:E2E_TEACHER_PASSWORD
 Remove-Item Env:E2E_ADMIN_IDENTIFIER, Env:E2E_ADMIN_PASSWORD
+exit $testExitCode
 ```
 
 帳密只能放在目前 Shell 的環境變數，不得寫入測試檔、`.env`、報告、Console 或 Git。測試結束後應移除這些環境變數。角色帳號必須是既有專用測試帳號；這套測試不會建立、修改或刪除學生資料。

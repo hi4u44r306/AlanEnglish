@@ -52,8 +52,10 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 - 新增 Playwright 桌面 1600×900 與手機 412×915 Chromium 測試，涵蓋公開頁面、公開頁站內連結、舊路由重新導向、正式 404，以及未登入時 34 個受保護路由必須回到登入頁。
 - 新增學生、老師與管理員登入後的入口顯示、允許路由及直接輸入未授權網址測試；帳密只接受 Shell 環境變數，沒有專用測試帳密時安全略過，不建立或修改遠端學生資料。
 - 新增 `docs/UI_UX_ROLE_ACCEPTANCE.md`，提供訪客、英文班學生、試用者、教材購買者、離校生、老師及管理員的桌面／412px／iPhone Safari 驗收表。
-- 驗證結果：Playwright 公開／未登入測試 30 個通過，登入角色測試 16 個因未提供測試帳密略過；`MainNavbar.test.jsx` 3 個案例通過；Production build 成功。
-- 尚待驗證：以既有專用測試帳號執行 16 個登入角色案例，以及 iPhone Safari 實機 safe area、鍵盤與音檔行為。
+- 驗證結果：Playwright 公開／未登入測試 30 個通過；2026-08-28 再以既有的一般會員、在校生、離校生三個專用測試帳號對正式網站執行學生角色導覽，桌面與 412px 共 18 個案例全部通過。`MainNavbar.test.jsx` 3 個案例通過；Production build 成功。
+- 本機 `127.0.0.1` 登入會被既有 Firebase API Key referrer 限制正確拒絕；角色登入測試需設定 `E2E_BASE_URL` 指向允許的 Deploy Preview 或正式網域，不放寬 Firebase 限制。
+- 帳密測試會停用 trace、影片、截圖與 HTML 報告，送出登入後立即清空密碼欄，避免失敗快照保存明文；測試結束保留真正的 Playwright exit code再清除環境變數。
+- 尚待驗證：老師／管理員專用帳號的 10 個角色案例、三種學生身分的作業與教材 entitlement 專屬內容，以及 iPhone Safari 實機 safe area、鍵盤與音檔行為。
 
 ## 已部署：會員續用、班級教材與教材商品包
 
