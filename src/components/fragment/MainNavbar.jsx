@@ -85,7 +85,9 @@ function MainNavbar() {
         if (!mobileOpen) return undefined;
         const timer = window.setTimeout(() => {
             const activeItem = mobileBodyRef.current?.querySelector("a.active, details.is-active");
-            activeItem?.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (typeof activeItem?.scrollIntoView === "function") {
+                activeItem.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
         }, 220);
         return () => window.clearTimeout(timer);
     }, [mobileOpen, location.pathname]);

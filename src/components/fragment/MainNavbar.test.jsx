@@ -120,7 +120,7 @@ describe("MainNavbar student navigation", () => {
     it("highlights the active student route in the full menu", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
-        expect(screen.getByRole("link", { name: "會員方案" })).toHaveClass("active");
-        expect(screen.getByRole("link", { name: "我的首頁" })).not.toHaveClass("active");
+        expect(screen.getByRole("link", { name: "我的教材與功能" })).toHaveClass("active");
+        expect(screen.getAllByRole("link", { name: "我的首頁" }).every(link => !link.classList.contains("active"))).toBe(true);
     });
 });
