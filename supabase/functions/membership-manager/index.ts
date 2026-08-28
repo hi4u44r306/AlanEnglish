@@ -603,6 +603,15 @@ Deno.serve(async (req: Request) => {
                 if (guardianError) throw guardianError;
             }
 
+            // A paid physical-store order uses a separate Supabase Auth account.
+            // Once the buyer creates the learning account with the same verified
+            // email, atomically claim the paid order's package books and 90-day access.
+            const { error: storeClaimError } = await admin.rpc("claim_paid_store_orders_for_student", {
+                p_student_id: student.id,
+                p_email: firebaseUser.email
+            });
+            if (storeClaimError) throw storeClaimError;
+
             const profile = await loadCompleteProfile(admin, student, firebaseUser, true);
             return json(200, {
                 success: true,

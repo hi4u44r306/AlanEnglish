@@ -2,6 +2,11 @@
 
 最後更新：2026-08-27
 
+本次進行中（2026-08-28，尚未推送／部署）：
+
+- Sidebar：補齊學生主要功能路由的目前頁面反白，開啟手機 Sidebar 時自動將目前路由捲動至接近中段；教材分類也會依目前教材路由標示 active。
+- 商城教材自動開通：新增付款商城訂單以已驗證 email 對應新建立的 Firebase 學生帳號，將已付款商品包的 Workbook／聽力本／網站教材寫入教材權限，並建立 90 天網站使用權；商城登入與聽力平台登入仍維持分離。正式套用 migration、部署 Edge Function 與付款端到端驗收尚未完成。
+
 正式網站：<https://alanenglish.com.tw>
 
 GitHub：<https://github.com/hi4u44r306/AlanEnglish>
