@@ -8,7 +8,7 @@
 - Sidebar：補齊學生主要功能路由的目前頁面反白，開啟手機 Sidebar 時自動將目前路由捲動至接近中段；教材分類也會依目前教材路由標示 active。
 - 公開首頁手機 Sidebar：修正固定 Navbar 層級高於 Offcanvas，導致 Sidebar 品牌與關閉區被蓋住，並讓頂端關閉按鈕固定靠右；待重新建置、推送及部署測試站。
 - 商城 Stripe 回跳：修正固定測試站建立 Checkout 後仍被 `PUBLIC_SITE_URL` 導回正式站，造成跨網域商城 Session 不存在並誤顯示「付款不屬於目前帳號」。`store-commerce` 改為讀取瀏覽器 `Origin`，且只允許正式站與固定測試站兩個來源；付款成功與取消都回到原始商城網域，未知來源會被拒絕。Stripe 沙盒實際訂單已由 Webhook 正確標為 `paid`／`preparing`；修正 commit `7e87458` 已推送至 `codex/test-integration-20260828`，`store-commerce` v6 已部署並為 ACTIVE。固定測試站的付款成功與取消回跳已由專案擁有者實測通過。
-- 商城取消付款：Stripe 取消回跳會帶入訂單編號並由登入中的商城帳號呼叫後端；後端核對訂單所有權與 Stripe metadata、拒絕已完成付款、使仍開啟的 Checkout Session 失效、釋放保留庫存，再將付款狀態記為獨立的 `cancelled` 且不出貨。歷史訂單與管理後台會以紅色顯示「已取消付款」，既有等待付款訂單也提供明確的取消按鈕。Additive migration、商城契約 13/13、Edge Function 語法檢查、`git diff --check` 與 Production build 已通過；尚未 commit、push、套用 migration、部署 `store-commerce` 或部署 Netlify 測試站。
+- 商城取消付款：Stripe 取消回跳會帶入訂單編號並由登入中的商城帳號呼叫後端；後端核對訂單所有權與 Stripe metadata、拒絕已完成付款、使仍開啟的 Checkout Session 失效、釋放保留庫存，再將付款狀態記為獨立的 `cancelled` 且不出貨。歷史訂單與管理後台會以紅色顯示「已取消付款」，既有等待付款訂單也提供明確的取消按鈕。Additive migration `20260828145308_store_order_customer_cancelled_status.sql` 已套用並確認兩個 constraint 含 `cancelled`；功能 commit `ab409d0` 已推送至 `codex/test-integration-20260828`，`store-commerce` v7 已部署並為 ACTIVE，固定測試站 deploy `6a91a531770623642d74759a` 已發布。商城契約 13/13、Edge Function 語法、`git diff --check`、Production build、測試站 `/shop/orders` HTTP 200 與 Edge Function OPTIONS 200 均通過；仍待由登入中的商城帳號點擊既有等待付款訂單的取消按鈕，驗收紅色狀態與庫存釋放結果。
 - 商城教材自動開通：新增付款商城訂單以已驗證 email 對應新建立的 Firebase 學生帳號，將已付款商品包的 Workbook／聽力本／網站教材寫入教材權限，並建立 90 天網站使用權；商城登入與聽力平台登入仍維持分離。正式套用 migration、部署 Edge Function 與付款端到端驗收尚未完成。
 
 正式網站：<https://alanenglish.com.tw>
