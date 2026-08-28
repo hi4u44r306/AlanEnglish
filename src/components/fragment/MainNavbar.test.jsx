@@ -65,6 +65,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(await screen.findByRole("link", { name: "學習排行榜" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
+        expect(screen.getAllByRole("link", { name: "實體教材商城" }).some(link => link.getAttribute("href") === "/shop")).toBe(true);
         expect(screen.getAllByRole("link", { name: "我的設定" }).length).toBeGreaterThan(0);
         expect(await screen.findByText("Lv.2")).toBeInTheDocument();
         expect(screen.getByRole("progressbar", { name: "目前等級 Lv.2 的經驗值進度" })).toHaveAttribute("aria-valuenow", "53");

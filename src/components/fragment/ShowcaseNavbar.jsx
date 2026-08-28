@@ -28,7 +28,8 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
         { label: "功能特色", hint: "孩子每天會使用的核心功能", href: nav1 },
         { label: "學習方式", hint: "從試用、教材到持續練習", href: nav2 },
         { label: "會員方案", hint: "選擇最適合孩子的使用方式", href: nav3 },
-        { label: "常見問題", hint: "費用、教材與使用期限說明", href: nav4 }
+        { label: "常見問題", hint: "費用、教材與使用期限說明", href: nav4 },
+        { label: "教材商城", hint: "選購實體教材、查看購物車與訂單", href: "/shop" }
     ];
 
     const closeMobileMenu = () => setMobileOpen(false);
