@@ -9,6 +9,10 @@ const corsHeaders = {
     "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
 const DEFAULT_SITE_URL = "https://alanenglish.com.tw";
+const ALLOWED_CHECKOUT_ORIGINS = new Set([
+    DEFAULT_SITE_URL,
+    "https://alanenglish-student-test.netlify.app"
+]);
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json" }
 });
@@ -22,6 +26,22 @@ const stripeId = (value: unknown) => typeof value === "string"
     : value && typeof value === "object" ? cleanText((value as any).id, 300) : "";
 const fail = (message: string, status = 400, code = "invalid_request") => {
     throw Object.assign(new Error(message), { status, code });
+};
+const normalizeOrigin = (value: unknown) => {
+    const candidate = cleanText(value, 500).replace(/\/$/, "");
+    if (!candidate) return "";
+    try { return new URL(candidate).origin; } catch { return ""; }
+};
+const checkoutSiteUrl = (req: Request) => {
+    const requestOrigin = normalizeOrigin(req.headers.get("Origin"));
+    if (requestOrigin) {
+        if (!ALLOWED_CHECKOUT_ORIGINS.has(requestOrigin)) {
+            fail("此網站來源不能建立商城結帳", 403, "checkout_origin_forbidden");
+        }
+        return requestOrigin;
+    }
+    const configuredOrigin = normalizeOrigin(Deno.env.get("PUBLIC_SITE_URL") || DEFAULT_SITE_URL);
+    return ALLOWED_CHECKOUT_ORIGINS.has(configuredOrigin) ? configuredOrigin : DEFAULT_SITE_URL;
 };
 const createAdmin = () => {
     const url = Deno.env.get("SUPABASE_URL");
@@ -233,7 +253,7 @@ async function createCheckout(admin: any, req: Request, body: any) {
     });
 
     try {
-        const siteUrl = cleanText(Deno.env.get("PUBLIC_SITE_URL") || DEFAULT_SITE_URL, 500).replace(/\/$/, "");
+        const siteUrl = checkoutSiteUrl(req);
         const metadata = {
             commerce_type: "store_order", store_order_id: String(order.id), order_number: order.order_number,
             store_user_id: customer.user_id
