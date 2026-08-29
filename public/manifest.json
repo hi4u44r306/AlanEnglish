@@ -3,15 +3,21 @@
   "name": "Alan English｜兒童英文聽力與 AI 英語學習平台",
   "icons": [
     {
-      "src": "ae-icon.jpeg",
-      "sizes": "1254x1254",
-      "type": "image/jpeg",
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     }
   ],
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#fff8ed",
+  "theme_color": "#073763",
   "background_color": "#fff8ed"
 }
