@@ -362,14 +362,20 @@ git status --short
 - 每個功能使用獨立分支。
 - 分支名稱應清楚，例如 `feature/listening-coverage`、`feature/guided-trial` 或 `fix/mobile-player-overlap`。
 
-在執行以下外部操作前，必須取得使用者明確同意：
+下列測試環境操作已取得專案擁有者的持續授權，可以在完成相應測試後直接執行，不需每次再次詢問：
 
-- Push 到 GitHub
+- 在明確的功能／測試分支建立 commit 並 Push 到 GitHub。
+- 將已通過測試的功能部署至固定測試站 `alanenglish-student-test.netlify.app`。
+- 測試站操作不得合併或直接修改 `main`，不得影響正式網域或正式付款資料。
+
+在執行以下正式或高影響外部操作前，仍必須取得使用者明確同意：
+
 - 建立 Pull Request
 - 修改 Pull Request
 - 合併 Pull Request
+- 直接 Push 到 `main`
 - 刪除遠端分支
-- 部署 Netlify
+- 部署 Netlify 正式站或將正式網域指向新部署
 - 修改 Firebase 設定
 - 修改 Cloudflare 設定
 - 執行遠端 Supabase migration
@@ -483,7 +489,7 @@ npm run build
 - 不要反覆重述整個專案。
 - 不要貼出與目前任務無關的內容。
 - 如果可以直接安全完成，就直接完成。
-- 如果需要外部寫入、部署或高風險操作，先詢問。
+- 測試分支 Push 與固定測試站部署可依第 13 節直接執行；正式站、正式資料或其他高風險操作仍須先詢問。
 - 不要要求使用者重複提供已存在於 Repository 的程式碼。
 - 不要讓使用者逐步貼出大量檔案，優先直接讀取 Repository。
 - 不確定時先唯讀檢查，再提出證據。

@@ -15,3 +15,51 @@
 
 .store-verification-resend{display:grid;gap:10px;margin-top:22px;padding:18px;border:1px solid #cbd9ee;border-radius:15px;background:#f4f8ff}.store-verification-resend h2{margin:0;color:#173d7d;font-size:18px}.store-verification-resend p{margin:0;color:#5f6f87;font-size:14px;line-height:1.65}.store-verification-resend>button{min-height:46px;border:1px solid #2854a3;border-radius:12px;color:#23477f;background:#fff;font-weight:900}.store-verification-resend>button:disabled{cursor:not-allowed;opacity:.55}.store-verification-notice{padding:11px 12px;border-radius:11px;color:#176b48;background:#e7f8ef;font-size:14px;line-height:1.55}
 .store-verification-result{align-content:center;min-height:330px}.store-verification-result.success>svg{color:#11845b}.store-verification-result.error>svg{color:#b42318}.store-verification-result .store-verification-spinner{width:48px;height:48px;border:5px solid #dbe5f3;border-top-color:#2854a3;border-radius:50%;animation:store-spin .9s linear infinite}.store-verification-result>div{justify-content:center}@keyframes store-spin{to{transform:rotate(360deg)}}
+
+/* Store navigation: keep store tasks primary and separate cross-site destinations. */
+.store-brand-lockup{display:flex;align-items:center;gap:12px;min-width:0}
+.store-brand-context{min-height:38px;display:inline-flex;align-items:center;padding-left:12px;border-left:1px solid #d9e1ed;color:#173d7d;font-size:15px;font-weight:950;text-decoration:none;white-space:nowrap}
+.store-desktop-nav a,.store-desktop-nav button,.store-account-menu summary{color:#23477f!important;background:#fff!important}
+.store-desktop-nav a:hover,.store-desktop-nav a:focus-visible,.store-desktop-nav button:hover,.store-desktop-nav button:focus-visible,.store-account-menu summary:hover,.store-account-menu summary:focus-visible{border-color:#2854a3;color:#173d7d!important;background:#edf3ff!important}
+.store-desktop-nav a.is-active{border-color:#e6b93a;color:#173d7d!important;background:#ffda69!important;box-shadow:0 4px 12px rgba(143,101,0,.12)}
+.store-desktop-nav .store-cross-site{margin-left:5px;border-style:dashed;color:#536b8f!important;background:#f7f9fc!important}
+.store-account-menu{position:relative}
+.store-account-menu summary{min-height:44px;display:inline-flex;align-items:center;gap:7px;padding:0 14px;border:1px solid #d7e0ee;border-radius:12px;font-weight:900;list-style:none;cursor:pointer}
+.store-account-menu summary::-webkit-details-marker{display:none}
+.store-account-menu>div{position:absolute;z-index:4;top:calc(100% + 8px);right:0;width:190px;display:grid;gap:6px;padding:8px;border:1px solid #dbe3ef;border-radius:14px;background:#fff;box-shadow:0 16px 36px rgba(17,39,78,.18)}
+.store-account-menu>div a,.store-account-menu>div button{width:100%;min-height:42px;justify-content:flex-start;border:0!important;background:#fff!important}
+.store-mobile-actions,.store-mobile-menu,.store-mobile-backdrop{display:none}
+
+@media(max-width:900px){
+  .store-header{gap:8px}
+  .store-brand-lockup{gap:8px}
+  .store-brand-context{padding-left:8px;font-size:13px}
+  .store-desktop-nav{display:none!important}
+  .store-mobile-actions{display:flex;align-items:center;gap:7px}
+  .store-mobile-actions>a,.store-mobile-actions>button{position:relative;width:44px;min-width:44px;min-height:44px;display:grid;place-items:center;padding:0;border:1px solid #cfd9e8;border-radius:12px;color:#23477f;background:#fff;font-size:21px;text-decoration:none}
+  .store-mobile-actions>a.is-active{border-color:#e6b93a;background:#ffda69}
+  .store-mobile-actions b,.store-mobile-menu b{display:grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:999px;color:#173d7d;background:#ffda69;font-size:10px}
+  .store-mobile-actions b{position:absolute;top:-4px;right:-4px}
+  .store-mobile-backdrop{position:fixed;z-index:1190;inset:0;display:block;border:0;background:rgba(7,20,47,.58);backdrop-filter:blur(2px)}
+  .store-mobile-menu{position:fixed;z-index:1200;top:0;right:0;width:min(88vw,380px);height:100dvh;display:flex;flex-direction:column;padding:max(16px,env(safe-area-inset-top)) 15px max(18px,env(safe-area-inset-bottom));color:#fff;background:#102852;box-shadow:-18px 0 45px rgba(4,15,38,.32);overflow:hidden}
+  .store-mobile-menu>header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:4px 2px 16px;border-bottom:1px solid rgba(255,255,255,.15)}
+  .store-mobile-menu>header div{display:grid;gap:3px}
+  .store-mobile-menu>header strong{font-size:21px}
+  .store-mobile-menu>header span{color:#b9c9e7;font-size:12px}
+  .store-mobile-menu>header button{width:44px;height:44px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;background:transparent;font-size:25px}
+  .store-mobile-menu>nav{display:block!important;flex:1;overflow-y:auto;padding:8px 1px 20px;overscroll-behavior:contain}
+  .store-mobile-menu section{display:grid;gap:7px;padding:12px 0}
+  .store-mobile-menu h2{margin:0 0 2px;color:#91a8d1;font-size:11px;letter-spacing:.14em}
+  .store-mobile-menu nav a,.store-mobile-menu nav button{position:relative;width:100%;min-height:58px;display:grid!important;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:11px;padding:8px 12px!important;border:1px solid transparent!important;border-radius:14px!important;color:#fff!important;background:rgba(255,255,255,.055)!important;text-align:left;text-decoration:none}
+  .store-mobile-menu nav a>svg,.store-mobile-menu nav button>svg{font-size:21px;color:#c3d3ef}
+  .store-mobile-menu nav a>span,.store-mobile-menu nav button>span{display:grid!important;gap:2px;font-size:15px;font-weight:900}
+  .store-mobile-menu nav small{color:#aebfdf;font-size:11px;font-weight:600}
+  .store-mobile-menu nav a.is-active{border-color:#ffda69!important;color:#173d7d!important;background:#fff!important}
+  .store-mobile-menu nav a.is-active svg{color:#2854a3}
+  .store-mobile-menu nav a.is-active small{color:#60718d}
+}
+
+@media(max-width:430px){
+  .store-header .commerce-site-brand .brand{font-size:15px!important}
+  .store-brand-context{font-size:12px}
+}
