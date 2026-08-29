@@ -8,7 +8,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-正式基準 commit：`b293a125`（Netlify production deploy `6a9044db755e5800084fe0fb`，狀態 `ready`）
+正式基準 commit：`5f14988`（PR #63，Netlify production 已完成並以正式資產驗證）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
@@ -17,10 +17,10 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 ### 高對比 Alan English Favicon（2026-08-29）
 
-- 分支：`codex/alanenglish-favicon-production`，基於最新 `origin/main` commit `db7a661`，尚未 push、建立 PR、合併或部署。
+- PR #63 已合併至 `main` merge commit `5f14988`，Netlify production 已發布。
 - 保留原始 AE 流線造型，改為深品牌藍背景、白色 A、黃色 E，並輸出 16px／32px PNG、含 16px／32px／48px 的 ICO、180px Apple Touch Icon 及 192px／512px Web App 圖示。
-- `public/ae-icon.jpeg` 保持不變；若正式站效果不理想，可用獨立 favicon commit 完整回復。
-- `git diff --check`、Production build（含 4 個公開路由 SEO HTML）與本機瀏覽器引用驗證成功；頁面載入新版 32px／16px／ICO／Apple Touch Icon，Console 0 errors。尚待正式 Netlify 部署結果。
+- `public/ae-icon.jpeg` 保持不變；若正式站效果不理想，可撤回 PR #63 的獨立 favicon 變更完整回復。
+- `git diff --check`、Production build（含 4 個公開路由 SEO HTML）與本機瀏覽器引用驗證成功；正式 `favicon-32x32.png` 回應 HTTP 200，SHA-256 與本機新版完全一致，正式頁面載入新版 32px／16px／ICO／Apple Touch Icon，Console 0 errors。
 
 ## 已部署：會員續用、班級教材與教材商品包
 
