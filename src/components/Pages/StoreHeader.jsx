@@ -3,6 +3,7 @@ import { FiBookOpen, FiHome, FiLogIn, FiLogOut, FiPackage, FiShoppingCart } from
 import { Link } from "react-router-dom";
 import Brand from "../fragment/Brand";
 import { useStore } from "../../store/StoreContext";
+import "./css/Commerce.scss";
 
 export default function StoreHeader() {
     const { user, authLoading, cartCount, signOut } = useStore();

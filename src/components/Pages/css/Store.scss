@@ -3,6 +3,10 @@
 @media(max-width:560px){.store-header{align-items:center}.store-header .commerce-site-brand{min-width:0}.store-header nav{flex:0 0 auto}.store-header nav a,.store-header nav button{width:42px;min-width:42px;min-height:44px;padding:0!important;font-size:18px!important}.store-header nav a>span,.store-header nav button>span{display:none}.store-header nav b{position:absolute;top:1px;right:0;min-width:18px;height:18px;padding:0 4px;font-size:10px}.store-page,.store-admin-page{width:min(100% - 18px,1180px);padding-top:8px}.store-form-grid{grid-template-columns:1fr}.store-form-grid .wide{grid-column:auto}.store-cart-list{padding:6px 14px}.store-order-list article>header{align-items:flex-start;flex-direction:column}.store-order-list article>footer{grid-template-columns:1fr}.store-order-history>div{grid-template-columns:1fr;gap:3px}.store-result-card>div{width:100%;display:grid}.store-admin-page>header{align-items:flex-start;flex-direction:column}.store-admin-order-body,.store-admin-fulfillment{grid-template-columns:1fr}.store-admin-fulfillment button{grid-column:auto}}
 .store-notice-danger{border:1px solid #f5a6a0;color:#9f1f16;background:#fff0ee;font-weight:850}
 .payment-failed,.payment-expired,.payment-refunded,.payment-cancelled,.fulfillment-cancelled{color:#b42318;background:#fee4e2}
+
+/* Store pages use the fixed commerce header and must reserve its viewport space. */
+.store-page{padding-top:calc(96px + env(safe-area-inset-top))}
+@media(max-width:560px){.store-page{padding-top:calc(78px + env(safe-area-inset-top))}}
 .store-order-progress.is-cancelled{color:#9f1f16;background:#fff1f0}
 .store-order-progress.is-cancelled>svg,.store-order-progress.is-cancelled p{color:#b42318}
 .store-cancel-payment{min-height:44px;padding:0 14px;border:1px solid #e8a09a;border-radius:11px;color:#b42318;background:#fff0ee;font-weight:850;cursor:pointer}
