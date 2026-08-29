@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-27
+最後更新：2026-08-29
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -14,6 +14,13 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
 
 ## 1. 專案目前階段
+
+### 高對比 Alan English Favicon（2026-08-29）
+
+- 分支：`codex/alanenglish-favicon-production`，基於最新 `origin/main` commit `db7a661`，尚未 push、建立 PR、合併或部署。
+- 保留原始 AE 流線造型，改為深品牌藍背景、白色 A、黃色 E，並輸出 16px／32px PNG、含 16px／32px／48px 的 ICO、180px Apple Touch Icon 及 192px／512px Web App 圖示。
+- `public/ae-icon.jpeg` 保持不變；若正式站效果不理想，可用獨立 favicon commit 完整回復。
+- `git diff --check`、Production build（含 4 個公開路由 SEO HTML）與本機瀏覽器引用驗證成功；頁面載入新版 32px／16px／ICO／Apple Touch Icon，Console 0 errors。尚待正式 Netlify 部署結果。
 
 ## 已部署：會員續用、班級教材與教材商品包
 
