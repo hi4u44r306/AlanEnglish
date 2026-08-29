@@ -4,7 +4,7 @@
 
 本次進行中（2026-08-29）：
 
-- 商城導覽易用性：重整桌面與手機版商城 Header，商城核心操作優先顯示，聽力平台與公開網站移至次要／其他服務區；手機版改為品牌、購物車與分組選單，補上目前路由反白、明確功能說明、背景捲動鎖定、遮罩與 Escape 關閉。測試、推送與固定測試站部署進行中。
+- 商城導覽易用性：重整桌面與手機版商城 Header，商城核心操作優先顯示，聽力平台與公開網站移至次要／其他服務區；手機版改為品牌、購物車與分組選單，補上目前路由反白、明確功能說明、背景捲動鎖定、遮罩與 Escape 關閉。相關 4 份測試共 9 個案例、`git diff --check` 與 Production build 已成功；桌面 1280px 與手機 412px 本機實測無水平溢位，固定 Header 維持 `y=0`。功能 commit `7a98a5e` 已推送至 `codex/test-integration-20260828`，固定測試站 deploy `6a923a68a7bc0ba8e777da80` 已發布並再次確認 412px Header、分組選單與背景鎖定正常；尚未合併 `main` 或部署正式站。
 - 測試環境授權規則：功能／測試分支完成相應驗證後可直接 commit、Push 並部署固定測試站 `alanenglish-student-test.netlify.app`，不需逐次詢問；直接修改／合併 `main`、正式站部署與正式資料操作仍須另行確認。
 - 導覽列固定偏好：所有具有主要 Navbar／Header 的頁面都應固定在螢幕頂部，內容保留正確頂部空間且不遮住 iPhone safe area。已確認公開首頁 `ShowcaseNavbar` 與登入後平台 `app-header` 使用 `fixed`；商城全路由及 `/materials` 共用的 `commerce-site-header` 原本使用會受根節點 overflow 影響的 `sticky`，本次改為固定定位，並補齊桌面與 412px 手機版內容位移。相關 5 份測試共 11 個案例、`git diff --check` 與 Production build 已成功；本機 412×600 實測 Header 在頁面捲動 193px 後仍維持 `y=0`，內容起點 78px 高於 Header 底部 62px，且沒有水平溢位。功能 commit `3f218b7` 已推送至 `codex/test-integration-20260828`，固定測試站 deploy `6a9233c604c392adbcd6af59` 已發布；尚未合併 `main` 或部署正式站。
 - 跨站導覽：商城 Header 在手機版保留網站首頁並新增學習平台入口；公開首頁導覽及登入後桌面／手機選單新增實體教材商城入口，讓公開網站、學習平台與商城可以雙向往返。已由 commit `59f3986` 部署測試站（Netlify deploy `6a917f42b66a63870fe478de`），412px 手機版無水平溢位且導覽按鈕均可見；尚未合併 `main`。
