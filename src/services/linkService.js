@@ -27,9 +27,7 @@ const callLinkManager = (firebaseUser, action, payload = {}) => (
     callEdgeFunction("link-manager", firebaseUser, { action, ...payload })
 );
 
-export const bootstrapManagedLinks = firebaseUser => callLinkManager(firebaseUser, "bootstrap");
 export const getManagedLinks = firebaseUser => callLinkManager(firebaseUser, "list");
-export const importFirebaseLinks = firebaseUser => callLinkManager(firebaseUser, "import_firebase");
 export const createManagedLink = (firebaseUser, payload) => callLinkManager(firebaseUser, "create", payload);
 export const updateManagedLink = (firebaseUser, payload) => callLinkManager(firebaseUser, "update", payload);
 export const deleteManagedLink = (firebaseUser, id) => callLinkManager(firebaseUser, "delete", { id });

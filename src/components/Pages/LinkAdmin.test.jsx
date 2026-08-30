@@ -3,7 +3,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
-    bootstrapManagedLinks,
     getManagedLinks,
     updateManagedLink
 } from "../../services/linkService";
@@ -15,7 +14,6 @@ jest.mock("../../services/linkService", () => ({
         { value: "exercise", label: "習作本" },
         { value: "listening", label: "聽力本" }
     ],
-    bootstrapManagedLinks: jest.fn(),
     createManagedLink: jest.fn(),
     deleteManagedLink: jest.fn(),
     getManagedLinks: jest.fn(),
@@ -36,10 +34,11 @@ describe("LinkAdmin editing", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         useAuth.mockReturnValue({ firebaseUser });
-        bootstrapManagedLinks.mockResolvedValue({ links: [originalLink], migration: null });
-        getManagedLinks.mockResolvedValue({
-            links: [{ ...originalLink, title: "習作本 3", url: "https://example.com/updated" }]
-        });
+        getManagedLinks
+            .mockResolvedValueOnce({ links: [originalLink] })
+            .mockResolvedValue({
+                links: [{ ...originalLink, title: "習作本 3", url: "https://example.com/updated" }]
+            });
         updateManagedLink.mockResolvedValue({ success: true });
     });
 

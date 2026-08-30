@@ -37,7 +37,6 @@ import ApiUsageAdmin from "../components/Pages/ApiUsageAdmin";
 import MembershipAdmin from "../components/Pages/MembershipAdmin";
 import LevelAdmin from "../components/Pages/LevelAdmin";
 import CatalogAdmin from "../components/Pages/CatalogAdmin";
-import LegacyCleanupAdmin from "../components/Pages/LegacyCleanupAdmin";
 import AcademyInviteSignup from "../components/Pages/AcademyInviteSignup";
 import ForgotPassword from "../components/Pages/ForgotPassword";
 import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
@@ -179,7 +178,6 @@ const App = () => {
                     <Route path="/admin/api-usage" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><ApiUsageAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/levels" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LevelAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/catalog" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><CatalogAdmin /></Containerfull></ProtectedRoute>} />
-                    <Route path="/admin/legacy-cleanup" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><LegacyCleanupAdmin /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/support" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminSupport /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/class-materials" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminClassMaterials /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/material-packages" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminMaterialPackages /></Containerfull></ProtectedRoute>} />
