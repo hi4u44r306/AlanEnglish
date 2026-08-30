@@ -37,6 +37,7 @@ Firebase Authentication 是聽力與學習平台的唯一登入身分來源，�
 - 新建立的英文班在校生使用唯一 `login_username` 與學生自行設定的密碼登入；密碼至少 6 個字元，Firebase 內部仍使用系統識別 Email，但不得顯示給學生或當成可收信 Email。
 - 除非使用者主動登出、帳號被停用或 Session 失效，重新開啟網站後應保持登入。
 - 前端呼叫受保護的 Edge Function 時必須附上有效 Firebase ID Token。
+- Firebase 專案只使用 Authentication；前端不得初始化 Firestore、Realtime Database 或 Firebase Storage，資料、檔案與學習紀錄分別由 Supabase 與 Cloudflare R2 負責。
 
 ### 1.2.1 獨立教材商城帳號例外
 

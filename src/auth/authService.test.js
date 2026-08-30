@@ -1,5 +1,7 @@
 import { getMembershipProfile } from "../services/membershipService";
 import { loadStudentProfile, normalizeLoginIdentifier } from "./authService";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 jest.mock("firebase/auth", () => ({
     browserLocalPersistence: {},
@@ -45,5 +47,15 @@ describe("normalizeLoginIdentifier", () => {
 
     it("rejects malformed academy usernames before calling Firebase", () => {
         expect(() => normalizeLoginIdentifier("12")).toThrow("登入帳號格式不正確");
+    });
+});
+
+describe("Firebase client boundary", () => {
+    it("initializes Authentication without Firebase databases or Storage", () => {
+        const source = readFileSync(join(process.cwd(), "src/components/Pages/firebase-config.js"), "utf8");
+
+        expect(source).toContain('from "firebase/auth"');
+        expect(source).not.toMatch(/firebase\/(database|firestore|storage)|@firebase\/firestore/);
+        expect(source).not.toMatch(/getDatabase|getFirestore|getStorage|databaseURL|storageBucket/);
     });
 });

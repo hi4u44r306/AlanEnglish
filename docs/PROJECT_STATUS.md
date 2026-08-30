@@ -6,7 +6,7 @@
 
 - 正式站功能升級與 AI 定價：PR #67 已於 2026-08-30 合併至正式 `main` commit `763404f`，完成固定測試站已驗收的商城導覽、跨站入口、會員權限總覽、發音教練、付款取消與相關安全修正，並保留正式站透明高對比 favicon。AI 方案已統一為「AI 教材與發音練習」NT$499／月；在校生可直接加購，一般會員與離校生仍需搭配 NT$299 基本會員，合計 NT$798／月。Additive migrations 與必要 Edge Functions 已先行部署；Netlify production 已載入本次 build 的 `main.046432c2.js` 與 `main.d1e4a911.css`，正式首頁、`/shop`、`/materials` 與 NT$499 方案文字已完成線上驗收。
 - 正式站發布閘門：`AGENTS.md` 已新增永久規則，測試站完成驗收後，正式站同步與線上驗收成為唯一優先任務；正式站尚未更新前不得直接開始新產品功能，只能修正發布阻擋問題。本批整合已完成 GitHub push、PR #67、`main` 合併、Netlify production 與公開頁面驗收，發布閘門已解除。
-- Firebase 前端設定稽核：`src/components/Pages/firebase-config.js` 仍由全站 `AuthProvider`、登入／註冊流程及部分 Firebase Database／Storage 功能引用，不可刪除。前端 Firebase Web 設定放入 `.env` 只能避免原始碼硬編碼，無法從瀏覽器 bundle 隱藏；安全邊界應放在 Firebase Authorized Domains、API Key restrictions、Authentication、Database／Storage Rules、App Check 與伺服器端 Secret。
+- Firebase Auth-only 清理：Firebase 控制台已回到 Spark 免費方案，Email／密碼 Authentication 保留，Realtime Database 已移除、Firestore 已清空，Storage 在 Spark 下停用。分支 `codex/firebase-auth-only` 已將前端初始化縮減為 `initializeApp`＋`getAuth`，移除正式路由與導覽中的 Firebase 清理後台、教材連結 RTDB 匯入 fallback，以及未被正式 App 引用的 RTDB／Firestore／Firebase Storage 舊元件；Firebase ID Token 驗證、Supabase 資料與 Cloudflare R2 音檔流程保持不變。30 個 test suites／79 個案例、`link-manager` 語法檢查與 production build 均成功，主要 JavaScript gzip 由約 456.92 kB 降為 370.04 kB；尚待 Push、合併與部署。
 
 本次進行中（2026-08-29）：
 

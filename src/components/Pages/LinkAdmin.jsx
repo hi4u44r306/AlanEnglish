@@ -3,7 +3,6 @@ import { BiEditAlt, BiLinkExternal, BiPlus, BiSave, BiTrash, BiX } from "react-i
 import { useAuth } from "../../auth/AuthContext";
 import {
     LINK_CATEGORIES,
-    bootstrapManagedLinks,
     createManagedLink,
     deleteManagedLink,
     getManagedLinks,
@@ -40,34 +39,25 @@ function LinkAdmin() {
         if (!firebaseUser) return undefined;
         let cancelled = false;
 
-        const bootstrap = async () => {
+        const loadLinks = async () => {
             try {
                 setLoading(true);
                 setError("");
-                const result = await bootstrapManagedLinks(firebaseUser);
+                const result = await getManagedLinks(firebaseUser);
                 if (cancelled) return;
                 setItems(sortLinkItemsAscending(result?.links || []));
-                if (result?.migration) {
-                    const imported = Number(result.migration.imported || 0);
-                    const skipped = Number(result.migration.skipped || 0);
-                    setMessage(
-                        imported > 0
-                            ? `已從 Firebase 安全匯入 ${imported} 筆舊連結${skipped > 0 ? `，略過 ${skipped} 筆格式不完整資料` : ""}。之後將完全使用 Supabase。`
-                            : "Supabase links 已完成初始化，未找到需要匯入的 Firebase 連結。"
-                    );
-                }
-            } catch (bootstrapError) {
-                console.error("Supabase Links 後台初始化失敗:", bootstrapError);
+            } catch (loadError) {
+                console.error("Supabase Links 後台載入失敗:", loadError);
                 if (!cancelled) {
                     setItems([]);
-                    setError(bootstrapError?.message || "無法載入 Supabase links 資料。");
+                    setError(loadError?.message || "無法載入 Supabase links 資料。");
                 }
             } finally {
                 if (!cancelled) setLoading(false);
             }
         };
 
-        bootstrap();
+        loadLinks();
         return () => {
             cancelled = true;
         };
@@ -201,7 +191,7 @@ function LinkAdmin() {
                 <div>
                     <span className="link-admin-page__kicker">PUBLIC LINKS</span>
                     <h1>教材連結管理</h1>
-                    <p>公開教材連結已改由 Supabase 管理；首次進入此頁時會自動嘗試匯入舊 Firebase links。</p>
+                    <p>公開教材連結由 Supabase 管理，新增、排序與停用都會直接套用到公開頁面。</p>
                 </div>
                 <a href="/" target="_blank" rel="noopener noreferrer" className="link-admin-page__preview">
                     <BiLinkExternal />

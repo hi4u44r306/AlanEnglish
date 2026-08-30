@@ -12,7 +12,6 @@ const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
 const FIREBASE_JWKS = createRemoteJWKSet(
     new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
-const FIREBASE_LINKS_URL = "https://alan-english-listening-default-rtdb.firebaseio.com/links.json";
 const ALLOWED_CATEGORIES = new Set(["special", "exercise", "listening", "discovery", "speedphonics"]);
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
@@ -120,94 +119,6 @@ const loadLinks = async (admin: any) => {
     return data || [];
 };
 
-const importFirebaseLinks = async (admin: any, firebaseToken: string, callerId: number) => {
-    const databaseSecret = cleanText(Deno.env.get("FIREBASE_DATABASE_SECRET"), 4000);
-    const firebaseCredential = databaseSecret || firebaseToken;
-    const firebaseUrl = new URL(FIREBASE_LINKS_URL);
-    firebaseUrl.searchParams.set("auth", firebaseCredential);
-
-    const response = await fetch(firebaseUrl.toString(), {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-    });
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-        const firebaseMessage = cleanText(payload?.error, 200);
-        const permissionDenied = response.status === 401 || response.status === 403 || /permission denied/i.test(firebaseMessage);
-
-        if (permissionDenied && !databaseSecret) {
-            const error = new Error(
-                "Firebase links 目前受 Realtime Database Rules 保護，且 Supabase 尚未設定 FIREBASE_DATABASE_SECRET。"
-            );
-            (error as any).code = "FIREBASE_DATABASE_CREDENTIAL_REQUIRED";
-            throw error;
-        }
-
-        const detail = firebaseMessage ? `：${firebaseMessage}` : "";
-        throw new Error(`Firebase links 讀取失敗${detail}`);
-    }
-
-    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-        return {
-            imported: 0,
-            skipped: 0,
-            total: 0,
-            credential: databaseSecret ? "database_secret" : "firebase_user_token"
-        };
-    }
-
-    const now = new Date().toISOString();
-    let skipped = 0;
-    const rows = Object.entries(payload).flatMap(([firebaseKey, rawItem]: [string, any], index) => {
-        const title = cleanText(rawItem?.title, 120);
-        const url = normalizeHttpUrl(rawItem?.url);
-        if (!title || !url) {
-            skipped += 1;
-            return [];
-        }
-
-        const legacyCreatedAt = Number(rawItem?.createdAt ?? rawItem?.created_at);
-        const createdAt = Number.isFinite(legacyCreatedAt) && legacyCreatedAt > 0
-            ? new Date(legacyCreatedAt).toISOString()
-            : now;
-
-        return [{
-            firebase_key: cleanText(firebaseKey, 300),
-            title,
-            url,
-            category: normalizeCategory(rawItem?.category, title),
-            sort_order: normalizeSortOrder(rawItem?.sort_order ?? rawItem?.sortOrder, index * 10),
-            is_active: rawItem?.is_active !== false && rawItem?.active !== false,
-            source: "firebase_import",
-            created_by: callerId,
-            created_at: createdAt,
-            updated_at: now
-        }];
-    });
-
-    if (rows.length === 0) {
-        return {
-            imported: 0,
-            skipped,
-            total: Object.keys(payload).length,
-            credential: databaseSecret ? "database_secret" : "firebase_user_token"
-        };
-    }
-
-    const { error } = await admin
-        .from("links")
-        .upsert(rows, { onConflict: "firebase_key" });
-    if (error) throw error;
-
-    return {
-        imported: rows.length,
-        skipped,
-        total: Object.keys(payload).length,
-        credential: databaseSecret ? "database_secret" : "firebase_user_token"
-    };
-};
-
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -235,20 +146,6 @@ Deno.serve(async (req: Request) => {
 
         if (action === "list") {
             return json(200, { success: true, links: await loadLinks(admin) });
-        }
-
-        if (action === "bootstrap") {
-            const existing = await loadLinks(admin);
-            if (existing.length > 0) {
-                return json(200, { success: true, links: existing, migration: null });
-            }
-            const migration = await importFirebaseLinks(admin, token, Number(caller.id));
-            return json(200, { success: true, links: await loadLinks(admin), migration });
-        }
-
-        if (action === "import_firebase") {
-            const migration = await importFirebaseLinks(admin, token, Number(caller.id));
-            return json(200, { success: true, links: await loadLinks(admin), migration });
         }
 
         if (action === "create") {
