@@ -1,6 +1,6 @@
 # Alan English UI／UX 導覽與角色驗收表
 
-最後更新日期：2026-08-28
+最後更新日期：2026-08-30
 
 本文件搭配 `tests/e2e/` 的 Playwright 測試使用。自動測試負責攔截路由、重新導向、404、瀏覽器執行期錯誤及基本角色入口問題；真實學生、家長與工作人員的操作理解仍需依本表進行人工驗收。
 
@@ -45,6 +45,25 @@ exit $testExitCode
 
 帳密只能放在目前 Shell 的環境變數，不得寫入測試檔、`.env`、報告、Console 或 Git。測試結束後應移除這些環境變數。角色帳號必須是既有專用測試帳號；這套測試不會建立、修改或刪除學生資料。
 
+三種學生方案的作業與教材權限測試使用共用測試密碼，但帳號分開注入：
+
+```powershell
+$env:E2E_BASE_URL="https://alanenglish.com.tw"
+$env:E2E_BASIC_IDENTIFIER="一般會員測試帳號"
+$env:E2E_ACADEMY_IDENTIFIER="在校生測試帳號"
+$env:E2E_ALUMNI_IDENTIFIER="離校生測試帳號"
+$env:E2E_PLAN_PASSWORD="共用測試密碼"
+npm run test:e2e:entitlements
+$testExitCode = $LASTEXITCODE
+Remove-Item Env:E2E_BASE_URL, Env:E2E_BASIC_IDENTIFIER
+Remove-Item Env:E2E_ACADEMY_IDENTIFIER, Env:E2E_ALUMNI_IDENTIFIER
+Remove-Item Env:E2E_PLAN_PASSWORD
+Remove-Item -Recurse -Force test-results -ErrorAction SilentlyContinue
+exit $testExitCode
+```
+
+此組測試會直接驗證 Edge Function 回應：未授權作業不能只靠前端隱藏；直接輸入未取得教材的網址也必須回傳 `book_entitlement_required`。有帳密的測試預設關閉 trace、截圖、影片及 HTML 報告，測試結束仍應清除 `test-results`。
+
 ## 2. 自動測試涵蓋範圍
 
 | 編號 | 範圍 | 自動驗收結果 |
@@ -58,6 +77,11 @@ exit $testExitCode
 | ROLE-A02 | 老師登入 | 老師入口存在，管理員專用入口不存在 |
 | ROLE-A03 | 管理員登入 | 管理員入口存在，可進入管理員頁面 |
 | ROLE-A04 | 直接輸入未授權網址 | 回到自己的角色首頁，不顯示未授權內容 |
+| ENT-A01 | 一般會員／離校生作業 | 不顯示今日作業入口，後端不回傳新作業 |
+| ENT-A02 | 在校生作業 | Edge Function 成功回傳，且每份作業都符合目前班級 |
+| ENT-A03 | 離校歷史 | 狀態為離校，且 `enrollment_history` 仍有歷史紀錄 |
+| ENT-A04 | 教材目錄 | 所有可開啟教材都具有有效 entitlement |
+| ENT-A05 | 直接輸入未授權教材網址 | Edge Function 回傳 403，不提供教材與音檔資料 |
 | RWD-A01 | 桌面 Chromium | 使用 1600×900 驗證桌面 Navbar |
 | RWD-A02 | 手機 Chromium | 使用 Pixel 5 裝置設定驗證手機寬度 |
 
