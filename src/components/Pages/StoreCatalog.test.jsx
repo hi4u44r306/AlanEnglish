@@ -22,8 +22,8 @@ describe("StoreCatalog", () => {
 
     test("任何人可以看到商城導覽與登入入口", async () => {
         renderCatalog();
-        expect(screen.getByRole("navigation", { name: "教材商城導覽" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /商城登入/ })).toHaveAttribute("href", "/shop/login");
+        expect(screen.getByRole("navigation", { name: "教材商城主要導覽" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "登入／註冊" })).toHaveAttribute("href", "/shop/login");
         await waitFor(() => expect(screen.getByText("商品包尚在整理，正式價格未確認前不會自行上架。")).toBeInTheDocument());
     });
 

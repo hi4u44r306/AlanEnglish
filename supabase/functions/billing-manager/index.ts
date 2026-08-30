@@ -356,7 +356,7 @@ Deno.serve(async (req: Request) => {
                 if (existingGrantError) throw existingGrantError;
                 if ((existingGrants || []).length > 0) {
                     return json(409, {
-                        error: "這個帳號已有 AI 教材加購訂閱，請使用訂閱管理",
+                        error: "這個帳號已有 AI 教材與發音練習訂閱，請使用訂閱管理",
                         code: "addon_subscription_already_exists"
                     });
                 }

@@ -9,7 +9,7 @@ const assertEquals = (actual: unknown, expected: unknown) => {
     }
 };
 
-Deno.test("active academy students can buy the NT$99 AI add-on without a basic membership", () => {
+Deno.test("active academy students can buy the NT$499 AI and pronunciation add-on without a basic membership", () => {
     const result = getMembershipPricingEligibility({
         role: "student",
         learnerType: "academy_student",
@@ -25,7 +25,7 @@ Deno.test("active academy students can buy the NT$99 AI add-on without a basic m
     });
 });
 
-Deno.test("alumni need the NT$299 membership before buying the NT$99 AI add-on", () => {
+Deno.test("alumni need the NT$299 membership before buying the NT$499 AI and pronunciation add-on", () => {
     const withoutMembership = getMembershipPricingEligibility({
         role: "student",
         learnerType: "academy_student",
@@ -45,7 +45,7 @@ Deno.test("alumni need the NT$299 membership before buying the NT$99 AI add-on",
     assertEquals(withMembership.canUseAcademyAiAddon, true);
 });
 
-Deno.test("general members need the NT$299 membership before buying the NT$129 AI add-on", () => {
+Deno.test("general members need the NT$299 membership before buying the NT$499 AI and pronunciation add-on", () => {
     const withoutMembership = getMembershipPricingEligibility({
         role: "student",
         learnerType: "textbook_customer",

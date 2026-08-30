@@ -9,6 +9,10 @@ const corsHeaders = {
     "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
 const DEFAULT_SITE_URL = "https://alanenglish.com.tw";
+const ALLOWED_CHECKOUT_ORIGINS = new Set([
+    DEFAULT_SITE_URL,
+    "https://alanenglish-student-test.netlify.app"
+]);
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json" }
 });
@@ -22,6 +26,22 @@ const stripeId = (value: unknown) => typeof value === "string"
     : value && typeof value === "object" ? cleanText((value as any).id, 300) : "";
 const fail = (message: string, status = 400, code = "invalid_request") => {
     throw Object.assign(new Error(message), { status, code });
+};
+const normalizeOrigin = (value: unknown) => {
+    const candidate = cleanText(value, 500).replace(/\/$/, "");
+    if (!candidate) return "";
+    try { return new URL(candidate).origin; } catch { return ""; }
+};
+const checkoutSiteUrl = (req: Request) => {
+    const requestOrigin = normalizeOrigin(req.headers.get("Origin"));
+    if (requestOrigin) {
+        if (!ALLOWED_CHECKOUT_ORIGINS.has(requestOrigin)) {
+            fail("此網站來源不能建立商城結帳", 403, "checkout_origin_forbidden");
+        }
+        return requestOrigin;
+    }
+    const configuredOrigin = normalizeOrigin(Deno.env.get("PUBLIC_SITE_URL") || DEFAULT_SITE_URL);
+    return ALLOWED_CHECKOUT_ORIGINS.has(configuredOrigin) ? configuredOrigin : DEFAULT_SITE_URL;
 };
 const createAdmin = () => {
     const url = Deno.env.get("SUPABASE_URL");
@@ -233,7 +253,7 @@ async function createCheckout(admin: any, req: Request, body: any) {
     });
 
     try {
-        const siteUrl = cleanText(Deno.env.get("PUBLIC_SITE_URL") || DEFAULT_SITE_URL, 500).replace(/\/$/, "");
+        const siteUrl = checkoutSiteUrl(req);
         const metadata = {
             commerce_type: "store_order", store_order_id: String(order.id), order_number: order.order_number,
             store_user_id: customer.user_id
@@ -247,7 +267,7 @@ async function createCheckout(admin: any, req: Request, body: any) {
             client_reference_id: String(order.id), metadata,
             payment_intent_data: { metadata },
             success_url: `${siteUrl}/shop/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${siteUrl}/shop/checkout?cancelled=1`,
+            cancel_url: `${siteUrl}/shop/checkout?cancelled=1&order=${encodeURIComponent(order.order_number)}`,
             billing_address_collection: "auto",
             expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
             locale: "zh-TW"
@@ -313,6 +333,62 @@ async function syncCheckout(admin: any, req: Request, body: any) {
         fulfillment_status: orderResult.data.fulfillment_status,
         stripe_payment_status: checkout.payment_status
     };
+}
+
+async function cancelCheckout(admin: any, req: Request, body: any) {
+    const customer = await requireStoreUser(req, admin);
+    const orderNumber = cleanText(body.order_number, 40);
+    if (!/^AE[0-9]{8}-[A-Z0-9]{8}$/.test(orderNumber)) fail("訂單編號不正確", 400, "order_number_invalid");
+    const orderResult = await admin.from("store_orders")
+        .select("id,order_number,payment_status,fulfillment_status,stripe_checkout_session_id")
+        .eq("customer_user_id", customer.user_id).eq("order_number", orderNumber).maybeSingle();
+    if (orderResult.error) throw orderResult.error;
+    const order = orderResult.data;
+    if (!order) fail("找不到這筆訂單", 404, "order_not_found");
+    if (order.payment_status === "cancelled") {
+        const released = await admin.rpc("release_store_order_inventory", { p_order_id: order.id });
+        if (released.error) throw released.error;
+        return { success: true, order_number: order.order_number, already_cancelled: true };
+    }
+    if (order.payment_status !== "pending" || order.fulfillment_status !== "awaiting_payment") {
+        fail("這筆訂單已付款或正在處理，不能取消付款", 409, "checkout_not_cancellable");
+    }
+    const sessionId = cleanText(order.stripe_checkout_session_id, 300);
+    if (!sessionId) fail("這筆訂單尚未建立 Stripe 付款頁", 409, "checkout_session_missing");
+    const stripe = createStripe();
+    const checkout = await stripe.checkout.sessions.retrieve(sessionId);
+    if (checkout.livemode || checkout.metadata?.store_user_id !== customer.user_id
+        || checkout.metadata?.store_order_id !== String(order.id)) {
+        fail("Stripe 付款資料與訂單不一致", 409, "checkout_metadata_mismatch");
+    }
+    if (checkout.payment_status === "paid" || checkout.status === "complete") {
+        fail("Stripe 已接收這筆付款，請重新整理訂單狀態", 409, "checkout_already_completed");
+    }
+    if (checkout.status === "open") await stripe.checkout.sessions.expire(sessionId);
+    else if (checkout.status !== "expired") fail("目前無法取消這筆 Stripe 付款", 409, "checkout_not_cancellable");
+
+    const changed = await admin.from("store_orders").update({
+        payment_status: "cancelled", fulfillment_status: "cancelled", updated_at: new Date().toISOString()
+    }).eq("id", order.id).eq("customer_user_id", customer.user_id)
+        .in("payment_status", ["pending", "expired"]).in("fulfillment_status", ["awaiting_payment", "cancelled"])
+        .select("id").maybeSingle();
+    if (changed.error) throw changed.error;
+    if (!changed.data) {
+        const latest = await admin.from("store_orders").select("payment_status,fulfillment_status").eq("id", order.id).maybeSingle();
+        if (latest.error) throw latest.error;
+        if (latest.data?.payment_status === "cancelled" && latest.data?.fulfillment_status === "cancelled") {
+            return { success: true, order_number: order.order_number, already_cancelled: true };
+        }
+        fail("訂單狀態已改變，請重新整理後確認", 409, "checkout_state_changed");
+    }
+    const released = await admin.rpc("release_store_order_inventory", { p_order_id: order.id });
+    if (released.error) throw released.error;
+    const history = await admin.from("store_order_status_history").insert({
+        order_id: order.id, payment_status: "cancelled", fulfillment_status: "cancelled",
+        note: "顧客已取消 Stripe 付款，訂單不會出貨。", changed_by: "customer"
+    });
+    if (history.error) throw history.error;
+    return { success: true, order_number: order.order_number };
 }
 
 async function adminOrders(admin: any, req: Request) {
@@ -385,6 +461,7 @@ Deno.serve(async (req: Request) => {
             case "orders": result = await customerOrders(admin, req, body); break;
             case "order": result = await customerOrders(admin, req, body, true); break;
             case "sync": result = await syncCheckout(admin, req, body); break;
+            case "cancel_checkout": result = await cancelCheckout(admin, req, body); break;
             case "admin_orders": result = await adminOrders(admin, req); break;
             case "update_fulfillment": result = await updateFulfillment(admin, req, body); break;
             case "update_shipping_method": result = await updateShippingMethod(admin, req, body); break;

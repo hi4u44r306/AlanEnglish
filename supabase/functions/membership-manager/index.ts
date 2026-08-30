@@ -603,6 +603,15 @@ Deno.serve(async (req: Request) => {
                 if (guardianError) throw guardianError;
             }
 
+            // A paid physical-store order uses a separate Supabase Auth account.
+            // Once the buyer creates the learning account with the same verified
+            // email, atomically claim the paid order's package books and 90-day access.
+            const { error: storeClaimError } = await admin.rpc("claim_paid_store_orders_for_student", {
+                p_student_id: student.id,
+                p_email: firebaseUser.email
+            });
+            if (storeClaimError) throw storeClaimError;
+
             const profile = await loadCompleteProfile(admin, student, firebaseUser, true);
             return json(200, {
                 success: true,
@@ -783,9 +792,9 @@ Deno.serve(async (req: Request) => {
                     offer_label: plan.code === BASIC_MEMBERSHIP_PLAN_CODE
                         ? "基本會員"
                         : plan.code === ACADEMY_AI_ADDON_PLAN_CODE
-                            ? "英文班／離校生 AI 優惠"
+                            ? "AI 教材與發音練習"
                             : plan.code === GENERAL_AI_ADDON_PLAN_CODE
-                                ? "一般會員 AI 加購"
+                                ? "AI 教材與發音練習"
                                 : "月費訂閱",
                     checkout_ready: Boolean(plan.stripe_price_id && plan.price_twd !== null),
                     stripe_price_id: caller.role === "admin" ? plan.stripe_price_id : undefined
