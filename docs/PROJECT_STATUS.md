@@ -1,6 +1,24 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-29
+最後更新：2026-08-30
+
+本次進行中（2026-08-30）：
+
+- 正式站功能升級與 AI 定價：以正式 `main` commit `9eea338` 為基準整合固定測試站 `codex/test-integration-20260828` 的商城導覽、跨站入口、會員權限總覽、發音教練、付款取消與相關安全修正，同時保留正式站透明高對比 favicon。AI 方案統一為「AI 教材與發音練習」NT$499／月；在校生可直接加購，一般會員與離校生仍需搭配 NT$299 基本會員，合計 NT$798／月。兩個既有 AI plan code 保留資格分流，各自對應唯一 Stripe 沙盒 Price，但同屬一個商品且金額相同；唯讀確認目前有效 AI 訂戶為 0。Additive migrations 已套用正式 Supabase，`membership-manager`、`billing-manager`、`store-commerce` 與 `pronunciation-coach` 已重新部署；前端仍待合併 `main` 與 Netlify production 發布後完成正式站驗收。
+- 正式站發布閘門：`AGENTS.md` 已新增永久規則，測試站完成驗收後，正式站同步與線上驗收成為唯一優先任務；正式站尚未更新前不得直接開始新產品功能，只能修正發布阻擋問題。目前整合 commit `97d0f23` 尚待 GitHub push、PR、`main` 合併與 Netlify production，依本規則必須先完成這批發布。
+- Firebase 前端設定稽核：`src/components/Pages/firebase-config.js` 仍由全站 `AuthProvider`、登入／註冊流程及部分 Firebase Database／Storage 功能引用，不可刪除。前端 Firebase Web 設定放入 `.env` 只能避免原始碼硬編碼，無法從瀏覽器 bundle 隱藏；安全邊界應放在 Firebase Authorized Domains、API Key restrictions、Authentication、Database／Storage Rules、App Check 與伺服器端 Secret。
+
+本次進行中（2026-08-29）：
+
+- 商城導覽易用性：重整桌面與手機版商城 Header，商城核心操作優先顯示，聽力平台與公開網站移至次要／其他服務區；手機版改為品牌、購物車與分組選單，補上目前路由反白、明確功能說明、背景捲動鎖定、遮罩與 Escape 關閉。相關 4 份測試共 9 個案例、`git diff --check` 與 Production build 已成功；桌面 1280px 與手機 412px 本機實測無水平溢位，固定 Header 維持 `y=0`。功能 commit `7a98a5e` 已推送至 `codex/test-integration-20260828`，固定測試站 deploy `6a923a68a7bc0ba8e777da80` 已發布並再次確認 412px Header、分組選單與背景鎖定正常；尚未合併 `main` 或部署正式站。
+- 測試環境授權規則：功能／測試分支完成相應驗證後可直接 commit、Push 並部署固定測試站 `alanenglish-student-test.netlify.app`，不需逐次詢問；直接修改／合併 `main`、正式站部署與正式資料操作仍須另行確認。
+- 導覽列固定偏好：所有具有主要 Navbar／Header 的頁面都應固定在螢幕頂部，內容保留正確頂部空間且不遮住 iPhone safe area。已確認公開首頁 `ShowcaseNavbar` 與登入後平台 `app-header` 使用 `fixed`；商城全路由及 `/materials` 共用的 `commerce-site-header` 原本使用會受根節點 overflow 影響的 `sticky`，本次改為固定定位，並補齊桌面與 412px 手機版內容位移。相關 5 份測試共 11 個案例、`git diff --check` 與 Production build 已成功；本機 412×600 實測 Header 在頁面捲動 193px 後仍維持 `y=0`，內容起點 78px 高於 Header 底部 62px，且沒有水平溢位。功能 commit `3f218b7` 已推送至 `codex/test-integration-20260828`，固定測試站 deploy `6a9233c604c392adbcd6af59` 已發布；尚未合併 `main` 或部署正式站。
+- 跨站導覽：商城 Header 在手機版保留網站首頁並新增學習平台入口；公開首頁導覽及登入後桌面／手機選單新增實體教材商城入口，讓公開網站、學習平台與商城可以雙向往返。已由 commit `59f3986` 部署測試站（Netlify deploy `6a917f42b66a63870fe478de`），412px 手機版無水平溢位且導覽按鈕均可見；尚未合併 `main`。
+- Sidebar：補齊學生主要功能路由的目前頁面反白，開啟手機 Sidebar 時自動將目前路由捲動至接近中段；教材分類也會依目前教材路由標示 active。
+- 公開首頁手機 Sidebar：修正固定 Navbar 層級高於 Offcanvas，導致 Sidebar 品牌與關閉區被蓋住，並讓頂端關閉按鈕固定靠右；待重新建置、推送及部署測試站。
+- 商城 Stripe 回跳：修正固定測試站建立 Checkout 後仍被 `PUBLIC_SITE_URL` 導回正式站，造成跨網域商城 Session 不存在並誤顯示「付款不屬於目前帳號」。`store-commerce` 改為讀取瀏覽器 `Origin`，且只允許正式站與固定測試站兩個來源；付款成功與取消都回到原始商城網域，未知來源會被拒絕。Stripe 沙盒實際訂單已由 Webhook 正確標為 `paid`／`preparing`；修正 commit `7e87458` 已推送至 `codex/test-integration-20260828`，`store-commerce` v6 已部署並為 ACTIVE。固定測試站的付款成功與取消回跳已由專案擁有者實測通過。
+- 商城取消付款：Stripe 取消回跳會帶入訂單編號並由登入中的商城帳號呼叫後端；後端核對訂單所有權與 Stripe metadata、拒絕已完成付款、使仍開啟的 Checkout Session 失效、釋放保留庫存，再將付款狀態記為獨立的 `cancelled` 且不出貨。歷史訂單與管理後台會以紅色顯示「已取消付款」，既有等待付款訂單也提供明確的取消按鈕。Additive migration `20260828145308_store_order_customer_cancelled_status.sql` 已套用並確認兩個 constraint 含 `cancelled`；功能 commit `ab409d0` 已推送至 `codex/test-integration-20260828`，`store-commerce` v7 已部署並為 ACTIVE，固定測試站 deploy `6a91a531770623642d74759a` 已發布。商城契約 13/13、Edge Function 語法、`git diff --check`、Production build、測試站 `/shop/orders` HTTP 200 與 Edge Function OPTIONS 200 均通過；仍待由登入中的商城帳號點擊既有等待付款訂單的取消按鈕，驗收紅色狀態與庫存釋放結果。
+- 商城教材自動開通：新增付款商城訂單以已驗證 email 對應新建立的 Firebase 學生帳號，將已付款商品包的 Workbook／聽力本／網站教材寫入教材權限，並建立 90 天網站使用權；商城登入與聽力平台登入仍維持分離。正式套用 migration、部署 Edge Function 與付款端到端驗收尚未完成。
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -8,7 +26,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-正式基準 commit：`7dbe705`（PR #65，Netlify production 已完成並以正式透明資產驗證）
+正式基準 commit：`9eea338`（PR #66）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
@@ -29,7 +47,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 - 教材擁有權與網站使用權分開。購買／兌換教材永久保留教材擁有權與歷史紀錄，另附自兌換日起 90 天網站使用權，且不自動續費。
 - 七天試用不需信用卡、不自動續費，只能使用獨立體驗內容，不能查看正式教材或英文班作業。
-- 基本會員每月 NT$299，只延續已擁有教材的網站功能，不包含新實體教材，也不解鎖下一級；AI 方案維持 NT$99／NT$129 獨立加購。
+- 基本會員每月 NT$299，只延續已擁有教材的網站功能，不包含新實體教材，也不解鎖下一級；「AI 教材與發音練習」為 NT$499／月獨立加購。
 - 教材來源採疊加式 ledger：在校班級、自購、管理員贈送、開通碼與試用互不覆蓋。班級固定 E1、E3、E5、E7。
 - 離校不是停用帳號；班級來源與新作業於生效日結束，自購／贈送教材、XP、AE Points、等級、歷史作業與進度保留。已付款月費與 AI 使用至 `current_period_end`。
 - 月費支援 Customer Portal、本期結束取消、到期前恢復與付款失敗；Checkout 前必須有有效家長 Email。通知事件、學生收件匣、去重鍵與 Email 佇列已納入實作，寄送沿用既有 Resend adapter，未設定 provider 時保留待送。
@@ -74,6 +92,7 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/pronunciation-coach-mvp`：AI 發音教練第一階段已完成本機原型，新增登入後 `/student/pronunciation` 與桌機／手機導覽入口，先提供「日常問候」4 個國小生朗讀關卡。學生可聽慢速示範、錄製最多 12 秒語音、回聽後送出；瀏覽器會轉為 16 kHz 單聲道 PCM WAV，後端會再次檢查實際 WAV 標頭，只接受固定關卡與正確音檔格式，重新驗證 Firebase 帳號、有效會員及既有 `ai_materials` 權限，再由 Azure Speech Pronunciation Assessment 回傳整體、正確度、流暢度、完整度、自然語調與逐字綠／黃／紅結果。原始錄音不寫入資料庫或 Storage。`AZURE_SPEECH_KEY`、`AZURE_SPEECH_REGION` 與 `AZURE_SPEECH_ENDPOINT` 已由專案擁有者保存至 Supabase Secrets，且名稱已完成唯讀確認；程式以區域建立 Azure 官方 Speech-to-Text 端點，不會將金鑰傳到前端。目前尚未部署 `pronunciation-coach`、建立持久用量紀錄或調整 NT$299 方案，因此尚未產生本功能的語音 API 費用，也未完成真實錄音端到端驗收。前端 3 份測試共 5 個案例、Edge Function TypeScript 本機打包、`git diff --check` 與 Production build 均成功；尚未 commit、push、建立 PR 或部署。
 - `codex/link-edit-track-order`：教材連結管理新增名稱與 URL 編輯、HTTP(S) 格式驗證與管理員後端 update contract；公開連結改為分類內依名稱自然升冪，音檔管理頁依 `sort_order`、頁碼／檔名與 id 穩定升冪。2 份測試共 4 個案例、`link-manager` TypeScript 語法檢查、`git diff --check` 與 Production build 已成功；尚未 push、建立 PR、部署 Netlify 或重新部署 `link-manager`。
 - `codex/seo-public-foundation`：SEO 第一階段已在隔離工作樹完成但尚未推送或部署。品牌首頁改為 `/`，教材音檔入口固定為 `/links`，`/home` 與 `/showcase` 在 Netlify 回傳 301 至 `/`；`/`、`/links`、`/shop`、`/materials` 的 build 會產生各自獨立 title、description、canonical 與社群分享 metadata。其他登入、付款、會員、後台與未知路由首次 HTML 回應統一使用 `noindex,nofollow` 且不輸出 canonical，sitemap 只列四個公開可索引頁。本機 Netlify 模擬已確認四頁皆為 200 且 canonical 正確、兩個舊首頁為 301、私人／未知路由為 noindex；SEO 合約 4/4、相關元件 6/6 與 Production build 成功。下一階段才新增方案、功能、家長／老師與商品詳情內容頁，部署後才提交 Search Console。
 - `codex/store-email-verification-resend`：商城註冊頁新增真正呼叫 Supabase `auth.resend` 的「重新寄送驗證信」，成功請求有 60 秒冷卻，提示不洩漏帳號是否存在或是否已驗證；新驗證信導向獨立 `/shop/verified`，成功時顯示「謝謝，已完成驗證」與 5 秒倒數，清除目前商城 session 後回到原結帳目的地的商城登入頁，過期／已使用連結則提供登入與重寄入口。Supabase Auth 已允許正式站與固定測試站的 `/shop/login`、`/shop/verified` 共 4 個 Redirect URLs。商城 Checkout 500 已由 Edge Function log 確認為 Stripe locale 誤用 `zh_TW`，修正為 `zh-TW` 後 `store-commerce` v2 已部署並為 ACTIVE；失敗訂單仍安全標為 failed／cancelled、不會出貨。驗證／重寄前端測試 4/4、商城契約 11/11、`git diff --check` 與 Production build 成功。功能 commit `d43af95` 已推送並建立 PR #57，兩個 Netlify Deploy Preview 皆通過；固定測試站 deploy `6a8ffd01012805d73b60bf2d` 已發布且為 `ready`，已確認 `/shop/verified` 的失效提示、重寄入口與 `/shop/register` 重寄按鈕。正式 `main` 尚未合併／發布，需使用者再次明確授權；另待以未驗證的可收信沙盒地址完成「重寄、收信、驗證完成頁、重新登入、Stripe 沙盒結帳」端到端驗收。Supabase 專案目前仍使用預設寄信服務；正式開放一般學生收信前必須設定既有 Resend 或其他自訂 SMTP，且不得把 SMTP 密碼提交到 Git。
@@ -220,7 +239,7 @@ Netlify 已確認該版本正式部署為 `ready`。
 - 購買教材後提供 90 天非自動續費網站權限
 - 權限從兌換日開始
 - 到期後可選擇每月 NT$299 的基本自主學習會員
-- AI 教材不因購書或基本會員自動取得；一般會員可另加購 NT$129／月
+- AI 教材與發音練習不因購書或基本會員自動取得；一般會員可另加購 NT$499／月
 - 三本組合教材包一般售價已決定為 NT$1,380；有效會員教材價仍待確認
 
 ### 英文班在校學生
@@ -228,14 +247,14 @@ Netlify 已確認該版本正式部署為 `ready`。
 - 在校期間免費使用網站
 - 英文班月費目前為 NT$2,800
 - 可以收到班級作業
-- 不包含 AI 教材生成；可加購 AI 教材方案（NT$99／月、每日 5 次、每月最多 150 次且不累積）
+- 不包含 AI 教材生成與發音練習；可加購「AI 教材與發音練習」（NT$499／月、AI 教材每日 5 次、每月最多 150 次且不累積）
 
 ### 英文班離校學生
 
 - 保留歷史學習紀錄
 - 不再收到新作業
 - 可用每月 NT$299 的基本會員繼續使用
-- 可另加購 AI 教材 NT$99／月；基本會員加 AI 合計 NT$398／月
+- 可另加購「AI 教材與發音練習」NT$499／月；基本會員加 AI／發音合計 NT$798／月
 
 ## 6. 已完成的資料庫 Migration
 

@@ -51,7 +51,7 @@ const learningSteps = [
     { number: "01", title: "免費體驗", text: "先用 7 天體驗聽力、AI 教材與自主學習流程。" },
     { number: "02", title: "選擇教材", text: "依孩子目前程度選擇 E1、E3、E5 或 E7 教材。" },
     { number: "03", title: "開通 90 天", text: "購買教材後輸入專屬開通碼，從兌換日開始使用 90 天。" },
-    { number: "04", title: "決定是否續用", text: "90 天到期後，可選擇每月 NT$299 延續已擁有教材；AI 教材可另外加購。" }
+    { number: "04", title: "決定是否續用", text: "90 天到期後，可選擇每月 NT$299 延續已擁有教材；AI 教材與發音練習可另外加購。" }
 ];
 
 const plans = [
@@ -85,7 +85,7 @@ const plans = [
         price: "NT$299",
         period: "／月",
         description: "適合教材 90 天權限結束後，希望繼續使用已擁有教材的家庭；不包含新教材。",
-        points: ["延續已購／已開通教材", "包含情境會話與智慧複習", "AI 教材可加購 NT$129／月"],
+        points: ["延續已購／已開通教材", "包含情境會話與智慧複習", "AI 教材與發音練習可加購 NT$499／月"],
         action: "先免費體驗",
         href: "/materials",
         badge: "",
@@ -97,7 +97,7 @@ const plans = [
         price: "在校免費",
         period: "離校後 NT$299／月",
         description: "英文班學生在校期間免費使用；離校後仍可用優惠價繼續自主學習。",
-        points: ["在校期間包含班級作業", "在校／離校生 AI 加購 NT$99／月", "離校會員 299＋AI 99＝398／月"],
+        points: ["在校期間包含班級作業", "AI 教材與發音練習 NT$499／月", "離校會員 299＋AI 499＝798／月"],
         action: "學生登入",
         href: "/login",
         badge: "英文班專屬",
@@ -114,11 +114,11 @@ const planComparison = [
         academy: "在校免費／離校 NT$299"
     },
     {
-        label: "AI 教材加購",
+        label: "AI 教材與發音練習",
         trial: "7 天共 7 次",
-        textbook: "另購 NT$129／月",
-        regular: "另購 NT$129／月",
-        academy: "另購 NT$99／月"
+        textbook: "另購 NT$499／月",
+        regular: "另購 NT$499／月",
+        academy: "另購 NT$499／月"
     },
     {
         label: "使用期限",
@@ -161,19 +161,19 @@ const faqs = [
     },
     {
         question: "購買教材為什麼會送 90 天網站權限？",
-        answer: "購買實體教材後輸入專屬開通碼，即可從開通當天開始使用對應教材、音檔、進度與智慧複習功能 90 天；AI 教材為獨立加購功能。"
+        answer: "購買實體教材後輸入專屬開通碼，即可從開通當天開始使用對應教材、音檔、進度與智慧複習功能 90 天；AI 教材與發音練習為獨立加購功能。"
     },
     {
         question: "教材 90 天權限到期後會自動扣款嗎？",
-        answer: "不會。到期後家長可以自行決定是否以每月 NT$299 訂閱基本會員。若需要 AI 教材，一般會員可再加購每月 NT$129；只有完成付款授權後才會按月扣款。"
+        answer: "不會。到期後家長可以自行決定是否以每月 NT$299 訂閱基本會員。若需要 AI 教材與發音練習，可再加購每月 NT$499；只有完成付款授權後才會按月扣款。"
     },
     {
         question: "英文班學生也需要購買會員嗎？",
-        answer: "不需要。Alan English 英文班學生在校期間免費使用核心網站並可收到老師安排的班級作業；AI 教材可選擇每月 NT$99 加購。"
+        answer: "不需要。Alan English 英文班學生在校期間免費使用核心網站並可收到老師安排的班級作業；AI 教材與發音練習可選擇每月 NT$499 加購。"
     },
     {
         question: "英文班學生離校後還能繼續使用嗎？",
-        answer: "可以。離校後會保留原有學習紀錄，家長可選擇每月 NT$299 的基本會員繼續自主學習；若再加購每月 NT$99 的 AI 教材，合計每月 NT$398，但不會再收到新的班級作業。"
+        answer: "可以。離校後會保留原有學習紀錄，家長可選擇每月 NT$299 的基本會員繼續自主學習；若再加購每月 NT$499 的 AI 教材與發音練習，合計每月 NT$798，但不會再收到新的班級作業。"
     },
     {
         question: "手機和平板可以使用嗎？",
@@ -422,7 +422,7 @@ const Showcase = () => {
                         <div className="showcase-section-heading showcase-section-heading-center">
                             <span className="showcase-kicker">CHOOSE YOUR PLAN</span>
                             <h2>先免費體驗，再購買適合孩子的教材。</h2>
-                            <p>購買教材永久保留教材擁有權，並附贈 90 天網站權限；到期後再決定是否以每月 NT$299 延續已擁有教材，AI 教材則依身分另外加購。</p>
+                            <p>購買教材永久保留教材擁有權，並附贈 90 天網站權限；到期後再決定是否以每月 NT$299 延續已擁有教材，AI 教材與發音練習可另外加購。</p>
                         </div>
                         <div className="showcase-trial-banner">
                             <div className="showcase-trial-copy">

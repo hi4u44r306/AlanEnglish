@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { createCheckoutSession } from "../../services/billingService";
 import { getMembershipProfile, getPublicPlans } from "../../services/membershipService";
+import { getAccessibleCatalog } from "../../services/contentAccessService";
 import MembershipCenter from "./MembershipCenter";
 
 jest.mock("react-toastify", () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
@@ -19,6 +20,7 @@ jest.mock("../../services/membershipService", () => ({
     getPublicPlans: jest.fn(),
     redeemActivationCode: jest.fn()
 }));
+jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 
 describe("MembershipCenter AI add-on", () => {
     beforeEach(() => {
@@ -53,9 +55,9 @@ describe("MembershipCenter AI add-on", () => {
             plans: [{
                 id: 99,
                 code: "ai_materials_addon_monthly",
-                name: "AI 教材加購",
-                description: "英文班學生專屬",
-                price_twd: 99,
+                name: "AI 教材與發音練習",
+                description: "AI 教材生成與發音教練",
+                price_twd: 499,
                 trial_days: 0,
                 access_model: "addon",
                 is_public: true,
@@ -63,6 +65,43 @@ describe("MembershipCenter AI add-on", () => {
                 features: { ai_materials: true, ai_monthly_limit: 150 }
             }]
         });
+        getAccessibleCatalog.mockResolvedValue({
+            categories: [{
+                id: "workbook",
+                name: "習作本",
+                books: [{ id: "book-1", code: "Workbook_1", name: "Workbook 1", locked: false }, { id: "book-2", code: "Workbook_2", name: "Workbook 2", locked: true, lock_reason: "book_entitlement_required" }]
+            }]
+        });
+    });
+
+    it("shows available features and separates usable books from locked books", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    effective_access: {
+                        plan_codes: ["basic_membership_monthly"],
+                        grants: [],
+                        features: { listening: true, conversation: true, review: true, assignments: false, ai_materials: false }
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByRole("heading", { name: "我的教材與功能" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "目前可用功能" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /Workbook 1/ })).toHaveAttribute("href", "/student/books/Workbook_1");
+        expect(screen.getByText("已取得使用權")).toBeInTheDocument();
+        expect(screen.getByText("另有 1 本教材尚未取得使用權")).toBeInTheDocument();
+        expect(screen.getByText("僅英文班在校生")).toBeInTheDocument();
+        expect(screen.getAllByText("查看 AI 方案")).toHaveLength(2);
     });
 
     it("shows the active add-on and prevents a duplicate checkout", async () => {
@@ -77,6 +116,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByRole("button", { name: "AI Premium 使用中" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "管理目前訂閱" })).toBeEnabled();
         expect(screen.getByRole("link", { name: "開始使用 AI 教材" })).toHaveAttribute("href", "/student/ai-generator");
+        expect(screen.getByRole("link", { name: "開始發音練習" })).toHaveAttribute("href", "/student/pronunciation");
         expect(screen.getByText(/每月最多/, { selector: "li" })).toHaveTextContent("每月最多 150 次");
     });
 
@@ -177,7 +217,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.queryByText("自動續訂")).not.toBeInTheDocument();
     });
 
-    it("shows the active NT$299 base membership and the NT$129 general AI add-on", async () => {
+    it("shows the active NT$299 base membership and the NT$499 AI and pronunciation add-on", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {
                 membership: {
@@ -206,14 +246,14 @@ describe("MembershipCenter AI add-on", () => {
                 checkout_ready: true,
                 features: { listening: true, review: true, requires_book_entitlement: true }
             }, {
-                id: 129,
+                id: 499,
                 code: "ai_materials_general_monthly",
-                name: "一般會員 AI 加購",
-                description: "需搭配基本會員",
-                price_twd: 129,
+                name: "AI 教材與發音練習",
+                description: "需搭配基本會員；包含 AI 教材與發音教練",
+                price_twd: 499,
                 trial_days: 0,
                 access_model: "addon",
-                offer_label: "一般會員 AI 加購",
+                offer_label: "AI 教材與發音練習",
                 is_public: true,
                 checkout_ready: true,
                 features: { ai_materials: true, ai_monthly_limit: 150 }
@@ -226,11 +266,11 @@ describe("MembershipCenter AI add-on", () => {
             </MemoryRouter>
         );
 
-        const generalAiHeading = await screen.findByRole("heading", { name: "一般會員 AI 加購" });
+        const generalAiHeading = await screen.findByRole("heading", { name: "AI 教材與發音練習" });
         expect(screen.getByText("基本會員")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "目前方案使用中" })).toBeDisabled();
         expect(screen.getByText(/依已購或已開通教材使用/, { selector: "li" })).toBeInTheDocument();
-        expect(generalAiHeading.closest("article")).toHaveTextContent("NT$ 129／月");
+        expect(generalAiHeading.closest("article")).toHaveTextContent("NT$ 499／月");
 
         expect(screen.getByRole("button", { name: "選擇方案" })).toBeEnabled();
     });

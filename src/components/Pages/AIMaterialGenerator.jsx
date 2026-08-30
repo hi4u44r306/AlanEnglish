@@ -393,15 +393,15 @@ function AIMaterialGenerator() {
                 <section className="ai-addon-banner" aria-labelledby="ai-addon-banner-title">
                     <div className="ai-addon-banner-icon"><FiZap aria-hidden="true" /></div>
                     <div className="ai-addon-banner-copy">
-                        <span>AI MATERIAL ADD-ON</span>
-                        <h2 id="ai-addon-banner-title">{isAcademyStudent ? "讓 AI 幫你做出專屬練習" : "升級後解鎖 AI 專屬教材"}</h2>
+                        <span>AI MATERIALS & PRONUNCIATION</span>
+                        <h2 id="ai-addon-banner-title">AI 教材與發音練習</h2>
                         <p>{isActiveAcademyStudent
-                            ? "英文班在校生可用每月 NT$99 加購，每日最多 5 次、每月最多 150 次。"
+                            ? "英文班在校生可用每月 NT$499 加購，包含 AI 教材生成與發音教練。"
                             : isAcademyStudent
-                                ? "離校生先啟用 NT$299 基本會員，再以 NT$99 加購 AI，兩項合計每月 NT$398。"
-                                : "一般會員先啟用 NT$299 基本會員，再以 NT$129 加購 AI，兩項合計每月 NT$428。"}</p>
+                                ? "離校生先啟用 NT$299 基本會員，再以 NT$499 加購 AI 教材與發音練習，兩項合計每月 NT$798。"
+                                : "一般會員先啟用 NT$299 基本會員，再以 NT$499 加購 AI 教材與發音練習，兩項合計每月 NT$798。"}</p>
                     </div>
-                    <div className="ai-addon-banner-price"><strong>{isAcademyStudent ? "NT$99" : "NT$129"}</strong><span>／月 AI 加購</span></div>
+                    <div className="ai-addon-banner-price"><strong>NT$499</strong><span>／月</span></div>
                     <Link className="ai-addon-banner-button" to="/student/membership"><FiZap aria-hidden="true" />查看會員方案</Link>
                 </section>
             )}

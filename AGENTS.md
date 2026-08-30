@@ -362,14 +362,20 @@ git status --short
 - 每個功能使用獨立分支。
 - 分支名稱應清楚，例如 `feature/listening-coverage`、`feature/guided-trial` 或 `fix/mobile-player-overlap`。
 
-在執行以下外部操作前，必須取得使用者明確同意：
+下列測試環境操作已取得專案擁有者的持續授權，可以在完成相應測試後直接執行，不需每次再次詢問：
 
-- Push 到 GitHub
+- 在明確的功能／測試分支建立 commit 並 Push 到 GitHub。
+- 將已通過測試的功能部署至固定測試站 `alanenglish-student-test.netlify.app`。
+- 測試站操作不得合併或直接修改 `main`，不得影響正式網域或正式付款資料。
+
+在執行以下正式或高影響外部操作前，仍必須取得使用者明確同意：
+
 - 建立 Pull Request
 - 修改 Pull Request
 - 合併 Pull Request
+- 直接 Push 到 `main`
 - 刪除遠端分支
-- 部署 Netlify
+- 部署 Netlify 正式站或將正式網域指向新部署
 - 修改 Firebase 設定
 - 修改 Cloudflare 設定
 - 執行遠端 Supabase migration
@@ -459,6 +465,19 @@ npm run build
 
 不要把 LF 將轉成 CRLF、Browserslist 資料過期或 Node deprecation warning 直接當成 build 失敗，但仍必須確認沒有真正的編譯錯誤。
 
+### 16.1 測試站完成後的正式站發布閘門
+
+當一批功能已在測試站完成驗收後，必須立即進入正式站升級流程，不得直接開始下一個新功能。
+
+必須遵守：
+
+- 先明確告知使用者「測試站已驗收，但正式站尚未更新」，並將正式站更新列為唯一優先任務。
+- 在正式站尚未與已驗收測試版本同步前，拒絕實作新的產品功能；只允許處理會阻擋合併、部署或正式驗收的修正。
+- 依序確認測試分支／commit、與最新 `main` 的差異、migration、Edge Function、Secret 名稱狀態、GitHub PR、Netlify production 及正式網址實測。
+- Push、建立或修改 PR、合併、migration、Edge Function 與 Netlify 部署仍須依第 13、14 節取得使用者明確同意；尚未取得同意時，必須停在安全 checkpoint 並持續提醒，不得以新功能繞過發布工作。
+- 只有在正式站部署成功、線上驗收通過並更新 `docs/PROJECT_STATUS.md` 後，才能開始下一個新功能。
+- 若使用者確定不要發布，必須由使用者明確修改或撤回本規則；單純提出下一個功能不視為撤回。
+
 ## 17. 完成標準
 
 功能只有在以下條件都完成時才能回報完成：
@@ -483,7 +502,7 @@ npm run build
 - 不要反覆重述整個專案。
 - 不要貼出與目前任務無關的內容。
 - 如果可以直接安全完成，就直接完成。
-- 如果需要外部寫入、部署或高風險操作，先詢問。
+- 測試分支 Push 與固定測試站部署可依第 13 節直接執行；正式站、正式資料或其他高風險操作仍須先詢問。
 - 不要要求使用者重複提供已存在於 Repository 的程式碼。
 - 不要讓使用者逐步貼出大量檔案，優先直接讀取 Repository。
 - 不確定時先唯讀檢查，再提出證據。

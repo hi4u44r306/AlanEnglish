@@ -6,8 +6,8 @@ const assertEquals = (actual: unknown, expected: unknown) => {
     }
 };
 
-Deno.test("converts the website NT$99 price to Stripe TWD minor units", () => {
-    assertEquals(toStripeTwdMinorUnits(99), 9900);
+Deno.test("converts the website NT$499 price to Stripe TWD minor units", () => {
+    assertEquals(toStripeTwdMinorUnits(499), 49900);
 });
 
 Deno.test("converts the new monthly membership prices to Stripe TWD minor units", () => {

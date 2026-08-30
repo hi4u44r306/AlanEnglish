@@ -22,6 +22,7 @@ export const createStoreCheckout = (session, payload) => callStore("create_check
 export const loadStoreOrders = session => callStore("orders", {}, session);
 export const loadStoreOrder = (session, orderNumber) => callStore("order", { order_number: orderNumber }, session);
 export const syncStoreCheckout = (session, checkoutSessionId) => callStore("sync", { checkout_session_id: checkoutSessionId }, session);
+export const cancelStoreCheckout = (session, orderNumber) => callStore("cancel_checkout", { order_number: orderNumber }, session);
 export const loadAdminStoreOrders = firebaseUser => callStore("admin_orders", {}, null, firebaseUser);
 export const updateStoreFulfillment = (firebaseUser, payload) => callStore("update_fulfillment", payload, null, firebaseUser);
 export const updateStoreShippingMethod = (firebaseUser, payload) => callStore("update_shipping_method", payload, null, firebaseUser);
