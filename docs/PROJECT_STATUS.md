@@ -4,8 +4,8 @@
 
 本次進行中（2026-08-30）：
 
-- 正式站功能升級與 AI 定價：以正式 `main` commit `9eea338` 為基準整合固定測試站 `codex/test-integration-20260828` 的商城導覽、跨站入口、會員權限總覽、發音教練、付款取消與相關安全修正，同時保留正式站透明高對比 favicon。AI 方案統一為「AI 教材與發音練習」NT$499／月；在校生可直接加購，一般會員與離校生仍需搭配 NT$299 基本會員，合計 NT$798／月。兩個既有 AI plan code 保留資格分流，各自對應唯一 Stripe 沙盒 Price，但同屬一個商品且金額相同；唯讀確認目前有效 AI 訂戶為 0。Additive migrations 已套用正式 Supabase，`membership-manager`、`billing-manager`、`store-commerce` 與 `pronunciation-coach` 已重新部署；前端仍待合併 `main` 與 Netlify production 發布後完成正式站驗收。
-- 正式站發布閘門：`AGENTS.md` 已新增永久規則，測試站完成驗收後，正式站同步與線上驗收成為唯一優先任務；正式站尚未更新前不得直接開始新產品功能，只能修正發布阻擋問題。目前整合 commit `97d0f23` 尚待 GitHub push、PR、`main` 合併與 Netlify production，依本規則必須先完成這批發布。
+- 正式站功能升級與 AI 定價：PR #67 已於 2026-08-30 合併至正式 `main` commit `763404f`，完成固定測試站已驗收的商城導覽、跨站入口、會員權限總覽、發音教練、付款取消與相關安全修正，並保留正式站透明高對比 favicon。AI 方案已統一為「AI 教材與發音練習」NT$499／月；在校生可直接加購，一般會員與離校生仍需搭配 NT$299 基本會員，合計 NT$798／月。Additive migrations 與必要 Edge Functions 已先行部署；Netlify production 已載入本次 build 的 `main.046432c2.js` 與 `main.d1e4a911.css`，正式首頁、`/shop`、`/materials` 與 NT$499 方案文字已完成線上驗收。
+- 正式站發布閘門：`AGENTS.md` 已新增永久規則，測試站完成驗收後，正式站同步與線上驗收成為唯一優先任務；正式站尚未更新前不得直接開始新產品功能，只能修正發布阻擋問題。本批整合已完成 GitHub push、PR #67、`main` 合併、Netlify production 與公開頁面驗收，發布閘門已解除。
 - Firebase 前端設定稽核：`src/components/Pages/firebase-config.js` 仍由全站 `AuthProvider`、登入／註冊流程及部分 Firebase Database／Storage 功能引用，不可刪除。前端 Firebase Web 設定放入 `.env` 只能避免原始碼硬編碼，無法從瀏覽器 bundle 隱藏；安全邊界應放在 Firebase Authorized Domains、API Key restrictions、Authentication、Database／Storage Rules、App Check 與伺服器端 Secret。
 
 本次進行中（2026-08-29）：
