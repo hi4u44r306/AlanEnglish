@@ -31,7 +31,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-正式基準 commit：`29ca1a25`（PR #69）
+正式基準 commit：`306687a`（PR #72）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
@@ -55,7 +55,15 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 - 驗證結果：Playwright 公開／未登入測試 30 個通過；2026-08-28 再以既有的一般會員、在校生、離校生三個專用測試帳號對正式網站執行學生角色導覽，桌面與 412px 共 18 個案例全部通過。`MainNavbar.test.jsx` 3 個案例通過；Production build 成功。
 - 本機 `127.0.0.1` 登入會被既有 Firebase API Key referrer 限制正確拒絕；角色登入測試需設定 `E2E_BASE_URL` 指向允許的 Deploy Preview 或正式網域，不放寬 Firebase 限制。
 - 帳密測試會停用 trace、影片、截圖與 HTML 報告，送出登入後立即清空密碼欄，避免失敗快照保存明文；測試結束保留真正的 Playwright exit code再清除環境變數。
-- 尚待驗證：老師／管理員專用帳號的 10 個角色案例、三種學生身分的作業與教材 entitlement 專屬內容，以及 iPhone Safari 實機 safe area、鍵盤與音檔行為。
+- 尚待驗證：老師／管理員專用帳號的 10 個角色案例，以及 iPhone Safari 實機 safe area、鍵盤與音檔行為。
+
+### 三種學生方案 Playwright 權限驗收（2026-08-30）
+
+- 分支：`codex/playwright-entitlement-tests`，基於 `origin/main` commit `9eea338`；尚未 push、建立 PR 或部署。
+- 新增一般會員、英文班在校生與英文班離校生的作業、就讀歷史及教材 entitlement 測試，桌面 1600×900 與手機 412×915 共 6 個案例；直接驗證 `assignment-manager`、`commerce-manager`、`content-access` 的回應，不只檢查前端入口是否隱藏。
+- 正式站結果：4/6 通過。一般會員與離校生在桌面／手機均無今日作業入口，作業 Edge Function 拒絕回傳新作業；離校生狀態與 `enrollment_history` 仍保留；未授權教材直接輸入網址會回傳 403 `book_entitlement_required`。
+- 兩個失敗均為同一正式資料缺口：在校生帳號可成功讀取目前班級作業，回傳作業也只屬於該班，但教材目錄回傳 0 本 entitled 教材，無法驗證班級教材開啟路徑。需先檢查該班的 `academy_class_material_settings`／教材綁定或測試 fixture；本次唯讀驗收未修改正式資料。
+- 相關 React 測試 6/6 通過；Production build 成功並產生 4 個公開路由 SEO HTML；`git diff --check` 通過。帳密未寫入 Repository，測試後 `test-results` 已清除。
 
 ## 已部署：會員續用、班級教材與教材商品包
 

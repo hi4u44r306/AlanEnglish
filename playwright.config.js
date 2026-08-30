@@ -6,7 +6,8 @@ const baseURL = process.env.E2E_BASE_URL || localBaseUrl;
 const isCredentialRun = [
     "E2E_STUDENT_PASSWORD",
     "E2E_TEACHER_PASSWORD",
-    "E2E_ADMIN_PASSWORD"
+    "E2E_ADMIN_PASSWORD",
+    "E2E_PLAN_PASSWORD"
 ].some(name => Boolean(process.env[name]));
 
 module.exports = defineConfig({
