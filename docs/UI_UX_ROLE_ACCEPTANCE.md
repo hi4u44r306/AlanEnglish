@@ -53,16 +53,18 @@ $env:E2E_BASIC_IDENTIFIER="一般會員測試帳號"
 $env:E2E_ACADEMY_IDENTIFIER="在校生測試帳號"
 $env:E2E_ALUMNI_IDENTIFIER="離校生測試帳號"
 $env:E2E_PLAN_PASSWORD="共用測試密碼"
+# 僅在已建立可見測試作業時啟用，強制至少回傳一份在校生班級作業
+$env:E2E_REQUIRE_ACADEMY_ASSIGNMENT="true"
 npm run test:e2e:entitlements
 $testExitCode = $LASTEXITCODE
 Remove-Item Env:E2E_BASE_URL, Env:E2E_BASIC_IDENTIFIER
 Remove-Item Env:E2E_ACADEMY_IDENTIFIER, Env:E2E_ALUMNI_IDENTIFIER
-Remove-Item Env:E2E_PLAN_PASSWORD
+Remove-Item Env:E2E_PLAN_PASSWORD, Env:E2E_REQUIRE_ACADEMY_ASSIGNMENT
 Remove-Item -Recurse -Force test-results -ErrorAction SilentlyContinue
 exit $testExitCode
 ```
 
-此組測試會直接驗證 Edge Function 回應：未授權作業不能只靠前端隱藏；直接輸入未取得教材的網址也必須回傳 `book_entitlement_required`。有帳密的測試預設關閉 trace、截圖、影片及 HTML 報告，測試結束仍應清除 `test-results`。
+此組測試會直接驗證 Edge Function 回應：未授權作業不能只靠前端隱藏；直接輸入未取得教材的網址也必須回傳 `book_entitlement_required`。平時未建立可見測試作業時，仍會驗證在校生可安全呼叫作業服務，且所有回傳作業都符合目前班級；臨時 fixture 存在時設定 `E2E_REQUIRE_ACADEMY_ASSIGNMENT=true`，可額外強制至少回傳一份作業。有帳密的測試預設關閉 trace、截圖、影片及 HTML 報告，測試結束仍應清除 `test-results`。
 
 ## 2. 自動測試涵蓋範圍
 

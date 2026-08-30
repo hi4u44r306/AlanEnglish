@@ -4,6 +4,7 @@ const { readJson, waitForEdgeResponse } = require("./support/edge-response");
 
 const CLASS_CODES = new Set(["E1", "E3", "E5", "E7"]);
 const sharedPassword = process.env.E2E_PLAN_PASSWORD;
+const requireAcademyAssignment = process.env.E2E_REQUIRE_ACADEMY_ASSIGNMENT === "true";
 
 const accountCases = [
     {
@@ -114,6 +115,12 @@ for (const accountCase of accountCases) {
             if (accountCase.assignments) {
                 expect(assignmentResponse.status(), "在校生應可讀取班級作業").toBe(200);
                 expect(CLASS_CODES.has(assignmentPayload.student_class)).toBe(true);
+                if (requireAcademyAssignment) {
+                    expect(
+                        assignmentPayload.assignments?.length,
+                        "在校生測試 fixture 至少要有一份目前班級作業"
+                    ).toBeGreaterThan(0);
+                }
                 expect(
                     (assignmentPayload.assignments || []).every(
                         assignment => assignment.target_class === assignmentPayload.student_class
@@ -151,6 +158,12 @@ for (const accountCase of accountCases) {
 
             expect(profileResponse.status()).toBe(200);
             expect(profilePayload?.profile?.enrollment_status).toBe(accountCase.enrollmentStatus);
+            if (accountCase.enrollmentStatus === "active") {
+                expect(
+                    profilePayload?.profile?.class_books?.length,
+                    "在校生設定頁至少要回傳一本班級教材"
+                ).toBeGreaterThan(0);
+            }
             if (accountCase.enrollmentStatus === "departed") {
                 expect(
                     profilePayload?.profile?.enrollment_history?.length,

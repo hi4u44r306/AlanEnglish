@@ -61,8 +61,9 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 - 分支：`codex/playwright-entitlement-tests`，基於 `origin/main` commit `9eea338`；尚未 push、建立 PR 或部署。
 - 新增一般會員、英文班在校生與英文班離校生的作業、就讀歷史及教材 entitlement 測試，桌面 1600×900 與手機 412×915 共 6 個案例；直接驗證 `assignment-manager`、`commerce-manager`、`content-access` 的回應，不只檢查前端入口是否隱藏。
-- 正式站結果：4/6 通過。一般會員與離校生在桌面／手機均無今日作業入口，作業 Edge Function 拒絕回傳新作業；離校生狀態與 `enrollment_history` 仍保留；未授權教材直接輸入網址會回傳 403 `book_entitlement_required`。
-- 兩個失敗均為同一正式資料缺口：在校生帳號可成功讀取目前班級作業，回傳作業也只屬於該班，但教材目錄回傳 0 本 entitled 教材，無法驗證班級教材開啟路徑。需先檢查該班的 `academy_class_material_settings`／教材綁定或測試 fixture；本次唯讀驗收未修改正式資料。
+- 初次正式站結果為 4/6：一般會員與離校生在桌面／手機均無今日作業入口，作業 Edge Function 拒絕回傳新作業；離校生狀態與 `enrollment_history` 仍保留；未授權教材直接輸入網址會回傳 403 `book_entitlement_required`。兩個失敗均因 E3 沒有班級教材設定。
+- 經使用者明確同意後，正式 Supabase 建立 E3 班級教材版本 1，自 2026-08-30 生效，教材為 `Workbook_3` 與 `SER_3`，並寫入 class material audit；建立一份 E2E 臨時聽力作業後，以強制至少回傳一份作業的斷言完成驗收（後續整理為 `E2E_REQUIRE_ACADEMY_ASSIGNMENT=true` 開關）。正式站桌面／412px 三種帳號共 6/6 通過後，臨時作業已停用；E3 兩本班級教材設定保留。
+- 臨時作業停用後再以最終測試版本執行正式站回歸，桌面／412px 仍為 6/6 通過；此時在校生驗證作業服務成功與班級隔離，教材則驗證 E3 班級教材可開啟。需要再次驗收實際作業顯示時，先建立明確的臨時 fixture 並設定 `E2E_REQUIRE_ACADEMY_ASSIGNMENT=true`。
 - 相關 React 測試 6/6 通過；Production build 成功並產生 4 個公開路由 SEO HTML；`git diff --check` 通過。帳密未寫入 Repository，測試後 `test-results` 已清除。
 
 ## 已部署：會員續用、班級教材與教材商品包
