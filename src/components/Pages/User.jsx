@@ -22,6 +22,7 @@ import { getStudentAssignments } from "../../services/assignmentService";
 import { getReviewDashboard } from "../../services/reviewService";
 import { getConversationProgress } from "../../services/learningActivityService";
 import { getDashboardStats } from "../../services/listeningService";
+import { getPrimaryAccessPlanLabel } from "../../constants/membershipPlans";
 import "./css/User.scss";
 
 const DAILY_LISTENING_GOAL = 3;
@@ -80,10 +81,8 @@ const getInitial = name => {
 };
 
 const getAccessStatusLabel = membership => {
-    const planCodes = membership?.effective_access?.plan_codes || [];
     if (membership?.is_active !== true) return "學習權限未啟用";
-    if (planCodes.includes("academy_internal")) return "英文班在學權限";
-    return membership?.plan?.name || "學習權限使用中";
+    return getPrimaryAccessPlanLabel(membership) || "學習權限使用中";
 };
 
 const normalizeAssignments = result => {
