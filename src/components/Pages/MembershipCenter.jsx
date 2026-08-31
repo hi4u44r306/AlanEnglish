@@ -20,6 +20,17 @@ const FEATURE_LABELS = {
     requires_book_entitlement: "依已購或已開通教材使用"
 };
 const formatDate = value => value ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeZone: "Asia/Taipei" }).format(new Date(value)) : "無期限";
+const getLatestGrantEnd = grants => {
+    if (!grants.length || grants.some(grant => !grant?.ends_at)) return null;
+    const timestamps = grants.map(grant => new Date(grant.ends_at).getTime()).filter(Number.isFinite);
+    return timestamps.length ? new Date(Math.max(...timestamps)).toISOString() : null;
+};
+const getDaysRemaining = value => {
+    if (!value) return null;
+    const timestamp = new Date(value).getTime();
+    if (!Number.isFinite(timestamp)) return null;
+    return Math.max(0, Math.ceil((timestamp - Date.now()) / 86400000));
+};
 const formatRenewalDay = value => {
     if (!value) return null;
     const date = new Date(value);
@@ -92,12 +103,60 @@ function MembershipCenter() {
     const isActiveAcademyStudent = membership?.is_active === true
         && membership?.effective_access?.learner_type === "academy_student"
         && activePlanCodes.has("academy_internal");
-    const membershipStatusLabel = isActiveAcademyStudent
-        ? "英文班在校生"
-        : STATUS_LABELS[membership?.status] || membership?.status || "尚未建立";
+    const learnerType = profile?.learner_type || membership?.effective_access?.learner_type || null;
+    const membershipIdentityLabel = profile?.role === "teacher"
+        ? "英文班老師"
+        : profile?.role === "admin"
+            ? "系統管理員"
+            : isActiveAcademyStudent
+                ? "英文班在校生"
+                : learnerType === "academy_student"
+                    ? "英文班離校生"
+                    : learnerType === "trial_user"
+                        ? "七天試用會員"
+                        : "一般會員";
+    const effectiveGrants = useMemo(() => membership?.effective_access?.grants || [], [membership]);
+    const baseAccessGrants = useMemo(() => effectiveGrants.filter(grant => !isAiAddonPlanCode(grant?.plan_code)), [effectiveGrants]);
+    const primaryBaseGrant = useMemo(() => (
+        baseAccessGrants.find(grant => grant?.plan_code === "basic_membership_monthly")
+        || baseAccessGrants.find(grant => grant?.plan_code === "academy_internal")
+        || baseAccessGrants[baseAccessGrants.length - 1]
+        || null
+    ), [baseAccessGrants]);
+    const hasUnlimitedBaseAccess = baseAccessGrants.some(grant => !grant?.ends_at);
     const membershipPlanLabel = isActiveAcademyStudent
         ? academyGrant?.plan_name || "英文班在學方案"
-        : membership?.plan?.name || "尚未選擇方案";
+        : primaryBaseGrant?.plan_name || membership?.plan?.name || "尚未選擇方案";
+    const baseAccessEnd = isActiveAcademyStudent || hasUnlimitedBaseAccess
+        ? null
+        : getLatestGrantEnd(baseAccessGrants)
+            || membership?.current_period_end
+            || membership?.effective_access_end
+            || null;
+    const baseDaysRemaining = getDaysRemaining(baseAccessEnd);
+    const membershipStatusLabel = ["pending_verification", "trialing", "past_due", "suspended"].includes(membership?.status)
+        ? STATUS_LABELS[membership.status]
+        : membership?.is_active === true && (membership?.cancel_at_period_end === true || membership?.status === "cancelled")
+            ? STATUS_LABELS.cancelled
+            : membership?.is_active === true && baseDaysRemaining !== null && baseDaysRemaining <= 7
+                ? "即將到期"
+                : membership?.is_active === true
+                    ? "使用中"
+                    : membership?.status === "cancelled"
+                        ? STATUS_LABELS.expired
+                    : STATUS_LABELS[membership?.status] || membership?.status || "尚未啟用";
+    const displayedAccessEnd = isActiveAcademyStudent
+        ? "在校期間有效"
+        : hasUnlimitedBaseAccess
+            ? "無期限"
+            : formatDate(baseAccessEnd);
+    const displayedDaysRemaining = isActiveAcademyStudent
+        ? "不需另外續費"
+        : hasUnlimitedBaseAccess
+            ? "永久保留"
+            : baseDaysRemaining == null
+            ? membership?.days_remaining == null ? "無期限" : `${membership.days_remaining} 天`
+            : `${baseDaysRemaining} 天`;
     const hasAiAddon = hasAiAddonPlan([...activePlanCodes]);
     const aiAddonGrant = useMemo(() => (
         membership?.effective_access?.grants?.find(grant => isAiAddonPlanCode(grant?.plan_code)) || null
@@ -108,7 +167,7 @@ function MembershipCenter() {
     );
     const aiRenewalDay = formatRenewalDay(aiRenewalAt);
     const aiAddonCancelling = aiAddonSubscription?.cancel_at_period_end === true;
-    const effectiveFeatures = membership?.effective_access?.features || {};
+    const effectiveFeatures = useMemo(() => membership?.effective_access?.features || {}, [membership]);
     const catalogBooks = useMemo(() => catalog.flatMap(category => (
         (category.books || []).map(book => ({ ...book, categoryName: category.name }))
     )), [catalog]);
@@ -117,6 +176,14 @@ function MembershipCenter() {
     const firstAccessibleBookPath = accessibleBooks[0]?.code
         ? `/student/books/${accessibleBooks[0].code}`
         : "/materials";
+    const featureItems = useMemo(() => FEATURE_OVERVIEW.map(item => ({
+        ...item,
+        available: effectiveFeatures[item.entitlementKey || item.key] === true,
+        path: item.key === "listening" ? firstAccessibleBookPath : item.path
+    })), [effectiveFeatures, firstAccessibleBookPath]);
+    const availableFeatureItems = featureItems.filter(item => item.available);
+    const upgradeFeatureItems = featureItems.filter(item => !item.available && item.key !== "assignments");
+    const assignmentsAreUnavailable = featureItems.some(item => item.key === "assignments" && !item.available);
 
     const redeem = async event => {
         event.preventDefault();
@@ -202,29 +269,53 @@ function MembershipCenter() {
 
     return (
         <main className="platform-page">
-            <header className="platform-hero"><div><span className="platform-eyebrow">MY ACCESS</span><h1>我的教材與功能</h1><p>先看目前可以使用的教材與學習功能；方案、付款和啟用碼集中在頁面下方。</p></div></header>
-            <section className="platform-card platform-access-overview" aria-labelledby="feature-access-heading">
-                <div className="platform-section-title"><div><span className="platform-eyebrow">AVAILABLE FEATURES</span><h2 id="feature-access-heading">目前可用功能</h2><p>綠色代表現在可以直接使用；尚未開通時會告訴你原因與下一步。</p></div></div>
-                <div className="platform-access-grid">
-                    {FEATURE_OVERVIEW.map(item => {
-                        const available = effectiveFeatures[item.entitlementKey || item.key] === true;
-                        const Icon = item.icon;
-                        const path = item.key === "listening" && available ? firstAccessibleBookPath : item.path;
-                        const unavailableLabel = item.key === "assignments"
-                            ? "僅英文班在校生"
-                            : item.key === "ai_materials" || item.key === "pronunciation"
-                                ? "查看 AI 方案"
-                                : "查看使用方案";
-                        return <article className={`platform-access-item ${available ? "is-available" : "is-locked"}`} key={item.key}>
-                            <span className="platform-access-icon"><Icon aria-hidden="true" /></span>
-                            <div><span className="platform-access-state">{available ? <><FiCheckCircle aria-hidden="true" />可以使用</> : <><FiLock aria-hidden="true" />尚未開通</>}</span><h3>{item.label}</h3><p>{item.description}</p></div>
-                            <Link to={available ? path : item.key === "assignments" ? "/student/settings" : "#plans"}>{available ? "立即前往" : unavailableLabel}</Link>
-                        </article>;
-                    })}
+            <header className="membership-page-header">
+                <div className="membership-page-title"><span className="platform-eyebrow">MY ACCESS</span><h1>我的教材與功能</h1><p>快速確認目前方案、可用功能與已取得教材。</p></div>
+                <dl className={`membership-access-summary ${membership?.is_active ? "is-active" : "is-expired"}`} aria-label="目前方案摘要">
+                    <div><dt>會員身分</dt><dd>{membershipIdentityLabel}</dd></div>
+                    <div><dt>目前方案</dt><dd>{membershipPlanLabel}</dd></div>
+                    <div><dt>使用狀態</dt><dd>{membershipStatusLabel}</dd></div>
+                    <div><dt>{isActiveAcademyStudent ? "使用期間" : "可使用至"}</dt><dd>{displayedAccessEnd}<small>{displayedDaysRemaining}</small></dd></div>
+                </dl>
+            </header>
+
+            <section className="platform-card membership-feature-overview" aria-labelledby="feature-access-heading">
+                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">YOUR ACCESS</span><h2 id="feature-access-heading">目前可用功能</h2><p>已開通 {availableFeatureItems.length} 項，點一下就能開始使用。</p></div><strong className="membership-feature-count">{availableFeatureItems.length}／{FEATURE_OVERVIEW.length}</strong></div>
+                <div className="membership-feature-columns">
+                    <div className="membership-feature-list" role="list" aria-label="已開通功能">
+                        {availableFeatureItems.length === 0
+                            ? <div className="membership-feature-empty"><FiLock aria-hidden="true" /><span><strong>目前尚未開通學習功能</strong><small>可在右側查看適合你的方案。</small></span></div>
+                            : availableFeatureItems.map(item => { const Icon = item.icon; return <Link className="membership-feature-row" to={item.path} key={item.key} role="listitem"><span><Icon aria-hidden="true" /></span><div><strong>{item.label}</strong><small>{item.description}</small></div><FiCheckCircle aria-label="可以使用" /></Link>; })}
+                    </div>
+                    <aside className="membership-upgrade-panel" aria-label="尚未開通功能">
+                        <span className="membership-upgrade-kicker"><FiStar aria-hidden="true" />還可以獲得更多</span>
+                        <h3>{upgradeFeatureItems.length > 0 ? `再解鎖 ${upgradeFeatureItems.length} 項學習功能` : "目前方案已很完整"}</h3>
+                        {upgradeFeatureItems.length > 0 && <ul>{upgradeFeatureItems.map(item => <li key={item.key}><FiLock aria-hidden="true" /><span><strong>{item.label}</strong><small>{item.description}</small></span></li>)}</ul>}
+                        {assignmentsAreUnavailable && <p className="membership-academy-note"><FiUsers aria-hidden="true" />英文班作業為在校生專屬，不屬於月費加購。</p>}
+                        {upgradeFeatureItems.length > 0 && <a className="platform-primary" href="#plans"><FiZap aria-hidden="true" />查看可解鎖方案</a>}
+                    </aside>
                 </div>
             </section>
+
+            <section className="platform-card membership-plans" id="plans">
+                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">MEMBERSHIP & AI</span><h2>延續使用與功能加購</h2><p>基本會員延續已擁有教材；AI 教材與發音練習為獨立加購。</p></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
+                {membership?.stripe_subscription_status && !isActiveAcademyStudent && <div className="membership-billing-notice"><p>{membership.cancel_at_period_end ? `已排程於 ${formatDate(membership.current_period_end)} 取消，到期前可恢復。` : membership.stripe_subscription_status === "past_due" ? "付款失敗，請由 Customer Portal 更新付款方式。" : `目前付款週期至 ${formatDate(membership.current_period_end)}。`}</p>{membership.stripe_subscription_status !== "canceled" && <button className="platform-secondary" type="button" disabled={Boolean(working)} onClick={() => updateRenewal(membership.cancel_at_period_end)}>{membership.cancel_at_period_end ? "到期前恢復續訂" : "本期結束取消"}</button>}</div>}
+                {hasAiAddon && <div className="membership-active-addon" role="status" aria-label="AI Premium 已啟用"><span className="membership-active-addon-icon"><FiZap aria-hidden="true" /></span><div><span>AI PREMIUM</span><strong>你的 AI 學習力已升級</strong><small>{aiAddonCancelling ? `使用至 ${formatDate(aiRenewalAt)}，到期後不再扣款` : aiRenewalDay ? `每月 ${aiRenewalDay} 日續訂 · 每日 5 次、每月 150 次` : "AI 教材與發音練習已啟用"}</small></div><div className="membership-active-addon-actions"><Link to="/student/ai-generator">AI 教材</Link><Link to="/student/pronunciation">發音練習</Link>{aiAddonSubscription?.stripe_subscription_id && <button type="button" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "恢復續訂" : "到期取消"}</button>}</div></div>}
+                {publicPlans.length === 0
+                    ? <div className="platform-empty"><strong>線上訂閱尚未開放</strong><p>目前可以使用免費試用或教材啟用碼。正式價格完成設定後，月費方案會自動顯示在這裡。</p></div>
+                    : <div className="membership-plan-list">{publicPlans.map(plan => {
+                        const planActive = activePlanCodes.has(plan.code);
+                        const booleanFeatures = Object.entries(plan.features || {}).filter(([, enabled]) => enabled === true);
+                        const planWorking = working === `plan-${plan.id}`;
+                        return <article className={`membership-plan-row ${planActive ? "is-active" : ""} ${isAiAddonPlanCode(plan.code) ? "is-ai-addon" : ""}`} key={plan.id}>
+                            <div className="membership-plan-copy"><span>{plan.offer_label || (plan.access_model === "addon" ? "AI 教材與發音練習" : "月費訂閱")}</span><h3>{plan.name}</h3><p>{plan.description}</p><ul>{booleanFeatures.map(([feature]) => <li key={feature}><FiCheck aria-hidden="true" />{FEATURE_LABELS[feature] || feature.replaceAll("_", " ")}</li>)}{Number(plan.features?.ai_monthly_limit) > 0 && <li><FiCheck aria-hidden="true" />每月最多 {Number(plan.features.ai_monthly_limit)} 次</li>}</ul></div>
+                            <div className="membership-plan-action"><strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong><button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>{planActive ? <>{isAiAddonPlanCode(plan.code) && <FiZap aria-hidden="true" />}{isAiAddonPlanCode(plan.code) ? "AI Premium 使用中" : "目前方案使用中"}</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}</button></div>
+                        </article>;
+                    })}</div>}
+            </section>
+
             <section className="platform-card platform-material-access" aria-labelledby="material-access-heading">
-                <div className="platform-section-title"><div><span className="platform-eyebrow">MY MATERIALS</span><h2 id="material-access-heading">目前可使用的教材</h2><p>購買、英文班、管理員贈送或啟用碼取得的教材，都會依後端權限顯示在這裡。</p></div><Link className="platform-primary" to="/materials"><FiCreditCard />購買其他教材</Link></div>
+                <div className="platform-section-title"><div><span className="platform-eyebrow">MY MATERIALS</span><h2 id="material-access-heading">目前可使用的教材</h2><p>購買完成並成功帶入權限後，教材會自動出現在這裡與 Navbar。</p></div><Link className="platform-primary" to="/materials"><FiCreditCard />購買其他教材</Link></div>
                 {catalogError
                     ? <div className="platform-empty"><strong>教材清單暫時無法讀取</strong><p>你的權限不會因此消失，請稍後重新整理頁面。</p></div>
                     : accessibleBooks.length === 0
@@ -232,65 +323,10 @@ function MembershipCenter() {
                         : <div className="platform-material-grid">{accessibleBooks.map(book => <Link className="platform-material-item" to={`/student/books/${book.code}`} key={book.id || book.code}><span><FiBookOpen aria-hidden="true" /></span><div><small>{book.categoryName}</small><strong>{book.name}</strong><em><FiCheckCircle aria-hidden="true" />已取得使用權</em></div></Link>)}</div>}
                 {lockedBooks.length > 0 && <details className="platform-locked-materials"><summary><span><FiLock aria-hidden="true" />另有 {lockedBooks.length} 本教材尚未取得使用權</span><strong>查看教材</strong></summary><div>{lockedBooks.map(book => <article key={book.id || book.code}><div><small>{book.categoryName}</small><strong>{book.name}</strong></div><span>{LOCK_REASON_LABELS[book.lock_reason] || "尚未解鎖"}</span></article>)}</div></details>}
             </section>
-            <section className={`platform-status-card ${membership?.is_active ? "is-active" : "is-expired"}`}>
-                <div><span>目前狀態</span><h2>{membershipStatusLabel}</h2><p>{membershipPlanLabel}</p></div>
-                <div className="platform-status-meta">
-                    <div>
-                        <span>{isActiveAcademyStudent ? "使用期間" : "可使用至"}</span>
-                        <strong>{isActiveAcademyStudent ? "在校期間有效" : formatDate(membership?.effective_access_end)}</strong>
-                    </div>
-                    <div>
-                        <span>{isActiveAcademyStudent ? "在學權限" : "剩餘天數"}</span>
-                        <strong>{isActiveAcademyStudent ? "已啟用" : membership?.days_remaining == null ? "不限" : `${membership.days_remaining} 天`}</strong>
-                    </div>
-                </div>
-            </section>
-            <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">NEXT MATERIAL</span><h2>下一級教材包</h2><p>基本月費只延續你已擁有教材的聽力、進度、智慧複習與情境會話，不包含實體教材，也不會自動解鎖下一級。</p></div><Link className="platform-primary" to="/materials"><FiCreditCard />查看與購買下一級教材</Link></div></section>
+
             {membership?.requires_email_verification && <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h2>先完成 Email 驗證</h2><p>驗證信會寄到 {firebaseUser?.email}。完成驗證後，7 天免費試用才會開始計時。</p></div><div className="platform-verification-actions"><button className="platform-secondary" onClick={resendVerification} disabled={working === "verification" || verificationCooldown > 0}>{working === "verification" ? "寄送中…" : verificationCooldown > 0 ? `${verificationCooldown} 秒後可重寄` : "重新寄送驗證信"}</button><button className="platform-primary" onClick={confirmVerification} disabled={working === "confirm-verification"}>{working === "confirm-verification" ? "確認中…" : "我已完成驗證"}</button></div></div><p className="platform-footnote">仍未收到時，請搜尋 Alan English 寄件者，並檢查垃圾郵件或促銷內容。</p></section>}
-            <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">ACTIVATION CODE</span><h2>教材啟用碼</h2></div><p>購買實體教材附贈的聽力權限，可在這裡啟用。</p></div><form className="platform-inline-form" onSubmit={redeem}><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="AE-XXXX-XXXX-XXXX" autoComplete="off" /><button className="platform-primary" disabled={working === "redeem"}>{working === "redeem" ? "啟用中…" : "啟用權限"}</button></form></section>
-            {hasAiAddon && (
-                <section className="platform-ai-premium" role="status" aria-label="AI Premium 已啟用">
-                    <div className="platform-ai-premium-copy">
-                        <span className="platform-ai-premium-badge"><FiStar aria-hidden="true" /> AI PREMIUM</span>
-                        <h2><span className="platform-ai-premium-icon"><FiZap aria-hidden="true" /></span>你的 AI 學習力已升級</h2>
-                        <p>「AI 教材與發音練習」已啟用，現在可以生成專屬教材並使用發音教練。</p>
-                        <div className="platform-ai-premium-benefits">
-                            <span><FiCheck aria-hidden="true" />每日最多 5 次</span>
-                            <span><FiCheck aria-hidden="true" />每月最多 150 次</span>
-                            <span><FiCheck aria-hidden="true" />發音練習</span>
-                        </div>
-                    </div>
-                    <div className="platform-ai-premium-renewal">
-                        <span>{aiAddonCancelling ? "方案使用至" : aiRenewalDay ? "自動續訂" : "目前狀態"}</span>
-                        <strong>{aiAddonCancelling ? formatDate(aiRenewalAt) : aiRenewalDay ? `每月 ${aiRenewalDay} 日` : "AI 與發音功能已啟用"}</strong>
-                        <small>{aiAddonCancelling ? "到期後不會再次扣款" : aiRenewalAt ? `下次預計 ${formatDate(aiRenewalAt)} 續訂` : "可立即使用 AI 教材與發音練習"}</small>
-                        <Link className="platform-ai-premium-action" to="/student/ai-generator"><FiZap aria-hidden="true" />開始使用 AI 教材</Link>
-                        <Link className="platform-ai-premium-action is-pronunciation" to="/student/pronunciation"><FiMic aria-hidden="true" />開始發音練習</Link>
-                        {aiAddonSubscription?.stripe_subscription_id && <button type="button" className="platform-secondary" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "到期前恢復續訂" : "本期結束取消 AI"}</button>}
-                    </div>
-                </section>
-            )}
-            <section className="platform-card" id="plans">
-                <div className="platform-section-title"><div><span className="platform-eyebrow">PLANS</span><h2>月費方案</h2></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
-                {membership?.stripe_subscription_status && !isActiveAcademyStudent && <div className="platform-inline-form"><p>{membership.cancel_at_period_end ? `已排程於 ${formatDate(membership.current_period_end)} 取消，到期前可恢復。` : membership.stripe_subscription_status === "past_due" ? "付款失敗，請由 Customer Portal 更新付款方式。" : `目前付款週期至 ${formatDate(membership.current_period_end)}。`}</p>{membership.stripe_subscription_status !== "canceled" && <button className="platform-secondary" type="button" disabled={Boolean(working)} onClick={() => updateRenewal(membership.cancel_at_period_end)}>{membership.cancel_at_period_end ? "到期前恢復續訂" : "本期結束取消"}</button>}</div>}
-                {publicPlans.length === 0
-                    ? <div className="platform-empty"><strong>線上訂閱尚未開放</strong><p>目前可以使用免費試用或教材啟用碼。正式價格完成設定後，月費方案會自動顯示在這裡。</p></div>
-                    : <div className="platform-plan-grid">{publicPlans.map(plan => {
-                        const planActive = activePlanCodes.has(plan.code);
-                        const booleanFeatures = Object.entries(plan.features || {}).filter(([, enabled]) => enabled === true);
-                        const planWorking = working === `plan-${plan.id}`;
-                        return <article className={`platform-plan ${planActive ? "is-active" : ""} ${isAiAddonPlanCode(plan.code) ? "is-ai-addon" : ""}`} key={plan.id}>
-                            <span>{plan.offer_label || (plan.access_model === "addon" ? "AI 教材與發音練習" : plan.trial_days > 0 ? `${plan.trial_days} 天試用` : "月費訂閱")}</span>
-                            <h3>{plan.name}</h3>
-                            <p>{plan.description}</p>
-                            <strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong>
-                            <ul>{booleanFeatures.map(([feature]) => <li key={feature}>✓ {FEATURE_LABELS[feature] || feature.replaceAll("_", " ")}</li>)}{Number(plan.features?.ai_monthly_limit) > 0 && <li>✓ 每月最多 {Number(plan.features.ai_monthly_limit)} 次</li>}</ul>
-                            <button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>
-                                {planActive ? <>{isAiAddonPlanCode(plan.code) && <FiZap aria-hidden="true" />}{isAiAddonPlanCode(plan.code) ? "AI Premium 使用中" : "目前方案使用中"}</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}
-                            </button>
-                        </article>;
-                    })}</div>}
-            </section>
+            <section className="platform-card membership-compact-card"><div className="platform-section-title"><div><span className="platform-eyebrow">ACTIVATION CODE</span><h2>教材啟用碼</h2><p>購買實體教材取得啟用碼時，可在這裡加入教材與附贈的網站使用權。</p></div></div><form className="platform-inline-form" onSubmit={redeem}><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="AE-XXXX-XXXX-XXXX" autoComplete="off" /><button className="platform-primary" disabled={working === "redeem"}>{working === "redeem" ? "啟用中…" : "啟用權限"}</button></form></section>
+            <section className="platform-card membership-compact-card"><div className="platform-section-title"><div><span className="platform-eyebrow">NEXT MATERIAL</span><h2>需要下一級教材？</h2><p>基本月費只延續已擁有教材，不會自動解鎖下一級或附送新的實體教材。</p></div><Link className="platform-secondary" to="/materials"><FiBookOpen />查看教材包</Link></div></section>
         </main>
     );
 }

@@ -80,10 +80,82 @@
 .platform-hero h1 { margin: 6px 0 8px; font-size: clamp(30px, 4vw, 46px); letter-spacing: -.04em; }
 .platform-hero p { margin: 0; color: var(--ae-muted); line-height: 1.7; }
 
+.membership-page-header { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(560px, 1.2fr); align-items: center; gap: 28px; margin-bottom: 18px; }
+.membership-page-title h1 { margin: 4px 0 5px; font-size: clamp(27px, 3vw, 34px); letter-spacing: -.035em; }
+.membership-page-title p { margin: 0; color: var(--ae-muted); font-size: 14px; }
+.membership-access-summary { display: grid; grid-template-columns: 1.08fr 1.35fr .82fr 1fr; margin: 0; overflow: hidden; border: 1px solid var(--ae-line); border-top: 4px solid #98a2b3; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(25, 39, 73, .07); }
+.membership-access-summary.is-active { border-top-color: #12b76a; }
+.membership-access-summary.is-expired { border-top-color: #f04438; }
+.membership-access-summary > div { display: grid; align-content: center; gap: 3px; min-width: 0; min-height: 76px; padding: 13px 18px; border-left: 1px solid var(--ae-line); }
+.membership-access-summary > div:first-child { border-left: 0; }
+.membership-access-summary dt { color: var(--ae-muted); font-size: 11px; font-weight: 850; letter-spacing: .05em; }
+.membership-access-summary dd { display: grid; gap: 2px; min-width: 0; margin: 0; color: var(--ae-ink); font-size: 15px; font-weight: 900; line-height: 1.35; overflow-wrap: anywhere; }
+.membership-access-summary dd small { color: var(--ae-muted); font-size: 11px; font-weight: 750; }
+
 .platform-card { padding: clamp(20px, 3vw, 32px); margin-bottom: 22px; }
 .platform-section-title { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 22px; }
 .platform-section-title h2 { margin: 5px 0 0; font-size: 23px; }
 .platform-section-title > p { color: var(--ae-muted); margin: 0; }
+.membership-section-title { margin-bottom: 16px; }
+.membership-section-title p { max-width: 720px; margin: 5px 0 0; color: var(--ae-muted); font-size: 14px; line-height: 1.55; }
+.membership-feature-count { display: grid; place-items: center; min-width: 58px; min-height: 38px; padding: 0 12px; border-radius: 999px; color: #067647; background: #e6f8ed; font-size: 14px; }
+.membership-feature-columns { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 16px; }
+.membership-feature-list { display: grid; align-content: start; border: 1px solid var(--ae-line); border-radius: 17px; background: #fbfcfe; }
+.membership-feature-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; border-bottom: 1px solid var(--ae-line); color: var(--ae-ink); text-decoration: none; transition: background-color .16s ease; }
+.membership-feature-row:last-child { border-bottom: 0; }
+.membership-feature-row:hover { color: var(--ae-ink); background: #f2fbf6; }
+.membership-feature-row > span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #067647; background: #dff7e9; font-size: 18px; }
+.membership-feature-row > div { display: grid; min-width: 0; gap: 2px; }
+.membership-feature-row strong { font-size: 15px; }
+.membership-feature-row small { overflow: hidden; color: var(--ae-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.membership-feature-row > svg { color: #12a160; font-size: 19px; }
+.membership-feature-empty { display: flex; align-items: center; gap: 12px; min-height: 92px; padding: 16px; color: #667085; }
+.membership-feature-empty > svg { font-size: 24px; }
+.membership-feature-empty span { display: grid; gap: 3px; }
+.membership-feature-empty strong { color: var(--ae-ink); }
+.membership-upgrade-panel { display: grid; align-content: start; gap: 12px; padding: 20px; border-radius: 18px; color: #eef4ff; background: linear-gradient(145deg, #172b54, #274b91); box-shadow: 0 14px 30px rgba(20, 48, 99, .16); }
+.membership-upgrade-kicker { display: inline-flex; align-items: center; gap: 7px; color: #ffd978; font-size: 11px; font-weight: 900; letter-spacing: .08em; }
+.membership-upgrade-panel h3 { margin: 0; color: #fff; font-size: 20px; }
+.membership-upgrade-panel ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.membership-upgrade-panel li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px; align-items: start; }
+.membership-upgrade-panel li > svg { margin-top: 3px; color: #ffd978; }
+.membership-upgrade-panel li span { display: grid; gap: 1px; }
+.membership-upgrade-panel li strong { font-size: 14px; }
+.membership-upgrade-panel li small { color: #cbd7f1; font-size: 11px; line-height: 1.45; }
+.membership-upgrade-panel .platform-primary { width: 100%; min-height: 43px; margin-top: 2px; }
+.membership-academy-note { display: flex; gap: 7px; margin: 0; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.14); color: #cbd7f1; font-size: 11px; line-height: 1.5; }
+.membership-academy-note svg { flex: 0 0 auto; margin-top: 2px; }
+
+.membership-plan-list { display: grid; gap: 10px; }
+.membership-plans { scroll-margin-top: 96px; }
+.membership-plan-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 22px; padding: 17px 18px; border: 1px solid var(--ae-line); border-radius: 16px; background: #fbfcfe; }
+.membership-plan-row.is-active { border-color: #86d3a7; background: #f2fbf6; }
+.membership-plan-row.is-ai-addon { border-color: #d9cff5; background: linear-gradient(135deg, #fffdf7, #f7f4ff); }
+.membership-plan-copy { min-width: 0; }
+.membership-plan-copy > span { color: var(--ae-primary-dark); font-size: 11px; font-weight: 900; letter-spacing: .06em; }
+.membership-plan-copy h3 { margin: 3px 0; font-size: 19px; }
+.membership-plan-copy p { margin: 0; color: var(--ae-muted); font-size: 13px; line-height: 1.5; }
+.membership-plan-copy ul { display: flex; flex-wrap: wrap; gap: 5px 13px; margin: 9px 0 0; padding: 0; color: #475467; list-style: none; }
+.membership-plan-copy li { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 750; }
+.membership-plan-copy li svg { color: #12a160; }
+.membership-plan-action { display: grid; justify-items: end; gap: 9px; min-width: 176px; }
+.membership-plan-action > strong { font-size: 23px; white-space: nowrap; }
+.membership-plan-action > strong small { color: var(--ae-muted); font-size: 12px; }
+.membership-plan-action .platform-primary { width: 100%; min-height: 42px; padding: 0 16px; }
+.membership-billing-notice { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; padding: 11px 14px; border: 1px solid #dbe4f6; border-radius: 13px; background: #f6f8fd; }
+.membership-billing-notice p { margin: 0; color: #475467; font-size: 13px; }
+.membership-active-addon { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 13px; margin-bottom: 12px; padding: 13px 15px; border: 1px solid #d9cff5; border-radius: 15px; background: linear-gradient(135deg, #182b55, #473c8f); color: #fff; }
+.membership-active-addon-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; color: #17234b; background: #ffd978; font-size: 19px; }
+.membership-active-addon > div { display: grid; min-width: 0; gap: 2px; }
+.membership-active-addon > div > span { color: #ffd978; font-size: 10px; font-weight: 900; letter-spacing: .1em; }
+.membership-active-addon > div > strong { font-size: 15px; }
+.membership-active-addon > div > small { color: #cbd7f1; font-size: 11px; }
+.membership-active-addon-actions { display: flex !important; align-items: center; gap: 7px !important; }
+.membership-active-addon-actions a,
+.membership-active-addon-actions button { min-height: 36px; padding: 8px 11px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; color: #fff; background: rgba(255,255,255,.09); font: inherit; font-size: 11px; font-weight: 850; text-decoration: none; }
+.membership-active-addon-actions button { cursor: pointer; }
+.membership-compact-card { padding-top: 20px; padding-bottom: 20px; }
+.membership-compact-card .platform-section-title { margin-bottom: 13px; }
 
 .platform-primary,
 .platform-secondary,
@@ -474,6 +546,8 @@ textarea { resize: vertical; }
 .platform-modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
 @media (max-width: 900px) {
+    .membership-page-header { grid-template-columns: 1fr; gap: 14px; }
+    .membership-feature-columns { grid-template-columns: 1fr; }
     .platform-admin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .platform-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .platform-two-column { grid-template-columns: 1fr; gap: 0; }
@@ -485,6 +559,24 @@ textarea { resize: vertical; }
 @media (max-width: 640px) {
     .platform-page { width: min(100% - 20px, 1180px); padding-top: 22px; }
     .platform-hero { align-items: stretch; flex-direction: column; }
+    .membership-page-header { margin-bottom: 14px; }
+    .membership-page-title h1 { font-size: 27px; }
+    .membership-page-title p { font-size: 13px; }
+    .membership-access-summary { grid-template-columns: 1fr; }
+    .membership-access-summary > div { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 52px; padding: 10px 13px; border-top: 1px solid var(--ae-line); border-left: 0; }
+    .membership-access-summary > div:first-child { border-top: 0; }
+    .membership-access-summary dd { justify-items: end; text-align: right; }
+    .membership-feature-count { min-height: 34px; }
+    .membership-feature-row { min-height: 60px; padding: 9px 11px; }
+    .membership-feature-row small { white-space: normal; line-height: 1.35; }
+    .membership-upgrade-panel { padding: 18px 16px; }
+    .membership-plan-row { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+    .membership-plan-action { grid-template-columns: 1fr auto; align-items: center; justify-items: stretch; min-width: 0; }
+    .membership-plan-action .platform-primary { min-width: 150px; }
+    .membership-billing-notice { align-items: stretch; flex-direction: column; }
+    .membership-active-addon { grid-template-columns: auto 1fr; }
+    .membership-active-addon-actions { grid-column: 1 / -1; display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+    .membership-active-addon-actions button { grid-column: 1 / -1; }
     .platform-admin-grid { grid-template-columns: 1fr; }
     .platform-form-grid,
     .platform-options { grid-template-columns: 1fr; }

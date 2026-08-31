@@ -80,9 +80,15 @@ describe("MembershipCenter AI add-on", () => {
                 membership: {
                     status: "active",
                     is_active: true,
+                    effective_access_end: "2026-10-15T00:00:00.000Z",
                     effective_access: {
                         plan_codes: ["basic_membership_monthly"],
-                        grants: [],
+                        grants: [{
+                            plan_code: "material_purchase_90d",
+                            plan_name: "教材附贈 90 天",
+                            source: "store_purchase",
+                            ends_at: "2026-10-15T00:00:00.000Z"
+                        }],
                         features: { listening: true, conversation: true, review: true, assignments: false, ai_materials: false }
                     }
                 }
@@ -97,11 +103,53 @@ describe("MembershipCenter AI add-on", () => {
 
         expect(await screen.findByRole("heading", { name: "我的教材與功能" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "目前可用功能" })).toBeInTheDocument();
+        expect(screen.getByText("教材附贈 90 天")).toBeInTheDocument();
+        expect(screen.getByText("一般會員")).toBeInTheDocument();
+        expect(screen.getByText("使用中")).toBeInTheDocument();
+        expect(screen.getByText("2026年10月15日")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /Workbook 1/ })).toHaveAttribute("href", "/student/books/Workbook_1");
         expect(screen.getByText("已取得使用權")).toBeInTheDocument();
         expect(screen.getByText("另有 1 本教材尚未取得使用權")).toBeInTheDocument();
-        expect(screen.getByText("僅英文班在校生")).toBeInTheDocument();
-        expect(screen.getAllByText("查看 AI 方案")).toHaveLength(2);
+        expect(screen.getByText(/英文班作業為在校生專屬/)).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "查看可解鎖方案" })).toHaveAttribute("href", "#plans");
+    });
+
+    it("keeps permanent base access unlimited when a separate add-on has an end date", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    effective_access_end: "2026-09-24T00:00:00.000Z",
+                    effective_access: {
+                        learner_type: "textbook_customer",
+                        plan_codes: ["material_owned", "ai_materials_addon_monthly"],
+                        grants: [{
+                            plan_code: "material_owned",
+                            plan_name: "已購教材永久權限",
+                            source: "store_purchase",
+                            ends_at: null
+                        }, {
+                            plan_code: "ai_materials_addon_monthly",
+                            plan_name: "AI 教材與發音練習",
+                            source: "stripe",
+                            ends_at: "2026-09-24T00:00:00.000Z"
+                        }],
+                        features: { listening: true, review: true, ai_materials: true }
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText("已購教材永久權限")).toBeInTheDocument();
+        expect(screen.getByText("無期限")).toBeInTheDocument();
+        expect(screen.getByText("永久保留")).toBeInTheDocument();
     });
 
     it("shows the active add-on and prevents a duplicate checkout", async () => {
@@ -112,11 +160,11 @@ describe("MembershipCenter AI add-on", () => {
         );
 
         expect(await screen.findByText("你的 AI 學習力已升級")).toBeInTheDocument();
-        expect(screen.getByText("每月 24 日")).toBeInTheDocument();
+        expect(screen.getByText(/每月 24 日續訂/)).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "AI Premium 使用中" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "管理目前訂閱" })).toBeEnabled();
-        expect(screen.getByRole("link", { name: "開始使用 AI 教材" })).toHaveAttribute("href", "/student/ai-generator");
-        expect(screen.getByRole("link", { name: "開始發音練習" })).toHaveAttribute("href", "/student/pronunciation");
+        expect(screen.getByRole("link", { name: "AI 教材" })).toHaveAttribute("href", "/student/ai-generator");
+        expect(screen.getByRole("link", { name: "發音練習" })).toHaveAttribute("href", "/student/pronunciation");
         expect(screen.getByText(/每月最多/, { selector: "li" })).toHaveTextContent("每月最多 150 次");
     });
 
@@ -174,13 +222,49 @@ describe("MembershipCenter AI add-on", () => {
             </MemoryRouter>
         );
 
-        expect(await screen.findByRole("heading", { name: "英文班在校生" })).toBeInTheDocument();
+        expect(await screen.findByText("英文班在校生")).toBeInTheDocument();
+        expect(screen.getByText("使用中")).toBeInTheDocument();
         expect(screen.getByText("英文班在學方案")).toBeInTheDocument();
         expect(screen.getByText("在校期間有效")).toBeInTheDocument();
-        expect(screen.getByText("已啟用")).toBeInTheDocument();
+        expect(screen.getByText("不需另外續費")).toBeInTheDocument();
         expect(screen.queryByText("贈送使用權")).not.toBeInTheDocument();
         expect(screen.queryByText("全方位月訂閱")).not.toBeInTheDocument();
         expect(screen.queryByText("0 天")).not.toBeInTheDocument();
+    });
+
+    it("separates alumni identity from an active self-study membership status", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                learner_type: "academy_student",
+                role: "student",
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    current_period_end: "2026-10-15T00:00:00.000Z",
+                    plan: { name: "基本自主學習會員" },
+                    effective_access: {
+                        learner_type: "academy_student",
+                        plan_codes: ["basic_membership_monthly"],
+                        grants: [{
+                            plan_code: "basic_membership_monthly",
+                            plan_name: "基本自主學習會員",
+                            source: "stripe",
+                            ends_at: "2026-10-15T00:00:00.000Z"
+                        }]
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText("英文班離校生")).toBeInTheDocument();
+        expect(screen.getByText("使用中")).toBeInTheDocument();
+        expect(screen.getAllByText("基本自主學習會員").length).toBeGreaterThan(0);
     });
 
     it("does not describe a subscription pending cancellation as an automatic renewal", async () => {
@@ -212,8 +296,8 @@ describe("MembershipCenter AI add-on", () => {
             </MemoryRouter>
         );
 
-        expect(await screen.findByText("方案使用至")).toBeInTheDocument();
-        expect(screen.getByText("到期後不會再次扣款")).toBeInTheDocument();
+        expect(await screen.findByText(/使用至 2026年9月24日/)).toBeInTheDocument();
+        expect(screen.getByText(/到期後不再扣款/)).toBeInTheDocument();
         expect(screen.queryByText("自動續訂")).not.toBeInTheDocument();
     });
 

@@ -47,7 +47,7 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
         expect(screen.getAllByRole("link", { name: "我的首頁" }).length).toBeGreaterThan(0);
-        expect(screen.getByRole("link", { name: "教材與功能" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "方案與功能" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
@@ -58,7 +58,7 @@ describe("MainNavbar student navigation", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
 
-        expect(await screen.findByRole("link", { name: "我的教材與功能" })).toBeInTheDocument();
+        expect(await screen.findAllByRole("link", { name: "方案與功能" })).toHaveLength(2);
         expect(screen.getByText("開始學習")).toBeInTheDocument();
         expect(screen.getByText("學習成果")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
@@ -71,6 +71,36 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("progressbar", { name: "目前等級 Lv.2 的經驗值進度" })).toHaveAttribute("aria-valuenow", "53");
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
+    });
+
+    it("shows only unlocked student materials in desktop and mobile navigation", async () => {
+        getAccessibleCatalog.mockResolvedValue({
+            categories: [{
+                id: "workbook",
+                name: "習作本",
+                books: [
+                    { id: "book-1", code: "Workbook_1", name: "Workbook 1", locked: false },
+                    { id: "book-2", code: "Workbook_2", name: "Workbook 2", locked: true }
+                ]
+            }, {
+                id: "listening",
+                name: "聽力本",
+                books: [{ id: "listen-1", code: "Listening_1", name: "聽力本 1", locked: false }]
+            }]
+        });
+
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+
+        const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
+        fireEvent.click(materialsMenu);
+        expect(screen.getByRole("link", { name: "Workbook 1" })).toHaveAttribute("href", "/student/books/Workbook_1");
+        expect(screen.getByRole("link", { name: "聽力本 1" })).toHaveAttribute("href", "/student/books/Listening_1");
+        expect(screen.queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
+        expect(await screen.findAllByRole("link", { name: /Workbook 1/ })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: /聽力本 1/ })).toHaveLength(2);
+        expect(screen.queryByRole("link", { name: /Workbook 2/ })).not.toBeInTheDocument();
     });
 
     it("shows one music-management link and the links admin entry to admins", async () => {
@@ -121,7 +151,7 @@ describe("MainNavbar student navigation", () => {
     it("highlights the active student route in the full menu", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
-        expect(screen.getByRole("link", { name: "我的教材與功能" })).toHaveClass("active");
+        expect(screen.getAllByRole("link", { name: "方案與功能" }).every(link => link.classList.contains("active"))).toBe(true);
         expect(screen.getAllByRole("link", { name: "我的首頁" }).every(link => !link.classList.contains("active"))).toBe(true);
     });
 });
