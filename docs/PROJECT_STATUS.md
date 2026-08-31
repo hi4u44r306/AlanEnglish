@@ -4,7 +4,7 @@
 
 本次進行中（2026-08-31）：
 
-- 一般會員教材入口與會員頁排版：分支 `codex/member-materials-ux` 會依 `content-access` 回傳結果，只把已解鎖教材加入學生桌面 Navbar「我的教材」下拉選單及手機 Sidebar「我的教材」區塊；原「教材與功能」入口改名為「方案與功能」。`MembershipCenter` 頂端縮成方案、狀態、到期日／剩餘天數摘要，已開通功能改為緊湊清單，尚未開通功能集中提示，英文班作業明確標示為在校生專屬；NT$299 基本會員及 NT$499「AI 教材與發音練習」緊接功能清單並改為精簡橫列。永久基礎教材權限不會誤用短期 AI 加購的到期日。相關 2 個 test suites／12 個案例、`git diff --check` 與 production build 已成功；尚待桌面與 412px 視覺驗收、commit、Push 及固定測試站部署，正式站尚未更新。
+- 一般會員教材入口與會員頁排版：分支 `codex/member-materials-ux` 會依 `content-access` 回傳結果，只把已解鎖教材加入學生桌面 Navbar「我的教材」下拉選單及手機 Sidebar「我的教材」區塊；原「教材與功能」入口改名為「方案與功能」。`MembershipCenter` 頂端縮成方案、狀態、到期日／剩餘天數摘要，已開通功能改為緊湊清單，尚未開通功能集中提示，英文班作業明確標示為在校生專屬；NT$299 基本會員及 NT$499「AI 教材與發音練習」緊接功能清單並改為精簡橫列。永久基礎教材權限不會誤用短期 AI 加購的到期日。相關 2 個 test suites／12 個案例、`git diff --check` 與 production build 已成功；功能 commit `d46269e` 已推送，固定測試站 deploy `6a94d1a76ba60d71bfea367e` 已發布。沙盒一般會員的桌面 Navbar 與手機 Sidebar 只列出 Workbook 1、Listening 1，兩個直接入口均可開啟；1600×900 與 412×915 無水平溢位，固定 Navbar、手機背景鎖定與會員頁資訊順序正常，瀏覽器 Console 無 error。正式站尚未更新。
 
 本次進行中（2026-08-30）：
 
