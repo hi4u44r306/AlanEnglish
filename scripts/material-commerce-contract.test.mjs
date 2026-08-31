@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = read("supabase/migrations/20260826233335_membership_class_material_commerce.sql");
 const hardeningMigration = read("supabase/migrations/20260827013903_membership_commerce_authorization_hardening.sql");
+const paidMemberIdentityMigration = read("supabase/migrations/20260831024923_promote_paid_trial_members.sql");
 const commerce = read("supabase/functions/commerce-manager/index.ts");
 const content = read("supabase/functions/content-access/index.ts");
 const recordPlay = read("supabase/functions/record-play/index.ts");
@@ -160,4 +161,18 @@ test("22. 取消訂閱後的一次性教材付款可由成功頁正確確認", (
     assert.match(billing, /session\?\.mode !== "payment"/);
     assert.match(billing, /from\("material_purchases"\)[\s\S]*stripe_checkout_session_id/);
     assert.match(billingResult, /material_purchase\?\.status === "paid"/);
+});
+
+test("23. 試用會員付款後轉為一般會員且不覆蓋英文班身分", () => {
+    assert.match(paidMemberIdentityMigration, /plans\.code = 'basic_membership_monthly'/);
+    assert.match(paidMemberIdentityMigration, /memberships\.status in \('active', 'complimentary'\)/);
+    assert.match(paidMemberIdentityMigration, /purchases\.status = 'paid'/);
+    assert.match(paidMemberIdentityMigration, /students\.learner_type = 'trial_user'/);
+    assert.match(paidMemberIdentityMigration, /set learner_type = 'textbook_customer'/);
+    assert.match(paidMemberIdentityMigration, /students\.role = 'student'/);
+    assert.match(paidMemberIdentityMigration, /memberships_promote_paid_trial_user/);
+    assert.match(paidMemberIdentityMigration, /material_purchases_promote_paid_trial_user/);
+    assert.match(paidMemberIdentityMigration, /security invoker/);
+    assert.match(paidMemberIdentityMigration, /revoke all on function[\s\S]*from public, anon, authenticated/);
+    assert.doesNotMatch(paidMemberIdentityMigration, /set learner_type = 'academy_student'/);
 });

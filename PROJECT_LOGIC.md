@@ -92,6 +92,8 @@ Supabase PostgreSQL、RLS 與 Edge Functions 負責資料、授權、學習紀�
 - `textbook_customer`：購買教材的網路使用者。
 - `trial_user`：七天試用者。
 
+`trial_user` 只代表尚未付費的七天試用關係。基本自主學習會員完成付款並啟用，或教材購買確認為已付款後，後端必須把該學生類型轉為 `textbook_customer`；不得只新增方案或權限而留下「七天試用會員」身分。轉換只能套用於原本的 `trial_user`，不得覆蓋 `academy_student` 或其在校／離校歷史。
+
 英文班班級固定為 E1、E3、E5、E7。升班、留班或降級由老師或管理員決定，不可依年份自動改班，也不可建立 E2、E4、E6、E8 作為年度升班結果。
 
 ### 2.3 停用帳號
