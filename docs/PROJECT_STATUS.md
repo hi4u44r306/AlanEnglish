@@ -4,7 +4,7 @@
 
 本次進行中（2026-08-31）：
 
-- 付費試用會員身分同步：已在 `codex/fix-trial-member-identity` 建立 additive migration。當 `trial_user` 的 `basic_membership_monthly` 真正啟用／已有付款紀錄，或教材訂單確認為 `paid`，資料庫會自動轉為 `textbook_customer`；既有符合條件的錯誤資料會一次性校正。更新條件只鎖定 `trial_user`，不覆蓋 `academy_student`、在校／離校紀錄或教材權限。正式資料唯讀影響檢查為 1 位，且該帳號同時符合基本會員與教材已付款條件；商務契約 23/23、`git diff --check` 與 Production build 已成功。尚未套用正式 Supabase、尚未推送或部署。
+- 付費試用會員身分同步：分支 `codex/fix-trial-member-identity` 已推送並建立 PR #72；additive migration `promote_paid_trial_members` 已套用正式 Supabase。當 `trial_user` 的 `basic_membership_monthly` 真正啟用／已有付款紀錄，或教材訂單確認為 `paid`，資料庫會自動轉為 `textbook_customer`；更新條件只鎖定 `trial_user`，不覆蓋 `academy_student`、在校／離校紀錄或教材權限。正式回填影響 1 位，套用後 `aeplanbasic` 的資料庫與 effective access 都是 `textbook_customer`，待校正數量為 0；兩個 trigger 均啟用，函式採 `security invoker` 且 `anon`／`authenticated` 無執行權限。固定測試站會員頁重新整理後已驗收「一般會員／基本自主學習會員／使用中」，Workbook 1 與 Listening 1 仍可見。商務契約 23/23、`git diff --check` 與 Production build 已成功；Supabase Advisor 沒有本次 trigger／函式相關提示。PR 尚未合併 `main`。
 - 一般會員教材入口與會員頁排版：PR #70 已合併至正式 `main` commit `6a4f9c8`。Navbar 依 `content-access` 回傳結果，只把已解鎖教材加入學生桌面「我的教材」下拉選單及手機 Sidebar；原「教材與功能」入口改名為「方案與功能」。`MembershipCenter` 頂端縮成會員身分、目前方案、使用狀態、到期日／剩餘天數摘要；會員身分分為一般會員、英文班在校生、英文班離校生及七天試用會員，避免三種有效帳號都只顯示「使用中」。已開通功能改為緊湊清單，尚未開通功能集中提示，英文班作業明確標示為在校生專屬；NT$299 基本會員及 NT$499「AI 教材與發音練習」緊接功能清單。永久基礎教材權限不會誤用短期 AI 加購的到期日。相關 2 個 test suites／13 個案例、`git diff --check` 與 production build 已成功；固定測試站 deploy `6a94d846e75f979ceaf03a86` 已驗收。真實離校會員摘要正確同時顯示「英文班離校生」、「基本自主學習會員」及「已取消，期限前可使用」；1600×900 與 412×915 無水平溢位，Console 無 error。PR #71 已合併至正式 `main` commit `2632a9b`，Netlify production deploy `6a94dacf2dd21d00082857d1` 已發布且為 `ready`，正式 bundle 已確認包含會員身分、離校生、我的教材與 AI 教材／發音方案文字；正式站發布閘門已解除。
 
 本次進行中（2026-08-30）：
