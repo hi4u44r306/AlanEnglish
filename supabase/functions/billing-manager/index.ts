@@ -331,7 +331,7 @@ Deno.serve(async (req: Request) => {
                     && !pricingEligibility.canUseGeneralAiAddon
                 ) {
                     return json(403, {
-                        error: "一般會員需先啟用每月 NT$299 基本會員，才能加購 AI 教材",
+                        error: "一般會員需先啟用每月 NT$299 基本會員，才能加購 AI 教材與發音練習",
                         code: "general_ai_membership_required"
                     });
                 }
@@ -657,7 +657,7 @@ Deno.serve(async (req: Request) => {
             }
 
             if (grantMode === "additive") {
-                if (!subscriptionPlanId) return json(409, { error: "AI 加購訂閱缺少方案資料" });
+                if (!subscriptionPlanId) return json(409, { error: "AI 教材與發音練習訂閱缺少方案資料" });
                 const { data: addonPlan, error: addonPlanError } = await admin
                     .from("subscription_plans")
                     .select("id,code,access_model")

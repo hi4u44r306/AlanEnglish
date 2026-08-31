@@ -1,6 +1,10 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-31
+最後更新：2026-09-01
+
+本次進行中（2026-09-01）：
+
+- 舊會員方案文字與邏輯稽核：分支 `codex/fix-departed-ai-addon` 已完成本機修正。「全方位月訂閱」與「聽力月訂閱」確認來自早期 `all_access_monthly`／`listening_monthly` 方案及 `allcover`／`listeningonly` 學生欄位，舊會員紀錄只保留歷史相容，不再出現在現行方案卡、管理員可選方案、開通碼、手動授權或新帳號預設值。學生會員中心、首頁與帳號管理改以有效 grant 判定目前方案；只有舊紀錄而沒有現行有效權限時顯示「歷史會員權限（待轉換）」，避免把舊名稱誤認為仍可購買的商品。三支未被現行前端使用的舊建帳／更新 API 改為 `410 Gone`，引導使用目前的 `academy-student-manager`／`membership-manager` 流程。原本分散顯示的 `AI Premium`／`AI 加購` 使用者文字也統一為「AI 教材與發音練習」，現行價格維持 NT$499／月。現行程式碼全域掃描只剩歷史方案辨識清單，以及與方案無關的 `student_listening_monthly` 聆聽統計表名稱；舊 migrations 與過往狀態紀錄保留原文作為稽核歷史。7 組相關前端測試共 33/33、14 支 Edge Function／共用模組語法檢查、Production build 及 `git diff --check` 均成功；尚未 Push、建立 PR、部署測試站、部署 Edge Functions 或正式站。
 
 本次進行中（2026-08-31）：
 

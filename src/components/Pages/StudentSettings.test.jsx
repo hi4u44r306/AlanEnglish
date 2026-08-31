@@ -80,7 +80,7 @@ describe("StudentSettings", () => {
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("AI PREMIUM 已啟用")).toBeInTheDocument();
+        expect(screen.getByText("AI 教材與發音練習已啟用")).toBeInTheDocument();
 
         expect(screen.queryByDisplayValue("2015-05-12")).not.toBeInTheDocument();
         fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
@@ -94,7 +94,7 @@ describe("StudentSettings", () => {
         ));
     });
 
-    it("recognizes the general-member AI add-on as AI Premium", async () => {
+    it("recognizes the general-member AI materials and pronunciation plan", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-2" },
             setStudentProfile,
@@ -112,7 +112,7 @@ describe("StudentSettings", () => {
 
         render(<StudentSettings />);
 
-        expect(await screen.findByText("AI PREMIUM 已啟用")).toBeInTheDocument();
+        expect(await screen.findByText("AI 教材與發音練習已啟用")).toBeInTheDocument();
         expect(screen.getByText("AI 教材與發音練習可使用")).toBeInTheDocument();
     });
 
@@ -138,7 +138,7 @@ describe("StudentSettings", () => {
         expect(screen.getByText("2026-08-31")).toBeInTheDocument();
         expect(screen.queryByText("英文班在學方案")).not.toBeInTheDocument();
         expect(screen.getByText("基本自主學習會員")).toBeInTheDocument();
-        expect(screen.getAllByText("AI 教材與發音練習")).toHaveLength(2);
+        expect(screen.getAllByText("AI 教材與發音練習")).toHaveLength(3);
         expect(screen.getAllByText("續訂日 2026-09-30")).toHaveLength(2);
     });
 

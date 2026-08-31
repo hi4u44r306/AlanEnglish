@@ -320,7 +320,7 @@ function StudentSettings() {
                 </div>
                 <div className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}>
                     <FiZap />
-                    <strong>{hasAiPremium ? "AI PREMIUM 已啟用" : "AI PREMIUM 未加購"}</strong>
+                    <strong>{hasAiPremium ? "AI 教材與發音練習已啟用" : "AI 教材與發音練習未加購"}</strong>
                     <span>{hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}</span>
                 </div>
                 <div className="student-settings-avatar-presets">
@@ -409,7 +409,7 @@ function StudentSettings() {
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>教材與方案</h2></div></header>
                     <dl className="student-settings-data-list">
-                        <div><dt>AI Premium</dt><dd>{hasAiPremium ? "已加購" : "未加購"}</dd></div>
+                        <div><dt>AI 教材與發音練習</dt><dd>{hasAiPremium ? "已加購" : "未加購"}</dd></div>
                         <div><dt>AI 教材與發音練習</dt><dd>{hasAiMaterials ? "兩項皆可使用" : "目前不可使用"}</dd></div>
                         <div><dt>帳號類型</dt><dd>{profile.learner_type === "academy_student" ? "英文班學生" : profile.learner_type === "textbook_customer" ? "教材購買者" : "試用／一般學生"}</dd></div>
                         <div><dt>在校狀態</dt><dd>{statusLabel}</dd></div>
@@ -434,7 +434,7 @@ function StudentSettings() {
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>PLAN STATUS</span><h2>基本會員與 AI 方案</h2></div></header>
                     <dl className="student-settings-data-list">
-                        {visiblePlans.length ? visiblePlans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{planStatus(plan)}</dd></div>) : <div><dt>方案</dt><dd>目前無基本會員或 AI 加購方案</dd></div>}
+                        {visiblePlans.length ? visiblePlans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{planStatus(plan)}</dd></div>) : <div><dt>方案</dt><dd>目前無基本會員或 AI 教材與發音練習方案</dd></div>}
                     </dl>
                 </article>
             </section>

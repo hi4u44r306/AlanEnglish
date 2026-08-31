@@ -413,7 +413,7 @@ function AIMaterialGenerator() {
                 </div>
                 <div className="ai-quota-card">
                     <div className="ai-quota-heading">
-                        <div><span>{roleLabel} · 今日 AI 額度</span><strong>{loadingUsage ? "—" : `${usage.remaining} 次`}</strong>{hasAiPremium && <small className="ai-quota-premium"><FiZap aria-hidden="true" />AI PREMIUM 已啟用</small>}</div>
+                        <div><span>{roleLabel} · 今日 AI 額度</span><strong>{loadingUsage ? "—" : `${usage.remaining} 次`}</strong>{hasAiPremium && <small className="ai-quota-premium"><FiZap aria-hidden="true" />AI 教材與發音練習已啟用</small>}</div>
                         <div className="ai-quota-icon"><FiZap /></div>
                     </div>
                     <div className="ai-quota-dots" style={{ gridTemplateColumns: `repeat(${Math.max(1, usage.limit || 5)}, 1fr)` }}>

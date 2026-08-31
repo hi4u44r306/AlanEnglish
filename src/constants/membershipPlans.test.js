@@ -3,7 +3,7 @@ import { getPrimaryAccessPlanLabel } from "./membershipPlans";
 describe("getPrimaryAccessPlanLabel", () => {
     it("uses the active basic grant instead of a stale legacy plan", () => {
         expect(getPrimaryAccessPlanLabel({
-            plan: { name: "全方位月訂閱" },
+            plan: { code: "all_access_monthly", name: "全方位月訂閱" },
             effective_access: {
                 plan_codes: ["basic_membership_monthly", "ai_materials_addon_monthly"],
                 grants: [{
@@ -22,12 +22,25 @@ describe("getPrimaryAccessPlanLabel", () => {
         })).toBe("英文班在學權限");
     });
 
-    it("shows AI Premium when it is the only effective plan", () => {
+    it("shows the current AI plan name when it is the only effective plan", () => {
         expect(getPrimaryAccessPlanLabel({
-            plan: { name: "全方位月訂閱" },
+            plan: { code: "all_access_monthly", name: "全方位月訂閱" },
             effective_access: {
                 plan_codes: ["ai_materials_general_monthly"]
             }
-        })).toBe("AI Premium 使用中");
+        })).toBe("AI 教材與發音練習（使用中）");
+    });
+
+    it("uses a neutral label for legacy access that has not been converted", () => {
+        expect(getPrimaryAccessPlanLabel({
+            plan: { code: "all_access_monthly", name: "全方位月訂閱" },
+            effective_access: {
+                plan_codes: ["all_access_monthly"],
+                grants: [{
+                    plan_code: "all_access_monthly",
+                    plan_name: "全方位月訂閱"
+                }]
+            }
+        })).toBe("歷史會員權限（待轉換）");
     });
 });

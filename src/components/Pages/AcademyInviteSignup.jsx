@@ -241,7 +241,7 @@ function AcademyInviteSignup({ manualEntry = false }) {
                 <div className="platform-student-preview" aria-label="學生基本資料預覽">
                     <span>基本資料預覽</span>
                     <strong>{invitation.chinese_name}{invitation.english_name ? ` · ${invitation.english_name}` : ""}</strong>
-                    <small>{invitation.class_code} 班 · Lv.1 · 0 XP · 0 AE Points · AI Premium 尚未啟用</small>
+                    <small>{invitation.class_code} 班 · Lv.1 · 0 XP · 0 AE Points · AI 教材與發音練習尚未啟用</small>
                 </div>
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>登入與收信 Email</span><input type="email" value={form.email} readOnly autoComplete="email" /><small>{RECEIVABLE_EMAIL_HELP}</small></label>
