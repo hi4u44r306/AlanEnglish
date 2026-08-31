@@ -177,3 +177,28 @@ for (const accountCase of accountCases) {
         });
     });
 }
+
+test.describe("英文班離校且方案已到期", () => {
+    const expiredAlumniIdentifier = process.env.E2E_EXPIRED_ALUMNI_IDENTIFIER;
+
+    test.skip(
+        !expiredAlumniIdentifier || !sharedPassword,
+        "未提供 E2E_EXPIRED_ALUMNI_IDENTIFIER／E2E_PLAN_PASSWORD"
+    );
+
+    test("不取得新作業並顯示實際到期日", async ({ page }) => {
+        await login(page, expiredAlumniIdentifier, sharedPassword);
+
+        await expect(page.getByRole("link", { name: "今日作業", exact: true })).toHaveCount(0);
+        await page.goto("/student/assignments");
+        await expect(page).toHaveURL(/\/student\/membership(?:[?#].*)?$/);
+
+        const summary = page.getByLabel("目前方案摘要");
+        await expect(summary.getByText("英文班離校生", { exact: true })).toBeVisible();
+        await expect(summary.getByText("基本自主學習會員", { exact: true })).toBeVisible();
+        await expect(summary.getByText("已到期", { exact: true })).toBeVisible();
+        await expect(summary.getByText("2026年8月30日", { exact: true })).toBeVisible();
+        await expect(summary.getByText("無期限", { exact: true })).toHaveCount(0);
+        await expect(page.getByText("0／6", { exact: true })).toBeVisible();
+    });
+});

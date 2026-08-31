@@ -1,6 +1,6 @@
 # Alan English UI／UX 導覽與角色驗收表
 
-最後更新日期：2026-08-30
+最後更新日期：2026-08-31
 
 本文件搭配 `tests/e2e/` 的 Playwright 測試使用。自動測試負責攔截路由、重新導向、404、瀏覽器執行期錯誤及基本角色入口問題；真實學生、家長與工作人員的操作理解仍需依本表進行人工驗收。
 
@@ -52,6 +52,7 @@ $env:E2E_BASE_URL="https://alanenglish.com.tw"
 $env:E2E_BASIC_IDENTIFIER="一般會員測試帳號"
 $env:E2E_ACADEMY_IDENTIFIER="在校生測試帳號"
 $env:E2E_ALUMNI_IDENTIFIER="離校生測試帳號"
+$env:E2E_EXPIRED_ALUMNI_IDENTIFIER="離校且方案已到期測試帳號"
 $env:E2E_PLAN_PASSWORD="共用測試密碼"
 # 僅在已建立可見測試作業時啟用，強制至少回傳一份在校生班級作業
 $env:E2E_REQUIRE_ACADEMY_ASSIGNMENT="true"
@@ -59,12 +60,13 @@ npm run test:e2e:entitlements
 $testExitCode = $LASTEXITCODE
 Remove-Item Env:E2E_BASE_URL, Env:E2E_BASIC_IDENTIFIER
 Remove-Item Env:E2E_ACADEMY_IDENTIFIER, Env:E2E_ALUMNI_IDENTIFIER
+Remove-Item Env:E2E_EXPIRED_ALUMNI_IDENTIFIER
 Remove-Item Env:E2E_PLAN_PASSWORD, Env:E2E_REQUIRE_ACADEMY_ASSIGNMENT
 Remove-Item -Recurse -Force test-results -ErrorAction SilentlyContinue
 exit $testExitCode
 ```
 
-此組測試會直接驗證 Edge Function 回應：未授權作業不能只靠前端隱藏；直接輸入未取得教材的網址也必須回傳 `book_entitlement_required`。平時未建立可見測試作業時，仍會驗證在校生可安全呼叫作業服務，且所有回傳作業都符合目前班級；臨時 fixture 存在時設定 `E2E_REQUIRE_ACADEMY_ASSIGNMENT=true`，可額外強制至少回傳一份作業。有帳密的測試預設關閉 trace、截圖、影片及 HTML 報告，測試結束仍應清除 `test-results`。
+此組測試會直接驗證 Edge Function 回應：未授權作業不能只靠前端隱藏；直接輸入未取得教材的網址也必須回傳 `book_entitlement_required`。離校且方案已到期的帳號會另外驗證受保護學習頁導回會員中心、沒有今日作業入口、摘要顯示實際到期日而非「無期限」，且目前可用功能為 0／6。平時未建立可見測試作業時，仍會驗證在校生可安全呼叫作業服務，且所有回傳作業都符合目前班級；臨時 fixture 存在時設定 `E2E_REQUIRE_ACADEMY_ASSIGNMENT=true`，可額外強制至少回傳一份作業。有帳密的測試預設關閉 trace、截圖、影片及 HTML 報告，測試結束仍應清除 `test-results`。
 
 ## 2. 自動測試涵蓋範圍
 
@@ -84,6 +86,7 @@ exit $testExitCode
 | ENT-A03 | 離校歷史 | 狀態為離校，且 `enrollment_history` 仍有歷史紀錄 |
 | ENT-A04 | 教材目錄 | 所有可開啟教材都具有有效 entitlement |
 | ENT-A05 | 直接輸入未授權教材網址 | Edge Function 回傳 403，不提供教材與音檔資料 |
+| ENT-A06 | 離校且方案已到期 | 學習頁導回會員中心，顯示實際到期日、已到期及 0／6，不顯示無期限 |
 | RWD-A01 | 桌面 Chromium | 使用 1600×900 驗證桌面 Navbar |
 | RWD-A02 | 手機 Chromium | 使用 Pixel 5 裝置設定驗證手機寬度 |
 
