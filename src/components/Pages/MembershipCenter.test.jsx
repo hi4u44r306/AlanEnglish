@@ -104,6 +104,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(await screen.findByRole("heading", { name: "我的教材與功能" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "目前可用功能" })).toBeInTheDocument();
         expect(screen.getByText("教材附贈 90 天")).toBeInTheDocument();
+        expect(screen.getByText("一般會員")).toBeInTheDocument();
         expect(screen.getByText("使用中")).toBeInTheDocument();
         expect(screen.getByText("2026年10月15日")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /Workbook 1/ })).toHaveAttribute("href", "/student/books/Workbook_1");
@@ -221,13 +222,49 @@ describe("MembershipCenter AI add-on", () => {
             </MemoryRouter>
         );
 
-        expect(await screen.findByText("在校使用中")).toBeInTheDocument();
+        expect(await screen.findByText("英文班在校生")).toBeInTheDocument();
+        expect(screen.getByText("使用中")).toBeInTheDocument();
         expect(screen.getByText("英文班在學方案")).toBeInTheDocument();
         expect(screen.getByText("在校期間有效")).toBeInTheDocument();
         expect(screen.getByText("不需另外續費")).toBeInTheDocument();
         expect(screen.queryByText("贈送使用權")).not.toBeInTheDocument();
         expect(screen.queryByText("全方位月訂閱")).not.toBeInTheDocument();
         expect(screen.queryByText("0 天")).not.toBeInTheDocument();
+    });
+
+    it("separates alumni identity from an active self-study membership status", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                learner_type: "academy_student",
+                role: "student",
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    current_period_end: "2026-10-15T00:00:00.000Z",
+                    plan: { name: "基本自主學習會員" },
+                    effective_access: {
+                        learner_type: "academy_student",
+                        plan_codes: ["basic_membership_monthly"],
+                        grants: [{
+                            plan_code: "basic_membership_monthly",
+                            plan_name: "基本自主學習會員",
+                            source: "stripe",
+                            ends_at: "2026-10-15T00:00:00.000Z"
+                        }]
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText("英文班離校生")).toBeInTheDocument();
+        expect(screen.getByText("使用中")).toBeInTheDocument();
+        expect(screen.getAllByText("基本自主學習會員").length).toBeGreaterThan(0);
     });
 
     it("does not describe a subscription pending cancellation as an automatic renewal", async () => {

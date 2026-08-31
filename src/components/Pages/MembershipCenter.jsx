@@ -103,6 +103,18 @@ function MembershipCenter() {
     const isActiveAcademyStudent = membership?.is_active === true
         && membership?.effective_access?.learner_type === "academy_student"
         && activePlanCodes.has("academy_internal");
+    const learnerType = profile?.learner_type || membership?.effective_access?.learner_type || null;
+    const membershipIdentityLabel = profile?.role === "teacher"
+        ? "英文班老師"
+        : profile?.role === "admin"
+            ? "系統管理員"
+            : isActiveAcademyStudent
+                ? "英文班在校生"
+                : learnerType === "academy_student"
+                    ? "英文班離校生"
+                    : learnerType === "trial_user"
+                        ? "七天試用會員"
+                        : "一般會員";
     const effectiveGrants = useMemo(() => membership?.effective_access?.grants || [], [membership]);
     const baseAccessGrants = useMemo(() => effectiveGrants.filter(grant => !isAiAddonPlanCode(grant?.plan_code)), [effectiveGrants]);
     const primaryBaseGrant = useMemo(() => (
@@ -112,11 +124,6 @@ function MembershipCenter() {
         || null
     ), [baseAccessGrants]);
     const hasUnlimitedBaseAccess = baseAccessGrants.some(grant => !grant?.ends_at);
-    const membershipStatusLabel = isActiveAcademyStudent
-        ? "在校使用中"
-        : membership?.is_active === true
-            ? "使用中"
-            : STATUS_LABELS[membership?.status] || membership?.status || "尚未啟用";
     const membershipPlanLabel = isActiveAcademyStudent
         ? academyGrant?.plan_name || "英文班在學方案"
         : primaryBaseGrant?.plan_name || membership?.plan?.name || "尚未選擇方案";
@@ -127,6 +134,17 @@ function MembershipCenter() {
             || membership?.effective_access_end
             || null;
     const baseDaysRemaining = getDaysRemaining(baseAccessEnd);
+    const membershipStatusLabel = ["pending_verification", "trialing", "past_due", "suspended"].includes(membership?.status)
+        ? STATUS_LABELS[membership.status]
+        : membership?.is_active === true && (membership?.cancel_at_period_end === true || membership?.status === "cancelled")
+            ? STATUS_LABELS.cancelled
+            : membership?.is_active === true && baseDaysRemaining !== null && baseDaysRemaining <= 7
+                ? "即將到期"
+                : membership?.is_active === true
+                    ? "使用中"
+                    : membership?.status === "cancelled"
+                        ? STATUS_LABELS.expired
+                    : STATUS_LABELS[membership?.status] || membership?.status || "尚未啟用";
     const displayedAccessEnd = isActiveAcademyStudent
         ? "在校期間有效"
         : hasUnlimitedBaseAccess
@@ -254,8 +272,9 @@ function MembershipCenter() {
             <header className="membership-page-header">
                 <div className="membership-page-title"><span className="platform-eyebrow">MY ACCESS</span><h1>我的教材與功能</h1><p>快速確認目前方案、可用功能與已取得教材。</p></div>
                 <dl className={`membership-access-summary ${membership?.is_active ? "is-active" : "is-expired"}`} aria-label="目前方案摘要">
+                    <div><dt>會員身分</dt><dd>{membershipIdentityLabel}</dd></div>
                     <div><dt>目前方案</dt><dd>{membershipPlanLabel}</dd></div>
-                    <div><dt>狀態</dt><dd>{membershipStatusLabel}</dd></div>
+                    <div><dt>使用狀態</dt><dd>{membershipStatusLabel}</dd></div>
                     <div><dt>{isActiveAcademyStudent ? "使用期間" : "可使用至"}</dt><dd>{displayedAccessEnd}<small>{displayedDaysRemaining}</small></dd></div>
                 </dl>
             </header>

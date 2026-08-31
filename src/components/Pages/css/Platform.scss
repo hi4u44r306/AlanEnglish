@@ -83,7 +83,7 @@
 .membership-page-header { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(560px, 1.2fr); align-items: center; gap: 28px; margin-bottom: 18px; }
 .membership-page-title h1 { margin: 4px 0 5px; font-size: clamp(27px, 3vw, 34px); letter-spacing: -.035em; }
 .membership-page-title p { margin: 0; color: var(--ae-muted); font-size: 14px; }
-.membership-access-summary { display: grid; grid-template-columns: 1.25fr .72fr 1fr; margin: 0; overflow: hidden; border: 1px solid var(--ae-line); border-top: 4px solid #98a2b3; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(25, 39, 73, .07); }
+.membership-access-summary { display: grid; grid-template-columns: 1.08fr 1.35fr .82fr 1fr; margin: 0; overflow: hidden; border: 1px solid var(--ae-line); border-top: 4px solid #98a2b3; border-radius: 18px; background: #fff; box-shadow: 0 10px 30px rgba(25, 39, 73, .07); }
 .membership-access-summary.is-active { border-top-color: #12b76a; }
 .membership-access-summary.is-expired { border-top-color: #f04438; }
 .membership-access-summary > div { display: grid; align-content: center; gap: 3px; min-width: 0; min-height: 76px; padding: 13px 18px; border-left: 1px solid var(--ae-line); }
