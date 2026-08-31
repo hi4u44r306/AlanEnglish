@@ -267,6 +267,47 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getAllByText("基本自主學習會員").length).toBeGreaterThan(0);
     });
 
+    it("shows the recorded end date for an expired alumni membership", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                learner_type: "academy_student",
+                role: "student",
+                membership: {
+                    status: "expired",
+                    is_active: false,
+                    access_ends_at: "2026-08-30T00:00:00.000Z",
+                    effective_access_end: null,
+                    plan: { name: "基本自主學習會員" },
+                    effective_access: {
+                        learner_type: "academy_student",
+                        plan_codes: [],
+                        grants: [],
+                        features: {
+                            listening: false,
+                            conversation: false,
+                            review: false,
+                            assignments: false,
+                            ai_materials: false
+                        }
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText("英文班離校生")).toBeInTheDocument();
+        expect(screen.getAllByText("基本自主學習會員").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("已到期").length).toBeGreaterThan(0);
+        expect(screen.getByText("2026年8月30日")).toBeInTheDocument();
+        expect(screen.getByText("0／6")).toBeInTheDocument();
+        expect(screen.queryByText("無期限")).not.toBeInTheDocument();
+    });
+
     it("does not describe a subscription pending cancellation as an automatic renewal", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {

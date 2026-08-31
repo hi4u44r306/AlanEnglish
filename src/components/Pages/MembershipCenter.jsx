@@ -131,9 +131,13 @@ function MembershipCenter() {
         ? null
         : getLatestGrantEnd(baseAccessGrants)
             || membership?.current_period_end
+            || membership?.access_ends_at
+            || membership?.trial_ends_at
             || membership?.effective_access_end
             || null;
     const baseDaysRemaining = getDaysRemaining(baseAccessEnd);
+    const hasEndedMembership = membership?.is_active !== true
+        && ["expired", "cancelled"].includes(membership?.status);
     const membershipStatusLabel = ["pending_verification", "trialing", "past_due", "suspended"].includes(membership?.status)
         ? STATUS_LABELS[membership.status]
         : membership?.is_active === true && (membership?.cancel_at_period_end === true || membership?.status === "cancelled")
@@ -149,14 +153,20 @@ function MembershipCenter() {
         ? "在校期間有效"
         : hasUnlimitedBaseAccess
             ? "無期限"
-            : formatDate(baseAccessEnd);
+            : baseAccessEnd
+                ? formatDate(baseAccessEnd)
+                : hasEndedMembership
+                    ? "已結束"
+                    : "無期限";
     const displayedDaysRemaining = isActiveAcademyStudent
         ? "不需另外續費"
         : hasUnlimitedBaseAccess
             ? "永久保留"
-            : baseDaysRemaining == null
-            ? membership?.days_remaining == null ? "無期限" : `${membership.days_remaining} 天`
-            : `${baseDaysRemaining} 天`;
+            : hasEndedMembership
+                ? "已到期"
+                : baseDaysRemaining == null
+                    ? membership?.days_remaining == null ? "無期限" : `${membership.days_remaining} 天`
+                    : `${baseDaysRemaining} 天`;
     const hasAiAddon = hasAiAddonPlan([...activePlanCodes]);
     const aiAddonGrant = useMemo(() => (
         membership?.effective_access?.grants?.find(grant => isAiAddonPlanCode(grant?.plan_code)) || null

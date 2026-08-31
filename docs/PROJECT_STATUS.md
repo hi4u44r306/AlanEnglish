@@ -4,7 +4,8 @@
 
 本次進行中（2026-08-31）：
 
-- 付費試用會員身分同步：分支 `codex/fix-trial-member-identity` 已推送並建立 PR #72；additive migration `promote_paid_trial_members` 已套用正式 Supabase。當 `trial_user` 的 `basic_membership_monthly` 真正啟用／已有付款紀錄，或教材訂單確認為 `paid`，資料庫會自動轉為 `textbook_customer`；更新條件只鎖定 `trial_user`，不覆蓋 `academy_student`、在校／離校紀錄或教材權限。正式回填影響 1 位，套用後 `aeplanbasic` 的資料庫與 effective access 都是 `textbook_customer`，待校正數量為 0；兩個 trigger 均啟用，函式採 `security invoker` 且 `anon`／`authenticated` 無執行權限。固定測試站會員頁重新整理後已驗收「一般會員／基本自主學習會員／使用中」，Workbook 1 與 Listening 1 仍可見。商務契約 23/23、`git diff --check` 與 Production build 已成功；Supabase Advisor 沒有本次 trigger／函式相關提示。PR 尚未合併 `main`。
+- 離校已到期會員摘要：分支 `codex/fix-expired-membership-period` 已推送並建立 PR #73。會員頁在有效 grant 已結束後改用會員紀錄的 `current_period_end`、`access_ends_at` 或 `trial_ends_at` 顯示實際結束日；已到期且歷史資料沒有日期時顯示「已結束」，不再誤顯示「無期限」。既有 Playwright 導覽與三種學生權限測試已整合，並新增離校且方案已到期的專用驗收情境。會員中心 9/9、Navbar 5/5 通過；Playwright 桌面／手機共 8 個權限案例可正確載入，Production build 與 `git diff --check` 成功。固定測試站 deploy `6a952b89db316a425c46ba12` 已發布並確認載入新版 `main.57d27a85.js`；尚待以離校到期學生登入完成畫面驗收，尚未合併 `main` 或部署正式站。
+- 付費試用會員身分同步：分支 `codex/fix-trial-member-identity` 已推送並建立 PR #72；additive migration `promote_paid_trial_members` 已套用正式 Supabase。當 `trial_user` 的 `basic_membership_monthly` 真正啟用／已有付款紀錄，或教材訂單確認為 `paid`，資料庫會自動轉為 `textbook_customer`；更新條件只鎖定 `trial_user`，不覆蓋 `academy_student`、在校／離校紀錄或教材權限。正式回填影響 1 位，套用後 `aeplanbasic` 的資料庫與 effective access 都是 `textbook_customer`，待校正數量為 0；兩個 trigger 均啟用，函式採 `security invoker` 且 `anon`／`authenticated` 無執行權限。固定測試站會員頁重新整理後已驗收「一般會員／基本自主學習會員／使用中」，Workbook 1 與 Listening 1 仍可見。商務契約 23/23、`git diff --check` 與 Production build 已成功；Supabase Advisor 沒有本次 trigger／函式相關提示。PR #72 已合併至正式 `main` commit `306687a`。
 - 一般會員教材入口與會員頁排版：PR #70 已合併至正式 `main` commit `6a4f9c8`。Navbar 依 `content-access` 回傳結果，只把已解鎖教材加入學生桌面「我的教材」下拉選單及手機 Sidebar；原「教材與功能」入口改名為「方案與功能」。`MembershipCenter` 頂端縮成會員身分、目前方案、使用狀態、到期日／剩餘天數摘要；會員身分分為一般會員、英文班在校生、英文班離校生及七天試用會員，避免三種有效帳號都只顯示「使用中」。已開通功能改為緊湊清單，尚未開通功能集中提示，英文班作業明確標示為在校生專屬；NT$299 基本會員及 NT$499「AI 教材與發音練習」緊接功能清單。永久基礎教材權限不會誤用短期 AI 加購的到期日。相關 2 個 test suites／13 個案例、`git diff --check` 與 production build 已成功；固定測試站 deploy `6a94d846e75f979ceaf03a86` 已驗收。真實離校會員摘要正確同時顯示「英文班離校生」、「基本自主學習會員」及「已取消，期限前可使用」；1600×900 與 412×915 無水平溢位，Console 無 error。PR #71 已合併至正式 `main` commit `2632a9b`，Netlify production deploy `6a94dacf2dd21d00082857d1` 已發布且為 `ready`，正式 bundle 已確認包含會員身分、離校生、我的教材與 AI 教材／發音方案文字；正式站發布閘門已解除。
 
 本次進行中（2026-08-30）：
@@ -31,7 +32,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-正式基準 commit：`29ca1a25`（PR #69）
+正式基準 commit：`306687a`（PR #72）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
@@ -45,6 +46,26 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 - `public/ae-icon.jpeg` 保持不變；若正式站效果不理想，可撤回 PR #63 的獨立 favicon 變更完整回復。
 - `git diff --check`、Production build（含 4 個公開路由 SEO HTML）與本機瀏覽器引用驗證成功；正式 `favicon-32x32.png` 回應 HTTP 200，SHA-256 與本機新版完全一致，正式頁面載入新版 32px／16px／ICO／Apple Touch Icon，Console 0 errors。
 - 白邊修正 PR #65 已合併至 `main` merge commit `7dbe705` 並由 Netlify production 發布：外圍白色畫布改為真正透明，保留白色 A 與原有 AE 圖示；已重新輸出 PNG、ICO、Apple Touch Icon 與 Web App 圖示。`git diff --check` 與 Production build（含 4 個公開路由 SEO HTML）成功；正式 `favicon-32x32.png` 回應 HTTP 200、SHA-256 與本機透明版一致，四個角的 alpha 均為 0。
+
+### UI／UX Playwright 導覽測試（2026-08-28）
+
+- 分支：`codex/playwright-navigation-tests`，尚未 push、建立 PR 或部署。
+- 新增 Playwright 桌面 1600×900 與手機 412×915 Chromium 測試，涵蓋公開頁面、公開頁站內連結、舊路由重新導向、正式 404，以及未登入時 34 個受保護路由必須回到登入頁。
+- 新增學生、老師與管理員登入後的入口顯示、允許路由及直接輸入未授權網址測試；帳密只接受 Shell 環境變數，沒有專用測試帳密時安全略過，不建立或修改遠端學生資料。
+- 新增 `docs/UI_UX_ROLE_ACCEPTANCE.md`，提供訪客、英文班學生、試用者、教材購買者、離校生、老師及管理員的桌面／412px／iPhone Safari 驗收表。
+- 驗證結果：Playwright 公開／未登入測試 30 個通過；2026-08-28 再以既有的一般會員、在校生、離校生三個專用測試帳號對正式網站執行學生角色導覽，桌面與 412px 共 18 個案例全部通過。`MainNavbar.test.jsx` 3 個案例通過；Production build 成功。
+- 本機 `127.0.0.1` 登入會被既有 Firebase API Key referrer 限制正確拒絕；角色登入測試需設定 `E2E_BASE_URL` 指向允許的 Deploy Preview 或正式網域，不放寬 Firebase 限制。
+- 帳密測試會停用 trace、影片、截圖與 HTML 報告，送出登入後立即清空密碼欄，避免失敗快照保存明文；測試結束保留真正的 Playwright exit code再清除環境變數。
+- 尚待驗證：老師／管理員專用帳號的 10 個角色案例，以及 iPhone Safari 實機 safe area、鍵盤與音檔行為。
+
+### 三種學生方案 Playwright 權限驗收（2026-08-30）
+
+- 分支：`codex/playwright-entitlement-tests`，基於 `origin/main` commit `9eea338`；尚未 push、建立 PR 或部署。
+- 新增一般會員、英文班在校生與英文班離校生的作業、就讀歷史及教材 entitlement 測試，桌面 1600×900 與手機 412×915 共 6 個案例；直接驗證 `assignment-manager`、`commerce-manager`、`content-access` 的回應，不只檢查前端入口是否隱藏。
+- 初次正式站結果為 4/6：一般會員與離校生在桌面／手機均無今日作業入口，作業 Edge Function 拒絕回傳新作業；離校生狀態與 `enrollment_history` 仍保留；未授權教材直接輸入網址會回傳 403 `book_entitlement_required`。兩個失敗均因 E3 沒有班級教材設定。
+- 經使用者明確同意後，正式 Supabase 建立 E3 班級教材版本 1，自 2026-08-30 生效，教材為 `Workbook_3` 與 `SER_3`，並寫入 class material audit；建立一份 E2E 臨時聽力作業後，以強制至少回傳一份作業的斷言完成驗收（後續整理為 `E2E_REQUIRE_ACADEMY_ASSIGNMENT=true` 開關）。正式站桌面／412px 三種帳號共 6/6 通過後，臨時作業已停用；E3 兩本班級教材設定保留。
+- 臨時作業停用後再以最終測試版本執行正式站回歸，桌面／412px 仍為 6/6 通過；此時在校生驗證作業服務成功與班級隔離，教材則驗證 E3 班級教材可開啟。需要再次驗收實際作業顯示時，先建立明確的臨時 fixture 並設定 `E2E_REQUIRE_ACADEMY_ASSIGNMENT=true`。
+- 相關 React 測試 6/6 通過；Production build 成功並產生 4 個公開路由 SEO HTML；`git diff --check` 通過。帳密未寫入 Repository，測試後 `test-results` 已清除。
 
 ## 已部署：會員續用、班級教材與教材商品包
 
@@ -531,6 +552,33 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 6. 音檔上傳、R2 搬移與 rollback
 7. Navbar、Guided Tour、TTS component tests
 8. Playwright responsive、Stripe、Storage 與完整 Production E2E
+
+### P2 未來規劃：好友、戰績與社交競賽（尚未開始）
+
+產品方向：讓學生在安全、雙方同意的前提下加入好友，查看彼此的學習戰績；資料與互動基礎穩定後，再評估 PK 賽與合作型比賽。此項目目前只記錄需求，尚未建立資料表、API、Edge Function、頁面或部署。
+
+第一階段「好友與戰績」預計包含：
+
+1. 使用不暴露 Email、生日、家長資料或真實班級的方式搜尋／邀請好友；採好友邀請、接受或拒絕的雙向確認流程，不允許單方面直接追蹤。
+2. 提供好友名單、待處理邀請、解除好友、封鎖與檢舉；封鎖後雙方不得查看戰績、傳送邀請或發起比賽。
+3. 好友戰績預設只顯示安全的學習摘要，例如頭像、顯示名稱、等級、XP、學習連續天數、已完成任務及未來比賽紀錄；不得顯示 Email、生日、家長聯絡方式、登入時間或其他敏感個資。
+4. 戰績只能使用後端已驗證的學習、作業與遊戲結果統計，前端不得自行提交或竄改勝敗、XP、AE Points 或完成數。
+5. 提供「誰可以看我的戰績」隱私設定，至少區分只有自己與好友可見；管理員依安全及客服需要保留稽核能力。
+6. 好友邀請、搜尋與檢舉需有頻率限制、重複邀請防護、通知去重及管理稽核，並考慮國小學生使用情境與騷擾防護。
+
+第二階段「PK 賽」候選方向：
+
+- 可先評估非同步答題 PK，再決定是否需要即時對戰；題目難度、題數、時間與計分必須公平，斷線、逾時、重複送出與作弊情境需由後端裁定。
+- 邀戰只能在好友或明確允許的配對範圍內進行，對方必須接受；必須可以拒絕、封鎖及關閉邀戰通知。
+- 勝敗、連勝、對戰次數與排行榜展示方式仍待確認；不得先承諾扣除或押注 AE Points，也不得讓獎勵機制鼓勵付費優勢。
+
+第三階段「合作型比賽」候選方向：
+
+- 好友可組隊完成共同答題、聽力或班級任務，評分以共同目標、每位成員的有效貢獻及完成品質為主。
+- 需防止單一成員代打或掛機，並清楚顯示個人貢獻、團隊進度、任務期限與獎勵規則。
+- 是否支援跨班、公開隊伍、老師建立活動及家長可見報告仍待產品確認。
+
+開始實作前必須先確認：好友搜尋識別方式、戰績可見欄位、封鎖／檢舉處理流程、PK 採非同步或即時、計分與獎勵規則、合作賽組隊限制，以及未成年使用者的隱私與家長／老師管理邊界。資料層必須採 additive migration、RLS 與 Firebase Token 驗證 Edge Function；不得讓前端直接讀取所有學生資料。此功能排在目前測試站已驗收內容同步正式站之後，正式站尚未更新前不開始功能實作。
 
 ## 13. 已知注意事項
 
