@@ -4,6 +4,7 @@
 
 本次進行中（2026-09-01）：
 
+- 商品、價格與聽力權限單純化（本批正式發布）：NT$299 基本自主學習會員及英文班在校方案改為可使用全部已啟用的正式聽力教材，仍不包含 AI 或跨班作業；教材包附贈 90 天／開通碼等限制型權限才逐本檢查 entitlement。AI 新訂閱統一為 `ai_materials_addon_monthly` NT$499，「AI Premium」維持稱號，重複的一般會員 AI 代碼與兩個舊月費方案改為停用歷史資料。教材包改為單一售價、每次購買固定附贈 90 天，且必須各有一本課本、Workbook、聽力本及一組 Stripe 測試 Product／Price 才能上架；既有只有兩本的 Level 1 測試商品會安全退回草稿，不刪除既有訂單或權限。後台新增課本欄位並依教材分類篩選。Additive migration、`content-access`、`record-play`、`commerce-manager`、`billing-manager`、`membership-manager` 與 Netlify production 隨本批部署；正式 Stripe live 商品／Price 仍未建立，網站明示目前為測試付款。
 - 當天誤選教材移除介面（正式站已部署）：PR #84 已合併至 `main` commit `e19887e8`，Netlify production deploy `6a96c8293f85f60008d0339c` 已為 ready。班級教材後端原本已能以修正後完整清單移除今天版本的誤選教材；本批補上獨立的「修正後保留的教材」清單與每本「移除」按鈕，預覽會明確說明學生不再透過目前班級版本取得移除教材。自行購買、管理員贈送、開通碼及真正歷史教材的獨立 entitlement 不受影響。正式 E3 已驗收顯示 Workbook 4、Listening 4 的逐本移除按鈕，未點擊移除、預覽或二次確認，E3 資料未因驗收改動。取代誤選教材的元件案例與教材管理頁共 4/4、全前端 34 suites／99 tests、Production build 及 `git diff --check` 均成功。
 - 當天教材版本修正（正式站已部署）：PR #82 已合併至 `main` commit `2efcd21e`，additive migration `correct_current_class_materials` 已套用，`commerce-manager` v10 為 ACTIVE，Netlify production deploy `6a96c25547f5b3000760339f` 已為 ready。正式 E3 已由管理員於 2026-09-01 建立第 2 版「2026 秋季」，目前教材仍為 Workbook 3、Super Easy Reading 3；本批新增「修正目前版本」模式，只允許管理員修正台北日期今天建立且目前生效的同一設定，可在同一天重複修正，每次須用最新 `updated_at` 重新預覽與二次確認；同一交易替換教材清單、更新學期名稱並寫入 `corrected` 前後快照，不建立重疊版本、不修改永久 entitlement、不刪除學習紀錄或作業快照。正式站第一次修正預覽以新增 Listening 3 驗證，正確顯示 1 位在校生與 0 份既有有效作業；未按下二次確認，資料庫 `corrected` 稽核筆數仍為 0，E3 正式教材未被修改。當天連續修正兩次的元件測試 1/1、教材管理頁 3/3、商務契約 35/35、全前端 34 suites／98 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功。
 - 新學期教材換版精靈（正式站已部署）：PR #80 已合併至 `main` commit `a05d964`。正式 `commerce-manager` 日誌確認原「教材商務服務無法使用」來自 `academy_enrollments` 對 `students` 有多個外鍵時使用模糊 embed，載入查詢已改用明確 `academy_enrollments_student_id_fkey`。管理員頁改為三步驟精靈，換版只允許在台北日期的生效當天執行；預覽會分列全部歷史教材永久保留、下學期教材、相較上一版增減項目、受影響學生與既有作業。正式 additive migration `term_material_rollover_entitlements` 已成功套用，新增的兩個 RPC 為 `security invoker`，`anon`／`authenticated` 均不可執行且只有 `service_role` 可執行；同一交易會盤點截至前一天的全部歷史教材版本、作業快照及有效播放證據，按 enrollment 建立可重複執行的永久 `academy_history` entitlement，再結束舊版、建立新版與 audit。`commerce-manager` v9 為 ACTIVE，OPTIONS 與公開方案 POST 均回應 200；Netlify production deploy `6a96764e8a43f10008bbea78` 已為 ready。正式 E3 唯讀預覽顯示 2 本歷史教材、3 位歷史學生、6 筆預計保留權限、1 位目前在校生及 0 份有效作業，頁面 Console 無 error／warning；依本批授權未按「二次確認並建立版本」，資料庫再次確認今日新增教材版本、換版 entitlement 與換版 audit 均為 0。商務契約 32/32、全前端 34 suites／97 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功。
@@ -44,7 +45,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-正式基準 commit：`59acc294`（PR #78）
+本批開發基準 commit：`c4a5364`（開始實作時的 `origin/main`）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
@@ -85,12 +86,12 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 - 教材擁有權與網站使用權分開。購買／兌換教材永久保留教材擁有權與歷史紀錄，另附自兌換日起 90 天網站使用權，且不自動續費。
 - 七天試用不需信用卡、不自動續費，只能使用獨立體驗內容，不能查看正式教材或英文班作業。
-- 基本會員每月 NT$299，只延續已擁有教材的網站功能，不包含新實體教材，也不解鎖下一級；「AI 教材與發音練習」為 NT$499／月獨立加購。
+- 基本會員每月 NT$299，可使用全部正式聽力教材、情境會話與智慧複習，不包含實體教材、英文班作業或 AI Premium；「AI 教材與發音練習」為 NT$499／月獨立加購。
 - 教材來源採疊加式 ledger：在校班級、自購、管理員贈送、開通碼與試用互不覆蓋。班級固定 E1、E3、E5、E7。
 - 離校不是停用帳號；班級來源與新作業於生效日結束，自購／贈送教材、XP、AE Points、等級、歷史作業與進度保留。已付款月費與 AI 使用至 `current_period_end`。
 - 月費支援 Customer Portal、本期結束取消、到期前恢復與付款失敗；Checkout 前必須有有效家長 Email。通知事件、學生收件匣、去重鍵與 Email 佇列已納入實作，寄送沿用既有 Resend adapter，未設定 provider 時保留待送。
-- 班級教材設定與教材商品包分開管理。商品包必須有一本 Workbook、一本聽力本、完整價格及 Stripe 測試 Product／Price 才能上架。
-- 三本組合教材包的一般售價已確認為 NT$1,380；有效會員教材價尚未確認，不得猜測或建立正式 Price。目前已建立一組同價 NT$1,380 的 Stripe 沙盒 Level 1 試賣商品供購買流程驗收，正式上線前仍須另建確認後的會員價 Price。
+- 班級教材設定與教材商品包分開管理。商品包必須各有一本課本、一本 Workbook、一本聽力本、單一售價及 Stripe 測試 Product／Price 才能上架。
+- 三本組合教材包目前單一售價為 NT$1,380，不另設會員價；既有缺課本的 Level 1 沙盒商品退回草稿，補齊課本並重新核對內容後才能上架。正式收款仍須另建 Stripe live 商品與 Price。
 - 目前不建立年費。累積月費續訂率、取消原因與客服資料後，才評估年費的折扣、退款、教材升級與客服成本條件。
 
 Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentication、Supabase、Cloudflare R2 與 Netlify 的產品化階段。

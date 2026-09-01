@@ -84,6 +84,7 @@ async function isTrackAuthorized(admin: any, student: any, effectiveAccess: any,
     return effectiveAccess.learner_type === "trial_user" && effectiveAccess.plan_codes.includes("trial_7_day");
   }
   if (book.content_scope !== "formal") return false;
+  if (effectiveAccess.features.requires_book_entitlement !== true) return true;
   const now = new Date().toISOString(), today = now.slice(0, 10);
   const direct = await admin.from("student_book_entitlements").select("id").eq("student_id", student.id)
     .eq("book_id", book.id).eq("status", "active").lte("starts_at", now).is("revoked_at", null)

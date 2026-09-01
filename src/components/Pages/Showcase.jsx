@@ -50,8 +50,8 @@ const features = [
 const learningSteps = [
     { number: "01", title: "免費體驗", text: "先用 7 天體驗聽力、AI 教材與自主學習流程。" },
     { number: "02", title: "選擇教材", text: "依孩子目前程度選擇 E1、E3、E5 或 E7 教材。" },
-    { number: "03", title: "開通 90 天", text: "購買教材後輸入專屬開通碼，從兌換日開始使用 90 天。" },
-    { number: "04", title: "決定是否續用", text: "90 天到期後，可選擇每月 NT$299 延續已擁有教材；AI 教材與發音練習可另外加購。" }
+    { number: "03", title: "開通 90 天", text: "學習平台直接付款會在確認收款後開通；商城訂單可用已驗證的同一 Email 學習帳號領取。" },
+    { number: "04", title: "決定是否續用", text: "90 天到期後，可選擇每月 NT$299 使用全部正式聽力教材；AI 教材與發音練習可另外加購。" }
 ];
 
 const plans = [
@@ -84,8 +84,8 @@ const plans = [
         name: "一般自主學習會員",
         price: "NT$299",
         period: "／月",
-        description: "適合教材 90 天權限結束後，希望繼續使用已擁有教材的家庭；不包含新教材。",
-        points: ["延續已購／已開通教材", "包含情境會話與智慧複習", "AI 教材與發音練習可加購 NT$499／月"],
+        description: "適合希望持續自主學習的家庭，可使用全部正式聽力教材；不包含實體教材、英文班作業或 AI Premium。",
+        points: ["全部正式聽力教材", "包含情境會話與智慧複習", "AI 教材與發音練習可加購 NT$499／月"],
         action: "先免費體驗",
         href: "/materials",
         badge: "",
@@ -94,10 +94,10 @@ const plans = [
     {
         label: "Alan English 英文班",
         name: "在校／離校方案",
-        price: "在校免費",
-        period: "離校後 NT$299／月",
-        description: "英文班學生在校期間免費使用；離校後仍可用優惠價繼續自主學習。",
-        points: ["在校期間包含班級作業", "AI 教材與發音練習 NT$499／月", "離校會員 299＋AI 499＝798／月"],
+        price: "NT$2,800",
+        period: "／月，已含平台",
+        description: "英文班月費已包含全部正式聽力教材與所屬班級作業；離校後可改訂 NT$299 自主學習。",
+        points: ["在校期間包含全部正式聽力與班級作業", "AI 教材與發音練習 NT$499／月", "離校會員 299＋AI 499＝798／月"],
         action: "學生登入",
         href: "/login",
         badge: "英文班專屬",
@@ -111,7 +111,7 @@ const planComparison = [
         trial: "免費",
         textbook: "教材售價內含",
         regular: "NT$299／月",
-        academy: "在校免費／離校 NT$299"
+        academy: "在校 NT$2,800／月；離校 NT$299"
     },
     {
         label: "AI 教材與發音練習",
@@ -131,8 +131,8 @@ const planComparison = [
         label: "教材範圍",
         trial: "體驗內容",
         textbook: "已購買教材",
-        regular: "已開通教材",
-        academy: "依班級與個人權限"
+        regular: "全部正式聽力教材",
+        academy: "全部正式聽力教材"
     },
     {
         label: "班級作業",
@@ -161,7 +161,7 @@ const faqs = [
     },
     {
         question: "購買教材為什麼會送 90 天網站權限？",
-        answer: "購買實體教材後輸入專屬開通碼，即可從開通當天開始使用對應教材、音檔、進度與智慧複習功能 90 天；AI 教材與發音練習為獨立加購功能。"
+        answer: "購買三本實體教材包後，學習平台直接付款會在確認收款後開始 90 天；商城已付款訂單則可在建立並驗證同一 Email 的學習帳號後領取。兩種方式都只開放商品包內教材；AI 教材與發音練習為獨立加購功能。"
     },
     {
         question: "教材 90 天權限到期後會自動扣款嗎？",
@@ -169,11 +169,11 @@ const faqs = [
     },
     {
         question: "英文班學生也需要購買會員嗎？",
-        answer: "不需要。Alan English 英文班學生在校期間免費使用核心網站並可收到老師安排的班級作業；AI 教材與發音練習可選擇每月 NT$499 加購。"
+        answer: "英文班月費目前為 NT$2,800，已包含核心網站、全部正式聽力教材與老師安排的所屬班級作業，不需要再購買 NT$299 基本會員；AI 教材與發音練習可選擇每月 NT$499 加購。"
     },
     {
         question: "英文班學生離校後還能繼續使用嗎？",
-        answer: "可以。離校後會保留原有學習紀錄，家長可選擇每月 NT$299 的基本會員繼續自主學習；若再加購每月 NT$499 的 AI 教材與發音練習，合計每月 NT$798，但不會再收到新的班級作業。"
+        answer: "可以。離校後會保留原有學習紀錄，家長可選擇每月 NT$299 的基本會員使用全部正式聽力教材；若再加購每月 NT$499 的 AI 教材與發音練習，合計每月 NT$798，但不會再收到新的班級作業。"
     },
     {
         question: "手機和平板可以使用嗎？",
@@ -360,7 +360,7 @@ const Showcase = () => {
                                 <h3>英文班學生</h3>
                                 <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生或家長自行設定密碼與驗證 Email。</p>
                                 <ul>
-                                    <li><span>✓</span> 在學期間免費使用</li>
+                                    <li><span>✓</span> NT$2,800 英文班月費已含平台</li>
                                     <li><span>✓</span> 接收老師發布的班級作業</li>
                                     <li><span>✓</span> 老師可以追蹤完成狀態</li>
                                 </ul>
@@ -422,7 +422,7 @@ const Showcase = () => {
                         <div className="showcase-section-heading showcase-section-heading-center">
                             <span className="showcase-kicker">CHOOSE YOUR PLAN</span>
                             <h2>先免費體驗，再購買適合孩子的教材。</h2>
-                            <p>購買教材永久保留教材擁有權，並附贈 90 天網站權限；到期後再決定是否以每月 NT$299 延續已擁有教材，AI 教材與發音練習可另外加購。</p>
+                            <p>購買三本教材包永久保留課本、Workbook 與聽力本的線上擁有權，並附贈 90 天網站權限；到期後可選擇每月 NT$299 使用全部正式聽力教材，AI 教材與發音練習可另外加購。</p>
                         </div>
                         <div className="showcase-trial-banner">
                             <div className="showcase-trial-copy">
