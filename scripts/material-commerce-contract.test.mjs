@@ -6,6 +6,7 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8"
 const migration = read("supabase/migrations/20260826233335_membership_class_material_commerce.sql");
 const hardeningMigration = read("supabase/migrations/20260827013903_membership_commerce_authorization_hardening.sql");
 const paidMemberIdentityMigration = read("supabase/migrations/20260831024923_promote_paid_trial_members.sql");
+const departedMaterialsMigration = read("supabase/migrations/20260901030505_preserve_departed_academy_materials.sql");
 const commerce = read("supabase/functions/commerce-manager/index.ts");
 const content = read("supabase/functions/content-access/index.ts");
 const recordPlay = read("supabase/functions/record-play/index.ts");
@@ -18,6 +19,7 @@ const guardianEmail = read("supabase/functions/guardian-email/index.ts");
 const routes = read("src/app/App.jsx");
 const player = read("src/components/fragment/MusicPlayer.jsx");
 const billingResult = read("src/components/Pages/BillingResult.jsx");
+const studentSettings = read("src/components/Pages/StudentSettings.jsx");
 
 test("1. E1、E3、E5、E7 學生只能取得正確班級教材", () => {
     assert.match(migration, /code in \('E1',\s*'E3',\s*'E5',\s*'E7'\)/);
@@ -83,7 +85,7 @@ test("10. 下一級教材包購買後正確疊加", () => {
 });
 
 test("11. 在校轉離校不刪除歷史紀錄", () => {
-    assert.match(commerce, /status: "withdrawn"/);
+    assert.match(departedMaterialsMigration, /set status='withdrawn'/);
     assert.doesNotMatch(commerce, /from\("students"\)\.delete/);
     assert.doesNotMatch(commerce, /from\("student_book_entitlements"\)\.delete/);
     assert.match(commerce, /action === "restore_student" \? detail\.enrollment_history\?\.\[0\]/);
@@ -175,4 +177,56 @@ test("23. 試用會員付款後轉為一般會員且不覆蓋英文班身分", (
     assert.match(paidMemberIdentityMigration, /security invoker/);
     assert.match(paidMemberIdentityMigration, /revoke all on function[\s\S]*from public, anon, authenticated/);
     assert.doesNotMatch(paidMemberIdentityMigration, /set learner_type = 'academy_student'/);
+});
+
+test("24. 離校會盤點所有歷史 enrollment 的班級教材版本", () => {
+    assert.match(departedMaterialsMigration, /academy_student_material_history_rows/);
+    assert.match(departedMaterialsMigration, /e\.student_id=p_student_id/);
+    assert.match(departedMaterialsMigration, /s\.effective_from<=ew\.enrollment_ends_at/);
+    assert.match(departedMaterialsMigration, /s\.effective_to is null or s\.effective_to>=ew\.enrolled_at/);
+    assert.match(departedMaterialsMigration, /'class_assignment'::text/);
+    assert.match(departedMaterialsMigration, /'verified_listening'::text/);
+    assert.match(departedMaterialsMigration, /between ew\.enrolled_at and ew\.enrollment_ends_at/);
+    assert.doesNotMatch(departedMaterialsMigration, /academy_class_material_settings s[\s\S]{0,300}s\.is_active/);
+});
+
+test("25. 離校狀態與永久教材 entitlement 在同一個資料庫交易完成", () => {
+    assert.match(departedMaterialsMigration, /process_academy_departure_with_materials/);
+    assert.match(departedMaterialsMigration, /'academy_history'/);
+    assert.match(departedMaterialsMigration, /'academy_enrollment'/);
+    assert.match(departedMaterialsMigration, /status,is_permanent,starts_at/);
+    assert.match(departedMaterialsMigration, /'active',\s*true,\s*h\.first_effective_from::timestamptz/);
+    assert.match(departedMaterialsMigration, /set status='withdrawn'/);
+    assert.match(departedMaterialsMigration, /event_type,effective_date,impact_snapshot/);
+    assert.match(departedMaterialsMigration, /on conflict\(student_id,book_id,source,source_reference_type,source_reference_id\)/);
+    assert.match(commerce, /rpc\("process_academy_departure_with_materials"/);
+    assert.doesNotMatch(commerce, /from\("academy_enrollments"\)\.update\(\{ status: "withdrawn"/);
+});
+
+test("26. 既有離校生回填可重複執行且不解鎖新班級教材", () => {
+    assert.match(departedMaterialsMigration, /status in \('withdrawn','graduated'\) or departed_at is not null/);
+    assert.match(departedMaterialsMigration, /'backfilled',true/);
+    assert.match(departedMaterialsMigration, /on conflict\(student_id,book_id,source,source_reference_type,source_reference_id\)/);
+    assert.match(content, /student_book_entitlements/);
+    assert.match(content, /\.eq\("status", "active"\)/);
+    assert.match(content, /if \(!enrollment\.data\) return false/);
+});
+
+test("27. NT$299 只恢復平台功能，離校生仍沒有新教材或新作業", () => {
+    const pricing = read("supabase/migrations/20260826132237_membership_ai_pricing.sql");
+    assert.match(pricing, /'basic_membership_monthly'/);
+    assert.match(pricing, /'requires_book_entitlement', true/);
+    assert.match(pricing, /'assignments', false/);
+    assert.match(assignments, /if \(!effectiveAccess\.features\.assignments\)/);
+    assert.match(assignments, /\.eq\("student_id", caller\.id\)\.eq\("status", "active"\)/);
+    assert.match(commerce, /get_student_academy_material_history/);
+    assert.match(studentSettings, /離校永久保留教材/);
+    assert.match(studentSettings, /booksBySource\("academy_history"\)/);
+});
+
+test("28. 歷史教材 RPC 與離校 RPC 只允許 service_role", () => {
+    assert.match(departedMaterialsMigration, /revoke all on function public\.get_student_academy_material_history\(bigint,date\)[\s\S]*from public,anon,authenticated/);
+    assert.match(departedMaterialsMigration, /grant execute on function public\.get_student_academy_material_history\(bigint,date\)[\s\S]*to service_role/);
+    assert.match(departedMaterialsMigration, /revoke all on function public\.process_academy_departure_with_materials\(bigint,bigint,bigint,date,jsonb\)[\s\S]*from public,anon,authenticated/);
+    assert.match(departedMaterialsMigration, /where id=p_completed_by and role='admin'/);
 });

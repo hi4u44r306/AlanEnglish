@@ -288,6 +288,7 @@ function StudentSettings() {
     const enrollmentRecord = currentEnrollment || commerce?.enrollment_history?.[0] || null;
     const directBooks = commerce?.direct_entitlements || [];
     const booksBySource = source => directBooks.filter(item => item.source === source);
+    const bookNames = items => [...new Set(items.map(item => item.books?.name).filter(Boolean))].join("、") || "—";
     const planValue = plan => Array.isArray(plan?.subscription_plans) ? plan.subscription_plans[0] : plan?.subscription_plans;
     const planCode = plan => planValue(plan)?.code || "";
     const planName = plan => {
@@ -450,9 +451,10 @@ function StudentSettings() {
                     <header><FiGift /><div><span>BOOK OWNERSHIP</span><h2>教材權限來源</h2></div></header>
                     <dl className="student-settings-data-list">
                         <div><dt>班級取得教材</dt><dd>{commerce?.class_books?.map(book => book?.name).filter(Boolean).join("、") || "—"}</dd></div>
-                        <div><dt>已購買教材</dt><dd>{booksBySource("material_purchase").map(item => item.books?.name).filter(Boolean).join("、") || "—"}</dd></div>
-                        <div><dt>管理員贈送</dt><dd>{booksBySource("admin_grant").map(item => item.books?.name).filter(Boolean).join("、") || "—"}</dd></div>
-                        <div><dt>開通碼教材</dt><dd>{booksBySource("activation_code").map(item => item.books?.name).filter(Boolean).join("、") || "—"}</dd></div>
+                        <div><dt>離校永久保留教材</dt><dd>{bookNames(booksBySource("academy_history"))}</dd></div>
+                        <div><dt>已購買教材</dt><dd>{bookNames(booksBySource("material_purchase"))}</dd></div>
+                        <div><dt>管理員贈送</dt><dd>{bookNames(booksBySource("admin_grant"))}</dd></div>
+                        <div><dt>開通碼教材</dt><dd>{bookNames(booksBySource("activation_code"))}</dd></div>
                     </dl>
                     <p>教材擁有權永久保留；網站使用權由班級、90 天贈送、試用或會員方案分別疊加。</p>
                 </article>
