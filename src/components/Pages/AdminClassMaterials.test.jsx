@@ -3,13 +3,21 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import AdminClassMaterials from "./AdminClassMaterials";
 import { useAuth } from "../../auth/AuthContext";
-import { loadCommerceAdmin, previewClassMaterials, saveClassMaterials } from "../../services/commerceService";
+import {
+    correctCurrentClassMaterials,
+    loadCommerceAdmin,
+    previewClassMaterials,
+    previewCurrentClassMaterials,
+    saveClassMaterials
+} from "../../services/commerceService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/commerceService", () => ({
     loadCommerceAdmin: jest.fn(),
     previewClassMaterials: jest.fn(),
-    saveClassMaterials: jest.fn()
+    saveClassMaterials: jest.fn(),
+    previewCurrentClassMaterials: jest.fn(),
+    correctCurrentClassMaterials: jest.fn()
 }));
 
 const adminData = {
@@ -49,6 +57,8 @@ describe("AdminClassMaterials term rollover wizard", () => {
             affected_assignment_count: 2
         });
         saveClassMaterials.mockResolvedValue({ setting: { id: 11, version: 2 } });
+        correctCurrentClassMaterials.mockResolvedValue({ setting: { id: 10, version: 1 } });
+        window.confirm = jest.fn(() => true);
     });
 
     it("separates retained old books from the new term selection", async () => {
@@ -58,7 +68,7 @@ describe("AdminClassMaterials term rollover wizard", () => {
         expect(screen.getByText(/2026 春季/)).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("checkbox", { name: /Workbook 2/ }));
-        fireEvent.click(screen.getByRole("button", { name: "預覽影響" }));
+        fireEvent.click(screen.getByRole("button", { name: "預覽換版影響" }));
 
         await waitFor(() => expect(previewClassMaterials).toHaveBeenCalledWith(
             { uid: "admin-1" },
@@ -72,11 +82,78 @@ describe("AdminClassMaterials term rollover wizard", () => {
     it("invalidates an old preview when the new book selection changes", async () => {
         render(<AdminClassMaterials />);
         await screen.findByText("E1 第 1 版");
-        fireEvent.click(screen.getByRole("button", { name: "預覽影響" }));
+        fireEvent.click(screen.getByRole("button", { name: "預覽換版影響" }));
         expect(await screen.findByText("換版影響預覽")).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("checkbox", { name: /Workbook 2/ }));
         expect(screen.queryByText("換版影響預覽")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "二次確認並建立版本" })).toBeDisabled();
+    });
+
+    it("allows an administrator to preview and correct today's version more than once", async () => {
+        const effectiveToday = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+        }).format(new Date());
+        loadCommerceAdmin.mockResolvedValue({
+            ...adminData,
+            settings: [{
+                ...adminData.settings[0],
+                version: 2,
+                note: "2026 秋季",
+                effective_from: effectiveToday,
+                updated_at: "2026-09-01T11:33:45.348652+00:00"
+            }]
+        });
+        previewCurrentClassMaterials
+            .mockResolvedValueOnce({
+                preview: true,
+                correction: true,
+                setting_id: 10,
+                setting_updated_at: "2026-09-01T11:33:45.348652+00:00",
+                previous_book_ids: [1],
+                next_book_ids: [1, 2],
+                added_book_ids: [2],
+                removed_book_ids: [],
+                affected_student_count: 5,
+                affected_assignment_count: 2,
+                has_changes: true
+            })
+            .mockResolvedValueOnce({
+                preview: true,
+                correction: true,
+                setting_id: 10,
+                setting_updated_at: "2026-09-01T11:34:45.348652+00:00",
+                previous_book_ids: [1, 2],
+                next_book_ids: [1],
+                added_book_ids: [],
+                removed_book_ids: [2],
+                affected_student_count: 5,
+                affected_assignment_count: 2,
+                has_changes: true
+            });
+
+        render(<AdminClassMaterials />);
+
+        expect(await screen.findByText("E1 第 2 版")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "建立新學期版本" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "修正目前版本" })).toBeEnabled();
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /Workbook 2/ }));
+        fireEvent.click(screen.getByRole("button", { name: "預覽修正影響" }));
+        expect(await screen.findByText("目前版本修正預覽")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "二次確認並修正目前版本" }));
+
+        await waitFor(() => expect(correctCurrentClassMaterials).toHaveBeenCalledTimes(1));
+        expect(correctCurrentClassMaterials).toHaveBeenLastCalledWith(
+            { uid: "admin-1" },
+            expect.objectContaining({ setting_id: 10, book_ids: [1, 2], expected_updated_at: "2026-09-01T11:33:45.348652+00:00" })
+        );
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /Workbook 2/ }));
+        fireEvent.click(screen.getByRole("button", { name: "預覽修正影響" }));
+        await waitFor(() => expect(previewCurrentClassMaterials).toHaveBeenCalledTimes(2));
+        fireEvent.click(screen.getByRole("button", { name: "二次確認並修正目前版本" }));
+
+        await waitFor(() => expect(correctCurrentClassMaterials).toHaveBeenCalledTimes(2));
     });
 });

@@ -8,6 +8,7 @@ const hardeningMigration = read("supabase/migrations/20260827013903_membership_c
 const paidMemberIdentityMigration = read("supabase/migrations/20260831024923_promote_paid_trial_members.sql");
 const departedMaterialsMigration = read("supabase/migrations/20260901030505_preserve_departed_academy_materials.sql");
 const termRolloverMigration = read("supabase/migrations/20260901060511_term_material_rollover_entitlements.sql");
+const currentMaterialCorrectionMigration = read("supabase/migrations/20260901114753_correct_current_class_materials.sql");
 const commerce = read("supabase/functions/commerce-manager/index.ts");
 const content = read("supabase/functions/content-access/index.ts");
 const recordPlay = read("supabase/functions/record-play/index.ts");
@@ -266,4 +267,36 @@ test("31. 換版預覽與寫入 RPC 只允許 service_role", () => {
 test("32. 教材換版預覽不再使用模糊的 enrollment students 關聯", () => {
     assert.match(commerce, /preview_academy_class_material_rollover/);
     assert.doesNotMatch(commerce, /academy_enrollments"\)\.select\("id,student_id,students\(/);
+});
+
+test("33. 當天教材修正更新同一版本且每次留下前後快照", () => {
+    assert.match(currentMaterialCorrectionMigration, /correct_academy_class_materials/);
+    assert.match(currentMaterialCorrectionMigration, /s\.effective_from=v_today/);
+    assert.match(currentMaterialCorrectionMigration, /pg_advisory_xact_lock/);
+    assert.match(currentMaterialCorrectionMigration, /p_expected_updated_at/);
+    assert.match(currentMaterialCorrectionMigration, /delete from public\.academy_class_material_books/);
+    assert.match(currentMaterialCorrectionMigration, /insert into public\.academy_class_material_books/);
+    assert.match(currentMaterialCorrectionMigration, /'corrected'/);
+    assert.match(currentMaterialCorrectionMigration, /v_previous_snapshot/);
+    assert.doesNotMatch(currentMaterialCorrectionMigration, /insert into public\.academy_class_material_settings/);
+    assert.doesNotMatch(currentMaterialCorrectionMigration, /student_book_entitlements/);
+});
+
+test("34. 目前版本修正可在同一天重複執行但必須重新預覽", () => {
+    assert.match(currentMaterialCorrectionMigration, /setting_updated_at/);
+    assert.match(currentMaterialCorrectionMigration, /v_setting\.updated_at is distinct from p_expected_updated_at/);
+    assert.match(currentMaterialCorrectionMigration, /請重新預覽目前版本後再確認修正/);
+    assert.doesNotMatch(currentMaterialCorrectionMigration, /已經修正過|修正次數已達上限/);
+    assert.match(commerce, /preview_current_class_materials/);
+    assert.match(commerce, /correct_current_class_materials/);
+    assert.match(commerce, /p_expected_updated_at: expectedUpdatedAt/);
+});
+
+test("35. 教材修正 RPC 只允許 service_role 且回傳真正錯誤", () => {
+    assert.match(currentMaterialCorrectionMigration, /security invoker/g);
+    assert.match(currentMaterialCorrectionMigration, /revoke all on function public\.preview_academy_class_material_correction\(smallint,bigint,bigint\[\],text\)[\s\S]*from public,anon,authenticated/);
+    assert.match(currentMaterialCorrectionMigration, /grant execute on function public\.correct_academy_class_materials\(smallint,bigint,bigint\[\],text,bigint,timestamptz\)[\s\S]*to service_role/);
+    assert.match(currentMaterialCorrectionMigration, /where id=p_actor_id and role='admin'/);
+    assert.match(commerce, /const errorMessage/);
+    assert.match(commerce, /message: errorMessage|const message = errorMessage/);
 });

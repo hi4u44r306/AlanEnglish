@@ -9,6 +9,8 @@ export const loadStudentCommerceProfile = firebaseUser => callCommerce(firebaseU
 export const loadCommerceAdmin = firebaseUser => callCommerce(firebaseUser, "staff_bootstrap");
 export const previewClassMaterials = (firebaseUser, payload) => callCommerce(firebaseUser, "preview_class_materials", payload);
 export const saveClassMaterials = (firebaseUser, payload) => callCommerce(firebaseUser, "save_class_materials", { ...payload, confirmed: true });
+export const previewCurrentClassMaterials = (firebaseUser, payload) => callCommerce(firebaseUser, "preview_current_class_materials", payload);
+export const correctCurrentClassMaterials = (firebaseUser, payload) => callCommerce(firebaseUser, "correct_current_class_materials", { ...payload, confirmed: true });
 export const saveMaterialPackage = (firebaseUser, payload) => callCommerce(firebaseUser, "save_package", payload);
 export const publishMaterialPackage = (firebaseUser, id) => callCommerce(firebaseUser, "publish_package", { id });
 export const discontinueMaterialPackage = (firebaseUser, id) => callCommerce(firebaseUser, "discontinue_package", { id });

@@ -19,6 +19,21 @@ const int = (value: unknown) => Number.isInteger(Number(value)) && Number(value)
 const ids = (value: unknown) => [...new Set((Array.isArray(value) ? value : []).map(int).filter(Boolean))] as number[];
 const isoDate = (value: unknown) => /^\d{4}-\d{2}-\d{2}$/.test(cleanText(value, 10)) ? cleanText(value, 10) : null;
 const relation = (value: any) => Array.isArray(value) ? value : [];
+const errorMessage = (error: unknown) => {
+    if (error instanceof Error && error.message) return error.message;
+    const message = (error as any)?.message;
+    return typeof message === "string" && message.trim() ? message : "教材商務服務暫時無法使用";
+};
+const errorStatus = (error: unknown) => {
+    const explicit = Number((error as any)?.status);
+    if (Number.isInteger(explicit) && explicit >= 400 && explicit <= 599) return explicit;
+    const code = String((error as any)?.code || "");
+    if (code === "42501") return 403;
+    if (code === "P0002") return 404;
+    if (new Set(["23505", "40001"]).has(code)) return 409;
+    if (code === "23514") return 400;
+    return 500;
+};
 const taipeiToday = () => new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
 }).format(new Date());
@@ -230,6 +245,48 @@ async function saveClassMaterials(admin: any, caller: VerifiedAlanUser, body: an
     return data || {};
 }
 
+async function correctClassMaterials(admin: any, caller: VerifiedAlanUser, body: any) {
+    if (caller.role !== "admin") throw Object.assign(new Error("只有管理員可以修正班級教材"), { status: 403 });
+    const classCode = cleanText(body.class_code, 2);
+    const settingId = int(body.setting_id);
+    const termLabel = cleanText(body.term_label, 80);
+    const bookIds = ids(body.book_ids);
+    if (!CLASS_CODES.has(classCode) || !settingId || !termLabel || !bookIds.length) {
+        throw Object.assign(new Error("班級、目前版本、學期名稱或教材不完整"), { status: 400 });
+    }
+    const { data: klass, error: classError } = await admin.from("academy_classes")
+        .select("id,code").eq("code", classCode).eq("is_active", true).single();
+    if (classError) throw classError;
+    const { data: validBooks, error: bookError } = await admin.from("books")
+        .select("id").in("id", bookIds).eq("enabled", true).is("archived_at", null);
+    if (bookError) throw bookError;
+    if ((validBooks || []).length !== bookIds.length) {
+        throw Object.assign(new Error("包含不存在或已停用的教材"), { status: 400 });
+    }
+    if (!body.confirmed) {
+        const { data, error } = await admin.rpc("preview_academy_class_material_correction", {
+            p_class_id: klass.id,
+            p_setting_id: settingId,
+            p_book_ids: bookIds,
+            p_term_label: termLabel
+        });
+        if (error) throw error;
+        return data || {};
+    }
+    const expectedUpdatedAt = cleanText(body.expected_updated_at, 60);
+    if (!expectedUpdatedAt) throw Object.assign(new Error("請重新預覽目前版本後再確認修正"), { status: 400 });
+    const { data, error } = await admin.rpc("correct_academy_class_materials", {
+        p_class_id: klass.id,
+        p_setting_id: settingId,
+        p_book_ids: bookIds,
+        p_term_label: termLabel,
+        p_actor_id: caller.id,
+        p_expected_updated_at: expectedUpdatedAt
+    });
+    if (error) throw error;
+    return data || {};
+}
+
 async function savePackage(admin: any, caller: VerifiedAlanUser, body: any) {
     if (caller.role !== "admin") throw Object.assign(new Error("只有管理員可以管理教材商品包"), { status: 403 });
     const packageId = int(body.id);
@@ -375,6 +432,7 @@ Deno.serve(async (req: Request) => {
         if (action === "student_profile") return json(200, { success: true, profile: await studentProfile(admin, caller) });
         if (action === "staff_bootstrap") return json(200, { success: true, ...(await staffBootstrap(admin, caller)) });
         if (action === "preview_class_materials" || action === "save_class_materials") return json(200, { success: true, ...(await saveClassMaterials(admin, caller, { ...body, confirmed: action === "save_class_materials" && body.confirmed === true })) });
+        if (action === "preview_current_class_materials" || action === "correct_current_class_materials") return json(200, { success: true, ...(await correctClassMaterials(admin, caller, { ...body, confirmed: action === "correct_current_class_materials" && body.confirmed === true })) });
         if (action === "save_package") return json(200, { success: true, ...(await savePackage(admin, caller, body)) });
         if (action === "publish_package") return json(200, { success: true, ...(await setPackageStatus(admin, caller, body, "published")) });
         if (action === "discontinue_package") return json(200, { success: true, ...(await setPackageStatus(admin, caller, body, "discontinued")) });
@@ -390,8 +448,9 @@ Deno.serve(async (req: Request) => {
         if (new Set(["departure_preview","schedule_departure","cancel_departure","restore_student","process_departure"]).has(action)) return json(200, { success: true, ...(await changeDeparture(admin, caller, body, action)) });
         return json(400, { error: "不支援的教材商務操作" });
     } catch (error) {
-        const status = Number((error as any)?.status || 500);
-        if (status >= 500) console.error("commerce-manager unexpected error", error instanceof Error ? error.message : "unknown");
-        return json(status, { error: error instanceof Error ? error.message : "教材商務服務暫時無法使用" });
+        const status = errorStatus(error);
+        const message = errorMessage(error);
+        if (status >= 500) console.error("commerce-manager unexpected error", message);
+        return json(status, { error: message, code: (error as any)?.code || null });
     }
 });
