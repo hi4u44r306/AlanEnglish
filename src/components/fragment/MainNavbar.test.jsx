@@ -103,6 +103,30 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: /Workbook 2/ })).not.toBeInTheDocument();
     });
 
+    it("shows the AI Premium title only for an active AI add-on", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "ai-premium-student" },
+            role: "student",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: {
+                name: "AI 學生",
+                membership: {
+                    effective_access: {
+                        features: { ai_materials: true },
+                        plan_codes: ["ai_materials_addon_monthly"]
+                    }
+                }
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+
+        expect(screen.getByText("AI Premium")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
+        expect(await screen.findAllByText("AI Premium")).toHaveLength(2);
+    });
+
     it("shows one music-management link and the links admin entry to admins", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "admin-test" },

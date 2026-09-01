@@ -80,7 +80,7 @@ describe("StudentSettings", () => {
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("AI 教材與發音練習已啟用")).toBeInTheDocument();
+        expect(screen.getByText("AI Premium")).toBeInTheDocument();
 
         expect(screen.queryByDisplayValue("2015-05-12")).not.toBeInTheDocument();
         fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
@@ -112,7 +112,7 @@ describe("StudentSettings", () => {
 
         render(<StudentSettings />);
 
-        expect(await screen.findByText("AI 教材與發音練習已啟用")).toBeInTheDocument();
+        expect(await screen.findByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText("AI 教材與發音練習可使用")).toBeInTheDocument();
     });
 

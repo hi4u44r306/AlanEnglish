@@ -769,6 +769,19 @@
     font-size: 0.64rem;
     font-weight: 850;
   }
+
+  .student-home__ai-premium {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #624500;
+    background: linear-gradient(135deg, #fff0aa, #ffd76a);
+    border: 1px solid rgba(205, 150, 14, 0.28);
+
+    svg {
+      stroke-width: 3;
+    }
+  }
 }
 
 .student-home__logout {

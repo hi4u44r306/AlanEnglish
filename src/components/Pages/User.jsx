@@ -22,7 +22,7 @@ import { getStudentAssignments } from "../../services/assignmentService";
 import { getReviewDashboard } from "../../services/reviewService";
 import { getConversationProgress } from "../../services/learningActivityService";
 import { getDashboardStats } from "../../services/listeningService";
-import { getPrimaryAccessPlanLabel } from "../../constants/membershipPlans";
+import { getPrimaryAccessPlanLabel, hasAiAddonPlan } from "../../constants/membershipPlans";
 import "./css/User.scss";
 
 const DAILY_LISTENING_GOAL = 3;
@@ -227,6 +227,7 @@ const User = () => {
     }, [loadHomeData]);
 
     const hasAiAccess = user?.membership?.effective_access?.features?.ai_materials === true;
+    const hasAiPremium = hasAiAddonPlan(user?.membership?.effective_access?.plan_codes);
 
     const dailyTasks = useMemo(() => {
         const tasks = [];
@@ -560,6 +561,7 @@ const User = () => {
                     <div className="student-home__account-tags">
                         {user.class && <span>{user.class} 班</span>}
                         <span>{getAccessStatusLabel(user.membership)}</span>
+                        {hasAiPremium && <span className="student-home__ai-premium"><FiZap aria-hidden="true" />AI Premium</span>}
                     </div>
                     <div className="student-home__logout"><Logout /></div>
                 </section>

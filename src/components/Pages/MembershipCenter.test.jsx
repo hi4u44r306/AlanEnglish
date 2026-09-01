@@ -160,6 +160,7 @@ describe("MembershipCenter AI add-on", () => {
         );
 
         expect(await screen.findByText("你的 AI 學習力已升級")).toBeInTheDocument();
+        expect(screen.getByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText(/每月 24 日續訂/)).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "AI 教材與發音練習使用中" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "管理目前訂閱" })).toBeEnabled();

@@ -345,7 +345,7 @@ function StudentSettings() {
                 </div>
                 <div className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}>
                     <FiZap />
-                    <strong>{hasAiPremium ? "AI 教材與發音練習已啟用" : "AI 教材與發音練習未加購"}</strong>
+                    <strong>{hasAiPremium ? "AI Premium" : "AI 教材與發音練習未加購"}</strong>
                     <span>{hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}</span>
                 </div>
                 <div className="student-settings-avatar-presets">

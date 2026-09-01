@@ -168,6 +168,8 @@ Supabase PostgreSQL、RLS 與 Edge Functions 負責資料、授權、學習紀�
 
 NT$299 基本會員與 NT$499「AI 教材與發音練習」月費 Price 使用 Stripe 沙盒；兩個 AI 方案代碼各自對應唯一 Price，但屬於同一商品且金額相同。三本組合教材包的一般售價已決定為 NT$1,380；有效會員教材價仍待確認，不得猜測或建立正式 Price。所有正式付款仍須另行核准與完整驗收。
 
+`AI Premium` 是有效 AI 加購會員的前端稱號／徽章，不是另一個商品、方案代碼或價格。只有有效權限包含 `ai_materials_addon_monthly` 或 `ai_materials_general_monthly` 時才顯示此稱號；商品、付款與帳務名稱仍固定為「AI 教材與發音練習」。
+
 任何價格調整都必須同步更新公開首頁、方案比較、商品／方案資料、Stripe 商品或價格、會員頁、FAQ 與會員條款，不可只改畫面文字。
 
 ### 4.1 教材擁有權、網站使用權與商品包
