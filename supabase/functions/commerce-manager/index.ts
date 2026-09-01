@@ -19,6 +19,9 @@ const int = (value: unknown) => Number.isInteger(Number(value)) && Number(value)
 const ids = (value: unknown) => [...new Set((Array.isArray(value) ? value : []).map(int).filter(Boolean))] as number[];
 const isoDate = (value: unknown) => /^\d{4}-\d{2}-\d{2}$/.test(cleanText(value, 10)) ? cleanText(value, 10) : null;
 const relation = (value: any) => Array.isArray(value) ? value : [];
+const taipeiToday = () => new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+}).format(new Date());
 
 const createAdmin = () => {
     const url = Deno.env.get("SUPABASE_URL");
@@ -302,19 +305,24 @@ async function setPackageStatus(admin: any, caller: VerifiedAlanUser, body: any,
     return { package: data };
 }
 
-async function lifecycleDetail(admin: any, caller: VerifiedAlanUser, studentId: number) {
+async function lifecycleDetail(admin: any, caller: VerifiedAlanUser, studentId: number, materialHistoryAsOf = taipeiToday()) {
     if (caller.role !== "admin") throw Object.assign(new Error("只有管理員可以管理離校流程"), { status: 403 });
     const { data: student, error } = await admin.from("students").select("id,name,chinese_name,english_name,class,learner_type,account_status").eq("id", studentId).eq("role", "student").maybeSingle();
     if (error) throw error; if (!student) throw Object.assign(new Error("找不到學生"), { status: 404 });
     const profile = await studentProfile(admin, { ...student, firebase_uid: "", email: null, role: "student" });
-    const { data: assignments } = await admin.from("assignments").select("id,title,due_at,enabled").eq("target_class", student.class).eq("enabled", true);
-    return { ...profile, affected_assignments: assignments || [] };
+    const [{ data: assignments }, materialHistory] = await Promise.all([
+        admin.from("assignments").select("id,title,due_at,enabled").eq("target_class", student.class).eq("enabled", true),
+        admin.rpc("get_student_academy_material_history", { p_student_id: studentId, p_as_of: materialHistoryAsOf })
+    ]);
+    if (materialHistory.error) throw materialHistory.error;
+    return { ...profile, historical_class_books: materialHistory.data || [], affected_assignments: assignments || [] };
 }
 
 async function changeDeparture(admin: any, caller: VerifiedAlanUser, body: any, action: string) {
     if (caller.role !== "admin") throw Object.assign(new Error("只有管理員可以管理離校流程"), { status: 403 });
     const studentId = int(body.student_id); if (!studentId) throw Object.assign(new Error("學生編號不正確"), { status: 400 });
-    const detail = await lifecycleDetail(admin, caller, studentId);
+    const processedOn = taipeiToday();
+    const detail = await lifecycleDetail(admin, caller, studentId, isoDate(body.effective_date) || processedOn);
     const enrollment = detail.current_enrollment
         || (action === "restore_student" ? detail.enrollment_history?.[0] || null : null);
     if (!enrollment) throw Object.assign(new Error("學生目前沒有在校紀錄"), { status: 409 });
@@ -325,7 +333,7 @@ async function changeDeparture(admin: any, caller: VerifiedAlanUser, body: any, 
     if (action === "departure_preview") return { preview: true, detail };
     if (action === "schedule_departure") {
         const date = isoDate(body.effective_date);
-        if (!date || date < new Date().toISOString().slice(0, 10)) throw Object.assign(new Error("離校生效日不得早於今天"), { status: 400 });
+        if (!date || date < processedOn) throw Object.assign(new Error("離校生效日不得早於今天"), { status: 400 });
         if (!body.confirmed) return { preview: true, detail };
         const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
         const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: "2026-07-29.dahlia" }) : null;
@@ -356,11 +364,16 @@ async function changeDeparture(admin: any, caller: VerifiedAlanUser, body: any, 
         return { restored: true };
     }
     if (action === "process_departure") {
-        const today = new Date().toISOString().slice(0, 10);
-        if (!enrollment.scheduled_departure_at || enrollment.scheduled_departure_at > today) throw Object.assign(new Error("尚未到離校生效日"), { status: 409 });
-        const { error } = await admin.from("academy_enrollments").update({ status: "withdrawn", departed_at: today, access_ends_at: today, departure_completed_by: caller.id }).eq("id", enrollment.id); if (error) throw error;
-        await admin.from("academy_enrollment_lifecycle_events").insert({ enrollment_id: enrollment.id, student_id: studentId, event_type: "departed", effective_date: today, impact_snapshot: detail, created_by: caller.id });
-        return { departed_at: today };
+        if (!enrollment.scheduled_departure_at || enrollment.scheduled_departure_at > processedOn) throw Object.assign(new Error("尚未到離校生效日"), { status: 409 });
+        const { data, error } = await admin.rpc("process_academy_departure_with_materials", {
+            p_enrollment_id: enrollment.id,
+            p_student_id: studentId,
+            p_completed_by: caller.id,
+            p_processed_on: processedOn,
+            p_impact_snapshot: detail
+        });
+        if (error) throw error;
+        return data || { departed_at: enrollment.scheduled_departure_at };
     }
     throw Object.assign(new Error("不支援的離校操作"), { status: 400 });
 }

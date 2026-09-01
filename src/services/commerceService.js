@@ -14,7 +14,7 @@ export const publishMaterialPackage = (firebaseUser, id) => callCommerce(firebas
 export const discontinueMaterialPackage = (firebaseUser, id) => callCommerce(firebaseUser, "discontinue_package", { id });
 export const grantStudentBook = (firebaseUser, studentId, bookId) => callCommerce(firebaseUser, "grant_book", { student_id: studentId, book_id: bookId });
 export const loadStudentLifecycle = (firebaseUser, studentId) => callCommerce(firebaseUser, "student_detail", { student_id: studentId });
-export const previewDeparture = (firebaseUser, studentId) => callCommerce(firebaseUser, "departure_preview", { student_id: studentId });
+export const previewDeparture = (firebaseUser, studentId, effectiveDate) => callCommerce(firebaseUser, "departure_preview", { student_id: studentId, effective_date: effectiveDate });
 export const scheduleDeparture = (firebaseUser, studentId, effectiveDate, reason) => callCommerce(firebaseUser, "schedule_departure", { student_id: studentId, effective_date: effectiveDate, reason, confirmed: true });
 export const cancelDeparture = (firebaseUser, studentId) => callCommerce(firebaseUser, "cancel_departure", { student_id: studentId });
 export const restoreStudent = (firebaseUser, studentId) => callCommerce(firebaseUser, "restore_student", { student_id: studentId });
