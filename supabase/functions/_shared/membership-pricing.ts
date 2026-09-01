@@ -44,19 +44,11 @@ export const getMembershipPricingEligibility = ({
         };
     }
 
-    const isAcademyAccount = learnerType === "academy_student" || hasAcademyHistory;
-    const isAlumniWithMembership = isAcademyAccount
-        && hasAcademyHistory
-        && !hasActiveAcademyEnrollment
-        && hasActiveBasicMembership;
-
     return {
         canUseBasicMembership: role === "student" && !hasActiveAcademyEnrollment,
         canUseAcademyAiAddon: role === "student"
-            && isAcademyAccount
-            && (hasActiveAcademyEnrollment || isAlumniWithMembership),
+            && (hasActiveAcademyEnrollment || hasActiveBasicMembership),
         canUseGeneralAiAddon: role === "student"
-            && !isAcademyAccount
             && hasActiveBasicMembership
     };
 };

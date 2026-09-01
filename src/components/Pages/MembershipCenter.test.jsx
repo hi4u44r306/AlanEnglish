@@ -363,17 +363,17 @@ describe("MembershipCenter AI add-on", () => {
                 id: 299,
                 code: "basic_membership_monthly",
                 name: "基本自主學習會員",
-                description: "延續已購教材",
+                description: "使用全部正式聽力教材",
                 price_twd: 299,
                 trial_days: 0,
                 access_model: "subscription",
                 offer_label: "基本會員",
                 is_public: true,
                 checkout_ready: true,
-                features: { listening: true, review: true, requires_book_entitlement: true }
+                features: { listening: true, review: true, requires_book_entitlement: false }
             }, {
                 id: 499,
-                code: "ai_materials_general_monthly",
+                code: "ai_materials_addon_monthly",
                 name: "AI 教材與發音練習",
                 description: "需搭配基本會員；包含 AI 教材與發音教練",
                 price_twd: 499,
@@ -395,7 +395,7 @@ describe("MembershipCenter AI add-on", () => {
         const generalAiHeading = await screen.findByRole("heading", { name: "AI 教材與發音練習" });
         expect(screen.getByText("基本會員")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "目前方案使用中" })).toBeDisabled();
-        expect(screen.getByText(/依已購或已開通教材使用/, { selector: "li" })).toBeInTheDocument();
+        expect(screen.getAllByText(/全部正式聽力教材/).length).toBeGreaterThan(0);
         expect(generalAiHeading.closest("article")).toHaveTextContent("NT$ 499／月");
 
         expect(screen.getByRole("button", { name: "選擇方案" })).toBeEnabled();

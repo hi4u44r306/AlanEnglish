@@ -44,6 +44,8 @@ const isBookAuthorized = async (admin: any, student: any, effectiveAccess: any, 
         return effectiveAccess.learner_type === "trial_user"
             && effectiveAccess.plan_codes.includes("trial_7_day");
     }
+    if (book.content_scope !== "formal") return false;
+    if (effectiveAccess.features.requires_book_entitlement !== true) return true;
     const now = new Date().toISOString();
     const today = now.slice(0, 10);
     const direct = await admin.from("student_book_entitlements").select("id").eq("student_id", student.id)
@@ -161,7 +163,7 @@ Deno.serve(async (req: Request) => {
         const staff = STAFF_ROLES.has(student.role);
         const active = effectiveAccess.is_active;
         const listeningAllowed = effectiveAccess.features.listening;
-        const unlockedRank = staff ? 999 : Number(levelProgress?.unlocked_rank || 1);
+        const unlockedRank = staff || listeningAllowed ? 999 : Number(levelProgress?.unlocked_rank || 1);
 
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action || "catalog", 50);

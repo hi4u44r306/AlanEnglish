@@ -198,8 +198,8 @@ Deno.serve(async (req: Request) => {
             const { data: materialPackage, error: packageError } = await admin
                 .from("material_packages")
                 .select(`
-                    id,name,standard_price_twd,member_price_twd,includes_90_day_access,status,
-                    stripe_product_id,stripe_standard_price_id,stripe_member_price_id,stripe_livemode,
+                    id,name,standard_price_twd,includes_90_day_access,status,
+                    stripe_product_id,stripe_standard_price_id,stripe_livemode,
                     material_package_books(book_id,role),material_package_tracks(track_id,role)
                 `)
                 .eq("id", packageId)
@@ -209,10 +209,8 @@ Deno.serve(async (req: Request) => {
             if (packageError) throw packageError;
             if (!materialPackage) return json(404, { error: "這個教材商品包目前沒有上架" });
 
-            const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
-            const memberPrice = effectiveAccess.plan_codes.includes(BASIC_MEMBERSHIP_PLAN_CODE);
-            const amountTwd = Number(memberPrice ? materialPackage.member_price_twd : materialPackage.standard_price_twd);
-            const selectedPriceId = cleanText(memberPrice ? materialPackage.stripe_member_price_id : materialPackage.stripe_standard_price_id, 300);
+            const amountTwd = Number(materialPackage.standard_price_twd);
+            const selectedPriceId = cleanText(materialPackage.stripe_standard_price_id, 300);
             if (!Number.isInteger(amountTwd) || amountTwd <= 0 || !selectedPriceId) {
                 return json(409, { error: "教材商品包價格尚未確認，暫時無法購買", code: "material_price_unconfirmed" });
             }
@@ -243,11 +241,11 @@ Deno.serve(async (req: Request) => {
                 package_name: materialPackage.name,
                 books: materialPackage.material_package_books || [],
                 tracks: materialPackage.material_package_tracks || [],
-                includes_90_day_access: !memberPrice && materialPackage.includes_90_day_access === true
+                includes_90_day_access: materialPackage.includes_90_day_access === true
             };
             const { data: purchase, error: purchaseError } = await admin.from("material_purchases").insert({
                 student_id: student.id, package_id: materialPackage.id, status: "pending",
-                price_type: memberPrice ? "member" : "standard", amount_twd: amountTwd,
+                price_type: "standard", amount_twd: amountTwd,
                 includes_90_day_access: snapshot.includes_90_day_access, package_snapshot: snapshot,
                 stripe_livemode: false
             }).select("id").single();
@@ -322,7 +320,7 @@ Deno.serve(async (req: Request) => {
                     && !pricingEligibility.canUseAcademyAiAddon
                 ) {
                     return json(403, {
-                        error: "英文班在校生可直接加購 AI；離校生需先啟用每月 NT$299 基本會員",
+                        error: "英文班在校生可直接加購 AI；一般會員與離校生需先啟用每月 NT$299 基本會員",
                         code: "academy_ai_membership_required"
                     });
                 }

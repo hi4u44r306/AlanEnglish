@@ -1,9 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import Stripe from "npm:stripe@22.4.0";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
-import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest, type VerifiedAlanUser } from "../_shared/firebase-auth.ts";
-import { BASIC_MEMBERSHIP_PLAN_CODE } from "../_shared/membership-pricing.ts";
+import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -75,15 +74,10 @@ async function currentClassSetting(admin: any, classId: number, at = new Date().
     return data || null;
 }
 
-async function publicPackages(admin: any, caller: VerifiedAlanUser | null) {
-    let memberPrice = false;
-    if (caller?.role === "student") {
-        const access = await loadEffectiveAccess(admin, caller.id);
-        memberPrice = access.plan_codes.includes(BASIC_MEMBERSHIP_PLAN_CODE);
-    }
+async function publicPackages(admin: any, _caller: VerifiedAlanUser | null) {
     const { data, error } = await admin.from("material_packages").select(`
         id,name,level_code,suitable_for,learning_goals,description,cover_url,recommendation_rank,
-        standard_price_twd,member_price_twd,includes_90_day_access,status,inventory_quantity,max_quantity_per_order,
+        standard_price_twd,includes_90_day_access,status,inventory_quantity,max_quantity_per_order,
         prerequisite_package_id,next_package_id,
         material_package_books(id,role,sort_order,books(id,name,code,description,preview_image_url)),
         material_package_tracks(id,role,sort_order,music_tracks(id,book_id,title,music_name,audio_url,storage_provider,preview_enabled))
@@ -106,9 +100,9 @@ async function publicPackages(admin: any, caller: VerifiedAlanUser | null) {
         return {
             ...item,
             stripe_product_id: undefined,
-            price_type: memberPrice ? "member" : "standard",
-            display_price_twd: memberPrice ? item.member_price_twd : item.standard_price_twd,
-            member_price_eligible: memberPrice,
+            price_type: "standard",
+            display_price_twd: item.standard_price_twd,
+            member_price_eligible: false,
             samples
         };
     }));
@@ -155,11 +149,15 @@ async function submitPlacement(admin: any, caller: VerifiedAlanUser | null, body
     const ratio = possible ? weighted / possible : 0;
     const packages = await publicPackages(admin, caller);
     const pivot = packages.length ? Math.min(packages.length - 1, Math.max(0, Math.floor(ratio * packages.length))) : -1;
-    const recommendations = pivot < 0 ? [] : [
-        { label: "較簡單", package: packages[Math.max(0, pivot - 1)] },
-        { label: "建議", package: packages[pivot] },
-        { label: "較有挑戰", package: packages[Math.min(packages.length - 1, pivot + 1)] }
-    ].filter((x, index, all) => all.findIndex(y => y.package?.id === x.package?.id && y.label === x.label) === index);
+    const recommendations = pivot < 0
+        ? []
+        : packages.length < 3
+            ? [{ label: "建議", package: packages[pivot] }]
+            : [
+                { label: "較簡單", package: packages[Math.max(0, pivot - 1)] },
+                { label: "建議", package: packages[pivot] },
+                { label: "較有挑戰", package: packages[Math.min(packages.length - 1, pivot + 1)] }
+            ].filter((x, index, all) => all.findIndex(y => y.package?.id === x.package?.id) === index);
     const { error: insertError } = await admin.from("placement_attempts").insert({
         assessment_id: assessmentId, student_id: caller?.role === "student" ? caller.id : null,
         anonymous_key: caller ? null : cleanText(body.anonymous_key, 120) || crypto.randomUUID(),
@@ -311,20 +309,19 @@ async function savePackage(admin: any, caller: VerifiedAlanUser, body: any) {
         name, level_code: cleanText(body.level_code, 80) || null, suitable_for: cleanText(body.suitable_for, 300) || null,
         learning_goals: cleanText(body.learning_goals, 3000), description: cleanText(body.description, 5000), cover_url: cleanText(body.cover_url, 1000) || null,
         prerequisite_package_id: int(body.prerequisite_package_id), next_package_id: int(body.next_package_id), recommendation_rank: Number(body.recommendation_rank || 0),
-        standard_price_twd: nullablePrice(body.standard_price_twd), member_price_twd: nullablePrice(body.member_price_twd),
+        standard_price_twd: nullablePrice(body.standard_price_twd), member_price_twd: null,
         inventory_quantity: nullableInventory(body.inventory_quantity), max_quantity_per_order: int(body.max_quantity_per_order) || 10,
         includes_90_day_access: body.includes_90_day_access !== false, stripe_product_id: cleanText(body.stripe_product_id, 300) || null,
-        stripe_standard_price_id: cleanText(body.stripe_standard_price_id, 300) || null, stripe_member_price_id: cleanText(body.stripe_member_price_id, 300) || null,
+        stripe_standard_price_id: cleanText(body.stripe_standard_price_id, 300) || null, stripe_member_price_id: null,
         stripe_livemode: false, updated_by: caller.id
     };
     if (payload.max_quantity_per_order > 20) throw Object.assign(new Error("每筆最多購買數量必須介於 1 到 20"), { status: 400 });
-    if (payload.standard_price_twd && payload.member_price_twd && payload.member_price_twd > payload.standard_price_twd) throw Object.assign(new Error("會員教材價不得高於一般售價"), { status: 400 });
     const result = packageId ? await admin.from("material_packages").update(payload).eq("id", packageId).select("*").single()
         : await admin.from("material_packages").insert({ ...payload, created_by: caller.id }).select("*").single();
     if (result.error) throw result.error;
     const id = result.data.id;
     await Promise.all([admin.from("material_package_books").delete().eq("package_id", id), admin.from("material_package_tracks").delete().eq("package_id", id)]);
-    const bookRows = relation(body.books).map((x: any, index) => ({ package_id: id, book_id: int(x.book_id), role: cleanText(x.role, 40), sort_order: index })).filter((x: any) => x.book_id && new Set(["workbook","listening_book","web_material"]).has(x.role));
+    const bookRows = relation(body.books).map((x: any, index) => ({ package_id: id, book_id: int(x.book_id), role: cleanText(x.role, 40), sort_order: index })).filter((x: any) => x.book_id && new Set(["textbook","workbook","listening_book","web_material"]).has(x.role));
     const trackRows = relation(body.tracks).map((x: any, index) => ({ package_id: id, track_id: int(x.track_id), role: cleanText(x.role, 40), sort_order: index })).filter((x: any) => x.track_id && new Set(["included_audio","sample_audio"]).has(x.role));
     if (bookRows.length) { const x = await admin.from("material_package_books").insert(bookRows); if (x.error) throw x.error; }
     if (trackRows.length) { const x = await admin.from("material_package_tracks").insert(trackRows); if (x.error) throw x.error; }

@@ -64,10 +64,10 @@ Deno.test("general members need the NT$299 membership before buying the NT$499 A
 
     assertEquals(withoutMembership.canUseGeneralAiAddon, false);
     assertEquals(withMembership.canUseGeneralAiAddon, true);
-    assertEquals(withMembership.canUseAcademyAiAddon, false);
+    assertEquals(withMembership.canUseAcademyAiAddon, true);
 });
 
-Deno.test("only the two supported AI add-on codes are accepted", () => {
+Deno.test("the current and legacy AI add-on codes remain recognizable for billing history", () => {
     assertEquals(isAiAddonPlanCode("ai_materials_addon_monthly"), true);
     assertEquals(isAiAddonPlanCode("ai_materials_general_monthly"), true);
     assertEquals(isAiAddonPlanCode("unknown_addon"), false);

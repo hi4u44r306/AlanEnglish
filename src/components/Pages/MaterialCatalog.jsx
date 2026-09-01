@@ -86,7 +86,7 @@ function MaterialCatalog() {
                 <p>{item.suitable_for || item.description || "依單字、句型與聽力程度選擇適合的學習教材。"}</p>
                 {item.learning_goals && <small><FiStar />{item.learning_goals}</small>}
                 <ul>{bookRows.map(row => <li key={`${row.role}-${row.book_id}`}><FiCheckCircle />{row.books?.name || row.role}</li>)}</ul>
-                <div className="commerce-package-price"><strong>{money(item.display_price_twd)}</strong><span>{item.member_price_eligible ? "有效基本會員教材價；原月費週期不變" : item.includes_90_day_access ? "一般價含自兌換日起 90 天網站使用權" : "不含額外網站使用期"}</span></div>
+                <div className="commerce-package-price"><strong>{money(item.display_price_twd)}</strong><span>{item.includes_90_day_access ? "單一售價；付款確認後附贈 90 天平台使用權" : "不含額外網站使用期"}</span></div>
                 {item.samples?.map(sample => <audio key={sample.id} controls preload="none" src={sample.audio_url || undefined} aria-label={`${sample.title}試聽`} />)}
                 <button type="button" onClick={() => buy(item.id)} disabled={buying === item.id || !item.display_price_twd}><FiShoppingBag />{buying === item.id ? "前往付款中…" : item.display_price_twd ? "購買教材包" : "價格待管理員確認"}</button>
             </div>
@@ -107,20 +107,20 @@ function MaterialCatalog() {
         </header>
         <main className="commerce-page">
         <section className="commerce-hero">
-            <div><span>ALAN ENGLISH MATERIALS</span><h1>教材是你的，網站使用權分開續用。</h1><p>購買教材永久保留教材擁有權與歷史學習紀錄，並附贈 90 天網站使用權。基本月費只延續已擁有教材，不會自動解鎖下一級。</p><div><a href="#placement"><FiHeadphones />先做三向程度測驗</a><Link to="/freetrial">不需信用卡，先試用 7 天<FiArrowRight /></Link></div></div>
+            <div><span>ALAN ENGLISH MATERIALS</span><h1>三本實體教材，搭配 90 天線上學習。</h1><p>完整教材包固定包含課本、Workbook 與聽力本，付款後永久保留三本教材的線上擁有權，並附贈 90 天平台使用權。之後若只想使用全部正式聽力教材，可選擇每月 NT$299 基本會員。</p><div><a href="#placement"><FiHeadphones />先做三向程度測驗</a><Link to="/freetrial">不需信用卡，先試用 7 天<FiArrowRight /></Link></div></div>
             <aside><FiLock /><strong>付費教材維持私有</strong><span>未授權時不會取得完整音檔、字幕、逐字稿或播放 URL。</span></aside>
         </section>
 
         <section className="commerce-catalog" aria-busy={loading}>
-            <header><span>MATERIAL PACKAGES</span><h2>教材商品包</h2><p>商品包與英文班教材設定分開管理；目前只顯示資料庫中已完整上架的測試模式商品。</p></header>
-            {loading ? <p className="commerce-empty">載入教材中…</p> : packages.length ? <div className="commerce-package-grid">{packages.map(item => <PackageCard key={item.id} item={item} />)}</div> : <p className="commerce-empty">商品包尚在整理，正式價格未確認前不會自行上架。</p>}
+            <header><span>MATERIAL PACKAGES</span><h2>三本教材商品包</h2><p>每組必須完整包含一本課本、一本 Workbook 與一本聽力本，並使用單一售價；缺少任何一本都不會上架。目前付款仍是 Stripe 測試模式。</p></header>
+            {loading ? <p className="commerce-empty">載入教材中…</p> : packages.length ? <div className="commerce-package-grid">{packages.map(item => <PackageCard key={item.id} item={item} />)}</div> : <p className="commerce-empty">三本教材內容尚在整理；課本、Workbook、聽力本與價格都確認後才會上架。</p>}
         </section>
 
         {assessment && <section className="commerce-placement" id="placement">
             <header><span>QUICK PLACEMENT</span><h2>單字、句型、聽力程度推薦</h2><p>結果只用來推薦，不會鎖死學生程度；老師或管理員仍可人工調整。</p></header>
             <form onSubmit={submitQuiz}>
                 {Object.entries(groupedQuestions).map(([skill, skillQuestions]) => <fieldset key={skill}><legend>{skill === "vocabulary" ? "單字" : skill === "sentence" ? "句型" : "聽力"}</legend>{skillQuestions.map((question, index) => <div className="commerce-question" key={question.id}><strong>{index + 1}. {question.prompt}</strong>{question.audio_prompt && <button type="button" className="commerce-listen" onClick={() => speak(question.audio_prompt)}><FiPlay />播放題目</button>}<div>{question.choices.map((choice, choiceIndex) => <label key={choice}><input type="radio" name={`q-${question.id}`} checked={Number(answers[question.id]) === choiceIndex} onChange={() => setAnswers(current => ({ ...current, [question.id]: choiceIndex }))} /><span>{choice}</span></label>)}</div></div>)}</fieldset>)}
-                <button className="commerce-submit" type="submit" disabled={submitting}>{submitting ? "分析中…" : "查看三個推薦結果"}</button>
+                <button className="commerce-submit" type="submit" disabled={submitting}>{submitting ? "分析中…" : "查看教材推薦"}</button>
             </form>
         </section>}
 

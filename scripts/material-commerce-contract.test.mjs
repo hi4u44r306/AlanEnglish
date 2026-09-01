@@ -9,6 +9,7 @@ const paidMemberIdentityMigration = read("supabase/migrations/20260831024923_pro
 const departedMaterialsMigration = read("supabase/migrations/20260901030505_preserve_departed_academy_materials.sql");
 const termRolloverMigration = read("supabase/migrations/20260901060511_term_material_rollover_entitlements.sql");
 const currentMaterialCorrectionMigration = read("supabase/migrations/20260901114753_correct_current_class_materials.sql");
+const simplifiedProductsMigration = read("supabase/migrations/20260901150048_simplify_products_and_listening_access.sql");
 const commerce = read("supabase/functions/commerce-manager/index.ts");
 const content = read("supabase/functions/content-access/index.ts");
 const recordPlay = read("supabase/functions/record-play/index.ts");
@@ -23,10 +24,12 @@ const player = read("src/components/fragment/MusicPlayer.jsx");
 const billingResult = read("src/components/Pages/BillingResult.jsx");
 const studentSettings = read("src/components/Pages/StudentSettings.jsx");
 
-test("1. E1、E3、E5、E7 學生只能取得正確班級教材", () => {
+test("1. 在校生可使用全部正式聽力，作業仍依 E1、E3、E5、E7 班級隔離", () => {
+    assert.match(simplifiedProductsMigration, /where code = 'academy_internal'/);
+    assert.match(simplifiedProductsMigration, /'requires_book_entitlement', false/);
+    assert.match(content, /book\.content_scope !== "formal"\) return false/);
+    assert.match(assignments, /getManagedClassCodes/);
     assert.match(migration, /code in \('E1',\s*'E3',\s*'E5',\s*'E7'\)/);
-    assert.match(content, /academy_class_material_books/);
-    assert.match(content, /enrollment\.data\.class_id/);
 });
 
 test("2. 班級、自購、管理員贈送與開通碼教材可疊加", () => {
@@ -39,8 +42,10 @@ test("3. 未授權教材、音檔、逐字稿及偽造 ID 都被拒絕", () => {
     assert.match(content, /book_entitlement_required/);
     assert.match(recordPlay, /isTrackAuthorized/);
     assert.match(content, /subtitle_status === "published"/);
-    assert.match(content, /if \(!enrollment\.data\) return false/);
-    assert.match(recordPlay, /if \(!enrollment\.data\) return false/);
+    assert.match(content, /requires_book_entitlement !== true\) return true/);
+    assert.match(recordPlay, /requires_book_entitlement !== true\) return true/);
+    assert.match(content, /student_book_entitlements/);
+    assert.match(recordPlay, /student_book_entitlements/);
     assert.match(hardeningMigration, /e\.status='active'/);
 });
 
@@ -72,18 +77,23 @@ test("8. 90 天權限不會自動扣款", () => {
     assert.match(billing, /mode: "payment"/);
 });
 
-test("9. 基本會員不會解鎖未購買的下一級教材", () => {
-    assert.match(content, /student_book_entitlements/);
-    assert.match(content, /book_entitlement_required/);
-    assert.doesNotMatch(content, /basic_monthly_299.*return true/s);
+test("9. 基本會員可聽全部正式教材但不會取得作業或 AI", () => {
+    assert.match(simplifiedProductsMigration, /where code = 'basic_membership_monthly'/);
+    assert.match(simplifiedProductsMigration, /'requires_book_entitlement', false/);
+    assert.match(simplifiedProductsMigration, /'assignments', false/);
+    assert.match(simplifiedProductsMigration, /'ai_materials', false/);
+    assert.match(content, /book\.content_scope !== "formal"\) return false/);
+    assert.match(content, /effectiveAccess\.features\.requires_book_entitlement !== true\) return true/);
 });
 
-test("10. 下一級教材包購買後正確疊加", () => {
+test("10. 教材包使用單一售價並正確疊加永久教材與 90 天權限", () => {
     assert.match(webhook, /source: "material_purchase"/);
     assert.match(webhook, /is_permanent: true/);
-    assert.match(billing, /memberPrice.*basic_monthly_299|BASIC_MEMBERSHIP_PLAN_CODE/s);
-    assert.match(commerce, /plan_codes\.includes\(BASIC_MEMBERSHIP_PLAN_CODE\)/);
-    assert.doesNotMatch(commerce, /basic_monthly_299/);
+    assert.match(billing, /price_type: "standard"/);
+    assert.match(billing, /materialPackage\.stripe_standard_price_id/);
+    assert.doesNotMatch(billing, /memberPrice \? materialPackage\.member_price_twd/);
+    assert.match(simplifiedProductsMigration, /member_price_twd = null/);
+    assert.match(simplifiedProductsMigration, /includes_90_day_access = true/);
 });
 
 test("11. 在校轉離校不刪除歷史紀錄", () => {
@@ -214,11 +224,10 @@ test("26. 既有離校生回填可重複執行且不解鎖新班級教材", () =
     assert.match(content, /if \(!enrollment\.data\) return false/);
 });
 
-test("27. NT$299 只恢復平台功能，離校生仍沒有新教材或新作業", () => {
-    const pricing = read("supabase/migrations/20260826132237_membership_ai_pricing.sql");
-    assert.match(pricing, /'basic_membership_monthly'/);
-    assert.match(pricing, /'requires_book_entitlement', true/);
-    assert.match(pricing, /'assignments', false/);
+test("27. NT$299 開放全部正式聽力，離校生仍沒有新作業", () => {
+    assert.match(simplifiedProductsMigration, /where code = 'basic_membership_monthly'/);
+    assert.match(simplifiedProductsMigration, /'requires_book_entitlement', false/);
+    assert.match(simplifiedProductsMigration, /'assignments', false/);
     assert.match(assignments, /if \(!effectiveAccess\.features\.assignments\)/);
     assert.match(assignments, /\.eq\("student_id", caller\.id\)\.eq\("status", "active"\)/);
     assert.match(commerce, /get_student_academy_material_history/);
@@ -299,4 +308,21 @@ test("35. 教材修正 RPC 只允許 service_role 且回傳真正錯誤", () => 
     assert.match(currentMaterialCorrectionMigration, /where id=p_actor_id and role='admin'/);
     assert.match(commerce, /const errorMessage/);
     assert.match(commerce, /message: errorMessage|const message = errorMessage/);
+});
+
+test("36. 商品包必須各有一本課本、Workbook 與聽力本並使用單一售價", () => {
+    assert.match(simplifiedProductsMigration, /role in \('textbook', 'workbook', 'listening_book', 'web_material'\)/);
+    assert.match(simplifiedProductsMigration, /textbook_count <> 1/);
+    assert.match(simplifiedProductsMigration, /workbook_count <> 1/);
+    assert.match(simplifiedProductsMigration, /listening_count <> 1/);
+    assert.match(simplifiedProductsMigration, /stripe_standard_price_id/);
+    assert.doesNotMatch(simplifiedProductsMigration, /new\.stripe_member_price_id/);
+    assert.match(commerce, /new Set\(\["textbook","workbook","listening_book","web_material"\]\)/);
+    assert.match(simplifiedProductsMigration, /mpb\.role in \('textbook', 'workbook', 'listening_book', 'web_material'\)/);
+});
+
+test("37. 商品不足三組時不會重複同一商品假裝成三個推薦", () => {
+    assert.match(commerce, /packages\.length < 3/);
+    assert.match(commerce, /\[\{ label: "建議", package: packages\[pivot\] \}\]/);
+    assert.match(commerce, /findIndex\(y => y\.package\?\.id === x\.package\?\.id\)/);
 });
