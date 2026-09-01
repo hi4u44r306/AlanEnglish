@@ -4,6 +4,7 @@
 
 本次進行中（2026-09-01）：
 
+- 已完成測試範圍確認：專案擁有者確認登入與 Session、`authService`／`AuthContext`／Login、`ProtectedRoute`／角色首頁導向、一般會員／在校生／離校生的教材與作業權限回歸，以及 MusicPlayer 80% 聆聽、防 Seek／重播小段／加速作弊、單一 session 冪等與 teacher／admin 不累計等項目均已完成。後續規劃不得再把這四組當成尚未開始的下一項工作；本條為既有完成狀態註記，並非本輪重新執行全部測試。
 - 學生首頁作業誤警告修正：正式 Edge Function 日誌確認離校＋AI 方案帳號的首頁 6 項資料中，只有 `assignment-manager` 依權限規則回傳預期的 403，其餘聽力、複習、AI、會話與教材目錄皆為 200。前端改以 `effective_access.features.assignments` 判斷是否載入作業；離校生、一般會員與試用會員直接使用空作業結果，不再把「沒有作業權限」誤顯示成資料更新異常，在校生若作業服務真的失敗仍會保留警告。相關 3 個 test suites／9 個案例、Production build 與 `git diff --check` 均成功。PR #76 已合併至正式 `main` commit `c566a6e`，Netlify production deploy `6a9636a75aa88400082aef23` 已發布且為 `ready`；正式離校＋AI 方案帳號已驗收首頁不再顯示誤警告，仍顯示無新作業、AI Premium 與自主學習內容，Console 無 error／warning。
 - 舊會員方案文字與邏輯稽核：分支 `codex/fix-departed-ai-addon` 已推送並建立 PR #75。「全方位月訂閱」與「聽力月訂閱」確認來自早期 `all_access_monthly`／`listening_monthly` 方案及 `allcover`／`listeningonly` 學生欄位，舊會員紀錄只保留歷史相容，不再出現在現行方案卡、管理員可選方案、開通碼、手動授權或新帳號預設值。學生會員中心、首頁與帳號管理改以有效 grant 判定目前方案；只有舊紀錄而沒有現行有效權限時顯示「歷史會員權限（待轉換）」，避免把舊名稱誤認為仍可購買的商品。三支未被現行前端使用的舊建帳／更新 API 已部署為 `410 Gone`，引導使用目前的 `academy-student-manager`／`membership-manager` 流程。AI 商品、付款與帳務名稱統一為「AI 教材與發音練習」NT$499／月；`AI Premium` 則保留為有效 AI 加購會員的高級稱號，不是另一個方案或價格。稱號已加入學生首頁帳號卡、Navbar／手機選單、會員中心、我的設定及 AI 教材額度卡，未加購者不顯示。學生設定頁會把相同方案代碼的多筆歷史授權整理為一筆：有效方案優先，否則顯示結束日期最新的一筆；原始 grant 歷史資料不刪除。現行程式碼全域掃描只剩歷史方案辨識清單，以及與方案無關的 `student_listening_monthly` 聆聽統計表名稱；舊 migrations 與過往狀態紀錄保留原文作為稽核歷史。7 組相關前端測試共 35/35、14 支 Edge Function／共用模組語法檢查、Production build 及 `git diff --check` 均成功。`membership-manager` v32、`billing-manager` v25、`create-user` v18、`create-student` v18、`update-user` v17 均已部署為 ACTIVE，OPTIONS 回應 200，三支舊 API 的 POST 回應 410。固定測試站 deploy `6a963106ce55f0052cd49578` 已發布；具 AI 權限的既有在校沙盒帳號已在線上驗收首頁、設定頁、會員頁與手機選單的 AI Premium 稱號，商品名稱仍為「AI 教材與發音練習」，桌面與 412×915 無水平溢位且 Console 無 error／warning。PR #75 已合併至正式 `main` commit `bcc5c9a`，Netlify production deploy `6a9632a4d114460b95a71322` 已發布並完成正式站驗收。
 
@@ -171,7 +172,7 @@ PR #29 預覽部署與後端狀態（`codex/admin-ui-csv-student-import`）：
 3. 另行規劃 Supabase migration history 對齊，不修改已正確執行的正式 schema
 3. 確認 Resend 寄件子網域的 SPF、DKIM、DMARC 與寄件設定後，以非英文班沙盒 Email 驗證收件匣／垃圾郵件結果
 4. 盤點既有英文班假 Email 帳號並產生只讀轉換預覽；未經逐批確認不得改正式帳號
-5. MusicPlayer 80% 聆聽與防作弊測試
+5. MusicPlayer 80% 聆聽與防作弊測試（2026-09-01 由專案擁有者確認已完成）
 
 ## 2. 目前正式版本
 
@@ -462,8 +463,6 @@ academy-student-manager
 
 仍需處理：
 
-- 用真實學生帳號完成「聽滿 80% → 次數 +1」端到端驗收
-- 曾使用加速播放後，整個 session 是否永久失效的規則與測試
 - 播放器實機手機視覺驗收
 - 字幕與逐字稿
 - 播放進度更直覺的提示
@@ -508,16 +507,21 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 管理員與老師播放不計入學生次數。
 - noInteraction 防掛機功能必須保留。
 
-### 尚未完成的驗收
+### 驗收狀態
 
-- 真實學生 Token 的 start／complete 完整流程
-- 80% 前不得增加次數
-- 80% 後只增加一次
-- Seek、重播小段、加速播放不可作弊
-- teacher/admin 播放不累計
-- 進度 event 能即時更新 Playlist 與作業
+- 2026-09-01 由專案擁有者確認已完成：真實學生 Token 的 start／complete、80% 前不增加、80% 後單一 session 只增加一次、Seek／重播小段／加速播放不可作弊，以及 teacher／admin 播放不累計。
+- 尚待另行確認：進度 event 是否能即時更新 Playlist 與作業。
 
-## 12. 下一個優先任務：P0 Unit Test
+## 12. P0 Unit Test 狀態
+
+2026-09-01 由專案擁有者確認以下測試已完成，不再列為下一個待辦：
+
+- `authService`、`AuthContext`、Login 與登入 Session。
+- `ProtectedRoute`、`RoleHomeRedirect` 與角色隔離。
+- 一般會員、在校生、離校生的教材與作業權限回歸。
+- MusicPlayer session、80%、Seek、重播小段、加速、冪等、noInteraction 與 teacher／admin 不累計。
+
+其餘 P0 項目仍依實際程式與測試紀錄個別確認，不因本次註記自動視為完成。
 
 ### 現有測試基準
 
@@ -528,13 +532,13 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 
 ### P0 實作順序
 
-1. `authService`、`AuthContext`、Login
-2. `ProtectedRoute`、`RoleHomeRedirect`
+1. `authService`、`AuthContext`、Login（已完成）
+2. `ProtectedRoute`、`RoleHomeRedirect`（已完成）
 3. `edgeFunctionClient` 與所有 service action/body contract
 4. Redux actions 與 `musicReducer`
 5. MusicPlayer 純函式：coverage merge、covered seconds、time、clamp
-6. MusicPlayer component：session、80%、Seek、加速、冪等、noInteraction
-7. membership／trial／activation code／effective access
+6. MusicPlayer component：session、80%、Seek、加速、冪等、noInteraction（已完成）
+7. membership／trial／activation code／effective access（一般會員／在校生／離校生教材與作業權限回歸已完成；其餘項目另行確認）
 8. assignment mission pack 完成規則
 9. AI 額度、選擇題、90 分通過、教材庫
 10. Supabase RLS／GRANT／RPC／migration integration tests
