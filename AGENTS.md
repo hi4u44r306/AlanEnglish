@@ -368,24 +368,26 @@ git status --short
 - 每個功能使用獨立分支。
 - 分支名稱應清楚，例如 `feature/listening-coverage`、`feature/guided-trial` 或 `fix/mobile-player-overlap`。
 
-下列測試環境操作已取得專案擁有者的持續授權，可以在完成相應測試後直接執行，不需每次再次詢問：
+專案擁有者已提供一般發布流程的持續授權。低至中風險修改在完成相應本機測試、Production build 與 diff 檢查後，可以直接：
 
-- 在明確的功能／測試分支建立 commit 並 Push 到 GitHub。
-- 將已通過測試的功能部署至固定測試站 `alanenglish-student-test.netlify.app`。
-- 測試站操作不得合併或直接修改 `main`，不得影響正式網域或正式付款資料。
+- 在明確功能分支建立 commit 並 Push 到 GitHub。
+- 建立或更新 Pull Request。
+- 合併至 `main`。
+- 部署相關的非破壞性 Edge Function 與 Netlify 正式站。
+- 完成正式網址線上驗收，並將結果寫入 `docs/PROJECT_STATUS.md`。
 
-在執行以下正式或高影響外部操作前，仍必須取得使用者明確同意：
+固定測試站 `alanenglish-student-test.netlify.app` 不再是每次發布的必要步驟。一般文案、局部 UI、導覽、RWD、可回復的前端錯誤修正及已有測試保護的低風險功能，可在本機驗證後直接發布正式站。
 
-- 建立 Pull Request
-- 修改 Pull Request
-- 合併 Pull Request
-- 直接 Push 到 `main`
-- 刪除遠端分支
-- 部署 Netlify 正式站或將正式網域指向新部署
-- 修改 Firebase 設定
-- 修改 Cloudflare 設定
-- 執行遠端 Supabase migration
-- 部署 Supabase Edge Function
+下列重大改動必須先使用隔離測試環境／測試站驗證，並在執行正式高影響操作前取得使用者針對該批工作的明確同意：
+
+- 新增或執行 Supabase migration、正式資料回填或大量資料修改。
+- 登入、身分、角色、RLS、教材 entitlement、作業隔離等核心權限改動。
+- Stripe／其他付款、Webhook、正式模式價格、扣款、退款或訂閱邏輯。
+- 破壞性或難以回復的刪除、覆蓋、資料格式轉換及架構重構。
+- Firebase、Cloudflare、Secret、網域、DNS 或正式第三方服務設定。
+- 大範圍套件升級、跨多個核心流程的改造，或無法由現有自動測試充分覆蓋的修改。
+
+如果使用者對某一批重大改動明確指定「直接在正式站測試／部署」，該指示可作為該批正式操作的授權，但仍必須先完成本機驗證、說明影響與回復方式，並於發布後立即進行正式站驗收。刪除遠端分支及需求範圍外的外部變更仍須另行確認。
 
 禁止使用：
 
@@ -471,18 +473,18 @@ npm run build
 
 不要把 LF 將轉成 CRLF、Browserslist 資料過期或 Node deprecation warning 直接當成 build 失敗，但仍必須確認沒有真正的編譯錯誤。
 
-### 16.1 測試站完成後的正式站發布閘門
+### 16.1 正式站優先發布與重大改動測試閘門
 
-當一批功能已在測試站完成驗收後，必須立即進入正式站升級流程，不得直接開始下一個新功能。
+一般修改在本機完成相應驗證後，直接進入正式站發布與驗收；只有第 13 節所列重大改動，或現有測試不足以控制風險時，才先使用固定測試站或其他隔離環境。
 
 必須遵守：
 
-- 先明確告知使用者「測試站已驗收，但正式站尚未更新」，並將正式站更新列為唯一優先任務。
-- 在正式站尚未與已驗收測試版本同步前，拒絕實作新的產品功能；只允許處理會阻擋合併、部署或正式驗收的修正。
-- 依序確認測試分支／commit、與最新 `main` 的差異、migration、Edge Function、Secret 名稱狀態、GitHub PR、Netlify production 及正式網址實測。
-- Push、建立或修改 PR、合併、migration、Edge Function 與 Netlify 部署仍須依第 13、14 節取得使用者明確同意；尚未取得同意時，必須停在安全 checkpoint 並持續提醒，不得以新功能繞過發布工作。
+- 依序確認功能分支／commit、與最新 `main` 的差異、migration、Edge Function、Secret 名稱狀態、GitHub PR、Netlify production 及正式網址實測。
+- 一般低至中風險發布依第 13 節的持續授權直接執行；重大改動則先走隔離驗證與該批明確授權。
+- 不得把「直接正式站」解讀成略過本機測試、build、diff、安全檢查或正式站發布後驗收。
+- 若正式部署失敗或線上驗收出現權限、付款、資料或主要流程問題，立即停止新功能，優先回復上一個安全版本或製作最小 hotfix。
 - 只有在正式站部署成功、線上驗收通過並更新 `docs/PROJECT_STATUS.md` 後，才能開始下一個新功能。
-- 若使用者確定不要發布，必須由使用者明確修改或撤回本規則；單純提出下一個功能不視為撤回。
+- 重大改動是否使用測試站由風險分類與使用者指示共同決定；單純趕時間不得把重大改動降級為一般修改。
 
 ## 17. 完成標準
 
