@@ -1,11 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FiBookOpen, FiCheck, FiClock, FiEye, FiSearch, FiShield } from "react-icons/fi";
+import { FiArrowRight, FiBookOpen, FiCheck, FiClock, FiEye, FiRefreshCw, FiSearch, FiShield } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { loadCommerceAdmin, previewClassMaterials, saveClassMaterials } from "../../services/commerceService";
 import "./css/Commerce.scss";
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+}).format(new Date());
+const defaultTermLabel = () => {
+    const date = new Date();
+    const year = new Intl.DateTimeFormat("en", { timeZone: "Asia/Taipei", year: "numeric" }).format(date);
+    const month = Number(new Intl.DateTimeFormat("en", { timeZone: "Asia/Taipei", month: "2-digit" }).format(date));
+    return `${year} ${month <= 6 ? "春季" : "秋季"}`;
+};
 const relationOne = value => Array.isArray(value) ? value[0] : value;
 
 function AdminClassMaterials() {
@@ -13,6 +21,7 @@ function AdminClassMaterials() {
     const [data, setData] = useState(null);
     const [classCode, setClassCode] = useState("E1");
     const [effectiveFrom, setEffectiveFrom] = useState(today());
+    const [termLabel, setTermLabel] = useState(defaultTermLabel());
     const [selected, setSelected] = useState([]);
     const [search, setSearch] = useState("");
     const [preview, setPreview] = useState(null);
@@ -28,25 +37,46 @@ function AdminClassMaterials() {
 
     const classRow = data?.classes?.find(item => item.code === classCode);
     const latest = useMemo(() => (data?.settings || []).filter(item => Number(item.class_id) === Number(classRow?.id)).sort((a, b) => b.version - a.version)[0], [data, classRow]);
-    useEffect(() => { setSelected((latest?.academy_class_material_books || []).map(item => Number(item.book_id))); setPreview(null); }, [latest, classCode]);
+    useEffect(() => {
+        setSelected((latest?.academy_class_material_books || []).map(item => Number(item.book_id)));
+        setEffectiveFrom(today());
+        setTermLabel(defaultTermLabel());
+        setPreview(null);
+    }, [latest, classCode]);
     const books = (data?.books || []).filter(book => `${book.name} ${book.code}`.toLowerCase().includes(search.toLowerCase()));
+    const allBooks = data?.books || [];
+    const bookNames = ids => (ids || []).map(id => allBooks.find(book => Number(book.id) === Number(id))?.name).filter(Boolean).join("、") || "無";
+    const currentBookIds = (latest?.academy_class_material_books || []).map(item => Number(item.book_id));
     const grouped = books.reduce((groups, book) => { const category = relationOne(book.book_categories)?.name || "其他教材"; (groups[category] ||= []).push(book); return groups; }, {});
-    const payload = { class_code: classCode, effective_from: effectiveFrom, book_ids: selected };
-    const doPreview = async () => { setBusy(true); try { const result = await previewClassMaterials(firebaseUser, payload); setPreview(result); } catch (error) { toast.error(error.message); } finally { setBusy(false); } };
+    const payload = { class_code: classCode, effective_from: effectiveFrom, term_label: termLabel.trim(), book_ids: selected };
+    const invalidatePreview = () => setPreview(null);
+    const doPreview = async () => {
+        if (!termLabel.trim()) return toast.info("請先填寫新學期名稱");
+        setBusy(true); try { const result = await previewClassMaterials(firebaseUser, payload); setPreview(result); } catch (error) { toast.error(error.message); } finally { setBusy(false); }
+    };
     const save = async () => {
         if (!preview) return toast.info("請先預覽影響範圍");
-        if (!window.confirm(`確認將 ${selected.length} 本教材套用到 ${classCode}？既有未到期作業會保留快照。`)) return;
-        setBusy(true); try { await saveClassMaterials(firebaseUser, payload); toast.success("班級教材版本已建立"); await load(); setPreview(null); } catch (error) { toast.error(error.message); } finally { setBusy(false); }
+        if (!window.confirm(`確認啟用 ${termLabel.trim()} 的 ${selected.length} 本教材？舊學期教材會永久保留給曾使用的學生。`)) return;
+        setBusy(true); try { await saveClassMaterials(firebaseUser, payload); toast.success("新學期教材已換版，舊教材權限已保留"); await load(); setPreview(null); } catch (error) { toast.error(error.message); } finally { setBusy(false); }
     };
 
     return <main className="commerce-page commerce-admin">
-        <section className="commerce-hero"><div><span>CLASS MATERIAL CONTROL</span><h1>班級教材設定</h1><p>固定班級只有 E1、E3、E5、E7。老師只能讀取自己授權班級；只有管理員可建立新版本。</p></div><aside><FiShield /><strong>後端權限再次驗證</strong><span>不相信前端傳入的角色、班級或教材 ID。</span></aside></section>
+        <section className="commerce-hero"><div><span>TERM MATERIAL ROLLOVER</span><h1>新學期教材換版精靈</h1><p>新學期只選現在要使用的教材。上一學期教材會永久保留給實際在校使用過的學生，新加入學生不會取得入學前的舊教材。</p></div><aside><FiShield /><strong>一次完成，不會只換一半</strong><span>永久保存舊教材、結束舊版本與啟用新版本會在同一筆資料庫交易完成。</span></aside></section>
         <section className="commerce-admin-panel">
-            <div className="commerce-admin-toolbar"><label>班級<select value={classCode} onChange={event => setClassCode(event.target.value)}>{(data?.classes || []).map(item => <option key={item.code}>{item.code}</option>)}</select></label><label>生效日<input type="date" min={today()} value={effectiveFrom} disabled={data?.read_only} onChange={event => setEffectiveFrom(event.target.value)} /></label><label className="is-search"><FiSearch /><input placeholder="搜尋實際教材" value={search} onChange={event => setSearch(event.target.value)} /></label><strong>已選 {selected.length} 本</strong></div>
+            <ol className="commerce-wizard-steps" aria-label="換版步驟">
+                <li className="is-active"><span>1</span><strong>設定學期</strong></li><li className={selected.length ? "is-active" : ""}><span>2</span><strong>選新教材</strong></li><li className={preview ? "is-active" : ""}><span>3</span><strong>預覽並確認</strong></li>
+            </ol>
+            <div className="commerce-current-term">
+                <div><small>目前班級版本</small><strong>{latest ? `${classCode} 第 ${latest.version} 版` : `${classCode} 尚未設定`}</strong><span>{latest?.note || "尚無學期名稱"} · {latest?.effective_from || "—"} 起</span></div>
+                <div><small>目前教材</small><strong>{bookNames(currentBookIds)}</strong></div>
+            </div>
+            <div className="commerce-admin-toolbar commerce-rollover-toolbar"><label>班級<select value={classCode} onChange={event => setClassCode(event.target.value)}>{(data?.classes || []).map(item => <option key={item.code}>{item.code}</option>)}</select></label><label>新學期名稱<input value={termLabel} disabled={data?.read_only} placeholder="例如：2026 秋季" onChange={event => { setTermLabel(event.target.value); invalidatePreview(); }} /></label><label>生效日<input type="date" value={effectiveFrom} disabled /></label><strong>新學期 {selected.length} 本</strong></div>
+            <p className="commerce-admin-hint">為避免漏掉生效日前新加入的學生，換版只允許在實際生效當天執行。若新學期仍會使用部分舊教材，請繼續勾選那些教材。</p>
+            <div className="commerce-rollover-tools"><label className="is-search"><FiSearch /><input placeholder="搜尋新學期教材" value={search} onChange={event => setSearch(event.target.value)} /></label>{!data?.read_only && <><button type="button" onClick={() => { setSelected(currentBookIds); invalidatePreview(); }}><FiRefreshCw />沿用目前教材</button><button type="button" onClick={() => { setSelected([]); invalidatePreview(); }}>清空重選</button></>}</div>
             {data?.read_only && <p className="commerce-admin-notice">老師為唯讀模式，不能修改班級教材設定。</p>}
-            <div className="commerce-book-groups">{Object.entries(grouped).map(([category, rows]) => <section key={category}><h2>{category}</h2><div>{rows.map(book => <label key={book.id}><input type="checkbox" disabled={data?.read_only} checked={selected.includes(Number(book.id))} onChange={event => setSelected(current => event.target.checked ? [...current, Number(book.id)] : current.filter(id => id !== Number(book.id)))} /><span><FiBookOpen /><strong>{book.name}</strong><small>{book.code}</small></span></label>)}</div></section>)}</div>
+            <div className="commerce-book-groups">{Object.entries(grouped).map(([category, rows]) => <section key={category}><h2>{category}</h2><div>{rows.map(book => <label key={book.id}><input type="checkbox" disabled={data?.read_only} checked={selected.includes(Number(book.id))} onChange={event => { setSelected(current => event.target.checked ? [...current, Number(book.id)] : current.filter(id => id !== Number(book.id))); invalidatePreview(); }} /><span><FiBookOpen /><strong>{book.name}</strong><small>{book.code}</small></span></label>)}</div></section>)}</div>
             {!data?.read_only && <div className="commerce-admin-actions"><button type="button" onClick={doPreview} disabled={busy || selected.length === 0}><FiEye />預覽影響</button><button type="button" className="primary" onClick={save} disabled={busy || !preview}><FiCheck />二次確認並建立版本</button></div>}
-            {preview && <div className="commerce-impact"><h2>影響預覽</h2><p>受影響學生 {preview.affected_student_count} 人；既有作業 {preview.affected_assignment_count} 份會保留發布快照。</p><p>新增教材：{preview.added_book_ids?.join("、") || "無"}　移除班級來源：{preview.removed_book_ids?.join("、") || "無"}</p></div>}
+            {preview && <div className="commerce-impact commerce-rollover-impact"><h2><FiArrowRight />換版影響預覽</h2><p><strong>全部歷史教材永久保留：</strong>{bookNames(preview.historical_book_ids)}，涵蓋曾在校使用的 {preview.retained_student_count || 0} 位學生，共寫入或更新 {preview.retained_entitlement_count || 0} 筆教材權限。</p><p><strong>新學期使用：</strong>{bookNames(preview.next_book_ids)}；目前在校 {preview.affected_student_count || 0} 位學生會依班級取得。</p><p><strong>相較上一版新增：</strong>{bookNames(preview.added_book_ids)}。</p><p><strong>相較上一版不再使用：</strong>{bookNames(preview.removed_book_ids)}。這些教材不會從舊生帳號移除。</p><p>既有有效作業 {preview.affected_assignment_count || 0} 份繼續使用發布時的教材快照。</p></div>}
         </section>
         <section className="commerce-admin-panel"><header><FiClock /><h2>修改紀錄</h2></header><div className="commerce-audit-list">{(data?.audit || []).filter(item => Number(item.class_id) === Number(classRow?.id)).map(item => <article key={item.id}><strong>{item.action}</strong><span>{relationOne(item.students)?.name || "系統"}</span><time>{new Date(item.created_at).toLocaleString("zh-TW")}</time></article>)}</div></section>
     </main>;
