@@ -164,6 +164,37 @@ describe("StudentSettings", () => {
         expect(screen.queryByText("續訂日 2026-08-30")).not.toBeInTheDocument();
     });
 
+    it("shows only the latest record when the same plan has duplicate history", async () => {
+        loadStudentCommerceProfile.mockResolvedValue({
+            profile: {
+                enrollment_status: "departed",
+                enrollment_history: [{ departed_at: "2026-08-31" }],
+                direct_entitlements: [],
+                class_books: [],
+                plans: [
+                    {
+                        id: 5,
+                        status: "expired",
+                        current_period_end: "2026-08-30T00:00:00Z",
+                        subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
+                    },
+                    {
+                        id: 6,
+                        status: "expired",
+                        current_period_end: "2026-08-31T00:00:00Z",
+                        subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
+                    }
+                ]
+            }
+        });
+
+        render(<StudentSettings />);
+
+        expect(await screen.findByText("已結束（2026-08-31）")).toBeInTheDocument();
+        expect(screen.getAllByText("基本自主學習會員")).toHaveLength(1);
+        expect(screen.queryByText("已結束（2026-08-30）")).not.toBeInTheDocument();
+    });
+
     it("requires final confirmation before applying one of five preset avatars", async () => {
         render(<StudentSettings />);
         await screen.findByRole("heading", { name: "我的設定" });

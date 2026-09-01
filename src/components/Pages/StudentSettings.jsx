@@ -15,6 +15,17 @@ const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A
 const AVATAR_CROP_SIZE = 280;
 const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
 
+const planDisplayPriority = plan => {
+    if (plan?.status === "active" || plan?.cancel_at_period_end) return 2;
+    if (plan?.stripe_subscription_status === "past_due") return 1;
+    return 0;
+};
+
+const planDisplayTimestamp = plan => {
+    const timestamp = Date.parse(plan?.current_period_end || plan?.ends_at || "");
+    return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
 const getCropLimits = (draft, zoom = draft?.zoom || 1) => {
     if (!draft?.width || !draft?.height) return { x: 0, y: 0 };
     const scale = Math.max(AVATAR_CROP_SIZE / draft.width, AVATAR_CROP_SIZE / draft.height) * zoom;
@@ -294,7 +305,21 @@ function StudentSettings() {
         if (plan.ends_at) return `到期日 ${plan.ends_at.slice(0, 10)}`;
         return plan.status === "active" ? "使用中" : plan.status;
     };
-    const visiblePlans = (commerce?.plans || []).filter(plan => planCode(plan) !== "academy_internal");
+    const visiblePlans = Array.from((commerce?.plans || [])
+        .filter(plan => planCode(plan) !== "academy_internal")
+        .reduce((plans, plan) => {
+            const code = planCode(plan) || `grant:${plan.id}`;
+            const current = plans.get(code);
+            const priority = planDisplayPriority(plan);
+            const currentPriority = planDisplayPriority(current);
+            if (!current
+                || priority > currentPriority
+                || (priority === currentPriority && planDisplayTimestamp(plan) > planDisplayTimestamp(current))) {
+                plans.set(code, plan);
+            }
+            return plans;
+        }, new Map())
+        .values());
 
     return (
         <main className="student-settings-page">
