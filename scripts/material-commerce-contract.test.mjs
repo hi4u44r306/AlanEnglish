@@ -7,6 +7,7 @@ const migration = read("supabase/migrations/20260826233335_membership_class_mate
 const hardeningMigration = read("supabase/migrations/20260827013903_membership_commerce_authorization_hardening.sql");
 const paidMemberIdentityMigration = read("supabase/migrations/20260831024923_promote_paid_trial_members.sql");
 const departedMaterialsMigration = read("supabase/migrations/20260901030505_preserve_departed_academy_materials.sql");
+const termRolloverMigration = read("supabase/migrations/20260901060511_term_material_rollover_entitlements.sql");
 const commerce = read("supabase/functions/commerce-manager/index.ts");
 const content = read("supabase/functions/content-access/index.ts");
 const recordPlay = read("supabase/functions/record-play/index.ts");
@@ -229,4 +230,40 @@ test("28. 歷史教材 RPC 與離校 RPC 只允許 service_role", () => {
     assert.match(departedMaterialsMigration, /grant execute on function public\.get_student_academy_material_history\(bigint,date\)[\s\S]*to service_role/);
     assert.match(departedMaterialsMigration, /revoke all on function public\.process_academy_departure_with_materials\(bigint,bigint,bigint,date,jsonb\)[\s\S]*from public,anon,authenticated/);
     assert.match(departedMaterialsMigration, /where id=p_completed_by and role='admin'/);
+});
+
+test("29. 新學期換版會原子保存舊教材並建立新版本", () => {
+    assert.match(termRolloverMigration, /rollover_academy_class_materials/);
+    assert.match(termRolloverMigration, /pg_advisory_xact_lock/);
+    assert.match(termRolloverMigration, /set effective_to=p_effective_from-1/);
+    assert.match(termRolloverMigration, /'academy_history'/);
+    assert.match(termRolloverMigration, /'academy_enrollment'/);
+    assert.match(termRolloverMigration, /'retained_on_rollover',p_effective_from/);
+    assert.match(termRolloverMigration, /insert into public\.academy_class_material_settings/);
+    assert.match(termRolloverMigration, /insert into public\.academy_class_material_books/);
+    assert.match(commerce, /rpc\("rollover_academy_class_materials"/);
+    assert.doesNotMatch(commerce, /from\("academy_class_material_settings"\)\.update\(\{ effective_to/);
+});
+
+test("30. 換版盤點截至前一天的全部歷史教材，新生不取得入學前教材", () => {
+    assert.match(termRolloverMigration, /e\.enrolled_at<p_effective_from/);
+    assert.match(termRolloverMigration, /private\.academy_student_material_history_rows\([\s\S]*p_effective_from-1/);
+    assert.match(termRolloverMigration, /'historical_book_ids',v_historical_book_ids/);
+    assert.match(termRolloverMigration, /h\.first_effective_from::timestamptz/);
+    assert.match(termRolloverMigration, /'material_setting_ids',h\.setting_ids/);
+    assert.match(termRolloverMigration, /'evidence_sources',h\.evidence_sources/);
+    assert.match(termRolloverMigration, /on conflict\(student_id,book_id,source,source_reference_type,source_reference_id\)/);
+});
+
+test("31. 換版預覽與寫入 RPC 只允許 service_role", () => {
+    assert.match(termRolloverMigration, /security invoker/g);
+    assert.match(termRolloverMigration, /revoke all on function public\.preview_academy_class_material_rollover\(smallint,date,bigint\[\]\)[\s\S]*from public,anon,authenticated/);
+    assert.match(termRolloverMigration, /grant execute on function public\.preview_academy_class_material_rollover\(smallint,date,bigint\[\]\)[\s\S]*to service_role/);
+    assert.match(termRolloverMigration, /revoke all on function public\.rollover_academy_class_materials\(smallint,date,bigint\[\],text,bigint\)[\s\S]*from public,anon,authenticated/);
+    assert.match(termRolloverMigration, /where id=p_actor_id and role='admin'/);
+});
+
+test("32. 教材換版預覽不再使用模糊的 enrollment students 關聯", () => {
+    assert.match(commerce, /preview_academy_class_material_rollover/);
+    assert.doesNotMatch(commerce, /academy_enrollments"\)\.select\("id,student_id,students\(/);
 });

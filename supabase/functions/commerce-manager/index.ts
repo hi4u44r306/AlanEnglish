@@ -197,56 +197,37 @@ async function staffBootstrap(admin: any, caller: VerifiedAlanUser) {
     return { role: caller.role, read_only: caller.role !== "admin", classes, books: books.data || [], settings: settings.data || [], audit: audit.data || [], packages: packages.data || [], tracks: tracks.data || [], students: students.data || [] };
 }
 
-async function classImpact(admin: any, classId: number, bookIds: number[]) {
-    const [enrollments, assignments, current] = await Promise.all([
-        admin.from("academy_enrollments").select("id,student_id,students(id,name,chinese_name,english_name)").eq("class_id", classId).eq("status", "active"),
-        admin.from("assignments").select("id,title,due_at,enabled").eq("target_class", (await admin.from("academy_classes").select("code").eq("id", classId).single()).data.code).eq("enabled", true),
-        currentClassSetting(admin, classId)
-    ]);
-    if (enrollments.error) throw enrollments.error;
-    if (assignments.error) throw assignments.error;
-    const currentIds = relation(current?.academy_class_material_books).map((x: any) => Number(x.book_id));
-    return {
-        affected_students: enrollments.data || [], affected_student_count: enrollments.data?.length || 0,
-        affected_assignments: assignments.data || [], affected_assignment_count: assignments.data?.length || 0,
-        current_book_ids: currentIds, next_book_ids: bookIds,
-        added_book_ids: bookIds.filter(id => !currentIds.includes(id)), removed_book_ids: currentIds.filter((id: number) => !bookIds.includes(id))
-    };
+async function classImpact(admin: any, classId: number, effectiveFrom: string, bookIds: number[]) {
+    const { data, error } = await admin.rpc("preview_academy_class_material_rollover", {
+        p_class_id: classId, p_effective_from: effectiveFrom, p_book_ids: bookIds
+    });
+    if (error) throw error;
+    return data || {};
 }
 
 async function saveClassMaterials(admin: any, caller: VerifiedAlanUser, body: any) {
     if (caller.role !== "admin") throw Object.assign(new Error("只有管理員可以修改班級教材"), { status: 403 });
     const classCode = cleanText(body.class_code, 2);
     const effectiveFrom = isoDate(body.effective_from);
+    const termLabel = cleanText(body.term_label, 80);
     const bookIds = ids(body.book_ids);
-    if (!CLASS_CODES.has(classCode) || !effectiveFrom || !bookIds.length) throw Object.assign(new Error("班級、教材或生效日不完整"), { status: 400 });
+    if (!CLASS_CODES.has(classCode) || !effectiveFrom || !termLabel || !bookIds.length) throw Object.assign(new Error("班級、學期名稱、教材或生效日不完整"), { status: 400 });
     const { data: klass, error: classError } = await admin.from("academy_classes").select("id,code").eq("code", classCode).eq("is_active", true).single();
     if (classError) throw classError;
     const { data: validBooks, error: bookError } = await admin.from("books").select("id").in("id", bookIds).eq("enabled", true).is("archived_at", null);
     if (bookError) throw bookError;
     if ((validBooks || []).length !== bookIds.length) throw Object.assign(new Error("包含不存在或已停用的教材"), { status: 400 });
-    const impact = await classImpact(admin, klass.id, bookIds);
+    const impact = await classImpact(admin, klass.id, effectiveFrom, bookIds);
     if (!body.confirmed) return { preview: true, ...impact };
-    const current = await currentClassSetting(admin, klass.id, effectiveFrom);
-    const { data: last } = await admin.from("academy_class_material_settings").select("version").eq("class_id", klass.id).order("version", { ascending: false }).limit(1).maybeSingle();
-    if (current && current.effective_from < effectiveFrom) {
-        const previousDay = new Date(`${effectiveFrom}T00:00:00Z`); previousDay.setUTCDate(previousDay.getUTCDate() - 1);
-        const { error } = await admin.from("academy_class_material_settings").update({ effective_to: previousDay.toISOString().slice(0, 10), updated_by: caller.id }).eq("id", current.id);
-        if (error) throw error;
-    }
-    const { data: setting, error: settingError } = await admin.from("academy_class_material_settings").insert({
-        class_id: klass.id, version: Number(last?.version || 0) + 1, effective_from: effectiveFrom,
-        note: cleanText(body.note, 500) || null, created_by: caller.id, updated_by: caller.id
-    }).select("*").single();
-    if (settingError) throw settingError;
-    const { error: joinError } = await admin.from("academy_class_material_books").insert(bookIds.map((bookId, index) => ({ setting_id: setting.id, book_id: bookId, sort_order: index })));
-    if (joinError) throw joinError;
-    await admin.from("academy_class_material_audit_log").insert({
-        class_id: klass.id, setting_id: setting.id, action: current ? "replaced" : "created",
-        previous_snapshot: current || {}, next_snapshot: { ...setting, book_ids: bookIds },
-        affected_student_count: impact.affected_student_count, affected_assignment_count: impact.affected_assignment_count, created_by: caller.id
+    const { data, error } = await admin.rpc("rollover_academy_class_materials", {
+        p_class_id: klass.id,
+        p_effective_from: effectiveFrom,
+        p_book_ids: bookIds,
+        p_term_label: termLabel,
+        p_actor_id: caller.id
     });
-    return { setting, ...impact };
+    if (error) throw error;
+    return data || {};
 }
 
 async function savePackage(admin: any, caller: VerifiedAlanUser, body: any) {
