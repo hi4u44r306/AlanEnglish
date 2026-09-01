@@ -140,9 +140,14 @@ const User = () => {
             setLoading(true);
         }
 
+        const canUseAssignments = user?.membership?.effective_access?.features?.assignments === true;
+        const assignmentRequest = canUseAssignments
+            ? getStudentAssignments(firebaseUser)
+            : Promise.resolve({ assignments: [] });
+
         const requests = await Promise.allSettled([
             getDashboardStats(firebaseUser),
-            getStudentAssignments(firebaseUser),
+            assignmentRequest,
             getReviewDashboard(firebaseUser),
             getAiMaterialUsage(firebaseUser),
             getConversationProgress(firebaseUser),
