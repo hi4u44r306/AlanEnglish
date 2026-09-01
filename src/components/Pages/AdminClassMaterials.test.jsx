@@ -90,6 +90,49 @@ describe("AdminClassMaterials term rollover wizard", () => {
         expect(screen.getByRole("button", { name: "二次確認並建立版本" })).toBeDisabled();
     });
 
+    it("lets an administrator replace a mistakenly selected current book", async () => {
+        const effectiveToday = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+        }).format(new Date());
+        loadCommerceAdmin.mockResolvedValue({
+            ...adminData,
+            settings: [{
+                ...adminData.settings[0],
+                version: 2,
+                note: "2026 秋季",
+                effective_from: effectiveToday,
+                updated_at: "2026-09-01T11:33:45.348652+00:00"
+            }]
+        });
+        previewCurrentClassMaterials.mockResolvedValue({
+            preview: true,
+            correction: true,
+            setting_id: 10,
+            setting_updated_at: "2026-09-01T11:33:45.348652+00:00",
+            previous_book_ids: [1],
+            next_book_ids: [2],
+            added_book_ids: [2],
+            removed_book_ids: [1],
+            affected_student_count: 5,
+            affected_assignment_count: 0,
+            has_changes: true
+        });
+
+        render(<AdminClassMaterials />);
+
+        expect(await screen.findByText("修正後保留的教材")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("checkbox", { name: /Workbook 2/ }));
+        fireEvent.click(screen.getByRole("button", { name: "從本版本移除 Workbook 1" }));
+        fireEvent.click(screen.getByRole("button", { name: "預覽修正影響" }));
+
+        await waitFor(() => expect(previewCurrentClassMaterials).toHaveBeenCalledWith(
+            { uid: "admin-1" },
+            expect.objectContaining({ setting_id: 10, book_ids: [2] })
+        ));
+        expect(await screen.findByText(/上述移除教材不再由目前班級版本提供/)).toBeInTheDocument();
+        expect(screen.getByText(/本次移除：/).parentElement).toHaveTextContent("Workbook 1");
+    });
+
     it("allows an administrator to preview and correct today's version more than once", async () => {
         const effectiveToday = new Intl.DateTimeFormat("en-CA", {
             timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"

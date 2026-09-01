@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FiArrowRight, FiBookOpen, FiCheck, FiClock, FiEye, FiRefreshCw, FiSearch, FiShield } from "react-icons/fi";
+import { FiArrowRight, FiBookOpen, FiCheck, FiClock, FiEye, FiRefreshCw, FiSearch, FiShield, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import {
@@ -60,6 +60,10 @@ function AdminClassMaterials() {
     const grouped = books.reduce((groups, book) => { const category = relationOne(book.book_categories)?.name || "其他教材"; (groups[category] ||= []).push(book); return groups; }, {});
     const payload = { class_code: classCode, effective_from: effectiveFrom, term_label: termLabel.trim(), book_ids: selected };
     const invalidatePreview = () => setPreview(null);
+    const removeSelectedBook = bookId => {
+        setSelected(current => current.filter(id => id !== Number(bookId)));
+        invalidatePreview();
+    };
     const selectOperationMode = mode => {
         setOperationMode(mode);
         setSelected(currentBookIds);
@@ -117,12 +121,21 @@ function AdminClassMaterials() {
             </div>}
             {canCorrectLatest && !data?.read_only && <p className="commerce-admin-notice">{classCode} 今天已建立第 {latest.version} 版；若教材選錯，請使用「修正目前版本」。今天可以重複修正，但每次都必須重新預覽與二次確認。</p>}
             <div className="commerce-admin-toolbar commerce-rollover-toolbar"><label>班級<select value={classCode} onChange={event => setClassCode(event.target.value)}>{(data?.classes || []).map(item => <option key={item.code}>{item.code}</option>)}</select></label><label>{operationMode === "correction" ? "目前學期名稱" : "新學期名稱"}<input value={termLabel} disabled={data?.read_only} placeholder="例如：2026 秋季" onChange={event => { setTermLabel(event.target.value); invalidatePreview(); }} /></label><label>生效日<input type="date" value={effectiveFrom} disabled /></label><strong>{operationMode === "correction" ? "修正後" : "新學期"} {selected.length} 本</strong></div>
-            <p className="commerce-admin-hint">{operationMode === "correction" ? "修正只會更新今天建立的目前版本，不會建立另一個同日版本、收回永久教材或刪除既有作業快照。" : "為避免漏掉生效日前新加入的學生，換版只允許在實際生效當天執行。若新學期仍會使用部分舊教材，請繼續勾選那些教材。"}</p>
+            <p className="commerce-admin-hint">{operationMode === "correction" ? "今天誤選的教材可以取消勾選或從下方已選清單移除；確認後，學生不再透過目前班級版本取得該教材。自行購買、管理員贈送或真正的歷史教材權限不會被撤銷。" : "為避免漏掉生效日前新加入的學生，換版只允許在實際生效當天執行。若新學期仍會使用部分舊教材，請繼續勾選那些教材。"}</p>
+            {operationMode === "correction" && <section className="commerce-selected-books" aria-label="修正後已選教材">
+                <header><div><strong>修正後保留的教材</strong><span>請先加入正確教材，再移除誤選教材；下列清單就是確認後學生會透過此班級版本看到的內容。</span></div><strong>{selected.length} 本</strong></header>
+                <div>{selected.map(bookId => {
+                    const book = allBooks.find(item => Number(item.id) === Number(bookId));
+                    if (!book) return null;
+                    return <span key={bookId}><FiBookOpen /><strong>{book.name}</strong>{!data?.read_only && <button type="button" aria-label={`從本版本移除 ${book.name}`} onClick={() => removeSelectedBook(bookId)}><FiX />移除</button>}</span>;
+                })}</div>
+                {selected.length === 0 && <p>目前沒有教材。請至少加入一本正確教材後再預覽。</p>}
+            </section>}
             <div className="commerce-rollover-tools"><label className="is-search"><FiSearch /><input placeholder="搜尋新學期教材" value={search} onChange={event => setSearch(event.target.value)} /></label>{!data?.read_only && <><button type="button" onClick={() => { setSelected(currentBookIds); invalidatePreview(); }}><FiRefreshCw />沿用目前教材</button><button type="button" onClick={() => { setSelected([]); invalidatePreview(); }}>清空重選</button></>}</div>
             {data?.read_only && <p className="commerce-admin-notice">老師為唯讀模式，不能修改班級教材設定。</p>}
             <div className="commerce-book-groups">{Object.entries(grouped).map(([category, rows]) => <section key={category}><h2>{category}</h2><div>{rows.map(book => <label key={book.id}><input type="checkbox" disabled={data?.read_only} checked={selected.includes(Number(book.id))} onChange={event => { setSelected(current => event.target.checked ? [...current, Number(book.id)] : current.filter(id => id !== Number(book.id))); invalidatePreview(); }} /><span><FiBookOpen /><strong>{book.name}</strong><small>{book.code}</small></span></label>)}</div></section>)}</div>
             {!data?.read_only && <div className="commerce-admin-actions"><button type="button" onClick={doPreview} disabled={busy || selected.length === 0}><FiEye />{operationMode === "correction" ? "預覽修正影響" : "預覽換版影響"}</button><button type="button" className="primary" onClick={save} disabled={busy || !preview || preview.has_changes === false}><FiCheck />{operationMode === "correction" ? "二次確認並修正目前版本" : "二次確認並建立版本"}</button></div>}
-            {preview && operationMode === "correction" && <div className="commerce-impact commerce-rollover-impact"><h2><FiArrowRight />目前版本修正預覽</h2><p><strong>修正前教材：</strong>{bookNames(preview.previous_book_ids)}。</p><p><strong>修正後教材：</strong>{bookNames(preview.next_book_ids)}；目前在校 {preview.affected_student_count || 0} 位學生會依修正後清單取得。</p><p><strong>本次新增：</strong>{bookNames(preview.added_book_ids)}。</p><p><strong>本次移除：</strong>{bookNames(preview.removed_book_ids)}。</p><p>既有有效作業 {preview.affected_assignment_count || 0} 份保留發布時的教材快照與學習紀錄。</p>{preview.has_changes === false && <p className="commerce-admin-notice">目前教材與學期名稱沒有變更，不需要再次儲存。</p>}</div>}
+            {preview && operationMode === "correction" && <div className="commerce-impact commerce-rollover-impact"><h2><FiArrowRight />目前版本修正預覽</h2><p><strong>修正前教材：</strong>{bookNames(preview.previous_book_ids)}。</p><p><strong>修正後教材：</strong>{bookNames(preview.next_book_ids)}；目前在校 {preview.affected_student_count || 0} 位學生會依修正後清單取得。</p><p><strong>本次新增：</strong>{bookNames(preview.added_book_ids)}。</p><p><strong>本次移除：</strong>{bookNames(preview.removed_book_ids)}。</p>{(preview.removed_book_ids || []).length > 0 && <p className="commerce-removal-warning"><strong>確認後：</strong>上述移除教材不再由目前班級版本提供；若學生另有購買、贈送或歷史權限，仍會繼續看得到。</p>}<p>既有有效作業 {preview.affected_assignment_count || 0} 份保留發布時的教材快照與學習紀錄。</p>{preview.has_changes === false && <p className="commerce-admin-notice">目前教材與學期名稱沒有變更，不需要再次儲存。</p>}</div>}
             {preview && operationMode === "rollover" && <div className="commerce-impact commerce-rollover-impact"><h2><FiArrowRight />換版影響預覽</h2><p><strong>全部歷史教材永久保留：</strong>{bookNames(preview.historical_book_ids)}，涵蓋曾在校使用的 {preview.retained_student_count || 0} 位學生，共寫入或更新 {preview.retained_entitlement_count || 0} 筆教材權限。</p><p><strong>新學期使用：</strong>{bookNames(preview.next_book_ids)}；目前在校 {preview.affected_student_count || 0} 位學生會依班級取得。</p><p><strong>相較上一版新增：</strong>{bookNames(preview.added_book_ids)}。</p><p><strong>相較上一版不再使用：</strong>{bookNames(preview.removed_book_ids)}。這些教材不會從舊生帳號移除。</p><p>既有有效作業 {preview.affected_assignment_count || 0} 份繼續使用發布時的教材快照。</p></div>}
         </section>
         <section className="commerce-admin-panel"><header><FiClock /><h2>修改紀錄</h2></header><div className="commerce-audit-list">{(data?.audit || []).filter(item => Number(item.class_id) === Number(classRow?.id)).map(item => <article key={item.id}><strong>{auditLabel(item.action)}</strong><span>{relationOne(item.students)?.name || "系統"}</span><time>{new Date(item.created_at).toLocaleString("zh-TW")}</time></article>)}</div></section>
