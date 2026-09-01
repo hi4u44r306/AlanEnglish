@@ -6,7 +6,8 @@ import {
     BASIC_MEMBERSHIP_PLAN_CODE,
     GENERAL_AI_ADDON_PLAN_CODE,
     getMembershipPricingEligibility,
-    isAiAddonPlanCode
+    isAiAddonPlanCode,
+    isLegacyMembershipPlanCode
 } from "../_shared/membership-pricing.ts";
 
 const corsHeaders = {
@@ -287,24 +288,24 @@ const ensureMembership = async (
     const staff = STAFF_ROLES.has(student.role);
 
     if (!membership) {
-        const { data: defaultPlan } = await admin
-            .from("subscription_plans")
-            .select("id")
-            .eq(
-                "code",
-                options.publicSignup
-                    ? "trial_7_day"
-                    : student.plan === "listeningonly"
-                        ? "listening_monthly"
-                        : "all_access_monthly"
-            )
-            .maybeSingle();
+        let defaultPlanId: number | null = null;
+        if (options.publicSignup) {
+            const { data: defaultPlan, error: defaultPlanError } = await admin
+                .from("subscription_plans")
+                .select("id")
+                .eq("code", "trial_7_day")
+                .maybeSingle();
+            if (defaultPlanError) throw defaultPlanError;
+            defaultPlanId = defaultPlan?.id || null;
+        }
 
-        const initialStatus = options.publicSignup && !firebaseUser.emailVerified
-            ? "pending_verification"
-            : options.publicSignup
-                ? "trialing"
-                : "complimentary";
+        const initialStatus = staff
+            ? "complimentary"
+            : options.publicSignup && !firebaseUser.emailVerified
+                ? "pending_verification"
+                : options.publicSignup
+                    ? "trialing"
+                    : "expired";
         const now = new Date();
         const trialEnd = options.publicSignup && firebaseUser.emailVerified
             ? new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString()
@@ -312,7 +313,7 @@ const ensureMembership = async (
 
         const { error: insertError } = await admin.from("memberships").insert({
             student_id: student.id,
-            plan_id: defaultPlan?.id || null,
+            plan_id: defaultPlanId,
             status: staff ? "complimentary" : initialStatus,
             source: options.publicSignup ? "public_signup" : "legacy",
             trial_started_at: trialEnd ? now.toISOString() : null,
@@ -551,7 +552,7 @@ Deno.serve(async (req: Request) => {
                         name: requestedName,
                         role: "student",
                         class: null,
-                        plan: "allcover",
+                        plan: null,
                         user_image: "6C9570CC-B276-424C-857F-11BBDD21C99B.png",
                         total_time_played: 0,
                         current_time_played: 0
@@ -635,7 +636,7 @@ Deno.serve(async (req: Request) => {
                     name: fallbackName,
                     role: "student",
                     class: null,
-                    plan: "allcover",
+                    plan: null,
                     user_image: "6C9570CC-B276-424C-857F-11BBDD21C99B.png",
                     total_time_played: 0,
                     current_time_played: 0
@@ -1033,10 +1034,13 @@ Deno.serve(async (req: Request) => {
                 if (item.membership.is_active) acc.active_total = (acc.active_total || 0) + 1;
                 return acc;
             }, { active_total: 0, total: members.length });
+            const currentPlans = (plansResult.data || []).filter((plan: any) => (
+                !isLegacyMembershipPlanCode(plan?.code)
+            ));
 
             return json(200, {
                 success: true,
-                plans: plansResult.data || [],
+                plans: currentPlans,
                 codes: (codesResult.data || []).map((code: any) => ({
                     ...code,
                     subscription_plans: relationOne(code.subscription_plans),
@@ -1066,6 +1070,16 @@ Deno.serve(async (req: Request) => {
                     .map(key => [key, requestedFeatures[key] === true])
             );
             if (!planId || !name) return json(400, { error: "方案資料不完整" });
+            const { data: currentPlan, error: currentPlanError } = await admin
+                .from("subscription_plans")
+                .select("id,code")
+                .eq("id", planId)
+                .maybeSingle();
+            if (currentPlanError) throw currentPlanError;
+            if (!currentPlan) return json(404, { error: "找不到指定方案" });
+            if (isLegacyMembershipPlanCode(currentPlan.code)) {
+                return json(409, { error: "歷史方案只供既有資料相容，不能再修改或重新啟用" });
+            }
             if (priceTwd !== null && (!Number.isInteger(priceTwd) || priceTwd < 0 || priceTwd > 1000000)) {
                 return json(400, { error: "價格必須是 0～1,000,000 的整數" });
             }
@@ -1126,12 +1140,15 @@ Deno.serve(async (req: Request) => {
             if (planId) {
                 const { data: plan, error: planError } = await admin
                     .from("subscription_plans")
-                    .select("id")
+                    .select("id,code")
                     .eq("id", planId)
                     .eq("enabled", true)
                     .maybeSingle();
                 if (planError) throw planError;
                 if (!plan) return json(400, { error: "找不到指定方案" });
+                if (isLegacyMembershipPlanCode(plan.code)) {
+                    return json(409, { error: "歷史方案不能再產生新的啟用碼" });
+                }
             }
             if (bookId) {
                 const { data: book, error: bookError } = await admin.from("books").select("id").eq("id", bookId).eq("enabled", true).is("archived_at", null).maybeSingle();
@@ -1198,6 +1215,9 @@ Deno.serve(async (req: Request) => {
                 .maybeSingle();
             if (planError) throw planError;
             if (!plan) return json(400, { error: "找不到可用方案" });
+            if (isLegacyMembershipPlanCode(plan.code)) {
+                return json(409, { error: "歷史方案不能再贈送給學生" });
+            }
 
             const { data: existingGrants, error: grantsError } = await admin
                 .from("student_access_grants")

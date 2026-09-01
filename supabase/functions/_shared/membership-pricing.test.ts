@@ -1,6 +1,7 @@
 import {
     getMembershipPricingEligibility,
-    isAiAddonPlanCode
+    isAiAddonPlanCode,
+    isLegacyMembershipPlanCode
 } from "./membership-pricing.ts";
 
 const assertEquals = (actual: unknown, expected: unknown) => {
@@ -70,4 +71,10 @@ Deno.test("only the two supported AI add-on codes are accepted", () => {
     assertEquals(isAiAddonPlanCode("ai_materials_addon_monthly"), true);
     assertEquals(isAiAddonPlanCode("ai_materials_general_monthly"), true);
     assertEquals(isAiAddonPlanCode("unknown_addon"), false);
+});
+
+Deno.test("legacy membership plans remain readable but are not current offers", () => {
+    assertEquals(isLegacyMembershipPlanCode("listening_monthly"), true);
+    assertEquals(isLegacyMembershipPlanCode("all_access_monthly"), true);
+    assertEquals(isLegacyMembershipPlanCode("basic_membership_monthly"), false);
 });

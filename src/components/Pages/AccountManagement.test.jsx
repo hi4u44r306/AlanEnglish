@@ -90,6 +90,29 @@ const archivedTrialStudent = {
     }
 };
 
+const alumniWithAiStudent = {
+    ...academyStudent,
+    id: 69,
+    name: "離校 AI 測試學生",
+    class: null,
+    learner_type: "academy_student",
+    membership: {
+        status: "expired",
+        is_active: true,
+        plan: {
+            code: "all_access_monthly",
+            name: "全方位月訂閱"
+        },
+        effective_access: {
+            plan_codes: ["basic_membership_monthly", "ai_materials_addon_monthly"],
+            grants: [{
+                plan_code: "basic_membership_monthly",
+                plan_name: "基本自主學習會員"
+            }]
+        }
+    }
+};
+
 const renderPage = () => render(
     <MemoryRouter>
         <AccountManagement />
@@ -133,9 +156,18 @@ describe("AccountManagement", () => {
         renderPage();
 
         expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
-        expect(screen.getAllByText("英文班在學方案")).toHaveLength(2);
+        expect(screen.getAllByText("英文班在學權限")).toHaveLength(2);
         expect(screen.queryByText("全方位")).not.toBeInTheDocument();
         expect(screen.getByText("E3")).toBeInTheDocument();
+    });
+
+    test("shows an alumnus effective membership instead of a stale legacy plan", async () => {
+        getManagedAccounts.mockResolvedValue({ accounts: [alumniWithAiStudent] });
+        renderPage();
+
+        expect(await screen.findByText("離校 AI 測試學生")).toBeInTheDocument();
+        expect(screen.getAllByText("基本自主學習會員")).toHaveLength(2);
+        expect(screen.queryByText("全方位月訂閱")).not.toBeInTheDocument();
     });
 
     test("hides an archived student by default and allows restoring it from the status filter", async () => {
@@ -239,7 +271,7 @@ describe("AccountManagement", () => {
             target: { value: "E1" }
         });
         fireEvent.change(screen.getByRole("combobox", { name: "Plan" }), {
-            target: { value: "trial_user" }
+            target: { value: "trial_7_day" }
         });
         fireEvent.change(screen.getByRole("combobox", { name: "開通狀態" }), {
             target: { value: "direct_pending" }

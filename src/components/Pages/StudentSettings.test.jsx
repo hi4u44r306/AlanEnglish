@@ -5,6 +5,7 @@ import StudentSettings from "./StudentSettings";
 import { useAuth } from "../../auth/AuthContext";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import { updateStudentProfile } from "../../services/membershipService";
+import { loadStudentCommerceProfile } from "../../services/commerceService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({
@@ -16,6 +17,9 @@ jest.mock("../../services/gamificationService", () => ({
 }));
 jest.mock("../../services/membershipService", () => ({
     updateStudentProfile: jest.fn()
+}));
+jest.mock("../../services/commerceService", () => ({
+    loadStudentCommerceProfile: jest.fn()
 }));
 
 describe("StudentSettings", () => {
@@ -43,6 +47,16 @@ describe("StudentSettings", () => {
             profile: { avatar_url: null },
             balance: { level: 3, total_xp: 390, points_balance: 21 }
         });
+        loadStudentCommerceProfile.mockResolvedValue({
+            profile: {
+                enrollment_status: "active",
+                current_enrollment: { enrolled_at: "2025-09-01" },
+                enrollment_history: [],
+                direct_entitlements: [],
+                class_books: [],
+                plans: []
+            }
+        });
     });
 
     const firePointerEvent = (target, type, properties) => {
@@ -66,7 +80,7 @@ describe("StudentSettings", () => {
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("AI PREMIUM 已啟用")).toBeInTheDocument();
+        expect(screen.getByText("AI Premium")).toBeInTheDocument();
 
         expect(screen.queryByDisplayValue("2015-05-12")).not.toBeInTheDocument();
         fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
@@ -80,7 +94,7 @@ describe("StudentSettings", () => {
         ));
     });
 
-    it("recognizes the general-member AI add-on as AI Premium", async () => {
+    it("recognizes the general-member AI materials and pronunciation plan", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-2" },
             setStudentProfile,
@@ -98,8 +112,87 @@ describe("StudentSettings", () => {
 
         render(<StudentSettings />);
 
-        expect(await screen.findByText("AI PREMIUM 已啟用")).toBeInTheDocument();
-        expect(screen.getByText("AI 教材可使用")).toBeInTheDocument();
+        expect(await screen.findByText("AI Premium")).toBeInTheDocument();
+        expect(screen.getByText("AI 教材與發音練習可使用")).toBeInTheDocument();
+    });
+
+    it("shows the latest departure and excludes historical academy access from paid plans", async () => {
+        loadStudentCommerceProfile.mockResolvedValue({
+            profile: {
+                enrollment_status: "departed",
+                current_enrollment: null,
+                enrollment_history: [{ enrolled_at: "2025-09-01", departed_at: "2026-08-31" }],
+                direct_entitlements: [],
+                class_books: [],
+                plans: [
+                    { id: 1, status: "expired", ends_at: "2026-09-01T00:00:00Z", subscription_plans: { code: "academy_internal", name: "英文班在學方案" } },
+                    { id: 2, status: "active", current_period_end: "2026-09-30T00:00:00Z", subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" } },
+                    { id: 3, status: "active", current_period_end: "2026-09-30T00:00:00Z", subscription_plans: { code: "ai_materials_addon_monthly", name: "舊 AI 方案名稱" } }
+                ]
+            }
+        });
+
+        render(<StudentSettings />);
+
+        expect(await screen.findByText("離校")).toBeInTheDocument();
+        expect(screen.getByText("2026-08-31")).toBeInTheDocument();
+        expect(screen.queryByText("英文班在學方案")).not.toBeInTheDocument();
+        expect(screen.getByText("基本自主學習會員")).toBeInTheDocument();
+        expect(screen.getAllByText("AI 教材與發音練習")).toHaveLength(3);
+        expect(screen.getAllByText("續訂日 2026-09-30")).toHaveLength(2);
+    });
+
+    it("does not label an expired paid grant as renewing", async () => {
+        loadStudentCommerceProfile.mockResolvedValue({
+            profile: {
+                enrollment_status: "departed",
+                enrollment_history: [{ departed_at: "2026-08-31" }],
+                direct_entitlements: [],
+                class_books: [],
+                plans: [{
+                    id: 4,
+                    status: "expired",
+                    current_period_end: "2026-08-30T00:00:00Z",
+                    subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
+                }]
+            }
+        });
+
+        render(<StudentSettings />);
+
+        expect(await screen.findByText("已結束（2026-08-30）")).toBeInTheDocument();
+        expect(screen.queryByText("續訂日 2026-08-30")).not.toBeInTheDocument();
+    });
+
+    it("shows only the latest record when the same plan has duplicate history", async () => {
+        loadStudentCommerceProfile.mockResolvedValue({
+            profile: {
+                enrollment_status: "departed",
+                enrollment_history: [{ departed_at: "2026-08-31" }],
+                direct_entitlements: [],
+                class_books: [],
+                plans: [
+                    {
+                        id: 5,
+                        status: "expired",
+                        current_period_end: "2026-08-30T00:00:00Z",
+                        subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
+                    },
+                    {
+                        id: 6,
+                        status: "expired",
+                        current_period_end: "2026-08-31T00:00:00Z",
+                        subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
+                    }
+                ]
+            }
+        });
+
+        render(<StudentSettings />);
+
+        expect(await screen.findByText("已結束（2026-08-31）")).toBeInTheDocument();
+        expect(screen.getAllByText("基本自主學習會員")).toHaveLength(1);
+        expect(screen.queryByText("已結束（2026-08-30）")).not.toBeInTheDocument();
     });
 
     it("requires final confirmation before applying one of five preset avatars", async () => {

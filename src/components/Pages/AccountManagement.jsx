@@ -17,6 +17,7 @@ import {
     reissueAcademyStudentLoginCard
 } from "../../services/academyStudentService";
 import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
+import { getPrimaryAccessPlanCode, getPrimaryAccessPlanLabel } from "../../constants/membershipPlans";
 import "./css/ManagementDashboard.scss";
 
 const ROLE_LABELS = {
@@ -25,23 +26,21 @@ const ROLE_LABELS = {
     admin: "Admin"
 };
 
-const LEARNER_TYPE_LABELS = {
-    academy_student: "英文班在學方案",
-    textbook_customer: "網購教材聽力權限",
-    trial_user: "7 天免費試用"
+const NO_ACTIVE_PLAN_LABELS = {
+    academy_student: "英文班學生（目前無有效方案）",
+    textbook_customer: "一般會員（目前無有效方案）",
+    trial_user: "七天免費試用"
 };
 
 const getAccountPlanLabel = account => (
-    LEARNER_TYPE_LABELS[account?.learner_type]
-    || account?.membership?.plan?.name
+    getPrimaryAccessPlanLabel(account?.membership)
+    || NO_ACTIVE_PLAN_LABELS[account?.learner_type]
     || "尚未設定"
 );
 
 const getAccountPlanKey = account => (
-    account?.learner_type
-    || account?.membership?.plan?.code
-    || account?.plan
-    || "unassigned"
+    getPrimaryAccessPlanCode(account?.membership)
+    || `learner:${account?.learner_type || "unknown"}`
 );
 
 const ACTIVATION_LABELS = {

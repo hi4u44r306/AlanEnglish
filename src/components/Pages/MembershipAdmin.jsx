@@ -3,9 +3,20 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getGuardianEmailStatus, sendGuardianReportBatch } from "../../services/guardianEmailService";
 import { generateActivationCodes, getMembershipAdminDashboard, grantMembershipAccess, setMembershipStatus, updateGuardianEmailSettings, updateSubscriptionPlan } from "../../services/membershipService";
+import { getPrimaryAccessPlanLabel, isLegacyMembershipPlanCode } from "../../constants/membershipPlans";
 import "./css/Platform.scss";
 
 const STATUS_LABELS = { pending_verification: "待驗證", trialing: "試用中", active: "使用中", past_due: "付款逾期", cancelled: "已取消", expired: "已到期", suspended: "已停用", complimentary: "贈送" };
+const getAdminMembershipStatus = membership => {
+    const status = membership?.status;
+    if (["pending_verification", "trialing", "past_due", "suspended"].includes(status)) {
+        return status;
+    }
+    if (membership?.is_active === true) {
+        return status === "cancelled" ? "cancelled" : "active";
+    }
+    return status || "expired";
+};
 
 function MembershipAdmin() {
     const { firebaseUser } = useAuth();
@@ -28,8 +39,20 @@ function MembershipAdmin() {
         setEmailStatusError("");
         try {
             const dashboard = await getMembershipAdminDashboard(firebaseUser);
-            setData(dashboard);
-            setPlanDrafts(Object.fromEntries((dashboard.plans || []).map(plan => [plan.id, { ...plan }] )));
+            const currentPlans = (dashboard.plans || []).filter(plan => !isLegacyMembershipPlanCode(plan.code));
+            const currentMembers = (dashboard.members || []).map(member => ({
+                ...member,
+                membership: member.membership ? {
+                    ...member.membership,
+                    status: getAdminMembershipStatus(member.membership),
+                    plan: {
+                        ...(member.membership.plan || {}),
+                        name: getPrimaryAccessPlanLabel(member.membership) || "尚未啟用方案"
+                    }
+                } : member.membership
+            }));
+            setData({ ...dashboard, plans: currentPlans, members: currentMembers });
+            setPlanDrafts(Object.fromEntries(currentPlans.map(plan => [plan.id, { ...plan }] )));
             const settings = dashboard.email_settings || {};
             setEmailForm({ enabled: Boolean(settings.enabled), send_weekday: Number(settings.send_weekday ?? 1), send_hour: Number(settings.send_hour ?? 9), from_name: settings.from_name || "Alan English", from_email: settings.from_email || "", reply_to: settings.reply_to || "" });
             try {
