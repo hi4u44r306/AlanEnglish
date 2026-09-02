@@ -195,15 +195,15 @@ Deno.serve(async (req: Request) => {
         return json(400, { error: "音檔長度不正確" });
       }
 
-      const { data: session, error: sessionError } = await admin
-        .from("listening_coverage_sessions")
-        .insert({
-          student_id: student.id,
-          track_id: trackId,
-          duration_seconds: Number(durationSeconds.toFixed(2))
-        })
-        .select("id, duration_seconds, started_at")
-        .single();
+      const { data: sessionRows, error: sessionError } = await admin.rpc(
+        "start_listening_reward_session",
+        {
+          p_student_id: student.id,
+          p_track_id: trackId,
+          p_duration_seconds: Number(durationSeconds.toFixed(2))
+        }
+      );
+      const session = Array.isArray(sessionRows) ? sessionRows[0] : sessionRows;
 
       if (sessionError || !session) {
         console.error("start listening session error", sessionError);
@@ -219,14 +219,14 @@ Deno.serve(async (req: Request) => {
 
     const { data: storedSession, error: storedSessionError } = await admin
       .from("listening_coverage_sessions")
-      .select("id, duration_seconds, started_at, completed_at, count_recorded")
+      .select("id, duration_seconds, started_at, completed_at, count_recorded, eligible_for_count")
       .eq("id", sessionId)
       .eq("student_id", student.id)
       .eq("track_id", trackId)
       .maybeSingle();
 
     if (storedSessionError) return json(500, { error: "無法讀取播放工作階段" });
-    if (!storedSession || storedSession.completed_at || storedSession.count_recorded) {
+    if (!storedSession || storedSession.completed_at || storedSession.count_recorded || storedSession.eligible_for_count !== true) {
       return json(409, { error: "播放工作階段已失效或已完成" });
     }
 
@@ -234,7 +234,21 @@ Deno.serve(async (req: Request) => {
       requestedSession,
       Number(storedSession.duration_seconds)
     );
-    if (!completion.valid) return json(400, { error: completion.error });
+    if (!completion.valid) {
+      if (requestedSession?.used_accelerated_playback === true) {
+        await admin
+          .from("listening_coverage_sessions")
+          .update({
+            eligible_for_count: false,
+            ineligibility_reason: "accelerated_playback",
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", storedSession.id)
+          .eq("student_id", student.id);
+      }
+      return json(400, { error: completion.error });
+    }
 
     const elapsedSeconds = (Date.now() - new Date(storedSession.started_at).getTime()) / 1000;
     const minimumElapsedSeconds = Number(storedSession.duration_seconds) * (completion.coveragePercent / 100) * 0.75;
@@ -243,37 +257,27 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const { error: completeSessionError } = await admin
-      .from("listening_coverage_sessions")
-      .update({
-        completed_at: now,
-        covered_ranges: completion.ranges,
-        covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
-        coverage_percent: Number(completion.coveragePercent.toFixed(2)),
-        updated_at: now
-      })
-      .eq("id", storedSession.id);
-
-    if (completeSessionError) return json(500, { error: "無法完成有效聆聽工作階段" });
-
-    const { data, error } = await admin.rpc("record_student_music_play", {
+    const { data, error } = await admin.rpc("complete_listening_reward_session", {
       p_student_id: student.id,
       p_track_id: trackId,
-      p_required_plays: 100
+      p_session_id: storedSession.id,
+      p_covered_ranges: completion.ranges,
+      p_covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
+      p_coverage_percent: Number(completion.coveragePercent.toFixed(2))
     });
 
     if (error) {
-      console.error("record play rpc error", error);
-      return json(500, { error: `播放紀錄更新失敗：${error.message}` });
+      console.error("complete listening reward rpc error", error);
+      const message = String(error.message || "");
+      if (message.includes("LISTENING_SESSION_UNAVAILABLE")) {
+        return json(409, { error: "播放工作階段已失效或已完成" });
+      }
+      return json(500, { error: "無法完成有效聆聽與獎勵紀錄" });
     }
 
     const result = Array.isArray(data) ? data[0] : data;
 
     await Promise.all([
-      admin
-        .from("listening_coverage_sessions")
-        .update({ count_recorded: true, updated_at: now })
-        .eq("id", storedSession.id),
       admin
         .from("students")
         .update({ last_active_at: now, last_learning_at: now, updated_at: now })
@@ -294,7 +298,34 @@ Deno.serve(async (req: Request) => {
       })
     ]);
 
-    return json(200, { success: true, progress: result });
+    return json(200, {
+      success: true,
+      progress: {
+        result_track_id: result?.result_track_id,
+        play_count: Number(result?.play_count || 0),
+        completed: Boolean(result?.completed),
+        daily_count: Number(result?.daily_count || 0),
+        monthly_count: Number(result?.monthly_count || 0),
+        total_count: Number(result?.total_count || 0)
+      },
+      reward: {
+        eligible: Boolean(result?.reward_eligible),
+        listening_xp_added: Number(result?.listening_xp_added || 0),
+        listening_points_added: Number(result?.listening_points_added || 0),
+        total_xp_added: Number(result?.total_xp_added || 0),
+        total_points_added: Number(result?.total_points_added || 0),
+        level_points_added: Number(result?.level_points_added || 0),
+        level_before: Number(result?.level_before || 1),
+        level_after: Number(result?.level_after || 1),
+        levels_gained: Array.isArray(result?.levels_gained) ? result.levels_gained : [],
+        daily_rewarded_tracks: Number(result?.daily_rewarded_tracks || 0),
+        daily_track_limit: Number(result?.daily_track_limit || 10),
+        next_point_in: Number(result?.next_point_in || 0),
+        limit_reached: Boolean(result?.reward_limit_reached),
+        total_xp: Number(result?.total_xp || 0),
+        points_balance: Number(result?.points_balance || 0)
+      }
+    });
   } catch (error) {
     console.error("record-play unexpected error", error);
     return json(500, { error: error instanceof Error ? error.message : "播放紀錄更新失敗" });

@@ -56,6 +56,7 @@ function Rewards() {
     const balance = data?.balance || {};
     const rewards = data?.rewards || [];
     const redemptions = data?.redemptions || [];
+    const redemptionAllowed = data?.redemption_allowed !== false;
 
     return (
         <main className="gamification-page">
@@ -78,6 +79,11 @@ function Rewards() {
 
             <section className="gamification-shop-section">
                 <header><div><span>REWARD SHOP</span><h2>選一個想努力得到的獎品</h2></div></header>
+                {!redemptionAllowed && (
+                    <div className="gamification-redemption-notice" role="status">
+                        {data?.redemption_block_reason || "目前方案尚未開放兌換獎品。"}
+                    </div>
+                )}
                 {loading ? <div className="gamification-loading">獎品載入中…</div> : rewards.length === 0 ? (
                     <div className="gamification-empty">目前還沒有上架獎品。</div>
                 ) : (
@@ -92,13 +98,13 @@ function Rewards() {
                                         {!inStock && <span className="gamification-soldout">已兌換完</span>}
                                     </div>
                                     <div className="gamification-reward-copy">
-                                        <span className="gamification-reward-stock">剩餘 {reward.stock_quantity} 份</span>
+                                        <span className="gamification-reward-stock">{reward.fulfillment_type === "digital" ? "數位獎品" : "實體獎品 · 每 30 天限兌換一次"} · 剩餘 {reward.stock_quantity} 份</span>
                                         <h3>{reward.name}</h3>
                                         <p>{reward.description || "完成學習任務累積點數，就可以把它帶回家。"}</p>
                                         <div className="gamification-reward-bottom">
                                             <strong>{formatNumber(reward.points_cost)} P</strong>
-                                            <button type="button" disabled={!enough || !inStock || redeemingId === reward.id} onClick={() => handleRedeem(reward)}>
-                                                {redeemingId === reward.id ? "兌換中…" : !inStock ? "已兌換完" : enough ? "我要兌換" : `還差 ${formatNumber(Number(reward.points_cost) - Number(balance.points_balance || 0))} P`}
+                                            <button type="button" disabled={!redemptionAllowed || !enough || !inStock || redeemingId === reward.id} onClick={() => handleRedeem(reward)}>
+                                                {redeemingId === reward.id ? "兌換中…" : !redemptionAllowed ? "正式方案可兌換" : !inStock ? "已兌換完" : enough ? "我要兌換" : `還差 ${formatNumber(Number(reward.points_cost) - Number(balance.points_balance || 0))} P`}
                                             </button>
                                         </div>
                                     </div>

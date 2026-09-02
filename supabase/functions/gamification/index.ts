@@ -109,6 +109,8 @@ const mapDbError = (error: any) => {
     if (message.includes("OUT_OF_STOCK")) return { status: 409, message: "這個獎品目前已兌換完" };
     if (message.includes("CLASS_NOT_ELIGIBLE")) return { status: 403, message: "這個獎品目前不開放你的班級兌換" };
     if (message.includes("REDEMPTION_LIMIT_REACHED")) return { status: 409, message: "你已達到這個獎品的兌換上限" };
+    if (message.includes("TRIAL_REDEMPTION_LOCKED")) return { status: 403, message: "試用期間可以累積 XP 與 AE Points，升級正式方案後才能兌換獎品" };
+    if (message.includes("PHYSICAL_REDEMPTION_COOLDOWN")) return { status: 409, message: "每 30 天最多兌換一次實體獎品，請稍後再試" };
     if (message.includes("REWARD_UNAVAILABLE")) return { status: 404, message: "這個獎品目前無法兌換" };
     if (message.includes("INVALID_STATUS_TRANSITION")) return { status: 409, message: "這筆兌換目前不能切換到指定狀態" };
     return { status: 500, message: message || "系統處理失敗" };
@@ -139,7 +141,7 @@ Deno.serve(async (req: Request) => {
         });
         const { data: student, error: studentError } = await admin
             .from("students")
-            .select("id,name,english_name,chinese_name,class,role,user_image,account_status,archived_at")
+            .select("id,name,english_name,chinese_name,class,role,learner_type,user_image,account_status,archived_at")
             .eq("firebase_uid", firebaseUid)
             .maybeSingle();
         if (studentError) throw studentError;
@@ -280,7 +282,7 @@ Deno.serve(async (req: Request) => {
         if (action === "rewards") {
             const { data: rewards, error: rewardError } = await admin
                 .from("rewards")
-                .select("id,name,description,image_path,points_cost,stock_quantity,enabled,per_student_limit,applicable_classes,sort_order")
+                .select("id,name,description,image_path,points_cost,stock_quantity,enabled,per_student_limit,applicable_classes,fulfillment_type,sort_order")
                 .eq("enabled", true)
                 .order("sort_order", { ascending: true })
                 .order("id", { ascending: true });
@@ -307,6 +309,10 @@ Deno.serve(async (req: Request) => {
                     points_balance: Number(balance?.points_balance || 0),
                     ...getLevelInfo(balance?.total_xp || 0)
                 },
+                redemption_allowed: student.role === "student" && student.learner_type !== "trial_user",
+                redemption_block_reason: student.learner_type === "trial_user"
+                    ? "試用期間可以累積 XP 與 AE Points，升級正式方案後才能兌換獎品"
+                    : null,
                 rewards: signedRewards,
                 redemptions: redemptions || []
             });
@@ -314,6 +320,9 @@ Deno.serve(async (req: Request) => {
 
         if (action === "redeem") {
             if (student.role !== "student") return json(400, { error: "請使用學生帳號兌換獎品" });
+            if (student.learner_type === "trial_user") {
+                return json(403, { error: "試用期間可以累積 XP 與 AE Points，升級正式方案後才能兌換獎品" });
+            }
             const rewardId = positiveInteger(body?.reward_id);
             if (!rewardId) return json(400, { error: "獎品編號不正確" });
             const { data, error } = await admin.rpc("request_reward_redemption", {
@@ -384,6 +393,7 @@ Deno.serve(async (req: Request) => {
                 const applicableClasses = Array.isArray(body?.reward?.applicable_classes)
                     ? [...new Set(body.reward.applicable_classes.map((value: unknown) => cleanText(value, 30)).filter(Boolean))].slice(0, 20)
                     : [];
+                const fulfillmentType = body?.reward?.fulfillment_type === "digital" ? "digital" : "physical";
                 if (!name || !pointsCost) return json(400, { error: "請填寫獎品名稱與正確點數" });
                 const payload = {
                     name,
@@ -394,6 +404,7 @@ Deno.serve(async (req: Request) => {
                     enabled: body?.reward?.enabled !== false,
                     per_student_limit: perStudentLimit,
                     applicable_classes: applicableClasses,
+                    fulfillment_type: fulfillmentType,
                     sort_order: clampInt(body?.reward?.sort_order, -9999, 9999, 0),
                     updated_at: new Date().toISOString()
                 };
