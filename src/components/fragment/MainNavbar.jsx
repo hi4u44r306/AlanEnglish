@@ -198,7 +198,7 @@ function MainNavbar() {
                 </summary>
                 <div className={listClass}>{category.books.map(book => {
                     const bookPath = `/student/books/${book.code}`;
-                    return <Link key={book.id || book.code} to={bookPath} onClick={variant === "desktop" ? () => setDesktopMaterialsOpen(false) : closeMobileMenu} className={`ae-dropdown-item ${isPathActive(bookPath) ? "active" : ""}`} aria-current={isPathActive(bookPath) ? "page" : undefined}><img src={BlueBook} alt="" /><span>{book.name}</span></Link>;
+                    return <Link key={book.id || book.code} to={bookPath} onClick={variant === "desktop" ? () => setDesktopMaterialsOpen(false) : closeMobileMenu} className={`ae-dropdown-item ${isPathActive(bookPath) ? "active" : ""}`} aria-current={isPathActive(bookPath) ? "page" : undefined}>{variant === "desktop" && <img src={BlueBook} alt="" />}<span>{book.name}</span></Link>;
                 })}</div>
             </details>
         );
@@ -214,7 +214,7 @@ function MainNavbar() {
         return categories.map((category, index) => (
             <details className={`ae-mobile-category ${category.books?.some(book => !book.locked && isPathActive(`/student/books/${book.code}`)) ? "is-active" : ""}`} key={category.id} data-tour={index === 0 ? "materials" : undefined}>
                 <summary><span><FiBookOpen />{category.name}</span><span className="ae-mobile-chevron">⌄</span></summary>
-                <div className="ae-mobile-book-list">{category.books?.length > 0 ? category.books.map(book => <Link key={book.id} to={book.locked ? (book.acquisition || "/student/level") : `/student/books/${book.code}`} onClick={closeMobileMenu} className={book.locked ? "is-locked" : ""}><img src={BlueBook} alt="" /><span>{book.name}</span>{book.locked && <FiLock aria-label="尚未解鎖" />}</Link>) : <span className="ae-mobile-empty">尚無教材</span>}</div>
+                <div className="ae-mobile-book-list">{category.books?.length > 0 ? category.books.map(book => <Link key={book.id} to={book.locked ? (book.acquisition || "/student/level") : `/student/books/${book.code}`} onClick={closeMobileMenu} className={book.locked ? "is-locked" : ""}><span>{book.name}</span>{book.locked && <FiLock aria-label="尚未解鎖" />}</Link>) : <span className="ae-mobile-empty">尚無教材</span>}</div>
             </details>
         ));
     };

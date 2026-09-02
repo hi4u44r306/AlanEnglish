@@ -99,7 +99,9 @@ describe("MainNavbar student navigation", () => {
         expect(desktopWorkbookToggle.closest("details")).not.toHaveAttribute("open");
         fireEvent.click(desktopWorkbookToggle);
         expect(desktopWorkbookToggle.closest("details")).toHaveAttribute("open");
-        expect(within(desktopMaterials).getByRole("link", { name: "Workbook 1" })).toHaveAttribute("href", "/student/books/Workbook_1");
+        const desktopWorkbookLink = within(desktopMaterials).getByRole("link", { name: "Workbook 1" });
+        expect(desktopWorkbookLink).toHaveAttribute("href", "/student/books/Workbook_1");
+        expect(desktopWorkbookLink.querySelector("img")).toBeInTheDocument();
         fireEvent.click(within(desktopMaterials).getByLabelText("切換聽力本，1 本教材"));
         expect(within(desktopMaterials).getByRole("link", { name: "聽力本 1" })).toHaveAttribute("href", "/student/books/Listening_1");
         expect(within(desktopMaterials).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
@@ -112,7 +114,9 @@ describe("MainNavbar student navigation", () => {
         expect(mobileWorkbookToggle.closest("details")).not.toHaveAttribute("open");
         fireEvent.click(mobileWorkbookToggle);
         expect(mobileWorkbookToggle.closest("details")).toHaveAttribute("open");
-        expect(within(mobileDrawer).getByRole("link", { name: "Workbook 1" })).toHaveAttribute("href", "/student/books/Workbook_1");
+        const mobileWorkbookLink = within(mobileDrawer).getByRole("link", { name: "Workbook 1" });
+        expect(mobileWorkbookLink).toHaveAttribute("href", "/student/books/Workbook_1");
+        expect(mobileWorkbookLink.querySelector("img")).not.toBeInTheDocument();
         expect(within(mobileDrawer).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
     });
 
