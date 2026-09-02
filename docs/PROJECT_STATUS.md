@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-02）：
 
-- 手機 Sidebar 教材辨識度修正（尚未部署）：深藍色 Sidebar 內的教材書名改為白色高對比文字，並以 Sidebar 專屬選取／滑過樣式覆蓋桌面 Dropdown 的灰字與白底規則；移除每一本教材前方的藍色書本圖片，保留分類標題圖示及鎖定狀態圖示。桌面「我的教材」Dropdown 維持原有書本圖片與淺色選單視覺，不改動教材權限、路由或後端判定。
+- 手機 Sidebar 教材辨識度修正（正式站已部署）：PR #90 已合併至 `main` commit `9fbf7fc8`，Netlify production deploy `6a976c3b02e11b00073c9596` 已為 `ready`。深藍色 Sidebar 內的教材書名改為白色高對比文字，並以 Sidebar 專屬選取／滑過樣式覆蓋桌面 Dropdown 的灰字與白底規則；移除每一本教材前方的藍色書本圖片，保留分類標題圖示及鎖定狀態圖示。桌面「我的教材」Dropdown 維持原有書本圖片與淺色選單視覺，不改動教材權限、路由或後端判定。Navbar 6/6、全前端 34 suites／99 tests、Production build 與 `git diff --check` 均成功；正式登入畫面確認 22 本教材全部為白字、藍色書本圖片 0 個，作用中教材為深色半透明底＋白字，Console 無 error／warning。
 - Navbar「我的教材」分層選單（正式站已部署）：PR #88 已合併至 `main` commit `c32b4bc1`，Netlify production deploy `6a9768755a15470008a5c8a1` 已為 `ready`。學生桌面版不再一次列出全部書名，改為先顯示教材分類與各分類本數，展開分類後才顯示可用教材；目前所在教材分類及書名會標示作用中。手機 Sidebar 的「我的教材」同步改為可收合分類，避免基本會員可聽全部正式教材後選單過長。維持只顯示後端判定已解鎖教材，不改動教材權限或直接網址的後端驗證。Navbar 6/6、全前端 34 suites／99 tests、Production build 與 `git diff --check` 均成功；正式路由回應 200，production bundle 已確認包含新版分類選單，登入後真實帳號畫面仍待使用者驗收。
 
 本次進行中（2026-09-01）：
