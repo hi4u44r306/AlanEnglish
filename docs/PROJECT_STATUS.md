@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-02）：
 
-- Navbar「我的教材」分層選單（尚未部署）：分支 `codex/group-material-navbar`。學生桌面版不再一次列出全部書名，改為先顯示教材分類與各分類本數，展開分類後才顯示可用教材；目前所在教材分類及書名會標示作用中。手機 Sidebar 的「我的教材」同步改為可收合分類，避免基本會員可聽全部正式教材後選單過長。維持只顯示後端判定已解鎖教材，不改動教材權限或直接網址的後端驗證。Navbar 6/6、全前端 34 suites／99 tests、Production build 與 `git diff --check` 均成功；尚未 Push、建立 PR 或部署。
+- Navbar「我的教材」分層選單（正式站已部署）：PR #88 已合併至 `main` commit `c32b4bc1`，Netlify production deploy `6a9768755a15470008a5c8a1` 已為 `ready`。學生桌面版不再一次列出全部書名，改為先顯示教材分類與各分類本數，展開分類後才顯示可用教材；目前所在教材分類及書名會標示作用中。手機 Sidebar 的「我的教材」同步改為可收合分類，避免基本會員可聽全部正式教材後選單過長。維持只顯示後端判定已解鎖教材，不改動教材權限或直接網址的後端驗證。Navbar 6/6、全前端 34 suites／99 tests、Production build 與 `git diff --check` 均成功；正式路由回應 200，production bundle 已確認包含新版分類選單，登入後真實帳號畫面仍待使用者驗收。
 
 本次進行中（2026-09-01）：
 - 商品、價格與聽力權限單純化（正式站已部署）：PR #86 已合併至 `main` commit `c7f44d77`，Netlify production deploy `6a96eee37100d00009d91247` 已為 `ready`。NT$299 基本自主學習會員及英文班在校方案改為可使用全部已啟用的正式聽力教材，仍不包含 AI 或跨班作業；教材包附贈 90 天／開通碼等限制型權限才逐本檢查 entitlement。AI 新訂閱統一為 `ai_materials_addon_monthly` NT$499，「AI Premium」維持稱號，重複的一般會員 AI 代碼與兩個舊月費方案改為停用歷史資料。教材包改為單一售價、每次購買固定附贈 90 天，且必須各有一本課本、Workbook、聽力本及一組 Stripe 測試 Product／Price 才能上架；既有只有兩本的 Level 1 測試商品已安全退回草稿，不刪除既有訂單或權限。後台新增課本欄位並依教材分類篩選。正式 additive migration `simplify_products_and_listening_access` 已套用；`content-access` v21、`record-play` v25、`commerce-manager` v11、`billing-manager` v26、`membership-manager` v33 均為 ACTIVE，OPTIONS 健康檢查回應 200。商務契約 37/37、商城契約 13/13、全前端 34 suites／99 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功；正式首頁、教材、商城及會員路由回應 200。正式 Stripe live 商品／Price 仍未建立，網站明示目前為測試付款。
