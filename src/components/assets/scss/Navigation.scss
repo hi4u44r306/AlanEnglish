@@ -967,14 +967,20 @@
     padding: 0 8px 9px 38px;
   }
 
-  .ae-mobile-book-list a {
+  .ae-mobile-book-list a,
+  .ae-mobile-book-list a.ae-dropdown-item {
     min-height: 42px;
-    color: #cbd5ee;
+    color: #ffffff !important;
   }
 
-  .ae-mobile-book-list a:hover {
-    background: rgba(255, 255, 255, 0.09);
-    color: #ffffff;
+  .ae-mobile-book-list a:hover,
+  .ae-mobile-book-list a:focus,
+  .ae-mobile-book-list a.active,
+  .ae-mobile-book-list a.ae-dropdown-item:hover,
+  .ae-mobile-book-list a.ae-dropdown-item:focus,
+  .ae-mobile-book-list a.ae-dropdown-item.active {
+    background: rgba(255, 255, 255, 0.09) !important;
+    color: #ffffff !important;
   }
 
   .ae-mobile-empty,
