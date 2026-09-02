@@ -12,7 +12,7 @@
 .desktop-transcript-panel { position:absolute;z-index:18;right:16px;bottom:calc(100% + 10px);width:min(520px,calc(100vw - 32px));max-height:280px;overflow:auto;padding:16px;border:1px solid #dbe3ef;border-radius:16px;color:#21334e;background:#fff;box-shadow:0 18px 48px rgba(8,22,48,.24); }
 .desktop-transcript-panel header,.mobile-transcript-panel header { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px; }.desktop-transcript-panel header button,.mobile-transcript-panel header button { min-height:44px;padding:0 12px;border:1px solid #cfd9e7;border-radius:10px;color:#294a7d;background:#fff;font-weight:800; }.desktop-transcript-panel p,.mobile-transcript-panel p { margin:8px 0;line-height:1.8;white-space:pre-wrap; }
 .mobile-transcript-panel { width:100%;max-height:34vh;overflow:auto;padding:14px;border-radius:15px;color:#eaf2ff;background:rgba(15,28,52,.9); }.mobile-transcript-panel header button { color:#fff;background:rgba(255,255,255,.1); }.mobile-transcript-panel p { color:#eaf2ff; }
-@media(max-width:700px){.desktop-transcript-panel{display:none}.mobile-overlay-actions button{min-width:44px;min-height:44px}}
+@media(max-width:900px){.desktop-transcript-panel{display:none}.mobile-overlay-actions button{min-width:44px;min-height:44px}}
 .footer-player,
 .footer-player *,
 .mobile-player-overlay,
@@ -243,7 +243,7 @@
 @keyframes level-confetti {
   to { transform: translate3d(-25px, 112vh, 0) rotate(520deg); }
 }
-@media (max-width: 675px) {
+@media (max-width: 900px) {
   .listening-daily-reward-status { display: none; }
   .listening-reward-feedback { right: 14px; bottom: calc(100% + 10px); }
   .listening-attention-overlay,
@@ -675,7 +675,8 @@
     max-width: 100%;
   }
 }
-@media only screen and (max-width: 675px) {
+// Compact bottom player for phones, tablets, and split-screen browser windows.
+@media only screen and (max-width: 900px) {
   .footer-player {
     min-height: calc(84px + env(safe-area-inset-bottom));
     border-top-color: #d9e6f5;
@@ -1031,7 +1032,7 @@
   right: -4px;
   bottom: calc(100% + 12px);
 }
-@media only screen and (max-height: 760px) and (max-width: 675px) {
+@media only screen and (max-height: 760px) and (max-width: 900px) {
   .mobile-overlay-art {
     width: min(50vw, 210px);
     height: min(50vw, 210px);
@@ -1052,7 +1053,7 @@
   }
 }
 
-@media only screen and (min-width: 676px) and (max-width: 1080px) {
+@media only screen and (min-width: 901px) and (max-width: 1080px) {
   .rhap_container {
     min-height: 92px;
     height: 92px;

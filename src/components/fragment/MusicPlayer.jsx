@@ -25,14 +25,20 @@ import {
     setNoInteractionCount
 } from "../../actions/actions";
 import { toast } from "react-toastify";
-import "../assets/scss/FooterPlayer.scss";
 import "react-h5-audio-player/lib/styles.css";
+import "../assets/scss/FooterPlayer.scss";
 import { useAuth } from "../../auth/AuthContext";
 import {
     recordTrackPlay,
     startListeningSession
 } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
+import {
+    clamp,
+    getCoveredSeconds,
+    isNaturalListeningInterval,
+    mergeCoverageRange
+} from "../../utils/listeningCoverage";
 import ListeningRewardFeedback from "./ListeningRewardFeedback";
 
 const NO_INTERACTION_STORAGE_KEY = "ae-no-interaction";
@@ -40,10 +46,12 @@ const NO_INTERACTION_CHECK_COUNT = 5;
 const ATTENTION_CHECK_SECONDS = 30;
 const CONTINUOUS_ATTENTION_MINUTES = 15;
 const MINIMUM_LISTENING_COVERAGE = 80;
-const MAX_NATURAL_LISTEN_GAP_SECONDS = 3;
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5];
-
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const getListeningClock = () => (
+    typeof performance !== "undefined" && typeof performance.now === "function"
+        ? performance.now()
+        : Date.now()
+);
 const formatTime = value => {
     const safeValue = Math.max(0, Number(value) || 0);
     const minutes = Math.floor(safeValue / 60);
@@ -51,30 +59,6 @@ const formatTime = value => {
 
     return `${minutes}:${seconds}`;
 };
-
-const mergeCoverageRange = (ranges, nextRange) => {
-    const sortedRanges = [...ranges, nextRange]
-        .map(([start, end]) => [Math.max(0, start), Math.max(0, end)])
-        .filter(([start, end]) => end > start)
-        .sort((first, second) => first[0] - second[0]);
-
-    return sortedRanges.reduce((mergedRanges, [start, end]) => {
-        const previousRange = mergedRanges[mergedRanges.length - 1];
-
-        if (!previousRange || start > previousRange[1] + 0.15) {
-            mergedRanges.push([start, end]);
-            return mergedRanges;
-        }
-
-        previousRange[1] = Math.max(previousRange[1], end);
-        return mergedRanges;
-    }, []);
-};
-
-const getCoveredSeconds = ranges => ranges.reduce(
-    (total, [start, end]) => total + Math.max(0, end - start),
-    0
-);
 
 function PlayerOptionsPanel({
     repeatTrack,
@@ -129,6 +113,7 @@ function MusicPlayer({ music }) {
     const pendingPlaybackRef = useRef(Boolean(music));
     const coverageRangesRef = useRef([]);
     const lastListenTimeRef = useRef(null);
+    const lastListenWallClockRef = useRef(null);
     const isSeekingRef = useRef(false);
     const isAcceleratedPlaybackRef = useRef(false);
     const usedAcceleratedPlaybackRef = useRef(false);
@@ -136,6 +121,10 @@ function MusicPlayer({ music }) {
     const completionSentRef = useRef(false);
     const listeningSessionIdRef = useRef(null);
     const startingSessionRef = useRef(false);
+    const sessionStartPromiseRef = useRef(null);
+    const sessionStartRequestRef = useRef(0);
+    const hasPlaybackStartedRef = useRef(false);
+    const pausedForVisibilityRef = useRef(false);
     const continuousListeningStartedAtRef = useRef(null);
     const desktopOptionsRef = useRef(null);
     const mobileOptionsRef = useRef(null);
@@ -196,12 +185,17 @@ function MusicPlayer({ music }) {
     const resetListeningSession = useCallback(() => {
         coverageRangesRef.current = [];
         lastListenTimeRef.current = null;
+        lastListenWallClockRef.current = null;
         isSeekingRef.current = false;
         isAcceleratedPlaybackRef.current = false;
         usedAcceleratedPlaybackRef.current = false;
         completionSentRef.current = false;
         listeningSessionIdRef.current = null;
         startingSessionRef.current = false;
+        sessionStartPromiseRef.current = null;
+        sessionStartRequestRef.current += 1;
+        hasPlaybackStartedRef.current = false;
+        pausedForVisibilityRef.current = false;
         setCoveragePercent(0);
         setPlaybackRate(1);
         setSessionIneligible(false);
@@ -209,8 +203,24 @@ function MusicPlayer({ music }) {
 
     useEffect(() => {
         const handleVisibilityChange = () => {
-            isDocumentVisibleRef.current = document.visibilityState !== "hidden";
+            const isVisible = document.visibilityState !== "hidden";
+            isDocumentVisibleRef.current = isVisible;
             lastListenTimeRef.current = null;
+            lastListenWallClockRef.current = null;
+
+            if (isVisible) {
+                return;
+            }
+
+            const audio = audioElement.current?.audio?.current;
+            if (audio && !audio.paused && !pausedForVisibilityRef.current) {
+                pausedForVisibilityRef.current = true;
+                audio.pause();
+                toast.info("已暫停播放：回到學習頁面後請按播放繼續", {
+                    position: "top-center",
+                    autoClose: 3000
+                });
+            }
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -236,6 +246,52 @@ function MusicPlayer({ music }) {
         setCoveragePercent(nextCoverage);
         return nextCoverage;
     }, []);
+
+    const ensureListeningSession = useCallback(audio => {
+        if (
+            role !== "student" ||
+            !firebaseUser ||
+            !trackId ||
+            !audio ||
+            !hasPlaybackStartedRef.current ||
+            !Number.isFinite(audio.duration) ||
+            audio.duration <= 0 ||
+            listeningSessionIdRef.current ||
+            startingSessionRef.current
+        ) {
+            return;
+        }
+
+        const requestedTrackId = trackId;
+        const requestId = sessionStartRequestRef.current + 1;
+        sessionStartRequestRef.current = requestId;
+        startingSessionRef.current = true;
+
+        const startPromise = startListeningSession(
+            firebaseUser,
+            requestedTrackId,
+            Number(audio.duration.toFixed(2))
+        );
+        sessionStartPromiseRef.current = startPromise;
+
+        void startPromise
+            .then(result => {
+                if (sessionStartRequestRef.current === requestId) {
+                    listeningSessionIdRef.current = result?.session?.id || null;
+                }
+            })
+            .catch(error => {
+                if (sessionStartRequestRef.current === requestId) {
+                    console.error("建立有效聆聽工作階段失敗:", error);
+                }
+            })
+            .finally(() => {
+                if (sessionStartRequestRef.current === requestId) {
+                    startingSessionRef.current = false;
+                    sessionStartPromiseRef.current = null;
+                }
+            });
+    }, [firebaseUser, role, trackId]);
 
     // =====================================
     // 初始化 noInteraction Redux
@@ -556,7 +612,10 @@ function MusicPlayer({ music }) {
                 if (current > 1) return current - 1;
                 coverageRangesRef.current = [];
                 lastListenTimeRef.current = null;
+                lastListenWallClockRef.current = null;
                 listeningSessionIdRef.current = null;
+                sessionStartRequestRef.current += 1;
+                startingSessionRef.current = false;
                 completionSentRef.current = false;
                 setCoveragePercent(0);
                 setAttentionExpired(true);
@@ -575,6 +634,7 @@ function MusicPlayer({ music }) {
         const audio = audioElement.current?.audio?.current;
         if (audio) {
             lastListenTimeRef.current = audio.currentTime;
+            lastListenWallClockRef.current = getListeningClock();
             void audio.play();
         }
     };
@@ -616,12 +676,12 @@ function MusicPlayer({ music }) {
             return null;
         }
 
-        if (!listeningSessionIdRef.current) {
-            console.warn("播放工作階段尚未建立，因此不計入聽力次數");
-            return null;
+        if (!listeningSessionIdRef.current && sessionStartPromiseRef.current) {
+            await sessionStartPromiseRef.current.catch(() => null);
         }
 
-        if (coverage < MINIMUM_LISTENING_COVERAGE) {
+        if (!listeningSessionIdRef.current) {
+            console.warn("播放工作階段尚未建立，因此不計入聽力次數");
             return null;
         }
 
@@ -667,6 +727,16 @@ function MusicPlayer({ music }) {
                 setRewardSummary(reward);
                 setRewardFeedback(reward);
                 window.dispatchEvent(new CustomEvent("ae:gamification-updated", { detail: reward }));
+            }
+
+            if (result?.counted === false) {
+                toast.info(
+                    `本次有效聆聽 ${Math.floor(Number(result.coverage_percent) || coverage)}%，未達 ${MINIMUM_LISTENING_COVERAGE}%，不增加次數或獎勵`,
+                    {
+                        position: "top-center",
+                        autoClose: 4000
+                    }
+                );
             }
 
             return progress;
@@ -877,13 +947,25 @@ function MusicPlayer({ music }) {
         const audio = event.currentTarget;
         const duration = Number(audio.duration);
         const lastListenTime = lastListenTimeRef.current;
+        const lastListenWallClock = lastListenWallClockRef.current;
+        const now = getListeningClock();
         let finalCoverage = coveragePercent;
 
+        ensureListeningSession(audio);
+
         if (
-            !isAcceleratedPlaybackRef.current &&
             Number.isFinite(lastListenTime) &&
+            Number.isFinite(lastListenWallClock) &&
             Number.isFinite(duration) &&
-            duration > lastListenTime
+            isNaturalListeningInterval({
+                start: lastListenTime,
+                end: duration,
+                elapsedSeconds: (now - lastListenWallClock) / 1000,
+                playbackRate: audio.playbackRate,
+                isSeeking: isSeekingRef.current,
+                isVisible: isDocumentVisibleRef.current,
+                attentionBlocked: attentionCheckOpen
+            })
         ) {
             finalCoverage = updateCoverage(lastListenTime, duration, duration);
         }
@@ -918,6 +1000,7 @@ function MusicPlayer({ music }) {
             resetListeningSession();
             audio.currentTime = 0;
             lastListenTimeRef.current = 0;
+            lastListenWallClockRef.current = getListeningClock();
             const replayPromise = audio.play();
 
             if (replayPromise && typeof replayPromise.catch === "function") {
@@ -986,42 +1069,16 @@ function MusicPlayer({ music }) {
         );
 
         setIsPlaybackActive(true);
+        hasPlaybackStartedRef.current = true;
+        pausedForVisibilityRef.current = false;
 
         const audio = audioElement.current?.audio?.current;
         if (audio) {
             setPlaybackPosition(audio.currentTime);
             setAudioDuration(audio.duration || 0);
-        }
-        if (audio && !Number.isFinite(lastListenTimeRef.current)) {
             lastListenTimeRef.current = audio.currentTime;
-        }
-
-        if (
-            role === "student" &&
-            firebaseUser &&
-            trackId &&
-            audio &&
-            Number.isFinite(audio.duration) &&
-            audio.duration > 0 &&
-            !listeningSessionIdRef.current &&
-            !startingSessionRef.current
-        ) {
-            startingSessionRef.current = true;
-
-            void startListeningSession(
-                firebaseUser,
-                trackId,
-                Number(audio.duration.toFixed(2))
-            )
-                .then(result => {
-                    listeningSessionIdRef.current = result?.session?.id || null;
-                })
-                .catch(error => {
-                    console.error("建立有效聆聽工作階段失敗:", error);
-                })
-                .finally(() => {
-                    startingSessionRef.current = false;
-                });
+            lastListenWallClockRef.current = getListeningClock();
+            ensureListeningSession(audio);
         }
 
         if (
@@ -1055,6 +1112,8 @@ function MusicPlayer({ music }) {
         );
 
         setIsPlaybackActive(false);
+        lastListenTimeRef.current = null;
+        lastListenWallClockRef.current = null;
 
         resetNoInteraction();
     };
@@ -1064,6 +1123,8 @@ function MusicPlayer({ music }) {
         const currentTime = Number(audio.currentTime);
         const duration = Number(audio.duration);
         const previousTime = lastListenTimeRef.current;
+        const previousWallClock = lastListenWallClockRef.current;
+        const now = getListeningClock();
 
         if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) {
             return;
@@ -1071,20 +1132,26 @@ function MusicPlayer({ music }) {
 
         setPlaybackPosition(currentTime);
         setAudioDuration(duration);
+        ensureListeningSession(audio);
 
         if (
-            !isSeekingRef.current &&
-            !isAcceleratedPlaybackRef.current &&
-            isDocumentVisibleRef.current &&
-            !attentionCheckOpen &&
             Number.isFinite(previousTime) &&
-            currentTime > previousTime &&
-            currentTime - previousTime <= MAX_NATURAL_LISTEN_GAP_SECONDS
+            Number.isFinite(previousWallClock) &&
+            isNaturalListeningInterval({
+                start: previousTime,
+                end: currentTime,
+                elapsedSeconds: (now - previousWallClock) / 1000,
+                playbackRate: audio.playbackRate,
+                isSeeking: isSeekingRef.current,
+                isVisible: isDocumentVisibleRef.current,
+                attentionBlocked: attentionCheckOpen
+            })
         ) {
             updateCoverage(previousTime, currentTime, duration);
         }
 
         lastListenTimeRef.current = currentTime;
+        lastListenWallClockRef.current = now;
     };
 
     const updatePlaybackRate = nextValue => {
@@ -1106,6 +1173,7 @@ function MusicPlayer({ music }) {
             audio.playbackRate = nextRate;
             // 切換速度的瞬間不算作聆聽區段；回到正常速度後才重新累積。
             lastListenTimeRef.current = audio.currentTime;
+            lastListenWallClockRef.current = getListeningClock();
         }
 
         setPlaybackRate(nextRate);
@@ -1149,6 +1217,7 @@ function MusicPlayer({ music }) {
 
         audio.currentTime = nextPosition;
         lastListenTimeRef.current = nextPosition;
+        lastListenWallClockRef.current = getListeningClock();
         setPlaybackPosition(nextPosition);
     };
 
@@ -1220,14 +1289,17 @@ function MusicPlayer({ music }) {
                 onListen={handleListen}
                 onSeeking={() => {
                     isSeekingRef.current = true;
+                    lastListenWallClockRef.current = null;
                 }}
                 onSeeked={event => {
                     isSeekingRef.current = false;
                     lastListenTimeRef.current = event.currentTarget.currentTime;
+                    lastListenWallClockRef.current = getListeningClock();
                     setPlaybackPosition(event.currentTarget.currentTime);
                 }}
                 onCanPlay={event => {
                     setAudioDuration(event.currentTarget.duration || 0);
+                    ensureListeningSession(event.currentTarget);
                     requestPlayback(
                         event.currentTarget
                     );

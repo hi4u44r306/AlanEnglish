@@ -8,6 +8,7 @@ const recordPlay = read("supabase/functions/record-play/index.ts");
 const assignmentManager = read("supabase/functions/assignment-manager/index.ts");
 const gamification = read("supabase/functions/gamification/index.ts");
 const player = read("src/components/fragment/MusicPlayer.jsx");
+const footerPlayer = read("src/components/assets/scss/FooterPlayer.scss");
 const studentAssignments = read("src/components/Pages/StudentAssignments.jsx");
 const rewardFeedback = read("src/components/fragment/ListeningRewardFeedback.jsx");
 const rewardsPage = read("src/components/Pages/Rewards.jsx");
@@ -111,4 +112,28 @@ test("獎勵與兌換 RPC 僅允許 service role 執行", () => {
         assert.match(migration, new RegExp(`revoke all on function public\\.${functionName}`));
     }
     assert.match(migration, /to service_role/g);
+});
+
+test("正常播放器事件延遲不會整段漏算，且 metadata 載入後會補建 session", () => {
+    assert.match(player, /isNaturalListeningInterval/);
+    assert.doesNotMatch(player, /MAX_NATURAL_LISTEN_GAP_SECONDS/);
+    assert.match(player, /onCanPlay=\{event => \{[\s\S]{0,180}ensureListeningSession\(event\.currentTarget\)/);
+    assert.match(player, /sessionStartPromiseRef/);
+});
+
+test("未達 80% 會保存診斷但不增加次數或獎勵", () => {
+    assert.match(recordPlay, /ineligibility_reason: "insufficient_coverage"/);
+    assert.match(recordPlay, /counted: false/);
+    assert.match(recordPlay, /minimum_coverage_percent: MINIMUM_LISTENING_COVERAGE/);
+    assert.match(player, /result\?\.counted === false/);
+});
+
+test("900px 以下使用平板精簡播放器且自訂樣式最後載入", () => {
+    assert.ok(
+        player.indexOf('react-h5-audio-player/lib/styles.css') <
+        player.indexOf('../assets/scss/FooterPlayer.scss')
+    );
+    assert.match(footerPlayer, /Compact bottom player[\s\S]{0,100}@media only screen and \(max-width: 900px\)/);
+    assert.match(footerPlayer, /@media only screen and \(min-width: 901px\) and \(max-width: 1080px\)/);
+    assert.match(footerPlayer, /\.rhap_volume-controls \{[\s\S]{0,80}display: none !important/);
 });

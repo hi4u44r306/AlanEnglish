@@ -21,7 +21,7 @@ const MINIMUM_LISTENING_COVERAGE = 80;
 const MAX_TRACK_DURATION_SECONDS = 60 * 60;
 
 function normalizeCoverageRanges(value: unknown, durationSeconds: number) {
-  if (!Array.isArray(value) || value.length === 0 || value.length > 120) return null;
+  if (!Array.isArray(value) || value.length > 120) return null;
 
   const ranges = value.map((range) => {
     if (!Array.isArray(range) || range.length !== 2) return null;
@@ -61,9 +61,15 @@ function validateCompletion(value: unknown, durationSeconds: number) {
 
   const coveredSeconds = ranges.reduce((total, [start, end]) => total + (end - start), 0);
   const coveragePercent = Math.min(100, (coveredSeconds / durationSeconds) * 100);
-  if (coveragePercent < MINIMUM_LISTENING_COVERAGE) return { valid: false, error: "尚未真正聽滿 80%" };
 
-  return { valid: true, sessionId, ranges, coveredSeconds, coveragePercent };
+  return {
+    valid: true,
+    sessionId,
+    ranges,
+    coveredSeconds,
+    coveragePercent,
+    meetsMinimum: coveragePercent >= MINIMUM_LISTENING_COVERAGE
+  };
 }
 
 async function verifyFirebaseIdToken(token: string) {
@@ -281,10 +287,54 @@ Deno.serve(async (req: Request) => {
     const elapsedSeconds = (Date.now() - new Date(storedSession.started_at).getTime()) / 1000;
     const minimumElapsedSeconds = Number(storedSession.duration_seconds) * (completion.coveragePercent / 100) * 0.75;
     if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < minimumElapsedSeconds) {
+      await admin
+        .from("listening_coverage_sessions")
+        .update({
+          completed_at: new Date().toISOString(),
+          covered_ranges: completion.ranges,
+          covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
+          coverage_percent: Number(completion.coveragePercent.toFixed(2)),
+          eligible_for_count: false,
+          ineligibility_reason: "elapsed_time_too_short",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", storedSession.id)
+        .eq("student_id", student.id);
       return json(400, { error: "播放時間不足，無法計入次數" });
     }
 
     const now = new Date().toISOString();
+
+    if (!completion.meetsMinimum) {
+      const { error: incompleteSessionError } = await admin
+        .from("listening_coverage_sessions")
+        .update({
+          completed_at: now,
+          covered_ranges: completion.ranges,
+          covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
+          coverage_percent: Number(completion.coveragePercent.toFixed(2)),
+          eligible_for_count: false,
+          count_recorded: false,
+          ineligibility_reason: "insufficient_coverage",
+          updated_at: now
+        })
+        .eq("id", storedSession.id)
+        .eq("student_id", student.id);
+
+      if (incompleteSessionError) {
+        console.error("save incomplete listening session error", incompleteSessionError);
+        return json(500, { error: "無法保存本次有效聆聽診斷" });
+      }
+
+      return json(200, {
+        success: true,
+        counted: false,
+        coverage_percent: Number(completion.coveragePercent.toFixed(2)),
+        covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
+        minimum_coverage_percent: MINIMUM_LISTENING_COVERAGE
+      });
+    }
+
     let data: any = null;
     let error: any = null;
 
@@ -371,6 +421,8 @@ Deno.serve(async (req: Request) => {
 
     const responseBody: Record<string, unknown> = {
       success: true,
+      counted: true,
+      coverage_percent: Number(completion.coveragePercent.toFixed(2)),
       progress: {
         result_track_id: result?.result_track_id,
         play_count: Number(result?.play_count || 0),
