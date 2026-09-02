@@ -61,7 +61,7 @@ const normalizeListeningTracks = assignment => {
         return assignment.tracks.map((item, index) => {
             const track = item?.track || item || {};
             const requiredListens = Number(
-                item?.required_listens || assignment?.required_listens || 7
+                item?.required_listens || assignment?.required_listens || 3
             );
             const playCount = Number(item?.play_count ?? track?.play_count ?? 0);
             return {
@@ -88,7 +88,7 @@ const normalizeListeningTracks = assignment => {
     }
 
     if (assignment?.track) {
-        const requiredListens = Number(assignment?.required_listens || 7);
+        const requiredListens = Number(assignment?.required_listens || 3);
         const playCount = Number(assignment?.progress?.play_count || 0);
         return [{
             key: assignment.track.id,
@@ -118,7 +118,7 @@ const getListeningMeta = assignment => {
     const bookCode = tracks[0]?.book?.code || assignment?.track?.book?.code || "";
     const trackIds = tracks.map(track => track.id).filter(Boolean).join(",");
     const requiredListens = Number(
-        assignment?.required_listens || tracks[0]?.requiredListens || 7
+        assignment?.required_listens || tracks[0]?.requiredListens || 3
     );
     const url = (
         bookCode && trackIds

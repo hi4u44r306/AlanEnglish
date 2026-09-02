@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 
@@ -167,6 +167,17 @@ Deno.serve(async (req: Request) => {
     if (!student) return json(404, { error: "找不到學生帳號" });
     if (student.role !== "student") return json(403, { error: "只有學生帳號會累計播放紀錄" });
 
+    const { data: rolloutRow, error: rolloutError } = await admin
+      .from("student_feature_rollouts")
+      .select("enabled")
+      .eq("student_id", student.id)
+      .eq("feature_key", "listening_rewards_v2")
+      .maybeSingle();
+    if (rolloutError) {
+      console.warn("listening rewards rollout lookup failed; using legacy flow", rolloutError.code);
+    }
+    const listeningRewardsV2Enabled = rolloutRow?.enabled === true;
+
     const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
     if (!effectiveAccess.is_active) {
       return json(402, { error: "會員使用期限已結束，播放紀錄不會再累計", code: "membership_required" });
@@ -195,15 +206,32 @@ Deno.serve(async (req: Request) => {
         return json(400, { error: "音檔長度不正確" });
       }
 
-      const { data: sessionRows, error: sessionError } = await admin.rpc(
-        "start_listening_reward_session",
-        {
-          p_student_id: student.id,
-          p_track_id: trackId,
-          p_duration_seconds: Number(durationSeconds.toFixed(2))
-        }
-      );
-      const session = Array.isArray(sessionRows) ? sessionRows[0] : sessionRows;
+      let session: any = null;
+      let sessionError: any = null;
+      if (listeningRewardsV2Enabled) {
+        const response = await admin.rpc(
+          "start_listening_reward_session_v2",
+          {
+            p_student_id: student.id,
+            p_track_id: trackId,
+            p_duration_seconds: Number(durationSeconds.toFixed(2))
+          }
+        );
+        session = Array.isArray(response.data) ? response.data[0] : response.data;
+        sessionError = response.error;
+      } else {
+        const response = await admin
+          .from("listening_coverage_sessions")
+          .insert({
+            student_id: student.id,
+            track_id: trackId,
+            duration_seconds: Number(durationSeconds.toFixed(2))
+          })
+          .select("id, duration_seconds, started_at")
+          .single();
+        session = response.data;
+        sessionError = response.error;
+      }
 
       if (sessionError || !session) {
         console.error("start listening session error", sessionError);
@@ -257,14 +285,53 @@ Deno.serve(async (req: Request) => {
     }
 
     const now = new Date().toISOString();
-    const { data, error } = await admin.rpc("complete_listening_reward_session", {
-      p_student_id: student.id,
-      p_track_id: trackId,
-      p_session_id: storedSession.id,
-      p_covered_ranges: completion.ranges,
-      p_covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
-      p_coverage_percent: Number(completion.coveragePercent.toFixed(2))
-    });
+    let data: any = null;
+    let error: any = null;
+
+    if (listeningRewardsV2Enabled) {
+      const response = await admin.rpc("complete_listening_reward_session_v2", {
+        p_student_id: student.id,
+        p_track_id: trackId,
+        p_session_id: storedSession.id,
+        p_covered_ranges: completion.ranges,
+        p_covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
+        p_coverage_percent: Number(completion.coveragePercent.toFixed(2))
+      });
+      data = response.data;
+      error = response.error;
+    } else {
+      const completeSession = await admin
+        .from("listening_coverage_sessions")
+        .update({
+          completed_at: now,
+          covered_ranges: completion.ranges,
+          covered_seconds: Number(completion.coveredSeconds.toFixed(2)),
+          coverage_percent: Number(completion.coveragePercent.toFixed(2)),
+          updated_at: now
+        })
+        .eq("id", storedSession.id)
+        .eq("student_id", student.id);
+
+      if (completeSession.error) {
+        return json(500, { error: "無法完成有效聽力工作階段" });
+      }
+
+      const legacyResponse = await admin.rpc("record_student_music_play", {
+        p_student_id: student.id,
+        p_track_id: trackId,
+        p_required_plays: 100
+      });
+      data = legacyResponse.data;
+      error = legacyResponse.error;
+
+      if (!error) {
+        await admin
+          .from("listening_coverage_sessions")
+          .update({ count_recorded: true, updated_at: now })
+          .eq("id", storedSession.id)
+          .eq("student_id", student.id);
+      }
+    }
 
     if (error) {
       console.error("complete listening reward rpc error", error);
@@ -292,13 +359,17 @@ Deno.serve(async (req: Request) => {
           completed: Boolean(result?.completed),
           duration_seconds: Number(storedSession.duration_seconds),
           coverage_percent: completion.coveragePercent,
-          session_id: storedSession.id
+          session_id: storedSession.id,
+          listening_rewards_v2: listeningRewardsV2Enabled,
+          assignment_updates: Array.isArray(result?.assignment_updates)
+            ? result.assignment_updates
+            : []
         },
         occurred_at: now
       })
     ]);
 
-    return json(200, {
+    const responseBody: Record<string, unknown> = {
       success: true,
       progress: {
         result_track_id: result?.result_track_id,
@@ -308,7 +379,13 @@ Deno.serve(async (req: Request) => {
         monthly_count: Number(result?.monthly_count || 0),
         total_count: Number(result?.total_count || 0)
       },
-      reward: {
+      assignment_updates: Array.isArray(result?.assignment_updates)
+        ? result.assignment_updates
+        : []
+    };
+
+    if (listeningRewardsV2Enabled) {
+      responseBody.reward = {
         eligible: Boolean(result?.reward_eligible),
         listening_xp_added: Number(result?.listening_xp_added || 0),
         listening_points_added: Number(result?.listening_points_added || 0),
@@ -324,8 +401,10 @@ Deno.serve(async (req: Request) => {
         limit_reached: Boolean(result?.reward_limit_reached),
         total_xp: Number(result?.total_xp || 0),
         points_balance: Number(result?.points_balance || 0)
-      }
-    });
+      };
+    }
+
+    return json(200, responseBody);
   } catch (error) {
     console.error("record-play unexpected error", error);
     return json(500, { error: error instanceof Error ? error.message : "播放紀錄更新失敗" });

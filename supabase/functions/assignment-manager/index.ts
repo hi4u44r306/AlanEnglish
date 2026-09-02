@@ -42,6 +42,20 @@ const hasListeningTask = (sourceType: string) => (
 
 const CLASS_CODES = new Set(["E1", "E3", "E5", "E7"]);
 
+const isListeningRewardsV2Enabled = async (admin: any, studentId: number) => {
+    const { data, error } = await admin
+        .from("student_feature_rollouts")
+        .select("enabled")
+        .eq("student_id", studentId)
+        .eq("feature_key", "listening_rewards_v2")
+        .maybeSingle();
+    if (error) {
+        console.warn("assignment rollout lookup failed; using legacy progress", error.code);
+        return false;
+    }
+    return data?.enabled === true;
+};
+
 const getManagedClassCodes = async (admin: any, caller: any) => {
     if (caller.role === "admin") return [...CLASS_CODES];
     if (caller.role !== "teacher") return [];
@@ -125,7 +139,8 @@ const getAssignmentTrackItems = async (admin: any, assignment: any) => {
 const getStudentListeningProgress = async (
     admin: any,
     assignment: any,
-    studentId: number
+    studentId: number,
+    useAssignmentProgress = false
 ) => {
     const items = await getAssignmentTrackItems(admin, assignment);
     const trackIds = items.map((item: any) => item.track_id);
@@ -139,18 +154,22 @@ const getStudentListeningProgress = async (
         };
     }
 
-    const { data: progress, error } = await admin
-        .from("student_track_progress")
-        .select("track_id,play_count")
+    let progressQuery = admin
+        .from(useAssignmentProgress ? "assignment_listening_progress" : "student_track_progress")
+        .select(useAssignmentProgress ? "track_id,valid_listen_count" : "track_id,play_count")
         .eq("student_id", studentId)
         .in("track_id", trackIds);
+    if (useAssignmentProgress) {
+        progressQuery = progressQuery.eq("assignment_id", assignment.id);
+    }
+    const { data: progress, error } = await progressQuery;
 
     if (error) throw error;
 
     const progressMap = new Map(
         (progress || []).map((item: any) => [
             Number(item.track_id),
-            Number(item.play_count || 0)
+            Number(useAssignmentProgress ? item.valid_listen_count : item.play_count || 0)
         ])
     );
     const tracks = items.map((item: any) => {
@@ -221,8 +240,13 @@ Deno.serve(async (req: Request) => {
         const action = String(body?.action || "");
         const isManager = caller.role === "teacher" || caller.role === "admin";
         let effectiveAccess: any = null;
+        let listeningRewardsV2Enabled = false;
 
         if (!isManager) {
+            listeningRewardsV2Enabled = await isListeningRewardsV2Enabled(
+                admin,
+                Number(caller.id)
+            );
             effectiveAccess = await loadEffectiveAccess(admin, Number(caller.id));
             if (!effectiveAccess.is_active) {
                 return json(402, { error: "會員使用期限已結束，無法使用學生作業", code: "membership_required" });
@@ -285,7 +309,7 @@ Deno.serve(async (req: Request) => {
                 Math.max(0, Number(body?.passing_score) || 90)
             );
             const requiredListens = Math.min(
-                20,
+                10,
                 Math.max(1, Number(body?.required_listens) || 3)
             );
 
@@ -594,21 +618,58 @@ Deno.serve(async (req: Request) => {
 
             let trackItems: any[] = [];
             let listeningProgressMap = new Map<string, number>();
+            let v2StudentIds = new Set<number>();
             if (hasListeningTask(assignment.source_type)) {
                 trackItems = await getAssignmentTrackItems(admin, assignment);
                 const trackIds = trackItems.map((item: any) => item.track_id);
-                const { data, error } = await admin
-                    .from("student_track_progress")
-                    .select("student_id,track_id,play_count")
-                    .in("track_id", trackIds.length ? trackIds : [-1])
-                    .in("student_id", studentIds.length ? studentIds : [-1]);
-                if (error) throw error;
-                listeningProgressMap = new Map(
-                    (data || []).map((item: any) => [
-                        String(item.student_id) + ":" + String(item.track_id),
-                        Number(item.play_count || 0)
-                    ])
+                const rolloutRes = studentIds.length
+                    ? await admin
+                        .from("student_feature_rollouts")
+                        .select("student_id")
+                        .eq("feature_key", "listening_rewards_v2")
+                        .eq("enabled", true)
+                        .in("student_id", studentIds)
+                    : { data: [], error: null };
+                if (rolloutRes.error) throw rolloutRes.error;
+                v2StudentIds = new Set(
+                    (rolloutRes.data || []).map((row: any) => Number(row.student_id))
                 );
+                const legacyStudentIds = studentIds.filter(
+                    (studentId: number) => !v2StudentIds.has(Number(studentId))
+                );
+                const canaryStudentIds = studentIds.filter(
+                    (studentId: number) => v2StudentIds.has(Number(studentId))
+                );
+                const [legacyProgressRes, assignmentProgressRes] = await Promise.all([
+                    legacyStudentIds.length
+                        ? admin
+                            .from("student_track_progress")
+                            .select("student_id,track_id,play_count")
+                            .in("track_id", trackIds.length ? trackIds : [-1])
+                            .in("student_id", legacyStudentIds)
+                        : Promise.resolve({ data: [], error: null }),
+                    canaryStudentIds.length
+                        ? admin
+                            .from("assignment_listening_progress")
+                            .select("student_id,track_id,valid_listen_count")
+                            .eq("assignment_id", assignment.id)
+                            .in("track_id", trackIds.length ? trackIds : [-1])
+                            .in("student_id", canaryStudentIds)
+                        : Promise.resolve({ data: [], error: null })
+                ]);
+                if (legacyProgressRes.error || assignmentProgressRes.error) {
+                    throw legacyProgressRes.error || assignmentProgressRes.error;
+                }
+                listeningProgressMap = new Map([
+                    ...(legacyProgressRes.data || []).map((item: any) => [
+                        "legacy:" + String(item.student_id) + ":" + String(item.track_id),
+                        Number(item.play_count || 0)
+                    ]),
+                    ...(assignmentProgressRes.data || []).map((item: any) => [
+                        "v2:" + String(item.student_id) + ":" + String(item.track_id),
+                        Number(item.valid_listen_count || 0)
+                    ])
+                ] as [string, number][]);
             }
 
             const rows = (students || []).map((student: any) => {
@@ -638,8 +699,11 @@ Deno.serve(async (req: Request) => {
                     : true;
                 const listeningTracks = trackItems.map((item: any) => {
                     const requiredListens = Number(item.required_listens || assignment.required_listens || 3);
+                    const progressMode = v2StudentIds.has(Number(student.id))
+                        ? "v2:"
+                        : "legacy:";
                     const playCount = listeningProgressMap.get(
-                        String(student.id) + ":" + String(item.track_id)
+                        progressMode + String(student.id) + ":" + String(item.track_id)
                     ) || 0;
                     return {
                         track_id: item.track_id,
@@ -665,6 +729,9 @@ Deno.serve(async (req: Request) => {
 
                 return {
                     student,
+                    listening_progress_mode: v2StudentIds.has(Number(student.id))
+                        ? "assignment_window"
+                        : "legacy_lifetime",
                     best_score: Number(aiProgress?.best_score || 0),
                     attempt_count: Number(aiProgress?.attempt_count || 0),
                     completed_count: completedCount,
@@ -737,10 +804,7 @@ Deno.serve(async (req: Request) => {
             const assignments = (allAssignments || []).filter(
                 (assignment: any) => (
                     assignment.target_class === enrollmentClass
-                    && (
-                        !hasAiTask(assignment.source_type)
-                        || effectiveAccess?.features?.ai_materials === true
-                    )
+                    && assignment.source_type === "music_track"
                 )
             );
             const assignmentIds = assignments.map((assignment: any) => assignment.id);
@@ -828,11 +892,20 @@ Deno.serve(async (req: Request) => {
                         .in("id", trackIds)
                     : Promise.resolve({ data: [], error: null }),
                 trackIds.length
-                    ? admin
-                        .from("student_track_progress")
-                        .select("track_id,play_count")
-                        .eq("student_id", caller.id)
-                        .in("track_id", trackIds)
+                    ? (
+                        listeningRewardsV2Enabled
+                            ? admin
+                                .from("assignment_listening_progress")
+                                .select("assignment_id,track_id,valid_listen_count")
+                                .eq("student_id", caller.id)
+                                .in("assignment_id", listeningAssignmentIds)
+                                .in("track_id", trackIds)
+                            : admin
+                                .from("student_track_progress")
+                                .select("track_id,play_count")
+                                .eq("student_id", caller.id)
+                                .in("track_id", trackIds)
+                    )
                     : Promise.resolve({ data: [], error: null })
             ]);
 
@@ -860,8 +933,14 @@ Deno.serve(async (req: Request) => {
             );
             const trackProgressMap = new Map(
                 (trackProgressRes.data || []).map((item: any) => [
-                    Number(item.track_id),
-                    Number(item.play_count || 0)
+                    listeningRewardsV2Enabled
+                        ? String(item.assignment_id) + ":" + String(item.track_id)
+                        : String(item.track_id),
+                    Number(
+                        listeningRewardsV2Enabled
+                            ? item.valid_listen_count
+                            : item.play_count || 0
+                    )
                 ])
             );
 
@@ -873,7 +952,10 @@ Deno.serve(async (req: Request) => {
                 const trackItems = itemsByAssignment.get(Number(assignment.id)) || [];
                 const trackDetails = trackItems.map((item: any) => {
                     const track = trackMap.get(Number(item.track_id));
-                    const playCount = trackProgressMap.get(Number(item.track_id)) || 0;
+                    const progressKey = listeningRewardsV2Enabled
+                        ? String(assignment.id) + ":" + String(item.track_id)
+                        : String(item.track_id);
+                    const playCount = trackProgressMap.get(progressKey) || 0;
                     const requiredListens = Number(
                         item.required_listens || assignment.required_listens || 3
                     );
@@ -906,6 +988,9 @@ Deno.serve(async (req: Request) => {
                     ...assignment,
                     has_ai_task: includesAi,
                     has_listening_task: includesListening,
+                    listening_progress_mode: listeningRewardsV2Enabled
+                        ? "assignment_window"
+                        : "legacy_lifetime",
                     total_tasks: totalTasks,
                     material: includesAi
                         ? sanitizeMaterial(materialMap.get(Number(assignment.ai_material_id)))
@@ -950,10 +1035,9 @@ Deno.serve(async (req: Request) => {
             }
 
             const assignmentId = Number(body?.assignment_id);
-            const answers = Array.isArray(body?.answers) ? body.answers : [];
             const { data: assignment, error: assignmentError } = await admin
                 .from("assignments")
-                .select("*")
+                .select("id,source_type")
                 .eq("id", assignmentId)
                 .eq("enabled", true)
                 .maybeSingle();
@@ -962,148 +1046,9 @@ Deno.serve(async (req: Request) => {
             if (!assignment || !hasAiTask(assignment.source_type)) {
                 return json(400, { error: "這份作業不能提交選擇題" });
             }
-            if (effectiveAccess?.features?.ai_materials !== true) {
-                return json(403, {
-                    error: "這份 AI 作業需要先加購 AI 教材功能",
-                    code: "ai_materials_required"
-                });
-            }
-            const today = taiwanDate();
-            const { data: enrollment, error: enrollmentError } = await admin.from("academy_enrollments")
-                .select("scheduled_departure_at,academy_classes(code)").eq("student_id", caller.id).eq("status", "active").limit(1).maybeSingle();
-            if (enrollmentError) throw enrollmentError;
-            const enrollmentClass = Array.isArray(enrollment?.academy_classes) ? enrollment.academy_classes[0]?.code : enrollment?.academy_classes?.code;
-            if (!enrollment || enrollment.scheduled_departure_at && enrollment.scheduled_departure_at <= today || assignment.target_class !== enrollmentClass) {
-                return json(403, { error: "這份作業不屬於你的班級" });
-            }
-
-            const { data: material, error: materialError } = await admin
-                .from("ai_generated_materials")
-                .select("id,content")
-                .eq("id", assignment.ai_material_id)
-                .maybeSingle();
-
-            if (materialError) throw materialError;
-            const questions = Array.isArray(material?.content?.questions)
-                ? material.content.questions
-                : [];
-            if (!questions.length || answers.length !== questions.length) {
-                return json(400, { error: "請完成所有題目後再提交" });
-            }
-
-            let correctCount = 0;
-            const results = questions.map((question: any, index: number) => {
-                const selected = String(answers[index] ?? "");
-                const correctAnswer = String(question.answer ?? "");
-                const correct = selected === correctAnswer;
-                if (correct) correctCount += 1;
-                return {
-                    index,
-                    selected,
-                    correct,
-                    correct_answer: correctAnswer,
-                    explanation: question.explanation || ""
-                };
-            });
-            const score = Math.round((correctCount / questions.length) * 100);
-            const passed = score >= Number(assignment.passing_score || 90);
-            const now = new Date().toISOString();
-
-            const { error: attemptError } = await admin
-                .from("assignment_attempts")
-                .insert({
-                    assignment_id: assignmentId,
-                    student_id: caller.id,
-                    score,
-                    correct_count: correctCount,
-                    total_questions: questions.length,
-                    passed,
-                    answers,
-                    wrong_questions: results.filter((item: any) => !item.correct)
-                });
-
-            if (attemptError) throw attemptError;
-
-            const { data: currentProgress, error: currentProgressError } = await admin
-                .from("assignment_progress")
-                .select("*")
-                .eq("assignment_id", assignmentId)
-                .eq("student_id", caller.id)
-                .maybeSingle();
-
-            if (currentProgressError) throw currentProgressError;
-
-            const { data: progress, error: progressError } = await admin
-                .from("assignment_progress")
-                .upsert({
-                    assignment_id: assignmentId,
-                    student_id: caller.id,
-                    best_score: Math.max(Number(currentProgress?.best_score || 0), score),
-                    attempt_count: Number(currentProgress?.attempt_count || 0) + 1,
-                    completed: Boolean(currentProgress?.completed) || passed,
-                    completed_at: (
-                        currentProgress?.completed_at || (passed ? now : null)
-                    ),
-                    last_attempt_at: now,
-                    updated_at: now
-                }, {
-                    onConflict: "assignment_id,student_id"
-                })
-                .select("*")
-                .single();
-
-            if (progressError) throw progressError;
-
-            const listeningProgress = hasListeningTask(assignment.source_type)
-                ? await getStudentListeningProgress(admin, assignment, caller.id)
-                : {
-                    completed_count: 0,
-                    total_tracks: 0,
-                    completed: false,
-                    tracks: []
-                };
-            const aiCompleted = Boolean(progress.completed);
-            const overallCompleted = (
-                aiCompleted
-                && (
-                    !hasListeningTask(assignment.source_type)
-                    || listeningProgress.completed
-                )
-            );
-            const totalTasks = (
-                Number(hasAiTask(assignment.source_type))
-                + Number(hasListeningTask(assignment.source_type))
-            );
-            const completedTasks = (
-                Number(aiCompleted)
-                + Number(
-                    hasListeningTask(assignment.source_type)
-                    && listeningProgress.completed
-                )
-            );
-
-            return json(200, {
-                success: true,
-                score,
-                correct_count: correctCount,
-                total_questions: questions.length,
-                passed,
-                passing_score: assignment.passing_score,
-                results,
-                assignment_completed: overallCompleted,
-                progress: {
-                    ...progress,
-                    ai: {
-                        best_score: Number(progress.best_score || 0),
-                        attempt_count: Number(progress.attempt_count || 0),
-                        completed: aiCompleted,
-                        completed_at: progress.completed_at || null
-                    },
-                    listening: listeningProgress,
-                    task_completed_count: completedTasks,
-                    total_tasks: totalTasks,
-                    completed: overallCompleted
-                }
+            return json(410, {
+                error: "AI 班級作業已停止作答；歷史成績仍會保留",
+                code: "legacy_ai_assignment_read_only"
             });
         }
 

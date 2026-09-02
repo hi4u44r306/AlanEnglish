@@ -546,7 +546,7 @@ const TeacherAssignments = () => {
                                     value={form.target_class}
                                     onChange={event => updateForm("target_class", event.target.value)}
                                 >
-                                    <option value="">全部學生</option>
+                                    <option value="">請選擇班級</option>
                                     {classes.map(className => (
                                         <option key={className} value={className}>
                                             {className} 班
