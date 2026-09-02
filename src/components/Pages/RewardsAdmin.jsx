@@ -35,6 +35,7 @@ const EMPTY_FORM = {
     points_cost: 50,
     stock_quantity: 10,
     enabled: true,
+    fulfillment_type: "physical",
     per_student_limit: 1,
     applicable_classes: [],
     sort_order: 0
@@ -82,6 +83,7 @@ function RewardsAdmin() {
             points_cost: Number(reward.points_cost || 50),
             stock_quantity: Number(reward.stock_quantity || 0),
             enabled: reward.enabled !== false,
+            fulfillment_type: reward.fulfillment_type === "digital" ? "digital" : "physical",
             per_student_limit: reward.per_student_limit ?? "",
             applicable_classes: reward.applicable_classes || [],
             sort_order: Number(reward.sort_order || 0)
@@ -198,6 +200,8 @@ function RewardsAdmin() {
                             <label><span>需要點數</span><input type="number" min="1" value={form.points_cost} onChange={event => setForm(current => ({ ...current, points_cost: event.target.value }))} required /></label>
                             <label><span>庫存</span><input type="number" min="0" value={form.stock_quantity} onChange={event => setForm(current => ({ ...current, stock_quantity: event.target.value }))} required /></label>
                         </div>
+
+                        <label><span>獎品類型</span><select value={form.fulfillment_type} onChange={event => setForm(current => ({ ...current, fulfillment_type: event.target.value }))}><option value="physical">實體獎品（每 30 天限兌換一次）</option><option value="digital">數位獎品（不受 30 天限制）</option></select></label>
                         <div className="gamification-editor__row">
                             <label><span>每位學生上限</span><input type="number" min="1" value={form.per_student_limit} onChange={event => setForm(current => ({ ...current, per_student_limit: event.target.value }))} placeholder="空白 = 不限制" /></label>
                             <label><span>排序</span><input type="number" value={form.sort_order} onChange={event => setForm(current => ({ ...current, sort_order: event.target.value }))} /></label>
@@ -217,7 +221,7 @@ function RewardsAdmin() {
                         {loading ? <div className="gamification-loading">資料載入中…</div> : data.rewards.length === 0 ? <div className="gamification-empty">目前還沒有獎品。</div> : data.rewards.map(reward => (
                             <article key={reward.id} className={!reward.enabled ? "is-disabled" : ""}>
                                 <div className="gamification-admin-thumb">{reward.image_url ? <img src={reward.image_url} alt="" /> : <FiGift />}</div>
-                                <div className="gamification-admin-copy"><strong>{reward.name}</strong><span>{formatNumber(reward.points_cost)} P · 庫存 {reward.stock_quantity}</span><small>{reward.enabled ? "上架中" : "已下架"}{reward.applicable_classes?.length ? ` · ${reward.applicable_classes.join(" / ")}` : " · 全班級"}</small></div>
+                                <div className="gamification-admin-copy"><strong>{reward.name}</strong><span>{formatNumber(reward.points_cost)} P · 庫存 {reward.stock_quantity}</span><small>{reward.fulfillment_type === "digital" ? "數位獎品" : "實體獎品"} · {reward.enabled ? "上架中" : "已下架"}{reward.applicable_classes?.length ? ` · ${reward.applicable_classes.join(" / ")}` : " · 全班級"}</small></div>
                                 <div className="gamification-admin-actions"><button type="button" onClick={() => editReward(reward)}><FiEdit3 />編輯</button><button type="button" className="danger" onClick={() => handleDelete(reward)}><FiTrash2 />刪除</button></div>
                             </article>
                         ))}

@@ -106,14 +106,21 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
-        getGamificationSummary(firebaseUser)
-            .then(result => {
-                if (!cancelled) setGamificationSummary(result || null);
-            })
-            .catch(() => {
-                if (!cancelled) setGamificationSummary(null);
-            });
-        return () => { cancelled = true; };
+        const refreshGamification = () => {
+            getGamificationSummary(firebaseUser)
+                .then(result => {
+                    if (!cancelled) setGamificationSummary(result || null);
+                })
+                .catch(() => {
+                    if (!cancelled) setGamificationSummary(null);
+                });
+        };
+        refreshGamification();
+        window.addEventListener("ae:gamification-updated", refreshGamification);
+        return () => {
+            cancelled = true;
+            window.removeEventListener("ae:gamification-updated", refreshGamification);
+        };
     }, [firebaseUser, isStudent]);
 
     useEffect(() => {

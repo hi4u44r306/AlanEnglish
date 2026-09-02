@@ -404,6 +404,18 @@
     margin-bottom: 22px;
 }
 
+.gamification-redemption-notice {
+    margin: 0 22px 4px;
+    padding: 12px 14px;
+    border: 1px solid #efd486;
+    border-radius: 14px;
+    background: #fff8de;
+    color: #765612;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.55;
+}
+
 .gamification-reward-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -594,6 +606,7 @@
     input[type="text"],
     input[type="number"],
     input:not([type]),
+    select,
     textarea {
         width: 100%;
         padding: 11px 12px;

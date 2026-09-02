@@ -33,10 +33,12 @@ import {
     startListeningSession
 } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
+import ListeningRewardFeedback from "./ListeningRewardFeedback";
 
 const NO_INTERACTION_STORAGE_KEY = "ae-no-interaction";
-const NO_INTERACTION_WARNING_COUNT = 5;
-const NO_INTERACTION_STOP_COUNT = 10;
+const NO_INTERACTION_CHECK_COUNT = 5;
+const ATTENTION_CHECK_SECONDS = 30;
+const CONTINUOUS_ATTENTION_MINUTES = 15;
 const MINIMUM_LISTENING_COVERAGE = 80;
 const MAX_NATURAL_LISTEN_GAP_SECONDS = 3;
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5];
@@ -129,10 +131,12 @@ function MusicPlayer({ music }) {
     const lastListenTimeRef = useRef(null);
     const isSeekingRef = useRef(false);
     const isAcceleratedPlaybackRef = useRef(false);
+    const usedAcceleratedPlaybackRef = useRef(false);
+    const isDocumentVisibleRef = useRef(document.visibilityState !== "hidden");
     const completionSentRef = useRef(false);
-    const sessionStartedAtRef = useRef(null);
     const listeningSessionIdRef = useRef(null);
     const startingSessionRef = useRef(false);
+    const continuousListeningStartedAtRef = useRef(null);
     const desktopOptionsRef = useRef(null);
     const mobileOptionsRef = useRef(null);
 
@@ -165,6 +169,11 @@ function MusicPlayer({ music }) {
     const [audioDuration, setAudioDuration] = useState(0);
     const [isPlaybackActive, setIsPlaybackActive] = useState(false);
     const [transcriptMode, setTranscriptMode] = useState("none");
+    const [rewardFeedback, setRewardFeedback] = useState(null);
+    const [rewardSummary, setRewardSummary] = useState(null);
+    const [attentionCheckOpen, setAttentionCheckOpen] = useState(false);
+    const [attentionSecondsLeft, setAttentionSecondsLeft] = useState(ATTENTION_CHECK_SECONDS);
+    const [attentionExpired, setAttentionExpired] = useState(false);
 
     const {
         id: trackId,
@@ -189,13 +198,23 @@ function MusicPlayer({ music }) {
         lastListenTimeRef.current = null;
         isSeekingRef.current = false;
         isAcceleratedPlaybackRef.current = false;
+        usedAcceleratedPlaybackRef.current = false;
         completionSentRef.current = false;
-        sessionStartedAtRef.current = new Date().toISOString();
         listeningSessionIdRef.current = null;
         startingSessionRef.current = false;
         setCoveragePercent(0);
         setPlaybackRate(1);
         setSessionIneligible(false);
+    }, []);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            isDocumentVisibleRef.current = document.visibilityState !== "hidden";
+            lastListenTimeRef.current = null;
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, []);
 
     const updateCoverage = useCallback((start, end, duration) => {
@@ -501,62 +520,63 @@ function MusicPlayer({ music }) {
             nextCount
         );
 
-        if (
-            nextCount ===
-            NO_INTERACTION_WARNING_COUNT
-        ) {
-            toast.warning(
-                "還在聽嗎？已經連續自動播放 5 首囉！",
-                {
-                    className:
-                        "musicnotification",
-                    position:
-                        "top-center",
-                    autoClose:
-                        3500,
-                    hideProgressBar:
-                        false,
-                    closeOnClick:
-                        true,
-                    pauseOnHover:
-                        false,
-                    draggable:
-                        true,
-                    theme:
-                        "colored"
-                }
-            );
-        }
-
         return nextCount;
     };
 
     // =====================================
-    // 成功 Toast
+    // 學習注意力確認
     // =====================================
 
-    const showSuccessToast = () => {
-        toast.success(
-            "🎧 聽力次數 + 1",
-            {
-                className:
-                    "musicnotification",
-                position:
-                    "top-center",
-                autoClose:
-                    1800,
-                hideProgressBar:
-                    false,
-                closeOnClick:
-                    true,
-                pauseOnHover:
-                    false,
-                draggable:
-                    true,
-                theme:
-                    "colored"
-            }
-        );
+    const requestAttentionCheck = useCallback(() => {
+        if (role !== "student" || attentionCheckOpen) return;
+        const audio = audioElement.current?.audio?.current;
+        audio?.pause();
+        dispatch(setPlayPauseStatus(false));
+        setIsPlaybackActive(false);
+        setAttentionExpired(false);
+        setAttentionSecondsLeft(ATTENTION_CHECK_SECONDS);
+        setAttentionCheckOpen(true);
+    }, [attentionCheckOpen, dispatch, role]);
+
+    useEffect(() => {
+        if (!isPlaybackActive || attentionCheckOpen || role !== "student") return undefined;
+        if (!continuousListeningStartedAtRef.current) {
+            continuousListeningStartedAtRef.current = Date.now();
+        }
+        const elapsed = Date.now() - continuousListeningStartedAtRef.current;
+        const remaining = Math.max(0, CONTINUOUS_ATTENTION_MINUTES * 60 * 1000 - elapsed);
+        const timer = window.setTimeout(requestAttentionCheck, remaining);
+        return () => window.clearTimeout(timer);
+    }, [attentionCheckOpen, isPlaybackActive, requestAttentionCheck, role]);
+
+    useEffect(() => {
+        if (!attentionCheckOpen || attentionExpired) return undefined;
+        const timer = window.setInterval(() => {
+            setAttentionSecondsLeft(current => {
+                if (current > 1) return current - 1;
+                coverageRangesRef.current = [];
+                lastListenTimeRef.current = null;
+                listeningSessionIdRef.current = null;
+                completionSentRef.current = false;
+                setCoveragePercent(0);
+                setAttentionExpired(true);
+                return 0;
+            });
+        }, 1000);
+        return () => window.clearInterval(timer);
+    }, [attentionCheckOpen, attentionExpired]);
+
+    const continueAfterAttentionCheck = () => {
+        setAttentionCheckOpen(false);
+        setAttentionExpired(false);
+        setAttentionSecondsLeft(ATTENTION_CHECK_SECONDS);
+        continuousListeningStartedAtRef.current = Date.now();
+        updateNoInteractionCount(0);
+        const audio = audioElement.current?.audio?.current;
+        if (audio) {
+            lastListenTimeRef.current = audio.currentTime;
+            void audio.play();
+        }
     };
 
     // =====================================
@@ -619,7 +639,7 @@ function MusicPlayer({ music }) {
                             Number(start.toFixed(2)),
                             Number(end.toFixed(2))
                         ]),
-                        used_accelerated_playback: false,
+                        used_accelerated_playback: usedAcceleratedPlaybackRef.current,
                         session_id: listeningSessionIdRef.current
                     }
                 );
@@ -642,7 +662,12 @@ function MusicPlayer({ music }) {
                 );
             }
 
-            showSuccessToast();
+            const reward = result?.reward || null;
+            if (reward) {
+                setRewardSummary(reward);
+                setRewardFeedback(reward);
+                window.dispatchEvent(new CustomEvent("ae:gamification-updated", { detail: reward }));
+            }
 
             return progress;
         } catch (error) {
@@ -873,48 +898,24 @@ function MusicPlayer({ music }) {
             increaseNoInteraction();
 
         // =================================
-        // 10 次直接停止
+        // 連續 5 首後要求一次人工確認
         // =================================
 
         if (
             nextNoInteractionCount >=
-            NO_INTERACTION_STOP_COUNT
+            NO_INTERACTION_CHECK_COUNT
         ) {
             automaticTrackChangeRef.current =
                 false;
-
-            dispatch(
-                setPlayPauseStatus(
-                    false
-                )
-            );
-
-            toast.info(
-                "已連續自動播放 10 首，播放器已暫停。請按播放鍵繼續收聽。",
-                {
-                    className:
-                        "musicnotification",
-                    position:
-                        "top-center",
-                    autoClose:
-                        5000,
-                    hideProgressBar:
-                        false,
-                    closeOnClick:
-                        true,
-                    pauseOnHover:
-                        false,
-                    draggable:
-                        true,
-                    theme:
-                        "colored"
-                }
-            );
-
+            requestAttentionCheck();
             return;
         }
 
         if (repeatTrack) {
+            // Same-track replay needs a fresh server session so general
+            // listening progress can continue while the daily reward stays
+            // idempotent for this track.
+            resetListeningSession();
             audio.currentTime = 0;
             lastListenTimeRef.current = 0;
             const replayPromise = audio.play();
@@ -1074,6 +1075,8 @@ function MusicPlayer({ music }) {
         if (
             !isSeekingRef.current &&
             !isAcceleratedPlaybackRef.current &&
+            isDocumentVisibleRef.current &&
+            !attentionCheckOpen &&
             Number.isFinite(previousTime) &&
             currentTime > previousTime &&
             currentTime - previousTime <= MAX_NATURAL_LISTEN_GAP_SECONDS
@@ -1094,7 +1097,10 @@ function MusicPlayer({ music }) {
 
         const isAccelerated = nextRate > 1;
         isAcceleratedPlaybackRef.current = isAccelerated;
-        setSessionIneligible(isAccelerated);
+        if (isAccelerated) {
+            usedAcceleratedPlaybackRef.current = true;
+            setSessionIneligible(true);
+        }
 
         if (audio) {
             audio.playbackRate = nextRate;
@@ -1324,7 +1330,36 @@ function MusicPlayer({ music }) {
                     ? "加速播放中：這段不列入有效聆聽"
                     : `本次有效聆聽 ${Math.floor(coveragePercent)}%（聽滿 80% 才計一次）`}
             </div>
+            {rewardSummary && (
+                <div className="listening-daily-reward-status" aria-live="polite">
+                    <strong>今日獎勵 {rewardSummary.daily_rewarded_tracks}/{rewardSummary.daily_track_limit} 首</strong>
+                    <span>
+                        {rewardSummary.limit_reached
+                            ? "今日 XP／AE Points 已達上限，仍可繼續聽"
+                            : `再聽 ${rewardSummary.next_point_in} 首不同音檔可得 1 AE Point`}
+                    </span>
+                </div>
+            )}
+            <ListeningRewardFeedback reward={rewardFeedback} onDismiss={() => setRewardFeedback(null)} />
             {hasTranscript && transcriptMode !== "none" && <section className="desktop-transcript-panel" aria-live="polite"><header><strong>{transcriptMode === "en" ? "英文字幕" : transcriptMode === "zh" ? "中文提示" : "完整逐字稿"}</strong><button type="button" onClick={() => setTranscriptMode("none")}>關閉字幕再練習</button></header>{(transcriptMode === "en" || transcriptMode === "full") && transcript_en && <p lang="en">{transcript_en}</p>}{(transcriptMode === "zh" || transcriptMode === "full") && transcript_zh && <p>{transcript_zh}</p>}</section>}
+
+            {attentionCheckOpen && createPortal(
+                <div className="listening-attention-overlay" role="dialog" aria-modal="true" aria-label="確認仍在學習">
+                    <section className="listening-attention-card">
+                        <span aria-hidden="true">🎧</span>
+                        <h2>還在學習嗎？</h2>
+                        {attentionExpired ? (
+                            <p>剛才沒有收到回應，這個工作階段不會發放獎勵。重新播放後會建立新的有效聆聽紀錄。</p>
+                        ) : (
+                            <p>播放器已暫停。請在 <strong>{attentionSecondsLeft} 秒</strong>內確認，避免掛機累積 XP 與 AE Points。</p>
+                        )}
+                        <button type="button" onClick={continueAfterAttentionCheck}>
+                            {attentionExpired ? "重新開始這首" : "我還在學習"}
+                        </button>
+                    </section>
+                </div>,
+                document.body
+            )}
 
             {isMobileExpanded && createPortal(
                 <div className="mobile-player-overlay" role="dialog" aria-modal="true" aria-label="全螢幕播放器">
