@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import MainNavbar from "./MainNavbar";
@@ -73,7 +73,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
     });
 
-    it("shows only unlocked student materials in desktop and mobile navigation", async () => {
+    it("groups unlocked student materials into collapsible desktop and mobile categories", async () => {
         getAccessibleCatalog.mockResolvedValue({
             categories: [{
                 id: "workbook",
@@ -93,14 +93,27 @@ describe("MainNavbar student navigation", () => {
 
         const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
         fireEvent.click(materialsMenu);
-        expect(screen.getByRole("link", { name: "Workbook 1" })).toHaveAttribute("href", "/student/books/Workbook_1");
-        expect(screen.getByRole("link", { name: "聽力本 1" })).toHaveAttribute("href", "/student/books/Listening_1");
-        expect(screen.queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
+        const desktopMaterials = materialsMenu.closest(".dropdown");
+        expect(within(desktopMaterials).getByText("共 2 本")).toBeInTheDocument();
+        const desktopWorkbookToggle = within(desktopMaterials).getByLabelText("切換習作本，1 本教材");
+        expect(desktopWorkbookToggle.closest("details")).not.toHaveAttribute("open");
+        fireEvent.click(desktopWorkbookToggle);
+        expect(desktopWorkbookToggle.closest("details")).toHaveAttribute("open");
+        expect(within(desktopMaterials).getByRole("link", { name: "Workbook 1" })).toHaveAttribute("href", "/student/books/Workbook_1");
+        fireEvent.click(within(desktopMaterials).getByLabelText("切換聽力本，1 本教材"));
+        expect(within(desktopMaterials).getByRole("link", { name: "聽力本 1" })).toHaveAttribute("href", "/student/books/Listening_1");
+        expect(within(desktopMaterials).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
 
+        fireEvent.click(materialsMenu);
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
-        expect(await screen.findAllByRole("link", { name: /Workbook 1/ })).toHaveLength(2);
-        expect(screen.getAllByRole("link", { name: /聽力本 1/ })).toHaveLength(2);
-        expect(screen.queryByRole("link", { name: /Workbook 2/ })).not.toBeInTheDocument();
+        const mobileDrawer = await screen.findByRole("complementary");
+        expect(within(mobileDrawer).getByText("我的教材 · 共 2 本")).toBeInTheDocument();
+        const mobileWorkbookToggle = within(mobileDrawer).getByLabelText("切換習作本，1 本教材");
+        expect(mobileWorkbookToggle.closest("details")).not.toHaveAttribute("open");
+        fireEvent.click(mobileWorkbookToggle);
+        expect(mobileWorkbookToggle.closest("details")).toHaveAttribute("open");
+        expect(within(mobileDrawer).getByRole("link", { name: "Workbook 1" })).toHaveAttribute("href", "/student/books/Workbook_1");
+        expect(within(mobileDrawer).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
     });
 
     it("shows the AI Premium title only for an active AI add-on", async () => {

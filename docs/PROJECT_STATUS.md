@@ -2,8 +2,11 @@
 
 最後更新：2026-09-01
 
-本次進行中（2026-09-01）：
+本次進行中（2026-09-02）：
 
+- Navbar「我的教材」分層選單（尚未部署）：分支 `codex/group-material-navbar`。學生桌面版不再一次列出全部書名，改為先顯示教材分類與各分類本數，展開分類後才顯示可用教材；目前所在教材分類及書名會標示作用中。手機 Sidebar 的「我的教材」同步改為可收合分類，避免基本會員可聽全部正式教材後選單過長。維持只顯示後端判定已解鎖教材，不改動教材權限或直接網址的後端驗證。Navbar 6/6、全前端 34 suites／99 tests、Production build 與 `git diff --check` 均成功；尚未 Push、建立 PR 或部署。
+
+本次進行中（2026-09-01）：
 - 商品、價格與聽力權限單純化（正式站已部署）：PR #86 已合併至 `main` commit `c7f44d77`，Netlify production deploy `6a96eee37100d00009d91247` 已為 `ready`。NT$299 基本自主學習會員及英文班在校方案改為可使用全部已啟用的正式聽力教材，仍不包含 AI 或跨班作業；教材包附贈 90 天／開通碼等限制型權限才逐本檢查 entitlement。AI 新訂閱統一為 `ai_materials_addon_monthly` NT$499，「AI Premium」維持稱號，重複的一般會員 AI 代碼與兩個舊月費方案改為停用歷史資料。教材包改為單一售價、每次購買固定附贈 90 天，且必須各有一本課本、Workbook、聽力本及一組 Stripe 測試 Product／Price 才能上架；既有只有兩本的 Level 1 測試商品已安全退回草稿，不刪除既有訂單或權限。後台新增課本欄位並依教材分類篩選。正式 additive migration `simplify_products_and_listening_access` 已套用；`content-access` v21、`record-play` v25、`commerce-manager` v11、`billing-manager` v26、`membership-manager` v33 均為 ACTIVE，OPTIONS 健康檢查回應 200。商務契約 37/37、商城契約 13/13、全前端 34 suites／99 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功；正式首頁、教材、商城及會員路由回應 200。正式 Stripe live 商品／Price 仍未建立，網站明示目前為測試付款。
 - 當天誤選教材移除介面（正式站已部署）：PR #84 已合併至 `main` commit `e19887e8`，Netlify production deploy `6a96c8293f85f60008d0339c` 已為 ready。班級教材後端原本已能以修正後完整清單移除今天版本的誤選教材；本批補上獨立的「修正後保留的教材」清單與每本「移除」按鈕，預覽會明確說明學生不再透過目前班級版本取得移除教材。自行購買、管理員贈送、開通碼及真正歷史教材的獨立 entitlement 不受影響。正式 E3 已驗收顯示 Workbook 4、Listening 4 的逐本移除按鈕，未點擊移除、預覽或二次確認，E3 資料未因驗收改動。取代誤選教材的元件案例與教材管理頁共 4/4、全前端 34 suites／99 tests、Production build 及 `git diff --check` 均成功。
 - 當天教材版本修正（正式站已部署）：PR #82 已合併至 `main` commit `2efcd21e`，additive migration `correct_current_class_materials` 已套用，`commerce-manager` v10 為 ACTIVE，Netlify production deploy `6a96c25547f5b3000760339f` 已為 ready。正式 E3 已由管理員於 2026-09-01 建立第 2 版「2026 秋季」，目前教材仍為 Workbook 3、Super Easy Reading 3；本批新增「修正目前版本」模式，只允許管理員修正台北日期今天建立且目前生效的同一設定，可在同一天重複修正，每次須用最新 `updated_at` 重新預覽與二次確認；同一交易替換教材清單、更新學期名稱並寫入 `corrected` 前後快照，不建立重疊版本、不修改永久 entitlement、不刪除學習紀錄或作業快照。正式站第一次修正預覽以新增 Listening 3 驗證，正確顯示 1 位在校生與 0 份既有有效作業；未按下二次確認，資料庫 `corrected` 稽核筆數仍為 0，E3 正式教材未被修改。當天連續修正兩次的元件測試 1/1、教材管理頁 3/3、商務契約 35/35、全前端 34 suites／98 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功。

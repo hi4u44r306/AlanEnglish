@@ -69,6 +69,11 @@
   color: #4254d6 !important;
 }
 
+.ae-desktop-nav .ae-desktop-dropdown.is-active > .nav-link {
+  background: #f1f4ff;
+  color: #4254d6 !important;
+}
+
 .ae-desktop-nav > .nav-link:active,
 .ae-desktop-help:active,
 .ae-desktop-all-functions:active {
@@ -113,7 +118,8 @@
 }
 
 .ae-dropdown-item:hover,
-.ae-dropdown-item:focus {
+.ae-dropdown-item:focus,
+.ae-dropdown-item.active {
   background: #f3f5ff !important;
   color: #4254d6 !important;
 }
@@ -136,6 +142,110 @@
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.1em;
+}
+
+.ae-student-materials-dropdown .dropdown-menu {
+  width: min(340px, calc(100vw - 28px)) !important;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+}
+
+.ae-materials-dropdown-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px 10px;
+  border-bottom: 1px solid #edf0f5;
+  color: #243351;
+}
+
+.ae-materials-dropdown-heading strong {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.ae-materials-dropdown-heading span {
+  color: #7b8497;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ae-desktop-material-category {
+  margin-top: 6px;
+  border-radius: 12px;
+}
+
+.ae-desktop-material-category[open],
+.ae-desktop-material-category.is-active {
+  background: #f8f9fc;
+}
+
+.ae-desktop-material-category summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 11px;
+  color: #33405b;
+  font-size: 14px;
+  font-weight: 850;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ae-desktop-material-category summary::-webkit-details-marker {
+  display: none;
+}
+
+.ae-desktop-material-category summary:hover,
+.ae-desktop-material-category summary:focus-visible {
+  background: #f1f4ff;
+  color: #4254d6;
+  outline: none;
+}
+
+.ae-desktop-material-category summary > span:first-child,
+.ae-material-category-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ae-desktop-material-category summary svg {
+  width: 18px;
+  height: 18px;
+  color: #65708a;
+}
+
+.ae-material-category-meta b {
+  min-width: 38px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: #66728a;
+  background: #edf1f7;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.ae-desktop-material-category[open] .ae-mobile-chevron {
+  transform: rotate(180deg);
+}
+
+.ae-desktop-material-book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: min(44vh, 360px);
+  padding: 0 6px 7px 24px;
+  overflow-y: auto;
+}
+
+.ae-desktop-material-book-list .ae-dropdown-item {
+  min-height: 40px;
 }
 
 .ae-desktop-help {
@@ -453,17 +563,6 @@
   color: #4254d6;
 }
 
-.ae-mobile-materials > a > span {
-  display: grid;
-  gap: 1px;
-}
-
-.ae-mobile-materials > a small {
-  color: #8993a6;
-  font-size: 11px;
-  font-weight: 750;
-}
-
 .ae-mobile-category {
   border-radius: 13px;
 }
@@ -495,6 +594,10 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
+}
+
+.ae-mobile-category .ae-material-category-meta {
+  gap: 7px;
 }
 
 .ae-mobile-category summary svg {
