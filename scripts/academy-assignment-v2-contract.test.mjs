@@ -10,6 +10,9 @@ const pronunciation = read("supabase/functions/pronunciation-coach/index.ts");
 const gamification = read("supabase/functions/gamification/index.ts");
 const billing = read("supabase/functions/billing-manager/index.ts");
 const membership = read("supabase/functions/membership-manager/index.ts");
+const assignmentManager = read("supabase/functions/assignment-manager/index.ts");
+const assignmentService = read("src/services/assignmentService.js");
+const teacherAssignments = read("src/components/Pages/TeacherAssignments.jsx");
 const pronunciationPage = read("src/components/Pages/PronunciationCoach.jsx");
 const navbar = read("src/components/fragment/MainNavbar.jsx");
 const plan = read("docs/ASSIGNMENT_V2_PLAN.md");
@@ -107,4 +110,18 @@ test("11. 在校生已包含 AI，不可從畫面或直接 API 重複購買", ()
     assert.match(billing, /code: "academy_ai_already_included"/);
     assert.match(billing, /英文班在校方案已包含 AI 教材與發音練習/);
     assert.match(membership, /if \(hasActiveAcademyEnrollment\) return false/);
+});
+
+test("12. 老師以核准頁面來源預覽並建立不可變混合作業快照", () => {
+    assert.match(assignmentManager, /action === "upsert_page_learning_content"/);
+    assert.match(assignmentManager, /action === "preview_assignment_v2" \|\| action === "create_assignment_v2"/);
+    assert.match(assignmentManager, /getPublishedPageContent/);
+    assert.match(assignmentManager, /請先選擇目標教材中已發布且含核准文字的頁面來源/);
+    assert.match(assignmentManager, /question_snapshot/);
+    assert.match(assignmentManager, /assignment_pronunciation_prompts/);
+    assert.match(assignmentManager, /assignment_v2_results_not_ready/);
+    assert.match(assignmentService, /previewAssignmentV2/);
+    assert.match(assignmentService, /createAssignmentV2/);
+    assert.match(teacherAssignments, /混合作業 V2/);
+    assert.match(teacherAssignments, /核對後發布頁面來源/);
 });

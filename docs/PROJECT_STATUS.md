@@ -5,9 +5,9 @@
 本次進行中（2026-09-03，尚未部署）：
 
 - 會員權限單純化與混合作業 V2 第一階段：分支 `codex/academy-all-access-assignment-v2`，基準 `origin/main`／`54f99e1`。已建立 additive migration，準備將有效在校英文班方案改為包含全部正式聽力、AI 教材、發音練習、會話、複習及所屬班級作業；教材包附贈 90 天改為可使用全部正式聽力，但不包含 AI、發音及作業。發音權限改用獨立 `pronunciation` feature，並保留舊 AI 方案欄位相容。AI 個人生成額度規劃為每日 5 次／每月 150 次。AI 加購目標改為 NT$299，但本批不先修改價格，必須等新的 Stripe Price 與全站顯示、條款同批切換，避免顯示 299、實收 499。
-- 混合作業資料底座：舊作業保持 `schema_version = 1`；新增 `multi_activity_v2`、活動項目、教師核准頁面文字、共用 AI 題目快照、發音提示句、學生逐項進度及發音分數紀錄。原始錄音不保存，新表開啟 RLS 且只由驗證 Firebase Token 的 Edge Function 經 `service_role` 存取。`assignment_v2` 已加入每位學生灰度旗標允許值，尚未接上教師／學生 UI 或 Edge Function V2 action，也尚未套用正式 migration、部署或推送。產品流程與驗收規格記錄於 `docs/ASSIGNMENT_V2_PLAN.md`。
+- 混合作業資料底座與教師端第二階段：舊作業保持 `schema_version = 1`；新增 `multi_activity_v2`、活動項目、教師核准頁面文字、共用 AI 題目快照、發音提示句、學生逐項進度及發音分數紀錄。原始錄音不保存，新表開啟 RLS 且只由驗證 Firebase Token 的 Edge Function 經 `service_role` 存取。`assignment-manager` 已新增頁面來源草稿／發布、V2 唯讀預覽與建立不可變快照 action；每次會重新檢查教師班級、目前班級教材、題組擁有權及已發布頁面文字。教師頁可切換純聽力或混合作業、選取既有 AI 題組與發音提示句。學生 V2 作答、逐項進度、結果報表及完成獎勵尚未接上；因此尚未套用正式 migration、部署或推送，且不得為真實學生啟用 `assignment_v2`。
 - AE Points 新資格規則：所有有效學生仍可累積 XP；只有有效在校英文班學生可新增 AE Points 及使用獎品商城。既有合法點數與兌換紀錄保留。資料庫發獎 RPC 會把非在校生的新點數與升等點數歸零，`gamification` 也會拒絕非在校生讀取／兌換商城；前端同步隱藏入口並顯示資格說明，尚未部署。
-- 第一階段本機驗證完成：新會員／作業 V2 契約 11/11、教材商務契約 37/37、聽力獎勵契約 14/14、全前端 39 suites／126 tests、12 支 Edge Function 語法、Production build 與 `git diff --check` 均成功。部署前必須先盤點仍在扣款中的英文班在校生 AI 加購訂閱，逐筆決定取消／到期不續／退款，避免功能改為學費內含後仍重複收費；不得由 migration 靜默取消 Stripe 訂閱。
+- 本機驗證：新會員／作業 V2 契約 12/12、作業服務測試 2/2、教材商務契約 37/37、聽力獎勵契約 14/14、全前端 39 suites／127 tests、12 支 Edge Function 語法、Production build 與 `git diff --check` 均成功；第二階段本機 checkpoint 已建立。部署前必須先盤點仍在扣款中的英文班在校生 AI 加購訂閱，逐筆決定取消／到期不續／退款，避免功能改為學費內含後仍重複收費；不得由 migration 靜默取消 Stripe 訂閱。
 - 自主熟練 V3 與大型背景暫停確認已由 PR #96 合併至 `main` commit `54f99e1` 並部署正式站；`record-play` v28 為 ACTIVE。有效聆聽仍需 80% 不重複覆蓋；自主同音檔累計 10 次發 10 XP／1 AE Point，每人每檔終身一次、每日最多 3 檔。總聽力照常累計，但同一 session 只分配給一份尚需該音檔的有效作業，否則才計自主。切換分頁即暫停並顯示大型確認。本機 PGlite 9/9、契約 14/14、全前端 39 suites／119 tests、Edge Function 語法、Production build 與正式發布檢查均成功；仍待真實 iPhone 鎖屏／safe area 長時間驗收。
 
 本次進行中（2026-09-02）：
