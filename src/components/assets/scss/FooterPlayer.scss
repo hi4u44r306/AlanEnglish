@@ -163,6 +163,7 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .listening-attention-overlay,
+.playback-paused-overlay,
 .level-up-celebration {
   position: fixed;
   z-index: 20000;
@@ -174,6 +175,7 @@
   backdrop-filter: blur(6px);
 }
 .listening-attention-card,
+.playback-paused-dialog,
 .level-up-card {
   position: relative;
   width: min(430px, 100%);
@@ -187,10 +189,13 @@
 }
 .listening-attention-card > span { font-size: 3rem; }
 .listening-attention-card h2,
+.playback-paused-dialog h2,
 .level-up-card h2 { margin: 10px 0 8px; font-size: clamp(1.45rem, 5vw, 2rem); font-weight: 900; }
 .listening-attention-card p,
+.playback-paused-dialog p,
 .level-up-card p { margin: 0; color: #5a6c82; line-height: 1.65; }
 .listening-attention-card button,
+.playback-paused-dialog button,
 .level-up-card button {
   width: 100%;
   min-height: 48px;
@@ -201,6 +206,18 @@
   background: #1f67b9;
   font-weight: 900;
 }
+.playback-paused-overlay {
+  z-index: 23000;
+  overflow-y: auto;
+  padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.playback-paused-dialog { box-sizing: border-box; width: min(500px, 100%); }
+.playback-paused-icon { display: block; color: #1f67b9; font-size: 3rem; font-weight: 900; }
+.playback-paused-dialog .playback-paused-note { margin-top: 12px; font-size: 0.9rem; }
+.playback-paused-dialog button { font-size: 1.1rem; cursor: pointer; }
+.playback-paused-dialog button:focus-visible { outline: 3px solid #f4c34f; outline-offset: 4px; }
+.mobile-overlay-mastery { color: #173866; text-align: center; }
+.mobile-overlay-mastery p { margin: 6px 0; color: #526985; line-height: 1.5; }
 .level-up-celebration { overflow: hidden; background: radial-gradient(circle at 50% 35%, rgba(39, 98, 181, 0.9), rgba(3, 12, 27, 0.92)); }
 .level-up-card { animation: level-card-enter 520ms cubic-bezier(.2,.9,.25,1.25) both; }
 .level-up-eyebrow { color: #286cc4; font-size: 0.8rem; font-weight: 950; letter-spacing: 0.18em; }

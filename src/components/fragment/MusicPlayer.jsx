@@ -40,6 +40,8 @@ import {
     mergeCoverageRange
 } from "../../utils/listeningCoverage";
 import ListeningRewardFeedback from "./ListeningRewardFeedback";
+import PlaybackPausedDialog from "./PlaybackPausedDialog";
+import { listeningRewardText } from "../../utils/listeningRewardText";
 
 const NO_INTERACTION_STORAGE_KEY = "ae-no-interaction";
 const NO_INTERACTION_CHECK_COUNT = 5;
@@ -125,6 +127,7 @@ function MusicPlayer({ music }) {
     const sessionStartRequestRef = useRef(0);
     const hasPlaybackStartedRef = useRef(false);
     const pausedForVisibilityRef = useRef(false);
+    const attentionCheckRef = useRef(false);
     const continuousListeningStartedAtRef = useRef(null);
     const desktopOptionsRef = useRef(null);
     const mobileOptionsRef = useRef(null);
@@ -160,6 +163,7 @@ function MusicPlayer({ music }) {
     const [transcriptMode, setTranscriptMode] = useState("none");
     const [rewardFeedback, setRewardFeedback] = useState(null);
     const [rewardSummary, setRewardSummary] = useState(null);
+    const [visibilityPauseOpen, setVisibilityPauseOpen] = useState(false);
     const [attentionCheckOpen, setAttentionCheckOpen] = useState(false);
     const [attentionSecondsLeft, setAttentionSecondsLeft] = useState(ATTENTION_CHECK_SECONDS);
     const [attentionExpired, setAttentionExpired] = useState(false);
@@ -175,6 +179,14 @@ function MusicPlayer({ music }) {
         subtitle_status
     } = currTrack || {};
     const hasTranscript = subtitle_status === "published" && Boolean(transcript_en || transcript_zh);
+    const rewardStatus = String(rewardSummary?.reward_status?.track_id) === String(trackId)
+        ? rewardSummary.reward_status : null;
+    const masteryText = listeningRewardText(rewardStatus);
+    const compactRewardProgress = rewardStatus
+        ? rewardStatus.source === "assignment"
+            ? ` · 作業 ${rewardStatus.valid_listen_count}/${rewardStatus.required_listens}`
+            : rewardStatus.mastery_rewarded ? " · 已熟練" : ` · 自主 ${rewardStatus.mastery_count}/10`
+        : "";
     const cycleTranscript = () => setTranscriptMode(current => {
         if (current === "none") return transcript_en ? "en" : "zh";
         if (current === "en" && transcript_zh) return "zh";
@@ -195,7 +207,7 @@ function MusicPlayer({ music }) {
         sessionStartPromiseRef.current = null;
         sessionStartRequestRef.current += 1;
         hasPlaybackStartedRef.current = false;
-        pausedForVisibilityRef.current = false;
+        setRewardSummary(null);
         setCoveragePercent(0);
         setPlaybackRate(1);
         setSessionIneligible(false);
@@ -215,11 +227,8 @@ function MusicPlayer({ music }) {
             const audio = audioElement.current?.audio?.current;
             if (audio && !audio.paused && !pausedForVisibilityRef.current) {
                 pausedForVisibilityRef.current = true;
+                setVisibilityPauseOpen(true);
                 audio.pause();
-                toast.info("已暫停播放：回到學習頁面後請按播放繼續", {
-                    position: "top-center",
-                    autoClose: 3000
-                });
             }
         };
 
@@ -278,6 +287,9 @@ function MusicPlayer({ music }) {
             .then(result => {
                 if (sessionStartRequestRef.current === requestId) {
                     listeningSessionIdRef.current = result?.session?.id || null;
+                    if (result?.session?.reward_status) {
+                        setRewardSummary({ ...result.session.reward_status, reward_status: result.session.reward_status });
+                    }
                 }
             })
             .catch(error => {
@@ -585,6 +597,7 @@ function MusicPlayer({ music }) {
 
     const requestAttentionCheck = useCallback(() => {
         if (role !== "student" || attentionCheckOpen) return;
+        attentionCheckRef.current = true;
         const audio = audioElement.current?.audio?.current;
         audio?.pause();
         dispatch(setPlayPauseStatus(false));
@@ -626,6 +639,7 @@ function MusicPlayer({ music }) {
     }, [attentionCheckOpen, attentionExpired]);
 
     const continueAfterAttentionCheck = () => {
+        attentionCheckRef.current = false;
         setAttentionCheckOpen(false);
         setAttentionExpired(false);
         setAttentionSecondsLeft(ATTENTION_CHECK_SECONDS);
@@ -633,9 +647,31 @@ function MusicPlayer({ music }) {
         updateNoInteractionCount(0);
         const audio = audioElement.current?.audio?.current;
         if (audio) {
+            if (attentionExpired) {
+                resetListeningSession();
+                audio.currentTime = 0;
+            }
             lastListenTimeRef.current = audio.currentTime;
             lastListenWallClockRef.current = getListeningClock();
-            void audio.play();
+            // A separate visibility confirmation must not bypass the attention check.
+            if (!pausedForVisibilityRef.current && isDocumentVisibleRef.current) {
+                void audio.play().catch(() => toast.error("暫時無法播放，請再按播放重試"));
+            }
+        }
+    };
+
+    const continueAfterVisibilityPause = async () => {
+        const audio = audioElement.current?.audio?.current;
+        if (!audio || !isDocumentVisibleRef.current || attentionCheckRef.current) throw new Error("Playback unavailable");
+        pausedForVisibilityRef.current = false;
+        try {
+            await audio.play();
+            // The user may hide the page again while play() is pending.
+            if (!isDocumentVisibleRef.current || pausedForVisibilityRef.current) return;
+            setVisibilityPauseOpen(false);
+        } catch (error) {
+            pausedForVisibilityRef.current = true;
+            throw error;
         }
     };
 
@@ -995,8 +1031,7 @@ function MusicPlayer({ music }) {
 
         if (repeatTrack) {
             // Same-track replay needs a fresh server session so general
-            // listening progress can continue while the daily reward stays
-            // idempotent for this track.
+            // listening progress can continue; the server owns reward allocation.
             resetListeningSession();
             audio.currentTime = 0;
             lastListenTimeRef.current = 0;
@@ -1056,6 +1091,13 @@ function MusicPlayer({ music }) {
     // =====================================
 
     const handlePlay = () => {
+        const audio = audioElement.current?.audio?.current;
+        if (!isDocumentVisibleRef.current || pausedForVisibilityRef.current || attentionCheckRef.current) {
+            audio?.pause();
+            dispatch(setPlayPauseStatus(false));
+            setIsPlaybackActive(false);
+            return;
+        }
         pendingPlaybackRef.current =
             false;
 
@@ -1070,9 +1112,6 @@ function MusicPlayer({ music }) {
 
         setIsPlaybackActive(true);
         hasPlaybackStartedRef.current = true;
-        pausedForVisibilityRef.current = false;
-
-        const audio = audioElement.current?.audio?.current;
         if (audio) {
             setPlaybackPosition(audio.currentTime);
             setAudioDuration(audio.duration || 0);
@@ -1090,7 +1129,7 @@ function MusicPlayer({ music }) {
             return;
         }
 
-        resetNoInteraction();
+        if (!pausedForVisibilityRef.current && !attentionCheckRef.current) resetNoInteraction();
     };
 
     // =====================================
@@ -1115,7 +1154,7 @@ function MusicPlayer({ music }) {
         lastListenTimeRef.current = null;
         lastListenWallClockRef.current = null;
 
-        resetNoInteraction();
+        if (!pausedForVisibilityRef.current && !attentionCheckRef.current) resetNoInteraction();
     };
 
     const handleListen = event => {
@@ -1258,7 +1297,7 @@ function MusicPlayer({ music }) {
                     <span className="player-track-status">
                         {sessionIneligible
                             ? "加速播放中，這段不計入次數"
-                            : `有效聆聽 ${Math.floor(coveragePercent)}%`}
+                            : `有效聆聽 ${Math.floor(coveragePercent)}%${compactRewardProgress}`}
                     </span>
                 </span>
             </button>
@@ -1341,7 +1380,7 @@ function MusicPlayer({ music }) {
                             <small>
                                 {sessionIneligible
                                     ? "加速播放中，這段不計入次數"
-                                    : `有效聆聽 ${Math.floor(coveragePercent)}%`}
+                                    : `有效聆聽 ${Math.floor(coveragePercent)}%${compactRewardProgress}`}
                             </small>
                         </span>
                     </div>,
@@ -1404,15 +1443,18 @@ function MusicPlayer({ music }) {
             </div>
             {rewardSummary && (
                 <div className="listening-daily-reward-status" aria-live="polite">
-                    <strong>今日獎勵 {rewardSummary.daily_rewarded_tracks}/{rewardSummary.daily_track_limit} 首</strong>
+                    <strong>{masteryText ? masteryText.title : `今日獎勵 ${rewardSummary.daily_rewarded_tracks}/${rewardSummary.daily_track_limit} 首`}</strong>
                     <span>
-                        {rewardSummary.limit_reached
+                        {masteryText ? masteryText.detail : rewardSummary.limit_reached
                             ? "今日 XP／AE Points 已達上限，仍可繼續聽"
                             : `再聽 ${rewardSummary.next_point_in} 首不同音檔可得 1 AE Point`}
                     </span>
                 </div>
             )}
             <ListeningRewardFeedback reward={rewardFeedback} onDismiss={() => setRewardFeedback(null)} />
+            {visibilityPauseOpen && !attentionCheckOpen && (
+                <PlaybackPausedDialog onResume={continueAfterVisibilityPause} />
+            )}
             {hasTranscript && transcriptMode !== "none" && <section className="desktop-transcript-panel" aria-live="polite"><header><strong>{transcriptMode === "en" ? "英文字幕" : transcriptMode === "zh" ? "中文提示" : "完整逐字稿"}</strong><button type="button" onClick={() => setTranscriptMode("none")}>關閉字幕再練習</button></header>{(transcriptMode === "en" || transcriptMode === "full") && transcript_en && <p lang="en">{transcript_en}</p>}{(transcriptMode === "zh" || transcriptMode === "full") && transcript_zh && <p>{transcript_zh}</p>}</section>}
 
             {attentionCheckOpen && createPortal(
@@ -1454,6 +1496,7 @@ function MusicPlayer({ music }) {
                             <strong>{bookname || "未命名教材"}{page ? ` · ${page}` : ""}</strong>
                             <span>{sessionIneligible ? "加速播放中，這段不計入次數" : `有效聆聽 ${Math.floor(coveragePercent)}%`}</span>
                         </div>
+                        {masteryText && <div className="mobile-overlay-mastery"><strong>{masteryText.title}</strong><p>{masteryText.detail}</p></div>}
                         <div className="mobile-overlay-progress">
                             <input
                                 type="range"

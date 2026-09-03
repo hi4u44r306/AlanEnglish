@@ -1,6 +1,11 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-02
+最後更新：2026-09-03
+
+本次進行中（2026-09-03，尚未部署）：
+
+- 分支 `codex/listening-mastery-rewards`，基準 `origin/main`／`4c97cb2`。自主熟練 V3 與大型背景暫停確認已完成本機實作：有效聆聽仍需 80% 不重複覆蓋；自主同音檔累計 10 次發 10 XP／1 AE Point，每人每檔終身一次、每日最多 3 檔。滿 10/10 遇每日上限時保留待領，隔天再有效聽一次結算。整份作業達老師指定次數發 30 XP／5 AE Points；總聽力照常累計，但同一 session 只分配給一份尚需該音檔的有效作業（最早截止、建立時間、ID），否則才計自主。舊播放不回填、舊獎勵不追回，沿用既有 canary 旗標，不擅自全量開啟。切換分頁即暫停、大型確認保留到手動續播，加入焦點限制與播放失敗重試，原本已暫停者不打擾；防掛機確認仍優先，逾時重新從頭聽。
+- 相關檔案：`20260903003717_listening_mastery_reward_allocation.sql`、`record-play`、`MusicPlayer`、`PlaybackPausedDialog`、`ListeningRewardFeedback`、`FooterPlayer.scss` 及對應測試；同步 `PROJECT_LOGIC.md`、使用手冊 v1.25、`docs/LISTENING_MASTERY_ACCEPTANCE.md`。本機 PGlite 執行真實 SQL 9/9、契約 14/14、全前端 39 suites／119 tests、11 支 Edge Function 語法、Production build 與 diff 檢查通過。本機隔離播放器情境（模擬帳號／回應／visibility 事件，非正式資料）確認播放、暫停確認、續播、切換來源及展開，`412、682、768、810、900、1024px` 提示與主控制按鈕無水平溢位。Console 無 error；未互動前的瀏覽器 autoplay 拒絕為預期 warning，手動播放後正常。尚未執行 Supabase 多連線競爭／正式帳號 API 端到端與真實 iPhone 鎖屏／safe area；不建立付費 branch。本批尚未推送、套用正式 migration 或部署，下一步依驗收表取得重大改動授權後發布。
 
 本次進行中（2026-09-02）：
 

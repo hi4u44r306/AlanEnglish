@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = read("supabase/migrations/20260902021837_listening_rewards_and_level_up.sql");
+const masteryMigration = read("supabase/migrations/20260903003717_listening_mastery_reward_allocation.sql");
 const recordPlay = read("supabase/functions/record-play/index.ts");
 const assignmentManager = read("supabase/functions/assignment-manager/index.ts");
 const gamification = read("supabase/functions/gamification/index.ts");
@@ -24,16 +25,19 @@ test("有效聆聽必須涵蓋至少 80% 且由伺服器完成原子結算", () 
 test("同一學生只能有一個可計獎的進行中工作階段", () => {
     assert.match(migration, /where student\.id = p_student_id and student\.role = 'student'\s*for update/);
     assert.match(migration, /superseded_by_new_session/);
-    assert.match(recordPlay, /start_listening_reward_session_v2/);
+    assert.match(recordPlay, /start_listening_reward_session_v3/);
     assert.match(player, /if \(repeatTrack\) \{[\s\S]{0,260}resetListeningSession\(\)/);
 });
 
-test("每日前十首不同音檔各得 5 XP 且每五首得 1 AE Point", () => {
+test("舊V2資料保留稽核；V3改為10次熟練、每檔終身一次、每日3檔", () => {
     assert.match(migration, /v_rewarded_before < 10/);
     assert.match(migration, /mod\(v_rewarded_before \+ 1, 5\) = 0/);
     assert.match(migration, /concat\('track:', p_track_id, ':', v_day\)/);
     assert.match(migration, /'listening_daily'/);
     assert.doesNotMatch(migration, /listening_challenge/);
+    assert.match(masteryMigration, /v_count >= 10.*v_daily < 3/);
+    assert.match(masteryMigration, /'listening_mastery', concat\('track:', p_track_id\)/);
+    assert.match(recordPlay, /complete_listening_reward_session_v3/);
 });
 
 test("升等點數依等級區間一次性發放", () => {
@@ -76,7 +80,7 @@ test("正式庫以學生灰度旗標啟用新規則，未啟用者保持舊流�
     );
 });
 
-test("同一有效聽力可同時累計總進度與相符作業，但同一 session 不會重複計數", () => {
+test("總次數照常累計，但V3同一session只分配一份作業或自主", () => {
     assert.match(migration, /record_student_music_play_v2/);
     assert.match(migration, /primary key \(assignment_id, session_id\)/);
     assert.match(migration, /on conflict \(assignment_id, session_id\) do nothing/);
@@ -84,6 +88,9 @@ test("同一有效聽力可同時累計總進度與相符作業，但同一 sess
     assert.match(migration, /assignment_listening_progress_track_idx/);
     assert.match(migration, /assignment_listening_events_track_idx/);
     assert.match(migration, /assignment_listening_events_session_idx/);
+    assert.match(masteryMigration, /session_id uuid primary key/);
+    assert.match(masteryMigration, /order by a.due_at asc nulls last, a.created_at asc, a.id asc\s+limit 1/);
+    assert.match(masteryMigration, /p_started_at >= greatest/);
 });
 
 test("新班級作業只能發布聽力，每檔預設 3 次且上限 10 次", () => {

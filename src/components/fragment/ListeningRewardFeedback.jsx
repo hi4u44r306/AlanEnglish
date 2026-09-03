@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { listeningRewardText } from "../../utils/listeningRewardText";
 
 const number = value => Number(value || 0).toLocaleString("zh-TW");
 
@@ -37,12 +38,17 @@ function ListeningRewardFeedback({ reward, onDismiss }) {
         );
     }
 
-    const title = reward.eligible
+    const masteryText = listeningRewardText(reward.reward_status);
+    const title = masteryText
+        ? (Number(reward.listening_xp_added) > 0 ? "自主熟練達成 +10 XP" : masteryText.title)
+        : reward.eligible
         ? `有效聆聽 +${number(reward.listening_xp_added)} XP`
         : reward.limit_reached
             ? "今日聽力獎勵已達上限"
             : "這首今天已領過獎勵";
-    const pointText = Number(reward.listening_points_added || 0) > 0
+    const pointText = masteryText
+        ? (Number(reward.listening_points_added) > 0 ? "獲得 +1 AE Point，每檔熟練獎勵限領一次" : masteryText.detail)
+        : Number(reward.listening_points_added || 0) > 0
         ? `並獲得 +${number(reward.listening_points_added)} AE Point`
         : reward.limit_reached
             ? "仍可繼續播放與保留聆聽紀錄"
@@ -54,7 +60,7 @@ function ListeningRewardFeedback({ reward, onDismiss }) {
                 <strong>{title}</strong>
                 <span>{pointText}</span>
             </div>
-            <small>今日 {number(reward.daily_rewarded_tracks)} / {number(reward.daily_track_limit)} 首</small>
+            <small>{masteryText ? "今日自主" : "今日"} {number(reward.daily_rewarded_tracks)} / {number(reward.daily_track_limit)} 首</small>
             <button type="button" onClick={onDismiss} aria-label="關閉獎勵提示">×</button>
         </aside>
     );
