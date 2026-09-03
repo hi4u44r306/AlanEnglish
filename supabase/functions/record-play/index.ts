@@ -180,7 +180,8 @@ Deno.serve(async (req: Request) => {
       .eq("feature_key", "listening_rewards_v2")
       .maybeSingle();
     if (rolloutError) {
-      console.warn("listening rewards rollout lookup failed; using legacy flow", rolloutError.code);
+      console.warn("listening rewards rollout lookup failed", rolloutError.code);
+      return json(503, { error: "暫時無法確認聆聽獎勵規則，請稍後再試" });
     }
     const listeningRewardsV2Enabled = rolloutRow?.enabled === true;
 
@@ -216,7 +217,7 @@ Deno.serve(async (req: Request) => {
       let sessionError: any = null;
       if (listeningRewardsV2Enabled) {
         const response = await admin.rpc(
-          "start_listening_reward_session_v2",
+          "start_listening_reward_session_v3",
           {
             p_student_id: student.id,
             p_track_id: trackId,
@@ -253,7 +254,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: storedSession, error: storedSessionError } = await admin
       .from("listening_coverage_sessions")
-      .select("id, duration_seconds, started_at, completed_at, count_recorded, eligible_for_count")
+      .select("id, duration_seconds, started_at, completed_at, count_recorded, eligible_for_count, reward_policy_version")
       .eq("id", sessionId)
       .eq("student_id", student.id)
       .eq("track_id", trackId)
@@ -339,7 +340,12 @@ Deno.serve(async (req: Request) => {
     let error: any = null;
 
     if (listeningRewardsV2Enabled) {
-      const response = await admin.rpc("complete_listening_reward_session_v2", {
+      // In-flight pre-release sessions finish under their original policy.
+      // Never fall back after a V3 settlement failure: it could double-award.
+      const settlementFunction = storedSession.reward_policy_version === 3
+        ? "complete_listening_reward_session_v3"
+        : "complete_listening_reward_session_v2";
+      const response = await admin.rpc(settlementFunction, {
         p_student_id: student.id,
         p_track_id: trackId,
         p_session_id: storedSession.id,
@@ -411,6 +417,7 @@ Deno.serve(async (req: Request) => {
           coverage_percent: completion.coveragePercent,
           session_id: storedSession.id,
           listening_rewards_v2: listeningRewardsV2Enabled,
+          reward_policy_version: result?.policy_version || 2,
           assignment_updates: Array.isArray(result?.assignment_updates)
             ? result.assignment_updates
             : []
@@ -438,6 +445,8 @@ Deno.serve(async (req: Request) => {
 
     if (listeningRewardsV2Enabled) {
       responseBody.reward = {
+        policy_version: Number(result?.policy_version || 2),
+        reward_status: result?.reward_status || null,
         eligible: Boolean(result?.reward_eligible),
         listening_xp_added: Number(result?.listening_xp_added || 0),
         listening_points_added: Number(result?.listening_points_added || 0),
