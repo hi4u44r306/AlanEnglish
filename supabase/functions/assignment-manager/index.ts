@@ -99,6 +99,113 @@ const isListeningRewardsV2Enabled = async (admin: any, studentId: number) => {
     return data?.enabled === true;
 };
 
+const isAssignmentV2Enabled = async (admin: any, studentId: number) => {
+    const { data, error } = await admin
+        .from("student_feature_rollouts")
+        .select("enabled")
+        .eq("student_id", studentId)
+        .eq("feature_key", "assignment_v2")
+        .maybeSingle();
+    if (error) {
+        console.warn("assignment v2 rollout lookup failed; keeping the student on legacy assignments", error.code);
+        return false;
+    }
+    return data?.enabled === true;
+};
+
+const getActiveStudentClass = async (admin: any, studentId: number) => {
+    const today = taiwanDate();
+    const { data, error } = await admin.from("academy_enrollments")
+        .select("id,scheduled_departure_at,academy_classes(code)")
+        .eq("student_id", studentId).eq("status", "active").limit(1).maybeSingle();
+    if (error) throw error;
+    const classCode = Array.isArray(data?.academy_classes)
+        ? data.academy_classes[0]?.code
+        : data?.academy_classes?.code;
+    return data && CLASS_CODES.has(classCode) && (!data.scheduled_departure_at || data.scheduled_departure_at > today)
+        ? classCode
+        : null;
+};
+
+const sanitizeQuestionSnapshot = (snapshot: any) => ({
+    title: cleanText(snapshot?.title, 200) || "老師指定的選擇題",
+    questions: (Array.isArray(snapshot?.questions) ? snapshot.questions : []).map((question: any) => ({
+        question: cleanText(question?.question, 1000),
+        options: Array.isArray(question?.options) ? question.options.map((option: any) => cleanText(option, 500)) : []
+    }))
+});
+
+const getStudentV2Assignments = async (admin: any, studentId: number, classCode: string) => {
+    const today = taiwanDate();
+    const { data: assignments, error: assignmentError } = await admin
+        .from("assignments")
+        .select("id,title,description,target_class,assigned_date,due_at,enabled,source_type,schema_version")
+        .eq("enabled", true)
+        .eq("source_type", "multi_activity_v2")
+        .eq("schema_version", 2)
+        .eq("target_class", classCode)
+        .lte("assigned_date", today)
+        .order("assigned_date", { ascending: false })
+        .order("created_at", { ascending: false });
+    if (assignmentError) throw assignmentError;
+    const assignmentIds = (assignments || []).map((assignment: any) => Number(assignment.id));
+    if (!assignmentIds.length) return [];
+
+    const { data: items, error: itemError } = await admin
+        .from("assignment_items")
+        .select("id,assignment_id,item_type,book_id_snapshot,config,content_snapshot,sort_order")
+        .in("assignment_id", assignmentIds)
+        .order("sort_order");
+    if (itemError) throw itemError;
+    const itemIds = (items || []).map((item: any) => Number(item.id));
+    const [aiRes, promptRes, trackRes, progressRes] = await Promise.all([
+        itemIds.length ? admin.from("assignment_ai_items").select("assignment_item_id,passing_score,question_snapshot").in("assignment_item_id", itemIds) : Promise.resolve({ data: [], error: null }),
+        itemIds.length ? admin.from("assignment_pronunciation_prompts").select("id,assignment_item_id,prompt_key,page_label,reference_text,completion_mode,target_score,max_scored_attempts,sort_order").in("assignment_item_id", itemIds).order("sort_order") : Promise.resolve({ data: [], error: null }),
+        itemIds.length ? admin.from("assignment_track_items").select("assignment_item_id,track_id,required_listens,sort_order").in("assignment_item_id", itemIds).order("sort_order") : Promise.resolve({ data: [], error: null }),
+        itemIds.length ? admin.from("student_assignment_item_progress").select("assignment_item_id,status,completed_units,total_units,best_score,attempt_count,completed_at,last_activity_at").eq("student_id", studentId).in("assignment_item_id", itemIds) : Promise.resolve({ data: [], error: null })
+    ]);
+    const batchError = aiRes.error || promptRes.error || trackRes.error || progressRes.error;
+    if (batchError) throw batchError;
+    const aiByItem = new Map((aiRes.data || []).map((row: any) => [Number(row.assignment_item_id), row]));
+    const promptsByItem = new Map<number, any[]>();
+    for (const prompt of promptRes.data || []) promptsByItem.set(Number(prompt.assignment_item_id), [...(promptsByItem.get(Number(prompt.assignment_item_id)) || []), prompt]);
+    const tracksByItem = new Map<number, any[]>();
+    for (const track of trackRes.data || []) tracksByItem.set(Number(track.assignment_item_id), [...(tracksByItem.get(Number(track.assignment_item_id)) || []), track]);
+    const progressByItem = new Map((progressRes.data || []).map((row: any) => [Number(row.assignment_item_id), row]));
+    const itemsByAssignment = new Map<number, any[]>();
+    for (const item of items || []) {
+        const itemId = Number(item.id);
+        const activity = {
+            id: itemId,
+            item_type: item.item_type,
+            sort_order: Number(item.sort_order || 0),
+            config: item.config || {},
+            progress: progressByItem.get(itemId) || { status: "not_started", completed_units: 0, total_units: 1, best_score: null, attempt_count: 0 },
+            tracks: tracksByItem.get(itemId) || [],
+            ai: aiByItem.has(itemId) ? {
+                passing_score: Number(aiByItem.get(itemId)?.passing_score || 80),
+                ...sanitizeQuestionSnapshot(aiByItem.get(itemId)?.question_snapshot)
+            } : null,
+            prompts: (promptsByItem.get(itemId) || []).map((prompt: any) => ({
+                id: Number(prompt.id), page_label: prompt.page_label, reference_text: prompt.reference_text,
+                completion_mode: prompt.completion_mode, target_score: prompt.target_score,
+                max_scored_attempts: Number(prompt.max_scored_attempts || 3)
+            }))
+        };
+        itemsByAssignment.set(Number(item.assignment_id), [...(itemsByAssignment.get(Number(item.assignment_id)) || []), activity]);
+    }
+    return (assignments || []).map((assignment: any) => {
+        const activities = itemsByAssignment.get(Number(assignment.id)) || [];
+        const completedCount = activities.filter((item: any) => item.progress?.status === "completed").length;
+        return {
+            ...assignment,
+            source_type: "multi_activity_v2",
+            activities,
+            progress: { task_completed_count: completedCount, total_tasks: activities.length, completed: activities.length > 0 && completedCount === activities.length }
+        };
+    });
+};
+
 const getManagedClassCodes = async (admin: any, caller: any) => {
     if (caller.role === "admin") return [...CLASS_CODES];
     if (caller.role !== "teacher") return [];
@@ -1214,6 +1321,85 @@ Deno.serve(async (req: Request) => {
                 },
                 rows
             });
+        }
+
+        if (action === "student_assignments_v2") {
+            if (caller.role !== "student") {
+                return json(403, { error: "只有學生帳號會顯示今日作業" });
+            }
+            if (!await isAssignmentV2Enabled(admin, Number(caller.id))) {
+                return json(200, { success: true, assignments: [], rollout_enabled: false });
+            }
+            const enrollmentClass = await getActiveStudentClass(admin, Number(caller.id));
+            if (!enrollmentClass) return json(200, { success: true, assignments: [], rollout_enabled: true });
+            return json(200, {
+                success: true,
+                rollout_enabled: true,
+                assignments: await getStudentV2Assignments(admin, Number(caller.id), enrollmentClass)
+            });
+        }
+
+        if (action === "submit_assignment_v2_ai") {
+            if (caller.role !== "student") return json(403, { error: "只有學生可以提交作業" });
+            if (!await isAssignmentV2Enabled(admin, Number(caller.id))) {
+                return json(403, { error: "此帳號尚未開放新版作業", code: "assignment_v2_not_enabled" });
+            }
+            const assignmentId = positiveInteger(body?.assignment_id);
+            const assignmentItemId = positiveInteger(body?.assignment_item_id);
+            const answers = Array.isArray(body?.answers) ? body.answers.map((answer: any) => cleanText(answer, 500)) : [];
+            const enrollmentClass = await getActiveStudentClass(admin, Number(caller.id));
+            if (!assignmentId || !assignmentItemId || !enrollmentClass) {
+                return json(400, { error: "作業資料不完整或目前沒有有效英文班身分" });
+            }
+            const { data: assignment, error: assignmentError } = await admin.from("assignments")
+                .select("id,target_class,enabled,source_type,schema_version")
+                .eq("id", assignmentId).maybeSingle();
+            if (assignmentError) throw assignmentError;
+            if (!assignment || !assignment.enabled || assignment.target_class !== enrollmentClass || assignment.source_type !== "multi_activity_v2" || Number(assignment.schema_version) !== 2) {
+                return json(403, { error: "這份新版作業目前無法提交" });
+            }
+            const { data: item, error: itemError } = await admin.from("assignment_items")
+                .select("id,item_type,assignment_id")
+                .eq("id", assignmentItemId).eq("assignment_id", assignmentId).eq("item_type", "ai_quiz").maybeSingle();
+            if (itemError) throw itemError;
+            if (!item) return json(404, { error: "找不到這個 AI 作業活動" });
+            const { data: aiItem, error: aiError } = await admin.from("assignment_ai_items")
+                .select("passing_score,question_snapshot")
+                .eq("assignment_item_id", assignmentItemId).maybeSingle();
+            if (aiError) throw aiError;
+            const questions = Array.isArray(aiItem?.question_snapshot?.questions) ? aiItem.question_snapshot.questions : [];
+            if (!questions.length || answers.length !== questions.length || answers.some((answer: string, index: number) => !questions[index]?.options?.includes(answer))) {
+                return json(400, { error: "請完成每一題後再提交" });
+            }
+            const results = questions.map((question: any, index: number) => ({
+                correct: answers[index] === question.answer,
+                correct_answer: question.answer,
+                explanation: question.explanation || ""
+            }));
+            const correctCount = results.filter((result: any) => result.correct).length;
+            const score = Math.round(correctCount / questions.length * 100);
+            const passingScore = Number(aiItem?.passing_score || 80);
+            const passed = score >= passingScore;
+            const { data: prior, error: priorError } = await admin.from("student_assignment_item_progress")
+                .select("best_score,attempt_count")
+                .eq("assignment_item_id", assignmentItemId).eq("student_id", caller.id).maybeSingle();
+            if (priorError) throw priorError;
+            const bestScore = Math.max(Number(prior?.best_score || 0), score);
+            const { error: progressError } = await admin.from("student_assignment_item_progress").upsert({
+                assignment_item_id: assignmentItemId,
+                student_id: caller.id,
+                status: passed ? "completed" : "in_progress",
+                completed_units: passed ? 1 : 0,
+                total_units: 1,
+                best_score: bestScore,
+                attempt_count: Number(prior?.attempt_count || 0) + 1,
+                details: { latest_score: score, latest_correct_count: correctCount, total_questions: questions.length },
+                completed_at: passed ? new Date().toISOString() : null,
+                last_activity_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }, { onConflict: "assignment_item_id,student_id" });
+            if (progressError) throw progressError;
+            return json(200, { success: true, score, correct_count: correctCount, total_questions: questions.length, passing_score: passingScore, passed, results });
         }
 
         if (action === "student_assignments") {

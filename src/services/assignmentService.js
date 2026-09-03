@@ -28,3 +28,7 @@ export const getTeacherAssignments = firebaseUser => callAssignmentFunction(fire
 export const getAssignmentResults = (firebaseUser, assignmentId) => callAssignmentFunction(firebaseUser, { action: "assignment_results", assignment_id: assignmentId });
 export const getStudentAssignments = firebaseUser => callAssignmentFunction(firebaseUser, { action: "student_assignments" });
 export const submitAssignment = (firebaseUser, assignmentId, answers) => callAssignmentFunction(firebaseUser, { action: "submit_assignment", assignment_id: assignmentId, answers });
+export const getStudentAssignmentsV2 = firebaseUser => callAssignmentFunction(firebaseUser, { action: "student_assignments_v2" });
+export const submitAssignmentV2Ai = (firebaseUser, assignmentId, assignmentItemId, answers) => callAssignmentFunction(firebaseUser, {
+    action: "submit_assignment_v2_ai", assignment_id: assignmentId, assignment_item_id: assignmentItemId, answers
+});

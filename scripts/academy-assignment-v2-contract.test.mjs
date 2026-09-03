@@ -13,6 +13,7 @@ const membership = read("supabase/functions/membership-manager/index.ts");
 const assignmentManager = read("supabase/functions/assignment-manager/index.ts");
 const assignmentService = read("src/services/assignmentService.js");
 const teacherAssignments = read("src/components/Pages/TeacherAssignments.jsx");
+const studentAssignments = read("src/components/Pages/StudentAssignments.jsx");
 const pronunciationPage = read("src/components/Pages/PronunciationCoach.jsx");
 const navbar = read("src/components/fragment/MainNavbar.jsx");
 const plan = read("docs/ASSIGNMENT_V2_PLAN.md");
@@ -124,4 +125,17 @@ test("12. 老師以核准頁面來源預覽並建立不可變混合作業快照"
     assert.match(assignmentService, /createAssignmentV2/);
     assert.match(teacherAssignments, /混合作業 V2/);
     assert.match(teacherAssignments, /核對後發布頁面來源/);
+});
+
+test("13. 學生新版 AI 作答只使用伺服器快照並核對灰度、班級與活動歸屬", () => {
+    assert.match(assignmentManager, /action === "student_assignments_v2"/);
+    assert.match(assignmentManager, /action === "submit_assignment_v2_ai"/);
+    assert.match(assignmentManager, /isAssignmentV2Enabled/);
+    assert.match(assignmentManager, /getActiveStudentClass/);
+    assert.match(assignmentManager, /question_snapshot/);
+    assert.match(assignmentManager, /assignment_item_id,student_id/);
+    assert.match(assignmentService, /getStudentAssignmentsV2/);
+    assert.match(assignmentService, /submitAssignmentV2Ai/);
+    assert.match(studentAssignments, /getStudentAssignmentsV2/);
+    assert.match(studentAssignments, /submitAssignmentV2Ai/);
 });

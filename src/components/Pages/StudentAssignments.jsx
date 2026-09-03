@@ -16,6 +16,8 @@ import {
 import { useAuth } from "../../auth/AuthContext";
 import {
     getStudentAssignments,
+    getStudentAssignmentsV2,
+    submitAssignmentV2Ai,
     submitAssignment
 } from "../../services/assignmentService";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
@@ -170,6 +172,7 @@ const ListeningTrackList = ({ tracks }) => (
 const StudentAssignments = () => {
     const { firebaseUser } = useAuth();
     const [assignments, setAssignments] = useState([]);
+    const [v2Assignments, setV2Assignments] = useState([]);
     const [today, setToday] = useState("");
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState("");
@@ -177,14 +180,23 @@ const StudentAssignments = () => {
     const [answers, setAnswers] = useState([]);
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState(null);
+    const [activeV2Quiz, setActiveV2Quiz] = useState(null);
+    const [v2Answers, setV2Answers] = useState([]);
+    const [v2Result, setV2Result] = useState(null);
 
     const load = useCallback(async ({ silent = false } = {}) => {
         if (!firebaseUser) return;
         if (!silent) setLoading(true);
         setMessage("");
         try {
-            const response = await getStudentAssignments(firebaseUser);
+            const [response, v2Response] = await Promise.all([
+                getStudentAssignments(firebaseUser),
+                typeof getStudentAssignmentsV2 === "function"
+                    ? getStudentAssignmentsV2(firebaseUser).catch(() => ({ assignments: [] }))
+                    : Promise.resolve({ assignments: [] })
+            ]);
             setAssignments(response.assignments || []);
+            setV2Assignments(v2Response.assignments || []);
             setToday(response.today || "");
             setActiveAssignment(current => {
                 if (!current) return current;
@@ -215,10 +227,10 @@ const StudentAssignments = () => {
     }, [load]);
 
     const counts = useMemo(() => ({
-        total: assignments.length,
-        completed: assignments.filter(item => item.progress?.completed).length,
-        pending: assignments.filter(item => !item.progress?.completed).length
-    }), [assignments]);
+        total: assignments.length + v2Assignments.length,
+        completed: [...assignments, ...v2Assignments].filter(item => item.progress?.completed).length,
+        pending: [...assignments, ...v2Assignments].filter(item => !item.progress?.completed).length
+    }), [assignments, v2Assignments]);
 
     const completionRate = counts.total
         ? Math.round((counts.completed / counts.total) * 100)
@@ -264,6 +276,39 @@ const StudentAssignments = () => {
                     ? { ...current, progress: response.progress }
                     : current
             ));
+        } catch (error) {
+            setMessage(error.message);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const openV2Quiz = (assignment, activity) => {
+        const questionCount = activity?.ai?.questions?.length || 0;
+        setActiveV2Quiz({ assignment, activity });
+        setV2Answers(Array(questionCount).fill(""));
+        setV2Result(null);
+        setMessage("");
+        window.setTimeout(() => document.getElementById("assignment-v2-quiz")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    };
+
+    const submitV2Quiz = async () => {
+        if (!activeV2Quiz || submitting) return;
+        if (v2Answers.some(answer => !answer)) return setMessage("請先完成所有題目再提交。");
+        setSubmitting(true);
+        setMessage("");
+        try {
+            const response = await submitAssignmentV2Ai(firebaseUser, activeV2Quiz.assignment.id, activeV2Quiz.activity.id, v2Answers);
+            setV2Result(response);
+            setV2Assignments(current => current.map(assignment => assignment.id === activeV2Quiz.assignment.id
+                ? {
+                    ...assignment,
+                    activities: assignment.activities.map(activity => activity.id === activeV2Quiz.activity.id
+                        ? { ...activity, progress: { ...activity.progress, status: response.passed ? "completed" : "in_progress", best_score: response.score, attempt_count: Number(activity.progress?.attempt_count || 0) + 1 }
+                        : activity),
+                    progress: { ...assignment.progress, task_completed_count: assignment.activities.filter(activity => activity.id === activeV2Quiz.activity.id ? response.passed : activity.progress?.status === "completed").length }
+                }
+                : assignment));
         } catch (error) {
             setMessage(error.message);
         } finally {
@@ -665,7 +710,32 @@ const StudentAssignments = () => {
                             );
                         })}
                     </div>
+
+                    {v2Assignments.length > 0 && <div className="student-homework-task-list assignment-v2-list" aria-label="新版混合作業">
+                        {v2Assignments.map((assignment, assignmentIndex) => <article className={`student-homework-task mission-pack${assignment.progress?.completed ? " completed" : ""}`} key={assignment.id}>
+                            <div className="student-homework-task__rail" aria-hidden="true"><span>V{assignmentIndex + 1}</span></div>
+                            <div className="student-homework-task__body">
+                                <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><small>MIXED ASSIGNMENT</small><strong>課後任務包</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignment.progress?.completed ? "已完成" : "待完成"}</span></div>
+                                <div className="student-homework-task__title"><h3>{assignment.title}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
+                                <div className="student-homework-pack-progress"><div><span>整份作業進度</span><strong>{assignment.progress?.task_completed_count || 0} / {assignment.progress?.total_tasks || 0} 個步驟</strong></div><div aria-hidden="true"><span style={{ width: `${assignment.progress?.total_tasks ? Math.round((assignment.progress?.task_completed_count || 0) / assignment.progress.total_tasks * 100) : 0}%` }} /></div></div>
+                                <div className="student-homework-pack-steps">
+                                    {(assignment.activities || []).map((activity, activityIndex) => <section className={`student-homework-pack-step ${activity.item_type}-step${activity.progress?.status === "completed" ? " completed" : ""}`} key={activity.id}>
+                                        <div className="student-homework-pack-step__heading"><span>{activity.progress?.status === "completed" ? <Check size={17} /> : activity.item_type === "listening" ? <Headphones size={17} /> : activity.item_type === "ai_quiz" ? <Sparkles size={17} /> : <Target size={17} />}</span><div><small>STEP {activityIndex + 1}</small><strong>{activity.item_type === "listening" ? "指定聽力" : activity.item_type === "ai_quiz" ? "AI 選擇題" : "指定發音練習"}</strong></div><em>{activity.progress?.status === "completed" ? "完成" : "待完成"}</em></div>
+                                        {activity.item_type === "ai_quiz" && <><div className="student-homework-pack-ai"><div><span>最高分</span><strong>{activity.progress?.best_score || 0}</strong></div><div><span>作答次數</span><strong>{activity.progress?.attempt_count || 0}</strong></div><div><span>通過標準</span><strong>{activity.ai?.passing_score || 80}</strong></div></div><button type="button" className="student-homework-pack-action" onClick={() => openV2Quiz(assignment, activity)}>{activity.progress?.status === "completed" ? "再次複習" : "開始測驗"}<ArrowRight size={17} /></button></>}
+                                        {activity.item_type === "listening" && <p className="student-homework-track syncing">指定 {activity.tracks?.length || 0} 檔音檔；播放器串接完成後可在此開始。</p>}
+                                        {activity.item_type === "pronunciation" && <p className="student-homework-track syncing">指定 {activity.prompts?.length || 0} 句朗讀；作業專用評分串接完成後可在此開始。</p>}
+                                    </section>)}
+                                </div>
+                            </div>
+                        </article>)}
+                    </div>}
                 </section>
+
+                {activeV2Quiz?.activity?.ai && <section className="assignment-card assignment-quiz" id="assignment-v2-quiz">
+                    <div className="assignment-card-heading"><span>HOMEWORK QUIZ</span><h2>{activeV2Quiz.activity.ai.title}</h2><p>全部作答後再提交；提交前不會顯示答案。</p></div>
+                    <div className="assignment-question-list">{activeV2Quiz.activity.ai.questions.map((question, questionIndex) => <div className="assignment-question" key={questionIndex}><strong>Q{questionIndex + 1}. {question.question}</strong><div className="assignment-options">{question.options.map((option, optionIndex) => { const checked = v2Answers[questionIndex] === option; const answerResult = v2Result?.results?.[questionIndex]; return <label className={`${checked ? "selected " : ""}${answerResult?.correct_answer === option ? "correct " : ""}${answerResult && checked && !answerResult.correct ? "wrong" : ""}`} key={optionIndex}><input type="radio" name={`assignment-v2-question-${questionIndex}`} checked={checked} disabled={Boolean(v2Result)} onChange={() => setV2Answers(current => current.map((answer, index) => index === questionIndex ? option : answer))} /><span>{String.fromCharCode(65 + optionIndex)}.</span><em>{option}</em></label>; })}</div>{answerResult && <div className={`assignment-explanation ${answerResult.correct ? "correct" : "wrong"}`}><strong>{answerResult.correct ? "答對了" : `正確答案：${answerResult.correct_answer}`}</strong>{answerResult.explanation && <p>{answerResult.explanation}</p>}</div>}</div>)}</div>
+                    {v2Result ? <div className={`assignment-score-result ${v2Result.passed ? "passed" : "failed"}`}><strong>{v2Result.score} 分</strong><span>{v2Result.passed ? "AI 題組已通過，請繼續完成其他步驟。" : `尚未通過，需要 ${v2Result.passing_score} 分以上`}</span>{!v2Result.passed && <button type="button" onClick={() => openV2Quiz(activeV2Quiz.assignment, activeV2Quiz.activity)}>重新挑戰</button>}</div> : <button type="button" className="assignment-primary" onClick={submitV2Quiz} disabled={submitting}>{submitting ? "批改中..." : "提交答案"}</button>}
+                </section>}
 
                 {activeAssignment?.material && (
                     <section className="assignment-card assignment-quiz" id="assignment-quiz">
