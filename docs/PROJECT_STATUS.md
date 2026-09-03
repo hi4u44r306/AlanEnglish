@@ -4,8 +4,11 @@
 
 本次進行中（2026-09-03，尚未部署）：
 
-- 分支 `codex/listening-mastery-rewards`，基準 `origin/main`／`4c97cb2`。自主熟練 V3 與大型背景暫停確認已完成本機實作：有效聆聽仍需 80% 不重複覆蓋；自主同音檔累計 10 次發 10 XP／1 AE Point，每人每檔終身一次、每日最多 3 檔。滿 10/10 遇每日上限時保留待領，隔天再有效聽一次結算。整份作業達老師指定次數發 30 XP／5 AE Points；總聽力照常累計，但同一 session 只分配給一份尚需該音檔的有效作業（最早截止、建立時間、ID），否則才計自主。舊播放不回填、舊獎勵不追回，沿用既有 canary 旗標，不擅自全量開啟。切換分頁即暫停、大型確認保留到手動續播，加入焦點限制與播放失敗重試，原本已暫停者不打擾；防掛機確認仍優先，逾時重新從頭聽。
-- 相關檔案：`20260903003717_listening_mastery_reward_allocation.sql`、`record-play`、`MusicPlayer`、`PlaybackPausedDialog`、`ListeningRewardFeedback`、`FooterPlayer.scss` 及對應測試；同步 `PROJECT_LOGIC.md`、使用手冊 v1.25、`docs/LISTENING_MASTERY_ACCEPTANCE.md`。本機 PGlite 執行真實 SQL 9/9、契約 14/14、全前端 39 suites／119 tests、11 支 Edge Function 語法、Production build 與 diff 檢查通過。本機隔離播放器情境（模擬帳號／回應／visibility 事件，非正式資料）確認播放、暫停確認、續播、切換來源及展開，`412、682、768、810、900、1024px` 提示與主控制按鈕無水平溢位。Console 無 error；未互動前的瀏覽器 autoplay 拒絕為預期 warning，手動播放後正常。尚未執行 Supabase 多連線競爭／正式帳號 API 端到端與真實 iPhone 鎖屏／safe area；不建立付費 branch。本批尚未推送、套用正式 migration 或部署，下一步依驗收表取得重大改動授權後發布。
+- 會員權限單純化與混合作業 V2 第一階段：分支 `codex/academy-all-access-assignment-v2`，基準 `origin/main`／`54f99e1`。已建立 additive migration，準備將有效在校英文班方案改為包含全部正式聽力、AI 教材、發音練習、會話、複習及所屬班級作業；教材包附贈 90 天改為可使用全部正式聽力，但不包含 AI、發音及作業。發音權限改用獨立 `pronunciation` feature，並保留舊 AI 方案欄位相容。AI 個人生成額度規劃為每日 5 次／每月 150 次。AI 加購目標改為 NT$299，但本批不先修改價格，必須等新的 Stripe Price 與全站顯示、條款同批切換，避免顯示 299、實收 499。
+- 混合作業資料底座：舊作業保持 `schema_version = 1`；新增 `multi_activity_v2`、活動項目、教師核准頁面文字、共用 AI 題目快照、發音提示句、學生逐項進度及發音分數紀錄。原始錄音不保存，新表開啟 RLS 且只由驗證 Firebase Token 的 Edge Function 經 `service_role` 存取。`assignment_v2` 已加入每位學生灰度旗標允許值，尚未接上教師／學生 UI 或 Edge Function V2 action，也尚未套用正式 migration、部署或推送。產品流程與驗收規格記錄於 `docs/ASSIGNMENT_V2_PLAN.md`。
+- AE Points 新資格規則：所有有效學生仍可累積 XP；只有有效在校英文班學生可新增 AE Points 及使用獎品商城。既有合法點數與兌換紀錄保留。資料庫發獎 RPC 會把非在校生的新點數與升等點數歸零，`gamification` 也會拒絕非在校生讀取／兌換商城；前端同步隱藏入口並顯示資格說明，尚未部署。
+- 第一階段本機驗證完成：新會員／作業 V2 契約 11/11、教材商務契約 37/37、聽力獎勵契約 14/14、全前端 39 suites／126 tests、12 支 Edge Function 語法、Production build 與 `git diff --check` 均成功。部署前必須先盤點仍在扣款中的英文班在校生 AI 加購訂閱，逐筆決定取消／到期不續／退款，避免功能改為學費內含後仍重複收費；不得由 migration 靜默取消 Stripe 訂閱。
+- 自主熟練 V3 與大型背景暫停確認已由 PR #96 合併至 `main` commit `54f99e1` 並部署正式站；`record-play` v28 為 ACTIVE。有效聆聽仍需 80% 不重複覆蓋；自主同音檔累計 10 次發 10 XP／1 AE Point，每人每檔終身一次、每日最多 3 檔。總聽力照常累計，但同一 session 只分配給一份尚需該音檔的有效作業，否則才計自主。切換分頁即暫停並顯示大型確認。本機 PGlite 9/9、契約 14/14、全前端 39 suites／119 tests、Edge Function 語法、Production build 與正式發布檢查均成功；仍待真實 iPhone 鎖屏／safe area 長時間驗收。
 
 本次進行中（2026-09-02）：
 
@@ -56,7 +59,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-本批開發基準 commit：`c4a5364`（開始實作時的 `origin/main`）
+本批開發基準 commit：`54f99e1`（開始本階段實作時的 `origin/main`）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。

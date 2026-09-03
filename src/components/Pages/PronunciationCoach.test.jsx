@@ -7,7 +7,7 @@ jest.mock("../../auth/AuthContext", () => ({
     useAuth: () => ({
         firebaseUser: { getIdToken: jest.fn() },
         role: "student",
-        studentProfile: { membership: { effective_access: { features: { ai_materials: true } } } }
+        studentProfile: { membership: { effective_access: { features: { pronunciation: true } } } }
     })
 }));
 

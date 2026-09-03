@@ -24,6 +24,9 @@ function LearningLeaderboard() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const isStudent = role === "student";
     const isStaff = role === "teacher" || role === "admin";
+    const hasRewardsAccess = isStudent
+        && studentProfile?.learner_type === "academy_student"
+        && studentProfile?.membership?.effective_access?.plan_codes?.includes("academy_internal") === true;
     const [period, setPeriod] = useState("week");
     const [classCode, setClassCode] = useState(studentProfile?.class || "");
     const [classes, setClasses] = useState([]);
@@ -128,7 +131,7 @@ function LearningLeaderboard() {
                             <strong>{formatNumber(summary.balance?.points_balance)} P</strong>
                         </div>
                     </div>
-                    <Link className="gamification-reward-link" to="/student/rewards"><FiGift />獎品商城</Link>
+                    {hasRewardsAccess && <Link className="gamification-reward-link" to="/student/rewards"><FiGift />獎品商城</Link>}
                 </section>
             )}
 

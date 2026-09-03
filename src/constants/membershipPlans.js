@@ -21,6 +21,16 @@ export const hasAiAddonPlan = planCodes => (
     Array.isArray(planCodes) && planCodes.some(isAiAddonPlanCode)
 );
 
+export const hasAiPremiumAccess = effectiveAccess => {
+    const access = effectiveAccess && typeof effectiveAccess === "object" ? effectiveAccess : {};
+    const features = access.features && typeof access.features === "object" ? access.features : {};
+    const planCodes = Array.isArray(access.plan_codes) ? access.plan_codes : [];
+    if (hasAiAddonPlan(planCodes)) return true;
+    const hasPronunciation = features.pronunciation === true
+        || features.pronunciation_practice === true;
+    return features.ai_materials === true && hasPronunciation;
+};
+
 const BASE_PLAN_LABELS = {
     [BASIC_MEMBERSHIP_PLAN_CODE]: "基本自主學習會員",
     trial_7_day: "七天免費試用",

@@ -32,7 +32,7 @@ import {
     getNextTaipeiDailyResetAt,
     getNextTaipeiMonthlyResetAt
 } from "../../utils/quotaResetCountdown";
-import { hasAiAddonPlan } from "../../constants/membershipPlans";
+import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
 import "./css/AIMaterialGenerator.scss";
 
@@ -128,7 +128,7 @@ function AIMaterialGenerator() {
     const allAnswered = questions.length > 0 && answeredCount === questions.length;
     const isAcademyStudent = studentProfile?.learner_type === "academy_student";
     const isActiveAcademyStudent = studentProfile?.membership?.effective_access?.plan_codes?.includes("academy_internal") === true;
-    const hasAiPremium = hasAiAddonPlan(studentProfile?.membership?.effective_access?.plan_codes);
+    const hasAiPremium = hasAiPremiumAccess(studentProfile?.membership?.effective_access);
     const canGenerate = role === "teacher"
         || role === "admin"
         || studentProfile?.membership?.effective_access?.features?.ai_materials === true;

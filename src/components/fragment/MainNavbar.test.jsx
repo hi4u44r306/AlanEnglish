@@ -31,7 +31,8 @@ describe("MainNavbar student navigation", () => {
             studentProfile: {
                 name: "測試學生",
                 class: "E1",
-                membership: { effective_access: { features: { ai_materials: false }, plan_codes: [] } }
+                learner_type: "academy_student",
+                membership: { effective_access: { features: { ai_materials: false }, plan_codes: ["academy_internal"] } }
             }
         });
         getAccessibleCatalog.mockResolvedValue({
@@ -142,6 +143,53 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByText("AI Premium")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
         expect(await screen.findAllByText("AI Premium")).toHaveLength(2);
+    });
+
+    it("hides the rewards shop from students who are not actively enrolled", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "general-student" },
+            role: "student",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: {
+                name: "一般會員",
+                learner_type: "textbook_customer",
+                membership: { effective_access: { features: { listening: true }, plan_codes: ["basic_membership_monthly"] } }
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+        fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
+
+        expect(await screen.findByText("學習成果")).toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
+    });
+
+    it("shows AI Premium and pronunciation to an active academy student without an add-on", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "academy-all-access" },
+            role: "student",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: {
+                name: "在校學生",
+                class: "E3",
+                membership: {
+                    effective_access: {
+                        features: { ai_materials: true, pronunciation: true },
+                        plan_codes: ["academy_internal"]
+                    }
+                }
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+
+        expect(screen.getByText("AI Premium")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "發音教練" })).toHaveAttribute("href", "/student/pronunciation");
+        fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
+        expect(await screen.findAllByText("AI Premium")).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "發音教練" })).toHaveLength(2);
     });
 
     it("shows one music-management link and the links admin entry to admins", async () => {
