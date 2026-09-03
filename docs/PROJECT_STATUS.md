@@ -4,6 +4,7 @@
 
 本次進行中（2026-09-03，尚未部署）：
 
+- 教材 AI 口說題庫第一階段：分支 `codex/textbook-speaking-generator`，承接混合作業 V2 本機 checkpoint。新增 additive migration，保存私人教材來源 metadata、人工核准文字、版本化題庫、口說題目與具 request key 的生成工作；全部新表啟用 RLS，撤銷 `anon`／`authenticated` 直接存取，只允許後端 service role。新增 `speaking-content-manager`，第一版只允許管理員使用核准文字呼叫 AI，結果固定先存草稿；管理員工作台可選教材、Unit、頁碼、程度，貼入核准文字，產生 3～12 題，逐題修改並二次確認發布。題庫 contract 5/5、相關前端 9/9、混合作業 V2 contract 13/13、Edge Function 語法與 production build 已通過；同時修正前一 checkpoint 的學生 V2 作答結果作用域與物件括號錯誤。第一版尚未支援 PDF／圖片 OCR、私人 R2 上傳、學生練習或作業引用，未套用 migration、未部署 Edge Function／前端。
 - 會員權限單純化與混合作業 V2 第一階段：分支 `codex/academy-all-access-assignment-v2`，基準 `origin/main`／`54f99e1`。已建立 additive migration，準備將有效在校英文班方案改為包含全部正式聽力、AI 教材、發音練習、會話、複習及所屬班級作業；教材包附贈 90 天改為可使用全部正式聽力，但不包含 AI、發音及作業。發音權限改用獨立 `pronunciation` feature，並保留舊 AI 方案欄位相容。AI 個人生成額度規劃為每日 5 次／每月 150 次。AI 加購目標改為 NT$299，但本批不先修改價格，必須等新的 Stripe Price 與全站顯示、條款同批切換，避免顯示 299、實收 499。
 - 混合作業資料底座與教師端第二階段：舊作業保持 `schema_version = 1`；新增 `multi_activity_v2`、活動項目、教師核准頁面文字、共用 AI 題目快照、發音提示句、學生逐項進度及發音分數紀錄。原始錄音不保存，新表開啟 RLS 且只由驗證 Firebase Token 的 Edge Function 經 `service_role` 存取。`assignment-manager` 已新增頁面來源草稿／發布、V2 唯讀預覽與建立不可變快照 action；每次會重新檢查教師班級、目前班級教材、題組擁有權及已發布頁面文字。教師頁可切換純聽力或混合作業、選取既有 AI 題組與發音提示句。學生 V2 作答、逐項進度、結果報表及完成獎勵尚未接上；因此尚未套用正式 migration、部署或推送，且不得為真實學生啟用 `assignment_v2`。
 - AE Points 新資格規則：所有有效學生仍可累積 XP；只有有效在校英文班學生可新增 AE Points 及使用獎品商城。既有合法點數與兌換紀錄保留。資料庫發獎 RPC 會把非在校生的新點數與升等點數歸零，`gamification` 也會拒絕非在校生讀取／兌換商城；前端同步隱藏入口並顯示資格說明，尚未部署。

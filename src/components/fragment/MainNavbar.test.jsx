@@ -211,11 +211,14 @@ describe("MainNavbar student navigation", () => {
 
         const linksAdminEntry = screen.getByRole("link", { name: "新增連結" });
         expect(linksAdminEntry).toHaveAttribute("href", "/admin/links");
+        fireEvent.click(screen.getByRole("button", { name: "系統" }));
+        expect(screen.getByRole("link", { name: "教材 AI 口說題庫" })).toHaveAttribute("href", "/admin/speaking-content");
 
         fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
 
         expect(await screen.findAllByRole("link", { name: "音檔管理" })).toHaveLength(2);
         expect(screen.getAllByRole("link", { name: "新增連結" })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "教材 AI 口說題庫" })).toHaveLength(2);
         expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
     });
 

@@ -304,7 +304,7 @@ const StudentAssignments = () => {
                 ? {
                     ...assignment,
                     activities: assignment.activities.map(activity => activity.id === activeV2Quiz.activity.id
-                        ? { ...activity, progress: { ...activity.progress, status: response.passed ? "completed" : "in_progress", best_score: response.score, attempt_count: Number(activity.progress?.attempt_count || 0) + 1 }
+                        ? { ...activity, progress: { ...activity.progress, status: response.passed ? "completed" : "in_progress", best_score: response.score, attempt_count: Number(activity.progress?.attempt_count || 0) + 1 } }
                         : activity),
                     progress: { ...assignment.progress, task_completed_count: assignment.activities.filter(activity => activity.id === activeV2Quiz.activity.id ? response.passed : activity.progress?.status === "completed").length }
                 }
@@ -733,7 +733,28 @@ const StudentAssignments = () => {
 
                 {activeV2Quiz?.activity?.ai && <section className="assignment-card assignment-quiz" id="assignment-v2-quiz">
                     <div className="assignment-card-heading"><span>HOMEWORK QUIZ</span><h2>{activeV2Quiz.activity.ai.title}</h2><p>全部作答後再提交；提交前不會顯示答案。</p></div>
-                    <div className="assignment-question-list">{activeV2Quiz.activity.ai.questions.map((question, questionIndex) => <div className="assignment-question" key={questionIndex}><strong>Q{questionIndex + 1}. {question.question}</strong><div className="assignment-options">{question.options.map((option, optionIndex) => { const checked = v2Answers[questionIndex] === option; const answerResult = v2Result?.results?.[questionIndex]; return <label className={`${checked ? "selected " : ""}${answerResult?.correct_answer === option ? "correct " : ""}${answerResult && checked && !answerResult.correct ? "wrong" : ""}`} key={optionIndex}><input type="radio" name={`assignment-v2-question-${questionIndex}`} checked={checked} disabled={Boolean(v2Result)} onChange={() => setV2Answers(current => current.map((answer, index) => index === questionIndex ? option : answer))} /><span>{String.fromCharCode(65 + optionIndex)}.</span><em>{option}</em></label>; })}</div>{answerResult && <div className={`assignment-explanation ${answerResult.correct ? "correct" : "wrong"}`}><strong>{answerResult.correct ? "答對了" : `正確答案：${answerResult.correct_answer}`}</strong>{answerResult.explanation && <p>{answerResult.explanation}</p>}</div>}</div>)}</div>
+                    <div className="assignment-question-list">
+                        {activeV2Quiz.activity.ai.questions.map((question, questionIndex) => {
+                            const answerResult = v2Result?.results?.[questionIndex];
+                            return <div className="assignment-question" key={questionIndex}>
+                                <strong>Q{questionIndex + 1}. {question.question}</strong>
+                                <div className="assignment-options">
+                                    {question.options.map((option, optionIndex) => {
+                                        const checked = v2Answers[questionIndex] === option;
+                                        return <label className={`${checked ? "selected " : ""}${answerResult?.correct_answer === option ? "correct " : ""}${answerResult && checked && !answerResult.correct ? "wrong" : ""}`} key={optionIndex}>
+                                            <input type="radio" name={`assignment-v2-question-${questionIndex}`} checked={checked} disabled={Boolean(v2Result)} onChange={() => setV2Answers(current => current.map((answer, index) => index === questionIndex ? option : answer))} />
+                                            <span>{String.fromCharCode(65 + optionIndex)}.</span>
+                                            <em>{option}</em>
+                                        </label>;
+                                    })}
+                                </div>
+                                {answerResult && <div className={`assignment-explanation ${answerResult.correct ? "correct" : "wrong"}`}>
+                                    <strong>{answerResult.correct ? "答對了" : `正確答案：${answerResult.correct_answer}`}</strong>
+                                    {answerResult.explanation && <p>{answerResult.explanation}</p>}
+                                </div>}
+                            </div>;
+                        })}
+                    </div>
                     {v2Result ? <div className={`assignment-score-result ${v2Result.passed ? "passed" : "failed"}`}><strong>{v2Result.score} 分</strong><span>{v2Result.passed ? "AI 題組已通過，請繼續完成其他步驟。" : `尚未通過，需要 ${v2Result.passing_score} 分以上`}</span>{!v2Result.passed && <button type="button" onClick={() => openV2Quiz(activeV2Quiz.assignment, activeV2Quiz.activity)}>重新挑戰</button>}</div> : <button type="button" className="assignment-primary" onClick={submitV2Quiz} disabled={submitting}>{submitting ? "批改中..." : "提交答案"}</button>}
                 </section>}
 

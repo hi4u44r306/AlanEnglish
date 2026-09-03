@@ -56,6 +56,7 @@ import AdminStoreOrders from "../components/Pages/AdminStoreOrders";
 import AdminClassMaterials from "../components/Pages/AdminClassMaterials";
 import AdminMaterialPackages from "../components/Pages/AdminMaterialPackages";
 import AdminStudentLifecycle from "../components/Pages/AdminStudentLifecycle";
+import SpeakingContentAdmin from "../components/Pages/SpeakingContentAdmin";
 import Support from "../components/Pages/Support";
 import AdminSupport from "../components/Pages/AdminSupport";
 import { AuthProvider } from "../auth/AuthContext";
@@ -183,6 +184,7 @@ const App = () => {
                     <Route path="/admin/material-packages" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminMaterialPackages /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/store-orders" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminStoreOrders /></Containerfull></ProtectedRoute>} />
                     <Route path="/admin/student-lifecycle" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><AdminStudentLifecycle /></Containerfull></ProtectedRoute>} />
+                    <Route path="/admin/speaking-content" element={<ProtectedRoute allowedRoles={["admin"]}><Containerfull><SpeakingContentAdmin /></Containerfull></ProtectedRoute>} />
 
                     <Route path="/userinfo" element={<RoleHomeRedirect />} />
                     <Route path="/teacher/add-music" element={<Navigate to="/teacher/music/create" replace />} />

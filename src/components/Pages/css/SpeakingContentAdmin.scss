@@ -1,0 +1,27 @@
+.speaking-content-admin { padding-bottom: 90px; }
+.speaking-workflow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.speaking-workflow > div { display: grid; grid-template-columns: 42px 1fr; gap: 2px 11px; align-items: center; padding: 16px; border-radius: 16px; background: #f6f8fc; }
+.speaking-workflow svg { grid-row: 1 / 3; width: 42px; height: 42px; padding: 10px; border-radius: 13px; color: #fff; background: #315fa9; }
+.speaking-workflow span { color: #708096; font-size: 13px; }
+.speaking-confirm { grid-template-columns: 22px 1fr !important; align-items: start; }
+.speaking-confirm input { width: 20px !important; min-height: 20px !important; margin-top: 2px; }
+.speaking-count { display: flex; align-items: center; gap: 9px; color: #526079; font-weight: 750; }
+.speaking-count select { min-height: 42px; padding: 0 34px 0 12px; border: 1px solid #d9dde7; border-radius: 11px; background: #fff; }
+.speaking-source-list, .speaking-question-list { display: grid; gap: 18px; }
+.speaking-source-card { padding: 20px; border: 1px solid #dce4f1; border-radius: 19px; background: #fbfcff; }
+.speaking-source-card > header, .speaking-set__heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+.speaking-source-card h3, .speaking-set h4 { margin: 4px 0; color: #17233f; }
+.speaking-source-card p { margin: 0; color: #718096; }
+.speaking-source-card__empty { padding: 18px 0 0; }
+.speaking-set { margin-top: 18px; padding: 18px; border: 1px solid #d8e0ed; border-radius: 16px; background: #fff; }
+.speaking-set.published { border-color: #a9ddc4; background: #f7fcf9; }
+.speaking-set__heading { margin-bottom: 16px; }
+.speaking-set__heading span { color: #315fa9; font-size: 12px; font-weight: 850; letter-spacing: .04em; }
+.speaking-question-editor { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 14px; padding: 17px; border: 1px solid #e0e5ee; border-radius: 15px; background: #fff; }
+.speaking-question-editor__number { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; color: #173f80; background: #eaf1ff; font-weight: 900; }
+@media (max-width: 760px) {
+    .speaking-workflow { grid-template-columns: 1fr; }
+    .speaking-source-card > header, .speaking-set__heading { align-items: stretch; flex-direction: column; }
+    .speaking-source-card > header button, .speaking-set__heading button { width: 100%; }
+    .speaking-question-editor { grid-template-columns: 1fr; padding: 14px; }
+}
