@@ -691,7 +691,12 @@ Deno.serve(async (req: Request) => {
         return json(400, { error: "不支援的操作" });
     } catch (error) {
         const status = Number((error as any)?.status || 500);
-        console.error("speaking-content-manager error", status, (error as any)?.code || "unknown");
+        const code = String((error as any)?.code || "unknown");
+        const message = String((error as any)?.message || "");
+        console.error("speaking-content-manager error", status, code);
+        if (code === "23514" && message.includes("speaking_source_documents_byte_size_check")) {
+            return json(400, { error: "教材檔案大小超過限制；單一來源上限 20MB，整本分批 PDF 上限 100MB" });
+        }
         return json(status, { error: status < 500 ? String((error as any)?.message || "請求失敗") : "教材口說題庫服務發生錯誤" });
     }
 });

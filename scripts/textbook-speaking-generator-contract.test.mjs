@@ -6,6 +6,7 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8"
 const migration = read("supabase/migrations/20260903152751_textbook_speaking_question_bank.sql");
 const ocrMigration = read("supabase/migrations/20260904005001_textbook_speaking_ocr_pipeline.sql");
 const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_book_ocr_batches.sql");
+const wholeBookSizeMigration = read("supabase/migrations/20260904030633_allow_whole_book_document_size.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
@@ -91,4 +92,12 @@ test("9. 管理員可查看整本進度、逐批重試並逐批人工核准", ()
     assert.match(adminPage, /逐批校正並核准/);
     assert.match(manager, /status: "failed"/);
     assert.match(manager, /status: "completed"/);
+});
+
+test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 100MB", () => {
+    assert.match(wholeBookSizeMigration, /when chunk_count is null then 20971520/);
+    assert.match(wholeBookSizeMigration, /else 104857600/);
+    assert.match(wholeBookSizeMigration, /drop constraint if exists speaking_source_documents_byte_size_check/);
+    assert.match(manager, /code === "23514"/);
+    assert.match(manager, /單一來源上限 20MB，整本分批 PDF 上限 100MB/);
 });
