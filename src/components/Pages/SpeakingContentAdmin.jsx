@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { AlertTriangle, BookOpen, CheckCircle2, FileText, LoaderCircle, RefreshCcw, Sparkles, UploadCloud } from "lucide-react";
+import { AlertTriangle, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, RefreshCcw, Sparkles, UploadCloud } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
+    createWorkbookOneStarterQuestionSet,
     generateSpeakingQuestionSet,
     getSpeakingContentBootstrap,
     extractSpeakingSourceDocument,
@@ -79,6 +80,22 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
     </div>;
 };
 
+const StudentQuestionSetPreview = ({ questionSet }) => {
+    const questions = [...(questionSet.speaking_questions || [])].sort((a, b) => a.sort_order - b.sort_order);
+    return <details className="speaking-student-preview">
+        <summary><Eye size={17} />預覽學生畫面</summary>
+        <div className="speaking-student-preview__screen">
+            <header><span>Workbook 1 口說大挑戰</span><h5>{questionSet.title}</h5><p>學生會先聽問題，自行回答；需要時才展開提示與示範句。</p></header>
+            <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
+                <span>第 {index + 1} 題</span><strong>{question.question_text}</strong>
+                <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>
+                <small>{question.pronunciation_notes_zh || "完成錄音後顯示發音回饋。"}</small>
+            </article>)}</div>
+            <p className="speaking-student-preview__note">這是管理員內容預覽；錄音、AI 朗讀與逐字發音評分會在學生練習頁階段接上。</p>
+        </div>
+    </details>;
+};
+
 const QuestionEditor = ({ question, disabled, onSave }) => {
     const [form, setForm] = useState({
         question_text: question.question_text || "", hint_zh: question.hint_zh || "",
@@ -143,6 +160,8 @@ export default function SpeakingContentAdmin() {
         document,
         chunks: data.chunks.filter(chunk => chunk.document_id === document.id).sort((a, b) => a.chunk_index - b.chunk_index)
     })), [data.documents, data.chunks]);
+    const workbookOne = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook1"), [data.books]);
+    const workbookOneStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_1_name_intro_v1"), [data.question_sets]);
 
     const updateSource = (key, value) => setSource(current => ({ ...current, [key]: value }));
     const uploadWholeBook = async event => {
@@ -217,6 +236,16 @@ export default function SpeakingContentAdmin() {
         } catch (error) { toast.error(error.message); }
         finally { setWorking(""); }
     };
+    const createWorkbookOneStarter = async () => {
+        if (!workbookOne) return toast.error("目前教材清單找不到 Workbook 1");
+        setWorking("workbook-1-starter");
+        try {
+            const result = await createWorkbookOneStarterQuestionSet(firebaseUser, workbookOne.id);
+            toast.success(result.reused ? "Workbook 1 範例已存在，已帶您回到題庫草稿" : "Workbook 1 範例草稿已建立，請先預覽與修改再發布");
+            await load();
+        } catch (error) { toast.error(error.message || "Workbook 1 範例建立失敗"); }
+        finally { setWorking(""); }
+    };
     const generate = async section => {
         setWorking(`generate-${section.id}`);
         try {
@@ -249,6 +278,14 @@ export default function SpeakingContentAdmin() {
 
         <section className="platform-card speaking-workflow" aria-label="製作流程">
             <div><UploadCloud /><strong>1. 上傳與 OCR</strong><span>私人保存 PDF／圖片</span></div><div><FileText /><strong>2. 人工核對</strong><span>校正文字與頁碼</span></div><div><Sparkles /><strong>3. AI 題庫</strong><span>逐題修改後發布</span></div>
+        </section>
+
+        <section className="platform-card speaking-starter-card">
+            <div><span className="platform-eyebrow">CURATED STARTER</span><h2>先建立第一個 Workbook 1 小關卡</h2><p>使用已人工規劃的 P18～P20「我的名字與自我介紹」，直接建立四題可編輯草稿；不執行 OCR，也不呼叫付費 AI。</p></div>
+            <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(workbookOneStarter) || working === "workbook-1-starter"} onClick={createWorkbookOneStarter}>
+                <Sparkles size={17} />{working === "workbook-1-starter" ? "建立草稿中…" : workbookOneStarter ? (workbookOneStarter.status === "published" ? "範例已發布" : "範例草稿已建立") : "建立範例草稿"}
+            </button>
+            {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
         </section>
 
         <section className="platform-card speaking-whole-book">
@@ -297,6 +334,7 @@ export default function SpeakingContentAdmin() {
                 {section.status === "draft" && <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />}
                 {section.questionSets.length === 0 ? <p className="speaking-source-card__empty">尚未產生題庫。</p> : section.questionSets.map(questionSet => <section className={`speaking-set ${questionSet.status}`} key={questionSet.id}>
                     <div className="speaking-set__heading"><div><span>第 {questionSet.version} 版 · {questionSet.status === "published" ? "已發布" : "草稿"}</span><h4>{questionSet.title}</h4></div>{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}</div>
+                    <StudentQuestionSetPreview questionSet={questionSet} />
                     <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>
                 </section>)}
             </article>)}</div>}

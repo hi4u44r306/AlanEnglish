@@ -101,3 +101,14 @@ test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 100MB",
     assert.match(manager, /code === "23514"/);
     assert.match(manager, /單一來源上限 20MB，整本分批 PDF 上限 100MB/);
 });
+
+test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管理員發布", () => {
+    assert.match(manager, /create_workbook_1_starter/);
+    assert.match(manager, /workbook_1_name_intro_v1/);
+    assert.match(manager, /source: "curated_template"/);
+    assert.match(manager, /status: "draft"/);
+    assert.match(service, /createWorkbookOneStarterQuestionSet/);
+    assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
+    assert.match(adminPage, /預覽學生畫面/);
+    assert.match(adminPage, /核准並發布/);
+});

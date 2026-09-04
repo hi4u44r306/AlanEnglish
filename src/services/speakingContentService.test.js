@@ -1,4 +1,5 @@
 import {
+    createWorkbookOneStarterQuestionSet,
     generateSpeakingQuestionSet,
     getSpeakingContentBootstrap,
     prepareSpeakingSourceUpload,
@@ -32,6 +33,7 @@ describe("speakingContentService", () => {
         await reviewSpeakingOcrSource(firebaseUser, { source_section_id: 1 });
         await saveReviewedSpeakingSource(firebaseUser, { book_id: 1 });
         await generateSpeakingQuestionSet(firebaseUser, { source_section_id: 2, request_key: "key" });
+        await createWorkbookOneStarterQuestionSet(firebaseUser, 1);
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
         await publishSpeakingQuestionSet(firebaseUser, 4);
 
@@ -44,6 +46,7 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "review_ocr_source"],
             ["speaking-content-manager", "save_reviewed_source"],
             ["speaking-content-manager", "generate_question_set"],
+            ["speaking-content-manager", "create_workbook_1_starter"],
             ["speaking-content-manager", "update_draft_question"],
             ["speaking-content-manager", "publish_question_set"]
         ]);

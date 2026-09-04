@@ -17,6 +17,49 @@ const MAX_WHOLE_BOOK_BYTES = 100 * 1024 * 1024;
 const WHOLE_BOOK_CHUNK_PAGES = 10;
 const MAX_WHOLE_BOOK_PAGES = 500;
 const ALLOWED_SOURCE_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
+const WORKBOOK_ONE_STARTER_KEY = "workbook_1_name_intro_v1";
+const WORKBOOK_ONE_STARTER_QUESTIONS = [
+    {
+        question_text: "What's your name?",
+        hint_zh: "請用完整句介紹你想讓大家叫你的名字。",
+        keywords: ["my", "name", "is"],
+        simple_answer: "My name is [你的名字].",
+        model_answer: "My name is [你的名字].",
+        follow_up_question: "How do you spell your name?",
+        pronunciation_notes_zh: "把 name 說清楚；My name is 要連成自然的一組。",
+        accepted_intents: ["學生用 My name is 加上自己的名字回答", "學生清楚說出偏好的稱呼"]
+    },
+    {
+        question_text: "What's your first name?",
+        hint_zh: "請說出你的名字，不包含姓氏。",
+        keywords: ["my", "first", "name", "is"],
+        simple_answer: "My first name is [你的名字].",
+        model_answer: "My first name is [你的名字].",
+        follow_up_question: "Can you say your first name again?",
+        pronunciation_notes_zh: "first 的尾音要收清楚，重點放在 FIRST name。",
+        accepted_intents: ["學生用 My first name is 加上自己的名字回答"]
+    },
+    {
+        question_text: "What's your family name?",
+        hint_zh: "請說出你的姓氏。",
+        keywords: ["my", "family", "name", "is"],
+        simple_answer: "My family name is [你的姓氏].",
+        model_answer: "My family name is [你的姓氏].",
+        follow_up_question: "Can you spell your family name?",
+        pronunciation_notes_zh: "family 的第一音節較重，說成 FAM-i-ly。",
+        accepted_intents: ["學生用 My family name is 加上自己的姓氏回答"]
+    },
+    {
+        question_text: "What's your full name?",
+        hint_zh: "請說出包含名字和姓氏的全名。",
+        keywords: ["my", "full", "name", "is"],
+        simple_answer: "My full name is [你的全名].",
+        model_answer: "My full name is [你的全名].",
+        follow_up_question: "Which part is your family name?",
+        pronunciation_notes_zh: "full 的尾音 l 要收清楚，重點放在 FULL name。",
+        accepted_intents: ["學生用 My full name is 加上自己的全名回答"]
+    }
+];
 
 const safeFilename = (value: unknown) => {
     const name = String(value || "source").trim().replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -118,7 +161,7 @@ const loadBootstrap = async (admin: any) => {
         admin.from("speaking_source_documents").select("id,book_id,title,source_kind,original_filename,mime_type,byte_size,page_count,chunk_page_size,chunk_count,original_upload_status,status,ocr_status,ocr_error_code,ocr_model,created_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
         admin.from("speaking_source_chunks").select("id,document_id,source_section_id,chunk_index,page_from,page_to,byte_size,status,attempt_count,error_code,ocr_model,input_tokens,output_tokens,total_tokens,upload_verified_at,processing_started_at,completed_at,updated_at").order("chunk_index"),
         admin.from("speaking_source_sections").select("id,document_id,unit_label,page_from_label,page_to_label,topic,source_text,language_level,status,version,reviewed_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
-        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,published_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,sort_order)").neq("status", "archived").order("updated_at", { ascending: false })
+        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,published_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,sort_order)").neq("status", "archived").order("updated_at", { ascending: false })
     ]);
     const error = bookRes.error || documentRes.error || chunkRes.error || sectionRes.error || setRes.error;
     if (error) throw error;
@@ -142,6 +185,62 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action, 80);
 
         if (action === "bootstrap") return json(200, { success: true, ...await loadBootstrap(admin) });
+
+        if (action === "create_workbook_1_starter") {
+            const bookId = Number(body?.book_id);
+            if (!Number.isInteger(bookId) || bookId <= 0) return json(400, { error: "找不到 Workbook 1 教材" });
+            const { data: book, error: bookError } = await admin.from("books").select("id,name,code,enabled").eq("id", bookId).maybeSingle();
+            if (bookError) throw bookError;
+            const catalogKey = String(book?.code || book?.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+            if (!book?.enabled || catalogKey !== "workbook1") return json(400, { error: "這個範例只能建立在 Workbook 1" });
+
+            const { data: existing, error: existingError } = await admin.from("speaking_question_sets")
+                .select("id,status").eq("book_id", bookId)
+                .contains("generation_metadata", { template_key: WORKBOOK_ONE_STARTER_KEY })
+                .neq("status", "archived").order("updated_at", { ascending: false }).limit(1).maybeSingle();
+            if (existingError) throw existingError;
+            if (existing) return json(200, { success: true, question_set_id: existing.id, status: existing.status, reused: true });
+
+            const now = new Date().toISOString();
+            const { data: document, error: documentError } = await admin.from("speaking_source_documents").insert({
+                book_id: bookId, title: "Workbook 1 口說大挑戰", source_kind: "pasted_text", status: "ready",
+                created_by: user.id, created_at: now, updated_at: now
+            }).select("id").single();
+            if (documentError) throw documentError;
+            let createdQuestionSetId: number | null = null;
+            try {
+                const { data: section, error: sectionError } = await admin.from("speaking_source_sections").insert({
+                    document_id: document.id, unit_label: "Starter 01", page_from_label: "P18", page_to_label: "P20",
+                    topic: "我的名字與自我介紹",
+                    source_text: "What's your name? What's your first name? What's your family name? What's your full name?",
+                    language_level: "國小低年級", status: "reviewed", created_by: user.id, reviewed_by: user.id,
+                    reviewed_at: now, created_at: now, updated_at: now
+                }).select("id").single();
+                if (sectionError) throw sectionError;
+                const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
+                    source_section_id: section.id, book_id: bookId, title: "01 我的名字與自我介紹",
+                    topic: "我的名字與自我介紹", difficulty: "國小低年級", status: "draft", version: 1,
+                    generation_metadata: {
+                        source: "curated_template", template_key: WORKBOOK_ONE_STARTER_KEY,
+                        source_pages: [18, 19, 20], answer_type: "personal_open"
+                    },
+                    created_by: user.id, created_at: now, updated_at: now
+                }).select("id").single();
+                if (setError) throw setError;
+                createdQuestionSetId = Number(questionSet.id);
+                const questions = normalizeQuestions(WORKBOOK_ONE_STARTER_QUESTIONS, WORKBOOK_ONE_STARTER_QUESTIONS.length);
+                if (!questions) throw new Error("Workbook 1 範例題目格式不完整");
+                const { error: questionError } = await admin.from("speaking_questions").insert(questions.map((question, index) => ({
+                    question_set_id: questionSet.id, ...question, sort_order: index, created_at: now, updated_at: now
+                })));
+                if (questionError) throw questionError;
+                return json(201, { success: true, question_set_id: questionSet.id, question_count: questions.length, reused: false });
+            } catch (error) {
+                if (createdQuestionSetId) await admin.from("speaking_question_sets").delete().eq("id", createdQuestionSetId);
+                await admin.from("speaking_source_documents").delete().eq("id", document.id);
+                throw error;
+            }
+        }
 
         if (action === "create_book_upload") {
             const bookId = Number(body?.book_id);
