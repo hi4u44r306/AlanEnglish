@@ -48,7 +48,9 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
         expect(screen.getAllByRole("link", { name: "我的首頁" }).length).toBeGreaterThan(0);
-        expect(screen.getByRole("link", { name: "方案與功能" })).toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "方案與功能" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "英文對話" })).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
@@ -59,7 +61,7 @@ describe("MainNavbar student navigation", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
 
-        expect(await screen.findAllByRole("link", { name: "方案與功能" })).toHaveLength(2);
+        expect(await screen.findByRole("link", { name: "方案與功能" })).toHaveAttribute("href", "/student/membership");
         expect(screen.getByText("開始學習")).toBeInTheDocument();
         expect(screen.getByText("學習成果")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();

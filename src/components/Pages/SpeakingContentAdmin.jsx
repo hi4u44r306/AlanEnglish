@@ -8,6 +8,7 @@ import {
     getSpeakingContentBootstrap,
     extractSpeakingSourceDocument,
     extractSpeakingBookChunk,
+    generateSpeakingQuestionSetAudio,
     publishSpeakingQuestionSet,
     reviewSpeakingOcrSource,
     saveReviewedSpeakingSource,
@@ -268,8 +269,30 @@ export default function SpeakingContentAdmin() {
     const publish = async questionSet => {
         if (!window.confirm(`確定發布「${questionSet.title}」嗎？發布後不能直接修改，修正時要建立新版本。`)) return;
         setWorking(`publish-${questionSet.id}`);
-        try { await publishSpeakingQuestionSet(firebaseUser, questionSet.id); toast.success("口說題庫已發布"); await load(); }
-        catch (error) { toast.error(error.message); }
+        let published = false;
+        try {
+            await publishSpeakingQuestionSet(firebaseUser, questionSet.id);
+            published = true;
+            const audio = await generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id);
+            if (audio.failed > 0) toast.warning(`題庫已發布，但有 ${audio.failed} 題語音尚未完成`);
+            else toast.success(`題庫已發布，示範語音已完成（新產生 ${audio.generated}、沿用 ${audio.reused}）`);
+            await load();
+        }
+        catch (error) {
+            if (published) toast.warning(`題庫已發布，但示範語音尚未完成：${error.message || "請稍後重試"}`);
+            else toast.error(error.message || "題庫發布失敗");
+            await load();
+        }
+        finally { setWorking(""); }
+    };
+    const generateAudio = async questionSet => {
+        setWorking(`audio-${questionSet.id}`);
+        try {
+            const audio = await generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id);
+            if (audio.failed > 0) toast.warning(`仍有 ${audio.failed} 題語音尚未完成`);
+            else toast.success(`示範語音已完成（新產生 ${audio.generated}、沿用 ${audio.reused}）`);
+        }
+        catch (error) { toast.error(error.message || "示範語音產生失敗"); }
         finally { setWorking(""); }
     };
 
@@ -333,7 +356,7 @@ export default function SpeakingContentAdmin() {
                 <header><div><span>{section.document?.title || "教材來源"}{section.document?.original_filename ? ` · ${section.document.original_filename}` : ""}</span><h3>{section.topic}</h3><p>{section.unit_label || "未標示單元"} · {section.page_from_label || "未標示頁碼"}{section.page_to_label ? `–${section.page_to_label}` : ""} · {section.language_level}</p></div>{section.status === "reviewed" && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "產生新版草稿"}</button>}</header>
                 {section.status === "draft" && <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />}
                 {section.questionSets.length === 0 ? <p className="speaking-source-card__empty">尚未產生題庫。</p> : section.questionSets.map(questionSet => <section className={`speaking-set ${questionSet.status}`} key={questionSet.id}>
-                    <div className="speaking-set__heading"><div><span>第 {questionSet.version} 版 · {questionSet.status === "published" ? "已發布" : "草稿"}</span><h4>{questionSet.title}</h4></div>{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}</div>
+                    <div className="speaking-set__heading"><div><span>第 {questionSet.version} 版 · {questionSet.status === "published" ? "已發布" : "草稿"}</span><h4>{questionSet.title}</h4></div>{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布與產生語音中…" : "核准、發布並產生語音"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : "補產生示範語音"}</button>}</div>
                     <StudentQuestionSetPreview questionSet={questionSet} />
                     <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>
                 </section>)}

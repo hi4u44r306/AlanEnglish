@@ -474,3 +474,6 @@ verify_jwt = false
 
 [functions.speaking-challenge]
 verify_jwt = false
+
+[functions.speaking-tts-manager]
+verify_jwt = false

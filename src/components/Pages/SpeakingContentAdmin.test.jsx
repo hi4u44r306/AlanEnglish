@@ -9,7 +9,7 @@ jest.mock("../../services/speakingContentService", () => ({
     createWorkbookOneStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
     extractSpeakingSourceDocument: jest.fn(), extractSpeakingBookChunk: jest.fn(),
-    publishSpeakingQuestionSet: jest.fn(), reviewSpeakingOcrSource: jest.fn(),
+    publishSpeakingQuestionSet: jest.fn(), generateSpeakingQuestionSetAudio: jest.fn(), reviewSpeakingOcrSource: jest.fn(),
     saveReviewedSpeakingSource: jest.fn(), uploadAndExtractSpeakingSource: jest.fn(),
     uploadWholeBookSource: jest.fn(), updateDraftSpeakingQuestion: jest.fn(),
     generateSpeakingQuestionSet: jest.fn()
@@ -66,6 +66,6 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         expect(screen.getByText("What's your name?")).toBeInTheDocument();
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "核准並發布" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "核准、發布並產生語音" })).toBeInTheDocument();
     });
 });

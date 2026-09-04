@@ -1,6 +1,7 @@
 import {
     createWorkbookOneStarterQuestionSet,
     generateSpeakingQuestionSet,
+    generateSpeakingQuestionSetAudio,
     getSpeakingContentBootstrap,
     prepareSpeakingSourceUpload,
     publishSpeakingQuestionSet,
@@ -36,6 +37,7 @@ describe("speakingContentService", () => {
         await createWorkbookOneStarterQuestionSet(firebaseUser, 1);
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
         await publishSpeakingQuestionSet(firebaseUser, 4);
+        await generateSpeakingQuestionSetAudio(firebaseUser, 4);
 
         expect(callEdgeFunction.mock.calls.map(call => [call[0], call[2].action])).toEqual([
             ["speaking-content-manager", "bootstrap"],
@@ -48,7 +50,8 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "generate_question_set"],
             ["speaking-content-manager", "create_workbook_1_starter"],
             ["speaking-content-manager", "update_draft_question"],
-            ["speaking-content-manager", "publish_question_set"]
+            ["speaking-content-manager", "publish_question_set"],
+            ["speaking-tts-manager", "generate_set_audio"]
         ]);
     });
 

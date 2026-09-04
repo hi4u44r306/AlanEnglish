@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
+import { createR2PresignedUrl } from "../_shared/r2.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -65,7 +66,29 @@ Deno.serve(async (req: Request) => {
                 : { data: [], error: null };
             if (progressError) throw progressError;
             const statusByQuestion = new Map((progress || []).map((row: any) => [Number(row.question_id), row.status]));
-            return json(200, { success: true, challenge: { ...questionSet, speaking_questions: (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order).map((question: any) => ({ ...question, progress_status: statusByQuestion.get(Number(question.id)) || "opened" })) } });
+            const { data: audioLinks, error: audioLinkError } = ids.length
+                ? await admin.from("speaking_question_audio").select("question_id,asset_id").in("question_id", ids)
+                : { data: [], error: null };
+            if (audioLinkError) throw audioLinkError;
+            const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
+            const { data: assets, error: assetError } = assetIds.length
+                ? await admin.from("speaking_tts_assets").select("id,status,private_object_key").in("id", assetIds)
+                : { data: [], error: null };
+            if (assetError) throw assetError;
+            const assetById = new Map((assets || []).map((row: any) => [String(row.id), row]));
+            const assetByQuestion = new Map((audioLinks || []).map((row: any) => [Number(row.question_id), assetById.get(String(row.asset_id))]));
+            const questions = [];
+            for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
+                const asset: any = assetByQuestion.get(Number(question.id));
+                const audioReady = asset?.status === "ready" && asset?.private_object_key;
+                questions.push({
+                    ...question,
+                    progress_status: statusByQuestion.get(Number(question.id)) || "opened",
+                    model_audio_status: audioReady ? "ready" : (asset?.status || "missing"),
+                    model_audio_url: audioReady ? await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60) : null
+                });
+            }
+            return json(200, { success: true, challenge: { ...questionSet, speaking_questions: questions } });
         }
 
         if (action === "complete_question") {
