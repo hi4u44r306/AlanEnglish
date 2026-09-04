@@ -17,11 +17,16 @@ export const extractSpeakingBookChunk = (firebaseUser, chunkId) => callSpeakingC
 export const discardSpeakingSourceUpload = (firebaseUser, documentId) => callSpeakingContent(firebaseUser, "discard_document_upload", { document_id: documentId });
 
 const uploadPrivatePdf = async (upload, body) => {
-    const response = await fetch(upload.url, {
-        method: upload.method || "PUT",
-        headers: upload.headers || { "Content-Type": "application/pdf" },
-        body
-    });
+    let response;
+    try {
+        response = await fetch(upload.url, {
+            method: upload.method || "PUT",
+            headers: upload.headers || { "Content-Type": "application/pdf" },
+            body
+        });
+    } catch (error) {
+        throw new Error("無法連線到私人教材儲存空間。請確認 R2 CORS 已允許目前網站與 PUT 上傳後再重試。", { cause: error });
+    }
     if (!response.ok) throw new Error(`私人教材上傳失敗（HTTP ${response.status}）`);
 };
 

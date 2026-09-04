@@ -95,4 +95,29 @@ describe("speakingContentService", () => {
             ]
         }));
     });
+
+    it("turns a browser R2 fetch failure into an actionable CORS message and cleans up", async () => {
+        const pdf = await PDFDocument.create();
+        pdf.addPage([400, 600]);
+        const bytes = await pdf.save();
+        const file = {
+            name: "workbook-2.pdf", type: "application/pdf", size: bytes.byteLength,
+            arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+        };
+        callEdgeFunction
+            .mockResolvedValueOnce({
+                document_id: 30,
+                original_upload: { url: "https://r2.example/original", method: "PUT" },
+                chunk_uploads: [{ chunk_id: 31, chunk_index: 0, url: "https://r2.example/chunk-1", method: "PUT" }]
+            })
+            .mockResolvedValueOnce({ success: true });
+        global.fetch = jest.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+
+        await expect(uploadWholeBookSource(firebaseUser, file, { book_id: 2, document_title: "Workbook 2" }))
+            .rejects.toThrow("R2 CORS 已允許目前網站與 PUT 上傳");
+        expect(callEdgeFunction.mock.calls.map(call => call[2].action)).toEqual([
+            "create_book_upload",
+            "discard_document_upload"
+        ]);
+    });
 });
