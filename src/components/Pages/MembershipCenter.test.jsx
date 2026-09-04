@@ -114,6 +114,43 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByRole("link", { name: "查看可解鎖方案" })).toHaveAttribute("href", "#plans");
     });
 
+    it("shows academy AI Premium as included and disables duplicate add-on checkout", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                learner_type: "academy_student",
+                membership: {
+                    status: "active",
+                    is_active: true,
+                    effective_access: {
+                        learner_type: "academy_student",
+                        plan_codes: ["academy_internal"],
+                        grants: [{ plan_code: "academy_internal", plan_name: "英文班在學方案", ends_at: null }],
+                        features: {
+                            listening: true,
+                            conversation: true,
+                            review: true,
+                            assignments: true,
+                            ai_materials: true,
+                            pronunciation: true
+                        }
+                    }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText("AI Premium")).toBeInTheDocument();
+        expect(screen.getByText(/英文班在校期間已包含/)).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "英文班方案已包含" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "英文班方案已包含" }));
+        expect(createCheckoutSession).not.toHaveBeenCalled();
+    });
+
     it("keeps permanent base access unlimited when a separate add-on has an end date", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {

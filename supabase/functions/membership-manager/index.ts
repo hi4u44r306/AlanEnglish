@@ -747,6 +747,7 @@ Deno.serve(async (req: Request) => {
                 hasActiveBasicMembership: false
             });
             let activePlanCodes = new Set<string>();
+            let hasActiveAcademyEnrollment = false;
             if (caller.role === "student") {
                 const [enrollmentResult, effectiveAccess] = await Promise.all([
                     admin
@@ -757,11 +758,12 @@ Deno.serve(async (req: Request) => {
                 ]);
                 if (enrollmentResult.error) throw enrollmentResult.error;
                 const enrollments = Array.isArray(enrollmentResult.data) ? enrollmentResult.data : [];
+                hasActiveAcademyEnrollment = enrollments.some((item: any) => item?.status === "active");
                 activePlanCodes = new Set(effectiveAccess.plan_codes);
                 pricingEligibility = getMembershipPricingEligibility({
                     role: caller.role,
                     learnerType: caller.learner_type || null,
-                    hasActiveAcademyEnrollment: enrollments.some((item: any) => item?.status === "active"),
+                    hasActiveAcademyEnrollment,
                     hasAcademyHistory: enrollments.length > 0,
                     hasActiveBasicMembership: activePlanCodes.has(BASIC_MEMBERSHIP_PLAN_CODE)
                 });
@@ -779,9 +781,11 @@ Deno.serve(async (req: Request) => {
                     return pricingEligibility.canUseBasicMembership;
                 }
                 if (plan.code === ACADEMY_AI_ADDON_PLAN_CODE) {
+                    if (hasActiveAcademyEnrollment) return false;
                     return pricingEligibility.canUseAcademyAiAddon || activePlanCodes.has(plan.code);
                 }
                 if (plan.code === GENERAL_AI_ADDON_PLAN_CODE) {
+                    if (hasActiveAcademyEnrollment) return false;
                     return pricingEligibility.canUseGeneralAiAddon || activePlanCodes.has(plan.code);
                 }
                 return false;

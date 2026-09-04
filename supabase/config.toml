@@ -468,3 +468,6 @@ verify_jwt = false
 
 [functions.guardian-email]
 verify_jwt = false
+
+[functions.speaking-content-manager]
+verify_jwt = false
