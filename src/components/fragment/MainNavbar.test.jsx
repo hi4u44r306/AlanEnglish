@@ -187,9 +187,11 @@ describe("MainNavbar student navigation", () => {
 
         expect(screen.getByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "發音教練" })).toHaveAttribute("href", "/student/pronunciation");
+        expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
         expect(await screen.findAllByText("AI Premium")).toHaveLength(2);
         expect(screen.getAllByRole("link", { name: "發音教練" })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "口說大挑戰" })).toHaveLength(2);
     });
 
     it("shows one music-management link and the links admin entry to admins", async () => {
