@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { BookOpen, FileText, Sparkles, UploadCloud } from "lucide-react";
+import { AlertTriangle, BookOpen, CheckCircle2, FileText, LoaderCircle, RefreshCcw, Sparkles, UploadCloud } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
     generateSpeakingQuestionSet,
     getSpeakingContentBootstrap,
     extractSpeakingSourceDocument,
+    extractSpeakingBookChunk,
     publishSpeakingQuestionSet,
     reviewSpeakingOcrSource,
     saveReviewedSpeakingSource,
     uploadAndExtractSpeakingSource,
+    uploadWholeBookSource,
     updateDraftSpeakingQuestion
 } from "../../services/speakingContentService";
 import "./css/Platform.scss";
@@ -21,6 +23,37 @@ const emptySource = {
 };
 const SOURCE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
+const emptyWholeBook = { book_id: "", document_title: "" };
+
+const chunkStatusLabel = status => ({
+    pending_upload: "等待上傳", uploaded: "等待 OCR", processing: "辨識中",
+    review_required: "待人工核准", completed: "已核准", failed: "辨識失敗"
+}[status] || status);
+const isStaleChunk = chunk => chunk.status === "processing"
+    && Number.isFinite(Date.parse(chunk.processing_started_at || ""))
+    && Date.now() - Date.parse(chunk.processing_started_at) > 10 * 60 * 1000;
+
+const WholeBookCard = ({ document, chunks, disabled, onProcess, onRetry }) => {
+    const finished = chunks.filter(chunk => ["review_required", "completed"].includes(chunk.status)).length;
+    const reviewed = chunks.filter(chunk => chunk.status === "completed").length;
+    const failed = chunks.filter(chunk => chunk.status === "failed").length;
+    const actionable = chunks.filter(chunk => ["uploaded", "failed"].includes(chunk.status) || isStaleChunk(chunk));
+    const percent = chunks.length ? Math.round((finished / chunks.length) * 100) : 0;
+    return <article className="speaking-book-job">
+        <header><div><span>整本教材 · {document.page_count} 頁</span><h3>{document.title}</h3><p>{finished}/{chunks.length} 批已辨識 · {reviewed}/{chunks.length} 批已核准</p></div><strong>{percent}%</strong></header>
+        <div className="speaking-book-job__bar" aria-label={`OCR 完成 ${percent}%`}><span style={{ width: `${percent}%` }} /></div>
+        <div className="speaking-book-job__chunks">{chunks.map(chunk => <div className={`speaking-book-chunk ${chunk.status}`} key={chunk.id}>
+            <span>P{chunk.page_from}–P{chunk.page_to}</span><small>{isStaleChunk(chunk) ? "處理中斷，可重試" : chunkStatusLabel(chunk.status)}</small>
+            {(chunk.status === "failed" || isStaleChunk(chunk)) && <button type="button" disabled={disabled} onClick={() => onRetry(chunk)} aria-label={`重試第 ${chunk.chunk_index + 1} 批`}><RefreshCcw size={15} /></button>}
+        </div>)}</div>
+        {failed > 0 && <p className="speaking-book-job__warning"><AlertTriangle size={16} />有 {failed} 批失敗，可單獨重試，不必重新上傳整本書。</p>}
+        {actionable.length > 0 && <button type="button" className="platform-primary" disabled={disabled} onClick={() => onProcess(document, actionable)}>
+            {disabled ? <LoaderCircle className="speaking-spin" size={17} /> : <Sparkles size={17} />}{finished > 0 ? "繼續批次 OCR" : "開始批次 OCR"}
+        </button>}
+        {actionable.length === 0 && reviewed < chunks.length && <p className="speaking-book-job__notice">OCR 已完成，請在下方逐批校正並核准。</p>}
+        {reviewed === chunks.length && chunks.length > 0 && <p className="speaking-book-job__complete"><CheckCircle2 size={17} />整本教材文字已全部核准。</p>}
+    </article>;
+};
 
 const OcrReviewEditor = ({ section, disabled, onReview }) => {
     const [form, setForm] = useState({
@@ -81,8 +114,11 @@ const QuestionEditor = ({ question, disabled, onSave }) => {
 
 export default function SpeakingContentAdmin() {
     const { firebaseUser } = useAuth();
-    const [data, setData] = useState({ books: [], documents: [], sections: [], question_sets: [] });
+    const [data, setData] = useState({ books: [], documents: [], chunks: [], sections: [], question_sets: [] });
     const [source, setSource] = useState(emptySource);
+    const [wholeBook, setWholeBook] = useState(emptyWholeBook);
+    const [wholeBookFile, setWholeBookFile] = useState(null);
+    const [wholeBookProgress, setWholeBookProgress] = useState(null);
     const [questionCount, setQuestionCount] = useState(5);
     const [sourceFile, setSourceFile] = useState(null);
     const [pendingDocumentId, setPendingDocumentId] = useState(null);
@@ -103,8 +139,47 @@ export default function SpeakingContentAdmin() {
         document: data.documents.find(document => document.id === section.document_id),
         questionSets: data.question_sets.filter(questionSet => questionSet.source_section_id === section.id)
     })), [data]);
+    const wholeBookRows = useMemo(() => data.documents.filter(document => Number(document.chunk_count) > 0).map(document => ({
+        document,
+        chunks: data.chunks.filter(chunk => chunk.document_id === document.id).sort((a, b) => a.chunk_index - b.chunk_index)
+    })), [data.documents, data.chunks]);
 
     const updateSource = (key, value) => setSource(current => ({ ...current, [key]: value }));
+    const uploadWholeBook = async event => {
+        event.preventDefault();
+        if (!wholeBookFile) return toast.error("請選擇整本 PDF");
+        setWorking("whole-book-upload");
+        setWholeBookProgress({ phase: "splitting", completed: 0, total: 1 });
+        try {
+            await uploadWholeBookSource(firebaseUser, wholeBookFile, wholeBook, setWholeBookProgress);
+            setWholeBook(emptyWholeBook);
+            setWholeBookFile(null);
+            setWholeBookProgress(null);
+            toast.success("整本教材已安全分批上傳，可開始 OCR");
+            await load();
+        } catch (error) { toast.error(error.message || "整本教材上傳失敗"); }
+        finally { setWorking(""); }
+    };
+    const processBookChunks = async (document, chunks) => {
+        setWorking(`book-${document.id}`);
+        let completed = 0;
+        setWholeBookProgress({ phase: "ocr", completed, total: chunks.length, documentId: document.id });
+        try {
+            for (const chunk of chunks) {
+                await extractSpeakingBookChunk(firebaseUser, chunk.id);
+                completed += 1;
+                setWholeBookProgress({ phase: "ocr", completed, total: chunks.length, documentId: document.id });
+            }
+            toast.success("可處理的教材批次 OCR 已完成，請逐批校正");
+        } catch (error) { toast.error(`${error.message || "教材批次 OCR 失敗"}；已完成的批次會保留`); }
+        finally { setWorking(""); setWholeBookProgress(null); await load(); }
+    };
+    const retryBookChunk = async chunk => {
+        setWorking(`chunk-${chunk.id}`);
+        try { await extractSpeakingBookChunk(firebaseUser, chunk.id); toast.success(`P${chunk.page_from}–P${chunk.page_to} 已重新辨識`); await load(); }
+        catch (error) { toast.error(error.message || "教材批次重試失敗"); }
+        finally { setWorking(""); }
+    };
     const saveSource = async event => {
         event.preventDefault();
         if (sourceFile) {
@@ -176,8 +251,27 @@ export default function SpeakingContentAdmin() {
             <div><UploadCloud /><strong>1. 上傳與 OCR</strong><span>私人保存 PDF／圖片</span></div><div><FileText /><strong>2. 人工核對</strong><span>校正文字與頁碼</span></div><div><Sparkles /><strong>3. AI 題庫</strong><span>逐題修改後發布</span></div>
         </section>
 
+        <section className="platform-card speaking-whole-book">
+            <div className="platform-section-title"><div><span className="platform-eyebrow">WHOLE BOOK OCR</span><h2>整本教材分批辨識</h2><p>一次選擇完整 PDF；瀏覽器會在本機切成每 10 頁一批，私人上傳後可分批辨識、保留進度與單獨重試。</p></div></div>
+            <form className="platform-form" onSubmit={uploadWholeBook}>
+                <div className="platform-form-grid">
+                    <label><span>教材</span><select required value={wholeBook.book_id} onChange={event => setWholeBook(current => ({ ...current, book_id: event.target.value }))}><option value="">請選擇</option>{data.books.map(book => <option value={book.id} key={book.id}>{book.name}</option>)}</select></label>
+                    <label><span>大關卡名稱</span><input required value={wholeBook.document_title} onChange={event => setWholeBook(current => ({ ...current, document_title: event.target.value }))} placeholder="例如 Workbook 2 口說大關卡" /></label>
+                </div>
+                <label className="speaking-file-picker"><span>完整課本 PDF</span><input type="file" required accept=".pdf,application/pdf" onChange={event => setWholeBookFile(event.target.files?.[0] || null)} disabled={working === "whole-book-upload"} /><small>{wholeBookFile ? `${wholeBookFile.name} · ${(wholeBookFile.size / 1024 / 1024).toFixed(1)}MB` : "支援 1～500 頁、100MB 以內；加密或損壞的 PDF 無法處理。"}</small></label>
+                {working === "whole-book-upload" && wholeBookProgress && <div className="speaking-upload-progress" role="status"><LoaderCircle className="speaking-spin" /><div><strong>{wholeBookProgress.phase === "splitting" ? "正在本機分割 PDF" : wholeBookProgress.phase === "preparing" ? "正在建立私人上傳工作" : "正在上傳私人教材"}</strong><span>{wholeBookProgress.total > 1 ? `${wholeBookProgress.completed}/${wholeBookProgress.total} 個檔案` : "請不要關閉這個頁面"}</span></div></div>}
+                <button className="platform-primary" disabled={working === "whole-book-upload"}>{working === "whole-book-upload" ? "處理整本 PDF 中…" : "分批並安全上傳"}</button>
+            </form>
+            {wholeBookRows.length > 0 && <div className="speaking-book-jobs">{wholeBookRows.map(({ document, chunks }) => <WholeBookCard
+                key={document.id} document={document} chunks={chunks}
+                disabled={working === `book-${document.id}` || working.startsWith("chunk-")}
+                onProcess={processBookChunks} onRetry={retryBookChunk}
+            />)}</div>}
+            {wholeBookProgress?.phase === "ocr" && <div className="speaking-ocr-floating-progress" role="status"><LoaderCircle className="speaking-spin" /><span>批次 OCR：{wholeBookProgress.completed}/{wholeBookProgress.total}</span></div>}
+        </section>
+
         <section className="platform-card">
-            <div className="platform-section-title"><div><span className="platform-eyebrow">PRIVATE SOURCE</span><h2>上傳或貼入教材來源</h2><p>建議每次上傳一個 Unit 或指定頁數，降低 OCR 成本並方便人工校對。</p></div></div>
+            <div className="platform-section-title"><div><span className="platform-eyebrow">SINGLE SOURCE</span><h2>單一範圍或貼入文字</h2><p>適合單張課本圖片、單一 Unit 或已人工整理的教材文字。</p></div></div>
             <form className="platform-form" onSubmit={saveSource}>
                 <div className="platform-form-grid">
                     <label><span>教材</span><select required value={source.book_id} onChange={event => updateSource("book_id", event.target.value)}><option value="">請選擇</option>{data.books.map(book => <option value={book.id} key={book.id}>{book.name}</option>)}</select></label>

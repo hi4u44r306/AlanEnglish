@@ -4,7 +4,8 @@
 
 本次進行中（2026-09-04，尚未部署）：
 
-- 教材 AI 口說題庫第二階段：分支 `codex/textbook-speaking-generator`。在既有貼入文字、AI 草稿、逐題修改與版本化發布流程上，新增 PDF／JPG／PNG／WebP 私人 R2 直傳與 OCR；單檔上限 20MB。後端會用 HEAD 及檔案 signature 重新驗證 MIME、大小與物件存在，再將私人檔案暫時交給 OpenAI Responses API 辨識；OpenAI 暫存檔於完成或失敗後刪除。OCR 結果固定為 `draft`／`review_required`，管理員必須逐頁校正並核准後才能出題；OCR 暫時失敗時可沿用已上傳檔案重試，不重複上傳。新增 additive migration 保存 OCR 狀態、錯誤碼、模型與 token 稽核資料；題庫 contract 7/7、服務測試 2/2、Edge Function 語法與 production build 已通過。未套用 migration、未部署 Edge Function／前端，學生練習與作業引用仍未完成。
+- 整本教材分批 OCR 第一階段：分支 `codex/textbook-speaking-generator`、PR #97。管理員可選擇 100MB／500 頁以內的完整 PDF；瀏覽器使用固定版 `pdf-lib` 在本機每 10 頁切成一批，原檔與批次檔再以短效預簽網址直傳私人 R2，避免整本檔案進入 Edge Function 記憶體。新增 additive migration `speaking_whole_book_ocr_batches` 保存頁碼、批次狀態、重試次數、錯誤碼、模型與 token；每批可獨立 OCR、保留進度、失敗或超過十分鐘的處理可重試，管理員須逐批核准，全部批次核准後整本才完成。`pdf-lib` 已改為操作時才載入的獨立 chunk，避免增加一般學生頁主 bundle；整本分割／服務／管理頁 6/6、題庫契約 9/9、全前端 42 suites／134 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功。目前為本機修改，migration、更新後 Edge Function 與前端尚未部署；學生口說關卡、錄音及作業引用仍未完成。
+- 教材 AI 口說題庫第二階段已部署供測試：兩筆 additive migration 已套用共用 Supabase，`speaking-content-manager` v1 為 ACTIVE，固定測試站與 PR #97 Deploy Preview 已可開啟；支援 20MB 內 PDF／JPG／PNG／WebP 私人 R2 直傳、單次 OCR、人工核准與題庫草稿。題庫 contract 7/7、服務測試 2/2、Edge Function 語法與 production build 已通過。因整本 115 頁教材需求，單次 OCR 流程保留給單一 Unit／圖片，改由上述整本分批流程承接完整課本。
 
 本次進行中（2026-09-03，尚未部署）：
 

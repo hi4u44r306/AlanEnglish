@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = read("supabase/migrations/20260903152751_textbook_speaking_question_bank.sql");
 const ocrMigration = read("supabase/migrations/20260904005001_textbook_speaking_ocr_pipeline.sql");
+const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_book_ocr_batches.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
@@ -69,4 +70,25 @@ test("7. OCR 文字必須人工核准，OpenAI 暫存檔會刪除", () => {
     assert.match(manager, /method: "DELETE"/);
     assert.match(manager, /store: false/);
     assert.match(adminPage, /核准 OCR 教材文字/);
+});
+
+test("8. 整本 PDF 會建立可續跑的十頁批次與私人檔案狀態", () => {
+    assert.match(batchMigration, /create table if not exists public\.speaking_source_chunks/);
+    assert.match(batchMigration, /unique \(document_id, chunk_index\)/);
+    assert.match(batchMigration, /enable row level security/);
+    assert.match(batchMigration, /revoke all on table public\.speaking_source_chunks from public, anon, authenticated/);
+    assert.match(manager, /WHOLE_BOOK_CHUNK_PAGES = 10/);
+    assert.match(manager, /MAX_WHOLE_BOOK_BYTES = 100 \* 1024 \* 1024/);
+    assert.match(manager, /create_book_upload/);
+    assert.match(manager, /confirm_book_upload/);
+    assert.match(manager, /extract_book_chunk/);
+});
+
+test("9. 管理員可查看整本進度、逐批重試並逐批人工核准", () => {
+    assert.match(adminPage, /整本教材分批辨識/);
+    assert.match(adminPage, /繼續批次 OCR/);
+    assert.match(adminPage, /單獨重試/);
+    assert.match(adminPage, /逐批校正並核准/);
+    assert.match(manager, /status: "failed"/);
+    assert.match(manager, /status: "completed"/);
 });
