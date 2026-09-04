@@ -37,6 +37,7 @@ const MODEL_PRICING_USD_PER_MILLION = {
     cached_input: 0.025,
     output: 2
 };
+const GOOGLE_CHIRP_HD_USD_PER_MILLION_CHARACTERS = 30;
 
 const nonNegativeInteger = (value: unknown) => {
     const parsed = Number(value);
@@ -296,6 +297,35 @@ Deno.serve(async (req: Request) => {
                 if (logs.length >= DASHBOARD_MAX_ROWS) truncated = true;
             }
 
+            const [speakingJobsResult, speakingChunksResult, ttsAssetsResult] = await Promise.all([
+                admin
+                    .from("speaking_generation_jobs")
+                    .select("id,status,model,input_tokens,output_tokens,total_tokens,error_code,created_at")
+                    .gte("created_at", range.start)
+                    .lt("created_at", range.end),
+                admin
+                    .from("speaking_source_chunks")
+                    .select("id,status,ocr_model,input_tokens,output_tokens,total_tokens,error_code,created_at")
+                    .gte("created_at", range.start)
+                    .lt("created_at", range.end),
+                admin
+                    .from("speaking_tts_assets")
+                    .select("id,status,voice_id,used_characters,byte_size,error_code,created_at")
+                    .gte("created_at", range.start)
+                    .lt("created_at", range.end)
+            ]);
+
+            const optionalRows = (result: any, label: string) => {
+                if (result.error) {
+                    console.error(`${label} cost dashboard read error`, result.error);
+                    return [];
+                }
+                return result.data || [];
+            };
+            const speakingJobs = optionalRows(speakingJobsResult, "Speaking generation");
+            const speakingChunks = optionalRows(speakingChunksResult, "Speaking OCR");
+            const ttsAssets = optionalRows(ttsAssetsResult, "Google TTS");
+
             const studentIds = [...new Set(logs.map(item => Number(item.student_id)).filter(Number.isFinite))];
             let profiles: any[] = [];
 
@@ -337,6 +367,15 @@ Deno.serve(async (req: Request) => {
             let totalTokens = 0;
             let successfulRequests = 0;
             let billedRequests = 0;
+            let speakingInputTokens = 0;
+            let speakingOutputTokens = 0;
+            let speakingTokens = 0;
+            let speakingSuccessfulRequests = 0;
+            let speakingFailedRequests = 0;
+            let ttsCharacters = 0;
+            let ttsBytes = 0;
+            let ttsSuccessfulRequests = 0;
+            let ttsFailedRequests = 0;
 
             for (const item of logs) {
                 const cost = Number(item.estimated_cost_usd || 0);
@@ -387,7 +426,80 @@ Deno.serve(async (req: Request) => {
                 userMap.set(studentId, user);
             }
 
-            const normalizedCostUsd = roundNumber(totalCostUsd);
+            const speakingRows = [...speakingJobs, ...speakingChunks];
+            for (const item of speakingRows) {
+                const isSuccess = item.status === "completed" || item.status === "review_required";
+                const isFailed = item.status === "failed";
+                const rowInputTokens = Number(item.input_tokens || 0);
+                const rowOutputTokens = Number(item.output_tokens || 0);
+                const rowTotalTokens = Number(item.total_tokens || 0) || rowInputTokens + rowOutputTokens;
+                const rowCost = (
+                    (rowInputTokens * MODEL_PRICING_USD_PER_MILLION.input)
+                    + (rowOutputTokens * MODEL_PRICING_USD_PER_MILLION.output)
+                ) / 1000000;
+                speakingInputTokens += rowInputTokens;
+                speakingOutputTokens += rowOutputTokens;
+                speakingTokens += rowTotalTokens;
+                if (isSuccess) speakingSuccessfulRequests += 1;
+                if (isFailed) speakingFailedRequests += 1;
+
+                const day = taiwanDateFromValue(item.created_at);
+                const daily = dailyMap.get(day) || {
+                    date: day,
+                    requests: 0,
+                    successful_requests: 0,
+                    failed_requests: 0,
+                    total_tokens: 0,
+                    cost_usd: 0
+                };
+                daily.requests += 1;
+                daily.successful_requests += isSuccess ? 1 : 0;
+                daily.failed_requests += isFailed ? 1 : 0;
+                daily.total_tokens += rowTotalTokens;
+                daily.cost_usd += rowCost;
+                dailyMap.set(day, daily);
+            }
+
+            for (const item of ttsAssets) {
+                const isSuccess = item.status === "ready";
+                const isFailed = item.status === "failed";
+                const characters = Number(item.used_characters || 0);
+                const bytes = Number(item.byte_size || 0);
+                const rowCost = (characters * GOOGLE_CHIRP_HD_USD_PER_MILLION_CHARACTERS) / 1000000;
+                ttsCharacters += characters;
+                ttsBytes += bytes;
+                if (isSuccess) ttsSuccessfulRequests += 1;
+                if (isFailed) ttsFailedRequests += 1;
+
+                const day = taiwanDateFromValue(item.created_at);
+                const daily = dailyMap.get(day) || {
+                    date: day,
+                    requests: 0,
+                    successful_requests: 0,
+                    failed_requests: 0,
+                    total_tokens: 0,
+                    cost_usd: 0
+                };
+                daily.requests += 1;
+                daily.successful_requests += isSuccess ? 1 : 0;
+                daily.failed_requests += isFailed ? 1 : 0;
+                daily.cost_usd += rowCost;
+                dailyMap.set(day, daily);
+            }
+
+            const aiMaterialCostUsd = roundNumber(totalCostUsd);
+            const speakingCostUsd = roundNumber((
+                (speakingInputTokens * MODEL_PRICING_USD_PER_MILLION.input)
+                + (speakingOutputTokens * MODEL_PRICING_USD_PER_MILLION.output)
+            ) / 1000000);
+            const ttsCostUsd = roundNumber((ttsCharacters * GOOGLE_CHIRP_HD_USD_PER_MILLION_CHARACTERS) / 1000000);
+            const normalizedCostUsd = roundNumber(aiMaterialCostUsd + speakingCostUsd + ttsCostUsd);
+            const totalTrackedRequests = logs.length + speakingRows.length + ttsAssets.length;
+            const totalSuccessfulRequests = successfulRequests + speakingSuccessfulRequests + ttsSuccessfulRequests;
+            const totalFailedRequests = (logs.length - successfulRequests) + speakingFailedRequests + ttsFailedRequests;
+            const totalSettledRequests = totalSuccessfulRequests + totalFailedRequests;
+            billedRequests += speakingRows.filter(item => Number(item.total_tokens || 0) > 0).length;
+            billedRequests += ttsAssets.filter(item => Number(item.used_characters || 0) > 0).length;
             const budgetUsedPercent = budget.monthly_budget_usd > 0
                 ? roundNumber((normalizedCostUsd / budget.monthly_budget_usd) * 100, 2)
                 : 0;
@@ -396,23 +508,92 @@ Deno.serve(async (req: Request) => {
                 : budgetUsedPercent >= budget.warning_percent
                     ? "warning"
                     : "normal";
+            const isCurrentMonth = month === today.slice(0, 7);
+            const [monthYear, monthNumber] = month.split("-").map(Number);
+            const daysInMonth = new Date(Date.UTC(monthYear, monthNumber, 0)).getUTCDate();
+            const elapsedDays = isCurrentMonth ? Math.max(1, Number(today.slice(8, 10))) : daysInMonth;
+            const projectedCostUsd = isCurrentMonth
+                ? roundNumber((normalizedCostUsd / elapsedDays) * daysInMonth)
+                : normalizedCostUsd;
+            const projectedPercent = budget.monthly_budget_usd > 0
+                ? roundNumber((projectedCostUsd / budget.monthly_budget_usd) * 100, 2)
+                : 0;
+            const sortedDaily = [...dailyMap.values()]
+                .map(item => ({ ...item, cost_usd: roundNumber(item.cost_usd) }))
+                .sort((a, b) => a.date.localeCompare(b.date));
+            const latestDaily = sortedDaily.at(-1);
+            const previousDaily = sortedDaily.slice(0, -1);
+            const averagePreviousRequests = previousDaily.length > 0
+                ? previousDaily.reduce((sum, item) => sum + item.requests, 0) / previousDaily.length
+                : 0;
+            const alerts: any[] = [];
+
+            if (budgetStatus === "over") {
+                alerts.push({ level: "critical", code: "budget_over", title: "本月已超過預算", message: `已使用 ${budgetUsedPercent}% 的月預算，請立即檢查高用量來源。` });
+            } else if (budgetStatus === "warning") {
+                alerts.push({ level: "warning", code: "budget_warning", title: "本月用量接近預算", message: `已達警示門檻，現在為 ${budgetUsedPercent}%。` });
+            }
+            if (isCurrentMonth && projectedPercent >= 100 && budgetStatus !== "over") {
+                alerts.push({ level: "warning", code: "forecast_over", title: "月底費用可能超標", message: `依目前速度預估月底約 US$ ${projectedCostUsd.toFixed(2)}。` });
+            }
+            if (totalSettledRequests >= 5 && totalFailedRequests / totalSettledRequests >= 0.1) {
+                alerts.push({ level: "warning", code: "failure_rate", title: "失敗請求偏高", message: `${totalFailedRequests} 次失敗，請檢查 OCR、題庫或語音服務紀錄。` });
+            }
+            if (latestDaily && previousDaily.length >= 2 && latestDaily.requests >= Math.max(10, averagePreviousRequests * 2.5)) {
+                alerts.push({ level: "critical", code: "request_spike", title: "偵測到單日使用異常", message: `${latestDaily.date} 有 ${latestDaily.requests} 次請求，明顯高於前幾日平均。` });
+            }
+            if (alerts.length === 0) {
+                alerts.push({ level: "success", code: "healthy", title: "目前沒有明顯異常", message: "已追蹤服務的用量仍在預算與一般波動範圍內。" });
+            }
+
+            const providers = [
+                {
+                    id: "openai_materials", name: "OpenAI · AI 教材", category: "AI", coverage: "tracked",
+                    requests: logs.length, successful_requests: successfulRequests, failed_requests: logs.length - successfulRequests,
+                    usage_value: totalTokens, usage_unit: "tokens", estimated_cost_usd: aiMaterialCostUsd,
+                    note: "依每次實際 Token 與當時模型單價估算。"
+                },
+                {
+                    id: "openai_speaking", name: "OpenAI · 口說 OCR／題庫", category: "AI", coverage: "tracked",
+                    requests: speakingRows.length, successful_requests: speakingSuccessfulRequests, failed_requests: speakingFailedRequests,
+                    usage_value: speakingTokens, usage_unit: "tokens", estimated_cost_usd: speakingCostUsd,
+                    note: "包含整本教材 OCR 與口說題庫生成；依 gpt-5-mini Token 估算。"
+                },
+                {
+                    id: "google_tts", name: "Google Cloud · 自然示範語音", category: "語音", coverage: "tracked",
+                    requests: ttsAssets.length, successful_requests: ttsSuccessfulRequests, failed_requests: ttsFailedRequests,
+                    usage_value: ttsCharacters, usage_unit: "characters", estimated_cost_usd: ttsCostUsd,
+                    secondary_value: ttsBytes, secondary_unit: "bytes",
+                    note: "以 Chirp 3 HD 公開牌價保守估算；尚未扣除 Google 帳務免費額度或折抵。"
+                },
+                { id: "supabase", name: "Supabase", category: "資料庫／Functions", coverage: "external", note: "方案月費、資料庫、流量與 Edge Functions 請至 Supabase Billing 核對。", dashboard_url: "https://supabase.com/dashboard/org/_/billing" },
+                { id: "cloudflare_r2", name: "Cloudflare R2", category: "私有教材儲存", coverage: "external", note: "儲存量、Class A／B 操作與傳輸費需至 Cloudflare R2 Analytics 核對。", dashboard_url: "https://dash.cloudflare.com/" },
+                { id: "netlify", name: "Netlify", category: "網站部署", coverage: "external", note: "頻寬、Build 與 Functions 使用量需至 Netlify Usage 核對。", dashboard_url: "https://app.netlify.com/teams" },
+                { id: "firebase", name: "Firebase Authentication", category: "登入", coverage: "external", note: "目前程式僅使用 Authentication；實際方案與登入額度請至 Firebase Usage 核對。", dashboard_url: "https://console.firebase.google.com/" },
+                { id: "resend", name: "Resend", category: "系統 Email", coverage: "external", note: "驗證信、重設密碼與家長週報寄送量需至 Resend Usage 核對。", dashboard_url: "https://resend.com/overview" },
+                { id: "payuni", name: "PAYUNi／付款服務", category: "交易手續費", coverage: "external", note: "交易手續費不是 API 呼叫費，請依 PAYUNi 月結或交易報表核對。" }
+            ];
 
             return json(200, {
                 success: true,
                 month,
                 summary: {
-                    total_requests: logs.length,
+                    total_requests: totalTrackedRequests,
                     billed_requests: billedRequests,
-                    successful_requests: successfulRequests,
-                    failed_requests: logs.length - successfulRequests,
-                    success_rate: logs.length > 0 ? roundNumber((successfulRequests / logs.length) * 100, 1) : 0,
-                    input_tokens: inputTokens,
+                    successful_requests: totalSuccessfulRequests,
+                    failed_requests: totalFailedRequests,
+                    success_rate: totalSettledRequests > 0 ? roundNumber((totalSuccessfulRequests / totalSettledRequests) * 100, 1) : 0,
+                    input_tokens: inputTokens + speakingInputTokens,
                     cached_input_tokens: cachedInputTokens,
-                    output_tokens: outputTokens,
+                    output_tokens: outputTokens + speakingOutputTokens,
                     reasoning_tokens: reasoningTokens,
-                    total_tokens: totalTokens,
+                    total_tokens: totalTokens + speakingTokens,
+                    tts_characters: ttsCharacters,
                     total_cost_usd: normalizedCostUsd,
                     total_cost_twd: roundNumber(normalizedCostUsd * budget.usd_to_twd_rate, 2),
+                    projected_cost_usd: projectedCostUsd,
+                    projected_cost_twd: roundNumber(projectedCostUsd * budget.usd_to_twd_rate, 2),
+                    projected_percent: projectedPercent,
                     truncated
                 },
                 budget: {
@@ -420,9 +601,9 @@ Deno.serve(async (req: Request) => {
                     used_percent: budgetUsedPercent,
                     status: budgetStatus
                 },
-                daily: [...dailyMap.values()]
-                    .map(item => ({ ...item, cost_usd: roundNumber(item.cost_usd) }))
-                    .sort((a, b) => a.date.localeCompare(b.date)),
+                alerts,
+                providers,
+                daily: sortedDaily,
                 users: [...userMap.values()]
                     .map(item => ({ ...item, cost_usd: roundNumber(item.cost_usd) }))
                     .sort((a, b) => b.cost_usd - a.cost_usd),
