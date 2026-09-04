@@ -335,8 +335,9 @@ Dashboard 以「完成老師作業可獲得 30 XP；有效在校生另得 5 AE P
 - 整本教材 OCR 必須逐批保存 `uploaded`、`processing`、`review_required`、`completed` 或 `failed` 狀態；關閉頁面後保留已完成進度，單批失敗或處理超過十分鐘可重試，不得要求重跑整本教材。
 - OCR 只建立 `draft`／`review_required` 文字，不得直接成為 AI 出題來源。管理員依每批頁碼校對並確認後才轉為 `reviewed`；整本所有批次核准後才算完成。OpenAI 暫存檔在每次辨識結束後刪除，私人 R2 原檔保留供稽核與重新校對。
 - 題庫資料表啟用 RLS 並撤銷 `anon`／`authenticated` 直接權限；前端只能透過驗證 Firebase ID Token、重新核對角色的 Edge Function 操作。
-- 已發布題目的完整示範回答使用後端 Google Cloud Text-to-Speech 的 Chirp 3 HD 語音產生，不再以瀏覽器 `speechSynthesis` 作為正式示範。只有管理員可要求生成；Google Cloud Service Account JSON 只存 Supabase Secret，不得傳到前端。文字、Voice ID、語言、取樣率及輸出格式組成固定雜湊，相同內容只生成一次；MP3 存私人 R2，Supabase 只保存資產狀態、雜湊與物件路徑，學生透過短效預簽網址播放。題目修改或聲音設定變更才建立新版資產，失敗可重試但不可讓學生直接呼叫付費 API。
+- 已發布題目的完整示範回答使用後端 Google Cloud Text-to-Speech 的 Chirp 3 HD 語音產生，不再以瀏覽器 `speechSynthesis` 作為正式示範。只有管理員可要求生成；Google Cloud Service Account JSON 只存 Supabase Secret，不得傳到前端。文字、Voice ID、語言、取樣率及輸出格式組成固定雜湊，相同內容只生成一次；語音存私人 R2，Supabase 只保存資產狀態、雜湊與物件路徑，學生透過短效預簽網址播放。題目修改或聲音設定變更才建立新版資產，失敗可重試但不可讓學生直接呼叫付費 API。
 - 畫面可保留 `[你的名字]` 等引導學生代換的提示，但 TTS 前必須轉成自然英文範例（例如 `My name is Amy.`），不得朗讀中文提示、括號或底線。Google 輸出使用該聲音的原生取樣率；朗讀清理規則版本屬於資產設定雜湊的一部分，規則更新後必須建立並連結新版資產，不得沿用或覆蓋舊檔。
+- 國小生正式示範語音預設使用 Leda、`0.82` 倍語速及未壓縮 LINEAR16 WAV，避免原生速度過快與 MP3 壓縮造成的悶濁感。語速、編碼及處理版本必須納入設定雜湊；調整時建立新版資產並保留舊檔，不得覆寫既有語音。
 - 學生錄音只在瀏覽器暫存供回聽；伺服器保存評分與完成狀態，不保存原始錄音。
 
 ## 8. 聽力播放與完成

@@ -14,12 +14,12 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 
 const PROVIDER = "google_cloud_tts";
 const LANGUAGE_CODE = "en-US";
-const OUTPUT_FORMAT = "mp3";
-const PIPELINE_VERSION = "natural-example-v2";
-const SAMPLE_RATE_METADATA = 48000;
+const OUTPUT_FORMAT = "wav";
+const PIPELINE_VERSION = "elementary-clear-v3";
+const SAMPLE_RATE_METADATA = 24000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 const DEFAULT_VOICE_ID = "en-US-Chirp3-HD-Leda";
-const SETTINGS = Object.freeze({ audioEncoding: "MP3" });
+const SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.82 });
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;
 
@@ -171,10 +171,10 @@ const generateQuestionAudio = async (admin: any, question: any) => {
 
     try {
         const generated = await requestGoogleAudio(text, selectedVoice);
-        const objectKey = normalizeObjectKey(`speaking-tts/google/${selectedVoice}/${contentHash}-${settingsHash.slice(0, 16)}.mp3`);
+        const objectKey = normalizeObjectKey(`speaking-tts/google/${selectedVoice}/${contentHash}-${settingsHash.slice(0, 16)}.wav`);
         const stored = await fetchR2(objectKey, {
             method: "PUT", body: generated.bytes,
-            headers: { "Content-Type": "audio/mpeg", "Cache-Control": "private, max-age=31536000, immutable" }
+            headers: { "Content-Type": "audio/wav", "Cache-Control": "private, max-age=31536000, immutable" }
         });
         if (!stored.ok) throw Object.assign(new Error("示範語音無法寫入私人儲存空間"), { status: 502, code: `r2_put_${stored.status}` });
         const completedAt = new Date().toISOString();
