@@ -5,6 +5,14 @@
 .speaking-workflow span { color: #708096; font-size: 13px; }
 .speaking-confirm { grid-template-columns: 22px 1fr !important; align-items: start; }
 .speaking-confirm input { width: 20px !important; min-height: 20px !important; margin-top: 2px; }
+.speaking-file-picker { padding: 16px; border: 1px dashed #9bb4da; border-radius: 14px; background: #f4f8ff; }
+.speaking-file-picker input { padding: 10px; border: 1px solid #d7e2f2; border-radius: 11px; background: #fff; }
+.speaking-file-picker small { color: #65758c; line-height: 1.55; }
+.speaking-source-divider { display: flex; align-items: center; gap: 12px; color: #7a879b; font-size: 13px; font-weight: 800; }
+.speaking-source-divider::before, .speaking-source-divider::after { content: ""; height: 1px; flex: 1; background: #dfe6f0; }
+.speaking-ocr-review { margin-top: 18px; padding: 18px; border: 1px solid #f1cb75; border-radius: 16px; background: #fffaf0; }
+.speaking-ocr-review__notice { display: grid; gap: 4px; margin-bottom: 15px; color: #73571e; }
+.speaking-ocr-review__notice span { font-size: 14px; line-height: 1.6; }
 .speaking-count { display: flex; align-items: center; gap: 9px; color: #526079; font-weight: 750; }
 .speaking-count select { min-height: 42px; padding: 0 34px 0 12px; border: 1px solid #d9dde7; border-radius: 11px; background: #fff; }
 .speaking-source-list, .speaking-question-list { display: grid; gap: 18px; }
@@ -24,4 +32,5 @@
     .speaking-source-card > header, .speaking-set__heading { align-items: stretch; flex-direction: column; }
     .speaking-source-card > header button, .speaking-set__heading button { width: 100%; }
     .speaking-question-editor { grid-template-columns: 1fr; padding: 14px; }
+    .speaking-ocr-review { padding: 14px; }
 }

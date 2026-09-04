@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = read("supabase/migrations/20260903152751_textbook_speaking_question_bank.sql");
+const ocrMigration = read("supabase/migrations/20260904005001_textbook_speaking_ocr_pipeline.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
@@ -47,4 +48,25 @@ test("5. 管理頁透過指定 Edge Function 並有受保護管理員路由", ()
     assert.match(adminPage, /人工核對/);
     assert.match(app, /path="\/admin\/speaking-content"/);
     assert.match(app, /allowedRoles=\{\["admin"\]\}/);
+});
+
+test("6. PDF 與圖片採私人 R2 直傳並在後端重新驗證", () => {
+    assert.match(manager, /createR2PresignedUrl/);
+    assert.match(manager, /fetchR2\(document\.private_object_key, \{ method: "HEAD" \}\)/);
+    assert.match(manager, /MAX_SOURCE_FILE_BYTES = 20 \* 1024 \* 1024/);
+    assert.match(manager, /application\/pdf/);
+    assert.match(manager, /image\/webp/);
+    assert.match(ocrMigration, /byte_size bigint/);
+    assert.match(ocrMigration, /Private Cloudflare R2 object key/);
+    assert.doesNotMatch(manager, /public_object_url/);
+});
+
+test("7. OCR 文字必須人工核准，OpenAI 暫存檔會刪除", () => {
+    assert.match(manager, /ocr_status: "review_required"/);
+    assert.match(manager, /review_ocr_source/);
+    assert.match(manager, /document\?\.ocr_status !== "review_required"/);
+    assert.match(manager, /status: "reviewed"/);
+    assert.match(manager, /method: "DELETE"/);
+    assert.match(manager, /store: false/);
+    assert.match(adminPage, /核准 OCR 教材文字/);
 });
