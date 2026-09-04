@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-04，測試環境已部署，正式尚未部署）：
 
-- Google TTS 自然度修正（本機修改中）：朗讀前將 `[你的名字]`、`[你的姓氏]`、`[你的全名]` 等教材代換提示轉為 Amy／Lee 等自然英文例句，清除剩餘中文提示、全形括號與底線；取消強制 24 kHz，改用 Chirp 3 HD 原生輸出取樣率。資產設定加入 `natural-example-v2` 版本且 R2 路徑包含設定雜湊，補產生時會建立並連結新版 MP3，不覆蓋舊檔。
+- Google TTS 自然度修正（測試站已部署，正式尚未部署）：朗讀前將 `[你的名字]`、`[你的姓氏]`、`[你的全名]` 等教材代換提示轉為 Amy／Lee 等自然英文例句，清除剩餘中文提示、全形括號與底線；取消強制 24 kHz，改用 Chirp 3 HD 原生輸出取樣率。資產設定加入 `natural-example-v2` 版本且 R2 路徑包含設定雜湊，補產生時會建立並連結新版 MP3，不覆蓋舊檔。`speaking-tts-manager` 已部署，固定測試站 deploy `6a9ad0e3f53e9433fa0e19ca` 回應 200；尚待管理員按「補產生示範語音」驗收實際音質。
 - Google Cloud 自然示範語音（測試環境已部署，正式尚未部署）：additive migration `20260904072331_speaking_question_audio_assets` 已套用共用測試 Supabase，兩張新表已確認啟用 RLS；`speaking-tts-manager` 與更新後的 `speaking-challenge` 已部署且預檢回應 200、未登入請求正確回 401。Google Cloud Service Account 與 `en-US-Chirp3-HD-Leda` Secret 已由管理員設定；固定測試站 deploy `6a9ab6f468dee1a58047c110` 已發布。系統依示範回答、Chirp 3 HD Voice ID 與輸出設定計算 SHA-256，相同內容沿用，否則以 Service Account OAuth 呼叫 Google Cloud Text-to-Speech、驗證回傳檔案並存入私人 R2。發布題庫後會自動產生語音，已發布題庫可補產生；學生端只播放 15 分鐘短效 R2 URL。尚未由已登入管理員實際生成第一批語音，因此 Google OAuth、TTS 回傳與 R2 寫入的完整鏈路仍待少量題目驗收。
 - 學生 Navbar 第二次收斂（待重新部署測試站）：在校方案 `academy_internal` 現在可直接補足發音資格，避免既有在校帳號因 `features.pronunciation` 尚未同步而看不到「口說大挑戰」。學生主要列暫時隱藏「英文對話」，並把「方案與功能」移至桌面帳號選單及手機「其他」區；頁面與既有對話資料均未刪除。
 - 教材口說大挑戰第一階段（測試站已部署，正式尚未部署）：已建立學生專用路由 `/student/speaking-challenges`，每本教材的已發布題庫成為可進入的小關卡；只有有效且包含 `pronunciation` 的學生能透過新的 Firebase Token 驗證 Edge Function 讀取內容。學生可從桌面及手機導覽進入，查看中文提示、示範回答、瀏覽器朗讀與發音重點，並以「我已開口練習」保存自己的完成紀錄；此階段不保存錄音、不呼叫評分服務、不發 XP／AE Points。新增 additive migration 的進度表已套用共用 Supabase，RLS 已啟用並撤銷前端直接存取；`speaking-challenge` 已部署，固定測試站 deploy `6a9a69e41d38b3fe87999032` 已發布。下一階段才把題目接入錄音、AI 示範與逐字評分。
