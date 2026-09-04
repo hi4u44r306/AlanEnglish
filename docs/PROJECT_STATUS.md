@@ -2,10 +2,10 @@
 
 最後更新：2026-09-04
 
-本次進行中（2026-09-04，尚未部署）：
+本次進行中（2026-09-04，測試環境已部署，正式尚未部署）：
 
-- 整本教材分批 OCR 第一階段：分支 `codex/textbook-speaking-generator`、PR #97。管理員可選擇 100MB／500 頁以內的完整 PDF；瀏覽器使用固定版 `pdf-lib` 在本機每 10 頁切成一批，原檔與批次檔再以短效預簽網址直傳私人 R2，避免整本檔案進入 Edge Function 記憶體。新增 additive migration `speaking_whole_book_ocr_batches` 保存頁碼、批次狀態、重試次數、錯誤碼、模型與 token；每批可獨立 OCR、保留進度、失敗或超過十分鐘的處理可重試，管理員須逐批核准，全部批次核准後整本才完成。`pdf-lib` 已改為操作時才載入的獨立 chunk，避免增加一般學生頁主 bundle；整本分割／服務／管理頁 6/6、題庫契約 9/9、全前端 42 suites／134 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功。目前為本機修改，migration、更新後 Edge Function 與前端尚未部署；學生口說關卡、錄音及作業引用仍未完成。
-- 教材 AI 口說題庫第二階段已部署供測試：兩筆 additive migration 已套用共用 Supabase，`speaking-content-manager` v1 為 ACTIVE，固定測試站與 PR #97 Deploy Preview 已可開啟；支援 20MB 內 PDF／JPG／PNG／WebP 私人 R2 直傳、單次 OCR、人工核准與題庫草稿。題庫 contract 7/7、服務測試 2/2、Edge Function 語法與 production build 已通過。因整本 115 頁教材需求，單次 OCR 流程保留給單一 Unit／圖片，改由上述整本分批流程承接完整課本。
+- 整本教材分批 OCR 第一階段：分支 `codex/textbook-speaking-generator`、PR #97、checkpoint `aa56ca7` 已推送。管理員可選擇 100MB／500 頁以內的完整 PDF；瀏覽器使用固定版 `pdf-lib` 在本機每 10 頁切成一批，原檔與批次檔再以短效預簽網址直傳私人 R2，避免整本檔案進入 Edge Function 記憶體。新增 additive migration `20260904021540_speaking_whole_book_ocr_batches` 保存頁碼、批次狀態、重試次數、錯誤碼、模型與 token；migration 已套用共用 Supabase，並驗證新表、RLS、3 個文件欄位、5 個索引及 migration history。每批可獨立 OCR、保留進度、失敗或超過十分鐘的處理可重試，管理員須逐批核准，全部批次核准後整本才完成。`pdf-lib` 已改為操作時才載入的獨立 chunk，避免增加一般學生頁主 bundle；整本分割／服務／管理頁 6/6、題庫契約 9/9、全前端 42 suites／134 tests、Edge Function 語法、Production build 與 `git diff --check` 均成功。`speaking-content-manager` v2 已部署並為 ACTIVE，無憑證請求回應 401；固定測試站 deploy `6a9a305ebdf0e0adecb64f8e` 已發布，`/admin/speaking-content` 回應 200 且 bundle 與本機 build 一致。尚未用真實 115 頁教材執行付費 OCR 或完成人工核准；學生口說關卡、錄音及作業引用仍未完成，正式 `main` 與正式 Netlify 亦未變更。
+- 教材 AI 口說題庫第二階段已部署供測試：三筆 additive migration 已套用共用 Supabase，`speaking-content-manager` v2 為 ACTIVE，固定測試站與 PR #97 可開啟；支援 20MB 內 PDF／JPG／PNG／WebP 私人 R2 直傳與單次 OCR，也支援整本 PDF 分批處理、人工核准與題庫草稿。題庫 contract 9/9、整本分割／服務／管理頁測試 6/6、Edge Function 語法與 production build 已通過。單次 OCR 流程保留給單一 Unit／圖片，完整課本改由每 10 頁一批的流程處理。
 
 本次進行中（2026-09-03，尚未部署）：
 
