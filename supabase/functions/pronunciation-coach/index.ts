@@ -152,7 +152,7 @@ Deno.serve(async (req: Request) => {
         const user = await verifyFirebaseRequest(req, admin);
         const effectiveAccess = await loadEffectiveAccess(admin, Number(user.id));
         const isStaff = user.role === "teacher" || user.role === "admin";
-        if (!isStaff && (!effectiveAccess.is_active || !effectiveAccess.features.ai_materials)) {
+        if (!isStaff && (!effectiveAccess.is_active || !effectiveAccess.features.pronunciation)) {
             return json(403, { error: "目前帳號不包含 AI 發音教練", code: "pronunciation_access_required" });
         }
         const form = await req.formData().catch(() => null);

@@ -209,6 +209,24 @@ Deno.serve(async (req: Request) => {
 
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action || "summary", 80);
+        let activeAcademyRewardsAccess: boolean | null = null;
+        const canUseAcademyRewards = async () => {
+            if (activeAcademyRewardsAccess !== null) return activeAcademyRewardsAccess;
+            if (student.role !== "student" || student.learner_type !== "academy_student") {
+                activeAcademyRewardsAccess = false;
+                return false;
+            }
+            const { data: enrollment, error: enrollmentError } = await admin
+                .from("academy_enrollments")
+                .select("id")
+                .eq("student_id", student.id)
+                .eq("status", "active")
+                .limit(1)
+                .maybeSingle();
+            if (enrollmentError) throw enrollmentError;
+            activeAcademyRewardsAccess = Boolean(enrollment?.id);
+            return activeAcademyRewardsAccess;
+        };
 
         if (action === "summary") {
             const [{ data: balance, error: balanceError }, { data: ledger, error: ledgerError }] = await Promise.all([
@@ -280,6 +298,12 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "rewards") {
+            if (!await canUseAcademyRewards()) {
+                return json(403, {
+                    error: "AE Points 與獎品商城只開放有效在校英文班學生",
+                    code: "academy_rewards_required"
+                });
+            }
             const { data: rewards, error: rewardError } = await admin
                 .from("rewards")
                 .select("id,name,description,image_path,points_cost,stock_quantity,enabled,per_student_limit,applicable_classes,fulfillment_type,sort_order")
@@ -309,10 +333,8 @@ Deno.serve(async (req: Request) => {
                     points_balance: Number(balance?.points_balance || 0),
                     ...getLevelInfo(balance?.total_xp || 0)
                 },
-                redemption_allowed: student.role === "student" && student.learner_type !== "trial_user",
-                redemption_block_reason: student.learner_type === "trial_user"
-                    ? "試用期間可以累積 XP 與 AE Points，升級正式方案後才能兌換獎品"
-                    : null,
+                redemption_allowed: true,
+                redemption_block_reason: null,
                 rewards: signedRewards,
                 redemptions: redemptions || []
             });
@@ -320,8 +342,11 @@ Deno.serve(async (req: Request) => {
 
         if (action === "redeem") {
             if (student.role !== "student") return json(400, { error: "請使用學生帳號兌換獎品" });
-            if (student.learner_type === "trial_user") {
-                return json(403, { error: "試用期間可以累積 XP 與 AE Points，升級正式方案後才能兌換獎品" });
+            if (!await canUseAcademyRewards()) {
+                return json(403, {
+                    error: "AE Points 與獎品商城只開放有效在校英文班學生",
+                    code: "academy_rewards_required"
+                });
             }
             const rewardId = positiveInteger(body?.reward_id);
             if (!rewardId) return json(400, { error: "獎品編號不正確" });
@@ -338,6 +363,7 @@ Deno.serve(async (req: Request) => {
 
         if (action === "game_result") {
             if (student.role !== "student") return json(400, { error: "請使用學生帳號累積遊戲獎勵" });
+            const canEarnPoints = await canUseAcademyRewards();
             const gameKey = cleanText(body?.game_key, 100);
             const sessionKey = cleanText(body?.session_key, 160);
             if (!gameKey || !sessionKey) return json(400, { error: "遊戲紀錄不完整" });
@@ -348,7 +374,11 @@ Deno.serve(async (req: Request) => {
                 p_won: Boolean(body?.won)
             });
             if (error) throw error;
-            return json(200, { success: true, reward: Array.isArray(data) ? data[0] : data });
+            const reward = Array.isArray(data) ? data[0] : data;
+            return json(200, {
+                success: true,
+                reward: reward && !canEarnPoints ? { ...reward, points_added: 0 } : reward
+            });
         }
 
         if (action.startsWith("admin_")) {

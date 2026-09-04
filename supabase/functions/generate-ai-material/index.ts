@@ -206,9 +206,12 @@ Deno.serve(async (req: Request) => {
         const remaining = Math.max(0, dailyLimit - used);
         const monthlyPeriodStart = taiwanMonthStart(today);
         let monthlyUsed = 0;
-        const hasMonthlyAddon = role === "student"
-            && effectiveAccess.plan_codes.some(isAiAddonPlanCode);
-        const monthlyLimit = hasMonthlyAddon ? AI_ADDON_MONTHLY_LIMIT : null;
+        const hasMonthlyAiLimit = role === "student"
+            && (
+                effectiveAccess.plan_codes.some(isAiAddonPlanCode)
+                || effectiveAccess.plan_codes.includes("academy_internal")
+            );
+        const monthlyLimit = hasMonthlyAiLimit ? AI_ADDON_MONTHLY_LIMIT : null;
         const isTrialUser = role === "student"
             && student.learner_type === "trial_user"
             && effectiveAccess.plan_codes.includes("trial_7_day");
