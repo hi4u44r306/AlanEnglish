@@ -12,31 +12,11 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
     headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
 });
 
-const LESSONS: Record<string, { referenceText: string; feedback: string }> = {
-    "greeting-good-morning": {
-        referenceText: "Good morning. How are you?",
-        feedback: "Good 和 morning 要說清楚，再注意問句最後的語調。"
-    },
-    "greeting-introduction": {
-        referenceText: "Hello. My name is Amy.",
-        feedback: "試著把 My name is 自然地連在一起說。"
-    },
-    "greeting-feeling": {
-        referenceText: "I am great today. Thank you.",
-        feedback: "great 的 r 音可以慢一點，Thank 的 th 音要讓舌尖輕碰牙齒。"
-    },
-    "greeting-new-friend": {
-        referenceText: "It is nice to meet you.",
-        feedback: "nice 和 meet 是重點字，句尾可以自然放慢。"
-    }
-};
-
-const MAX_AUDIO_BYTES = 700 * 1024;
+const MAX_AUDIO_BYTES = 1024 * 1024;
 const MIN_AUDIO_SECONDS = 0.35;
-const MAX_AUDIO_SECONDS = 15;
-const PILOT_WINDOW_MS = 10 * 60 * 1000;
-const PILOT_REQUEST_LIMIT = 12;
-const requestWindows = new Map<number, number[]>();
+const MAX_AUDIO_SECONDS = 20;
+const RATE_WINDOW_MINUTES = 10;
+const RATE_REQUEST_LIMIT = 12;
 
 const normalizeWord = (value: unknown) => String(value || "")
     .toLowerCase()
@@ -93,13 +73,31 @@ const buildAzureSpeechEndpoint = (region: string) => {
     return url.toString();
 };
 
-const checkPilotRateLimit = (studentId: number) => {
-    const now = Date.now();
-    const active = (requestWindows.get(studentId) || []).filter(timestamp => now - timestamp < PILOT_WINDOW_MS);
-    if (active.length >= PILOT_REQUEST_LIMIT) return false;
-    active.push(now);
-    requestWindows.set(studentId, active);
-    return true;
+const normalizeReferenceText = (value: unknown) => String(value || "")
+    .replace(/[\[［][^\]］]{1,80}[\]］]/g, "")
+    .replace(/\s+/g, " ").trim();
+
+const assertPublishedQuestionAccess = async (admin: any, questionId: number) => {
+    const { data, error } = await admin.from("speaking_questions")
+        .select("id,question_set_id,model_answer,pronunciation_notes_zh,speaking_question_sets!inner(id,status)")
+        .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
+    if (error) throw error;
+    if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
+    const referenceText = normalizeReferenceText(data.model_answer);
+    if (!referenceText || referenceText.length > 500) {
+        throw Object.assign(new Error("這題尚未設定可朗讀的完整示範回答"), { status: 422 });
+    }
+    return { questionId: Number(data.id), questionSetId: Number(data.question_set_id), referenceText, feedback: String(data.pronunciation_notes_zh || "") };
+};
+
+const assertRateLimit = async (admin: any, studentId: number) => {
+    const since = new Date(Date.now() - RATE_WINDOW_MINUTES * 60 * 1000).toISOString();
+    const { count, error } = await admin.from("speaking_pronunciation_attempts")
+        .select("id", { count: "exact", head: true }).eq("student_id", studentId).gte("created_at", since);
+    if (error) throw error;
+    if ((count || 0) >= RATE_REQUEST_LIMIT) {
+        throw Object.assign(new Error("短時間練習次數較多，請休息一下再繼續"), { status: 429, code: "rate_limited" });
+    }
 };
 
 const normalizeAzureResult = (data: any, referenceText: string, defaultFeedback: string) => {
@@ -151,19 +149,19 @@ Deno.serve(async (req: Request) => {
         const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
         const user = await verifyFirebaseRequest(req, admin);
         const effectiveAccess = await loadEffectiveAccess(admin, Number(user.id));
-        const isStaff = user.role === "teacher" || user.role === "admin";
-        if (!isStaff && (!effectiveAccess.is_active || !effectiveAccess.features.pronunciation)) {
-            return json(403, { error: "目前帳號不包含 AI 發音教練", code: "pronunciation_access_required" });
+        if (user.role !== "student") return json(403, { error: "只有學生可以送出發音評分" });
+        if (!effectiveAccess.is_active || !effectiveAccess.features.pronunciation) {
+            return json(403, { error: "目前帳號不包含 AI 發音練習", code: "pronunciation_access_required" });
         }
         const form = await req.formData().catch(() => null);
-        const lessonId = String(form?.get("lesson_id") || "").trim();
-        const lesson = LESSONS[lessonId];
+        const questionId = Number(form?.get("question_id"));
         const audio = form?.get("audio");
-        if (!lesson) return json(400, { error: "找不到這個發音關卡" });
+        if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
+        const question = await assertPublishedQuestionAccess(admin, questionId);
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
         if (audio.type !== "audio/wav") return json(415, { error: "錄音格式不正確，請重新錄音" });
         if (audio.size < 1000 || audio.size > MAX_AUDIO_BYTES) {
-            return json(413, { error: "錄音太短或太長，請在 12 秒內完成朗讀" });
+            return json(413, { error: "錄音太短或太長，請在 20 秒內完成朗讀" });
         }
 
         const audioBuffer = await audio.arrayBuffer();
@@ -172,7 +170,7 @@ Deno.serve(async (req: Request) => {
             return json(415, { error: "錄音必須是 16 kHz、單聲道的 PCM WAV，請重新錄音" });
         }
         if (wavInfo.durationSeconds < MIN_AUDIO_SECONDS || wavInfo.durationSeconds > MAX_AUDIO_SECONDS) {
-            return json(413, { error: "錄音太短或太長，請在 12 秒內完成朗讀" });
+            return json(413, { error: "錄音太短或太長，請在 20 秒內完成朗讀" });
         }
 
         const speechKey = Deno.env.get("AZURE_SPEECH_KEY");
@@ -181,12 +179,10 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
-        if (!checkPilotRateLimit(Number(user.id))) {
-            return json(429, { error: "短時間練習次數較多，請休息一下再繼續", code: "pilot_rate_limited" });
-        }
+        await assertRateLimit(admin, Number(user.id));
 
         const assessmentHeader = btoa(JSON.stringify({
-            ReferenceText: lesson.referenceText,
+            ReferenceText: question.referenceText,
             GradingSystem: "HundredMark",
             Granularity: "Phoneme",
             Dimension: "Comprehensive",
@@ -213,11 +209,21 @@ Deno.serve(async (req: Request) => {
             return json(422, { error: "沒有收到清楚的朗讀內容，請靠近麥克風再試一次", code: "speech_not_recognized" });
         }
 
+        const normalized = normalizeAzureResult(providerResult, question.referenceText, question.feedback);
+        const { error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
+            student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
+            pronunciation_score: normalized.scores.pronunciation, accuracy_score: normalized.scores.accuracy,
+            fluency_score: normalized.scores.fluency, completeness_score: normalized.scores.completeness,
+            prosody_score: normalized.scores.prosody, recognized_text: normalized.recognized_text,
+            word_results: normalized.words
+        });
+        if (saveError) throw saveError;
+
         return json(200, {
             success: true,
-            lesson_id: lessonId,
-            reference_text: lesson.referenceText,
-            ...normalizeAzureResult(providerResult, lesson.referenceText, lesson.feedback)
+            question_id: question.questionId,
+            reference_text: question.referenceText,
+            ...normalized
         });
     } catch (error) {
         const status = Number((error as any)?.status || 500);
