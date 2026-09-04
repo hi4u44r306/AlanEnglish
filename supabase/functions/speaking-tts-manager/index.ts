@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
+import { spokenExampleText } from "../_shared/speaking-tts-text.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -14,10 +15,11 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 const PROVIDER = "google_cloud_tts";
 const LANGUAGE_CODE = "en-US";
 const OUTPUT_FORMAT = "mp3";
-const SAMPLE_RATE = 24000;
+const PIPELINE_VERSION = "natural-example-v2";
+const SAMPLE_RATE_METADATA = 48000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 const DEFAULT_VOICE_ID = "en-US-Chirp3-HD-Leda";
-const SETTINGS = Object.freeze({ audioEncoding: "MP3", sampleRateHertz: SAMPLE_RATE });
+const SETTINGS = Object.freeze({ audioEncoding: "MP3" });
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;
 
@@ -113,13 +115,13 @@ const requestGoogleAudio = async (text: string, selectedVoice: string) => {
 };
 
 const generateQuestionAudio = async (admin: any, question: any) => {
-    const text = cleanText(question?.model_answer, 2000);
+    const text = spokenExampleText(question?.model_answer);
     if (!text) return { question_id: Number(question.id), status: "failed", error: "示範回答是空白" };
     const selectedVoice = voiceId();
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
         provider: PROVIDER, voice_id: selectedVoice, language_code: LANGUAGE_CODE,
-        output_format: OUTPUT_FORMAT, sample_rate: SAMPLE_RATE, settings: SETTINGS
+        output_format: OUTPUT_FORMAT, sample_rate: "provider_default", pipeline_version: PIPELINE_VERSION, settings: SETTINGS
     }));
 
     const { data: existing, error: existingError } = await admin.from("speaking_tts_assets")
@@ -149,7 +151,7 @@ const generateQuestionAudio = async (admin: any, question: any) => {
     } else {
         const { data, error } = await admin.from("speaking_tts_assets").insert({
             provider: PROVIDER, content_hash: contentHash, source_text: text, voice_id: selectedVoice,
-            language_code: LANGUAGE_CODE, output_format: OUTPUT_FORMAT, sample_rate: SAMPLE_RATE,
+            language_code: LANGUAGE_CODE, output_format: OUTPUT_FORMAT, sample_rate: SAMPLE_RATE_METADATA,
             settings_hash: settingsHash, settings: SETTINGS, status: "processing", updated_at: now
         }).select("id").single();
         if (error?.code === "23505") {
@@ -169,7 +171,7 @@ const generateQuestionAudio = async (admin: any, question: any) => {
 
     try {
         const generated = await requestGoogleAudio(text, selectedVoice);
-        const objectKey = normalizeObjectKey(`speaking-tts/google/${selectedVoice}/${contentHash}.mp3`);
+        const objectKey = normalizeObjectKey(`speaking-tts/google/${selectedVoice}/${contentHash}-${settingsHash.slice(0, 16)}.mp3`);
         const stored = await fetchR2(objectKey, {
             method: "PUT", body: generated.bytes,
             headers: { "Content-Type": "audio/mpeg", "Cache-Control": "private, max-age=31536000, immutable" }
