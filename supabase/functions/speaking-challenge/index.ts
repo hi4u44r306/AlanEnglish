@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
         const setId = Number(body?.question_set_id);
         if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "找不到口說小關卡" });
         const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-            .select("id,book_id,title,topic,difficulty,version,books(id,name,code),speaking_questions(id,question_text,hint_zh,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,sort_order)")
+            .select("id,book_id,title,topic,difficulty,version,books(id,name,code),speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,sort_order)")
             .eq("id", setId).eq("status", "published").maybeSingle();
         if (setError) throw setError;
         if (!questionSet) return json(404, { error: "找不到已發布的口說小關卡" });

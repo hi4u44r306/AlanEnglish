@@ -68,16 +68,18 @@ describe("submitPronunciationAttempt", () => {
         });
     });
 
-    it("題庫跟讀只傳 question_id，絕不由瀏覽器傳入示範答案", async () => {
+    it("題庫跟讀只傳 question_id 與受控代換值，絕不由瀏覽器傳入示範答案", async () => {
         global.fetch.mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue({ success: true }) });
         await submitSpeakingPronunciationAttempt({
             firebaseUser: { getIdToken: jest.fn().mockResolvedValue("firebase-token") },
             questionId: 42,
+            slotValues: { "你的名字": "Amy" },
             audio: new Blob(["wav-data"], { type: "audio/wav" })
         });
         const body = global.fetch.mock.calls[0][1].body;
         expect(body.get("question_id")).toBe("42");
         expect(body.get("lesson_id")).toBeNull();
         expect(body.get("reference_text")).toBeNull();
+        expect(JSON.parse(body.get("slot_values"))).toEqual({ "你的名字": "Amy" });
     });
 });

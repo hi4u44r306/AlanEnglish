@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
+import { buildSpeakingReferenceText, readSpeakingSlotValues } from "../_shared/speaking-pronunciation-reference.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -113,17 +114,13 @@ const buildAzureSpeechEndpoint = (region: string) => {
     return url.toString();
 };
 
-const normalizeReferenceText = (value: unknown) => String(value || "")
-    .replace(/[\[［][^\]］]{1,80}[\]］]/g, "")
-    .replace(/\s+/g, " ").trim();
-
-const assertPublishedQuestionAccess = async (admin: any, questionId: number) => {
+const assertPublishedQuestionAccess = async (admin: any, questionId: number, slotValues: Record<string, string>) => {
     const { data, error } = await admin.from("speaking_questions")
         .select("id,question_set_id,model_answer,pronunciation_notes_zh,speaking_question_sets!inner(id,status)")
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
-    const referenceText = normalizeReferenceText(data.model_answer);
+    const referenceText = buildSpeakingReferenceText(data.model_answer, slotValues);
     if (!referenceText || referenceText.length > 500) {
         throw Object.assign(new Error("這題尚未設定可朗讀的完整示範回答"), { status: 422 });
     }
@@ -195,9 +192,10 @@ Deno.serve(async (req: Request) => {
         }
         const form = await req.formData().catch(() => null);
         const questionId = Number(form?.get("question_id"));
+        const slotValues = readSpeakingSlotValues(form?.get("slot_values") || null);
         const audio = form?.get("audio");
         if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
-        const question = await assertPublishedQuestionAccess(admin, questionId);
+        const question = await assertPublishedQuestionAccess(admin, questionId, slotValues);
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
         if (audio.type !== "audio/wav") return json(415, { error: "錄音格式不正確，請重新錄音" });
         if (audio.size < 1000 || audio.size > MAX_AUDIO_BYTES) {
