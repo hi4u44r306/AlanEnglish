@@ -32,7 +32,7 @@ describe("SpeakingPracticeSteps", () => {
         render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayAudio={jest.fn()} />);
 
         expect(screen.getByRole("button", { name: "看提示說（請先完成前一步）" })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "不看提示說（請先完成前一步）" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "自己說（請先完成前一步）" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "模擬評分" })).toBeDisabled();
 
         fireEvent.change(screen.getByLabelText("你的名字"), { target: { value: "Amy" } });
@@ -43,7 +43,7 @@ describe("SpeakingPracticeSteps", () => {
         expect(screen.queryByText("My name is Amy.")).not.toBeInTheDocument();
         expect(screen.getByText("my")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "模擬評分" }));
-        fireEvent.click(screen.getByRole("button", { name: "下一步：不看提示說" }));
+        fireEvent.click(screen.getByRole("button", { name: "下一步：自己說" }));
 
         expect(screen.getByText("不看提示，完成整句")).toBeInTheDocument();
         expect(screen.queryByText("關鍵字：my、name、is")).not.toBeInTheDocument();

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiCheckCircle, FiMic, FiRefreshCw, FiSend } from "react-icons/fi";
+import { FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiSquare } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import "./css/SpeakingPronunciationRecorder.scss";
@@ -13,6 +13,7 @@ const recordingMimeType = () => {
 };
 
 const scoreLabel = score => score >= 80 ? "表現良好" : score >= 60 ? "再練一次會更好" : "先聽示範，再慢慢重讀";
+const scoreTone = score => score >= 80 ? "good" : score >= 60 ? "practice" : "retry";
 
 export default function SpeakingPronunciationRecorder({ firebaseUser, question, slotValues = {}, disabledReason = "", onScored }) {
     const [recording, setRecording] = useState(false);
@@ -90,15 +91,35 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
         finally { setSubmitting(false); }
     };
 
+    const pronunciationScore = Math.round(result?.scores?.pronunciation || 0);
+
     return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""}`} aria-live="polite">
         {!result && <>
-            <strong><FiMic /> {recording ? "正在聽你朗讀…" : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "準備好後，讓 AI 幫你看看"}</strong>
-            <span>{recording ? `${elapsed} / ${MAX_RECORDING_SECONDS} 秒` : preparing ? "請稍候，不需要重新錄音。" : "錄音只在這台裝置暫存，不會上傳保存。"}</span>
+            <div className="speaking-recording-heading">
+                <strong>{recording ? "正在聽你朗讀…" : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "輪到你開口說"}</strong>
+                <span>{recording ? `${elapsed} / ${MAX_RECORDING_SECONDS} 秒` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : "按下麥克風，慢慢說完整句子。"}</span>
+            </div>
             {disabledReason && !recordedBlob && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
-            {previewUrl && <audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio>}
-            <div>{!recording && !recordedBlob && <button type="button" onClick={start} disabled={preparing || Boolean(disabledReason)}><FiMic />{preparing ? "準備中…" : "開始錄音"}</button>}{recording && <button type="button" onClick={stop}>完成錄音</button>}{!recording && recordedBlob && <><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : "送出評分"}</button></>}</div>
+            {!recordedBlob && <button
+                type="button"
+                className="speaking-pronunciation-mic"
+                onClick={recording ? stop : start}
+                disabled={preparing || Boolean(disabledReason)}
+                aria-label={recording ? "完成錄音" : "開始錄音"}
+            >
+                {recording ? <FiSquare aria-hidden="true" /> : <FiMic aria-hidden="true" />}
+                <span>{recording ? "完成錄音" : preparing ? "準備中…" : "開始錄音"}</span>
+            </button>}
+            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : "送出評分"}</button></div></div>}
+            <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
         </>}
-        {result && <><header><FiCheckCircle /><span>本次整體表現</span><strong>{Math.round(result.scores?.pronunciation || 0)} 分</strong><small>{scoreLabel(result.scores?.pronunciation || 0)}</small></header><div className="speaking-pronunciation-scores"><span>清楚度 <b>{Math.round(result.scores?.accuracy || 0)}</b></span><span>流暢度 <b>{Math.round(result.scores?.fluency || 0)}</b></span><span>完整度 <b>{Math.round(result.scores?.completeness || 0)}</b></span><span>語調 <b>{Math.round(result.scores?.prosody || 0)}</b></span></div><div className="speaking-pronunciation-words">{(result.words || []).map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}<small>{Math.round(word.score)}</small></span>)}</div><p>{result.feedback}</p><button type="button" onClick={reset}><FiRefreshCw />再練一次</button></>}
+        {result && <div className={`speaking-pronunciation-result is-${scoreTone(pronunciationScore)}`}>
+            <header><FiCheckCircle aria-hidden="true" /><span>本次整體表現</span><strong>{pronunciationScore} 分</strong><small>{scoreLabel(pronunciationScore)}</small></header>
+            {(result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}<small>{Math.round(word.score)}</small></span>)}</div>}
+            <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback}</span></p>
+            <details className="speaking-pronunciation-details"><summary>查看詳細分析</summary><div className="speaking-pronunciation-scores"><span>清楚度 <b>{Math.round(result.scores?.accuracy || 0)}</b></span><span>流暢度 <b>{Math.round(result.scores?.fluency || 0)}</b></span><span>完整度 <b>{Math.round(result.scores?.completeness || 0)}</b></span><span>語調 <b>{Math.round(result.scores?.prosody || 0)}</b></span></div></details>
+            <button type="button" className="secondary" onClick={reset}><FiRefreshCw />再練一次</button>
+        </div>}
         {error && <p className="speaking-pronunciation-error" role="alert">{error}</p>}
     </section>;
 }

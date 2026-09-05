@@ -27,7 +27,7 @@ const normalizeKeywords = value => {
 const MODES = [
     { id: "repeat", label: "看著念", helper: "先聽範例，照著完整句子慢慢念。", icon: FiEye },
     { id: "keywords", label: "看提示說", helper: "把答案藏起來，只看關鍵字完成整句。", icon: FiKey },
-    { id: "independent", label: "不看提示說", helper: "不看答案與關鍵字，自己完成整句。", icon: FiEyeOff }
+    { id: "independent", label: "自己說", helper: "不看答案與關鍵字，自己完成整句。", icon: FiEyeOff }
 ];
 
 export default function SpeakingPracticeSteps({ firebaseUser, question, audioWorking, onPlayAudio, onCompleted }) {

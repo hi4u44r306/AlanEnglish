@@ -50,7 +50,11 @@ describe("SpeakingPronunciationRecorder", () => {
     it("回聽與送評使用同一份轉換後 WAV，不在送出時重複轉檔", async () => {
         const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
         convertAudioBlobToWav.mockResolvedValue(wav);
-        submitSpeakingPronunciationAttempt.mockResolvedValue({ scores: { pronunciation: 88 }, words: [] });
+        submitSpeakingPronunciationAttempt.mockResolvedValue({
+            scores: { pronunciation: 88, accuracy: 90, fluency: 86, completeness: 92, prosody: 82 },
+            words: [{ text: "name", score: 90, status: "good" }],
+            feedback: "句尾再放慢一點。"
+        });
 
         render(<SpeakingPronunciationRecorder
             firebaseUser={{ getIdToken: jest.fn() }}
@@ -65,5 +69,8 @@ describe("SpeakingPronunciationRecorder", () => {
 
         await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({ audio: wav })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
+        expect(await screen.findByText("88 分")).toBeInTheDocument();
+        expect(screen.getByText("句尾再放慢一點。")).toBeInTheDocument();
+        expect(screen.getByText("查看詳細分析").closest("details")).not.toHaveAttribute("open");
     });
 });
