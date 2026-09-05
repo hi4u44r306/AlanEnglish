@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
+import { readAzureWordAssessment, selectAzureAssessmentResult } from "../_shared/azure-pronunciation.ts";
 import { buildSpeakingReferenceText, readSpeakingSlotValues } from "../_shared/speaking-pronunciation-reference.ts";
 
 const corsHeaders = {
@@ -100,7 +101,7 @@ const speechRecognitionError = (providerResult: any, wavInfo: ReturnType<typeof 
         return { error: "有收到聲音，但沒有辨識到清楚的英文，請跟著示範句慢慢朗讀", code: "speech_no_match" };
     }
     if (status === "Success") {
-        return { error: "已辨識到英文，但評分資料不完整，請重新錄音再試一次", code: "assessment_missing" };
+        return { error: "已辨識到英文，但評分服務暫時沒有回傳分數；這不是你的錄音問題，請稍後再試", code: "provider_assessment_unavailable" };
     }
     return { error: "暫時無法辨識這次錄音，請重新錄音再試一次", code: "speech_not_recognized" };
 };
@@ -138,8 +139,9 @@ const assertRateLimit = async (admin: any, studentId: number) => {
 };
 
 const normalizeAzureResult = (data: any, referenceText: string, defaultFeedback: string) => {
-    const best = Array.isArray(data?.NBest) ? data.NBest[0] : null;
-    const assessment = best?.PronunciationAssessment || {};
+    const selected = selectAzureAssessmentResult(data);
+    if (!selected) throw Object.assign(new Error("發音評分服務沒有回傳完整分數"), { status: 502, code: "provider_assessment_unavailable" });
+    const { best, assessment } = selected;
     const azureWords = Array.isArray(best?.Words) ? best.Words : [];
     const indexedWords = new Map<string, any[]>();
     for (const item of azureWords) {
@@ -153,8 +155,9 @@ const normalizeAzureResult = (data: any, referenceText: string, defaultFeedback:
         const candidates = indexedWords.get(key) || [];
         const item = candidates.shift();
         indexedWords.set(key, candidates);
-        const score = item ? numberScore(item?.PronunciationAssessment?.AccuracyScore) : 0;
-        const errorType = String(item?.PronunciationAssessment?.ErrorType || (item ? "None" : "Omission"));
+        const wordAssessment = readAzureWordAssessment(item);
+        const score = item ? numberScore(wordAssessment.accuracyScore) : 0;
+        const errorType = String(wordAssessment.errorType || (item ? "None" : "Omission"));
         return { text, score, status: errorType === "None" ? statusForScore(score) : "retry", error_type: errorType };
     });
     const needsPractice = words.filter(word => word.status !== "good").slice(0, 3).map(word => word.text.replace(/[.,!?]/g, ""));
@@ -249,8 +252,8 @@ Deno.serve(async (req: Request) => {
             console.error("Azure pronunciation assessment failed", providerResponse.status, providerResult?.RecognitionStatus || "unknown");
             return json(502, { error: "發音評分暫時無法完成，請稍後再試", code: "provider_failed" });
         }
-        if (!providerResult?.NBest?.[0]?.PronunciationAssessment) {
-            return json(422, speechRecognitionError(providerResult, wavInfo));
+        if (!selectAzureAssessmentResult(providerResult)) {
+            return json(providerResult?.RecognitionStatus === "Success" ? 502 : 422, speechRecognitionError(providerResult, wavInfo));
         }
 
         const normalized = normalizeAzureResult(providerResult, question.referenceText, question.feedback);

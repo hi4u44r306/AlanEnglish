@@ -15,10 +15,10 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 const PROVIDER = "google_cloud_tts";
 const LANGUAGE_CODE = "en-US";
 const OUTPUT_FORMAT = "wav";
-const PIPELINE_VERSION = "elementary-clear-v3";
+const PIPELINE_VERSION = "elementary-bright-v4";
 const SAMPLE_RATE_METADATA = 24000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
-const DEFAULT_VOICE_ID = "en-US-Chirp3-HD-Leda";
+const DEFAULT_VOICE_ID = "en-US-Chirp3-HD-Autonoe";
 const SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.82 });
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;

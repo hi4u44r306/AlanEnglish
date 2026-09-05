@@ -12,7 +12,8 @@ assert.equal(/[\u3400-\u9fff［］【】]/.test(spokenExampleText("My name is �
 
 const managerSource = readFileSync(new URL("../supabase/functions/speaking-tts-manager/index.ts", import.meta.url), "utf8");
 assert.match(managerSource, /const OUTPUT_FORMAT = "wav";/);
-assert.match(managerSource, /const PIPELINE_VERSION = "elementary-clear-v3";/);
+assert.match(managerSource, /const PIPELINE_VERSION = "elementary-bright-v4";/);
+assert.match(managerSource, /const DEFAULT_VOICE_ID = "en-US-Chirp3-HD-Autonoe";/);
 assert.match(managerSource, /audioEncoding: "LINEAR16", speakingRate: 0\.82/);
 assert.match(managerSource, /settingsHash\.slice\(0, 16\)\}\.wav/);
 assert.match(managerSource, /"Content-Type": "audio\/wav"/);
