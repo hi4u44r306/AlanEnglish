@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiBookOpen, FiCheckCircle, FiChevronLeft, FiMic, FiVolume2 } from "react-icons/fi";
+import { FiBookOpen, FiChevronLeft, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
@@ -13,7 +13,6 @@ export default function TextbookSpeakingChallenge() {
     const [catalog, setCatalog] = useState([]);
     const [challenge, setChallenge] = useState(null);
     const [error, setError] = useState("");
-    const [working, setWorking] = useState("");
     const [audioWorking, setAudioWorking] = useState("");
     const audioRef = useRef(null);
 
@@ -34,12 +33,10 @@ export default function TextbookSpeakingChallenge() {
     }, [firebaseUser, questionSetId]);
 
     const markComplete = async question => {
-        setWorking(String(question.id));
         try {
             await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id);
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
         } catch (saveError) { setError(saveError.message || "無法儲存練習紀錄"); }
-        finally { setWorking(""); }
     };
 
     const markScored = question => {

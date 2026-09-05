@@ -61,7 +61,47 @@ const inspectPcm16Wav = (buffer: ArrayBuffer) => {
         || bytesPerSecond <= 0
     ) return null;
 
-    return { durationSeconds: dataBytes / bytesPerSecond };
+    const sampleCount = Math.floor(dataBytes / 2);
+    let peak = 0;
+    let sumSquares = 0;
+    let activeSamples = 0;
+    for (let index = 0; index < sampleCount; index += 1) {
+        const amplitude = Math.abs(view.getInt16(44 + index * 2, true)) / 0x8000;
+        peak = Math.max(peak, amplitude);
+        sumSquares += amplitude * amplitude;
+        if (amplitude >= 0.01) activeSamples += 1;
+    }
+
+    return {
+        durationSeconds: dataBytes / bytesPerSecond,
+        peak,
+        rms: sampleCount > 0 ? Math.sqrt(sumSquares / sampleCount) : 0,
+        activeRatio: sampleCount > 0 ? activeSamples / sampleCount : 0
+    };
+};
+
+const speechRecognitionError = (providerResult: any, wavInfo: ReturnType<typeof inspectPcm16Wav>) => {
+    const status = String(providerResult?.RecognitionStatus || "");
+    console.warn("Azure speech was not assessable", {
+        recognitionStatus: status || "missing",
+        audioSeconds: Number(wavInfo?.durationSeconds || 0).toFixed(2),
+        peak: Number(wavInfo?.peak || 0).toFixed(4),
+        rms: Number(wavInfo?.rms || 0).toFixed(4),
+        activeRatio: Number(wavInfo?.activeRatio || 0).toFixed(4)
+    });
+    if (status === "InitialSilenceTimeout") {
+        return { error: "錄音開頭太久沒有聲音，按下錄音後請立刻開始朗讀", code: "initial_silence" };
+    }
+    if (status === "BabbleTimeout") {
+        return { error: "背景聲音太多，請到安靜一點的地方重新錄音", code: "background_noise" };
+    }
+    if (status === "NoMatch") {
+        return { error: "有收到聲音，但沒有辨識到清楚的英文，請跟著示範句慢慢朗讀", code: "speech_no_match" };
+    }
+    if (status === "Success") {
+        return { error: "已辨識到英文，但評分資料不完整，請重新錄音再試一次", code: "assessment_missing" };
+    }
+    return { error: "暫時無法辨識這次錄音，請重新錄音再試一次", code: "speech_not_recognized" };
 };
 
 const buildAzureSpeechEndpoint = (region: string) => {
@@ -172,6 +212,12 @@ Deno.serve(async (req: Request) => {
         if (wavInfo.durationSeconds < MIN_AUDIO_SECONDS || wavInfo.durationSeconds > MAX_AUDIO_SECONDS) {
             return json(413, { error: "錄音太短或太長，請在 20 秒內完成朗讀" });
         }
+        if (wavInfo.peak < 0.002 || wavInfo.rms < 0.0002) {
+            return json(422, {
+                error: "送評音檔的音量太低，請靠近麥克風並重新錄音",
+                code: "audio_too_quiet"
+            });
+        }
 
         const speechKey = Deno.env.get("AZURE_SPEECH_KEY");
         const speechRegion = String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim();
@@ -206,7 +252,7 @@ Deno.serve(async (req: Request) => {
             return json(502, { error: "發音評分暫時無法完成，請稍後再試", code: "provider_failed" });
         }
         if (!providerResult?.NBest?.[0]?.PronunciationAssessment) {
-            return json(422, { error: "沒有收到清楚的朗讀內容，請靠近麥克風再試一次", code: "speech_not_recognized" });
+            return json(422, speechRecognitionError(providerResult, wavInfo));
         }
 
         const normalized = normalizeAzureResult(providerResult, question.referenceText, question.feedback);
