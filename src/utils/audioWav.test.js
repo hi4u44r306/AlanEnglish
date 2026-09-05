@@ -31,4 +31,15 @@ describe("encodePcm16Wav", () => {
         expect(readAscii(view, 36, 4)).toBe("data");
         expect(view.getUint32(40, true)).toBe(10);
     });
+
+    it("等比例放大偏小的麥克風訊號，避免送評 WAV 幾乎無聲", async () => {
+        const blob = encodePcm16Wav({
+            sampleRate: 16000,
+            getChannelData: () => new Float32Array([0.05, -0.05])
+        });
+        const view = new DataView(await readBlob(blob));
+
+        expect(view.getInt16(44, true)).toBeGreaterThan(6000);
+        expect(view.getInt16(46, true)).toBeLessThan(-6000);
+    });
 });

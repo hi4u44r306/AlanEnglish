@@ -1,4 +1,4 @@
-import { submitPronunciationAttempt } from "./pronunciationCoachService";
+import { submitPronunciationAttempt, submitSpeakingPronunciationAttempt } from "./pronunciationCoachService";
 
 jest.mock("../components/Pages/supabase-config", () => ({
     supabaseUrl: "https://project.example.test",
@@ -66,5 +66,18 @@ describe("submitPronunciationAttempt", () => {
             status: 503,
             code: "service_not_configured"
         });
+    });
+
+    it("題庫跟讀只傳 question_id，絕不由瀏覽器傳入示範答案", async () => {
+        global.fetch.mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue({ success: true }) });
+        await submitSpeakingPronunciationAttempt({
+            firebaseUser: { getIdToken: jest.fn().mockResolvedValue("firebase-token") },
+            questionId: 42,
+            audio: new Blob(["wav-data"], { type: "audio/wav" })
+        });
+        const body = global.fetch.mock.calls[0][1].body;
+        expect(body.get("question_id")).toBe("42");
+        expect(body.get("lesson_id")).toBeNull();
+        expect(body.get("reference_text")).toBeNull();
     });
 });
