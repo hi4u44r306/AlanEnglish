@@ -343,6 +343,7 @@
   align-items: center;
   color: #fff1bd;
 }
+.speaking-volume-copy-compact { display: none; }
 .speaking-keyword-guide,
 .speaking-independent-guide { display: grid; gap: 9px; }
 .speaking-keyword-guide > div { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -370,33 +371,119 @@
 .speaking-practice-finished svg { flex: 0 0 auto; }
 
 @media (max-width: 760px) {
-  .speaking-challenge-page { padding: 88px 14px calc(72px + env(safe-area-inset-bottom)); }
-  .speaking-challenge-detail { padding-top: 82px; }
-  .speaking-lesson-header { grid-template-columns: 1fr auto; gap: 10px 12px; padding: 14px; }
-  .speaking-lesson-header .speaking-back { grid-column: 1 / -1; }
-  .speaking-lesson-progress { min-width: 120px; }
-  .speaking-focus-card { gap: 15px; border-radius: 20px; }
-  .speaking-practice-tabs button {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    min-height: 68px;
-    padding: 7px 4px;
-    text-align: center;
+  .speaking-challenge-page { padding: 80px 14px calc(72px + env(safe-area-inset-bottom)); }
+  .speaking-challenge-page.speaking-challenge-detail {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    height: calc(100svh - 66px);
+    min-height: 0;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    overflow: hidden;
   }
-  .speaking-practice-tabs button > span { grid-row: auto; width: 28px; height: 28px; }
+  .speaking-lesson-header {
+    grid-template-columns: 44px minmax(0, 1fr) minmax(104px, 122px);
+    gap: 8px;
+    margin-bottom: 0;
+    padding: 7px 8px;
+    border-radius: 14px;
+  }
+  .speaking-lesson-header .speaking-back {
+    grid-column: auto;
+    justify-content: center;
+    width: 44px;
+    padding-inline: 0;
+    overflow: hidden;
+    font-size: 0;
+  }
+  .speaking-lesson-header .speaking-back svg { font-size: 20px; }
+  .speaking-lesson-heading > span,
+  .speaking-lesson-heading > p { display: none; }
+  .speaking-lesson-heading h1 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .speaking-lesson-progress { min-width: 0; gap: 4px; }
+  .speaking-lesson-progress > div:first-child { font-size: 10px; }
+  .speaking-progress-track { height: 6px; }
+  .speaking-question-stage { min-height: 0; }
+  .speaking-focus-card {
+    height: 100%;
+    min-height: 0;
+    gap: 8px;
+    padding: 10px 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 16px;
+    box-shadow: 0 8px 22px rgba(20, 47, 91, .07);
+  }
+  .speaking-question-heading {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+  }
+  .speaking-question-number { width: 32px; height: 32px; border-radius: 10px; }
+  .speaking-question-heading small { display: none; }
+  .speaking-question-heading h2 { margin: 0 0 2px; font-size: 18px; line-height: 1.2; }
+  .speaking-question-heading p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .speaking-pronunciation-note summary { min-height: 36px; padding: 7px 10px; font-size: 12px; }
+  .speaking-pronunciation-note p { padding: 0 10px 9px; font-size: 12px; line-height: 1.4; }
+  .speaking-practice-flow { gap: 8px; }
+  .speaking-practice-tabs button {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px;
+    min-height: 46px;
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+  .speaking-practice-tabs::before { top: 22px; }
+  .speaking-practice-tabs button > span { grid-row: auto; width: 24px; height: 24px; font-size: 11px; }
   .speaking-practice-tabs button small { display: none; }
-  .speaking-question-navigation { grid-template-columns: 1fr 1fr; }
-  .speaking-question-navigation span { grid-column: 1 / -1; grid-row: 1; }
+  .speaking-answer-slots { gap: 4px; padding: 7px 10px 9px; border-radius: 12px; }
+  .speaking-answer-slots legend { font-size: 13px; }
+  .speaking-answer-slots > p,
+  .speaking-answer-slots label > span { display: none; }
+  .speaking-answer-slots > div { gap: 6px; }
+  .speaking-answer-slots input { min-height: 44px; padding-block: 7px; }
+  .speaking-practice-guide { gap: 6px; padding: 8px; border-radius: 12px; }
+  .speaking-practice-guide > header { display: none; }
+  .speaking-answer { gap: 6px; padding: 9px 10px; border-radius: 12px; }
+  .speaking-answer > strong { display: none; }
+  .speaking-answer > span { font-size: 17px; line-height: 1.3; }
+  .speaking-answer button { min-height: 44px; padding-block: 7px; }
+  .speaking-answer small { font-size: 11px; line-height: 1.25; }
+  .speaking-answer small:not(.speaking-audio-volume-hint) { display: none; }
+  .speaking-volume-copy-wide { display: none; }
+  .speaking-volume-copy-compact { display: inline; }
+  .speaking-keyword-guide,
+  .speaking-independent-guide { gap: 6px; }
+  .speaking-keyword-guide > div span { padding: 5px 8px; font-size: 12px; }
+  .speaking-keyword-guide p,
+  .speaking-independent-guide p { padding: 7px 8px; font-size: 12px; }
+  .speaking-no-reward { display: none; }
+  .speaking-question-navigation {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 7px;
+    margin-top: 0;
+  }
+  .speaking-question-navigation span { grid-column: auto; grid-row: auto; font-size: 11px; }
   .speaking-question-navigation button,
-  .speaking-question-navigation button:last-child { width: 100%; }
+  .speaking-question-navigation button:last-child { width: 100%; min-height: 44px; padding: 7px 9px; font-size: 12px; }
 }
 
 @media (max-width: 480px) {
-  .speaking-lesson-header { grid-template-columns: 1fr; }
-  .speaking-lesson-progress { width: 100%; }
-  .speaking-lesson-heading h1 { white-space: normal; }
-  .speaking-question-heading { grid-template-columns: 1fr; }
-  .speaking-question-number { width: 36px; height: 36px; border-radius: 12px; }
+  .speaking-lesson-header { grid-template-columns: 44px minmax(0, 1fr) 100px; }
+  .speaking-lesson-progress { width: auto; }
+  .speaking-question-heading { grid-template-columns: 32px minmax(0, 1fr); }
   .speaking-answer-slots > div { grid-template-columns: 1fr; }
   .speaking-practice-next,
   .speaking-keyword-guide button,

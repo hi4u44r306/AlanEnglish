@@ -48,7 +48,11 @@ const AssignmentShortcut = ({
             `${path}/`
         );
 
-    if (alreadyOnAssignmentPage) {
+    const insideSpeakingChallenge =
+        role === "student" &&
+        /^\/student\/speaking-challenges\/[^/]+/.test(location.pathname);
+
+    if (alreadyOnAssignmentPage || insideSpeakingChallenge) {
         return null;
     }
 

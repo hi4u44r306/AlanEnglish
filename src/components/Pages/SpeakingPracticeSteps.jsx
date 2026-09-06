@@ -110,7 +110,7 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
                 <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
                     <FiVolume2 />{question.model_audio_url ? (audioWorking ? "播放中…" : "先聽自然範例") : "語音準備中"}
                 </button>
-                <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" /> 聽不到聲音？請用手機音量鍵開啟或調整媒體音量。</small>
+                <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" /><span className="speaking-volume-copy-wide">聽不到聲音？請用手機音量鍵開啟或調整媒體音量。</span><span className="speaking-volume-copy-compact">聽不到？用手機音量鍵調整</span></small>
                 {slots.length > 0 && <small>示範語音會念自然範例；你的評分會依上方填入的英文。</small>}
             </div>}
             {mode === "keywords" && <div className="speaking-keyword-guide">
