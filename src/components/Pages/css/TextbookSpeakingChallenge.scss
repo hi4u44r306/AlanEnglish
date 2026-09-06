@@ -337,6 +337,12 @@
 }
 .speaking-answer button { border: 0; background: #ffd76d; color: #173e7e; }
 .speaking-answer small { color: #dbe8ff; }
+.speaking-answer .speaking-audio-volume-hint {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: #fff1bd;
+}
 .speaking-keyword-guide,
 .speaking-independent-guide { display: grid; gap: 9px; }
 .speaking-keyword-guide > div { display: flex; flex-wrap: wrap; gap: 7px; }

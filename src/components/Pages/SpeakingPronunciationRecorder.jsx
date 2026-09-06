@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiSquare } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
+import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import "./css/SpeakingPronunciationRecorder.scss";
 
 const MAX_RECORDING_SECONDS = 20;
@@ -83,10 +84,13 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
     };
     const submit = async () => {
         if (!recordedBlob || submitting) return;
+        prepareSpeakingFeedbackSound();
         setSubmitting(true); setError("");
         try {
             const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, slotValues, audio: recordedBlob });
-            setResult(score); onScored?.(score);
+            setResult(score);
+            playSpeakingFeedbackSound(scoreTone(Math.round(score?.scores?.pronunciation || 0)));
+            onScored?.(score);
         } catch (cause) { setError(cause?.message || "發音評分失敗，請稍後再試"); }
         finally { setSubmitting(false); }
     };
@@ -114,10 +118,10 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
             <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${scoreTone(pronunciationScore)}`}>
-            <header><FiCheckCircle aria-hidden="true" /><span>本次整體表現</span><strong>{pronunciationScore} 分</strong><small>{scoreLabel(pronunciationScore)}</small></header>
-            {(result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}<small>{Math.round(word.score)}</small></span>)}</div>}
+            <header><FiCheckCircle aria-hidden="true" /><span>本次練習結果</span><strong>{scoreLabel(pronunciationScore)}</strong></header>
+            <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>
+            {(result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}</span>)}</div>}
             <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback}</span></p>
-            <details className="speaking-pronunciation-details"><summary>查看詳細分析</summary><div className="speaking-pronunciation-scores"><span>清楚度 <b>{Math.round(result.scores?.accuracy || 0)}</b></span><span>流暢度 <b>{Math.round(result.scores?.fluency || 0)}</b></span><span>完整度 <b>{Math.round(result.scores?.completeness || 0)}</b></span><span>語調 <b>{Math.round(result.scores?.prosody || 0)}</b></span></div></details>
             <button type="button" className="secondary" onClick={reset}><FiRefreshCw />再練一次</button>
         </div>}
         {error && <p className="speaking-pronunciation-error" role="alert">{error}</p>}

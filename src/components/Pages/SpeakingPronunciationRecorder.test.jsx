@@ -4,12 +4,16 @@ import "@testing-library/jest-dom";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
+import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 
 jest.mock("../../services/pronunciationCoachService", () => ({
     submitSpeakingPronunciationAttempt: jest.fn()
 }));
 jest.mock("../../utils/audioWav", () => ({
     convertAudioBlobToWav: jest.fn()
+}));
+jest.mock("../../utils/speakingFeedbackSound", () => ({
+    playSpeakingFeedbackSound: jest.fn(), prepareSpeakingFeedbackSound: jest.fn()
 }));
 
 describe("SpeakingPronunciationRecorder", () => {
@@ -52,7 +56,11 @@ describe("SpeakingPronunciationRecorder", () => {
         convertAudioBlobToWav.mockResolvedValue(wav);
         submitSpeakingPronunciationAttempt.mockResolvedValue({
             scores: { pronunciation: 88, accuracy: 90, fluency: 86, completeness: 92, prosody: 82 },
-            words: [{ text: "name", score: 90, status: "good" }],
+            words: [
+                { text: "My", score: 90, status: "good" },
+                { text: "name", score: 72, status: "practice" },
+                { text: "Amy", score: 55, status: "retry" }
+            ],
             feedback: "句尾再放慢一點。"
         });
 
@@ -69,8 +77,16 @@ describe("SpeakingPronunciationRecorder", () => {
 
         await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({ audio: wav })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
-        expect(await screen.findByText("88 分")).toBeInTheDocument();
+        expect(await screen.findByText("表現良好")).toBeInTheDocument();
+        expect(screen.queryByText("88 分")).not.toBeInTheDocument();
+        expect(screen.queryByText("90")).not.toBeInTheDocument();
+        expect(screen.getByText("綠色：很清楚")).toBeInTheDocument();
+        expect(screen.getByText("My")).toHaveClass("word-good");
+        expect(screen.getByText("name")).toHaveClass("word-practice");
+        expect(screen.getByText("Amy")).toHaveClass("word-retry");
         expect(screen.getByText("句尾再放慢一點。")).toBeInTheDocument();
-        expect(screen.getByText("查看詳細分析").closest("details")).not.toHaveAttribute("open");
+        expect(screen.queryByText("查看詳細分析")).not.toBeInTheDocument();
+        expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(1);
+        expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("good");
     });
 });

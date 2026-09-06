@@ -38,6 +38,8 @@ describe("SpeakingPracticeSteps", () => {
         fireEvent.change(screen.getByLabelText("你的名字"), { target: { value: "Amy" } });
         expect(screen.getByTestId("slot-value")).toHaveTextContent("Amy");
         fireEvent.click(screen.getByRole("button", { name: "模擬評分" }));
+        expect(screen.getByText("完成")).toBeInTheDocument();
+        expect(screen.queryByText("82 分")).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "下一步：看提示說" }));
 
         expect(screen.queryByText("My name is Amy.")).not.toBeInTheDocument();

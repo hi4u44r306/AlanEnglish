@@ -80,7 +80,7 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
                     <span>{scores[item.id] !== undefined ? <FiCheck aria-hidden="true" /> : index + 1}</span>
                     <Icon aria-hidden="true" />
                     {item.label}
-                    {scores[item.id] !== undefined && <small>{scores[item.id]} 分</small>}
+                    {scores[item.id] !== undefined && <small>完成</small>}
                 </button>;
             })}
         </nav>
@@ -110,6 +110,7 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
                 <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
                     <FiVolume2 />{question.model_audio_url ? (audioWorking ? "播放中…" : "先聽自然範例") : "語音準備中"}
                 </button>
+                <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" /> 聽不到聲音？請用手機音量鍵開啟或調整媒體音量。</small>
                 {slots.length > 0 && <small>示範語音會念自然範例；你的評分會依上方填入的英文。</small>}
             </div>}
             {mode === "keywords" && <div className="speaking-keyword-guide">
@@ -136,6 +137,6 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
         {scores[mode] !== undefined && mode !== "independent" && <button type="button" className="speaking-practice-next" onClick={goNext}>
             下一步：{MODES[MODES.findIndex(item => item.id === mode) + 1].label}
         </button>}
-        {scores.independent !== undefined && mode === "independent" && <p className="speaking-practice-finished"><FiCheck /> 三段練習完成，可以再挑戰一次讓分數更好。</p>}
+        {scores.independent !== undefined && mode === "independent" && <p className="speaking-practice-finished"><FiCheck /> 三段練習完成，可以再挑戰一次，讓更多文字變成綠色。</p>}
     </section>;
 }
