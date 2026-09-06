@@ -23,6 +23,12 @@ export default function TextbookSpeakingChallenge() {
     }, []);
 
     useEffect(() => {
+        if (!questionSetId) return undefined;
+        document.body.classList.add("speaking-challenge-detail-active");
+        return () => document.body.classList.remove("speaking-challenge-detail-active");
+    }, [questionSetId]);
+
+    useEffect(() => {
         if (!firebaseUser) return;
         const load = async () => {
             try {

@@ -14,6 +14,21 @@ describe("TextbookSpeakingChallenge model audio", () => {
     const originalAudio = global.Audio;
     afterEach(() => { global.Audio = originalAudio; });
 
+    it("removes the global mobile player clearance while the detail page is open", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
+                speaking_questions: [{ id: 9, question_text: "What's your name?", hint_zh: "說出名字", model_answer: "My name is Alan.", progress_status: "opened" }]
+            }
+        });
+
+        const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        await screen.findByText("What's your name?");
+        expect(document.body).toHaveClass("speaking-challenge-detail-active");
+        unmount();
+        expect(document.body).not.toHaveClass("speaking-challenge-detail-active");
+    });
+
     it("plays the stored private model audio instead of browser speech synthesis", async () => {
         const play = jest.fn().mockResolvedValue(undefined);
         global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));

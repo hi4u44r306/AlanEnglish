@@ -371,6 +371,7 @@
 .speaking-practice-finished svg { flex: 0 0 auto; }
 
 @media (max-width: 760px) {
+  body.speaking-challenge-detail-active .app-content { padding-bottom: 0; }
   .speaking-challenge-page { padding: 80px 14px calc(72px + env(safe-area-inset-bottom)); }
   .speaking-challenge-page.speaking-challenge-detail {
     display: grid;
