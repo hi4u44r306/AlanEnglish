@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { FiCheck, FiEye, FiEyeOff, FiKey, FiVolume2 } from "react-icons/fi";
+import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 
 const ANSWER_SLOT_PATTERN = /[\u005B［]([^\u005D］]{1,80})[\u005D］]/g;
-const ENGLISH_SLOT_VALUE = /^[A-Za-z0-9][A-Za-z0-9 .,'!?&-]{0,59}$/;
 
 export const extractAnswerSlots = answer => {
     const labels = [];
@@ -14,129 +13,66 @@ export const extractAnswerSlots = answer => {
     return labels;
 };
 
-export const fillAnswerSlots = (answer, slotValues = {}) => String(answer || "").replace(
-    ANSWER_SLOT_PATTERN,
-    (placeholder, label) => slotValues[String(label || "").trim()] || placeholder
-);
+export const answerPatternForLearner = answer => String(answer || "")
+    .replace(ANSWER_SLOT_PATTERN, "_____")
+    .replace(/\s+/g, " ")
+    .trim();
 
-const normalizeKeywords = value => {
-    if (Array.isArray(value)) return value.map(item => String(item || "").trim()).filter(Boolean).slice(0, 8);
-    return String(value || "").split(/[,、]/).map(item => item.trim()).filter(Boolean).slice(0, 8);
+const naturalExample = question => {
+    const simple = String(question.simple_answer || "").trim();
+    if (simple && !extractAnswerSlots(simple).length) return simple;
+    return String(question.model_answer || "")
+        .replace(ANSWER_SLOT_PATTERN, (_placeholder, rawLabel) => {
+            const label = String(rawLabel || "");
+            if (label.includes("姓氏")) return "Lee";
+            if (label.includes("全名")) return "Amy Lee";
+            if (label.includes("名字")) return "Amy";
+            return "something";
+        })
+        .replace(/\s+/g, " ")
+        .trim();
 };
 
-const MODES = [
-    { id: "repeat", label: "看著念", helper: "先聽範例，照著完整句子慢慢念。", icon: FiEye },
-    { id: "keywords", label: "看提示說", helper: "把答案藏起來，只看關鍵字完成整句。", icon: FiKey },
-    { id: "independent", label: "自己說", helper: "不看答案與關鍵字，自己完成整句。", icon: FiEyeOff }
-];
-
 export default function SpeakingPracticeSteps({ firebaseUser, question, audioWorking, onPlayAudio, onCompleted }) {
-    const slots = useMemo(() => extractAnswerSlots(question.model_answer), [question.model_answer]);
-    const keywords = useMemo(() => normalizeKeywords(question.keywords), [question.keywords]);
-    const [mode, setMode] = useState("repeat");
-    const [slotValues, setSlotValues] = useState({});
     const [showHelp, setShowHelp] = useState(false);
-    const [scores, setScores] = useState({});
-    const previouslyCompleted = question.progress_status === "completed";
-    const currentMode = MODES.find(item => item.id === mode) || MODES[0];
-    const answer = fillAnswerSlots(question.model_answer, slotValues);
-    const invalidSlot = slots.find(label => !ENGLISH_SLOT_VALUE.test(String(slotValues[label] || "").trim()));
-    const disabledReason = invalidSlot
-        ? `請先用英文填寫「${invalidSlot}」，再開始錄音。`
-        : "";
+    const [lastResult, setLastResult] = useState(null);
+    const answerPattern = useMemo(() => answerPatternForLearner(question.model_answer), [question.model_answer]);
+    const example = useMemo(() => naturalExample(question), [question]);
 
-    const handleMode = nextMode => {
-        const nextIndex = MODES.findIndex(item => item.id === nextMode);
-        if (!previouslyCompleted && nextIndex === 1 && scores.repeat === undefined) return;
-        if (!previouslyCompleted && nextIndex === 2 && scores.keywords === undefined) return;
-        setMode(nextMode);
-        setShowHelp(false);
-    };
-
-    const handleScored = score => {
-        setScores(current => ({ ...current, [mode]: Math.round(score?.scores?.pronunciation || 0) }));
-        if (mode === "independent") onCompleted?.(score);
-    };
-
-    const goNext = () => {
-        const index = MODES.findIndex(item => item.id === mode);
-        if (index < MODES.length - 1) handleMode(MODES[index + 1].id);
+    const handleScored = result => {
+        setLastResult(result);
+        if (result?.answer_match !== false) onCompleted?.(result);
     };
 
     return <section className="speaking-practice-flow">
-        <nav className="speaking-practice-tabs" aria-label="口說練習步驟">
-            {MODES.map((item, index) => {
-                const Icon = item.icon;
-                const locked = !previouslyCompleted && ((index === 1 && scores.repeat === undefined) || (index === 2 && scores.keywords === undefined));
-                return <button
-                    type="button"
-                    key={item.id}
-                    className={mode === item.id ? "active" : ""}
-                    aria-current={mode === item.id ? "step" : undefined}
-                    aria-label={`${item.label}${locked ? "（請先完成前一步）" : ""}`}
-                    disabled={locked}
-                    onClick={() => handleMode(item.id)}
-                >
-                    <span>{scores[item.id] !== undefined ? <FiCheck aria-hidden="true" /> : index + 1}</span>
-                    <Icon aria-hidden="true" />
-                    {item.label}
-                    {scores[item.id] !== undefined && <small>完成</small>}
-                </button>;
-            })}
-        </nav>
-
-        {slots.length > 0 && <fieldset className="speaking-answer-slots">
-            <legend>先把答案換成自己的</legend>
-            <p>請填英文；評分時會依你填的內容判定，不會把括號提示念進去。</p>
-            <div>{slots.map(label => <label key={label}>
-                <span>{label}</span>
-                <input
-                    type="text"
-                    maxLength={60}
-                    autoComplete="off"
-                    value={slotValues[label] || ""}
-                    placeholder="例如 Amy"
-                    aria-invalid={Boolean(slotValues[label]) && !ENGLISH_SLOT_VALUE.test(String(slotValues[label]).trim())}
-                    onChange={event => setSlotValues(current => ({ ...current, [label]: event.target.value }))}
-                />
-            </label>)}</div>
-        </fieldset>}
-
-        <div className={`speaking-practice-guide is-${mode}`}>
-            <header><strong>{currentMode.label}</strong><span>{currentMode.helper}</span></header>
-            {mode === "repeat" && <div className="speaking-answer">
-                <strong>完整練習句</strong>
-                <span>{answer}</span>
-                <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
-                    <FiVolume2 />{question.model_audio_url ? (audioWorking ? "播放中…" : "先聽自然範例") : "語音準備中"}
-                </button>
-                <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" /><span className="speaking-volume-copy-wide">聽不到聲音？請用手機音量鍵開啟或調整媒體音量。</span><span className="speaking-volume-copy-compact">聽不到？用手機音量鍵調整</span></small>
-                {slots.length > 0 && <small>示範語音會念自然範例；你的評分會依上方填入的英文。</small>}
-            </div>}
-            {mode === "keywords" && <div className="speaking-keyword-guide">
-                <strong>關鍵字</strong>
-                <div>{(keywords.length ? keywords : [question.simple_answer]).filter(Boolean).map(keyword => <span key={keyword}>{keyword}</span>)}</div>
-                <button type="button" onClick={() => setShowHelp(current => !current)}>{showHelp ? "再次藏起答案" : "真的想不起來？看答案"}</button>
-                {showHelp && <p>{answer}</p>}
-            </div>}
-            {mode === "independent" && <div className="speaking-independent-guide">
-                <strong>不看提示，完成整句</strong>
-                <button type="button" onClick={() => setShowHelp(current => !current)}>{showHelp ? "收起提示" : "需要一點提示"}</button>
-                {showHelp && <div><p>{question.hint_zh}</p>{keywords.length > 0 && <p>關鍵字：{keywords.join("、")}</p>}</div>}
-            </div>}
+        <div className="speaking-direct-prompt">
+            <FiMic aria-hidden="true" />
+            <div><strong>直接開口回答</strong><span>不用打字，按下麥克風後用完整英文句子回答。</span></div>
         </div>
 
+        <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={() => setShowHelp(current => !current)}>
+            <FiHelpCircle aria-hidden="true" />{showHelp ? "收起回答提示" : "不知道怎麼說？"}
+        </button>
+
+        {showHelp && <div className="speaking-help-panel">
+            {question.hint_zh && <p>{question.hint_zh}</p>}
+            <div><small>可以這樣說</small><strong>{answerPattern}</strong></div>
+            <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
+                <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
+            </button>
+            {example && <small>示範：{example}</small>}
+            {question.pronunciation_notes_zh && <small>發音提醒：{question.pronunciation_notes_zh}</small>}
+            <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" />聽不到聲音時，請用裝置音量鍵調整媒體音量。</small>
+        </div>}
+
         <SpeakingPronunciationRecorder
-            key={`${question.id}-${mode}-${slots.map(label => slotValues[label] || "").join("|")}`}
+            key={question.id}
             firebaseUser={firebaseUser}
             question={question}
-            slotValues={slotValues}
-            disabledReason={disabledReason}
             onScored={handleScored}
         />
-        {scores[mode] !== undefined && mode !== "independent" && <button type="button" className="speaking-practice-next" onClick={goNext}>
-            下一步：{MODES[MODES.findIndex(item => item.id === mode) + 1].label}
-        </button>}
-        {scores.independent !== undefined && mode === "independent" && <p className="speaking-practice-finished"><FiCheck /> 三段練習完成，可以再挑戰一次，讓更多文字變成綠色。</p>}
+
+        {lastResult?.answer_match !== false && lastResult && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成，可以前往下一題或再練一次。</p>}
+        {lastResult?.answer_match === false && <p className="speaking-practice-retry"><FiHelpCircle aria-hidden="true" /> 先用提示中的完整句型回答，再送出一次。</p>}
     </section>;
 }

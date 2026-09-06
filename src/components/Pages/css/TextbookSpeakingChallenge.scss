@@ -216,6 +216,67 @@
 .speaking-challenge-empty > svg { font-size: 42px; }
 
 .speaking-practice-flow { display: grid; gap: 16px; }
+.speaking-direct-prompt {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  color: #183e78;
+}
+.speaking-direct-prompt > svg {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  border-radius: 50%;
+  background: #eaf2ff;
+  color: #2b66bd;
+}
+.speaking-direct-prompt > div { display: grid; gap: 2px; }
+.speaking-direct-prompt strong { font-size: 17px; }
+.speaking-direct-prompt span { color: #687790; font-size: 13px; }
+.speaking-help-toggle,
+.speaking-help-panel button {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid #a9bedc;
+  border-radius: 11px;
+  background: #fff;
+  color: #245eaf;
+  font-weight: 900;
+  cursor: pointer;
+}
+.speaking-help-toggle[aria-expanded="true"] { background: #edf4ff; }
+.speaking-help-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border-left: 4px solid #ffd76d;
+  border-radius: 0 14px 14px 0;
+  background: #f7f9fd;
+  color: #425570;
+}
+.speaking-help-panel p { grid-column: 1 / -1; margin: 0; }
+.speaking-help-panel > div { display: grid; gap: 2px; }
+.speaking-help-panel > div small { color: #687790; }
+.speaking-help-panel > div strong { color: #142c54; font-size: clamp(18px, 3vw, 23px); }
+.speaking-help-panel button { border: 0; background: #ffd76d; color: #173e7e; }
+.speaking-help-panel > small { grid-column: 1 / -1; }
+.speaking-help-panel .speaking-audio-volume-hint { display: inline-flex; gap: 5px; align-items: center; color: #775b12; }
+.speaking-practice-retry {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin: 0;
+  color: #9a3021;
+  font-weight: 900;
+}
 .speaking-practice-tabs {
   position: relative;
   display: grid;
@@ -450,6 +511,15 @@
   .speaking-pronunciation-note summary { min-height: 44px; padding: 8px 10px; font-size: 12px; }
   .speaking-pronunciation-note p { padding: 0 10px 9px; font-size: 12px; line-height: 1.4; }
   .speaking-practice-flow { gap: 8px; }
+  .speaking-direct-prompt { gap: 8px; }
+  .speaking-direct-prompt > svg { width: 32px; height: 32px; padding: 7px; }
+  .speaking-direct-prompt strong { font-size: 14px; }
+  .speaking-direct-prompt span { font-size: 11px; line-height: 1.3; }
+  .speaking-help-toggle { width: 100%; }
+  .speaking-help-panel { grid-template-columns: 1fr; gap: 6px; padding: 9px 10px; }
+  .speaking-help-panel button { width: 100%; }
+  .speaking-help-panel > div strong { font-size: 17px; }
+  .speaking-help-panel > small { font-size: 11px; line-height: 1.3; }
   .speaking-practice-tabs {
     gap: 3px;
     padding: 3px;

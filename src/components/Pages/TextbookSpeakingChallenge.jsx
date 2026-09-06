@@ -101,9 +101,8 @@ export default function TextbookSpeakingChallenge() {
             <article key={activeQuestion.id} className={`speaking-focus-card ${isCompleted ? "done" : ""}`}>
                 <header className="speaking-question-heading">
                     <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
-                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2>{activeQuestion.question_text}</h2><p>{activeQuestion.hint_zh}</p></div>
+                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2>{activeQuestion.question_text}</h2><p>聽懂問題後，按下麥克風直接回答。</p></div>
                 </header>
-                {activeQuestion.pronunciation_notes_zh && <details className="speaking-pronunciation-note"><summary>發音小提醒</summary><p>{activeQuestion.pronunciation_notes_zh}</p></details>}
                 <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
                 <small className="speaking-no-reward">這裡專心練口說，不會發放 XP 或 AE Points。</small>
             </article>

@@ -55,6 +55,8 @@ describe("SpeakingPronunciationRecorder", () => {
         const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
         convertAudioBlobToWav.mockResolvedValue(wav);
         submitSpeakingPronunciationAttempt.mockResolvedValue({
+            answer_match: true,
+            recognized_text: "My name is Amy.",
             scores: { pronunciation: 88, accuracy: 90, fluency: 86, completeness: 92, prosody: 82 },
             words: [
                 { text: "My", score: 90, status: "good" },
@@ -78,6 +80,8 @@ describe("SpeakingPronunciationRecorder", () => {
         await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({ audio: wav })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
         expect(await screen.findByText("表現良好")).toBeInTheDocument();
+        expect(screen.getByText("我聽到")).toBeInTheDocument();
+        expect(screen.getByText("My name is Amy.")).toBeInTheDocument();
         expect(screen.queryByText("88 分")).not.toBeInTheDocument();
         expect(screen.queryByText("90")).not.toBeInTheDocument();
         expect(screen.getByText("綠色：很清楚")).toBeInTheDocument();

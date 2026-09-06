@@ -2,7 +2,12 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { readAzureWordAssessment, selectAzureAssessmentResult } from "../_shared/azure-pronunciation.ts";
-import { buildSpeakingReferenceText, readSpeakingSlotValues } from "../_shared/speaking-pronunciation-reference.ts";
+import {
+    buildSpeakingReferenceText,
+    hasSpeakingAnswerSlots,
+    matchesSpeakingAnswerTemplate,
+    speakingAnswerPrompt
+} from "../_shared/speaking-pronunciation-reference.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -115,17 +120,27 @@ const buildAzureSpeechEndpoint = (region: string) => {
     return url.toString();
 };
 
-const assertPublishedQuestionAccess = async (admin: any, questionId: number, slotValues: Record<string, string>) => {
+const assertPublishedQuestionAccess = async (admin: any, questionId: number) => {
     const { data, error } = await admin.from("speaking_questions")
         .select("id,question_set_id,model_answer,pronunciation_notes_zh,speaking_question_sets!inner(id,status)")
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
-    const referenceText = buildSpeakingReferenceText(data.model_answer, slotValues);
-    if (!referenceText || referenceText.length > 500) {
+    const answerTemplate = String(data.model_answer || "").replace(/\s+/g, " ").trim();
+    const isStructuredAnswer = hasSpeakingAnswerSlots(answerTemplate);
+    const referenceText = isStructuredAnswer ? "" : buildSpeakingReferenceText(answerTemplate, {});
+    if (!answerTemplate || answerTemplate.length > 500) {
         throw Object.assign(new Error("這題尚未設定可朗讀的完整示範回答"), { status: 422 });
     }
-    return { questionId: Number(data.id), questionSetId: Number(data.question_set_id), referenceText, feedback: String(data.pronunciation_notes_zh || "") };
+    return {
+        questionId: Number(data.id),
+        questionSetId: Number(data.question_set_id),
+        answerTemplate,
+        answerPrompt: speakingAnswerPrompt(answerTemplate),
+        isStructuredAnswer,
+        referenceText,
+        feedback: String(data.pronunciation_notes_zh || "")
+    };
 };
 
 const assertRateLimit = async (admin: any, studentId: number) => {
@@ -138,43 +153,66 @@ const assertRateLimit = async (admin: any, studentId: number) => {
     }
 };
 
-const normalizeAzureResult = (data: any, referenceText: string, defaultFeedback: string) => {
+const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof assertPublishedQuestionAccess>>) => {
     const selected = selectAzureAssessmentResult(data);
     if (!selected) throw Object.assign(new Error("發音評分服務沒有回傳完整分數"), { status: 502, code: "provider_assessment_unavailable" });
     const { best, assessment } = selected;
     const azureWords = Array.isArray(best?.Words) ? best.Words : [];
+    const recognizedText = String(best?.Display || best?.Lexical || data?.DisplayText || "").trim();
     const indexedWords = new Map<string, any[]>();
     for (const item of azureWords) {
         const key = normalizeWord(item?.Word);
         if (!key) continue;
         indexedWords.set(key, [...(indexedWords.get(key) || []), item]);
     }
-
-    const words = referenceText.split(/\s+/).map(text => {
-        const key = normalizeWord(text);
-        const candidates = indexedWords.get(key) || [];
-        const item = candidates.shift();
-        indexedWords.set(key, candidates);
-        const wordAssessment = readAzureWordAssessment(item);
-        const score = item ? numberScore(wordAssessment.accuracyScore) : 0;
-        const errorType = String(wordAssessment.errorType || (item ? "None" : "Omission"));
-        return { text, score, status: errorType === "None" ? statusForScore(score) : "retry", error_type: errorType };
-    });
+    const words = question.isStructuredAnswer
+        ? azureWords.map(item => {
+            const text = String(item?.Word || "").trim();
+            const wordAssessment = readAzureWordAssessment(item);
+            const score = numberScore(wordAssessment.accuracyScore);
+            const errorType = String(wordAssessment.errorType || "None");
+            return { text, score, status: errorType === "None" ? statusForScore(score) : "retry", error_type: errorType };
+        }).filter(item => Boolean(normalizeWord(item.text)))
+        : question.referenceText.split(/\s+/).map(text => {
+            const key = normalizeWord(text);
+            const candidates = indexedWords.get(key) || [];
+            const item = candidates.shift();
+            indexedWords.set(key, candidates);
+            const wordAssessment = readAzureWordAssessment(item);
+            const score = item ? numberScore(wordAssessment.accuracyScore) : 0;
+            const errorType = String(wordAssessment.errorType || (item ? "None" : "Omission"));
+            return { text, score, status: errorType === "None" ? statusForScore(score) : "retry", error_type: errorType };
+        });
+    const answerMatch = question.isStructuredAnswer
+        ? matchesSpeakingAnswerTemplate(question.answerTemplate, recognizedText)
+        : true;
     const needsPractice = words.filter(word => word.status !== "good").slice(0, 3).map(word => word.text.replace(/[.,!?]/g, ""));
+    const componentScores = [assessment?.AccuracyScore, assessment?.FluencyScore, assessment?.ProsodyScore]
+        .map(value => Number(value))
+        .filter(value => Number.isFinite(value));
+    const providerPronunciation = Number(assessment?.PronScore);
+    const pronunciation = Number.isFinite(providerPronunciation)
+        ? numberScore(providerPronunciation)
+        : numberScore(componentScores.reduce((sum, value) => sum + value, 0) / Math.max(componentScores.length, 1));
 
     return {
-        recognized_text: String(best?.Display || data?.DisplayText || ""),
+        answer_mode: question.isStructuredAnswer ? "structured_voice" : "scripted_voice",
+        answer_match: answerMatch,
+        answer_prompt: question.answerPrompt,
+        recognized_text: recognizedText,
         scores: {
-            pronunciation: numberScore(assessment?.PronScore),
+            pronunciation,
             accuracy: numberScore(assessment?.AccuracyScore),
             fluency: numberScore(assessment?.FluencyScore),
             completeness: numberScore(assessment?.CompletenessScore),
             prosody: numberScore(assessment?.ProsodyScore)
         },
         words,
-        feedback: needsPractice.length > 0
-            ? `先集中練習：${needsPractice.join("、")}。${defaultFeedback}`
-            : `每個字都很清楚！${defaultFeedback}`
+        feedback: !answerMatch
+            ? `請用「${question.answerPrompt}」的完整句型再回答一次。`
+            : needsPractice.length > 0
+                ? `先集中練習：${needsPractice.join("、")}。${question.feedback}`
+                : `每個字都很清楚！${question.feedback}`
     };
 };
 
@@ -195,10 +233,9 @@ Deno.serve(async (req: Request) => {
         }
         const form = await req.formData().catch(() => null);
         const questionId = Number(form?.get("question_id"));
-        const slotValues = readSpeakingSlotValues(form?.get("slot_values") || null);
         const audio = form?.get("audio");
         if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
-        const question = await assertPublishedQuestionAccess(admin, questionId, slotValues);
+        const question = await assertPublishedQuestionAccess(admin, questionId);
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
         if (audio.type !== "audio/wav") return json(415, { error: "錄音格式不正確，請重新錄音" });
         if (audio.size < 1000 || audio.size > MAX_AUDIO_BYTES) {
@@ -228,15 +265,19 @@ Deno.serve(async (req: Request) => {
         }
         await assertRateLimit(admin, Number(user.id));
 
-        const assessmentHeader = btoa(JSON.stringify({
-            ReferenceText: question.referenceText,
+        const assessmentConfig: Record<string, unknown> = {
             GradingSystem: "HundredMark",
             Granularity: "Phoneme",
             Dimension: "Comprehensive",
-            EnableMiscue: true,
+            EnableMiscue: !question.isStructuredAnswer,
             EnableProsodyAssessment: true,
             PhonemeAlphabet: "IPA"
-        }));
+        };
+        // A personalized answer is assessed as unscripted speech so the child can
+        // say their real name without typing it first. Fixed textbook answers stay
+        // scripted and keep omission/insertion checking.
+        if (!question.isStructuredAnswer) assessmentConfig.ReferenceText = question.referenceText;
+        const assessmentHeader = btoa(JSON.stringify(assessmentConfig));
         const providerResponse = await fetch(endpoint, {
             method: "POST",
             headers: {
@@ -256,7 +297,7 @@ Deno.serve(async (req: Request) => {
             return json(providerResult?.RecognitionStatus === "Success" ? 502 : 422, speechRecognitionError(providerResult, wavInfo));
         }
 
-        const normalized = normalizeAzureResult(providerResult, question.referenceText, question.feedback);
+        const normalized = normalizeAzureResult(providerResult, question);
         const { error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
             student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
             pronunciation_score: normalized.scores.pronunciation, accuracy_score: normalized.scores.accuracy,
@@ -269,7 +310,7 @@ Deno.serve(async (req: Request) => {
         return json(200, {
             success: true,
             question_id: question.questionId,
-            reference_text: question.referenceText,
+            reference_text: question.referenceText || null,
             ...normalized
         });
     } catch (error) {

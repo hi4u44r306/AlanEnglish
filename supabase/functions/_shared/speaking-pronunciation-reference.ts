@@ -47,3 +47,44 @@ export const buildSpeakingReferenceText = (template: unknown, slotValues: Record
         .replace(/\s+/g, " ")
         .trim();
 };
+
+const normalizedAnswer = (value: unknown) => String(value || "")
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .replace(/[^a-z0-9' ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const hasSpeakingAnswerSlots = (template: unknown) => {
+    const pattern = new RegExp(ANSWER_SLOT_PATTERN.source, "g");
+    return pattern.test(String(template || ""));
+};
+
+export const speakingAnswerPrompt = (template: unknown) => String(template || "")
+    .replace(new RegExp(ANSWER_SLOT_PATTERN.source, "g"), "_____")
+    .replace(/\s+/g, " ")
+    .trim();
+
+// Structured voice answers keep the textbook sentence pattern while letting the
+// learner supply personal words (for example a name) entirely through speech.
+// Every placeholder must contain at least one and at most five recognized words.
+export const matchesSpeakingAnswerTemplate = (template: unknown, recognizedText: unknown) => {
+    const source = String(template || "");
+    const spoken = normalizedAnswer(recognizedText);
+    if (!hasSpeakingAnswerSlots(source) || !spoken) return false;
+
+    const pieces: string[] = [];
+    const pattern = new RegExp(ANSWER_SLOT_PATTERN.source, "g");
+    let cursor = 0;
+    for (const match of source.matchAll(pattern)) {
+        const fixed = normalizedAnswer(source.slice(cursor, match.index));
+        if (fixed) pieces.push(escapeRegExp(fixed).replace(/ /g, "\\s+"));
+        pieces.push("[a-z0-9']+(?:\\s+[a-z0-9']+){0,4}");
+        cursor = Number(match.index || 0) + match[0].length;
+    }
+    const remaining = normalizedAnswer(source.slice(cursor));
+    if (remaining) pieces.push(escapeRegExp(remaining).replace(/ /g, "\\s+"));
+    return new RegExp(`^${pieces.join("\\s*")}$`, "i").test(spoken);
+};

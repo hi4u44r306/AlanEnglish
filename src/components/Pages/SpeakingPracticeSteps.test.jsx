@@ -1,13 +1,13 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import SpeakingPracticeSteps, { extractAnswerSlots, fillAnswerSlots } from "./SpeakingPracticeSteps";
+import SpeakingPracticeSteps, { answerPatternForLearner, extractAnswerSlots } from "./SpeakingPracticeSteps";
 
-jest.mock("./SpeakingPronunciationRecorder", () => function Recorder({ disabledReason, onScored, slotValues }) {
+jest.mock("./SpeakingPronunciationRecorder", () => function Recorder({ onScored }) {
     return <div>
-        <span>{disabledReason || "可以錄音"}</span>
-        <span data-testid="slot-value">{slotValues?.["你的名字"] || ""}</span>
-        <button type="button" disabled={Boolean(disabledReason)} onClick={() => onScored({ scores: { pronunciation: 82 } })}>模擬評分</button>
+        <span>可以直接錄音</span>
+        <button type="button" onClick={() => onScored({ answer_match: true, recognized_text: "My name is Amy.", scores: { pronunciation: 82 } })}>模擬正確回答</button>
+        <button type="button" onClick={() => onScored({ answer_match: false, recognized_text: "Amy.", scores: { pronunciation: 82 } })}>模擬不完整回答</button>
     </div>;
 });
 
@@ -19,35 +19,43 @@ const question = {
     simple_answer: "My name is Amy.",
     model_answer: "My name is [你的名字].",
     model_audio_url: "https://example.test/model.wav",
+    pronunciation_notes_zh: "把 name 說清楚。",
     progress_status: "opened"
 };
 
 describe("SpeakingPracticeSteps", () => {
-    it("辨識並代換教材中的個人化欄位", () => {
+    it("把個人答案欄位顯示成句型空格，不要求學生打字", () => {
         expect(extractAnswerSlots("My name is [你的名字]. [你的名字]!")).toEqual(["你的名字"]);
-        expect(fillAnswerSlots(question.model_answer, { "你的名字": "Amy" })).toBe("My name is Amy.");
+        expect(answerPatternForLearner(question.model_answer)).toBe("My name is _____.");
+
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayAudio={jest.fn()} />);
+        expect(screen.getByText("可以直接錄音")).toBeInTheDocument();
+        expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+        expect(screen.queryByText("My name is Amy.")).not.toBeInTheDocument();
     });
 
-    it("要求先填英文並依序完成三段練習", () => {
-        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayAudio={jest.fn()} />);
+    it("求助時才顯示句型、自然示範與發音提醒", () => {
+        const onPlayAudio = jest.fn();
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayAudio={onPlayAudio} />);
+        fireEvent.click(screen.getByRole("button", { name: "不知道怎麼說？" }));
 
-        expect(screen.getByRole("button", { name: "看提示說（請先完成前一步）" })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "自己說（請先完成前一步）" })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "模擬評分" })).toBeDisabled();
+        expect(screen.getByText("My name is _____.")).toBeInTheDocument();
+        expect(screen.getByText("示範：My name is Amy.")).toBeInTheDocument();
+        expect(screen.getByText("發音提醒：把 name 說清楚。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
+        expect(onPlayAudio).toHaveBeenCalledTimes(1);
+    });
 
-        fireEvent.change(screen.getByLabelText("你的名字"), { target: { value: "Amy" } });
-        expect(screen.getByTestId("slot-value")).toHaveTextContent("Amy");
-        fireEvent.click(screen.getByRole("button", { name: "模擬評分" }));
-        expect(screen.getByText("完成")).toBeInTheDocument();
-        expect(screen.queryByText("82 分")).not.toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "下一步：看提示說" }));
+    it("只有完整句型回答才完成小關卡", () => {
+        const onCompleted = jest.fn();
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onCompleted={onCompleted} />);
 
-        expect(screen.queryByText("My name is Amy.")).not.toBeInTheDocument();
-        expect(screen.getByText("my")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "模擬評分" }));
-        fireEvent.click(screen.getByRole("button", { name: "下一步：自己說" }));
+        fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
+        expect(onCompleted).not.toHaveBeenCalled();
+        expect(screen.getByText("先用提示中的完整句型回答，再送出一次。")).toBeInTheDocument();
 
-        expect(screen.getByText("不看提示，完成整句")).toBeInTheDocument();
-        expect(screen.queryByText("關鍵字：my、name、is")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        expect(onCompleted).toHaveBeenCalledTimes(1);
+        expect(screen.getByText("本題已完成，可以前往下一題或再練一次。")).toBeInTheDocument();
     });
 });

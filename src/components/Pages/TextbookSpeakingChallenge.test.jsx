@@ -44,7 +44,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        fireEvent.click(await screen.findByRole("button", { name: "先聽自然範例" }));
+        fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
+        fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
 
         expect(global.Audio).toHaveBeenCalledWith("https://r2.example/signed.mp3");
         expect(play).toHaveBeenCalled();
@@ -60,7 +61,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByRole("button", { name: "語音準備中" })).toBeDisabled();
+        fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
+        expect(screen.getByRole("button", { name: "語音準備中" })).toBeDisabled();
     });
 
     it("一次只顯示一個小關卡，完成後才能前往下一題", async () => {

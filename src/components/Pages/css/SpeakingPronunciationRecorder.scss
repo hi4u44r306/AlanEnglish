@@ -89,6 +89,19 @@
 
 .speaking-pronunciation-legend,
 .speaking-pronunciation-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.speaking-recognized-answer {
+  display: grid;
+  gap: 3px;
+  width: min(600px, 100%);
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: #fff;
+  color: #142c54;
+  text-align: left;
+}
+.speaking-recognized-answer strong { color: #687790; font-size: 12px; }
+.speaking-recognized-answer span { font-size: 17px; font-weight: 800; }
 .speaking-pronunciation-legend span {
   padding: 5px 8px;
   border-radius: 999px;
@@ -153,6 +166,8 @@
   .speaking-pronunciation-result > header strong { font-size: 18px; }
   .speaking-pronunciation-legend,
   .speaking-pronunciation-words { gap: 4px; }
+  .speaking-recognized-answer { padding: 7px 9px; }
+  .speaking-recognized-answer span { font-size: 14px; }
   .speaking-pronunciation-legend span { padding: 3px 6px; font-size: 10px; }
   .speaking-pronunciation-words > span { padding: 4px 7px; font-size: 12px; }
   .speaking-pronunciation-feedback { gap: 2px; padding: 7px 9px; font-size: 12px; }

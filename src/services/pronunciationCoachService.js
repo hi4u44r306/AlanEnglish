@@ -27,10 +27,10 @@ export const submitPronunciationAttempt = async ({ firebaseUser, lessonId, audio
     return result;
 };
 
-// The browser sends the question id and optional slot values, never a complete
-// reference sentence. The Edge Function loads the published template and
-// validates every placeholder before building the scoring reference.
-export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questionId, slotValues = {}, audio }) => {
+// The browser sends only the published question id and audio. The Edge Function
+// decides whether to run fixed-text or structured open-answer assessment and
+// never trusts a browser-supplied reference sentence.
+export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questionId, audio }) => {
     if (!firebaseUser) throw new Error("請先登入 Alan English");
     if (!Number.isInteger(Number(questionId)) || !(audio instanceof Blob)) {
         throw new Error("錄音資料不完整，請重新錄音");
@@ -39,7 +39,6 @@ export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questio
     const firebaseToken = await firebaseUser.getIdToken();
     const form = new FormData();
     form.append("question_id", String(questionId));
-    if (Object.keys(slotValues).length > 0) form.append("slot_values", JSON.stringify(slotValues));
     form.append("audio", audio, `speaking-question-${questionId}.wav`);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/pronunciation-coach`, {
