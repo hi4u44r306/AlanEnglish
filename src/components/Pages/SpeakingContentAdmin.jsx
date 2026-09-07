@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import {
     createWorkbookOneStarterQuestionSet,
     createWorkbookOneGreetingsQuestionSet,
+    createWorkbookOneCuratedQuestionSet,
     createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     getSpeakingContentBootstrap,
@@ -29,6 +30,16 @@ const emptySource = {
 const SOURCE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const emptyWholeBook = { book_id: "", document_title: "" };
+const WORKBOOK_ONE_FOLLOWUP_CHALLENGES = [
+    { action: "create_workbook_1_colors", templateKey: "workbook_1_colors_objects_v1", number: "03", title: "顏色與生活物品", description: "P28、P30、P34、P84；顏色、常見物品與 a／an。" },
+    { action: "create_workbook_1_numbers", templateKey: "workbook_1_numbers_math_v1", number: "04", title: "數字與簡單算術", description: "P39、P42、P43、P49；1～13、plus 與 minus。" },
+    { action: "create_workbook_1_time", templateKey: "workbook_1_time_daily_routine_v1", number: "05", title: "時間與我的一天", description: "P46、P60、P70、P75、P80、P90；整點與日常作息。" },
+    { action: "create_workbook_1_body", templateKey: "workbook_1_body_parts_v1", number: "06", title: "我的身體部位", description: "P64、P78；眼睛、耳朵、鼻子、嘴巴與四肢。" },
+    { action: "create_workbook_1_family", templateKey: "workbook_1_family_people_v1", number: "07", title: "家人與人物介紹", description: "P79、P87、P89、P104；家庭關係、人稱與稱謂。" },
+    { action: "create_workbook_1_yes_no", templateKey: "workbook_1_yes_no_contractions_v1", number: "08", title: "Yes／No 與縮寫回答", description: "P26、P27、P34、P51、P53、P92、P94；be 動詞與完整回答。" },
+    { action: "create_workbook_1_places", templateKey: "workbook_1_places_demonstratives_v1", number: "09", title: "東西在哪裡？", description: "P96、P109、P111、P112、P114；位置、近遠與單複數。" },
+    { action: "create_workbook_1_review", templateKey: "workbook_1_wh_questions_review_v1", number: "10", title: "問句與總複習", description: "P99、P101～P108、P117～P119；人物、年齡、地點、職業與時間。" }
+];
 
 const chunkStatusLabel = status => ({
     pending_upload: "等待上傳", uploaded: "等待 OCR", processing: "辨識中",
@@ -201,6 +212,9 @@ export default function SpeakingContentAdmin() {
     const workbookTwo = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook2"), [data.books]);
     const workbookOneStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_1_name_intro_v1"), [data.question_sets]);
     const workbookOneGreetings = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_1_greetings_polite_v1"), [data.question_sets]);
+    const workbookOneFollowups = useMemo(() => new Map(data.question_sets
+        .filter(questionSet => WORKBOOK_ONE_FOLLOWUP_CHALLENGES.some(challenge => challenge.templateKey === questionSet.generation_metadata?.template_key))
+        .map(questionSet => [questionSet.generation_metadata.template_key, questionSet])), [data.question_sets]);
     const workbookTwoStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_2_origin_places_v1"), [data.question_sets]);
 
     const updateSource = (key, value) => setSource(current => ({ ...current, [key]: value }));
@@ -296,6 +310,17 @@ export default function SpeakingContentAdmin() {
         } catch (error) { toast.error(error.message || "Workbook 1 關卡 02 建立失敗"); }
         finally { setWorking(""); }
     };
+    const createWorkbookOneFollowup = async challenge => {
+        if (!workbookOne) return toast.error("目前教材清單找不到 Workbook 1");
+        const workingKey = `workbook-1-${challenge.number}`;
+        setWorking(workingKey);
+        try {
+            const result = await createWorkbookOneCuratedQuestionSet(firebaseUser, workbookOne.id, challenge.action);
+            toast.success(result.reused ? `Workbook 1 關卡 ${challenge.number} 已存在` : `Workbook 1 關卡 ${challenge.number} 草稿已建立，請先預覽與修改再發布`);
+            await load();
+        } catch (error) { toast.error(error.message || `Workbook 1 關卡 ${challenge.number} 建立失敗`); }
+        finally { setWorking(""); }
+    };
     const createWorkbookTwoStarter = async () => {
         if (!workbookTwo) return toast.error("目前教材清單找不到 Workbook 2");
         setWorking("workbook-2-starter");
@@ -375,6 +400,23 @@ export default function SpeakingContentAdmin() {
             <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(workbookOneGreetings) || working === "workbook-1-greetings"} onClick={createWorkbookOneGreetings}>
                 <Sparkles size={17} />{working === "workbook-1-greetings" ? "建立草稿中…" : workbookOneGreetings ? (workbookOneGreetings.status === "published" ? "關卡 02 已發布" : "關卡 02 草稿已建立") : "建立關卡 02 草稿"}
             </button>
+            {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
+        </section>
+
+        <section className="platform-card speaking-curated-library">
+            <div className="platform-section-title"><div><span className="platform-eyebrow">COMPLETE WORKBOOK 1</span><h2>Workbook 1 完整口說關卡</h2><p>已依 119 頁教材人工整理 03～10；描寫格、空白格、未核對圖片與歌曲不會直接變成題目。</p></div></div>
+            <div className="speaking-curated-library__grid">
+                {WORKBOOK_ONE_FOLLOWUP_CHALLENGES.map(challenge => {
+                    const existing = workbookOneFollowups.get(challenge.templateKey);
+                    const workingKey = `workbook-1-${challenge.number}`;
+                    return <article className="speaking-curated-card" key={challenge.action}>
+                        <div><span>關卡 {challenge.number}</span><h3>{challenge.title}</h3><p>{challenge.description}</p></div>
+                        <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(existing) || working === workingKey} onClick={() => createWorkbookOneFollowup(challenge)}>
+                            <Sparkles size={16} />{working === workingKey ? "建立草稿中…" : existing ? (existing.status === "published" ? "已發布" : "草稿已建立") : `建立關卡 ${challenge.number}`}
+                        </button>
+                    </article>;
+                })}
+            </div>
             {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
         </section>
 

@@ -1,6 +1,7 @@
 import {
     createWorkbookOneStarterQuestionSet,
     createWorkbookOneGreetingsQuestionSet,
+    createWorkbookOneCuratedQuestionSet,
     createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
@@ -39,6 +40,7 @@ describe("speakingContentService", () => {
         await generateSpeakingQuestionSet(firebaseUser, { source_section_id: 2, request_key: "key" });
         await createWorkbookOneStarterQuestionSet(firebaseUser, 1);
         await createWorkbookOneGreetingsQuestionSet(firebaseUser, 1);
+        await createWorkbookOneCuratedQuestionSet(firebaseUser, 1, "create_workbook_1_colors");
         await createWorkbookTwoStarterQuestionSet(firebaseUser, 2);
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
         await publishSpeakingQuestionSet(firebaseUser, 4);
@@ -56,6 +58,7 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "generate_question_set"],
             ["speaking-content-manager", "create_workbook_1_starter"],
             ["speaking-content-manager", "create_workbook_1_greetings"],
+            ["speaking-content-manager", "create_workbook_1_colors"],
             ["speaking-content-manager", "create_workbook_2_starter"],
             ["speaking-content-manager", "update_draft_question"],
             ["speaking-content-manager", "publish_question_set"],

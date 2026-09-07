@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
+import { WORKBOOK_ONE_FOLLOWUP_TEMPLATES } from "../_shared/workbook-one-speaking.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -228,6 +229,7 @@ const CURATED_STARTER_TEMPLATES: Record<string, any> = {
         sourceText: "Good morning. Good afternoon. Good evening. Good night. How are you? I'm great, thank you. Nice to meet you. Nice to meet you, too. Goodbye. See you. How was your day? It was great, thank you.",
         difficulty: "國小低年級", answerType: "fixed_polite_dialogue", questions: WORKBOOK_ONE_GREETINGS_QUESTIONS
     },
+    ...WORKBOOK_ONE_FOLLOWUP_TEMPLATES,
     create_workbook_2_starter: {
         catalogKey: "workbook2", templateKey: WORKBOOK_TWO_STARTER_KEY,
         documentTitle: "Workbook 2 口說大挑戰", unitLabel: "Topic 06",

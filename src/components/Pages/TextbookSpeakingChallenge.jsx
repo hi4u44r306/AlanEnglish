@@ -18,6 +18,8 @@ export default function TextbookSpeakingChallenge() {
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [practiceBusy, setPracticeBusy] = useState(false);
     const audioRef = useRef(null);
+    const questionStageRef = useRef(null);
+    const shouldScrollToQuestionRef = useRef(false);
 
     useEffect(() => () => {
         audioRef.current?.pause();
@@ -43,6 +45,15 @@ export default function TextbookSpeakingChallenge() {
         };
         load();
     }, [firebaseUser, questionSetId]);
+
+    useEffect(() => {
+        if (!shouldScrollToQuestionRef.current) return;
+        shouldScrollToQuestionRef.current = false;
+        questionStageRef.current?.scrollIntoView({
+            behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+            block: "start"
+        });
+    }, [activeQuestionIndex]);
 
     const markComplete = async question => {
         try {
@@ -81,10 +92,14 @@ export default function TextbookSpeakingChallenge() {
 
     const isCompleted = activeQuestion.progress_status === "completed";
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
+    const showQuestion = nextIndex => {
+        shouldScrollToQuestionRef.current = true;
+        setActiveQuestionIndex(nextIndex);
+    };
     const goForward = () => {
         if (!isCompleted && !isStaffDemo) return;
         if (isLastQuestion) navigate("/student/speaking-challenges");
-        else setActiveQuestionIndex(current => current + 1);
+        else showQuestion(current => current + 1);
     };
 
     return <main className="speaking-challenge-page speaking-challenge-detail">
@@ -102,7 +117,7 @@ export default function TextbookSpeakingChallenge() {
             </div>
         </header>
 
-        <section className="speaking-question-stage">
+        <section ref={questionStageRef} className="speaking-question-stage">
             <article key={activeQuestion.id} className={`speaking-focus-card ${isCompleted ? "done" : ""}`}>
                 <header className="speaking-question-heading">
                     <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
@@ -124,7 +139,7 @@ export default function TextbookSpeakingChallenge() {
         </section>
 
         <nav className="speaking-question-navigation" aria-label="小關卡切換">
-            <button type="button" onClick={() => setActiveQuestionIndex(current => current - 1)} disabled={practiceBusy || activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
+            <button type="button" onClick={() => showQuestion(current => current - 1)} disabled={practiceBusy || activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
             <span>{completedCount} / {questions.length} 題已完成</span>
             <button type="button" className="primary" onClick={goForward} disabled={practiceBusy || (!isCompleted && !isStaffDemo)}>{isLastQuestion ? (isStaffDemo ? "結束示範" : "完成大挑戰") : "下一題"}<FiChevronRight /></button>
         </nav>

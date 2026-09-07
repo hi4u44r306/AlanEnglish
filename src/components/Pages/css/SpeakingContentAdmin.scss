@@ -7,6 +7,13 @@
 .speaking-starter-card h2 { margin: 5px 0 7px; }
 .speaking-starter-card p { margin: 0; color: #65758c; line-height: 1.65; }
 .speaking-starter-card__warning { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; color: #94352f !important; }
+.speaking-curated-library__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.speaking-curated-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; padding: 16px; border: 1px solid #d8e3f2; border-radius: 16px; background: #f8fbff; }
+.speaking-curated-card > div { min-width: 0; }
+.speaking-curated-card span { color: #315fa9; font-size: 12px; font-weight: 850; letter-spacing: .05em; }
+.speaking-curated-card h3 { margin: 4px 0 6px; color: #17233f; }
+.speaking-curated-card p { margin: 0; color: #65758c; font-size: 13px; line-height: 1.55; }
+.speaking-curated-card button { flex: 0 0 auto; }
 .speaking-confirm { grid-template-columns: 22px 1fr !important; align-items: start; }
 .speaking-confirm input { width: 20px !important; min-height: 20px !important; margin-top: 2px; }
 .speaking-file-picker { padding: 16px; border: 1px dashed #9bb4da; border-radius: 14px; background: #f4f8ff; }
@@ -94,4 +101,7 @@
     .speaking-book-job > header { align-items: stretch; flex-direction: column; gap: 6px; }
     .speaking-book-job__chunks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .speaking-student-preview__questions { grid-template-columns: 1fr; }
+    .speaking-curated-library__grid { grid-template-columns: 1fr; }
+    .speaking-curated-card { align-items: stretch; flex-direction: column; }
+    .speaking-curated-card button { width: 100%; }
 }

@@ -1,13 +1,14 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
-import { createWorkbookOneGreetingsQuestionSet, createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap, getSpeakingQuestionAudioPreview } from "../../services/speakingContentService";
+import { createWorkbookOneCuratedQuestionSet, createWorkbookOneGreetingsQuestionSet, createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap, getSpeakingQuestionAudioPreview } from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
     createWorkbookOneStarterQuestionSet: jest.fn(),
     createWorkbookOneGreetingsQuestionSet: jest.fn(),
+    createWorkbookOneCuratedQuestionSet: jest.fn(),
     createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
     getSpeakingQuestionAudioPreview: jest.fn(),
@@ -23,6 +24,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         jest.clearAllMocks();
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         createWorkbookOneGreetingsQuestionSet.mockResolvedValue({ success: true, reused: false });
+        createWorkbookOneCuratedQuestionSet.mockResolvedValue({ success: true, reused: false });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
         getSpeakingContentBootstrap.mockResolvedValue({
@@ -71,6 +73,17 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(createButton);
 
         await waitFor(() => expect(createWorkbookOneGreetingsQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 1));
+    });
+
+    it("offers the remaining Workbook 1 challenges and creates a selected draft", async () => {
+        render(<SpeakingContentAdmin />);
+        expect(await screen.findByRole("heading", { name: "Workbook 1 完整口說關卡" })).toBeInTheDocument();
+        expect(screen.getByText("問句與總複習")).toBeInTheDocument();
+        const createButton = screen.getByRole("button", { name: "建立關卡 03" });
+        await waitFor(() => expect(createButton).toBeEnabled());
+        fireEvent.click(createButton);
+
+        await waitFor(() => expect(createWorkbookOneCuratedQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 1, "create_workbook_1_colors"));
     });
 
     it("shows a student-facing preview for an editable starter draft", async () => {

@@ -196,7 +196,10 @@
   transition: width .3s ease;
 }
 
-.speaking-question-stage { display: grid; }
+.speaking-question-stage {
+  display: grid;
+  scroll-margin-top: 96px;
+}
 .speaking-focus-card {
   display: grid;
   gap: 18px;
@@ -577,7 +580,7 @@
   .speaking-lesson-progress { min-width: 0; gap: 4px; }
   .speaking-lesson-progress > div:first-child { font-size: 10px; }
   .speaking-progress-track { height: 6px; }
-  .speaking-question-stage { min-height: 0; }
+  .speaking-question-stage { min-height: 0; scroll-margin-top: 138px; }
   .speaking-focus-card {
     height: auto;
     gap: 8px;

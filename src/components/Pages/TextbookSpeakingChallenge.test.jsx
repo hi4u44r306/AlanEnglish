@@ -13,8 +13,13 @@ jest.mock("../../services/speakingChallengeService", () => ({
 
 describe("TextbookSpeakingChallenge model audio", () => {
     const originalAudio = global.Audio;
-    beforeEach(() => { mockRole = "student"; });
+    const originalScrollIntoView = Element.prototype.scrollIntoView;
+    beforeEach(() => {
+        mockRole = "student";
+        Element.prototype.scrollIntoView = jest.fn();
+    });
     afterEach(() => { global.Audio = originalAudio; });
+    afterAll(() => { Element.prototype.scrollIntoView = originalScrollIntoView; });
 
     it("在進入大關卡前先顯示情境解說與學習目標", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
@@ -106,7 +111,12 @@ describe("TextbookSpeakingChallenge model audio", () => {
         fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
         expect(screen.getByText("How old are you?")).toBeInTheDocument();
         expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
+        expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "start" });
         expect(screen.getByRole("button", { name: /完成大挑戰/ })).toBeDisabled();
+
+        fireEvent.click(screen.getByRole("button", { name: /上一題/ }));
+        expect(screen.getByText("What's your name?")).toBeInTheDocument();
+        expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(2);
     });
 
     it("lets teachers demonstrate published questions without recording or saving progress", async () => {

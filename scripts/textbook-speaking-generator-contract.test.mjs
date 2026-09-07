@@ -11,6 +11,7 @@ const dialogueMigration = read("supabase/migrations/20260907073127_speaking_ques
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
+const workbookOneSpeaking = read("supabase/functions/_shared/workbook-one-speaking.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -124,6 +125,20 @@ test("11a. Workbook 1 第二關由教材頁面建立打招呼與禮貌對話草�
     assert.match(manager, /Goodbye\. See you\./);
     assert.match(service, /createWorkbookOneGreetingsQuestionSet/);
     assert.match(adminPage, /建立關卡 02 草稿/);
+});
+
+test("11b. Workbook 1 後續八關涵蓋教材核心口說主題且維持人工草稿流程", () => {
+    for (const action of ["colors", "numbers", "time", "body", "family", "yes_no", "places", "review"]) {
+        assert.match(workbookOneSpeaking, new RegExp(`create_workbook_1_${action}`));
+    }
+    for (const topic of ["顏色與生活物品", "數字與簡單算術", "時間與我的一天", "我的身體部位", "家人與人物介紹", "Yes／No 與縮寫回答", "東西在哪裡？", "問句與總複習"]) {
+        assert.match(workbookOneSpeaking, new RegExp(topic.replace(/[？／]/g, ".")));
+    }
+    assert.match(workbookOneSpeaking, /title: `\$\{number\} \$\{topic\}`/);
+    assert.match(manager, /\.\.\.WORKBOOK_ONE_FOLLOWUP_TEMPLATES/);
+    assert.match(service, /createWorkbookOneCuratedQuestionSet/);
+    assert.match(adminPage, /Workbook 1 完整口說關卡/);
+    assert.match(adminPage, /描寫格、空白格、未核對圖片與歌曲不會直接變成題目/);
 });
 
 test("12. Workbook 2 精選大關卡依教師版內容建立，仍需管理員預覽發布", () => {
