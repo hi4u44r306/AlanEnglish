@@ -18,6 +18,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
+import { clearSpeakingChallengeCatalogCache, prefetchSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -134,6 +135,12 @@ function MainNavbar() {
     }, [firebaseUser, isStudent]);
 
     useEffect(() => {
+        if (!firebaseUser || !hasPronunciationAccess) return undefined;
+        prefetchSpeakingChallengeCatalog(firebaseUser);
+        return undefined;
+    }, [firebaseUser, hasPronunciationAccess]);
+
+    useEffect(() => {
         if (!firebaseUser || !isStudent) {
             setNotifications([]);
             return undefined;
@@ -179,6 +186,7 @@ function MainNavbar() {
         setLoggingOut(true);
         closeMobileMenu();
         try {
+            clearSpeakingChallengeCatalogCache(firebaseUser);
             await logout();
             navigate("/", { replace: true });
         } catch (error) {

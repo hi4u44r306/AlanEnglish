@@ -3,6 +3,7 @@ import { FiAlertCircle, FiCheckCircle, FiLoader, FiMic, FiRefreshCw, FiSend, FiS
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
+import SpeakingRecordingPlayer from "./SpeakingRecordingPlayer";
 import "./css/SpeakingPronunciationRecorder.scss";
 
 const MAX_RECORDING_SECONDS = 20;
@@ -90,6 +91,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
     };
     const start = async () => {
         reset();
+        prepareSpeakingFeedbackSound();
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return setError("這個瀏覽器不支援錄音，請使用新版 Chrome 或 Safari");
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -200,7 +202,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
                 {recording ? <FiSquare aria-hidden="true" /> : <FiMic aria-hidden="true" />}
                 <span>{recording ? "完成錄音" : preparing ? "準備中…" : "開始錄音"}</span>
             </button>}
-            {previewUrl && !busy && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio>{!result && <div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button>{error && <button type="button" onClick={() => submit()}><FiSend />重新送出評分</button>}</div>}</div>}
+            {previewUrl && !busy && <div className="speaking-recording-preview"><SpeakingRecordingPlayer src={previewUrl} label="聽聽我的回答" />{!result && <div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button>{error && <button type="button" onClick={() => submit()}><FiSend />重新送出評分</button>}</div>}</div>}
             <small className="speaking-recording-privacy">送出後會把錄音私人保存到你的口說學習歷程；每題最多保留最新與最佳錄音，也可以自行刪除。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`}>
@@ -211,6 +213,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
             <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback}</span></p>
             {result.recording_saved && <p className="speaking-recording-saved"><FiCheckCircle aria-hidden="true" />錄音已存入我的口說學習歷程</p>}
             {result.recording_saved === false && <p className="speaking-pronunciation-notice">分數已保存，但這次錄音暫時無法存入學習歷程。</p>}
+            {previewUrl && <SpeakingRecordingPlayer src={previewUrl} label="聽聽我的回答" />}
             <button type="button" className="secondary" onClick={reset}><FiRefreshCw />再練一次</button>
         </div>}
         {error && <p className="speaking-pronunciation-error" role="alert">{error}</p>}

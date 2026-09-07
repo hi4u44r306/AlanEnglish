@@ -106,12 +106,13 @@ Deno.serve(async (req: Request) => {
             const questionId = Number(body?.question_id);
             const exists = (questionSet.speaking_questions || []).some((question: any) => Number(question.id) === questionId);
             if (!exists) return json(403, { error: "這題不屬於指定的小關卡" });
-            const now = new Date().toISOString();
-            const { error } = await admin.from("speaking_challenge_question_progress").upsert({
-                student_id: user.id, question_set_id: setId, question_id: questionId, status: "completed", opened_at: now, completed_at: now, updated_at: now
-            }, { onConflict: "student_id,question_id" });
-            if (error) throw error;
-            return json(200, { success: true, question_id: questionId, status: "completed" });
+            const { data: completion, error: completionError } = await admin.rpc("complete_speaking_challenge_question_v2", {
+                p_student_id: Number(user.id),
+                p_question_set_id: setId,
+                p_question_id: questionId
+            });
+            if (completionError) throw completionError;
+            return json(200, { success: true, ...(completion || {}) });
         }
         return json(400, { error: "不支援的操作" });
     } catch (error: any) {

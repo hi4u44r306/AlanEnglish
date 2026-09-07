@@ -34,8 +34,27 @@ describe("TextbookSpeakingChallenge model audio", () => {
         render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         expect(await screen.findByText("和外國朋友見面時，先聽對方怎麼打招呼。")).toBeInTheDocument();
-        expect(screen.getByText("學習目標：能在不同時間打招呼並有禮貌地說再見。")).toBeInTheDocument();
-        expect(screen.getByText("1/5 題已練習")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
+        expect(screen.getByText("1/5")).toBeInTheDocument();
+        expect(screen.getByText("已練習")).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /依主題/ }));
+        expect(screen.getByRole("heading", { name: "日常對話" })).toBeInTheDocument();
+    });
+
+    it("題庫尚在讀取時先顯示頁面外框，不誤顯示沒有教材", async () => {
+        let finishLoading;
+        getSpeakingChallengeCatalog.mockReturnValue(new Promise(resolve => { finishLoading = resolve; }));
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(screen.getByRole("heading", { name: "口說大挑戰" })).toBeInTheDocument();
+        expect(screen.getByRole("status")).toHaveTextContent("正在準備口說大挑戰");
+        expect(screen.queryByText("還沒有可挑戰的教材")).not.toBeInTheDocument();
+
+        finishLoading({ challenges: [] });
+        expect(await screen.findByText("還沒有可挑戰的教材")).toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
     });
 
     it("removes the global mobile player clearance while the detail page is open", async () => {

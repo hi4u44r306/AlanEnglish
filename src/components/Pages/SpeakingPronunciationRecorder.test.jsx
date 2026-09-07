@@ -88,8 +88,9 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(screen.getByText("Amy")).toHaveClass("word-retry");
         expect(screen.getByText("句尾再放慢一點。")).toBeInTheDocument();
         expect(screen.queryByText("查看詳細分析")).not.toBeInTheDocument();
-        expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(1);
+        expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(2);
         expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("good");
+        expect(screen.getByRole("button", { name: "播放聽聽我的回答" })).toBeInTheDocument();
     });
 
     it("問題播完後顯示倒數，也允許學生提早開始", async () => {

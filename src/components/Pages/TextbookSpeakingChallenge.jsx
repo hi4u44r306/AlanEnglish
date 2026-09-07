@@ -1,11 +1,31 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiClock, FiMic } from "react-icons/fi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getSpeakingQuestionVisual } from "../../data/speakingQuestionVisuals";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import SpeakingChallengeCompletion from "./SpeakingChallengeCompletion";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import "./css/TextbookSpeakingChallenge.scss";
+
+const THEME_RULES = [
+    { id: "introductions", label: "認識新朋友", pattern: /名字|自我介紹|來自哪裡|name|country/i },
+    { id: "daily", label: "日常對話", pattern: /打招呼|禮貌|一天|時間|問候|greeting|daily|time/i },
+    { id: "school", label: "校園英語", pattern: /學校|教室|文具|數字|算術|school|class|number|math/i },
+    { id: "people", label: "家人與人物", pattern: /家人|人物|身體|family|people|body/i },
+    { id: "places", label: "位置與問路", pattern: /位置|指示|問路|方向|place|direction|where/i },
+    { id: "things", label: "生活物品與顏色", pattern: /顏色|物品|水果|color|thing|fruit/i }
+];
+
+const getTheme = item => THEME_RULES.find(theme => theme.pattern.test(`${item.title} ${item.topic}`)) || { id: "review", label: "綜合口說" };
+const lessonNumber = item => String(item.title || "").match(/^\s*(\d{1,2})/)?.[1]?.padStart(2, "0") || "GO";
+const lessonTitle = item => String(item.title || "口說練習").replace(/^\s*\d{1,2}\s*/, "").trim();
+
+const ChallengeLesson = ({ item, isStaffDemo, onOpen }) => <button className="speaking-challenge-lesson" type="button" onClick={onOpen}>
+    <span className="speaking-challenge-lesson__number">{lessonNumber(item)}</span>
+    <span className="speaking-challenge-lesson__copy"><strong>{lessonTitle(item)}</strong><small>{item.intro_zh || `${item.topic} · ${item.difficulty}`}</small></span>
+    <span className="speaking-challenge-lesson__meta"><b>{isStaffDemo ? `${item.question_count} 題` : `${item.completed_count}/${item.question_count}`}</b><small>{isStaffDemo ? "示範" : "已練習"}</small></span>
+</button>;
 
 export default function TextbookSpeakingChallenge() {
     const { firebaseUser, role } = useAuth();
@@ -13,14 +33,28 @@ export default function TextbookSpeakingChallenge() {
     const { questionSetId } = useParams();
     const navigate = useNavigate();
     const [catalog, setCatalog] = useState([]);
+    const [catalogLoading, setCatalogLoading] = useState(!questionSetId);
+    const [catalogView, setCatalogView] = useState("books");
     const [challenge, setChallenge] = useState(null);
     const [error, setError] = useState("");
     const [audioWorking, setAudioWorking] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [practiceBusy, setPracticeBusy] = useState(false);
+    const [completionReward, setCompletionReward] = useState(null);
     const audioRef = useRef(null);
     const questionStageRef = useRef(null);
     const shouldScrollToQuestionRef = useRef(false);
+    const catalogGroups = useMemo(() => {
+        const groups = new Map();
+        catalog.forEach(item => {
+            const group = catalogView === "books"
+                ? { id: `book-${item.book?.id || item.book?.code || item.book?.name}`, label: item.book?.name || "其他教材", eyebrow: "教材大關卡" }
+                : { ...getTheme(item), eyebrow: "生活主題" };
+            if (!groups.has(group.id)) groups.set(group.id, { ...group, items: [] });
+            groups.get(group.id).items.push(item);
+        });
+        return [...groups.values()];
+    }, [catalog, catalogView]);
 
     useEffect(() => () => {
         audioRef.current?.pause();
@@ -41,8 +75,14 @@ export default function TextbookSpeakingChallenge() {
                     setActiveQuestionIndex(0);
                     setChallenge((await getSpeakingChallengeSet(firebaseUser, Number(questionSetId))).challenge);
                 }
-                else setCatalog((await getSpeakingChallengeCatalog(firebaseUser)).challenges || []);
+                else {
+                    setCatalogLoading(true);
+                    setCatalog((await getSpeakingChallengeCatalog(firebaseUser)).challenges || []);
+                }
             } catch (loadError) { setError(loadError.message || "口說大挑戰載入失敗"); }
+            finally {
+                if (!questionSetId) setCatalogLoading(false);
+            }
         };
         load();
     }, [firebaseUser, questionSetId]);
@@ -58,8 +98,10 @@ export default function TextbookSpeakingChallenge() {
 
     const markComplete = async question => {
         try {
-            await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id);
+            const completion = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id);
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
+            if (completion?.challenge_complete && completion?.reward_granted) setCompletionReward(completion);
+            return completion;
         } catch (saveError) { setError(saveError.message || "無法儲存練習紀錄"); }
     };
 
@@ -82,7 +124,7 @@ export default function TextbookSpeakingChallenge() {
     };
 
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
-    if (!questionSetId) return <main className="speaking-challenge-page"><header className="speaking-challenge-hero"><div><span>TEXTBOOK SPEAKING</span><h1>口說大挑戰</h1><p>每一本到達一個大關卡；先看情境與目標，再進入對話練習。</p></div><Link className="speaking-history-link" to="/student/speaking-history"><FiClock />{isStaffDemo ? "口說歷程示範" : "我的口說歷程"}</Link></header>{isStaffDemo && <div className="speaking-demo-banner" role="note"><strong>示範模式</strong><span>可查看已發布題庫與示範語音，不會讀取或改寫任何學生進度。</span></div>}<section className="speaking-challenge-grid">{catalog.map(item => <button key={item.id} onClick={() => navigate(`/student/speaking-challenges/${item.id}`)}><FiBookOpen /><small>{item.book?.name || "教材"} · 第 {item.version} 版</small><strong>{item.title}</strong><span>{item.intro_zh || `${item.topic} · ${item.difficulty}`}</span>{item.learning_goal_zh && <em>學習目標：{item.learning_goal_zh}</em>}<footer><span>{item.topic} · {item.difficulty}</span><b>{isStaffDemo ? `${item.question_count} 題可供示範` : `${item.completed_count}/${item.question_count} 題已練習`}</b></footer></button>)}{!catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
+    if (!questionSetId) return <main className="speaking-challenge-page"><header className="speaking-challenge-hero"><div><span>TEXTBOOK SPEAKING</span><h1>口說大挑戰</h1><p>選一本熟悉的教材，或直接挑一個生活主題開始說英文。</p></div><Link className="speaking-history-link" to="/student/speaking-history"><FiClock />{isStaffDemo ? "口說歷程示範" : "我的口說歷程"}</Link></header>{isStaffDemo && <div className="speaking-demo-banner" role="note"><strong>示範模式</strong><span>可查看已發布題庫與示範語音，不會讀取或改寫任何學生進度。</span></div>}<div className="speaking-catalog-switch" role="group" aria-label="口說大挑戰瀏覽方式"><button type="button" className={catalogView === "books" ? "active" : ""} aria-pressed={catalogView === "books"} onClick={() => setCatalogView("books")}><FiBookOpen />依教材</button><button type="button" className={catalogView === "themes" ? "active" : ""} aria-pressed={catalogView === "themes"} onClick={() => setCatalogView("themes")}><FiMic />依主題</button></div><section className="speaking-challenge-grid" aria-busy={catalogLoading}>{catalogLoading && <><div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>{[0, 1].map(index => <div className="speaking-challenge-skeleton" aria-hidden="true" key={index}><span className="speaking-skeleton-icon" /><span className="speaking-skeleton-line short" /><span className="speaking-skeleton-line title" /><span className="speaking-skeleton-line" /></div>)}</>}{!catalogLoading && catalogGroups.map(group => <section className="speaking-catalog-group" key={group.id}><header><div><small>{group.eyebrow}</small><h2>{group.label}</h2></div><span>{group.items.length} 個小關卡</span></header><div className="speaking-catalog-lessons">{group.items.map(item => <ChallengeLesson key={item.id} item={item} isStaffDemo={isStaffDemo} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}{!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
     if (!challenge) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
     const questions = challenge.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
@@ -140,9 +182,11 @@ export default function TextbookSpeakingChallenge() {
                     onBusyChange={setPracticeBusy}
                     demoMode={isStaffDemo}
                 />
-                <small className="speaking-no-reward">這裡專心練口說，不會發放 XP 或 AE Points。</small>
+                <small className="speaking-challenge-reward-note">完成整個大挑戰可獲得 30 XP；有效在校生另得 3 AE Points。</small>
             </article>
         </section>
+
+        <SpeakingChallengeCompletion reward={completionReward} onDismiss={() => setCompletionReward(null)} />
 
         <nav className="speaking-question-navigation" aria-label="小關卡切換">
             <button type="button" onClick={() => showQuestion(current => current - 1)} disabled={practiceBusy || activeQuestionIndex === 0}><FiChevronLeft />上一題</button>

@@ -9,6 +9,7 @@ import {
     getSpeakingRecordingUrl
 } from "../../services/pronunciationCoachService";
 import "./css/SpeakingLearningHistory.scss";
+import SpeakingRecordingPlayer from "./SpeakingRecordingPlayer";
 
 const formatDate = value => new Intl.DateTimeFormat("zh-TW", {
     timeZone: "Asia/Taipei",
@@ -130,7 +131,7 @@ export default function SpeakingLearningHistory() {
                     {!isStaffDemo && <button type="button" onClick={() => play(recording)} disabled={workingId === recording.id}><FiPlay />{workingId === recording.id ? "載入中" : "回聽"}</button>}
                     {!isStaffDemo && <button type="button" className="delete" onClick={() => remove(recording)} disabled={workingId === recording.id} aria-label={`刪除 ${recording.question_text} 的錄音`}><FiTrash2 /></button>}
                 </div>
-                {!isStaffDemo && playing?.id === recording.id && <audio className="speaking-history-recording__audio" aria-label={`${recording.question_text} 的私人錄音`} controls autoPlay src={playing.url}>你的瀏覽器不支援錄音播放。</audio>}
+                {!isStaffDemo && playing?.id === recording.id && <div className="speaking-history-recording__audio"><SpeakingRecordingPlayer src={playing.url} label="我的錄音" ariaLabel={`${recording.question_text} 的私人錄音`} autoPlay /></div>}
             </article>)}
             {!recordings.length && <div className="speaking-history-empty"><FiMic /><h2>還沒有保存的錄音</h2><p>完成一次口說評分後，錄音就會出現在這裡。</p><Link to="/student/speaking-challenges">開始第一題</Link></div>}
             {!isStaffDemo && nextBeforeId && <button type="button" className="speaking-history-more" onClick={loadMore} disabled={loadingMore}>{loadingMore ? "載入中…" : "載入更多錄音"}</button>}

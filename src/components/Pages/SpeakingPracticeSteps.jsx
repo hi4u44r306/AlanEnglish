@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
+import { prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 
 const ANSWER_SLOT_PATTERN = /[\u005B［]([^\u005D］]{1,80})[\u005D］]/g;
 
@@ -61,7 +62,10 @@ export default function SpeakingPracticeSteps({
     };
 
     const beginAnswerTurn = () => setAutoStartToken(current => current + 1);
-    const playPrompt = () => onPlayQuestionAudio?.(demoMode ? undefined : beginAnswerTurn);
+    const playPrompt = () => {
+        if (!demoMode) prepareSpeakingFeedbackSound();
+        onPlayQuestionAudio?.(demoMode ? undefined : beginAnswerTurn);
+    };
     const playAnswer = () => onPlayAnswerAudio?.(demoMode ? undefined : beginAnswerTurn);
 
     return <section className="speaking-practice-flow">

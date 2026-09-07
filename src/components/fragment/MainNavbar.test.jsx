@@ -7,11 +7,16 @@ import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications } from "../../services/membershipService";
+import { prefetchSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
+jest.mock("../../services/speakingChallengeService", () => ({
+    clearSpeakingChallengeCatalogCache: jest.fn(),
+    prefetchSpeakingChallengeCatalog: jest.fn()
+}));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, id }) => show ? ReactModule.createElement("aside", { id }, children) : null;
@@ -42,6 +47,7 @@ describe("MainNavbar student navigation", () => {
             balance: { total_xp: 180, level: 2, next_level_xp: 250, progress_percent: 53 }
         });
         getStudentNotifications.mockResolvedValue({ notifications: [] });
+        prefetchSpeakingChallengeCatalog.mockResolvedValue(null);
     });
 
     it("keeps common links in the desktop bar and moves secondary links into the full menu", async () => {
@@ -52,6 +58,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "英文對話" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.getByRole("link", { name: "我的口說歷程" })).toHaveAttribute("href", "/student/speaking-history");
+        expect(prefetchSpeakingChallengeCatalog).toHaveBeenCalledWith(expect.objectContaining({ uid: "student-test" }));
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
