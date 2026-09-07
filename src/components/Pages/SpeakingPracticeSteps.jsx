@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 
@@ -41,13 +41,19 @@ export default function SpeakingPracticeSteps({
     onPlayQuestionAudio,
     onPlayAnswerAudio,
     onCompleted,
+    onBusyChange,
     demoMode = false
 }) {
     const [showHelp, setShowHelp] = useState(false);
     const [lastResult, setLastResult] = useState(null);
     const [autoStartToken, setAutoStartToken] = useState(0);
+    const [scoringBusy, setScoringBusy] = useState(false);
     const answerPattern = useMemo(() => answerPatternForLearner(question.model_answer), [question.model_answer]);
     const example = useMemo(() => naturalExample(question), [question]);
+    const handleBusyChange = useCallback(busy => {
+        setScoringBusy(busy);
+        onBusyChange?.(busy);
+    }, [onBusyChange]);
 
     const handleScored = result => {
         setLastResult(result);
@@ -59,21 +65,21 @@ export default function SpeakingPracticeSteps({
     const playAnswer = () => onPlayAnswerAudio?.(demoMode ? undefined : beginAnswerTurn);
 
     return <section className="speaking-practice-flow">
-        <button type="button" className="speaking-question-audio" disabled={!question.question_audio_url || questionAudioWorking} onClick={playPrompt}>
+        <button type="button" className="speaking-question-audio" disabled={scoringBusy || !question.question_audio_url || questionAudioWorking} onClick={playPrompt}>
             <FiVolume2 aria-hidden="true" />
             <span><strong>{questionAudioWorking ? "外國朋友正在問你…" : "聽問題並回答"}</strong><small>{question.question_audio_url ? "問題播完後，想5秒就會自動開始錄音。" : "問題自然語音準備中"}</small></span>
         </button>
 
         <div className="speaking-direct-prompt"><FiMic aria-hidden="true" /><div><strong>先自己想一想</strong><span>不用打字；真的不知道怎麼回答，再打開下面的提示。</span></div></div>
 
-        <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={() => setShowHelp(current => !current)}>
+        <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} disabled={scoringBusy} onClick={() => setShowHelp(current => !current)}>
             <FiHelpCircle aria-hidden="true" />{showHelp ? "收起回答提示" : "不知道怎麼說？"}
         </button>
 
         {showHelp && <div className="speaking-help-panel">
             {question.hint_zh && <p>{question.hint_zh}</p>}
             <div><small>可以這樣說</small><strong>{answerPattern}</strong></div>
-            <button type="button" disabled={!question.model_audio_url || answerAudioWorking} onClick={playAnswer}>
+            <button type="button" disabled={scoringBusy || !question.model_audio_url || answerAudioWorking} onClick={playAnswer}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (answerAudioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>
             {example && <small>示範：{example}</small>}
@@ -86,6 +92,7 @@ export default function SpeakingPracticeSteps({
             firebaseUser={firebaseUser}
             question={question}
             onScored={handleScored}
+            onBusyChange={handleBusyChange}
             autoStartToken={autoStartToken}
             countdownSeconds={5}
             onReplayQuestion={playPrompt}

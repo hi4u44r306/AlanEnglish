@@ -16,6 +16,7 @@ export default function TextbookSpeakingChallenge() {
     const [error, setError] = useState("");
     const [audioWorking, setAudioWorking] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+    const [practiceBusy, setPracticeBusy] = useState(false);
     const audioRef = useRef(null);
 
     useEffect(() => () => {
@@ -89,7 +90,7 @@ export default function TextbookSpeakingChallenge() {
     return <main className="speaking-challenge-page speaking-challenge-detail">
         {isStaffDemo && <div className="speaking-demo-banner speaking-demo-banner--detail" role="note"><strong>老師／管理員示範模式</strong><span>題庫與示範語音可操作；錄音、評分與完成紀錄僅限學生帳號。</span></div>}
         <header className="speaking-lesson-header">
-            <button className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部大挑戰</button>
+            <button className="speaking-back" disabled={practiceBusy} onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部大挑戰</button>
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
@@ -115,6 +116,7 @@ export default function TextbookSpeakingChallenge() {
                     onPlayQuestionAudio={onEnded => playQuestionAudio(activeQuestion, "question_prompt", onEnded)}
                     onPlayAnswerAudio={onEnded => playQuestionAudio(activeQuestion, "model_answer", onEnded)}
                     onCompleted={() => markScored(activeQuestion)}
+                    onBusyChange={setPracticeBusy}
                     demoMode={isStaffDemo}
                 />
                 <small className="speaking-no-reward">這裡專心練口說，不會發放 XP 或 AE Points。</small>
@@ -122,9 +124,9 @@ export default function TextbookSpeakingChallenge() {
         </section>
 
         <nav className="speaking-question-navigation" aria-label="小關卡切換">
-            <button type="button" onClick={() => setActiveQuestionIndex(current => current - 1)} disabled={activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
+            <button type="button" onClick={() => setActiveQuestionIndex(current => current - 1)} disabled={practiceBusy || activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
             <span>{completedCount} / {questions.length} 題已完成</span>
-            <button type="button" className="primary" onClick={goForward} disabled={!isCompleted && !isStaffDemo}>{isLastQuestion ? (isStaffDemo ? "結束示範" : "完成大挑戰") : "下一題"}<FiChevronRight /></button>
+            <button type="button" className="primary" onClick={goForward} disabled={practiceBusy || (!isCompleted && !isStaffDemo)}>{isLastQuestion ? (isStaffDemo ? "結束示範" : "完成大挑戰") : "下一題"}<FiChevronRight /></button>
         </nav>
     </main>;
 }
