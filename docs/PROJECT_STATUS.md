@@ -8,7 +8,7 @@
 
 本次測試部署（正式站尚未部署）：
 
-- PR #102 後續調整（本機完成、尚未推送／部署）：學生 Navbar 新增「我的口說歷程」；老師與管理員新增「口說示範」入口，可唯讀查看已發布大挑戰與短效示範語音。工作人員的歷程頁只顯示明確標記的固定範例，不查詢學生資料；大挑戰不提供錄音／評分，也不能寫入學生完成進度。路由、前端畫面與 `speaking-challenge` 後端均同步限制角色邊界。新增 3 項角色權限契約；全前端 48 suites／162 tests、全部 Edge Function 語法、production build 與 `git diff --check` 均成功。
+- PR #102 後續調整（測試站已部署，正式站尚未部署）：學生 Navbar 新增「我的口說歷程」；老師與管理員新增「口說示範」入口，可唯讀查看已發布大挑戰與短效示範語音。工作人員的歷程頁只顯示明確標記的固定範例，不查詢學生資料；大挑戰不提供錄音／評分，也不能寫入學生完成進度。路由、前端畫面與 `speaking-challenge` 後端均同步限制角色邊界。新增 3 項角色權限契約；全前端 48 suites／162 tests、全部 Edge Function 語法、production build 與 `git diff --check` 均成功。功能 commit `cb3c3a7` 已推送，`speaking-challenge` v8 為 ACTIVE；固定測試站 deploy `6a9e5ca0d2809b426e4f2999` 已發布，首頁、口說大挑戰、關卡與口說歷程路由均回應 HTTP 200，並載入 `main.d8918b01.js`。
 - 分支 `codex/speaking-history-greetings`／checkpoint `fa5959a` 已推送並建立 PR #102，完成第四階段「個人口說學習歷程」與 Workbook 1「02 打招呼與禮貌對話」。評分成功後將錄音保存到私人 R2，每題只保留最新與最高分，學生本人可分頁載入歷程、取得 10 分鐘短效網址回聽並可刪除；首頁與新歷程頁顯示已完成的不重複句子、單字及私人錄音數，回饋維持「很清楚／再練一下／慢慢重念」而不顯示數字分數。測試 Supabase 已執行並確認 additive migration `20260907042158_speaking_learning_history.sql` 的六個欄位、四個限制與部分索引，且 migration history 只補登本次版本；`pronunciation-coach` v11、`speaking-content-manager` v10 均為 ACTIVE，OPTIONS 200、未登入 POST 401。固定測試站 deploy `6a9e4c7218b95aecaf837a96` 已為 live，首頁、題庫管理、口說挑戰與口說歷程路由均回應 HTTP 200 並載入 `main.d1667f61.js`。管理員可一鍵建立八題人工精選的關卡 02 草稿，不執行 OCR、不呼叫付費 AI、不自動發布或產生 TTS。全前端 48 suites／160 tests、相關口說題庫合約 14／14、全部 Edge Function 語法與口說契約、production build 及 `git diff --check` 均成功；仍待登入測試站完成真實錄音保存、回聽、刪除、統計及建立關卡 02 草稿的端到端驗收，正式 `main`、正式 Supabase 與正式網站尚未變動。
 
 先前測試階段紀錄（已由 PR #100 整批正式發布）：
