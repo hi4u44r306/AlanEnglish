@@ -6,9 +6,9 @@
 
 - 口說大挑戰、混合作業 V2 與 API 成本控制中心已由 PR #100 合併至 `main` commit `f50d186`。正式 Netlify application deploy `6a9e2e320841ca0008bea010` 已為 `ready`，正式 bundle 為 `main.e25d0f50.js`；首頁、API 成本控制、口說題庫管理、學生口說挑戰及師生作業路由均回應 HTTP 200。正式 Supabase 已套用 additive migration `academy_all_access_assignment_v2`，新增結構與方案功能旗標均已查詢確認；`assignment-manager` v29、`billing-manager` v30、`gamification` v11、`generate-ai-material` v31、`membership-manager` v37、`pronunciation-coach` v10、`speaking-challenge` v7、`speaking-content-manager` v9、`speaking-tts-manager` v7 均為 ACTIVE，七支需登入的服務以未登入請求驗證皆正確回應 401。使用者已在測試站完成四項 AI 示範語音驗收；全前端 47 suites／154 tests、API 成本頁 3/3、Edge Function 語法與契約、production build 及 `git diff --check` 均成功。正式站登入後的麥克風錄音、真實送評與私人 R2 語音播放仍建議再做一次快速抽驗。
 
-本次開發中（尚未推送或部署）：
+本次測試部署（正式站尚未部署）：
 
-- 分支 `codex/speaking-history-greetings` 以 `origin/main` commit `7f5e1ac` 為基準，已完成第四階段「個人口說學習歷程」與 Workbook 1「02 打招呼與禮貌對話」。評分成功後將錄音保存到私人 R2，每題只保留最新與最高分，學生本人可分頁載入歷程、取得 10 分鐘短效網址回聽並可刪除；首頁與新歷程頁顯示已完成的不重複句子、單字及私人錄音數，回饋維持「很清楚／再練一下／慢慢重念」而不顯示數字分數。新增 additive migration `20260907042158_speaking_learning_history.sql`，尚未套用任何遠端資料庫。管理員可一鍵建立八題人工精選的關卡 02 草稿，不執行 OCR、不呼叫付費 AI、不自動發布或產生 TTS。全前端 48 suites／160 tests、相關口說題庫合約 14／14、全部 Edge Function 語法與口說契約、production build 及 `git diff --check` 均成功；遠端 migration、Edge Function 與網站仍未部署。
+- 分支 `codex/speaking-history-greetings`／checkpoint `fa5959a` 已推送並建立 PR #102，完成第四階段「個人口說學習歷程」與 Workbook 1「02 打招呼與禮貌對話」。評分成功後將錄音保存到私人 R2，每題只保留最新與最高分，學生本人可分頁載入歷程、取得 10 分鐘短效網址回聽並可刪除；首頁與新歷程頁顯示已完成的不重複句子、單字及私人錄音數，回饋維持「很清楚／再練一下／慢慢重念」而不顯示數字分數。測試 Supabase 已執行並確認 additive migration `20260907042158_speaking_learning_history.sql` 的六個欄位、四個限制與部分索引，且 migration history 只補登本次版本；`pronunciation-coach` v11、`speaking-content-manager` v10 均為 ACTIVE，OPTIONS 200、未登入 POST 401。固定測試站 deploy `6a9e4c7218b95aecaf837a96` 已為 live，首頁、題庫管理、口說挑戰與口說歷程路由均回應 HTTP 200 並載入 `main.d1667f61.js`。管理員可一鍵建立八題人工精選的關卡 02 草稿，不執行 OCR、不呼叫付費 AI、不自動發布或產生 TTS。全前端 48 suites／160 tests、相關口說題庫合約 14／14、全部 Edge Function 語法與口說契約、production build 及 `git diff --check` 均成功；仍待登入測試站完成真實錄音保存、回聽、刪除、統計及建立關卡 02 草稿的端到端驗收，正式 `main`、正式 Supabase 與正式網站尚未變動。
 
 先前測試階段紀錄（已由 PR #100 整批正式發布）：
 
