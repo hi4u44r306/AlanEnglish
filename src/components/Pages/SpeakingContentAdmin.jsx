@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { AlertTriangle, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, RefreshCcw, Sparkles, UploadCloud } from "lucide-react";
+import { AlertTriangle, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, RefreshCcw, Sparkles, UploadCloud, Volume2 } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
     createWorkbookOneStarterQuestionSet,
@@ -10,6 +10,7 @@ import {
     extractSpeakingSourceDocument,
     extractSpeakingBookChunk,
     generateSpeakingQuestionSetAudio,
+    getSpeakingQuestionAudioPreview,
     publishSpeakingQuestionSet,
     reviewSpeakingOcrSource,
     saveReviewedSpeakingSource,
@@ -82,7 +83,34 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
     </div>;
 };
 
-const StudentQuestionSetPreview = ({ questionSet }) => {
+const plannedVoice = (questionSetId, sortOrder) => (
+    (Math.abs(Number(questionSetId) || 0) + Math.abs(Number(sortOrder) || 0)) % 2 === 0
+        ? { gender: "female", label: "女聲 · Autonoe" }
+        : { gender: "male", label: "男聲 · Puck" }
+);
+
+const QuestionAudioPreview = ({ firebaseUser, questionSet, question }) => {
+    const [preview, setPreview] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const voice = plannedVoice(questionSet.id, question.sort_order);
+    const loadPreview = async () => {
+        setLoading(true);
+        try {
+            const result = await getSpeakingQuestionAudioPreview(firebaseUser, questionSet.id, question.id);
+            setPreview(result);
+        } catch (error) { toast.error(error.message || "示範語音尚未準備完成"); }
+        finally { setLoading(false); }
+    };
+    return <div className={`speaking-voice-preview ${voice.gender}`}>
+        <span>{voice.label}</span>
+        {questionSet.status === "published" && <button type="button" disabled={loading} onClick={loadPreview} aria-label={`試聽第 ${Number(question.sort_order || 0) + 1} 題${voice.gender === "female" ? "女聲" : "男聲"}示範`}>
+            <Volume2 size={16} />{loading ? "載入中…" : "試聽"}
+        </button>}
+        {preview?.audio_url && <audio controls autoPlay src={preview.audio_url} aria-label={`第 ${Number(question.sort_order || 0) + 1} 題示範語音`} />}
+    </div>;
+};
+
+const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
     const questions = [...(questionSet.speaking_questions || [])].sort((a, b) => a.sort_order - b.sort_order);
     return <details className="speaking-student-preview">
         <summary><Eye size={17} />預覽學生畫面</summary>
@@ -91,6 +119,7 @@ const StudentQuestionSetPreview = ({ questionSet }) => {
             <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
                 <span>第 {index + 1} 題</span><strong>{question.question_text}</strong>
                 <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>
+                <QuestionAudioPreview firebaseUser={firebaseUser} questionSet={questionSet} question={question} />
                 <small>{question.pronunciation_notes_zh || "完成錄音後顯示發音回饋。"}</small>
             </article>)}</div>
             <p className="speaking-student-preview__note">這是管理員內容預覽；發布後學生可使用示範語音、錄音回聽與逐字發音回饋。</p>
@@ -378,7 +407,7 @@ export default function SpeakingContentAdmin() {
                 {section.status === "draft" && <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />}
                 {section.questionSets.length === 0 ? <p className="speaking-source-card__empty">尚未產生題庫。</p> : section.questionSets.map(questionSet => <section className={`speaking-set ${questionSet.status}`} key={questionSet.id}>
                     <div className="speaking-set__heading"><div><span>第 {questionSet.version} 版 · {questionSet.status === "published" ? "已發布" : "草稿"}</span><h4>{questionSet.title}</h4></div>{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布與產生語音中…" : "核准、發布並產生語音"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : "補產生示範語音"}</button>}</div>
-                    <StudentQuestionSetPreview questionSet={questionSet} />
+                    <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />
                     <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>
                 </section>)}
             </article>)}</div>}

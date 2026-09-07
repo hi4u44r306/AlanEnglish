@@ -1,7 +1,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
-import { fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
+import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
 import { spokenExampleText } from "../_shared/speaking-tts-text.ts";
+import {
+    chooseSpeakingVoice,
+    DEFAULT_FEMALE_VOICE_ID,
+    DEFAULT_MALE_VOICE_ID
+} from "../_shared/speaking-voice-assignment.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -18,7 +23,6 @@ const OUTPUT_FORMAT = "wav";
 const PIPELINE_VERSION = "elementary-bright-v4";
 const SAMPLE_RATE_METADATA = 24000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
-const DEFAULT_VOICE_ID = "en-US-Chirp3-HD-Autonoe";
 const SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.82 });
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;
@@ -28,7 +32,12 @@ const sha256 = async (value: string) => {
     return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("");
 };
 
-const voiceId = () => cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_VOICE_NAME"), 120) || DEFAULT_VOICE_ID;
+const voicePool = () => ({
+    female: cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_FEMALE_VOICE_NAME"), 120)
+        || cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_VOICE_NAME"), 120)
+        || DEFAULT_FEMALE_VOICE_ID,
+    male: cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_MALE_VOICE_NAME"), 120) || DEFAULT_MALE_VOICE_ID
+});
 
 const base64Url = (value: Uint8Array | string) => {
     const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
@@ -117,7 +126,8 @@ const requestGoogleAudio = async (text: string, selectedVoice: string) => {
 const generateQuestionAudio = async (admin: any, question: any) => {
     const text = spokenExampleText(question?.model_answer);
     if (!text) return { question_id: Number(question.id), status: "failed", error: "示範回答是空白" };
-    const selectedVoice = voiceId();
+    const selected = chooseSpeakingVoice(question.question_set_id, question.sort_order, voicePool());
+    const selectedVoice = selected.voiceId;
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
         provider: PROVIDER, voice_id: selectedVoice, language_code: LANGUAGE_CODE,
@@ -134,10 +144,10 @@ const generateQuestionAudio = async (admin: any, question: any) => {
             question_id: question.id, asset_id: existing.id, purpose: "model_answer", updated_at: new Date().toISOString()
         }, { onConflict: "question_id" });
         if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: true };
+        return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
     }
     if (existing?.status === "processing" && Date.now() - Date.parse(existing.updated_at) < 5 * 60 * 1000) {
-        return { question_id: Number(question.id), status: "processing", reused: true };
+        return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
     }
 
     const now = new Date().toISOString();
@@ -161,9 +171,9 @@ const generateQuestionAudio = async (admin: any, question: any) => {
             if (raceError) throw raceError;
             if (raced.status === "ready" && raced.private_object_key) {
                 await admin.from("speaking_question_audio").upsert({ question_id: question.id, asset_id: raced.id, purpose: "model_answer", updated_at: now }, { onConflict: "question_id" });
-                return { question_id: Number(question.id), status: "ready", reused: true };
+                return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
             }
-            return { question_id: Number(question.id), status: "processing", reused: true };
+            return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
         }
         if (error) throw error;
         asset = data;
@@ -187,7 +197,7 @@ const generateQuestionAudio = async (admin: any, question: any) => {
             question_id: question.id, asset_id: asset.id, purpose: "model_answer", updated_at: completedAt
         }, { onConflict: "question_id" });
         if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: false };
+        return { question_id: Number(question.id), status: "ready", reused: false, voice_id: selectedVoice, voice_gender: selected.gender };
     } catch (error: any) {
         await admin.from("speaking_tts_assets").update({
             status: "failed", error_code: cleanText(error?.code, 120) || "generation_failed",
@@ -209,13 +219,13 @@ Deno.serve(async (req: Request) => {
         if (user.role !== "admin") return json(403, { error: "只有管理員可以產生教材示範語音" });
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
-        if (action !== "generate_set_audio" && action !== "retry_question_audio") return json(400, { error: "不支援的操作" });
+        if (!["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action)) return json(400, { error: "不支援的操作" });
         const setId = Number(body?.question_set_id);
-        const requestedQuestionId = action === "retry_question_audio" ? Number(body?.question_id) : null;
+        const requestedQuestionId = action === "retry_question_audio" || action === "preview_question_audio" ? Number(body?.question_id) : null;
         if (!Number.isInteger(setId) || setId <= 0 || (requestedQuestionId !== null && (!Number.isInteger(requestedQuestionId) || requestedQuestionId <= 0))) {
             return json(400, { error: "題庫或題目編號不正確" });
         }
-        let query = admin.from("speaking_questions").select("id,question_set_id,model_answer,speaking_question_sets(status)").eq("question_set_id", setId);
+        let query = admin.from("speaking_questions").select("id,question_set_id,model_answer,sort_order,speaking_question_sets(status)").eq("question_set_id", setId);
         if (requestedQuestionId !== null) query = query.eq("id", requestedQuestionId);
         const { data: questions, error } = await query.order("sort_order");
         if (error) throw error;
@@ -223,6 +233,28 @@ Deno.serve(async (req: Request) => {
         const setStatus = Array.isArray(questions[0]?.speaking_question_sets)
             ? questions[0].speaking_question_sets[0]?.status : questions[0]?.speaking_question_sets?.status;
         if (setStatus !== "published") return json(409, { error: "只有已發布題庫可以產生正式示範語音" });
+        if (action === "preview_question_audio") {
+            const question = questions[0];
+            const { data: link, error: linkError } = await admin.from("speaking_question_audio")
+                .select("asset_id").eq("question_id", question.id).maybeSingle();
+            if (linkError) throw linkError;
+            if (!link?.asset_id) return json(404, { error: "這一題尚未產生示範語音" });
+            const { data: asset, error: assetError } = await admin.from("speaking_tts_assets")
+                .select("voice_id,status,private_object_key").eq("id", link.asset_id).maybeSingle();
+            if (assetError) throw assetError;
+            if (!asset || asset.status !== "ready" || !asset.private_object_key) {
+                return json(409, { error: "這一題的示範語音尚未準備完成" });
+            }
+            const configuredVoices = voicePool();
+            return json(200, {
+                success: true,
+                question_id: Number(question.id),
+                voice_id: asset.voice_id,
+                voice_gender: asset.voice_id === configuredVoices.male ? "male"
+                    : asset.voice_id === configuredVoices.female ? "female" : "unknown",
+                audio_url: await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60)
+            });
+        }
         const results = [];
         for (const question of questions.slice(0, 20)) {
             try { results.push(await generateQuestionAudio(admin, question)); }
