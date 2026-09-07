@@ -5,13 +5,15 @@ import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
 import { getSpeakingChallengeSet } from "../../services/speakingChallengeService";
 
 const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
-jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
+let mockRole = "student";
+jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser, role: mockRole }) }));
 jest.mock("../../services/speakingChallengeService", () => ({
     completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn()
 }));
 
 describe("TextbookSpeakingChallenge model audio", () => {
     const originalAudio = global.Audio;
+    beforeEach(() => { mockRole = "student"; });
     afterEach(() => { global.Audio = originalAudio; });
 
     it("removes the global mobile player clearance while the detail page is open", async () => {
@@ -85,5 +87,27 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByText("How old are you?")).toBeInTheDocument();
         expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: /完成大挑戰/ })).toBeDisabled();
+    });
+
+    it("lets teachers demonstrate published questions without recording or saving progress", async () => {
+        mockRole = "teacher";
+        getSpeakingChallengeSet.mockResolvedValue({
+            demo_mode: true,
+            challenge: {
+                id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
+                speaking_questions: [
+                    { id: 9, question_text: "What's your name?", hint_zh: "說出名字", model_answer: "My name is Alan.", progress_status: "opened" },
+                    { id: 10, question_text: "How are you?", hint_zh: "說出心情", model_answer: "I am great.", progress_status: "opened" }
+                ]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByText("老師／管理員示範模式")).toBeInTheDocument();
+        expect(screen.getByText(/請切換學生帳號示範這項操作/)).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /開始錄音/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
+        expect(screen.getByText("How are you?")).toBeInTheDocument();
     });
 });

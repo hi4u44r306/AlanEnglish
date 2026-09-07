@@ -13,11 +13,13 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 });
 
 const assertChallengeAccess = async (admin: any, user: any) => {
-    if (user.role !== "student") throw Object.assign(new Error("只有學生可以進行口說大挑戰"), { status: 403 });
+    if (user.role === "teacher" || user.role === "admin") return { demoMode: true };
+    if (user.role !== "student") throw Object.assign(new Error("目前帳號不能開啟口說大挑戰"), { status: 403 });
     const access = await loadEffectiveAccess(admin, Number(user.id));
     if (!access.is_active || !access.features.pronunciation) {
         throw Object.assign(new Error("目前方案不包含 AI 發音練習"), { status: 403, code: "pronunciation_access_required" });
     }
+    return { demoMode: false };
 };
 
 Deno.serve(async (req: Request) => {
@@ -29,7 +31,7 @@ Deno.serve(async (req: Request) => {
         if (!supabaseUrl || !serviceRoleKey) return json(500, { error: "Supabase 伺服器設定不完整" });
         const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
         const user = await verifyFirebaseRequest(req, admin);
-        await assertChallengeAccess(admin, user);
+        const { demoMode } = await assertChallengeAccess(admin, user);
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
 
@@ -39,12 +41,12 @@ Deno.serve(async (req: Request) => {
                 .eq("status", "published").order("published_at", { ascending: true });
             if (error) throw error;
             const questionIds = (sets || []).flatMap((set: any) => (set.speaking_questions || []).map((question: any) => Number(question.id)));
-            const { data: progress, error: progressError } = questionIds.length
+            const { data: progress, error: progressError } = questionIds.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", questionIds)
                 : { data: [], error: null };
             if (progressError) throw progressError;
             const completed = new Set((progress || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
-            return json(200, { success: true, challenges: (sets || []).map((set: any) => ({
+            return json(200, { success: true, demo_mode: demoMode, challenges: (sets || []).map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 version: set.version, question_count: (set.speaking_questions || []).length,
                 completed_count: (set.speaking_questions || []).filter((question: any) => completed.has(Number(question.id))).length
@@ -61,7 +63,7 @@ Deno.serve(async (req: Request) => {
 
         if (action === "question_set") {
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
-            const { data: progress, error: progressError } = ids.length
+            const { data: progress, error: progressError } = ids.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", ids)
                 : { data: [], error: null };
             if (progressError) throw progressError;
@@ -88,10 +90,11 @@ Deno.serve(async (req: Request) => {
                     model_audio_url: audioReady ? await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60) : null
                 });
             }
-            return json(200, { success: true, challenge: { ...questionSet, speaking_questions: questions } });
+            return json(200, { success: true, demo_mode: demoMode, challenge: { ...questionSet, speaking_questions: questions } });
         }
 
         if (action === "complete_question") {
+            if (demoMode) return json(403, { error: "示範模式不會寫入學生進度", code: "demo_read_only" });
             const questionId = Number(body?.question_id);
             const exists = (questionSet.speaking_questions || []).some((question: any) => Number(question.id) === questionId);
             if (!exists) return json(403, { error: "這題不屬於指定的小關卡" });

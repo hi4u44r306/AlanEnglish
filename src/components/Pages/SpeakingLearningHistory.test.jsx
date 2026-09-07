@@ -11,7 +11,8 @@ import {
 } from "../../services/pronunciationCoachService";
 
 const firebaseUser = { uid: "student" };
-jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser }) }));
+let mockRole = "student";
+jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser, role: mockRole }) }));
 jest.mock("../../services/pronunciationCoachService", () => ({
     deleteSpeakingRecording: jest.fn(),
     getSpeakingLearningSummary: jest.fn(),
@@ -22,6 +23,7 @@ jest.mock("../../services/pronunciationCoachService", () => ({
 describe("SpeakingLearningHistory", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockRole = "student";
         getSpeakingLearningSummary.mockResolvedValue({ summary: { learned_sentences: 4, learned_words: 12, saved_recordings: 1 } });
         getSpeakingRecordingHistory.mockResolvedValue({ recordings: [{
             id: 9, question_id: 3, pronunciation_score: 88, recognized_text: "Nice to meet you too.",
@@ -82,5 +84,18 @@ describe("SpeakingLearningHistory", () => {
         await waitFor(() => expect(getSpeakingRecordingHistory).toHaveBeenLastCalledWith(firebaseUser, 9));
         expect(await screen.findByText("My name is Amy.")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "載入更多錄音" })).not.toBeInTheDocument();
+    });
+
+    it("shows fixed safe demo data to teachers without requesting student history", async () => {
+        mockRole = "teacher";
+        render(<MemoryRouter><SpeakingLearningHistory /></MemoryRouter>);
+
+        expect(await screen.findByRole("heading", { name: "口說學習歷程示範" })).toBeInTheDocument();
+        expect(screen.getByText("Nice to meet you, too.")).toBeInTheDocument();
+        expect(screen.getAllByText("示範資料")).toHaveLength(2);
+        expect(screen.queryByRole("button", { name: "回聽" })).not.toBeInTheDocument();
+        expect(getSpeakingLearningSummary).not.toHaveBeenCalled();
+        expect(getSpeakingRecordingHistory).not.toHaveBeenCalled();
+        expect(getSpeakingRecordingUrl).not.toHaveBeenCalled();
     });
 });

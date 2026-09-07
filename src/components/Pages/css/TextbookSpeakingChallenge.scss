@@ -45,6 +45,36 @@
   white-space: nowrap;
 }
 
+.speaking-demo-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(920px, 100%);
+  margin: 18px auto 0;
+  padding: 12px 16px;
+  border: 1px solid #f0cf72;
+  border-radius: 14px;
+  color: #624700;
+  background: #fff6d8;
+}
+.speaking-demo-banner strong { white-space: nowrap; }
+.speaking-demo-banner--detail { margin-top: 0; margin-bottom: 12px; }
+
+.speaking-staff-demo-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 1px solid #b8cdea;
+  border-radius: 16px;
+  color: #173e7e;
+  background: #edf4ff;
+}
+.speaking-staff-demo-note > svg { flex: 0 0 auto; font-size: 24px; }
+.speaking-staff-demo-note > div { display: grid; gap: 3px; }
+.speaking-staff-demo-note span { color: #526884; line-height: 1.5; }
+
 .speaking-challenge-hero h1 {
   margin: 8px 0;
   font-size: clamp(34px, 6vw, 56px);
@@ -454,6 +484,8 @@
 .speaking-practice-finished svg { flex: 0 0 auto; }
 
 @media (max-width: 760px) {
+  .speaking-demo-banner { align-items: flex-start; flex-direction: column; gap: 3px; margin-top: 12px; font-size: 13px; }
+  .speaking-demo-banner--detail { margin-top: 0; margin-bottom: 8px; }
   .speaking-challenge-hero { align-items: stretch; flex-direction: column; }
   .speaking-history-link { width: 100%; }
   body.speaking-challenge-detail-active .app-content { padding-bottom: 0; }

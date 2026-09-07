@@ -51,6 +51,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "方案與功能" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "英文對話" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.getByRole("link", { name: "我的口說歷程" })).toHaveAttribute("href", "/student/speaking-history");
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
@@ -242,6 +243,14 @@ describe("MainNavbar student navigation", () => {
 
         expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");
         expect(screen.queryByRole("link", { name: "新增連結" })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "口說示範" }));
+        expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.getByRole("link", { name: "口說歷程示範" })).toHaveAttribute("href", "/student/speaking-history");
+
+        fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
+        expect(screen.getByRole("link", { name: "口說大挑戰示範" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.getAllByRole("link", { name: "口說歷程示範" })).toHaveLength(2);
     });
 
     it("highlights the active student route in the full menu", () => {

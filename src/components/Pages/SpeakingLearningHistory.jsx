@@ -20,9 +20,18 @@ const formatDate = value => new Intl.DateTimeFormat("zh-TW", {
 
 const scoreTone = score => score >= 80 ? "good" : score >= 60 ? "practice" : "retry";
 const scoreLabel = score => score >= 80 ? "很清楚" : score >= 60 ? "再練一下" : "慢慢重念";
+const STAFF_DEMO_SUMMARY = { learned_sentences: 12, learned_words: 36, saved_recordings: 4 };
+const STAFF_DEMO_RECORDINGS = [{
+    id: "demo-1", pronunciation_score: 88, recognized_text: "Nice to meet you, too.",
+    question_text: "Nice to meet you!", challenge_title: "02 打招呼與禮貌對話", book_name: "Workbook 1"
+}, {
+    id: "demo-2", pronunciation_score: 72, recognized_text: "I'm great, thank you.",
+    question_text: "How are you today?", challenge_title: "02 打招呼與禮貌對話", book_name: "Workbook 1"
+}];
 
 export default function SpeakingLearningHistory() {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, role } = useAuth();
+    const isStaffDemo = role === "teacher" || role === "admin";
     const [summary, setSummary] = useState({ learned_sentences: 0, learned_words: 0, saved_recordings: 0 });
     const [recordings, setRecordings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -34,6 +43,14 @@ export default function SpeakingLearningHistory() {
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
+        if (isStaffDemo) {
+            setSummary(STAFF_DEMO_SUMMARY);
+            setRecordings(STAFF_DEMO_RECORDINGS);
+            setNextBeforeId(null);
+            setError("");
+            setLoading(false);
+            return;
+        }
         setLoading(true); setError("");
         try {
             const [summaryResult, historyResult] = await Promise.all([
@@ -45,7 +62,7 @@ export default function SpeakingLearningHistory() {
             setNextBeforeId(historyResult.next_before_id || null);
         } catch (cause) { setError(cause?.message || "口說學習歷程暫時無法載入"); }
         finally { setLoading(false); }
-    }, [firebaseUser]);
+    }, [firebaseUser, isStaffDemo]);
 
     useEffect(() => { load(); }, [load]);
 
@@ -83,9 +100,11 @@ export default function SpeakingLearningHistory() {
 
     return <main className="speaking-history-page">
         <header className="speaking-history-hero">
-            <div><span>MY SPEAKING JOURNEY</span><h1>我的口說學習歷程</h1><p>回來聽自己說過的英文，看見句子與單字一點一點累積。</p></div>
-            <Link to="/student/speaking-challenges"><FiMic />繼續口說練習</Link>
+            <div><span>MY SPEAKING JOURNEY</span><h1>{isStaffDemo ? "口說學習歷程示範" : "我的口說學習歷程"}</h1><p>{isStaffDemo ? "用範例資料向學生介紹學習累積與私人錄音畫面。" : "回來聽自己說過的英文，看見句子與單字一點一點累積。"}</p></div>
+            <Link to="/student/speaking-challenges"><FiMic />{isStaffDemo ? "示範口說大挑戰" : "繼續口說練習"}</Link>
         </header>
+
+        {isStaffDemo && <div className="speaking-history-demo" role="note"><strong>老師／管理員示範模式</strong><span>以下皆為固定範例，不會讀取任何學生的統計或私人錄音，也不會寫入資料庫。</span></div>}
 
         <section className="speaking-history-stats" aria-label="口說學習成果">
             <article><strong>{Number(summary.learned_sentences || 0).toLocaleString("zh-TW")}</strong><span>已學句子</span></article>
@@ -96,25 +115,25 @@ export default function SpeakingLearningHistory() {
         {error && <div className="speaking-history-error" role="alert"><span>{error}</span><button type="button" onClick={load}><FiRefreshCw />重新整理</button></div>}
         {loading && <p className="speaking-history-loading">正在整理你的口說成果…</p>}
 
-        {!loading && <section className="speaking-history-list" aria-label="我的私人錄音">
-            <header><div><span>PRIVATE RECORDINGS</span><h2>我的錄音</h2></div><small>每題最多保留最新一次與最高分一次</small></header>
+        {!loading && <section className="speaking-history-list" aria-label={isStaffDemo ? "口說歷程範例" : "我的私人錄音"}>
+            <header><div><span>{isStaffDemo ? "DEMO RECORDINGS" : "PRIVATE RECORDINGS"}</span><h2>{isStaffDemo ? "錄音紀錄範例" : "我的錄音"}</h2></div><small>{isStaffDemo ? "學生本人可回聽與刪除自己的錄音" : "每題最多保留最新一次與最高分一次"}</small></header>
             {recordings.map(recording => <article key={recording.id} className="speaking-history-recording">
                 <div className="speaking-history-recording__icon"><FiBookOpen /></div>
                 <div className="speaking-history-recording__copy">
                     <small>{recording.book_name} · {recording.challenge_title}</small>
                     <strong>{recording.question_text}</strong>
                     <p>{recording.recognized_text || "這次沒有可顯示的辨識文字"}</p>
-                    <span>{formatDate(recording.created_at)}</span>
+                    <span>{isStaffDemo ? "示範資料" : formatDate(recording.created_at)}</span>
                 </div>
                 <div className="speaking-history-recording__actions">
                     <span className={`score-${scoreTone(recording.pronunciation_score)}`}>{scoreLabel(recording.pronunciation_score)}</span>
-                    <button type="button" onClick={() => play(recording)} disabled={workingId === recording.id}><FiPlay />{workingId === recording.id ? "載入中" : "回聽"}</button>
-                    <button type="button" className="delete" onClick={() => remove(recording)} disabled={workingId === recording.id} aria-label={`刪除 ${recording.question_text} 的錄音`}><FiTrash2 /></button>
+                    {!isStaffDemo && <button type="button" onClick={() => play(recording)} disabled={workingId === recording.id}><FiPlay />{workingId === recording.id ? "載入中" : "回聽"}</button>}
+                    {!isStaffDemo && <button type="button" className="delete" onClick={() => remove(recording)} disabled={workingId === recording.id} aria-label={`刪除 ${recording.question_text} 的錄音`}><FiTrash2 /></button>}
                 </div>
-                {playing?.id === recording.id && <audio className="speaking-history-recording__audio" aria-label={`${recording.question_text} 的私人錄音`} controls autoPlay src={playing.url}>你的瀏覽器不支援錄音播放。</audio>}
+                {!isStaffDemo && playing?.id === recording.id && <audio className="speaking-history-recording__audio" aria-label={`${recording.question_text} 的私人錄音`} controls autoPlay src={playing.url}>你的瀏覽器不支援錄音播放。</audio>}
             </article>)}
             {!recordings.length && <div className="speaking-history-empty"><FiMic /><h2>還沒有保存的錄音</h2><p>完成一次口說評分後，錄音就會出現在這裡。</p><Link to="/student/speaking-challenges">開始第一題</Link></div>}
-            {nextBeforeId && <button type="button" className="speaking-history-more" onClick={loadMore} disabled={loadingMore}>{loadingMore ? "載入中…" : "載入更多錄音"}</button>}
+            {!isStaffDemo && nextBeforeId && <button type="button" className="speaking-history-more" onClick={loadMore} disabled={loadingMore}>{loadingMore ? "載入中…" : "載入更多錄音"}</button>}
         </section>}
     </main>;
 }

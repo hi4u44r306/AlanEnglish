@@ -33,6 +33,19 @@
   span { color: #68758c; font-weight: 700; }
 }
 
+.speaking-history-demo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 12px 16px;
+  border: 1px solid #f0cf72;
+  border-radius: 14px;
+  color: #624700;
+  background: #fff6d8;
+}
+.speaking-history-demo strong { white-space: nowrap; }
+
 .speaking-history-list {
   > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
   > header span { color: #e06b36; font-size: .75rem; font-weight: 800; letter-spacing: .1em; }
@@ -80,6 +93,7 @@
   .speaking-history-page { width: min(100% - 20px, 1080px); padding-top: 16px; }
   .speaking-history-hero { align-items: stretch; flex-direction: column; padding: 22px; }
   .speaking-history-hero > a { justify-content: center; }
+  .speaking-history-demo { align-items: flex-start; flex-direction: column; gap: 3px; }
   .speaking-history-stats { grid-template-columns: 1fr; gap: 8px; }
   .speaking-history-stats article { justify-content: space-between; padding: 14px 18px; }
   .speaking-history-list > header { align-items: flex-start; flex-direction: column; gap: 4px; }

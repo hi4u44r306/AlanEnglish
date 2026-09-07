@@ -33,7 +33,7 @@ const naturalExample = question => {
         .trim();
 };
 
-export default function SpeakingPracticeSteps({ firebaseUser, question, audioWorking, onPlayAudio, onCompleted }) {
+export default function SpeakingPracticeSteps({ firebaseUser, question, audioWorking, onPlayAudio, onCompleted, demoMode = false }) {
     const [showHelp, setShowHelp] = useState(false);
     const [lastResult, setLastResult] = useState(null);
     const answerPattern = useMemo(() => answerPatternForLearner(question.model_answer), [question.model_answer]);
@@ -65,12 +65,12 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
             <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" />聽不到聲音時，請用裝置音量鍵調整媒體音量。</small>
         </div>}
 
-        <SpeakingPronunciationRecorder
+        {demoMode ? <div className="speaking-staff-demo-note" role="note"><FiMic aria-hidden="true" /><div><strong>學生錄音與評分</strong><span>請切換學生帳號示範這項操作；老師／管理員頁面不會保存錄音或學習進度。</span></div></div> : <SpeakingPronunciationRecorder
             key={question.id}
             firebaseUser={firebaseUser}
             question={question}
             onScored={handleScored}
-        />
+        />}
 
         {lastResult?.answer_match !== false && lastResult && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成，可以前往下一題或再練一次。</p>}
         {lastResult?.answer_match === false && <p className="speaking-practice-retry"><FiHelpCircle aria-hidden="true" /> 先用提示中的完整句型回答，再送出一次。</p>}
