@@ -26,7 +26,8 @@ export default function PronunciationCoach() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const hasPronunciationAccess = role === "teacher"
         || role === "admin"
-        || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
+        || studentProfile?.membership?.effective_access?.features?.pronunciation === true
+        || studentProfile?.membership?.effective_access?.features?.pronunciation_practice === true;
     const world = PRONUNCIATION_WORLDS[0];
     const [lessonId, setLessonId] = useState(world.lessons[0].id);
     const [recording, setRecording] = useState(false);

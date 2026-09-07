@@ -6,7 +6,7 @@ import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../const
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import { updateStudentProfile } from "../../services/membershipService";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
-import { hasAiAddonPlan } from "../../constants/membershipPlans";
+import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import BirthdaySelect from "../fragment/BirthdaySelect";
 import "./css/StudentSettings.scss";
 
@@ -281,8 +281,10 @@ function StudentSettings() {
     const balance = summary?.balance || {};
     const avatarUrl = summary?.profile?.avatar_url || null;
     const avatarDisplayUrl = getStudentAvatarDisplayUrl(avatarUrl, 256);
-    const hasAiPremium = hasAiAddonPlan(profile?.membership?.effective_access?.plan_codes);
+    const effectiveAccess = profile?.membership?.effective_access;
+    const hasAiPremium = hasAiPremiumAccess(effectiveAccess);
     const hasAiMaterials = profile?.membership?.effective_access?.features?.ai_materials === true;
+    const isActiveAcademyStudent = effectiveAccess?.plan_codes?.includes("academy_internal") === true;
     const statusLabel = commerce?.enrollment_status === "active" ? "在校" : commerce?.enrollment_status === "scheduled_departure" ? "預定離校" : commerce?.enrollment_status === "departed" ? "離校" : "非在校生";
     const currentEnrollment = commerce?.current_enrollment || null;
     const enrollmentRecord = currentEnrollment || commerce?.enrollment_history?.[0] || null;
@@ -435,7 +437,7 @@ function StudentSettings() {
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>教材與方案</h2></div></header>
                     <dl className="student-settings-data-list">
-                        <div><dt>AI 教材與發音練習</dt><dd>{hasAiPremium ? "已加購" : "未加購"}</dd></div>
+                        <div><dt>AI Premium 資格</dt><dd>{hasAiPremium ? isActiveAcademyStudent ? "英文班方案已包含" : "已加購" : "未開通"}</dd></div>
                         <div><dt>AI 教材與發音練習</dt><dd>{hasAiMaterials ? "兩項皆可使用" : "目前不可使用"}</dd></div>
                         <div><dt>帳號類型</dt><dd>{profile.learner_type === "academy_student" ? "英文班學生" : profile.learner_type === "textbook_customer" ? "教材購買者" : "試用／一般學生"}</dd></div>
                         <div><dt>在校狀態</dt><dd>{statusLabel}</dd></div>

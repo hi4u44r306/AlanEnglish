@@ -22,7 +22,7 @@ import { getStudentAssignments } from "../../services/assignmentService";
 import { getReviewDashboard } from "../../services/reviewService";
 import { getConversationProgress } from "../../services/learningActivityService";
 import { getDashboardStats } from "../../services/listeningService";
-import { getPrimaryAccessPlanLabel, hasAiAddonPlan } from "../../constants/membershipPlans";
+import { getPrimaryAccessPlanLabel, hasAiPremiumAccess } from "../../constants/membershipPlans";
 import "./css/User.scss";
 
 const DAILY_LISTENING_GOAL = 3;
@@ -232,7 +232,7 @@ const User = () => {
     }, [loadHomeData]);
 
     const hasAiAccess = user?.membership?.effective_access?.features?.ai_materials === true;
-    const hasAiPremium = hasAiAddonPlan(user?.membership?.effective_access?.plan_codes);
+    const hasAiPremium = hasAiPremiumAccess(user?.membership?.effective_access);
 
     const dailyTasks = useMemo(() => {
         const tasks = [];

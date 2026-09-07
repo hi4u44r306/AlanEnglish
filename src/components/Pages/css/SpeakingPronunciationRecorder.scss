@@ -1,0 +1,179 @@
+.speaking-pronunciation {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  padding: clamp(18px, 4vw, 28px);
+  border: 1px solid #c8d8ee;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f6f9ff, #edf4ff);
+  text-align: center;
+}
+
+.speaking-recording-heading { display: grid; gap: 5px; }
+.speaking-recording-heading strong { color: #142c54; font-size: clamp(18px, 3vw, 22px); }
+.speaking-recording-heading span,
+.speaking-recording-privacy { color: #687790; font-size: 13px; }
+
+.speaking-pronunciation-mic {
+  display: grid;
+  place-items: center;
+  width: 132px;
+  min-height: 132px;
+  padding: 16px;
+  border: 9px solid #dbe8fa;
+  border-radius: 50%;
+  background: #2b66bd;
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(43, 102, 189, .25);
+  cursor: pointer;
+}
+.speaking-pronunciation-mic svg { font-size: 34px; }
+.speaking-pronunciation-mic span { font-size: 14px; font-weight: 900; }
+.speaking-pronunciation-mic:disabled { opacity: .55; cursor: not-allowed; }
+
+.speaking-pronunciation.is-recording { border-color: #f2a696; background: #fff6f4; }
+.speaking-pronunciation.is-recording .speaking-pronunciation-mic {
+  border-color: #ffd8d1;
+  background: #e86655;
+  box-shadow: 0 0 0 10px rgba(232, 102, 85, .12), 0 14px 28px rgba(160, 54, 40, .2);
+  animation: speaking-recording-pulse 1.4s ease-in-out infinite;
+}
+
+.speaking-recording-preview { display: grid; gap: 12px; width: min(480px, 100%); }
+.speaking-recording-preview audio { width: 100%; }
+.speaking-recording-preview > div { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+
+.speaking-pronunciation button:not(.speaking-pronunciation-mic) {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #2b66bd;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+.speaking-pronunciation button.secondary { border: 1px solid #9db8e1; background: #fff; color: #245eaf; }
+.speaking-pronunciation button:disabled { opacity: .6; cursor: not-allowed; }
+
+.speaking-pronunciation-notice,
+.speaking-pronunciation-error {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 11px;
+  font-weight: 800;
+  text-align: left;
+}
+.speaking-pronunciation-notice { background: #fff2cc; color: #795507; }
+.speaking-pronunciation-error { background: #ffe7e2; color: #a52f23; }
+
+.speaking-pronunciation-result { display: grid; gap: 16px; justify-items: center; width: 100%; }
+.speaking-pronunciation-result > header {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 10px;
+  align-items: center;
+  justify-content: center;
+}
+.speaking-pronunciation-result > header svg { grid-row: span 2; color: #25a86f; font-size: 34px; }
+.speaking-pronunciation-result > header span { color: #687790; text-align: left; }
+.speaking-pronunciation-result > header strong { color: #193f7d; font-size: clamp(20px, 4vw, 26px); line-height: 1.2; text-align: left; }
+.speaking-pronunciation-result.is-practice > header svg { color: #d49a19; }
+.speaking-pronunciation-result.is-retry > header svg { color: #e86655; }
+
+.speaking-pronunciation-legend,
+.speaking-pronunciation-words { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.speaking-recognized-answer {
+  display: grid;
+  gap: 3px;
+  width: min(600px, 100%);
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: #fff;
+  color: #142c54;
+  text-align: left;
+}
+.speaking-recognized-answer strong { color: #687790; font-size: 12px; }
+.speaking-recognized-answer span { font-size: 17px; font-weight: 800; }
+.speaking-pronunciation-legend span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.speaking-pronunciation-words > span {
+  padding: 6px 9px;
+  border-radius: 9px;
+  font-weight: 800;
+}
+.speaking-pronunciation-legend .word-good,
+.speaking-pronunciation-words .word-good { background: #dff6e8; color: #17663f; }
+.speaking-pronunciation-legend .word-practice,
+.speaking-pronunciation-words .word-practice { background: #fff2cc; color: #795507; }
+.speaking-pronunciation-legend .word-retry,
+.speaking-pronunciation-words .word-retry { background: #ffe0dc; color: #9a3021; }
+
+.speaking-pronunciation-feedback {
+  display: grid;
+  gap: 4px;
+  width: min(600px, 100%);
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  color: #425570;
+  text-align: left;
+}
+.speaking-pronunciation-feedback strong { color: #142c54; }
+
+@keyframes speaking-recording-pulse {
+  50% { transform: scale(1.035); }
+}
+
+@media (max-width: 760px) {
+  .speaking-pronunciation { gap: 7px; padding: 8px 10px; border-radius: 14px; }
+  .speaking-recording-heading { gap: 1px; }
+  .speaking-recording-heading strong { font-size: 14px; }
+  .speaking-recording-heading span { display: none; }
+  .speaking-pronunciation-mic {
+    grid-template-columns: auto auto;
+    gap: 5px;
+    width: auto;
+    min-width: 132px;
+    min-height: 54px;
+    padding: 7px 13px;
+    border-width: 5px;
+    border-radius: 999px;
+  }
+  .speaking-pronunciation-mic svg { font-size: 23px; }
+  .speaking-pronunciation-mic span { font-size: 12px; }
+  .speaking-recording-privacy { font-size: 10px; line-height: 1.25; }
+  .speaking-recording-preview { gap: 7px; }
+  .speaking-recording-preview audio { height: 40px; }
+  .speaking-recording-preview > div { gap: 7px; }
+  .speaking-recording-preview button { flex: 1 1 120px; }
+  .speaking-pronunciation-result { gap: 7px; }
+  .speaking-pronunciation-result > header { gap: 1px 7px; }
+  .speaking-pronunciation-result > header svg { font-size: 26px; }
+  .speaking-pronunciation-result > header span { display: none; }
+  .speaking-pronunciation-result > header strong { font-size: 18px; }
+  .speaking-pronunciation-legend,
+  .speaking-pronunciation-words { gap: 4px; }
+  .speaking-recognized-answer { padding: 7px 9px; }
+  .speaking-recognized-answer span { font-size: 14px; }
+  .speaking-pronunciation-legend span { padding: 3px 6px; font-size: 10px; }
+  .speaking-pronunciation-words > span { padding: 4px 7px; font-size: 12px; }
+  .speaking-pronunciation-feedback { gap: 2px; padding: 7px 9px; font-size: 12px; }
+  .speaking-pronunciation-result > button { min-height: 44px; padding-block: 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speaking-pronunciation.is-recording .speaking-pronunciation-mic { animation: none; }
+}

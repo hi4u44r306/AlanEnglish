@@ -9,6 +9,7 @@ import {
 export type EffectiveAccessFeatures = {
     listening: boolean;
     ai_materials: boolean;
+    pronunciation: boolean;
     conversation: boolean;
     assignments: boolean;
     review: boolean;
@@ -31,6 +32,7 @@ export type EffectiveAccess = {
 const DEFAULT_FEATURES: EffectiveAccessFeatures = {
     listening: false,
     ai_materials: false,
+    pronunciation: false,
     conversation: false,
     assignments: false,
     review: false,
@@ -75,6 +77,9 @@ export const loadEffectiveAccess = async (
         ...DEFAULT_FEATURES,
         listening: features.listening === true,
         ai_materials: features.ai_materials === true,
+        pronunciation: features.pronunciation === true
+            || features.pronunciation_practice === true
+            || features.ai_materials === true,
         conversation: features.conversation === true,
         assignments: features.assignments === true,
         review: features.review === true,
@@ -129,6 +134,9 @@ export const loadEffectiveAccess = async (
             normalizedFeatures = {
                 listening: enabled("listening"),
                 ai_materials: enabled("ai_materials"),
+                pronunciation: enabled("pronunciation")
+                    || remainingPlans.some(plan => plan?.features?.pronunciation_practice === true)
+                    || enabled("ai_materials"),
                 conversation: enabled("conversation"),
                 assignments: enabled("assignments") && value.learner_type === "academy_student",
                 review: enabled("review"),

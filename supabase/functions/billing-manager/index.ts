@@ -302,10 +302,11 @@ Deno.serve(async (req: Request) => {
             ]);
             if (enrollmentResult.error) throw enrollmentResult.error;
             const enrollments = Array.isArray(enrollmentResult.data) ? enrollmentResult.data : [];
+            const hasActiveAcademyEnrollment = enrollments.some((item: any) => item?.status === "active");
             const pricingEligibility = getMembershipPricingEligibility({
                 role: student.role,
                 learnerType: student.learner_type || null,
-                hasActiveAcademyEnrollment: enrollments.some((item: any) => item?.status === "active"),
+                hasActiveAcademyEnrollment,
                 hasAcademyHistory: enrollments.length > 0,
                 hasActiveBasicMembership: effectiveAccess.plan_codes.includes(BASIC_MEMBERSHIP_PLAN_CODE)
             });
@@ -315,12 +316,18 @@ Deno.serve(async (req: Request) => {
                 if (!isAiAddonPlanCode(plan.code)) {
                     return json(409, { error: "目前不支援這個加購方案" });
                 }
+                if (hasActiveAcademyEnrollment) {
+                    return json(409, {
+                        error: "英文班在校方案已包含 AI 教材與發音練習，不需要重複購買",
+                        code: "academy_ai_already_included"
+                    });
+                }
                 if (
                     plan.code === ACADEMY_AI_ADDON_PLAN_CODE
                     && !pricingEligibility.canUseAcademyAiAddon
                 ) {
                     return json(403, {
-                        error: "英文班在校生可直接加購 AI；一般會員與離校生需先啟用每月 NT$299 基本會員",
+                        error: "一般會員與離校生需先啟用每月 NT$299 基本會員，才能加購 AI 教材與發音練習",
                         code: "academy_ai_membership_required"
                     });
                 }

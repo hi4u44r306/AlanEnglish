@@ -55,6 +55,22 @@ describe("AssignmentShortcut", () => {
         );
     });
 
+    test("hides the floating homework shortcut inside a speaking challenge", () => {
+        renderShortcut({
+            isAuthenticated: true,
+            role: "student",
+            studentProfile: {
+                membership: {
+                    effective_access: {
+                        features: { assignments: true }
+                    }
+                }
+            }
+        }, "/student/speaking-challenges/1");
+
+        expect(screen.queryByRole("link", { name: /今日作業/ })).not.toBeInTheDocument();
+    });
+
     test("keeps the publish shortcut for managers", () => {
         renderShortcut({
             isAuthenticated: true,

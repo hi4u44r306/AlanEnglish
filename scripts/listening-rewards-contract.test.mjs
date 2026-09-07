@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = read("supabase/migrations/20260902021837_listening_rewards_and_level_up.sql");
 const masteryMigration = read("supabase/migrations/20260903003717_listening_mastery_reward_allocation.sql");
+const academyAccessMigration = read("supabase/migrations/20260903114141_academy_all_access_assignment_v2.sql");
 const recordPlay = read("supabase/functions/record-play/index.ts");
 const assignmentManager = read("supabase/functions/assignment-manager/index.ts");
 const gamification = read("supabase/functions/gamification/index.ts");
@@ -93,7 +94,7 @@ test("總次數照常累計，但V3同一session只分配一份作業或自主",
     assert.match(masteryMigration, /p_started_at >= greatest/);
 });
 
-test("新班級作業只能發布聽力，每檔預設 3 次且上限 10 次", () => {
+test("舊版班級作業在 V2 灰度前維持聽力，每檔預設 3 次且上限 10 次", () => {
     assert.match(assignmentManager, /sourceType !== "music_track"/);
     assert.match(assignmentManager, /legacy_ai_assignment_read_only/);
     assert.match(assignmentManager, /Math\.min\(\s*10,/);
@@ -101,12 +102,14 @@ test("新班級作業只能發布聽力，每檔預設 3 次且上限 10 次", (
     assert.match(studentAssignments, /assignment\?\.required_listens \|\| 3/);
 });
 
-test("試用會員不可兌換且實體獎品每 30 天限一次", () => {
-    assert.match(gamification, /student\.learner_type === "trial_user"/);
-    assert.match(migration, /TRIAL_REDEMPTION_LOCKED/);
+test("只有有效在校生可取得點數與兌換，實體獎品每 30 天限一次", () => {
+    assert.match(gamification, /student\.learner_type !== "academy_student"/);
+    assert.match(gamification, /code: "academy_rewards_required"/);
+    assert.match(academyAccessMigration, /ae_student_can_earn_points/);
+    assert.match(academyAccessMigration, /v_effective_points_delta/);
     assert.match(migration, /PHYSICAL_REDEMPTION_COOLDOWN/);
     assert.match(migration, /now\(\) - interval '30 days'/);
-    assert.match(rewardsPage, /redemptionAllowed/);
+    assert.match(rewardsPage, /hasRewardsAccess/);
 });
 
 test("獎勵與兌換 RPC 僅允許 service role 執行", () => {

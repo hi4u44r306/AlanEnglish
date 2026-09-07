@@ -16,13 +16,18 @@ const STATUS_LABELS = {
 };
 
 function Rewards() {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, studentProfile } = useAuth();
+    const hasRewardsAccess = studentProfile?.learner_type === "academy_student"
+        && studentProfile?.membership?.effective_access?.plan_codes?.includes("academy_internal") === true;
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [redeemingId, setRedeemingId] = useState(null);
 
     const load = useCallback(async () => {
-        if (!firebaseUser) return;
+        if (!firebaseUser || !hasRewardsAccess) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             setData(await getRewards(firebaseUser));
@@ -31,7 +36,7 @@ function Rewards() {
         } finally {
             setLoading(false);
         }
-    }, [firebaseUser]);
+    }, [firebaseUser, hasRewardsAccess]);
 
     useEffect(() => {
         load();
@@ -57,6 +62,23 @@ function Rewards() {
     const rewards = data?.rewards || [];
     const redemptions = data?.redemptions || [];
     const redemptionAllowed = data?.redemption_allowed !== false;
+
+    if (!hasRewardsAccess) {
+        return (
+            <main className="gamification-page">
+                <section className="gamification-hero gamification-hero--rewards">
+                    <div>
+                        <span className="gamification-eyebrow"><FiGift /> AE REWARDS</span>
+                        <h1>獎品商城</h1>
+                        <p>AE Points 與獎品兌換只開放目前有效在校的英文班學生。你的 XP 與既有學習紀錄仍會保留。</p>
+                    </div>
+                </section>
+                <section className="gamification-shop-section">
+                    <div className="gamification-redemption-notice" role="status">目前帳號沒有獎品商城資格。</div>
+                </section>
+            </main>
+        );
+    }
 
     return (
         <main className="gamification-page">

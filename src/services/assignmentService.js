@@ -20,8 +20,15 @@ const callAssignmentFunction = async (firebaseUser, body = {}) => {
 
 export const getTeacherAssignmentBootstrap = firebaseUser => callAssignmentFunction(firebaseUser, { action: "teacher_bootstrap" });
 export const createAssignment = (firebaseUser, payload) => callAssignmentFunction(firebaseUser, { action: "create_assignment", ...payload });
+export const previewAssignmentV2 = (firebaseUser, payload) => callAssignmentFunction(firebaseUser, { action: "preview_assignment_v2", ...payload });
+export const createAssignmentV2 = (firebaseUser, payload) => callAssignmentFunction(firebaseUser, { action: "create_assignment_v2", ...payload });
+export const upsertPageLearningContent = (firebaseUser, payload) => callAssignmentFunction(firebaseUser, { action: "upsert_page_learning_content", ...payload });
 export const deleteAssignment = (firebaseUser, assignmentId) => callAssignmentFunction(firebaseUser, { action: "delete_assignment", assignment_id: assignmentId });
 export const getTeacherAssignments = firebaseUser => callAssignmentFunction(firebaseUser, { action: "teacher_assignments" });
 export const getAssignmentResults = (firebaseUser, assignmentId) => callAssignmentFunction(firebaseUser, { action: "assignment_results", assignment_id: assignmentId });
 export const getStudentAssignments = firebaseUser => callAssignmentFunction(firebaseUser, { action: "student_assignments" });
 export const submitAssignment = (firebaseUser, assignmentId, answers) => callAssignmentFunction(firebaseUser, { action: "submit_assignment", assignment_id: assignmentId, answers });
+export const getStudentAssignmentsV2 = firebaseUser => callAssignmentFunction(firebaseUser, { action: "student_assignments_v2" });
+export const submitAssignmentV2Ai = (firebaseUser, assignmentId, assignmentItemId, answers) => callAssignmentFunction(firebaseUser, {
+    action: "submit_assignment_v2_ai", assignment_id: assignmentId, assignment_item_id: assignmentItemId, answers
+});
