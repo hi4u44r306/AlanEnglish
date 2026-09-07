@@ -1,12 +1,13 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
-import { createWorkbookOneStarterQuestionSet, getSpeakingContentBootstrap } from "../../services/speakingContentService";
+import { createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap } from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
     createWorkbookOneStarterQuestionSet: jest.fn(),
+    createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
     extractSpeakingSourceDocument: jest.fn(), extractSpeakingBookChunk: jest.fn(),
     publishSpeakingQuestionSet: jest.fn(), generateSpeakingQuestionSetAudio: jest.fn(), reviewSpeakingOcrSource: jest.fn(),
@@ -19,6 +20,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
+        createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingContentBootstrap.mockResolvedValue({
         books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }, { id: 2, name: "Workbook 2", code: "Workbook_2" }],
         documents: [{ id: 20, book_id: 2, title: "Workbook 2 口說大關卡", page_count: 115, chunk_count: 12 }],
@@ -47,6 +49,15 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(createButton);
 
         await waitFor(() => expect(createWorkbookOneStarterQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 1));
+    });
+
+    it("creates the curated Workbook 2 origin challenge without paid OCR or AI", async () => {
+        render(<SpeakingContentAdmin />);
+        const createButton = await screen.findByRole("button", { name: "建立 Workbook 2 草稿" });
+        await waitFor(() => expect(createButton).toBeEnabled());
+        fireEvent.click(createButton);
+
+        await waitFor(() => expect(createWorkbookTwoStarterQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 2));
     });
 
     it("shows a student-facing preview for an editable starter draft", async () => {

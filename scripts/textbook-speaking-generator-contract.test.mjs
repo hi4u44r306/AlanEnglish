@@ -110,5 +110,15 @@ test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管�
     assert.match(service, /createWorkbookOneStarterQuestionSet/);
     assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
     assert.match(adminPage, /預覽學生畫面/);
-    assert.match(adminPage, /核准並發布/);
+    assert.match(adminPage, /核准、發布並產生語音/);
+});
+
+test("12. Workbook 2 精選大關卡依教師版內容建立，仍需管理員預覽發布", () => {
+    assert.match(manager, /create_workbook_2_starter/);
+    assert.match(manager, /workbook_2_origin_places_v1/);
+    assert.match(manager, /Where are you from\?/);
+    assert.match(manager, /They come from Australia\./);
+    assert.match(service, /createWorkbookTwoStarterQuestionSet/);
+    assert.match(adminPage, /建立 Workbook 2「我來自哪裡？」/);
+    assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
 });

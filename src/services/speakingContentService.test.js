@@ -1,5 +1,6 @@
 import {
     createWorkbookOneStarterQuestionSet,
+    createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
     getSpeakingContentBootstrap,
@@ -35,6 +36,7 @@ describe("speakingContentService", () => {
         await saveReviewedSpeakingSource(firebaseUser, { book_id: 1 });
         await generateSpeakingQuestionSet(firebaseUser, { source_section_id: 2, request_key: "key" });
         await createWorkbookOneStarterQuestionSet(firebaseUser, 1);
+        await createWorkbookTwoStarterQuestionSet(firebaseUser, 2);
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
         await publishSpeakingQuestionSet(firebaseUser, 4);
         await generateSpeakingQuestionSetAudio(firebaseUser, 4);
@@ -49,6 +51,7 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "save_reviewed_source"],
             ["speaking-content-manager", "generate_question_set"],
             ["speaking-content-manager", "create_workbook_1_starter"],
+            ["speaking-content-manager", "create_workbook_2_starter"],
             ["speaking-content-manager", "update_draft_question"],
             ["speaking-content-manager", "publish_question_set"],
             ["speaking-tts-manager", "generate_set_audio"]

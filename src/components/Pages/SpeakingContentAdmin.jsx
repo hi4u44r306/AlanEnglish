@@ -4,6 +4,7 @@ import { AlertTriangle, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, Ref
 import { useAuth } from "../../auth/AuthContext";
 import {
     createWorkbookOneStarterQuestionSet,
+    createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     getSpeakingContentBootstrap,
     extractSpeakingSourceDocument,
@@ -86,13 +87,13 @@ const StudentQuestionSetPreview = ({ questionSet }) => {
     return <details className="speaking-student-preview">
         <summary><Eye size={17} />預覽學生畫面</summary>
         <div className="speaking-student-preview__screen">
-            <header><span>Workbook 1 口說大挑戰</span><h5>{questionSet.title}</h5><p>學生會先聽問題，自行回答；需要時才展開提示與示範句。</p></header>
+            <header><span>口說大挑戰預覽</span><h5>{questionSet.title}</h5><p>學生會先聽問題，自行回答；需要時才展開提示與示範句。</p></header>
             <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
                 <span>第 {index + 1} 題</span><strong>{question.question_text}</strong>
                 <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>
                 <small>{question.pronunciation_notes_zh || "完成錄音後顯示發音回饋。"}</small>
             </article>)}</div>
-            <p className="speaking-student-preview__note">這是管理員內容預覽；錄音、AI 朗讀與逐字發音評分會在學生練習頁階段接上。</p>
+            <p className="speaking-student-preview__note">這是管理員內容預覽；發布後學生可使用示範語音、錄音回聽與逐字發音回饋。</p>
         </div>
     </details>;
 };
@@ -162,7 +163,9 @@ export default function SpeakingContentAdmin() {
         chunks: data.chunks.filter(chunk => chunk.document_id === document.id).sort((a, b) => a.chunk_index - b.chunk_index)
     })), [data.documents, data.chunks]);
     const workbookOne = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook1"), [data.books]);
+    const workbookTwo = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook2"), [data.books]);
     const workbookOneStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_1_name_intro_v1"), [data.question_sets]);
+    const workbookTwoStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_2_origin_places_v1"), [data.question_sets]);
 
     const updateSource = (key, value) => setSource(current => ({ ...current, [key]: value }));
     const uploadWholeBook = async event => {
@@ -247,6 +250,16 @@ export default function SpeakingContentAdmin() {
         } catch (error) { toast.error(error.message || "Workbook 1 範例建立失敗"); }
         finally { setWorking(""); }
     };
+    const createWorkbookTwoStarter = async () => {
+        if (!workbookTwo) return toast.error("目前教材清單找不到 Workbook 2");
+        setWorking("workbook-2-starter");
+        try {
+            const result = await createWorkbookTwoStarterQuestionSet(firebaseUser, workbookTwo.id);
+            toast.success(result.reused ? "Workbook 2 精選關卡已存在，已帶您回到題庫草稿" : "Workbook 2 精選關卡草稿已建立，請先預覽與修改再發布");
+            await load();
+        } catch (error) { toast.error(error.message || "Workbook 2 精選關卡建立失敗"); }
+        finally { setWorking(""); }
+    };
     const generate = async section => {
         setWorking(`generate-${section.id}`);
         try {
@@ -309,6 +322,14 @@ export default function SpeakingContentAdmin() {
                 <Sparkles size={17} />{working === "workbook-1-starter" ? "建立草稿中…" : workbookOneStarter ? (workbookOneStarter.status === "published" ? "範例已發布" : "範例草稿已建立") : "建立範例草稿"}
             </button>
             {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
+        </section>
+
+        <section className="platform-card speaking-starter-card">
+            <div><span className="platform-eyebrow">CURATED WORKBOOK 2</span><h2>建立 Workbook 2「我來自哪裡？」</h2><p>依教師版 P56～P58 人工核對內容建立六題，練習 I／he／she／they 與 come from；不執行 OCR，也不呼叫付費 AI。</p></div>
+            <button type="button" className="platform-primary" disabled={!workbookTwo || Boolean(workbookTwoStarter) || working === "workbook-2-starter"} onClick={createWorkbookTwoStarter}>
+                <Sparkles size={17} />{working === "workbook-2-starter" ? "建立草稿中…" : workbookTwoStarter ? (workbookTwoStarter.status === "published" ? "關卡已發布" : "關卡草稿已建立") : "建立 Workbook 2 草稿"}
+            </button>
+            {!workbookTwo && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 2，請先確認教材已啟用。</p>}
         </section>
 
         <section className="platform-card speaking-whole-book">
