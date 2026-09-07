@@ -2,7 +2,11 @@
 
 最後更新：2026-09-07
 
-本次進行中（2026-09-06，測試站已部署，正式尚未部署）：
+本次正式發布（2026-09-07）：
+
+- 口說大挑戰、混合作業 V2 與 API 成本控制中心已由 PR #100 合併至 `main` commit `f50d186`。正式 Netlify application deploy `6a9e2e320841ca0008bea010` 已為 `ready`，正式 bundle 為 `main.e25d0f50.js`；首頁、API 成本控制、口說題庫管理、學生口說挑戰及師生作業路由均回應 HTTP 200。正式 Supabase 已套用 additive migration `academy_all_access_assignment_v2`，新增結構與方案功能旗標均已查詢確認；`assignment-manager` v29、`billing-manager` v30、`gamification` v11、`generate-ai-material` v31、`membership-manager` v37、`pronunciation-coach` v10、`speaking-challenge` v7、`speaking-content-manager` v9、`speaking-tts-manager` v7 均為 ACTIVE，七支需登入的服務以未登入請求驗證皆正確回應 401。使用者已在測試站完成四項 AI 示範語音驗收；全前端 47 suites／154 tests、API 成本頁 3/3、Edge Function 語法與契約、production build 及 `git diff --check` 均成功。正式站登入後的麥克風錄音、真實送評與私人 R2 語音播放仍建議再做一次快速抽驗。
+
+先前測試階段紀錄（已由 PR #100 整批正式發布）：
 
 - 口說題庫第三階段：題庫校正與男女聲示範（測試站已部署，正式尚未部署）：checkpoint `5a15dba` 已推送至 `codex/speaking-guided-practice`。示範語音改用 Autonoe 女聲與 Puck 男聲核准池，依 `question_set_id + sort_order` 的奇偶固定交錯；不同題庫的起始性別可不同，但同一題的聲音永遠穩定，不會在學生每次播放時重新隨機或呼叫 TTS。沿用既有 `voice_id`、資產設定雜湊與 `speaking_question_audio`，不需要 migration；管理員手動按「補產生示範語音」後，符合原 Autonoe 設定的題目可直接沿用，需切換男聲的題目才生成 Puck 新資產，舊檔不覆寫。已發布題目的預覽新增女聲／男聲標記及短效私人 R2 試聽。Google Cloud 官方 Chirp 3 HD 清單已核對 Autonoe 為女聲、Puck 為男聲；Edge Function 語法與語音分配契約、題庫契約 13／13、管理頁與服務層 2 suites／9 tests、全前端 46 suites／151 tests、production build 與 `git diff --check` 均成功。`speaking-tts-manager` 已部署至共用測試 Supabase，未登入預覽請求正確回 401；固定測試站 deploy `6a9e21f64d406fd7614665f3` 已為 ready，管理頁回應 200 且載入本次 `main.7e7f123e.js`。本次未自動補產生付費語音，既有題庫仍須由管理員選擇後手動執行。
 - Workbook 2 第一個口說大關卡（測試站已部署，正式尚未部署）：checkpoint `7869cf0` 已推送至 `codex/speaking-guided-practice`。已依 120 頁教師版目錄及 P56～P59 實際頁面建立 `docs/speaking-content/WORKBOOK_2_SPEAKING_MAP.md`，先排除描寫格、無圖片脈絡的 `What is this?` 與未確認授權的歌曲。第一個可直接使用的主題選為 P56、P58「我來自哪裡？」，管理員可一鍵建立六題人工精選草稿，練習個人 `I am from [你的國家]`、he／she／they 及 `come from`；不執行 OCR、不呼叫付費出題 AI、不自動發布，並以 `workbook_2_origin_places_v1` 防止重複建立。管理頁與服務層相關 2 suites／8 tests、題庫契約 12／12、全前端 46 suites／150 tests、Edge Function 語法、production build 與 `git diff --check` 均成功。`speaking-content-manager` 已部署至共用測試 Supabase，未登入 POST 正確回 401；固定測試站 deploy `6a9e1cd70e61c484fb0dcbd0` 已發布，管理頁回應 200 且載入本次 `main.26b16b8f.js`。
