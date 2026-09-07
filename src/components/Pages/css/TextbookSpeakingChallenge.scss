@@ -236,6 +236,31 @@
 }
 .speaking-question-heading p { margin: 0; color: #667690; line-height: 1.65; }
 
+.speaking-question-visual {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 12px;
+  border: 1px solid #dce7f5;
+  border-radius: 20px;
+  background: #f8fbff;
+}
+.speaking-question-visual img {
+  display: block;
+  width: 100%;
+  height: clamp(150px, 26vw, 250px);
+  object-fit: contain;
+  border-radius: 14px;
+  background: #fff;
+}
+.speaking-question-visual figcaption {
+  color: #667690;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .speaking-pronunciation-note {
   border-radius: 14px;
   background: #fff4d5;

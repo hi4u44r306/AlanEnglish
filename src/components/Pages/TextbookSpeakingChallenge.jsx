@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiClock, FiMic } from "react-icons/fi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
+import { getSpeakingQuestionVisual } from "../../data/speakingQuestionVisuals";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import "./css/TextbookSpeakingChallenge.scss";
@@ -91,6 +92,7 @@ export default function TextbookSpeakingChallenge() {
     if (!activeQuestion) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部大挑戰</button></section></main>;
 
     const isCompleted = activeQuestion.progress_status === "completed";
+    const questionVisual = getSpeakingQuestionVisual(activeQuestion.question_text);
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
     const showQuestion = nextIndex => {
         shouldScrollToQuestionRef.current = true;
@@ -123,6 +125,10 @@ export default function TextbookSpeakingChallenge() {
                     <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
                     <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2>{activeQuestion.question_text}</h2><p>聽懂問題後，按下麥克風直接回答。</p></div>
                 </header>
+                {questionVisual && <figure className="speaking-question-visual">
+                    <img src={questionVisual.src} alt={questionVisual.alt} width="640" height="420" />
+                    <figcaption>先看圖片，再聽問題並回答。</figcaption>
+                </figure>}
                 <SpeakingPracticeSteps
                     firebaseUser={firebaseUser}
                     question={activeQuestion}

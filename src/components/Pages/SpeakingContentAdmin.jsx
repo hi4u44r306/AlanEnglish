@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { AlertTriangle, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, RefreshCcw, Sparkles, UploadCloud, Volume2 } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
+import { getSpeakingQuestionVisual } from "../../data/speakingQuestionVisuals";
 import {
     createWorkbookOneStarterQuestionSet,
     createWorkbookOneGreetingsQuestionSet,
@@ -133,18 +134,22 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
         <summary><Eye size={17} />預覽學生畫面</summary>
         <div className="speaking-student-preview__screen">
             <header><span>口說大挑戰預覽</span><h5>{questionSet.title}</h5><p>{questionSet.intro_zh || "學生會先聽問題，自行回答；需要時才展開提示與示範句。"}</p>{questionSet.learning_goal_zh && <small>學習目標：{questionSet.learning_goal_zh}</small>}</header>
-            <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
+            <div className="speaking-student-preview__questions">{questions.map((question, index) => {
+                const visual = getSpeakingQuestionVisual(question.question_text);
+                return <article key={question.id}>
                 <span>第 {index + 1} 題</span><strong>{question.question_text}</strong>
+                {visual && <figure className="speaking-admin-question-visual"><img src={visual.src} alt={visual.alt} width="640" height="420" /><figcaption>教材 P{visual.sourcePage} · 學生題目圖片</figcaption></figure>}
                 <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>
                 <QuestionAudioPreview firebaseUser={firebaseUser} questionSet={questionSet} question={question} />
                 <small>{question.pronunciation_notes_zh || "完成錄音後顯示發音回饋。"}</small>
-            </article>)}</div>
+            </article>})}</div>
             <p className="speaking-student-preview__note">這是管理員內容預覽；發布後學生可使用示範語音、錄音回聽與逐字發音回饋。</p>
         </div>
     </details>;
 };
 
 const QuestionEditor = ({ question, disabled, onSave }) => {
+    const questionVisual = getSpeakingQuestionVisual(question.question_text);
     const [form, setForm] = useState({
         question_text: question.question_text || "", hint_zh: question.hint_zh || "",
         keywords: (question.keywords || []).join("、"), simple_answer: question.simple_answer || "",
@@ -156,6 +161,7 @@ const QuestionEditor = ({ question, disabled, onSave }) => {
     return <article className="speaking-question-editor">
         <div className="speaking-question-editor__number">Q{Number(question.sort_order || 0) + 1}</div>
         <div className="platform-form">
+            {questionVisual && <figure className="speaking-admin-question-visual"><img src={questionVisual.src} alt={questionVisual.alt} width="640" height="420" /><figcaption>教材 P{questionVisual.sourcePage} · 學生題目圖片</figcaption></figure>}
             <label><span>AI 要問學生的問題</span><input value={form.question_text} onChange={event => update("question_text", event.target.value)} disabled={disabled} /></label>
             <label><span>中文提示</span><input value={form.hint_zh} onChange={event => update("hint_zh", event.target.value)} disabled={disabled} /></label>
             <div className="platform-form-grid">

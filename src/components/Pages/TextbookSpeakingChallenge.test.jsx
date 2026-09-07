@@ -119,6 +119,21 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(2);
     });
 
+    it("在需要看圖回答的題目顯示教材圖片與替代文字", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 9, title: "顏色與生活物品", topic: "Colors", difficulty: "E1", books: { name: "Workbook 1" },
+                speaking_questions: [{ id: 31, sort_order: 4, question_text: "What is this red fruit?", hint_zh: "看圖回答", model_answer: "It is an apple.", progress_status: "opened" }]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/9"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        const image = await screen.findByRole("img", { name: "題目圖片：一顆紅色水果" });
+        expect(image).toHaveAttribute("src", "/images/speaking/workbook-1/red-apple.webp");
+        expect(screen.getByText("先看圖片，再聽問題並回答。")).toBeInTheDocument();
+    });
+
     it("lets teachers demonstrate published questions without recording or saving progress", async () => {
         mockRole = "teacher";
         getSpeakingChallengeSet.mockResolvedValue({
