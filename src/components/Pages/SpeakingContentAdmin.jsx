@@ -4,6 +4,7 @@ import { AlertTriangle, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, Ref
 import { useAuth } from "../../auth/AuthContext";
 import {
     createWorkbookOneStarterQuestionSet,
+    createWorkbookOneGreetingsQuestionSet,
     createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     getSpeakingContentBootstrap,
@@ -194,6 +195,7 @@ export default function SpeakingContentAdmin() {
     const workbookOne = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook1"), [data.books]);
     const workbookTwo = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook2"), [data.books]);
     const workbookOneStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_1_name_intro_v1"), [data.question_sets]);
+    const workbookOneGreetings = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_1_greetings_polite_v1"), [data.question_sets]);
     const workbookTwoStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_2_origin_places_v1"), [data.question_sets]);
 
     const updateSource = (key, value) => setSource(current => ({ ...current, [key]: value }));
@@ -279,6 +281,16 @@ export default function SpeakingContentAdmin() {
         } catch (error) { toast.error(error.message || "Workbook 1 範例建立失敗"); }
         finally { setWorking(""); }
     };
+    const createWorkbookOneGreetings = async () => {
+        if (!workbookOne) return toast.error("目前教材清單找不到 Workbook 1");
+        setWorking("workbook-1-greetings");
+        try {
+            const result = await createWorkbookOneGreetingsQuestionSet(firebaseUser, workbookOne.id);
+            toast.success(result.reused ? "Workbook 1 關卡 02 已存在，已帶您回到題庫草稿" : "Workbook 1 關卡 02 草稿已建立，請先預覽與修改再發布");
+            await load();
+        } catch (error) { toast.error(error.message || "Workbook 1 關卡 02 建立失敗"); }
+        finally { setWorking(""); }
+    };
     const createWorkbookTwoStarter = async () => {
         if (!workbookTwo) return toast.error("目前教材清單找不到 Workbook 2");
         setWorking("workbook-2-starter");
@@ -349,6 +361,14 @@ export default function SpeakingContentAdmin() {
             <div><span className="platform-eyebrow">CURATED STARTER</span><h2>先建立第一個 Workbook 1 小關卡</h2><p>使用已人工規劃的 P18～P20「我的名字與自我介紹」，直接建立四題可編輯草稿；不執行 OCR，也不呼叫付費 AI。</p></div>
             <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(workbookOneStarter) || working === "workbook-1-starter"} onClick={createWorkbookOneStarter}>
                 <Sparkles size={17} />{working === "workbook-1-starter" ? "建立草稿中…" : workbookOneStarter ? (workbookOneStarter.status === "published" ? "範例已發布" : "範例草稿已建立") : "建立範例草稿"}
+            </button>
+            {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
+        </section>
+
+        <section className="platform-card speaking-starter-card">
+            <div><span className="platform-eyebrow">CURATED WORKBOOK 1 · 02</span><h2>建立「打招呼與禮貌對話」</h2><p>依 Workbook 1 的問候語與禮貌對話頁面人工整理八題，包含早安、午安、晚安、初次見面、近況與道別；不執行 OCR，也不呼叫付費 AI。</p></div>
+            <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(workbookOneGreetings) || working === "workbook-1-greetings"} onClick={createWorkbookOneGreetings}>
+                <Sparkles size={17} />{working === "workbook-1-greetings" ? "建立草稿中…" : workbookOneGreetings ? (workbookOneGreetings.status === "published" ? "關卡 02 已發布" : "關卡 02 草稿已建立") : "建立關卡 02 草稿"}
             </button>
             {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
         </section>

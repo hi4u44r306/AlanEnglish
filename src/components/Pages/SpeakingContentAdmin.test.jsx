@@ -1,12 +1,13 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
-import { createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap, getSpeakingQuestionAudioPreview } from "../../services/speakingContentService";
+import { createWorkbookOneGreetingsQuestionSet, createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap, getSpeakingQuestionAudioPreview } from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
     createWorkbookOneStarterQuestionSet: jest.fn(),
+    createWorkbookOneGreetingsQuestionSet: jest.fn(),
     createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
     getSpeakingQuestionAudioPreview: jest.fn(),
@@ -21,6 +22,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
+        createWorkbookOneGreetingsQuestionSet.mockResolvedValue({ success: true, reused: false });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
         getSpeakingContentBootstrap.mockResolvedValue({
@@ -60,6 +62,15 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(createButton);
 
         await waitFor(() => expect(createWorkbookTwoStarterQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 2));
+    });
+
+    it("creates the curated Workbook 1 greetings challenge without paid OCR or AI", async () => {
+        render(<SpeakingContentAdmin />);
+        const createButton = await screen.findByRole("button", { name: "建立關卡 02 草稿" });
+        await waitFor(() => expect(createButton).toBeEnabled());
+        fireEvent.click(createButton);
+
+        await waitFor(() => expect(createWorkbookOneGreetingsQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 1));
     });
 
     it("shows a student-facing preview for an editable starter draft", async () => {

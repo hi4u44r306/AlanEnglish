@@ -8,6 +8,7 @@ import {
     FiClock,
     FiHeadphones,
     FiMessageCircle,
+    FiMic,
     FiRefreshCw,
     FiStar,
     FiTarget,
@@ -22,6 +23,7 @@ import { getStudentAssignments } from "../../services/assignmentService";
 import { getReviewDashboard } from "../../services/reviewService";
 import { getConversationProgress } from "../../services/learningActivityService";
 import { getDashboardStats } from "../../services/listeningService";
+import { getSpeakingLearningSummary } from "../../services/pronunciationCoachService";
 import { getPrimaryAccessPlanLabel, hasAiPremiumAccess } from "../../constants/membershipPlans";
 import "./css/User.scss";
 
@@ -56,6 +58,11 @@ const EMPTY_HOME_DATA = {
         completedSteps: 0,
         totalSteps: DEFAULT_CONVERSATION_STEPS,
         completed: false
+    },
+    speaking: {
+        learnedSentences: 0,
+        learnedWords: 0,
+        savedRecordings: 0
     },
     firstBookPath: ""
 };
@@ -144,6 +151,10 @@ const User = () => {
         const assignmentRequest = canUseAssignments
             ? getStudentAssignments(firebaseUser)
             : Promise.resolve({ assignments: [] });
+        const canUseSpeaking = user?.membership?.effective_access?.features?.pronunciation === true;
+        const speakingRequest = canUseSpeaking
+            ? getSpeakingLearningSummary(firebaseUser)
+            : Promise.resolve({ summary: {} });
 
         const requests = await Promise.allSettled([
             getDashboardStats(firebaseUser),
@@ -151,10 +162,11 @@ const User = () => {
             getReviewDashboard(firebaseUser),
             getAiMaterialUsage(firebaseUser),
             getConversationProgress(firebaseUser),
-            getAccessibleCatalog(firebaseUser)
+            getAccessibleCatalog(firebaseUser),
+            speakingRequest
         ]);
 
-        const [listeningResult, assignmentResult, reviewResult, aiResult, conversationResult, bookResult] = requests;
+        const [listeningResult, assignmentResult, reviewResult, aiResult, conversationResult, bookResult, speakingResult] = requests;
         const failedCount = requests.filter(result => result.status === "rejected").length;
 
         setHomeData(current => {
@@ -203,6 +215,15 @@ const User = () => {
                 next.firstBookPath = firstUnlockedBook?.code
                     ? `/student/books/${firstUnlockedBook.code}`
                     : "/student/level";
+            }
+
+            if (speakingResult.status === "fulfilled") {
+                const speaking = speakingResult.value?.summary || {};
+                next.speaking = {
+                    learnedSentences: Number(speaking.learned_sentences || 0),
+                    learnedWords: Number(speaking.learned_words || 0),
+                    savedRecordings: Number(speaking.saved_recordings || 0)
+                };
             }
 
             return next;
@@ -508,6 +529,26 @@ const User = () => {
                                 <div className="student-home__stat-value">
                                     <strong>{formatNumber(homeData.listening.dailyCount)}</strong>
                                     <small>次播放</small>
+                                </div>
+                            </div>
+                        </article>
+                        <article>
+                            <div className="student-home__stat-icon student-home__stat-icon--speaking"><FiMic /></div>
+                            <div className="student-home__stat-copy">
+                                <span>已學口說</span>
+                                <div className="student-home__stat-value">
+                                    <strong>{formatNumber(homeData.speaking.learnedSentences)}</strong>
+                                    <small>句</small>
+                                </div>
+                            </div>
+                        </article>
+                        <article>
+                            <div className="student-home__stat-icon student-home__stat-icon--speaking"><FiBookOpen /></div>
+                            <div className="student-home__stat-copy">
+                                <span>口說單字</span>
+                                <div className="student-home__stat-value">
+                                    <strong>{formatNumber(homeData.speaking.learnedWords)}</strong>
+                                    <small>個不重複單字</small>
                                 </div>
                             </div>
                         </article>

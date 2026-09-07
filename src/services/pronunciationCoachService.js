@@ -1,4 +1,5 @@
 import { supabaseKey, supabaseUrl } from "../components/Pages/supabase-config";
+import { callEdgeFunction } from "./edgeFunctionClient";
 
 export const submitPronunciationAttempt = async ({ firebaseUser, lessonId, audio }) => {
     if (!firebaseUser) throw new Error("請先登入 Alan English");
@@ -55,3 +56,16 @@ export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questio
     }
     return result;
 };
+
+const callLearningHistory = (firebaseUser, action, payload = {}) => (
+    callEdgeFunction("pronunciation-coach", firebaseUser, { action, ...payload })
+);
+
+export const getSpeakingLearningSummary = firebaseUser => callLearningHistory(firebaseUser, "learning_summary");
+export const getSpeakingRecordingHistory = (firebaseUser, beforeId = null) => callLearningHistory(
+    firebaseUser,
+    "recording_history",
+    beforeId ? { before_id: beforeId } : {}
+);
+export const getSpeakingRecordingUrl = (firebaseUser, attemptId) => callLearningHistory(firebaseUser, "recording_url", { attempt_id: attemptId });
+export const deleteSpeakingRecording = (firebaseUser, attemptId) => callLearningHistory(firebaseUser, "delete_recording", { attempt_id: attemptId });

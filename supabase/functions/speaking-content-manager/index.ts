@@ -60,6 +60,89 @@ const WORKBOOK_ONE_STARTER_QUESTIONS = [
         accepted_intents: ["學生用 My full name is 加上自己的全名回答"]
     }
 ];
+const WORKBOOK_ONE_GREETINGS_KEY = "workbook_1_greetings_polite_v1";
+const WORKBOOK_ONE_GREETINGS_QUESTIONS = [
+    {
+        question_text: "Good morning! How are you today?",
+        hint_zh: "先問候對方，再說你今天感覺很好並道謝。",
+        keywords: ["I'm", "great", "thank", "you"],
+        simple_answer: "I'm great, thank you.",
+        model_answer: "I'm great, thank you.",
+        follow_up_question: "Are you ready for class?",
+        pronunciation_notes_zh: "great 的尾音 t 要收清楚；thank 的 th 要輕咬舌。",
+        accepted_intents: ["學生說自己很好並向對方道謝"]
+    },
+    {
+        question_text: "Hello! Nice to meet you.",
+        hint_zh: "第一次見面時，禮貌地回應對方。",
+        keywords: ["nice", "meet", "you", "too"],
+        simple_answer: "Nice to meet you, too.",
+        model_answer: "Nice to meet you, too.",
+        follow_up_question: "What's your name?",
+        pronunciation_notes_zh: "meet 的長母音要拉清楚；too 放在句尾輕輕收音。",
+        accepted_intents: ["學生用 Nice to meet you too 回應初次見面"]
+    },
+    {
+        question_text: "How do you greet your teacher in the morning?",
+        hint_zh: "早上看到老師時，用 Good morning 問候。",
+        keywords: ["good", "morning", "teacher"],
+        simple_answer: "Good morning, teacher.",
+        model_answer: "Good morning, teacher.",
+        follow_up_question: "What do you say in the afternoon?",
+        pronunciation_notes_zh: "morning 的第一音節較重；teacher 的 ch 要清楚。",
+        accepted_intents: ["學生向老師說 Good morning"]
+    },
+    {
+        question_text: "What do you say when you see someone after lunch?",
+        hint_zh: "午餐後看到別人，可以用 Good afternoon 問候。",
+        keywords: ["good", "afternoon"],
+        simple_answer: "Good afternoon.",
+        model_answer: "Good afternoon.",
+        follow_up_question: "How are you this afternoon?",
+        pronunciation_notes_zh: "afternoon 的重音放在 noon。",
+        accepted_intents: ["學生說 Good afternoon"]
+    },
+    {
+        question_text: "What do you say when you meet someone in the evening?",
+        hint_zh: "傍晚見面時，用 Good evening 問候。",
+        keywords: ["good", "evening"],
+        simple_answer: "Good evening.",
+        model_answer: "Good evening.",
+        follow_up_question: "How was your day?",
+        pronunciation_notes_zh: "evening 的第一音節較重，尾音 ing 要說清楚。",
+        accepted_intents: ["學生說 Good evening"]
+    },
+    {
+        question_text: "How was your day?",
+        hint_zh: "說今天過得很好，並禮貌道謝。",
+        keywords: ["it", "was", "great", "thank", "you"],
+        simple_answer: "It was great, thank you.",
+        model_answer: "It was great, thank you.",
+        follow_up_question: "What did you enjoy today?",
+        pronunciation_notes_zh: "It was 可以自然連讀；great 的尾音 t 要收清楚。",
+        accepted_intents: ["學生說今天過得很好並道謝"]
+    },
+    {
+        question_text: "What do you say when you leave your friend?",
+        hint_zh: "離開朋友時，說再見並表示下次見。",
+        keywords: ["goodbye", "see", "you"],
+        simple_answer: "Goodbye. See you.",
+        model_answer: "Goodbye. See you.",
+        follow_up_question: "When will you see your friend again?",
+        pronunciation_notes_zh: "goodbye 的第二音節較重；See you 可以自然連讀。",
+        accepted_intents: ["學生說 Goodbye 和 See you"]
+    },
+    {
+        question_text: "What do you say before you go to bed?",
+        hint_zh: "睡覺前要說晚安。",
+        keywords: ["good", "night"],
+        simple_answer: "Good night.",
+        model_answer: "Good night.",
+        follow_up_question: "What do you say when you wake up?",
+        pronunciation_notes_zh: "night 的尾音 t 要收清楚，不要漏掉。",
+        accepted_intents: ["學生說 Good night"]
+    }
+];
 const WORKBOOK_TWO_STARTER_KEY = "workbook_2_origin_places_v1";
 const WORKBOOK_TWO_STARTER_QUESTIONS = [
     {
@@ -132,6 +215,14 @@ const CURATED_STARTER_TEMPLATES: Record<string, any> = {
         topic: "我的名字與自我介紹", title: "01 我的名字與自我介紹",
         sourceText: "What's your name? What's your first name? What's your family name? What's your full name?",
         difficulty: "國小低年級", answerType: "personal_open", questions: WORKBOOK_ONE_STARTER_QUESTIONS
+    },
+    create_workbook_1_greetings: {
+        catalogKey: "workbook1", templateKey: WORKBOOK_ONE_GREETINGS_KEY,
+        documentTitle: "Workbook 1 口說大挑戰", unitLabel: "Starter 02",
+        pageFromLabel: "P35", pageToLabel: "P100", sourcePages: [35, 36, 60, 70, 80, 85, 90, 99, 100],
+        topic: "打招呼與禮貌對話", title: "02 打招呼與禮貌對話",
+        sourceText: "Good morning. Good afternoon. Good evening. Good night. How are you? I'm great, thank you. Nice to meet you. Nice to meet you, too. Goodbye. See you. How was your day? It was great, thank you.",
+        difficulty: "國小低年級", answerType: "fixed_polite_dialogue", questions: WORKBOOK_ONE_GREETINGS_QUESTIONS
     },
     create_workbook_2_starter: {
         catalogKey: "workbook2", templateKey: WORKBOOK_TWO_STARTER_KEY,

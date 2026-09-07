@@ -115,6 +115,16 @@ test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管�
     assert.match(adminPage, /核准、發布並產生語音/);
 });
 
+test("11a. Workbook 1 第二關由教材頁面建立打招呼與禮貌對話草稿", () => {
+    assert.match(manager, /create_workbook_1_greetings/);
+    assert.match(manager, /workbook_1_greetings_polite_v1/);
+    assert.match(manager, /02 打招呼與禮貌對話/);
+    assert.match(manager, /Good morning! How are you today\?/);
+    assert.match(manager, /Goodbye\. See you\./);
+    assert.match(service, /createWorkbookOneGreetingsQuestionSet/);
+    assert.match(adminPage, /建立關卡 02 草稿/);
+});
+
 test("12. Workbook 2 精選大關卡依教師版內容建立，仍需管理員預覽發布", () => {
     assert.match(manager, /create_workbook_2_starter/);
     assert.match(manager, /workbook_2_origin_places_v1/);

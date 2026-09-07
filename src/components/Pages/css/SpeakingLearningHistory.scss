@@ -1,0 +1,90 @@
+.speaking-history-page {
+  width: min(1080px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 80px;
+  color: #13213d;
+}
+
+.speaking-history-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(135deg, #112a5c, #245eb3);
+  box-shadow: 0 18px 45px rgba(17, 42, 92, .18);
+
+  span { color: #ffd66b; font-size: .78rem; font-weight: 800; letter-spacing: .12em; }
+  h1 { margin: 7px 0 8px; font-size: clamp(1.65rem, 4vw, 2.4rem); }
+  p { margin: 0; color: rgba(255, 255, 255, .82); }
+  > a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 14px; color: #112a5c; background: #ffd66b; font-weight: 800; text-decoration: none; white-space: nowrap; }
+}
+
+.speaking-history-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 18px 0 24px;
+
+  article { display: flex; align-items: baseline; gap: 10px; padding: 20px; border: 1px solid #dbe6f5; border-radius: 18px; background: #fff; }
+  strong { color: #235eb5; font-size: 1.8rem; }
+  span { color: #68758c; font-weight: 700; }
+}
+
+.speaking-history-list {
+  > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+  > header span { color: #e06b36; font-size: .75rem; font-weight: 800; letter-spacing: .1em; }
+  > header h2 { margin: 3px 0 0; }
+  > header small { color: #738097; }
+}
+
+.speaking-history-recording {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 18px;
+  border: 1px solid #dbe6f5;
+  border-radius: 18px;
+  background: #fff;
+
+  &__icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; color: #245eb3; background: #eaf3ff; font-size: 1.25rem; }
+  &__copy { min-width: 0; }
+  &__copy small, &__copy span { display: block; color: #7b8799; font-size: .78rem; }
+  &__copy strong { display: block; margin: 3px 0; }
+  &__copy p { overflow: hidden; margin: 4px 0; color: #46546a; text-overflow: ellipsis; white-space: nowrap; }
+  &__actions { display: flex; align-items: center; gap: 8px; }
+  &__actions > span { padding: 7px 10px; border-radius: 999px; font-size: .82rem; font-weight: 800; }
+  &__actions .score-good { color: #147a4a; background: #dff6e9; }
+  &__actions .score-practice { color: #9a6500; background: #fff1c5; }
+  &__actions .score-retry { color: #b53636; background: #ffe2e2; }
+  &__actions button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 12px; color: #fff; background: #245eb3; font-weight: 800; }
+  &__actions button.delete { width: 44px; padding: 0; color: #a83333; background: #fff0f0; }
+  &__audio { grid-column: 2 / -1; width: 100%; height: 42px; }
+}
+
+.speaking-history-loading,
+.speaking-history-empty,
+.speaking-history-error { padding: 30px; border-radius: 18px; background: #fff; text-align: center; }
+.speaking-history-empty svg { color: #245eb3; font-size: 2rem; }
+.speaking-history-empty a { color: #245eb3; font-weight: 800; }
+.speaking-history-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #a83333; background: #fff0f0; }
+.speaking-history-error button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 0; border-radius: 12px; color: #fff; background: #a83333; }
+.speaking-history-more { display: block; min-height: 44px; margin: 18px auto 0; padding: 0 20px; border: 1px solid #245eb3; border-radius: 12px; color: #245eb3; background: #fff; font-weight: 800; }
+.speaking-history-more:disabled { cursor: wait; opacity: .65; }
+
+@media (max-width: 680px) {
+  .speaking-history-page { width: min(100% - 20px, 1080px); padding-top: 16px; }
+  .speaking-history-hero { align-items: stretch; flex-direction: column; padding: 22px; }
+  .speaking-history-hero > a { justify-content: center; }
+  .speaking-history-stats { grid-template-columns: 1fr; gap: 8px; }
+  .speaking-history-stats article { justify-content: space-between; padding: 14px 18px; }
+  .speaking-history-list > header { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .speaking-history-recording { grid-template-columns: auto minmax(0, 1fr); }
+  .speaking-history-recording__actions { grid-column: 1 / -1; }
+  .speaking-history-recording__actions > span { margin-right: auto; }
+  .speaking-history-recording__audio { grid-column: 1 / -1; }
+}

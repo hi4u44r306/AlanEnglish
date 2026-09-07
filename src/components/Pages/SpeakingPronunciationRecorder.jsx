@@ -121,7 +121,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
                 <span>{recording ? "完成錄音" : preparing ? "準備中…" : "開始錄音"}</span>
             </button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : "送出評分"}</button></div></div>}
-            <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
+            <small className="speaking-recording-privacy">送出後會把錄音私人保存到你的口說學習歷程；每題最多保留最新與最佳錄音，也可以自行刪除。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`}>
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : "回答方式還差一點"}</strong></header>
@@ -129,6 +129,8 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
             <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>
             {(result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}</span>)}</div>}
             <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback}</span></p>
+            {result.recording_saved && <p className="speaking-recording-saved"><FiCheckCircle aria-hidden="true" />錄音已存入我的口說學習歷程</p>}
+            {result.recording_saved === false && <p className="speaking-pronunciation-notice">分數已保存，但這次錄音暫時無法存入學習歷程。</p>}
             <button type="button" className="secondary" onClick={reset}><FiRefreshCw />再練一次</button>
         </div>}
         {error && <p className="speaking-pronunciation-error" role="alert">{error}</p>}

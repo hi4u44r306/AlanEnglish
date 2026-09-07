@@ -23,6 +23,7 @@ import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import ConversationPractice from "../components/Pages/ConversationPractice";
 import PronunciationCoach from "../components/Pages/PronunciationCoach";
 import TextbookSpeakingChallenge from "../components/Pages/TextbookSpeakingChallenge";
+import SpeakingLearningHistory from "../components/Pages/SpeakingLearningHistory";
 import TeacherAssignments from "../components/Pages/TeacherAssignments";
 import StudentAssignments from "../components/Pages/StudentAssignments";
 import ReviewCenter from "../components/Pages/ReviewCenter";
@@ -154,6 +155,7 @@ const App = () => {
                     <Route path="/student/pronunciation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><PronunciationCoach /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/speaking-history" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><SpeakingLearningHistory /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
                     <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><BillingResult /></Containerfull></ProtectedRoute>} />

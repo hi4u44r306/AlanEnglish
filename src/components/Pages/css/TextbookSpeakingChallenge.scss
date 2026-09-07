@@ -14,13 +14,35 @@
   margin-inline: auto;
 }
 
-.speaking-challenge-hero > span,
+.speaking-challenge-hero > div > span,
 .speaking-lesson-heading > span {
   color: #2b66bd;
   font-size: 12px;
   font-weight: 900;
   letter-spacing: .12em;
   text-transform: uppercase;
+}
+
+.speaking-challenge-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.speaking-history-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  color: #17366f;
+  background: #ffd66b;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .speaking-challenge-hero h1 {
@@ -432,6 +454,8 @@
 .speaking-practice-finished svg { flex: 0 0 auto; }
 
 @media (max-width: 760px) {
+  .speaking-challenge-hero { align-items: stretch; flex-direction: column; }
+  .speaking-history-link { width: 100%; }
   body.speaking-challenge-detail-active .app-content { padding-bottom: 0; }
   body.speaking-challenge-detail-active { overscroll-behavior-y: none; }
   .speaking-challenge-page { padding: 80px 14px calc(72px + env(safe-area-inset-bottom)); }

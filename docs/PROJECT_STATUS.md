@@ -6,6 +6,10 @@
 
 - 口說大挑戰、混合作業 V2 與 API 成本控制中心已由 PR #100 合併至 `main` commit `f50d186`。正式 Netlify application deploy `6a9e2e320841ca0008bea010` 已為 `ready`，正式 bundle 為 `main.e25d0f50.js`；首頁、API 成本控制、口說題庫管理、學生口說挑戰及師生作業路由均回應 HTTP 200。正式 Supabase 已套用 additive migration `academy_all_access_assignment_v2`，新增結構與方案功能旗標均已查詢確認；`assignment-manager` v29、`billing-manager` v30、`gamification` v11、`generate-ai-material` v31、`membership-manager` v37、`pronunciation-coach` v10、`speaking-challenge` v7、`speaking-content-manager` v9、`speaking-tts-manager` v7 均為 ACTIVE，七支需登入的服務以未登入請求驗證皆正確回應 401。使用者已在測試站完成四項 AI 示範語音驗收；全前端 47 suites／154 tests、API 成本頁 3/3、Edge Function 語法與契約、production build 及 `git diff --check` 均成功。正式站登入後的麥克風錄音、真實送評與私人 R2 語音播放仍建議再做一次快速抽驗。
 
+本次開發中（尚未推送或部署）：
+
+- 分支 `codex/speaking-history-greetings` 以 `origin/main` commit `7f5e1ac` 為基準，已完成第四階段「個人口說學習歷程」與 Workbook 1「02 打招呼與禮貌對話」。評分成功後將錄音保存到私人 R2，每題只保留最新與最高分，學生本人可分頁載入歷程、取得 10 分鐘短效網址回聽並可刪除；首頁與新歷程頁顯示已完成的不重複句子、單字及私人錄音數，回饋維持「很清楚／再練一下／慢慢重念」而不顯示數字分數。新增 additive migration `20260907042158_speaking_learning_history.sql`，尚未套用任何遠端資料庫。管理員可一鍵建立八題人工精選的關卡 02 草稿，不執行 OCR、不呼叫付費 AI、不自動發布或產生 TTS。全前端 48 suites／160 tests、相關口說題庫合約 14／14、全部 Edge Function 語法與口說契約、production build 及 `git diff --check` 均成功；遠端 migration、Edge Function 與網站仍未部署。
+
 先前測試階段紀錄（已由 PR #100 整批正式發布）：
 
 - 口說題庫第三階段：題庫校正與男女聲示範（測試站已部署，正式尚未部署）：checkpoint `5a15dba` 已推送至 `codex/speaking-guided-practice`。示範語音改用 Autonoe 女聲與 Puck 男聲核准池，依 `question_set_id + sort_order` 的奇偶固定交錯；不同題庫的起始性別可不同，但同一題的聲音永遠穩定，不會在學生每次播放時重新隨機或呼叫 TTS。沿用既有 `voice_id`、資產設定雜湊與 `speaking_question_audio`，不需要 migration；管理員手動按「補產生示範語音」後，符合原 Autonoe 設定的題目可直接沿用，需切換男聲的題目才生成 Puck 新資產，舊檔不覆寫。已發布題目的預覽新增女聲／男聲標記及短效私人 R2 試聽。Google Cloud 官方 Chirp 3 HD 清單已核對 Autonoe 為女聲、Puck 為男聲；Edge Function 語法與語音分配契約、題庫契約 13／13、管理頁與服務層 2 suites／9 tests、全前端 46 suites／151 tests、production build 與 `git diff --check` 均成功。`speaking-tts-manager` 已部署至共用測試 Supabase，未登入預覽請求正確回 401；固定測試站 deploy `6a9e21f64d406fd7614665f3` 已為 ready，管理頁回應 200 且載入本次 `main.7e7f123e.js`。本次未自動補產生付費語音，既有題庫仍須由管理員選擇後手動執行。
@@ -92,7 +96,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-本批開發基準 commit：`54f99e1`（開始本階段實作時的 `origin/main`）
+本批開發基準 commit：`7f5e1ac`（開始本階段實作時的 `origin/main`）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。

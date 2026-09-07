@@ -12,6 +12,7 @@ export const reviewSpeakingOcrSource = (firebaseUser, payload) => callSpeakingCo
 export const saveReviewedSpeakingSource = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "save_reviewed_source", payload);
 export const generateSpeakingQuestionSet = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "generate_question_set", payload);
 export const createWorkbookOneStarterQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_1_starter", { book_id: bookId });
+export const createWorkbookOneGreetingsQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_1_greetings", { book_id: bookId });
 export const createWorkbookTwoStarterQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_2_starter", { book_id: bookId });
 export const updateDraftSpeakingQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_draft_question", payload);
 export const publishSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "publish_question_set", { question_set_id: questionSetId });
