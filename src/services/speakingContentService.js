@@ -19,9 +19,9 @@ export const publishSpeakingQuestionSet = (firebaseUser, questionSetId) => callS
 export const generateSpeakingQuestionSetAudio = (firebaseUser, questionSetId) => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_set_audio", question_set_id: questionSetId })
 );
-export const getSpeakingQuestionAudioPreview = (firebaseUser, questionSetId, questionId) => (
+export const getSpeakingQuestionAudioPreview = (firebaseUser, questionSetId, questionId, purpose = "model_answer") => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, {
-        action: "preview_question_audio", question_set_id: questionSetId, question_id: questionId
+        action: "preview_question_audio", question_set_id: questionSetId, question_id: questionId, purpose
     })
 );
 export const extractSpeakingBookChunk = (firebaseUser, chunkId) => callSpeakingContent(firebaseUser, "extract_book_chunk", { chunk_id: chunkId });

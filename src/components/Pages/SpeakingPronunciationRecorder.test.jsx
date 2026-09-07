@@ -51,7 +51,7 @@ describe("SpeakingPronunciationRecorder", () => {
         jest.clearAllMocks();
     });
 
-    it("回聽與送評使用同一份轉換後 WAV，不在送出時重複轉檔", async () => {
+    it("錄音完成後使用同一份轉換後 WAV 自動送評", async () => {
         const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
         convertAudioBlobToWav.mockResolvedValue(wav);
         submitSpeakingPronunciationAttempt.mockResolvedValue({
@@ -74,11 +74,9 @@ describe("SpeakingPronunciationRecorder", () => {
         fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
 
         await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1));
-        expect(await screen.findByText("錄音完成，先聽聽看送評的聲音")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: /送出評分/ }));
-
         await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({ audio: wav })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole("button", { name: /送出評分/ })).not.toBeInTheDocument();
         expect(await screen.findByText("表現良好")).toBeInTheDocument();
         expect(screen.getByText("我聽到")).toBeInTheDocument();
         expect(screen.getByText("My name is Amy.")).toBeInTheDocument();
@@ -92,5 +90,20 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(screen.queryByText("查看詳細分析")).not.toBeInTheDocument();
         expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(1);
         expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("good");
+    });
+
+    it("問題播完後顯示倒數，也允許學生提早開始", async () => {
+        render(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 9 }}
+            autoStartToken={1}
+            countdownSeconds={5}
+        />);
+
+        expect(screen.getByText("想一下，準備回答")).toBeInTheDocument();
+        expect(screen.getByText("5")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /我準備好了/ }));
+        await waitFor(() => expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1));
+        expect(await screen.findByRole("button", { name: "完成錄音" })).toBeInTheDocument();
     });
 });

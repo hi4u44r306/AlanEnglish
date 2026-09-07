@@ -14,6 +14,30 @@
 .speaking-recording-heading span,
 .speaking-recording-privacy { color: #687790; font-size: 13px; }
 
+.speaking-recording-countdown {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  width: min(420px, 100%);
+  padding: 15px;
+  border-radius: 18px;
+  background: #142c54;
+  color: #fff;
+}
+.speaking-recording-countdown > strong {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 5px solid #ffd76d;
+  border-radius: 50%;
+  font-size: 28px;
+  line-height: 1;
+}
+.speaking-recording-countdown > span { font-weight: 900; }
+.speaking-recording-countdown > div { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.speaking-recording-countdown button:first-child { border: 1px solid #8eadd7; background: #fff; color: #245eaf; }
+
 .speaking-pronunciation-mic {
   display: grid;
   place-items: center;
@@ -142,6 +166,11 @@
   .speaking-recording-heading { gap: 1px; }
   .speaking-recording-heading strong { font-size: 14px; }
   .speaking-recording-heading span { display: none; }
+  .speaking-recording-countdown { gap: 5px; padding: 8px 10px; border-radius: 13px; }
+  .speaking-recording-countdown > strong { width: 44px; height: 44px; border-width: 4px; font-size: 21px; }
+  .speaking-recording-countdown > span { font-size: 12px; }
+  .speaking-recording-countdown > div { width: 100%; gap: 6px; }
+  .speaking-recording-countdown button { flex: 1 1 120px; min-height: 44px; padding: 7px 10px; }
   .speaking-pronunciation-mic {
     grid-template-columns: auto auto;
     gap: 5px;

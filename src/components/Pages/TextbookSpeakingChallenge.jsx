@@ -54,20 +54,22 @@ export default function TextbookSpeakingChallenge() {
         if (question.progress_status !== "completed") await markComplete(question);
     };
 
-    const playModelAudio = question => {
-        if (!question.model_audio_url) return;
+    const playQuestionAudio = (question, purpose, onEnded) => {
+        const audioUrl = purpose === "question_prompt" ? question.question_audio_url : question.model_audio_url;
+        if (!audioUrl) return;
         audioRef.current?.pause();
-        const audio = new Audio(question.model_audio_url);
+        const audio = new Audio(audioUrl);
         audioRef.current = audio;
-        setAudioWorking(String(question.id));
-        const clear = () => setAudioWorking(current => current === String(question.id) ? "" : current);
-        audio.addEventListener("ended", clear, { once: true });
-        audio.addEventListener("error", () => { clear(); setError("示範語音暫時無法播放，請重新整理後再試"); }, { once: true });
+        const workingKey = `${question.id}:${purpose}`;
+        setAudioWorking(workingKey);
+        const clear = () => setAudioWorking(current => current === workingKey ? "" : current);
+        audio.addEventListener("ended", () => { clear(); onEnded?.(); }, { once: true });
+        audio.addEventListener("error", () => { clear(); setError("自然語音暫時無法播放，請重新整理後再試"); }, { once: true });
         audio.play().catch(() => { clear(); setError("瀏覽器阻擋了示範語音，請再按一次播放"); });
     };
 
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
-    if (!questionSetId) return <main className="speaking-challenge-page"><header className="speaking-challenge-hero"><div><span>TEXTBOOK SPEAKING</span><h1>口說大挑戰</h1><p>每一本到達一個大關卡；跟著題目開口說，先練習，再完成小關卡。</p></div><Link className="speaking-history-link" to="/student/speaking-history"><FiClock />{isStaffDemo ? "口說歷程示範" : "我的口說歷程"}</Link></header>{isStaffDemo && <div className="speaking-demo-banner" role="note"><strong>示範模式</strong><span>可查看已發布題庫與示範語音，不會讀取或改寫任何學生進度。</span></div>}<section className="speaking-challenge-grid">{catalog.map(item => <button key={item.id} onClick={() => navigate(`/student/speaking-challenges/${item.id}`)}><FiBookOpen /><small>{item.book?.name || "教材"} · 第 {item.version} 版</small><strong>{item.title}</strong><span>{item.topic} · {item.difficulty}</span><footer>{isStaffDemo ? `${item.question_count} 題可供示範` : `${item.completed_count}/${item.question_count} 題已練習`}</footer></button>)}{!catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
+    if (!questionSetId) return <main className="speaking-challenge-page"><header className="speaking-challenge-hero"><div><span>TEXTBOOK SPEAKING</span><h1>口說大挑戰</h1><p>每一本到達一個大關卡；先看情境與目標，再進入對話練習。</p></div><Link className="speaking-history-link" to="/student/speaking-history"><FiClock />{isStaffDemo ? "口說歷程示範" : "我的口說歷程"}</Link></header>{isStaffDemo && <div className="speaking-demo-banner" role="note"><strong>示範模式</strong><span>可查看已發布題庫與示範語音，不會讀取或改寫任何學生進度。</span></div>}<section className="speaking-challenge-grid">{catalog.map(item => <button key={item.id} onClick={() => navigate(`/student/speaking-challenges/${item.id}`)}><FiBookOpen /><small>{item.book?.name || "教材"} · 第 {item.version} 版</small><strong>{item.title}</strong><span>{item.intro_zh || `${item.topic} · ${item.difficulty}`}</span>{item.learning_goal_zh && <em>學習目標：{item.learning_goal_zh}</em>}<footer><span>{item.topic} · {item.difficulty}</span><b>{isStaffDemo ? `${item.question_count} 題可供示範` : `${item.completed_count}/${item.question_count} 題已練習`}</b></footer></button>)}{!catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
     if (!challenge) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
     const questions = challenge.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
@@ -105,7 +107,16 @@ export default function TextbookSpeakingChallenge() {
                     <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
                     <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2>{activeQuestion.question_text}</h2><p>聽懂問題後，按下麥克風直接回答。</p></div>
                 </header>
-                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} demoMode={isStaffDemo} />
+                <SpeakingPracticeSteps
+                    firebaseUser={firebaseUser}
+                    question={activeQuestion}
+                    questionAudioWorking={audioWorking === `${activeQuestion.id}:question_prompt`}
+                    answerAudioWorking={audioWorking === `${activeQuestion.id}:model_answer`}
+                    onPlayQuestionAudio={onEnded => playQuestionAudio(activeQuestion, "question_prompt", onEnded)}
+                    onPlayAnswerAudio={onEnded => playQuestionAudio(activeQuestion, "model_answer", onEnded)}
+                    onCompleted={() => markScored(activeQuestion)}
+                    demoMode={isStaffDemo}
+                />
                 <small className="speaking-no-reward">這裡專心練口說，不會發放 XP 或 AE Points。</small>
             </article>
         </section>

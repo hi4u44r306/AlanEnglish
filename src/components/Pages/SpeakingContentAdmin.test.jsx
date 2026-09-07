@@ -90,8 +90,9 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         expect(screen.getByText("What's your name?")).toBeInTheDocument();
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
-        expect(screen.getByText("女聲 · Autonoe")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "核准、發布並產生語音" })).toBeInTheDocument();
+        expect(screen.getByText("問題 · 男聲 · Puck")).toBeInTheDocument();
+        expect(screen.getByText("回答 · 女聲 · Autonoe")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "核准、發布並產生問題與回答語音" })).toBeInTheDocument();
     });
 
     it("shows the balanced voice plan and loads a stored preview for a published question", async () => {
@@ -108,10 +109,11 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByText("預覽學生畫面"));
-        expect(screen.getByText("男聲 · Puck")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題男聲示範" }));
+        expect(screen.getByText("問題 · 女聲 · Autonoe")).toBeInTheDocument();
+        expect(screen.getByText("回答 · 男聲 · Puck")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題回答 · 男聲 · Puck" }));
 
-        await waitFor(() => expect(getSpeakingQuestionAudioPreview).toHaveBeenCalledWith(mockFirebaseUser, 13, 31));
-        expect(await screen.findByLabelText("第 1 題示範語音")).toHaveAttribute("src", "https://audio.example/puck.wav");
+        await waitFor(() => expect(getSpeakingQuestionAudioPreview).toHaveBeenCalledWith(mockFirebaseUser, 13, 31, "model_answer"));
+        expect(await screen.findByLabelText("第 1 題回答 · 男聲 · Puck")).toHaveAttribute("src", "https://audio.example/puck.wav");
     });
 });

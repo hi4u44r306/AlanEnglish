@@ -213,6 +213,8 @@ const CURATED_STARTER_TEMPLATES: Record<string, any> = {
         documentTitle: "Workbook 1 口說大挑戰", unitLabel: "Starter 01",
         pageFromLabel: "P18", pageToLabel: "P20", sourcePages: [18, 19, 20],
         topic: "我的名字與自我介紹", title: "01 我的名字與自我介紹",
+        introZh: "你會遇到一位新朋友。先仔細聽對方的問題，再用完整英文句子介紹自己的名字。",
+        learningGoalZh: "聽懂四種詢問名字的方式，並能完整介紹名字、姓氏與全名。",
         sourceText: "What's your name? What's your first name? What's your family name? What's your full name?",
         difficulty: "國小低年級", answerType: "personal_open", questions: WORKBOOK_ONE_STARTER_QUESTIONS
     },
@@ -221,6 +223,8 @@ const CURATED_STARTER_TEMPLATES: Record<string, any> = {
         documentTitle: "Workbook 1 口說大挑戰", unitLabel: "Starter 02",
         pageFromLabel: "P35", pageToLabel: "P100", sourcePages: [35, 36, 60, 70, 80, 85, 90, 99, 100],
         topic: "打招呼與禮貌對話", title: "02 打招呼與禮貌對話",
+        introZh: "和外國朋友見面時，練習在不同時間打招呼、關心對方，並有禮貌地說再見。",
+        learningGoalZh: "能聽懂常見招呼，並用適合情境的完整英文句子回應。",
         sourceText: "Good morning. Good afternoon. Good evening. Good night. How are you? I'm great, thank you. Nice to meet you. Nice to meet you, too. Goodbye. See you. How was your day? It was great, thank you.",
         difficulty: "國小低年級", answerType: "fixed_polite_dialogue", questions: WORKBOOK_ONE_GREETINGS_QUESTIONS
     },
@@ -229,6 +233,8 @@ const CURATED_STARTER_TEMPLATES: Record<string, any> = {
         documentTitle: "Workbook 2 口說大挑戰", unitLabel: "Topic 06",
         pageFromLabel: "P56", pageToLabel: "P58", sourcePages: [56, 58],
         topic: "我來自哪裡？", title: "01 我來自哪裡？",
+        introZh: "和新朋友聊聊大家來自哪裡。聽懂問題後，用完整句子介紹自己或其他人的國家。",
+        learningGoalZh: "能使用 I、he、she、they 與 from，回答人物來自哪個國家。",
         sourceText: "Where are you from? I am from Taiwan. Where is he from? He is from Japan. Where is she from? She is from France. Where does he come from? He comes from England. Where do they come from? They come from Australia.",
         difficulty: "國小中年級", answerType: "structured_and_fixed", questions: WORKBOOK_TWO_STARTER_QUESTIONS
     }
@@ -334,7 +340,7 @@ const loadBootstrap = async (admin: any) => {
         admin.from("speaking_source_documents").select("id,book_id,title,source_kind,original_filename,mime_type,byte_size,page_count,chunk_page_size,chunk_count,original_upload_status,status,ocr_status,ocr_error_code,ocr_model,created_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
         admin.from("speaking_source_chunks").select("id,document_id,source_section_id,chunk_index,page_from,page_to,byte_size,status,attempt_count,error_code,ocr_model,input_tokens,output_tokens,total_tokens,upload_verified_at,processing_started_at,completed_at,updated_at").order("chunk_index"),
         admin.from("speaking_source_sections").select("id,document_id,unit_label,page_from_label,page_to_label,topic,source_text,language_level,status,version,reviewed_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
-        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,published_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,sort_order)").neq("status", "archived").order("updated_at", { ascending: false })
+        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,status,version,generation_metadata,published_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,sort_order)").neq("status", "archived").order("updated_at", { ascending: false })
     ]);
     const error = bookRes.error || documentRes.error || chunkRes.error || sectionRes.error || setRes.error;
     if (error) throw error;
@@ -393,7 +399,9 @@ Deno.serve(async (req: Request) => {
                 if (sectionError) throw sectionError;
                 const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
                     source_section_id: section.id, book_id: bookId, title: curatedStarter.title,
-                    topic: curatedStarter.topic, difficulty: curatedStarter.difficulty, status: "draft", version: 1,
+                    topic: curatedStarter.topic, difficulty: curatedStarter.difficulty,
+                    intro_zh: curatedStarter.introZh, learning_goal_zh: curatedStarter.learningGoalZh,
+                    status: "draft", version: 1,
                     generation_metadata: {
                         source: "curated_template", template_key: curatedStarter.templateKey,
                         source_pages: curatedStarter.sourcePages, answer_type: curatedStarter.answerType
@@ -904,7 +912,10 @@ Deno.serve(async (req: Request) => {
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
                 source_section_id: sourceSectionId, book_id: bookId,
                 title: cleanText(generated?.title, 200) || `${section.topic} 口說練習`,
-                topic: section.topic, difficulty: section.language_level, status: "draft",
+                topic: section.topic, difficulty: section.language_level,
+                intro_zh: `進入「${section.topic}」情境，先聽問題，再用完整英文句子回答；需要時才打開提示。`,
+                learning_goal_zh: `聽懂與「${section.topic}」相關的簡短問題，並能完成口說回應。`,
+                status: "draft",
                 version: Number(latest?.version || 0) + 1, previous_set_id: latest?.id || null,
                 generation_metadata: { model: String(aiData?.model || AI_MODEL), source_characters: sourceText.length, request_key: requestKey },
                 created_by: user.id, created_at: now, updated_at: now

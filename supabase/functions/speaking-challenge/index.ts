@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
 
         if (action === "catalog") {
             const { data: sets, error } = await admin.from("speaking_question_sets")
-                .select("id,book_id,title,topic,difficulty,version,published_at,books(id,name,code),speaking_questions(id,sort_order)")
+                .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,published_at,books(id,name,code),speaking_questions(id,sort_order)")
                 .eq("status", "published").order("published_at", { ascending: true });
             if (error) throw error;
             const questionIds = (sets || []).flatMap((set: any) => (set.speaking_questions || []).map((question: any) => Number(question.id)));
@@ -48,6 +48,7 @@ Deno.serve(async (req: Request) => {
             const completed = new Set((progress || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
             return json(200, { success: true, demo_mode: demoMode, challenges: (sets || []).map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
+                intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, question_count: (set.speaking_questions || []).length,
                 completed_count: (set.speaking_questions || []).filter((question: any) => completed.has(Number(question.id))).length
             })) });
@@ -56,7 +57,7 @@ Deno.serve(async (req: Request) => {
         const setId = Number(body?.question_set_id);
         if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "找不到口說小關卡" });
         const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-            .select("id,book_id,title,topic,difficulty,version,books(id,name,code),speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,sort_order)")
+            .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,books(id,name,code),speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,sort_order)")
             .eq("id", setId).eq("status", "published").maybeSingle();
         if (setError) throw setError;
         if (!questionSet) return json(404, { error: "找不到已發布的口說小關卡" });
@@ -69,7 +70,7 @@ Deno.serve(async (req: Request) => {
             if (progressError) throw progressError;
             const statusByQuestion = new Map((progress || []).map((row: any) => [Number(row.question_id), row.status]));
             const { data: audioLinks, error: audioLinkError } = ids.length
-                ? await admin.from("speaking_question_audio").select("question_id,asset_id").in("question_id", ids)
+                ? await admin.from("speaking_question_audio").select("question_id,asset_id,purpose").in("question_id", ids)
                 : { data: [], error: null };
             if (audioLinkError) throw audioLinkError;
             const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
@@ -78,16 +79,23 @@ Deno.serve(async (req: Request) => {
                 : { data: [], error: null };
             if (assetError) throw assetError;
             const assetById = new Map((assets || []).map((row: any) => [String(row.id), row]));
-            const assetByQuestion = new Map((audioLinks || []).map((row: any) => [Number(row.question_id), assetById.get(String(row.asset_id))]));
+            const assetByQuestionPurpose = new Map((audioLinks || []).map((row: any) => [
+                `${Number(row.question_id)}:${row.purpose}`,
+                assetById.get(String(row.asset_id))
+            ]));
             const questions = [];
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
-                const asset: any = assetByQuestion.get(Number(question.id));
-                const audioReady = asset?.status === "ready" && asset?.private_object_key;
+                const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
+                const promptAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:question_prompt`);
+                const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
+                const promptReady = promptAsset?.status === "ready" && promptAsset?.private_object_key;
                 questions.push({
                     ...question,
                     progress_status: statusByQuestion.get(Number(question.id)) || "opened",
-                    model_audio_status: audioReady ? "ready" : (asset?.status || "missing"),
-                    model_audio_url: audioReady ? await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60) : null
+                    question_audio_status: promptReady ? "ready" : (promptAsset?.status || "missing"),
+                    question_audio_url: promptReady ? await createR2PresignedUrl(promptAsset.private_object_key, "GET", 15 * 60) : null,
+                    model_audio_status: modelReady ? "ready" : (modelAsset?.status || "missing"),
+                    model_audio_url: modelReady ? await createR2PresignedUrl(modelAsset.private_object_key, "GET", 15 * 60) : null
                 });
             }
             return json(200, { success: true, demo_mode: demoMode, challenge: { ...questionSet, speaking_questions: questions } });

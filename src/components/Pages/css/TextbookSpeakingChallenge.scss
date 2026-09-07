@@ -112,7 +112,27 @@
 .speaking-challenge-grid span,
 .speaking-challenge-grid small,
 .speaking-no-reward { color: #718099; }
-.speaking-challenge-grid footer { color: #1f579f; font-weight: 900; }
+.speaking-challenge-grid > button > em {
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: #fff6d8;
+  color: #73540a;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.5;
+}
+.speaking-challenge-grid footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  justify-content: space-between;
+  color: #1f579f;
+  font-size: 13px;
+  font-weight: 900;
+}
+.speaking-challenge-grid footer b { color: #1f579f; }
 
 .speaking-challenge-detail { padding-top: 96px; }
 
@@ -268,6 +288,33 @@
 .speaking-challenge-empty > svg { font-size: 42px; }
 
 .speaking-practice-flow { display: grid; gap: 16px; }
+.speaking-question-audio {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 74px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #173e7e, #2b66bd);
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 12px 24px rgba(26, 70, 137, .2);
+  cursor: pointer;
+}
+.speaking-question-audio > svg {
+  width: 46px;
+  height: 46px;
+  padding: 12px;
+  border-radius: 50%;
+  background: #ffd76d;
+  color: #173e7e;
+}
+.speaking-question-audio > span { display: grid; gap: 3px; }
+.speaking-question-audio strong { font-size: 17px; }
+.speaking-question-audio small { color: #dbe8ff; line-height: 1.4; }
+.speaking-question-audio:disabled { opacity: .58; cursor: not-allowed; }
 .speaking-direct-prompt {
   display: flex;
   gap: 11px;
@@ -567,6 +614,16 @@
   .speaking-pronunciation-note summary { min-height: 44px; padding: 8px 10px; font-size: 12px; }
   .speaking-pronunciation-note p { padding: 0 10px 9px; font-size: 12px; line-height: 1.4; }
   .speaking-practice-flow { gap: 8px; }
+  .speaking-question-audio {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 9px;
+    min-height: 60px;
+    padding: 8px 11px;
+    border-radius: 14px;
+  }
+  .speaking-question-audio > svg { width: 38px; height: 38px; padding: 10px; }
+  .speaking-question-audio strong { font-size: 14px; }
+  .speaking-question-audio small { font-size: 11px; }
   .speaking-direct-prompt { gap: 8px; }
   .speaking-direct-prompt > svg { width: 32px; height: 32px; padding: 7px; }
   .speaking-direct-prompt strong { font-size: 14px; }

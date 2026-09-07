@@ -16,7 +16,7 @@ const recordingMimeType = () => {
 const scoreLabel = score => score >= 80 ? "表現良好" : score >= 60 ? "再練一次會更好" : "先聽示範，再慢慢重讀";
 const scoreTone = score => score >= 80 ? "good" : score >= 60 ? "practice" : "retry";
 
-export default function SpeakingPronunciationRecorder({ firebaseUser, question, disabledReason = "", onScored }) {
+export default function SpeakingPronunciationRecorder({ firebaseUser, question, disabledReason = "", onScored, autoStartToken = 0, countdownSeconds = 5, onReplayQuestion }) {
     const [recording, setRecording] = useState(false);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
@@ -25,27 +25,67 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
+    const [countdown, setCountdown] = useState(null);
     const recorderRef = useRef(null);
     const streamRef = useRef(null);
     const chunksRef = useRef([]);
     const stopTimerRef = useRef(null);
     const elapsedTimerRef = useRef(null);
+    const countdownTimerRef = useRef(null);
+    const audioContextRef = useRef(null);
+    const analyserFrameRef = useRef(null);
+
+    const stopVoiceDetection = () => {
+        window.cancelAnimationFrame(analyserFrameRef.current);
+        analyserFrameRef.current = null;
+        audioContextRef.current?.close?.().catch(() => {});
+        audioContextRef.current = null;
+    };
 
     const release = () => {
         window.clearTimeout(stopTimerRef.current);
         window.clearInterval(elapsedTimerRef.current);
+        stopVoiceDetection();
         streamRef.current?.getTracks().forEach(track => track.stop());
         streamRef.current = null;
     };
     const reset = () => {
         release();
         if (previewUrl) URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setElapsed(0); setRecording(false); setPreparing(false);
+        window.clearInterval(countdownTimerRef.current);
+        setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setElapsed(0); setRecording(false); setPreparing(false); setCountdown(null);
     };
-    useEffect(() => () => release(), []);
+    useEffect(() => () => release(), []); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => reset, [question.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const stop = () => { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); };
+    const watchForFinishedSpeech = stream => {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        try {
+            const context = new AudioContextClass();
+            const analyser = context.createAnalyser();
+            analyser.fftSize = 512;
+            context.createMediaStreamSource(stream).connect(analyser);
+            audioContextRef.current = context;
+            const samples = new Uint8Array(analyser.fftSize);
+            const startedAt = Date.now();
+            let speechStarted = false;
+            let lastSpeechAt = startedAt;
+            const inspect = () => {
+                if (recorderRef.current?.state !== "recording") return;
+                analyser.getByteTimeDomainData(samples);
+                let energy = 0;
+                for (const sample of samples) energy += ((sample - 128) / 128) ** 2;
+                const rms = Math.sqrt(energy / samples.length);
+                const now = Date.now();
+                if (rms >= 0.035) { speechStarted = true; lastSpeechAt = now; }
+                if (speechStarted && now - lastSpeechAt >= 1400 && now - startedAt >= 1200) stop();
+                else analyserFrameRef.current = window.requestAnimationFrame(inspect);
+            };
+            analyserFrameRef.current = window.requestAnimationFrame(inspect);
+        } catch { /* 不支援即保留手動停止與最長時間限制。 */ }
+    };
     const start = async () => {
         reset();
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return setError("這個瀏覽器不支援錄音，請使用新版 Chrome 或 Safari");
@@ -68,6 +108,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
                     // 回聽與送評使用同一份 16 kHz PCM WAV，避免原始錄音正常、轉檔後卻無聲。
                     const wav = await convertAudioBlobToWav(blob);
                     setRecordedBlob(wav); setPreviewUrl(URL.createObjectURL(wav));
+                    await submit(wav);
                 } catch (cause) {
                     setError(cause?.message || "錄音轉換失敗，請重新錄音後再試一次");
                 } finally {
@@ -75,6 +116,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
                 }
             };
             recorder.start(250); setRecording(true); setElapsed(0);
+            watchForFinishedSpeech(stream);
             elapsedTimerRef.current = window.setInterval(() => setElapsed(current => Math.min(MAX_RECORDING_SECONDS, current + 1)), 1000);
             stopTimerRef.current = window.setTimeout(stop, MAX_RECORDING_SECONDS * 1000);
         } catch (cause) {
@@ -82,12 +124,12 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
             setError(cause?.name === "NotAllowedError" ? "請允許麥克風權限，才能練習發音" : "目前無法啟動麥克風，請確認瀏覽器設定後再試一次");
         }
     };
-    const submit = async () => {
-        if (!recordedBlob || submitting) return;
+    const submit = async (audio = recordedBlob) => {
+        if (!audio || submitting) return;
         prepareSpeakingFeedbackSound();
         setSubmitting(true); setError("");
         try {
-            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob });
+            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio });
             setResult(score);
             playSpeakingFeedbackSound(
                 score?.answer_match === false
@@ -99,18 +141,49 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
         finally { setSubmitting(false); }
     };
 
+    useEffect(() => {
+        if (!autoStartToken) return undefined;
+        reset();
+        let remaining = Math.max(1, Number(countdownSeconds) || 5);
+        setCountdown(remaining);
+        countdownTimerRef.current = window.setInterval(() => {
+            remaining -= 1;
+            if (remaining <= 0) {
+                window.clearInterval(countdownTimerRef.current);
+                setCountdown(null);
+                start();
+            } else setCountdown(remaining);
+        }, 1000);
+        return () => window.clearInterval(countdownTimerRef.current);
+    }, [autoStartToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const startNow = () => {
+        window.clearInterval(countdownTimerRef.current);
+        setCountdown(null);
+        start();
+    };
+    const replayQuestion = () => {
+        window.clearInterval(countdownTimerRef.current);
+        setCountdown(null);
+        onReplayQuestion?.();
+    };
+
     const pronunciationScore = Math.round(result?.scores?.pronunciation || 0);
     const answerMatched = result?.answer_match !== false;
     const resultTone = answerMatched ? scoreTone(pronunciationScore) : "retry";
 
     return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""}`} aria-live="polite">
         {!result && <>
+            {countdown !== null && <div className="speaking-recording-countdown" role="status">
+                <strong>{countdown}</strong><span>想一下，準備回答</span>
+                <div><button type="button" onClick={replayQuestion}><FiRefreshCw />再聽一次</button><button type="button" onClick={startNow}><FiMic />我準備好了</button></div>
+            </div>}
             <div className="speaking-recording-heading">
-                <strong>{recording ? "正在聽你朗讀…" : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "輪到你開口說"}</strong>
-                <span>{recording ? `${elapsed} / ${MAX_RECORDING_SECONDS} 秒` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : "按下麥克風，慢慢說完整句子。"}</span>
+                <strong>{recording ? "正在聽你回答…" : preparing ? "正在準備評分音檔…" : submitting ? "AI 正在評分…" : recordedBlob ? "已錄下你的回答" : countdown !== null ? "問題問完了" : "輪到你開口說"}</strong>
+                <span>{recording ? `${elapsed} / ${MAX_RECORDING_SECONDS} 秒；說完停一下就會自動送出。` : preparing || submitting ? "請稍候，不需要再按送出。" : recordedBlob ? "如果送評失敗，可以重試或重新錄音。" : countdown !== null ? "倒數結束會自動開啟麥克風。" : "也可以直接按下麥克風開始回答。"}</span>
             </div>
             {disabledReason && !recordedBlob && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
-            {!recordedBlob && <button
+            {!recordedBlob && countdown === null && <button
                 type="button"
                 className="speaking-pronunciation-mic"
                 onClick={recording ? stop : start}
@@ -120,7 +193,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
                 {recording ? <FiSquare aria-hidden="true" /> : <FiMic aria-hidden="true" />}
                 <span>{recording ? "完成錄音" : preparing ? "準備中…" : "開始錄音"}</span>
             </button>}
-            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : "送出評分"}</button></div></div>}
+            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio>{!submitting && !result && <div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button>{error && <button type="button" onClick={() => submit()}><FiSend />重新送出評分</button>}</div>}</div>}
             <small className="speaking-recording-privacy">送出後會把錄音私人保存到你的口說學習歷程；每題最多保留最新與最佳錄音，也可以自行刪除。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`}>

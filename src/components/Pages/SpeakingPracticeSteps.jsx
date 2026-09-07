@@ -33,9 +33,19 @@ const naturalExample = question => {
         .trim();
 };
 
-export default function SpeakingPracticeSteps({ firebaseUser, question, audioWorking, onPlayAudio, onCompleted, demoMode = false }) {
+export default function SpeakingPracticeSteps({
+    firebaseUser,
+    question,
+    questionAudioWorking = false,
+    answerAudioWorking = false,
+    onPlayQuestionAudio,
+    onPlayAnswerAudio,
+    onCompleted,
+    demoMode = false
+}) {
     const [showHelp, setShowHelp] = useState(false);
     const [lastResult, setLastResult] = useState(null);
+    const [autoStartToken, setAutoStartToken] = useState(0);
     const answerPattern = useMemo(() => answerPatternForLearner(question.model_answer), [question.model_answer]);
     const example = useMemo(() => naturalExample(question), [question]);
 
@@ -44,11 +54,17 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
         if (result?.answer_match !== false) onCompleted?.(result);
     };
 
+    const beginAnswerTurn = () => setAutoStartToken(current => current + 1);
+    const playPrompt = () => onPlayQuestionAudio?.(demoMode ? undefined : beginAnswerTurn);
+    const playAnswer = () => onPlayAnswerAudio?.(demoMode ? undefined : beginAnswerTurn);
+
     return <section className="speaking-practice-flow">
-        <div className="speaking-direct-prompt">
-            <FiMic aria-hidden="true" />
-            <div><strong>直接開口回答</strong><span>不用打字，按下麥克風後用完整英文句子回答。</span></div>
-        </div>
+        <button type="button" className="speaking-question-audio" disabled={!question.question_audio_url || questionAudioWorking} onClick={playPrompt}>
+            <FiVolume2 aria-hidden="true" />
+            <span><strong>{questionAudioWorking ? "外國朋友正在問你…" : "聽問題並回答"}</strong><small>{question.question_audio_url ? "問題播完後，想5秒就會自動開始錄音。" : "問題自然語音準備中"}</small></span>
+        </button>
+
+        <div className="speaking-direct-prompt"><FiMic aria-hidden="true" /><div><strong>先自己想一想</strong><span>不用打字；真的不知道怎麼回答，再打開下面的提示。</span></div></div>
 
         <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={() => setShowHelp(current => !current)}>
             <FiHelpCircle aria-hidden="true" />{showHelp ? "收起回答提示" : "不知道怎麼說？"}
@@ -57,8 +73,8 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
         {showHelp && <div className="speaking-help-panel">
             {question.hint_zh && <p>{question.hint_zh}</p>}
             <div><small>可以這樣說</small><strong>{answerPattern}</strong></div>
-            <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
-                <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
+            <button type="button" disabled={!question.model_audio_url || answerAudioWorking} onClick={playAnswer}>
+                <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (answerAudioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>
             {example && <small>示範：{example}</small>}
             {question.pronunciation_notes_zh && <small>發音提醒：{question.pronunciation_notes_zh}</small>}
@@ -70,6 +86,9 @@ export default function SpeakingPracticeSteps({ firebaseUser, question, audioWor
             firebaseUser={firebaseUser}
             question={question}
             onScored={handleScored}
+            autoStartToken={autoStartToken}
+            countdownSeconds={5}
+            onReplayQuestion={playPrompt}
         />}
 
         {lastResult?.answer_match !== false && lastResult && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成，可以前往下一題或再練一次。</p>}

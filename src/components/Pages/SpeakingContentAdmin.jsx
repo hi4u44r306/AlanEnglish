@@ -91,23 +91,28 @@ const plannedVoice = (questionSetId, sortOrder) => (
 );
 
 const QuestionAudioPreview = ({ firebaseUser, questionSet, question }) => {
-    const [preview, setPreview] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const voice = plannedVoice(questionSet.id, question.sort_order);
-    const loadPreview = async () => {
-        setLoading(true);
+    const [preview, setPreview] = useState({});
+    const [loading, setLoading] = useState("");
+    const answerVoice = plannedVoice(questionSet.id, question.sort_order);
+    const promptVoice = answerVoice.gender === "female"
+        ? { gender: "male", label: "男聲 · Puck" }
+        : { gender: "female", label: "女聲 · Autonoe" };
+    const loadPreview = async purpose => {
+        setLoading(purpose);
         try {
-            const result = await getSpeakingQuestionAudioPreview(firebaseUser, questionSet.id, question.id);
-            setPreview(result);
+            const result = await getSpeakingQuestionAudioPreview(firebaseUser, questionSet.id, question.id, purpose);
+            setPreview(current => ({ ...current, [purpose]: result }));
         } catch (error) { toast.error(error.message || "示範語音尚未準備完成"); }
-        finally { setLoading(false); }
+        finally { setLoading(""); }
     };
-    return <div className={`speaking-voice-preview ${voice.gender}`}>
-        <span>{voice.label}</span>
-        {questionSet.status === "published" && <button type="button" disabled={loading} onClick={loadPreview} aria-label={`試聽第 ${Number(question.sort_order || 0) + 1} 題${voice.gender === "female" ? "女聲" : "男聲"}示範`}>
-            <Volume2 size={16} />{loading ? "載入中…" : "試聽"}
-        </button>}
-        {preview?.audio_url && <audio controls autoPlay src={preview.audio_url} aria-label={`第 ${Number(question.sort_order || 0) + 1} 題示範語音`} />}
+    return <div className="speaking-voice-preview-list">
+        {[{ purpose: "question_prompt", label: `問題 · ${promptVoice.label}`, voice: promptVoice }, { purpose: "model_answer", label: `回答 · ${answerVoice.label}`, voice: answerVoice }].map(item => <div className={`speaking-voice-preview ${item.voice.gender}`} key={item.purpose}>
+            <span>{item.label}</span>
+            {questionSet.status === "published" && <button type="button" disabled={Boolean(loading)} onClick={() => loadPreview(item.purpose)} aria-label={`試聽第 ${Number(question.sort_order || 0) + 1} 題${item.label}`}>
+                <Volume2 size={16} />{loading === item.purpose ? "載入中…" : "試聽"}
+            </button>}
+            {preview[item.purpose]?.audio_url && <audio controls autoPlay src={preview[item.purpose].audio_url} aria-label={`第 ${Number(question.sort_order || 0) + 1} 題${item.label}`} />}
+        </div>)}
     </div>;
 };
 
@@ -116,7 +121,7 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
     return <details className="speaking-student-preview">
         <summary><Eye size={17} />預覽學生畫面</summary>
         <div className="speaking-student-preview__screen">
-            <header><span>口說大挑戰預覽</span><h5>{questionSet.title}</h5><p>學生會先聽問題，自行回答；需要時才展開提示與示範句。</p></header>
+            <header><span>口說大挑戰預覽</span><h5>{questionSet.title}</h5><p>{questionSet.intro_zh || "學生會先聽問題，自行回答；需要時才展開提示與示範句。"}</p>{questionSet.learning_goal_zh && <small>學習目標：{questionSet.learning_goal_zh}</small>}</header>
             <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
                 <span>第 {index + 1} 題</span><strong>{question.question_text}</strong>
                 <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>
@@ -329,11 +334,11 @@ export default function SpeakingContentAdmin() {
             published = true;
             const audio = await generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id);
             if (audio.failed > 0) toast.warning(`題庫已發布，但有 ${audio.failed} 題語音尚未完成`);
-            else toast.success(`題庫已發布，示範語音已完成（新產生 ${audio.generated}、沿用 ${audio.reused}）`);
+            else toast.success(`題庫已發布，問題與回答語音已完成（新產生 ${audio.generated} 段、沿用 ${audio.reused} 段）`);
             await load();
         }
         catch (error) {
-            if (published) toast.warning(`題庫已發布，但示範語音尚未完成：${error.message || "請稍後重試"}`);
+            if (published) toast.warning(`題庫已發布，但問題與回答語音尚未完成：${error.message || "請稍後重試"}`);
             else toast.error(error.message || "題庫發布失敗");
             await load();
         }
@@ -344,9 +349,9 @@ export default function SpeakingContentAdmin() {
         try {
             const audio = await generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id);
             if (audio.failed > 0) toast.warning(`仍有 ${audio.failed} 題語音尚未完成`);
-            else toast.success(`示範語音已完成（新產生 ${audio.generated}、沿用 ${audio.reused}）`);
+            else toast.success(`問題與回答語音已完成（新產生 ${audio.generated} 段、沿用 ${audio.reused} 段）`);
         }
-        catch (error) { toast.error(error.message || "示範語音產生失敗"); }
+        catch (error) { toast.error(error.message || "問題與回答語音產生失敗"); }
         finally { setWorking(""); }
     };
 
@@ -426,7 +431,7 @@ export default function SpeakingContentAdmin() {
                 <header><div><span>{section.document?.title || "教材來源"}{section.document?.original_filename ? ` · ${section.document.original_filename}` : ""}</span><h3>{section.topic}</h3><p>{section.unit_label || "未標示單元"} · {section.page_from_label || "未標示頁碼"}{section.page_to_label ? `–${section.page_to_label}` : ""} · {section.language_level}</p></div>{section.status === "reviewed" && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "產生新版草稿"}</button>}</header>
                 {section.status === "draft" && <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />}
                 {section.questionSets.length === 0 ? <p className="speaking-source-card__empty">尚未產生題庫。</p> : section.questionSets.map(questionSet => <section className={`speaking-set ${questionSet.status}`} key={questionSet.id}>
-                    <div className="speaking-set__heading"><div><span>第 {questionSet.version} 版 · {questionSet.status === "published" ? "已發布" : "草稿"}</span><h4>{questionSet.title}</h4></div>{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布與產生語音中…" : "核准、發布並產生語音"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : "補產生示範語音"}</button>}</div>
+                    <div className="speaking-set__heading"><div><span>第 {questionSet.version} 版 · {questionSet.status === "published" ? "已發布" : "草稿"}</span><h4>{questionSet.title}</h4></div>{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布與產生語音中…" : "核准、發布並產生問題與回答語音"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : "補產生問題與回答語音"}</button>}</div>
                     <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />
                     <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>
                 </section>)}

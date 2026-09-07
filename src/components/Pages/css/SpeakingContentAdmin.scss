@@ -73,6 +73,7 @@
 .speaking-student-preview__questions details em { color: #173f80; font-style: normal; font-weight: 800; }
 .speaking-student-preview__questions small { color: #6d7c92; line-height: 1.5; }
 .speaking-voice-preview { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 36px; }
+.speaking-voice-preview-list { display: grid; gap: 8px; margin-top: 4px; }
 .speaking-voice-preview > span { display: inline-flex; align-items: center; min-height: 30px; padding: 0 10px; border-radius: 999px; color: #6d3a13; background: #fff2d6; font-size: 12px; font-weight: 850; }
 .speaking-voice-preview.male > span { color: #174477; background: #e7f2ff; }
 .speaking-voice-preview button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 0 11px; border: 1px solid #c7d8ed; border-radius: 10px; color: #173f80; background: #fff; font-weight: 800; }
