@@ -636,11 +636,24 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 7. Navbar、Guided Tour、TTS component tests
 8. Playwright responsive、Stripe、Storage 與完整 Production E2E
 
-### P2 未來規劃：好友、戰績與社交競賽（尚未開始）
+### P2 好友、戰績與社交競賽（第一階段本機完成，尚未部署）
 
-產品方向：讓學生在安全、雙方同意的前提下加入好友，查看彼此的學習戰績；資料與互動基礎穩定後，再評估 PK 賽與合作型比賽。此項目目前只記錄需求，尚未建立資料表、API、Edge Function、頁面或部署。
+2026-09-08 已在分支 `codex/p2-friends-profile`（基準 commit `401a78b`）完成第一階段本機實作：新增 additive migration、`student-social` Edge Function、好友與戰績頁、前端服務、路由及 Navbar 入口。尚未建立 checkpoint、Push、套用遠端 migration、部署 Edge Function 或部署 Netlify。
 
-第一階段「好友與戰績」預計包含：
+第一階段採用的安全規則：
+
+1. 只允許有效方案的學生使用；Edge Function 驗證 Firebase ID Token，並重新查詢學生角色、帳號狀態及有效方案。
+2. 學生先建立 2～20 字暱稱，系統另產生不可推測的 `AE-XXXXXXXX` 好友碼；搜尋只接受完整暱稱或完整好友碼，不提供模糊列舉。
+3. 好友邀請需由對方接受；支援拒絕、解除好友、封鎖、解除封鎖及檢舉。封鎖會立即移除既有好友關係。
+4. 對好友只顯示暱稱、粗略在線狀態、等級與總 XP；不顯示 Email、班級、生日、家長資料或精確登入時間。戰績與在線狀態皆可改為不公開。
+5. 在線狀態由登入後全站 Navbar 每 60 秒更新，對外只顯示「在線／最近在線／離線／未公開」。
+6. 搜尋每 15 分鐘最多 30 次、好友邀請每小時最多 5 次、檢舉每日最多 3 次；敏感操作寫入後端稽核表。
+
+本機驗證：好友服務與頁面測試、Navbar 測試、社交安全契約 4/4、Edge Function 語法檢查及 Production build 均通過；完整前端為 53 suites／178 tests 通過。尚未以兩個真實學生帳號驗證邀請、在線狀態、封鎖與跨帳號隱私。
+
+下一步：取得使用者同意後建立 checkpoint、Push 並部署到測試環境，同時套用測試 Supabase migration 與部署 `student-social`；由兩個學生帳號完成跨帳號驗收後，才評估合併正式站。PK 賽與合作型比賽仍留在第二、三階段，不在本次範圍。
+
+第一階段「好友與戰績」已包含：
 
 1. 使用不暴露 Email、生日、家長資料或真實班級的方式搜尋／邀請好友；採好友邀請、接受或拒絕的雙向確認流程，不允許單方面直接追蹤。
 2. 提供好友名單、待處理邀請、解除好友、封鎖與檢舉；封鎖後雙方不得查看戰績、傳送邀請或發起比賽。
@@ -661,7 +674,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 需防止單一成員代打或掛機，並清楚顯示個人貢獻、團隊進度、任務期限與獎勵規則。
 - 是否支援跨班、公開隊伍、老師建立活動及家長可見報告仍待產品確認。
 
-開始實作前必須先確認：好友搜尋識別方式、戰績可見欄位、封鎖／檢舉處理流程、PK 採非同步或即時、計分與獎勵規則、合作賽組隊限制，以及未成年使用者的隱私與家長／老師管理邊界。資料層必須採 additive migration、RLS 與 Firebase Token 驗證 Edge Function；不得讓前端直接讀取所有學生資料。此功能排在目前測試站已驗收內容同步正式站之後，正式站尚未更新前不開始功能實作。
+第一階段已固定完整暱稱／好友碼搜尋、安全戰績欄位、雙向邀請、封鎖、檢舉、頻率限制、additive migration、RLS 與 Firebase Token 驗證 Edge Function；前端不能直接讀取所有學生資料。PK 採非同步或即時、計分與獎勵、合作賽組隊限制，以及老師／家長介入方式，留待第二階段開始前確認。
 
 ## 13. 已知注意事項
 

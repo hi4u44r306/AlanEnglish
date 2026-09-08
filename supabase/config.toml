@@ -477,3 +477,6 @@ verify_jwt = false
 
 [functions.speaking-tts-manager]
 verify_jwt = false
+
+[functions.student-social]
+verify_jwt = false

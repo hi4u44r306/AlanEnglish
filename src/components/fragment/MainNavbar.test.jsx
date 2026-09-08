@@ -8,6 +8,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications } from "../../services/membershipService";
 import { prefetchSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
+import { sendSocialHeartbeat } from "../../services/studentSocialService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
@@ -17,6 +18,7 @@ jest.mock("../../services/speakingChallengeService", () => ({
     clearSpeakingChallengeCatalogCache: jest.fn(),
     prefetchSpeakingChallengeCatalog: jest.fn()
 }));
+jest.mock("../../services/studentSocialService", () => ({ sendSocialHeartbeat: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, id }) => show ? ReactModule.createElement("aside", { id }, children) : null;
@@ -48,6 +50,7 @@ describe("MainNavbar student navigation", () => {
         });
         getStudentNotifications.mockResolvedValue({ notifications: [] });
         prefetchSpeakingChallengeCatalog.mockResolvedValue(null);
+        sendSocialHeartbeat.mockResolvedValue({ success: true });
     });
 
     it("keeps common links in the desktop bar and moves secondary links into the full menu", async () => {
@@ -77,6 +80,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByText("學習成果")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "好友與戰績" })).toHaveAttribute("href", "/student/friends");
         expect(await screen.findByRole("link", { name: "學習排行榜" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
         expect(screen.getAllByRole("link", { name: "實體教材商城" }).some(link => link.getAttribute("href") === "/shop")).toBe(true);
