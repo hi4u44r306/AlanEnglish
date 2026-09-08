@@ -407,13 +407,15 @@ const profilePayload = (
     membership: any,
     levelProgress: any,
     effectiveAccess: any = null,
-    aiAddonSubscription: any = null
+    aiAddonSubscription: any = null,
+    nickname: string | null = null
 ) => ({
     id: student.id,
     firebase_uid: student.firebase_uid,
     name: student.name,
     chinese_name: student.chinese_name || student.name,
     english_name: student.english_name || null,
+    nickname,
     date_of_birth: student.date_of_birth || null,
     email: student.authentication_method === "academy_username" ? null : student.email,
     login_username: student.login_username || null,
@@ -511,10 +513,14 @@ const loadCompleteProfile = async (
     firebaseUser: VerifiedFirebaseUser,
     publicSignup = false
 ) => {
-    const [membership, levelProgress] = await Promise.all([
+    const [membership, levelProgress, socialProfile] = await Promise.all([
         ensureMembership(admin, student, firebaseUser, { publicSignup }),
-        ensureLevelProgress(admin, student, publicSignup)
+        ensureLevelProgress(admin, student, publicSignup),
+        student.role === "student"
+            ? admin.from("student_social_profiles").select("nickname").eq("student_id", student.id).maybeSingle()
+            : Promise.resolve({ data: null, error: null })
     ]);
+    if (socialProfile.error) throw socialProfile.error;
     const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
     const aiAddonSubscription = await loadAiAddonSubscription(admin, effectiveAccess);
     return profilePayload(
@@ -522,7 +528,8 @@ const loadCompleteProfile = async (
         membership,
         levelProgress,
         effectiveAccess,
-        aiAddonSubscription
+        aiAddonSubscription,
+        socialProfile.data?.nickname || null
     );
 };
 

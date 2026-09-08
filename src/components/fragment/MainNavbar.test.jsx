@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import MainNavbar from "./MainNavbar";
@@ -270,6 +270,24 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
         expect(screen.getByRole("link", { name: "口說大挑戰示範" })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.getAllByRole("link", { name: "口說歷程示範" })).toHaveLength(2);
+    });
+
+    it("uses the public nickname and clears the unread badge when notifications are marked read elsewhere", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "nickname-student" },
+            role: "student",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: { nickname: "Sunny Fox", name: "真實姓名", membership: { effective_access: { features: {}, plan_codes: [] } } }
+        });
+        getStudentNotifications.mockResolvedValue({ notifications: [{ id: 9, title: "新消息", body: "通知內容", read_at: null }] });
+
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+
+        expect(await screen.findByText("Sunny Fox")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "查看通知，目前有 1 則未讀" })).toBeInTheDocument();
+        act(() => window.dispatchEvent(new CustomEvent("ae:notifications-read", { detail: { notificationIds: "all" } })));
+        await waitFor(() => expect(screen.getByRole("link", { name: "查看通知" })).toBeInTheDocument());
     });
 
     it("highlights the active student route in the full menu", () => {

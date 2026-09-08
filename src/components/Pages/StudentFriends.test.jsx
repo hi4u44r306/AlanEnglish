@@ -19,6 +19,7 @@ jest.mock("../../services/studentSocialService", () => ({
 }));
 
 const firebaseUser = { uid: "student-1" };
+const setStudentProfile = jest.fn();
 const readyOverview = {
     profile: { student_id: 1, nickname: "Alan Fox", friend_code: "AE-ABCDEFGH", presence: "online", stats: { level: 3, total_xp: 300 } },
     settings: { stats_visibility: "friends", presence_visibility: "friends" },
@@ -31,7 +32,7 @@ const readyOverview = {
 describe("StudentFriends", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        useAuth.mockReturnValue({ firebaseUser });
+        useAuth.mockReturnValue({ firebaseUser, setStudentProfile });
         getSocialOverview.mockResolvedValue(readyOverview);
     });
 
@@ -50,6 +51,17 @@ describe("StudentFriends", () => {
             stats_visibility: "friends",
             presence_visibility: "friends"
         }));
+    });
+
+    it("blocks an unsuitable nickname before sending it to the service", async () => {
+        render(<StudentFriends />);
+
+        await screen.findByText("AE-ABCDEFGH");
+        fireEvent.change(screen.getByLabelText("公開暱稱"), { target: { value: "色情測試" } });
+        fireEvent.click(screen.getByRole("button", { name: "儲存設定" }));
+
+        expect((await screen.findByRole("alert")).textContent).toContain("暱稱包含不適合公開顯示的內容");
+        expect(updateSocialProfile).not.toHaveBeenCalled();
     });
 
     it("searches by exact nickname or friend code and sends a mutual request", async () => {

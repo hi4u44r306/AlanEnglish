@@ -279,6 +279,7 @@ function StudentSettings() {
     };
 
     const profile = studentProfile || {};
+    const publicDisplayName = profile.nickname || profile.chinese_name || profile.name || "學生";
     const balance = summary?.balance || {};
     const avatarUrl = summary?.profile?.avatar_url || null;
     const avatarDisplayUrl = getStudentAvatarDisplayUrl(avatarUrl, 256);
@@ -336,14 +337,14 @@ function StudentSettings() {
             <section className="student-settings-profile-card">
                 <div className="student-settings-avatar-wrap">
                     {avatarDisplayUrl
-                        ? <img src={avatarDisplayUrl} className="student-settings-avatar" alt={`${profile.chinese_name || profile.name || "學生"} 的頭像`} />
-                        : <div className="student-settings-avatar fallback">{initial(profile.chinese_name || profile.name)}</div>}
+                        ? <img src={avatarDisplayUrl} className="student-settings-avatar" alt={`${publicDisplayName} 的頭像`} />
+                        : <div className="student-settings-avatar fallback">{initial(publicDisplayName)}</div>}
                     <button type="button" className="student-settings-avatar-button" onClick={() => fileInputRef.current?.click()} disabled={uploading} aria-label="更換學生頭像"><FiCamera /></button>
                     <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarChange} />
                 </div>
                 <div className="student-settings-profile-copy">
                     <span>學生基本資料</span>
-                    <h2>{profile.chinese_name || profile.name || "學生"}</h2>
+                    <h2>{publicDisplayName}</h2>
                     <p>{profile.english_name || "尚未設定英文姓名"}　·　{profile.class ? `${profile.class} 班` : "尚未分班"}</p>
                     <small><FiImage /> {uploading ? "正在處理頭像…" : "支援 JPG、PNG、WebP；超過 5MB 的照片會先在裝置上壓縮。"}</small>
                 </div>
@@ -408,7 +409,7 @@ function StudentSettings() {
                                 <span>目前頭像</span>
                                 {avatarDisplayUrl
                                     ? <img src={avatarDisplayUrl} alt="目前使用的頭像" />
-                                    : <div className="student-avatar-confirmation-fallback" aria-label="目前使用的文字頭像">{initial(profile.chinese_name || profile.name)}</div>}
+                                    : <div className="student-avatar-confirmation-fallback" aria-label="目前使用的文字頭像">{initial(publicDisplayName)}</div>}
                             </div>
                             <strong aria-hidden="true">→</strong>
                             <div className="pending">
@@ -474,6 +475,7 @@ function StudentSettings() {
                 <article className="student-settings-panel">
                     <header><FiUser /><div><span>PROFILE</span><h2>基本資料</h2></div></header>
                     <dl className="student-settings-data-list">
+                        <div><dt>公開暱稱</dt><dd>{profile.nickname || "尚未設定（可到好友與戰績建立）"}</dd></div>
                         <div><dt>中文姓名</dt><dd>{profile.chinese_name || profile.name || "—"}</dd></div>
                         <div><dt>英文姓名</dt><dd>{profile.english_name || "尚未設定"}</dd></div>
                         <div><dt>班級</dt><dd>{profile.class ? `${profile.class} 班` : "尚未分班"}</dd></div>

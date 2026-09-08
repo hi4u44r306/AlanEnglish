@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
+import { notifyNotificationsRead } from "../../constants/notificationEvents";
 import "./css/StudentNotifications.scss";
 
 const PAGE_SIZE = 30;
@@ -44,10 +45,12 @@ function StudentNotifications() {
         if (!notification || notification.read_at || !firebaseUser) return;
         const readAt = new Date().toISOString();
         setNotifications(current => current.map(item => item.id === notification.id ? { ...item, read_at: readAt } : item));
+        notifyNotificationsRead([notification.id]);
         try {
             await markStudentNotificationRead(firebaseUser, notification.id);
         } catch (error) {
             setNotifications(current => current.map(item => item.id === notification.id ? notification : item));
+            notifyNotificationsRead({ unreadIds: [notification.id] });
             toast.error(error.message || "通知狀態更新失敗");
         }
     };
@@ -58,8 +61,9 @@ function StudentNotifications() {
         const readAt = new Date().toISOString();
         const previous = notifications;
         setNotifications(current => current.map(item => ({ ...item, read_at: item.read_at || readAt })));
+        notifyNotificationsRead("all");
         try { await markAllStudentNotificationsRead(firebaseUser); }
-        catch (error) { setNotifications(previous); toast.error(error.message || "通知狀態更新失敗"); }
+        catch (error) { setNotifications(previous); notifyNotificationsRead({ unreadIds: previous.filter(item => !item.read_at).map(item => item.id) }); toast.error(error.message || "通知狀態更新失敗"); }
     };
 
     return (

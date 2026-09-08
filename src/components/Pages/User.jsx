@@ -121,6 +121,7 @@ const normalizeConversation = result => {
 
 const User = () => {
     const { firebaseUser, studentProfile: user, authLoading } = useAuth();
+    const displayName = user?.nickname || user?.name || "同學";
     const [homeData, setHomeData] = useState(EMPTY_HOME_DATA);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -417,7 +418,7 @@ const User = () => {
                         <span className="student-home__eyebrow">
                             <FiTarget /> TODAY'S MISSION · {formatToday(homeData.today)}
                         </span>
-                        <h1>{user.name || "同學"}，今天先完成這些！</h1>
+                        <h1>{displayName}，今天先完成這些！</h1>
                         <p>
                             {dailyProgress === 100
                                 ? "太棒了，今天的學習任務全部完成，可以自由複習最喜歡的內容。"
@@ -597,10 +598,10 @@ const User = () => {
 
                 <section className="student-home__account">
                     <div className="student-home__identity">
-                        <div className="student-home__avatar">{getInitial(user.name)}</div>
+                        <div className="student-home__avatar">{getInitial(displayName)}</div>
                         <div>
                             <span>MY ACCOUNT</span>
-                            <strong>{user.name || "Alan English 學生"}</strong>
+                            <strong>{displayName}</strong>
                             <small>{user.email || "—"}</small>
                         </div>
                     </div>
