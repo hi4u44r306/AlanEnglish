@@ -8,7 +8,7 @@
 
 本次測試部署（正式站尚未部署）：
 
-- 學生首頁與英文班 AI 方案呈現收斂（本機完成，尚未推送或部署）：`AI Premium` 現在只代表實際的 AI 加購方案；有效在校英文班學生保有原本的 AI 練習、口說大挑戰及班級作業權限，但 Navbar、我的設定與會員中心改顯示「英文班在學方案已包含」，不再顯示或引導重複購買 AI Premium。學生首頁改為任務優先：老師作業、待複習錯題與聽力暖身依序呈現，AI 練習與口說大挑戰收進非必要的「想多練一點？」；首頁成果收斂為今日聽力、已學口說與本月聽力，移除重複的帳號／方案／登出卡與舊情境口說任務。離校學生的歷史 `academy_internal` 不會被誤認為在學方案。相關 React tests 5 suites／38 tests、Production build 與 `git diff --check` 均成功；尚待推送後的登入實機視覺驗收。
+- 學生首頁與英文班 AI 方案呈現收斂（測試站已部署，正式站尚未部署）：`AI Premium` 現在只代表實際的 AI 加購方案；有效在校英文班學生保有原本的 AI 練習、口說大挑戰及班級作業權限，但 Navbar、我的設定與會員中心改顯示「英文班在學方案已包含」，不再顯示或引導重複購買 AI Premium。學生首頁改為任務優先：老師作業、待複習錯題與聽力暖身依序呈現，AI 練習與口說大挑戰收進非必要的「想多練一點？」；首頁成果收斂為今日聽力、已學口說與本月聽力，移除重複的帳號／方案／登出卡與舊情境口說任務。離校學生的歷史 `academy_internal` 不會被誤認為在學方案。Checkpoint `68686dd` 已推送至 `codex/p2-friends-profile`；固定測試站 deploy `6aa010e022cb582d1c1a41ba` 已為 live，`/student/dashboard` 回應 HTTP 200。相關 React tests 5 suites／38 tests、Production build 與 `git diff --check` 均成功；尚待登入實機視覺驗收。
 
 - P2 好友／公開暱稱與通知同步（測試站已部署，正式網站尚未部署）：通知頁單筆或全部標示已讀時，以前端事件同步 Navbar 徽章；學生暱稱新增前後端不當公開內容防護、正規化後重複檢查與友善提示。會員 Profile、遊戲化摘要及排行榜帶回公開暱稱，學生 Navbar、首頁、設定摘要與排行榜優先使用暱稱，未設定才回退帳號姓名；教師班務、客服與帳務仍維持真實姓名。功能 checkpoint `1cc4d77` 已推送至 `codex/p2-friends-profile`；`student-social`、`membership-manager`、`gamification` 已部署到既有 Supabase，固定測試站 deploy `6a9fe3515135513167b3a75f` 已發布，線上 `/student/friends` 回應 HTTP 200。好友、通知與 Navbar React tests 15／15、社交安全契約 4／4、全部 Edge Function 語法、`git diff --check` 與 Production build 均成功；尚待登入後驗收通知鈴鐺、暱稱提示、排行榜與個人頁顯示。
 
