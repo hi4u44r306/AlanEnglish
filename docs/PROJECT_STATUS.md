@@ -636,9 +636,9 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 7. Navbar、Guided Tour、TTS component tests
 8. Playwright responsive、Stripe、Storage 與完整 Production E2E
 
-### P2 好友、戰績與社交競賽（第一階段本機完成，尚未部署）
+### P2 好友、戰績與社交競賽（第一階段測試站驗收中）
 
-2026-09-08 已在分支 `codex/p2-friends-profile`（基準 commit `401a78b`）完成第一階段本機實作：新增 additive migration、`student-social` Edge Function、好友與戰績頁、前端服務、路由及 Navbar 入口。尚未建立 checkpoint、Push、套用遠端 migration、部署 Edge Function 或部署 Netlify。
+2026-09-08 已在分支 `codex/p2-friends-profile` 建立 checkpoint `ea7737c`，並補正有效方案 RPC 參數後推送 `8bc3d06`。第一階段包含 additive migration、`student-social` Edge Function、好友與戰績頁、前端服務、路由及 Navbar 入口。依使用者授權，migration `20260908053030_student_social_foundation.sql` 已套用至正式 Supabase 專案 `rszabtuzsvhaooajnvgc` 並標記於 migration history；`student-social` 已部署至同一正式 Supabase。前端僅部署 `alanenglish-student-test.netlify.app` 驗收，尚未建立 PR、合併 `main` 或部署正式 Netlify 網站。
 
 第一階段採用的安全規則：
 
@@ -649,9 +649,9 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 5. 在線狀態由登入後全站 Navbar 每 60 秒更新，對外只顯示「在線／最近在線／離線／未公開」。
 6. 搜尋每 15 分鐘最多 30 次、好友邀請每小時最多 5 次、檢舉每日最多 3 次；敏感操作寫入後端稽核表。
 
-本機驗證：好友服務與頁面測試、Navbar 測試、社交安全契約 4/4、Edge Function 語法檢查及 Production build 均通過；完整前端為 53 suites／178 tests 通過。尚未以兩個真實學生帳號驗證邀請、在線狀態、封鎖與跨帳號隱私。
+驗證：好友服務與頁面測試、Navbar 測試、社交安全契約 4/4、Edge Function 語法檢查及 Production build 均通過。測試站已用兩個既有沙盒學生帳號完成公開暱稱建立、完整暱稱搜尋、邀請、通知、接受及雙方好友名單驗收；接受前不公開對方戰績，接受後只顯示暱稱、粗略在線狀態、等級與 XP。驗收用好友關係保留供後續測試；解除好友、封鎖與檢舉會改變或刪除雲端社交關係，尚未在此次驗收執行。
 
-下一步：取得使用者同意後建立 checkpoint、Push 並部署到測試環境，同時套用測試 Supabase migration 與部署 `student-social`；由兩個學生帳號完成跨帳號驗收後，才評估合併正式站。PK 賽與合作型比賽仍留在第二、三階段，不在本次範圍。
+下一步：由使用者在測試站確認手機與桌面流程後，再決定是否建立 PR、合併 `main` 並部署正式網站。解除好友、封鎖、檢舉與隱私切換可在取得獨立雲端資料異動授權後補做。PK 賽與合作型比賽仍留在第二、三階段，不在本次範圍。
 
 第一階段「好友與戰績」已包含：
 
