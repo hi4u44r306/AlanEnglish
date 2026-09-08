@@ -33,6 +33,8 @@
 
 .student-friends-settings form { display: grid; grid-template-columns: minmax(180px, 1.4fr) 1fr 1fr auto; align-items: end; gap: 11px; }
 .student-friends-settings label { display: grid; gap: 6px; color: #43536f; font-size: 13px; font-weight: 850; }
+.student-friends-settings label small { color: #6f7f99; font-size: 12px; font-weight: 650; line-height: 1.45; }
+.student-friends-settings label .student-friends-field-error { color: #bd3f3f; }
 .student-friends-settings input, .student-friends-settings select, .student-friends-search input { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid #cbd8ec; border-radius: 12px; color: #1c2d4b; background: #fff; outline: none; }
 .student-friends-settings input:focus, .student-friends-settings select:focus, .student-friends-search input:focus { border-color: #3e69c1; box-shadow: 0 0 0 3px rgba(62,105,193,.13); }
 .student-friends-settings form > button, .student-friends-search form button, .student-friends-search-result button { min-height: 46px; padding: 0 17px; border: 0; border-radius: 12px; color: #fff; background: #315eb7; font-weight: 900; }

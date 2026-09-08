@@ -12,6 +12,11 @@ const ALLOWED_ORIGINS = new Set([
 const LEVEL_THRESHOLDS = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200];
 const REPORT_CATEGORIES = new Set(["inappropriate_nickname", "harassment", "cheating", "other"]);
 const FRIEND_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const DISALLOWED_NICKNAME_TERMS = [
+    "色情", "性愛", "性交", "裸照", "裸體", "成人片", "援交", "約炮", "性奴", "強姦",
+    "雞巴", "陰莖", "乳房", "屌", "屄", "幹", "操", "婊", "賤", "白痴", "智障",
+    "porn", "sex", "nude", "naked", "fuck", "shit", "bitch", "dick", "pussy", "asshole"
+];
 
 const cors = (req: Request) => {
     const origin = req.headers.get("origin") || "";
@@ -51,9 +56,14 @@ const presenceLabel = (lastActiveAt: unknown, visible: boolean) => {
     if (age <= 15 * 60 * 1000) return "recent";
     return "offline";
 };
+const normalizeNicknameForModeration = (value: string) => value
+    .normalize("NFKC")
+    .toLocaleLowerCase("en-US")
+    .replace(/[\s_-]+/g, "");
 const validNickname = (value: unknown) => {
     const nickname = cleanText(value, 20).replace(/\s+/g, " ");
     if (!/^[\p{L}\p{N}][\p{L}\p{N} _-]{1,19}$/u.test(nickname)) return null;
+    if (DISALLOWED_NICKNAME_TERMS.some(term => normalizeNicknameForModeration(nickname).includes(term))) return null;
     return nickname;
 };
 const makeFriendCode = () => {
@@ -139,9 +149,16 @@ Deno.serve(async (req: Request) => {
             const statsVisibility = cleanText(body.stats_visibility, 20) || "friends";
             const presenceVisibility = cleanText(body.presence_visibility, 20) || "friends";
             if (!nickname || !["self", "friends"].includes(statsVisibility) || !["hidden", "friends"].includes(presenceVisibility)) {
-                return json(req, 400, { success: false, error: "暱稱需為 2～20 個中英文字、數字、空格、底線或連字號" });
+                return json(req, 400, { success: false, error: "暱稱格式不正確或包含不適合公開顯示的內容" });
             }
-            const { data: existing } = await admin.from("student_social_profiles").select("friend_code").eq("student_id", caller.id).maybeSingle();
+            const [{ data: existing, error: existingError }, { data: nicknameOwner, error: nicknameOwnerError }] = await Promise.all([
+                admin.from("student_social_profiles").select("friend_code").eq("student_id", caller.id).maybeSingle(),
+                admin.from("student_social_profiles").select("student_id").eq("nickname_normalized", nickname.toLowerCase()).maybeSingle()
+            ]);
+            if (existingError || nicknameOwnerError) throw existingError || nicknameOwnerError;
+            if (nicknameOwner && Number(nicknameOwner.student_id) !== Number(caller.id)) {
+                return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
+            }
             const friendCode = existing?.friend_code || await ensureFriendCode(admin);
             const { data, error } = await admin.from("student_social_profiles").upsert({
                 student_id: caller.id,
@@ -152,7 +169,7 @@ Deno.serve(async (req: Request) => {
                 last_active_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }, { onConflict: "student_id" }).select("student_id,nickname,friend_code,stats_visibility,presence_visibility,last_active_at").single();
-            if (error?.code === "23505") return json(req, 409, { success: false, error: "這個暱稱已有人使用，請換一個暱稱" });
+            if (error?.code === "23505") return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
             if (error) throw error;
             await writeAudit(admin, caller.id, "profile_update");
             return json(req, 200, { success: true, profile: data });

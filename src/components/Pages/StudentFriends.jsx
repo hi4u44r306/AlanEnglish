@@ -13,6 +13,7 @@ import {
     unblockStudent,
     updateSocialProfile
 } from "../../services/studentSocialService";
+import { validatePublicNickname } from "../../utils/nicknameValidation";
 import "./css/StudentFriends.scss";
 
 const presenceCopy = {
@@ -33,13 +34,14 @@ const PersonBadge = ({ person }) => (
 );
 
 function StudentFriends() {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, setStudentProfile } = useAuth();
     const [overview, setOverview] = useState(null);
     const [loading, setLoading] = useState(true);
     const [busyKey, setBusyKey] = useState("");
     const [nickname, setNickname] = useState("");
     const [statsVisibility, setStatsVisibility] = useState("friends");
     const [presenceVisibility, setPresenceVisibility] = useState("friends");
+    const [nicknameError, setNicknameError] = useState("");
     const [query, setQuery] = useState("");
     const [searchResult, setSearchResult] = useState(undefined);
 
@@ -75,11 +77,21 @@ function StudentFriends() {
 
     const saveProfile = event => {
         event.preventDefault();
-        run("profile", () => updateSocialProfile(firebaseUser, {
-            nickname,
-            stats_visibility: statsVisibility,
-            presence_visibility: presenceVisibility
-        }), overview?.profile ? "社交設定已更新" : "暱稱建立完成，現在可以加好友了");
+        const validationError = validatePublicNickname(nickname);
+        setNicknameError(validationError);
+        if (validationError) return;
+        run("profile", async () => {
+            const result = await updateSocialProfile(firebaseUser, {
+                nickname,
+                stats_visibility: statsVisibility,
+                presence_visibility: presenceVisibility
+            });
+            if (typeof setStudentProfile === "function") {
+                const publicNickname = result?.profile?.nickname || nickname.trim().replace(/\s+/g, " ");
+                setStudentProfile(current => current ? { ...current, nickname: publicNickname } : current);
+            }
+            return result;
+        }, overview?.profile ? "社交設定已更新" : "暱稱建立完成，現在可以加好友了");
     };
 
     const search = async event => {
@@ -134,7 +146,7 @@ function StudentFriends() {
             <section className="student-friends-panel student-friends-settings">
                 <div className="student-friends-panel-heading"><div><FiShield /><h2>{profile ? "我的公開資料" : "先建立你的暱稱"}</h2></div><p>不會顯示 Email、真實班級、生日或精確登入時間。</p></div>
                 <form onSubmit={saveProfile}>
-                    <label>公開暱稱<input value={nickname} onChange={event => setNickname(event.target.value)} maxLength="20" placeholder="例如 Alan Fox" required /></label>
+                    <label>公開暱稱<input value={nickname} onChange={event => { setNickname(event.target.value); if (nicknameError) setNicknameError(""); }} maxLength="20" placeholder="例如 Alan Fox" required aria-label="公開暱稱" aria-describedby="nickname-help" aria-invalid={Boolean(nicknameError)} />{nicknameError ? <small className="student-friends-field-error" role="alert">{nicknameError}</small> : <small id="nickname-help">2～20 字；限中英文、數字、空格、底線或連字號。不得使用不適合公開顯示的內容。</small>}</label>
                     <label>誰能看戰績<select value={statsVisibility} onChange={event => setStatsVisibility(event.target.value)}><option value="friends">只有好友</option><option value="self">只有自己</option></select></label>
                     <label>在線狀態<select value={presenceVisibility} onChange={event => setPresenceVisibility(event.target.value)}><option value="friends">讓好友看到</option><option value="hidden">不要公開</option></select></label>
                     <button type="submit" disabled={busyKey === "profile"}>{busyKey === "profile" ? "儲存中…" : profile ? "儲存設定" : "建立暱稱"}</button>

@@ -109,12 +109,12 @@ function LearningLeaderboard() {
                 <section className="gamification-me-card">
                     <div className="gamification-avatar-wrap">
                         {summary.profile?.avatar_url
-                            ? <img className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(summary.profile.avatar_url, 240)} alt={`${summary.profile?.name || "學生"} 的排行榜照片`} />
-                            : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback">{getInitial(summary.profile?.name)}</div>}
+                            ? <img className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(summary.profile.avatar_url, 240)} alt={`${summary.profile?.nickname || summary.profile?.name || "學生"} 的排行榜照片`} />
+                            : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback">{getInitial(summary.profile?.nickname || summary.profile?.name)}</div>}
                     </div>
                     <div className="gamification-me-card__identity">
                         <span>我的學習角色</span>
-                        <strong>{summary.profile?.name || studentProfile?.name}</strong>
+                        <strong>{summary.profile?.nickname || summary.profile?.name || studentProfile?.nickname || studentProfile?.name}</strong>
                         <Link to="/student/settings"><FiSettings />到設定更換頭像</Link>
                     </div>
                     <div className="gamification-level-badge">
@@ -159,10 +159,10 @@ function LearningLeaderboard() {
                                     <div className="gamification-row-avatar">
                                         {row.avatar_url
                                             ? <img className="gamification-avatar" src={getStudentAvatarDisplayUrl(row.avatar_url, 128)} alt="" />
-                                            : <div className="gamification-avatar gamification-avatar--fallback">{getInitial(row.student_name)}</div>}
+                                            : <div className="gamification-avatar gamification-avatar--fallback">{getInitial(row.nickname || row.student_name)}</div>}
                                     </div>
                                     <div className="gamification-student-copy">
-                                        <strong>{row.student_name}{row.is_current_user ? " · 你" : ""}</strong>
+                                        <strong>{row.nickname || row.student_name}{row.is_current_user ? " · 你" : ""}</strong>
                                         <span>{row.class_name ? `${row.class_name} 班` : "Alan English"} · Lv.{row.level || 1}</span>
                                     </div>
                                     <div className="gamification-xp">

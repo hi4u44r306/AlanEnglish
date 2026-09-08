@@ -15,6 +15,9 @@ test("social tables are private and only served by the backend", () => {
 test("friendship pairs and public nicknames cannot be duplicated", () => {
     assert.match(migration, /student_social_profiles_nickname_key/);
     assert.match(migration, /least\(requester_id, addressee_id\), greatest\(requester_id, addressee_id\)/);
+    assert.match(edge, /DISALLOWED_NICKNAME_TERMS/);
+    assert.match(edge, /這個暱稱已被使用，請換一個/);
+    assert.match(edge, /nickname_normalized/);
 });
 
 test("the Edge Function verifies Firebase and rechecks active platform access", () => {
