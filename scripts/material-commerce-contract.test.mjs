@@ -128,8 +128,9 @@ test("15. 家長 Email 缺失時禁止 Checkout", () => {
     assert.match(billing, /RESERVED_EMAIL_DOMAINS/);
 });
 
-test("16. 到期前三天只建立一次通知", () => {
-    assert.match(notifications, /setUTCDate\(target\.getUTCDate\(\) \+ 3\)/);
+test("16. 到期前 30、7、3、1 天各建立一次通知", () => {
+    assert.match(notifications, /EXPIRY_REMINDER_DAYS = \[30, 7, 3, 1\]/);
+    assert.match(notifications, /EXPIRY_REMINDER_DAYS\.map/);
     assert.match(migration, /event_key text not null unique/);
     assert.match(notifications, /ignoreDuplicates: true/);
     assert.match(notifications, /verify_guardian_cron_secret/);

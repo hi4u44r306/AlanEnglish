@@ -10,7 +10,7 @@ import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 import { getPrimaryAccessPlanLabel, hasAiAddonPlan, hasAiPremiumAccess, isAiAddonPlanCode } from "../../constants/membershipPlans";
 import "./css/Platform.scss";
 
-const STATUS_LABELS = { pending_verification: "等待 Email 驗證", trialing: "免費試用中", active: "使用中", past_due: "付款待處理", cancelled: "已取消，期限前可使用", expired: "已到期", suspended: "已停用", complimentary: "贈送使用權" };
+const STATUS_LABELS = { pending_verification: "等待 Email 驗證", trialing: "免費試用中", active: "使用中", past_due: "付款失敗，請更新付款方式", cancelled: "已排程取消，期限前可使用", expired: "使用期限已到期", suspended: "已停用", complimentary: "贈送使用權" };
 const FEATURE_LABELS = {
     listening: "分級教材與聽力",
     ai_materials: "AI 教材生成",
@@ -97,7 +97,6 @@ function MembershipCenter() {
         return () => window.clearInterval(timer);
     }, [verificationCooldown]);
     const membership = profile?.membership;
-    const publicPlans = useMemo(() => plans.filter(plan => plan.is_public), [plans]);
     const activePlanCodes = useMemo(() => new Set(membership?.effective_access?.plan_codes || []), [membership]);
     const academyGrant = useMemo(() => (
         membership?.effective_access?.grants?.find(grant => grant?.plan_code === "academy_internal") || null
@@ -105,6 +104,7 @@ function MembershipCenter() {
     const isActiveAcademyStudent = membership?.is_active === true
         && membership?.effective_access?.learner_type === "academy_student"
         && activePlanCodes.has("academy_internal");
+    const publicPlans = useMemo(() => plans.filter(plan => plan.is_public && !isActiveAcademyStudent), [plans, isActiveAcademyStudent]);
     const learnerType = profile?.learner_type || membership?.effective_access?.learner_type || null;
     const membershipIdentityLabel = profile?.role === "teacher"
         ? "英文班老師"
@@ -175,6 +175,12 @@ function MembershipCenter() {
     const aiAddonCancelling = aiAddonSubscription?.cancel_at_period_end === true;
     const effectiveFeatures = useMemo(() => membership?.effective_access?.features || {}, [membership]);
     const hasAiPremium = hasAiPremiumAccess(membership?.effective_access);
+    const hasPastDuePayment = membership?.stripe_subscription_status === "past_due" || membership?.status === "past_due";
+    const billingNotice = hasPastDuePayment
+        ? "付款尚未完成，請先更新付款方式，避免方案到期後中斷。"
+        : membership?.cancel_at_period_end
+            ? `已排程於 ${formatDate(membership.current_period_end)} 取消，到期前可恢復續訂。`
+            : `目前付款週期至 ${formatDate(membership?.current_period_end)}。`;
     const catalogBooks = useMemo(() => catalog.flatMap(category => (
         (category.books || []).map(book => ({ ...book, categoryName: category.name }))
     )), [catalog]);
@@ -305,19 +311,20 @@ function MembershipCenter() {
             </section>
 
             <section className="platform-card membership-plans" id="plans">
-                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">MEMBERSHIP & AI</span><h2>延續使用與功能加購</h2><p>基本會員可使用全部正式聽力教材；AI 教材與發音練習為獨立加購。</p></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
-                {membership?.stripe_subscription_status && !isActiveAcademyStudent && <div className="membership-billing-notice"><p>{membership.cancel_at_period_end ? `已排程於 ${formatDate(membership.current_period_end)} 取消，到期前可恢復。` : membership.stripe_subscription_status === "past_due" ? "付款失敗，請由 Customer Portal 更新付款方式。" : `目前付款週期至 ${formatDate(membership.current_period_end)}。`}</p>{membership.stripe_subscription_status !== "canceled" && <button className="platform-secondary" type="button" disabled={Boolean(working)} onClick={() => updateRenewal(membership.cancel_at_period_end)}>{membership.cancel_at_period_end ? "到期前恢復續訂" : "本期結束取消"}</button>}</div>}
+                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">MEMBERSHIP & AI</span><h2>{isActiveAcademyStudent ? "英文班在學方案" : "延續使用與功能加購"}</h2><p>{isActiveAcademyStudent ? "在學期間已包含網站、AI 練習、口說練習與班級作業，不需要在此另外付款。" : "基本會員可使用全部正式聽力教材；AI 教材與發音練習為獨立加購。"}</p></div>{!isActiveAcademyStudent && (membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
+                {membership?.stripe_subscription_status && !isActiveAcademyStudent && <div className={`membership-billing-notice ${hasPastDuePayment ? "is-warning" : ""}`}><p>{billingNotice}</p>{membership.stripe_subscription_status !== "canceled" && !hasPastDuePayment && <button className="platform-secondary" type="button" disabled={Boolean(working)} onClick={() => updateRenewal(membership.cancel_at_period_end)}>{membership.cancel_at_period_end ? "到期前恢復續訂" : "本期結束取消"}</button>}</div>}
                 {hasAiPremium && <div className="membership-active-addon" role="status" aria-label="AI Premium｜AI 教材與發音練習已啟用"><span className="membership-active-addon-icon"><FiZap aria-hidden="true" /></span><div><span>AI Premium</span><strong>你的 AI 學習力已升級</strong><small>{hasAiAddon ? aiAddonCancelling ? `使用至 ${formatDate(aiRenewalAt)}，到期後不再扣款` : aiRenewalDay ? `每月 ${aiRenewalDay} 日續訂 · 每日 5 次、每月 150 次` : "AI 教材與發音練習已啟用" : "英文班在校期間已包含 · 每日 5 次、每月 150 次"}</small></div><div className="membership-active-addon-actions"><Link to="/student/ai-generator">AI 練習</Link><Link to="/student/speaking-challenges">口說練習</Link>{hasAiAddon && aiAddonSubscription?.stripe_subscription_id && <button type="button" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "恢復續訂" : "到期取消"}</button>}</div></div>}
-                {publicPlans.length === 0
+                {isActiveAcademyStudent
+                    ? <div className="membership-academy-included" role="status"><span><FiCheckCircle aria-hidden="true" /></span><div><strong>目前所有英文班功能都已包含</strong><p>你可以直接開始 AI 練習、口說練習與老師發布的作業；離校後才會依需要選擇自主學習方案。</p></div></div>
+                    : publicPlans.length === 0
                     ? <div className="platform-empty"><strong>線上訂閱尚未開放</strong><p>目前可以使用免費試用或教材啟用碼。正式價格完成設定後，月費方案會自動顯示在這裡。</p></div>
                     : <div className="membership-plan-list">{publicPlans.map(plan => {
-                        const planIncluded = isActiveAcademyStudent && isAiAddonPlanCode(plan.code);
-                        const planActive = activePlanCodes.has(plan.code) || planIncluded;
+                        const planActive = activePlanCodes.has(plan.code);
                         const booleanFeatures = Object.entries(plan.features || {}).filter(([, enabled]) => enabled === true);
                         const planWorking = working === `plan-${plan.id}`;
                         return <article className={`membership-plan-row ${planActive ? "is-active" : ""} ${isAiAddonPlanCode(plan.code) ? "is-ai-addon" : ""}`} key={plan.id}>
                             <div className="membership-plan-copy"><span>{plan.offer_label || (plan.access_model === "addon" ? "AI 教材與發音練習" : "月費訂閱")}</span><h3>{plan.name}</h3><p>{plan.description}</p><ul>{booleanFeatures.map(([feature]) => <li key={feature}><FiCheck aria-hidden="true" />{FEATURE_LABELS[feature] || feature.replaceAll("_", " ")}</li>)}{Number(plan.features?.ai_monthly_limit) > 0 && <li><FiCheck aria-hidden="true" />每月最多 {Number(plan.features.ai_monthly_limit)} 次</li>}</ul></div>
-                            <div className="membership-plan-action"><strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong><button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>{planIncluded ? <><FiZap aria-hidden="true" />英文班方案已包含</> : planActive ? <>{isAiAddonPlanCode(plan.code) && <FiZap aria-hidden="true" />}{isAiAddonPlanCode(plan.code) ? "AI 教材與發音練習使用中" : "目前方案使用中"}</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}</button></div>
+                            <div className="membership-plan-action"><strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong><button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>{planActive ? <>{isAiAddonPlanCode(plan.code) && <FiZap aria-hidden="true" />}{isAiAddonPlanCode(plan.code) ? "AI 教材與發音練習使用中" : "目前方案使用中"}</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}</button></div>
                         </article>;
                     })}</div>}
             </section>

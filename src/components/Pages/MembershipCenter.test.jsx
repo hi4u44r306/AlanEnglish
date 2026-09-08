@@ -114,7 +114,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByRole("link", { name: "查看可解鎖方案" })).toHaveAttribute("href", "#plans");
     });
 
-    it("shows academy AI Premium as included and disables duplicate add-on checkout", async () => {
+    it("shows academy AI Premium as included without offering duplicate paid plans", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {
                 learner_type: "academy_student",
@@ -146,8 +146,8 @@ describe("MembershipCenter AI add-on", () => {
 
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText(/英文班在校期間已包含/)).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "英文班方案已包含" })).toBeDisabled();
-        fireEvent.click(screen.getByRole("button", { name: "英文班方案已包含" }));
+        expect(screen.getByText("目前所有英文班功能都已包含")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "選擇方案" })).not.toBeInTheDocument();
         expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
@@ -262,7 +262,7 @@ describe("MembershipCenter AI add-on", () => {
 
         expect(await screen.findByText("英文班在校生")).toBeInTheDocument();
         expect(screen.getByText("使用中")).toBeInTheDocument();
-        expect(screen.getByText("英文班在學方案")).toBeInTheDocument();
+        expect(screen.getAllByText("英文班在學方案").length).toBeGreaterThan(0);
         expect(screen.getByText("在校期間有效")).toBeInTheDocument();
         expect(screen.getByText("不需另外續費")).toBeInTheDocument();
         expect(screen.queryByText("贈送使用權")).not.toBeInTheDocument();
@@ -378,6 +378,32 @@ describe("MembershipCenter AI add-on", () => {
         expect(await screen.findByText(/使用至 2026年9月24日/)).toBeInTheDocument();
         expect(screen.getByText(/到期後不再扣款/)).toBeInTheDocument();
         expect(screen.queryByText("自動續訂")).not.toBeInTheDocument();
+    });
+
+    it("shows a payment failure separately from a scheduled cancellation", async () => {
+        getMembershipProfile.mockResolvedValue({
+            profile: {
+                learner_type: "textbook_customer",
+                membership: {
+                    status: "past_due",
+                    is_active: true,
+                    has_stripe_customer: true,
+                    stripe_subscription_status: "past_due",
+                    current_period_end: "2026-09-24T00:00:00.000Z",
+                    effective_access: { plan_codes: ["basic_membership_monthly"], grants: [] }
+                }
+            }
+        });
+
+        render(
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <MembershipCenter />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByText("付款失敗，請更新付款方式")).toBeInTheDocument();
+        expect(screen.getByText(/付款尚未完成，請先更新付款方式/)).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "本期結束取消" })).not.toBeInTheDocument();
     });
 
     it("shows the active NT$299 base membership and the NT$499 AI and pronunciation add-on", async () => {
