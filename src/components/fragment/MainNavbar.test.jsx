@@ -8,6 +8,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications } from "../../services/membershipService";
 import { prefetchReviewDashboard } from "../../services/reviewService";
+import { sendSocialHeartbeat } from "../../services/studentSocialService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
@@ -15,6 +16,7 @@ jest.mock("../../services/gamificationService", () => ({ getGamificationSummary:
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
 jest.mock("../../services/reviewService", () => ({ prefetchReviewDashboard: jest.fn() }));
 const mockOffcanvasRender = jest.fn();
+jest.mock("../../services/studentSocialService", () => ({ sendSocialHeartbeat: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, id, placement }) => {
@@ -54,6 +56,7 @@ describe("MainNavbar student navigation", () => {
             balance: { total_xp: 180, level: 2, next_level_xp: 250, progress_percent: 53 }
         });
         getStudentNotifications.mockResolvedValue({ notifications: [] });
+        sendSocialHeartbeat.mockResolvedValue({ success: true });
     });
 
     it("keeps only the child-friendly primary destinations in the student navbar", async () => {
@@ -82,6 +85,7 @@ describe("MainNavbar student navigation", () => {
         const mobileMenu = await screen.findByRole("complementary");
         expect(within(mobileMenu).getByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
         expect(prefetchReviewDashboard).toHaveBeenCalledWith(expect.objectContaining({ uid: "student-test" }));
+        expect(within(mobileMenu).getByRole("link", { name: "好友與戰績" })).toHaveAttribute("href", "/student/friends");
         expect(within(mobileMenu).getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();

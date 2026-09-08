@@ -21,6 +21,7 @@ import {
     FiSettings,
     FiStar,
     FiTrendingUp,
+    FiUsers,
     FiZap
 } from "react-icons/fi";
 import Brand from "./Brand";
@@ -88,6 +89,7 @@ const StudentNavbar = ({
         "/student/assignments",
         "/student/review",
         "/student/weekly-report",
+        "/student/friends",
         "/student/rewards",
         "/student/ai-generator"
     ].some(isPathActive);
@@ -178,6 +180,7 @@ const StudentNavbar = ({
             {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawer} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
             {hasReviewAccess && <InstantDrawerLink to="/student/review" onNavigate={closeDrawer} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</InstantDrawerLink>}
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawer} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
+            {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawer} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友與戰績</InstantDrawerLink>}
             {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawer} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
             {hasAiAccess && <InstantDrawerLink to="/student/ai-generator" onNavigate={closeDrawer} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</InstantDrawerLink>}
         </section>
