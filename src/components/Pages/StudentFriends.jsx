@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { FiCheck, FiCopy, FiLoader, FiSearch, FiShield, FiUserMinus, FiUserPlus, FiUsers, FiX } from "react-icons/fi";
+import { FiCheck, FiCopy, FiLoader, FiMaximize2, FiSearch, FiShield, FiUserMinus, FiUserPlus, FiUsers, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import {
@@ -23,9 +23,11 @@ const presenceCopy = {
     hidden: "未公開"
 };
 
-const PersonBadge = ({ person }) => (
+const PersonBadge = ({ person, onPreview }) => (
     <div className="student-friends-person">
-        <span className="student-friends-avatar" aria-hidden="true">{person.nickname.slice(0, 1).toUpperCase()}</span>
+        {person.avatar_url
+            ? <button type="button" className="student-friends-avatar student-friends-avatar--photo" onClick={() => onPreview?.(person)} aria-label={`查看 ${person.nickname} 的頭貼`} title="點擊放大頭貼"><img src={person.avatar_url} alt="" /><FiMaximize2 aria-hidden="true" /></button>
+            : <span className="student-friends-avatar" aria-hidden="true">{person.nickname.slice(0, 1).toUpperCase()}</span>}
         <div>
             <strong>{person.nickname}</strong>
             <span className={`student-friends-presence is-${person.presence}`}><i />{presenceCopy[person.presence] || "離線"}</span>
@@ -44,6 +46,7 @@ function StudentFriends() {
     const [nicknameError, setNicknameError] = useState("");
     const [query, setQuery] = useState("");
     const [searchResult, setSearchResult] = useState(undefined);
+    const [avatarPreview, setAvatarPreview] = useState(null);
 
     const load = useCallback(async ({ quiet = false } = {}) => {
         if (!firebaseUser) return;
@@ -62,6 +65,12 @@ function StudentFriends() {
     }, [firebaseUser]);
 
     useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        if (!avatarPreview) return undefined;
+        const closeOnEscape = event => { if (event.key === "Escape") setAvatarPreview(null); };
+        window.addEventListener("keydown", closeOnEscape);
+        return () => window.removeEventListener("keydown", closeOnEscape);
+    }, [avatarPreview]);
     const run = async (key, task, successMessage) => {
         setBusyKey(key);
         try {
@@ -151,6 +160,7 @@ function StudentFriends() {
                     <label>在線狀態<select value={presenceVisibility} onChange={event => setPresenceVisibility(event.target.value)}><option value="friends">讓好友看到</option><option value="hidden">不要公開</option></select></label>
                     <button type="submit" disabled={busyKey === "profile"}>{busyKey === "profile" ? "儲存中…" : profile ? "儲存設定" : "建立暱稱"}</button>
                 </form>
+                <p className="student-friends-avatar-privacy">你在「我的設定」選的系統頭貼會顯示在好友搜尋；自行上傳的照片只會在雙方成為好友後顯示。</p>
             </section>
 
             {profile && <>
@@ -158,21 +168,29 @@ function StudentFriends() {
                     <div className="student-friends-panel-heading"><div><FiSearch /><h2>尋找好友</h2></div><p>請輸入對方完整暱稱或好友碼，避免陌生人隨意搜尋學生。</p></div>
                     <form onSubmit={search}><input value={query} onChange={event => setQuery(event.target.value)} placeholder="完整暱稱或 AE-好友碼" minLength="2" required /><button type="submit" disabled={busyKey === "search"}><FiSearch />{busyKey === "search" ? "搜尋中" : "搜尋"}</button></form>
                     {searchResult === null && <p className="student-friends-empty">找不到這位同學，請確認暱稱或好友碼是否正確。</p>}
-                    {searchResult && <article className="student-friends-search-result"><PersonBadge person={{ ...searchResult, presence: "hidden" }} /><div className="student-friends-actions">{searchResult.relationship?.status === "accepted" ? <span className="student-friends-state"><FiCheck />已是好友</span> : searchResult.relationship?.status === "pending" ? <span className="student-friends-state">邀請處理中</span> : <button type="button" onClick={() => run(`invite-${searchResult.student_id}`, () => sendFriendRequest(firebaseUser, searchResult.student_id), "好友邀請已送出") } disabled={busyKey === `invite-${searchResult.student_id}`}><FiUserPlus />加好友</button>}<button type="button" onClick={() => block(searchResult)} disabled={busyKey === `block-${searchResult.student_id}`}><FiShield />封鎖</button></div></article>}
+                    {searchResult && <article className="student-friends-search-result"><PersonBadge person={{ ...searchResult, presence: "hidden" }} onPreview={setAvatarPreview} /><div className="student-friends-actions">{searchResult.relationship?.status === "accepted" ? <span className="student-friends-state"><FiCheck />已是好友</span> : searchResult.relationship?.status === "pending" ? <span className="student-friends-state">邀請處理中</span> : <button type="button" onClick={() => run(`invite-${searchResult.student_id}`, () => sendFriendRequest(firebaseUser, searchResult.student_id), "好友邀請已送出") } disabled={busyKey === `invite-${searchResult.student_id}`}><FiUserPlus />加好友</button>}<button type="button" onClick={() => block(searchResult)} disabled={busyKey === `block-${searchResult.student_id}`}><FiShield />封鎖</button></div></article>}
                 </section>
 
                 {(incoming.length > 0 || outgoing.length > 0) && <section className="student-friends-panel">
                     <div className="student-friends-panel-heading"><div><FiUserPlus /><h2>好友邀請</h2></div><p>{incoming.length} 筆等你處理，{outgoing.length} 筆已送出。</p></div>
-                    <div className="student-friends-list">{incoming.map(request => <article key={request.id}><PersonBadge person={request.person} /><div className="student-friends-actions"><button type="button" className="is-primary" onClick={() => run(`accept-${request.id}`, () => respondFriendRequest(firebaseUser, request.id, "accept"), "已成為好友")}><FiCheck />接受</button><button type="button" onClick={() => run(`reject-${request.id}`, () => respondFriendRequest(firebaseUser, request.id, "reject"), "已拒絕邀請")}><FiX />拒絕</button></div></article>)}{outgoing.map(request => <article key={request.id}><PersonBadge person={request.person} /><span className="student-friends-state">等待對方回覆</span></article>)}</div>
+                    <div className="student-friends-list">{incoming.map(request => <article key={request.id}><PersonBadge person={request.person} onPreview={setAvatarPreview} /><div className="student-friends-actions"><button type="button" className="is-primary" onClick={() => run(`accept-${request.id}`, () => respondFriendRequest(firebaseUser, request.id, "accept"), "已成為好友")}><FiCheck />接受</button><button type="button" onClick={() => run(`reject-${request.id}`, () => respondFriendRequest(firebaseUser, request.id, "reject"), "已拒絕邀請")}><FiX />拒絕</button></div></article>)}{outgoing.map(request => <article key={request.id}><PersonBadge person={request.person} onPreview={setAvatarPreview} /><span className="student-friends-state">等待對方回覆</span></article>)}</div>
                 </section>}
 
                 <section className="student-friends-panel">
                     <div className="student-friends-panel-heading"><div><FiUsers /><h2>我的好友</h2></div><p>{friends.length} 位好友；只有好友能看你選擇公開的戰績與在線狀態。</p></div>
-                    {friends.length === 0 ? <p className="student-friends-empty">目前還沒有好友。把上方好友碼傳給認識的同學吧。</p> : <div className="student-friends-list">{friends.map(friend => <article key={friend.id}><PersonBadge person={friend.person} />{friend.person.stats ? <div className="student-friends-stats"><span>Lv.{friend.person.stats.level}</span><strong>{friend.person.stats.total_xp.toLocaleString("zh-TW")} XP</strong></div> : <span className="student-friends-state">戰績未公開</span>}<div className="student-friends-actions"><button type="button" onClick={() => { if (window.confirm(`確定要解除與 ${friend.person.nickname} 的好友關係嗎？`)) run(`remove-${friend.person.student_id}`, () => removeFriend(firebaseUser, friend.person.student_id), "已解除好友"); }}><FiUserMinus />解除</button><button type="button" onClick={() => block(friend.person)}><FiShield />封鎖</button><button type="button" onClick={() => report(friend.person)}>檢舉</button></div></article>)}</div>}
+                    {friends.length === 0 ? <p className="student-friends-empty">目前還沒有好友。把上方好友碼傳給認識的同學吧。</p> : <div className="student-friends-list">{friends.map(friend => <article key={friend.id}><PersonBadge person={friend.person} onPreview={setAvatarPreview} />{friend.person.stats ? <div className="student-friends-stats"><span>Lv.{friend.person.stats.level}</span><strong>{friend.person.stats.total_xp.toLocaleString("zh-TW")} XP</strong></div> : <span className="student-friends-state">戰績未公開</span>}<div className="student-friends-actions"><button type="button" onClick={() => { if (window.confirm(`確定要解除與 ${friend.person.nickname} 的好友關係嗎？`)) run(`remove-${friend.person.student_id}`, () => removeFriend(firebaseUser, friend.person.student_id), "已解除好友"); }}><FiUserMinus />解除</button><button type="button" onClick={() => block(friend.person)}><FiShield />封鎖</button><button type="button" onClick={() => report(friend.person)}>檢舉</button></div></article>)}</div>}
                 </section>
 
-                {blocked.length > 0 && <details className="student-friends-panel student-friends-blocked"><summary>已封鎖 {blocked.length} 人</summary><div className="student-friends-list">{blocked.map(person => <article key={person.student_id}><PersonBadge person={person} /><button type="button" onClick={() => run(`unblock-${person.student_id}`, () => unblockStudent(firebaseUser, person.student_id), "已解除封鎖")}>解除封鎖</button></article>)}</div></details>}
+                {blocked.length > 0 && <details className="student-friends-panel student-friends-blocked"><summary>已封鎖 {blocked.length} 人</summary><div className="student-friends-list">{blocked.map(person => <article key={person.student_id}><PersonBadge person={person} onPreview={setAvatarPreview} /><button type="button" onClick={() => run(`unblock-${person.student_id}`, () => unblockStudent(firebaseUser, person.student_id), "已解除封鎖")}>解除封鎖</button></article>)}</div></details>}
             </>}
+            {avatarPreview?.avatar_url && <div className="student-friends-avatar-dialog-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setAvatarPreview(null); }}>
+                <section className="student-friends-avatar-dialog" role="dialog" aria-modal="true" aria-labelledby="friend-avatar-preview-title">
+                    <button type="button" className="student-friends-avatar-dialog-close" onClick={() => setAvatarPreview(null)} aria-label="關閉頭貼預覽"><FiX /></button>
+                    <img src={avatarPreview.avatar_url} alt={`${avatarPreview.nickname} 的頭貼`} />
+                    <h2 id="friend-avatar-preview-title">{avatarPreview.nickname}</h2>
+                    <p>公開頭貼僅在好友功能中顯示。</p>
+                </section>
+            </div>}
         </main>
     );
 }

@@ -33,3 +33,10 @@ test("search, invitations and reports are rate limited and blocks remove friends
     assert.match(edge, /withinLimit\(admin, caller\.id, "report"/);
     assert.match(edge, /student_friendships"\)\.delete\(\)\.or\(relationFilter/);
 });
+
+test("uploaded avatars stay private until a friendship is accepted", () => {
+    assert.match(edge, /const socialAvatar = async/);
+    assert.match(edge, /if \(!canViewUploadedPhoto\) return null/);
+    assert.match(edge, /createSignedUrl\(normalized, 15 \* 60\)/);
+    assert.match(edge, /socialAvatar\(admin, target\.user_image, relation\?\.status === "accepted"\)/);
+});

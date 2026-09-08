@@ -35,6 +35,7 @@
 .student-friends-settings label { display: grid; gap: 6px; color: #43536f; font-size: 13px; font-weight: 850; }
 .student-friends-settings label small { color: #6f7f99; font-size: 12px; font-weight: 650; line-height: 1.45; }
 .student-friends-settings label .student-friends-field-error { color: #bd3f3f; }
+.student-friends-avatar-privacy { margin: 13px 0 0; color: #6f7f99; font-size: 12px; line-height: 1.55; }
 .student-friends-settings input, .student-friends-settings select, .student-friends-search input { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid #cbd8ec; border-radius: 12px; color: #1c2d4b; background: #fff; outline: none; }
 .student-friends-settings input:focus, .student-friends-settings select:focus, .student-friends-search input:focus { border-color: #3e69c1; box-shadow: 0 0 0 3px rgba(62,105,193,.13); }
 .student-friends-settings form > button, .student-friends-search form button, .student-friends-search-result button { min-height: 46px; padding: 0 17px; border: 0; border-radius: 12px; color: #fff; background: #315eb7; font-weight: 900; }
@@ -44,7 +45,12 @@
 .student-friends-search form button { display: inline-flex; align-items: center; gap: 7px; }
 .student-friends-search-result { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 14px; border-radius: 16px; background: #f2f6ff; }
 .student-friends-person { display: flex; align-items: center; min-width: 0; gap: 11px; }
-.student-friends-avatar { width: 44px; height: 44px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 14px; color: #fff; background: linear-gradient(145deg, #3869c7, #263d84); font-weight: 950; }
+.student-friends-avatar { width: 44px; height: 44px; display: grid; flex: 0 0 auto; place-items: center; overflow: hidden; border: 0; border-radius: 14px; color: #fff; background: linear-gradient(145deg, #3869c7, #263d84); font: inherit; font-weight: 950; }
+.student-friends-avatar--photo { position: relative; padding: 0; cursor: zoom-in; box-shadow: 0 3px 10px rgba(24, 51, 96, .18); }
+.student-friends-avatar--photo img { width: 100%; height: 100%; object-fit: cover; }
+.student-friends-avatar--photo svg { position: absolute; right: 3px; bottom: 3px; width: 15px; height: 15px; padding: 2px; border-radius: 5px; color: #fff; background: rgba(14, 35, 76, .78); opacity: 0; transition: opacity .16s ease; }
+.student-friends-avatar--photo:hover svg, .student-friends-avatar--photo:focus-visible svg { opacity: 1; }
+.student-friends-avatar--photo:focus-visible { outline: 3px solid #efbe48; outline-offset: 3px; }
 .student-friends-person strong, .student-friends-person span { display: block; }
 .student-friends-person strong { overflow: hidden; text-overflow: ellipsis; color: #253757; white-space: nowrap; }
 .student-friends-presence { margin-top: 2px; color: #7c899d; font-size: 12px; }
@@ -67,6 +73,13 @@
 .student-friends-loading svg { animation: student-friends-spin 1s linear infinite; }
 .student-friends-blocked summary { min-height: 44px; display: flex; align-items: center; color: #465c80; font-weight: 900; cursor: pointer; }
 .student-friends-blocked[open] summary { margin-bottom: 10px; }
+.student-friends-avatar-dialog-backdrop { position: fixed; inset: 0; z-index: 1400; display: grid; place-items: center; padding: 20px; background: rgba(8, 21, 48, .72); backdrop-filter: blur(7px); }
+.student-friends-avatar-dialog { position: relative; width: min(100%, 420px); padding: 20px; border: 1px solid rgba(255, 255, 255, .34); border-radius: 26px; color: #253757; background: #fff; box-shadow: 0 25px 60px rgba(5, 18, 46, .36); text-align: center; }
+.student-friends-avatar-dialog img { display: block; width: min(100%, 360px); aspect-ratio: 1; margin: 0 auto; border-radius: 20px; object-fit: cover; background: #edf2fb; }
+.student-friends-avatar-dialog h2 { margin: 16px 44px 4px; font-size: 21px; font-weight: 950; overflow-wrap: anywhere; }
+.student-friends-avatar-dialog p { margin: 0; color: #6c7b93; font-size: 13px; }
+.student-friends-avatar-dialog-close { position: absolute; top: 11px; right: 11px; width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid #dce4f0; border-radius: 12px; color: #4a5e7f; background: #fff; cursor: pointer; }
+.student-friends-avatar-dialog-close:focus-visible { outline: 3px solid #efbe48; outline-offset: 2px; }
 @keyframes student-friends-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 760px) {
