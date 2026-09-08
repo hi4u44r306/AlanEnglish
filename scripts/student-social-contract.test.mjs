@@ -20,6 +20,7 @@ test("friendship pairs and public nicknames cannot be duplicated", () => {
 test("the Edge Function verifies Firebase and rechecks active platform access", () => {
     assert.match(edge, /verifyFirebaseRequest\(req, admin\)/);
     assert.match(edge, /get_student_effective_access/);
+    assert.match(edge, /p_as_of: new Date\(\)\.toISOString\(\)/);
     assert.match(edge, /access\?\.is_active !== true/);
 });
 
