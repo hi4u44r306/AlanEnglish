@@ -163,6 +163,9 @@
 .membership-active-addon-actions button { cursor: pointer; }
 .membership-compact-card { padding-top: 20px; padding-bottom: 20px; }
 .membership-compact-card .platform-section-title { margin-bottom: 13px; }
+.membership-academy-materials { border-color: #9ed9b7; background: linear-gradient(135deg, #f8fffa, #eff9f3); }
+.membership-academy-materials .platform-section-title { align-items: center; margin-bottom: 0; }
+.membership-academy-materials-mark { display: inline-flex; align-items: center; gap: 6px; padding: 9px 11px; border-radius: 999px; color: #14532d; background: #dff6e8; font-size: 12px; font-weight: 900; white-space: nowrap; }
 
 .platform-primary,
 .platform-secondary,

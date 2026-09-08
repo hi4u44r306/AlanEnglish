@@ -147,7 +147,12 @@ describe("MembershipCenter AI add-on", () => {
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText(/英文班在校期間已包含/)).toBeInTheDocument();
         expect(screen.getByText("目前所有英文班功能都已包含")).toBeInTheDocument();
+        expect(screen.getAllByText("英文班在學方案已包含").length).toBeGreaterThan(0);
+        expect(screen.getByRole("heading", { name: "英文班教材已包含" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "選擇方案" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "購買其他教材" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "教材啟用碼" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "需要實體教材？" })).not.toBeInTheDocument();
         expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
