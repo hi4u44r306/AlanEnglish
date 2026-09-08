@@ -12,6 +12,14 @@ const ALLOWED_ORIGINS = new Set([
 const LEVEL_THRESHOLDS = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200];
 const REPORT_CATEGORIES = new Set(["inappropriate_nickname", "harassment", "cheating", "other"]);
 const FRIEND_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const AVATAR_BUCKET = "student-avatars";
+const DEFAULT_AVATAR_PATHS = new Set([
+    "/default-avatars/alan-cat.png",
+    "/default-avatars/alan-fox.png",
+    "/default-avatars/alan-rabbit.png",
+    "/default-avatars/alan-bear.png",
+    "/default-avatars/alan-owl.png"
+]);
 const DISALLOWED_NICKNAME_TERMS = [
     "色情", "性愛", "性交", "裸照", "裸體", "成人片", "援交", "約炮", "性奴", "強姦",
     "雞巴", "陰莖", "乳房", "屌", "屄", "幹", "操", "婊", "賤", "白痴", "智障",
@@ -97,18 +105,33 @@ const ensureFriendCode = async (admin: any) => {
     throw new Error("FRIEND_CODE_UNAVAILABLE");
 };
 
+// A chosen system avatar can be shown while searching. Uploaded photos remain
+// private until both students have accepted the friendship; their URL is short-lived.
+const socialAvatar = async (admin: any, avatarPath: unknown, canViewUploadedPhoto: boolean) => {
+    const normalized = cleanText(avatarPath, 1000);
+    if (!normalized) return null;
+    if (DEFAULT_AVATAR_PATHS.has(normalized)) return normalized;
+    if (!canViewUploadedPhoto) return null;
+    if (/^https?:\/\//i.test(normalized)) return normalized;
+    const { data, error } = await admin.storage.from(AVATAR_BUCKET).createSignedUrl(normalized, 15 * 60);
+    if (error) return null;
+    return data?.signedUrl || null;
+};
+
 const buildPeople = async (admin: any, ids: number[], viewerId: number, friendIds: Set<number>) => {
     const uniqueIds = [...new Set(ids.filter(Boolean))];
     if (!uniqueIds.length) return new Map<number, any>();
     const [{ data: students, error: studentError }, { data: profiles, error: profileError }, { data: balances, error: balanceError }] = await Promise.all([
-        admin.from("students").select("id,account_status").in("id", uniqueIds).eq("role", "student"),
+        admin.from("students").select("id,account_status,user_image").in("id", uniqueIds).eq("role", "student"),
         admin.from("student_social_profiles").select("student_id,nickname,friend_code,stats_visibility,presence_visibility,last_active_at").in("student_id", uniqueIds),
         admin.from("student_gamification_balances").select("student_id,total_xp").in("student_id", uniqueIds)
     ]);
     if (studentError || profileError || balanceError) throw studentError || profileError || balanceError;
-    const activeIds = new Set((students || []).filter((item: any) => item.account_status === "active").map((item: any) => Number(item.id)));
+    const activeStudents = (students || []).filter((item: any) => item.account_status === "active");
+    const activeIds = new Set(activeStudents.map((item: any) => Number(item.id)));
+    const avatarPathById = new Map(activeStudents.map((item: any) => [Number(item.id), item.user_image]));
     const balanceById = new Map((balances || []).map((item: any) => [Number(item.student_id), Number(item.total_xp || 0)]));
-    return new Map((profiles || []).filter((profile: any) => activeIds.has(Number(profile.student_id))).map((profile: any) => {
+    const people = await Promise.all((profiles || []).filter((profile: any) => activeIds.has(Number(profile.student_id))).map(async (profile: any) => {
         const id = Number(profile.student_id);
         const isSelf = id === viewerId;
         const isFriend = friendIds.has(id);
@@ -117,11 +140,13 @@ const buildPeople = async (admin: any, ids: number[], viewerId: number, friendId
         return [id, {
             student_id: id,
             nickname: profile.nickname,
+            avatar_url: await socialAvatar(admin, avatarPathById.get(id), isSelf || isFriend),
             friend_code: isSelf ? profile.friend_code : undefined,
             presence: presenceLabel(profile.last_active_at, isSelf || (isFriend && profile.presence_visibility === "friends")),
             stats: canSeeStats ? { total_xp: totalXp, level: getLevel(totalXp) } : null
         }];
     }));
+    return new Map(people);
 };
 
 Deno.serve(async (req: Request) => {
@@ -211,13 +236,14 @@ Deno.serve(async (req: Request) => {
             if (error) throw error;
             if (!found || Number(found.student_id) === caller.id) return json(req, 200, { success: true, result: null });
             const targetId = Number(found.student_id);
-            const [{ data: targetAccess }, { data: block }, { data: relation }] = await Promise.all([
+            const [{ data: targetAccess }, { data: target }, { data: block }, { data: relation }] = await Promise.all([
                 admin.rpc("get_student_effective_access", { p_student_id: targetId, p_as_of: new Date().toISOString() }),
+                admin.from("students").select("id,role,account_status,user_image").eq("id", targetId).maybeSingle(),
                 admin.from("student_social_blocks").select("blocker_id").or(blockFilter(caller.id, targetId)).limit(1).maybeSingle(),
                 admin.from("student_friendships").select("id,requester_id,addressee_id,status").or(relationFilter(caller.id, targetId)).maybeSingle()
             ]);
-            if (block || targetAccess?.is_active !== true) return json(req, 200, { success: true, result: null });
-            return json(req, 200, { success: true, result: { student_id: targetId, nickname: found.nickname, relationship: relation || null } });
+            if (block || target?.role !== "student" || target?.account_status !== "active" || targetAccess?.is_active !== true) return json(req, 200, { success: true, result: null });
+            return json(req, 200, { success: true, result: { student_id: targetId, nickname: found.nickname, avatar_url: await socialAvatar(admin, target.user_image, relation?.status === "accepted"), relationship: relation || null } });
         }
 
         if (action === "send_request") {

@@ -65,7 +65,7 @@ describe("StudentFriends", () => {
     });
 
     it("searches by exact nickname or friend code and sends a mutual request", async () => {
-        searchStudents.mockResolvedValue({ result: { student_id: 9, nickname: "Amy Owl", relationship: null } });
+        searchStudents.mockResolvedValue({ result: { student_id: 9, nickname: "Amy Owl", avatar_url: "https://example.com/amy.jpg", relationship: null } });
         sendFriendRequest.mockResolvedValue({ success: true });
         render(<StudentFriends />);
 
@@ -73,6 +73,10 @@ describe("StudentFriends", () => {
         fireEvent.change(screen.getByPlaceholderText("完整暱稱或 AE-好友碼"), { target: { value: "Amy Owl" } });
         fireEvent.click(screen.getByRole("button", { name: /搜尋$/ }));
         expect(await screen.findByText("Amy Owl")).toBeTruthy();
+        fireEvent.click(screen.getByRole("button", { name: "查看 Amy Owl 的頭貼" }));
+        expect(await screen.findByRole("dialog", { name: "Amy Owl" })).toBeTruthy();
+        fireEvent.click(screen.getByRole("button", { name: "關閉頭貼預覽" }));
+        expect(screen.queryByRole("dialog")).toBeNull();
         fireEvent.click(screen.getByRole("button", { name: "加好友" }));
 
         await waitFor(() => expect(sendFriendRequest).toHaveBeenCalledWith(firebaseUser, 9));
