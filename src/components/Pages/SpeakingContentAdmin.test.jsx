@@ -1,7 +1,10 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
-import { createWorkbookOneCuratedQuestionSet, createWorkbookOneGreetingsQuestionSet, createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap, getSpeakingQuestionAudioPreview } from "../../services/speakingContentService";
+import {
+    createWorkbookOneCuratedQuestionSet, getSpeakingContentBootstrap,
+    getSpeakingQuestionAudioPreview, updateDraftSpeakingQuestion
+} from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
@@ -12,121 +15,75 @@ jest.mock("../../services/speakingContentService", () => ({
     createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
     getSpeakingQuestionAudioPreview: jest.fn(),
-    extractSpeakingSourceDocument: jest.fn(), extractSpeakingBookChunk: jest.fn(),
-    publishSpeakingQuestionSet: jest.fn(), generateSpeakingQuestionSetAudio: jest.fn(), reviewSpeakingOcrSource: jest.fn(),
-    saveReviewedSpeakingSource: jest.fn(), uploadAndExtractSpeakingSource: jest.fn(),
-    uploadWholeBookSource: jest.fn(), updateDraftSpeakingQuestion: jest.fn(),
-    generateSpeakingQuestionSet: jest.fn()
+    publishSpeakingQuestionSet: jest.fn(),
+    generateSpeakingQuestionSetAudio: jest.fn(),
+    updateDraftSpeakingQuestion: jest.fn()
 }));
 
-describe("SpeakingContentAdmin whole-book OCR", () => {
+const questions = [
+    { id: 31, sort_order: 0, question_text: "What's your name?", hint_zh: "請說出名字。", simple_answer: "My name is Amy.", model_answer: "My name is Amy.", keywords: ["name"], accepted_intents: ["名字"], pronunciation_notes_zh: "name 要清楚" },
+    { id: 32, sort_order: 1, question_text: "How do you spell your name?", hint_zh: "請拼出名字。", simple_answer: "A-M-Y.", model_answer: "My name is spelled A-M-Y.", keywords: ["spell"], accepted_intents: ["拼字"] }
+];
+const questionSet = {
+    id: 12, source_section_id: 11, title: "01 我的名字與自我介紹", status: "draft", version: 1,
+    generation_metadata: { template_key: "workbook_1_name_intro_v1" }, speaking_questions: questions
+};
+const bootstrap = {
+    books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }, { id: 2, name: "Workbook 2", code: "Workbook_2" }],
+    documents: [], chunks: [], sections: [], question_sets: [questionSet]
+};
+
+describe("SpeakingContentAdmin challenge manager", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
-        createWorkbookOneGreetingsQuestionSet.mockResolvedValue({ success: true, reused: false });
+        window.scrollTo = jest.fn();
+        getSpeakingContentBootstrap.mockResolvedValue(bootstrap);
         createWorkbookOneCuratedQuestionSet.mockResolvedValue({ success: true, reused: false });
-        createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
-        getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
-        getSpeakingContentBootstrap.mockResolvedValue({
-        books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }, { id: 2, name: "Workbook 2", code: "Workbook_2" }],
-        documents: [{ id: 20, book_id: 2, title: "Workbook 2 口說大關卡", page_count: 115, chunk_count: 12 }],
-        chunks: [
-            { id: 21, document_id: 20, chunk_index: 0, page_from: 1, page_to: 10, status: "uploaded" },
-            { id: 22, document_id: 20, chunk_index: 1, page_from: 11, page_to: 20, status: "failed" }
-        ],
-        sections: [], question_sets: []
-        });
+        updateDraftSpeakingQuestion.mockResolvedValue({ success: true });
+        getSpeakingQuestionAudioPreview.mockResolvedValue({ audio_url: "https://audio.example/puck.wav" });
     });
 
-    it("shows persistent batch progress and a per-batch retry control", async () => {
+    it("uses a compact challenge catalog and hides inactive OCR inputs", async () => {
         render(<SpeakingContentAdmin />);
-        expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
-        expect(await screen.findByText("整本教材 · 115 頁")).toBeInTheDocument();
-        expect(screen.getByText("P1–P10")).toBeInTheDocument();
-        expect(screen.getByText("辨識失敗")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "重試第 2 批" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "開始批次 OCR" })).toBeInTheDocument();
-    });
-
-    it("creates the curated Workbook 1 starter without asking AI to generate it", async () => {
-        render(<SpeakingContentAdmin />);
-        const createButton = await screen.findByRole("button", { name: "建立範例草稿" });
-        await waitFor(() => expect(createButton).toBeEnabled());
-        fireEvent.click(createButton);
-
-        await waitFor(() => expect(createWorkbookOneStarterQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 1));
-    });
-
-    it("creates the curated Workbook 2 origin challenge without paid OCR or AI", async () => {
-        render(<SpeakingContentAdmin />);
-        const createButton = await screen.findByRole("button", { name: "建立 Workbook 2 草稿" });
-        await waitFor(() => expect(createButton).toBeEnabled());
-        fireEvent.click(createButton);
-
-        await waitFor(() => expect(createWorkbookTwoStarterQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 2));
-    });
-
-    it("creates the curated Workbook 1 greetings challenge without paid OCR or AI", async () => {
-        render(<SpeakingContentAdmin />);
-        const createButton = await screen.findByRole("button", { name: "建立關卡 02 草稿" });
-        await waitFor(() => expect(createButton).toBeEnabled());
-        fireEvent.click(createButton);
-
-        await waitFor(() => expect(createWorkbookOneGreetingsQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 1));
-    });
-
-    it("offers the remaining Workbook 1 challenges and creates a selected draft", async () => {
-        render(<SpeakingContentAdmin />);
-        expect(await screen.findByRole("heading", { name: "Workbook 1 完整口說關卡" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "關卡總覽" })).toBeInTheDocument();
+        expect(await screen.findByText("我的名字與自我介紹")).toBeInTheDocument();
         expect(screen.getByText("問句與總複習")).toBeInTheDocument();
-        const createButton = screen.getByRole("button", { name: "建立關卡 03" });
-        await waitFor(() => expect(createButton).toBeEnabled());
-        fireEvent.click(createButton);
+        expect(screen.queryByText("整本教材分批辨識")).not.toBeInTheDocument();
+        expect(screen.queryByText("單一範圍或貼入文字")).not.toBeInTheDocument();
+    });
 
+    it("opens one question at a time with a clear topic and question position", async () => {
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: "繼續編輯" }));
+        expect(screen.getByRole("heading", { name: "01 我的名字與自我介紹" })).toBeInTheDocument();
+        expect(screen.getByText("第 1 題，共 2 題")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("What's your name?")).toBeInTheDocument();
+        expect(screen.queryByDisplayValue("How do you spell your name?")).not.toBeInTheDocument();
+    });
+
+    it("navigates between questions without expanding every editor", async () => {
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: "繼續編輯" }));
+        fireEvent.click(screen.getByRole("button", { name: "下一題" }));
+        expect(screen.getByText("第 2 題，共 2 題")).toBeInTheDocument();
+        expect(screen.getByDisplayValue("How do you spell your name?")).toBeInTheDocument();
+    });
+
+    it("opens student preview in a separate dialog", async () => {
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: "繼續編輯" }));
+        fireEvent.click(screen.getByRole("button", { name: "預覽學生畫面" }));
+        expect(screen.getByRole("dialog", { name: "01 我的名字與自我介紹" })).toBeInTheDocument();
+        expect(screen.getByText("這是管理員預覽，不會寫入學生進度。")).toBeInTheDocument();
+    });
+
+    it("creates a missing curated draft and immediately opens its editor", async () => {
+        const created = { ...questionSet, id: 22, title: "03 顏色與生活物品", generation_metadata: { template_key: "workbook_1_colors_objects_v1" } };
+        getSpeakingContentBootstrap.mockResolvedValueOnce(bootstrap).mockResolvedValueOnce({ ...bootstrap, question_sets: [questionSet, created] });
+        render(<SpeakingContentAdmin />);
+        const colorsRow = (await screen.findByText("顏色與生活物品")).closest("article");
+        fireEvent.click(colorsRow.querySelector("button"));
         await waitFor(() => expect(createWorkbookOneCuratedQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 1, "create_workbook_1_colors"));
-    });
-
-    it("shows a student-facing preview for an editable starter draft", async () => {
-        getSpeakingContentBootstrap.mockResolvedValueOnce({
-            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
-            documents: [{ id: 10, book_id: 1, title: "Workbook 1 口說大挑戰", chunk_count: 0 }], chunks: [],
-            sections: [{ id: 11, document_id: 10, topic: "我的名字與自我介紹", unit_label: "Starter 01", page_from_label: "P18", page_to_label: "P20", language_level: "國小低年級", status: "reviewed" }],
-            question_sets: [{
-                id: 12, source_section_id: 11, title: "01 我的名字與自我介紹", status: "draft", version: 1,
-                generation_metadata: { template_key: "workbook_1_name_intro_v1" },
-                speaking_questions: [{ id: 13, sort_order: 0, question_text: "What's your name?", hint_zh: "請用完整句回答。", simple_answer: "My name is [你的名字].", model_answer: "My name is [你的名字].", keywords: ["name"], accepted_intents: ["說出名字"], pronunciation_notes_zh: "把 name 說清楚。" }]
-            }]
-        });
-
-        render(<SpeakingContentAdmin />);
-        fireEvent.click(await screen.findByText("預覽學生畫面"));
-
-        expect(screen.getByText("What's your name?")).toBeInTheDocument();
-        expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
-        expect(screen.getByText("問題 · 男聲 · Puck")).toBeInTheDocument();
-        expect(screen.getByText("回答 · 女聲 · Autonoe")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "核准、發布並產生問題與回答語音" })).toBeInTheDocument();
-    });
-
-    it("shows the balanced voice plan and loads a stored preview for a published question", async () => {
-        getSpeakingContentBootstrap.mockResolvedValueOnce({
-            books: [{ id: 2, name: "Workbook 2", code: "Workbook_2" }],
-            documents: [{ id: 20, book_id: 2, title: "Workbook 2 口說大挑戰", chunk_count: 0 }], chunks: [],
-            sections: [{ id: 21, document_id: 20, topic: "我來自哪裡？", unit_label: "Topic 06", page_from_label: "P56", page_to_label: "P58", language_level: "國小中年級", status: "reviewed" }],
-            question_sets: [{
-                id: 13, source_section_id: 21, title: "01 我來自哪裡？", status: "published", version: 1,
-                generation_metadata: { template_key: "workbook_2_origin_places_v1" },
-                speaking_questions: [{ id: 31, sort_order: 0, question_text: "Where are you from?", hint_zh: "請用完整句回答。", simple_answer: "I am from Taiwan.", model_answer: "I am from [你的國家].", keywords: ["from"], accepted_intents: ["說出國家"], pronunciation_notes_zh: "把 from 說清楚。" }]
-            }]
-        });
-
-        render(<SpeakingContentAdmin />);
-        fireEvent.click(await screen.findByText("預覽學生畫面"));
-        expect(screen.getByText("問題 · 女聲 · Autonoe")).toBeInTheDocument();
-        expect(screen.getByText("回答 · 男聲 · Puck")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題回答 · 男聲 · Puck" }));
-
-        await waitFor(() => expect(getSpeakingQuestionAudioPreview).toHaveBeenCalledWith(mockFirebaseUser, 13, 31, "model_answer"));
-        expect(await screen.findByLabelText("第 1 題回答 · 男聲 · Puck")).toHaveAttribute("src", "https://audio.example/puck.wav");
+        expect(await screen.findByRole("heading", { name: "03 顏色與生活物品" })).toBeInTheDocument();
     });
 });
