@@ -111,6 +111,11 @@ function StudentFriends() {
         run(`report-${person.student_id}`, () => reportStudent(firebaseUser, person.student_id, "other", details), "已送出檢舉，管理員會進行確認");
     };
 
+    const block = person => {
+        if (!window.confirm(`確定要封鎖 ${person.nickname} 嗎？封鎖後對方不能搜尋或邀請你。`)) return;
+        run(`block-${person.student_id}`, () => blockStudent(firebaseUser, person.student_id), "已封鎖這位使用者");
+    };
+
     if (loading) return <main className="student-friends-page"><div className="student-friends-loading" role="status"><FiLoader />正在準備好友資料…</div></main>;
 
     const profile = overview?.profile;
@@ -141,7 +146,7 @@ function StudentFriends() {
                     <div className="student-friends-panel-heading"><div><FiSearch /><h2>尋找好友</h2></div><p>請輸入對方完整暱稱或好友碼，避免陌生人隨意搜尋學生。</p></div>
                     <form onSubmit={search}><input value={query} onChange={event => setQuery(event.target.value)} placeholder="完整暱稱或 AE-好友碼" minLength="2" required /><button type="submit" disabled={busyKey === "search"}><FiSearch />{busyKey === "search" ? "搜尋中" : "搜尋"}</button></form>
                     {searchResult === null && <p className="student-friends-empty">找不到這位同學，請確認暱稱或好友碼是否正確。</p>}
-                    {searchResult && <article className="student-friends-search-result"><PersonBadge person={{ ...searchResult, presence: "hidden" }} /><div>{searchResult.relationship?.status === "accepted" ? <span className="student-friends-state"><FiCheck />已是好友</span> : searchResult.relationship?.status === "pending" ? <span className="student-friends-state">邀請處理中</span> : <button type="button" onClick={() => run(`invite-${searchResult.student_id}`, () => sendFriendRequest(firebaseUser, searchResult.student_id), "好友邀請已送出") } disabled={busyKey === `invite-${searchResult.student_id}`}><FiUserPlus />加好友</button>}</div></article>}
+                    {searchResult && <article className="student-friends-search-result"><PersonBadge person={{ ...searchResult, presence: "hidden" }} /><div className="student-friends-actions">{searchResult.relationship?.status === "accepted" ? <span className="student-friends-state"><FiCheck />已是好友</span> : searchResult.relationship?.status === "pending" ? <span className="student-friends-state">邀請處理中</span> : <button type="button" onClick={() => run(`invite-${searchResult.student_id}`, () => sendFriendRequest(firebaseUser, searchResult.student_id), "好友邀請已送出") } disabled={busyKey === `invite-${searchResult.student_id}`}><FiUserPlus />加好友</button>}<button type="button" onClick={() => block(searchResult)} disabled={busyKey === `block-${searchResult.student_id}`}><FiShield />封鎖</button></div></article>}
                 </section>
 
                 {(incoming.length > 0 || outgoing.length > 0) && <section className="student-friends-panel">
@@ -151,7 +156,7 @@ function StudentFriends() {
 
                 <section className="student-friends-panel">
                     <div className="student-friends-panel-heading"><div><FiUsers /><h2>我的好友</h2></div><p>{friends.length} 位好友；只有好友能看你選擇公開的戰績與在線狀態。</p></div>
-                    {friends.length === 0 ? <p className="student-friends-empty">目前還沒有好友。把上方好友碼傳給認識的同學吧。</p> : <div className="student-friends-list">{friends.map(friend => <article key={friend.id}><PersonBadge person={friend.person} />{friend.person.stats ? <div className="student-friends-stats"><span>Lv.{friend.person.stats.level}</span><strong>{friend.person.stats.total_xp.toLocaleString("zh-TW")} XP</strong></div> : <span className="student-friends-state">戰績未公開</span>}<div className="student-friends-actions"><button type="button" onClick={() => { if (window.confirm(`確定要解除與 ${friend.person.nickname} 的好友關係嗎？`)) run(`remove-${friend.person.student_id}`, () => removeFriend(firebaseUser, friend.person.student_id), "已解除好友"); }}><FiUserMinus />解除</button><button type="button" onClick={() => { if (window.confirm(`封鎖 ${friend.person.nickname} 後會立即解除好友，確定嗎？`)) run(`block-${friend.person.student_id}`, () => blockStudent(firebaseUser, friend.person.student_id), "已封鎖這位使用者"); }}><FiShield />封鎖</button><button type="button" onClick={() => report(friend.person)}>檢舉</button></div></article>)}</div>}
+                    {friends.length === 0 ? <p className="student-friends-empty">目前還沒有好友。把上方好友碼傳給認識的同學吧。</p> : <div className="student-friends-list">{friends.map(friend => <article key={friend.id}><PersonBadge person={friend.person} />{friend.person.stats ? <div className="student-friends-stats"><span>Lv.{friend.person.stats.level}</span><strong>{friend.person.stats.total_xp.toLocaleString("zh-TW")} XP</strong></div> : <span className="student-friends-state">戰績未公開</span>}<div className="student-friends-actions"><button type="button" onClick={() => { if (window.confirm(`確定要解除與 ${friend.person.nickname} 的好友關係嗎？`)) run(`remove-${friend.person.student_id}`, () => removeFriend(firebaseUser, friend.person.student_id), "已解除好友"); }}><FiUserMinus />解除</button><button type="button" onClick={() => block(friend.person)}><FiShield />封鎖</button><button type="button" onClick={() => report(friend.person)}>檢舉</button></div></article>)}</div>}
                 </section>
 
                 {blocked.length > 0 && <details className="student-friends-panel student-friends-blocked"><summary>已封鎖 {blocked.length} 人</summary><div className="student-friends-list">{blocked.map(person => <article key={person.student_id}><PersonBadge person={person} /><button type="button" onClick={() => run(`unblock-${person.student_id}`, () => unblockStudent(firebaseUser, person.student_id), "已解除封鎖")}>解除封鎖</button></article>)}</div></details>}

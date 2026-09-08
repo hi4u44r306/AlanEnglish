@@ -785,7 +785,9 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 
 本機驗證：好友服務與頁面測試、Navbar 測試、社交安全契約 4/4、Edge Function 語法檢查及 Production build 均通過；完整前端為 53 suites／178 tests 通過。尚未以兩個真實學生帳號驗證邀請、在線狀態、封鎖與跨帳號隱私。
 
-下一步：取得使用者同意後建立 checkpoint、Push 並部署到測試環境，同時套用測試 Supabase migration 與部署 `student-social`；由兩個學生帳號完成跨帳號驗收後，才評估合併正式站。PK 賽與合作型比賽仍留在第二、三階段，不在本次範圍。
+最新本機修正：搜尋結果新增直接「封鎖」入口，避免學生必須先成為好友才可保護自己；已補上 UI 測試，尚未推送或部署。
+
+下一步：驗證搜尋結果封鎖後，再由使用者決定是否 Push、部署測試站，最後才評估建立 PR、合併 `main` 與部署正式網站。檢舉與隱私切換可在取得獨立雲端資料異動授權後補做。PK 賽與合作型比賽仍留在第二、三階段，不在本次範圍。
 
 第一階段「好友與戰績」已包含：
 

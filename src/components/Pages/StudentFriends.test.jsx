@@ -1,7 +1,7 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useAuth } from "../../auth/AuthContext";
-import { getSocialOverview, searchStudents, sendFriendRequest, updateSocialProfile } from "../../services/studentSocialService";
+import { blockStudent, getSocialOverview, searchStudents, sendFriendRequest, updateSocialProfile } from "../../services/studentSocialService";
 import StudentFriends from "./StudentFriends";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
@@ -64,5 +64,20 @@ describe("StudentFriends", () => {
         fireEvent.click(screen.getByRole("button", { name: "加好友" }));
 
         await waitFor(() => expect(sendFriendRequest).toHaveBeenCalledWith(firebaseUser, 9));
+    });
+
+    it("lets a student block a searched result without first becoming friends", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        searchStudents.mockResolvedValue({ result: { student_id: 9, nickname: "Amy Owl", relationship: null } });
+        blockStudent.mockResolvedValue({ success: true });
+        render(<StudentFriends />);
+
+        await screen.findByText("AE-ABCDEFGH");
+        fireEvent.change(screen.getByPlaceholderText("完整暱稱或 AE-好友碼"), { target: { value: "Amy Owl" } });
+        fireEvent.click(screen.getByRole("button", { name: /搜尋$/ }));
+        expect(await screen.findByText("Amy Owl")).toBeTruthy();
+        fireEvent.click(screen.getByRole("button", { name: "封鎖" }));
+
+        await waitFor(() => expect(blockStudent).toHaveBeenCalledWith(firebaseUser, 9));
     });
 });
