@@ -43,7 +43,7 @@ const formatRenewalDay = value => {
 };
 
 const FEATURE_OVERVIEW = [
-    { key: "listening", label: "教材與聽力", description: "使用已取得權限的教材、音檔與學習進度。", path: "/materials", icon: FiHeadphones },
+    { key: "listening", label: "教材與聽力", description: "使用已取得權限的教材、音檔與學習進度。", path: "/shop", icon: FiHeadphones },
     { key: "conversation", label: "英文情境對話", description: "練習遇到外國人時的聽力與口說反應。", path: "/student/conversation", icon: FiMessageCircle },
     { key: "review", label: "智慧複習", description: "重新練習錯題與還沒完全掌握的內容。", path: "/student/review", icon: FiRefreshCw },
     { key: "assignments", label: "英文班作業", description: "只有有效在學、且老師有發布作業時才會顯示。", path: "/student/assignments", icon: FiUsers },
@@ -182,7 +182,7 @@ function MembershipCenter() {
     const lockedBooks = useMemo(() => catalogBooks.filter(book => book.locked), [catalogBooks]);
     const firstAccessibleBookPath = accessibleBooks[0]?.code
         ? `/student/books/${accessibleBooks[0].code}`
-        : "/materials";
+        : "/shop";
     const featureItems = useMemo(() => FEATURE_OVERVIEW.map(item => ({
         ...item,
         available: effectiveFeatures[item.entitlementKey || item.key] === true,
@@ -323,7 +323,7 @@ function MembershipCenter() {
             </section>
 
             <section className="platform-card platform-material-access" aria-labelledby="material-access-heading">
-                <div className="platform-section-title"><div><span className="platform-eyebrow">MY MATERIALS</span><h2 id="material-access-heading">目前可使用的教材</h2><p>購買完成並成功帶入權限後，教材會自動出現在這裡與 Navbar。</p></div><Link className="platform-primary" to="/materials"><FiCreditCard />購買其他教材</Link></div>
+                <div className="platform-section-title"><div><span className="platform-eyebrow">MY MATERIALS</span><h2 id="material-access-heading">目前可使用的教材</h2><p>購買完成並成功帶入權限後，教材會自動出現在這裡與 Navbar。</p></div><Link className="platform-primary" to="/shop"><FiCreditCard />購買其他教材</Link></div>
                 {catalogError
                     ? <div className="platform-empty"><strong>教材清單暫時無法讀取</strong><p>你的權限不會因此消失，請稍後重新整理頁面。</p></div>
                     : accessibleBooks.length === 0
@@ -334,7 +334,7 @@ function MembershipCenter() {
 
             {membership?.requires_email_verification && <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h2>先完成 Email 驗證</h2><p>驗證信會寄到 {firebaseUser?.email}。完成驗證後，7 天免費試用才會開始計時。</p></div><div className="platform-verification-actions"><button className="platform-secondary" onClick={resendVerification} disabled={working === "verification" || verificationCooldown > 0}>{working === "verification" ? "寄送中…" : verificationCooldown > 0 ? `${verificationCooldown} 秒後可重寄` : "重新寄送驗證信"}</button><button className="platform-primary" onClick={confirmVerification} disabled={working === "confirm-verification"}>{working === "confirm-verification" ? "確認中…" : "我已完成驗證"}</button></div></div><p className="platform-footnote">仍未收到時，請搜尋 Alan English 寄件者，並檢查垃圾郵件或促銷內容。</p></section>}
             <section className="platform-card membership-compact-card"><div className="platform-section-title"><div><span className="platform-eyebrow">ACTIVATION CODE</span><h2>教材啟用碼</h2><p>購買實體教材取得啟用碼時，可在這裡加入教材與附贈的網站使用權。</p></div></div><form className="platform-inline-form" onSubmit={redeem}><input value={code} onChange={event => setCode(event.target.value.toUpperCase())} placeholder="AE-XXXX-XXXX-XXXX" autoComplete="off" /><button className="platform-primary" disabled={working === "redeem"}>{working === "redeem" ? "啟用中…" : "啟用權限"}</button></form></section>
-            <section className="platform-card membership-compact-card"><div className="platform-section-title"><div><span className="platform-eyebrow">PHYSICAL MATERIALS</span><h2>需要實體教材？</h2><p>基本月費可使用全部正式聽力教材，但不會寄送課本、Workbook 或聽力本；需要紙本時可另外購買三本教材包。</p></div><Link className="platform-secondary" to="/materials"><FiBookOpen />查看教材包</Link></div></section>
+            <section className="platform-card membership-compact-card"><div className="platform-section-title"><div><span className="platform-eyebrow">PHYSICAL MATERIALS</span><h2>需要實體教材？</h2><p>基本月費可使用全部正式聽力教材，但不會寄送課本、Workbook 或聽力本；需要紙本時可另外購買三本教材包。</p></div><Link className="platform-secondary" to="/shop"><FiBookOpen />查看教材包</Link></div></section>
         </main>
     );
 }

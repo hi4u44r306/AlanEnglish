@@ -8,6 +8,8 @@ import { completePublicSignup } from "../../services/membershipService";
 import FreeTrialSignup from "./FreeTrialSignup";
 import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 
+const mockStoreState = { user: null, authLoading: false };
+
 jest.mock("firebase/auth", () => ({
     browserLocalPersistence: {},
     createUserWithEmailAndPassword: jest.fn(),
@@ -26,6 +28,8 @@ jest.mock("../../services/membershipService", () => ({ completePublicSignup: jes
 jest.mock("../../services/authEmailService", () => ({ sendBrandedVerificationEmail: jest.fn() }));
 jest.mock("../../auth/authService", () => ({ saveStudentSession: jest.fn() }));
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: null }) }));
+jest.mock("../../store/StoreContext", () => ({ useStore: () => mockStoreState }));
+jest.mock("./StoreHeader", () => () => <header>商城導覽</header>);
 
 describe("FreeTrialSignup", () => {
     let consoleErrorSpy;
@@ -36,9 +40,9 @@ describe("FreeTrialSignup", () => {
     });
     afterEach(() => consoleErrorSpy.mockRestore());
 
-    const renderSignup = () => render(
+    const renderSignup = props => render(
         <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <FreeTrialSignup />
+            <FreeTrialSignup {...props} />
         </MemoryRouter>
     );
 
@@ -88,5 +92,16 @@ describe("FreeTrialSignup", () => {
         await waitFor(() => expect(sendBrandedVerificationEmail).toHaveBeenCalledTimes(2));
         expect(await screen.findByRole("status")).toHaveTextContent("驗證信已寄出");
         expect(screen.getByRole("button", { name: /秒後可重新寄送/ })).toBeDisabled();
+    });
+
+    it("locks paid-order activation to the authenticated store Email", () => {
+        mockStoreState.user = { email: "buyer@example.com" };
+
+        renderSignup({ purchaseActivation: true });
+
+        expect(screen.getByRole("heading", { name: "開通教材學習帳號" })).toBeInTheDocument();
+        expect(screen.getByLabelText("登入與收信 Email")).toHaveValue("buyer@example.com");
+        expect(screen.getByLabelText("登入與收信 Email")).toHaveAttribute("readonly");
+        expect(screen.getByRole("button", { name: "建立並驗證學習帳號" })).toBeInTheDocument();
     });
 });

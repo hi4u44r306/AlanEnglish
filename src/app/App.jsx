@@ -44,7 +44,6 @@ import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
 import StudentNotifications from "../components/Pages/StudentNotifications";
-import MaterialCatalog from "../components/Pages/MaterialCatalog";
 import StoreCatalog from "../components/Pages/StoreCatalog";
 import StoreAuthPage from "../components/Pages/StoreAuthPage";
 import StoreVerificationPage from "../components/Pages/StoreVerificationPage";
@@ -127,7 +126,7 @@ const App = () => {
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
-                    <Route path="/materials" element={<MaterialCatalog />} />
+                    <Route path="/materials" element={<Navigate to="/shop" replace />} />
                     <Route path="/shop" element={<StoreCatalog />} />
                     <Route path="/shop/cart" element={<StoreCart />} />
                     <Route path="/shop/login" element={<StoreAuthPage />} />
@@ -139,6 +138,7 @@ const App = () => {
                     <Route path="/shop/orders" element={<StoreOrders />} />
                     <Route path="/shop/orders/:orderNumber" element={<StoreOrders />} />
                     <Route path="/shop/payment/success" element={<StorePaymentResult />} />
+                    <Route path="/shop/activate-learning" element={<FreeTrialSignup purchaseActivation />} />
 
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />

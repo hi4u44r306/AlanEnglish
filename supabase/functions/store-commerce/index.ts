@@ -96,9 +96,18 @@ const sanitizeOrder = (order: any) => {
         stripe_customer_id: _customer,
         stripe_livemode: _livemode,
         customer_user_id: _user,
+        claimed_by_student_id: _claimedStudent,
         ...safe
     } = order;
-    return safe;
+    return {
+        ...safe,
+        learning_access_status: safe.claimed_at
+            ? "claimed"
+            : safe.payment_status === "paid"
+                ? "ready_to_claim"
+                : "not_available",
+        learning_access_claimed_at: safe.claimed_at || null
+    };
 };
 
 function validateShipping(input: any) {
@@ -318,7 +327,7 @@ async function syncCheckout(admin: any, req: Request, body: any) {
     const sessionId = cleanText(body.checkout_session_id, 300);
     if (!/^cs_test_[A-Za-z0-9_]+$/.test(sessionId)) fail("Stripe 結帳編號不正確", 400, "checkout_session_invalid");
     const orderResult = await admin.from("store_orders")
-        .select("id,order_number,payment_status,fulfillment_status,stripe_checkout_session_id")
+        .select("id,order_number,payment_status,fulfillment_status,stripe_checkout_session_id,claimed_at")
         .eq("customer_user_id", customer.user_id).eq("stripe_checkout_session_id", sessionId).maybeSingle();
     if (orderResult.error) throw orderResult.error;
     if (!orderResult.data) fail("這筆付款不屬於目前的商城帳號", 403, "checkout_account_mismatch");
@@ -331,7 +340,13 @@ async function syncCheckout(admin: any, req: Request, body: any) {
         order_number: orderResult.data.order_number,
         payment_status: orderResult.data.payment_status,
         fulfillment_status: orderResult.data.fulfillment_status,
-        stripe_payment_status: checkout.payment_status
+        learning_access_status: orderResult.data.claimed_at
+            ? "claimed"
+            : orderResult.data.payment_status === "paid"
+                ? "ready_to_claim"
+                : "not_available",
+        learning_access_claimed_at: orderResult.data.claimed_at || null,
+        provider_payment_status: checkout.payment_status
     };
 }
 

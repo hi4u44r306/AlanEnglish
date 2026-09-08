@@ -87,7 +87,7 @@ const plans = [
         description: "適合希望持續自主學習的家庭，可使用全部正式聽力教材；不包含實體教材、英文班作業或 AI Premium。",
         points: ["全部正式聽力教材", "包含情境會話與智慧複習", "AI 教材與發音練習可加購 NT$499／月"],
         action: "先免費體驗",
-        href: "/materials",
+        href: "/shop",
         badge: "",
         featured: false
     },

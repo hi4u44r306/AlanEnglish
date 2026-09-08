@@ -24,11 +24,21 @@ test("商城與聽力平台使用互不覆蓋的登入 session", () => {
 
 test("商品公開瀏覽，結帳與訂單路由使用商城登入", () => {
     assert.match(routes, /path="\/shop" element=\{<StoreCatalog \/>\}/);
-    assert.match(routes, /path="\/materials" element=\{<MaterialCatalog \/>\}/);
+    assert.match(routes, /path="\/materials" element=\{<Navigate to="\/shop" replace \/>\}/);
+    assert.match(routes, /path="\/shop\/activate-learning" element=\{<FreeTrialSignup purchaseActivation \/>\}/);
     assert.match(routes, /path="\/shop\/checkout" element=\{<StoreCheckout \/>\}/);
     assert.match(routes, /path="\/shop\/orders\/:orderNumber" element=\{<StoreOrders \/>\}/);
     assert.match(routes, /path="\/admin\/store-orders".*allowedRoles=\{\["admin"\]\}/);
     assert.doesNotMatch(catalog, /useAuth|firebaseUser/);
+});
+
+test("已付款訂單只回傳安全的學習權限領取狀態", () => {
+    assert.match(store, /learning_access_status/);
+    assert.match(store, /learning_access_claimed_at/);
+    assert.match(store, /claimed_by_student_id: _claimedStudent/);
+    assert.match(store, /payment_status === "paid"[\s\S]*"ready_to_claim"/);
+    assert.match(store, /provider_payment_status:\s*checkout\.payment_status/);
+    assert.doesNotMatch(store, /stripe_payment_status:\s*checkout\.payment_status/);
 });
 
 test("購物車只保留商品快照，後端仍重新計價", () => {

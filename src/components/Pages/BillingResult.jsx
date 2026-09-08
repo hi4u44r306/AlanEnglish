@@ -28,7 +28,7 @@ function BillingResult({ cancelled = false }) {
                 const isMaterialPayment = Boolean(result?.material_purchase);
                 const accessUpdated = materialPurchasePaid || result?.access_grant?.status === "active" || result?.membership?.is_active;
                 if (isMaterialPayment) {
-                    setReturnPath("/materials");
+                    setReturnPath("/shop");
                     setReturnLabel("回到教材購買");
                 }
                 setState(accessUpdated ? "success" : "pending");
