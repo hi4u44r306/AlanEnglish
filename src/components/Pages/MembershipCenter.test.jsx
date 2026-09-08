@@ -121,10 +121,18 @@ describe("MembershipCenter AI add-on", () => {
                 membership: {
                     status: "active",
                     is_active: true,
+                    ai_addon_subscription: {
+                        stripe_subscription_id: "sub_existing_academy_addon",
+                        current_period_end: "2026-09-24T00:00:00.000Z",
+                        cancel_at_period_end: false
+                    },
                     effective_access: {
                         learner_type: "academy_student",
-                        plan_codes: ["academy_internal"],
-                        grants: [{ plan_code: "academy_internal", plan_name: "英文班在學方案", ends_at: null }],
+                        plan_codes: ["academy_internal", "ai_materials_addon_monthly"],
+                        grants: [
+                            { plan_code: "academy_internal", plan_name: "英文班在學方案", ends_at: null },
+                            { plan_code: "ai_materials_addon_monthly", ends_at: "2026-09-24T00:00:00.000Z" }
+                        ],
                         features: {
                             listening: true,
                             conversation: true,
@@ -146,6 +154,7 @@ describe("MembershipCenter AI add-on", () => {
 
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText(/英文班在校期間已包含/)).toBeInTheDocument();
+        expect(screen.getByText(/學籍狀態由老師或管理員管理/)).toBeInTheDocument();
         expect(screen.getByText("目前所有英文班功能都已包含")).toBeInTheDocument();
         expect(screen.getAllByText("英文班在學方案已包含").length).toBeGreaterThan(0);
         expect(screen.getByRole("heading", { name: "英文班教材已包含" })).toBeInTheDocument();
@@ -153,6 +162,8 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.queryByRole("link", { name: "購買其他教材" })).not.toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "教材啟用碼" })).not.toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "需要實體教材？" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "到期取消" })).not.toBeInTheDocument();
+        expect(screen.queryByText(/每月 24 日續訂/)).not.toBeInTheDocument();
         expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
