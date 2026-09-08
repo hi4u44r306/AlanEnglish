@@ -23,12 +23,8 @@ export const hasAiAddonPlan = planCodes => (
 
 export const hasAiPremiumAccess = effectiveAccess => {
     const access = effectiveAccess && typeof effectiveAccess === "object" ? effectiveAccess : {};
-    const features = access.features && typeof access.features === "object" ? access.features : {};
     const planCodes = Array.isArray(access.plan_codes) ? access.plan_codes : [];
-    if (hasAiAddonPlan(planCodes)) return true;
-    const hasPronunciation = features.pronunciation === true
-        || features.pronunciation_practice === true;
-    return features.ai_materials === true && hasPronunciation;
+    return hasAiAddonPlan(planCodes);
 };
 
 const BASE_PLAN_LABELS = {

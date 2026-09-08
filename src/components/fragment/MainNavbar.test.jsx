@@ -202,14 +202,14 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        expect(screen.getByText("AI Premium")).toBeInTheDocument();
+        expect(screen.queryByText("AI Premium")).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "發音教練" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "AI 練習" })).toHaveAttribute("href", "/student/ai-generator");
         fireEvent.click(screen.getByRole("button", { name: "口說練習" }));
         expect(screen.getByRole("link", { name: "開始口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.getByRole("link", { name: "我的口說歷程" })).toHaveAttribute("href", "/student/speaking-history");
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
-        expect(await screen.findAllByText("AI Premium")).toHaveLength(2);
+        expect(screen.queryByText("AI Premium")).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "發音教練" })).not.toBeInTheDocument();
         expect(screen.getAllByText("口說練習")).toHaveLength(2);
         expect(screen.getAllByRole("link", { name: "開始口說大挑戰" })).toHaveLength(2);

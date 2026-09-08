@@ -170,7 +170,7 @@ Supabase PostgreSQL、RLS 與 Edge Functions 負責資料、授權、學習紀�
 
 NT$299 基本會員目前使用 Stripe 沙盒 Price。AI「教材與發音練習」已確認目標價為 NT$299／月，但既有 Stripe Price 仍為 NT$499；新的不可變 Stripe Price、方案資料、付款頁、會員頁、公開方案、FAQ 與條款必須同批切換，切換前不得先顯示 NT$299，以免顯示金額與實際扣款不一致。AI 現行新訂閱只使用 `ai_materials_addon_monthly`；`ai_materials_general_monthly` 僅保留為停用的歷史代碼，不得再公開、販售或手動授權。三本組合教材包單一售價目前為 NT$1,380，不另設會員教材價；商品必須補齊課本、Workbook 與聽力本後才可重新上架。正式 Stripe 商品與 Price 尚未建立前，網站必須明示為測試付款，不得宣稱正式收款已啟用。
 
-`AI Premium` 是同時具備 AI 教材與發音練習權限的前端稱號／徽章，不是另一個商品、方案代碼或價格。有效在校英文班學生可由 `academy_internal` 取得；其他學生由有效 `ai_materials_addon_monthly` 取得。歷史 `ai_materials_general_monthly` 紀錄只供相容舊帳務。商品、付款與帳務名稱固定為「AI 教材與發音練習」。
+`AI Premium` 是實際付費加購「AI 教材與發音練習」時才顯示的前端稱號／徽章，不是另一個商品、方案代碼或價格。有效在校英文班學生由 `academy_internal` 取得相同 AI 與口說功能，但畫面固定顯示「英文班在學方案已包含」，不得顯示或販售 AI Premium，避免誤以為需要重複付費。其他學生由有效 `ai_materials_addon_monthly` 取得 AI Premium；歷史 `ai_materials_general_monthly` 紀錄只供相容舊帳務。商品、付款與帳務名稱固定為「AI 教材與發音練習」。
 
 任何價格調整都必須同步更新公開首頁、方案比較、商品／方案資料、Stripe 商品或價格、會員頁、FAQ 與會員條款，不可只改畫面文字。
 

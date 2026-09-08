@@ -82,8 +82,9 @@ describe("StudentSettings", () => {
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("AI Premium")).toBeInTheDocument();
-        expect(screen.getByText("英文班方案已包含")).toBeInTheDocument();
+        expect(screen.queryByText("AI Premium")).not.toBeInTheDocument();
+        expect(screen.getByText("英文班在學方案已包含")).toBeInTheDocument();
+        expect(screen.getByText("AI 練習、口說大挑戰與班級作業均可使用")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /查看我的口說錄音與成果/ })).toHaveAttribute("href", "/student/speaking-history");
 
         expect(screen.queryByDisplayValue("2015-05-12")).not.toBeInTheDocument();

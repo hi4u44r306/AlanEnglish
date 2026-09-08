@@ -286,7 +286,8 @@ function StudentSettings() {
     const effectiveAccess = profile?.membership?.effective_access;
     const hasAiPremium = hasAiPremiumAccess(effectiveAccess);
     const hasAiMaterials = profile?.membership?.effective_access?.features?.ai_materials === true;
-    const isActiveAcademyStudent = effectiveAccess?.plan_codes?.includes("academy_internal") === true;
+    const isActiveAcademyStudent = commerce?.enrollment_status === "active"
+        && effectiveAccess?.plan_codes?.includes("academy_internal") === true;
     const statusLabel = commerce?.enrollment_status === "active" ? "在校" : commerce?.enrollment_status === "scheduled_departure" ? "預定離校" : commerce?.enrollment_status === "departed" ? "離校" : "非在校生";
     const currentEnrollment = commerce?.current_enrollment || null;
     const enrollmentRecord = currentEnrollment || commerce?.enrollment_history?.[0] || null;
@@ -348,10 +349,10 @@ function StudentSettings() {
                     <p>{profile.english_name || "尚未設定英文姓名"}　·　{profile.class ? `${profile.class} 班` : "尚未分班"}</p>
                     <small><FiImage /> {uploading ? "正在處理頭像…" : "支援 JPG、PNG、WebP；超過 5MB 的照片會先在裝置上壓縮。"}</small>
                 </div>
-                <div className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}>
+                <div className={`student-settings-premium ${hasAiPremium ? "active" : ""} ${isActiveAcademyStudent ? "academy" : ""}`}>
                     <FiZap />
-                    <strong>{hasAiPremium ? "AI Premium" : "AI 教材與發音練習未加購"}</strong>
-                    <span>{hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}</span>
+                    <strong>{isActiveAcademyStudent ? "英文班在學方案已包含" : hasAiPremium ? "AI Premium" : "AI 教材與發音練習未加購"}</strong>
+                    <span>{isActiveAcademyStudent ? "AI 練習、口說大挑戰與班級作業均可使用" : hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}</span>
                 </div>
                 <div className="student-settings-avatar-presets">
                     <div><strong>選擇預設頭像</strong><span>不想使用自己的照片時，可以隨時換回下列角色。</span></div>
@@ -440,7 +441,9 @@ function StudentSettings() {
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>教材與方案</h2></div></header>
                     <dl className="student-settings-data-list">
-                        <div><dt>AI Premium 資格</dt><dd>{hasAiPremium ? isActiveAcademyStudent ? "英文班方案已包含" : "已加購" : "未開通"}</dd></div>
+                        {isActiveAcademyStudent
+                            ? <div><dt>英文班在學方案</dt><dd>AI 練習與口說大挑戰已包含</dd></div>
+                            : <div><dt>AI Premium 資格</dt><dd>{hasAiPremium ? "已加購" : "未開通"}</dd></div>}
                         <div><dt>AI 教材與發音練習</dt><dd>{hasAiMaterials ? "兩項皆可使用" : "目前不可使用"}</dd></div>
                         <div><dt>帳號類型</dt><dd>{profile.learner_type === "academy_student" ? "英文班學生" : profile.learner_type === "textbook_customer" ? "教材購買者" : "試用／一般學生"}</dd></div>
                         <div><dt>在校狀態</dt><dd>{statusLabel}</dd></div>
@@ -464,10 +467,9 @@ function StudentSettings() {
                     <p>教材擁有權永久保留；網站使用權由班級、90 天贈送、試用或會員方案分別疊加。</p>
                 </article>
                 <article className="student-settings-panel">
-                    <header><FiCreditCard /><div><span>PLAN STATUS</span><h2>基本會員與 AI 方案</h2></div></header>
-                    <dl className="student-settings-data-list">
-                        {visiblePlans.length ? visiblePlans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{planStatus(plan)}</dd></div>) : <div><dt>方案</dt><dd>目前無基本會員或 AI 教材與發音練習方案</dd></div>}
-                    </dl>
+                    {isActiveAcademyStudent
+                        ? <><header><FiCreditCard /><div><span>ACADEMY ACCESS</span><h2>英文班在學方案</h2></div></header><p>在學期間所有網站功能已包含，不需要購買基本會員或 AI Premium。方案與班級資料由英文班管理。</p></>
+                        : <><header><FiCreditCard /><div><span>PLAN STATUS</span><h2>基本會員與 AI 方案</h2></div></header><dl className="student-settings-data-list">{visiblePlans.length ? visiblePlans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{planStatus(plan)}</dd></div>) : <div><dt>方案</dt><dd>目前無基本會員或 AI 教材與發音練習方案</dd></div>}</dl></>}
                 </article>
             </section>
 

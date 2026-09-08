@@ -95,6 +95,8 @@
 .student-settings-premium span { font-size: 12px; }
 .student-settings-premium.active { border-color: rgba(224, 171, 40, .7); color: #443766; background: linear-gradient(135deg, #fff7d8, #f5edff); }
 .student-settings-premium.active > svg { color: #db9d1e; }
+.student-settings-premium.academy { border-color: rgba(45, 145, 98, .32); color: #1f6244; background: linear-gradient(135deg, #effaf4, #f6fcf8); }
+.student-settings-premium.academy > svg { color: #2c9a67; }
 
 .student-settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-bottom: 22px; }
 .student-settings-panel { padding: 23px; }
