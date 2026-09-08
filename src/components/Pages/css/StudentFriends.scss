@@ -65,7 +65,7 @@
 .student-friends-stats span { padding: 5px 9px; border-radius: 999px; color: #204c9d; background: #e6efff; font-weight: 900; }
 .student-friends-stats strong { color: #1f355c; }
 .student-friends-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-.student-friends-actions button, .student-friends-blocked article > button { min-height: 38px; padding: 0 11px; border: 1px solid #d2dced; border-radius: 10px; color: #415a83; background: #fff; font-weight: 820; }
+.student-friends-actions button, .student-friends-blocked article > button { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border: 1px solid #d2dced; border-radius: 10px; color: #415a83; background: #fff; font-weight: 820; }
 .student-friends-actions .is-primary { border-color: #315eb7; color: #fff; background: #315eb7; }
 .student-friends-state { display: inline-flex; align-items: center; gap: 5px; color: #58709a; font-size: 13px; font-weight: 820; }
 .student-friends-empty { margin: 14px 0 0; padding: 16px; border-radius: 14px; color: #697996; background: #f5f7fb; line-height: 1.6; }
