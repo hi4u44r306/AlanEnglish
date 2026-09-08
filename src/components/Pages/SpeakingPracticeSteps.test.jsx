@@ -18,6 +18,7 @@ const question = {
     keywords: ["my", "name", "is"],
     simple_answer: "My name is Amy.",
     model_answer: "My name is [你的名字].",
+    question_audio_url: "https://example.test/question.wav",
     model_audio_url: "https://example.test/model.wav",
     pronunciation_notes_zh: "把 name 說清楚。",
     progress_status: "opened"
@@ -28,22 +29,31 @@ describe("SpeakingPracticeSteps", () => {
         expect(extractAnswerSlots("My name is [你的名字]. [你的名字]!")).toEqual(["你的名字"]);
         expect(answerPatternForLearner(question.model_answer)).toBe("My name is _____.");
 
-        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayAudio={jest.fn()} />);
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayQuestionAudio={jest.fn()} onPlayAnswerAudio={jest.fn()} />);
         expect(screen.getByText("可以直接錄音")).toBeInTheDocument();
         expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
         expect(screen.queryByText("My name is Amy.")).not.toBeInTheDocument();
     });
 
     it("求助時才顯示句型、自然示範與發音提醒", () => {
-        const onPlayAudio = jest.fn();
-        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayAudio={onPlayAudio} />);
+        const onPlayAnswerAudio = jest.fn();
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayQuestionAudio={jest.fn()} onPlayAnswerAudio={onPlayAnswerAudio} />);
         fireEvent.click(screen.getByRole("button", { name: "不知道怎麼說？" }));
 
         expect(screen.getByText("My name is _____.")).toBeInTheDocument();
         expect(screen.getByText("示範：My name is Amy.")).toBeInTheDocument();
         expect(screen.getByText("發音提醒：把 name 說清楚。")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
-        expect(onPlayAudio).toHaveBeenCalledTimes(1);
+        expect(onPlayAnswerAudio).toHaveBeenCalledTimes(1);
+    });
+
+    it("先播放問題，播放結束後才啟動五秒回答倒數", () => {
+        const onPlayQuestionAudio = jest.fn();
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onPlayQuestionAudio={onPlayQuestionAudio} onPlayAnswerAudio={jest.fn()} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /聽問題並回答/ }));
+        expect(onPlayQuestionAudio).toHaveBeenCalledTimes(1);
+        expect(typeof onPlayQuestionAudio.mock.calls[0][0]).toBe("function");
     });
 
     it("只有完整句型回答才完成小關卡", () => {

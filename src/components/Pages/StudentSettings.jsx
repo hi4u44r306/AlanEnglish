@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FiCamera, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { FiCamera, FiCreditCard, FiGift, FiImage, FiLock, FiMic, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
@@ -432,6 +433,7 @@ function StudentSettings() {
                         <div><span>AE Points</span><strong>{number(balance.points_balance)} P</strong></div>
                     </div>
                     <p>完成學習任務、作業與挑戰可累積 XP 和 AE Points。</p>
+                    <Link className="student-settings-history-link" to="/student/speaking-history"><FiMic />查看我的口說錄音與成果</Link>
                 </article>
 
                 <article className="student-settings-panel">

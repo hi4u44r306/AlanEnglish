@@ -220,6 +220,9 @@ const Showcase = () => {
                                     看看如何學習
                                 </a>
                             </div>
+                            <p className="showcase-returning-login">
+                                已經有帳號？ <Link to="/login">立即登入學習平台</Link>
+                            </p>
                             <div className="showcase-trust-row">
                                 <span><BiShieldQuarter /> 不需信用卡</span>
                                 <span><BiTimeFive /> 每天短時間練習</span>

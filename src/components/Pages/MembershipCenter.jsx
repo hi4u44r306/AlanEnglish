@@ -14,8 +14,8 @@ const STATUS_LABELS = { pending_verification: "等待 Email 驗證", trialing: "
 const FEATURE_LABELS = {
     listening: "分級教材與聽力",
     ai_materials: "AI 教材生成",
-    pronunciation: "發音練習",
-    pronunciation_practice: "發音練習",
+    pronunciation: "口說練習",
+    pronunciation_practice: "口說練習",
     conversation: "英文情境對話",
     assignments: "英文班作業",
     review: "智慧複習",
@@ -48,7 +48,7 @@ const FEATURE_OVERVIEW = [
     { key: "review", label: "智慧複習", description: "重新練習錯題與還沒完全掌握的內容。", path: "/student/review", icon: FiRefreshCw },
     { key: "assignments", label: "英文班作業", description: "只有有效在學、且老師有發布作業時才會顯示。", path: "/student/assignments", icon: FiUsers },
     { key: "ai_materials", label: "AI 專屬教材", description: "依自己的需求生成個人化英文練習。", path: "/student/ai-generator", icon: FiZap },
-    { key: "pronunciation", label: "發音練習", description: "朗讀指定句子並查看逐字發音結果。", path: "/student/pronunciation", icon: FiMic }
+    { key: "pronunciation", label: "口說練習", description: "進入口說大挑戰，聽問題、錄音回答並查看逐字發音結果。", path: "/student/speaking-challenges", icon: FiMic }
 ];
 
 const LOCK_REASON_LABELS = {
@@ -307,7 +307,7 @@ function MembershipCenter() {
             <section className="platform-card membership-plans" id="plans">
                 <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">MEMBERSHIP & AI</span><h2>延續使用與功能加購</h2><p>基本會員可使用全部正式聽力教材；AI 教材與發音練習為獨立加購。</p></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
                 {membership?.stripe_subscription_status && !isActiveAcademyStudent && <div className="membership-billing-notice"><p>{membership.cancel_at_period_end ? `已排程於 ${formatDate(membership.current_period_end)} 取消，到期前可恢復。` : membership.stripe_subscription_status === "past_due" ? "付款失敗，請由 Customer Portal 更新付款方式。" : `目前付款週期至 ${formatDate(membership.current_period_end)}。`}</p>{membership.stripe_subscription_status !== "canceled" && <button className="platform-secondary" type="button" disabled={Boolean(working)} onClick={() => updateRenewal(membership.cancel_at_period_end)}>{membership.cancel_at_period_end ? "到期前恢復續訂" : "本期結束取消"}</button>}</div>}
-                {hasAiPremium && <div className="membership-active-addon" role="status" aria-label="AI Premium｜AI 教材與發音練習已啟用"><span className="membership-active-addon-icon"><FiZap aria-hidden="true" /></span><div><span>AI Premium</span><strong>你的 AI 學習力已升級</strong><small>{hasAiAddon ? aiAddonCancelling ? `使用至 ${formatDate(aiRenewalAt)}，到期後不再扣款` : aiRenewalDay ? `每月 ${aiRenewalDay} 日續訂 · 每日 5 次、每月 150 次` : "AI 教材與發音練習已啟用" : "英文班在校期間已包含 · 每日 5 次、每月 150 次"}</small></div><div className="membership-active-addon-actions"><Link to="/student/ai-generator">AI 教材</Link><Link to="/student/pronunciation">發音練習</Link>{hasAiAddon && aiAddonSubscription?.stripe_subscription_id && <button type="button" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "恢復續訂" : "到期取消"}</button>}</div></div>}
+                {hasAiPremium && <div className="membership-active-addon" role="status" aria-label="AI Premium｜AI 教材與發音練習已啟用"><span className="membership-active-addon-icon"><FiZap aria-hidden="true" /></span><div><span>AI Premium</span><strong>你的 AI 學習力已升級</strong><small>{hasAiAddon ? aiAddonCancelling ? `使用至 ${formatDate(aiRenewalAt)}，到期後不再扣款` : aiRenewalDay ? `每月 ${aiRenewalDay} 日續訂 · 每日 5 次、每月 150 次` : "AI 教材與發音練習已啟用" : "英文班在校期間已包含 · 每日 5 次、每月 150 次"}</small></div><div className="membership-active-addon-actions"><Link to="/student/ai-generator">AI 練習</Link><Link to="/student/speaking-challenges">口說練習</Link>{hasAiAddon && aiAddonSubscription?.stripe_subscription_id && <button type="button" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "恢復續訂" : "到期取消"}</button>}</div></div>}
                 {publicPlans.length === 0
                     ? <div className="platform-empty"><strong>線上訂閱尚未開放</strong><p>目前可以使用免費試用或教材啟用碼。正式價格完成設定後，月費方案會自動顯示在這裡。</p></div>
                     : <div className="membership-plan-list">{publicPlans.map(plan => {

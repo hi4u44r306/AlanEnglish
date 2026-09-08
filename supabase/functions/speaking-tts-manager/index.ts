@@ -20,10 +20,11 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 const PROVIDER = "google_cloud_tts";
 const LANGUAGE_CODE = "en-US";
 const OUTPUT_FORMAT = "wav";
-const PIPELINE_VERSION = "elementary-bright-v4";
+const PIPELINE_VERSION = "elementary-dialogue-v5";
 const SAMPLE_RATE_METADATA = 24000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
-const SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.82 });
+const QUESTION_SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.9, volumeGainDb: 2 });
+const ANSWER_SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.84, volumeGainDb: 2 });
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;
 
@@ -104,13 +105,13 @@ const decodeGoogleAudio = (audioContent: unknown) => {
     return bytes;
 };
 
-const requestGoogleAudio = async (text: string, selectedVoice: string) => {
+const requestGoogleAudio = async (text: string, selectedVoice: string, settings: Record<string, unknown>) => {
     const accessToken = await getGoogleAccessToken();
     const response = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-            input: { text }, voice: { languageCode: LANGUAGE_CODE, name: selectedVoice }, audioConfig: SETTINGS
+            input: { text }, voice: { languageCode: LANGUAGE_CODE, name: selectedVoice }, audioConfig: settings
         })
     });
     const payload = await response.json().catch(() => ({}));
@@ -123,15 +124,45 @@ const requestGoogleAudio = async (text: string, selectedVoice: string) => {
     return { bytes: decodeGoogleAudio(payload.audioContent), usedCharacters: text.length };
 };
 
-const generateQuestionAudio = async (admin: any, question: any) => {
-    const text = spokenExampleText(question?.model_answer);
-    if (!text) return { question_id: Number(question.id), status: "failed", error: "示範回答是空白" };
-    const selected = chooseSpeakingVoice(question.question_set_id, question.sort_order, voicePool());
-    const selectedVoice = selected.voiceId;
+type AudioPurpose = "question_prompt" | "model_answer";
+
+const questionPromptText = (value: unknown) => {
+    const text = cleanText(value, 800).replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    return /[?.!]$/.test(text) ? text : `${text}?`;
+};
+
+const brightAnswerText = (value: unknown) => {
+    const text = spokenExampleText(value);
+    if (!text) return "";
+    return text.replace(/\.$/, "!");
+};
+
+const audioPlan = (question: any, purpose: AudioPurpose) => {
+    const voices = voicePool();
+    const answerVoice = chooseSpeakingVoice(question.question_set_id, question.sort_order, voices);
+    if (purpose === "model_answer") {
+        return { text: brightAnswerText(question?.model_answer), selectedVoice: answerVoice.voiceId, gender: answerVoice.gender, settings: ANSWER_SETTINGS };
+    }
+    const gender = answerVoice.gender === "female" ? "male" : "female";
+    return { text: questionPromptText(question?.question_text), selectedVoice: voices[gender], gender, settings: QUESTION_SETTINGS };
+};
+
+const linkAsset = async (admin: any, questionId: number, assetId: string, purpose: AudioPurpose, updatedAt: string) => {
+    const { error } = await admin.from("speaking_question_audio").upsert({
+        question_id: questionId, asset_id: assetId, purpose, updated_at: updatedAt
+    }, { onConflict: "question_id,purpose" });
+    if (error) throw error;
+};
+
+const generateQuestionAudio = async (admin: any, question: any, purpose: AudioPurpose) => {
+    const plan = audioPlan(question, purpose);
+    const { text, selectedVoice, gender, settings } = plan;
+    if (!text) return { question_id: Number(question.id), purpose, status: "failed", error: purpose === "question_prompt" ? "問題文字是空白" : "示範回答是空白" };
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
         provider: PROVIDER, voice_id: selectedVoice, language_code: LANGUAGE_CODE,
-        output_format: OUTPUT_FORMAT, sample_rate: "provider_default", pipeline_version: PIPELINE_VERSION, settings: SETTINGS
+        output_format: OUTPUT_FORMAT, sample_rate: "provider_default", pipeline_version: PIPELINE_VERSION, purpose, settings
     }));
 
     const { data: existing, error: existingError } = await admin.from("speaking_tts_assets")
@@ -140,14 +171,11 @@ const generateQuestionAudio = async (admin: any, question: any) => {
         .eq("voice_id", selectedVoice).eq("settings_hash", settingsHash).maybeSingle();
     if (existingError) throw existingError;
     if (existing?.status === "ready" && existing.private_object_key) {
-        const { error: linkError } = await admin.from("speaking_question_audio").upsert({
-            question_id: question.id, asset_id: existing.id, purpose: "model_answer", updated_at: new Date().toISOString()
-        }, { onConflict: "question_id" });
-        if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+        await linkAsset(admin, question.id, existing.id, purpose, new Date().toISOString());
+        return { question_id: Number(question.id), purpose, status: "ready", reused: true, voice_id: selectedVoice, voice_gender: gender };
     }
     if (existing?.status === "processing" && Date.now() - Date.parse(existing.updated_at) < 5 * 60 * 1000) {
-        return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+        return { question_id: Number(question.id), purpose, status: "processing", reused: true, voice_id: selectedVoice, voice_gender: gender };
     }
 
     const now = new Date().toISOString();
@@ -162,7 +190,7 @@ const generateQuestionAudio = async (admin: any, question: any) => {
         const { data, error } = await admin.from("speaking_tts_assets").insert({
             provider: PROVIDER, content_hash: contentHash, source_text: text, voice_id: selectedVoice,
             language_code: LANGUAGE_CODE, output_format: OUTPUT_FORMAT, sample_rate: SAMPLE_RATE_METADATA,
-            settings_hash: settingsHash, settings: SETTINGS, status: "processing", updated_at: now
+            settings_hash: settingsHash, settings: { ...settings, purpose }, status: "processing", updated_at: now
         }).select("id").single();
         if (error?.code === "23505") {
             const { data: raced, error: raceError } = await admin.from("speaking_tts_assets")
@@ -170,17 +198,17 @@ const generateQuestionAudio = async (admin: any, question: any) => {
                 .eq("voice_id", selectedVoice).eq("settings_hash", settingsHash).single();
             if (raceError) throw raceError;
             if (raced.status === "ready" && raced.private_object_key) {
-                await admin.from("speaking_question_audio").upsert({ question_id: question.id, asset_id: raced.id, purpose: "model_answer", updated_at: now }, { onConflict: "question_id" });
-                return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+                await linkAsset(admin, question.id, raced.id, purpose, now);
+                return { question_id: Number(question.id), purpose, status: "ready", reused: true, voice_id: selectedVoice, voice_gender: gender };
             }
-            return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+            return { question_id: Number(question.id), purpose, status: "processing", reused: true, voice_id: selectedVoice, voice_gender: gender };
         }
         if (error) throw error;
         asset = data;
     }
 
     try {
-        const generated = await requestGoogleAudio(text, selectedVoice);
+        const generated = await requestGoogleAudio(text, selectedVoice, settings);
         const objectKey = normalizeObjectKey(`speaking-tts/google/${selectedVoice}/${contentHash}-${settingsHash.slice(0, 16)}.wav`);
         const stored = await fetchR2(objectKey, {
             method: "PUT", body: generated.bytes,
@@ -193,11 +221,8 @@ const generateQuestionAudio = async (admin: any, question: any) => {
             used_characters: generated.usedCharacters, completed_at: completedAt, updated_at: completedAt
         }).eq("id", asset.id);
         if (readyError) throw readyError;
-        const { error: linkError } = await admin.from("speaking_question_audio").upsert({
-            question_id: question.id, asset_id: asset.id, purpose: "model_answer", updated_at: completedAt
-        }, { onConflict: "question_id" });
-        if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: false, voice_id: selectedVoice, voice_gender: selected.gender };
+        await linkAsset(admin, question.id, asset.id, purpose, completedAt);
+        return { question_id: Number(question.id), purpose, status: "ready", reused: false, voice_id: selectedVoice, voice_gender: gender };
     } catch (error: any) {
         await admin.from("speaking_tts_assets").update({
             status: "failed", error_code: cleanText(error?.code, 120) || "generation_failed",
@@ -225,7 +250,7 @@ Deno.serve(async (req: Request) => {
         if (!Number.isInteger(setId) || setId <= 0 || (requestedQuestionId !== null && (!Number.isInteger(requestedQuestionId) || requestedQuestionId <= 0))) {
             return json(400, { error: "題庫或題目編號不正確" });
         }
-        let query = admin.from("speaking_questions").select("id,question_set_id,model_answer,sort_order,speaking_question_sets(status)").eq("question_set_id", setId);
+        let query = admin.from("speaking_questions").select("id,question_set_id,question_text,model_answer,sort_order,speaking_question_sets(status)").eq("question_set_id", setId);
         if (requestedQuestionId !== null) query = query.eq("id", requestedQuestionId);
         const { data: questions, error } = await query.order("sort_order");
         if (error) throw error;
@@ -235,8 +260,9 @@ Deno.serve(async (req: Request) => {
         if (setStatus !== "published") return json(409, { error: "只有已發布題庫可以產生正式示範語音" });
         if (action === "preview_question_audio") {
             const question = questions[0];
+            const purpose: AudioPurpose = body?.purpose === "question_prompt" ? "question_prompt" : "model_answer";
             const { data: link, error: linkError } = await admin.from("speaking_question_audio")
-                .select("asset_id").eq("question_id", question.id).maybeSingle();
+                .select("asset_id").eq("question_id", question.id).eq("purpose", purpose).maybeSingle();
             if (linkError) throw linkError;
             if (!link?.asset_id) return json(404, { error: "這一題尚未產生示範語音" });
             const { data: asset, error: assetError } = await admin.from("speaking_tts_assets")
@@ -249,6 +275,7 @@ Deno.serve(async (req: Request) => {
             return json(200, {
                 success: true,
                 question_id: Number(question.id),
+                purpose,
                 voice_id: asset.voice_id,
                 voice_gender: asset.voice_id === configuredVoices.male ? "male"
                     : asset.voice_id === configuredVoices.female ? "female" : "unknown",
@@ -257,9 +284,11 @@ Deno.serve(async (req: Request) => {
         }
         const results = [];
         for (const question of questions.slice(0, 20)) {
-            try { results.push(await generateQuestionAudio(admin, question)); }
-            catch (generationError: any) {
-                results.push({ question_id: Number(question.id), status: "failed", error: cleanText(generationError?.message, 300) || "語音生成失敗" });
+            for (const purpose of ["question_prompt", "model_answer"] as AudioPurpose[]) {
+                try { results.push(await generateQuestionAudio(admin, question, purpose)); }
+                catch (generationError: any) {
+                    results.push({ question_id: Number(question.id), purpose, status: "failed", error: cleanText(generationError?.message, 300) || "語音生成失敗" });
+                }
             }
         }
         const failed = results.filter(item => item.status === "failed").length;

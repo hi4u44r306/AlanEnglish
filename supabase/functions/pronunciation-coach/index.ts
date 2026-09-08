@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { readAzureWordAssessment, selectAzureAssessmentResult } from "../_shared/azure-pronunciation.ts";
+import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
 import {
     buildSpeakingReferenceText,
     hasSpeakingAnswerSlots,
@@ -24,6 +25,7 @@ const MIN_AUDIO_SECONDS = 0.35;
 const MAX_AUDIO_SECONDS = 20;
 const RATE_WINDOW_MINUTES = 10;
 const RATE_REQUEST_LIMIT = 12;
+const HISTORY_PAGE_SIZE = 24;
 
 const normalizeWord = (value: unknown) => String(value || "")
     .toLowerCase()
@@ -153,6 +155,129 @@ const assertRateLimit = async (admin: any, studentId: number) => {
     }
 };
 
+const englishWords = (value: unknown) => String(value || "")
+    .toLowerCase()
+    .match(/[a-z]+(?:'[a-z]+)?/g) || [];
+
+const loadLearningSummary = async (admin: any, studentId: number) => {
+    const [{ data: progress, error: progressError }, { count: savedRecordings, error: recordingError }] = await Promise.all([
+        admin.from("speaking_challenge_question_progress")
+            .select("question_id").eq("student_id", studentId).eq("status", "completed"),
+        admin.from("speaking_pronunciation_attempts")
+            .select("id", { count: "exact", head: true }).eq("student_id", studentId)
+            .not("audio_object_key", "is", null).is("audio_deleted_at", null)
+    ]);
+    if (progressError) throw progressError;
+    if (recordingError) throw recordingError;
+    const questionIds = [...new Set((progress || []).map((row: any) => Number(row.question_id)).filter(Number.isInteger))];
+    if (!questionIds.length) return { learned_sentences: 0, learned_words: 0, saved_recordings: savedRecordings || 0 };
+
+    const { data: attempts, error: attemptError } = await admin.from("speaking_pronunciation_attempts")
+        .select("question_id,recognized_text,created_at,id")
+        .eq("student_id", studentId).in("question_id", questionIds)
+        .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(2000);
+    if (attemptError) throw attemptError;
+
+    const latestTextByQuestion = new Map<number, string>();
+    for (const row of attempts || []) {
+        const questionId = Number(row.question_id);
+        if (!latestTextByQuestion.has(questionId) && String(row.recognized_text || "").trim()) {
+            latestTextByQuestion.set(questionId, String(row.recognized_text));
+        }
+    }
+    const missingQuestionIds = questionIds.filter(id => !latestTextByQuestion.has(id));
+    if (missingQuestionIds.length) {
+        const { data: questions, error: questionError } = await admin.from("speaking_questions")
+            .select("id,model_answer").in("id", missingQuestionIds);
+        if (questionError) throw questionError;
+        for (const question of questions || []) latestTextByQuestion.set(Number(question.id), String(question.model_answer || ""));
+    }
+    const words = new Set<string>();
+    for (const questionId of questionIds) {
+        englishWords(latestTextByQuestion.get(questionId)).forEach(word => words.add(word));
+    }
+    return {
+        learned_sentences: questionIds.length,
+        learned_words: words.size,
+        saved_recordings: savedRecordings || 0
+    };
+};
+
+const loadRecordingHistory = async (admin: any, studentId: number, beforeId?: number) => {
+    let query = admin.from("speaking_pronunciation_attempts")
+        .select("id,question_id,pronunciation_score,recognized_text,audio_duration_ms,created_at,speaking_questions(question_text),speaking_question_sets(title,books(name))")
+        .eq("student_id", studentId).not("audio_object_key", "is", null).is("audio_deleted_at", null)
+        .order("id", { ascending: false }).limit(HISTORY_PAGE_SIZE);
+    if (Number.isInteger(beforeId) && Number(beforeId) > 0) query = query.lt("id", Number(beforeId));
+    const { data, error } = await query;
+    if (error) throw error;
+    const recordings = (data || []).map((row: any) => ({
+        id: row.id,
+        question_id: row.question_id,
+        pronunciation_score: numberScore(row.pronunciation_score),
+        recognized_text: row.recognized_text,
+        audio_duration_ms: row.audio_duration_ms,
+        created_at: row.created_at,
+        question_text: row.speaking_questions?.question_text || "口說練習",
+        challenge_title: row.speaking_question_sets?.title || "口說大挑戰",
+        book_name: row.speaking_question_sets?.books?.name || "教材"
+    }));
+    return {
+        recordings,
+        next_before_id: recordings.length === HISTORY_PAGE_SIZE ? recordings.at(-1)?.id || null : null
+    };
+};
+
+const loadOwnedRecording = async (admin: any, studentId: number, attemptId: number) => {
+    const { data, error } = await admin.from("speaking_pronunciation_attempts")
+        .select("id,audio_object_key").eq("id", attemptId).eq("student_id", studentId)
+        .not("audio_object_key", "is", null).is("audio_deleted_at", null).maybeSingle();
+    if (error) throw error;
+    if (!data) throw Object.assign(new Error("找不到這筆私人錄音"), { status: 404 });
+    return data;
+};
+
+const deleteRecording = async (admin: any, studentId: number, attemptId: number) => {
+    const recording = await loadOwnedRecording(admin, studentId, attemptId);
+    const objectKey = normalizeObjectKey(recording.audio_object_key);
+    const deleted = await fetchR2(objectKey, { method: "DELETE" });
+    if (!deleted.ok && deleted.status !== 404) throw Object.assign(new Error("私人錄音暫時無法刪除"), { status: 502 });
+    const { error } = await admin.from("speaking_pronunciation_attempts").update({
+        audio_object_key: null,
+        audio_mime_type: null,
+        audio_byte_size: null,
+        audio_duration_ms: null,
+        audio_saved_at: null,
+        audio_deleted_at: new Date().toISOString()
+    }).eq("id", attemptId).eq("student_id", studentId);
+    if (error) throw error;
+};
+
+const pruneQuestionRecordings = async (admin: any, studentId: number, questionId: number) => {
+    const { data, error } = await admin.from("speaking_pronunciation_attempts")
+        .select("id,pronunciation_score,audio_object_key,created_at")
+        .eq("student_id", studentId).eq("question_id", questionId)
+        .not("audio_object_key", "is", null).is("audio_deleted_at", null)
+        .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(100);
+    if (error) throw error;
+    if ((data || []).length <= 2) return;
+    const latest = data[0];
+    const best = [...data].sort((left: any, right: any) => (
+        Number(right.pronunciation_score || 0) - Number(left.pronunciation_score || 0)
+        || Date.parse(right.created_at) - Date.parse(left.created_at)
+    ))[0];
+    const keep = new Set([Number(latest.id), Number(best.id)]);
+    for (const row of data.filter((item: any) => !keep.has(Number(item.id)))) {
+        const objectKey = normalizeObjectKey(row.audio_object_key);
+        const deleted = await fetchR2(objectKey, { method: "DELETE" });
+        if (!deleted.ok && deleted.status !== 404) continue;
+        await admin.from("speaking_pronunciation_attempts").update({
+            audio_object_key: null, audio_mime_type: null, audio_byte_size: null,
+            audio_duration_ms: null, audio_saved_at: null, audio_deleted_at: new Date().toISOString()
+        }).eq("id", row.id).eq("student_id", studentId);
+    }
+};
+
 const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof assertPublishedQuestionAccess>>) => {
     const selected = selectAzureAssessmentResult(data);
     if (!selected) throw Object.assign(new Error("發音評分服務沒有回傳完整分數"), { status: 502, code: "provider_assessment_unavailable" });
@@ -226,8 +351,33 @@ Deno.serve(async (req: Request) => {
         if (!supabaseUrl || !serviceRoleKey) return json(500, { error: "Supabase 伺服器設定不完整" });
         const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
         const user = await verifyFirebaseRequest(req, admin);
-        const effectiveAccess = await loadEffectiveAccess(admin, Number(user.id));
         if (user.role !== "student") return json(403, { error: "只有學生可以送出發音評分" });
+        if (String(req.headers.get("content-type") || "").includes("application/json")) {
+            const body = await req.json().catch(() => ({}));
+            const action = String(body?.action || "").trim();
+            if (action === "learning_summary") {
+                return json(200, { success: true, summary: await loadLearningSummary(admin, Number(user.id)) });
+            }
+            if (action === "recording_history") {
+                const beforeId = Number(body?.before_id);
+                if (body?.before_id != null && (!Number.isInteger(beforeId) || beforeId <= 0)) {
+                    return json(400, { error: "錄音歷程游標不正確" });
+                }
+                return json(200, { success: true, ...await loadRecordingHistory(admin, Number(user.id), beforeId) });
+            }
+            const attemptId = Number(body?.attempt_id);
+            if (!Number.isInteger(attemptId) || attemptId <= 0) return json(400, { error: "錄音資料不完整" });
+            if (action === "recording_url") {
+                const recording = await loadOwnedRecording(admin, Number(user.id), attemptId);
+                return json(200, { success: true, audio_url: await createR2PresignedUrl(recording.audio_object_key, "GET", 10 * 60) });
+            }
+            if (action === "delete_recording") {
+                await deleteRecording(admin, Number(user.id), attemptId);
+                return json(200, { success: true });
+            }
+            return json(400, { error: "不支援的口說學習歷程操作" });
+        }
+        const effectiveAccess = await loadEffectiveAccess(admin, Number(user.id));
         if (!effectiveAccess.is_active || !effectiveAccess.features.pronunciation) {
             return json(403, { error: "目前帳號不包含 AI 發音練習", code: "pronunciation_access_required" });
         }
@@ -298,17 +448,47 @@ Deno.serve(async (req: Request) => {
         }
 
         const normalized = normalizeAzureResult(providerResult, question);
-        const { error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
+        const { data: savedAttempt, error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
             student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
             pronunciation_score: normalized.scores.pronunciation, accuracy_score: normalized.scores.accuracy,
             fluency_score: normalized.scores.fluency, completeness_score: normalized.scores.completeness,
             prosody_score: normalized.scores.prosody, recognized_text: normalized.recognized_text,
             word_results: normalized.words
-        });
+        }).select("id").single();
         if (saveError) throw saveError;
+
+        let recordingSaved = false;
+        try {
+            const objectKey = normalizeObjectKey(`speaking-recordings/${user.id}/${question.questionId}/${crypto.randomUUID()}.wav`);
+            const stored = await fetchR2(objectKey, {
+                method: "PUT",
+                headers: { "Content-Type": "audio/wav" },
+                body: new Uint8Array(audioBuffer)
+            });
+            if (!stored.ok) throw new Error(`R2 HTTP ${stored.status}`);
+            const now = new Date().toISOString();
+            const { error: audioUpdateError } = await admin.from("speaking_pronunciation_attempts").update({
+                audio_object_key: objectKey,
+                audio_mime_type: "audio/wav",
+                audio_byte_size: audio.size,
+                audio_duration_ms: Math.round(wavInfo.durationSeconds * 1000),
+                audio_saved_at: now,
+                audio_deleted_at: null
+            }).eq("id", savedAttempt.id).eq("student_id", user.id);
+            if (audioUpdateError) {
+                await fetchR2(objectKey, { method: "DELETE" }).catch(() => null);
+                throw audioUpdateError;
+            }
+            recordingSaved = true;
+            await pruneQuestionRecordings(admin, Number(user.id), question.questionId);
+        } catch (recordingError) {
+            console.error("Private speaking recording was not saved", String((recordingError as any)?.message || "unknown"));
+        }
 
         return json(200, {
             success: true,
+            attempt_id: savedAttempt.id,
+            recording_saved: recordingSaved,
             question_id: question.questionId,
             reference_text: question.referenceText || null,
             ...normalized

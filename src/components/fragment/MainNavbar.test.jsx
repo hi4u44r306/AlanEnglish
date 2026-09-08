@@ -7,11 +7,16 @@ import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications } from "../../services/membershipService";
+import { prefetchSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
+jest.mock("../../services/speakingChallengeService", () => ({
+    clearSpeakingChallengeCatalogCache: jest.fn(),
+    prefetchSpeakingChallengeCatalog: jest.fn()
+}));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, id }) => show ? ReactModule.createElement("aside", { id }, children) : null;
@@ -42,6 +47,7 @@ describe("MainNavbar student navigation", () => {
             balance: { total_xp: 180, level: 2, next_level_xp: 250, progress_percent: 53 }
         });
         getStudentNotifications.mockResolvedValue({ notifications: [] });
+        prefetchSpeakingChallengeCatalog.mockResolvedValue(null);
     });
 
     it("keeps common links in the desktop bar and moves secondary links into the full menu", async () => {
@@ -50,7 +56,12 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getAllByRole("link", { name: "我的首頁" }).length).toBeGreaterThan(0);
         expect(screen.queryByRole("link", { name: "方案與功能" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "英文對話" })).not.toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.queryByRole("link", { name: "發音教練" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "口說練習" }));
+        expect(screen.getByRole("link", { name: "開始口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.getByRole("link", { name: "我的口說歷程" })).toHaveAttribute("href", "/student/speaking-history");
+        expect(screen.getByRole("link", { name: "AI 練習方案" })).toHaveAttribute("href", "/student/ai-generator");
+        expect(prefetchSpeakingChallengeCatalog).toHaveBeenCalledWith(expect.objectContaining({ uid: "student-test" }));
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
@@ -167,7 +178,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
     });
 
-    it("shows AI Premium and pronunciation to an active academy student without an add-on", async () => {
+    it("groups speaking challenge and history for an active academy student", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "academy-all-access" },
             role: "student",
@@ -188,12 +199,17 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
         expect(screen.getByText("AI Premium")).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "發音教練" })).toHaveAttribute("href", "/student/pronunciation");
-        expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.queryByRole("link", { name: "發音教練" })).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "AI 練習" })).toHaveAttribute("href", "/student/ai-generator");
+        fireEvent.click(screen.getByRole("button", { name: "口說練習" }));
+        expect(screen.getByRole("link", { name: "開始口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.getByRole("link", { name: "我的口說歷程" })).toHaveAttribute("href", "/student/speaking-history");
         fireEvent.click(screen.getByRole("button", { name: "全部功能" }));
         expect(await screen.findAllByText("AI Premium")).toHaveLength(2);
-        expect(screen.getAllByRole("link", { name: "發音教練" })).toHaveLength(2);
-        expect(screen.getAllByRole("link", { name: "口說大挑戰" })).toHaveLength(2);
+        expect(screen.queryByRole("link", { name: "發音教練" })).not.toBeInTheDocument();
+        expect(screen.getAllByText("口說練習")).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "開始口說大挑戰" })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "我的口說歷程" })).toHaveLength(2);
     });
 
     it("shows one music-management link and the links admin entry to admins", async () => {
@@ -242,6 +258,14 @@ describe("MainNavbar student navigation", () => {
 
         expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");
         expect(screen.queryByRole("link", { name: "新增連結" })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "口說示範" }));
+        expect(screen.getByRole("link", { name: "口說大挑戰" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.getByRole("link", { name: "口說歷程示範" })).toHaveAttribute("href", "/student/speaking-history");
+
+        fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
+        expect(screen.getByRole("link", { name: "口說大挑戰示範" })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.getAllByRole("link", { name: "口說歷程示範" })).toHaveLength(2);
     });
 
     it("highlights the active student route in the full menu", () => {
