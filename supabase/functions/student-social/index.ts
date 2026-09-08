@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
         const admin = adminClient();
         const caller = await verifyFirebaseRequest(req, admin);
         if (caller.role !== "student") return json(req, 403, { success: false, error: "好友功能只提供學生帳號使用" });
-        const { data: access, error: accessError } = await admin.rpc("get_student_effective_access", { p_student_id: caller.id, p_at: new Date().toISOString() });
+        const { data: access, error: accessError } = await admin.rpc("get_student_effective_access", { p_student_id: caller.id, p_as_of: new Date().toISOString() });
         if (accessError) throw accessError;
         if (access?.is_active !== true) return json(req, 403, { success: false, error: "學習方案目前未啟用，暫時無法使用好友功能" });
 
@@ -195,7 +195,7 @@ Deno.serve(async (req: Request) => {
             if (!found || Number(found.student_id) === caller.id) return json(req, 200, { success: true, result: null });
             const targetId = Number(found.student_id);
             const [{ data: targetAccess }, { data: block }, { data: relation }] = await Promise.all([
-                admin.rpc("get_student_effective_access", { p_student_id: targetId, p_at: new Date().toISOString() }),
+                admin.rpc("get_student_effective_access", { p_student_id: targetId, p_as_of: new Date().toISOString() }),
                 admin.from("student_social_blocks").select("blocker_id").or(blockFilter(caller.id, targetId)).limit(1).maybeSingle(),
                 admin.from("student_friendships").select("id,requester_id,addressee_id,status").or(relationFilter(caller.id, targetId)).maybeSingle()
             ]);
@@ -211,7 +211,7 @@ Deno.serve(async (req: Request) => {
             const [{ data: target }, { data: targetProfile }, { data: targetAccess }, { data: block }, { data: existing }] = await Promise.all([
                 admin.from("students").select("id,role,account_status").eq("id", targetId).maybeSingle(),
                 admin.from("student_social_profiles").select("nickname").eq("student_id", targetId).maybeSingle(),
-                admin.rpc("get_student_effective_access", { p_student_id: targetId, p_at: new Date().toISOString() }),
+                admin.rpc("get_student_effective_access", { p_student_id: targetId, p_as_of: new Date().toISOString() }),
                 admin.from("student_social_blocks").select("blocker_id").or(blockFilter(caller.id, targetId)).limit(1).maybeSingle(),
                 admin.from("student_friendships").select("id,requester_id,addressee_id,status").or(relationFilter(caller.id, targetId)).maybeSingle()
             ]);
