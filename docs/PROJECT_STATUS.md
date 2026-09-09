@@ -4,7 +4,7 @@
 
 ## 本次進行中（2026-09-09，測試站已部署，正式尚未部署）
 
-- 家長學習報告第一階段：學生首頁把既有週報收斂為「家長學習報告」，可彙整聽力、作業、AI、複習與口說，提供複製家長摘要及列印／存 PDF。學生只讀自己的報告，學習方案到期後仍可查看歷史紀錄；教師端改由後端依 `teacher_class_permissions` 限制為目前授權班級，管理員才可看全部學生。本機 checkpoint `25154f1` 的 `WeeklyReport` 元件測試、Edge Function 語法檢查、`git diff --check` 與 production build 已通過；測試 Supabase 的 `weekly-report` 與固定測試站已部署，未登入函式請求正確回傳 401。未新增資料表或資料 migration；尚待已登入學生、教師與管理員的真人角色驗收，以及推送、合併與正式部署。
+- 家長學習報告第一階段：學生首頁把既有週報收斂為「家長學習報告」，可彙整聽力、作業、AI、複習與口說，提供複製家長摘要及列印／存 PDF。學生只讀自己的報告，學習方案到期後仍可查看歷史紀錄；教師端改由後端依 `teacher_class_permissions` 限制為目前授權班級，管理員才可看全部學生。本機 checkpoint `25154f1` 的 `WeeklyReport` 元件測試、Edge Function 語法檢查、`git diff --check` 與 production build 已通過；測試 Supabase 的 `weekly-report` 與固定測試站已部署，未登入函式請求正確回傳 401。管理頁「提醒家長」彈窗另已在本機修正 JSX／SCSS class 名稱不一致造成的無樣式問題，補齊欄位、操作按鈕、手機滿寬按鈕與 safe area；管理 Dashboard 2/2 測試與 production build 已通過，尚未重新部署。未新增資料表或資料 migration；尚待已登入學生、教師與管理員的真人角色驗收，以及推送、合併與正式部署。
 
 本次正式發布（2026-09-07）：
 

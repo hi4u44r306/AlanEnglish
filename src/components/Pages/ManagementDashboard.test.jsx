@@ -1,9 +1,12 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import { getTeacherStudentActivity } from "../../services/learningActivityService";
+import {
+    createGuardianNotificationDraft,
+    getTeacherStudentActivity
+} from "../../services/learningActivityService";
 import ManagementDashboard from "./ManagementDashboard";
 
 jest.mock("../../auth/AuthContext", () => ({
@@ -44,7 +47,10 @@ describe("ManagementDashboard", () => {
                     total_steps: 9
                 },
                 listening: { completed: 0 },
-                guardian: null
+                guardian: {
+                    email: "guardian@example.invalid",
+                    notification_enabled: true
+                }
             }]
         });
     });
@@ -65,5 +71,30 @@ describe("ManagementDashboard", () => {
         expect(row.querySelector('[data-label="狀態"]')).toBeInTheDocument();
         expect(row.querySelector('[data-label="家長"]')).toBeInTheDocument();
         expect(row.querySelector('[data-label="操作"]')).toBeInTheDocument();
+    });
+
+    test("opens the styled guardian reminder dialog", async () => {
+        createGuardianNotificationDraft.mockResolvedValue({
+            draft: {
+                id: 501,
+                email: "guardian@example.invalid",
+                subject: "Alan English 學習提醒",
+                message: "本週學習提醒"
+            }
+        });
+
+        render(
+            <MemoryRouter>
+                <ManagementDashboard />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(await screen.findByRole("button", { name: "提醒家長" }));
+
+        const dialog = await screen.findByRole("dialog");
+        expect(dialog).toHaveClass("guardian-reminder-modal");
+        expect(dialog.parentElement).toHaveClass("guardian-reminder-modal-backdrop");
+        expect(screen.getByRole("button", { name: "開啟 Email" })).toHaveClass("open-mail-button");
+        expect(screen.getByRole("button", { name: "我已寄出" })).toHaveClass("primary");
     });
 });

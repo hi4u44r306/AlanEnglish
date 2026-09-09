@@ -419,7 +419,7 @@ function ManagementDashboard() {
                         <p>目前這一步會開啟裝置上的 Email App；網站會保留提醒紀錄，但不會假裝已經由伺服器自動寄出。</p>
                         <div className="guardian-reminder-actions">
                             <button type="button" onClick={() => setNoticeDraft(null)}>取消</button>
-                            <button type="button" onClick={openMailClient}>開啟 Email</button>
+                            <button type="button" className="open-mail-button" onClick={openMailClient}>開啟 Email</button>
                             <button type="button" className="primary" onClick={markReminderSent}>我已寄出</button>
                         </div>
                     </div>
