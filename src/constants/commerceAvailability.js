@@ -1,0 +1,2 @@
+export const PUBLIC_SELF_SERVICE_BILLING_ENABLED = false;
+export const PUBLIC_MATERIAL_SALES_ENABLED = false;

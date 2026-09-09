@@ -9,6 +9,7 @@ const corsHeaders = {
     "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
 const DEFAULT_SITE_URL = "https://alanenglish.com.tw";
+const PUBLIC_STORE_SALES_ENABLED = false;
 const ALLOWED_CHECKOUT_ORIGINS = new Set([
     DEFAULT_SITE_URL,
     "https://alanenglish-student-test.netlify.app"
@@ -453,9 +454,11 @@ Deno.serve(async (req: Request) => {
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
     try {
         const body = await req.json().catch(() => ({}));
+        const action = cleanText(body.action, 50);
+        if (!PUBLIC_STORE_SALES_ENABLED && action === "create_checkout") return json(503, { error: "教材包正在準備中，目前尚未開放結帳", code: "public_store_sales_paused" });
         const admin = createAdmin();
         let result: any;
-        switch (cleanText(body.action, 50)) {
+        switch (action) {
             case "catalog": result = { shipping_methods: await shippingMethods(admin) }; break;
             case "create_checkout": result = await createCheckout(admin, req, body); break;
             case "orders": result = await customerOrders(admin, req, body); break;
