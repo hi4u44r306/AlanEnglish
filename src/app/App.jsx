@@ -46,6 +46,8 @@ import StudentSettings from "../components/Pages/StudentSettings";
 import StudentNotifications from "../components/Pages/StudentNotifications";
 import StudentFriends from "../components/Pages/StudentFriends";
 import StoreCatalog from "../components/Pages/StoreCatalog";
+import StoreSalesPaused from "../components/Pages/StoreSalesPaused";
+import { PUBLIC_MATERIAL_SALES_ENABLED } from "../constants/commerceAvailability";
 import StoreAuthPage from "../components/Pages/StoreAuthPage";
 import StoreVerificationPage from "../components/Pages/StoreVerificationPage";
 import StoreCart from "../components/Pages/StoreCart";
@@ -129,13 +131,13 @@ const App = () => {
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
                     <Route path="/materials" element={<Navigate to="/shop" replace />} />
                     <Route path="/shop" element={<StoreCatalog />} />
-                    <Route path="/shop/cart" element={<StoreCart />} />
+                    <Route path="/shop/cart" element={PUBLIC_MATERIAL_SALES_ENABLED ? <StoreCart /> : <StoreSalesPaused />} />
                     <Route path="/shop/login" element={<StoreAuthPage />} />
                     <Route path="/shop/register" element={<StoreAuthPage register />} />
                     <Route path="/shop/verified" element={<StoreVerificationPage />} />
                     <Route path="/shop/forgot-password" element={<StorePasswordPage />} />
                     <Route path="/shop/reset-password" element={<StorePasswordPage update />} />
-                    <Route path="/shop/checkout" element={<StoreCheckout />} />
+                    <Route path="/shop/checkout" element={PUBLIC_MATERIAL_SALES_ENABLED ? <StoreCheckout /> : <StoreSalesPaused />} />
                     <Route path="/shop/orders" element={<StoreOrders />} />
                     <Route path="/shop/orders/:orderNumber" element={<StoreOrders />} />
                     <Route path="/shop/payment/success" element={<StorePaymentResult />} />
@@ -144,7 +146,7 @@ const App = () => {
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><MembershipCenter /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/settings" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentSettings /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentNotifications /></Containerfull></ProtectedRoute>} />

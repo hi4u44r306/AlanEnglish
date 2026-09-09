@@ -210,7 +210,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByText(/每月最多/, { selector: "li" })).toHaveTextContent("每月最多 150 次");
     });
 
-    it("shows a spinner while opening Stripe Checkout", async () => {
+    it("disables new checkout while public billing is paused", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {
                 membership: {
@@ -220,20 +220,14 @@ describe("MembershipCenter AI add-on", () => {
                 }
             }
         });
-        createCheckoutSession.mockReturnValue(new Promise(() => {}));
-
         render(
             <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <MembershipCenter />
             </MemoryRouter>
         );
 
-        fireEvent.click(await screen.findByRole("button", { name: "選擇方案" }));
-
-        const loadingButton = await screen.findByRole("button", { name: "正在開啟安全付款…" });
-        expect(loadingButton).toBeDisabled();
-        expect(loadingButton).toHaveAttribute("aria-busy", "true");
-        expect(createCheckoutSession).toHaveBeenCalledWith(expect.anything(), 99);
+        expect(await screen.findByRole("button", { name: "目前暫停開放付款" })).toBeDisabled();
+        expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
     it("labels active academy access as an in-school plan instead of complimentary access", async () => {
@@ -410,7 +404,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.queryByRole("button", { name: "本期結束取消" })).not.toBeInTheDocument();
     });
 
-    it("shows the active NT$299 base membership and the NT$499 AI and pronunciation add-on", async () => {
+    it("shows the active NT$299 base membership and the paused NT$299 AI add-on", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {
                 membership: {
@@ -439,11 +433,11 @@ describe("MembershipCenter AI add-on", () => {
                 checkout_ready: true,
                 features: { listening: true, review: true, requires_book_entitlement: false }
             }, {
-                id: 499,
+                id: 2991,
                 code: "ai_materials_addon_monthly",
                 name: "AI 教材與發音練習",
                 description: "需搭配基本會員；包含 AI 教材與發音教練",
-                price_twd: 499,
+                price_twd: 299,
                 trial_days: 0,
                 access_model: "addon",
                 offer_label: "AI 教材與發音練習",
@@ -463,8 +457,8 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByText("基本會員")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "目前方案使用中" })).toBeDisabled();
         expect(screen.getAllByText(/全部正式聽力教材/).length).toBeGreaterThan(0);
-        expect(generalAiHeading.closest("article")).toHaveTextContent("NT$ 499／月");
+        expect(generalAiHeading.closest("article")).toHaveTextContent("NT$ 299／月");
 
-        expect(screen.getByRole("button", { name: "選擇方案" })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "目前暫停開放付款" })).toBeDisabled();
     });
 });

@@ -1,6 +1,11 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-08
+最後更新：2026-09-09
+
+## 本次進行中（2026-09-09，整合版待部署測試站，正式尚未部署）
+
+- 家長學習報告第一階段：學生首頁把既有週報收斂為「家長學習報告」，可彙整聽力、作業、AI、複習與口說，提供複製家長摘要及列印／存 PDF。學生只讀自己的報告，學習方案到期後仍可查看歷史紀錄；教師端改由後端依 `teacher_class_permissions` 限制為目前授權班級，管理員才可看全部學生。本機 checkpoint `25154f1` 的 `WeeklyReport` 元件測試、Edge Function 語法檢查、`git diff --check` 與 production build 已通過；測試 Supabase 的 `weekly-report` 與固定測試站已部署，未登入函式請求正確回傳 401。管理頁「提醒家長」彈窗已修正無樣式問題；針對內建瀏覽器或未設定預設郵件程式時 `mailto:` 沒有反應，另改為原生 Email 連結並新增「複製郵件內容」備援與狀態提示。管理 Dashboard 3/3 測試、production build 與 `git diff --check` 已通過，修正版固定測試站 deploy `6aa16914c5c96214321aae2c` 已為 ready；管理路由回應 200，線上 bundle 已確認包含 Email 連結、剪貼簿備援與提示文案。未新增資料表或資料 migration；尚待已登入學生／教師／管理員真人角色驗收，以及推送、合併與正式部署。
+- 測試站整合與家長通知直接寄送（本機完成，待部署）：已把新版學生 Navbar、口說大挑戰入口／關卡設計、家長學習報告，以及管理員單筆直接寄送／E1、E3、E5、E7 班級批量寄送合併至同一個測試站版本，避免部署家長報告時覆蓋較新的學生介面。每位家長使用獨立 Resend 請求，不使用 BCC；後端只接受既有通知編號或固定班級，不信任前端收件地址與內容，以台北日期的 idempotency key 防止同日重複。新操作只開放管理員，沿用 `guardian_email_settings` 與 `RESEND_API_KEY`，不需新增 migration，也未實際寄送任何測試信。相關 React 測試 8 suites／43 tests、前後端合約 69／69、Edge Function 語法、SEO 靜態頁、production build 與 `git diff --check` 均成功；待部署 `guardian-email` 至測試 Supabase 並發布固定測試站。
 
 本次正式發布（2026-09-07）：
 
@@ -766,3 +771,6 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
+## 本次進行中（2026-09-09，測試站已部署，正式尚未部署）
+
+- 公開教材停售與方案文案統一：公開教材包、平台月費與 AI 加購都已在前端關閉新的購物車／結帳入口；首頁、教材頁與商城改為明確說明「教材包暫未販售」、「公開付款暫停」。公開規劃改為平台 NT$299／月、AI 教材與發音練習加購 NT$299／月；英文班內部方案與費用不公開在網站。未來實體教材恢復販售時，預定以同一個已驗證 Email 領取 90 天網站使用權，但本批不啟用銷售或領取流程。測試 Supabase 已套用並登記 `20260909100000_pause_public_sales_and_update_membership_pricing.sql`，只更新四個方案設定、不變更既有教材包或訂單；`billing-manager` 與 `store-commerce` 已部署停售防護，三種新付款入口的無身分請求皆正確回傳 503。固定測試站公開路由驗收通過；尚待提交、推送、合併與正式部署。

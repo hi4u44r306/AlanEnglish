@@ -19,7 +19,7 @@ describe("StoreHeader navigation", () => {
         expect(screen.getByRole("link", { name: "返回 Alan English 網站首頁" })).toHaveAttribute("href", "/");
         expect(screen.getByRole("link", { name: "回到教材商城" })).toHaveAttribute("href", "/shop");
         expect(screen.getByRole("link", { name: "聽力學習平台" })).toHaveAttribute("href", "/userinfo");
-        expect(screen.getAllByRole("link", { name: "購物車，目前有 2 件商品" })[0]).toHaveAttribute("href", "/shop/cart");
+        expect(screen.queryByRole("link", { name: "購物車，目前有 2 件商品" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "登入／註冊" })).toHaveAttribute("href", "/shop/login");
         expect(screen.getByRole("link", { name: "登入／註冊" })).toHaveAttribute("aria-current", "page");
     });
@@ -41,7 +41,7 @@ describe("StoreHeader navigation", () => {
         fireEvent.click(screen.getByRole("button", { name: "開啟商城選單" }));
         expect(screen.getByRole("dialog", { name: "教材商城選單" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "商城功能" })).toBeInTheDocument();
-        expect(screen.getByText("查看付款與出貨進度")).toBeInTheDocument();
+        expect(screen.getByText("教材包準備中，可查詢既有訂單")).toBeInTheDocument();
         expect(screen.getByText("免費註冊")).toBeInTheDocument();
         expect(document.body).toHaveStyle({ overflow: "hidden" });
 

@@ -52,7 +52,8 @@
 .activity-row-actions button,
 .guardian-save-button,
 .guardian-editor-heading button,
-.reminder-modal-actions button {
+.guardian-reminder-actions button,
+.guardian-reminder-actions a {
     border: 0;
     border-radius: 10px;
     font-weight: 700;
@@ -347,7 +348,7 @@
     color: #fff;
 }
 
-.reminder-modal-backdrop {
+.guardian-reminder-modal-backdrop {
     position: fixed;
     inset: 0;
     z-index: 2000;
@@ -358,7 +359,7 @@
     backdrop-filter: blur(5px);
 }
 
-.reminder-modal {
+.guardian-reminder-modal {
     width: min(620px, 100%);
     max-height: 86vh;
     overflow-y: auto;
@@ -368,39 +369,141 @@
     box-shadow: 0 30px 80px rgba(8, 18, 38, .24);
 }
 
-.reminder-modal h2 {
+.guardian-reminder-modal > span {
+    display: block;
+    color: #3478db;
+    font-size: .76rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+}
+
+.guardian-reminder-modal h2 {
     margin: 8px 0 5px;
     font-size: 1.3rem;
     font-weight: 700;
 }
 
-.reminder-recipient {
-    margin: 0 0 14px;
-    color: #6b7280;
-    font-size: .9rem;
+.guardian-batch-panel {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(300px, auto);
+    gap: 14px 18px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid #dbe7f7;
+    border-radius: 14px;
+    background: #f7fbff;
 }
 
-.reminder-preview {
-    padding: 15px;
-    border: 1px solid #e1e6ee;
-    border-radius: 12px;
-    background: #fafbfd;
-}
-
-.reminder-preview strong {
+.guardian-batch-panel > div > strong,
+.guardian-batch-panel > div > span {
     display: block;
-    margin-bottom: 10px;
 }
 
-.reminder-preview pre {
+.guardian-batch-panel > div > strong {
+    margin-bottom: 4px;
+    color: #1f2a44;
+}
+
+.guardian-batch-panel > div > span {
+    color: #667085;
+    font-size: .86rem;
+}
+
+.guardian-batch-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.guardian-batch-controls select {
+    min-width: 130px;
+    min-height: 42px;
+    padding: 8px 11px;
+    border: 1px solid #cad8ea;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.guardian-batch-controls button,
+.guardian-batch-confirm button {
+    min-height: 42px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: #3478db;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.guardian-batch-controls button:disabled,
+.guardian-batch-confirm button:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+}
+
+.guardian-batch-confirm {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #dbe7f7;
+}
+
+.guardian-batch-confirm p {
     margin: 0;
-    white-space: pre-wrap;
-    font-family: inherit;
-    font-size: .92rem;
+    color: #46546a;
+    line-height: 1.6;
+}
+
+.guardian-batch-confirm > span {
+    color: #a16207;
+    font-size: .86rem;
+    font-weight: 700;
+}
+
+.guardian-batch-confirm .primary {
+    flex: 0 0 auto;
+    background: #14213d;
+}
+
+.guardian-reminder-modal label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.guardian-reminder-modal label > span {
+    color: #667085;
+    font-size: .84rem;
+    font-weight: 700;
+}
+
+.guardian-reminder-modal input,
+.guardian-reminder-modal textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #e1e6ee;
+    border-radius: 10px;
+    background: #fafbfd;
+    color: #1f2a44;
+    font: inherit;
+}
+
+.guardian-reminder-modal input {
+    min-height: 42px;
+}
+
+.guardian-reminder-modal textarea {
+    min-height: 176px;
+    resize: vertical;
     line-height: 1.7;
 }
 
-.reminder-notice {
+.guardian-reminder-modal > p {
     margin: 13px 0;
     padding: 11px 12px;
     border-radius: 10px;
@@ -410,21 +513,43 @@
     line-height: 1.55;
 }
 
-.reminder-modal-actions {
+.guardian-mail-status {
+    margin: 0 0 13px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #eaf4ff;
+    color: #245a9e;
+    font-size: .86rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.guardian-reminder-actions {
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px;
 }
 
-.reminder-modal-actions button {
-    min-height: 38px;
+.guardian-reminder-actions button,
+.guardian-reminder-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
     padding: 0 13px;
     background: #edf0f4;
     color: #4b5563;
+    text-decoration: none;
 }
 
-.reminder-modal-actions .open-mail-button {
+.guardian-reminder-actions .open-mail-button {
     background: #3478db;
+    color: #fff;
+}
+
+.guardian-reminder-actions .primary {
+    background: #14213d;
     color: #fff;
 }
 
@@ -432,6 +557,16 @@
     .activity-filter-bar,
     .guardian-editor-grid {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .guardian-batch-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .guardian-batch-confirm {
+        grid-column: auto;
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
 
@@ -448,6 +583,18 @@
     .activity-filter-bar,
     .guardian-editor-grid {
         grid-template-columns: 1fr;
+    }
+
+    .guardian-batch-controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .guardian-batch-controls select,
+    .guardian-batch-controls button,
+    .guardian-batch-confirm button {
+        width: 100%;
+        min-height: 44px;
     }
 
     .student-activity-panel .management-table-wrap {
@@ -526,11 +673,24 @@
         width: 100%;
     }
 
-    .reminder-modal-actions {
+    .guardian-reminder-modal-backdrop {
+        align-items: end;
+        padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    }
+
+    .guardian-reminder-modal {
+        max-height: calc(100svh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .guardian-reminder-actions {
         flex-direction: column;
     }
 
-    .reminder-modal-actions button {
+    .guardian-reminder-actions button,
+    .guardian-reminder-actions a {
         width: 100%;
+        min-height: 44px;
     }
 }

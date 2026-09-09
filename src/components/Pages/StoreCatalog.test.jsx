@@ -24,11 +24,11 @@ describe("StoreCatalog", () => {
         renderCatalog();
         expect(screen.getByRole("navigation", { name: "教材商城主要導覽" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "登入／註冊" })).toHaveAttribute("href", "/shop/login");
-        await waitFor(() => expect(screen.getByText("三本教材內容尚在整理；課本、Workbook、聽力本與價格都確認後才會上架。")).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText("教材內容正在整理中，正式開放前會先公告。")).toBeInTheDocument());
     });
 
-    test("清楚說明商城與聽力平台帳號分離", async () => {
+    test("清楚說明教材包目前不販售", async () => {
         renderCatalog();
-        expect(await screen.findByText(/商城帳號不會登入聽力平台/)).toBeInTheDocument();
+        expect(await screen.findByText(/目前教材包暫未公開販售或結帳/)).toBeInTheDocument();
     });
 });

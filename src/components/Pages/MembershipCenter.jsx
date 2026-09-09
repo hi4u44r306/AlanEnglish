@@ -8,6 +8,7 @@ import { getMembershipProfile, getPublicPlans, redeemActivationCode } from "../.
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 import { getPrimaryAccessPlanLabel, hasAiAddonPlan, hasAiPremiumAccess, isAiAddonPlanCode } from "../../constants/membershipPlans";
+import { PUBLIC_SELF_SERVICE_BILLING_ENABLED } from "../../constants/commerceAvailability";
 import "./css/Platform.scss";
 
 const STATUS_LABELS = { pending_verification: "等待 Email 驗證", trialing: "免費試用中", active: "使用中", past_due: "付款失敗，請更新付款方式", cancelled: "已排程取消，期限前可使用", expired: "使用期限已到期", suspended: "已停用", complimentary: "贈送使用權" };
@@ -215,6 +216,7 @@ function MembershipCenter() {
     };
 
     const checkout = async plan => {
+        if (!PUBLIC_SELF_SERVICE_BILLING_ENABLED) return toast.info("月費方案正在準備中，目前尚未開放付款。");
         setWorking(`plan-${plan.id}`);
         try {
             const result = await createCheckoutSession(firebaseUser, plan.id);
@@ -324,7 +326,7 @@ function MembershipCenter() {
                         const planWorking = working === `plan-${plan.id}`;
                         return <article className={`membership-plan-row ${planActive ? "is-active" : ""} ${isAiAddonPlanCode(plan.code) ? "is-ai-addon" : ""}`} key={plan.id}>
                             <div className="membership-plan-copy"><span>{plan.offer_label || (plan.access_model === "addon" ? "AI 教材與發音練習" : "月費訂閱")}</span><h3>{plan.name}</h3><p>{plan.description}</p><ul>{booleanFeatures.map(([feature]) => <li key={feature}><FiCheck aria-hidden="true" />{FEATURE_LABELS[feature] || feature.replaceAll("_", " ")}</li>)}{Number(plan.features?.ai_monthly_limit) > 0 && <li><FiCheck aria-hidden="true" />每月最多 {Number(plan.features.ai_monthly_limit)} 次</li>}</ul></div>
-                            <div className="membership-plan-action"><strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong><button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>{planActive ? <>{isAiAddonPlanCode(plan.code) && <FiZap aria-hidden="true" />}{isAiAddonPlanCode(plan.code) ? "AI 教材與發音練習使用中" : "目前方案使用中"}</> : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}</button></div>
+                            <div className="membership-plan-action"><strong>NT$ {Number(plan.price_twd || 0).toLocaleString()}<small>／月</small></strong><button className="platform-primary" type="button" onClick={() => checkout(plan)} disabled={planActive || !PUBLIC_SELF_SERVICE_BILLING_ENABLED || !plan.checkout_ready || Boolean(working)} aria-busy={planWorking}>{planActive ? <>{isAiAddonPlanCode(plan.code) && <FiZap aria-hidden="true" />}{isAiAddonPlanCode(plan.code) ? "AI 教材與發音練習使用中" : "目前方案使用中"}</> : !PUBLIC_SELF_SERVICE_BILLING_ENABLED ? "目前暫停開放付款" : planWorking ? <><span className="platform-button-spinner" aria-hidden="true" />正在開啟安全付款…</> : plan.checkout_ready ? <><FiCreditCard aria-hidden="true" />選擇方案</> : "付款設定中"}</button></div>
                         </article>;
                     })}</div>}
             </section>

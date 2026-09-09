@@ -23,6 +23,7 @@ const FIREBASE_JWKS = createRemoteJWKSet(
     new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
 const DEFAULT_SITE_URL = "https://alanenglish.com.tw";
+const PUBLIC_SELF_SERVICE_BILLING_ENABLED = false;
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -122,6 +123,12 @@ Deno.serve(async (req: Request) => {
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
 
     try {
+        const body = await req.json().catch(() => ({}));
+        const action = cleanText(body?.action || "create_checkout", 60);
+        if (!PUBLIC_SELF_SERVICE_BILLING_ENABLED && ["create_checkout", "create_material_checkout"].includes(action)) {
+            return json(503, { error: "月費與教材付款正在準備中，目前尚未開放", code: "public_billing_paused" });
+        }
+
         const authHeader = req.headers.get("Authorization") || "";
         const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
         if (!token) return json(401, { error: "請先登入 Alan English" });
@@ -170,8 +177,6 @@ Deno.serve(async (req: Request) => {
         if (membershipError) throw membershipError;
         if (!membership) return json(409, { error: "會員資料尚未建立，請重新登入後再試" });
 
-        const body = await req.json().catch(() => ({}));
-        const action = cleanText(body?.action || "create_checkout", 60);
         const siteUrl = getSiteUrl();
 
         const loadGuardianEmail = async () => {

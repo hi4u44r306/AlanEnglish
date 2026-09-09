@@ -12,6 +12,8 @@ const storeContext = read("src/store/StoreContext.jsx");
 const catalog = read("src/components/Pages/StoreCatalog.jsx");
 const checkoutPage = read("src/components/Pages/StoreCheckout.jsx");
 const ordersPage = read("src/components/Pages/StoreOrders.jsx");
+const availability = read("src/constants/commerceAvailability.js");
+const salesPausedPage = read("src/components/Pages/StoreSalesPaused.jsx");
 const storeStyles = read("src/components/Pages/css/Store.scss");
 const cancelMigration = read("supabase/migrations/20260828145308_store_order_customer_cancelled_status.sql");
 
@@ -22,13 +24,16 @@ test("商城與聽力平台使用互不覆蓋的登入 session", () => {
     assert.match(store, /X-Alan-Firebase-Token/);
 });
 
-test("商品公開瀏覽，結帳與訂單路由使用商城登入", () => {
+test("商品公開瀏覽，停售時阻擋新結帳並保留既有訂單查詢", () => {
     assert.match(routes, /path="\/shop" element=\{<StoreCatalog \/>\}/);
     assert.match(routes, /path="\/materials" element=\{<Navigate to="\/shop" replace \/>\}/);
     assert.match(routes, /path="\/shop\/activate-learning" element=\{<FreeTrialSignup purchaseActivation \/>\}/);
-    assert.match(routes, /path="\/shop\/checkout" element=\{<StoreCheckout \/>\}/);
+    assert.match(routes, /path="\/shop\/cart" element=\{PUBLIC_MATERIAL_SALES_ENABLED \? <StoreCart \/> : <StoreSalesPaused \/>\}/);
+    assert.match(routes, /path="\/shop\/checkout" element=\{PUBLIC_MATERIAL_SALES_ENABLED \? <StoreCheckout \/> : <StoreSalesPaused \/>\}/);
     assert.match(routes, /path="\/shop\/orders\/:orderNumber" element=\{<StoreOrders \/>\}/);
     assert.match(routes, /path="\/admin\/store-orders".*allowedRoles=\{\["admin"\]\}/);
+    assert.match(availability, /PUBLIC_MATERIAL_SALES_ENABLED = false/);
+    assert.match(salesPausedPage, /教材包暫未開放販售/);
     assert.doesNotMatch(catalog, /useAuth|firebaseUser/);
 });
 
