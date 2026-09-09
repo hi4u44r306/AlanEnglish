@@ -4,7 +4,7 @@
 
 ## 本次進行中（2026-09-09，測試站已部署，正式尚未部署）
 
-- 家長學習報告第一階段：學生首頁把既有週報收斂為「家長學習報告」，可彙整聽力、作業、AI、複習與口說，提供複製家長摘要及列印／存 PDF。學生只讀自己的報告，學習方案到期後仍可查看歷史紀錄；教師端改由後端依 `teacher_class_permissions` 限制為目前授權班級，管理員才可看全部學生。本機 checkpoint `25154f1` 的 `WeeklyReport` 元件測試、Edge Function 語法檢查、`git diff --check` 與 production build 已通過；測試 Supabase 的 `weekly-report` 與固定測試站已部署，未登入函式請求正確回傳 401。管理頁「提醒家長」彈窗已修正無樣式問題，修正版固定測試站 deploy `6aa165a50dec9ff79a221417` 為 ready。針對內建瀏覽器或未設定預設郵件程式時 `mailto:` 沒有反應，本機另改為原生 Email 連結並新增「複製郵件內容」備援與狀態提示；管理 Dashboard 3/3 測試、production build 與 `git diff --check` 已通過，尚未重新部署。未新增資料表或資料 migration；尚待已登入學生／教師／管理員真人角色驗收，以及推送、合併與正式部署。
+- 家長學習報告第一階段：學生首頁把既有週報收斂為「家長學習報告」，可彙整聽力、作業、AI、複習與口說，提供複製家長摘要及列印／存 PDF。學生只讀自己的報告，學習方案到期後仍可查看歷史紀錄；教師端改由後端依 `teacher_class_permissions` 限制為目前授權班級，管理員才可看全部學生。本機 checkpoint `25154f1` 的 `WeeklyReport` 元件測試、Edge Function 語法檢查、`git diff --check` 與 production build 已通過；測試 Supabase 的 `weekly-report` 與固定測試站已部署，未登入函式請求正確回傳 401。管理頁「提醒家長」彈窗已修正無樣式問題；針對內建瀏覽器或未設定預設郵件程式時 `mailto:` 沒有反應，另改為原生 Email 連結並新增「複製郵件內容」備援與狀態提示。管理 Dashboard 3/3 測試、production build 與 `git diff --check` 已通過，修正版固定測試站 deploy `6aa16914c5c96214321aae2c` 已為 ready；管理路由回應 200，線上 bundle 已確認包含 Email 連結、剪貼簿備援與提示文案。未新增資料表或資料 migration；尚待已登入學生／教師／管理員真人角色驗收，以及推送、合併與正式部署。
 
 本次正式發布（2026-09-07）：
 
