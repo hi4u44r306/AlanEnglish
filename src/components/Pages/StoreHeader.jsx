@@ -14,6 +14,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import Brand from "../fragment/Brand";
 import { useStore } from "../../store/StoreContext";
+import { PUBLIC_MATERIAL_SALES_ENABLED } from "../../constants/commerceAvailability";
 import "./css/Commerce.scss";
 import "./css/Store.scss";
 
@@ -67,9 +68,9 @@ export default function StoreHeader() {
 
             <nav className="store-desktop-nav" aria-label="教材商城主要導覽">
                 <Link to="/shop" {...activeProps(browseActive)}><FiBookOpen /><span>逛教材</span></Link>
-                <Link to="/shop/cart" aria-label={cartLabel} {...activeProps(cartActive)}>
+                {PUBLIC_MATERIAL_SALES_ENABLED && <Link to="/shop/cart" aria-label={cartLabel} {...activeProps(cartActive)}>
                     <FiShoppingCart /><span>購物車</span>{cartCount > 0 && <b>{cartCount}</b>}
-                </Link>
+                </Link>}
                 <Link to="/shop/orders" {...activeProps(ordersActive)}><FiPackage /><span>我的訂單</span></Link>
                 <Link to="/userinfo" className="store-cross-site"><FiBookOpen /><span>聽力學習平台</span></Link>
                 {!authLoading && (user
@@ -84,9 +85,9 @@ export default function StoreHeader() {
             </nav>
 
             <div className="store-mobile-actions">
-                <Link to="/shop/cart" aria-label={cartLabel} {...activeProps(cartActive)}>
+                {PUBLIC_MATERIAL_SALES_ENABLED && <Link to="/shop/cart" aria-label={cartLabel} {...activeProps(cartActive)}>
                     <FiShoppingCart />{cartCount > 0 && <b>{cartCount}</b>}
-                </Link>
+                </Link>}
                 <button type="button" onClick={() => setMobileOpen(true)} aria-label="開啟商城選單" aria-expanded={mobileOpen}>
                     <FiMenu />
                 </button>
@@ -97,14 +98,14 @@ export default function StoreHeader() {
             <button className="store-mobile-backdrop" type="button" onClick={() => setMobileOpen(false)} aria-label="關閉商城選單" />
             <aside className="store-mobile-menu" role="dialog" aria-modal="true" aria-label="教材商城選單">
                 <header>
-                    <div><strong>教材商城</strong><span>選教材、結帳、查訂單</span></div>
+                    <div><strong>教材商城</strong><span>{PUBLIC_MATERIAL_SALES_ENABLED ? "選教材、結帳、查訂單" : "教材包準備中，可查詢既有訂單"}</span></div>
                     <button type="button" onClick={() => setMobileOpen(false)} aria-label="關閉商城選單"><FiX /></button>
                 </header>
                 <nav aria-label="手機版教材商城導覽">
                     <section>
                         <h2>商城功能</h2>
-                        <Link to="/shop" {...activeProps(browseActive)}><FiBookOpen /><span>逛教材<small>瀏覽所有教材商品</small></span></Link>
-                        <Link to="/shop/cart" {...activeProps(cartActive)}><FiShoppingCart /><span>購物車<small>{cartCount > 0 ? `目前有 ${cartCount} 件商品` : "查看準備結帳的商品"}</small></span>{cartCount > 0 && <b>{cartCount}</b>}</Link>
+                        <Link to="/shop" {...activeProps(browseActive)}><FiBookOpen /><span>{PUBLIC_MATERIAL_SALES_ENABLED ? "逛教材" : "教材公告"}<small>{PUBLIC_MATERIAL_SALES_ENABLED ? "瀏覽所有教材商品" : "目前教材包暫未販售"}</small></span></Link>
+                        {PUBLIC_MATERIAL_SALES_ENABLED && <Link to="/shop/cart" {...activeProps(cartActive)}><FiShoppingCart /><span>購物車<small>{cartCount > 0 ? `目前有 ${cartCount} 件商品` : "查看準備結帳的商品"}</small></span>{cartCount > 0 && <b>{cartCount}</b>}</Link>}
                         <Link to="/shop/orders" {...activeProps(ordersActive)}><FiPackage /><span>我的訂單<small>查看付款與出貨進度</small></span></Link>
                     </section>
                     {!authLoading && <section>

@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import Brand from "../fragment/Brand";
 import SeoHead from "../fragment/SeoHead";
 import { createMaterialCheckout } from "../../services/billingService";
+import { PUBLIC_MATERIAL_SALES_ENABLED } from "../../constants/commerceAvailability";
 import { loadMaterialPackages, loadPlacementAssessment, submitPlacementAssessment } from "../../services/commerceService";
 import "./css/Commerce.scss";
 
@@ -64,6 +65,7 @@ function MaterialCatalog() {
     };
 
     const buy = async packageId => {
+        if (!PUBLIC_MATERIAL_SALES_ENABLED) return toast.info("教材包正在準備中，目前尚未開放販售。");
         if (!firebaseUser) return navigate("/login?next=/materials");
         setBuying(packageId);
         try {
@@ -88,7 +90,7 @@ function MaterialCatalog() {
                 <ul>{bookRows.map(row => <li key={`${row.role}-${row.book_id}`}><FiCheckCircle />{row.books?.name || row.role}</li>)}</ul>
                 <div className="commerce-package-price"><strong>{money(item.display_price_twd)}</strong><span>{item.includes_90_day_access ? "單一售價；付款確認後附贈 90 天平台使用權" : "不含額外網站使用期"}</span></div>
                 {item.samples?.map(sample => <audio key={sample.id} controls preload="none" src={sample.audio_url || undefined} aria-label={`${sample.title}試聽`} />)}
-                <button type="button" onClick={() => buy(item.id)} disabled={buying === item.id || !item.display_price_twd}><FiShoppingBag />{buying === item.id ? "前往付款中…" : item.display_price_twd ? "購買教材包" : "價格待管理員確認"}</button>
+                <button type="button" onClick={() => buy(item.id)} disabled={!PUBLIC_MATERIAL_SALES_ENABLED || buying === item.id || !item.display_price_twd}><FiShoppingBag />{PUBLIC_MATERIAL_SALES_ENABLED ? (buying === item.id ? "前往付款中…" : item.display_price_twd ? "購買教材包" : "價格待管理員確認") : "教材包暫未販售"}</button>
             </div>
         </article>;
     };
@@ -107,7 +109,7 @@ function MaterialCatalog() {
         </header>
         <main className="commerce-page">
         <section className="commerce-hero">
-            <div><span>ALAN ENGLISH MATERIALS</span><h1>三本實體教材，搭配 90 天線上學習。</h1><p>完整教材包固定包含課本、Workbook 與聽力本，付款後永久保留三本教材的線上擁有權，並附贈 90 天平台使用權。之後若只想使用全部正式聽力教材，可選擇每月 NT$299 基本會員。</p><div><a href="#placement"><FiHeadphones />先做三向程度測驗</a><Link to="/freetrial">不需信用卡，先試用 7 天<FiArrowRight /></Link></div></div>
+            <div><span>ALAN ENGLISH MATERIALS</span><h1>教材包準備中，先從免費試用開始。</h1><p>目前教材包暫未公開販售或結帳。未來實體教材開放後，會以同一個已驗證 Email 領取網站使用權。</p><div><a href="#placement"><FiHeadphones />先做三向程度測驗</a><Link to="/freetrial">不需信用卡，先試用 7 天<FiArrowRight /></Link></div></div>
             <aside><FiLock /><strong>付費教材維持私有</strong><span>未授權時不會取得完整音檔、字幕、逐字稿或播放 URL。</span></aside>
         </section>
 
