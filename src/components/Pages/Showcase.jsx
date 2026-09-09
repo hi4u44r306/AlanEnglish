@@ -43,15 +43,15 @@ const features = [
     {
         icon: <BiShieldQuarter />,
         title: "班級作業分流",
-        text: "英文班學生接收老師安排的作業；網購會員則按照自己的速度學習。"
+        text: "英文班學生接收老師安排的作業；自學會員則按照自己的速度學習。"
     }
 ];
 
 const learningSteps = [
     { number: "01", title: "免費體驗", text: "先用 7 天體驗聽力、AI 教材與自主學習流程。" },
-    { number: "02", title: "選擇教材", text: "依孩子目前程度選擇 E1、E3、E5 或 E7 教材。" },
-    { number: "03", title: "開通 90 天", text: "購買教材後輸入專屬開通碼，從兌換日開始使用 90 天。" },
-    { number: "04", title: "決定是否續用", text: "90 天到期後，可選擇每月 NT$299 延續已擁有教材；AI 教材可另外加購。" }
+    { number: "02", title: "建立練習節奏", text: "跟著每天的聽力、回答與複習，找到適合自己的學習步調。" },
+    { number: "03", title: "選擇平台方案", text: "自學平台每月 NT$299；需要 AI 教材時可另外加購 NT$299。" },
+    { number: "04", title: "持續累積成果", text: "進度、完成紀錄與複習重點都會保存，讓孩子持續看見進步。" }
 ];
 
 const plans = [
@@ -68,36 +68,24 @@ const plans = [
         featured: false
     },
     {
-        label: "線上購買實體教材",
-        name: "教材＋90 天權限",
-        price: "依教材組合",
-        period: "一次購買",
-        description: "購買適合孩子程度的教材，永久取得教材擁有權並附贈 90 天網站使用權。",
-        points: ["從開通當天起算 90 天", "解鎖所購買教材與音檔", "包含進度與智慧複習；AI 教材另購"],
-        action: "前往教材商城",
-        href: "/shop",
-        badge: "最推薦",
-        featured: true
-    },
-    {
-        label: "教材權限到期後",
-        name: "一般自主學習會員",
+        label: "自主學習",
+        name: "平台＋AI 自由搭配",
         price: "NT$299",
-        period: "／月",
-        description: "適合教材 90 天權限結束後，希望繼續使用已擁有教材的家庭；不包含新教材。",
-        points: ["延續已購／已開通教材", "包含情境會話與智慧複習", "AI 教材可加購 NT$129／月"],
-        action: "先免費體驗",
-        href: "/materials",
-        badge: "",
-        featured: false
+        period: "平台／月",
+        description: "平台費每月 NT$299；需要 AI 教材時，可再加購每月 NT$299。",
+        points: ["平台費 NT$299／月", "AI 教材加購 NT$299／月", "付款開放前可先免費試用"],
+        action: "先免費試用",
+        href: "/freetrial",
+        badge: "自學方案",
+        featured: true
     },
     {
         label: "Alan English 英文班",
         name: "在校／離校方案",
-        price: "在校免費",
-        period: "離校後 NT$299／月",
-        description: "英文班學生在校期間免費使用；離校後仍可用優惠價繼續自主學習。",
-        points: ["在校期間包含班級作業", "在校／離校生 AI 加購 NT$99／月", "離校會員 299＋AI 99＝398／月"],
+        price: "依英文班安排",
+        period: "校內使用",
+        description: "英文班學生由老師安排班級教材、作業與學習進度。",
+        points: ["在校期間包含班級作業", "由英文班安排使用方式", "離校後可選擇自主學習方案"],
         action: "學生登入",
         href: "/login",
         badge: "英文班專屬",
@@ -109,42 +97,36 @@ const planComparison = [
     {
         label: "費用",
         trial: "免費",
-        textbook: "教材售價內含",
         regular: "NT$299／月",
-        academy: "在校免費／離校 NT$299"
+        academy: "依英文班安排"
     },
     {
         label: "AI 教材加購",
         trial: "7 天共 7 次",
-        textbook: "另購 NT$129／月",
-        regular: "另購 NT$129／月",
-        academy: "另購 NT$99／月"
+        regular: "另購 NT$299／月",
+        academy: "依英文班安排"
     },
     {
         label: "使用期限",
         trial: "7 天",
-        textbook: "開通後 90 天",
         regular: "按月續訂",
         academy: "依在校或訂閱狀態"
     },
     {
         label: "教材範圍",
         trial: "體驗內容",
-        textbook: "已購買教材",
-        regular: "已開通教材",
+        regular: "依有效平台權限",
         academy: "依班級與個人權限"
     },
     {
         label: "班級作業",
         trial: "不包含",
-        textbook: "不包含",
         regular: "不包含",
         academy: "僅在校生包含"
     },
     {
         label: "學習方式",
         trial: "體驗",
-        textbook: "自主安排",
         regular: "自主安排",
         academy: "老師安排＋自主練習"
     }
@@ -153,27 +135,27 @@ const planComparison = [
 const faqs = [
     {
         question: "Alan English 適合什麼年齡？",
-        answer: "平台主要為國小學生設計，教材依 E1、E3、E5、E7 不同英文程度安排。家長可以先使用 7 天免費試用，再選擇適合孩子的教材。"
+        answer: "平台主要為國小學生設計，教材依 E1、E3、E5、E7 不同英文程度安排。家長可以先使用 7 天免費試用，再決定是否使用自主學習平台。"
     },
     {
         question: "免費試用需要先付款或綁信用卡嗎？",
         answer: "不需要。完成 Email 驗證後即可開始 7 天免費試用，可生成 AI 教材共 7 次、每天最多 2 次；試用結束後也不會自動扣款。"
     },
     {
-        question: "購買教材為什麼會送 90 天網站權限？",
-        answer: "購買實體教材後輸入專屬開通碼，即可從開通當天開始使用對應教材、音檔、進度與智慧複習功能 90 天；AI 教材為獨立加購功能。"
+        question: "教材包現在可以購買嗎？",
+        answer: "目前教材包正在準備中，暫未開放販售或結帳。未來實體教材開放後，會使用同一個已驗證 Email 領取網站使用權。"
     },
     {
-        question: "教材 90 天權限到期後會自動扣款嗎？",
-        answer: "不會。到期後家長可以自行決定是否以每月 NT$299 訂閱基本會員。若需要 AI 教材，一般會員可再加購每月 NT$129；只有完成付款授權後才會按月扣款。"
+        question: "平台與 AI 教材的費用是多少？",
+        answer: "自主學習平台為每月 NT$299；需要 AI 教材時可另外加購每月 NT$299。目前付款功能尚未開放，不會自動扣款。"
     },
     {
         question: "英文班學生也需要購買會員嗎？",
-        answer: "不需要。Alan English 英文班學生在校期間免費使用核心網站並可收到老師安排的班級作業；AI 教材可選擇每月 NT$99 加購。"
+        answer: "不需要在公開網站另外購買。英文班學生的使用方式由英文班安排，並可收到老師安排的班級作業。"
     },
     {
         question: "英文班學生離校後還能繼續使用嗎？",
-        answer: "可以。離校後會保留原有學習紀錄，家長可選擇每月 NT$299 的基本會員繼續自主學習；若再加購每月 NT$99 的 AI 教材，合計每月 NT$398，但不會再收到新的班級作業。"
+        answer: "可以。離校後會保留原有學習紀錄；可選擇每月 NT$299 的自主學習平台，AI 教材可另加購每月 NT$299，但不會再收到新的班級作業。"
     },
     {
         question: "手機和平板可以使用嗎？",
@@ -369,11 +351,11 @@ const Showcase = () => {
                             <article className="showcase-path-card self-study">
                                 <div className="showcase-path-label">SELF-PACED LEARNING</div>
                                 <div className="showcase-path-icon"><BiBookOpen /></div>
-                                <h3>網購教材／自主學習</h3>
-                                <p>先免費體驗，再購買適合程度的教材；開通後按照孩子自己的時間安排進度。</p>
+                                <h3>自主學習</h3>
+                                <p>先免費體驗，再依孩子自己的時間安排聽力、回答與複習。</p>
                                 <ul>
-                                    <li><span>✓</span> 購買教材附贈網站使用權 90 天</li>
-                                    <li><span>✓</span> 只顯示已購買或已開通的教材</li>
+                                    <li><span>✓</span> 平台費每月 NT$299</li>
+                                    <li><span>✓</span> AI 教材可另外加購每月 NT$299</li>
                                     <li><span>✓</span> 自主學習，不會收到英文班作業</li>
                                 </ul>
                                 <Link to="/freetrial">先免費體驗 <BiChevronRight /></Link>
@@ -421,8 +403,8 @@ const Showcase = () => {
                     <div className="showcase-shell">
                         <div className="showcase-section-heading showcase-section-heading-center">
                             <span className="showcase-kicker">CHOOSE YOUR PLAN</span>
-                            <h2>先免費體驗，再購買適合孩子的教材。</h2>
-                            <p>購買教材永久保留教材擁有權，並附贈 90 天網站權限；到期後再決定是否以每月 NT$299 延續已擁有教材，AI 教材則依身分另外加購。</p>
+                            <h2>先免費體驗，再選擇適合孩子的學習方式。</h2>
+                            <p>自主學習平台每月 NT$299；AI 教材可另外加購每月 NT$299。教材包目前暫未販售。</p>
                         </div>
                         <div className="showcase-trial-banner">
                             <div className="showcase-trial-copy">
@@ -511,7 +493,6 @@ const Showcase = () => {
                                         <tr>
                                             <th>比較項目</th>
                                             <th>7 天試用</th>
-                                            <th>教材方案</th>
                                             <th>一般會員</th>
                                             <th>英文班學生</th>
                                         </tr>
@@ -521,7 +502,6 @@ const Showcase = () => {
                                             <tr key={row.label}>
                                                 <th scope="row">{row.label}</th>
                                                 <td>{row.trial}</td>
-                                                <td>{row.textbook}</td>
                                                 <td>{row.regular}</td>
                                                 <td>{row.academy}</td>
                                             </tr>
@@ -531,7 +511,7 @@ const Showcase = () => {
                             </div>
                         </div>
 
-                        <p className="showcase-plan-note">教材售價將依程度與教材組合顯示，結帳前會清楚列出教材內容、運費與使用期限。</p>
+                        <p className="showcase-plan-note">教材包目前正在準備中，尚未開放公開販售或結帳。</p>
                     </div>
                 </section>
 
@@ -559,7 +539,7 @@ const Showcase = () => {
                         <div>
                             <span className="showcase-kicker">START TODAY</span>
                             <h2>今天，就從第一段英文聽力開始。</h2>
-                            <p>先免費體驗 7 天，再選擇適合程度的教材，附贈 90 天完整網站使用權。</p>
+                            <p>先免費體驗 7 天，建立孩子每天願意持續的英文學習節奏。</p>
                         </div>
                         <div className="showcase-cta-actions">
                             <Link className="showcase-primary-btn" to="/freetrial">免費試用 7 天 <BiChevronRight /></Link>
@@ -572,7 +552,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/shop">教材商城</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
+                    <div className="showcase-footer-links"><Link to="/materials">教材資訊</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>

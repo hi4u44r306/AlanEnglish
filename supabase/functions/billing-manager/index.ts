@@ -23,6 +23,7 @@ const FIREBASE_JWKS = createRemoteJWKSet(
     new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
 const DEFAULT_SITE_URL = "https://alanenglish.com.tw";
+const PUBLIC_SELF_SERVICE_BILLING_ENABLED = false;
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -174,6 +175,10 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action || "create_checkout", 60);
         const siteUrl = getSiteUrl();
 
+        if (!PUBLIC_SELF_SERVICE_BILLING_ENABLED && ["create_checkout", "create_material_checkout"].includes(action)) {
+            return json(503, { error: "月費與教材付款正在準備中，目前尚未開放", code: "public_billing_paused" });
+        }
+
         const loadGuardianEmail = async () => {
             const { data, error } = await admin
                 .from("guardian_contacts")
@@ -322,7 +327,7 @@ Deno.serve(async (req: Request) => {
                     && !pricingEligibility.canUseAcademyAiAddon
                 ) {
                     return json(403, {
-                        error: "英文班在校生可直接加購 AI；離校生需先啟用每月 NT$299 基本會員",
+                        error: "英文班在校方案由英文班內部安排；離校生需先啟用每月 NT$299 自主學習平台",
                         code: "academy_ai_membership_required"
                     });
                 }

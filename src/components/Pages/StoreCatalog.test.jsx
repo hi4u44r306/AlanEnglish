@@ -23,12 +23,12 @@ describe("StoreCatalog", () => {
     test("任何人可以看到商城導覽與登入入口", async () => {
         renderCatalog();
         expect(screen.getByRole("navigation", { name: "教材商城導覽" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /商城登入/ })).toHaveAttribute("href", "/shop/login");
-        await waitFor(() => expect(screen.getByText("商品包尚在整理，正式價格未確認前不會自行上架。")).toBeInTheDocument());
+        expect(screen.getByRole("link", { name: "查詢既有訂單" })).toHaveAttribute("href", "/shop/login?next=/shop/orders");
+        await waitFor(() => expect(screen.getByText("教材包正在準備中，目前暫不販售。")).toBeInTheDocument());
     });
 
-    test("清楚說明商城與聽力平台帳號分離", async () => {
+    test("清楚說明既有訂單仍可查詢", async () => {
         renderCatalog();
-        expect(await screen.findByText(/商城帳號不會登入聽力平台/)).toBeInTheDocument();
+        expect(await screen.findByText("既有訂單仍可登入商城後查詢。")).toBeInTheDocument();
     });
 });

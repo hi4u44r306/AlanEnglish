@@ -43,12 +43,12 @@ describe("MaterialCatalog navigation header", () => {
         expect(screen.getByRole("navigation", { name: "教材商品頁導覽" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "返回上一頁" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "登入" })).toHaveAttribute("href", "/login?next=/materials");
-        await waitFor(() => expect(screen.getByText("商品包尚在整理，正式價格未確認前不會自行上架。")).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText("教材包正在準備中，目前暫不販售。")).toBeInTheDocument());
     });
 
     test("直接開啟商品頁時，返回按鈕回到公開首頁", async () => {
         renderCatalog();
-        await screen.findByText("商品包尚在整理，正式價格未確認前不會自行上架。");
+        await screen.findByText("教材包正在準備中，目前暫不販售。");
 
         fireEvent.click(screen.getByRole("button", { name: "返回上一頁" }));
 
@@ -58,7 +58,7 @@ describe("MaterialCatalog navigation header", () => {
     test("已登入時顯示我的首頁入口", async () => {
         mockFirebaseUser = { uid: "test-user" };
         renderCatalog();
-        await screen.findByText("商品包尚在整理，正式價格未確認前不會自行上架。");
+        await screen.findByText("教材包正在準備中，目前暫不販售。");
 
         expect(screen.getByRole("link", { name: "我的首頁" })).toHaveAttribute("href", "/userinfo");
     });

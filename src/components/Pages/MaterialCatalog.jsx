@@ -1,15 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FiArrowLeft, FiArrowRight, FiBookOpen, FiCheckCircle, FiHeadphones, FiHome, FiLock, FiLogIn, FiPlay, FiShoppingBag, FiStar } from "react-icons/fi";
+import { FiArrowLeft, FiArrowRight, FiBookOpen, FiCheckCircle, FiHeadphones, FiHome, FiLock, FiLogIn, FiPlay, FiStar } from "react-icons/fi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import Brand from "../fragment/Brand";
 import SeoHead from "../fragment/SeoHead";
-import { createMaterialCheckout } from "../../services/billingService";
-import { loadMaterialPackages, loadPlacementAssessment, submitPlacementAssessment } from "../../services/commerceService";
+import { loadPlacementAssessment, submitPlacementAssessment } from "../../services/commerceService";
 import "./css/Commerce.scss";
 
-const money = value => Number.isInteger(Number(value)) ? `NT$${Number(value).toLocaleString("zh-TW")}` : "價格待確認";
 const groupBy = (items, key) => Object.groupBy ? Object.groupBy(items, key) : items.reduce((groups, item) => {
     const group = key(item); (groups[group] ||= []).push(item); return groups;
 }, {});
@@ -18,21 +16,17 @@ function MaterialCatalog() {
     const { firebaseUser } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const [packages, setPackages] = useState([]);
     const [assessment, setAssessment] = useState(null);
     const [answers, setAnswers] = useState({});
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [buying, setBuying] = useState(null);
 
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [catalog, quiz] = await Promise.all([
-                loadMaterialPackages(firebaseUser), loadPlacementAssessment(firebaseUser)
-            ]);
-            setPackages(catalog?.packages || []); setAssessment(quiz?.assessment || null);
+            const quiz = await loadPlacementAssessment(firebaseUser);
+            setAssessment(quiz?.assessment || null);
         } catch (error) { toast.error(error.message || "教材商品載入失敗"); }
         finally { setLoading(false); }
     }, [firebaseUser]);
@@ -63,19 +57,6 @@ function MaterialCatalog() {
         finally { setSubmitting(false); }
     };
 
-    const buy = async packageId => {
-        if (!firebaseUser) return navigate("/login?next=/materials");
-        setBuying(packageId);
-        try {
-            const result = await createMaterialCheckout(firebaseUser, packageId);
-            if (result?.url) window.location.assign(result.url);
-        } catch (error) {
-            if (error.code === "guardian_email_required") {
-                toast.info("請先補上家長 Email"); navigate("/student/settings");
-            } else toast.error(error.message || "無法開始付款");
-        } finally { setBuying(null); }
-    };
-
     const PackageCard = ({ item, compact = false }) => {
         const bookRows = item.material_package_books || [];
         return <article className={`commerce-package-card ${compact ? "is-compact" : ""}`}>
@@ -86,9 +67,8 @@ function MaterialCatalog() {
                 <p>{item.suitable_for || item.description || "依單字、句型與聽力程度選擇適合的學習教材。"}</p>
                 {item.learning_goals && <small><FiStar />{item.learning_goals}</small>}
                 <ul>{bookRows.map(row => <li key={`${row.role}-${row.book_id}`}><FiCheckCircle />{row.books?.name || row.role}</li>)}</ul>
-                <div className="commerce-package-price"><strong>{money(item.display_price_twd)}</strong><span>{item.member_price_eligible ? "有效基本會員教材價；原月費週期不變" : item.includes_90_day_access ? "一般價含自兌換日起 90 天網站使用權" : "不含額外網站使用期"}</span></div>
+                <div className="commerce-package-price"><strong>暫未販售</strong><span>教材包公開販售與付款功能尚未開放。</span></div>
                 {item.samples?.map(sample => <audio key={sample.id} controls preload="none" src={sample.audio_url || undefined} aria-label={`${sample.title}試聽`} />)}
-                <button type="button" onClick={() => buy(item.id)} disabled={buying === item.id || !item.display_price_twd}><FiShoppingBag />{buying === item.id ? "前往付款中…" : item.display_price_twd ? "購買教材包" : "價格待管理員確認"}</button>
             </div>
         </article>;
     };
@@ -107,13 +87,13 @@ function MaterialCatalog() {
         </header>
         <main className="commerce-page">
         <section className="commerce-hero">
-            <div><span>ALAN ENGLISH MATERIALS</span><h1>教材是你的，網站使用權分開續用。</h1><p>購買教材永久保留教材擁有權與歷史學習紀錄，並附贈 90 天網站使用權。基本月費只延續已擁有教材，不會自動解鎖下一級。</p><div><a href="#placement"><FiHeadphones />先做三向程度測驗</a><Link to="/freetrial">不需信用卡，先試用 7 天<FiArrowRight /></Link></div></div>
-            <aside><FiLock /><strong>付費教材維持私有</strong><span>未授權時不會取得完整音檔、字幕、逐字稿或播放 URL。</span></aside>
+            <div><span>ALAN ENGLISH MATERIALS</span><h1>教材包準備中，先從免費試用開始。</h1><p>目前教材包暫未公開販售或結帳。你可以先完成程度測驗與 7 天免費試用；未來實體教材開放後，會以同一個已驗證 Email 領取網站使用權。</p><div><a href="#placement"><FiHeadphones />先做三向程度測驗</a><Link to="/freetrial">不需信用卡，先試用 7 天<FiArrowRight /></Link></div></div>
+            <aside><FiLock /><strong>教材包暫未販售</strong><span>目前不會建立教材付款、訂單或新的教材權限。</span></aside>
         </section>
 
         <section className="commerce-catalog" aria-busy={loading}>
-            <header><span>MATERIAL PACKAGES</span><h2>教材商品包</h2><p>商品包與英文班教材設定分開管理；目前只顯示資料庫中已完整上架的測試模式商品。</p></header>
-            {loading ? <p className="commerce-empty">載入教材中…</p> : packages.length ? <div className="commerce-package-grid">{packages.map(item => <PackageCard key={item.id} item={item} />)}</div> : <p className="commerce-empty">商品包尚在整理，正式價格未確認前不會自行上架。</p>}
+            <header><span>MATERIAL PACKAGES</span><h2>教材商品包</h2><p>教材內容、價格與購買流程確認完成後才會公開販售。</p></header>
+            <p className="commerce-empty">教材包正在準備中，目前暫不販售。</p>
         </section>
 
         {assessment && <section className="commerce-placement" id="placement">
