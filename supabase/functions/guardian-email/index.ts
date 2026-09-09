@@ -13,6 +13,7 @@ const FIREBASE_JWKS = createRemoteJWKSet(
 );
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+const CLASS_CODES = ["E1", "E3", "E5", "E7"];
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -237,6 +238,73 @@ const buildEmail = (report: any) => {
     return { subject, text, html };
 };
 
+const taipeiDateKey = () => new Date(Date.now() + TAIPEI_OFFSET_MS).toISOString().slice(0, 10);
+
+const taipeiDayBounds = (dateKey: string) => {
+    const startAt = new Date(`${dateKey}T00:00:00+08:00`);
+    return {
+        startAt: startAt.toISOString(),
+        endAt: new Date(startAt.getTime() + DAY_MS).toISOString()
+    };
+};
+
+const getInactiveDays = (timestamp: string | null) => {
+    if (!timestamp) return null;
+    const value = new Date(timestamp).getTime();
+    if (!Number.isFinite(value)) return null;
+    return Math.max(0, Math.floor((Date.now() - value) / DAY_MS));
+};
+
+const getGuardianRelation = (student: any) => (
+    Array.isArray(student?.guardian_contacts)
+        ? student.guardian_contacts[0] || null
+        : student?.guardian_contacts || null
+);
+
+const buildInactiveReminder = (student: any, guardian: any) => {
+    const inactiveDays = getInactiveDays(student.last_learning_at || student.last_active_at);
+    const daysText = inactiveDays === null ? "一段時間" : `${inactiveDays} 天`;
+    const greeting = guardian.guardian_name ? `${guardian.guardian_name} 您好：` : "您好：";
+    const subject = `Alan English 學習提醒｜${student.name}`;
+    const text = `${greeting}\n\n${student.name} 最近已經 ${daysText} 沒有完成 Alan English 英文練習。建議今天花 5～10 分鐘完成一次聽力或英文口說練習，保持英文學習習慣。\n\n— Alan English`;
+    const htmlMessage = escapeHtml(text).replace(/\n/g, "<br>");
+    const html = `<!doctype html>
+<html lang="zh-Hant">
+<body style="margin:0;background:#f6f8fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033">
+  <div style="max-width:640px;margin:0 auto;padding:28px 16px">
+    <div style="background:#173f5f;color:white;border-radius:20px 20px 0 0;padding:28px">
+      <div style="font-size:12px;letter-spacing:.16em;opacity:.78">ALAN ENGLISH LEARNING REMINDER</div>
+      <h1 style="font-size:26px;margin:10px 0 0">${escapeHtml(student.name)} 的英文學習提醒</h1>
+    </div>
+    <div style="background:white;padding:28px;border-radius:0 0 20px 20px;box-shadow:0 12px 32px rgba(23,63,95,.08)">
+      <p style="font-size:16px;line-height:1.8;margin:0">${htmlMessage}</p>
+      <p style="font-size:13px;color:#697386;line-height:1.7;margin:26px 0 0">這封信由 Alan English 管理員從學生學習狀況頁寄出。</p>
+    </div>
+  </div>
+</body>
+</html>`;
+    return { subject, text, html };
+};
+
+const buildStoredNotificationEmail = (subject: string, text: string) => ({
+    subject: cleanText(subject, 500),
+    text: cleanText(text, 10000),
+    html: `<!doctype html>
+<html lang="zh-Hant">
+<body style="margin:0;background:#f6f8fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033">
+  <div style="max-width:640px;margin:0 auto;padding:28px 16px">
+    <div style="background:#173f5f;color:white;border-radius:20px 20px 0 0;padding:24px">
+      <div style="font-size:12px;letter-spacing:.16em;opacity:.78">ALAN ENGLISH</div>
+      <h1 style="font-size:23px;margin:10px 0 0">${escapeHtml(subject)}</h1>
+    </div>
+    <div style="background:white;padding:28px;border-radius:0 0 20px 20px;box-shadow:0 12px 32px rgba(23,63,95,.08)">
+      <p style="font-size:16px;line-height:1.8;margin:0">${escapeHtml(text).replace(/\n/g, "<br>")}</p>
+    </div>
+  </div>
+</body>
+</html>`
+});
+
 const sendWithResend = async (apiKey: string, payload: any, idempotencyKey: string) => {
     const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -250,6 +318,71 @@ const sendWithResend = async (apiKey: string, payload: any, idempotencyKey: stri
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data?.message || `Email provider error (${response.status})`);
     return data;
+};
+
+const loadClassNotificationCandidates = async (admin: any, classCode: string) => {
+    const { data, error } = await admin
+        .from("students")
+        .select("id,name,class,role,account_status,last_active_at,last_learning_at,guardian_contacts(id,guardian_name,email,notification_enabled)")
+        .eq("role", "student")
+        .eq("class", classCode)
+        .or("account_status.is.null,account_status.eq.active")
+        .order("name", { ascending: true })
+        .limit(200);
+    if (error) throw error;
+    return data || [];
+};
+
+const sendNotificationLog = async ({
+    admin,
+    apiKey,
+    settings,
+    log,
+    guardian,
+    email,
+    idempotencyKey
+}: any) => {
+    const { error: sendingError } = await admin
+        .from("notification_logs")
+        .update({
+            status: "sending",
+            provider: "resend",
+            idempotency_key: idempotencyKey,
+            error_message: null
+        })
+        .eq("id", log.id);
+    if (sendingError) throw sendingError;
+
+    try {
+        const providerResult = await sendWithResend(apiKey, {
+            from: `${settings.from_name || "Alan English"} <${settings.from_email}>`,
+            to: [guardian.email],
+            subject: email.subject,
+            html: email.html,
+            text: email.text,
+            ...(settings.reply_to ? { reply_to: settings.reply_to } : {})
+        }, idempotencyKey);
+        const { error: sentError } = await admin
+            .from("notification_logs")
+            .update({
+                status: "sent",
+                provider_message_id: providerResult?.id || null,
+                error_message: null,
+                sent_at: new Date().toISOString()
+            })
+            .eq("id", log.id);
+        if (sentError) throw sentError;
+        return { status: "sent", provider_message_id: providerResult?.id || null };
+    } catch (error) {
+        await admin
+            .from("notification_logs")
+            .update({
+                status: "failed",
+                error_message: error instanceof Error ? error.message.slice(0, 1000) : "Unknown error"
+            })
+            .eq("id", log.id);
+        throw error;
+    }
 };
 
 Deno.serve(async (req: Request) => {
@@ -303,12 +436,15 @@ Deno.serve(async (req: Request) => {
             }
             const { data, error } = await admin
                 .from("students")
-                .select("id,name,email,role")
+                .select("id,name,email,role,account_status")
                 .eq("firebase_uid", uid)
                 .maybeSingle();
             if (error) throw error;
             if (!data || !["teacher", "admin"].includes(data.role)) {
                 return json(403, { error: "只有教師或管理員可以寄送家長週報" });
+            }
+            if (data.account_status && data.account_status !== "active") {
+                return json(403, { error: "帳號已停用", code: "ACCOUNT_ARCHIVED" });
             }
             caller = data;
         }
@@ -339,6 +475,222 @@ Deno.serve(async (req: Request) => {
                 settings: settings || null,
                 schedule: scheduleResult.data || { configured: false },
                 recent: recentResult.data || []
+            });
+        }
+
+        const notificationActions = [
+            "send_notification",
+            "preview_class_notifications",
+            "send_class_notifications"
+        ];
+        if (notificationActions.includes(action) && caller?.role !== "admin") {
+            return json(403, { error: "只有管理員可以直接或批量寄送家長通知" });
+        }
+
+        if (action === "send_notification") {
+            if (!providerConfigured) {
+                return json(503, {
+                    error: "自動寄信尚未完成 RESEND_API_KEY 與寄件網域設定",
+                    code: "email_provider_not_configured"
+                });
+            }
+
+            const notificationId = Number(body?.notification_id);
+            if (!Number.isInteger(notificationId) || notificationId <= 0) {
+                return json(400, { error: "通知編號不正確" });
+            }
+            const { data: log, error: logError } = await admin
+                .from("notification_logs")
+                .select("id,student_id,guardian_contact_id,channel,reason,subject,message,status,idempotency_key,provider_message_id")
+                .eq("id", notificationId)
+                .maybeSingle();
+            if (logError) throw logError;
+            if (!log || log.channel !== "email") return json(404, { error: "找不到可寄送的 Email 通知" });
+            if (log.status === "sent") {
+                return json(200, { success: true, status: "skipped", reason: "already_sent" });
+            }
+            const dateKey = taipeiDateKey();
+            const dayBounds = taipeiDayBounds(dateKey);
+            if (log.reason === "inactive-learning") {
+                const { data: sentToday, error: sentTodayError } = await admin
+                    .from("notification_logs")
+                    .select("id")
+                    .eq("student_id", log.student_id)
+                    .eq("reason", "inactive-learning")
+                    .eq("status", "sent")
+                    .gte("sent_at", dayBounds.startAt)
+                    .lt("sent_at", dayBounds.endAt)
+                    .neq("id", log.id)
+                    .limit(1);
+                if (sentTodayError) throw sentTodayError;
+                if ((sentToday || []).length > 0) {
+                    return json(200, { success: true, status: "skipped", reason: "already_sent" });
+                }
+            }
+
+            const { data: guardian, error: guardianError } = await admin
+                .from("guardian_contacts")
+                .select("id,student_id,email,notification_enabled")
+                .eq("id", log.guardian_contact_id)
+                .eq("student_id", log.student_id)
+                .maybeSingle();
+            if (guardianError) throw guardianError;
+            if (!guardian?.notification_enabled || !guardian?.email) {
+                return json(400, { error: "此學生尚未設定可寄送的家長 Email" });
+            }
+
+            const idempotencyKey = cleanText(log.idempotency_key, 256) || `guardian-notification:${log.id}`;
+            const email = buildStoredNotificationEmail(log.subject, log.message);
+            try {
+                const providerResult = await sendNotificationLog({
+                    admin,
+                    apiKey: resendApiKey,
+                    settings,
+                    log,
+                    guardian,
+                    email,
+                    idempotencyKey
+                });
+                return json(200, {
+                    success: true,
+                    status: "sent",
+                    notification_id: log.id,
+                    provider_message_id: providerResult?.provider_message_id || null
+                });
+            } catch (error) {
+                await admin.from("notification_logs").update({
+                    status: "failed",
+                    error_message: error instanceof Error ? error.message.slice(0, 1000) : "Unknown error"
+                }).eq("id", log.id);
+                throw error;
+            }
+        }
+
+        if (["preview_class_notifications", "send_class_notifications"].includes(action)) {
+            const classCode = cleanText(body?.class_code, 10).toUpperCase();
+            if (!CLASS_CODES.includes(classCode)) {
+                return json(400, { error: "班級只能選擇 E1、E3、E5 或 E7" });
+            }
+            const candidates = await loadClassNotificationCandidates(admin, classCode);
+            const eligible = candidates.filter((student: any) => {
+                const guardian = getGuardianRelation(student);
+                return Boolean(guardian?.notification_enabled && guardian?.email);
+            });
+            const dateKey = taipeiDateKey();
+            const dayBounds = taipeiDayBounds(dateKey);
+            const sentStudentIds = new Set<number>();
+            if (eligible.length > 0) {
+                const { data: sentLogs, error: sentError } = await admin
+                    .from("notification_logs")
+                    .select("student_id")
+                    .in("student_id", eligible.map((student: any) => student.id))
+                    .eq("reason", "inactive-learning")
+                    .eq("status", "sent")
+                    .gte("sent_at", dayBounds.startAt)
+                    .lt("sent_at", dayBounds.endAt);
+                if (sentError) throw sentError;
+                for (const row of sentLogs || []) sentStudentIds.add(Number(row.student_id));
+            }
+
+            if (action === "preview_class_notifications") {
+                return json(200, {
+                    success: true,
+                    class_code: classCode,
+                    provider_configured: providerConfigured,
+                    totals: {
+                        students: candidates.length,
+                        ready_to_send: eligible.filter((student: any) => !sentStudentIds.has(Number(student.id))).length,
+                        already_sent_today: sentStudentIds.size,
+                        missing_guardian_email: candidates.length - eligible.length
+                    }
+                });
+            }
+
+            if (!providerConfigured) {
+                return json(503, {
+                    error: "自動寄信尚未完成 RESEND_API_KEY 與寄件網域設定",
+                    code: "email_provider_not_configured"
+                });
+            }
+
+            const results: any[] = [];
+            for (const student of eligible) {
+                const guardian = getGuardianRelation(student);
+                const idempotencyKey = `guardian-inactive:${student.id}:${dateKey}`;
+                if (sentStudentIds.has(Number(student.id))) {
+                    results.push({ student_id: student.id, status: "skipped", reason: "already_sent_today" });
+                    continue;
+                }
+
+                try {
+                    const { data: existing, error: existingError } = await admin
+                        .from("notification_logs")
+                        .select("id,status,idempotency_key")
+                        .eq("idempotency_key", idempotencyKey)
+                        .maybeSingle();
+                    if (existingError) throw existingError;
+                    if (existing?.status === "sent") {
+                        results.push({ student_id: student.id, status: "skipped", reason: "already_sent_today" });
+                        continue;
+                    }
+
+                    const email = buildInactiveReminder(student, guardian);
+                    let log = existing;
+                    if (!log) {
+                        const { data: inserted, error: insertError } = await admin
+                            .from("notification_logs")
+                            .insert({
+                                student_id: student.id,
+                                guardian_contact_id: guardian.id,
+                                created_by_account_id: caller.id,
+                                channel: "email",
+                                reason: "inactive-learning",
+                                subject: email.subject,
+                                message: email.text,
+                                status: "draft",
+                                provider: "resend",
+                                idempotency_key: idempotencyKey
+                            })
+                            .select("id,status,idempotency_key")
+                            .single();
+                        if (insertError) throw insertError;
+                        log = inserted;
+                    }
+
+                    const providerResult = await sendNotificationLog({
+                        admin,
+                        apiKey: resendApiKey,
+                        settings,
+                        log,
+                        guardian,
+                        email,
+                        idempotencyKey
+                    });
+                    results.push({
+                        student_id: student.id,
+                        status: "sent",
+                        provider_message_id: providerResult?.provider_message_id || null
+                    });
+                } catch (error) {
+                    await admin.from("notification_logs").update({
+                        status: "failed",
+                        error_message: error instanceof Error ? error.message.slice(0, 1000) : "Unknown error"
+                    }).eq("idempotency_key", idempotencyKey);
+                    results.push({ student_id: student.id, status: "failed" });
+                }
+            }
+
+            return json(200, {
+                success: true,
+                class_code: classCode,
+                totals: {
+                    requested: eligible.length,
+                    sent: results.filter(item => item.status === "sent").length,
+                    skipped: results.filter(item => item.status === "skipped").length,
+                    failed: results.filter(item => item.status === "failed").length,
+                    missing_guardian_email: candidates.length - eligible.length
+                },
+                results
             });
         }
 

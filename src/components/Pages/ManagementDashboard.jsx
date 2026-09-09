@@ -7,6 +7,11 @@ import {
     markGuardianNotificationSent,
     upsertGuardianContact
 } from "../../services/learningActivityService";
+import {
+    previewGuardianNotificationClass,
+    sendGuardianNotification,
+    sendGuardianNotificationClass
+} from "../../services/guardianEmailService";
 import "./css/ManagementDashboard.scss";
 import "./css/ManagementActivity.scss";
 
@@ -70,6 +75,8 @@ const createMailtoHref = draft => {
     return `mailto:${encodeURIComponent(draft.email || "")}?subject=${encodeURIComponent(draft.subject || "")}&body=${encodeURIComponent(draft.message || "")}`;
 };
 
+const CLASS_CODES = ["E1", "E3", "E5", "E7"];
+
 function ManagementDashboard() {
     const { role, studentProfile, firebaseUser } = useAuth();
     const [students, setStudents] = useState([]);
@@ -91,6 +98,10 @@ function ManagementDashboard() {
     const [noticeLoadingId, setNoticeLoadingId] = useState(null);
     const [noticeMessage, setNoticeMessage] = useState("");
     const [mailClientMessage, setMailClientMessage] = useState("");
+    const [directSending, setDirectSending] = useState(false);
+    const [batchClass, setBatchClass] = useState("");
+    const [batchPreview, setBatchPreview] = useState(null);
+    const [batchWorking, setBatchWorking] = useState("");
 
     const isAdmin = role === "admin";
     const reportPath = isAdmin ? "/admin/reports" : "/teacher/reports";
@@ -230,6 +241,57 @@ function ManagementDashboard() {
         }
     };
 
+    const sendPreparedReminder = async () => {
+        if (!firebaseUser || !noticeDraft || directSending) return;
+
+        setDirectSending(true);
+        setMailClientMessage("");
+        try {
+            const result = await sendGuardianNotification(firebaseUser, noticeDraft.id);
+            setNoticeMessage(result?.reason === "already_sent"
+                ? "這封通知先前已寄出，系統沒有重複寄送"
+                : `已直接寄送給 ${noticeDraft.email}`);
+            setNoticeDraft(null);
+            setNoticeStudent(null);
+        } catch (error) {
+            setMailClientMessage(error.message || "家長通知寄送失敗");
+        } finally {
+            setDirectSending(false);
+        }
+    };
+
+    const previewClassNotifications = async () => {
+        if (!firebaseUser || !batchClass || batchWorking) return;
+
+        setBatchWorking("preview");
+        setNoticeMessage("");
+        try {
+            const result = await previewGuardianNotificationClass(firebaseUser, batchClass);
+            setBatchPreview(result);
+        } catch (error) {
+            setBatchPreview(null);
+            setNoticeMessage(error.message || "班級通知預覽失敗");
+        } finally {
+            setBatchWorking("");
+        }
+    };
+
+    const sendClassNotifications = async () => {
+        if (!firebaseUser || !batchClass || !batchPreview || batchWorking) return;
+
+        setBatchWorking("send");
+        try {
+            const result = await sendGuardianNotificationClass(firebaseUser, batchClass);
+            const totals = result?.totals || {};
+            setNoticeMessage(`${batchClass} 班批量寄送完成：成功 ${totals.sent || 0}、略過 ${totals.skipped || 0}、失敗 ${totals.failed || 0}、缺家長 Email ${totals.missing_guardian_email || 0}`);
+            setBatchPreview(null);
+        } catch (error) {
+            setNoticeMessage(error.message || "班級通知批量寄送失敗");
+        } finally {
+            setBatchWorking("");
+        }
+    };
+
     const markReminderSent = async () => {
         if (!firebaseUser || !noticeDraft) return;
 
@@ -288,6 +350,50 @@ function ManagementDashboard() {
                             </div>
                             <button type="button" className="activity-refresh-button" onClick={fetchDashboardData}>重新整理</button>
                         </div>
+
+                        {isAdmin && (
+                            <div className="guardian-batch-panel">
+                                <div>
+                                    <strong>按班級批量通知家長</strong>
+                                    <span>每位家長會收到獨立信件；先預覽人數，再確認寄送。</span>
+                                </div>
+                                <div className="guardian-batch-controls">
+                                    <select
+                                        aria-label="選擇批量寄送班級"
+                                        value={batchClass}
+                                        onChange={event => {
+                                            setBatchClass(event.target.value);
+                                            setBatchPreview(null);
+                                        }}
+                                    >
+                                        <option value="">選擇班級</option>
+                                        {CLASS_CODES.map(code => <option key={code} value={code}>{code} 班</option>)}
+                                    </select>
+                                    <button type="button" onClick={previewClassNotifications} disabled={!batchClass || Boolean(batchWorking)}>
+                                        {batchWorking === "preview" ? "預覽中…" : "預覽寄送名單"}
+                                    </button>
+                                </div>
+                                {batchPreview && (
+                                    <div className="guardian-batch-confirm" role="status">
+                                        <p>
+                                            <strong>{batchPreview.class_code} 班</strong>共 {batchPreview.totals?.students || 0} 位；
+                                            本次可寄 {batchPreview.totals?.ready_to_send || 0} 封、
+                                            今日已寄 {batchPreview.totals?.already_sent_today || 0} 封、
+                                            缺家長 Email {batchPreview.totals?.missing_guardian_email || 0} 位。
+                                        </p>
+                                        {!batchPreview.provider_configured && <span>寄信服務尚未完成設定，暫時不能寄送。</span>}
+                                        <button
+                                            type="button"
+                                            className="primary"
+                                            onClick={sendClassNotifications}
+                                            disabled={!batchPreview.provider_configured || !batchPreview.totals?.ready_to_send || Boolean(batchWorking)}
+                                        >
+                                            {batchWorking === "send" ? "寄送中…" : `確認寄送 ${batchPreview.totals?.ready_to_send || 0} 封`}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="activity-filter-bar">
                             <input
@@ -447,7 +553,7 @@ function ManagementDashboard() {
                             <span>通知內容</span>
                             <textarea value={noticeDraft.message || ""} readOnly rows="8" />
                         </label>
-                        <p>目前這一步會開啟裝置上的 Email App；網站會保留提醒紀錄，但不會假裝已經由伺服器自動寄出。</p>
+                        <p>管理員可由網站直接寄送；也可以複製內容或開啟裝置上的 Email App 自行寄出。只有實際寄送成功後才會留下已寄出紀錄。</p>
                         {mailClientMessage && <div className="guardian-mail-status" role="status">{mailClientMessage}</div>}
                         <div className="guardian-reminder-actions">
                             <button type="button" onClick={() => setNoticeDraft(null)}>取消</button>
@@ -459,7 +565,12 @@ function ManagementDashboard() {
                             >
                                 開啟 Email
                             </a>
-                            <button type="button" className="primary" onClick={markReminderSent}>我已寄出</button>
+                            <button type="button" onClick={markReminderSent}>已自行寄出</button>
+                            {isAdmin && (
+                                <button type="button" className="primary" onClick={sendPreparedReminder} disabled={directSending}>
+                                    {directSending ? "寄送中…" : "直接寄送"}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

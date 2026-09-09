@@ -7,6 +7,11 @@ import {
     createGuardianNotificationDraft,
     getTeacherStudentActivity
 } from "../../services/learningActivityService";
+import {
+    previewGuardianNotificationClass,
+    sendGuardianNotification,
+    sendGuardianNotificationClass
+} from "../../services/guardianEmailService";
 import ManagementDashboard from "./ManagementDashboard";
 
 jest.mock("../../auth/AuthContext", () => ({
@@ -18,6 +23,12 @@ jest.mock("../../services/learningActivityService", () => ({
     getTeacherStudentActivity: jest.fn(),
     markGuardianNotificationSent: jest.fn(),
     upsertGuardianContact: jest.fn()
+}));
+
+jest.mock("../../services/guardianEmailService", () => ({
+    previewGuardianNotificationClass: jest.fn(),
+    sendGuardianNotification: jest.fn(),
+    sendGuardianNotificationClass: jest.fn()
 }));
 
 describe("ManagementDashboard", () => {
@@ -97,7 +108,8 @@ describe("ManagementDashboard", () => {
         const mailLink = screen.getByRole("link", { name: "開啟 Email" });
         expect(mailLink).toHaveClass("open-mail-button");
         expect(mailLink).toHaveAttribute("href", expect.stringContaining("mailto:guardian%40example.invalid"));
-        expect(screen.getByRole("button", { name: "我已寄出" })).toHaveClass("primary");
+        expect(screen.getByRole("button", { name: "已自行寄出" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "直接寄送" })).toHaveClass("primary");
     });
 
     test("copies the reminder when the browser cannot open an Email app", async () => {
@@ -126,5 +138,64 @@ describe("ManagementDashboard", () => {
 
         expect(await screen.findByRole("status")).toHaveTextContent("郵件內容已複製");
         expect(writeText).toHaveBeenCalledWith(expect.stringContaining("guardian@example.invalid"));
+    });
+
+    test("sends the prepared notification directly from the admin dialog", async () => {
+        createGuardianNotificationDraft.mockResolvedValue({
+            draft: {
+                id: 503,
+                email: "guardian@example.invalid",
+                subject: "Alan English 學習提醒",
+                message: "本週學習提醒"
+            }
+        });
+        sendGuardianNotification.mockResolvedValue({ success: true, status: "sent" });
+
+        render(
+            <MemoryRouter>
+                <ManagementDashboard />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(await screen.findByRole("button", { name: "提醒家長" }));
+        fireEvent.click(await screen.findByRole("button", { name: "直接寄送" }));
+
+        expect(await screen.findByText("已直接寄送給 guardian@example.invalid")).toBeInTheDocument();
+        expect(sendGuardianNotification).toHaveBeenCalledWith(expect.anything(), 503);
+    });
+
+    test("previews and confirms a class batch before sending", async () => {
+        previewGuardianNotificationClass.mockResolvedValue({
+            success: true,
+            class_code: "E3",
+            provider_configured: true,
+            totals: {
+                students: 8,
+                ready_to_send: 6,
+                already_sent_today: 1,
+                missing_guardian_email: 1
+            }
+        });
+        sendGuardianNotificationClass.mockResolvedValue({
+            success: true,
+            totals: { sent: 6, skipped: 0, failed: 0, missing_guardian_email: 1 }
+        });
+
+        render(
+            <MemoryRouter>
+                <ManagementDashboard />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(await screen.findByRole("combobox", { name: "選擇批量寄送班級" }), {
+            target: { value: "E3" }
+        });
+        fireEvent.click(screen.getByRole("button", { name: "預覽寄送名單" }));
+
+        expect(await screen.findByRole("button", { name: "確認寄送 6 封" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "確認寄送 6 封" }));
+
+        expect(await screen.findByText(/E3 班批量寄送完成：成功 6/)).toBeInTheDocument();
+        expect(sendGuardianNotificationClass).toHaveBeenCalledWith(expect.anything(), "E3");
     });
 });

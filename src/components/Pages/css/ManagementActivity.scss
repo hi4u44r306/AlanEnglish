@@ -383,6 +383,92 @@
     font-weight: 700;
 }
 
+.guardian-batch-panel {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(300px, auto);
+    gap: 14px 18px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid #dbe7f7;
+    border-radius: 14px;
+    background: #f7fbff;
+}
+
+.guardian-batch-panel > div > strong,
+.guardian-batch-panel > div > span {
+    display: block;
+}
+
+.guardian-batch-panel > div > strong {
+    margin-bottom: 4px;
+    color: #1f2a44;
+}
+
+.guardian-batch-panel > div > span {
+    color: #667085;
+    font-size: .86rem;
+}
+
+.guardian-batch-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.guardian-batch-controls select {
+    min-width: 130px;
+    min-height: 42px;
+    padding: 8px 11px;
+    border: 1px solid #cad8ea;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.guardian-batch-controls button,
+.guardian-batch-confirm button {
+    min-height: 42px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: #3478db;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.guardian-batch-controls button:disabled,
+.guardian-batch-confirm button:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+}
+
+.guardian-batch-confirm {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #dbe7f7;
+}
+
+.guardian-batch-confirm p {
+    margin: 0;
+    color: #46546a;
+    line-height: 1.6;
+}
+
+.guardian-batch-confirm > span {
+    color: #a16207;
+    font-size: .86rem;
+    font-weight: 700;
+}
+
+.guardian-batch-confirm .primary {
+    flex: 0 0 auto;
+    background: #14213d;
+}
+
 .guardian-reminder-modal label {
     display: flex;
     flex-direction: column;
@@ -472,6 +558,16 @@
     .guardian-editor-grid {
         grid-template-columns: 1fr 1fr;
     }
+
+    .guardian-batch-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .guardian-batch-confirm {
+        grid-column: auto;
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
 @media screen and (max-width: 600px) {
@@ -487,6 +583,18 @@
     .activity-filter-bar,
     .guardian-editor-grid {
         grid-template-columns: 1fr;
+    }
+
+    .guardian-batch-controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .guardian-batch-controls select,
+    .guardian-batch-controls button,
+    .guardian-batch-confirm button {
+        width: 100%;
+        min-height: 44px;
     }
 
     .student-activity-panel .management-table-wrap {

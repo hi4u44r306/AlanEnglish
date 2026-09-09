@@ -5,6 +5,7 @@
 ## 本次進行中（2026-09-09，測試站已部署，正式尚未部署）
 
 - 家長學習報告第一階段：學生首頁把既有週報收斂為「家長學習報告」，可彙整聽力、作業、AI、複習與口說，提供複製家長摘要及列印／存 PDF。學生只讀自己的報告，學習方案到期後仍可查看歷史紀錄；教師端改由後端依 `teacher_class_permissions` 限制為目前授權班級，管理員才可看全部學生。本機 checkpoint `25154f1` 的 `WeeklyReport` 元件測試、Edge Function 語法檢查、`git diff --check` 與 production build 已通過；測試 Supabase 的 `weekly-report` 與固定測試站已部署，未登入函式請求正確回傳 401。管理頁「提醒家長」彈窗已修正無樣式問題；針對內建瀏覽器或未設定預設郵件程式時 `mailto:` 沒有反應，另改為原生 Email 連結並新增「複製郵件內容」備援與狀態提示。管理 Dashboard 3/3 測試、production build 與 `git diff --check` 已通過，修正版固定測試站 deploy `6aa16914c5c96214321aae2c` 已為 ready；管理路由回應 200，線上 bundle 已確認包含 Email 連結、剪貼簿備援與提示文案。未新增資料表或資料 migration；尚待已登入學生／教師／管理員真人角色驗收，以及推送、合併與正式部署。
+- 家長通知直接與班級批量寄送（本機完成，尚未部署）：管理員在單一通知草稿確認後可由後端直接寄送，不再依賴裝置 Email App；也可選擇 E1、E3、E5 或 E7，先由後端預覽可寄、同日已寄與缺家長 Email 數量，再二次確認逐封寄送。每位家長使用獨立 Resend 請求，不使用 BCC；後端只接受既有通知編號或固定班級，不信任前端收件地址與內容，以台北日期的 idempotency key 防止同日重複。新操作只開放管理員，沿用 `guardian_email_settings` 與 `RESEND_API_KEY`，不需 migration，也未實際寄送任何測試信。管理頁 5／5、寄信安全契約 4／4、Edge Function 語法、production build 與 `git diff --check` 均成功。
 
 本次正式發布（2026-09-07）：
 
