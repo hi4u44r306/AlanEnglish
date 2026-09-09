@@ -52,7 +52,8 @@
 .activity-row-actions button,
 .guardian-save-button,
 .guardian-editor-heading button,
-.guardian-reminder-actions button {
+.guardian-reminder-actions button,
+.guardian-reminder-actions a {
     border: 0;
     border-radius: 10px;
     font-weight: 700;
@@ -426,6 +427,17 @@
     line-height: 1.55;
 }
 
+.guardian-mail-status {
+    margin: 0 0 13px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #eaf4ff;
+    color: #245a9e;
+    font-size: .86rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
 .guardian-reminder-actions {
     display: flex;
     flex-wrap: wrap;
@@ -433,11 +445,16 @@
     gap: 8px;
 }
 
-.guardian-reminder-actions button {
+.guardian-reminder-actions button,
+.guardian-reminder-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 42px;
     padding: 0 13px;
     background: #edf0f4;
     color: #4b5563;
+    text-decoration: none;
 }
 
 .guardian-reminder-actions .open-mail-button {
@@ -563,7 +580,8 @@
         flex-direction: column;
     }
 
-    .guardian-reminder-actions button {
+    .guardian-reminder-actions button,
+    .guardian-reminder-actions a {
         width: 100%;
         min-height: 44px;
     }

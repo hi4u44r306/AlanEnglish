@@ -48,6 +48,28 @@ const getStatusClass = code => {
     return "activity-never";
 };
 
+const copyText = async value => {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+};
+
+const createMailtoHref = draft => {
+    if (!draft) return "";
+    return `mailto:${encodeURIComponent(draft.email || "")}?subject=${encodeURIComponent(draft.subject || "")}&body=${encodeURIComponent(draft.message || "")}`;
+};
+
 function ManagementDashboard() {
     const { role, studentProfile, firebaseUser } = useAuth();
     const [students, setStudents] = useState([]);
@@ -68,6 +90,7 @@ function ManagementDashboard() {
     const [noticeStudent, setNoticeStudent] = useState(null);
     const [noticeLoadingId, setNoticeLoadingId] = useState(null);
     const [noticeMessage, setNoticeMessage] = useState("");
+    const [mailClientMessage, setMailClientMessage] = useState("");
 
     const isAdmin = role === "admin";
     const reportPath = isAdmin ? "/admin/reports" : "/teacher/reports";
@@ -179,6 +202,7 @@ function ManagementDashboard() {
 
         setNoticeLoadingId(student.id);
         setNoticeMessage("");
+        setMailClientMessage("");
 
         try {
             const result = await createGuardianNotificationDraft(firebaseUser, student.id);
@@ -192,11 +216,18 @@ function ManagementDashboard() {
         }
     };
 
-    const openMailClient = () => {
+    const copyReminderEmail = async () => {
         if (!noticeDraft) return;
 
-        const href = `mailto:${encodeURIComponent(noticeDraft.email)}?subject=${encodeURIComponent(noticeDraft.subject)}&body=${encodeURIComponent(noticeDraft.message)}`;
-        window.location.href = href;
+        const text = `收件人：${noticeDraft.email || ""}\n主旨：${noticeDraft.subject || ""}\n\n${noticeDraft.message || ""}`;
+
+        try {
+            await copyText(text);
+            setMailClientMessage("郵件內容已複製，可以直接貼到 Gmail 或其他 Email App。");
+        } catch (error) {
+            console.error("複製家長提醒失敗:", error);
+            setMailClientMessage("瀏覽器無法自動複製，請手動選取上方內容後複製。");
+        }
     };
 
     const markReminderSent = async () => {
@@ -417,9 +448,17 @@ function ManagementDashboard() {
                             <textarea value={noticeDraft.message || ""} readOnly rows="8" />
                         </label>
                         <p>目前這一步會開啟裝置上的 Email App；網站會保留提醒紀錄，但不會假裝已經由伺服器自動寄出。</p>
+                        {mailClientMessage && <div className="guardian-mail-status" role="status">{mailClientMessage}</div>}
                         <div className="guardian-reminder-actions">
                             <button type="button" onClick={() => setNoticeDraft(null)}>取消</button>
-                            <button type="button" className="open-mail-button" onClick={openMailClient}>開啟 Email</button>
+                            <button type="button" onClick={copyReminderEmail}>複製郵件內容</button>
+                            <a
+                                className="open-mail-button"
+                                href={createMailtoHref(noticeDraft)}
+                                onClick={() => setMailClientMessage("已請裝置開啟 Email App；若沒有反應，請改用「複製郵件內容」。")}
+                            >
+                                開啟 Email
+                            </a>
                             <button type="button" className="primary" onClick={markReminderSent}>我已寄出</button>
                         </div>
                     </div>

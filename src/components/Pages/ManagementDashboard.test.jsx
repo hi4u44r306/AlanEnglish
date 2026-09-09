@@ -94,7 +94,37 @@ describe("ManagementDashboard", () => {
         const dialog = await screen.findByRole("dialog");
         expect(dialog).toHaveClass("guardian-reminder-modal");
         expect(dialog.parentElement).toHaveClass("guardian-reminder-modal-backdrop");
-        expect(screen.getByRole("button", { name: "開啟 Email" })).toHaveClass("open-mail-button");
+        const mailLink = screen.getByRole("link", { name: "開啟 Email" });
+        expect(mailLink).toHaveClass("open-mail-button");
+        expect(mailLink).toHaveAttribute("href", expect.stringContaining("mailto:guardian%40example.invalid"));
         expect(screen.getByRole("button", { name: "我已寄出" })).toHaveClass("primary");
+    });
+
+    test("copies the reminder when the browser cannot open an Email app", async () => {
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        Object.defineProperty(navigator, "clipboard", {
+            configurable: true,
+            value: { writeText }
+        });
+        createGuardianNotificationDraft.mockResolvedValue({
+            draft: {
+                id: 502,
+                email: "guardian@example.invalid",
+                subject: "Alan English 學習提醒",
+                message: "本週學習提醒"
+            }
+        });
+
+        render(
+            <MemoryRouter>
+                <ManagementDashboard />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(await screen.findByRole("button", { name: "提醒家長" }));
+        fireEvent.click(await screen.findByRole("button", { name: "複製郵件內容" }));
+
+        expect(await screen.findByRole("status")).toHaveTextContent("郵件內容已複製");
+        expect(writeText).toHaveBeenCalledWith(expect.stringContaining("guardian@example.invalid"));
     });
 });
