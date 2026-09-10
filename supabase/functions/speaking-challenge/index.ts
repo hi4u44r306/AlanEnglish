@@ -11,6 +11,13 @@ const corsHeaders = {
 const json = (status: number, payload: Record<string, unknown>) => new Response(JSON.stringify(payload), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
 });
+const FEMALE_CHIRP3_HD_VOICES = new Set(["Achernar", "Aoede", "Autonoe", "Callirrhoe", "Despina", "Erinome", "Gacrux", "Kore", "Laomedeia", "Leda", "Pulcherrima", "Sulafat", "Vindemiatrix", "Zephyr"]);
+const MALE_CHIRP3_HD_VOICES = new Set(["Achird", "Algenib", "Algieba", "Alnilam", "Charon", "Enceladus", "Fenrir", "Iapetus", "Orus", "Puck", "Rasalgethi", "Sadachbia", "Sadaltager", "Schedar", "Umbriel", "Zubenelgenubi"]);
+const guideGenderForVoice = (voiceId: unknown) => {
+    const voiceName = String(voiceId || "").trim().split("-").pop() || "";
+    if (MALE_CHIRP3_HD_VOICES.has(voiceName)) return "male";
+    return FEMALE_CHIRP3_HD_VOICES.has(voiceName) ? "female" : "female";
+};
 
 const assertChallengeAccess = async (admin: any, user: any) => {
     if (user.role !== "student") throw Object.assign(new Error("只有學生可以進行口說大挑戰"), { status: 403 });
@@ -72,7 +79,7 @@ Deno.serve(async (req: Request) => {
             if (audioLinkError) throw audioLinkError;
             const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
             const { data: assets, error: assetError } = assetIds.length
-                ? await admin.from("speaking_tts_assets").select("id,status,private_object_key").in("id", assetIds)
+                ? await admin.from("speaking_tts_assets").select("id,status,private_object_key,voice_id").in("id", assetIds)
                 : { data: [], error: null };
             if (assetError) throw assetError;
             const assetById = new Map((assets || []).map((row: any) => [String(row.id), row]));
@@ -85,6 +92,7 @@ Deno.serve(async (req: Request) => {
                     ...question,
                     progress_status: statusByQuestion.get(Number(question.id)) || "opened",
                     model_audio_status: audioReady ? "ready" : (asset?.status || "missing"),
+                    model_voice_gender: guideGenderForVoice(asset?.voice_id),
                     model_audio_url: audioReady ? await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60) : null
                 });
             }

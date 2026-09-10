@@ -4,8 +4,8 @@
 
 本次進行中（2026-09-10，尚未部署）：
 
-- 口說大挑戰題庫視覺輔助：已盤點全部 6 組、36 題的現有題庫；15 題需要圖卡才不會由文字直接洩漏答案或缺少作答情境。新增受白名單限制的 `visual_aid` JSON 欄位與學生端 SVG 圖卡，覆蓋國旗（Q6～Q10）、顏色與物品（Q19～Q24）、時鐘／日常情境（Q31、Q32、Q34、Q36）；圖卡不接受遠端 URL。草稿 Q31 改為「Look at the clock. What time is it?」，不再先說出七點。管理頁的草稿題目可選圖卡類型、代號與繁中替代文字，也可預覽學生圖卡。`TextbookSpeakingChallenge` 2/2 與所有 Edge Function 語法檢查已通過，Production bundle 已確認包含圖卡元件；尚待套用 additive migration 至測試資料庫、部署 `speaking-content-manager`、`speaking-challenge` 與測試站。
-- 口說大挑戰 AI 卡通人物：原創透明背景卡通口說夥伴已推送至 `codex/elementary-tts-clarity` 並部署固定測試站；播放 R2 自然示範語音時，人物同步動嘴、輕微移動並顯示聲音動態，播放結束、暫停或失敗後恢復靜止。支援 `prefers-reduced-motion`，手機版改為上下排列並保留至少 44px 操作高度。相關檔案為 `TextbookSpeakingChallenge.jsx`、`TextbookSpeakingChallenge.scss` 與 `public/speaking-ai-guide.png`；尚待已登入學生帳號的桌機／412px 手機視覺驗收。
+- 口說大挑戰男女聲口說夥伴：改為一組一致的可愛男孩／女孩向量角色，學生端從真正連結到該題的 `speaking_tts_assets.voice_id` 判別性別；Chirp 3 HD 的 Autonoe／Leda 等女聲配對女孩，Puck 等男聲配對男孩。人物固定在題目旁，朗讀時才自然呼吸、動嘴、眨眼及顯示聲音動態，結束即靜止；保留 reduced-motion 與手機版版面。尚待測試、推送、部署 `speaking-challenge` 與測試站。
+- 口說大挑戰題庫視覺輔助（測試站已部署，正式尚未部署）：已盤點全部 6 組、36 題的現有題庫；15 題需要圖卡才不會由文字直接洩漏答案或缺少作答情境。新增受白名單限制的 `visual_aid` JSON 欄位與學生端 SVG 圖卡，覆蓋國旗（Q6～Q10）、顏色與物品（Q19～Q24）、時鐘／日常情境（Q31、Q32、Q34、Q36）；圖卡不接受遠端 URL。草稿 Q31 已改為「Look at the clock. What time is it?」，不再先說出七點。管理頁的草稿題目可選圖卡類型、代號與繁中替代文字，也可預覽學生圖卡。migration `20260910090000` 已套用並記錄，15 題資料已查證，`speaking-content-manager`、`speaking-challenge` 與固定測試站已更新；尚待已登入學生帳號的視覺驗收。
 
 本次進行中（2026-09-04，測試環境已部署，正式尚未部署）：
 

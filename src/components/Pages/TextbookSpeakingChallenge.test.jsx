@@ -28,6 +28,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
                     id: 9, sort_order: 0, question_text: "What's your name?", hint_zh: "說出名字",
                     model_answer: "My name is Alan.", model_audio_status: "ready",
                     model_audio_url: "https://r2.example/signed.mp3", progress_status: "opened",
+                    model_voice_gender: "male",
                     visual_aid: { kind: "clock", value: "7", alt_zh: "時鐘顯示七點整" }
                 }]
             }
@@ -41,24 +42,25 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(play).toHaveBeenCalled();
 
         act(() => listeners.play());
-        expect(screen.getByLabelText("AI 口說夥伴正在示範發音")).toBeInTheDocument();
+        expect(screen.getByLabelText("男聲 AI 口說夥伴正在示範發音")).toBeInTheDocument();
         expect(screen.getByText("跟著我一起說！")).toBeInTheDocument();
 
         act(() => listeners.ended());
-        expect(screen.getByLabelText("AI 口說夥伴")).toBeInTheDocument();
-        expect(screen.getByText("嗨！準備開口挑戰嗎？")).toBeInTheDocument();
+        expect(screen.getByLabelText("男聲 AI 口說夥伴")).toBeInTheDocument();
+        expect(screen.getByText("嗨！我是男聲口說夥伴。")).toBeInTheDocument();
     });
 
     it("does not fall back to device speech while audio is missing", async () => {
         getSpeakingChallengeSet.mockResolvedValue({
             challenge: {
                 id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
-                speaking_questions: [{ id: 9, sort_order: 0, question_text: "What's your name?", hint_zh: "說出名字", model_answer: "My name is Alan.", model_audio_status: "missing", model_audio_url: null, progress_status: "opened" }]
+                speaking_questions: [{ id: 9, sort_order: 0, question_text: "What's your name?", hint_zh: "說出名字", model_answer: "My name is Alan.", model_audio_status: "missing", model_audio_url: null, progress_status: "opened", model_voice_gender: "female" }]
             }
         });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         expect(await screen.findByRole("button", { name: "語音準備中" })).toBeDisabled();
+        expect(screen.getByLabelText("女聲 AI 口說夥伴")).toBeInTheDocument();
     });
 });

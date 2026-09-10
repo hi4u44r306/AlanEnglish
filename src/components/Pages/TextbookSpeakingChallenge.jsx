@@ -3,6 +3,7 @@ import { FiBookOpen, FiCheckCircle, FiChevronLeft, FiMic, FiVolume2 } from "reac
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import SpeakingGuideAvatar from "./SpeakingGuideAvatar";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import "./css/TextbookSpeakingChallenge.scss";
 
@@ -63,12 +64,8 @@ export default function TextbookSpeakingChallenge() {
         const isSpeaking = audioWorking === String(question.id);
         return <article key={question.id} className={question.progress_status === "completed" ? "done" : ""}>
             <div className={`speaking-ai-guide ${isSpeaking ? "is-speaking" : ""}`} aria-label={isSpeaking ? "AI 口說夥伴正在示範發音" : "AI 口說夥伴"}>
-                <div className="speaking-ai-guide-portrait">
-                    <img src="/speaking-ai-guide.png" alt="可愛卡通 AI 口說夥伴" />
-                    <span className="speaking-ai-guide-mouth" aria-hidden="true" />
-                    <span className="speaking-ai-guide-voice" aria-hidden="true"><i /><i /><i /></span>
-                </div>
-                <strong>{isSpeaking ? "跟著我一起說！" : "嗨！準備開口挑戰嗎？"}</strong>
+                <SpeakingGuideAvatar gender={question.model_voice_gender} isSpeaking={isSpeaking} />
+                <strong>{isSpeaking ? "跟著我一起說！" : question.model_voice_gender === "male" ? "嗨！我是男聲口說夥伴。" : "嗨！我是女聲口說夥伴。"}</strong>
             </div>
             <div className="speaking-question-content">
                 <small>小關卡 {index + 1}</small><h2>{question.question_text}</h2><p>{question.hint_zh}</p><SpeakingVisualAid aid={question.visual_aid} /><div className="speaking-answer"><strong>不知道怎麼說？</strong><span>{question.model_answer}</span><button disabled={!question.model_audio_url || isSpeaking} onClick={() => playModelAudio(question)}><FiVolume2 />{question.model_audio_url ? (isSpeaking ? "播放中…" : "聽自然示範") : "語音準備中"}</button></div>{question.pronunciation_notes_zh && <aside>{question.pronunciation_notes_zh}</aside>}<button className="speaking-complete" disabled={working === String(question.id) || question.progress_status === "completed"} onClick={() => markComplete(question)}><FiCheckCircle />{question.progress_status === "completed" ? "已練習" : "我已開口練習"}</button><small className="speaking-no-reward">此階段只記錄練習，不發 XP 或 AE Points。</small>
