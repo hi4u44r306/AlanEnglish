@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.95.0";
-import { importPKCS8, SignJWT } from "npm:jose@5";
+import { createRemoteJWKSet, importPKCS8, jwtVerify, SignJWT } from "npm:jose@5";
 
 type JsonObject = Record<string, unknown>;
 
@@ -97,6 +97,12 @@ const INVITATION_TTL_HOURS = 30 * 24;
 const STUDENT_ACTIVATION_TTL_HOURS = 30 * 24;
 const ACADEMY_LOGIN_DOMAIN = "login.alanenglish.com.tw";
 const ACTIVATION_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const FIREBASE_PROJECT_ID = "alan-english-listening";
+const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
+const FIREBASE_JWKS = createRemoteJWKSet(
+    new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
+);
+const RECENT_AUTHENTICATION_SECONDS = 5 * 60;
 const RESERVED_EMAIL_DOMAINS = new Set([
     "example.com",
     "example.net",
@@ -484,6 +490,24 @@ const verifyFirebaseUser = async (token: string): Promise<FirebaseUser> => {
         email: normalizeEmail(user?.email) || null,
         emailVerified: user?.emailVerified === true
     };
+};
+
+const verifyRecentFirebaseAuthentication = async (token: string): Promise<string> => {
+    try {
+        const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
+            issuer: FIREBASE_ISSUER,
+            audience: FIREBASE_PROJECT_ID
+        });
+        const uid = cleanText(payload.sub, 200);
+        const authTime = Number(payload.auth_time);
+        const now = Math.floor(Date.now() / 1000);
+        if (!uid || !Number.isFinite(authTime) || authTime > now || now - authTime > RECENT_AUTHENTICATION_SECONDS) {
+            throw new Error("recent authentication required");
+        }
+        return uid;
+    } catch {
+        throw new HttpError(403, "RECENT_AUTHENTICATION_REQUIRED", "為了保護復原碼，請先重新輸入目前密碼再試一次");
+    }
 };
 
 const getSupabaseAdmin = (): SupabaseClient => {
@@ -970,8 +994,20 @@ const listInvitations = async (
 const createStudentActivationToken = (): string => randomCharacters(40);
 
 const createStudentRecoveryCode = (): string => {
-    const compact = randomCharacters(12).toUpperCase();
-    return `AE-${compact.slice(0, 4)}-${compact.slice(4, 8)}-${compact.slice(8, 12)}`;
+    const range = 1_000_000;
+    const limit = Math.floor(0x1_0000_0000 / range) * range;
+    const values = new Uint32Array(1);
+    do {
+        crypto.getRandomValues(values);
+    } while (values[0] >= limit);
+    return String(values[0] % range).padStart(6, "0");
+};
+
+const createStudentRecoveryCodes = (): [string, string] => {
+    const first = createStudentRecoveryCode();
+    let second = createStudentRecoveryCode();
+    while (second === first) second = createStudentRecoveryCode();
+    return [first, second];
 };
 
 const normalizeRecoveryCode = (value: unknown): string => cleanText(value, 32)
@@ -1224,7 +1260,7 @@ const createStudentAccount = async (
 
     const hiddenBootstrapPassword = createTemporaryPassword();
     const activationToken = createStudentActivationToken();
-    const recoveryCodes = [createStudentRecoveryCode(), createStudentRecoveryCode()];
+    const recoveryCodes = createStudentRecoveryCodes();
     const [activationTokenHash, ...recoveryCodeHashes] = await Promise.all([
         hashInvitationToken(activationToken),
         ...recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
@@ -1359,7 +1395,7 @@ const reissueStudentLoginCard = async (
     }
 
     const activationToken = createStudentActivationToken();
-    const recoveryCodes = [createStudentRecoveryCode(), createStudentRecoveryCode()];
+    const recoveryCodes = createStudentRecoveryCodes();
     const [activationTokenHash, ...recoveryCodeHashes] = await Promise.all([
         hashInvitationToken(activationToken),
         ...recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
@@ -1850,43 +1886,47 @@ const recoverStudentLogin = async (
     const username = normalizeLoginUsername(body.username);
     const recoveryCode = normalizeRecoveryCode(body.recovery_code);
     const password = validateStudentPassword(body.password ?? body.pin);
-    if (!/^[a-z][a-z0-9]{4,31}$/.test(username) || recoveryCode.length < 10) {
+    const isSixDigitCode = /^\d{6}$/.test(recoveryCode);
+    const isLegacyCode = recoveryCode.length >= 10;
+    if (!/^[a-z][a-z0-9]{4,31}$/.test(username) || (!isSixDigitCode && !isLegacyCode)) {
         throw new HttpError(400, "INVALID_RECOVERY_DETAILS", "帳號或復原碼不正確");
     }
     const codeHash = await hashInvitationToken(recoveryCode);
-    const { data, error } = await admin
-        .from("academy_student_recovery_codes")
-        .select("id,student_id,used_at,revoked_at,students!academy_student_recovery_codes_student_id_fkey!inner(id,firebase_uid,login_username,authentication_method,account_status)")
-        .eq("code_hash", codeHash)
-        .maybeSingle();
-    const student = Array.isArray(data?.students) ? data.students[0] : data?.students;
+    const reservation = createStudentActivationToken();
+    const reservationHash = await hashInvitationToken(reservation);
+    const { data, error } = await admin.rpc("reserve_academy_student_recovery_code", {
+        p_username: username,
+        p_code_hash: codeHash,
+        p_reservation_hash: reservationHash
+    });
+    if (error) {
+        console.error("Academy student recovery reservation failed", { code: error.code, message: error.message });
+        throw new HttpError(500, "RECOVERY_RESERVATION_FAILED", "目前無法確認復原碼，請稍後再試");
+    }
+    if (data?.status === "rate_limited") {
+        throw new HttpError(429, "RECOVERY_RATE_LIMITED", "嘗試次數過多，請 1 小時後再試或聯絡老師");
+    }
     if (
-        error
-        || !data?.id
-        || data.used_at
-        || data.revoked_at
-        || normalizeLoginUsername(student?.login_username) !== username
-        || student?.authentication_method !== "academy_username"
-        || student?.account_status === "archived"
+        data?.status !== "reserved"
+        || !Number.isSafeInteger(Number(data.student_id))
+        || !cleanText(data.firebase_uid, 200)
     ) {
         throw new HttpError(404, "RECOVERY_NOT_FOUND", "帳號或復原碼不正確，或這組復原碼已使用");
     }
 
-    await updateFirebasePasswordByUid(student.firebase_uid, password);
+    await updateFirebasePasswordByUid(cleanText(data.firebase_uid, 200), password);
     const now = new Date().toISOString();
-    const [{ error: codeError }, { error: studentError }] = await Promise.all([
-        admin
-            .from("academy_student_recovery_codes")
-            .update({ used_at: now })
-            .eq("id", data.id)
-            .is("used_at", null)
-            .is("revoked_at", null),
+    const [{ data: codeConsumed, error: codeError }, { error: studentError }] = await Promise.all([
+        admin.rpc("complete_academy_student_recovery_code", {
+            p_code_id: Number(data.code_id),
+            p_reservation_hash: reservationHash
+        }),
         admin
             .from("students")
             .update({ must_change_password: false, password_changed_at: now })
-            .eq("id", student.id)
+            .eq("id", Number(data.student_id))
     ]);
-    if (codeError || studentError) {
+    if (codeError || !codeConsumed || studentError) {
         console.error("Academy student recovery audit failed", {
             codeError: codeError?.code || null,
             studentError: studentError?.code || null
@@ -1894,6 +1934,66 @@ const recoverStudentLogin = async (
         throw new HttpError(500, "RECOVERY_SAVE_FAILED", "密碼已更新，但復原狀態寫入失敗，請聯絡老師");
     }
     return json(req, 200, { success: true, username, message: "新的登入密碼已設定" });
+};
+
+const reissueOwnRecoveryCodes = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile
+): Promise<Response> => {
+    if (caller.role !== "student" || caller.learner_type !== "academy_student") {
+        throw new HttpError(403, "ACADEMY_STUDENT_REQUIRED", "只有已登入的英文班學生可以自行補發復原碼");
+    }
+
+    const { data: student, error: studentError } = await admin
+        .from("students")
+        .select("id,login_username,authentication_method,account_status")
+        .eq("id", caller.id)
+        .eq("firebase_uid", caller.firebase_uid)
+        .maybeSingle();
+    if (studentError) throw new HttpError(500, "STUDENT_LOOKUP_FAILED", "目前無法確認學生帳號");
+    if (
+        !student?.id
+        || student.authentication_method !== "academy_username"
+        || student.account_status !== "active"
+        || !student.login_username
+    ) {
+        throw new HttpError(403, "ACADEMY_LOGIN_REQUIRED", "這個帳號目前不能自行補發復原碼");
+    }
+
+    const recoveryCodes = createStudentRecoveryCodes();
+    const recoveryCodeHashes = await Promise.all(
+        recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
+    );
+    const now = new Date().toISOString();
+    const { error: revokeError } = await admin
+        .from("academy_student_recovery_codes")
+        .update({ revoked_at: now })
+        .eq("student_id", student.id)
+        .is("used_at", null)
+        .is("revoked_at", null);
+    if (revokeError) throw new HttpError(500, "RECOVERY_CODE_REVOKE_FAILED", "無法使舊復原碼失效，請稍後再試");
+
+    const { error: createError } = await admin.from("academy_student_recovery_codes").insert(
+        recoveryCodes.map((code, index) => ({
+            student_id: student.id,
+            code_hash: recoveryCodeHashes[index],
+            code_hint: code.slice(-4),
+            created_by: student.id
+        }))
+    );
+    if (createError) {
+        throw new HttpError(500, "RECOVERY_CODE_CREATE_FAILED", "新的復原碼建立失敗，請稍後再試");
+    }
+
+    return json(req, 200, {
+        success: true,
+        credentials: {
+            username: student.login_username,
+            recovery_codes: recoveryCodes,
+            shown_once: true
+        }
+    });
 };
 
 const markPasswordChanged = async (
@@ -1990,6 +2090,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         const token = extractFirebaseToken(req);
         const firebaseUser = await verifyFirebaseUser(token);
+        if (action === "reissue_own_recovery_codes") {
+            const recentlyAuthenticatedUid = await verifyRecentFirebaseAuthentication(token);
+            if (recentlyAuthenticatedUid !== firebaseUser.uid) {
+                throw new HttpError(401, "INVALID_FIREBASE_TOKEN", "Firebase 登入驗證失敗，請重新登入");
+            }
+        }
 
         if (action === "claim_invitation") {
             return await claimInvitation(req, admin, firebaseUser, body);
@@ -2023,6 +2129,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "reissue_student_login_card") {
             return await reissueStudentLoginCard(req, admin, caller, body);
+        }
+        if (action === "reissue_own_recovery_codes") {
+            return await reissueOwnRecoveryCodes(req, admin, caller);
         }
         if (action === "batch_create_students") {
             return await batchCreateStudents(req, admin, caller, body);
