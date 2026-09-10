@@ -27,4 +27,16 @@ describe("ShowcaseNavbar navigation", () => {
 
         expect(screen.getByRole("link", { name: /教材商城/ })).toHaveAttribute("href", "/shop");
     });
+
+    it("keeps a direct mobile login link beside the menu toggle", () => {
+        render(
+            <MemoryRouter>
+                <ShowcaseNavbar nav1="#features" nav2="#learning" nav3="#plans" nav4="#faq" />
+            </MemoryRouter>
+        );
+
+        const mobileLogin = screen.getAllByRole("link", { name: /^登入$/ })
+            .find(link => link.classList.contains("showcase-navbar-mobile-login"));
+        expect(mobileLogin).toHaveAttribute("href", "/login");
+    });
 });
