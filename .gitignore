@@ -40,3 +40,25 @@ src/del.json
 
 # Netlify CLI local metadata
 /.netlify/
+
+# Local worktrees and disposable artifacts. Each listed worktree has its own
+# Git metadata and must never be staged through the root repository.
+/.codex-worktrees/
+/_deploy_speaking_pronunciation/
+/assignment-v2-worktree/
+/firebase-auth-only-worktree/
+/fix-departed-ai-addon-worktree/
+/link-edit-track-order-worktree/
+/production-ai499-worktree/
+/pronunciation-coach-worktree/
+/public-pricing-release-worktree/
+/recovery-codes-test-worktree/
+/speaking-pronunciation-build/
+/speaking-pronunciation-worktree/
+/storefront-resend-worktree/
+/test-integration-worktree/
+/tmp/
+/tts-clarity-worktree/
+
+# Firebase CLI troubleshooting output
+firebase-debug.log
