@@ -316,6 +316,11 @@ export const recoverStudentLogin = async (username, recoveryCode, password) => c
     { allowAnonymous: true }
 );
 
+export const reissueOwnAcademyRecoveryCodes = async firebaseUser => callAcademyStudentManager(
+    firebaseUser,
+    { action: "reissue_own_recovery_codes" }
+);
+
 export const deleteAcademyInvitation = async (
     firebaseUser,
     invitationId,
@@ -358,6 +363,7 @@ const academyStudentService = {
     previewStudentActivation,
     activateStudentLogin,
     recoverStudentLogin,
+    reissueOwnAcademyRecoveryCodes,
     previewAcademyStudents,
     createAcademyStudentsBatch,
     listAcademyInvitations,
