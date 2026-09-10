@@ -45,7 +45,7 @@ test("email delivery has an allowed in-flight state and preserves backend error 
 });
 
 test("all guardian HTML email variants include the public Alan English logo", () => {
-    assert.match(edgeFunction, /const EMAIL_LOGO_URL = "https:\/\/alanenglish\.com\.tw\/alanenglish\.png"/);
+    assert.match(edgeFunction, /const EMAIL_LOGO_URL = "https:\/\/alanenglish\.com\.tw\/android-chrome-512x512\.png"/);
     assert.equal((edgeFunction.match(/src="\$\{EMAIL_LOGO_URL\}"/g) || []).length, 3);
     assert.equal((edgeFunction.match(/alt="Alan English Logo"/g) || []).length, 3);
     assert.equal((edgeFunction.match(/width="64" height="64"/g) || []).length, 3);

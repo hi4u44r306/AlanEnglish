@@ -14,7 +14,7 @@ const FIREBASE_JWKS = createRemoteJWKSet(
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
 const CLASS_CODES = ["E1", "E3", "E5", "E7"];
-const EMAIL_LOGO_URL = "https://alanenglish.com.tw/alanenglish.png";
+const EMAIL_LOGO_URL = "https://alanenglish.com.tw/android-chrome-512x512.png";
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
