@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-10，尚未部署）：
 
-- 英文班學生復原碼安全強化：新增兩組 6 位數一次性復原碼、舊格式相容、每帳號每小時 5 次失敗上限，以及已登入學生重新輸入目前密碼後自行補發新碼的流程。新碼只顯示一次，補發後會立即撤銷所有未使用舊碼。此批含 additive migration `20260909090000_secure_academy_recovery_codes.sql`、`academy-student-manager` 與學生前端；尚未套用 migration、部署 Edge Function 或部署 Netlify。前端測試 5/5 與 production build 已成功，仍需在隔離帳號驗收完整復原與補發流程後才可發布。
+- 英文班學生復原碼安全強化：分支 `codex/recovery-codes-release`、PR #107。新增兩組 6 位數一次性復原碼、舊格式相容、每帳號每小時 5 次失敗上限，以及已登入學生重新輸入目前密碼後自行補發新碼的流程。新碼只顯示一次，補發後會立即撤銷所有未使用舊碼。此批含 additive migration `20260909090000_secure_academy_recovery_codes.sql`、`academy-student-manager` 與學生前端；尚未套用 migration、部署 Edge Function 或部署 Netlify。前端測試 5/5 與 production build 已成功，仍需在隔離帳號驗收完整復原與補發流程後才可發布。
 
 本次正式發布（2026-09-07）：
 
