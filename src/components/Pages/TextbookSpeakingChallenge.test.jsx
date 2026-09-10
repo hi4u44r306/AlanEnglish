@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
 import { getSpeakingChallengeSet } from "../../services/speakingChallengeService";
@@ -15,7 +15,12 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
     it("plays the stored private model audio instead of browser speech synthesis", async () => {
         const play = jest.fn().mockResolvedValue(undefined);
-        global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));
+        const listeners = {};
+        global.Audio = jest.fn().mockImplementation(() => ({
+            play,
+            pause: jest.fn(),
+            addEventListener: jest.fn((event, handler) => { listeners[event] = handler; })
+        }));
         getSpeakingChallengeSet.mockResolvedValue({
             challenge: {
                 id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
@@ -32,6 +37,14 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         expect(global.Audio).toHaveBeenCalledWith("https://r2.example/signed.mp3");
         expect(play).toHaveBeenCalled();
+
+        act(() => listeners.play());
+        expect(screen.getByLabelText("AI 口說夥伴正在示範發音")).toBeInTheDocument();
+        expect(screen.getByText("跟著我一起說！")).toBeInTheDocument();
+
+        act(() => listeners.ended());
+        expect(screen.getByLabelText("AI 口說夥伴")).toBeInTheDocument();
+        expect(screen.getByText("嗨！準備開口挑戰嗎？")).toBeInTheDocument();
     });
 
     it("does not fall back to device speech while audio is missing", async () => {

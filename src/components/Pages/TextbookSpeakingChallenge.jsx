@@ -46,8 +46,10 @@ export default function TextbookSpeakingChallenge() {
         audioRef.current?.pause();
         const audio = new Audio(question.model_audio_url);
         audioRef.current = audio;
-        setAudioWorking(String(question.id));
-        const clear = () => setAudioWorking(current => current === String(question.id) ? "" : current);
+        const questionId = String(question.id);
+        const clear = () => setAudioWorking(current => current === questionId ? "" : current);
+        audio.addEventListener("play", () => setAudioWorking(questionId), { once: true });
+        audio.addEventListener("pause", clear, { once: true });
         audio.addEventListener("ended", clear, { once: true });
         audio.addEventListener("error", () => { clear(); setError("示範語音暫時無法播放，請重新整理後再試"); }, { once: true });
         audio.play().catch(() => { clear(); setError("瀏覽器阻擋了示範語音，請再按一次播放"); });
@@ -56,5 +58,20 @@ export default function TextbookSpeakingChallenge() {
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
     if (!questionSetId) return <main className="speaking-challenge-page"><header className="speaking-challenge-hero"><span>TEXTBOOK SPEAKING</span><h1>口說大挑戰</h1><p>每一本到達一個大關卡；跟著題目開口說，先練習，再完成小關卡。</p></header><section className="speaking-challenge-grid">{catalog.map(item => <button key={item.id} onClick={() => navigate(`/student/speaking-challenges/${item.id}`)}><FiBookOpen /><small>{item.book?.name || "教材"} · 第 {item.version} 版</small><strong>{item.title}</strong><span>{item.topic} · {item.difficulty}</span><footer>{item.completed_count}/{item.question_count} 題已練習</footer></button>)}{!catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
     if (!challenge) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
-    return <main className="speaking-challenge-page"><button className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部大挑戰</button><header className="speaking-challenge-hero compact"><span>{challenge.books?.name || "教材"}</span><h1>{challenge.title}</h1><p>{challenge.topic} · {challenge.difficulty}</p></header><section className="speaking-question-stage">{challenge.speaking_questions.map((question, index) => <article key={question.id} className={question.progress_status === "completed" ? "done" : ""}><small>小關卡 {index + 1}</small><h2>{question.question_text}</h2><p>{question.hint_zh}</p><div className="speaking-answer"><strong>不知道怎麼說？</strong><span>{question.model_answer}</span><button disabled={!question.model_audio_url || audioWorking === String(question.id)} onClick={() => playModelAudio(question)}><FiVolume2 />{question.model_audio_url ? (audioWorking === String(question.id) ? "播放中…" : "聽自然示範") : "語音準備中"}</button></div>{question.pronunciation_notes_zh && <aside>{question.pronunciation_notes_zh}</aside>}<button className="speaking-complete" disabled={working === String(question.id) || question.progress_status === "completed"} onClick={() => markComplete(question)}><FiCheckCircle />{question.progress_status === "completed" ? "已練習" : "我已開口練習"}</button><small className="speaking-no-reward">此階段只記錄練習，不發 XP 或 AE Points。</small></article>)}</section></main>;
+    return <main className="speaking-challenge-page"><button className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部大挑戰</button><header className="speaking-challenge-hero compact"><span>{challenge.books?.name || "教材"}</span><h1>{challenge.title}</h1><p>{challenge.topic} · {challenge.difficulty}</p></header><section className="speaking-question-stage">{challenge.speaking_questions.map((question, index) => {
+        const isSpeaking = audioWorking === String(question.id);
+        return <article key={question.id} className={question.progress_status === "completed" ? "done" : ""}>
+            <div className={`speaking-ai-guide ${isSpeaking ? "is-speaking" : ""}`} aria-label={isSpeaking ? "AI 口說夥伴正在示範發音" : "AI 口說夥伴"}>
+                <div className="speaking-ai-guide-portrait">
+                    <img src="/speaking-ai-guide.png" alt="可愛卡通 AI 口說夥伴" />
+                    <span className="speaking-ai-guide-mouth" aria-hidden="true" />
+                    <span className="speaking-ai-guide-voice" aria-hidden="true"><i /><i /><i /></span>
+                </div>
+                <strong>{isSpeaking ? "跟著我一起說！" : "嗨！準備開口挑戰嗎？"}</strong>
+            </div>
+            <div className="speaking-question-content">
+                <small>小關卡 {index + 1}</small><h2>{question.question_text}</h2><p>{question.hint_zh}</p><div className="speaking-answer"><strong>不知道怎麼說？</strong><span>{question.model_answer}</span><button disabled={!question.model_audio_url || isSpeaking} onClick={() => playModelAudio(question)}><FiVolume2 />{question.model_audio_url ? (isSpeaking ? "播放中…" : "聽自然示範") : "語音準備中"}</button></div>{question.pronunciation_notes_zh && <aside>{question.pronunciation_notes_zh}</aside>}<button className="speaking-complete" disabled={working === String(question.id) || question.progress_status === "completed"} onClick={() => markComplete(question)}><FiCheckCircle />{question.progress_status === "completed" ? "已練習" : "我已開口練習"}</button><small className="speaking-no-reward">此階段只記錄練習，不發 XP 或 AE Points。</small>
+            </div>
+        </article>;
+    })}</section></main>;
 }

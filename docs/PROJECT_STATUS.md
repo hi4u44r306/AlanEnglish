@@ -1,6 +1,10 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-04
+最後更新：2026-09-10
+
+本次進行中（2026-09-10，尚未部署）：
+
+- 口說大挑戰 AI 卡通人物：學生的小關卡新增原創透明背景卡通口說夥伴；播放 R2 自然示範語音時，人物同步動嘴、輕微移動並顯示聲音動態，播放結束、暫停或失敗後恢復靜止。支援 `prefers-reduced-motion`，手機版改為上下排列並保留至少 44px 操作高度。相關檔案為 `TextbookSpeakingChallenge.jsx`、`TextbookSpeakingChallenge.scss` 與 `public/speaking-ai-guide.png`；尚待 Production build 與桌機／412px 手機視覺驗收。
 
 本次進行中（2026-09-04，測試環境已部署，正式尚未部署）：
 
