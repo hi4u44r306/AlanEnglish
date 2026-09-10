@@ -526,6 +526,25 @@ const buildWeeklyReport = async (
     };
 };
 
+const loadTeacherReportClassCodes = async (admin: any, teacherId: number) => {
+    const today = taiwanDate();
+    const { data, error } = await admin
+        .from("teacher_class_permissions")
+        .select("can_publish,starts_at,ends_at,academy_classes(code)")
+        .eq("teacher_id", teacherId)
+        .eq("can_publish", true)
+        .lte("starts_at", today)
+        .or(`ends_at.is.null,ends_at.gte.${today}`);
+
+    if (error) throw error;
+
+    return Array.from(new Set(
+        (data || [])
+            .map((item: any) => String(item.academy_classes?.code || "").trim())
+            .filter(Boolean)
+    ));
+};
+
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -553,11 +572,14 @@ Deno.serve(async (req: Request) => {
         });
         const { data: caller, error: callerError } = await admin
             .from("students")
-            .select("id,name,email,class,role,plan")
+            .select("id,name,email,class,role,plan,account_status")
             .eq("firebase_uid", firebaseUid)
             .maybeSingle();
         if (callerError) throw callerError;
         if (!caller) return json(404, { error: "找不到 Alan English 帳號" });
+        if ((caller.account_status || "active") !== "active") {
+            return json(403, { error: "這個帳號目前已停用", code: "ACCOUNT_ARCHIVED" });
+        }
 
         const body = await req.json().catch(() => ({}));
         const action = String(body?.action || "report");
@@ -571,17 +593,34 @@ Deno.serve(async (req: Request) => {
         let target = caller;
 
         if (isManager) {
-            const { data, error } = await admin
+            const reportClassCodes = caller.role === "admin"
+                ? null
+                : await loadTeacherReportClassCodes(admin, Number(caller.id));
+
+            if (caller.role === "teacher" && !reportClassCodes?.length) {
+                return json(403, { error: "目前未授權查看任何班級的家長學習報告" });
+            }
+
+            let studentsQuery = admin
                 .from("students")
                 .select("id,name,class,plan")
-                .eq("role", "student")
-                .order("name", { ascending: true });
+                .eq("role", "student");
+
+            if (reportClassCodes) {
+                studentsQuery = studentsQuery.in("class", reportClassCodes);
+            }
+
+            const { data, error } = await studentsQuery.order("name", { ascending: true });
             if (error) throw error;
             students = data || [];
             if (!students.length) return json(404, { error: "目前沒有可產生報告的學生" });
 
             const requestedStudentId = Number(body?.student_id);
-            target = students.find(student => Number(student.id) === requestedStudentId) || students[0];
+            const requestedStudent = students.find(student => Number(student.id) === requestedStudentId);
+            if (requestedStudentId && !requestedStudent) {
+                return json(403, { error: "你沒有權限查看這位學生的家長學習報告" });
+            }
+            target = requestedStudent || students[0];
         } else if (caller.role !== "student") {
             return json(403, { error: "此帳號無法查看學生週報" });
         }
