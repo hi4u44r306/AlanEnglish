@@ -1,13 +1,114 @@
-.speaking-challenge-page{min-height:100vh;padding:112px 24px 80px;background:#f4f7fc;color:#17233f}.speaking-challenge-hero,.speaking-challenge-grid,.speaking-question-stage{width:min(1000px,100%);margin:auto}.speaking-challenge-hero span{color:#2862b6;font-weight:900;letter-spacing:.12em;font-size:12px}.speaking-challenge-hero h1{margin:8px 0;font-size:clamp(34px,6vw,56px)}.speaking-challenge-hero p{color:#687790}.speaking-challenge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:30px}.speaking-challenge-grid>button,.speaking-question-stage article,.speaking-challenge-empty{display:grid;gap:10px;padding:24px;border:1px solid #d8e3f2;border-radius:22px;background:#fff;text-align:left;box-shadow:0 12px 32px rgba(20,47,91,.08)}.speaking-challenge-grid button{cursor:pointer}.speaking-challenge-grid svg{color:#2b64b8;font-size:28px}.speaking-challenge-grid strong{font-size:21px}.speaking-challenge-grid span,.speaking-challenge-grid small,.speaking-no-reward{color:#718099}.speaking-challenge-grid footer{color:#1f579f;font-weight:900}.speaking-question-stage{display:grid;gap:18px}.speaking-question-stage article{grid-template-columns:190px minmax(0,1fr);align-items:center}.speaking-question-stage article.done{border-color:#89d6ac}.speaking-question-content{display:grid;gap:10px;min-width:0}.speaking-question-stage h2{margin:0;font-size:clamp(24px,4vw,35px)}.speaking-answer{display:grid;gap:7px;padding:16px;border-radius:15px;background:#112b58;color:#fff}.speaking-answer button,.speaking-complete,.speaking-back{width:max-content;border:0;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}.speaking-answer button{color:#173e7e;background:#ffd76d}.speaking-question-stage aside{padding:12px;border-radius:12px;color:#705000;background:#fff3cf}.speaking-complete{color:#fff;background:#285fab}.speaking-complete:disabled{opacity:.65}.speaking-back{margin:0 auto 20px;display:flex;gap:4px;align-items:center;color:#285fab;background:transparent}.speaking-challenge-empty{width:min(520px,100%);margin:50px auto;text-align:center;justify-items:center}.speaking-challenge-empty svg{font-size:42px;color:#2b64b8}
+.speaking-challenge-page {
+    min-height: 100vh;
+    padding: 112px 24px 80px;
+    background:
+        radial-gradient(circle at 8% 10%, rgba(94, 193, 255, .18), transparent 27rem),
+        radial-gradient(circle at 90% 90%, rgba(255, 205, 86, .16), transparent 30rem),
+        #f4f7fc;
+    color: #17233f;
+}
 
-.speaking-ai-guide{display:grid;gap:7px;justify-items:center;align-self:start;text-align:center;color:#1d4f91}.speaking-ai-guide>strong{font-size:13px}.speaking-guide-avatar{width:170px;filter:drop-shadow(0 12px 18px rgba(26,76,139,.14))}.speaking-guide-avatar svg{display:block;width:100%;height:auto}.speaking-guide-avatar.is-female{--avatar-backdrop:#fff0f4;--avatar-body:#8e68d5;--avatar-shirt:#ffd96e;--avatar-hair:#56365a}.speaking-guide-avatar.is-male{--avatar-backdrop:#e8f6ff;--avatar-body:#2f8cc4;--avatar-shirt:#ffd55d;--avatar-hair:#39455d}.speaking-guide-avatar__backdrop{fill:var(--avatar-backdrop)}.speaking-guide-avatar__body{fill:var(--avatar-body)}.speaking-guide-avatar__shirt{fill:var(--avatar-shirt)}.speaking-guide-avatar__collar{fill:none;stroke:#fff9e4;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}.speaking-guide-avatar__face,.speaking-guide-avatar__ear{fill:#bd784e}.speaking-guide-avatar__hair{fill:var(--avatar-hair)}.speaking-guide-avatar__fringe{fill:var(--avatar-hair)}.speaking-guide-avatar__bow{fill:#f27794}.speaking-guide-avatar__eyes{fill:#26334a}.speaking-guide-avatar__nose{fill:none;stroke:#915d46;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.speaking-guide-avatar__mouth{fill:none;stroke:#7d3440;stroke-width:5;stroke-linecap:round;transform-box:fill-box;transform-origin:center}.speaking-guide-avatar__cheek{fill:#e98b84;opacity:.36}.speaking-guide-avatar__spark{fill:#fff;opacity:.9}.speaking-guide-avatar__sound{fill:none;stroke:#2862b6;stroke-width:6;stroke-linecap:round;opacity:0}.speaking-guide-avatar.is-speaking .speaking-guide-avatar__character{animation:speakingGuideBreathe .46s ease-in-out infinite alternate;transform-origin:110px 210px}.speaking-guide-avatar.is-speaking .speaking-guide-avatar__mouth{animation:speakingGuideMouth .18s ease-in-out infinite alternate}.speaking-guide-avatar.is-speaking .speaking-guide-avatar__eyes{animation:speakingGuideBlink 2.8s ease-in-out infinite}.speaking-guide-avatar.is-speaking .speaking-guide-avatar__sound{opacity:1;animation:speakingGuideSound .42s ease-in-out infinite alternate}.speaking-guide-avatar.is-speaking .speaking-guide-avatar__spark{animation:speakingGuideSpark .8s ease-in-out infinite alternate}@keyframes speakingGuideBreathe{from{transform:translateY(1px) rotate(-.45deg)}to{transform:translateY(-3px) rotate(.45deg)}}@keyframes speakingGuideMouth{from{transform:scaleY(.52)}to{transform:scaleY(1.28)}}@keyframes speakingGuideBlink{0%,45%,48%,100%{transform:scaleY(1)}46%{transform:scaleY(.1)}}@keyframes speakingGuideSound{from{transform:translateX(-1px) scaleY(.6)}to{transform:translateX(1px) scaleY(1)}}@keyframes speakingGuideSpark{from{opacity:.45;transform:scale(.8)}to{opacity:1;transform:scale(1.12)}}
+.speaking-challenge-hero,
+.speaking-challenge-grid,
+.speaking-question-stage { width: min(1040px, 100%); margin: auto; }
 
-.speaking-visual-aid{width:min(270px,100%);margin:2px 0 4px;overflow:hidden;border:1px solid #d9e4f2;border-radius:16px;background:#fff;box-shadow:0 8px 20px rgba(20,47,91,.08)}.speaking-visual-aid svg{display:block;width:100%;height:auto}.speaking-visual-aid figcaption{padding:7px 10px;color:#536886;background:#f7faff;font-size:12px;font-weight:800}
+.speaking-challenge-hero { padding: 18px 4px 12px; }
+.speaking-challenge-hero span { color: #2862b6; font-size: 12px; font-weight: 900; letter-spacing: .14em; }
+.speaking-challenge-hero h1 { margin: 8px 0; font-size: clamp(34px, 6vw, 56px); letter-spacing: -.04em; }
+.speaking-challenge-hero p { max-width: 680px; margin: 0; color: #687790; font-weight: 700; }
+.speaking-challenge-hero.compact { padding: 0 4px 4px; }
+.speaking-challenge-hero.compact h1 { font-size: clamp(28px, 4vw, 40px); }
 
-@media(prefers-reduced-motion:reduce){.speaking-guide-avatar.is-speaking .speaking-guide-avatar__character,.speaking-guide-avatar.is-speaking .speaking-guide-avatar__mouth,.speaking-guide-avatar.is-speaking .speaking-guide-avatar__eyes,.speaking-guide-avatar.is-speaking .speaking-guide-avatar__sound,.speaking-guide-avatar.is-speaking .speaking-guide-avatar__spark{animation:none}}
+.speaking-challenge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 28px; }
+.speaking-challenge-grid > button,
+.speaking-challenge-empty { display: grid; gap: 10px; padding: 24px; border: 1px solid #d8e3f2; border-radius: 24px; background: rgba(255, 255, 255, .92); text-align: left; box-shadow: 0 12px 32px rgba(20, 47, 91, .08); }
+.speaking-challenge-grid > button { position: relative; overflow: hidden; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.speaking-challenge-grid > button::after { position: absolute; inset: auto -28px -35px auto; width: 118px; height: 118px; border-radius: 50%; background: #dcedff; content: ""; }
+.speaking-challenge-grid > button:hover,
+.speaking-challenge-grid > button:focus-visible { border-color: #82baf2; box-shadow: 0 18px 36px rgba(20, 72, 142, .16); transform: translateY(-3px); outline: none; }
+.speaking-challenge-grid svg { z-index: 1; color: #2b64b8; font-size: 28px; }
+.speaking-challenge-grid strong,
+.speaking-challenge-grid span,
+.speaking-challenge-grid small,
+.speaking-challenge-grid footer { z-index: 1; }
+.speaking-challenge-grid strong { font-size: 21px; }
+.speaking-challenge-grid span,
+.speaking-challenge-grid small,
+.speaking-no-reward { color: #718099; }
+.speaking-challenge-grid footer { color: #1f579f; font-weight: 900; }
 
-@media(max-width:600px){.speaking-challenge-page{padding:88px 14px 60px}.speaking-question-stage article{grid-template-columns:1fr;padding:18px}.speaking-guide-avatar{width:min(170px,58vw)}.speaking-ai-guide{margin-bottom:4px}.speaking-visual-aid{width:100%;max-width:300px}.speaking-answer button,.speaking-complete{min-height:44px;max-width:100%}}
+.speaking-question-stage { display: grid; gap: 18px; }
+.speaking-question-progress { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; padding: 10px; border: 1px solid #d8e3f2; border-radius: 18px; background: rgba(255, 255, 255, .82); box-shadow: 0 8px 22px rgba(20, 47, 91, .05); }
+.speaking-question-progress button { width: 40px; min-height: 40px; border: 1px solid #c9d8ec; border-radius: 999px; background: #fff; color: #537097; font-weight: 900; cursor: pointer; }
+.speaking-question-progress button:hover,
+.speaking-question-progress button:focus-visible { border-color: #285fab; color: #285fab; outline: 3px solid rgba(40, 95, 171, .16); outline-offset: 2px; }
+.speaking-question-progress button.active { border-color: #285fab; background: #285fab; color: #fff; box-shadow: 0 6px 14px rgba(40, 95, 171, .24); }
+.speaking-question-progress button.done:not(.active) { border-color: #89d6ac; background: #effaf3; color: #2b8250; }
 
-.speaking-question-progress{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}.speaking-question-progress button{width:38px;min-height:38px;border:1px solid #c9d8ec;border-radius:999px;background:#fff;color:#537097;font-weight:900;cursor:pointer}.speaking-question-progress button:hover,.speaking-question-progress button:focus-visible{border-color:#285fab;color:#285fab;outline:3px solid rgba(40,95,171,.16);outline-offset:2px}.speaking-question-progress button.active{border-color:#285fab;background:#285fab;color:#fff;box-shadow:0 6px 14px rgba(40,95,171,.24)}.speaking-question-progress button.done:not(.active){border-color:#89d6ac;background:#effaf3;color:#2b8250}.speaking-question-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px}.speaking-question-navigation button{min-height:44px;display:inline-flex;align-items:center;gap:4px;border:1px solid #c9d8ec;border-radius:12px;padding:10px 14px;background:#fff;color:#285fab;font-weight:900;cursor:pointer}.speaking-question-navigation button:disabled{cursor:not-allowed;opacity:.45}.speaking-question-navigation span{color:#5a6e8d;font-size:14px;font-weight:900}
+.speaking-question-stage article { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: clamp(20px, 4vw, 38px); align-items: stretch; padding: clamp(18px, 4vw, 34px); border: 1px solid #d8e3f2; border-radius: 30px; background: rgba(255, 255, 255, .96); box-shadow: 0 18px 48px rgba(20, 47, 91, .12); }
+.speaking-question-stage article.done { border-color: #89d6ac; }
 
-@media(max-width:600px){.speaking-question-progress{gap:7px}.speaking-question-progress button{width:36px;min-height:36px}.speaking-question-navigation{gap:8px}.speaking-question-navigation button{padding:10px 11px}.speaking-question-navigation span{font-size:12px;white-space:nowrap}}
+.speaking-ai-guide { display: grid; grid-template-rows: 1fr auto; gap: 10px; min-height: 360px; overflow: hidden; padding: 14px 14px 16px; border-radius: 23px; background: #102a56; color: #fff; text-align: center; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+.speaking-ai-guide > strong { min-height: 38px; padding: 0 6px; font-size: 14px; line-height: 1.45; }
+.speaking-guide-avatar { position: relative; min-height: 0; overflow: hidden; border-radius: 17px; background: #0a1830; }
+.speaking-guide-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 18%; transform-origin: 50% 84%; }
+.speaking-guide-avatar__mouth { position: absolute; top: 29%; left: 50%; width: 34px; height: 6px; border: 2px solid rgba(115, 48, 55, .72); border-radius: 50%; background: rgba(92, 28, 35, .2); opacity: 0; pointer-events: none; transform: translateX(-50%); }
+.speaking-guide-avatar__sound { position: absolute; top: 14px; right: 12px; display: flex; align-items: center; gap: 3px; min-height: 25px; padding: 5px 7px; border-radius: 999px; background: rgba(255, 255, 255, .88); box-shadow: 0 4px 13px rgba(10, 24, 48, .26); opacity: 0; }
+.speaking-guide-avatar__sound i { display: block; width: 3px; height: 8px; border-radius: 99px; background: #2562b7; }
+.speaking-guide-avatar__sound i:nth-child(2) { height: 14px; }
+.speaking-guide-avatar.is-speaking img { animation: speakingGuideBreathe .46s ease-in-out infinite alternate; }
+.speaking-guide-avatar.is-speaking .speaking-guide-avatar__mouth { opacity: 1; animation: speakingGuideMouth .18s ease-in-out infinite alternate; }
+.speaking-guide-avatar.is-speaking .speaking-guide-avatar__sound { opacity: 1; }
+.speaking-guide-avatar.is-speaking .speaking-guide-avatar__sound i { animation: speakingGuideSound .42s ease-in-out infinite alternate; }
+.speaking-guide-avatar.is-speaking .speaking-guide-avatar__sound i:nth-child(2) { animation-delay: -.2s; }
+
+.speaking-question-content { display: grid; align-content: center; gap: 12px; min-width: 0; }
+.speaking-question-content > small:first-child { color: #2862b6; font-weight: 900; letter-spacing: .06em; }
+.speaking-question-stage h2 { margin: 0; font-size: clamp(27px, 4vw, 40px); letter-spacing: -.025em; }
+.speaking-question-content > p { margin: 0; color: #536886; font-weight: 700; }
+.speaking-answer { display: grid; gap: 8px; margin-top: 4px; padding: 18px; border-radius: 18px; background: linear-gradient(135deg, #143b78, #102a56); color: #fff; box-shadow: 0 9px 20px rgba(17, 43, 88, .18); }
+.speaking-answer button,
+.speaking-complete,
+.speaking-back { width: max-content; border: 0; border-radius: 12px; padding: 10px 14px; font-weight: 900; cursor: pointer; }
+.speaking-answer button { display: inline-flex; align-items: center; gap: 6px; color: #173e7e; background: #ffd76d; }
+.speaking-question-stage aside { padding: 12px; border-radius: 12px; color: #705000; background: #fff3cf; }
+.speaking-complete { display: inline-flex; align-items: center; gap: 6px; color: #fff; background: #285fab; }
+.speaking-complete:disabled,
+.speaking-answer button:disabled { cursor: not-allowed; opacity: .65; }
+.speaking-back { display: flex; align-items: center; gap: 4px; margin: 0 auto 14px; color: #285fab; background: transparent; }
+.speaking-challenge-empty { width: min(520px, 100%); margin: 50px auto; text-align: center; justify-items: center; }
+.speaking-challenge-empty svg { font-size: 42px; color: #2b64b8; }
+.speaking-visual-aid { width: min(270px, 100%); margin: 2px 0 4px; overflow: hidden; border: 1px solid #d9e4f2; border-radius: 16px; background: #fff; box-shadow: 0 8px 20px rgba(20, 47, 91, .08); }
+.speaking-visual-aid svg { display: block; width: 100%; height: auto; }
+.speaking-visual-aid figcaption { padding: 7px 10px; color: #536886; background: #f7faff; font-size: 12px; font-weight: 800; }
+.speaking-question-navigation { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.speaking-question-navigation button { display: inline-flex; min-height: 44px; align-items: center; gap: 4px; border: 1px solid #c9d8ec; border-radius: 12px; padding: 10px 14px; background: #fff; color: #285fab; font-weight: 900; cursor: pointer; }
+.speaking-question-navigation button:disabled { cursor: not-allowed; opacity: .45; }
+.speaking-question-navigation span { color: #5a6e8d; font-size: 14px; font-weight: 900; }
+
+@keyframes speakingGuideBreathe { from { transform: translateY(2px) scale(1); } to { transform: translateY(-4px) scale(1.012); } }
+@keyframes speakingGuideMouth { from { height: 6px; transform: translateX(-50%) scaleX(.82); } to { height: 13px; transform: translateX(-50%) scaleX(1.06); } }
+@keyframes speakingGuideSound { from { transform: scaleY(.55); } to { transform: scaleY(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .speaking-challenge-grid > button,
+    .speaking-guide-avatar.is-speaking img,
+    .speaking-guide-avatar.is-speaking .speaking-guide-avatar__mouth,
+    .speaking-guide-avatar.is-speaking .speaking-guide-avatar__sound i { animation: none; transition: none; }
+}
+
+@media (max-width: 700px) {
+    .speaking-challenge-page { padding: 88px 14px 60px; }
+    .speaking-question-stage article { grid-template-columns: 1fr; padding: 18px; }
+    .speaking-ai-guide { grid-template-columns: minmax(132px, 42%) 1fr; grid-template-rows: 1fr; min-height: 170px; align-items: center; padding: 12px; text-align: left; }
+    .speaking-ai-guide > strong { min-height: 0; padding: 0 5px; font-size: 15px; }
+    .speaking-guide-avatar { aspect-ratio: .78; height: 145px; }
+    .speaking-guide-avatar__sound { top: 7px; right: 7px; }
+    .speaking-answer button,
+    .speaking-complete { min-height: 44px; max-width: 100%; }
+}
+
+@media (max-width: 390px) {
+    .speaking-question-navigation { align-items: stretch; flex-wrap: wrap; }
+    .speaking-question-navigation span { width: 100%; order: -1; text-align: center; }
+}

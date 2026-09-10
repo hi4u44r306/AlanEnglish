@@ -43,6 +43,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         act(() => listeners.play());
         expect(screen.getByLabelText("男聲 AI 口說夥伴正在示範發音")).toBeInTheDocument();
+        expect(screen.getByLabelText("男聲 AI 口說夥伴正在示範發音").querySelector("img")).toHaveAttribute("src", "/speaking-guide-boy.png");
         expect(screen.getByText("跟著我一起說！")).toBeInTheDocument();
 
         act(() => listeners.ended());
@@ -62,6 +63,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         expect(await screen.findByRole("button", { name: "語音準備中" })).toBeDisabled();
         expect(screen.getByLabelText("女聲 AI 口說夥伴")).toBeInTheDocument();
+        expect(screen.getByLabelText("女聲 AI 口說夥伴").querySelector("img")).toHaveAttribute("src", "/speaking-guide-girl.png");
     });
 
     it("shows one small challenge at a time and lets the learner change questions", async () => {
