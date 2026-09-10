@@ -1,8 +1,8 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
-import { getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import { getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
 
 const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
@@ -85,5 +85,24 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByText("How old are you?")).toBeInTheDocument();
         expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: /完成大挑戰/ })).toBeDisabled();
+    });
+
+    it("可依教材或生活主題瀏覽口說大挑戰", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [
+                { id: 1, title: "01 我的名字與自我介紹", topic: "Names", difficulty: "E1", book: { name: "Workbook 1" }, question_count: 4, completed_count: 1 },
+                { id: 2, title: "02 顏色與生活物品", topic: "Colors", difficulty: "E1", book: { name: "Workbook 1" }, question_count: 6, completed_count: 0 }
+            ]
+        });
+
+        await act(async () => {
+            render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        });
+
+        expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "依教材" })).toHaveAttribute("aria-pressed", "true");
+        fireEvent.click(screen.getByRole("button", { name: "依主題" }));
+        expect(screen.getByRole("heading", { name: "認識新朋友" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "生活物品與顏色" })).toBeInTheDocument();
     });
 });
