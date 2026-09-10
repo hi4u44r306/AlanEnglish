@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const edgeFunction = read("supabase/functions/guardian-email/index.ts");
+const sendingStatusMigration = read("supabase/migrations/20260910002545_guardian_email_sending_status.sql");
 const service = read("src/services/guardianEmailService.js");
 const dashboard = read("src/components/Pages/ManagementDashboard.jsx");
 
@@ -34,4 +35,11 @@ test("each guardian receives an individual idempotent email", () => {
 test("the dashboard sends only backend-created notification records", () => {
     assert.match(dashboard, /sendGuardianNotification\(firebaseUser, noticeDraft\.id\)/);
     assert.doesNotMatch(service, /subject|message|guardian_email/);
+});
+
+test("email delivery has an allowed in-flight state and preserves backend error messages", () => {
+    assert.match(sendingStatusMigration, /'sending'::text/);
+    assert.match(sendingStatusMigration, /validate constraint notification_logs_status_check/);
+    assert.match(edgeFunction, /const getErrorMessage = \(error: unknown, fallback: string\)/);
+    assert.match(edgeFunction, /throw new Error\(errorMessage\)/);
 });

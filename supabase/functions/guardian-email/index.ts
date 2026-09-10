@@ -23,6 +23,14 @@ const cleanText = (value: unknown, maxLength = 2000) => String(value || "")
     .trim()
     .slice(0, maxLength);
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof Error) return cleanText(error.message, 1000) || fallback;
+    if (error && typeof error === "object" && "message" in error) {
+        return cleanText((error as { message?: unknown }).message, 1000) || fallback;
+    }
+    return fallback;
+};
+
 const isDateKey = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 
 const escapeHtml = (value: unknown) => cleanText(value, 10000)
@@ -374,14 +382,15 @@ const sendNotificationLog = async ({
         if (sentError) throw sentError;
         return { status: "sent", provider_message_id: providerResult?.id || null };
     } catch (error) {
+        const errorMessage = getErrorMessage(error, "Unknown error");
         await admin
             .from("notification_logs")
             .update({
                 status: "failed",
-                error_message: error instanceof Error ? error.message.slice(0, 1000) : "Unknown error"
+                error_message: errorMessage
             })
             .eq("id", log.id);
-        throw error;
+        throw new Error(errorMessage);
     }
 };
 
@@ -874,7 +883,7 @@ Deno.serve(async (req: Request) => {
     } catch (error) {
         console.error("guardian-email unexpected error", error);
         return json(500, {
-            error: error instanceof Error ? error.message : "家長週報寄送服務暫時無法使用"
+            error: getErrorMessage(error, "家長週報寄送服務暫時無法使用")
         });
     }
 });
