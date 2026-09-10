@@ -8,7 +8,7 @@
 
 本次測試部署（正式站尚未部署）：
 
-- 口說大挑戰卡片 Hover 圓角修正（本機完成、待部署）：大關卡容器不再以 `overflow: hidden` 裁切小關卡的 Hover／鍵盤 Focus 陰影；標題藍底與下方教材網格各自保留外框圓角，避免小關卡被選取時出現被切掉的直角或陰影。小關卡數量維持品牌黃底、深藍高對比文字。待完成相關測試、build、PR 與固定測試站驗收。
+- 口說大挑戰卡片 Hover 圓角修正（測試站已部署，正式網站尚未部署）：大關卡容器不再以 `overflow: hidden` 裁切小關卡的 Hover／鍵盤 Focus 陰影；標題藍底與下方教材網格各自保留外框圓角，避免小關卡被選取時出現被切掉的直角或陰影。小關卡數量維持品牌黃底、深藍高對比文字。Checkpoint `b1fe844` 已推送，PR #105 已建立；固定測試站 deploy `6aa2be3c9dae4aa5144fd84a` 為 ready，線上 `/student/speaking-challenges` 回應 HTTP 200 並載入 `main.c03c2654.js`。口說題庫 React tests 8／8、Production build 與 `git diff --check` 均成功；尚待使用者登入後以滑鼠與鍵盤實機確認 Hover／Focus 視覺。
 
 - 學生首頁與英文班 AI 方案呈現收斂（測試站已部署，正式站尚未部署）：`AI Premium` 現在只代表實際的 AI 加購方案；有效在校英文班學生保有原本的 AI 練習、口說大挑戰及班級作業權限，但 Navbar、我的設定與會員中心改顯示「英文班在學方案已包含」，不再顯示或引導重複購買 AI Premium。學生首頁改為任務優先：老師作業、待複習錯題與聽力暖身依序呈現，AI 練習與口說大挑戰收進非必要的「想多練一點？」；首頁成果收斂為今日聽力、已學口說與本月聽力，移除重複的帳號／方案／登出卡與舊情境口說任務。離校學生的歷史 `academy_internal` 不會被誤認為在學方案。Checkpoint `68686dd` 已推送至 `codex/p2-friends-profile`；固定測試站 deploy `6aa010e022cb582d1c1a41ba` 已為 live，`/student/dashboard` 回應 HTTP 200。相關 React tests 5 suites／38 tests、Production build 與 `git diff --check` 均成功；尚待登入實機視覺驗收。
 
