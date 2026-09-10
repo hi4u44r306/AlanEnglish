@@ -524,6 +524,67 @@
     line-height: 1.5;
 }
 
+.guardian-resend-notice,
+.guardian-resend-confirmation {
+    margin: 0 0 13px;
+    padding: 13px;
+    border: 1px solid #f1c66e;
+    border-radius: 12px;
+    background: #fff9ec;
+    color: #6f4b0f;
+    font-size: .88rem;
+    line-height: 1.55;
+}
+
+.guardian-resend-confirmation > strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #7f2030;
+    font-size: 1rem;
+}
+
+.guardian-resend-confirmation > p {
+    margin: 0;
+}
+
+.guardian-resend-confirmation label {
+    margin-top: 10px;
+}
+
+.guardian-resend-confirmation textarea {
+    min-height: 96px;
+    background: #fff;
+}
+
+.guardian-resend-confirmation__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.guardian-resend-confirmation__actions button {
+    min-height: 42px;
+    padding: 0 13px;
+    border: 0;
+    border-radius: 10px;
+    background: #edf0f4;
+    color: #4b5563;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.guardian-resend-confirmation__actions .danger,
+.guardian-reminder-actions .resend {
+    background: #a52a3d;
+    color: #fff;
+}
+
+.guardian-resend-confirmation__actions button:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+}
+
 .guardian-reminder-actions {
     display: flex;
     flex-wrap: wrap;
@@ -686,6 +747,14 @@
 
     .guardian-reminder-actions {
         flex-direction: column;
+    }
+
+    .guardian-resend-confirmation__actions {
+        flex-direction: column-reverse;
+    }
+
+    .guardian-resend-confirmation__actions button {
+        width: 100%;
     }
 
     .guardian-reminder-actions button,

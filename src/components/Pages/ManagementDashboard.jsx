@@ -9,6 +9,7 @@ import {
 } from "../../services/learningActivityService";
 import {
     previewGuardianNotificationClass,
+    resendGuardianNotification,
     sendGuardianNotification,
     sendGuardianNotificationClass
 } from "../../services/guardianEmailService";
@@ -77,6 +78,11 @@ const createMailtoHref = draft => {
 
 const CLASS_CODES = ["E1", "E3", "E5", "E7"];
 
+const createResendRequestId = () => {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+};
+
 function ManagementDashboard() {
     const { role, studentProfile, firebaseUser } = useAuth();
     const [students, setStudents] = useState([]);
@@ -99,6 +105,10 @@ function ManagementDashboard() {
     const [noticeMessage, setNoticeMessage] = useState("");
     const [mailClientMessage, setMailClientMessage] = useState("");
     const [directSending, setDirectSending] = useState(false);
+    const [resendConfirmOpen, setResendConfirmOpen] = useState(false);
+    const [resendReason, setResendReason] = useState("");
+    const [resendRequestId, setResendRequestId] = useState("");
+    const [resendSending, setResendSending] = useState(false);
     const [batchClass, setBatchClass] = useState("");
     const [batchPreview, setBatchPreview] = useState(null);
     const [batchWorking, setBatchWorking] = useState("");
@@ -214,6 +224,9 @@ function ManagementDashboard() {
         setNoticeLoadingId(student.id);
         setNoticeMessage("");
         setMailClientMessage("");
+        setResendConfirmOpen(false);
+        setResendReason("");
+        setResendRequestId("");
 
         try {
             const result = await createGuardianNotificationDraft(firebaseUser, student.id);
@@ -248,15 +261,53 @@ function ManagementDashboard() {
         setMailClientMessage("");
         try {
             const result = await sendGuardianNotification(firebaseUser, noticeDraft.id);
-            setNoticeMessage(result?.reason === "already_sent"
-                ? "這封通知先前已寄出，系統沒有重複寄送"
-                : `已直接寄送給 ${noticeDraft.email}`);
+            if (result?.reason === "already_sent") {
+                setNoticeDraft(previous => ({ ...previous, already_sent_today: true }));
+                setMailClientMessage("今天已寄送過；如確實需要補寄，請使用「再次寄送」並填寫原因。");
+                return;
+            }
+            setNoticeMessage(`已直接寄送給 ${noticeDraft.email}`);
             setNoticeDraft(null);
             setNoticeStudent(null);
         } catch (error) {
             setMailClientMessage(error.message || "家長通知寄送失敗");
         } finally {
             setDirectSending(false);
+        }
+    };
+
+    const openResendConfirmation = () => {
+        setResendConfirmOpen(true);
+        setResendReason("");
+        setResendRequestId(createResendRequestId());
+        setMailClientMessage("");
+    };
+
+    const closeResendConfirmation = () => {
+        if (resendSending) return;
+        setResendConfirmOpen(false);
+        setResendReason("");
+        setResendRequestId("");
+    };
+
+    const confirmResendReminder = async () => {
+        const reason = resendReason.trim();
+        if (!firebaseUser || !noticeDraft || resendSending || reason.length < 3) return;
+
+        setResendSending(true);
+        setMailClientMessage("");
+        try {
+            await resendGuardianNotification(firebaseUser, noticeDraft.id, reason, resendRequestId);
+            setNoticeMessage(`已再次寄送給 ${noticeDraft.email}，並記錄重寄原因`);
+            setNoticeDraft(null);
+            setNoticeStudent(null);
+            setResendConfirmOpen(false);
+            setResendReason("");
+            setResendRequestId("");
+        } catch (error) {
+            setMailClientMessage(error.message || "家長通知再次寄送失敗");
+        } finally {
+            setResendSending(false);
         }
     };
 
@@ -537,7 +588,7 @@ function ManagementDashboard() {
             )}
 
             {noticeDraft && noticeStudent && (
-                <div className="guardian-reminder-modal-backdrop" onClick={() => setNoticeDraft(null)} role="presentation">
+                <div className="guardian-reminder-modal-backdrop" onClick={() => !resendSending && setNoticeDraft(null)} role="presentation">
                     <div className="guardian-reminder-modal" onClick={event => event.stopPropagation()} role="dialog" aria-modal="true">
                         <span>GUARDIAN REMINDER</span>
                         <h2>提醒 {noticeStudent.name} 的家長</h2>
@@ -554,9 +605,41 @@ function ManagementDashboard() {
                             <textarea value={noticeDraft.message || ""} readOnly rows="8" />
                         </label>
                         <p>管理員可由網站直接寄送；也可以複製內容或開啟裝置上的 Email App 自行寄出。只有實際寄送成功後才會留下已寄出紀錄。</p>
+                        {noticeDraft.already_sent_today && !resendConfirmOpen && (
+                            <div className="guardian-resend-notice">
+                                這位學生今天已寄送過提醒。只有確實需要補寄時才使用再次寄送，系統會保留原因與原信關聯。
+                            </div>
+                        )}
+                        {resendConfirmOpen && (
+                            <section className="guardian-resend-confirmation" aria-label="確認再次寄送">
+                                <strong>確認再次寄送</strong>
+                                <p>這會再次寄出相同通知。請填寫原因，留下管理稽核紀錄。</p>
+                                <label>
+                                    <span>重寄原因（至少 3 個字）</span>
+                                    <textarea
+                                        rows="3"
+                                        maxLength="500"
+                                        value={resendReason}
+                                        onChange={event => setResendReason(event.target.value)}
+                                        placeholder="例如：家長表示未收到，確認地址後補寄"
+                                    />
+                                </label>
+                                <div className="guardian-resend-confirmation__actions">
+                                    <button type="button" onClick={closeResendConfirmation} disabled={resendSending}>返回</button>
+                                    <button
+                                        type="button"
+                                        className="danger"
+                                        onClick={confirmResendReminder}
+                                        disabled={resendSending || resendReason.trim().length < 3}
+                                    >
+                                        {resendSending ? "再次寄送中…" : "確認再次寄送"}
+                                    </button>
+                                </div>
+                            </section>
+                        )}
                         {mailClientMessage && <div className="guardian-mail-status" role="status">{mailClientMessage}</div>}
                         <div className="guardian-reminder-actions">
-                            <button type="button" onClick={() => setNoticeDraft(null)}>取消</button>
+                            <button type="button" onClick={() => setNoticeDraft(null)} disabled={resendSending}>取消</button>
                             <button type="button" onClick={copyReminderEmail}>複製郵件內容</button>
                             <a
                                 className="open-mail-button"
@@ -567,9 +650,16 @@ function ManagementDashboard() {
                             </a>
                             <button type="button" onClick={markReminderSent}>已自行寄出</button>
                             {isAdmin && (
-                                <button type="button" className="primary" onClick={sendPreparedReminder} disabled={directSending}>
-                                    {directSending ? "寄送中…" : "直接寄送"}
-                                </button>
+                                <>
+                                    {noticeDraft.already_sent_today && !resendConfirmOpen && (
+                                        <button type="button" className="resend" onClick={openResendConfirmation}>再次寄送</button>
+                                    )}
+                                    {!noticeDraft.already_sent_today && (
+                                        <button type="button" className="primary" onClick={sendPreparedReminder} disabled={directSending}>
+                                            {directSending ? "寄送中…" : "直接寄送"}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>

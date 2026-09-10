@@ -5,6 +5,8 @@ import { readFileSync } from "node:fs";
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const edgeFunction = read("supabase/functions/guardian-email/index.ts");
 const sendingStatusMigration = read("supabase/migrations/20260910002545_guardian_email_sending_status.sql");
+const resendAuditMigration = read("supabase/migrations/20260910020211_admin_guardian_email_resend_audit.sql");
+const learningActivity = read("supabase/functions/learning-activity/index.ts");
 const service = read("src/services/guardianEmailService.js");
 const dashboard = read("src/components/Pages/ManagementDashboard.jsx");
 
@@ -49,4 +51,28 @@ test("all guardian HTML email variants include the public Alan English logo", ()
     assert.equal((edgeFunction.match(/src="\$\{EMAIL_LOGO_URL\}"/g) || []).length, 3);
     assert.equal((edgeFunction.match(/alt="Alan English Logo"/g) || []).length, 3);
     assert.equal((edgeFunction.match(/width="64" height="64"/g) || []).length, 3);
+});
+
+test("admin resends require a reason and create a separate auditable delivery", () => {
+    assert.match(edgeFunction, /"resend_notification"/);
+    assert.match(service, /resendGuardianNotification/);
+    assert.match(edgeFunction, /resendReason\.length < 3/);
+    assert.match(edgeFunction, /requestedLog\.reason !== "inactive-learning"/);
+    assert.match(edgeFunction, /\.gte\("sent_at", dayBounds\.startAt\)/);
+    assert.match(edgeFunction, /\.lt\("sent_at", dayBounds\.endAt\)/);
+    assert.match(edgeFunction, /subject: originalSent\.subject/);
+    assert.match(edgeFunction, /message: originalSent\.message/);
+    assert.match(edgeFunction, /resend_of_notification_id: originalSent\.id/);
+    assert.match(edgeFunction, /resend_reason: resendReason/);
+    assert.match(edgeFunction, /guardian-resend:\$\{originalSent\.id\}:\$\{requestId\}/);
+    assert.match(resendAuditMigration, /foreign key \(resend_of_notification_id\)/);
+    assert.match(resendAuditMigration, /char_length\(btrim\(resend_reason\)\) between 3 and 500/);
+});
+
+test("the reminder draft reports whether the student was already emailed today", () => {
+    assert.match(learningActivity, /\.eq\("reason", "inactive-learning"\)/);
+    assert.match(learningActivity, /\.eq\("status", "sent"\)/);
+    assert.match(learningActivity, /already_sent_today: \(sentToday \|\| \[\]\)\.length > 0/);
+    assert.match(dashboard, /noticeDraft\.already_sent_today/);
+    assert.match(dashboard, /確認再次寄送/);
 });

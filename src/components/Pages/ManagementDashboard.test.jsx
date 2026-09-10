@@ -9,6 +9,7 @@ import {
 } from "../../services/learningActivityService";
 import {
     previewGuardianNotificationClass,
+    resendGuardianNotification,
     sendGuardianNotification,
     sendGuardianNotificationClass
 } from "../../services/guardianEmailService";
@@ -27,6 +28,7 @@ jest.mock("../../services/learningActivityService", () => ({
 
 jest.mock("../../services/guardianEmailService", () => ({
     previewGuardianNotificationClass: jest.fn(),
+    resendGuardianNotification: jest.fn(),
     sendGuardianNotification: jest.fn(),
     sendGuardianNotificationClass: jest.fn()
 }));
@@ -162,6 +164,46 @@ describe("ManagementDashboard", () => {
 
         expect(await screen.findByText("已直接寄送給 guardian@example.invalid")).toBeInTheDocument();
         expect(sendGuardianNotification).toHaveBeenCalledWith(expect.anything(), 503);
+    });
+
+    test("requires a reason and a second confirmation before resending", async () => {
+        createGuardianNotificationDraft.mockResolvedValue({
+            draft: {
+                id: 504,
+                email: "guardian@example.invalid",
+                subject: "Alan English 學習提醒",
+                message: "本週學習提醒",
+                already_sent_today: true
+            }
+        });
+        resendGuardianNotification.mockResolvedValue({ success: true, status: "sent" });
+
+        render(
+            <MemoryRouter>
+                <ManagementDashboard />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(await screen.findByRole("button", { name: "提醒家長" }));
+        fireEvent.click(await screen.findByRole("button", { name: "再次寄送" }));
+
+        const confirmButton = screen.getByRole("button", { name: "確認再次寄送" });
+        expect(confirmButton).toBeDisabled();
+
+        fireEvent.change(screen.getByLabelText("重寄原因（至少 3 個字）"), {
+            target: { value: "家長表示未收到，確認信箱後補寄" }
+        });
+        expect(confirmButton).toBeEnabled();
+
+        fireEvent.click(confirmButton);
+
+        expect(resendGuardianNotification).toHaveBeenCalledWith(
+            expect.anything(),
+            504,
+            "家長表示未收到，確認信箱後補寄",
+            expect.stringMatching(/^[A-Za-z0-9_-]{16,100}$/)
+        );
+        expect(await screen.findByText(/已再次寄送給/)).toBeInTheDocument();
     });
 
     test("previews and confirms a class batch before sending", async () => {

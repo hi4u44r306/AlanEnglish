@@ -474,7 +474,7 @@ Deno.serve(async (req: Request) => {
             const [recentResult, scheduleResult] = await Promise.all([
                 admin
                     .from("notification_logs")
-                    .select("id,student_id,channel,reason,subject,status,provider,provider_message_id,error_message,week_start,sent_at,created_at,students(name,email)")
+                    .select("id,student_id,channel,reason,subject,status,provider,provider_message_id,error_message,week_start,resend_of_notification_id,resend_reason,sent_at,created_at,students(name,email)")
                     .eq("channel", "email")
                     .order("created_at", { ascending: false })
                     .limit(100),
@@ -493,11 +493,131 @@ Deno.serve(async (req: Request) => {
 
         const notificationActions = [
             "send_notification",
+            "resend_notification",
             "preview_class_notifications",
             "send_class_notifications"
         ];
         if (notificationActions.includes(action) && caller?.role !== "admin") {
             return json(403, { error: "只有管理員可以直接或批量寄送家長通知" });
+        }
+
+        if (action === "resend_notification") {
+            if (!providerConfigured) {
+                return json(503, {
+                    error: "自動寄信尚未完成 RESEND_API_KEY 與寄件網域設定",
+                    code: "email_provider_not_configured"
+                });
+            }
+
+            const notificationId = Number(body?.notification_id);
+            const resendReason = cleanText(body?.resend_reason, 500);
+            const requestId = cleanText(body?.request_id, 100);
+            if (!Number.isInteger(notificationId) || notificationId <= 0) {
+                return json(400, { error: "通知編號不正確" });
+            }
+            if (resendReason.length < 3) {
+                return json(400, { error: "請填寫至少 3 個字的重寄原因" });
+            }
+            if (!/^[A-Za-z0-9_-]{16,100}$/.test(requestId)) {
+                return json(400, { error: "重寄請求編號不正確" });
+            }
+
+            const { data: requestedLog, error: requestedLogError } = await admin
+                .from("notification_logs")
+                .select("id,student_id,guardian_contact_id,channel,reason,subject,message")
+                .eq("id", notificationId)
+                .maybeSingle();
+            if (requestedLogError) throw requestedLogError;
+            if (!requestedLog || requestedLog.channel !== "email" || requestedLog.reason !== "inactive-learning") {
+                return json(404, { error: "找不到可重寄的家長學習提醒" });
+            }
+
+            const dayBounds = taipeiDayBounds(taipeiDateKey());
+            const { data: originalSent, error: originalSentError } = await admin
+                .from("notification_logs")
+                .select("id,guardian_contact_id,subject,message")
+                .eq("student_id", requestedLog.student_id)
+                .eq("reason", "inactive-learning")
+                .eq("status", "sent")
+                .gte("sent_at", dayBounds.startAt)
+                .lt("sent_at", dayBounds.endAt)
+                .order("sent_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            if (originalSentError) throw originalSentError;
+            if (!originalSent) {
+                return json(409, { error: "此學生今天尚無成功寄送紀錄，請使用一般寄送" });
+            }
+
+            const { data: guardian, error: guardianError } = await admin
+                .from("guardian_contacts")
+                .select("id,student_id,email,notification_enabled")
+                .eq("id", originalSent.guardian_contact_id)
+                .eq("student_id", requestedLog.student_id)
+                .maybeSingle();
+            if (guardianError) throw guardianError;
+            if (!guardian?.notification_enabled || !guardian?.email) {
+                return json(400, { error: "此學生尚未設定可寄送的家長 Email" });
+            }
+
+            const idempotencyKey = `guardian-resend:${originalSent.id}:${requestId}`;
+            const { data: existingResend, error: existingResendError } = await admin
+                .from("notification_logs")
+                .select("id,status,provider_message_id,idempotency_key")
+                .eq("idempotency_key", idempotencyKey)
+                .maybeSingle();
+            if (existingResendError) throw existingResendError;
+            if (existingResend?.status === "sent") {
+                return json(200, {
+                    success: true,
+                    status: "sent",
+                    notification_id: existingResend.id,
+                    provider_message_id: existingResend.provider_message_id || null,
+                    already_processed: true
+                });
+            }
+
+            let resendLog = existingResend;
+            if (!resendLog) {
+                const { data: inserted, error: insertError } = await admin
+                    .from("notification_logs")
+                    .insert({
+                        student_id: requestedLog.student_id,
+                        guardian_contact_id: guardian.id,
+                        created_by_account_id: caller.id,
+                        channel: "email",
+                        reason: "inactive-learning",
+                        subject: originalSent.subject,
+                        message: originalSent.message,
+                        status: "draft",
+                        provider: "resend",
+                        resend_of_notification_id: originalSent.id,
+                        resend_reason: resendReason,
+                        idempotency_key: idempotencyKey
+                    })
+                    .select("id,status,idempotency_key")
+                    .single();
+                if (insertError) throw insertError;
+                resendLog = inserted;
+            }
+
+            const email = buildStoredNotificationEmail(originalSent.subject, originalSent.message);
+            const providerResult = await sendNotificationLog({
+                admin,
+                apiKey: resendApiKey,
+                settings,
+                log: resendLog,
+                guardian,
+                email,
+                idempotencyKey
+            });
+            return json(200, {
+                success: true,
+                status: "sent",
+                notification_id: resendLog.id,
+                resend_of_notification_id: originalSent.id,
+                provider_message_id: providerResult?.provider_message_id || null
+            });
         }
 
         if (action === "send_notification") {
