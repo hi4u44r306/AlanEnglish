@@ -161,7 +161,9 @@
 
 .speaking-catalog-group {
   grid-column: 1 / -1;
-  overflow: hidden;
+  /* Keep the group corners, but do not crop a lesson's keyboard/hover elevation. */
+  overflow: visible;
+  isolation: isolate;
   border: 1px solid #d8e3f2;
   border-radius: 22px;
   background: #fff;
@@ -173,6 +175,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 18px 20px;
+  border-radius: 21px 21px 0 0;
   color: #fff;
   background: linear-gradient(120deg, #17366f, #2b66bd);
 }
@@ -190,10 +193,13 @@
   white-space: nowrap;
 }
 .speaking-catalog-lessons {
+  position: relative;
+  z-index: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   padding: 8px;
+  border-radius: 0 0 21px 21px;
   background: #eaf0f8;
 }
 .speaking-challenge-lesson {

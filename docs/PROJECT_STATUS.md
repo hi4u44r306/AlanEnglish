@@ -1,12 +1,14 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-08
+最後更新：2026-09-10
 
 本次正式發布（2026-09-07）：
 
 - 口說大挑戰、混合作業 V2 與 API 成本控制中心已由 PR #100 合併至 `main` commit `f50d186`。正式 Netlify application deploy `6a9e2e320841ca0008bea010` 已為 `ready`，正式 bundle 為 `main.e25d0f50.js`；首頁、API 成本控制、口說題庫管理、學生口說挑戰及師生作業路由均回應 HTTP 200。正式 Supabase 已套用 additive migration `academy_all_access_assignment_v2`，新增結構與方案功能旗標均已查詢確認；`assignment-manager` v29、`billing-manager` v30、`gamification` v11、`generate-ai-material` v31、`membership-manager` v37、`pronunciation-coach` v10、`speaking-challenge` v7、`speaking-content-manager` v9、`speaking-tts-manager` v7 均為 ACTIVE，七支需登入的服務以未登入請求驗證皆正確回應 401。使用者已在測試站完成四項 AI 示範語音驗收；全前端 47 suites／154 tests、API 成本頁 3/3、Edge Function 語法與契約、production build 及 `git diff --check` 均成功。正式站登入後的麥克風錄音、真實送評與私人 R2 語音播放仍建議再做一次快速抽驗。
 
 本次測試部署（正式站尚未部署）：
+
+- 口說大挑戰卡片 Hover 圓角修正（本機完成、待部署）：大關卡容器不再以 `overflow: hidden` 裁切小關卡的 Hover／鍵盤 Focus 陰影；標題藍底與下方教材網格各自保留外框圓角，避免小關卡被選取時出現被切掉的直角或陰影。小關卡數量維持品牌黃底、深藍高對比文字。待完成相關測試、build、PR 與固定測試站驗收。
 
 - 學生首頁與英文班 AI 方案呈現收斂（測試站已部署，正式站尚未部署）：`AI Premium` 現在只代表實際的 AI 加購方案；有效在校英文班學生保有原本的 AI 練習、口說大挑戰及班級作業權限，但 Navbar、我的設定與會員中心改顯示「英文班在學方案已包含」，不再顯示或引導重複購買 AI Premium。學生首頁改為任務優先：老師作業、待複習錯題與聽力暖身依序呈現，AI 練習與口說大挑戰收進非必要的「想多練一點？」；首頁成果收斂為今日聽力、已學口說與本月聽力，移除重複的帳號／方案／登出卡與舊情境口說任務。離校學生的歷史 `academy_internal` 不會被誤認為在學方案。Checkpoint `68686dd` 已推送至 `codex/p2-friends-profile`；固定測試站 deploy `6aa010e022cb582d1c1a41ba` 已為 live，`/student/dashboard` 回應 HTTP 200。相關 React tests 5 suites／38 tests、Production build 與 `git diff --check` 均成功；尚待登入實機視覺驗收。
 
