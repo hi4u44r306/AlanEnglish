@@ -43,3 +43,10 @@ test("email delivery has an allowed in-flight state and preserves backend error 
     assert.match(edgeFunction, /const getErrorMessage = \(error: unknown, fallback: string\)/);
     assert.match(edgeFunction, /throw new Error\(errorMessage\)/);
 });
+
+test("all guardian HTML email variants include the public Alan English logo", () => {
+    assert.match(edgeFunction, /const EMAIL_LOGO_URL = "https:\/\/alanenglish\.com\.tw\/alanenglish\.png"/);
+    assert.equal((edgeFunction.match(/src="\$\{EMAIL_LOGO_URL\}"/g) || []).length, 3);
+    assert.equal((edgeFunction.match(/alt="Alan English Logo"/g) || []).length, 3);
+    assert.equal((edgeFunction.match(/width="64" height="64"/g) || []).length, 3);
+});

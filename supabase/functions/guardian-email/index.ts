@@ -14,6 +14,7 @@ const FIREBASE_JWKS = createRemoteJWKSet(
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
 const CLASS_CODES = ["E1", "E3", "E5", "E7"];
+const EMAIL_LOGO_URL = "https://alanenglish.com.tw/alanenglish.png";
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -220,6 +221,7 @@ const buildEmail = (report: any) => {
 <body style="margin:0;background:#f6f8fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033">
   <div style="max-width:640px;margin:0 auto;padding:28px 16px">
     <div style="background:#173f5f;color:white;border-radius:20px 20px 0 0;padding:28px">
+      <img src="${EMAIL_LOGO_URL}" alt="Alan English Logo" width="64" height="64" style="display:block;width:64px;height:64px;margin:0 0 18px;border:0;border-radius:14px;background:#fff">
       <div style="font-size:12px;letter-spacing:.16em;opacity:.78">ALAN ENGLISH WEEKLY REPORT</div>
       <h1 style="font-size:26px;margin:10px 0 6px">${studentName} 的英文學習週報</h1>
       <div style="opacity:.84">${report.range.startDate} ～ ${report.range.endDate}</div>
@@ -281,6 +283,7 @@ const buildInactiveReminder = (student: any, guardian: any) => {
 <body style="margin:0;background:#f6f8fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033">
   <div style="max-width:640px;margin:0 auto;padding:28px 16px">
     <div style="background:#173f5f;color:white;border-radius:20px 20px 0 0;padding:28px">
+      <img src="${EMAIL_LOGO_URL}" alt="Alan English Logo" width="64" height="64" style="display:block;width:64px;height:64px;margin:0 0 18px;border:0;border-radius:14px;background:#fff">
       <div style="font-size:12px;letter-spacing:.16em;opacity:.78">ALAN ENGLISH LEARNING REMINDER</div>
       <h1 style="font-size:26px;margin:10px 0 0">${escapeHtml(student.name)} 的英文學習提醒</h1>
     </div>
@@ -302,6 +305,7 @@ const buildStoredNotificationEmail = (subject: string, text: string) => ({
 <body style="margin:0;background:#f6f8fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033">
   <div style="max-width:640px;margin:0 auto;padding:28px 16px">
     <div style="background:#173f5f;color:white;border-radius:20px 20px 0 0;padding:24px">
+      <img src="${EMAIL_LOGO_URL}" alt="Alan English Logo" width="64" height="64" style="display:block;width:64px;height:64px;margin:0 0 18px;border:0;border-radius:14px;background:#fff">
       <div style="font-size:12px;letter-spacing:.16em;opacity:.78">ALAN ENGLISH</div>
       <h1 style="font-size:23px;margin:10px 0 0">${escapeHtml(subject)}</h1>
     </div>
