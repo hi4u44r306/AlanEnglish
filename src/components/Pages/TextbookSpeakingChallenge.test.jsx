@@ -2,9 +2,10 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
-import { getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import { getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
 
-jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: { uid: "student", getIdToken: jest.fn() } }) }));
+const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
+jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingChallengeService", () => ({
     completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn()
 }));
@@ -42,13 +43,10 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(play).toHaveBeenCalled();
 
         act(() => listeners.play());
-        expect(screen.getByLabelText("男聲 AI 口說夥伴正在示範發音")).toBeInTheDocument();
-        expect(screen.getByLabelText("男聲 AI 口說夥伴正在示範發音").querySelector("img")).toHaveAttribute("src", "/speaking-guide-boy.png");
-        expect(screen.getByText("跟著我一起說！")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "播放中…" })).toBeDisabled();
 
         act(() => listeners.ended());
-        expect(screen.getByLabelText("男聲 AI 口說夥伴")).toBeInTheDocument();
-        expect(screen.getByText("嗨！我是男聲口說夥伴。")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "聽自然示範" })).toBeEnabled();
     });
 
     it("does not fall back to device speech while audio is missing", async () => {
@@ -62,8 +60,6 @@ describe("TextbookSpeakingChallenge model audio", () => {
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         expect(await screen.findByRole("button", { name: "語音準備中" })).toBeDisabled();
-        expect(screen.getByLabelText("女聲 AI 口說夥伴")).toBeInTheDocument();
-        expect(screen.getByLabelText("女聲 AI 口說夥伴").querySelector("img")).toHaveAttribute("src", "/speaking-guide-girl.png");
     });
 
     it("shows one small challenge at a time and lets the learner change questions", async () => {
@@ -90,5 +86,24 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("heading", { name: "What's your name?" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "下一題" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "前往第 2 題，已練習" })).toHaveAttribute("aria-current", "step");
+    });
+
+    it("lets the learner browse challenges by textbook or theme", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [
+                { id: 1, title: "01 我的名字與自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" }, question_count: 4, completed_count: 1 },
+                { id: 2, title: "02 顏色與生活物品", topic: "Colors", difficulty: "E1", books: { name: "Workbook 1" }, question_count: 6, completed_count: 0 }
+            ]
+        });
+
+        await act(async () => {
+            render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        });
+
+        expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "依教材" })).toHaveAttribute("aria-pressed", "true");
+        fireEvent.click(screen.getByRole("button", { name: "依主題" }));
+        expect(screen.getByRole("heading", { name: "認識新朋友" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "生活物品與顏色" })).toBeInTheDocument();
     });
 });
