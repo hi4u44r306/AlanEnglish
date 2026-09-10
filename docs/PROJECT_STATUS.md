@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-最後更新：2026-08-30
+最後更新：2026-09-09
 
 正式網站：<https://alanenglish.com.tw>
 
@@ -94,6 +94,8 @@ Alan English 已從舊 React／Firebase 網站修復，進入 Firebase Authentic
 
 進行中：
 
+- `codex/public-pricing-sales-pause`：尚未部署。公開首頁、教材資訊、商城與會員中心已改為教材包暫停販售、月費付款暫未開放；自主學習平台與 AI 教材加購各為 NT$299／月。英文班在校方案改為後端內部 NT$599／月且包含 AI，不會在公開網站顯示價格或提供付款。`billing-manager` 與 `store-commerce` 將直接結帳請求拒絕為 503；新 additive migration 會將公開教材包收回草稿、更新方案資料，保留既有訂單、訂閱與授權。尚未執行 migration、部署 Edge Function 或 Netlify；重新開放付款前仍須建立並驗證正確 Stripe Price，且完成實體教材同 Email 領取 90 天網站權限的流程驗收。
+- `codex/safe-student-recovery-codes`：英文班登入卡的新復原碼改為兩組 6 位數一次性碼；現有舊格式復原碼仍可相容使用。新增資料庫 reservation／每帳號每小時 5 次錯誤嘗試上限，避免短碼遭大量猜測；學生已登入時可在「帳號與密碼」重新輸入目前密碼，經 Firebase 最近 5 分鐘重新驗證後自行補發兩組新碼，舊未使用碼立即撤銷且新碼只顯示一次。2026-09-09 已在正式 Supabase 僅套用 `20260909090000_secure_academy_recovery_codes.sql` 並登記 migration history，`academy-student-manager` 已部署為 ACTIVE；確認嘗試紀錄表存在、匿名角色無法執行保留 RPC、service role 可執行，且不存在帳號的 6 碼線上請求正確回傳 `404 RECOVERY_NOT_FOUND`。已完成 5 個復原／自行補發前端測試、TypeScript 語法檢查、`git diff --check` 與 Production build；build 僅有既有未使用 `StoreCart`／`StoreCheckout` 的 ESLint 警告。2026-09-09 以管理員後台建立無家長 Email 的 `TEST-` 英文班學生後，測試站已驗證 6 碼復原成功、同碼重用拒絕、以新密碼登入成功，以及五次錯誤後鎖定一小時；完成後測試學生已停用而非刪除。隔離前端已部署至 `alanenglish-student-test`，並以另一個無家長 Email 的 `TEST-` 學生完整驗證：登入後的自主補發會顯示兩組新 6 碼、原先未使用的舊碼立即拒絕、新碼可完成密碼重設。該實機帳號已在保留稽核紀錄的前提下標示為已停用；正式 Netlify 站尚未部署此批前端。無法登入且所有復原碼都遺失時，仍需未來 LINE 綁定或人工核身，不能只以帳號自助補發。
 - `codex/link-edit-track-order`：教材連結管理新增名稱與 URL 編輯、HTTP(S) 格式驗證與管理員後端 update contract；公開連結改為分類內依名稱自然升冪，音檔管理頁依 `sort_order`、頁碼／檔名與 id 穩定升冪。2 份測試共 4 個案例、`link-manager` TypeScript 語法檢查、`git diff --check` 與 Production build 已成功；尚未 push、建立 PR、部署 Netlify 或重新部署 `link-manager`。
 - `codex/seo-public-foundation`：SEO 第一階段已在隔離工作樹完成但尚未推送或部署。品牌首頁改為 `/`，教材音檔入口固定為 `/links`，`/home` 與 `/showcase` 在 Netlify 回傳 301 至 `/`；`/`、`/links`、`/shop`、`/materials` 的 build 會產生各自獨立 title、description、canonical 與社群分享 metadata。其他登入、付款、會員、後台與未知路由首次 HTML 回應統一使用 `noindex,nofollow` 且不輸出 canonical，sitemap 只列四個公開可索引頁。本機 Netlify 模擬已確認四頁皆為 200 且 canonical 正確、兩個舊首頁為 301、私人／未知路由為 noindex；SEO 合約 4/4、相關元件 6/6 與 Production build 成功。下一階段才新增方案、功能、家長／老師與商品詳情內容頁，部署後才提交 Search Console。
 - `codex/store-email-verification-resend`：商城註冊頁新增真正呼叫 Supabase `auth.resend` 的「重新寄送驗證信」，成功請求有 60 秒冷卻，提示不洩漏帳號是否存在或是否已驗證；新驗證信導向獨立 `/shop/verified`，成功時顯示「謝謝，已完成驗證」與 5 秒倒數，清除目前商城 session 後回到原結帳目的地的商城登入頁，過期／已使用連結則提供登入與重寄入口。Supabase Auth 已允許正式站與固定測試站的 `/shop/login`、`/shop/verified` 共 4 個 Redirect URLs。商城 Checkout 500 已由 Edge Function log 確認為 Stripe locale 誤用 `zh_TW`，修正為 `zh-TW` 後 `store-commerce` v2 已部署並為 ACTIVE；失敗訂單仍安全標為 failed／cancelled、不會出貨。驗證／重寄前端測試 4/4、商城契約 11/11、`git diff --check` 與 Production build 成功。功能 commit `d43af95` 已推送並建立 PR #57，兩個 Netlify Deploy Preview 皆通過；固定測試站 deploy `6a8ffd01012805d73b60bf2d` 已發布且為 `ready`，已確認 `/shop/verified` 的失效提示、重寄入口與 `/shop/register` 重寄按鈕。正式 `main` 尚未合併／發布，需使用者再次明確授權；另待以未驗證的可收信沙盒地址完成「重寄、收信、驗證完成頁、重新登入、Stripe 沙盒結帳」端到端驗收。Supabase 專案目前仍使用預設寄信服務；正式開放一般學生收信前必須設定既有 Resend 或其他自訂 SMTP，且不得把 SMTP 密碼提交到 Git。
@@ -400,6 +402,18 @@ academy-student-manager
 - 常見問題
 - 登入入口
 - 七天試用入口
+
+### 2026-09-01 家長視角轉換檢查（唯讀）
+
+- 已以第一次接觸平台的國小家長角度，檢查正式首頁桌面版、412px 手機版與正式教材商城；本輪沒有修改程式、方案、Stripe、Supabase 或正式部署。
+- 第一印象為視覺專業、國小英文定位清楚，且「7 天免費試用、不需信用卡、每天短時間練習、進度自動保存」足以促使家長開始試用；但目前證據不足以支持未試用前直接購買或訂閱。
+- 單一家長視角的初步願付區間為：實體教材加 90 天平台約 NT$1,200～1,500、基本平台約 NT$199～299／月、包含 AI 與發音的完整方案總價約 NT$399～499／月。此區間只是轉換假設，不是市場調查或已確認定價；任何價格異動前仍需訪談多位目標家長並核對成本、Stripe、商品與會員權限。
+- 正式首頁目前顯示基本會員 NT$299／月、AI 教材與發音練習另購 NT$499／月，並直接呈現合計 NT$798／月；但本文件目前確認的方案是一般會員 AI NT$129、英文班／離校生 AI NT$99。這是 P0 公開資訊落差，實作前必須先確認哪一組才是最新商業規則，再同步首頁、方案比較、FAQ、商品／Stripe Price、會員中心、會員條款與網站使用手冊，不能只改首頁文字。
+- 首頁寫明購買教材附贈 90 天網站權限；正式商城商品卡則顯示「商城不會自動綁定或開通聽力平台」，容易讓家長誤解為購買後不能使用網站。P0 應清楚說明是否隨貨提供開通碼、開通步驟、起算日、包含功能及兩個帳號系統的關係，且需與實際後端 entitlement 流程一致。
+- 正式商城目前商品名稱仍含「（測試）」；正式開放購買前應確認該商品是否僅供沙盒驗收。若非正式商品，不應讓一般消費者誤認為可以購買；若已正式販售，應移除測試標示並完成正式價格、庫存、運費、退換貨與開通說明核對。
+- P1 轉換內容依優先順序為：60～90 秒真實學習示範、可直接試聽的教材／音檔範例、孩子答題與發音回饋畫面、家長可看到的實際進度報告、E1／E3／E5／E7 對應年級與能力說明、教師／教材編寫背景、家長案例、客服及退換貨資訊。
+- AI 加購頁面必須具體說明每月額度、發音回饋方式、家長報告、內容安全及相較免費通用 AI 的差異，否則家長難以理解加購價值。
+- 建議執行順序：先修正公開價格與開通資訊不一致，再補真實學習成果證據，最後才進行價格或組合方案實驗；在取得至少 5～10 位目標家長訪談或試用回饋前，不把本次單一家長願付區間當成正式定價依據。
 
 桌面 Navbar 固定於頂部。
 
