@@ -524,6 +524,9 @@ textarea { resize: vertical; }
 .platform-two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
 .platform-code-result { display: grid; gap: 7px; margin-top: 18px; padding: 16px; border-radius: 14px; background: #172033; color: #fff; }
 .platform-code-result code { color: #fbd1b9; font-size: 16px; user-select: all; }
+.platform-recovery-card { margin-top: 22px; }
+.platform-recovery-card h2 { margin: 4px 0 8px; }
+.platform-recovery-codes { margin: 12px 0; color: #055e3a; font-size: clamp(24px, 8vw, 34px); font-weight: 900; letter-spacing: .08em; line-height: 1.45; overflow-wrap: anywhere; user-select: all; }
 .platform-table-wrap { overflow-x: auto; }
 .platform-table { width: 100%; border-collapse: collapse; min-width: 680px; }
 .platform-table th { padding: 10px 12px; text-align: left; color: var(--ae-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
