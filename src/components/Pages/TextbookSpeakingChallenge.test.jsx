@@ -27,12 +27,14 @@ describe("TextbookSpeakingChallenge model audio", () => {
                 speaking_questions: [{
                     id: 9, sort_order: 0, question_text: "What's your name?", hint_zh: "說出名字",
                     model_answer: "My name is Alan.", model_audio_status: "ready",
-                    model_audio_url: "https://r2.example/signed.mp3", progress_status: "opened"
+                    model_audio_url: "https://r2.example/signed.mp3", progress_status: "opened",
+                    visual_aid: { kind: "clock", value: "7", alt_zh: "時鐘顯示七點整" }
                 }]
             }
         });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByLabelText("時鐘顯示七點整")).toBeInTheDocument();
         fireEvent.click(await screen.findByRole("button", { name: "聽自然示範" }));
 
         expect(global.Audio).toHaveBeenCalledWith("https://r2.example/signed.mp3");

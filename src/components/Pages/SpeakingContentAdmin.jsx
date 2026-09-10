@@ -16,6 +16,7 @@ import {
     uploadWholeBookSource,
     updateDraftSpeakingQuestion
 } from "../../services/speakingContentService";
+import SpeakingVisualAid from "./SpeakingVisualAid";
 import "./css/Platform.scss";
 import "./css/SpeakingContentAdmin.scss";
 
@@ -89,6 +90,7 @@ const StudentQuestionSetPreview = ({ questionSet }) => {
             <header><span>Workbook 1 口說大挑戰</span><h5>{questionSet.title}</h5><p>學生會先聽問題，自行回答；需要時才展開提示與示範句。</p></header>
             <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
                 <span>第 {index + 1} 題</span><strong>{question.question_text}</strong>
+                <SpeakingVisualAid aid={question.visual_aid} />
                 <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>
                 <small>{question.pronunciation_notes_zh || "完成錄音後顯示發音回饋。"}</small>
             </article>)}</div>
@@ -103,7 +105,9 @@ const QuestionEditor = ({ question, disabled, onSave }) => {
         keywords: (question.keywords || []).join("、"), simple_answer: question.simple_answer || "",
         model_answer: question.model_answer || "", follow_up_question: question.follow_up_question || "",
         pronunciation_notes_zh: question.pronunciation_notes_zh || "",
-        accepted_intents: (question.accepted_intents || []).join("\n")
+        accepted_intents: (question.accepted_intents || []).join("\n"),
+        visual_kind: question.visual_aid?.kind || "", visual_value: question.visual_aid?.value || "",
+        visual_alt_zh: question.visual_aid?.alt_zh || ""
     });
     const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
     return <article className="speaking-question-editor">
@@ -121,10 +125,16 @@ const QuestionEditor = ({ question, disabled, onSave }) => {
                 <label><span>發音／重音提示</span><textarea rows="3" value={form.pronunciation_notes_zh} onChange={event => update("pronunciation_notes_zh", event.target.value)} disabled={disabled} /></label>
                 <label><span>可接受回答意思（每行一項）</span><textarea rows="3" value={form.accepted_intents} onChange={event => update("accepted_intents", event.target.value)} disabled={disabled} /></label>
             </div>
+            <div className="platform-form-grid">
+                <label><span>輔助圖類型</span><select value={form.visual_kind} onChange={event => update("visual_kind", event.target.value)} disabled={disabled}><option value="">不需要圖片</option><option value="flag">國旗</option><option value="color-object">顏色與物品</option><option value="clock">時鐘</option><option value="routine">日常情境</option></select></label>
+                <label><span>圖卡代號</span><input value={form.visual_value} onChange={event => update("visual_value", event.target.value)} disabled={disabled} placeholder="例如 taiwan、banana、7" /></label>
+            </div>
+            {form.visual_kind && <label><span>圖片替代文字（繁體中文）</span><input value={form.visual_alt_zh} onChange={event => update("visual_alt_zh", event.target.value)} disabled={disabled} placeholder="例如：時鐘顯示七點整" /></label>}
             {!disabled && <button type="button" className="platform-secondary" onClick={() => onSave(question.id, {
                 ...form,
                 keywords: form.keywords.split(/[、,，]/).map(item => item.trim()).filter(Boolean),
-                accepted_intents: form.accepted_intents.split("\n").map(item => item.trim()).filter(Boolean)
+                accepted_intents: form.accepted_intents.split("\n").map(item => item.trim()).filter(Boolean),
+                visual_aid: form.visual_kind ? { kind: form.visual_kind, value: form.visual_value, alt_zh: form.visual_alt_zh } : {}
             })}>儲存這一題</button>}
         </div>
     </article>;

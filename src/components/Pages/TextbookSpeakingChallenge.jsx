@@ -3,6 +3,7 @@ import { FiBookOpen, FiCheckCircle, FiChevronLeft, FiMic, FiVolume2 } from "reac
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import SpeakingVisualAid from "./SpeakingVisualAid";
 import "./css/TextbookSpeakingChallenge.scss";
 
 export default function TextbookSpeakingChallenge() {
@@ -70,7 +71,7 @@ export default function TextbookSpeakingChallenge() {
                 <strong>{isSpeaking ? "跟著我一起說！" : "嗨！準備開口挑戰嗎？"}</strong>
             </div>
             <div className="speaking-question-content">
-                <small>小關卡 {index + 1}</small><h2>{question.question_text}</h2><p>{question.hint_zh}</p><div className="speaking-answer"><strong>不知道怎麼說？</strong><span>{question.model_answer}</span><button disabled={!question.model_audio_url || isSpeaking} onClick={() => playModelAudio(question)}><FiVolume2 />{question.model_audio_url ? (isSpeaking ? "播放中…" : "聽自然示範") : "語音準備中"}</button></div>{question.pronunciation_notes_zh && <aside>{question.pronunciation_notes_zh}</aside>}<button className="speaking-complete" disabled={working === String(question.id) || question.progress_status === "completed"} onClick={() => markComplete(question)}><FiCheckCircle />{question.progress_status === "completed" ? "已練習" : "我已開口練習"}</button><small className="speaking-no-reward">此階段只記錄練習，不發 XP 或 AE Points。</small>
+                <small>小關卡 {index + 1}</small><h2>{question.question_text}</h2><p>{question.hint_zh}</p><SpeakingVisualAid aid={question.visual_aid} /><div className="speaking-answer"><strong>不知道怎麼說？</strong><span>{question.model_answer}</span><button disabled={!question.model_audio_url || isSpeaking} onClick={() => playModelAudio(question)}><FiVolume2 />{question.model_audio_url ? (isSpeaking ? "播放中…" : "聽自然示範") : "語音準備中"}</button></div>{question.pronunciation_notes_zh && <aside>{question.pronunciation_notes_zh}</aside>}<button className="speaking-complete" disabled={working === String(question.id) || question.progress_status === "completed"} onClick={() => markComplete(question)}><FiCheckCircle />{question.progress_status === "completed" ? "已練習" : "我已開口練習"}</button><small className="speaking-no-reward">此階段只記錄練習，不發 XP 或 AE Points。</small>
             </div>
         </article>;
     })}</section></main>;
