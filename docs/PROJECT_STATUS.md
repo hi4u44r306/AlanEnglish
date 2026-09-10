@@ -1,6 +1,10 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-07
+最後更新：2026-09-10
+
+本次進行中（2026-09-10，尚未部署）：
+
+- 英文班學生復原碼安全強化：分支 `codex/recovery-codes-release`、PR #107。新增兩組 6 位數一次性復原碼、舊格式相容、每帳號每小時 5 次失敗上限，以及已登入學生重新輸入目前密碼後自行補發新碼的流程。新碼只顯示一次，補發後會立即撤銷所有未使用舊碼。正式 Supabase migration history 已有 `20260909090000`，`academy-student-manager` 為 ACTIVE v28；本 PR 用來補回可追溯的 SQL／Function／前端來源，不能再次套用同版 migration。前端尚未由 Netlify 發布，且仍需以隔離帳號確認正式 Function 與本分支行為一致後才可合併發布。前端測試 5/5 與 production build 已成功。
 
 本次正式發布（2026-09-07）：
 
