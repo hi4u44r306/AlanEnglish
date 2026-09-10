@@ -6,6 +6,9 @@ const writeAscii = (view, offset, value) => {
 
 export const encodePcm16Wav = audioBuffer => {
     const samples = audioBuffer.getChannelData(0);
+    const peak = samples.reduce((maximum, sample) => Math.max(maximum, Math.abs(sample)), 0);
+    // 只做等比例增益，不改變發音內容；避免部分筆電麥克風轉成 WAV 後音量過低而辨識失敗。
+    const gain = peak >= 0.002 && peak < 0.25 ? Math.min(4, 0.5 / peak) : 1;
     const bytesPerSample = 2;
     const headerSize = 44;
     const buffer = new ArrayBuffer(headerSize + samples.length * bytesPerSample);
@@ -27,7 +30,7 @@ export const encodePcm16Wav = audioBuffer => {
 
     let offset = headerSize;
     for (const sample of samples) {
-        const clamped = Math.max(-1, Math.min(1, sample));
+        const clamped = Math.max(-1, Math.min(1, sample * gain));
         view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff, true);
         offset += bytesPerSample;
     }

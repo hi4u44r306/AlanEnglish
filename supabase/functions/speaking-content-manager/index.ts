@@ -60,6 +60,88 @@ const WORKBOOK_ONE_STARTER_QUESTIONS = [
         accepted_intents: ["學生用 My full name is 加上自己的全名回答"]
     }
 ];
+const WORKBOOK_TWO_STARTER_KEY = "workbook_2_origin_places_v1";
+const WORKBOOK_TWO_STARTER_QUESTIONS = [
+    {
+        question_text: "Where are you from?",
+        hint_zh: "請用完整句說出你來自哪個國家。",
+        keywords: ["I", "am", "from"],
+        simple_answer: "I am from Taiwan.",
+        model_answer: "I am from [你的國家].",
+        follow_up_question: "Which city are you from?",
+        pronunciation_notes_zh: "from 的尾音 m 要收清楚；I am from 要自然連在一起。",
+        accepted_intents: ["學生用 I am from 加上自己的國家回答"]
+    },
+    {
+        question_text: "Mia is from Taiwan. Where is she from?",
+        hint_zh: "Mia 來自台灣，請用 She is from 回答。",
+        keywords: ["she", "is", "from", "Taiwan"],
+        simple_answer: "She is from Taiwan.",
+        model_answer: "She is from Taiwan.",
+        follow_up_question: "Is Mia from Taiwan?",
+        pronunciation_notes_zh: "she is 可以輕快連讀；Taiwan 的第二音節較重。",
+        accepted_intents: ["學生完整說出 She is from Taiwan"]
+    },
+    {
+        question_text: "Ken is from Japan. Where is he from?",
+        hint_zh: "Ken 來自日本，請用 He is from 回答。",
+        keywords: ["he", "is", "from", "Japan"],
+        simple_answer: "He is from Japan.",
+        model_answer: "He is from Japan.",
+        follow_up_question: "Is Ken from Japan?",
+        pronunciation_notes_zh: "he is 要說清楚；Japan 的第二音節較重。",
+        accepted_intents: ["學生完整說出 He is from Japan"]
+    },
+    {
+        question_text: "Emma is from France. Where is she from?",
+        hint_zh: "Emma 來自法國，請用完整句回答。",
+        keywords: ["she", "is", "from", "France"],
+        simple_answer: "She is from France.",
+        model_answer: "She is from France.",
+        follow_up_question: "Is Emma from France?",
+        pronunciation_notes_zh: "France 的開頭是 fr 子音群，尾音 s 要清楚。",
+        accepted_intents: ["學生完整說出 She is from France"]
+    },
+    {
+        question_text: "Leo comes from England. Where does he come from?",
+        hint_zh: "Leo 來自英國，回答時記得 comes 要加 s。",
+        keywords: ["he", "comes", "from", "England"],
+        simple_answer: "He comes from England.",
+        model_answer: "He comes from England.",
+        follow_up_question: "Does Leo come from England?",
+        pronunciation_notes_zh: "comes 的尾音 z 要收清楚；England 的第一音節較重。",
+        accepted_intents: ["學生完整說出 He comes from England"]
+    },
+    {
+        question_text: "Tom and Amy come from Australia. Where do they come from?",
+        hint_zh: "兩個人要用 They，come 不加 s。",
+        keywords: ["they", "come", "from", "Australia"],
+        simple_answer: "They come from Australia.",
+        model_answer: "They come from Australia.",
+        follow_up_question: "Do they come from Australia?",
+        pronunciation_notes_zh: "they 的 th 要輕咬舌；Australia 的第二音節較重。",
+        accepted_intents: ["學生完整說出 They come from Australia"]
+    }
+];
+
+const CURATED_STARTER_TEMPLATES: Record<string, any> = {
+    create_workbook_1_starter: {
+        catalogKey: "workbook1", templateKey: WORKBOOK_ONE_STARTER_KEY,
+        documentTitle: "Workbook 1 口說大挑戰", unitLabel: "Starter 01",
+        pageFromLabel: "P18", pageToLabel: "P20", sourcePages: [18, 19, 20],
+        topic: "我的名字與自我介紹", title: "01 我的名字與自我介紹",
+        sourceText: "What's your name? What's your first name? What's your family name? What's your full name?",
+        difficulty: "國小低年級", answerType: "personal_open", questions: WORKBOOK_ONE_STARTER_QUESTIONS
+    },
+    create_workbook_2_starter: {
+        catalogKey: "workbook2", templateKey: WORKBOOK_TWO_STARTER_KEY,
+        documentTitle: "Workbook 2 口說大挑戰", unitLabel: "Topic 06",
+        pageFromLabel: "P56", pageToLabel: "P58", sourcePages: [56, 58],
+        topic: "我來自哪裡？", title: "01 我來自哪裡？",
+        sourceText: "Where are you from? I am from Taiwan. Where is he from? He is from Japan. Where is she from? She is from France. Where does he come from? He comes from England. Where do they come from? They come from Australia.",
+        difficulty: "國小中年級", answerType: "structured_and_fixed", questions: WORKBOOK_TWO_STARTER_QUESTIONS
+    }
+};
 
 const safeFilename = (value: unknown) => {
     const name = String(value || "source").trim().replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -204,50 +286,51 @@ Deno.serve(async (req: Request) => {
 
         if (action === "bootstrap") return json(200, { success: true, ...await loadBootstrap(admin) });
 
-        if (action === "create_workbook_1_starter") {
+        const curatedStarter = CURATED_STARTER_TEMPLATES[action];
+        if (curatedStarter) {
             const bookId = Number(body?.book_id);
-            if (!Number.isInteger(bookId) || bookId <= 0) return json(400, { error: "找不到 Workbook 1 教材" });
+            if (!Number.isInteger(bookId) || bookId <= 0) return json(400, { error: "找不到指定教材" });
             const { data: book, error: bookError } = await admin.from("books").select("id,name,code,enabled").eq("id", bookId).maybeSingle();
             if (bookError) throw bookError;
             const catalogKey = String(book?.code || book?.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-            if (!book?.enabled || catalogKey !== "workbook1") return json(400, { error: "這個範例只能建立在 Workbook 1" });
+            if (!book?.enabled || catalogKey !== curatedStarter.catalogKey) return json(400, { error: "教材與精選關卡不相符" });
 
             const { data: existing, error: existingError } = await admin.from("speaking_question_sets")
                 .select("id,status").eq("book_id", bookId)
-                .contains("generation_metadata", { template_key: WORKBOOK_ONE_STARTER_KEY })
+                .contains("generation_metadata", { template_key: curatedStarter.templateKey })
                 .neq("status", "archived").order("updated_at", { ascending: false }).limit(1).maybeSingle();
             if (existingError) throw existingError;
             if (existing) return json(200, { success: true, question_set_id: existing.id, status: existing.status, reused: true });
 
             const now = new Date().toISOString();
             const { data: document, error: documentError } = await admin.from("speaking_source_documents").insert({
-                book_id: bookId, title: "Workbook 1 口說大挑戰", source_kind: "pasted_text", status: "ready",
+                book_id: bookId, title: curatedStarter.documentTitle, source_kind: "pasted_text", status: "ready",
                 created_by: user.id, created_at: now, updated_at: now
             }).select("id").single();
             if (documentError) throw documentError;
             let createdQuestionSetId: number | null = null;
             try {
                 const { data: section, error: sectionError } = await admin.from("speaking_source_sections").insert({
-                    document_id: document.id, unit_label: "Starter 01", page_from_label: "P18", page_to_label: "P20",
-                    topic: "我的名字與自我介紹",
-                    source_text: "What's your name? What's your first name? What's your family name? What's your full name?",
-                    language_level: "國小低年級", status: "reviewed", created_by: user.id, reviewed_by: user.id,
+                    document_id: document.id, unit_label: curatedStarter.unitLabel,
+                    page_from_label: curatedStarter.pageFromLabel, page_to_label: curatedStarter.pageToLabel,
+                    topic: curatedStarter.topic, source_text: curatedStarter.sourceText,
+                    language_level: curatedStarter.difficulty, status: "reviewed", created_by: user.id, reviewed_by: user.id,
                     reviewed_at: now, created_at: now, updated_at: now
                 }).select("id").single();
                 if (sectionError) throw sectionError;
                 const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
-                    source_section_id: section.id, book_id: bookId, title: "01 我的名字與自我介紹",
-                    topic: "我的名字與自我介紹", difficulty: "國小低年級", status: "draft", version: 1,
+                    source_section_id: section.id, book_id: bookId, title: curatedStarter.title,
+                    topic: curatedStarter.topic, difficulty: curatedStarter.difficulty, status: "draft", version: 1,
                     generation_metadata: {
-                        source: "curated_template", template_key: WORKBOOK_ONE_STARTER_KEY,
-                        source_pages: [18, 19, 20], answer_type: "personal_open"
+                        source: "curated_template", template_key: curatedStarter.templateKey,
+                        source_pages: curatedStarter.sourcePages, answer_type: curatedStarter.answerType
                     },
                     created_by: user.id, created_at: now, updated_at: now
                 }).select("id").single();
                 if (setError) throw setError;
                 createdQuestionSetId = Number(questionSet.id);
-                const questions = normalizeQuestions(WORKBOOK_ONE_STARTER_QUESTIONS, WORKBOOK_ONE_STARTER_QUESTIONS.length);
-                if (!questions) throw new Error("Workbook 1 範例題目格式不完整");
+                const questions = normalizeQuestions(curatedStarter.questions, curatedStarter.questions.length);
+                if (!questions) throw new Error("精選關卡題目格式不完整");
                 const { error: questionError } = await admin.from("speaking_questions").insert(questions.map((question, index) => ({
                     question_set_id: questionSet.id, ...question, sort_order: index, created_at: now, updated_at: now
                 })));

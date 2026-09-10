@@ -1,11 +1,29 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { resolve } from "node:path";
 
 const requirePushed = process.argv.includes("--require-pushed");
 const issues = [];
 
+const gitArgsPrefix = [];
+const gitMetadataPath = resolve(".git");
+
+try {
+  if (existsSync(gitMetadataPath) && statSync(gitMetadataPath).isFile()) {
+    const gitDirMatch = readFileSync(gitMetadataPath, "utf8").match(/^gitdir:\s*(.+)$/m);
+    if (gitDirMatch?.[1]) {
+      gitArgsPrefix.push(
+        `--git-dir=${resolve(gitDirMatch[1].trim())}`,
+        `--work-tree=${process.cwd()}`,
+      );
+    }
+  }
+} catch {
+  // Fall back to normal Git discovery; the existing error handling reports failure.
+}
+
 function git(args) {
-  return execFileSync("git", args, {
+  return execFileSync("git", [...gitArgsPrefix, ...args], {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
   }).trim();

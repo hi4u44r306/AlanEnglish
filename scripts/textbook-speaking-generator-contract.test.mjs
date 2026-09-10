@@ -8,6 +8,8 @@ const ocrMigration = read("supabase/migrations/20260904005001_textbook_speaking_
 const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_book_ocr_batches.sql");
 const wholeBookSizeMigration = read("supabase/migrations/20260904030633_allow_whole_book_document_size.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
+const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
+const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -110,5 +112,26 @@ test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管�
     assert.match(service, /createWorkbookOneStarterQuestionSet/);
     assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
     assert.match(adminPage, /預覽學生畫面/);
-    assert.match(adminPage, /核准並發布/);
+    assert.match(adminPage, /核准、發布並產生語音/);
+});
+
+test("12. Workbook 2 精選大關卡依教師版內容建立，仍需管理員預覽發布", () => {
+    assert.match(manager, /create_workbook_2_starter/);
+    assert.match(manager, /workbook_2_origin_places_v1/);
+    assert.match(manager, /Where are you from\?/);
+    assert.match(manager, /They come from Australia\./);
+    assert.match(service, /createWorkbookTwoStarterQuestionSet/);
+    assert.match(adminPage, /建立 Workbook 2「我來自哪裡？」/);
+    assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
+});
+
+test("13. 示範語音固定男女聲交錯並可由管理員安全預覽", () => {
+    assert.match(voiceAssignment, /en-US-Chirp3-HD-Autonoe/);
+    assert.match(voiceAssignment, /en-US-Chirp3-HD-Puck/);
+    assert.match(voiceAssignment, /questionSetId.*sortOrder/s);
+    assert.match(ttsManager, /preview_question_audio/);
+    assert.match(ttsManager, /createR2PresignedUrl\(asset\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(service, /getSpeakingQuestionAudioPreview/);
+    assert.match(adminPage, /女聲 · Autonoe/);
+    assert.match(adminPage, /男聲 · Puck/);
 });
