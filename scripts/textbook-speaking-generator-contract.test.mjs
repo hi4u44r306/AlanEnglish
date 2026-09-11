@@ -9,6 +9,7 @@ const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_b
 const wholeBookSizeMigration = read("supabase/migrations/20260904030633_allow_whole_book_document_size.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
+const challenge = read("supabase/functions/speaking-challenge/index.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
@@ -134,4 +135,12 @@ test("13. 示範語音固定男女聲交錯並可由管理員安全預覽", () =
     assert.match(service, /getSpeakingQuestionAudioPreview/);
     assert.match(adminPage, /女聲 · Autonoe/);
     assert.match(adminPage, /男聲 · Puck/);
+});
+
+test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {
+    assert.match(challenge, /pronunciation_notes_zh,visual_aid,sort_order/);
+    assert.match(challenge, /demoMode/);
+    assert.match(challenge, /question_prompt/);
+    assert.match(challenge, /model_answer/);
+    assert.match(challenge, /complete_speaking_challenge_question_v2/);
 });
