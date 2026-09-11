@@ -1,28 +1,15 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import { getAccessibleCatalog } from "../../services/contentAccessService";
-import { getAiMaterialUsage } from "../../services/aiMaterialService";
-import { getStudentAssignments } from "../../services/assignmentService";
-import { getReviewDashboard } from "../../services/reviewService";
-import { getConversationProgress } from "../../services/learningActivityService";
-import { getDashboardStats } from "../../services/listeningService";
 import User from "./User";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("./Logout", () => () => <button type="button">登出</button>);
-jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
-jest.mock("../../services/aiMaterialService", () => ({ getAiMaterialUsage: jest.fn() }));
-jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn() }));
-jest.mock("../../services/reviewService", () => ({ getReviewDashboard: jest.fn() }));
-jest.mock("../../services/learningActivityService", () => ({ getConversationProgress: jest.fn() }));
-jest.mock("../../services/listeningService", () => ({ getDashboardStats: jest.fn() }));
 
-const renderDashboard = assignments => {
+const renderDashboard = features => {
     useAuth.mockReturnValue({
-        firebaseUser: { uid: "student-1" },
         authLoading: false,
         studentProfile: {
             role: "student",
@@ -30,11 +17,8 @@ const renderDashboard = assignments => {
             membership: {
                 is_active: true,
                 effective_access: {
-                    plan_codes: [],
-                    features: {
-                        assignments,
-                        ai_materials: false
-                    }
+                    plan_codes: features.pronunciation ? [] : ["academy_internal"],
+                    features
                 }
             }
         }
@@ -47,32 +31,34 @@ const renderDashboard = assignments => {
     );
 };
 
-describe("student dashboard assignment loading", () => {
+describe("child-friendly student dashboard", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        getDashboardStats.mockResolvedValue({ daily_count: 0, monthly_count: 0, total_count: 0 });
-        getReviewDashboard.mockResolvedValue({ stats: {} });
-        getAiMaterialUsage.mockResolvedValue({ usage: { used: 0, limit: 5, remaining: 5 } });
-        getConversationProgress.mockResolvedValue({ progress: {} });
-        getAccessibleCatalog.mockResolvedValue({ categories: [] });
     });
 
-    test("does not request academy assignments or show a false warning without assignment access", async () => {
-        getStudentAssignments.mockRejectedValue(new Error("只有在校英文班學生可以查看作業"));
+    test("shows no more than five clear launch actions without the legacy learning route", () => {
+        renderDashboard({ listening: true, pronunciation: true, assignments: true, ai_materials: true });
 
-        renderDashboard(false);
-
-        expect(await screen.findByRole("heading", { name: "測試學生，今天先完成這些！" })).toBeInTheDocument();
-        expect(getStudentAssignments).not.toHaveBeenCalled();
-        expect(screen.queryByText("部分學習資料暫時無法更新，其餘內容仍可正常使用。")).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "測試學生，想學什麼？" })).toBeInTheDocument();
+        expect(screen.queryByText(/繼續今天的學習|今天的學習路線|NEXT STEP/)).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /我的教材/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /開口說/ })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /我的作業/ })).toHaveAttribute("href", "/student/assignments");
+        expect(screen.getByRole("link", { name: /AI 教材/ })).toHaveAttribute("href", "/student/ai-generator");
+        expect(screen.getByRole("button", { name: /更多功能/ })).toBeInTheDocument();
+        expect(screen.getByRole("region", { name: "學習功能" }).children).toHaveLength(5);
     });
 
-    test("still reports a real assignment service failure for an eligible student", async () => {
-        getStudentAssignments.mockRejectedValue(new Error("作業服務暫時無法使用"));
+    test("hides unavailable actions and asks the navbar to open the selected menu", () => {
+        const onMenuRequest = jest.fn();
+        window.addEventListener("ae:open-student-menu", onMenuRequest);
+        renderDashboard({ listening: true, assignments: false, ai_materials: false });
 
-        renderDashboard(true);
+        expect(screen.queryByRole("link", { name: /我的作業/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /AI 教材/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /我的教材/ }));
+        expect(onMenuRequest).toHaveBeenCalledWith(expect.objectContaining({ detail: "materials" }));
 
-        await waitFor(() => expect(getStudentAssignments).toHaveBeenCalledTimes(1));
-        expect(await screen.findByText("部分學習資料暫時無法更新，其餘內容仍可正常使用。")).toBeInTheDocument();
+        window.removeEventListener("ae:open-student-menu", onMenuRequest);
     });
 });

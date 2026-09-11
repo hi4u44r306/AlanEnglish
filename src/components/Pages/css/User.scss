@@ -1161,3 +1161,228 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Student launchpad: intentionally simpler than the progress-heavy legacy dashboard. */
+.student-launchpad {
+  width: min(100%, 1040px);
+  display: grid;
+  gap: 24px;
+  margin: 0 auto;
+}
+
+.student-launchpad__hero {
+  position: relative;
+  overflow: hidden;
+  padding: 36px 40px;
+  border: 1px solid #d9e6f8;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(255, 211, 91, 0.95) 0 10%, transparent 10.5%),
+    radial-gradient(circle at 79% 78%, rgba(106, 207, 167, 0.28) 0 17%, transparent 17.5%),
+    linear-gradient(135deg, #eef6ff 0%, #fff9e8 100%);
+  box-shadow: 0 18px 42px rgba(30, 69, 116, 0.1);
+}
+
+.student-launchpad__hero::after {
+  position: absolute;
+  right: 8%;
+  bottom: 18%;
+  width: 54px;
+  height: 54px;
+  border: 10px solid rgba(68, 112, 214, 0.18);
+  border-radius: 18px;
+  content: "";
+  transform: rotate(14deg);
+}
+
+.student-launchpad__hero > span {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  color: #2853aa;
+  background: #dfeaff;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.student-launchpad__hero h1 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: #172c51;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.student-launchpad__hero p {
+  position: relative;
+  z-index: 1;
+  margin: 10px 0 0;
+  color: #5f6f87;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.student-launchpad__warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1px solid #f2d59e;
+  border-radius: 16px;
+  color: #855719;
+  background: #fff9e9;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.student-launchpad__warning button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 12px;
+  color: #70450c;
+  background: #ffe5a7;
+  font: inherit;
+  font-weight: 900;
+}
+
+.student-launchpad__features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.student-launchpad__card {
+  position: relative;
+  min-height: 180px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  gap: 14px 18px;
+  overflow: hidden;
+  padding: 24px;
+  border: 2px solid var(--launch-border);
+  border-radius: 24px;
+  color: #203553;
+  background: var(--launch-bg);
+  box-shadow: 0 13px 30px rgba(32, 66, 107, 0.08);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.student-launchpad__card::after {
+  position: absolute;
+  top: -42px;
+  right: -42px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: var(--launch-bubble);
+  content: "";
+}
+
+.student-launchpad__card:hover,
+.student-launchpad__card:focus-visible {
+  color: #203553;
+  border-color: var(--launch-accent);
+  box-shadow: 0 18px 38px rgba(32, 66, 107, 0.14);
+  outline: none;
+  transform: translateY(-3px);
+}
+
+.student-launchpad__card.is-blue { --launch-accent: #3979df; --launch-border: #cadcf8; --launch-bg: #f4f8ff; --launch-bubble: rgba(66, 123, 224, 0.12); }
+.student-launchpad__card.is-orange { --launch-accent: #ef8b2e; --launch-border: #f4d3a9; --launch-bg: #fff8ec; --launch-bubble: rgba(247, 155, 55, 0.15); }
+.student-launchpad__card.is-green { --launch-accent: #2b9a68; --launch-border: #c6e5d6; --launch-bg: #f1fbf6; --launch-bubble: rgba(54, 169, 112, 0.13); }
+.student-launchpad__card.is-purple { --launch-accent: #8059cf; --launch-border: #ddcff6; --launch-bg: #faf6ff; --launch-bubble: rgba(132, 89, 211, 0.13); }
+.student-launchpad__card.is-navy { --launch-accent: #344d77; --launch-border: #d5dfec; --launch-bg: #f6f8fc; --launch-bubble: rgba(44, 67, 105, 0.1); }
+
+.student-launchpad__icon {
+  position: relative;
+  z-index: 1;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  grid-row: 1;
+  place-items: center;
+  border-radius: 20px;
+  color: #fff;
+  background: var(--launch-accent);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--launch-accent) 28%, transparent);
+}
+
+.student-launchpad__icon svg { width: 30px; height: 30px; stroke-width: 2.4; }
+
+.student-launchpad__copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 5px;
+}
+
+.student-launchpad__copy strong { color: #172c51; font-size: 23px; font-weight: 950; }
+.student-launchpad__copy small { color: #65748b; font-size: 14px; font-weight: 750; line-height: 1.55; }
+
+.student-launchpad__action {
+  min-height: 48px;
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--launch-accent);
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.student-launchpad__action svg { width: 19px; height: 19px; }
+
+.student-launchpad__footer {
+  padding: 4px 0 12px;
+  color: #718097;
+  font-size: 13px;
+  font-weight: 750;
+  text-align: center;
+}
+
+@media (min-width: 901px) {
+  .student-launchpad__card:last-child:nth-child(odd) { grid-column: 1 / -1; min-height: 142px; }
+}
+
+@media (max-width: 700px) {
+  .User { padding: 18px 14px 38px; }
+  .student-launchpad { gap: 17px; }
+  .student-launchpad__hero { padding: 27px 23px; border-radius: 23px; }
+  .student-launchpad__hero::after { right: 5%; bottom: 11%; width: 42px; height: 42px; border-width: 8px; }
+  .student-launchpad__hero h1 { max-width: calc(100% - 38px); font-size: clamp(1.75rem, 8vw, 2.25rem); }
+  .student-launchpad__hero p { max-width: calc(100% - 34px); font-size: 15px; }
+  .student-launchpad__features { grid-template-columns: 1fr; gap: 13px; }
+  .student-launchpad__card { min-height: 138px; grid-template-columns: 54px minmax(0, 1fr); gap: 11px 14px; padding: 17px; border-radius: 20px; }
+  .student-launchpad__icon { width: 54px; height: 54px; border-radius: 17px; }
+  .student-launchpad__icon svg { width: 26px; height: 26px; }
+  .student-launchpad__copy strong { font-size: 20px; }
+  .student-launchpad__copy small { font-size: 13px; }
+  .student-launchpad__action { min-height: 46px; }
+  .student-launchpad__warning { align-items: stretch; flex-direction: column; }
+  .student-launchpad__warning button { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-launchpad__card { transition: none; }
+  .student-launchpad__card:hover,
+  .student-launchpad__card:focus-visible { transform: none; }
+}
