@@ -259,7 +259,7 @@ describe("MembershipCenter AI add-on", () => {
 
         expect(await screen.findByText("英文班在校生")).toBeInTheDocument();
         expect(screen.getByText("使用中")).toBeInTheDocument();
-        expect(screen.getByText("英文班在學方案")).toBeInTheDocument();
+        expect(screen.getAllByText("英文班在學方案")).toHaveLength(2);
         expect(screen.getByText("在校期間有效")).toBeInTheDocument();
         expect(screen.getByText("不需另外續費")).toBeInTheDocument();
         expect(screen.queryByText("贈送使用權")).not.toBeInTheDocument();
