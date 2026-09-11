@@ -1,7 +1,8 @@
 import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
+import SpeakingVisualAid from "./SpeakingVisualAid";
 import { getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
 
 const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
@@ -104,5 +105,26 @@ describe("TextbookSpeakingChallenge model audio", () => {
         fireEvent.click(screen.getByRole("button", { name: "依主題" }));
         expect(screen.getByRole("heading", { name: "認識新朋友" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "生活物品與顏色" })).toBeInTheDocument();
+    });
+
+    it("以真正的台灣國旗呈現台灣視覺提示", () => {
+        render(<SpeakingVisualAid aid={{ kind: "flag", value: "taiwan", alt_zh: "台灣國旗" }} />);
+        expect(screen.getByRole("img", { name: "台灣國旗" })).toHaveTextContent("🇹🇼");
+    });
+
+    it("切換大挑戰時立即隱藏上一關內容", async () => {
+        let resolveSecondChallenge;
+        getSpeakingChallengeSet.mockImplementation((_, id) => id === 7
+            ? Promise.resolve({ challenge: { id: 7, title: "01 自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" }, speaking_questions: [{ id: 9, question_text: "What's your name?", progress_status: "opened" }] } })
+            : new Promise(resolve => { resolveSecondChallenge = resolve; }));
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<><Link to="/student/speaking-challenges/8">切換到 02</Link><TextbookSpeakingChallenge /></>} /></Routes></MemoryRouter>);
+        expect(await screen.findByText("What's your name?")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("link", { name: "切換到 02" }));
+        expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
+        expect(screen.getByText("載入小關卡中…")).toBeInTheDocument();
+
+        await act(async () => resolveSecondChallenge({ challenge: { id: 8, title: "02 打招呼", topic: "Greetings", difficulty: "E1", books: { name: "Workbook 1" }, speaking_questions: [{ id: 10, question_text: "Good morning!", progress_status: "opened" }] } }));
+        expect(screen.getByText("Good morning!")).toBeInTheDocument();
     });
 });
