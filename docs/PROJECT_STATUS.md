@@ -2,9 +2,9 @@
 
 最後更新：2026-09-11
 
-本次進行中（2026-09-11，第一階段自動出題修正準備部署測試站）：
+本次進行中（2026-09-11，第一階段自動出題修正已部署測試站）：
 
-- 依使用者修正，老師的教材螺旋複習改為選擇班級、正式教材及「單一頁／頁碼範圍」，由 `spiral-review` 後端讀取該範圍已發布的 `book_page_learning_content` 自動準備字卡；老師可在發布前逐張修改或刪除。後端重新核對班級教材與每一頁來源，缺頁會明列頁碼並停止，填空底線與沒有答案的空格題不會出題。既有 migration 足夠，無需新增 migration。目前 22 本正式教材都還沒有已發布的逐頁文字，因此機制部署後會正確提示需先核准的頁碼，不能宣稱 Workbook 1 已可完整出題。待本批測試、checkpoint、Edge Function 與固定測試站部署完成後補記 deploy 證據。
+- 依使用者修正，老師的教材螺旋複習改為選擇班級、正式教材及「單一頁／頁碼範圍」，由 `spiral-review` 後端讀取該範圍已發布的 `book_page_learning_content` 自動準備字卡；老師可在發布前逐張修改或刪除。後端重新核對班級教材與每一頁來源，缺頁會明列頁碼並停止，填空底線與沒有答案的空格題不會出題。Checkpoint `ff31c9a` 已推送並更新 PR #109；既有 migration 足夠，未新增或重跑 migration。`spiral-review` v2 為 ACTIVE，測試站 Origin OPTIONS 200、未登入 POST 401；固定測試站 deploy `6aa36ef78a7e0f5e3f9f18d1` 已發布，教師與學生路由皆為 HTTP 200，bundle 為 `main.961429b6.js`。契約 3／3、相關 React tests 3／3、全部 Edge 語法、Production build 與 `git diff --check` 均成功。目前 22 本正式教材都還沒有已發布的逐頁文字，因此測試站會正確提示需先核准的頁碼，不能宣稱 Workbook 1 已可完整出題。
 
 - 「教材頁碼螺旋複習」第一階段已在 `codex/spiral-review-stage1` 完成並推送，PR #109 已建立；老師／管理員可在 `/teacher/spiral-review` 選自己獲授權的班級、該班目前生效的正式教材、頁碼與開始日，以每行「英文｜中文｜例句」建立 6～80 張複習卡；學生由 `/student/spiral-review` 聽英文後從同範圍隨機 5～6 張卡選答。Additive migration `20260911013350_spiral_review_stage1.sql` 已經使用者明確同意套用共用 Supabase 並補登 history；5／5 新表啟用 RLS，公開角色表權限為 0，原子作答 RPC 僅 `service_role` 可執行。`spiral-review` v1 為 ACTIVE，測試站 Origin 的 OPTIONS 200、未登入 POST 401。固定測試站 deploy `6aa3672ef36c272caa97bfea` 已發布。第一階段暫用瀏覽器 `en-US` 語音；Google TTS 快取、圖片字卡、全書教材匯入、老師進度報表、Level 2 跟念及 Level 3 問答仍屬後續。契約 3／3、頁面與 Navbar React tests 12／12、Edge 語法及 Production build 均成功；尚待老師與學生兩種帳號完成建立複習、作答、防重複與隔日重現驗收，驗收後才合併 `main` 與部署正式站。
 
