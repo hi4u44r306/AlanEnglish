@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("migration keeps spiral review private and records idempotent attempts", async () => {
+    const sql = await read("supabase/migrations/20260911013350_spiral_review_stage1.sql");
+    for (const table of ["spiral_review_units", "spiral_review_cards", "spiral_review_assignments", "student_spiral_review_progress", "student_spiral_review_attempts"]) {
+        assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`, "i"));
+        assert.match(sql, new RegExp(`revoke all on table public\\.${table} from public, anon, authenticated`, "i"));
+    }
+    assert.match(sql, /unique \(student_id, request_key\)/i);
+    assert.match(sql, /pg_advisory_xact_lock/i);
+    assert.match(sql, /v_next_date := v_today \+ 1/i);
+    assert.match(sql, /ae\.status = 'active'/i);
+});
+
+test("edge function verifies identity and teacher class permissions", async () => {
+    const source = await read("supabase/functions/spiral-review/index.ts");
+    assert.match(source, /verifyFirebaseRequest\(req, admin\)/);
+    assert.match(source, /teacher_class_permissions/);
+    assert.match(source, /academy_class_material_settings/);
+    assert.match(source, /這本教材不在目標班級目前生效的教材設定中/);
+    assert.match(source, /cards\.length < 6 \|\| cards\.length > 80/);
+    assert.match(source, /submit_spiral_review_answer/);
+    assert.doesNotMatch(source, /body\.role|body\.student_id|body\.learner_type/);
+});
+
+test("student queue uses five to six shuffled choices", async () => {
+    const source = await read("supabase/functions/spiral-review/index.ts");
+    assert.match(source, /slice\(0, 5\)/);
+    assert.match(source, /distractors\.length < 4/);
+    assert.match(source, /choices: shuffle\(\[card, \.\.\.distractors\]\)/);
+    assert.match(source, /spiral_review_units\.status.*published/);
+});

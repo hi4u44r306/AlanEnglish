@@ -79,6 +79,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByText("開始學習")).toBeInTheDocument();
         expect(screen.getByText("學習成果")).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "教材螺旋複習" })).toHaveAttribute("href", "/student/spiral-review");
         expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "好友與戰績" })).toHaveAttribute("href", "/student/friends");
         expect(await screen.findByRole("link", { name: "學習排行榜" })).toBeInTheDocument();

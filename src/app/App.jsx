@@ -23,6 +23,8 @@ import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import ConversationPractice from "../components/Pages/ConversationPractice";
 import TextbookSpeakingChallenge from "../components/Pages/TextbookSpeakingChallenge";
 import SpeakingLearningHistory from "../components/Pages/SpeakingLearningHistory";
+import StudentSpiralReview from "../components/Pages/StudentSpiralReview";
+import TeacherSpiralReview from "../components/Pages/TeacherSpiralReview";
 import TeacherAssignments from "../components/Pages/TeacherAssignments";
 import StudentAssignments from "../components/Pages/StudentAssignments";
 import ReviewCenter from "../components/Pages/ReviewCenter";
@@ -146,6 +148,7 @@ const App = () => {
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/spiral-review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentSpiralReview /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><MembershipCenter /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/settings" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentSettings /></Containerfull></ProtectedRoute>} />
@@ -168,6 +171,7 @@ const App = () => {
                     <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/assignments" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><TeacherAssignments /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/spiral-review" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><TeacherSpiralReview /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/accounts" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/accounts/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><Signup /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/music/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />
