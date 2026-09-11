@@ -49,7 +49,7 @@ export const StudentLaunchpad = ({ user }) => {
             description: "查看老師交代的學習內容",
             action: "查看作業",
             icon: FiCheckSquare,
-            tone: "green",
+            tone: "yellow",
             path: "/student/assignments"
         },
         hasAiAccess && {

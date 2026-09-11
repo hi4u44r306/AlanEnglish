@@ -50,6 +50,17 @@
   background: #edf4ff;
 }
 
+.ae-student-desktop-nav > .nav-link:focus-visible,
+.ae-student-desktop-nav > .dropdown > .nav-link:focus-visible,
+.ae-student-desktop-account > .dropdown > .nav-link:focus-visible,
+.ae-student-mobile-account > a:focus-visible,
+.ae-student-mobile-account > button:focus-visible,
+.ae-student-bottom-nav > a:focus-visible,
+.ae-student-bottom-nav > button:focus-visible {
+  outline: 3px solid #f4bd37;
+  outline-offset: 2px;
+}
+
 .ae-student-navbar .dropdown-menu {
   min-width: 320px !important;
   padding: 12px;
