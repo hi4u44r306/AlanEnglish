@@ -114,7 +114,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByRole("link", { name: "查看可解鎖方案" })).toHaveAttribute("href", "#plans");
     });
 
-    it("shows academy AI Premium as included and disables duplicate add-on checkout", async () => {
+    it("shows academy access as staff-managed without public checkout controls", async () => {
         getMembershipProfile.mockResolvedValue({
             profile: {
                 learner_type: "academy_student",
@@ -146,8 +146,11 @@ describe("MembershipCenter AI add-on", () => {
 
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText(/英文班在校期間已包含/)).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "英文班方案已包含" })).toBeDisabled();
-        fireEvent.click(screen.getByRole("button", { name: "英文班方案已包含" }));
+        expect(screen.getByText("目前所有英文班功能都已包含")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "英文班教材已包含" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "選擇方案" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "教材啟用碼" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "需要實體教材？" })).not.toBeInTheDocument();
         expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
