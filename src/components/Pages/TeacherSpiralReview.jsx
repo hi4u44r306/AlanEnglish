@@ -16,7 +16,7 @@ const initialForm = {
 
 const TeacherSpiralReview = () => {
     const { firebaseUser } = useAuth();
-    const [bootstrap, setBootstrap] = useState({ classes: [], books: [], book_ids_by_class: {}, source_pages_by_book: {} });
+    const [bootstrap, setBootstrap] = useState({ classes: [], books: [], source_pages_by_book: {} });
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -30,13 +30,15 @@ const TeacherSpiralReview = () => {
             if (!active) return;
             setBootstrap({
                 classes: result.classes || [], books: result.books || [],
-                book_ids_by_class: result.book_ids_by_class || {}, source_pages_by_book: result.source_pages_by_book || {}
+                source_pages_by_book: result.source_pages_by_book || {}
             });
             const firstClass = String(result.classes?.[0] || "");
-            const firstAllowedBookId = result.book_ids_by_class?.[firstClass]?.[0];
+            const firstReadyBook = (result.books || []).find(book => (
+                result.source_pages_by_book?.[String(book.id)] || []
+            ).length > 0);
             setForm(current => ({
                 ...current,
-                book_id: current.book_id || String(firstAllowedBookId || ""),
+                book_id: current.book_id || String(firstReadyBook?.id || ""),
                 target_class: current.target_class || firstClass
             }));
         }).catch(error => active && setMessage(error.message)).finally(() => active && setLoading(false));
@@ -44,9 +46,10 @@ const TeacherSpiralReview = () => {
     }, [firebaseUser]);
 
     const availableBooks = useMemo(() => {
-        const allowedIds = new Set((bootstrap.book_ids_by_class?.[form.target_class] || []).map(Number));
-        return bootstrap.books.filter(book => allowedIds.has(Number(book.id)));
-    }, [bootstrap, form.target_class]);
+        return bootstrap.books.filter(book => (
+            bootstrap.source_pages_by_book?.[String(book.id)] || []
+        ).length > 0);
+    }, [bootstrap.books, bootstrap.source_pages_by_book]);
     const selectedBook = availableBooks.find(book => Number(book.id) === Number(form.book_id));
     const availableSourcePages = bootstrap.source_pages_by_book?.[String(form.book_id)] || [];
 
@@ -58,8 +61,12 @@ const TeacherSpiralReview = () => {
         const { name, value } = event.target;
         setForm(current => {
             if (name === "target_class") {
-                const firstBookId = bootstrap.book_ids_by_class?.[value]?.[0];
-                return { ...current, target_class: value, book_id: String(firstBookId || "") };
+                const selectedStillAvailable = availableBooks.some(book => Number(book.id) === Number(current.book_id));
+                return {
+                    ...current,
+                    target_class: value,
+                    book_id: selectedStillAvailable ? current.book_id : String(availableBooks[0]?.id || "")
+                };
             }
             if (name === "range_mode") {
                 return { ...current, range_mode: value, page_end: value === "single" ? current.page_start : current.page_end };
@@ -148,7 +155,7 @@ const TeacherSpiralReview = () => {
                         </fieldset>
                         <div className="spiral-form-grid">
                             <label>班級<select name="target_class" value={form.target_class} onChange={update} required>{bootstrap.classes.map(code => <option key={code}>{code}</option>)}</select></label>
-                            <label>教材<select name="book_id" value={form.book_id} onChange={update} required><option value="">請選擇</option>{availableBooks.map(book => <option value={book.id} key={book.id}>{book.name}</option>)}</select></label>
+                            <label>教材<select name="book_id" value={form.book_id} onChange={update} required><option value="">請選擇</option>{availableBooks.map(book => <option value={book.id} key={book.id}>{book.name}（可出題）</option>)}</select></label>
                             <label>{form.range_mode === "single" ? "頁碼" : "開始頁"}<input name="page_start" type="number" min="1" max="999" value={form.page_start} onChange={update} required /></label>
                             {form.range_mode === "range" && <label>結束頁<input name="page_end" type="number" min={form.page_start || "1"} max="999" value={form.page_end} onChange={update} required /></label>}
                             <label className="wide">複習名稱<input name="title" value={form.title} onChange={update} maxLength="160" placeholder="自動帶入後仍可修改" required /></label>

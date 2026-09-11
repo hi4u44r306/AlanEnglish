@@ -79,25 +79,6 @@ const getActiveStudentClass = async (admin: any, studentId: number) => {
         : null;
 };
 
-const getClassBookIds = async (admin: any, classCode: string) => {
-    const today = taiwanDate();
-    const { data: klass, error: classError } = await admin.from("academy_classes")
-        .select("id").eq("code", classCode).eq("is_active", true).maybeSingle();
-    if (classError) throw classError;
-    if (!klass) return [];
-    const { data: setting, error } = await admin.from("academy_class_material_settings")
-        .select("academy_class_material_books(book_id)")
-        .eq("class_id", klass.id)
-        .eq("is_active", true)
-        .lte("effective_from", today)
-        .or(`effective_to.is.null,effective_to.gte.${today}`)
-        .order("version", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-    if (error) throw error;
-    return (setting?.academy_class_material_books || []).map((row: any) => Number(row.book_id)).filter(Boolean);
-};
-
 const cleanCards = (value: unknown) => {
     const cards = Array.isArray(value) ? value : [];
     const seen = new Set<string>();
@@ -228,18 +209,16 @@ Deno.serve(async (req: Request) => {
         if (action === "teacher_bootstrap") {
             const classes = await getManagedClasses(admin, caller);
             if (!classes.length) return json(req, 403, { success: false, error: "目前沒有可發布複習的班級權限" });
-            const classBookEntries = await Promise.all(classes.map(async classCode => [classCode, await getClassBookIds(admin, classCode)]));
-            const bookIdsByClass = Object.fromEntries(classBookEntries);
-            const allBookIds = [...new Set(classBookEntries.flatMap(([, ids]) => ids))];
-            const [{ data: books, error }, { data: sources, error: sourceError }] = await Promise.all([
-                allBookIds.length
-                    ? admin.from("books").select("id,name,code,content_scope").in("id", allBookIds).eq("content_scope", "formal").order("id")
-                    : Promise.resolve({ data: [], error: null }),
-                allBookIds.length
-                    ? admin.from("book_page_spiral_review_content").select("book_id,page_number,source_note,version").in("book_id", allBookIds).eq("status", "published").order("version", { ascending: false })
-                    : Promise.resolve({ data: [], error: null })
-            ]);
-            if (error || sourceError) throw error || sourceError;
+            const { data: sources, error: sourceError } = await admin.from("book_page_spiral_review_content")
+                .select("book_id,page_number,source_note,version")
+                .eq("status", "published")
+                .order("version", { ascending: false });
+            if (sourceError) throw sourceError;
+            const sourceBookIds = [...new Set((sources || []).map((source: any) => Number(source.book_id)).filter(Boolean))];
+            const { data: books, error } = sourceBookIds.length
+                ? await admin.from("books").select("id,name,code,content_scope").in("id", sourceBookIds).eq("content_scope", "formal").order("id")
+                : { data: [], error: null };
+            if (error) throw error;
             const sourcePagesByBook: Record<string, number[]> = {};
             for (const source of sources || []) {
                 const page = Number(source.page_number);
@@ -247,7 +226,7 @@ Deno.serve(async (req: Request) => {
                 if (!Number.isInteger(page)) continue;
                 sourcePagesByBook[key] = [...new Set([...(sourcePagesByBook[key] || []), page])].sort((a, b) => a - b);
             }
-            return json(req, 200, { success: true, classes, books: books || [], book_ids_by_class: bookIdsByClass, source_pages_by_book: sourcePagesByBook });
+            return json(req, 200, { success: true, classes, books: books || [], source_pages_by_book: sourcePagesByBook });
         }
 
         if (action === "preview_cards") {
@@ -260,8 +239,9 @@ Deno.serve(async (req: Request) => {
             if (!bookId || !pageStart || !pageEnd || pageEnd < pageStart || pageEnd - pageStart >= 80) {
                 return json(req, 400, { success: false, error: "請確認教材與頁碼範圍" });
             }
-            const allowedBookIds = await getClassBookIds(admin, targetClass);
-            if (!allowedBookIds.includes(bookId)) return json(req, 403, { success: false, error: "這本教材不在目標班級目前生效的教材設定中" });
+            const { data: book, error: bookError } = await admin.from("books").select("id").eq("id", bookId).eq("content_scope", "formal").maybeSingle();
+            if (bookError) throw bookError;
+            if (!book) return json(req, 404, { success: false, error: "找不到這本正式教材" });
             const { rows, missingPages } = await getPublishedPageRows(admin, bookId, pageStart, pageEnd);
             if (missingPages.length) {
                 return json(req, 409, { success: false, code: "PAGE_SOURCE_MISSING", missing_pages: missingPages, error: `以下頁碼尚未完成教材文字核准：P${missingPages.join("、P")}` });
@@ -287,10 +267,6 @@ Deno.serve(async (req: Request) => {
             }
             if (cards.length < 6 || cards.length > 80) {
                 return json(req, 400, { success: false, error: "每份聽音選字複習需有 6–80 張不重複字卡" });
-            }
-            const allowedBookIds = await getClassBookIds(admin, targetClass);
-            if (!allowedBookIds.includes(bookId)) {
-                return json(req, 403, { success: false, error: "這本教材不在目標班級目前生效的教材設定中" });
             }
             const { missingPages } = await getPublishedPageRows(admin, bookId, pageStart, pageEnd);
             if (missingPages.length) return json(req, 409, { success: false, error: "教材文字來源已變更，請重新自動產生字卡後再發布" });

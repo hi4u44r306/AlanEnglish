@@ -16,11 +16,10 @@ test("migration keeps spiral review private and records idempotent attempts", as
     assert.match(sql, /ae\.status = 'active'/i);
 });
 
-test("edge function verifies identity and teacher class permissions", async () => {
+test("edge function verifies identity, teacher class permissions, and exposes source-ready formal books", async () => {
     const source = await read("supabase/functions/spiral-review/index.ts");
     assert.match(source, /verifyFirebaseRequest\(req, admin\)/);
     assert.match(source, /teacher_class_permissions/);
-    assert.match(source, /academy_class_material_settings/);
     assert.match(source, /action === "preview_cards"/);
     assert.match(source, /book_page_spiral_review_content/);
     assert.match(source, /\.eq\("status", "published"\)/);
@@ -29,7 +28,9 @@ test("edge function verifies identity and teacher class permissions", async () =
     assert.equal(source.includes("_{2,}"), true);
     assert.doesNotMatch(source, /book_page_learning_content/);
     assert.match(source, /Array\.isArray\(row\.pronunciation_prompts\)/);
-    assert.match(source, /這本教材不在目標班級目前生效的教材設定中/);
+    assert.match(source, /sourceBookIds/);
+    assert.match(source, /\.eq\("content_scope", "formal"\)/);
+    assert.doesNotMatch(source, /這本教材不在目標班級目前生效的教材設定中/);
     assert.match(source, /cards\.length < 6 \|\| cards\.length > 80/);
     assert.match(source, /submit_spiral_review_answer/);
     assert.doesNotMatch(source, /body\.role|body\.student_id|body\.learner_type/);
