@@ -17,6 +17,17 @@ docs/PROJECT_STATUS.md
 
 如果該檔案不存在，先告知使用者，不要自行猜測目前進度。
 
+大型、跨功能或多 Codex／Worktree 並行開發時，除上述文件外，必須依任務需要閱讀：
+
+```text
+docs/CODEX_WORKFLOW.md
+docs/WORKTREE_RULES.md
+docs/PR_RULES.md
+docs/CODEX_PROMPTS.md
+```
+
+這些文件補充任務拆解、Worktree 隔離、PR 審查與提示詞範本；本文件的安全、授權、Git 與驗收規則仍為優先規範。
+
 ## 1. 專案定位
 
 Alan English 是專為國小學生設計的英文學習平台。
@@ -534,3 +545,30 @@ docs/PROJECT_STATUS.md
 每次任務完成後只進行簡短增量更新。
 
 不要在 `AGENTS.md` 記錄每次 commit、每次 PR、暫時性錯誤、單次測試結果或容易改變的開發進度。這些內容應放在 `docs/PROJECT_STATUS.md`，避免 Codex 每次工作都重讀大量過期資訊。
+
+## 21. 多 Codex／Worktree 並行開發規則
+
+本專案可使用多個 Codex 對話平行工作，但對話不是隔離邊界；實際寫入必須以 Git Worktree 與功能分支隔離。
+
+### 21.1 隔離、依賴與 ownership
+
+- 一個可交付成果原則上使用一個獨立 Worktree，且同一 Worktree 只由一個主要 Worker 寫入。
+- 不允許兩個正在寫程式的 Codex 同時操作同一個 Local working tree；`main` 是整合基準，不直接承擔大型功能實作。
+- 建立 Worktree 前，先確認基準 branch／commit 已對齊預定整合點；依賴尚未合併功能時，必須先完成 dependency，或明確以該 dependency branch 為基準。
+- 不確定能否平行時，先視為有 dependency。相同 migration、資料表 schema、Edge Function、React component／service／Redux slice，以及 App、Router、Navbar、全域 Layout 等 shared shell，預設不可同時寫入。
+- Firebase Auth、effective access、角色、entitlement、作業隔離、Stripe lifecycle、共用 constants 與 API response shape 都是高風險 shared contract，必須指定單一 Owner。
+- 每個 Worker 開始前須列出 WRITE ownership、必要時才可修改的檔案、禁止修改範圍、shared files 及其現有 Owner；遇到 ownership 外 shared file 時先停止寫入並回報 Master。
+- Contract Change（DB schema、API、Edge Function route/action、role／access flag、shared enum、Redux state、Router contract、Stripe metadata／plan／entitlement）由單一 Owner 先完成並合併，或先建立獨立 contract PR。其他 Worker 不得自行猜測 contract。
+
+### 21.2 Worker、Master 與 Reviewer
+
+- Worker 寫入前必須閱讀 `AGENTS.md`、相關 `PROJECT_LOGIC.md` 與 `docs/PROJECT_STATUS.md` 區段，確認 branch／worktree、`git status --short`、基準 commit、dependency、ownership 與完成條件。
+- Worker 回報完成時至少交代 branch、base/final commit、修改檔案、migration、Edge Function、API／contract 變更、測試、build、`git diff --check`、已知風險、未驗證項目與 merge dependency。
+- Master 負責 dependency 拆解、Worktree／ownership／contract owner 指派、平行度與 merge order、結果 review、最終 `PROJECT_STATUS.md` 更新及正式環境授權判斷；不得與 Worker 同時寫同一功能檔案。
+- Reviewer 預設只讀，優先檢查 regression、安全、權限、race condition、migration／RLS／Firebase Token／Stripe webhook／entitlement、測試缺口與 scope creep；不得順手大範圍重構。
+
+### 21.3 整合與禁止事項
+
+- 有 dependency 時，合併順序為：`contract/schema → backend → frontend → integration fixes → docs/status → main`。前一個 PR 合併後，後續 branch 必須重新檢查與最新 `main` 的差異，必要時更新基準並重測。
+- 禁止多個 Codex 同時直接改 `main`、兩個 Worker 同時負責同一 shared file、Worker 自行合併未 review 的 Worker branch、以大量重寫解 conflict、未確認 contract 就各自猜 API，或把 unrelated cleanup 混入 feature PR。
+- Worktree 隔離不代表最後沒有 merge conflict；衝突應先區分 mechanical、semantic 與 architecture，後兩者由 Master 依既定需求與 contract 決定唯一行為。
