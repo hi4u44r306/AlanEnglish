@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-11，Workbook 1 逐頁內容製作中）：
 
-- 已以 `Alan's workbook 1 student(新版).pdf` 的 119 頁作為正式頁碼基準，並以 109 頁教師版依標題、題型與圖片核對，不使用不可靠的固定頁碼位移。Additive migration `20260911093000_workbook1_page_learning_content.sql` 已套用共用 Supabase 並補登 history；私有 `book_page_spiral_review_content` 共 119 頁、69 頁具至少 6 張人工核准字卡、8 個歌曲頁保持 0 張，RLS 已啟用且 `anon`／`authenticated`／`PUBLIC` 表權限為 0。描寫、空白作答、歌曲與尚未確認圖片題保留核對狀態但不自動出題。`spiral-review` 只讀取這張專用表的核准清單，不再從 AI 作業的整頁 `source_text` 猜字。本批尚待部署新版 Edge Function 與測試站。
+- 已以 `Alan's workbook 1 student(新版).pdf` 的 119 頁作為正式頁碼基準，並以 109 頁教師版依標題、題型與圖片核對，不使用不可靠的固定頁碼位移。Additive migration `20260911093000_workbook1_page_learning_content.sql` 已套用共用 Supabase 並補登 history；私有 `book_page_spiral_review_content` 共 119 頁、69 頁具至少 6 張人工核准字卡、8 個歌曲頁保持 0 張，RLS 已啟用且 `anon`／`authenticated`／`PUBLIC` 表權限為 0。描寫、空白作答、歌曲與尚未確認圖片題保留核對狀態但不自動出題。`spiral-review` v3 已部署且 ACTIVE，只讀取這張專用表的核准清單，不再從 AI 作業的整頁 `source_text` 猜字。Checkpoint `36b899d` 已推送並更新 PR #109；固定測試站 deploy `6aa376b88a7e0f93dc9f18fb` 已發布，`/teacher/spiral-review` 回應 HTTP 200、bundle 為 `main.4785131d.js`，未登入 Edge POST 正確回應 401。契約 4／4、頁面測試 3／3、全部 Edge 語法、Production build 與 `git diff --check` 均成功；尚待使用者以老師帳號實測單頁與範圍預覽，再以學生帳號完成選卡。
 
 - 依使用者修正，老師的教材螺旋複習改為選擇班級、正式教材及「單一頁／頁碼範圍」，由 `spiral-review` 後端讀取該範圍已發布的 `book_page_learning_content` 自動準備字卡；老師可在發布前逐張修改或刪除。Checkpoint `ff31c9a` 已推送並更新 PR #109；`spiral-review` v2 與固定測試站 deploy `6aa36ef78a7e0f5e3f9f18d1` 已發布。當時 22 本正式教材都還沒有已發布的逐頁文字；Workbook 1 的內容補齊屬本次後續批次。
 
