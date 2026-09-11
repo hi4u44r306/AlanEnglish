@@ -21,6 +21,12 @@ test("edge function verifies identity and teacher class permissions", async () =
     assert.match(source, /verifyFirebaseRequest\(req, admin\)/);
     assert.match(source, /teacher_class_permissions/);
     assert.match(source, /academy_class_material_settings/);
+    assert.match(source, /action === "preview_cards"/);
+    assert.match(source, /book_page_learning_content/);
+    assert.match(source, /\.eq\("status", "published"\)/);
+    assert.match(source, /PAGE_SOURCE_MISSING/);
+    assert.match(source, /missingPages\.length/);
+    assert.equal(source.includes("_{2,}"), true);
     assert.match(source, /這本教材不在目標班級目前生效的教材設定中/);
     assert.match(source, /cards\.length < 6 \|\| cards\.length > 80/);
     assert.match(source, /submit_spiral_review_answer/);

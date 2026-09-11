@@ -109,10 +109,80 @@ const cleanCards = (value: unknown) => {
         sort_order: index
     })).filter(card => {
         const key = card.prompt_en.toLocaleLowerCase("en-US");
-        if (!card.prompt_en || seen.has(key)) return false;
+        if (!card.prompt_en || /_{2,}|\[\s*\]|\(\s*\)|（\s*）/.test(card.prompt_en) || seen.has(key)) return false;
         seen.add(key);
         return true;
     });
+};
+
+const CARD_STOP_WORDS = new Set([
+    "alan", "english", "copyright", "workbook", "page", "unit", "name", "date",
+    "the", "a", "an", "is", "are", "am", "it", "this", "that", "these", "those",
+    "to", "of", "in", "on", "at", "and", "or", "not", "yes", "no", "my", "your",
+    "his", "her", "our", "their", "i", "you", "he", "she", "we", "they"
+]);
+
+const addAutoCard = (target: any[], seen: Set<string>, card: any) => {
+    const prompt = cleanText(card?.prompt_en ?? card?.text ?? card?.english ?? card?.sentence ?? card?.word, 240)
+        .replace(/^\s*\d+[.)]\s*/, "").trim();
+    if (!prompt || /_{2,}|\[\s*\]|\(\s*\)|（\s*）/.test(prompt) || !/[A-Za-z]/.test(prompt)) return;
+    const key = prompt.toLocaleLowerCase("en-US");
+    if (seen.has(key)) return;
+    seen.add(key);
+    target.push({
+        card_type: cleanText(card?.card_type, 20) === "sentence" || /\s/.test(prompt) ? "sentence" : "word",
+        prompt_en: prompt,
+        meaning_zh: cleanText(card?.meaning_zh ?? card?.meaning ?? card?.translation, 240) || null,
+        example_sentence: cleanText(card?.example_sentence ?? card?.example, 500) || null
+    });
+};
+
+const buildAutoCards = (rows: any[]) => {
+    const cards: any[] = [];
+    const seen = new Set<string>();
+    for (const row of rows) {
+        const prompts = Array.isArray(row.pronunciation_prompts) ? row.pronunciation_prompts : [];
+        for (const prompt of prompts) addAutoCard(cards, seen, typeof prompt === "string" ? { prompt_en: prompt } : prompt);
+    }
+    for (const row of rows) {
+        const lines = String(row.source_text || "").split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+        for (const rawLine of lines) {
+            if (cards.length >= 80) break;
+            if (/_{2,}|\[\s*\]|\(\s*\)|（\s*）/.test(rawLine)) continue;
+            const englishOnly = rawLine.replace(/[\u3400-\u9fff].*$/, "").replace(/^\s*\d+[.)]\s*/, "").trim();
+            if (!englishOnly || /^(alan english|copyright|page\s*\d+|workbook\s*\d*)$/i.test(englishOnly)) continue;
+            const words = englishOnly.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g) || [];
+            if (words.length >= 2 && words.length <= 14 && englishOnly.length <= 180) {
+                addAutoCard(cards, seen, { card_type: "sentence", prompt_en: englishOnly });
+                continue;
+            }
+            for (const word of words) {
+                if (word.length < 2 || CARD_STOP_WORDS.has(word.toLocaleLowerCase("en-US"))) continue;
+                addAutoCard(cards, seen, { card_type: "word", prompt_en: word });
+                if (cards.length >= 80) break;
+            }
+        }
+    }
+    return cards.slice(0, 80);
+};
+
+const getPublishedPageRows = async (admin: any, bookId: number, pageStart: number, pageEnd: number) => {
+    const { data, error } = await admin.from("book_page_learning_content")
+        .select("id,book_id,page_label,page_number,source_text,pronunciation_prompts,version")
+        .eq("book_id", bookId).eq("status", "published")
+        .gte("page_number", pageStart).lte("page_number", pageEnd)
+        .order("page_number").order("version", { ascending: false });
+    if (error) throw error;
+    const latestByPage = new Map<number, any>();
+    for (const row of data || []) {
+        const pageNumber = Number(row.page_number);
+        if (Number.isInteger(pageNumber) && !latestByPage.has(pageNumber) && String(row.source_text || "").trim()) {
+            latestByPage.set(pageNumber, row);
+        }
+    }
+    const missingPages = [];
+    for (let page = pageStart; page <= pageEnd; page += 1) if (!latestByPage.has(page)) missingPages.push(page);
+    return { rows: [...latestByPage.values()], missingPages };
 };
 
 const buildStudentQueue = async (admin: any, caller: any) => {
@@ -187,11 +257,44 @@ Deno.serve(async (req: Request) => {
             const classBookEntries = await Promise.all(classes.map(async classCode => [classCode, await getClassBookIds(admin, classCode)]));
             const bookIdsByClass = Object.fromEntries(classBookEntries);
             const allBookIds = [...new Set(classBookEntries.flatMap(([, ids]) => ids))];
-            const { data: books, error } = allBookIds.length
-                ? await admin.from("books").select("id,name,code,content_scope").in("id", allBookIds).eq("content_scope", "formal").order("id")
-                : { data: [], error: null };
-            if (error) throw error;
-            return json(req, 200, { success: true, classes, books: books || [], book_ids_by_class: bookIdsByClass });
+            const [{ data: books, error }, { data: sources, error: sourceError }] = await Promise.all([
+                allBookIds.length
+                    ? admin.from("books").select("id,name,code,content_scope").in("id", allBookIds).eq("content_scope", "formal").order("id")
+                    : Promise.resolve({ data: [], error: null }),
+                allBookIds.length
+                    ? admin.from("book_page_learning_content").select("book_id,page_number,source_text,version").in("book_id", allBookIds).eq("status", "published").not("source_text", "is", null).order("version", { ascending: false })
+                    : Promise.resolve({ data: [], error: null })
+            ]);
+            if (error || sourceError) throw error || sourceError;
+            const sourcePagesByBook: Record<string, number[]> = {};
+            for (const source of sources || []) {
+                const page = Number(source.page_number);
+                const key = String(source.book_id);
+                if (!Number.isInteger(page) || !String(source.source_text || "").trim()) continue;
+                sourcePagesByBook[key] = [...new Set([...(sourcePagesByBook[key] || []), page])].sort((a, b) => a - b);
+            }
+            return json(req, 200, { success: true, classes, books: books || [], book_ids_by_class: bookIdsByClass, source_pages_by_book: sourcePagesByBook });
+        }
+
+        if (action === "preview_cards") {
+            const classes = await getManagedClasses(admin, caller);
+            const targetClass = cleanText(body.target_class, 10).toUpperCase();
+            const bookId = positiveInteger(body.book_id);
+            const pageStart = positiveInteger(body.page_start);
+            const pageEnd = positiveInteger(body.page_end);
+            if (!classes.includes(targetClass)) return json(req, 403, { success: false, error: "您沒有這個班級的發布權限" });
+            if (!bookId || !pageStart || !pageEnd || pageEnd < pageStart || pageEnd - pageStart >= 80) {
+                return json(req, 400, { success: false, error: "請確認教材與頁碼範圍" });
+            }
+            const allowedBookIds = await getClassBookIds(admin, targetClass);
+            if (!allowedBookIds.includes(bookId)) return json(req, 403, { success: false, error: "這本教材不在目標班級目前生效的教材設定中" });
+            const { rows, missingPages } = await getPublishedPageRows(admin, bookId, pageStart, pageEnd);
+            if (missingPages.length) {
+                return json(req, 409, { success: false, code: "PAGE_SOURCE_MISSING", missing_pages: missingPages, error: `以下頁碼尚未完成教材文字核准：P${missingPages.join("、P")}` });
+            }
+            const cards = buildAutoCards(rows);
+            if (cards.length < 6) return json(req, 409, { success: false, code: "NOT_ENOUGH_CARDS", error: "這個範圍可用的單字／句子不足 6 張，請擴大頁碼範圍或先補齊教材文字" });
+            return json(req, 200, { success: true, cards, source_pages: rows.map(row => Number(row.page_number)) });
         }
 
         if (action === "create_review") {
@@ -205,7 +308,7 @@ Deno.serve(async (req: Request) => {
             const assignedDate = /^\d{4}-\d{2}-\d{2}$/.test(String(body.assigned_date || "")) ? body.assigned_date : taiwanDate();
             const cards = cleanCards(body.cards);
             if (!classes.includes(targetClass)) return json(req, 403, { success: false, error: "您沒有這個班級的發布權限" });
-            if (!bookId || !pageStart || !pageEnd || pageEnd < pageStart || pageEnd - pageStart > 80 || !title) {
+            if (!bookId || !pageStart || !pageEnd || pageEnd < pageStart || pageEnd - pageStart >= 80 || !title) {
                 return json(req, 400, { success: false, error: "請確認教材、標題與頁碼範圍" });
             }
             if (cards.length < 6 || cards.length > 80) {
@@ -215,6 +318,8 @@ Deno.serve(async (req: Request) => {
             if (!allowedBookIds.includes(bookId)) {
                 return json(req, 403, { success: false, error: "這本教材不在目標班級目前生效的教材設定中" });
             }
+            const { missingPages } = await getPublishedPageRows(admin, bookId, pageStart, pageEnd);
+            if (missingPages.length) return json(req, 409, { success: false, error: "教材文字來源已變更，請重新自動產生字卡後再發布" });
             const { data: book, error: bookError } = await admin.from("books").select("id").eq("id", bookId).eq("content_scope", "formal").maybeSingle();
             if (bookError) throw bookError;
             if (!book) return json(req, 404, { success: false, error: "找不到這本正式教材" });

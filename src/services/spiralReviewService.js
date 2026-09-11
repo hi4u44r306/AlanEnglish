@@ -18,6 +18,7 @@ const callSpiralReview = async (firebaseUser, body = {}) => {
 };
 
 export const getSpiralTeacherBootstrap = firebaseUser => callSpiralReview(firebaseUser, { action: "teacher_bootstrap" });
+export const previewSpiralReviewCards = (firebaseUser, payload) => callSpiralReview(firebaseUser, { action: "preview_cards", ...payload });
 export const createSpiralReview = (firebaseUser, payload) => callSpiralReview(firebaseUser, { action: "create_review", ...payload });
 export const getStudentSpiralQueue = firebaseUser => callSpiralReview(firebaseUser, { action: "student_queue" });
 export const submitSpiralAnswer = (firebaseUser, payload) => callSpiralReview(firebaseUser, { action: "submit_answer", ...payload });

@@ -1,14 +1,8 @@
-export const parseReviewCards = value => String(value || "")
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(Boolean)
-    .map(line => {
-        const [prompt, meaning, example] = line.split(/\s*[|｜\t]\s*/);
-        return {
-            card_type: String(prompt || "").trim().includes(" ") ? "sentence" : "word",
-            prompt_en: String(prompt || "").trim(),
-            meaning_zh: String(meaning || "").trim(),
-            example_sentence: String(example || "").trim()
-        };
-    })
-    .filter(card => card.prompt_en);
+export const normalizeGeneratedCards = cards => (Array.isArray(cards) ? cards : [])
+    .map(card => ({
+        card_type: card?.card_type === "sentence" ? "sentence" : "word",
+        prompt_en: String(card?.prompt_en || "").trim(),
+        meaning_zh: String(card?.meaning_zh || "").trim(),
+        example_sentence: String(card?.example_sentence || "").trim()
+    }))
+    .filter(card => card.prompt_en && !/_{2,}|\[\s*\]|\(\s*\)|（\s*）/.test(card.prompt_en));
