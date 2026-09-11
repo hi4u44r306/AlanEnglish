@@ -163,7 +163,7 @@ const TeacherSpiralReview = () => {
                         </div>
                     </section>
                     <section className="spiral-panel">
-                        <div className="spiral-panel-title"><Headphones /><div><strong>2. 自動準備字卡</strong><span>空格題與無答案內容會被排除；產生後可逐張確認、修改或刪除</span></div><b>{cards.length} 張</b></div>
+                        <div className="spiral-panel-title"><Headphones /><div><strong>2. 自動準備字卡</strong><span>只使用人工核准清單；寫字頁、空格、歌曲與未確認圖片題會被排除</span></div><b>{cards.length} 張</b></div>
                         <button className="spiral-generate" type="button" onClick={generatePreview} disabled={generating || !form.book_id}>
                             <Sparkles />{generating ? "正在讀取教材…" : "依頁碼自動準備字卡"}
                         </button>
