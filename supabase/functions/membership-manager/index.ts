@@ -407,13 +407,15 @@ const profilePayload = (
     membership: any,
     levelProgress: any,
     effectiveAccess: any = null,
-    aiAddonSubscription: any = null
+    aiAddonSubscription: any = null,
+    nickname: string | null = null
 ) => ({
     id: student.id,
     firebase_uid: student.firebase_uid,
     name: student.name,
     chinese_name: student.chinese_name || student.name,
     english_name: student.english_name || null,
+    nickname,
     date_of_birth: student.date_of_birth || null,
     email: student.authentication_method === "academy_username" ? null : student.email,
     login_username: student.login_username || null,
@@ -470,6 +472,9 @@ const findCaller = async (admin: any, firebaseUser: VerifiedFirebaseUser) => {
     }
 
     if (!byEmail.firebase_uid) {
+        if (!firebaseUser.emailVerified) {
+            throw new Error("請先完成 Email 驗證，再綁定既有 Alan English 帳號");
+        }
         const { data: bound, error: bindError } = await admin
             .from("students")
             .update({ firebase_uid: firebaseUser.uid, updated_at: new Date().toISOString() })
@@ -482,16 +487,40 @@ const findCaller = async (admin: any, firebaseUser: VerifiedFirebaseUser) => {
     return byEmail;
 };
 
+const claimVerifiedStoreOrders = async (
+    admin: any,
+    student: any,
+    firebaseUser: VerifiedFirebaseUser
+) => {
+    if (
+        student?.role !== "student"
+        || firebaseUser.emailVerified !== true
+        || !firebaseUser.email
+        || !isReceivableEmail(firebaseUser.email)
+    ) return 0;
+
+    const { data, error } = await admin.rpc("claim_paid_store_orders_for_student", {
+        p_student_id: student.id,
+        p_email: firebaseUser.email
+    });
+    if (error) throw error;
+    return Number(data?.claimed_orders || 0);
+};
+
 const loadCompleteProfile = async (
     admin: any,
     student: any,
     firebaseUser: VerifiedFirebaseUser,
     publicSignup = false
 ) => {
-    const [membership, levelProgress] = await Promise.all([
+    const [membership, levelProgress, socialProfile] = await Promise.all([
         ensureMembership(admin, student, firebaseUser, { publicSignup }),
-        ensureLevelProgress(admin, student, publicSignup)
+        ensureLevelProgress(admin, student, publicSignup),
+        student.role === "student"
+            ? admin.from("student_social_profiles").select("nickname").eq("student_id", student.id).maybeSingle()
+            : Promise.resolve({ data: null, error: null })
     ]);
+    if (socialProfile.error) throw socialProfile.error;
     const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
     const aiAddonSubscription = await loadAiAddonSubscription(admin, effectiveAccess);
     return profilePayload(
@@ -499,7 +528,8 @@ const loadCompleteProfile = async (
         membership,
         levelProgress,
         effectiveAccess,
-        aiAddonSubscription
+        aiAddonSubscription,
+        socialProfile.data?.nickname || null
     );
 };
 
@@ -604,19 +634,17 @@ Deno.serve(async (req: Request) => {
                 if (guardianError) throw guardianError;
             }
 
-            // A paid physical-store order uses a separate Supabase Auth account.
-            // Once the buyer creates the learning account with the same verified
-            // email, atomically claim the paid order's package books and 90-day access.
-            const { error: storeClaimError } = await admin.rpc("claim_paid_store_orders_for_student", {
-                p_student_id: student.id,
-                p_email: firebaseUser.email
-            });
-            if (storeClaimError) throw storeClaimError;
+            // Store and learning accounts are separate. Matching Email is not
+            // sufficient proof of ownership: only a verified Firebase token may
+            // claim a paid order, and the database RPC remains idempotent.
+            const claimedStoreOrders = await claimVerifiedStoreOrders(admin, student, firebaseUser);
+            if (claimedStoreOrders > 0) student = await findCaller(admin, firebaseUser);
 
             const profile = await loadCompleteProfile(admin, student, firebaseUser, true);
             return json(200, {
                 success: true,
                 profile,
+                claimed_store_orders: claimedStoreOrders,
                 email_verification_required: !firebaseUser.emailVerified
             });
         }
@@ -661,13 +689,15 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "profile" || action === "status") {
+            const claimedStoreOrders = await claimVerifiedStoreOrders(admin, caller, firebaseUser);
+            if (claimedStoreOrders > 0) caller = await findCaller(admin, firebaseUser);
             const profile = await loadCompleteProfile(
                 admin,
                 caller,
                 firebaseUser,
                 autoCreatedPublicSignup
             );
-            return json(200, { success: true, profile });
+            return json(200, { success: true, profile, claimed_store_orders: claimedStoreOrders });
         }
 
         if (action === "update_student_profile") {

@@ -1,10 +1,46 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-07
+最後更新：2026-09-11
+
+本次進行中（2026-09-11，待推送與測試站發布）：
+
+- 已確認「教材範圍螺旋複習與三層口說」下一階段藍圖，尚未實作或部署：完整教材練習庫與老師指定頁碼作業並存；學生依單字辨識、照著念、情境問答三級前進；每句有效跟念預設 10 次，錯題與未熟練內容進入個人間隔複習隊列；教材與生活主題共用進度與防重複獎勵。第一個實作階段應以一個已取得使用權的教材單元建立代表樣板，經管理員確認內容與難度後再擴至全書；需新增資料模型、權限、後端判定與測試，屬核心學習紀錄改動，正式部署前必須先隔離驗收。
+
+- `speaking-challenge` 已依管理員確認部署至共用正式 Supabase，函式為 ACTIVE v14。老師與管理員現在可唯讀載入已發布的口說題庫與 15 分鐘示範語音，頁面明示「示範模式」且不查詢學生進度；錄音、評分、完成紀錄、獎勵與私人錄音仍由後端拒絕寫入。以已登入管理員實測可讀取 Workbook 1／2 共五個小關卡，未登入 `catalog` POST 仍為 HTTP 401。前端整合版本仍在 PR #108，尚未合併至 `main`。
+
+- 建立 `codex/test-release-integration-v2`，以 `codex/p2-friends-profile` 為口說、手機登入與 Hover 修正基底，再整合最新 `origin/main` 的公開停售規則、已推送的家長直接／班級寄信與重試稽核，以及英文班復原碼安全強化。整合 build、口說／Navbar／復原碼 React tests 24／24 與家長寄信契約 8／8 均成功；共用 Supabase migration `20260910002545`、`20260910020211` 已存在，`guardian-email` 為 ACTIVE v26，因此不重複套用 migration 或函式。PR #104 的題目圖片輔助尚未納入，必須以獨立小階段處理其與口說核心的衝突。測試站曾被復原碼單一分支覆蓋而回退，此整合分支完成發布後將恢復手機首頁登入、口說大挑戰分組／歷程／Hover 與家長寄信入口。
 
 本次正式發布（2026-09-07）：
 
 - 口說大挑戰、混合作業 V2 與 API 成本控制中心已由 PR #100 合併至 `main` commit `f50d186`。正式 Netlify application deploy `6a9e2e320841ca0008bea010` 已為 `ready`，正式 bundle 為 `main.e25d0f50.js`；首頁、API 成本控制、口說題庫管理、學生口說挑戰及師生作業路由均回應 HTTP 200。正式 Supabase 已套用 additive migration `academy_all_access_assignment_v2`，新增結構與方案功能旗標均已查詢確認；`assignment-manager` v29、`billing-manager` v30、`gamification` v11、`generate-ai-material` v31、`membership-manager` v37、`pronunciation-coach` v10、`speaking-challenge` v7、`speaking-content-manager` v9、`speaking-tts-manager` v7 均為 ACTIVE，七支需登入的服務以未登入請求驗證皆正確回應 401。使用者已在測試站完成四項 AI 示範語音驗收；全前端 47 suites／154 tests、API 成本頁 3/3、Edge Function 語法與契約、production build 及 `git diff --check` 均成功。正式站登入後的麥克風錄音、真實送評與私人 R2 語音播放仍建議再做一次快速抽驗。
+
+本次測試部署（正式站尚未部署）：
+
+- 口說大挑戰卡片 Hover 圓角修正（測試站已部署，正式網站尚未部署）：大關卡容器不再以 `overflow: hidden` 裁切小關卡的 Hover／鍵盤 Focus 陰影；標題藍底與下方教材網格各自保留外框圓角，避免小關卡被選取時出現被切掉的直角或陰影。小關卡數量維持品牌黃底、深藍高對比文字。Checkpoint `b1fe844` 已推送，PR #105 已建立；固定測試站 deploy `6aa2be3c9dae4aa5144fd84a` 為 ready，線上 `/student/speaking-challenges` 回應 HTTP 200 並載入 `main.c03c2654.js`。口說題庫 React tests 8／8、Production build 與 `git diff --check` 均成功；尚待使用者登入後以滑鼠與鍵盤實機確認 Hover／Focus 視覺。
+
+- 學生首頁與英文班 AI 方案呈現收斂（測試站已部署，正式站尚未部署）：`AI Premium` 現在只代表實際的 AI 加購方案；有效在校英文班學生保有原本的 AI 練習、口說大挑戰及班級作業權限，但 Navbar、我的設定與會員中心改顯示「英文班在學方案已包含」，不再顯示或引導重複購買 AI Premium。學生首頁改為任務優先：老師作業、待複習錯題與聽力暖身依序呈現，AI 練習與口說大挑戰收進非必要的「想多練一點？」；首頁成果收斂為今日聽力、已學口說與本月聽力，移除重複的帳號／方案／登出卡與舊情境口說任務。離校學生的歷史 `academy_internal` 不會被誤認為在學方案。Checkpoint `68686dd` 已推送至 `codex/p2-friends-profile`；固定測試站 deploy `6aa010e022cb582d1c1a41ba` 已為 live，`/student/dashboard` 回應 HTTP 200。相關 React tests 5 suites／38 tests、Production build 與 `git diff --check` 均成功；尚待登入實機視覺驗收。
+
+- P2 好友／公開暱稱與通知同步（測試站已部署，正式網站尚未部署）：通知頁單筆或全部標示已讀時，以前端事件同步 Navbar 徽章；學生暱稱新增前後端不當公開內容防護、正規化後重複檢查與友善提示。會員 Profile、遊戲化摘要及排行榜帶回公開暱稱，學生 Navbar、首頁、設定摘要與排行榜優先使用暱稱，未設定才回退帳號姓名；教師班務、客服與帳務仍維持真實姓名。功能 checkpoint `1cc4d77` 已推送至 `codex/p2-friends-profile`；`student-social`、`membership-manager`、`gamification` 已部署到既有 Supabase，固定測試站 deploy `6a9fe3515135513167b3a75f` 已發布，線上 `/student/friends` 回應 HTTP 200。好友、通知與 Navbar React tests 15／15、社交安全契約 4／4、全部 Edge Function 語法、`git diff --check` 與 Production build 均成功；尚待登入後驗收通知鈴鐺、暱稱提示、排行榜與個人頁顯示。
+
+- P2 好友頭貼預覽（測試站已部署，正式網站尚未部署）：好友搜尋、邀請、好友名單與封鎖清單可顯示既有頭貼；圖片按鈕可開啟可關閉、支援 Esc 的放大預覽。為保護未成年學生影像，系統預設頭貼可在完整暱稱／好友碼搜尋時顯示；自行上傳的相片僅在雙方好友關係已接受後，由 `student-social` 簽發 15 分鐘短效網址，不提供固定公開連結。checkpoint `385c321` 已推送至 `codex/p2-friends-profile`，`student-social` 已部署到既有 Supabase；好友刪除操作的文字與間距調整 checkpoint `7fe14d5` 亦已推送，固定測試站最新 deploy `6aa01ad82945830c94fa33cf` 已發布，`/student/friends` 回應 HTTP 200。好友頁測試 4／4、社交合約 5／5、Edge Function 語法、`git diff --check` 與 Production build 均成功；尚待兩個學生帳號實機驗收頭貼隱私與放大預覽。
+
+- P1 英文班在學教材區收斂（本機完成，尚未推送或部署）：有效在校英文班學生的教材區改顯示「英文班教材已包含」及實際可用教材清單；隱藏「購買其他教材」、教材啟用碼、實體教材促銷和未解鎖教材的商城導向，改為一張「英文班在學方案已包含」說明卡。離校生、網購者與一般會員不受影響，仍可購買、啟用或查看未取得教材。
+- P1 會員方案與到期通知收斂（本機完成，尚未推送或部署）：有效在校英文班學生的會員中心改為只顯示「英文班在學方案已包含」與可用功能，不再顯示基本月費或 AI 加購付款；付款失敗改為明確提示更新付款方式，與本期結束取消、已到期分開呈現。`notification-manager` 對教材附贈 90 天、月費週期與預定離校改在 30／7／3／1 天前各以 durable event key 建立一次學生通知及家長信件佇列；付款失敗維持每個付款週期一次。會員中心 11／11 tests、教材商務契約 38／38、Edge Function 語法、Production build 與 `git diff --check` 均成功。七天試用保留為購買前引導；「退款後是否撤銷永久教材權限」仍待商業政策決定，尚未自動變更權限。
+- P0 商城購買與學習權限開通收斂（測試站已部署，正式站尚未部署）：舊 `/materials` 統一以 Netlify 301 及 React 相容路由導向 `/shop`，公開首頁、會員中心與未授權教材入口均改用唯一實體教材商城。付款成功頁及歷史訂單新增「尚未開通／已帶入」狀態與相同 Email 學習帳號入口；後端只有在 Firebase Token 已確認 Email 驗證時才可認領已付款商城訂單，且未驗證 Email 不得綁定既有學生。顧客可見付款文案及同步付款狀態欄位改為金流供應商中立，保留現有 Stripe 沙盒 adapter，未新增正式收款，為後續改接藍新金流預留邊界。本批沿用既有 `claimed_at` 與一次性認領 RPC，不需要 migration。功能 checkpoint `1b2d889` 與舊路由修正 `70f24e4` 已推送至 `codex/p0-commerce-activation`；`membership-manager` v38、`content-access` v25、`store-commerce` v12 均為 ACTIVE 且 OPTIONS 200。固定測試站 deploy `6a9f918415d51b488233a748` 已為 ready，線上 `/materials` 回應 301 並導向 `/shop`，商城及學習帳號開通頁回應 HTTP 200，載入 `main.3471b464.js`。全前端 51 suites／174 tests、商城契約 14／14、教材商務契約 38／38、SEO 契約 4／4、Edge Function 語法、Production build 與 `git diff --check` 均成功。
+- 公開首頁手機登入入口（測試站已部署，正式站尚未部署）：手機與平板 Navbar 在完整 Logo 和漢堡選單之間新增固定可見的「登入」按鈕，首屏試用按鈕下方另提供「已經有帳號？立即登入學習平台」文字入口；Sidebar 原有登入仍保留。390px 與 340px 以下會逐步縮小 Logo、間距與登入圖示，但保留「登入」文字及至少 44px 觸控高度。Showcase Navbar 2／2 tests、Production build 與 `git diff --check` 均成功；Playwright 已檢查 320、340、360、390、412、768px，全部無水平溢位、Logo／登入／漢堡重疊，兩處登入皆指向 `/login`。功能 checkpoint `be865dc` 已推送至 PR #102；固定測試站 deploy `6a9f8021cf134155b4622c15` 已上線，公開首頁與登入頁均回應 HTTP 200。
+- 學生口說與 AI 導覽收斂（測試站已部署，正式站尚未部署）：桌面 Navbar 將「口說大挑戰」與「我的口說歷程」合併至「口說練習」下拉選單，手機 Sidebar 也改為可展開的同一群組；舊「發音教練」入口移除，`/student/pronunciation` 改為導向口說大挑戰，但 `pronunciation-coach` 後端評分引擎、權限欄位及既有資料均保留。Navbar 的「AI 教材」改為更具行動感的「AI 練習」，未開通者顯示「AI 練習方案」；會員中心的功能捷徑同步導向 AI 練習與口說大挑戰。未變更方案代碼、Stripe 商品名稱、價格、migration 或 Edge Function。功能 checkpoint `b80ecc6` 已推送至 PR #102；固定測試站 deploy `6a9f7295d38bd252e85530eb` 已上線，三個相關路由均回應 HTTP 200。Navbar／會員中心 2 suites／18 tests、全前端 51 suites／173 tests、Production build 與 `git diff --check` 均成功。
+- 管理員教材 AI 口說題庫關卡管理器（測試站已部署，正式站尚未部署）：管理頁暫時隱藏整本 OCR、單一範圍與貼入文字入口，但保留既有資料、服務、其他既有來源題庫及已發布題庫；Workbook 1／2 人工精選關卡改為同一份可切換教材的總覽，直接顯示題數與尚未建立、草稿、可發布、已發布狀態。建立草稿後會直接開啟該關卡；編輯器一次只顯示一題，固定呈現教材、主題、版本、第幾題、完整度及未儲存提示，語音／教學及 AI 評分欄位預設收合，學生預覽改為獨立對話框。桌面使用側邊題目導覽，手機改為橫向題號列及底部安全儲存操作。功能 checkpoint `f133521` 已推送至 PR #102；固定測試站 deploy `6a9f6c6f39b5a6e7c8fe169e` 已上線。管理頁 5／5、全前端 51 suites／173 tests、Production build 與 `git diff --check` 均成功。未新增 migration、未部署 Edge Function，仍待真實管理員視覺驗收。
+- 口說大挑戰入口卡片視覺修正（測試站已部署，正式站尚未部署）：小關卡清單加入安全內距與卡片間距，每張小關卡擁有獨立圓角及內縮 Hover／鍵盤 Focus 光圈，避免外層圓角裁掉互動邊框；大關卡右上數量徽章改為品牌黃底、深藍字及高對比粗體。手機版同步縮小間距，減少動態效果偏好時停用位移動畫。功能 checkpoint `2b79443` 已推送至 PR #102；固定測試站 deploy `6a9f5457ac84dc20aae6b091` 已為 ready，首頁與口說入口回應 HTTP 200 並載入 `main.b76118e5.css`。關卡頁 8／8 tests、production build 與 `git diff --check` 均成功。
+- 口說大挑戰完成獎勵與動畫（測試站已部署，正式站尚未部署）：學生首次完成同一個已發布題庫的全部題目時發 30 XP，有效在校英文班學生另得 3 AE Points；完成、點數資格、升級與帳本寫入由資料庫交易一次處理，並以 advisory lock 及既有唯一獎勵來源阻擋連點、重試、重錄與教材／主題雙入口造成的重複發獎。前端只在後端回傳首次發獎成功時顯示完成動畫、獎勵與升級結果，不能自行決定獎勵數量；老師與管理員示範仍不得寫入進度或領獎。功能 checkpoint `9697939` 已推送至 PR #102；additive migration `speaking_challenge_completion_rewards` 已單檔套用測試 Supabase 並確認 RPC 存在，`anon`／`authenticated` 無執行權且僅 `service_role` 可用。`speaking-challenge` v10 為 ACTIVE，OPTIONS 200、未登入 POST 401。固定測試站 deploy `6a9ee556b292505311cbc5f9` 已為 ready，首頁、口說入口、關卡與歷程路由均回應 HTTP 200，載入 `main.60e2176d.js`。全前端 51 suites／175 tests、獎勵契約 4／4、角色唯讀契約 3／3、全部 Edge Function 語法、production build 與 `git diff --check` 均成功；尚待登入後以接近完成的學生帳號驗證首次動畫、升級顯示與重新送出不重複發獎。
+- 口說大挑戰入口與私人錄音播放器精緻化（測試站已部署，正式站尚未部署）：入口可在「依教材」與「依主題」之間切換；教材改為 Workbook 大關卡包住 01、02、03…小關卡，主題則依姓名與自我介紹、日常對話、校園英語、家人與人物、位置與問路、生活物品與顏色等生活情境重新整理，同一題庫只改瀏覽方式、不複製進度。口說練習與口說歷程共用品牌錄音播放器，可播放／暫停、拖曳進度並顯示時間，送評後仍能回聽自己的錄音。學生按下第一個對話／錄音操作時會先解鎖瀏覽器音效，再於評分完成後播放更清楚的成功、再練習或重試提示音；裝置靜音與系統媒體音量仍須由使用者自行調整。本批隨 checkpoint `9697939` 與測試站 deploy `6a9ee556b292505311cbc5f9` 發布；仍待真實手機確認提示音、播放器拖曳及教材／主題切換畫面。
+- 口說大挑戰入口載入改善（本機完成，尚未推送或部署）：登入且具口說權限後由共用 Navbar 背景預抓已發布題庫，頁面與預抓共用同一筆進行中請求及 60 秒記憶體快取；第一次開啟立即渲染標題、口說歷程入口與三張教材骨架，API 回應前不再誤顯示「還沒有可挑戰的教材」，預抓失敗不會快取且進頁會自動重試。登出及完成新題目時會清除該帳號快取，避免回到入口仍看到舊進度；骨架提供忙碌狀態並遵守減少動態效果設定。相關 3 suites／19 tests、全前端 49 suites／172 tests、Production build 與 `git diff --check` 均成功。
+- Workbook 1 口說題目圖片（測試站已部署，正式站尚未部署）：已從使用者提供的學生版 PDF 以 300 DPI 擷取並裁切紅蘋果、檸檬、桃子與梨子四張彩色小圖，移除頁面文字、題號與邊框，只保留作答所需物件；學生題目與管理員題庫預覽會依完整題目文字顯示對應圖片、中文替代文字及教材頁碼。香蕉原圖帶素材浮水印、茄子原圖顏色與答案不一致，均未採用；沒有上網抓圖或呼叫生成圖片。此批不改資料庫、不新增外部服務或費用；相關題庫／管理頁 2 suites／14 tests、題庫契約 16／16、全前端 48 suites／168 tests、production build 與 `git diff --check` 均成功。功能 checkpoint `434d3e4` 已推送至 PR #102；固定測試站 deploy `6a9ec7d09b707b618efd4217` 已為 live，口說關卡、題庫管理與四張 WebP 圖片均回應 HTTP 200，正式 bundle 為 `main.33649d5b.js`／`main.69767dbb.css`。圖片容器使用最大寬度、`object-fit: contain` 與手機流動寬度防止橫向溢位；尚待登入後 412px 實機視覺驗收。
+- 口說換題自動回到題目頂端（測試站已部署，正式站尚未部署）：學生、老師或管理員按「下一題」／「上一題」後，畫面會平滑捲回新題目的起點，並以桌面 96px、手機 138px 的 `scroll-margin` 避開固定 Navbar 與黏性關卡進度列；裝置開啟減少動態效果時改為立即定位。元件測試 6／6、全前端 48 suites／167 tests、production build 與 `git diff --check` 均成功。固定測試站 deploy `6a9eaa255dae765dffda6d12` 已為 live，口說關卡路由回應 HTTP 200 並載入 `main.ed4296b8.js`。
+- Workbook 1 完整口說題庫（測試站已部署，正式站尚未部署）：已依 119 頁學生版教材將可安全口說化的內容整理為 01～10 共 60 題；既有 01 姓名、02 問候之外，新增 03 顏色與物品、04 數字與算術、05 時間與一天、06 身體部位、07 家人與人物、08 Yes／No 與縮寫、09 位置與指示詞、10 疑問句總複習。描寫格、空白格、未核對圖片與歌曲歌詞不直接入題；圖片題改由問題本身提供完整情境。管理員可逐關建立冪等的可編輯草稿，不執行 OCR、不呼叫生成式 AI、不自動發布或產生付費 TTS。本批不需要 migration；全前端 48 suites／167 tests、題庫契約 16／16、Edge Function 語法、共用題庫 TypeScript 載入、production build 與 `git diff --check` 均成功。Checkpoint `8927e2c` 已推送至 PR #102；測試 `speaking-content-manager` v12 為 ACTIVE，未登入 POST 正確回應 401；固定測試站 deploy `6a9eaa255dae765dffda6d12` 已發布，管理頁與學生關卡路由均回應 HTTP 200。尚未在測試資料庫建立 03～10 草稿，須由管理員逐關確認後建立。
+- 口說送評等待提示（測試站已部署，正式站尚未部署）：錄音停止後先顯示「正在整理你的錄音」，音檔轉換完成即切換為「AI 正在聽你的發音」，搭配品牌藍轉圈動畫與「通常需要 3～8 秒，請不要離開頁面」說明。等待期間隱藏回聽與重錄控制，並鎖定問題重播、回答示範、提示開關、返回及前後題按鈕，避免重複送評或在請求中途切題；支援 `aria-busy`／`role=status`，減少動態偏好時停止旋轉。功能 checkpoint `c71b940` 已推送至 PR #102；相關 3 suites／13 tests、全前端 48 suites／166 tests、production build 與 `git diff --check` 均成功。固定測試站 deploy `6a9e9d436fed41183411a4e0` 已發布，首頁、口說大挑戰列表與關卡 1／2 均回應 HTTP 200 並載入 `main.d59b39d4.js`；仍待登入後以真實麥克風確認兩階段提示、鎖定操作及評分完成切換。
+- 口說對話優先流程（測試站已部署，正式站尚未部署）：大關卡入口新增短版情境解說與學習目標；每題新增獨立的英文問題自然語音，與回答範例以相反男女聲形成對話。學生按「聽問題並回答」後，問題播完進入 5 秒思考倒數，再自動開啟麥克風；偵測到學生說完停頓後自動停止、轉為同一份 WAV 並送評，不再要求另按「送出評分」。回答提示維持預設收合，另保留再聽一次、提早開始及手動錄音。新語音採 `elementary-dialogue-v5`，問題約 0.90 倍、回答約 0.84 倍並加入小幅增益。Checkpoint `c78509c` 已推送至 PR #102；additive migration `speaking_question_prompts_and_stage_intro` 已套用測試 Supabase 並確認 migration history、複合主鍵與 RLS。`speaking-content-manager` v11、`speaking-challenge` v9、`speaking-tts-manager` v8 均為 ACTIVE，OPTIONS 200、未登入 POST 401。固定測試站 deploy `6a9e7210dc8c3d06c246433c` 已發布，首頁、題庫管理、口說大挑戰與關卡路由均回應 HTTP 200 並載入 `main.ece4db6c.js`。相關元件／服務 5 suites／22 tests、題庫契約 15／15、全前端 48 suites／165 tests、全部 Edge Function 語法、production build 與 `git diff --check` 均成功；尚待登入測試站驗收真實 Google TTS 問答聲線、麥克風靜音偵測、自動送評及 412px 實機畫面。既有已發布題庫仍須由管理員手動補產生問題與回答語音，本次部署未自動呼叫付費 TTS。
+- PR #102 後續調整（測試站已部署，正式站尚未部署）：學生 Navbar 新增「我的口說歷程」；老師與管理員新增「口說示範」入口，可唯讀查看已發布大挑戰與短效示範語音。工作人員的歷程頁只顯示明確標記的固定範例，不查詢學生資料；大挑戰不提供錄音／評分，也不能寫入學生完成進度。路由、前端畫面與 `speaking-challenge` 後端均同步限制角色邊界。新增 3 項角色權限契約；全前端 48 suites／162 tests、全部 Edge Function 語法、production build 與 `git diff --check` 均成功。功能 commit `cb3c3a7` 已推送，`speaking-challenge` v8 為 ACTIVE；固定測試站 deploy `6a9e5ca0d2809b426e4f2999` 已發布，首頁、口說大挑戰、關卡與口說歷程路由均回應 HTTP 200，並載入 `main.d8918b01.js`。
+- 分支 `codex/speaking-history-greetings`／checkpoint `fa5959a` 已推送並建立 PR #102，完成第四階段「個人口說學習歷程」與 Workbook 1「02 打招呼與禮貌對話」。評分成功後將錄音保存到私人 R2，每題只保留最新與最高分，學生本人可分頁載入歷程、取得 10 分鐘短效網址回聽並可刪除；首頁與新歷程頁顯示已完成的不重複句子、單字及私人錄音數，回饋維持「很清楚／再練一下／慢慢重念」而不顯示數字分數。測試 Supabase 已執行並確認 additive migration `20260907042158_speaking_learning_history.sql` 的六個欄位、四個限制與部分索引，且 migration history 只補登本次版本；`pronunciation-coach` v11、`speaking-content-manager` v10 均為 ACTIVE，OPTIONS 200、未登入 POST 401。固定測試站 deploy `6a9e4c7218b95aecaf837a96` 已為 live，首頁、題庫管理、口說挑戰與口說歷程路由均回應 HTTP 200 並載入 `main.d1667f61.js`。管理員可一鍵建立八題人工精選的關卡 02 草稿，不執行 OCR、不呼叫付費 AI、不自動發布或產生 TTS。全前端 48 suites／160 tests、相關口說題庫合約 14／14、全部 Edge Function 語法與口說契約、production build 及 `git diff --check` 均成功；仍待登入測試站完成真實錄音保存、回聽、刪除、統計及建立關卡 02 草稿的端到端驗收，正式 `main`、正式 Supabase 與正式網站尚未變動。
 
 先前測試階段紀錄（已由 PR #100 整批正式發布）：
 
@@ -92,7 +128,7 @@ GitHub：<https://github.com/hi4u44r306/AlanEnglish>
 
 正式部署分支：`main`
 
-本批開發基準 commit：`54f99e1`（開始本階段實作時的 `origin/main`）
+本批開發基準 commit：`7f5e1ac`（開始本階段實作時的 `origin/main`）
 
 > 本文件只記錄目前開發狀態。永久架構、安全與工作規則請閱讀根目錄 `AGENTS.md`。
 > 目前產品、角色、權限與跨功能邏輯請閱讀根目錄 `PROJECT_LOGIC.md`。
@@ -616,11 +652,26 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 7. Navbar、Guided Tour、TTS component tests
 8. Playwright responsive、Stripe、Storage 與完整 Production E2E
 
-### P2 未來規劃：好友、戰績與社交競賽（尚未開始）
+### P2 好友、戰績與社交競賽（第一階段測試站驗收中）
 
-產品方向：讓學生在安全、雙方同意的前提下加入好友，查看彼此的學習戰績；資料與互動基礎穩定後，再評估 PK 賽與合作型比賽。此項目目前只記錄需求，尚未建立資料表、API、Edge Function、頁面或部署。
+2026-09-08 已在分支 `codex/p2-friends-profile` 建立 checkpoint `ea7737c`，並補正有效方案 RPC 參數後推送 `8bc3d06`。第一階段包含 additive migration、`student-social` Edge Function、好友與戰績頁、前端服務、路由及 Navbar 入口。依使用者授權，migration `20260908053030_student_social_foundation.sql` 已套用至正式 Supabase 專案 `rszabtuzsvhaooajnvgc` 並標記於 migration history；`student-social` 已部署至同一正式 Supabase。前端僅部署 `alanenglish-student-test.netlify.app` 驗收，尚未建立 PR、合併 `main` 或部署正式 Netlify 網站。
 
-第一階段「好友與戰績」預計包含：
+第一階段採用的安全規則：
+
+1. 只允許有效方案的學生使用；Edge Function 驗證 Firebase ID Token，並重新查詢學生角色、帳號狀態及有效方案。
+2. 學生先建立 2～20 字暱稱，系統另產生不可推測的 `AE-XXXXXXXX` 好友碼；搜尋只接受完整暱稱或完整好友碼，不提供模糊列舉。
+3. 好友邀請需由對方接受；支援拒絕、刪除好友、封鎖、解除封鎖及檢舉。封鎖會立即移除既有好友關係。
+4. 對好友只顯示暱稱、粗略在線狀態、等級與總 XP；不顯示 Email、班級、生日、家長資料或精確登入時間。戰績與在線狀態皆可改為不公開。
+5. 在線狀態由登入後全站 Navbar 每 60 秒更新，對外只顯示「在線／最近在線／離線／未公開」。
+6. 搜尋每 15 分鐘最多 30 次、好友邀請每小時最多 5 次、檢舉每日最多 3 次；敏感操作寫入後端稽核表。
+
+驗證：好友服務與頁面測試、Navbar 測試、社交安全契約 4/4、Edge Function 語法檢查及 Production build 均通過。測試站已用兩個既有沙盒學生帳號完成公開暱稱建立、完整暱稱搜尋、邀請、通知、接受、通知已讀、雙方好友名單及重複邀請防護驗收；接受前不公開對方戰績，接受後只顯示暱稱、粗略在線狀態、等級與 XP。經使用者逐次授權後，已解除驗收用好友關係並確認發起端好友數回到 0；解除為雙向後端刪除。封鎖與檢舉會另外改變雲端社交狀態，尚未在此次驗收執行。
+
+最新本機修正：搜尋結果新增直接「封鎖」入口，避免學生必須先成為好友才可保護自己；已補上 UI 測試，尚未推送或部署。
+
+下一步：驗證搜尋結果封鎖後，再由使用者決定是否 Push、部署測試站，最後才評估建立 PR、合併 `main` 與部署正式網站。檢舉與隱私切換可在取得獨立雲端資料異動授權後補做。PK 賽與合作型比賽仍留在第二、三階段，不在本次範圍。
+
+第一階段「好友與戰績」已包含：
 
 1. 使用不暴露 Email、生日、家長資料或真實班級的方式搜尋／邀請好友；採好友邀請、接受或拒絕的雙向確認流程，不允許單方面直接追蹤。
 2. 提供好友名單、待處理邀請、解除好友、封鎖與檢舉；封鎖後雙方不得查看戰績、傳送邀請或發起比賽。
@@ -641,7 +692,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 需防止單一成員代打或掛機，並清楚顯示個人貢獻、團隊進度、任務期限與獎勵規則。
 - 是否支援跨班、公開隊伍、老師建立活動及家長可見報告仍待產品確認。
 
-開始實作前必須先確認：好友搜尋識別方式、戰績可見欄位、封鎖／檢舉處理流程、PK 採非同步或即時、計分與獎勵規則、合作賽組隊限制，以及未成年使用者的隱私與家長／老師管理邊界。資料層必須採 additive migration、RLS 與 Firebase Token 驗證 Edge Function；不得讓前端直接讀取所有學生資料。此功能排在目前測試站已驗收內容同步正式站之後，正式站尚未更新前不開始功能實作。
+第一階段已固定完整暱稱／好友碼搜尋、安全戰績欄位、雙向邀請、封鎖、檢舉、頻率限制、additive migration、RLS 與 Firebase Token 驗證 Edge Function；前端不能直接讀取所有學生資料。PK 採非同步或即時、計分與獎勵、合作賽組隊限制，以及老師／家長介入方式，留待第二階段開始前確認。
 
 ## 13. 已知注意事項
 

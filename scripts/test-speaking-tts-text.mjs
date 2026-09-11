@@ -23,11 +23,14 @@ assert.deepEqual(chooseSpeakingVoice(13, 1, voices), { gender: "female", voiceId
 
 const managerSource = readFileSync(new URL("../supabase/functions/speaking-tts-manager/index.ts", import.meta.url), "utf8");
 assert.match(managerSource, /const OUTPUT_FORMAT = "wav";/);
-assert.match(managerSource, /const PIPELINE_VERSION = "elementary-bright-v4";/);
+assert.match(managerSource, /const PIPELINE_VERSION = "elementary-dialogue-v5";/);
 assert.match(managerSource, /GOOGLE_CLOUD_TTS_FEMALE_VOICE_NAME/);
 assert.match(managerSource, /GOOGLE_CLOUD_TTS_MALE_VOICE_NAME/);
 assert.match(managerSource, /preview_question_audio/);
-assert.match(managerSource, /audioEncoding: "LINEAR16", speakingRate: 0\.82/);
+assert.match(managerSource, /QUESTION_SETTINGS = Object\.freeze\(\{ audioEncoding: "LINEAR16", speakingRate: 0\.9, volumeGainDb: 2 \}\)/);
+assert.match(managerSource, /ANSWER_SETTINGS = Object\.freeze\(\{ audioEncoding: "LINEAR16", speakingRate: 0\.84, volumeGainDb: 2 \}\)/);
+assert.match(managerSource, /"question_prompt", "model_answer"/);
+assert.match(managerSource, /onConflict: "question_id,purpose"/);
 assert.match(managerSource, /settingsHash\.slice\(0, 16\)\}\.wav/);
 assert.match(managerSource, /"Content-Type": "audio\/wav"/);
 

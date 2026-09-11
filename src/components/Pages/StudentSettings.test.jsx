@@ -1,6 +1,7 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { MemoryRouter } from "react-router-dom";
 import StudentSettings from "./StudentSettings";
 import { useAuth } from "../../auth/AuthContext";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
@@ -24,6 +25,7 @@ jest.mock("../../services/commerceService", () => ({
 
 describe("StudentSettings", () => {
     const setStudentProfile = jest.fn();
+    const renderSettings = () => render(<MemoryRouter><StudentSettings /></MemoryRouter>);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -74,14 +76,16 @@ describe("StudentSettings", () => {
     };
 
     it("shows student profile, protected learning honors, and birthday controls", async () => {
-        render(<StudentSettings />);
+        renderSettings();
 
         expect(await screen.findByRole("heading", { name: "我的設定" })).toBeInTheDocument();
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("AI Premium")).toBeInTheDocument();
-        expect(screen.getByText("英文班方案已包含")).toBeInTheDocument();
+        expect(screen.queryByText("AI Premium")).not.toBeInTheDocument();
+        expect(screen.getByText("英文班在學方案已包含")).toBeInTheDocument();
+        expect(screen.getByText("AI 練習、口說大挑戰與班級作業均可使用")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /查看我的口說錄音與成果/ })).toHaveAttribute("href", "/student/speaking-history");
 
         expect(screen.queryByDisplayValue("2015-05-12")).not.toBeInTheDocument();
         fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
@@ -111,7 +115,7 @@ describe("StudentSettings", () => {
             }
         });
 
-        render(<StudentSettings />);
+        renderSettings();
 
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText("AI 教材與發音練習可使用")).toBeInTheDocument();
@@ -133,7 +137,7 @@ describe("StudentSettings", () => {
             }
         });
 
-        render(<StudentSettings />);
+        renderSettings();
 
         expect(await screen.findByText("離校")).toBeInTheDocument();
         expect(screen.getByText("2026-08-31")).toBeInTheDocument();
@@ -159,7 +163,7 @@ describe("StudentSettings", () => {
             }
         });
 
-        render(<StudentSettings />);
+        renderSettings();
 
         expect(await screen.findByText("已結束（2026-08-30）")).toBeInTheDocument();
         expect(screen.queryByText("續訂日 2026-08-30")).not.toBeInTheDocument();
@@ -189,7 +193,7 @@ describe("StudentSettings", () => {
             }
         });
 
-        render(<StudentSettings />);
+        renderSettings();
 
         expect(await screen.findByText("已結束（2026-08-31）")).toBeInTheDocument();
         expect(screen.getAllByText("基本自主學習會員")).toHaveLength(1);
@@ -197,7 +201,7 @@ describe("StudentSettings", () => {
     });
 
     it("requires final confirmation before applying one of five preset avatars", async () => {
-        render(<StudentSettings />);
+        renderSettings();
         await screen.findByRole("heading", { name: "我的設定" });
 
         expect(screen.getAllByRole("button", { name: /使用.+頭像/ })).toHaveLength(5);
@@ -222,7 +226,7 @@ describe("StudentSettings", () => {
     });
 
     it("opens a square avatar adjustment window before uploading", async () => {
-        const { container } = render(<StudentSettings />);
+        const { container } = renderSettings();
         await screen.findByRole("heading", { name: "我的設定" });
 
         const file = new File(["avatar"], "avatar.png", { type: "image/png" });

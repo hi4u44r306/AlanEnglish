@@ -7,8 +7,8 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getAiMaterialUsage } from "../../services/aiMaterialService";
 import { getStudentAssignments } from "../../services/assignmentService";
 import { getReviewDashboard } from "../../services/reviewService";
-import { getConversationProgress } from "../../services/learningActivityService";
 import { getDashboardStats } from "../../services/listeningService";
+import { getSpeakingLearningSummary } from "../../services/pronunciationCoachService";
 import User from "./User";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
@@ -17,8 +17,8 @@ jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: 
 jest.mock("../../services/aiMaterialService", () => ({ getAiMaterialUsage: jest.fn() }));
 jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn() }));
 jest.mock("../../services/reviewService", () => ({ getReviewDashboard: jest.fn() }));
-jest.mock("../../services/learningActivityService", () => ({ getConversationProgress: jest.fn() }));
 jest.mock("../../services/listeningService", () => ({ getDashboardStats: jest.fn() }));
+jest.mock("../../services/pronunciationCoachService", () => ({ getSpeakingLearningSummary: jest.fn() }));
 
 const renderDashboard = assignments => {
     useAuth.mockReturnValue({
@@ -33,7 +33,8 @@ const renderDashboard = assignments => {
                     plan_codes: [],
                     features: {
                         assignments,
-                        ai_materials: false
+                        ai_materials: false,
+                        pronunciation: assignments
                     }
                 }
             }
@@ -53,8 +54,8 @@ describe("student dashboard assignment loading", () => {
         getDashboardStats.mockResolvedValue({ daily_count: 0, monthly_count: 0, total_count: 0 });
         getReviewDashboard.mockResolvedValue({ stats: {} });
         getAiMaterialUsage.mockResolvedValue({ usage: { used: 0, limit: 5, remaining: 5 } });
-        getConversationProgress.mockResolvedValue({ progress: {} });
         getAccessibleCatalog.mockResolvedValue({ categories: [] });
+        getSpeakingLearningSummary.mockResolvedValue({ summary: { learned_sentences: 4, learned_words: 12, saved_recordings: 2 } });
     });
 
     test("does not request academy assignments or show a false warning without assignment access", async () => {
@@ -74,5 +75,41 @@ describe("student dashboard assignment loading", () => {
 
         await waitFor(() => expect(getStudentAssignments).toHaveBeenCalledTimes(1));
         expect(await screen.findByText("部分學習資料暫時無法更新，其餘內容仍可正常使用。")).toBeInTheDocument();
+    });
+
+    test("keeps speaking as an optional practice route instead of an old conversation task", async () => {
+        getStudentAssignments.mockResolvedValue({ assignments: [] });
+        renderDashboard(true);
+
+        expect(await screen.findByText("已學口說")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
+        expect(screen.queryByText("情境口說任務")).not.toBeInTheDocument();
+        expect(getSpeakingLearningSummary).toHaveBeenCalledTimes(1);
+    });
+
+    test("does not label academy-included AI features as AI Premium", async () => {
+        getStudentAssignments.mockResolvedValue({ assignments: [] });
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "academy-student" },
+            authLoading: false,
+            studentProfile: {
+                role: "student",
+                name: "在校學生",
+                learner_type: "academy_student",
+                membership: {
+                    is_active: true,
+                    effective_access: {
+                        plan_codes: ["academy_internal"],
+                        features: { assignments: true, ai_materials: true, pronunciation: true }
+                    }
+                }
+            }
+        });
+
+        render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><User /></MemoryRouter>);
+
+        expect(await screen.findByRole("heading", { name: "在校學生，今天先完成這些！" })).toBeInTheDocument();
+        expect(screen.queryByText("AI Premium")).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /AI 練習/ })).toHaveAttribute("href", "/student/ai-generator");
     });
 });

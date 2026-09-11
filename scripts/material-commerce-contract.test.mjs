@@ -128,8 +128,9 @@ test("15. 家長 Email 缺失時禁止 Checkout", () => {
     assert.match(billing, /RESERVED_EMAIL_DOMAINS/);
 });
 
-test("16. 到期前三天只建立一次通知", () => {
-    assert.match(notifications, /setUTCDate\(target\.getUTCDate\(\) \+ 3\)/);
+test("16. 到期前 30、7、3、1 天各建立一次通知", () => {
+    assert.match(notifications, /EXPIRY_REMINDER_DAYS = \[30, 7, 3, 1\]/);
+    assert.match(notifications, /EXPIRY_REMINDER_DAYS\.map/);
     assert.match(migration, /event_key text not null unique/);
     assert.match(notifications, /ignoreDuplicates: true/);
     assert.match(notifications, /verify_guardian_cron_secret/);
@@ -150,10 +151,18 @@ test("18. 逐字稿依教材權限限制且預設關閉", () => {
 });
 
 test("19. 學生、老師、管理員直接路由存取均正確", () => {
-    assert.match(routes, /path="\/materials"/);
+    assert.match(routes, /path="\/materials" element=\{<Navigate to="\/shop" replace \/>\}/);
     assert.match(routes, /path="\/teacher\/class-materials".*allowedRoles=\{\["teacher", "admin"\]\}/);
     assert.match(routes, /path="\/admin\/material-packages".*allowedRoles=\{\["admin"\]\}/);
     assert.match(routes, /path="\/admin\/student-lifecycle".*allowedRoles=\{\["admin"\]\}/);
+});
+
+test("19.1 商城訂單只能由已驗證的同 Email 學習帳號領取", () => {
+    assert.match(membership, /const claimVerifiedStoreOrders/);
+    assert.match(membership, /firebaseUser\.emailVerified !== true/);
+    assert.match(membership, /claim_paid_store_orders_for_student/);
+    assert.match(membership, /if \(claimedStoreOrders > 0\) caller = await findCaller/);
+    assert.match(membership, /請先完成 Email 驗證，再綁定既有 Alan English 帳號/);
 });
 
 test("20. RLS、安全後端與 Production build 契約完整", () => {

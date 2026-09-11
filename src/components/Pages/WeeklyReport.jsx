@@ -250,8 +250,8 @@ const WeeklyReport = () => {
 
                 <header className={`weekly-report-hero weekly-report-hero--${report.status.code}`}>
                     <div className="weekly-report-hero__copy">
-                        <span className="weekly-report-kicker"><FiBarChart2 /> WEEKLY GROWTH REPORT</span>
-                        <h1>{report.student.name} 的每週成長報告</h1>
+                        <span className="weekly-report-kicker"><FiBarChart2 /> PARENT LEARNING REPORT</span>
+                        <h1>{report.student.name} 的家長學習報告</h1>
                         <div className="weekly-report-week-picker">
                             <button
                                 type="button"

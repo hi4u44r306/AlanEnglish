@@ -229,17 +229,21 @@ Deno.serve(async (req: Request) => {
         };
 
         if (action === "summary") {
-            const [{ data: balance, error: balanceError }, { data: ledger, error: ledgerError }] = await Promise.all([
+            const [{ data: balance, error: balanceError }, { data: ledger, error: ledgerError }, { data: socialProfile, error: socialProfileError }] = await Promise.all([
                 admin.from("student_gamification_balances").select("student_id,total_xp,points_balance,updated_at").eq("student_id", student.id).maybeSingle(),
-                admin.from("student_gamification_ledger").select("id,xp_delta,points_delta,source_type,description,created_at").eq("student_id", student.id).order("created_at", { ascending: false }).limit(12)
+                admin.from("student_gamification_ledger").select("id,xp_delta,points_delta,source_type,description,created_at").eq("student_id", student.id).order("created_at", { ascending: false }).limit(12),
+                student.role === "student"
+                    ? admin.from("student_social_profiles").select("nickname").eq("student_id", student.id).maybeSingle()
+                    : Promise.resolve({ data: null, error: null })
             ]);
-            if (balanceError || ledgerError) throw balanceError || ledgerError;
+            if (balanceError || ledgerError || socialProfileError) throw balanceError || ledgerError || socialProfileError;
             const totalXp = Number(balance?.total_xp || 0);
             return json(200, {
                 success: true,
                 profile: {
                     id: student.id,
                     name: student.english_name || student.name,
+                    nickname: socialProfile?.nickname || null,
                     class: student.class,
                     avatar_url: await signedImage(admin, AVATAR_BUCKET, student.user_image, 3600)
                 },
@@ -288,8 +292,15 @@ Deno.serve(async (req: Request) => {
                 p_limit: 100
             });
             if (error) throw error;
+            const studentIds = [...new Set((rows || []).map((row: any) => Number(row.student_id)).filter(Boolean))];
+            const { data: socialProfiles, error: socialProfilesError } = studentIds.length
+                ? await admin.from("student_social_profiles").select("student_id,nickname").in("student_id", studentIds)
+                : { data: [], error: null };
+            if (socialProfilesError) throw socialProfilesError;
+            const nicknameByStudentId = new Map((socialProfiles || []).map((profile: any) => [Number(profile.student_id), profile.nickname]));
             const leaderboard = await Promise.all((rows || []).map(async (row: any) => ({
                 ...row,
+                nickname: nicknameByStudentId.get(Number(row.student_id)) || null,
                 avatar_url: await signedImage(admin, AVATAR_BUCKET, row.avatar_path, 3600),
                 level: getLevelInfo(row.total_xp).level,
                 is_current_user: Number(row.student_id) === Number(student.id)

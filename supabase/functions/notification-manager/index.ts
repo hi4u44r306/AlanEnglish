@@ -21,6 +21,7 @@ const adminClient = () => {
 };
 
 type DueEvent = { key: string; studentId: number; type: string; title: string; body: string; effectiveAt: string | null };
+const EXPIRY_REMINDER_DAYS = [30, 7, 3, 1] as const;
 
 async function recordEvent(admin: any, event: DueEvent) {
     const { data, error } = await admin.from("notification_events").upsert({
@@ -51,28 +52,35 @@ async function recordEvent(admin: any, event: DueEvent) {
 }
 
 async function createDueEvents(admin: any) {
-    const target = new Date(); target.setUTCDate(target.getUTCDate() + 3);
-    const targetDay = target.toISOString().slice(0, 10);
-    const start = `${targetDay}T00:00:00.000Z`, end = `${targetDay}T23:59:59.999Z`;
-    const [material, subscriptions, departures, failed] = await Promise.all([
-        admin.from("student_access_grants").select("id,student_id,ends_at,subscription_plans(code,name)").eq("status", "active").gte("ends_at", start).lte("ends_at", end),
-        admin.from("student_access_grants").select("id,student_id,current_period_end,cancel_at_period_end,stripe_subscription_status,subscription_plans(code,name)").eq("status", "active").gte("current_period_end", start).lte("current_period_end", end),
-        admin.from("academy_enrollments").select("id,student_id,scheduled_departure_at").eq("scheduled_departure_at", targetDay).in("status", ["active", "paused"]),
-        admin.from("student_access_grants").select("id,student_id,current_period_end,subscription_plans(code,name)").eq("stripe_subscription_status", "past_due")
-    ]);
-    const firstError = [material.error, subscriptions.error, departures.error, failed.error].find(Boolean); if (firstError) throw firstError;
+    const windows = await Promise.all(EXPIRY_REMINDER_DAYS.map(async daysBefore => {
+        const target = new Date(); target.setUTCDate(target.getUTCDate() + daysBefore);
+        const targetDay = target.toISOString().slice(0, 10);
+        const start = `${targetDay}T00:00:00.000Z`, end = `${targetDay}T23:59:59.999Z`;
+        const [material, subscriptions, departures] = await Promise.all([
+            admin.from("student_access_grants").select("id,student_id,ends_at,subscription_plans(code,name)").eq("status", "active").gte("ends_at", start).lte("ends_at", end),
+            admin.from("student_access_grants").select("id,student_id,current_period_end,cancel_at_period_end,stripe_subscription_status,subscription_plans(code,name)").eq("status", "active").gte("current_period_end", start).lte("current_period_end", end),
+            admin.from("academy_enrollments").select("id,student_id,scheduled_departure_at").eq("scheduled_departure_at", targetDay).in("status", ["active", "paused"])
+        ]);
+        const firstError = [material.error, subscriptions.error, departures.error].find(Boolean); if (firstError) throw firstError;
+        return { daysBefore, targetDay, material: material.data || [], subscriptions: subscriptions.data || [], departures: departures.data || [] };
+    }));
+    const { data: failed, error: failedError } = await admin.from("student_access_grants").select("id,student_id,current_period_end,subscription_plans(code,name)").eq("stripe_subscription_status", "past_due");
+    if (failedError) throw failedError;
     const events: DueEvent[] = [];
-    for (const grant of material.data || []) {
-        const plan = Array.isArray(grant.subscription_plans) ? grant.subscription_plans[0] : grant.subscription_plans;
-        if (plan?.code !== "material_bonus_90_day") continue;
-        events.push({ key: `material:${grant.id}:expires:${targetDay}`, studentId: grant.student_id, type: "material_access_expiring", title: "教材附贈網站權限即將到期", body: "教材擁有權與學習紀錄會保留；網站使用權將於三天後到期，可選擇基本月費會員繼續使用已擁有教材。", effectiveAt: grant.ends_at });
+    for (const window of windows) {
+        const dayCopy = window.daysBefore === 1 ? "明天" : `${window.daysBefore} 天後`;
+        for (const grant of window.material) {
+            const plan = Array.isArray(grant.subscription_plans) ? grant.subscription_plans[0] : grant.subscription_plans;
+            if (plan?.code !== "material_bonus_90_day") continue;
+            events.push({ key: `material:${grant.id}:expires:${window.targetDay}`, studentId: grant.student_id, type: "material_access_expiring", title: "教材附贈網站權限即將到期", body: `教材擁有權與學習紀錄會保留；網站使用權將於${dayCopy}到期，可選擇基本月費會員繼續使用。`, effectiveAt: grant.ends_at });
+        }
+        for (const grant of window.subscriptions) {
+            const type = grant.cancel_at_period_end ? "subscription_cancelled" : "subscription_expiring";
+            events.push({ key: `subscription:${grant.id}:${type}:${window.targetDay}`, studentId: grant.student_id, type, title: grant.cancel_at_period_end ? "方案將於本期結束取消" : "方案即將續訂", body: grant.cancel_at_period_end ? `你仍可使用方案至本期結束，並可在${dayCopy}到期前恢復續訂。` : `方案將於${dayCopy}進入下一個付款週期。`, effectiveAt: grant.current_period_end });
+        }
+        for (const enrollment of window.departures) events.push({ key: `departure:${enrollment.id}:${window.targetDay}`, studentId: enrollment.student_id, type: "departure_scheduled", title: "預定離校提醒", body: `${dayCopy}將結束班級來源教材與新班級作業；自購、管理員贈送教材及歷史紀錄會保留。`, effectiveAt: `${window.targetDay}T00:00:00.000Z` });
     }
-    for (const grant of subscriptions.data || []) {
-        const type = grant.cancel_at_period_end ? "subscription_cancelled" : "subscription_expiring";
-        events.push({ key: `subscription:${grant.id}:${type}:${targetDay}`, studentId: grant.student_id, type, title: grant.cancel_at_period_end ? "方案將於本期結束取消" : "方案即將續訂", body: grant.cancel_at_period_end ? "你仍可使用方案至本期結束，並可在到期前恢復續訂。" : "方案將於三天後進入下一個付款週期。", effectiveAt: grant.current_period_end });
-    }
-    for (const enrollment of departures.data || []) events.push({ key: `departure:${enrollment.id}:${targetDay}`, studentId: enrollment.student_id, type: "departure_scheduled", title: "預定離校提醒", body: "三天後將結束班級來源教材與新班級作業；自購、管理員贈送教材及歷史紀錄會保留。", effectiveAt: `${targetDay}T00:00:00.000Z` });
-    for (const grant of failed.data || []) events.push({ key: `payment_failed:${grant.id}:${grant.current_period_end || "unknown"}`, studentId: grant.student_id, type: "payment_failed", title: "方案付款失敗", body: "請由家長至付款管理頁更新付款方式，避免方案在寬限期後到期。", effectiveAt: grant.current_period_end });
+    for (const grant of failed || []) events.push({ key: `payment_failed:${grant.id}:${grant.current_period_end || "unknown"}`, studentId: grant.student_id, type: "payment_failed", title: "方案付款失敗", body: "請由家長至付款管理頁更新付款方式，避免方案在寬限期後到期。", effectiveAt: grant.current_period_end });
     for (const event of events) await recordEvent(admin, event);
     return events.length;
 }

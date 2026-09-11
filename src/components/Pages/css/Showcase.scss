@@ -210,6 +210,27 @@
   margin-top: 32px;
 }
 
+.showcase-returning-login {
+  margin: 14px 0 0;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 700;
+
+  a {
+    color: #2455b5;
+    font-weight: 900;
+    text-decoration: underline;
+    text-decoration-color: rgba(36, 85, 181, 0.35);
+    text-underline-offset: 3px;
+
+    &:hover,
+    &:focus-visible {
+      color: #173d7d;
+      text-decoration-color: currentColor;
+    }
+  }
+}
+
 .showcase-trust-row {
   display: flex;
   flex-wrap: wrap;

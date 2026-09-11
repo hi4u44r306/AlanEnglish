@@ -199,7 +199,7 @@ Deno.serve(async (req: Request) => {
                     entitled: authorized,
                     locked: !staff && (!active || !listeningAllowed || !authorized || requiredRank > unlockedRank),
                     lock_reason: !active ? "membership_required" : !authorized ? "book_entitlement_required" : requiredRank > unlockedRank ? "level_locked" : null,
-                    acquisition: authorized ? null : book.content_scope === "trial" ? "/freetrial" : "/materials"
+                    acquisition: authorized ? null : book.content_scope === "trial" ? "/freetrial" : "/shop"
                 };
             }));
             return json(200, {
@@ -249,7 +249,7 @@ Deno.serve(async (req: Request) => {
                 return json(403, {
                     error: "尚未取得這本教材，請購買教材包或使用有效班級／贈送權限",
                     code: "book_entitlement_required",
-                    acquisition: normalizedBook.content_scope === "trial" ? "/freetrial" : "/materials"
+                    acquisition: normalizedBook.content_scope === "trial" ? "/freetrial" : "/shop"
                 });
             }
 
