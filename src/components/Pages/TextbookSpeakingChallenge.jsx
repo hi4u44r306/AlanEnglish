@@ -64,22 +64,32 @@ export default function TextbookSpeakingChallenge() {
 
     useEffect(() => {
         if (!firebaseUser) return;
+        let cancelled = false;
+        setError("");
+        if (questionSetId) {
+            setActiveQuestionIndex(0);
+            setChallenge(null);
+        }
         const load = async () => {
             try {
                 if (questionSetId) {
-                    setActiveQuestionIndex(0);
-                    setChallenge((await getSpeakingChallengeSet(firebaseUser, Number(questionSetId))).challenge);
+                    const nextChallenge = (await getSpeakingChallengeSet(firebaseUser, Number(questionSetId))).challenge;
+                    if (!cancelled) setChallenge(nextChallenge);
                 }
                 else {
                     setCatalogLoading(true);
-                    setCatalog((await getSpeakingChallengeCatalog(firebaseUser)).challenges || []);
+                    const nextCatalog = (await getSpeakingChallengeCatalog(firebaseUser)).challenges || [];
+                    if (!cancelled) setCatalog(nextCatalog);
                 }
-            } catch (loadError) { setError(loadError.message || "口說大挑戰載入失敗"); }
+            } catch (loadError) {
+                if (!cancelled) setError(loadError.message || "口說大挑戰載入失敗");
+            }
             finally {
-                if (!questionSetId) setCatalogLoading(false);
+                if (!cancelled && !questionSetId) setCatalogLoading(false);
             }
         };
         load();
+        return () => { cancelled = true; };
     }, [firebaseUser, questionSetId]);
 
     const markComplete = async question => {
