@@ -2,9 +2,9 @@
 
 最後更新：2026-09-11
 
-本次進行中（2026-09-11，本機開發完成，待隔離部署）：
+本次進行中（2026-09-11，第一階段已部署測試站驗收）：
 
-- 「教材頁碼螺旋複習」第一階段已在 `codex/spiral-review-stage1` 完成本機實作，尚未套用 migration、部署 Edge Function 或發布前端：老師／管理員可在 `/teacher/spiral-review` 選自己獲授權的班級、該班目前生效的正式教材、頁碼與開始日，以每行「英文｜中文｜例句」建立 6～80 張複習卡；學生由 `/student/spiral-review` 聽英文後從同範圍隨機 5～6 張卡選答。新增五張私有 RLS 資料表與原子作答 RPC；同一 request key 以唯一鍵及 transaction advisory lock 防重複，答錯固定隔日重現，答對依 1／3／7／14／30 日遞進，所有外鍵及主要查詢路徑均建立索引。Edge Function 重新驗證 Firebase 身分、有效在學班級、老師班級權限與班級目前教材。第一階段暫用瀏覽器 `en-US` 語音；Google TTS 快取、圖片字卡、全書教材匯入、老師進度報表、Level 2 跟念及 Level 3 問答仍屬後續。契約 3／3、頁面與 Navbar React tests 12／12、Edge 語法、Production build 及 `git diff --check` 均成功。此批是新 schema 與學習紀錄，必須先隔離套用與雙帳號驗收，再取得正式部署同意。
+- 「教材頁碼螺旋複習」第一階段已在 `codex/spiral-review-stage1` 完成並推送，PR #109 已建立；老師／管理員可在 `/teacher/spiral-review` 選自己獲授權的班級、該班目前生效的正式教材、頁碼與開始日，以每行「英文｜中文｜例句」建立 6～80 張複習卡；學生由 `/student/spiral-review` 聽英文後從同範圍隨機 5～6 張卡選答。Additive migration `20260911013350_spiral_review_stage1.sql` 已經使用者明確同意套用共用 Supabase 並補登 history；5／5 新表啟用 RLS，公開角色表權限為 0，原子作答 RPC 僅 `service_role` 可執行。`spiral-review` v1 為 ACTIVE，測試站 Origin 的 OPTIONS 200、未登入 POST 401。固定測試站 deploy `6aa3672ef36c272caa97bfea` 已發布。第一階段暫用瀏覽器 `en-US` 語音；Google TTS 快取、圖片字卡、全書教材匯入、老師進度報表、Level 2 跟念及 Level 3 問答仍屬後續。契約 3／3、頁面與 Navbar React tests 12／12、Edge 語法及 Production build 均成功；尚待老師與學生兩種帳號完成建立複習、作答、防重複與隔日重現驗收，驗收後才合併 `main` 與部署正式站。
 
 - `speaking-challenge` 已依管理員確認部署至共用正式 Supabase，函式為 ACTIVE v14。老師與管理員現在可唯讀載入已發布的口說題庫與 15 分鐘示範語音，頁面明示「示範模式」且不查詢學生進度；錄音、評分、完成紀錄、獎勵與私人錄音仍由後端拒絕寫入。以已登入管理員實測可讀取 Workbook 1／2 共五個小關卡，未登入 `catalog` POST 仍為 HTTP 401。前端整合版本仍在 PR #108，尚未合併至 `main`。
 
