@@ -1,7 +1,7 @@
 import React from "react";
 
 const Flag = ({ value }) => {
-    if (value === "taiwan") return <span className="speaking-visual-aid__flag" role="img" aria-label="台灣國旗">🇹🇼</span>;
+    if (value === "taiwan") return <svg viewBox="0 0 900 600" aria-hidden="true"><rect width="900" height="600" fill="#fe0000" /><rect width="450" height="300" fill="#000095" /><g transform="translate(225 150)" fill="#fff">{Array.from({ length: 12 }, (_, index) => <path key={index} d="M0-112 15-64-15-64Z" transform={`rotate(${index * 30})`} />)}<circle r="58" /></g></svg>;
     if (value === "japan") return <svg viewBox="0 0 240 150" aria-hidden="true"><rect width="240" height="150" fill="#fffdf8" /><circle cx="120" cy="75" r="39" fill="#d94b49" /></svg>;
     if (value === "france") return <svg viewBox="0 0 240 150" aria-hidden="true"><rect width="80" height="150" fill="#2653a3" /><rect x="80" width="80" height="150" fill="#fffdf8" /><rect x="160" width="80" height="150" fill="#e64b4a" /></svg>;
     if (value === "england") return <svg viewBox="0 0 240 150" aria-hidden="true"><rect width="240" height="150" fill="#f9fbff" /><path d="M120 0v150M0 75h240" stroke="#d84445" strokeWidth="26" /></svg>;
