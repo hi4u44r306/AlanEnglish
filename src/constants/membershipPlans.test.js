@@ -46,11 +46,11 @@ describe("getPrimaryAccessPlanLabel", () => {
 });
 
 describe("hasAiPremiumAccess", () => {
-    it("recognizes AI and pronunciation included with an academy plan", () => {
+    it("does not label academy-included AI features as a paid Premium add-on", () => {
         expect(hasAiPremiumAccess({
             plan_codes: ["academy_internal"],
             features: { ai_materials: true, pronunciation: true }
-        })).toBe(true);
+        })).toBe(false);
     });
 
     it("keeps legacy AI add-on responses compatible", () => {

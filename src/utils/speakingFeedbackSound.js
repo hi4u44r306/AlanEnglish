@@ -3,8 +3,8 @@ let feedbackAudioContext = null;
 const AUDIO_CONTEXT = () => window.AudioContext || window.webkitAudioContext;
 const PATTERNS = {
     good: [[523.25, 0], [659.25, 0.11], [783.99, 0.22]],
-    practice: [[440, 0], [523.25, 0.14]],
-    retry: [[392, 0], [349.23, 0.16]]
+    practice: [[440, 0], [523.25, 0.16]],
+    retry: [[392, 0], [329.63, 0.18]]
 };
 
 export const prepareSpeakingFeedbackSound = () => {
@@ -31,7 +31,7 @@ export const playSpeakingFeedbackSound = tone => {
         oscillator.type = "sine";
         oscillator.frequency.setValueAtTime(frequency, noteStart);
         gain.gain.setValueAtTime(0.0001, noteStart);
-        gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.055 : 0.045, noteStart + 0.025);
+        gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.11 : 0.085, noteStart + 0.025);
         gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + duration);
         oscillator.connect(gain);
         gain.connect(context.destination);

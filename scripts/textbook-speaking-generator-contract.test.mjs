@@ -7,9 +7,11 @@ const migration = read("supabase/migrations/20260903152751_textbook_speaking_que
 const ocrMigration = read("supabase/migrations/20260904005001_textbook_speaking_ocr_pipeline.sql");
 const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_book_ocr_batches.sql");
 const wholeBookSizeMigration = read("supabase/migrations/20260904030633_allow_whole_book_document_size.sql");
+const dialogueMigration = read("supabase/migrations/20260907073127_speaking_question_prompts_and_stage_intro.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
+const workbookOneSpeaking = read("supabase/functions/_shared/workbook-one-speaking.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -112,7 +114,31 @@ test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管�
     assert.match(service, /createWorkbookOneStarterQuestionSet/);
     assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
     assert.match(adminPage, /預覽學生畫面/);
-    assert.match(adminPage, /核准、發布並產生語音/);
+    assert.match(adminPage, /核准、發布並產生問題與回答語音/);
+});
+
+test("11a. Workbook 1 第二關由教材頁面建立打招呼與禮貌對話草稿", () => {
+    assert.match(manager, /create_workbook_1_greetings/);
+    assert.match(manager, /workbook_1_greetings_polite_v1/);
+    assert.match(manager, /02 打招呼與禮貌對話/);
+    assert.match(manager, /Good morning! How are you today\?/);
+    assert.match(manager, /Goodbye\. See you\./);
+    assert.match(service, /createWorkbookOneGreetingsQuestionSet/);
+    assert.match(adminPage, /建立關卡 02 草稿/);
+});
+
+test("11b. Workbook 1 後續八關涵蓋教材核心口說主題且維持人工草稿流程", () => {
+    for (const action of ["colors", "numbers", "time", "body", "family", "yes_no", "places", "review"]) {
+        assert.match(workbookOneSpeaking, new RegExp(`create_workbook_1_${action}`));
+    }
+    for (const topic of ["顏色與生活物品", "數字與簡單算術", "時間與我的一天", "我的身體部位", "家人與人物介紹", "Yes／No 與縮寫回答", "東西在哪裡？", "問句與總複習"]) {
+        assert.match(workbookOneSpeaking, new RegExp(topic.replace(/[？／]/g, ".")));
+    }
+    assert.match(workbookOneSpeaking, /title: `\$\{number\} \$\{topic\}`/);
+    assert.match(manager, /\.\.\.WORKBOOK_ONE_FOLLOWUP_TEMPLATES/);
+    assert.match(service, /createWorkbookOneCuratedQuestionSet/);
+    assert.match(adminPage, /Workbook 1 完整口說關卡/);
+    assert.match(adminPage, /描寫格、空白格、未核對圖片與歌曲不會直接變成題目/);
 });
 
 test("12. Workbook 2 精選大關卡依教師版內容建立，仍需管理員預覽發布", () => {
@@ -134,4 +160,17 @@ test("13. 示範語音固定男女聲交錯並可由管理員安全預覽", () =
     assert.match(service, /getSpeakingQuestionAudioPreview/);
     assert.match(adminPage, /女聲 · Autonoe/);
     assert.match(adminPage, /男聲 · Puck/);
+});
+
+test("14. 大關卡有外部情境與學習目標，並分別保存問題與回答語音", () => {
+    assert.match(dialogueMigration, /add column if not exists intro_zh text/);
+    assert.match(dialogueMigration, /add column if not exists learning_goal_zh text/);
+    assert.match(dialogueMigration, /primary key \(question_id, purpose\)/);
+    assert.match(dialogueMigration, /'question_prompt', 'model_answer'/);
+    assert.match(manager, /intro_zh:/);
+    assert.match(manager, /learning_goal_zh:/);
+    assert.match(ttsManager, /questionPromptText/);
+    assert.match(ttsManager, /onConflict: "question_id,purpose"/);
+    assert.match(adminPage, /問題 ·/);
+    assert.match(adminPage, /回答 ·/);
 });

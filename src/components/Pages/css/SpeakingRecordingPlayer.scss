@@ -1,0 +1,49 @@
+.speaking-recording-player {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cddcf0;
+  border-radius: 18px;
+  background: #fff;
+  color: #17305b;
+  box-shadow: 0 9px 24px rgba(20, 48, 91, .08);
+}
+.speaking-recording-player audio { display: none; }
+.speaking-recording-player__toggle {
+  display: grid !important;
+  place-items: center;
+  width: 48px !important;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #245eb3 !important;
+  color: #fff !important;
+  box-shadow: 0 7px 16px rgba(36, 94, 179, .22);
+}
+.speaking-recording-player__toggle svg { width: 20px; height: 20px; }
+.speaking-recording-player__body { display: grid; gap: 8px; min-width: 0; }
+.speaking-recording-player__body > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.speaking-recording-player__body strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.speaking-recording-player__body span { flex: 0 0 auto; color: #74829a; font-size: 11px; }
+.speaking-recording-player__body input {
+  width: 100%;
+  height: 5px;
+  margin: 0;
+  accent-color: #245eb3;
+  cursor: pointer;
+}
+.speaking-recording-player__time { display: flex; align-items: center; gap: 5px; color: #687790; font-size: 12px; white-space: nowrap; }
+.speaking-recording-player__time svg { color: #245eb3; }
+
+@media (max-width: 520px) {
+  .speaking-recording-player { grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 10px 11px; border-radius: 15px; }
+  .speaking-recording-player__toggle { width: 44px !important; min-width: 44px; height: 44px; min-height: 44px !important; }
+  .speaking-recording-player__body > div { align-items: flex-start; flex-direction: column; gap: 1px; }
+  .speaking-recording-player__time { grid-column: 2; justify-self: end; margin-top: -4px; }
+}

@@ -46,12 +46,18 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
                     <Brand />
                 </Navbar.Brand>
 
-                <Navbar.Toggle
-                    className="showcase-navbar-toggle"
-                    aria-controls="showcase-navbar-offcanvas"
-                >
-                    <img src={Menu} alt="開啟選單" />
-                </Navbar.Toggle>
+                <div className="showcase-navbar-mobile-actions">
+                    <Link className="showcase-navbar-mobile-login" to="/login">
+                        <BiLogIn aria-hidden="true" />
+                        <span>登入</span>
+                    </Link>
+                    <Navbar.Toggle
+                        className="showcase-navbar-toggle"
+                        aria-controls="showcase-navbar-offcanvas"
+                    >
+                        <img src={Menu} alt="開啟選單" />
+                    </Navbar.Toggle>
+                </div>
 
                 <Navbar.Offcanvas
                     id="showcase-navbar-offcanvas"

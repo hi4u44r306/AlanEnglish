@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AcademyStudentSetup from "./AcademyStudentSetup";
-import { activateStudentLogin, previewStudentActivation } from "../../services/academyStudentService";
+import { activateStudentLogin, previewStudentActivation, recoverStudentLogin } from "../../services/academyStudentService";
 
 jest.mock("../../services/academyStudentService", () => ({
     activateStudentLogin: jest.fn(),
@@ -87,5 +87,28 @@ describe("AcademyStudentSetup", () => {
 
         expect(await screen.findByRole("alert")).toHaveTextContent("請輸入學生英文姓名");
         expect(activateStudentLogin).not.toHaveBeenCalled();
+    });
+
+    it("uses a six-digit recovery code to set a new password", async () => {
+        recoverStudentLogin.mockResolvedValue({ username: "alanwang01" });
+
+        render(
+            <MemoryRouter initialEntries={["/academy/recover"]}>
+                <Routes>
+                    <Route path="/academy/recover" element={<AcademyStudentSetup recoveryOnly />} />
+                    <Route path="/login" element={<p>已前往登入</p>} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        expect(screen.getByLabelText("6 位數一次性復原碼")).toHaveAttribute("inputmode", "numeric");
+        fireEvent.change(screen.getByLabelText("登入帳號"), { target: { value: "alanwang01" } });
+        fireEvent.change(screen.getByLabelText("6 位數一次性復原碼"), { target: { value: "123456" } });
+        fireEvent.change(screen.getByLabelText("新的登入密碼"), { target: { value: "green7" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次"), { target: { value: "green7" } });
+        fireEvent.click(screen.getByRole("button", { name: "使用復原碼設定新密碼" }));
+
+        await waitFor(() => expect(recoverStudentLogin).toHaveBeenCalledWith("alanwang01", "123456", "green7"));
+        expect(await screen.findByText("已前往登入")).toBeInTheDocument();
     });
 });

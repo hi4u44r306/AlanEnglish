@@ -1,9 +1,18 @@
-import { submitPronunciationAttempt, submitSpeakingPronunciationAttempt } from "./pronunciationCoachService";
+import {
+    deleteSpeakingRecording,
+    getSpeakingLearningSummary,
+    getSpeakingRecordingHistory,
+    getSpeakingRecordingUrl,
+    submitPronunciationAttempt,
+    submitSpeakingPronunciationAttempt
+} from "./pronunciationCoachService";
+import { callEdgeFunction } from "./edgeFunctionClient";
 
 jest.mock("../components/Pages/supabase-config", () => ({
     supabaseUrl: "https://project.example.test",
     supabaseKey: "public-anon-key"
 }));
+jest.mock("./edgeFunctionClient", () => ({ callEdgeFunction: jest.fn() }));
 
 describe("submitPronunciationAttempt", () => {
     beforeEach(() => {
@@ -80,5 +89,24 @@ describe("submitPronunciationAttempt", () => {
         expect(body.get("lesson_id")).toBeNull();
         expect(body.get("reference_text")).toBeNull();
         expect(body.get("slot_values")).toBeNull();
+    });
+
+    it("所有私人歷程操作都由 Firebase 驗證的發音服務處理", async () => {
+        const firebaseUser = { uid: "student" };
+        callEdgeFunction.mockResolvedValue({ success: true });
+
+        await getSpeakingLearningSummary(firebaseUser);
+        await getSpeakingRecordingHistory(firebaseUser);
+        await getSpeakingRecordingHistory(firebaseUser, 24);
+        await getSpeakingRecordingUrl(firebaseUser, 8);
+        await deleteSpeakingRecording(firebaseUser, 8);
+
+        expect(callEdgeFunction.mock.calls.map(call => [call[0], call[2]])).toEqual([
+            ["pronunciation-coach", { action: "learning_summary" }],
+            ["pronunciation-coach", { action: "recording_history" }],
+            ["pronunciation-coach", { action: "recording_history", before_id: 24 }],
+            ["pronunciation-coach", { action: "recording_url", attempt_id: 8 }],
+            ["pronunciation-coach", { action: "delete_recording", attempt_id: 8 }]
+        ]);
     });
 });

@@ -18,9 +18,15 @@ function Login() {
     const loginAttemptRef = useRef(false);
     const accountActivated = new URLSearchParams(location.search).get("activated") === "1";
     const requestedLocation = location.state?.from;
+    const requestedQueryPath = new URLSearchParams(location.search).get("next");
+    const safeQueryPath = requestedQueryPath
+        && requestedQueryPath.startsWith("/")
+        && !requestedQueryPath.startsWith("//")
+        ? requestedQueryPath
+        : null;
     const destination = requestedLocation
         ? `${requestedLocation.pathname || ""}${requestedLocation.search || ""}`
-        : "/userinfo";
+        : safeQueryPath || "/userinfo";
 
     useEffect(() => {
         if (

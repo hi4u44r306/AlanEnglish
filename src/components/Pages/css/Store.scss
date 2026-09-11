@@ -63,3 +63,20 @@
   .store-header .commerce-site-brand .brand{font-size:15px!important}
   .store-brand-context{font-size:12px}
 }
+
+.store-learning-access{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:8px;padding:16px;border:1px solid #f0cf68;border-radius:16px;color:#604800;background:#fff8dc;text-align:left}
+.store-learning-access>svg{font-size:24px;color:#b47700}
+.store-learning-access>div{display:grid;gap:4px}
+.store-learning-access span{color:#6c5a2d;font-size:13px;line-height:1.55}
+.store-learning-access>a{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 15px;border-radius:12px;color:#fff;background:#214b92;font-weight:900;text-decoration:none}
+.store-learning-access.is-claimed{border-color:#8fd3b2;color:#075f40;background:#eaf9f1}
+.store-learning-access.is-claimed>svg{color:#11845b}
+.store-learning-access.is-claimed span{color:#39725d}
+.store-order-list .store-learning-access{margin:0;border-right:0;border-left:0;border-radius:0;padding:16px 22px}
+.store-learning-signup{padding-top:calc(96px + env(safe-area-inset-top))}
+
+@media(max-width:560px){
+  .store-learning-access{grid-template-columns:auto minmax(0,1fr)}
+  .store-learning-access>a{grid-column:1/-1}
+  .store-learning-signup{padding-top:calc(78px + env(safe-area-inset-top))}
+}

@@ -21,8 +21,10 @@ import AccountManagement from "../components/Pages/AccountManagement";
 import AcademyStudentCsvImport from "../components/Pages/AcademyStudentCsvImport";
 import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
 import ConversationPractice from "../components/Pages/ConversationPractice";
-import PronunciationCoach from "../components/Pages/PronunciationCoach";
 import TextbookSpeakingChallenge from "../components/Pages/TextbookSpeakingChallenge";
+import SpeakingLearningHistory from "../components/Pages/SpeakingLearningHistory";
+import StudentSpiralReview from "../components/Pages/StudentSpiralReview";
+import TeacherSpiralReview from "../components/Pages/TeacherSpiralReview";
 import TeacherAssignments from "../components/Pages/TeacherAssignments";
 import StudentAssignments from "../components/Pages/StudentAssignments";
 import ReviewCenter from "../components/Pages/ReviewCenter";
@@ -44,7 +46,7 @@ import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
 import StudentNotifications from "../components/Pages/StudentNotifications";
-import MaterialCatalog from "../components/Pages/MaterialCatalog";
+import StudentFriends from "../components/Pages/StudentFriends";
 import StoreCatalog from "../components/Pages/StoreCatalog";
 import StoreSalesPaused from "../components/Pages/StoreSalesPaused";
 import { PUBLIC_MATERIAL_SALES_ENABLED } from "../constants/commerceAvailability";
@@ -129,7 +131,7 @@ const App = () => {
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/" replace />} />
                     <Route path="/freetrial" element={<FreeTrialSignup />} />
-                    <Route path="/materials" element={<MaterialCatalog />} />
+                    <Route path="/materials" element={<Navigate to="/shop" replace />} />
                     <Route path="/shop" element={<StoreCatalog />} />
                     <Route path="/shop/cart" element={PUBLIC_MATERIAL_SALES_ENABLED ? <StoreCart /> : <StoreSalesPaused />} />
                     <Route path="/shop/login" element={<StoreAuthPage />} />
@@ -141,21 +143,25 @@ const App = () => {
                     <Route path="/shop/orders" element={<StoreOrders />} />
                     <Route path="/shop/orders/:orderNumber" element={<StoreOrders />} />
                     <Route path="/shop/payment/success" element={<StorePaymentResult />} />
+                    <Route path="/shop/activate-learning" element={<FreeTrialSignup purchaseActivation />} />
 
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/spiral-review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentSpiralReview /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><MembershipCenter /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/settings" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentSettings /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentNotifications /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/friends" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentFriends /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/level" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLevel /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><Rewards /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/pronunciation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><PronunciationCoach /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/pronunciation" element={<Navigate to="/student/speaking-challenges" replace />} />
+                    <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/speaking-history" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><Containerfull><SpeakingLearningHistory /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
                     <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><BillingResult /></Containerfull></ProtectedRoute>} />
@@ -165,6 +171,7 @@ const App = () => {
                     <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><ManagementDashboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/assignments" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><TeacherAssignments /></Containerfull></ProtectedRoute>} />
+                    <Route path="/teacher/spiral-review" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><TeacherSpiralReview /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/accounts" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AccountManagement /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/accounts/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><Signup /></Containerfull></ProtectedRoute>} />
                     <Route path="/teacher/music/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Containerfull><AddMusic /></Containerfull></ProtectedRoute>} />

@@ -4,11 +4,12 @@ import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import StudentNotifications from "./StudentNotifications";
 import { useAuth } from "../../auth/AuthContext";
-import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
+import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({
     getStudentNotifications: jest.fn(),
+    markAllStudentNotificationsRead: jest.fn(),
     markStudentNotificationRead: jest.fn()
 }));
 
@@ -31,6 +32,7 @@ describe("StudentNotifications", () => {
                 next_before: null
             });
         markStudentNotificationRead.mockResolvedValue({ success: true });
+        markAllStudentNotificationsRead.mockResolvedValue({ success: true });
     });
 
     it("shows all loaded notifications, marks one read, and loads earlier notifications", async () => {
@@ -50,5 +52,19 @@ describe("StudentNotifications", () => {
             { limit: 30, before: "2026-08-25T03:00:00.000Z" }
         ));
         expect(await screen.findByText("較早通知")).toBeInTheDocument();
+    });
+
+    it("announces read notifications so the navbar badge updates immediately", async () => {
+        const readEvents = [];
+        const listener = event => readEvents.push(event.detail.notificationIds);
+        window.addEventListener("ae:notifications-read", listener);
+        render(<MemoryRouter><StudentNotifications /></MemoryRouter>);
+
+        await screen.findByText("作業提醒");
+        fireEvent.click(screen.getByRole("button", { name: "全部標示已讀" }));
+
+        await waitFor(() => expect(markAllStudentNotificationsRead).toHaveBeenCalledWith({ uid: "student-1" }));
+        expect(readEvents).toContain("all");
+        window.removeEventListener("ae:notifications-read", listener);
     });
 });

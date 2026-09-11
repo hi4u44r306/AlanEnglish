@@ -17,6 +17,17 @@ const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
 const FIREBASE_JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+const taipeiDayBounds = () => {
+  const dateKey = new Date(Date.now() + TAIPEI_OFFSET_MS).toISOString().slice(0, 10);
+  const startAt = new Date(`${dateKey}T00:00:00+08:00`);
+  return {
+    startAt: startAt.toISOString(),
+    endAt: new Date(startAt.getTime() + DAY_MS).toISOString()
+  };
+};
 
 async function verifyFirebaseIdToken(token: string) {
   const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
@@ -352,6 +363,18 @@ Deno.serve(async (req: Request) => {
       const subject = `Alan English 學習提醒｜${student.name}`;
       const message = `${guardian.guardian_name ? `${guardian.guardian_name} 您好：\n\n` : "您好：\n\n"}${student.name} 最近已經 ${daysText} 沒有完成 Alan English 英文練習。建議今天花 5～10 分鐘完成一次聽力或英文口說練習，保持英文學習習慣。\n\n— Alan English`;
 
+      const dayBounds = taipeiDayBounds();
+      const { data: sentToday, error: sentTodayError } = await admin
+        .from("notification_logs")
+        .select("id")
+        .eq("student_id", studentId)
+        .eq("reason", "inactive-learning")
+        .eq("status", "sent")
+        .gte("sent_at", dayBounds.startAt)
+        .lt("sent_at", dayBounds.endAt)
+        .limit(1);
+      if (sentTodayError) return json(500, { error: "讀取今日寄送紀錄失敗" });
+
       const { data: log, error } = await admin
         .from("notification_logs")
         .insert({
@@ -377,6 +400,7 @@ Deno.serve(async (req: Request) => {
           subject,
           message,
           status: log.status,
+          already_sent_today: (sentToday || []).length > 0,
           created_at: log.created_at
         }
       });

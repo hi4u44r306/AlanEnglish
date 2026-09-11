@@ -82,7 +82,7 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
                 <span className="platform-eyebrow">ACADEMY STUDENT LOGIN</span>
                 <h1>{recoveryOnly ? "使用復原碼設定新密碼" : "設定學生登入密碼"}</h1>
                 <p>{recoveryOnly
-                    ? "輸入登入卡上的帳號與其中一組未使用的復原碼。每組復原碼只能使用一次。"
+                    ? "輸入登入卡上的帳號與其中一組未使用的 6 位數復原碼。每組復原碼只能使用一次。"
                     : `${preview?.student?.name || "同學"}，第一次登入前請先設定自己的密碼。`}</p>
                 <form className="platform-form" onSubmit={submit}>
                     <label>
@@ -90,8 +90,8 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
                         <input name="username" value={form.username} onChange={update} autoComplete="username" readOnly={!recoveryOnly && Boolean(preview)} required />
                     </label>
                     {recoveryOnly && <label>
-                        <span>一次性復原碼</span>
-                        <input name="recoveryCode" value={form.recoveryCode} onChange={update} placeholder="AE-XXXX-XXXX-XXXX" autoCapitalize="characters" autoComplete="off" required />
+                        <span>6 位數一次性復原碼</span>
+                        <input name="recoveryCode" value={form.recoveryCode} onChange={update} placeholder="123456" inputMode="numeric" autoComplete="one-time-code" required />
                     </label>}
                     {!recoveryOnly && <div className="platform-form-grid">
                         <label><span>中文姓名</span><input name="chineseName" value={form.chineseName} onChange={update} maxLength="100" autoComplete="name" required /></label>
@@ -107,7 +107,7 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
                     <button className="platform-primary" type="submit" disabled={submitting || (!recoveryOnly && !preview)}>{submitting ? "設定中…" : recoveryOnly ? "使用復原碼設定新密碼" : "完成啟用"}</button>
                 </form>
                 <p className="platform-footnote">{recoveryOnly
-                    ? <>復原碼也遺失了？請向授課老師申請新的登入卡。</>
+                    ? <>復原碼也遺失了？若仍能登入，請到「帳號與密碼」自行產生新碼；無法登入時請聯絡老師。</>
                     : <>已經啟用？ <Link to="/login">回到登入</Link></>}</p>
             </section>
         </main>

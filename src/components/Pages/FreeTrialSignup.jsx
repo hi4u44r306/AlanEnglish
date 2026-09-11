@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { browserLocalPersistence, createUserWithEmailAndPassword, setPersistence } from "firebase/auth";
 import { toast } from "react-toastify";
 import { authentication } from "./firebase-config";
@@ -8,6 +8,8 @@ import { saveStudentSession } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
 import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValidation";
 import { sendBrandedVerificationEmail } from "../../services/authEmailService";
+import { useStore } from "../../store/StoreContext";
+import StoreHeader from "./StoreHeader";
 import "./css/Platform.scss";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -29,9 +31,10 @@ const friendlyVerificationError = error => {
     return "驗證信寄送失敗，請稍後重新寄送。";
 };
 
-function FreeTrialSignup() {
+function FreeTrialSignup({ purchaseActivation = false }) {
     const navigate = useNavigate();
     const { firebaseUser } = useAuth();
+    const { user: storeUser, authLoading: storeAuthLoading } = useStore();
     const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", guardianName: "", guardianEmail: "", emailConfirmed: false });
     const [submitting, setSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -42,8 +45,15 @@ function FreeTrialSignup() {
     const [verificationNotice, setVerificationNotice] = useState(null);
 
     useEffect(() => {
-        if (firebaseUser && !firebaseUser.emailVerified) setVerificationUser(firebaseUser);
-    }, [firebaseUser]);
+        const sameStoreEmail = !purchaseActivation
+            || firebaseUser?.email?.toLowerCase() === storeUser?.email?.toLowerCase();
+        if (firebaseUser && !firebaseUser.emailVerified && sameStoreEmail) setVerificationUser(firebaseUser);
+    }, [firebaseUser, purchaseActivation, storeUser]);
+
+    useEffect(() => {
+        if (!purchaseActivation || !storeUser?.email) return;
+        setForm(current => ({ ...current, email: storeUser.email.toLowerCase() }));
+    }, [purchaseActivation, storeUser]);
 
     useEffect(() => {
         if (resendCooldown <= 0) return undefined;
@@ -67,7 +77,7 @@ function FreeTrialSignup() {
         setSendingVerification(true);
         setVerificationNotice(null);
         try {
-            await sendBrandedVerificationEmail(user);
+            await sendBrandedVerificationEmail(user, "/student/membership");
             setResendCooldown(RESEND_COOLDOWN_SECONDS);
             setVerificationNotice({ type: "success", text: "驗證信已寄出，請檢查收件匣、垃圾郵件與促銷內容。" });
             toast.success("驗證信已寄出");
@@ -103,13 +113,14 @@ function FreeTrialSignup() {
             const result = await completePublicSignup(credential.user, {
                 name: form.name.trim(),
                 guardian_name: form.guardianName.trim() || undefined,
-                guardian_email: form.guardianEmail.trim().toLowerCase() || undefined
+                guardian_email: form.guardianEmail.trim().toLowerCase() || undefined,
+                signup_context: purchaseActivation ? "store_purchase" : "free_trial"
             });
             saveStudentSession(credential.user, result.profile);
             if (result.email_verification_required) {
                 await sendVerification(credential.user);
             } else {
-                navigate("/student/dashboard", { replace: true });
+                navigate(purchaseActivation ? "/student/membership" : "/student/dashboard", { replace: true });
             }
         } catch (error) {
             console.error("免費試用註冊失敗:", error);
@@ -120,24 +131,30 @@ function FreeTrialSignup() {
         }
     };
 
+    if (purchaseActivation && !storeAuthLoading && !storeUser) {
+        return <Navigate to="/shop/login?next=%2Fshop%2Factivate-learning" replace />;
+    }
+
+    const withStoreHeader = content => purchaseActivation ? <><StoreHeader />{content}</> : content;
+
     if (verificationUser && !verificationUser.emailVerified) {
         const resendLabel = sendingVerification
             ? "寄送中…"
             : resendCooldown > 0
                 ? `${resendCooldown} 秒後可重新寄送`
                 : "重新寄送驗證信";
-        return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>請先驗證 Email</h1><p>驗證信會寄到 <strong>{verificationUser.email || form.email}</strong>。完成驗證後，7 天免費試用才會開始計時。</p>{verificationNotice && <div className={`platform-verification-notice ${verificationNotice.type}`} role="status" aria-live="polite">{verificationNotice.text}</div>}<div className="platform-verification-actions"><button className="platform-primary" type="button" onClick={() => sendVerification(verificationUser)} disabled={sendingVerification || resendCooldown > 0}>{resendLabel}</button><Link className="platform-secondary" to="/student/membership">前往會員中心</Link></div><p className="platform-footnote">仍未收到時，請搜尋 Alan English 寄件者，並檢查垃圾郵件或促銷內容。</p></section></main>;
+        return withStoreHeader(<main className={`platform-public${purchaseActivation ? " store-learning-signup" : ""}`}><section className="platform-public-card platform-center"><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>請先驗證 Email</h1><p>驗證信會寄到 <strong>{verificationUser.email || form.email}</strong>。{purchaseActivation ? "完成驗證並登入後，系統才會安全帶入已付款教材與 90 天平台權限。" : "完成驗證後，7 天免費試用才會開始計時。"}</p>{verificationNotice && <div className={`platform-verification-notice ${verificationNotice.type}`} role="status" aria-live="polite">{verificationNotice.text}</div>}<div className="platform-verification-actions"><button className="platform-primary" type="button" onClick={() => sendVerification(verificationUser)} disabled={sendingVerification || resendCooldown > 0}>{resendLabel}</button><Link className="platform-secondary" to="/student/membership">前往會員中心</Link></div><p className="platform-footnote">仍未收到時，請搜尋 Alan English 寄件者，並檢查垃圾郵件或促銷內容。</p></section></main>);
     }
 
-    return (
-        <main className="platform-public">
+    return withStoreHeader(
+        <main className={`platform-public${purchaseActivation ? " store-learning-signup" : ""}`}>
             <section className="platform-public-card">
-                <span className="platform-eyebrow">7-DAY FREE TRIAL</span>
-                <h1>免費體驗 Alan English</h1>
-                <p>建立學生帳號，完成 Email 驗證後立即開始 7 天全方位試用。網路購買教材的讀者也可先在這裡註冊，再到會員中心輸入教材兌換碼。</p>
+                <span className="platform-eyebrow">{purchaseActivation ? "LEARNING ACCOUNT" : "7-DAY FREE TRIAL"}</span>
+                <h1>{purchaseActivation ? "開通教材學習帳號" : "免費體驗 Alan English"}</h1>
+                <p>{purchaseActivation ? "請使用與商城相同的 Email 建立學習帳號。完成 Email 驗證後，後端會核對已付款訂單並一次帶入三本教材與 90 天平台權限。" : "建立學生帳號，完成 Email 驗證後立即開始 7 天全方位試用。"}</p>
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>學生姓名</span><input name="name" value={form.name} onChange={update} maxLength="80" autoComplete="name" required /></label>
-                    <label><span>登入與收信 Email</span><input name="email" type="email" value={form.email} onChange={update} placeholder="name@gmail.com" autoComplete="email" aria-label="登入與收信 Email" aria-invalid={errorField === "email"} aria-describedby="free-trial-email-help" required /><small id="free-trial-email-help">{RECEIVABLE_EMAIL_HELP}</small></label>
+                    <label><span>登入與收信 Email</span><input name="email" type="email" value={form.email} onChange={update} readOnly={purchaseActivation} placeholder="name@gmail.com" autoComplete="email" aria-label="登入與收信 Email" aria-invalid={errorField === "email"} aria-describedby="free-trial-email-help" required /><small id="free-trial-email-help">{purchaseActivation ? "為保護已付款訂單，必須與商城帳號 Email 完全相同。" : RECEIVABLE_EMAIL_HELP}</small></label>
                     <div className="platform-form-grid">
                         <label><span>密碼</span><input name="password" type="password" value={form.password} onChange={update} minLength="8" autoComplete="new-password" required /></label>
                         <label><span>再次輸入密碼</span><input name="confirmPassword" type="password" value={form.confirmPassword} onChange={update} minLength="8" autoComplete="new-password" required /></label>
@@ -148,9 +165,9 @@ function FreeTrialSignup() {
                         <label><span>家長 Email（選填）</span><input name="guardianEmail" type="email" value={form.guardianEmail} onChange={update} /></label>
                     </div>
                     {errorMessage && <div id="free-trial-error" className="platform-form-error" role="alert" aria-live="assertive"><strong>無法建立帳號</strong><span>{errorMessage}</span>{errorMessage.includes("已經註冊") && <Link to="/login">前往登入</Link>}</div>}
-                    <button className="platform-primary" type="submit" disabled={submitting}>{submitting ? "建立帳號中…" : "開始 7 天免費試用"}</button>
+                    <button className="platform-primary" type="submit" disabled={submitting || (purchaseActivation && storeAuthLoading)}>{submitting ? "建立帳號中…" : purchaseActivation ? "建立並驗證學習帳號" : "開始 7 天免費試用"}</button>
                 </form>
-                <p className="platform-footnote">已經有帳號？ <Link to="/login">回到登入</Link></p>
+                <p className="platform-footnote">已經有學習帳號？ <Link to={purchaseActivation ? "/login?next=/student/membership" : "/login"}>回到登入</Link></p>
             </section>
         </main>
     );
