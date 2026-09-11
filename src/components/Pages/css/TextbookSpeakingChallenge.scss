@@ -106,7 +106,6 @@
 .speaking-challenge-loading-status { grid-column: 1 / -1; color: #526884; font-weight: 800; }
 .speaking-focus-card .speaking-visual-aid { width: min(300px, 100%); margin: 0 auto; overflow: hidden; border: 1px solid #d9e4f2; border-radius: 16px; background: #fff; box-shadow: 0 8px 20px rgba(20, 47, 91, .08); }
 .speaking-focus-card .speaking-visual-aid svg { display: block; width: 100%; height: auto; }
-.speaking-focus-card .speaking-visual-aid__flag { display: grid; min-height: 150px; place-items: center; background: #f7faff; font-size: clamp(92px, 18vw, 132px); line-height: 1; }
 .speaking-focus-card .speaking-visual-aid figcaption { padding: 7px 10px; background: #f7faff; color: #536886; font-size: 12px; font-weight: 800; }
 
 .speaking-challenge-detail { padding-top: 96px; }

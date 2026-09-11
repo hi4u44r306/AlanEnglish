@@ -108,8 +108,10 @@ describe("TextbookSpeakingChallenge model audio", () => {
     });
 
     it("以真正的台灣國旗呈現台灣視覺提示", () => {
-        render(<SpeakingVisualAid aid={{ kind: "flag", value: "taiwan", alt_zh: "台灣國旗" }} />);
-        expect(screen.getByRole("img", { name: "台灣國旗" })).toHaveTextContent("🇹🇼");
+        const { container } = render(<SpeakingVisualAid aid={{ kind: "flag", value: "taiwan", alt_zh: "台灣國旗" }} />);
+        expect(screen.getByRole("figure", { name: "台灣國旗" })).toBeInTheDocument();
+        expect(container.querySelector('svg[viewBox="0 0 900 600"]')).toBeInTheDocument();
+        expect(container).not.toHaveTextContent("TW");
     });
 
     it("切換大挑戰時立即隱藏上一關內容", async () => {
