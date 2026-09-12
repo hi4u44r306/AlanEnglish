@@ -70,12 +70,12 @@ function LearningLeaderboard() {
     const currentClass = data?.class_code || classCode || studentProfile?.class || "";
 
     return (
-        <main className="gamification-page">
+        <main className={`gamification-page ${isStudent ? "gamification-page--student-ranking" : "gamification-page--staff-ranking"}`}>
             <section className="gamification-hero">
                 <div>
                     <span className="gamification-eyebrow"><FiTrendingUp /> {currentClass ? "CLASS LEADERBOARD" : "LEARNING LEADERBOARD"}</span>
-                    <h1>{currentClass ? `${currentClass} 班排行榜` : "學習排行榜"}</h1>
-                    <p>完成聽力、作業與遊戲都能累積 XP；排行榜以 XP 排名，兌換獎品不會讓排名下降。</p>
+                    <h1>{isStudent ? "看看我排第幾" : currentClass ? `${currentClass} 班排行榜` : "學習排行榜"}</h1>
+                    <p>{isStudent ? "完成聽力、作業和遊戲，就能累積 XP 往前進。" : "完成聽力、作業與遊戲都能累積 XP；排行榜以 XP 排名，兌換獎品不會讓排名下降。"}</p>
                 </div>
                 <div className="gamification-hero__actions">
                     {isStaff && classes.length > 0 && (

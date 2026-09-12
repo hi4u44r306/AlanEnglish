@@ -407,42 +407,45 @@ function AIMaterialGenerator() {
             )}
             <section className="ai-studio-hero">
                 <div className="ai-studio-hero-copy">
-                    <span className="ai-eyebrow"><FiStar /> ALAN ENGLISH AI</span>
-                    <h1>把你想練的英文，<br /><span>變成專屬教材。</span></h1>
-                    <p>所有 AI 教材都可以真正作答；Listening 類型會直接使用免費英文語音播放。完成所有題目後才會批改，達到 {passingScore} 分以上才算完成。</p>
+                    <span className="ai-eyebrow"><FiStar /> AI 教材</span>
+                    <h1>今天想練什麼？</h1>
+                    <p>選一種練習和喜歡的主題，AI 就會幫你出題。</p>
                 </div>
-                <div className="ai-quota-card">
-                    <div className="ai-quota-heading">
-                        <div><span>{roleLabel} · 今日 AI 額度</span><strong>{loadingUsage ? "—" : `${usage.remaining} 次`}</strong>{hasAiPremium && <small className="ai-quota-premium"><FiZap aria-hidden="true" />AI Premium</small>}</div>
+                <details className="ai-quota-card">
+                    <summary className="ai-quota-heading">
+                        <div><span>{roleLabel} · 今日可使用</span><strong>{loadingUsage ? "—" : `${usage.remaining} 次`}</strong>{hasAiPremium && <small className="ai-quota-premium"><FiZap aria-hidden="true" />AI Premium</small>}</div>
+                        <span className="ai-quota-toggle">查看明細</span>
                         <div className="ai-quota-icon"><FiZap /></div>
-                    </div>
-                    <div className="ai-quota-dots" style={{ gridTemplateColumns: `repeat(${Math.max(1, usage.limit || 5)}, 1fr)` }}>
-                        {Array.from({ length: usage.limit || 5 }).map((_, index) => <span key={index} className={index < usage.used ? "used" : "available"} />)}
-                    </div>
-                    <div className="ai-quota-stats">
-                        <div><span>今日總次數</span><strong>{loadingUsage ? "—" : usage.limit}</strong></div>
-                        <div><span>今日剩餘</span><strong>{loadingUsage ? "—" : usage.remaining}</strong></div>
-                        <div><span>本月總次數</span><strong>{loadingUsage ? "—" : usage.monthly_limit ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
-                        <div><span>本月剩餘</span><strong>{loadingUsage ? "—" : usage.monthly_remaining ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
-                    </div>
-                    <div className="ai-quota-reset-list">
-                        <div className="ai-quota-reset-row">
-                            <FiClock />
-                            <div><span>今日次數重新計算</span><small>台灣時間每日 00:00</small></div>
-                            <strong>{dailyResetCountdown}</strong>
+                    </summary>
+                    <div className="ai-quota-details">
+                        <div className="ai-quota-dots" style={{ gridTemplateColumns: `repeat(${Math.max(1, usage.limit || 5)}, 1fr)` }}>
+                            {Array.from({ length: usage.limit || 5 }).map((_, index) => <span key={index} className={index < usage.used ? "used" : "available"} />)}
                         </div>
-                        {usage.monthly_limit !== null && (
+                        <div className="ai-quota-stats">
+                            <div><span>今日總次數</span><strong>{loadingUsage ? "—" : usage.limit}</strong></div>
+                            <div><span>今日剩餘</span><strong>{loadingUsage ? "—" : usage.remaining}</strong></div>
+                            <div><span>本月總次數</span><strong>{loadingUsage ? "—" : usage.monthly_limit ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
+                            <div><span>本月剩餘</span><strong>{loadingUsage ? "—" : usage.monthly_remaining ?? (["teacher", "admin"].includes(usage.role) ? "不限" : 0)}</strong></div>
+                        </div>
+                        <div className="ai-quota-reset-list">
                             <div className="ai-quota-reset-row">
-                                <FiRefreshCw />
-                                <div><span>本月次數重新計算</span><small>台灣時間下月 1 日 00:00</small></div>
-                                <strong>{monthlyResetCountdown}</strong>
+                                <FiClock />
+                                <div><span>今日次數重新計算</span><small>台灣時間每日 00:00</small></div>
+                                <strong>{dailyResetCountdown}</strong>
                             </div>
-                        )}
+                            {usage.monthly_limit !== null && (
+                                <div className="ai-quota-reset-row">
+                                    <FiRefreshCw />
+                                    <div><span>本月次數重新計算</span><small>台灣時間下月 1 日 00:00</small></div>
+                                    <strong>{monthlyResetCountdown}</strong>
+                                </div>
+                            )}
+                        </div>
+                        <p>今天已使用 {usage.used} / {usage.limit} 次 · 成功生成才扣額度</p>
+                        {usage.trial_limit !== null && <p>免費試用已使用 {usage.trial_used} / {usage.trial_limit} 次</p>}
+                        {usage.monthly_limit !== null && <p>本月已使用 {usage.monthly_used} / {usage.monthly_limit} 次</p>}
                     </div>
-                    <p>今天已使用 {usage.used} / {usage.limit} 次 · 成功生成才扣額度</p>
-                    {usage.trial_limit !== null && <p>免費試用已使用 {usage.trial_used} / {usage.trial_limit} 次</p>}
-                    {usage.monthly_limit !== null && <p>本月已使用 {usage.monthly_used} / {usage.monthly_limit} 次</p>}
-                </div>
+                </details>
             </section>
 
             <section className="ai-workspace-tabs">
@@ -456,7 +459,7 @@ function AIMaterialGenerator() {
             {activeTab === "generator" && !canGenerate ? null : activeTab === "generator" ? (
                 <section className="ai-generator-shell">
                     <form className="ai-generator-panel" onSubmit={handleGenerate}>
-                        <div className="ai-section-heading"><span>STEP 01</span><h2>想練習什麼？</h2><p>選擇教材類型，AI 會產生四選一題目供學生實際作答。</p></div>
+                        <div className="ai-section-heading"><span>第一步</span><h2>選一種練習</h2><p>選好後，再告訴 AI 你喜歡的主題。</p></div>
                         <div className="ai-type-grid">
                             {MATERIAL_TYPES.map(type => {
                                 const Icon = type.icon;
@@ -469,7 +472,7 @@ function AIMaterialGenerator() {
                             })}
                         </div>
                         <div className="ai-divider" />
-                        <div className="ai-section-heading compact"><span>STEP 02</span><h2>設定你的教材</h2></div>
+                        <div className="ai-section-heading compact"><span>第二步</span><h2>選程度和主題</h2></div>
                         <div className="ai-form-grid">
                             <label className="ai-field"><span>學生程度</span><select value={difficulty} onChange={event => setDifficulty(event.target.value)}>{DIFFICULTIES.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
                             <label className="ai-field"><span>題目數量</span><select value={questionCount} onChange={event => setQuestionCount(Number(event.target.value))}>{[5, 8, 10, 15].map(count => <option key={count} value={count}>{count} 題</option>)}</select></label>

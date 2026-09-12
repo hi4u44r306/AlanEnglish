@@ -435,6 +435,11 @@
   body.speaking-challenge-detail-active .app-content { padding-bottom: 0; }
   body.speaking-challenge-detail-active { overscroll-behavior-y: none; }
   .speaking-challenge-page { padding: 80px 14px calc(72px + env(safe-area-inset-bottom)); }
+  .speaking-challenge-page:not(.speaking-challenge-detail) { padding-top: 76px; }
+  .speaking-challenge-page:not(.speaking-challenge-detail) .speaking-challenge-hero h1 { margin-top: 0; font-size: 29px; }
+  .speaking-challenge-page:not(.speaking-challenge-detail) .speaking-challenge-hero p { font-size: 14px; }
+  .speaking-challenge-page:not(.speaking-challenge-detail) .speaking-challenge-grid { gap: 12px; margin-top: 18px; }
+  .speaking-challenge-page:not(.speaking-challenge-detail) .speaking-challenge-grid > button { min-height: 150px; padding: 18px; }
   .speaking-challenge-page.speaking-challenge-detail {
     display: block;
     gap: 8px;

@@ -62,6 +62,7 @@ import AdminStudentLifecycle from "../components/Pages/AdminStudentLifecycle";
 import SpeakingContentAdmin from "../components/Pages/SpeakingContentAdmin";
 import Support from "../components/Pages/Support";
 import AdminSupport from "../components/Pages/AdminSupport";
+import "../components/assets/scss/StudentFriendlyUI.scss";
 import { AuthProvider } from "../auth/AuthContext";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";

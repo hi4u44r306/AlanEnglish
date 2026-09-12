@@ -328,8 +328,8 @@ function StudentSettings() {
         <main className="student-settings-page">
             <section className="student-settings-hero">
                 <span><FiUser /> MY SETTINGS</span>
-                <h1>我的設定</h1>
-                <p>在這裡確認學生基本資料、學習榮譽與帳號方案。班級、等級與點數由系統安全計算，不能自行修改。</p>
+                <h1>我的資料</h1>
+                <p>換頭像，或查看自己的學習資料。</p>
             </section>
 
             <section className="student-settings-profile-card">
@@ -351,8 +351,8 @@ function StudentSettings() {
                     <strong>{hasAiPremium ? "AI Premium" : "AI 教材與發音練習未加購"}</strong>
                     <span>{hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}</span>
                 </div>
-                <div className="student-settings-avatar-presets">
-                    <div><strong>選擇預設頭像</strong><span>不想使用自己的照片時，可以隨時換回下列角色。</span></div>
+                <details className="student-settings-avatar-presets">
+                    <summary><strong>選擇其他頭像</strong><span>打開角色頭像</span></summary>
                     <div className="student-settings-avatar-preset-grid">
                         {DEFAULT_STUDENT_AVATARS.map(avatar => (
                             <button key={avatar.id} type="button" onClick={() => reviewPresetAvatar(avatar)} disabled={uploading} aria-pressed={avatarUrl === avatar.path} aria-label={`使用${avatar.name}頭像`}>
@@ -361,7 +361,7 @@ function StudentSettings() {
                             </button>
                         ))}
                     </div>
-                </div>
+                </details>
             </section>
 
             {avatarDraft && !avatarConfirmation && (
@@ -423,7 +423,7 @@ function StudentSettings() {
                 </div>
             )}
 
-            <section className="student-settings-grid">
+            <section className="student-settings-grid student-settings-learning-summary">
                 <article className="student-settings-panel">
                     <header><FiStar /><div><span>LEARNING HONORS</span><h2>學習榮譽</h2></div></header>
                     <div className="student-settings-stats">
@@ -448,7 +448,7 @@ function StudentSettings() {
                 </article>
             </section>
 
-            <section className="student-settings-grid">
+            <section className="student-settings-grid student-settings-access-details">
                 <article className="student-settings-panel">
                     <header><FiGift /><div><span>BOOK OWNERSHIP</span><h2>教材權限來源</h2></div></header>
                     <dl className="student-settings-data-list">
@@ -468,7 +468,7 @@ function StudentSettings() {
                 </article>
             </section>
 
-            <section className="student-settings-grid">
+            <section className="student-settings-grid student-settings-personal-details">
                 <article className="student-settings-panel">
                     <header><FiUser /><div><span>PROFILE</span><h2>基本資料</h2></div></header>
                     <dl className="student-settings-data-list">

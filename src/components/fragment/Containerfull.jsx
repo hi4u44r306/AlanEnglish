@@ -117,14 +117,6 @@ const Containerfull = ({ children }) => {
                         ? 'has-mini-player'
                         : ''
                 }`}
-                style={{
-                    paddingBottom:
-                        currMusic &&
-                        !showMiniPlayer
-                            ? curr_margin ||
-                              '110px'
-                            : undefined
-                }}
             >
                 {children}
             </main>

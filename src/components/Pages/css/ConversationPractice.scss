@@ -1,6 +1,6 @@
 .conversation-page {
     min-height: 100vh;
-    padding: 112px 24px 72px;
+    padding: 36px 24px 72px;
     background:
         radial-gradient(circle at 12% 6%, rgba(82, 103, 232, .12), transparent 28%),
         radial-gradient(circle at 88% 12%, rgba(73, 184, 155, .13), transparent 24%),
@@ -17,10 +17,15 @@
 
 .conversation-hero {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 28px;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
+    padding: 24px 26px;
+    border: 1px solid rgba(82, 103, 232, .12);
+    border-radius: 26px;
+    background: rgba(255, 255, 255, .9);
+    box-shadow: 0 14px 38px rgba(25, 43, 84, .06);
 }
 
 .conversation-kicker {
@@ -34,25 +39,25 @@
 }
 
 .conversation-hero h1 {
-    margin: 10px 0 10px;
-    font-size: clamp(42px, 6vw, 72px);
-    line-height: 1;
-    font-weight: 900;
-    letter-spacing: -.055em;
+    margin: 7px 0 7px;
+    font-size: clamp(32px, 4vw, 48px);
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -.04em;
 }
 
 .conversation-hero p {
     max-width: 720px;
     margin: 0;
     color: #68748d;
-    font-size: 17px;
-    line-height: 1.75;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
 .conversation-free-badge {
     flex: 0 0 auto;
-    min-width: 250px;
-    padding: 18px 20px;
+    min-width: 210px;
+    padding: 14px 16px;
     border: 1px solid rgba(64, 169, 140, .24);
     border-radius: 20px;
     background: rgba(235, 252, 247, .9);
@@ -80,8 +85,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    margin-bottom: 18px;
-    padding: 18px 20px;
+    margin-bottom: 14px;
+    padding: 14px 16px;
     border: 1px solid rgba(20, 33, 61, .07);
     border-radius: 24px;
     background: rgba(255, 255, 255, .9);
@@ -113,8 +118,9 @@
 }
 
 .conversation-mode-options button {
-    min-width: 145px;
-    padding: 11px 13px;
+    min-width: 128px;
+    min-height: 44px;
+    padding: 9px 12px;
     border: 1px solid #e2e7f0;
     border-radius: 15px;
     background: #fafbfd;
@@ -791,7 +797,7 @@
 
 @media (max-width: 980px) {
     .conversation-page {
-        padding-top: 96px;
+        padding-top: 20px;
     }
 
     .conversation-hero {
@@ -817,6 +823,10 @@
         grid-template-columns: 1fr;
     }
 
+    .conversation-chat-card {
+        order: -1;
+    }
+
     .conversation-mission-card {
         position: static;
     }
@@ -830,15 +840,33 @@
 
 @media (max-width: 640px) {
     .conversation-page {
-        padding: 84px 12px 48px;
+        padding: 14px 12px 32px;
+    }
+
+    .conversation-hero {
+        gap: 12px;
+        margin-bottom: 10px;
+        padding: 17px 18px;
+        border-radius: 20px;
+    }
+
+    .conversation-kicker {
+        font-size: 10px;
+        letter-spacing: .08em;
     }
 
     .conversation-hero h1 {
-        font-size: 42px;
+        margin: 5px 0;
+        font-size: 28px;
     }
 
     .conversation-hero p {
-        font-size: 14px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .conversation-free-badge {
+        padding: 11px 13px;
     }
 
     .conversation-mode-bar,
@@ -848,11 +876,38 @@
     }
 
     .conversation-mode-options {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .conversation-mode-options button {
+        padding: 7px 5px;
         text-align: center;
+    }
+
+    .conversation-mode-options button span,
+    .conversation-mode-title span {
+        display: none;
+    }
+
+    .conversation-mode-title strong {
+        font-size: 14px;
+    }
+
+    .conversation-layout {
+        gap: 12px;
+    }
+
+    .conversation-mission-card {
+        max-height: 250px;
+        overflow: auto;
+    }
+
+    .mission-card-heading {
+        padding: 17px 18px 12px;
+    }
+
+    .mission-progress {
+        padding: 0 18px 12px;
     }
 
     .mission-list {

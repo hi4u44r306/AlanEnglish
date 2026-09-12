@@ -36,7 +36,7 @@ describe("StudentNotifications", () => {
     it("shows all loaded notifications, marks one read, and loads earlier notifications", async () => {
         render(<MemoryRouter><StudentNotifications /></MemoryRouter>);
 
-        expect(await screen.findByRole("heading", { name: "所有通知" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "新消息" })).toBeInTheDocument();
         expect(await screen.findByText("作業提醒")).toBeInTheDocument();
         expect(screen.getByText("獎勵已入帳")).toBeInTheDocument();
         expect(getStudentNotifications).toHaveBeenCalledWith({ uid: "student-1" }, { limit: 30 });

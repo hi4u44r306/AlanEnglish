@@ -691,3 +691,143 @@
     .ai-answer { margin-left: 0; padding-left: 19px; }
     .ai-answer { margin-right: 0; }
 }
+
+// Child-friendly generator entry: keep the choice and topic form above the
+// fold, while preserving detailed quota information on demand.
+.ai-studio {
+    padding: 36px 24px 80px;
+}
+
+.ai-studio-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, .55fr);
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.ai-studio-hero-copy h1 {
+    margin: 7px 0;
+    font-size: clamp(34px, 4vw, 50px);
+    line-height: 1.1;
+}
+
+.ai-studio-hero-copy p {
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.ai-quota-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.ai-quota-card > summary {
+    min-height: 74px;
+    padding: 14px 16px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.ai-quota-card > summary::-webkit-details-marker {
+    display: none;
+}
+
+.ai-quota-toggle {
+    margin-left: auto;
+    color: #5267e8;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ai-quota-details {
+    padding: 0 18px 18px;
+    border-top: 1px solid #e7eaf2;
+}
+
+.ai-quota-card[open] .ai-quota-toggle {
+    color: #6f7b94;
+}
+
+.ai-generator-panel {
+    padding: 30px;
+}
+
+@media (max-width: 980px) {
+    .ai-studio {
+        padding-top: 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .ai-studio {
+        padding: 14px 12px 40px;
+    }
+
+    .ai-studio-hero {
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .ai-studio-hero-copy {
+        padding: 2px 4px;
+    }
+
+    .ai-studio-hero-copy h1 {
+        margin: 4px 0;
+        font-size: 29px;
+    }
+
+    .ai-studio-hero-copy p {
+        font-size: 13px;
+    }
+
+    .ai-quota-card,
+    .ai-generator-panel {
+        border-radius: 20px;
+    }
+
+    .ai-quota-card > summary {
+        min-height: 64px;
+        padding: 10px 12px;
+    }
+
+    .ai-quota-heading strong {
+        font-size: 25px;
+    }
+
+    .ai-quota-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 13px;
+        font-size: 18px;
+    }
+
+    .ai-quota-toggle {
+        font-size: 11px;
+    }
+
+    .ai-quota-details {
+        padding: 0 14px 14px;
+    }
+
+    .ai-generator-panel {
+        padding: 20px 14px;
+    }
+
+    .ai-section-heading h2 {
+        font-size: 24px;
+    }
+
+    .ai-section-heading p {
+        font-size: 13px;
+    }
+
+    .ai-type-card {
+        min-height: 104px;
+        padding: 13px 10px;
+    }
+
+    .ai-type-card small {
+        display: none;
+    }
+}

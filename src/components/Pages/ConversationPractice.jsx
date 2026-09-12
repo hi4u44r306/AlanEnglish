@@ -2040,30 +2040,29 @@ function ConversationPractice() {
             <section className="conversation-hero">
                 <div>
                     <span className="conversation-kicker">
-                        💬 AE ENGLISH
-                        CONVERSATION
+                        💬 開口說
                     </span>
 
                     <h1>
-                        Meet a Foreigner
+                        英文情境對話
                     </h1>
 
                     <p>
-                        練習在真實生活中突然遇到外國人時，怎麼聽、怎麼回答、聽不懂又該怎麼反應。
+                        聽問題，按下麥克風，用英文回答。
                     </p>
                 </div>
 
                 <div className="conversation-free-badge">
                     <strong>
                         {isDemoMode
-                            ? "TEACHER DEMO"
-                            : "FREE SPEAKING"}
+                            ? "老師示範"
+                            : "自由練習"}
                     </strong>
 
                     <span>
                         {isDemoMode
                             ? "示範模式不寫入學生進度"
-                            : "進度會同步到 Alan English 雲端"}
+                            : "練習進度會自動保存"}
                     </span>
                 </div>
             </section>
@@ -2077,10 +2076,10 @@ function ConversationPractice() {
                 <div>
                     <strong>
                         {isDemoMode
-                            ? "Teacher / Admin Demo Mode"
+                            ? "老師／管理員示範模式"
                             : restoredProgress
-                                ? "Welcome back 👋 已從資料庫恢復上次進度"
-                                : "Cloud Progress"}
+                                ? "歡迎回來，已載入上次進度"
+                                : "練習進度"}
                     </strong>
 
                     <span>
@@ -2117,11 +2116,11 @@ function ConversationPractice() {
             <section className="conversation-mode-bar">
                 <div className="conversation-mode-title">
                     <span>
-                        Practice Mode
+                        提示
                     </span>
 
                     <strong>
-                        選擇練習難度
+                        選擇需要多少提示
                     </strong>
                 </div>
 
@@ -2171,8 +2170,7 @@ function ConversationPractice() {
                 <div className="conversation-mobile-progress-heading">
                     <div>
                         <span>
-                            NOW
-                            PRACTICING
+                            現在練習
                         </span>
 
                         <strong>
@@ -2242,23 +2240,22 @@ function ConversationPractice() {
                 <aside className="conversation-mission-card">
                     <div className="mission-card-heading">
                         <span>
-                            MISSION
+                            生活任務
                         </span>
 
                         <h2>
-                            第一次遇到外國人
+                            9 關生活對話
                         </h2>
 
                         <p>
-                            完成 9
-                            個真實生活反應。
+                            每次只專心完成一題。
                         </p>
                     </div>
 
                     <div className="mission-progress">
                         <div>
                             <span>
-                                Progress
+                                進度
                             </span>
 
                             <strong>
@@ -2339,13 +2336,11 @@ function ConversationPractice() {
 
                     <div className="conversation-privacy-note">
                         <strong>
-                            🔒 Speaking
-                            privacy
+                            🔒 錄音隱私
                         </strong>
 
                         <p>
-                            AE
-                            不會把錄音存進資料庫；資料庫只保存關卡進度、模式與最後練習時間。
+                            錄音不會存進資料庫；系統只保存關卡進度、模式與最後練習時間。
                         </p>
                     </div>
                 </aside>
@@ -2362,15 +2357,12 @@ function ConversationPractice() {
                             </strong>
 
                             <span>
-                                Friendly
-                                visitor ·
-                                English
-                                practice
+                                陪你練習的外國朋友
                             </span>
                         </div>
 
                         <span className="conversation-online">
-                            ● Practice
+                            ● 練習中
                         </span>
                     </div>
 
@@ -2417,16 +2409,7 @@ function ConversationPractice() {
                             <div className="conversation-current-question">
                                 <div>
                                     <span>
-                                        NOW
-                                        PRACTICING
-                                        ·{" "}
-                                        {stepIndex +
-                                            1}
-                                        /
-                                        {
-                                            SCENARIO_STEPS.length
-                                        }{" "}
-                                        ·{" "}
+                                        第 {stepIndex + 1} / {SCENARIO_STEPS.length} 題 ·{" "}
                                         {step.shortLabel.toUpperCase()}
                                     </span>
 
@@ -2457,7 +2440,7 @@ function ConversationPractice() {
                                         )
                                     }
                                 >
-                                    🔊 Listen
+                                    🔊 聽問題
                                 </button>
                             </div>
 
@@ -2513,11 +2496,7 @@ function ConversationPractice() {
                                             )
                                         }
                                     >
-                                        💡 I
-                                        don't
-                                        know
-                                        what to
-                                        say
+                                        💡 不知道怎麼說？
                                     </button>
                                 )}
 
@@ -2555,15 +2534,15 @@ function ConversationPractice() {
                                 <strong>
                                     {listening
                                         ? speechStarted
-                                            ? "I can hear you — keep speaking"
-                                            : "Listening... start speaking"
-                                        : "Tap once and answer in English"}
+                                            ? "有聽到聲音，繼續說完答案"
+                                            : "正在聽，請開始說英文"
+                                        : "按一下麥克風，用英文回答"}
                                 </strong>
 
                                 <p>
                                     {speechRecognitionSupported
-                                        ? "Your words appear live. Pause for about 1.5 seconds and AE will finish automatically."
-                                        : "Voice recognition isn't available here. Use text answer below."}
+                                        ? "說完停頓一下，系統會自動完成錄音。"
+                                        : "這個瀏覽器無法辨識語音，請改用下方文字回答。"}
                                 </p>
 
                                 {listening && (
@@ -2578,8 +2557,8 @@ function ConversationPractice() {
 
                                             <strong>
                                                 {speechStarted
-                                                    ? "Voice detected"
-                                                    : "Waiting for your voice..."}
+                                                    ? "已聽到聲音"
+                                                    : "正在等你開口…"}
                                             </strong>
                                         </div>
 
@@ -2627,8 +2606,7 @@ function ConversationPractice() {
 
                                         <div className="live-transcript">
                                             <span>
-                                                LIVE
-                                                TRANSCRIPT
+                                                即時辨識
                                             </span>
 
                                             <p>
@@ -2651,10 +2629,7 @@ function ConversationPractice() {
                                                 {!heardText &&
                                                     !interimText && (
                                                         <em>
-                                                            Start
-                                                            speaking
-                                                            in
-                                                            English...
+                                                            請開始說英文…
                                                         </em>
                                                     )}
                                             </p>
@@ -2770,7 +2745,7 @@ function ConversationPractice() {
                                                 }
                                             }
                                         }
-                                        placeholder="Type your answer in English..."
+                                        placeholder="輸入英文回答"
                                         disabled={
                                             evaluation?.correct ||
                                             listening
@@ -2790,7 +2765,7 @@ function ConversationPractice() {
                                             listening
                                         }
                                     >
-                                        Check
+                                        檢查
                                     </button>
                                 </div>
                             </div>
@@ -2811,8 +2786,8 @@ function ConversationPractice() {
                                     <div>
                                         <strong>
                                             {evaluation.correct
-                                                ? "Answer understood!"
-                                                : "Try one more time"}
+                                                ? "聽懂你的回答了！"
+                                                : "再試一次"}
                                         </strong>
 
                                         <p>
@@ -2835,8 +2810,8 @@ function ConversationPractice() {
                                     {stepIndex ===
                                         SCENARIO_STEPS.length -
                                         1
-                                        ? "Complete Mission 🎉"
-                                        : "Continue Conversation →"}
+                                        ? "完成任務 🎉"
+                                        : "繼續下一題 →"}
                                 </button>
                             )}
                         </div>
@@ -2847,15 +2822,11 @@ function ConversationPractice() {
                             </div>
 
                             <span>
-                                MISSION
-                                COMPLETE
+                                任務完成
                             </span>
 
                             <h2>
-                                You handled
-                                a real
-                                English
-                                conversation!
+                                你完成了一次英文對話！
                             </h2>
 
                             <p>
@@ -2864,20 +2835,15 @@ function ConversationPractice() {
 
                             <div className="complete-skills">
                                 <span>
-                                    ✓ Speak
-                                    clearly
+                                    ✓ 清楚開口
                                 </span>
 
                                 <span>
-                                    ✓ Ask
-                                    for
-                                    clarification
+                                    ✓ 聽不懂時會求助
                                 </span>
 
                                 <span>
-                                    ✓ Handle
-                                    real
-                                    situations
+                                    ✓ 完成生活情境
                                 </span>
                             </div>
 
@@ -2887,8 +2853,7 @@ function ConversationPractice() {
                                     restartMission
                                 }
                             >
-                                Practice
-                                Again
+                                再練一次
                             </button>
                         </div>
                     )}

@@ -2,8 +2,24 @@
 
 最後更新：2026-09-12
 
-本次進行中（2026-09-12，尚未部署）：
+本次進行中（2026-09-12，固定測試站已部署，正式站尚未部署）：
 
+- 學生首頁與 Navbar 去重：首頁不再重複列出「我的教材、開口說、AI 教材、更多功能」大型入口，這些功能統一由桌面 Navbar／手機底部導覽負責。首頁改為簡短問候；只有具既有作業權限的學生會看到「老師交代的事」任務卡，無權限者完全不顯示；下方提供「先聽一遍、再開口說」兩項非操作式提示。沒有新增 API、推薦路線或進度統計，也未變更 assignment entitlement。`User`、`MainNavbar`、`Containerfull` 共 3 suites／11 tests、Production build 與 `git diff --check` 通過。功能 commit `35bbe15` 已推送並更新 PR #118；固定測試站 deploy `6aa555084f4fd6f33c6c545a` 已發布，首頁、登入、學生首頁及新 JS／CSS 均回應 HTTP 200，已登入窄版畫面確認沒有重複入口、水平溢位或底部導覽重疊。仍待桌面寬版複驗，正式站尚未部署。
+- 學生登入後主要頁面已完成第一階段全頁面審閱與精簡：首頁／導覽沿用已發布的兒童友善第一階段，本分支再處理作業、複習、AI 教材、發音教練、情境對話、口說關卡目錄、週報、會員、個人資料、通知、等級、排行榜、獎品、帳號安全與客服。全前端 56 suites／185 tests、Production build 與 `git diff --check` 全部通過；相對 `origin/main` 沒有 package、Supabase、migration、Edge Function、Firebase、Stripe 或 Secret 檔案變更。P0／P1 程式審閱為 0。固定測試站 deploy `6aa54f51008e57d9d848d493` 已發布，首頁、登入與主要學生路由及 `main.c8b42294.js`／`main.9c4a9ea3.css` 均回應 HTTP 200；尚待使用已登入學生帳號完成桌面與 412px 視覺操作驗收，正式站尚未部署。
+- 學生口說關卡目錄精簡：入口標題改為「選一個口說關卡」，說明縮成「選教材，跟著題目開口回答」，卡片進度改用「已完成 x/y 題」；手機縮短頁首與卡片間距，但保持每張關卡卡 150px 以上。詳細關卡、國旗視覺、換題同步、私人 R2 示範音檔、錄音與後端評分沒有變更；`TextbookSpeakingChallenge` 4 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生帳號安全與客服文字精簡：學生帳號安全頁改以「更改密碼」與一步操作說明開場，老師／管理員仍保留「帳號與密碼」說明；客服頁改為「需要幫忙嗎？」並保留不得提交密碼或完整卡號的警告。Firebase 重新驗證、密碼更新、英文班密碼狀態同步、客服欄位驗證與送件 API 沒有變更；UI 契約測試 3 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生通知精簡介面：頁面改名「新消息」，說明縮成一句，手機移除與底部導覽重複的「回到我的首頁」，縮短頁首並將單筆及載入更多按鈕提高到至少 44px。通知載入、分頁、未讀狀態與標示已讀 API 沒有變更；`StudentNotifications` 1 test 與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生成果頁精簡介面：等級改為「我的等級」、學生排行榜改為「看看我排第幾」、獎品商城改為「選獎品」，首屏說明縮成一句可行動文案；老師／管理員排行榜保留原標題與完整說明。手機排行榜期間按鈕維持至少 44px，獎品頁等級／XP／點數摘要收成三個緊湊卡。等級、XP、AE Points、排行、晉級測驗、兌換資格與後端驗證沒有變更；成果頁與兌換既有測試共 2 suites／5 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生每週報告行動優先介面：學生標題改為「這週做得怎麼樣？」；本週做得好的地方與下一步在視覺順序上移到詳細數據之前，圖表、各項成果與家長版週報仍完整保留在後方。老師／管理員仍使用原本學生姓名報告標題與管理工具列，資料 API、統計公式、寄送與列印流程沒有變更；新增學生／管理員分流 UI 契約測試 3 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生設定個人操作優先介面：標題改為「我的資料」與一句簡短說明，頭像角色選擇預設收合在「選擇其他頭像」中；手機仍可從相機按鈕上傳。基本資料／生日／家長 Email 排在方案與教材歷史之前，讓學生先處理自己的資料。頭像裁切與二次確認、生日、家長 Email、方案與 entitlement 資料來源沒有變更；`StudentSettings` 7 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生會員中心學習優先介面：頁面標題改為「我可以用什麼？」並先列可直接進入的已開通功能與教材；方案與付款區明確標示為「家長：方案與付款」並移到學習內容之後。手機方案摘要由四列改為 2×2 緊湊格，功能卡移除重複說明但保留 64px 操作高度。membership、entitlement、Stripe 狀態、方案價格、教材擁有權與付款操作沒有變更；`MembershipCenter` 10 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生複習答題優先介面：頁首改用「把不熟的題目練會」與當日題數的直接指引；目前題目、完成或空狀態在視覺順序上優先於統計，掌握度、待複習／學習中／已掌握與弱項移入可選擇展開的原生 `details`。複習排程、Firebase Token、後端題目來源、答題、掌握判定與紀錄沒有變更；相關 UI 測試與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生作業任務優先介面：作業頁首改為短標題與一句操作提示，待完成數量保留為小型狀態；詳細完成比例、待完成／已完成統計及規則提示移入可選擇展開的原生 `details`，讓真正的作業卡更早出現。並修正只有新版 V2 任務包時仍先顯示「沒有作業」的空狀態判斷。既有班級隔離、assignment entitlement、作答、聽力、進度與獎勵邏輯沒有變更；相關 UI 測試與 Production build 通過，尚待 Deploy Preview 驗收。
+- 學生 AI 教材選擇優先介面：頁首改成「今天想練什麼？」與一句操作說明，教材類型與主題更早出現；每日／每月用量與重置倒數保留在原生 `details` 中，收合時只顯示今日剩餘次數，手機教材類型卡縮短但仍高於 44px。生成 API、成功才扣額度、trial／monthly 限制、教材保存與權限判斷沒有變更。新增 UI 契約測試後，AI／發音／會話共 3 suites／9 tests、Production build 通過；尚待 Deploy Preview 以不同權限學生驗收。
+- 學生發音教練任務優先介面：`PronunciationCoach` 的 DOM 與視覺順序改為先呈現目前句子、中文、發音提示與錄音，再顯示其他練習句子；手機選擇器收為兩欄並隱藏重複次要說明，標題改為簡短中文。既有錄音、WAV 轉換、送評、分數、逐字結果與方案權限沒有變更。發音與會話相關 2 suites／6 tests、Production build 通過，尚待 Deploy Preview 以真實麥克風驗收。
+- 學生情境對話兒童友善重整：標題改為中文並縮短說明，手機／平板會先顯示真正的對話、問題、提示與麥克風，再顯示完整 9 關任務；三種提示程度改成緊湊選項，學生手機隱藏原本重複的固定「開始回答」Dock，只保留練習卡內的主要麥克風。錄音、評分、雲端進度、教師示範及權限邏輯沒有變更。相關 UI／Navbar／Container 回歸測試共 3 suites／12 tests、Production build 通過；尚待 Deploy Preview 進行已登入 412px 操作驗收。
+- 學生手機底部避讓第一批：移除 `Containerfull` 在播放音樂時覆蓋響應式 CSS 的 inline `padding-bottom`，讓頁面完整保留 MusicPlayer、四格底部導覽與 iPhone safe area；學生手機版隱藏重複且會遮住頁面內容的浮動「今日作業」，作業仍可從首頁卡片與「更多」進入，桌面與老師／管理員捷徑維持原狀。`Containerfull`、`AssignmentShortcut`、`MainNavbar` 與學生視覺測試共 4 suites／18 tests、Production build 通過；尚待 Deploy Preview 以已登入帳號進行 412px 實際播放器驗收，本批尚未部署。
+- 學生兒童友善介面第二階段：分支 `codex/student-child-friendly-ui-phase2` 從目前 `main` commit `02f0b442` 建立。新增只在 `.ae-student-navbar` 存在時生效的共用視覺層，統一降低作業、錯題複習、週報、設定、通知、會員、等級／排行榜／獎勵、AI 教材與口說頁的標題與操作字重；手機版縮小標題、移除重複的英文裝飾標籤、保留至少 44px 主要操作區與清楚的鍵盤 focus。沒有變更路由、Firebase、Supabase、membership／entitlement／assignment、老師／管理員介面、套件或後端。全前端 48 suites／159 tests、Production build 與 `git diff --check` 通過；編譯後樣式在 412px 量測為標題字重 700、按鈕 44px、焦點框可見且無水平溢位，桌面保留輔助標籤，沒有學生 Navbar 時仍維持既有 950 字重。尚未部署。
 - 公開首頁折疊版 Navbar 新增常駐「登入」按鈕，使用者在平板與手機寬度不必先打開漢堡選單即可找到登入頁；抽屜內原登入入口仍保留，桌面寬版導覽不變。按鈕維持至少 44px 觸控高度，並補上 hover 與鍵盤 focus 狀態。本批不修改登入流程、Firebase、Supabase、權限、套件或產品資料。
 
 本次正式發布（2026-09-12）：

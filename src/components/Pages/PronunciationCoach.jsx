@@ -163,31 +163,16 @@ export default function PronunciationCoach() {
     return <main className="pronunciation-page">
         <header className="pronunciation-hero">
             <div>
-                <span className="pronunciation-eyebrow">AI SPEAKING COACH · PILOT</span>
-                <h1>AI 發音教練</h1>
-                <p>先聽示範，再朗讀指定句子。AI 會標出表現良好與需要再練習的字。</p>
+                <span className="pronunciation-eyebrow">開口說</span>
+                <h1>發音教練</h1>
+                <p>先聽一次，再按麥克風跟著念。</p>
             </div>
-            <div className="pronunciation-world-badge"><FiHeadphones /><span>{world.title}</span><strong>1 / 3 主題</strong></div>
+            <div className="pronunciation-world-badge"><FiHeadphones /><span>{world.title}</span><strong>選一句開始練習</strong></div>
         </header>
 
         <div className="pronunciation-layout">
-            <aside className="pronunciation-lessons" aria-label="日常問候關卡">
-                <h2>{world.title}</h2>
-                <p>{world.description}</p>
-                {world.lessons.map((item, index) => <button
-                    key={item.id}
-                    type="button"
-                    className={item.id === lesson.id ? "active" : ""}
-                    onClick={() => { if (!recording) { setLessonId(item.id); resetAttempt(); } }}
-                    disabled={recording}
-                >
-                    <span>{index + 1}</span>
-                    <span><strong>{item.title}</strong><small>{item.mission}</small></span>
-                </button>)}
-            </aside>
-
             <section className="pronunciation-stage" aria-live="polite">
-                <div className="pronunciation-mission"><span>MISSION</span><strong>{lesson.mission}</strong></div>
+                <div className="pronunciation-mission"><span>現在練習</span><strong>{lesson.mission}</strong></div>
                 <div className="pronunciation-script">
                     <p>{lesson.referenceText}</p>
                     <span>{lesson.translation}</span>
@@ -229,6 +214,21 @@ export default function PronunciationCoach() {
 
                 {error && <div className="pronunciation-error" role="alert">{error}</div>}
             </section>
+
+            <aside className="pronunciation-lessons" aria-label="選擇練習句子">
+                <h2>選擇其他句子</h2>
+                <p>一次選一句，練清楚再換下一句。</p>
+                {world.lessons.map((item, index) => <button
+                    key={item.id}
+                    type="button"
+                    className={item.id === lesson.id ? "active" : ""}
+                    onClick={() => { if (!recording) { setLessonId(item.id); resetAttempt(); } }}
+                    disabled={recording}
+                >
+                    <span>{index + 1}</span>
+                    <span><strong>{item.title}</strong><small>{item.mission}</small></span>
+                </button>)}
+            </aside>
         </div>
     </main>;
 }

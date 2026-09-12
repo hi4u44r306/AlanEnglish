@@ -329,59 +329,47 @@ const StudentAssignments = () => {
                             <CalendarDays aria-hidden="true" size={17} />
                             {formatToday(today)}
                         </span>
-                        <h1>
-                            {counts.pending
-                                ? "今天還有 " + counts.pending + " 份任務包"
-                                : "今天的任務都完成了"}
-                        </h1>
+                        <h1>今天的作業</h1>
                         <p>
                             {counts.pending
-                                ? "依序完成每個步驟，全部達標才會正式交作業。"
+                                ? "選一份作業，現在就開始。"
                                 : "做得很好！你已經完成老師安排的所有練習。"}
                         </p>
                     </div>
 
                     <div
-                        className="student-homework-progress"
+                        className="student-homework-hero__status"
                         role="progressbar"
                         aria-label="今日作業完成進度"
                         aria-valuemin="0"
                         aria-valuemax="100"
                         aria-valuenow={completionRate}
                     >
-                        <div
-                            className="student-homework-progress__ring"
-                            style={{ "--homework-progress": completionRate * 3.6 + "deg" }}
-                        >
-                            <div>
-                                <strong>{completionRate}</strong>
-                                <span>%</span>
-                            </div>
-                        </div>
-                        <div className="student-homework-progress__copy">
-                            <span>今日進度</span>
-                            <strong>{counts.completed} / {counts.total} 已完成</strong>
-                        </div>
+                        <strong>{counts.pending || "完成"}</strong>
+                        <span>{counts.pending ? "份待完成" : "全部完成"}</span>
                     </div>
                 </section>
 
-                <section className="student-homework-summary" aria-label="作業統計">
-                    <div className="student-homework-summary__item pending">
-                        <span><Clock3 aria-hidden="true" size={18} />待完成</span>
-                        <strong>{counts.pending}</strong>
+                <details className="student-homework-summary">
+                    <summary>
+                        <span>查看今天的進度</span>
+                        <strong>{counts.completed} / {counts.total} 已完成</strong>
+                    </summary>
+                    <div className="student-homework-summary__details" aria-label="作業統計">
+                        <div className="student-homework-summary__item pending">
+                            <span><Clock3 aria-hidden="true" size={18} />待完成</span>
+                            <strong>{counts.pending}</strong>
+                        </div>
+                        <div className="student-homework-summary__item completed">
+                            <span><CheckCircle2 aria-hidden="true" size={18} />已完成</span>
+                            <strong>{counts.completed}</strong>
+                        </div>
+                        <div className="student-homework-summary__tip">
+                            <Target aria-hidden="true" size={20} />
+                            <span>每個步驟都完成，才算交作業。</span>
+                        </div>
                     </div>
-                    <div className="student-homework-summary__item completed">
-                        <span><CheckCircle2 aria-hidden="true" size={18} />已完成</span>
-                        <strong>{counts.completed}</strong>
-                    </div>
-                    <div className="student-homework-summary__tip">
-                        <Target aria-hidden="true" size={20} />
-                        <span>
-                            完整任務包必須同時完成指定聽力與 AI 測驗；
-                            選擇題達到老師設定分數才算通過。
-                        </span>
-                    </div>
-                </section>
+                </details>
 
                 {message && <div className="assignment-message">{message}</div>}
 
@@ -401,7 +389,7 @@ const StudentAssignments = () => {
                                 <strong>正在整理今天的作業</strong>
                                 <p>馬上就好，請稍候一下。</p>
                             </div>
-                        ) : assignments.length === 0 ? (
+                        ) : assignments.length === 0 && v2Assignments.length === 0 ? (
                             <div className="student-homework-state empty">
                                 <span className="student-homework-state__icon">
                                     <BookOpenCheck aria-hidden="true" size={30} />

@@ -101,8 +101,9 @@ describe("MembershipCenter AI add-on", () => {
             </MemoryRouter>
         );
 
-        expect(await screen.findByRole("heading", { name: "我的教材與功能" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "目前可用功能" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "我可以用什麼？" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "選一個開始學" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "家長：方案與付款" })).toBeInTheDocument();
         expect(screen.getByText("教材附贈 90 天網站使用權")).toBeInTheDocument();
         expect(screen.getByText("一般會員")).toBeInTheDocument();
         expect(screen.getByText("使用中")).toBeInTheDocument();
