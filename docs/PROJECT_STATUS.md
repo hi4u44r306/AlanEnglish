@@ -2,9 +2,9 @@
 
 最後更新：2026-09-12
 
-本次進行中（2026-09-12，尚未部署）：
+本次進行中（2026-09-12，固定測試站已部署，正式站尚未部署）：
 
-- 學生首頁與 Navbar 去重：首頁不再重複列出「我的教材、開口說、AI 教材、更多功能」大型入口，這些功能統一由桌面 Navbar／手機底部導覽負責。首頁改為簡短問候；只有具既有作業權限的學生會看到「老師交代的事」任務卡，無權限者完全不顯示；下方提供「先聽一遍、再開口說」兩項非操作式提示。沒有新增 API、推薦路線或進度統計，也未變更 assignment entitlement。`User`、`MainNavbar`、`Containerfull` 共 3 suites／11 tests、Production build 與 `git diff --check` 通過；尚待固定測試站 412px 與桌面驗收，正式站尚未部署。
+- 學生首頁與 Navbar 去重：首頁不再重複列出「我的教材、開口說、AI 教材、更多功能」大型入口，這些功能統一由桌面 Navbar／手機底部導覽負責。首頁改為簡短問候；只有具既有作業權限的學生會看到「老師交代的事」任務卡，無權限者完全不顯示；下方提供「先聽一遍、再開口說」兩項非操作式提示。沒有新增 API、推薦路線或進度統計，也未變更 assignment entitlement。`User`、`MainNavbar`、`Containerfull` 共 3 suites／11 tests、Production build 與 `git diff --check` 通過。功能 commit `35bbe15` 已推送並更新 PR #118；固定測試站 deploy `6aa555084f4fd6f33c6c545a` 已發布，首頁、登入、學生首頁及新 JS／CSS 均回應 HTTP 200，已登入窄版畫面確認沒有重複入口、水平溢位或底部導覽重疊。仍待桌面寬版複驗，正式站尚未部署。
 - 學生登入後主要頁面已完成第一階段全頁面審閱與精簡：首頁／導覽沿用已發布的兒童友善第一階段，本分支再處理作業、複習、AI 教材、發音教練、情境對話、口說關卡目錄、週報、會員、個人資料、通知、等級、排行榜、獎品、帳號安全與客服。全前端 56 suites／185 tests、Production build 與 `git diff --check` 全部通過；相對 `origin/main` 沒有 package、Supabase、migration、Edge Function、Firebase、Stripe 或 Secret 檔案變更。P0／P1 程式審閱為 0。固定測試站 deploy `6aa54f51008e57d9d848d493` 已發布，首頁、登入與主要學生路由及 `main.c8b42294.js`／`main.9c4a9ea3.css` 均回應 HTTP 200；尚待使用已登入學生帳號完成桌面與 412px 視覺操作驗收，正式站尚未部署。
 - 學生口說關卡目錄精簡：入口標題改為「選一個口說關卡」，說明縮成「選教材，跟著題目開口回答」，卡片進度改用「已完成 x/y 題」；手機縮短頁首與卡片間距，但保持每張關卡卡 150px 以上。詳細關卡、國旗視覺、換題同步、私人 R2 示範音檔、錄音與後端評分沒有變更；`TextbookSpeakingChallenge` 4 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
 - 學生帳號安全與客服文字精簡：學生帳號安全頁改以「更改密碼」與一步操作說明開場，老師／管理員仍保留「帳號與密碼」說明；客服頁改為「需要幫忙嗎？」並保留不得提交密碼或完整卡號的警告。Firebase 重新驗證、密碼更新、英文班密碼狀態同步、客服欄位驗證與送件 API 沒有變更；UI 契約測試 3 tests 與 Production build 通過，尚待 Deploy Preview 驗收。
