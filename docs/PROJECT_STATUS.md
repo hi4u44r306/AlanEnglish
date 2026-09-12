@@ -4,6 +4,7 @@
 
 本次進行中（2026-09-12，尚未部署）：
 
+- 學生兒童友善介面第二階段：分支 `codex/student-child-friendly-ui-phase2` 從目前 `main` commit `02f0b442` 建立。新增只在 `.ae-student-navbar` 存在時生效的共用視覺層，統一降低作業、錯題複習、週報、設定、通知、會員、等級／排行榜／獎勵、AI 教材與口說頁的標題與操作字重；手機版縮小標題、移除重複的英文裝飾標籤、保留至少 44px 主要操作區與清楚的鍵盤 focus。沒有變更路由、Firebase、Supabase、membership／entitlement／assignment、老師／管理員介面、套件或後端。全前端 48 suites／159 tests、Production build 與 `git diff --check` 通過；編譯後樣式在 412px 量測為標題字重 700、按鈕 44px、焦點框可見且無水平溢位，桌面保留輔助標籤，沒有學生 Navbar 時仍維持既有 950 字重。尚未部署。
 - 公開首頁折疊版 Navbar 新增常駐「登入」按鈕，使用者在平板與手機寬度不必先打開漢堡選單即可找到登入頁；抽屜內原登入入口仍保留，桌面寬版導覽不變。按鈕維持至少 44px 觸控高度，並補上 hover 與鍵盤 focus 狀態。本批不修改登入流程、Firebase、Supabase、權限、套件或產品資料。
 
 本次正式發布（2026-09-12）：

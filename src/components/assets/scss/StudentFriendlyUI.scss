@@ -1,0 +1,225 @@
+// Phase 2 student UI foundation.
+// The :has() guard keeps these presentation changes on signed-in student pages;
+// teacher and admin pages continue to use their existing visual system.
+.app-shell:has(.ae-student-navbar) .app-content {
+  --student-friendly-ink: #17305c;
+  --student-friendly-muted: #64748b;
+  --student-friendly-focus: #f2b632;
+
+  :where(
+    .student-homework-page,
+    .review-center,
+    .weekly-report-page,
+    .student-settings-page,
+    .student-notifications-page,
+    .platform-page,
+    .gamification-page,
+    .ai-studio,
+    .pronunciation-page,
+    .speaking-challenge-page
+  ) {
+    color: var(--student-friendly-ink);
+  }
+
+  :where(
+    .student-homework-page,
+    .review-center,
+    .weekly-report-page,
+    .student-settings-page,
+    .student-notifications-page,
+    .platform-page,
+    .gamification-page,
+    .ai-studio,
+    .pronunciation-page,
+    .speaking-challenge-page
+  ) :where(h1, h2, h3) {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.22;
+  }
+
+  :where(
+    .student-homework-page,
+    .review-center,
+    .weekly-report-page,
+    .student-settings-page,
+    .student-notifications-page,
+    .platform-page,
+    .gamification-page,
+    .ai-studio,
+    .pronunciation-page,
+    .speaking-challenge-page
+  ) :where(p, li, dd) {
+    line-height: 1.65;
+  }
+
+  :where(
+    .student-homework-page,
+    .review-center,
+    .weekly-report-page,
+    .student-settings-page,
+    .student-notifications-page,
+    .platform-page,
+    .gamification-page,
+    .ai-studio,
+    .pronunciation-page,
+    .speaking-challenge-page
+  ) :where(button, a, input, select, summary):focus-visible {
+    outline: 3px solid var(--student-friendly-focus);
+    outline-offset: 3px;
+  }
+
+  .student-homework-hero h1,
+  .review-hero__copy h1,
+  .weekly-report-hero__copy h1,
+  .student-settings-hero h1,
+  .student-notifications-hero h1,
+  .membership-page-title h1,
+  .gamification-hero h1,
+  .ai-studio-hero h1,
+  .pronunciation-hero h1,
+  .speaking-challenge-hero h1 {
+    font-weight: 700;
+  }
+
+  .student-homework-section-heading h2,
+  .review-heading h2,
+  .weekly-report-heading h2,
+  .student-settings-panel h2,
+  .platform-section-title h2,
+  .gamification-page h2,
+  .ai-studio h2,
+  .pronunciation-page h2,
+  .speaking-challenge-page h2 {
+    font-weight: 700;
+  }
+
+  .student-homework-page :where(button, .student-homework-action),
+  .review-center :where(button, .review-primary-action),
+  .weekly-report-page button,
+  .student-settings-page button,
+  .student-notifications-page button,
+  .platform-page :where(button, .platform-primary, .platform-secondary),
+  .gamification-page :where(button, .gamification-reward-link),
+  .ai-studio button,
+  .pronunciation-page button,
+  .speaking-challenge-page button {
+    font-weight: 700;
+  }
+
+  .student-settings-profile-copy h2,
+  .student-settings-data-list dd,
+  .student-settings-stats strong,
+  .student-notification-card header strong,
+  .membership-access-summary dd,
+  .membership-feature-row strong,
+  .membership-plan-copy h3,
+  .gamification-page article strong {
+    font-weight: 700;
+  }
+
+  .student-homework-task-card,
+  .review-summary article,
+  .review-panel,
+  .weekly-report-panel,
+  .weekly-report-learning-card,
+  .student-settings-profile-card,
+  .student-settings-panel,
+  .student-notification-card,
+  .platform-card,
+  .gamification-page article,
+  .ai-studio-card,
+  .pronunciation-lessons,
+  .pronunciation-stage,
+  .speaking-challenge-grid > button {
+    box-shadow: 0 10px 28px rgba(23, 48, 92, 0.07);
+  }
+}
+
+@media (max-width: 600px) {
+  .app-shell:has(.ae-student-navbar) .app-content {
+    :where(
+      .student-homework-page,
+      .review-center,
+      .weekly-report-page,
+      .student-settings-page,
+      .student-notifications-page,
+      .platform-page,
+      .gamification-page,
+      .ai-studio,
+      .pronunciation-page,
+      .speaking-challenge-page
+    ) :where(h1) {
+      font-size: clamp(1.7rem, 8vw, 2.15rem);
+    }
+
+    :where(
+      .student-homework-hero,
+      .review-hero,
+      .weekly-report-hero,
+      .student-settings-hero,
+      .student-notifications-hero,
+      .membership-page-header,
+      .gamification-hero,
+      .ai-studio-hero,
+      .pronunciation-hero,
+      .speaking-challenge-hero
+    ) {
+      min-height: auto;
+      border-radius: 22px;
+    }
+
+    .student-homework-eyebrow,
+    .student-homework-section-heading > div > span,
+    .review-hero__copy > span,
+    .weekly-report-kicker,
+    .student-settings-hero > span,
+    .student-notifications-hero > span,
+    .platform-eyebrow,
+    .gamification-eyebrow,
+    .ai-eyebrow,
+    .pronunciation-eyebrow,
+    .speaking-challenge-hero > span {
+      display: none;
+    }
+
+    .student-homework-page :where(button, .student-homework-action),
+    .review-center :where(button, .review-primary-action),
+    .weekly-report-page button,
+    .student-settings-page button,
+    .student-notifications-page button,
+    .platform-page :where(button, .platform-primary, .platform-secondary),
+    .gamification-page :where(button, .gamification-reward-link),
+    .ai-studio button,
+    .pronunciation-page button,
+    .speaking-challenge-page button {
+      min-height: 44px;
+    }
+
+    .student-homework-hero,
+    .review-hero,
+    .weekly-report-hero,
+    .student-settings-hero,
+    .student-notifications-hero,
+    .membership-page-header,
+    .gamification-hero,
+    .ai-studio-hero,
+    .pronunciation-hero,
+    .speaking-challenge-hero {
+      padding: 22px 20px;
+    }
+
+    .student-homework-page,
+    .review-center,
+    .weekly-report-page,
+    .student-settings-page,
+    .student-notifications-page,
+    .platform-page,
+    .gamification-page,
+    .ai-studio,
+    .pronunciation-page,
+    .speaking-challenge-page {
+      padding-top: 16px;
+    }
+  }
+}
