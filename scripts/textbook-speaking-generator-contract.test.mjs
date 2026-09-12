@@ -11,6 +11,8 @@ const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const challenge = read("supabase/functions/speaking-challenge/index.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
+const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
+const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -143,4 +145,43 @@ test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {
     assert.match(challenge, /question_prompt/);
     assert.match(challenge, /model_answer/);
     assert.match(challenge, /complete_speaking_challenge_question_v2/);
+});
+
+test("15. Workbook 1 基礎關卡只建立草稿，OCR 單字需人工核准", () => {
+    for (const action of [
+        "create_workbook_1_alphabet_round",
+        "create_workbook_1_spelling_p14",
+        "create_workbook_1_spelling_p15",
+        "create_workbook_1_spelling_p16",
+        "create_workbook_1_spelling_p17"
+    ]) assert.match(foundationTemplates, new RegExp(action));
+    assert.match(foundationTemplates, /questions: alphabet\.map\(letterQuestion\)/);
+    assert.match(foundationTemplates, /sourceRequiresReview: true/);
+    assert.match(foundationTemplates, /requires_brand_review: true/);
+    assert.match(manager, /confirm_workbook_1_foundation_source/);
+    assert.match(manager, /content_reviewed_at/);
+    assert.match(manager, /if \(!reviewedSection\) return json\(409/);
+    assert.match(manager, /if \(!reviewedSet\) return json\(409/);
+    assert.match(manager, /speaking_source_sections!inner\(status\)/);
+    assert.match(manager, /content_reviewed_at: null/);
+    assert.match(manager, /reviewed_at: null/);
+    assert.match(manager, /questionIds\.length !== 26/);
+    assert.match(manager, /A–Z 的 26 個標準發音尚未全部完成/);
+    assert.match(ttsManager, /mayPrepareAlphabetDraft/);
+    assert.match(ttsManager, /questions\.slice\(0, 50\)/);
+    assert.match(service, /createWorkbookOneFoundationQuestionSet/);
+    assert.match(adminPage, /已對照原頁，核准內容/);
+});
+
+test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前端直接偽造", () => {
+    assert.match(foundationAnswers, /alphabet_round/);
+    assert.match(foundationAnswers, /letter_spelling/);
+    assert.match(foundationAnswers, /spoken\.length !== expected\.length/);
+    assert.match(challenge, /speaking_pronunciation_attempts/);
+    assert.match(challenge, /correct_assessment_required/);
+    assert.match(challenge, /matchesFoundationAnswer/);
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(coach, /matchesFoundationAnswer/);
+    assert.match(coach, /FOUNDATION_DAILY_REQUEST_LIMIT/);
+    assert.match(coach, /foundationRetryFeedback/);
 });

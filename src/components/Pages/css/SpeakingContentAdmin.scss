@@ -7,6 +7,13 @@
 .speaking-starter-card h2 { margin: 5px 0 7px; }
 .speaking-starter-card p { margin: 0; color: #65758c; line-height: 1.65; }
 .speaking-starter-card__warning { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; color: #94352f !important; }
+.speaking-foundation-starters { grid-template-columns: 1fr; }
+.speaking-foundation-starters__list { display: grid; gap: 10px; }
+.speaking-foundation-starters__list > article { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid #d8e3f2; border-radius: 14px; background: rgba(255, 255, 255, .88); }
+.speaking-foundation-starters__list > article > div { display: grid; gap: 4px; }
+.speaking-foundation-starters__list strong { color: #17233f; }
+.speaking-foundation-starters__list small { color: #65758c; line-height: 1.5; }
+.speaking-foundation-starters__status { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: #19714a; font-weight: 850; }
 .speaking-confirm { grid-template-columns: 22px 1fr !important; align-items: start; }
 .speaking-confirm input { width: 20px !important; min-height: 20px !important; margin-top: 2px; }
 .speaking-file-picker { padding: 16px; border: 1px dashed #9bb4da; border-radius: 14px; background: #f4f8ff; }
@@ -85,6 +92,7 @@
     .speaking-workflow { grid-template-columns: 1fr; }
     .speaking-starter-card { grid-template-columns: 1fr; }
     .speaking-starter-card button { width: 100%; }
+    .speaking-foundation-starters__list > article { grid-template-columns: 1fr; }
     .speaking-source-card > header, .speaking-set__heading { align-items: stretch; flex-direction: column; }
     .speaking-source-card > header button, .speaking-set__heading button { width: 100%; }
     .speaking-question-editor { grid-template-columns: 1fr; padding: 14px; }

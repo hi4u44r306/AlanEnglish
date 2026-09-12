@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
+import { WORKBOOK_ONE_FOUNDATION_TEMPLATES } from "../_shared/workbook-one-foundations.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -125,6 +126,7 @@ const WORKBOOK_TWO_STARTER_QUESTIONS = [
 ];
 
 const CURATED_STARTER_TEMPLATES: Record<string, any> = {
+    ...WORKBOOK_ONE_FOUNDATION_TEMPLATES,
     create_workbook_1_starter: {
         catalogKey: "workbook1", templateKey: WORKBOOK_ONE_STARTER_KEY,
         documentTitle: "Workbook 1 口說大挑戰", unitLabel: "Starter 01",
@@ -286,6 +288,42 @@ Deno.serve(async (req: Request) => {
 
         if (action === "bootstrap") return json(200, { success: true, ...await loadBootstrap(admin) });
 
+        if (action === "confirm_workbook_1_foundation_source") {
+            const setId = Number(body?.question_set_id);
+            if (!Number.isInteger(setId) || setId <= 0 || body?.confirmed !== true) {
+                return json(400, { error: "請勾選已逐題對照 Workbook 1 原頁面" });
+            }
+            const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
+                .select("id,status,source_section_id,generation_metadata,speaking_questions(id)")
+                .eq("id", setId).maybeSingle();
+            if (setError) throw setError;
+            const metadata = questionSet?.generation_metadata || {};
+            const templateKey = String(metadata?.template_key || "");
+            const isFoundationTemplate = Object.values(WORKBOOK_ONE_FOUNDATION_TEMPLATES)
+                .some((template: any) => template.templateKey === templateKey);
+            if (!questionSet || questionSet.status !== "draft" || !isFoundationTemplate
+                || metadata?.requires_content_review !== true || !(questionSet.speaking_questions || []).length) {
+                return json(409, { error: "這份題庫不是可核准的 Workbook 1 基礎草稿" });
+            }
+            const now = new Date().toISOString();
+            const { data: reviewedSection, error: sectionError } = await admin.from("speaking_source_sections").update({
+                status: "reviewed", reviewed_by: user.id, reviewed_at: now, updated_at: now
+            }).eq("id", questionSet.source_section_id).in("status", ["draft", "reviewed"]).select("id").maybeSingle();
+            if (sectionError) throw sectionError;
+            if (!reviewedSection) return json(409, { error: "教材來源已變更，請重新整理後再核准" });
+            const { data: reviewedSet, error: metadataError } = await admin.from("speaking_question_sets").update({
+                generation_metadata: {
+                    ...metadata,
+                    content_reviewed_at: now,
+                    content_reviewed_by: Number(user.id)
+                },
+                updated_at: now
+            }).eq("id", setId).eq("status", "draft").select("id").maybeSingle();
+            if (metadataError) throw metadataError;
+            if (!reviewedSet) return json(409, { error: "題庫狀態已變更，請重新整理後再核准" });
+            return json(200, { success: true, reviewed_at: now });
+        }
+
         const curatedStarter = CURATED_STARTER_TEMPLATES[action];
         if (curatedStarter) {
             const bookId = Number(body?.book_id);
@@ -303,8 +341,10 @@ Deno.serve(async (req: Request) => {
             if (existing) return json(200, { success: true, question_set_id: existing.id, status: existing.status, reused: true });
 
             const now = new Date().toISOString();
+            const sourceRequiresReview = curatedStarter.sourceRequiresReview === true;
             const { data: document, error: documentError } = await admin.from("speaking_source_documents").insert({
-                book_id: bookId, title: curatedStarter.documentTitle, source_kind: "pasted_text", status: "ready",
+                book_id: bookId, title: curatedStarter.documentTitle, source_kind: "pasted_text",
+                status: sourceRequiresReview ? "draft" : "ready",
                 created_by: user.id, created_at: now, updated_at: now
             }).select("id").single();
             if (documentError) throw documentError;
@@ -314,8 +354,9 @@ Deno.serve(async (req: Request) => {
                     document_id: document.id, unit_label: curatedStarter.unitLabel,
                     page_from_label: curatedStarter.pageFromLabel, page_to_label: curatedStarter.pageToLabel,
                     topic: curatedStarter.topic, source_text: curatedStarter.sourceText,
-                    language_level: curatedStarter.difficulty, status: "reviewed", created_by: user.id, reviewed_by: user.id,
-                    reviewed_at: now, created_at: now, updated_at: now
+                    language_level: curatedStarter.difficulty, status: sourceRequiresReview ? "draft" : "reviewed",
+                    created_by: user.id, reviewed_by: sourceRequiresReview ? null : user.id,
+                    reviewed_at: sourceRequiresReview ? null : now, created_at: now, updated_at: now
                 }).select("id").single();
                 if (sectionError) throw sectionError;
                 const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
@@ -323,7 +364,8 @@ Deno.serve(async (req: Request) => {
                     topic: curatedStarter.topic, difficulty: curatedStarter.difficulty, status: "draft", version: 1,
                     generation_metadata: {
                         source: "curated_template", template_key: curatedStarter.templateKey,
-                        source_pages: curatedStarter.sourcePages, answer_type: curatedStarter.answerType
+                        source_pages: curatedStarter.sourcePages, answer_type: curatedStarter.answerType,
+                        ...(curatedStarter.metadata || {})
                     },
                     created_by: user.id, created_at: now, updated_at: now
                 }).select("id").single();
@@ -863,13 +905,31 @@ Deno.serve(async (req: Request) => {
         if (action === "update_draft_question") {
             const questionId = Number(body?.question_id);
             const { data: question, error: questionError } = await admin.from("speaking_questions")
-                .select("id,question_set_id,speaking_question_sets(status)").eq("id", questionId).maybeSingle();
+                .select("id,question_set_id,speaking_question_sets(status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
             if (questionError) throw questionError;
-            const setStatus = Array.isArray(question?.speaking_question_sets) ? question.speaking_question_sets[0]?.status : question?.speaking_question_sets?.status;
-            if (!question || setStatus !== "draft") return json(409, { error: "只有草稿題庫可以修改" });
+            const questionSet = Array.isArray(question?.speaking_question_sets)
+                ? question.speaking_question_sets[0] : question?.speaking_question_sets;
+            if (!question || questionSet?.status !== "draft") return json(409, { error: "只有草稿題庫可以修改" });
             const normalized = normalizeQuestions([body?.question], 1)?.[0];
             if (!normalized) return json(400, { error: "問題、提示、關鍵字與兩種示範回答都必須完整" });
-            const { error } = await admin.from("speaking_questions").update({ ...normalized, updated_at: new Date().toISOString() }).eq("id", questionId);
+            const now = new Date().toISOString();
+            const metadata = questionSet?.generation_metadata || {};
+            if (metadata?.requires_content_review === true) {
+                const { error: resetSetError } = await admin.from("speaking_question_sets").update({
+                    generation_metadata: {
+                        ...metadata,
+                        content_reviewed_at: null,
+                        content_reviewed_by: null
+                    },
+                    updated_at: now
+                }).eq("id", Number(question.question_set_id)).eq("status", "draft");
+                if (resetSetError) throw resetSetError;
+                const { error: resetSectionError } = await admin.from("speaking_source_sections").update({
+                    status: "draft", reviewed_by: null, reviewed_at: null, updated_at: now
+                }).eq("id", Number(questionSet.source_section_id));
+                if (resetSectionError) throw resetSectionError;
+            }
+            const { error } = await admin.from("speaking_questions").update({ ...normalized, updated_at: now }).eq("id", questionId);
             if (error) throw error;
             return json(200, { success: true });
         }
@@ -877,10 +937,39 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,speaking_questions(id)").eq("id", setId).maybeSingle();
+                .select("id,status,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
+            const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
+                ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
+            const metadata = questionSet?.generation_metadata || {};
             if (!questionSet || questionSet.status !== "draft" || (questionSet.speaking_questions || []).length < 3) {
                 return json(409, { error: "題庫必須是草稿且至少包含 3 題才能發布" });
+            }
+            if (sourceSection?.status !== "reviewed") {
+                return json(409, { error: "教材來源尚未完成人工核對，不能發布題庫" });
+            }
+            if (metadata?.requires_content_review === true && !metadata?.content_reviewed_at) {
+                return json(409, { error: "Workbook 1 基礎題目尚未完成逐題人工核對" });
+            }
+            if (metadata?.interaction_type === "alphabet_round") {
+                const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
+                const { data: audioLinks, error: audioLinkError } = await admin.from("speaking_question_audio")
+                    .select("question_id,asset_id").eq("purpose", "model_answer").in("question_id", questionIds);
+                if (audioLinkError) throw audioLinkError;
+                const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
+                const { data: assets, error: assetError } = assetIds.length
+                    ? await admin.from("speaking_tts_assets").select("id,status,private_object_key").in("id", assetIds)
+                    : { data: [], error: null };
+                if (assetError) throw assetError;
+                const readyAssetIds = new Set((assets || [])
+                    .filter((asset: any) => asset.status === "ready" && Boolean(asset.private_object_key))
+                    .map((asset: any) => String(asset.id)));
+                const readyQuestionIds = new Set((audioLinks || [])
+                    .filter((link: any) => readyAssetIds.has(String(link.asset_id)))
+                    .map((link: any) => Number(link.question_id)));
+                if (questionIds.length !== 26 || questionIds.some((id: number) => !readyQuestionIds.has(id))) {
+                    return json(409, { error: "A–Z 的 26 個標準發音尚未全部完成，不能發布半套關卡" });
+                }
             }
             const now = new Date().toISOString();
             const { error } = await admin.from("speaking_question_sets").update({ status: "published", reviewed_by: user.id, published_at: now, updated_at: now }).eq("id", setId).eq("status", "draft");

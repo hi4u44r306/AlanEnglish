@@ -1,11 +1,20 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
-import { createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap, getSpeakingQuestionAudioPreview } from "../../services/speakingContentService";
+import {
+    confirmWorkbookOneFoundationSource,
+    createWorkbookOneFoundationQuestionSet,
+    createWorkbookOneStarterQuestionSet,
+    createWorkbookTwoStarterQuestionSet,
+    getSpeakingContentBootstrap,
+    getSpeakingQuestionAudioPreview
+} from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
+    confirmWorkbookOneFoundationSource: jest.fn(),
+    createWorkbookOneFoundationQuestionSet: jest.fn(),
     createWorkbookOneStarterQuestionSet: jest.fn(),
     createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
@@ -21,6 +30,8 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
+        createWorkbookOneFoundationQuestionSet.mockResolvedValue({ success: true, reused: false });
+        confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
         getSpeakingContentBootstrap.mockResolvedValue({
@@ -33,6 +44,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         sections: [], question_sets: []
         });
     });
+    afterEach(() => jest.restoreAllMocks());
 
     it("shows persistent batch progress and a per-batch retry control", async () => {
         render(<SpeakingContentAdmin />);
@@ -60,6 +72,38 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(createButton);
 
         await waitFor(() => expect(createWorkbookTwoStarterQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 2));
+    });
+
+    it("creates Workbook 1 foundation drafts and requires source review before publishing", async () => {
+        render(<SpeakingContentAdmin />);
+        const createButtons = await screen.findAllByRole("button", { name: "建立草稿" });
+        expect(createButtons).toHaveLength(5);
+        fireEvent.click(createButtons[1]);
+
+        await waitFor(() => expect(createWorkbookOneFoundationQuestionSet).toHaveBeenCalledWith(
+            mockFirebaseUser,
+            1,
+            "create_workbook_1_spelling_p14"
+        ));
+    });
+
+    it("sends an explicit confirmation for a reviewed Workbook 1 foundation draft", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValueOnce({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 40, book_id: 1, title: "Workbook 1 P14 拼讀關", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 41, document_id: 40, topic: "看單字逐字母拼讀", unit_label: "P14 拼讀", page_from_label: "P14", page_to_label: "P14", language_level: "國小低年級", status: "draft" }],
+            question_sets: [{
+                id: 42, source_section_id: 41, title: "P14 看字拼讀", status: "draft", version: 1,
+                generation_metadata: { template_key: "workbook_1_p14_letter_spelling_v1", requires_content_review: true },
+                speaking_questions: [{ id: 43, sort_order: 0, question_text: "apple", hint_zh: "逐字母拼讀", simple_answer: "A P P L E", model_answer: "A P P L E", keywords: ["apple"], accepted_intents: ["完整拼讀"] }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /已對照原頁，核准內容/ }));
+
+        await waitFor(() => expect(confirmWorkbookOneFoundationSource).toHaveBeenCalledWith(mockFirebaseUser, 42));
     });
 
     it("shows a student-facing preview for an editable starter draft", async () => {

@@ -8,6 +8,11 @@ import {
     matchesSpeakingAnswerTemplate,
     speakingAnswerPrompt
 } from "../_shared/speaking-pronunciation-reference.ts";
+import {
+    foundationRetryFeedback,
+    matchesFoundationAnswer,
+    readFoundationInteractionType
+} from "../_shared/speaking-foundation-answer.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -24,6 +29,8 @@ const MIN_AUDIO_SECONDS = 0.35;
 const MAX_AUDIO_SECONDS = 20;
 const RATE_WINDOW_MINUTES = 10;
 const RATE_REQUEST_LIMIT = 12;
+const FOUNDATION_RATE_REQUEST_LIMIT = 60;
+const FOUNDATION_DAILY_REQUEST_LIMIT = 160;
 
 const normalizeWord = (value: unknown) => String(value || "")
     .toLowerCase()
@@ -122,11 +129,14 @@ const buildAzureSpeechEndpoint = (region: string) => {
 
 const assertPublishedQuestionAccess = async (admin: any, questionId: number) => {
     const { data, error } = await admin.from("speaking_questions")
-        .select("id,question_set_id,model_answer,pronunciation_notes_zh,speaking_question_sets!inner(id,status)")
+        .select("id,question_set_id,model_answer,pronunciation_notes_zh,speaking_question_sets!inner(id,status,generation_metadata)")
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
     const answerTemplate = String(data.model_answer || "").replace(/\s+/g, " ").trim();
+    const questionSet = Array.isArray(data.speaking_question_sets)
+        ? data.speaking_question_sets[0] : data.speaking_question_sets;
+    const interactionType = readFoundationInteractionType(questionSet?.generation_metadata);
     const isStructuredAnswer = hasSpeakingAnswerSlots(answerTemplate);
     const referenceText = isStructuredAnswer ? "" : buildSpeakingReferenceText(answerTemplate, {});
     if (!answerTemplate || answerTemplate.length > 500) {
@@ -137,18 +147,27 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number) => 
         questionSetId: Number(data.question_set_id),
         answerTemplate,
         answerPrompt: speakingAnswerPrompt(answerTemplate),
+        interactionType,
         isStructuredAnswer,
         referenceText,
         feedback: String(data.pronunciation_notes_zh || "")
     };
 };
 
-const assertRateLimit = async (admin: any, studentId: number) => {
+const assertRateLimit = async (admin: any, studentId: number, interactionType: string) => {
     const since = new Date(Date.now() - RATE_WINDOW_MINUTES * 60 * 1000).toISOString();
-    const { count, error } = await admin.from("speaking_pronunciation_attempts")
+    const isFoundationRound = Boolean(interactionType);
+    const recentRequest = admin.from("speaking_pronunciation_attempts")
         .select("id", { count: "exact", head: true }).eq("student_id", studentId).gte("created_at", since);
-    if (error) throw error;
-    if ((count || 0) >= RATE_REQUEST_LIMIT) {
+    const dailyRequest = isFoundationRound
+        ? admin.from("speaking_pronunciation_attempts").select("id", { count: "exact", head: true })
+            .eq("student_id", studentId).gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        : Promise.resolve({ count: 0, error: null });
+    const [recent, daily] = await Promise.all([recentRequest, dailyRequest]);
+    if (recent.error) throw recent.error;
+    if (daily.error) throw daily.error;
+    if ((recent.count || 0) >= (isFoundationRound ? FOUNDATION_RATE_REQUEST_LIMIT : RATE_REQUEST_LIMIT)
+        || (isFoundationRound && (daily.count || 0) >= FOUNDATION_DAILY_REQUEST_LIMIT)) {
         throw Object.assign(new Error("短時間練習次數較多，請休息一下再繼續"), { status: 429, code: "rate_limited" });
     }
 };
@@ -183,9 +202,11 @@ const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof ass
             const errorType = String(wordAssessment.errorType || (item ? "None" : "Omission"));
             return { text, score, status: errorType === "None" ? statusForScore(score) : "retry", error_type: errorType };
         });
-    const answerMatch = question.isStructuredAnswer
-        ? matchesSpeakingAnswerTemplate(question.answerTemplate, recognizedText)
-        : true;
+    const answerMatch = question.interactionType
+        ? matchesFoundationAnswer(question.interactionType, question.answerTemplate, recognizedText)
+        : question.isStructuredAnswer
+            ? matchesSpeakingAnswerTemplate(question.answerTemplate, recognizedText)
+            : true;
     const needsPractice = words.filter(word => word.status !== "good").slice(0, 3).map(word => word.text.replace(/[.,!?]/g, ""));
     const componentScores = [assessment?.AccuracyScore, assessment?.FluencyScore, assessment?.ProsodyScore]
         .map(value => Number(value))
@@ -196,9 +217,10 @@ const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof ass
         : numberScore(componentScores.reduce((sum, value) => sum + value, 0) / Math.max(componentScores.length, 1));
 
     return {
-        answer_mode: question.isStructuredAnswer ? "structured_voice" : "scripted_voice",
+        answer_mode: question.interactionType || (question.isStructuredAnswer ? "structured_voice" : "scripted_voice"),
         answer_match: answerMatch,
-        answer_prompt: question.answerPrompt,
+        answer_prompt: question.interactionType ? null : question.answerPrompt,
+        interaction_type: question.interactionType || null,
         recognized_text: recognizedText,
         scores: {
             pronunciation,
@@ -209,7 +231,9 @@ const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof ass
         },
         words,
         feedback: !answerMatch
-            ? `請用「${question.answerPrompt}」的完整句型再回答一次。`
+            ? (question.interactionType
+                ? foundationRetryFeedback(question.interactionType)
+                : `請用「${question.answerPrompt}」的完整句型再回答一次。`)
             : needsPractice.length > 0
                 ? `先集中練習：${needsPractice.join("、")}。${question.feedback}`
                 : `每個字都很清楚！${question.feedback}`
@@ -263,7 +287,7 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
-        await assertRateLimit(admin, Number(user.id));
+        await assertRateLimit(admin, Number(user.id), question.interactionType);
 
         const assessmentConfig: Record<string, unknown> = {
             GradingSystem: "HundredMark",

@@ -1,0 +1,93 @@
+export const FOUNDATION_INTERACTION_TYPES = new Set(["alphabet_round", "letter_spelling"]);
+
+const LETTER_ALIASES: Record<string, string> = {
+    a: "A", ay: "A", aye: "A",
+    b: "B", be: "B", bee: "B",
+    c: "C", sea: "C", see: "C",
+    d: "D", dee: "D",
+    e: "E",
+    f: "F", ef: "F", eff: "F",
+    g: "G", gee: "G",
+    h: "H", aitch: "H", haitch: "H",
+    i: "I", eye: "I",
+    j: "J", jay: "J",
+    k: "K", kay: "K",
+    l: "L", el: "L", ell: "L",
+    m: "M", em: "M",
+    n: "N", en: "N",
+    o: "O", oh: "O",
+    p: "P", pea: "P", pee: "P",
+    q: "Q", cue: "Q", queue: "Q",
+    r: "R", are: "R",
+    s: "S", es: "S", ess: "S",
+    t: "T", tea: "T", tee: "T",
+    u: "U", ewe: "U", yew: "U", you: "U",
+    v: "V", vee: "V",
+    w: "W",
+    x: "X", ex: "X",
+    y: "Y", why: "Y",
+    z: "Z", zed: "Z", zee: "Z"
+};
+
+export const readFoundationInteractionType = (metadata: unknown) => {
+    const type = String((metadata as any)?.interaction_type || "").trim();
+    return FOUNDATION_INTERACTION_TYPES.has(type) ? type : "";
+};
+
+const normalizedTokens = (value: unknown) => String(value || "")
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .replace(/[^a-z\s]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(Boolean);
+
+export const spokenLetterSequence = (value: unknown) => {
+    const tokens = normalizedTokens(value);
+    if (!tokens.length) return null;
+    const letters: string[] = [];
+    for (let index = 0; index < tokens.length; index += 1) {
+        const token = tokens[index];
+        if (token === "double") {
+            const next = tokens[index + 1];
+            if (next === "u") {
+                letters.push("W");
+                index += 1;
+                continue;
+            }
+            const repeated = LETTER_ALIASES[next];
+            if (!repeated) return null;
+            letters.push(repeated, repeated);
+            index += 1;
+            continue;
+        }
+        const letter = LETTER_ALIASES[token];
+        if (!letter) return null;
+        letters.push(letter);
+    }
+    return letters;
+};
+
+const expectedLetterSequence = (value: unknown) => String(value || "")
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "")
+    .split("")
+    .filter(Boolean);
+
+export const matchesFoundationAnswer = (interactionType: unknown, expectedAnswer: unknown, recognizedText: unknown) => {
+    const type = String(interactionType || "");
+    if (!FOUNDATION_INTERACTION_TYPES.has(type)) return false;
+    const expected = expectedLetterSequence(expectedAnswer);
+    const spoken = spokenLetterSequence(recognizedText);
+    if (!spoken || spoken.length !== expected.length) return false;
+    if (type === "alphabet_round" && expected.length !== 1) return false;
+    if (type === "letter_spelling" && expected.length < 2) return false;
+    return expected.every((letter, index) => spoken[index] === letter);
+};
+
+export const foundationRetryFeedback = (interactionType: unknown) => (
+    interactionType === "alphabet_round"
+        ? "再看清楚這個字母，聽完提示音後重新唸一次。"
+        : "請慢慢逐字母拼讀，確認沒有漏字、換序或多唸字母。"
+);

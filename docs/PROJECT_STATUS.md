@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-12，尚未部署）：
 
-- Workbook 1 基礎口說闖關內容／資料契約盤點：新分支 `codex/workbook1-speaking-challenges` 從最新 `origin/main` commit `02f0b442` 建立，並只套入 Speaking 視覺提示、換題同步與台灣國旗修正 5 個相關 commit。唯讀核對 Supabase 後確認 P14～P17 共 47 個拼讀單字已有 OCR 草稿；P21 與 P22 各有 9 個題位，但圖片中的名詞及答案未被 OCR 保存，來源文件仍為 `draft`／`review_required`，不得直接發布。新增 `docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`，定義 A–Z 教學與 3 秒挑戰、逐頁洗牌拼讀、完整問答／句子判定、私人 R2 圖片契約、缺件清單及發布閘門。本階段未建立題庫、未產生付費 TTS、未執行 migration、未部署 Edge Function 或 Netlify。
+- Workbook 1 基礎口說闖關第一個實作 checkpoint：分支 `codex/workbook1-speaking-challenges` 從 `origin/main` commit `02f0b442` 建立，並只套入 Speaking 視覺提示、換題同步與台灣國旗修正 5 個相關 commit。已完成 A–Z 教學／3 秒辨識關與 P14～P17 四個逐字母拼讀關的管理員 curated draft、Fisher–Yates 每輪洗牌、大小寫隨機、答錯整輪歸零、重聽／重玩流程，以及後端精確字母序列比對；學生不能直接偽造完成紀錄，A–Z 的 26 個私人 R2 標準發音未全部 ready 前也不能發布半套關卡。P14～P17 共 47 個 OCR 草稿單字仍須管理員逐頁核對，P16 品牌拼字須額外注意；P21／P22 各 9 題的圖片名詞與答案仍缺失，尚未實作或匯入。相關 React 6 suites／26 tests、題庫契約 16／16、基礎答案契約、全部 Edge Function 語法、production build 與 `git diff --check` 均成功。本批未建立或執行 migration、未產生付費 TTS、未部署 Edge Function 或 Netlify。
 - 公開首頁折疊版 Navbar 新增常駐「登入」按鈕，使用者在平板與手機寬度不必先打開漢堡選單即可找到登入頁；抽屜內原登入入口仍保留，桌面寬版導覽不變。按鈕維持至少 44px 觸控高度，並補上 hover 與鍵盤 focus 狀態。本批不修改登入流程、Firebase、Supabase、權限、套件或產品資料。
 
 本次正式發布（2026-09-12）：

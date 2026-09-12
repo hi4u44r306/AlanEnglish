@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
+import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import "./css/TextbookSpeakingChallenge.scss";
 
 const THEME_RULES = [
@@ -96,11 +97,13 @@ export default function TextbookSpeakingChallenge() {
         try {
             await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id);
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
-        } catch (saveError) { setError(saveError.message || "無法儲存練習紀錄"); }
+            return true;
+        } catch (saveError) { setError(saveError.message || "無法儲存練習紀錄"); return false; }
     };
 
     const markScored = async question => {
-        if (question.progress_status !== "completed") await markComplete(question);
+        if (question.progress_status !== "completed") return markComplete(question);
+        return true;
     };
 
     const playModelAudio = question => {
@@ -118,6 +121,14 @@ export default function TextbookSpeakingChallenge() {
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
     if (!questionSetId) return <main className="speaking-challenge-page"><header className="speaking-challenge-hero"><span>TEXTBOOK SPEAKING</span><h1>口說大挑戰</h1><p>選一本課本順著練，或直接挑一個生活主題開始說英文。</p></header><div className="speaking-catalog-switch" role="group" aria-label="口說大挑戰瀏覽方式"><button type="button" className={catalogView === "books" ? "active" : ""} aria-pressed={catalogView === "books"} onClick={() => setCatalogView("books")}><FiBookOpen />依教材</button><button type="button" className={catalogView === "themes" ? "active" : ""} aria-pressed={catalogView === "themes"} onClick={() => setCatalogView("themes")}><FiMic />依主題</button></div><section className="speaking-challenge-grid" aria-busy={catalogLoading}>{catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}{!catalogLoading && catalogGroups.map(group => <section className="speaking-catalog-group" key={group.id}><header><div><small>{group.eyebrow}</small><h2>{group.label}</h2></div><span>{group.items.length} 個小關卡</span></header><div className="speaking-catalog-lessons">{group.items.map(item => <ChallengeLesson key={item.id} item={item} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}{!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
+    const interactionType = String(challenge.generation_metadata?.interaction_type || "");
+    if (["alphabet_round", "letter_spelling"].includes(interactionType)) return <WorkbookOneFoundationChallenge
+        challenge={challenge}
+        firebaseUser={firebaseUser}
+        onComplete={markScored}
+        onExit={() => navigate("/student/speaking-challenges")}
+        onError={setError}
+    />;
     const questions = challenge.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
     const completedCount = questions.filter(question => question.progress_status === "completed").length;

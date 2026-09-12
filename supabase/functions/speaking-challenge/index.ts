@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
+import { matchesFoundationAnswer, readFoundationInteractionType } from "../_shared/speaking-foundation-answer.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -37,7 +38,7 @@ Deno.serve(async (req: Request) => {
 
         if (action === "catalog") {
             const { data: sets, error } = await admin.from("speaking_question_sets")
-                .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,published_at,books(id,name,code),speaking_questions(id,sort_order)")
+                .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code),speaking_questions(id,sort_order)")
                 .eq("status", "published").order("published_at", { ascending: true });
             if (error) throw error;
             const questionIds = (sets || []).flatMap((set: any) => (set.speaking_questions || []).map((question: any) => Number(question.id)));
@@ -49,7 +50,8 @@ Deno.serve(async (req: Request) => {
             return json(200, { success: true, demo_mode: demoMode, challenges: (sets || []).map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
-                version: set.version, question_count: (set.speaking_questions || []).length,
+                version: set.version, generation_metadata: set.generation_metadata || {},
+                question_count: (set.speaking_questions || []).length,
                 completed_count: (set.speaking_questions || []).filter((question: any) => completed.has(Number(question.id))).length
             })) });
         }
@@ -57,7 +59,7 @@ Deno.serve(async (req: Request) => {
         const setId = Number(body?.question_set_id);
         if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "找不到口說小關卡" });
         const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-            .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,books(id,name,code),speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,visual_aid,sort_order)")
+            .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,books(id,name,code),speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,visual_aid,sort_order)")
             .eq("id", setId).eq("status", "published").maybeSingle();
         if (setError) throw setError;
         if (!questionSet) return json(404, { error: "找不到已發布的口說小關卡" });
@@ -104,8 +106,20 @@ Deno.serve(async (req: Request) => {
         if (action === "complete_question") {
             if (demoMode) return json(403, { error: "示範模式不會寫入學生進度", code: "demo_read_only" });
             const questionId = Number(body?.question_id);
-            const exists = (questionSet.speaking_questions || []).some((question: any) => Number(question.id) === questionId);
-            if (!exists) return json(403, { error: "這題不屬於指定的小關卡" });
+            const question = (questionSet.speaking_questions || []).find((item: any) => Number(item.id) === questionId);
+            if (!question) return json(403, { error: "這題不屬於指定的小關卡" });
+            const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
+            if (interactionType) {
+                const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+                const { data: attempt, error: attemptError } = await admin.from("speaking_pronunciation_attempts")
+                    .select("recognized_text,created_at").eq("student_id", Number(user.id))
+                    .eq("question_set_id", setId).eq("question_id", questionId)
+                    .gte("created_at", since).order("created_at", { ascending: false }).limit(1).maybeSingle();
+                if (attemptError) throw attemptError;
+                if (!attempt || !matchesFoundationAnswer(interactionType, question.model_answer, attempt.recognized_text)) {
+                    return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
+                }
+            }
             const { data: completion, error: completionError } = await admin.rpc("complete_speaking_challenge_question_v2", {
                 p_student_id: Number(user.id),
                 p_question_set_id: setId,
