@@ -186,9 +186,9 @@ const ReviewCenter = () => {
                 <header className="review-hero">
                     <div className="review-hero__copy">
                         <Link to="/student/dashboard"><FiArrowLeft /> 回到學習首頁</Link>
-                        <span><FiTarget /> SMART REVIEW</span>
-                        <h1>智慧錯題複習</h1>
-                        <p>系統會從 AI 練習與老師作業找出弱點，答對三次後就能真正掌握。</p>
+                        <span><FiTarget /> 今天的練習</span>
+                        <h1>把不熟的題目練會</h1>
+                        <p>{stats.due ? `今天有 ${stats.due} 題，選答案就可以開始。` : "今天的複習已經完成。"}</p>
                     </div>
                     <div className="review-hero__score" style={{ "--review-progress": `${stats.mastery_percent * 3.6}deg` }}>
                         <div>
@@ -198,40 +198,46 @@ const ReviewCenter = () => {
                     </div>
                 </header>
 
-                <section className="review-summary" aria-label="複習進度摘要">
-                    <article className="review-summary__due">
-                        <FiZap />
-                        <div><span>今天待複習</span><strong>{stats.due}</strong><small>題</small></div>
-                    </article>
-                    <article>
-                        <FiTrendingUp />
-                        <div><span>持續學習</span><strong>{stats.learning}</strong><small>題</small></div>
-                    </article>
-                    <article>
-                        <FiAward />
-                        <div><span>已經掌握</span><strong>{stats.mastered}</strong><small>題</small></div>
-                    </article>
-                    <article>
-                        <FiTarget />
-                        <div><span>目前弱項</span><strong className="review-summary__word">{topWeakness?.label || "尚無"}</strong></div>
-                    </article>
-                </section>
-
-                {stats.weaknesses?.length > 0 && (
-                    <section className="review-weaknesses">
-                        <div>
-                            <span>WEAK POINTS</span>
-                            <h2>需要加強的能力</h2>
-                        </div>
-                        <div className="review-weaknesses__list">
-                            {stats.weaknesses.map((item, index) => (
-                                <span className={index === 0 ? "primary" : ""} key={item.type}>
-                                    {item.label}<strong>{item.count} 題</strong>
-                                </span>
-                            ))}
-                        </div>
+                <details className="review-progress-details">
+                    <summary>
+                        <span>查看學習進度</span>
+                        <strong>{stats.mastery_percent}% 已掌握</strong>
+                    </summary>
+                    <section className="review-summary" aria-label="複習進度摘要">
+                        <article className="review-summary__due">
+                            <FiZap />
+                            <div><span>今天待複習</span><strong>{stats.due}</strong><small>題</small></div>
+                        </article>
+                        <article>
+                            <FiTrendingUp />
+                            <div><span>持續學習</span><strong>{stats.learning}</strong><small>題</small></div>
+                        </article>
+                        <article>
+                            <FiAward />
+                            <div><span>已經掌握</span><strong>{stats.mastered}</strong><small>題</small></div>
+                        </article>
+                        <article>
+                            <FiTarget />
+                            <div><span>目前弱項</span><strong className="review-summary__word">{topWeakness?.label || "尚無"}</strong></div>
+                        </article>
                     </section>
-                )}
+
+                    {stats.weaknesses?.length > 0 && (
+                        <section className="review-weaknesses">
+                            <div>
+                                <span>需要加強</span>
+                                <h2>多練這些題目</h2>
+                            </div>
+                            <div className="review-weaknesses__list">
+                                {stats.weaknesses.map((item, index) => (
+                                    <span className={index === 0 ? "primary" : ""} key={item.type}>
+                                        {item.label}<strong>{item.count} 題</strong>
+                                    </span>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </details>
 
                 {sessionFinished ? (
                     <section className="review-state review-state--finished">

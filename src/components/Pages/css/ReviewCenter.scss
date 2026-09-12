@@ -847,3 +847,140 @@
     box-sizing: border-box;
   }
 }
+
+/* Child-friendly task-first layout: answer first, optional learning stats second. */
+.review-center__shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-hero {
+  min-height: 0;
+  padding: 22px 30px;
+}
+
+.review-hero__copy > a {
+  min-height: 44px;
+  margin-bottom: 6px;
+}
+
+.review-hero__score {
+  width: 92px;
+  height: 92px;
+}
+
+.review-hero__score strong {
+  font-size: 1.3rem;
+}
+
+.review-session,
+.review-state {
+  order: 1;
+}
+
+.review-progress-details {
+  order: 2;
+  margin-top: 12px;
+  border: 1px solid var(--review-border);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 7px 19px rgba(37, 53, 78, 0.04);
+}
+
+.review-progress-details > summary {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 16px;
+  color: var(--review-ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  list-style: none;
+}
+
+.review-progress-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.review-progress-details > summary::after {
+  content: "+";
+  color: var(--review-blue);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.review-progress-details[open] > summary::after {
+  content: "−";
+}
+
+.review-progress-details > summary:focus-visible {
+  border-radius: 16px;
+  outline: 3px solid rgba(57, 111, 212, 0.25);
+  outline-offset: 3px;
+}
+
+.review-progress-details > summary strong {
+  margin-left: auto;
+  color: var(--review-blue);
+}
+
+.review-progress-details .review-summary {
+  padding: 0 10px 10px;
+  margin-top: 0;
+}
+
+.review-progress-details .review-weaknesses {
+  margin: 0 10px 10px;
+  box-shadow: none;
+}
+
+.review-center__note {
+  order: 3;
+}
+
+@media (max-width: 600px) {
+  .review-center {
+    padding-top: 14px;
+  }
+
+  .review-hero {
+    min-height: 0;
+    padding: 17px 18px;
+  }
+
+  .review-hero__copy > a {
+    display: none;
+  }
+
+  .review-hero__copy h1 {
+    max-width: 245px;
+    margin-top: 3px;
+    font-size: 1.42rem;
+  }
+
+  .review-hero__copy p {
+    max-width: 245px;
+    font-size: 0.74rem;
+  }
+
+  .review-hero__score {
+    width: 72px;
+    height: 72px;
+  }
+
+  .review-progress-details > summary {
+    min-height: 56px;
+    padding: 9px 13px;
+  }
+
+  .review-progress-details .review-summary {
+    padding: 0 8px 8px;
+  }
+
+  .review-progress-details .review-weaknesses {
+    margin: 0 8px 8px;
+  }
+}
