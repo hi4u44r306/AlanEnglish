@@ -1,13 +1,14 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-11
+最後更新：2026-09-12
 
-本次進行中（2026-09-11，尚未合併或部署）：
+本次進行中（2026-09-12，固定測試站已部署，尚未合併或部署正式站）：
 
 - 學生兒童友善首頁與導覽第一階段：分支 `codex/student-child-friendly-ui` 基於 `main` commit `bf7a825`。登入後首頁移除「繼續今天的學習」、系統推薦、每日路線與複雜進度，只依現有 active membership／effective access 顯示最多五個大型入口：我的教材、開口說、我的作業、AI 教材與更多功能；首頁不再等待無關的進度統計 API。
 - 學生桌面 Navbar 收斂為首頁、我的教材、開口說與更多，通知及帳號留在右側；手機版使用首頁、教材、開口說、更多四格固定底部導覽，通知及頭像留在頂部。發音教練與口說大挑戰統一收進開口說選單，成果、會員、設定、安全與客服依權限收進更多選單；老師與管理員沿用既有 Navbar。
 - 412×915 本機實際渲染曾發現底部列受固定 Header 定位影響而出現在頂部，已改用 React portal 放至 `body`，並補上內容、MusicPlayer 與作業捷徑避讓規則。1600×900 與 412×915 的首頁、開口說／更多選單、頁尾可見性、無水平溢位及鍵盤焦點已驗收；iPhone safe area 使用 CSS `env(safe-area-inset-bottom)` 保留空間。
-- 驗證結果：`User`、`MainNavbar`、`AssignmentShortcut`、`MusicPlayer.visibility` 共 4 suites／19 tests 通過；Production build 與 `git diff --check` 通過。只有既有 React Router future flag／act、Node deprecation 與 Browserslist 過期警告；未修改 package、Firebase、Supabase、Stripe、migration、Edge Function 或老師／管理員流程。功能 commit `0ab6c69` 已推送，PR #112 已建立，兩組 Netlify Deploy Preview 與 redirect checks 均通過；尚未合併或部署正式站。
+- 固定測試站 Review 發現學生開始播放聽力後，浮動「今日作業」為避開 MusicPlayer 被往上推到內容區；現改為學生播放器顯示期間暫時隱藏該浮動捷徑，作業仍可從首頁卡片與「更多」進入，老師／管理員的「發布作業」不受影響。412px 已登入實測確認播放器、教材內容與底部導覽沒有被捷徑遮擋；測試站 deploy `6aa49a3d940d50bf8b2622e3` 已載入 `main.320b3b35.js`。
+- 驗證結果：`User`、`MainNavbar`、`AssignmentShortcut`、`MusicPlayer.visibility` 共 4 suites／20 tests 通過；Production build 與 `git diff --check` 通過。只有既有 React Router future flag／act、Firebase OAuth 測試網域提示、Node deprecation 與 Browserslist 過期警告；未修改 package、Firebase、Supabase、Stripe、migration、Edge Function 或老師／管理員流程。功能 commit `0ab6c69` 已推送，PR #112 已建立，兩組 Netlify Deploy Preview 與 redirect checks 均通過；尚未合併或部署正式站。
 
 本次正式發布（2026-09-07）：
 
