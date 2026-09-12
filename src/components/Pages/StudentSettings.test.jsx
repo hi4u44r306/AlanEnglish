@@ -76,7 +76,7 @@ describe("StudentSettings", () => {
     it("shows student profile, protected learning honors, and birthday controls", async () => {
         render(<StudentSettings />);
 
-        expect(await screen.findByRole("heading", { name: "我的設定" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "我的資料" })).toBeInTheDocument();
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
@@ -198,7 +198,8 @@ describe("StudentSettings", () => {
 
     it("requires final confirmation before applying one of five preset avatars", async () => {
         render(<StudentSettings />);
-        await screen.findByRole("heading", { name: "我的設定" });
+        await screen.findByRole("heading", { name: "我的資料" });
+        fireEvent.click(screen.getByText("選擇其他頭像"));
 
         expect(screen.getAllByRole("button", { name: /使用.+頭像/ })).toHaveLength(5);
         selectStudentAvatarPreset.mockResolvedValue({
@@ -223,7 +224,7 @@ describe("StudentSettings", () => {
 
     it("opens a square avatar adjustment window before uploading", async () => {
         const { container } = render(<StudentSettings />);
-        await screen.findByRole("heading", { name: "我的設定" });
+        await screen.findByRole("heading", { name: "我的資料" });
 
         const file = new File(["avatar"], "avatar.png", { type: "image/png" });
         fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
