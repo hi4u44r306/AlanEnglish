@@ -52,7 +52,15 @@ const AssignmentShortcut = ({
         role === "student" &&
         /^\/student\/speaking-challenges\/[^/]+/.test(location.pathname);
 
-    if (alreadyOnAssignmentPage || insideSpeakingChallenge) {
+    const hiddenByActiveStudentPlayer =
+        role === "student" &&
+        playerVisible;
+
+    if (
+        alreadyOnAssignmentPage ||
+        insideSpeakingChallenge ||
+        hiddenByActiveStudentPlayer
+    ) {
         return null;
     }
 

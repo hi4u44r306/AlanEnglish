@@ -9,12 +9,16 @@ jest.mock("../../auth/AuthContext", () => ({
     useAuth: jest.fn()
 }));
 
-const renderShortcut = (authValue, path = "/student/dashboard") => {
+const renderShortcut = (
+    authValue,
+    path = "/student/dashboard",
+    props = {}
+) => {
     useAuth.mockReturnValue(authValue);
 
     return render(
         <MemoryRouter initialEntries={[path]}>
-            <AssignmentShortcut />
+            <AssignmentShortcut {...props} />
         </MemoryRouter>
     );
 };
@@ -67,6 +71,22 @@ describe("AssignmentShortcut", () => {
                 }
             }
         }, "/student/speaking-challenges/1");
+
+        expect(screen.queryByRole("link", { name: /今日作業/ })).not.toBeInTheDocument();
+    });
+
+    test("hides the floating homework shortcut while the student player is visible", () => {
+        renderShortcut({
+            isAuthenticated: true,
+            role: "student",
+            studentProfile: {
+                membership: {
+                    effective_access: {
+                        features: { assignments: true }
+                    }
+                }
+            }
+        }, "/student/dashboard", { playerVisible: true });
 
         expect(screen.queryByRole("link", { name: /今日作業/ })).not.toBeInTheDocument();
     });

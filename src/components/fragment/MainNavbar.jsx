@@ -18,6 +18,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
+import StudentNavbar from "./StudentNavbar";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -50,15 +51,20 @@ function MainNavbar() {
     const isAdmin = role === "admin";
     const isStudent = role === "student";
     const effectiveAccess = studentProfile?.membership?.effective_access;
+    const hasActiveStudentMembership = isStudent && studentProfile?.membership?.is_active === true;
     const hasActiveAcademyAccess = isStudent
+        && hasActiveStudentMembership
         && effectiveAccess?.plan_codes?.includes("academy_internal") === true;
-    const hasAiPremium = isStudent && hasAiPremiumAccess(effectiveAccess);
-    const hasAiAccess = !isStudent || studentProfile?.membership?.effective_access?.features?.ai_materials === true;
+    const hasAiPremium = isStudent && hasActiveStudentMembership && hasAiPremiumAccess(effectiveAccess);
+    const hasAiAccess = !isStudent || (hasActiveStudentMembership && effectiveAccess?.features?.ai_materials === true);
     const hasPronunciationAccess = !isStudent
-        || studentProfile?.membership?.effective_access?.features?.pronunciation === true
-        || studentProfile?.membership?.effective_access?.features?.pronunciation_practice === true
-        || hasActiveAcademyAccess;
+        || (hasActiveStudentMembership && (
+            effectiveAccess?.features?.pronunciation === true
+            || effectiveAccess?.features?.pronunciation_practice === true
+            || hasActiveAcademyAccess
+        ));
     const hasRewardsAccess = isStudent
+        && hasActiveStudentMembership
         && studentProfile?.learner_type === "academy_student"
         && effectiveAccess?.plan_codes?.includes("academy_internal") === true;
     const accessibleStudentCategories = useMemo(() => categories
@@ -235,6 +241,31 @@ function MainNavbar() {
             </details>
         ));
     };
+
+    if (isStudent) {
+        return (
+            <StudentNavbar
+                categories={accessibleStudentCategories}
+                gamificationLevel={gamificationLevel}
+                hasAiAccess={hasAiAccess}
+                hasAiPremium={hasAiPremium}
+                hasPronunciationAccess={hasPronunciationAccess}
+                hasRewardsAccess={hasRewardsAccess}
+                loading={loading}
+                loggingOut={loggingOut}
+                navError={navError}
+                notifications={notifications}
+                onLogout={handleLogout}
+                onNotificationRead={markNotificationRead}
+                onOpenTour={openTour}
+                profile={studentProfile}
+                scrolled={scrolled}
+                totalXp={totalXp}
+                xpProgressPercent={xpProgressPercent}
+                xpToNextLevel={xpToNextLevel}
+            />
+        );
+    }
 
     return (
         <>
