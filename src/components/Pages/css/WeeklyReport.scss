@@ -1269,6 +1269,62 @@
   }
 }
 
+.weekly-report-page--student .weekly-report-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.weekly-report-page--student .weekly-report-hero {
+  order: 0;
+  min-height: 0;
+  padding: 24px 30px;
+}
+
+.weekly-report-page--student .weekly-report-insights { order: 1; }
+.weekly-report-page--student .weekly-report-key-metrics { order: 2; }
+.weekly-report-page--student .weekly-report-learning-grid { order: 3; }
+.weekly-report-page--student .weekly-report-activity { order: 4; }
+.weekly-report-page--student .weekly-report-family { order: 5; }
+.weekly-report-page--student .weekly-report-message { order: 5; }
+.weekly-report-page--student .weekly-report-toolbar { order: 6; }
+.weekly-report-page--student .weekly-report-footer { order: 7; }
+
+@media screen and (max-width: 680px) {
+  .weekly-report-page--student .weekly-report-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .weekly-report-page--student .weekly-report-hero__copy {
+    padding-right: 0;
+  }
+
+  .weekly-report-page--student .weekly-report-hero__copy h1 {
+    max-width: 250px;
+    font-size: 1.55rem;
+  }
+
+  .weekly-report-page--student .weekly-report-status-copy p {
+    max-width: 250px;
+  }
+
+  .weekly-report-page--student .weekly-report-score {
+    position: relative;
+    inset: auto;
+    width: 78px;
+    height: 78px;
+  }
+
+  .weekly-report-page--student .weekly-report-insights {
+    margin-top: 12px;
+  }
+
+  .weekly-report-page--student .weekly-report-toolbar {
+    margin-top: 14px;
+  }
+}
+
 @media print {
   .ae-navbar,
   .weekly-report-toolbar,

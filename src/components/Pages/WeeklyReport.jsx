@@ -220,7 +220,7 @@ const WeeklyReport = () => {
         : `${report.assignments.completed}/${report.assignments.assigned}`;
 
     return (
-        <main className={`weekly-report-page ${isManager ? "weekly-report-page--manager" : ""}`}>
+        <main className={`weekly-report-page ${isManager ? "weekly-report-page--manager" : "weekly-report-page--student"}`}>
             <div className="weekly-report-shell">
                 <nav className="weekly-report-toolbar" aria-label="週報工具列">
                     <Link to={backPath}><FiArrowLeft /> 返回{isManager ? "管理首頁" : "學習首頁"}</Link>
@@ -251,7 +251,7 @@ const WeeklyReport = () => {
                 <header className={`weekly-report-hero weekly-report-hero--${report.status.code}`}>
                     <div className="weekly-report-hero__copy">
                         <span className="weekly-report-kicker"><FiBarChart2 /> WEEKLY GROWTH REPORT</span>
-                        <h1>{report.student.name} 的每週成長報告</h1>
+                        <h1>{isManager ? `${report.student.name} 的每週成長報告` : "這週做得怎麼樣？"}</h1>
                         <div className="weekly-report-week-picker">
                             <button
                                 type="button"
