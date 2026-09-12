@@ -4,6 +4,7 @@
 
 本次進行中（2026-09-12，尚未部署）：
 
+- 學生 AI 教材選擇優先介面：頁首改成「今天想練什麼？」與一句操作說明，教材類型與主題更早出現；每日／每月用量與重置倒數保留在原生 `details` 中，收合時只顯示今日剩餘次數，手機教材類型卡縮短但仍高於 44px。生成 API、成功才扣額度、trial／monthly 限制、教材保存與權限判斷沒有變更。新增 UI 契約測試後，AI／發音／會話共 3 suites／9 tests、Production build 通過；尚待 Deploy Preview 以不同權限學生驗收。
 - 學生發音教練任務優先介面：`PronunciationCoach` 的 DOM 與視覺順序改為先呈現目前句子、中文、發音提示與錄音，再顯示其他練習句子；手機選擇器收為兩欄並隱藏重複次要說明，標題改為簡短中文。既有錄音、WAV 轉換、送評、分數、逐字結果與方案權限沒有變更。發音與會話相關 2 suites／6 tests、Production build 通過，尚待 Deploy Preview 以真實麥克風驗收。
 - 學生情境對話兒童友善重整：標題改為中文並縮短說明，手機／平板會先顯示真正的對話、問題、提示與麥克風，再顯示完整 9 關任務；三種提示程度改成緊湊選項，學生手機隱藏原本重複的固定「開始回答」Dock，只保留練習卡內的主要麥克風。錄音、評分、雲端進度、教師示範及權限邏輯沒有變更。相關 UI／Navbar／Container 回歸測試共 3 suites／12 tests、Production build 通過；尚待 Deploy Preview 進行已登入 412px 操作驗收。
 - 學生手機底部避讓第一批：移除 `Containerfull` 在播放音樂時覆蓋響應式 CSS 的 inline `padding-bottom`，讓頁面完整保留 MusicPlayer、四格底部導覽與 iPhone safe area；學生手機版隱藏重複且會遮住頁面內容的浮動「今日作業」，作業仍可從首頁卡片與「更多」進入，桌面與老師／管理員捷徑維持原狀。`Containerfull`、`AssignmentShortcut`、`MainNavbar` 與學生視覺測試共 4 suites／18 tests、Production build 通過；尚待 Deploy Preview 以已登入帳號進行 412px 實際播放器驗收，本批尚未部署。
