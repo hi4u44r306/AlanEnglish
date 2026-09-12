@@ -67,8 +67,8 @@ function StudentNotifications() {
             <Link to="/student/dashboard" className="student-notifications-back"><FiChevronLeft />回到我的首頁</Link>
             <section className="student-notifications-hero">
                 <span><FiBell /> NOTIFICATIONS</span>
-                <h1>所有通知</h1>
-                <p>作業提醒、學習獎勵、會員訊息與未來生日點數都會保留在這裡。</p>
+                <h1>新消息</h1>
+                <p>作業、獎勵和帳號消息都在這裡。</p>
                 <strong>{unreadCount > 0 ? `本頁有 ${unreadCount} 則未讀通知` : "目前沒有未讀通知"}</strong>
                 {unreadCount > 0 && <button type="button" className="student-notifications-mark-all" onClick={markAllRead}>全部標示已讀</button>}
             </section>

@@ -39,7 +39,7 @@
 .student-notification-card p { margin: 5px 0; overflow-wrap: anywhere; color: #5f6f8b; line-height: 1.55; }
 .student-notification-card time { display: inline-flex; align-items: center; gap: 5px; color: #8490a3; font-size: 12px; }
 .student-notification-card button,
-.student-notifications-more { min-height: 40px; padding: 0 13px; border: 1px solid #c9d7f2; border-radius: 11px; color: #284b8f; background: #fff; font-weight: 850; cursor: pointer; white-space: nowrap; }
+.student-notifications-more { min-height: 44px; padding: 0 13px; border: 1px solid #c9d7f2; border-radius: 11px; color: #284b8f; background: #fff; font-weight: 850; cursor: pointer; white-space: nowrap; }
 .student-notification-card button:hover,
 .student-notifications-more:hover { border-color: #7893ca; background: #f2f6ff; }
 .student-notifications-more { justify-self: center; min-width: 190px; margin-top: 7px; }
@@ -47,6 +47,11 @@
 
 @media (max-width: 600px) {
     .student-notifications-page { width: min(100% - 20px, 900px); padding-top: 18px; }
+    .student-notifications-back { display: none; }
+    .student-notifications-hero { gap: 7px; margin-bottom: 14px; padding: 18px; }
+    .student-notifications-hero h1 { font-size: 28px; }
+    .student-notifications-hero p { font-size: 13px; line-height: 1.45; }
+    .student-notifications-hero strong { margin-top: 0; }
     .student-notification-card { grid-template-columns: auto minmax(0, 1fr); align-items: start; padding: 15px; }
     .student-notification-card > button { grid-column: 2; justify-self: start; }
 }
