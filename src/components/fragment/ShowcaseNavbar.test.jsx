@@ -27,4 +27,17 @@ describe("ShowcaseNavbar navigation", () => {
 
         expect(screen.getByRole("link", { name: /教材商城/ })).toHaveAttribute("href", "/shop");
     });
+
+    it("keeps login directly available when the navigation collapses", () => {
+        render(
+            <MemoryRouter>
+                <ShowcaseNavbar nav1="#features" nav2="#learning" nav3="#plans" nav4="#faq" />
+            </MemoryRouter>
+        );
+
+        const quickLogin = document.querySelector(".showcase-navbar-quick-login");
+        expect(quickLogin).toBeInTheDocument();
+        expect(quickLogin).toHaveAttribute("href", "/login");
+        expect(quickLogin).toHaveTextContent("登入");
+    });
 });
