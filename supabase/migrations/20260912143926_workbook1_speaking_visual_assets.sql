@@ -99,6 +99,13 @@ create index if not exists speaking_question_interactions_type_idx
     on public.speaking_question_interactions(interaction_type);
 create index if not exists speaking_question_word_audio_asset_idx
     on public.speaking_question_word_audio(asset_id);
+create unique index if not exists speaking_question_sets_picture_template_active_unique
+    on public.speaking_question_sets(book_id, (generation_metadata ->> 'template_key'))
+    where status <> 'archived'
+      and generation_metadata ->> 'template_key' in (
+          'workbook_1_p21_picture_qa_v1',
+          'workbook_1_p22_picture_gap_v1'
+      );
 
 alter table public.speaking_visual_assets enable row level security;
 alter table public.speaking_question_visual_assets enable row level security;

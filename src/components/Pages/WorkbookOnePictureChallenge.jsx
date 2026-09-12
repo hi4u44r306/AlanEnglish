@@ -117,7 +117,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
         </header>
         <section className="speaking-question-stage"><article key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
-            <SpeakingVisualAid aid={activeQuestion.visual_aid} />
+            <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
             {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <button type="button" key={token.tokenIndex} onClick={() => playWord(token)} disabled={!wordAudioByToken.get(token.tokenIndex)?.audio_url || audioToken !== null} aria-label={`播放 ${token.text} 的發音`}><FiVolume2 aria-hidden="true" />{token.text}</button>

@@ -201,8 +201,28 @@ test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取
     }
     assert.match(visualAssetMigration, /image\/jpeg.*image\/png.*image\/webp/s);
     assert.match(visualAssetMigration, /byte_size between 1 and 10485760/);
+    assert.match(visualAssetMigration, /speaking_question_sets_picture_template_active_unique/);
     assert.match(manager, /speaking_question_visual_assets/);
     assert.match(manager, /speaking_question_word_audio/);
+    assert.match(manager, /create_workbook_1_picture_draft/);
+    assert.match(manager, /pictureGapAnswerMatchesPrompt/);
+    assert.match(manager, /pictureQaResponseHasQuestionAndAnswer/);
+    assert.match(manager, /acceptedResponsesValid/);
+    assert.match(manager, /P21／P22 圖片題庫的顯示內容與後端完整答案必須同步/);
+    assert.match(manager, /createdQuestionSetId/);
+    assert.match(manager, /create_picture_upload/);
+    assert.match(manager, /confirm_picture_upload/);
+    assert.match(manager, /discard_workbook_1_picture_draft/);
+    assert.match(manager, /manual_picture_manifest/);
+    assert.match(manager, /source_document_id: Number\(sourceSection\.document_id\)/);
+    assert.match(manager, /hasExpectedSignature\(signatureBytes, asset\.mime_type\)/);
+    assert.match(manager, /visualAidByQuestion/);
+    assert.match(manager, /image_url: await createR2PresignedUrl\(asset\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(ttsManager, /generate_visible_word_audio/);
+    assert.match(ttsManager, /visibleSentenceWords/);
+    assert.match(ttsManager, /status !== "ready" && item\.status !== "failed"/);
+    assert.match(service, /uploadSpeakingQuestionPicture/);
+    assert.match(adminPage, /WorkbookOnePictureContentAdmin/);
     assert.match(challenge, /圖片口說題目尚未完成安全發布/);
     assert.match(challenge, /P22 的可見單字發音尚未完整/);
     assert.match(challenge, /kind: "private-image"/);

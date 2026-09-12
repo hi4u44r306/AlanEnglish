@@ -92,6 +92,28 @@ export const visibleSentenceWords = (value: unknown) => (String(value || "")
     .map((text, tokenIndex) => ({ text, tokenIndex }))
     .filter(token => /^[A-Za-z]+(?:['’][A-Za-z]+)?$/.test(token.text));
 
+export const pictureGapAnswerMatchesPrompt = (promptText: unknown, answerText: unknown) => {
+    const pieces = String(promptText || "").split(/_{2,}/);
+    if (pieces.length !== 2) return false;
+    const before = normalizedSpokenSentence(pieces[0]);
+    const after = normalizedSpokenSentence(pieces[1]);
+    const answer = normalizedSpokenSentence(answerText);
+    if (!answer || (before && answer !== before && !answer.startsWith(`${before} `))
+        || (after && answer !== after && !answer.endsWith(` ${after}`))) return false;
+    const fillStart = before.length;
+    const fillEnd = after ? answer.length - after.length : answer.length;
+    return Boolean(answer.slice(fillStart, fillEnd).trim());
+};
+
+export const pictureQaResponseHasQuestionAndAnswer = (value: unknown) => {
+    const raw = String(value || "");
+    const questionEnd = raw.indexOf("?");
+    if (questionEnd < 0) return false;
+    const question = normalizedSpokenSentence(raw.slice(0, questionEnd));
+    const answer = normalizedSpokenSentence(raw.slice(questionEnd + 1));
+    return question.split(" ").filter(Boolean).length >= 2 && answer.split(" ").filter(Boolean).length >= 1;
+};
+
 export const matchesFoundationAnswer = (
     interactionType: unknown,
     expectedAnswer: unknown,

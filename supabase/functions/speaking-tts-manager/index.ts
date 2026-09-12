@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
 import { spokenExampleText } from "../_shared/speaking-tts-text.ts";
+import { visibleSentenceWords } from "../_shared/speaking-foundation-answer.ts";
 import {
     chooseSpeakingVoice,
     DEFAULT_FEMALE_VOICE_ID,
@@ -123,10 +124,25 @@ const requestGoogleAudio = async (text: string, selectedVoice: string) => {
     return { bytes: decodeGoogleAudio(payload.audioContent), usedCharacters: text.length };
 };
 
-const generateQuestionAudio = async (admin: any, question: any) => {
-    const text = spokenExampleText(question?.model_answer);
+const linkGeneratedAsset = async (admin: any, question: any, assetId: string, target: any, updatedAt: string) => {
+    if (target?.kind === "visible_word") {
+        const { error } = await admin.from("speaking_question_word_audio").upsert({
+            question_id: question.id, token_index: target.tokenIndex, word: target.word,
+            asset_id: assetId, updated_at: updatedAt
+        }, { onConflict: "question_id,token_index" });
+        if (error) throw error;
+        return;
+    }
+    const { error } = await admin.from("speaking_question_audio").upsert({
+        question_id: question.id, asset_id: assetId, purpose: "model_answer", updated_at: updatedAt
+    }, { onConflict: "question_id" });
+    if (error) throw error;
+};
+
+const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
+    const text = spokenExampleText(target?.text ?? question?.model_answer);
     if (!text) return { question_id: Number(question.id), status: "failed", error: "示範回答是空白" };
-    const selected = chooseSpeakingVoice(question.question_set_id, question.sort_order, voicePool());
+    const selected = chooseSpeakingVoice(question.question_set_id, target?.tokenIndex ?? question.sort_order, voicePool());
     const selectedVoice = selected.voiceId;
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
@@ -140,11 +156,8 @@ const generateQuestionAudio = async (admin: any, question: any) => {
         .eq("voice_id", selectedVoice).eq("settings_hash", settingsHash).maybeSingle();
     if (existingError) throw existingError;
     if (existing?.status === "ready" && existing.private_object_key) {
-        const { error: linkError } = await admin.from("speaking_question_audio").upsert({
-            question_id: question.id, asset_id: existing.id, purpose: "model_answer", updated_at: new Date().toISOString()
-        }, { onConflict: "question_id" });
-        if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+        await linkGeneratedAsset(admin, question, existing.id, target, new Date().toISOString());
+        return { question_id: Number(question.id), token_index: target?.tokenIndex ?? null, status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
     }
     if (existing?.status === "processing" && Date.now() - Date.parse(existing.updated_at) < 5 * 60 * 1000) {
         return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
@@ -170,8 +183,8 @@ const generateQuestionAudio = async (admin: any, question: any) => {
                 .eq("voice_id", selectedVoice).eq("settings_hash", settingsHash).single();
             if (raceError) throw raceError;
             if (raced.status === "ready" && raced.private_object_key) {
-                await admin.from("speaking_question_audio").upsert({ question_id: question.id, asset_id: raced.id, purpose: "model_answer", updated_at: now }, { onConflict: "question_id" });
-                return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+                await linkGeneratedAsset(admin, question, raced.id, target, now);
+                return { question_id: Number(question.id), token_index: target?.tokenIndex ?? null, status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
             }
             return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
         }
@@ -193,11 +206,8 @@ const generateQuestionAudio = async (admin: any, question: any) => {
             used_characters: generated.usedCharacters, completed_at: completedAt, updated_at: completedAt
         }).eq("id", asset.id);
         if (readyError) throw readyError;
-        const { error: linkError } = await admin.from("speaking_question_audio").upsert({
-            question_id: question.id, asset_id: asset.id, purpose: "model_answer", updated_at: completedAt
-        }, { onConflict: "question_id" });
-        if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: false, voice_id: selectedVoice, voice_gender: selected.gender };
+        await linkGeneratedAsset(admin, question, asset.id, target, completedAt);
+        return { question_id: Number(question.id), token_index: target?.tokenIndex ?? null, status: "ready", reused: false, voice_id: selectedVoice, voice_gender: selected.gender };
     } catch (error: any) {
         await admin.from("speaking_tts_assets").update({
             status: "failed", error_code: cleanText(error?.code, 120) || "generation_failed",
@@ -219,7 +229,7 @@ Deno.serve(async (req: Request) => {
         if (user.role !== "admin") return json(403, { error: "只有管理員可以產生教材示範語音" });
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
-        if (!["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action)) return json(400, { error: "不支援的操作" });
+        if (!["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio"].includes(action)) return json(400, { error: "不支援的操作" });
         const setId = Number(body?.question_set_id);
         const requestedQuestionId = action === "retry_question_audio" || action === "preview_question_audio" ? Number(body?.question_id) : null;
         if (!Number.isInteger(setId) || setId <= 0 || (requestedQuestionId !== null && (!Number.isInteger(requestedQuestionId) || requestedQuestionId <= 0))) {
@@ -235,8 +245,44 @@ Deno.serve(async (req: Request) => {
         const setStatus = questionSet?.status;
         const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
         const mayPrepareAlphabetDraft = setStatus === "draft" && interactionType === "alphabet_round";
-        if (setStatus !== "published" && !mayPrepareAlphabetDraft) {
-            return json(409, { error: "只有已發布題庫，或待發布的 A–Z 草稿，可以產生正式示範語音" });
+        const mayPrepareP22Draft = setStatus === "draft" && interactionType === "picture_gap_sentence"
+            && action === "generate_visible_word_audio";
+        if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPrepareP22Draft) {
+            return json(409, { error: "只有已發布題庫、待發布 A–Z，或待發布 P22 可見單字可以產生正式語音" });
+        }
+        if (action === "generate_visible_word_audio") {
+            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有 P22 看圖補句可產生逐字發音" });
+            const questionIds = questions.map((question: any) => Number(question.id));
+            const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
+                .select("question_id,interaction_type,prompt_text").in("question_id", questionIds);
+            if (interactionError) throw interactionError;
+            const interactionByQuestion = new Map((interactions || []).map((row: any) => [Number(row.question_id), row]));
+            const wordTargets = questions.flatMap((question: any) => {
+                const interaction: any = interactionByQuestion.get(Number(question.id));
+                if (interaction?.interaction_type !== "picture_gap_sentence") return [];
+                return visibleSentenceWords(interaction.prompt_text).map(token => ({ question, token }));
+            });
+            if (!wordTargets.length || wordTargets.length > 160) {
+                return json(409, { error: "P22 可見單字資料不完整或超過安全處理上限" });
+            }
+            const results = [];
+            for (const { question, token } of wordTargets) {
+                try {
+                    results.push(await generateQuestionAudio(admin, question, {
+                        kind: "visible_word", text: token.text, word: token.text, tokenIndex: token.tokenIndex
+                    }));
+                } catch (generationError: any) {
+                    results.push({ question_id: Number(question.id), token_index: token.tokenIndex, status: "failed", error: cleanText(generationError?.message, 300) || "單字語音生成失敗" });
+                }
+            }
+            const failed = results.filter(item => item.status === "failed").length;
+            const pending = results.filter(item => item.status !== "ready" && item.status !== "failed").length;
+            return json(failed || pending ? 207 : 200, {
+                success: failed === 0 && pending === 0,
+                generated: results.filter(item => item.status === "ready" && !item.reused).length,
+                reused: results.filter(item => item.status === "ready" && item.reused).length,
+                failed, pending, results
+            });
         }
         if (action === "preview_question_audio") {
             const question = questions[0];

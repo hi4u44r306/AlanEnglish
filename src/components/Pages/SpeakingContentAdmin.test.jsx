@@ -21,6 +21,8 @@ jest.mock("../../services/speakingContentService", () => ({
     getSpeakingQuestionAudioPreview: jest.fn(),
     extractSpeakingSourceDocument: jest.fn(), extractSpeakingBookChunk: jest.fn(),
     publishSpeakingQuestionSet: jest.fn(), generateSpeakingQuestionSetAudio: jest.fn(), reviewSpeakingOcrSource: jest.fn(),
+    generateSpeakingVisibleWordAudio: jest.fn(), createWorkbookOnePictureDraft: jest.fn(), uploadSpeakingQuestionPicture: jest.fn(),
+    discardWorkbookOnePictureDraft: jest.fn(),
     saveReviewedSpeakingSource: jest.fn(), uploadAndExtractSpeakingSource: jest.fn(),
     uploadWholeBookSource: jest.fn(), updateDraftSpeakingQuestion: jest.fn(),
     generateSpeakingQuestionSet: jest.fn()
@@ -48,6 +50,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
     it("shows persistent batch progress and a per-batch retry control", async () => {
         render(<SpeakingContentAdmin />);
+        expect(await screen.findByRole("heading", { name: "P21／P22 人工內容與私人圖片" })).toBeInTheDocument();
         expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
         expect(await screen.findByText("整本教材 · 115 頁")).toBeInTheDocument();
         expect(screen.getByText("P1–P10")).toBeInTheDocument();
@@ -125,6 +128,31 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
         expect(screen.getByText("女聲 · Autonoe")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "核准、發布並產生語音" })).toBeInTheDocument();
+    });
+
+    it("does not expose P21/P22 drafts to the generic question editor", async () => {
+        getSpeakingContentBootstrap.mockResolvedValueOnce({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 50, book_id: 1, title: "Workbook 1 P21 人工圖片內容", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 51, document_id: 50, topic: "P21 看圖問答", unit_label: "P21", page_from_label: "P21", page_to_label: "P21", language_level: "國小低年級", status: "reviewed" }],
+            question_sets: [{
+                id: 52, source_section_id: 51, title: "P21 看圖完整問答", status: "draft", version: 1,
+                generation_metadata: { interaction_type: "picture_qa", requires_content_review: true },
+                speaking_questions: [{
+                    id: 53, sort_order: 0, question_text: "What is that?", hint_zh: "看圖說完整問答。",
+                    simple_answer: "It is an apple.", model_answer: "It is an apple.", keywords: [], accepted_intents: [],
+                    visual_aid: { kind: "private-image", image_url: "https://r2.example/p21-preview.png", alt_zh: "教材中的蘋果插圖" }
+                }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+
+        expect(await screen.findByText("P21／P22 題目已鎖定同步編輯")).toBeInTheDocument();
+        expect(screen.queryByLabelText("AI 要問學生的問題")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByText("預覽學生畫面"));
+        expect(screen.getByRole("img", { name: "教材中的蘋果插圖" })).toHaveAttribute("src", "https://r2.example/p21-preview.png");
+        expect(screen.getByText("學生只會看到圖片，並在同一次錄音說出完整問句與回答。")).toBeInTheDocument();
     });
 
     it("shows the balanced voice plan and loads a stored preview for a published question", async () => {

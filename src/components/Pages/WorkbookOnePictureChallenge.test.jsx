@@ -45,6 +45,7 @@ describe("WorkbookOnePictureChallenge", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         expect(screen.getByRole("img", { name: "樹上的蘋果" })).toHaveAttribute("src", privateVisual.image_url);
+        expect(screen.queryByText("樹上的蘋果")).not.toBeInTheDocument();
         expect(screen.queryByText(/What is it/i)).not.toBeInTheDocument();
         expect(screen.queryByText(/It is an apple/i)).not.toBeInTheDocument();
         expect(screen.getByText("不顯示答案提示")).toBeInTheDocument();

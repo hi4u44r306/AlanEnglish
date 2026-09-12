@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import {
     matchesFoundationAnswer,
     normalizedSpokenSentence,
+    pictureGapAnswerMatchesPrompt,
+    pictureQaResponseHasQuestionAndAnswer,
     readFoundationInteractionType,
     spokenLetterSequence,
     visibleSentenceWords
@@ -41,6 +43,12 @@ assert.deepEqual(visibleSentenceWords("The ____ is in the tree."), [
     { text: "the", tokenIndex: 4 },
     { text: "tree", tokenIndex: 5 }
 ]);
+assert.equal(pictureGapAnswerMatchesPrompt("The ____ is in the tree.", "The apple is in the tree."), true);
+assert.equal(pictureGapAnswerMatchesPrompt("The ____ is in the tree.", "Apple"), false);
+assert.equal(pictureGapAnswerMatchesPrompt("The ____ is in the tree.", "The apple is on the table."), false);
+assert.equal(pictureQaResponseHasQuestionAndAnswer("What is that? It is an apple."), true);
+assert.equal(pictureQaResponseHasQuestionAndAnswer("What is that?"), false);
+assert.equal(pictureQaResponseHasQuestionAndAnswer("It is an apple."), false);
 
 assert.equal(WORKBOOK_ONE_FOUNDATION_ACTIONS.length, 5);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_alphabet_round.questions.length, 26);
