@@ -65,7 +65,7 @@ function Rewards() {
 
     if (!hasRewardsAccess) {
         return (
-            <main className="gamification-page">
+            <main className="gamification-page gamification-page--rewards">
                 <section className="gamification-hero gamification-hero--rewards">
                     <div>
                         <span className="gamification-eyebrow"><FiGift /> AE REWARDS</span>
@@ -81,12 +81,12 @@ function Rewards() {
     }
 
     return (
-        <main className="gamification-page">
+        <main className="gamification-page gamification-page--rewards">
             <section className="gamification-hero gamification-hero--rewards">
                 <div>
                     <span className="gamification-eyebrow"><FiGift /> AE REWARDS</span>
-                    <h1>獎品商城</h1>
-                    <p>完成聽力、作業與遊戲可以拿到 AE Points。點數可以兌換獎品，XP 與排行榜名次不會被扣掉。</p>
+                    <h1>選獎品</h1>
+                    <p>用學習得到的 AE Points，選一個喜歡的獎品。</p>
                 </div>
                 <button className="gamification-refresh" type="button" onClick={load} disabled={loading}>
                     <FiRefreshCw className={loading ? "is-spinning" : ""} />更新

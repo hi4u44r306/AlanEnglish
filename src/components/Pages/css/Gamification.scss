@@ -792,3 +792,52 @@
     .gamification-orders .gamification-order-list article { grid-template-columns: 1fr; }
     .gamification-order-actions { grid-column: auto; }
 }
+
+@media (max-width: 720px) {
+    .gamification-page--student-ranking .gamification-hero,
+    .gamification-page--rewards .gamification-hero {
+        gap: 14px;
+        padding: 18px;
+    }
+
+    .gamification-page--student-ranking .gamification-hero h1,
+    .gamification-page--rewards .gamification-hero h1 {
+        margin-top: 0;
+        font-size: 28px;
+    }
+
+    .gamification-page--student-ranking .gamification-hero p,
+    .gamification-page--rewards .gamification-hero p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .gamification-page--student-ranking .gamification-segment button {
+        min-height: 44px;
+    }
+
+    .gamification-page--rewards .gamification-balance-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .gamification-page--rewards .gamification-balance-grid article {
+        min-width: 0;
+        padding: 13px 8px;
+        text-align: center;
+    }
+
+    .gamification-page--rewards .gamification-balance-grid article > span {
+        justify-content: center;
+        font-size: 9px;
+    }
+
+    .gamification-page--rewards .gamification-balance-grid article > strong {
+        overflow-wrap: anywhere;
+        font-size: 15px;
+    }
+
+    .gamification-page--rewards .gamification-balance-grid article > small {
+        display: none;
+    }
+}
