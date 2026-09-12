@@ -8,6 +8,10 @@ describe("student-friendly UI foundation", () => {
     path.join(__dirname, "../../../app/App.jsx"),
     "utf8"
   );
+  const studentNavbarStyles = fs.readFileSync(
+    path.join(__dirname, "StudentNavbar.scss"),
+    "utf8"
+  );
 
   test("is loaded after page modules and scoped to the student navbar", () => {
     expect(appSource).toContain(
@@ -28,5 +32,11 @@ describe("student-friendly UI foundation", () => {
     expect(stylesheet).toMatch(/:where\(h1, h2, h3\)[\s\S]*font-weight: 700/);
     expect(stylesheet).toMatch(/\.student-settings-hero > span[\s\S]*display: none/);
     expect(stylesheet).toMatch(/\.platform-eyebrow[\s\S]*display: none/);
+  });
+
+  test("keeps the mobile learning surface clear of the duplicate assignment shortcut", () => {
+    expect(studentNavbarStyles).toMatch(
+      /body:has\(\.ae-student-bottom-nav\) \.assignment-shortcut \{ display: none; \}/
+    );
   });
 });
