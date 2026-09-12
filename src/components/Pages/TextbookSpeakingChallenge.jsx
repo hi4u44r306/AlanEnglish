@@ -6,6 +6,7 @@ import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpea
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
+import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
 import "./css/TextbookSpeakingChallenge.scss";
 
 const THEME_RULES = [
@@ -128,6 +129,12 @@ export default function TextbookSpeakingChallenge() {
         onComplete={markScored}
         onExit={() => navigate("/student/speaking-challenges")}
         onError={setError}
+    />;
+    if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return <WorkbookOnePictureChallenge
+        challenge={challenge}
+        firebaseUser={firebaseUser}
+        onComplete={markScored}
+        onExit={() => navigate("/student/speaking-challenges")}
     />;
     const questions = challenge.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];

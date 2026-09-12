@@ -36,6 +36,13 @@ const Routine = ({ value }) => {
 };
 
 export default function SpeakingVisualAid({ aid }) {
+    if (aid?.kind === "private-image") {
+        if (!aid?.image_url || !aid?.alt_zh) return null;
+        return <figure className="speaking-visual-aid speaking-visual-aid--private">
+            <img src={aid.image_url} alt={aid.alt_zh} />
+            <figcaption>{aid.alt_zh}</figcaption>
+        </figure>;
+    }
     if (!aid?.kind || !aid?.value) return null;
     const visual = aid.kind === "flag" ? <Flag value={aid.value} />
         : aid.kind === "color-object" ? <ColorObject value={aid.value} />

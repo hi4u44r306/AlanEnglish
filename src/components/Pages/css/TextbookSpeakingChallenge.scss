@@ -740,6 +740,43 @@
 .speaking-foundation-word { font-size: clamp(42px, 8vw, 72px); line-height: 1.2; }
 .speaking-foundation-countdown { display: flex; align-items: center; gap: 10px; color: #8a5b00; font-weight: 850; }
 .speaking-foundation-countdown strong { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; color: #14284e; background: #ffd45c; font-size: 28px; }
+.speaking-picture-card .speaking-visual-aid--private { width: min(440px, 100%); }
+.speaking-visual-aid--private img { display: block; width: 100%; max-height: min(48vh, 420px); object-fit: contain; background: #f7faff; }
+.speaking-gap-sentence {
+  width: min(720px, 100%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px;
+  border: 2px solid #d5e3f5;
+  border-radius: 22px;
+  color: #14284e;
+  background: linear-gradient(145deg, #fff, #f2f7ff);
+  font-size: clamp(24px, 4vw, 38px);
+  font-weight: 900;
+  line-height: 1.45;
+}
+.speaking-gap-sentence button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 11px;
+  color: #184f9f;
+  background: #e8f1ff;
+  font: inherit;
+  cursor: pointer;
+}
+.speaking-gap-sentence button svg { flex: 0 0 auto; font-size: .6em; }
+.speaking-gap-sentence button:hover:not(:disabled) { color: #fff; background: #2465c5; }
+.speaking-gap-sentence button:focus-visible { outline: 3px solid rgba(246, 190, 46, .85); outline-offset: 3px; }
+.speaking-gap-sentence button:disabled { cursor: not-allowed; opacity: .58; }
+.speaking-gap-sentence .answer-blank { min-width: 108px; color: #8a5b00; border-bottom: 4px solid #f1bd2f; }
+.speaking-gap-sentence .punctuation { margin-left: -7px; }
 
 @media (max-width: 700px) {
   .speaking-foundation-page { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
@@ -754,10 +791,15 @@
   .speaking-foundation-letter,
   .speaking-foundation-word { min-width: 0; width: 100%; padding-inline: 12px; }
   .speaking-foundation-card { padding: 18px 14px; }
+  .speaking-picture-card .speaking-visual-aid--private { width: 100%; }
+  .speaking-visual-aid--private img { max-height: 38vh; }
+  .speaking-gap-sentence { gap: 6px; padding: 14px 10px; border-radius: 18px; font-size: clamp(22px, 7vw, 30px); }
+  .speaking-gap-sentence button { min-height: 46px; padding-inline: 7px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .speaking-progress-track span,
   .speaking-alphabet-list span,
-  .speaking-foundation-actions button { transition: none; }
+  .speaking-foundation-actions button,
+  .speaking-gap-sentence button { transition: none; }
 }

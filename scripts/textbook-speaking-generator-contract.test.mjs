@@ -13,6 +13,7 @@ const challenge = read("supabase/functions/speaking-challenge/index.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
 const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
 const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
+const visualAssetMigration = read("supabase/migrations/20260912143926_workbook1_speaking_visual_assets.sql");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -184,4 +185,41 @@ test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前�
     assert.match(coach, /matchesFoundationAnswer/);
     assert.match(coach, /FOUNDATION_DAILY_REQUEST_LIMIT/);
     assert.match(coach, /foundationRetryFeedback/);
+});
+
+test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取", () => {
+    for (const table of [
+        "speaking_visual_assets",
+        "speaking_question_visual_assets",
+        "speaking_question_interactions",
+        "speaking_question_word_audio"
+    ]) {
+        assert.match(visualAssetMigration, new RegExp(`create table if not exists public\\.${table}`));
+        assert.match(visualAssetMigration, new RegExp(`alter table public\\.${table} enable row level security`));
+        assert.match(visualAssetMigration, new RegExp(`revoke all on table public\\.${table} from public, anon, authenticated`));
+        assert.match(visualAssetMigration, new RegExp(`grant select, insert, update, delete on table public\\.${table} to service_role`));
+    }
+    assert.match(visualAssetMigration, /image\/jpeg.*image\/png.*image\/webp/s);
+    assert.match(visualAssetMigration, /byte_size between 1 and 10485760/);
+    assert.match(manager, /speaking_question_visual_assets/);
+    assert.match(manager, /speaking_question_word_audio/);
+    assert.match(challenge, /圖片口說題目尚未完成安全發布/);
+    assert.match(challenge, /P22 的可見單字發音尚未完整/);
+    assert.match(challenge, /kind: "private-image"/);
+    assert.match(challenge, /createR2PresignedUrl\(visualAsset\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(challenge, /question_text: ""/);
+    assert.match(challenge, /model_answer: ""/);
+    assert.match(challenge, /correct_assessment_required/);
+    assert.doesNotMatch(challenge, /private_object_key:/);
+});
+
+test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
+    assert.match(foundationAnswers, /picture_qa/);
+    assert.match(foundationAnswers, /picture_gap_sentence/);
+    assert.match(foundationAnswers, /accepted\.includes\(spoken\)/);
+    assert.match(challenge, /`\$\{pictureInteraction\.prompt_text\} \$\{pictureInteraction\.answer_text\}`/);
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(coach, /pictureInteraction\.prompt_text/);
+    assert.match(coach, /pictureInteraction\.answer_text/);
+    assert.match(coach, /reference_text: question\.interactionType \? null/);
 });

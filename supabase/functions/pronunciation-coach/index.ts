@@ -133,11 +133,28 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number) => 
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
-    const answerTemplate = String(data.model_answer || "").replace(/\s+/g, " ").trim();
     const questionSet = Array.isArray(data.speaking_question_sets)
         ? data.speaking_question_sets[0] : data.speaking_question_sets;
     const interactionType = readFoundationInteractionType(questionSet?.generation_metadata);
-    const isStructuredAnswer = hasSpeakingAnswerSlots(answerTemplate);
+    const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
+    const { data: pictureInteraction, error: pictureError } = pictureMode
+        ? await admin.from("speaking_question_interactions")
+            .select("interaction_type,prompt_text,answer_text,accepted_full_responses")
+            .eq("question_id", Number(data.id)).maybeSingle()
+        : { data: null, error: null };
+    if (pictureError) throw pictureError;
+    if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
+        throw Object.assign(new Error("這題的圖片口說內容尚未完成核准"), { status: 409, code: "picture_interaction_missing" });
+    }
+    const answerTemplate = String(pictureMode
+        ? interactionType === "picture_qa"
+            ? `${pictureInteraction.prompt_text} ${pictureInteraction.answer_text}`
+            : pictureInteraction.answer_text
+        : data.model_answer || "").replace(/\s+/g, " ").trim();
+    const acceptedAnswers = pictureMode && Array.isArray(pictureInteraction?.accepted_full_responses)
+        ? pictureInteraction.accepted_full_responses.map((value: unknown) => String(value || "").trim()).filter(Boolean).slice(0, 12)
+        : [];
+    const isStructuredAnswer = interactionType === "picture_qa" || hasSpeakingAnswerSlots(answerTemplate);
     const referenceText = isStructuredAnswer ? "" : buildSpeakingReferenceText(answerTemplate, {});
     if (!answerTemplate || answerTemplate.length > 500) {
         throw Object.assign(new Error("這題尚未設定可朗讀的完整示範回答"), { status: 422 });
@@ -147,6 +164,7 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number) => 
         questionSetId: Number(data.question_set_id),
         answerTemplate,
         answerPrompt: speakingAnswerPrompt(answerTemplate),
+        acceptedAnswers,
         interactionType,
         isStructuredAnswer,
         referenceText,
@@ -203,7 +221,7 @@ const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof ass
             return { text, score, status: errorType === "None" ? statusForScore(score) : "retry", error_type: errorType };
         });
     const answerMatch = question.interactionType
-        ? matchesFoundationAnswer(question.interactionType, question.answerTemplate, recognizedText)
+        ? matchesFoundationAnswer(question.interactionType, question.answerTemplate, recognizedText, question.acceptedAnswers)
         : question.isStructuredAnswer
             ? matchesSpeakingAnswerTemplate(question.answerTemplate, recognizedText)
             : true;
@@ -334,7 +352,7 @@ Deno.serve(async (req: Request) => {
         return json(200, {
             success: true,
             question_id: question.questionId,
-            reference_text: question.referenceText || null,
+            reference_text: question.interactionType ? null : (question.referenceText || null),
             ...normalized
         });
     } catch (error) {

@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
     matchesFoundationAnswer,
+    normalizedSpokenSentence,
     readFoundationInteractionType,
-    spokenLetterSequence
+    spokenLetterSequence,
+    visibleSentenceWords
 } from "../supabase/functions/_shared/speaking-foundation-answer.ts";
 import {
     WORKBOOK_ONE_FOUNDATION_ACTIONS,
@@ -26,6 +28,19 @@ assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P P L E"
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P L E"), false);
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P P E L"), false);
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "apple"), false);
+assert.equal(normalizedSpokenSentence("What is that?  It is an apple."), "what is that it is an apple");
+assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple.", "What is that? It is an apple."), true);
+assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple.", "It is an apple."), false);
+assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple.", "What's that? It's an apple.", ["What's that? It's an apple."]), true);
+assert.equal(matchesFoundationAnswer("picture_gap_sentence", "The apple is in the tree.", "The apple is in the tree."), true);
+assert.equal(matchesFoundationAnswer("picture_gap_sentence", "The apple is in the tree.", "Apple"), false);
+assert.deepEqual(visibleSentenceWords("The ____ is in the tree."), [
+    { text: "The", tokenIndex: 0 },
+    { text: "is", tokenIndex: 2 },
+    { text: "in", tokenIndex: 3 },
+    { text: "the", tokenIndex: 4 },
+    { text: "tree", tokenIndex: 5 }
+]);
 
 assert.equal(WORKBOOK_ONE_FOUNDATION_ACTIONS.length, 5);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_alphabet_round.questions.length, 26);

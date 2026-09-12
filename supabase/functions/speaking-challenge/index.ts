@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
-import { matchesFoundationAnswer, readFoundationInteractionType } from "../_shared/speaking-foundation-answer.ts";
+import { matchesFoundationAnswer, readFoundationInteractionType, visibleSentenceWords } from "../_shared/speaking-foundation-answer.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -66,6 +66,8 @@ Deno.serve(async (req: Request) => {
 
         if (action === "question_set") {
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
+            const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
+            const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
             const { data: progress, error: progressError } = ids.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", ids)
                 : { data: [], error: null };
@@ -85,14 +87,95 @@ Deno.serve(async (req: Request) => {
                 `${Number(row.question_id)}:${row.purpose}`,
                 assetById.get(String(row.asset_id))
             ]));
+            const [{ data: pictureInteractions, error: pictureInteractionError }, { data: visualLinks, error: visualLinkError }, { data: wordAudioLinks, error: wordAudioError }] = pictureMode && ids.length
+                ? await Promise.all([
+                    admin.from("speaking_question_interactions")
+                        .select("question_id,interaction_type,prompt_text").in("question_id", ids),
+                    admin.from("speaking_question_visual_assets")
+                        .select("question_id,speaking_visual_assets!inner(id,status,private_object_key,mime_type,alt_zh)").in("question_id", ids),
+                    interactionType === "picture_gap_sentence"
+                        ? admin.from("speaking_question_word_audio")
+                            .select("question_id,token_index,word,speaking_tts_assets!inner(id,status,private_object_key)")
+                            .in("question_id", ids).order("token_index")
+                        : Promise.resolve({ data: [], error: null })
+                ])
+                : [
+                    { data: [], error: null },
+                    { data: [], error: null },
+                    { data: [], error: null }
+                ];
+            if (pictureInteractionError) throw pictureInteractionError;
+            if (visualLinkError) throw visualLinkError;
+            if (wordAudioError) throw wordAudioError;
+            const pictureInteractionByQuestion = new Map((pictureInteractions || [])
+                .map((row: any) => [Number(row.question_id), row]));
+            const visualByQuestion = new Map((visualLinks || []).map((row: any) => [
+                Number(row.question_id),
+                Array.isArray(row.speaking_visual_assets) ? row.speaking_visual_assets[0] : row.speaking_visual_assets
+            ]));
+            const wordsByQuestion = new Map<number, any[]>();
+            for (const row of (wordAudioLinks || [])) {
+                const asset = Array.isArray(row.speaking_tts_assets) ? row.speaking_tts_assets[0] : row.speaking_tts_assets;
+                wordsByQuestion.set(Number(row.question_id), [
+                    ...(wordsByQuestion.get(Number(row.question_id)) || []),
+                    { ...row, asset }
+                ]);
+            }
             const questions = [];
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
                 const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
                 const promptAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:question_prompt`);
                 const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
                 const promptReady = promptAsset?.status === "ready" && promptAsset?.private_object_key;
+                const pictureInteraction: any = pictureInteractionByQuestion.get(Number(question.id));
+                const visualAsset: any = visualByQuestion.get(Number(question.id));
+                if (pictureMode && (pictureInteraction?.interaction_type !== interactionType
+                    || visualAsset?.status !== "ready" || !visualAsset?.private_object_key)) {
+                    throw Object.assign(new Error("圖片口說題目尚未完成安全發布"), { status: 409, code: "picture_content_incomplete" });
+                }
+                const wordAudio: any[] = [];
+                for (const row of (wordsByQuestion.get(Number(question.id)) || [])) {
+                    if (row.asset?.status !== "ready" || !row.asset?.private_object_key) continue;
+                    wordAudio.push({
+                        token_index: Number(row.token_index),
+                        word: String(row.word),
+                        audio_url: await createR2PresignedUrl(row.asset.private_object_key, "GET", 15 * 60)
+                    });
+                }
+                if (interactionType === "picture_gap_sentence") {
+                    const expectedWords = visibleSentenceWords(pictureInteraction.prompt_text);
+                    const completeWordAudio = expectedWords.length === wordAudio.length
+                        && expectedWords.every(expected => wordAudio.some(item => (
+                            item.token_index === expected.tokenIndex
+                            && item.word.toLowerCase() === expected.text.toLowerCase()
+                        )));
+                    if (!completeWordAudio) {
+                        throw Object.assign(new Error("P22 的可見單字發音尚未完整"), { status: 409, code: "word_audio_incomplete" });
+                    }
+                }
+                const safeQuestion = pictureMode ? {
+                    id: question.id,
+                    question_text: "",
+                    hint_zh: "",
+                    keywords: [],
+                    simple_answer: "",
+                    model_answer: "",
+                    follow_up_question: null,
+                    pronunciation_notes_zh: question.pronunciation_notes_zh,
+                    visual_aid: {
+                        kind: "private-image",
+                        image_url: await createR2PresignedUrl(visualAsset.private_object_key, "GET", 15 * 60),
+                        alt_zh: visualAsset.alt_zh
+                    },
+                    picture_interaction: {
+                        type: interactionType,
+                        sentence_pattern: interactionType === "picture_gap_sentence" ? pictureInteraction.prompt_text : null,
+                        word_audio: interactionType === "picture_gap_sentence" ? wordAudio : []
+                    },
+                    sort_order: question.sort_order
+                } : question;
                 questions.push({
-                    ...question,
+                    ...safeQuestion,
                     progress_status: statusByQuestion.get(Number(question.id)) || "opened",
                     question_audio_status: promptReady ? "ready" : (promptAsset?.status || "missing"),
                     question_audio_url: promptReady ? await createR2PresignedUrl(promptAsset.private_object_key, "GET", 15 * 60) : null,
@@ -110,13 +193,31 @@ Deno.serve(async (req: Request) => {
             if (!question) return json(403, { error: "這題不屬於指定的小關卡" });
             const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
             if (interactionType) {
+                const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
+                const { data: pictureInteraction, error: pictureError } = pictureMode
+                    ? await admin.from("speaking_question_interactions")
+                        .select("interaction_type,prompt_text,answer_text,accepted_full_responses")
+                        .eq("question_id", questionId).maybeSingle()
+                    : { data: null, error: null };
+                if (pictureError) throw pictureError;
+                if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
+                    return json(409, { error: "這題的圖片口說內容尚未完成核准", code: "picture_interaction_missing" });
+                }
+                const expectedAnswer = pictureMode
+                    ? interactionType === "picture_qa"
+                        ? `${pictureInteraction.prompt_text} ${pictureInteraction.answer_text}`
+                        : pictureInteraction.answer_text
+                    : question.model_answer;
+                const acceptedAnswers = pictureMode && Array.isArray(pictureInteraction?.accepted_full_responses)
+                    ? pictureInteraction.accepted_full_responses
+                    : [];
                 const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
                 const { data: attempt, error: attemptError } = await admin.from("speaking_pronunciation_attempts")
                     .select("recognized_text,created_at").eq("student_id", Number(user.id))
                     .eq("question_set_id", setId).eq("question_id", questionId)
                     .gte("created_at", since).order("created_at", { ascending: false }).limit(1).maybeSingle();
                 if (attemptError) throw attemptError;
-                if (!attempt || !matchesFoundationAnswer(interactionType, question.model_answer, attempt.recognized_text)) {
+                if (!attempt || !matchesFoundationAnswer(interactionType, expectedAnswer, attempt.recognized_text, acceptedAnswers)) {
                     return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
                 }
             }

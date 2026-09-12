@@ -1,7 +1,7 @@
 # Workbook 1 基礎口說闖關規格
 
 最後更新：2026-09-12
-狀態：A–Z 與 P14～P17 程式及草稿模板完成並通過本機驗證；尚未部署、尚未建立正式題庫
+狀態：A–Z、P14～P17 與 P21／P22 通用學生端框架已完成本機驗證；尚未部署、尚未建立正式題庫
 
 ## 1. 本階段範圍
 
@@ -138,7 +138,7 @@ OCR 保留 9 個句型位置，但遺失圖片中的主詞：
 
 ## 8. 圖片資產安全契約
 
-P21／P22 不使用任意遠端 URL，也不把私人 R2 object key 直接傳給前端。預計建立 additive migration，使用獨立視覺資產紀錄連結 `question_id`、來源頁、繁體中文替代文字、MIME type、狀態與私人 object key；所有表啟用 RLS，撤銷 `anon`／`authenticated` 直接存取。
+P21／P22 不使用任意遠端 URL，也不把私人 R2 object key 直接傳給前端。已建立尚未套用的 additive migration，使用獨立視覺資產、題目圖片連結、伺服器端完整答案與逐字音檔連結紀錄；所有表啟用 RLS，撤銷 `public`、`anon` 與 `authenticated` 直接存取，只授權 `service_role`。
 
 只有管理員可上傳及核准圖片。學生讀取題庫時，`speaking-challenge` 必須先驗證 Firebase Token、角色、有效 membership、Workbook 1 entitlement 與 `pronunciation` 功能，再回傳短效預簽圖片網址。Migration、圖片上傳與 Edge Function 部署都需要另行核准，本規格階段不執行。
 
@@ -161,5 +161,8 @@ P21／P22 不使用任意遠端 URL，也不把私人 R2 object key 直接傳給
 2. 後端 `alphabet_round`／`letter_spelling` 完整答案比對，以及完成紀錄的最近正確評分閘門。
 3. 前端完整洗牌、A–Z 大小寫隨機、3 秒提示、答錯回到第一題、重聽與重玩流程。
 4. A–Z 草稿可由管理員預先產生音檔，但 26 題未全部 ready 前不能發布；學生端只讀短效私人網址，不產生 TTS 費用。
+5. P21／P22 共用學生端看圖關卡已完成：每輪完整洗牌，P21 只顯示短效私人圖片，P22 顯示圖片、挖空句型與至少 44px 的逐字點讀按鈕。
+6. `pronunciation-coach` 與完成紀錄均改由伺服器讀取完整問答／句子；P21 只說答案、P22 只說空格單字都不能完成，前端回應不含正確答案或私人 object key。
+7. 發布閘門會逐題確認人工核准圖片、完整答案、替代文字；P22 還必須具有每個可見單字的 ready 私人音檔。Migration 尚未套用，Edge Function 尚未部署。
 
-下一步須先取得並人工核准 Workbook 1 P21／P22 的實際圖片、每題名詞、冠詞及答案，再建立通用圖片問答／點字發音介面。不得以 OCR 空格或推測內容補題，也不得在未取得 migration／Edge Function 部署授權時建立正式圖片資料。
+下一步須先取得並人工核准 Workbook 1 P21／P22 的實際圖片、每題名詞、冠詞及答案，再補管理員圖片上傳／內容匯入流程與逐字語音產生。不得以 OCR 空格或推測內容補題，也不得在未取得 migration／Edge Function 部署授權時建立正式圖片資料。

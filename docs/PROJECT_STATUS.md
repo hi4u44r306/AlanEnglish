@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-12，尚未部署）：
 
-- Workbook 1 基礎口說闖關第一個實作 checkpoint：分支 `codex/workbook1-speaking-challenges` 從 `origin/main` commit `02f0b442` 建立，並只套入 Speaking 視覺提示、換題同步與台灣國旗修正 5 個相關 commit。已完成 A–Z 教學／3 秒辨識關與 P14～P17 四個逐字母拼讀關的管理員 curated draft、Fisher–Yates 每輪洗牌、大小寫隨機、答錯整輪歸零、重聽／重玩流程，以及後端精確字母序列比對；學生不能直接偽造完成紀錄，A–Z 的 26 個私人 R2 標準發音未全部 ready 前也不能發布半套關卡。P14～P17 共 47 個 OCR 草稿單字仍須管理員逐頁核對，P16 品牌拼字須額外注意；P21／P22 各 9 題的圖片名詞與答案仍缺失，尚未實作或匯入。相關 React 6 suites／26 tests、題庫契約 16／16、基礎答案契約、全部 Edge Function 語法、production build 與 `git diff --check` 均成功。本批未建立或執行 migration、未產生付費 TTS、未部署 Edge Function 或 Netlify。
+- Workbook 1 基礎口說闖關：分支 `codex/workbook1-speaking-challenges` 從 `origin/main` commit `02f0b442` 建立，並只套入 Speaking 視覺提示、換題同步與台灣國旗修正 5 個相關 commit。第一個 checkpoint 已完成 A–Z 教學／3 秒辨識關與 P14～P17 四個逐字母拼讀關的管理員 curated draft、完整洗牌、答錯整輪歸零、重聽／重玩及後端精確字母序列比對。第二個 checkpoint 已完成 P21／P22 通用學生端看圖框架、P21 完整問答與 P22 完整句伺服器核對、P22 可見單字點讀，以及尚未套用的私人圖片／互動答案／逐字音檔 additive migration；學生回應不含正確答案或私人 R2 object key，圖片與語音未全部 ready 時後端拒絕發布。P14～P17 共 47 個 OCR 草稿單字仍須管理員逐頁核對，P16 品牌拼字須額外注意；P21／P22 各 9 題的圖片名詞與答案仍缺失，尚未建立管理員匯入流程或正式題庫。第二批 React 6 suites／19 tests、題庫契約 18／18、基礎答案契約、全部 Edge Function 語法、production build 與 `git diff --check` 均成功。Migration 未套用，未產生付費 TTS，未部署 Edge Function 或 Netlify。
 - 公開首頁折疊版 Navbar 新增常駐「登入」按鈕，使用者在平板與手機寬度不必先打開漢堡選單即可找到登入頁；抽屜內原登入入口仍保留，桌面寬版導覽不變。按鈕維持至少 44px 觸控高度，並補上 hover 與鍵盤 focus 狀態。本批不修改登入流程、Firebase、Supabase、權限、套件或產品資料。
 
 本次正式發布（2026-09-12）：

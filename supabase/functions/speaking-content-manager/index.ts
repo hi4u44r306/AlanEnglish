@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
+import { visibleSentenceWords } from "../_shared/speaking-foundation-answer.ts";
 import { WORKBOOK_ONE_FOUNDATION_TEMPLATES } from "../_shared/workbook-one-foundations.ts";
 
 const corsHeaders = {
@@ -937,7 +938,7 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
+                .select("id,book_id,status,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
@@ -969,6 +970,69 @@ Deno.serve(async (req: Request) => {
                     .map((link: any) => Number(link.question_id)));
                 if (questionIds.length !== 26 || questionIds.some((id: number) => !readyQuestionIds.has(id))) {
                     return json(409, { error: "A–Z 的 26 個標準發音尚未全部完成，不能發布半套關卡" });
+                }
+            }
+            const pictureMode = metadata?.interaction_type === "picture_qa"
+                || metadata?.interaction_type === "picture_gap_sentence";
+            if (pictureMode) {
+                const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
+                const [{ data: interactions, error: interactionError }, { data: visualLinks, error: visualError }] = await Promise.all([
+                    admin.from("speaking_question_interactions")
+                        .select("question_id,interaction_type,prompt_text,answer_text,accepted_full_responses")
+                        .in("question_id", questionIds),
+                    admin.from("speaking_question_visual_assets")
+                        .select("question_id,speaking_visual_assets!inner(id,book_id,status,private_object_key,mime_type,alt_zh)")
+                        .in("question_id", questionIds)
+                ]);
+                if (interactionError) throw interactionError;
+                if (visualError) throw visualError;
+                const interactionByQuestion = new Map((interactions || [])
+                    .map((row: any) => [Number(row.question_id), row]));
+                const visualByQuestion = new Map((visualLinks || []).map((row: any) => [
+                    Number(row.question_id),
+                    Array.isArray(row.speaking_visual_assets) ? row.speaking_visual_assets[0] : row.speaking_visual_assets
+                ]));
+                const invalidQuestion = questionIds.find((questionId: number) => {
+                    const interaction: any = interactionByQuestion.get(questionId);
+                    const visual: any = visualByQuestion.get(questionId);
+                    const accepted = Array.isArray(interaction?.accepted_full_responses)
+                        ? interaction.accepted_full_responses : [];
+                    return interaction?.interaction_type !== metadata.interaction_type
+                        || !String(interaction?.prompt_text || "").trim()
+                        || !String(interaction?.answer_text || "").trim()
+                        || accepted.some((value: unknown) => !String(value || "").trim())
+                        || (metadata.interaction_type === "picture_gap_sentence"
+                            && (String(interaction?.prompt_text || "").match(/_{2,}/g) || []).length !== 1)
+                        || visual?.status !== "ready"
+                        || Number(visual?.book_id) !== Number(questionSet.book_id)
+                        || !visual?.private_object_key
+                        || !visual?.alt_zh;
+                });
+                if (invalidQuestion) {
+                    return json(409, { error: "每一題都必須有人工核准的完整問答、圖片與替代文字" });
+                }
+                if (metadata.interaction_type === "picture_gap_sentence") {
+                    const { data: wordLinks, error: wordError } = await admin.from("speaking_question_word_audio")
+                        .select("question_id,token_index,word,speaking_tts_assets!inner(id,status,private_object_key)")
+                        .in("question_id", questionIds);
+                    if (wordError) throw wordError;
+                    const readyWordByPosition = new Map((wordLinks || []).map((row: any) => {
+                        const asset = Array.isArray(row.speaking_tts_assets) ? row.speaking_tts_assets[0] : row.speaking_tts_assets;
+                        return [`${Number(row.question_id)}:${Number(row.token_index)}`, { ...row, asset }];
+                    }));
+                    const expectedWords = questionIds.flatMap((questionId: number) => {
+                        const interaction: any = interactionByQuestion.get(questionId);
+                        return visibleSentenceWords(interaction?.prompt_text).map(token => ({ questionId, ...token }));
+                    });
+                    const incompleteWords = expectedWords.length !== (wordLinks || []).length
+                        || expectedWords.some(expected => {
+                            const linked: any = readyWordByPosition.get(`${expected.questionId}:${expected.tokenIndex}`);
+                            return !linked || String(linked.word).toLowerCase() !== expected.text.toLowerCase()
+                                || linked.asset?.status !== "ready" || !linked.asset?.private_object_key;
+                        });
+                    if (incompleteWords) {
+                        return json(409, { error: "P22 每個可見單字的標準發音尚未全部完成" });
+                    }
                 }
             }
             const now = new Date().toISOString();

@@ -1,4 +1,9 @@
-export const FOUNDATION_INTERACTION_TYPES = new Set(["alphabet_round", "letter_spelling"]);
+export const FOUNDATION_INTERACTION_TYPES = new Set([
+    "alphabet_round",
+    "letter_spelling",
+    "picture_qa",
+    "picture_gap_sentence"
+]);
 
 const LETTER_ALIASES: Record<string, string> = {
     a: "A", ay: "A", aye: "A",
@@ -75,9 +80,33 @@ const expectedLetterSequence = (value: unknown) => String(value || "")
     .split("")
     .filter(Boolean);
 
-export const matchesFoundationAnswer = (interactionType: unknown, expectedAnswer: unknown, recognizedText: unknown) => {
+export const normalizedSpokenSentence = (value: unknown) => String(value || "")
+    .toLowerCase()
+    .replace(/[’]/g, "'")
+    .replace(/[^a-z0-9'\s]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export const visibleSentenceWords = (value: unknown) => (String(value || "")
+    .match(/_+|[A-Za-z]+(?:['’][A-Za-z]+)?|[^A-Za-z_\s]+/g) || [])
+    .map((text, tokenIndex) => ({ text, tokenIndex }))
+    .filter(token => /^[A-Za-z]+(?:['’][A-Za-z]+)?$/.test(token.text));
+
+export const matchesFoundationAnswer = (
+    interactionType: unknown,
+    expectedAnswer: unknown,
+    recognizedText: unknown,
+    acceptedAnswers: unknown = []
+) => {
     const type = String(interactionType || "");
     if (!FOUNDATION_INTERACTION_TYPES.has(type)) return false;
+    if (type === "picture_qa" || type === "picture_gap_sentence") {
+        const spoken = normalizedSpokenSentence(recognizedText);
+        const accepted = [expectedAnswer, ...(Array.isArray(acceptedAnswers) ? acceptedAnswers : [])]
+            .map(normalizedSpokenSentence)
+            .filter(Boolean);
+        return Boolean(spoken) && accepted.includes(spoken);
+    }
     const expected = expectedLetterSequence(expectedAnswer);
     const spoken = spokenLetterSequence(recognizedText);
     if (!spoken || spoken.length !== expected.length) return false;
@@ -89,5 +118,9 @@ export const matchesFoundationAnswer = (interactionType: unknown, expectedAnswer
 export const foundationRetryFeedback = (interactionType: unknown) => (
     interactionType === "alphabet_round"
         ? "再看清楚這個字母，聽完提示音後重新唸一次。"
+        : interactionType === "picture_qa"
+            ? "請看圖片，把完整問句和完整回答一起說出來。"
+            : interactionType === "picture_gap_sentence"
+                ? "請看圖片，把包含空格答案的完整句子說出來。"
         : "請慢慢逐字母拼讀，確認沒有漏字、換序或多唸字母。"
 );
