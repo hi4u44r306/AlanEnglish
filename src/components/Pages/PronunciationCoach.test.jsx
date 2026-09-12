@@ -23,7 +23,7 @@ describe("PronunciationCoach", () => {
     it("顯示日常問候首個關卡與朗讀句子", () => {
         render(<PronunciationCoach />);
 
-        expect(screen.getByRole("heading", { name: "AI 發音教練" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "發音教練" })).toBeInTheDocument();
         expect(screen.getByText("Good morning. How are you?")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /開始錄音/ })).toBeInTheDocument();
     });
@@ -36,5 +36,17 @@ describe("PronunciationCoach", () => {
         expect(screen.getByText("It is nice to meet you.")).toBeInTheDocument();
         expect(screen.getByText("很高興認識你。")).toBeInTheDocument();
         expect(screen.getByText(/nice 和 meet/)).toBeInTheDocument();
+    });
+
+    it("先顯示目前練習，再顯示其他句子", () => {
+        const { container } = render(<PronunciationCoach />);
+        const layout = container.querySelector(".pronunciation-layout");
+
+        expect(Array.from(layout.children).map(item => item.className)).toEqual([
+            "pronunciation-stage",
+            "pronunciation-lessons"
+        ]);
+        expect(screen.getByText("現在練習")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "選擇其他句子" })).toBeInTheDocument();
     });
 });
