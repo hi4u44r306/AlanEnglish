@@ -4,6 +4,7 @@
 
 本次進行中（2026-09-12，尚未部署）：
 
+- 學生情境對話兒童友善重整：標題改為中文並縮短說明，手機／平板會先顯示真正的對話、問題、提示與麥克風，再顯示完整 9 關任務；三種提示程度改成緊湊選項，學生手機隱藏原本重複的固定「開始回答」Dock，只保留練習卡內的主要麥克風。錄音、評分、雲端進度、教師示範及權限邏輯沒有變更。相關 UI／Navbar／Container 回歸測試共 3 suites／12 tests、Production build 通過；尚待 Deploy Preview 進行已登入 412px 操作驗收。
 - 學生手機底部避讓第一批：移除 `Containerfull` 在播放音樂時覆蓋響應式 CSS 的 inline `padding-bottom`，讓頁面完整保留 MusicPlayer、四格底部導覽與 iPhone safe area；學生手機版隱藏重複且會遮住頁面內容的浮動「今日作業」，作業仍可從首頁卡片與「更多」進入，桌面與老師／管理員捷徑維持原狀。`Containerfull`、`AssignmentShortcut`、`MainNavbar` 與學生視覺測試共 4 suites／18 tests、Production build 通過；尚待 Deploy Preview 以已登入帳號進行 412px 實際播放器驗收，本批尚未部署。
 - 學生兒童友善介面第二階段：分支 `codex/student-child-friendly-ui-phase2` 從目前 `main` commit `02f0b442` 建立。新增只在 `.ae-student-navbar` 存在時生效的共用視覺層，統一降低作業、錯題複習、週報、設定、通知、會員、等級／排行榜／獎勵、AI 教材與口說頁的標題與操作字重；手機版縮小標題、移除重複的英文裝飾標籤、保留至少 44px 主要操作區與清楚的鍵盤 focus。沒有變更路由、Firebase、Supabase、membership／entitlement／assignment、老師／管理員介面、套件或後端。全前端 48 suites／159 tests、Production build 與 `git diff --check` 通過；編譯後樣式在 412px 量測為標題字重 700、按鈕 44px、焦點框可見且無水平溢位，桌面保留輔助標籤，沒有學生 Navbar 時仍維持既有 950 字重。尚未部署。
 - 公開首頁折疊版 Navbar 新增常駐「登入」按鈕，使用者在平板與手機寬度不必先打開漢堡選單即可找到登入頁；抽屜內原登入入口仍保留，桌面寬版導覽不變。按鈕維持至少 44px 觸控高度，並補上 hover 與鍵盤 focus 狀態。本批不修改登入流程、Firebase、Supabase、權限、套件或產品資料。

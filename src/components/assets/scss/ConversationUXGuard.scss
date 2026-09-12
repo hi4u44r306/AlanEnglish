@@ -82,3 +82,16 @@
     font-size: 16px;
   }
 }
+
+// Student pages already provide a large microphone action inside the focused
+// practice card. Keeping a second fixed action above the bottom navigation
+// obscures content and gives children two competing primary buttons.
+@media (max-width: 768px) {
+  body:has(.ae-student-bottom-nav) .conversation-action-dock {
+    display: none;
+  }
+
+  body:has(.ae-student-bottom-nav) .conversation-page {
+    padding-bottom: 32px !important;
+  }
+}
