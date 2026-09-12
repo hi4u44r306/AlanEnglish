@@ -4,6 +4,7 @@
 
 本次進行中（2026-09-12，尚未部署）：
 
+- Workbook 1 基礎口說闖關內容／資料契約盤點：新分支 `codex/workbook1-speaking-challenges` 從最新 `origin/main` commit `02f0b442` 建立，並只套入 Speaking 視覺提示、換題同步與台灣國旗修正 5 個相關 commit。唯讀核對 Supabase 後確認 P14～P17 共 47 個拼讀單字已有 OCR 草稿；P21 與 P22 各有 9 個題位，但圖片中的名詞及答案未被 OCR 保存，來源文件仍為 `draft`／`review_required`，不得直接發布。新增 `docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`，定義 A–Z 教學與 3 秒挑戰、逐頁洗牌拼讀、完整問答／句子判定、私人 R2 圖片契約、缺件清單及發布閘門。本階段未建立題庫、未產生付費 TTS、未執行 migration、未部署 Edge Function 或 Netlify。
 - 公開首頁折疊版 Navbar 新增常駐「登入」按鈕，使用者在平板與手機寬度不必先打開漢堡選單即可找到登入頁；抽屜內原登入入口仍保留，桌面寬版導覽不變。按鈕維持至少 44px 觸控高度，並補上 hover 與鍵盤 focus 狀態。本批不修改登入流程、Firebase、Supabase、權限、套件或產品資料。
 
 本次正式發布（2026-09-12）：
