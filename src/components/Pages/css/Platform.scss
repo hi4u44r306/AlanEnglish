@@ -20,6 +20,18 @@
     padding: 34px 0 100px;
 }
 
+.membership-center-page {
+    display: flex;
+    flex-direction: column;
+}
+
+.membership-center-page .membership-page-header { order: 0; }
+.membership-center-page .membership-feature-overview { order: 1; }
+.membership-center-page .platform-material-access { order: 2; }
+.membership-center-page > .platform-card:not(.membership-feature-overview):not(.platform-material-access):not(.membership-plans):not(.membership-compact-card) { order: 3; }
+.membership-center-page .membership-plans { order: 4; }
+.membership-center-page .membership-compact-card { order: 5; }
+
 .platform-narrow { width: min(840px, calc(100% - 32px)); }
 
 .platform-public {
@@ -600,6 +612,55 @@ textarea { resize: vertical; }
     .platform-ai-premium { gap: 20px; padding: 24px 20px; border-radius: 22px; }
     .platform-ai-premium h2 { align-items: flex-start; font-size: 28px; }
     .platform-ai-premium-renewal { padding: 19px; }
+}
+
+@media (max-width: 640px) {
+    .membership-center-page .membership-page-header {
+        padding: 18px 16px;
+    }
+
+    .membership-center-page .membership-page-title h1 {
+        font-size: 27px;
+    }
+
+    .membership-center-page .membership-access-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .membership-center-page .membership-access-summary > div {
+        min-height: 62px;
+        align-items: flex-start;
+        justify-content: center;
+        flex-direction: column;
+        gap: 3px;
+        border-top: 1px solid var(--ae-line);
+    }
+
+    .membership-center-page .membership-access-summary > div:nth-child(-n + 2) {
+        border-top: 0;
+    }
+
+    .membership-center-page .membership-access-summary > div:nth-child(even) {
+        border-left: 1px solid var(--ae-line);
+    }
+
+    .membership-center-page .membership-access-summary dd {
+        justify-items: start;
+        text-align: left;
+    }
+
+    .membership-center-page .membership-feature-overview,
+    .membership-center-page .platform-material-access {
+        padding: 18px 14px;
+    }
+
+    .membership-center-page .membership-feature-row {
+        min-height: 64px;
+    }
+
+    .membership-center-page .membership-feature-row small {
+        display: none;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

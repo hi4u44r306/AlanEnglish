@@ -277,9 +277,9 @@ function MembershipCenter() {
     if (loading) return <div className="platform-loading">會員資料載入中…</div>;
 
     return (
-        <main className="platform-page">
+        <main className="platform-page membership-center-page">
             <header className="membership-page-header">
-                <div className="membership-page-title"><span className="platform-eyebrow">MY ACCESS</span><h1>我的教材與功能</h1><p>快速確認目前方案、可用功能與已取得教材。</p></div>
+                <div className="membership-page-title"><span className="platform-eyebrow">MY ACCESS</span><h1>我可以用什麼？</h1><p>先選一個已開通的功能開始學習。</p></div>
                 <dl className={`membership-access-summary ${membership?.is_active ? "is-active" : "is-expired"}`} aria-label="目前方案摘要">
                     <div><dt>會員身分</dt><dd>{membershipIdentityLabel}</dd></div>
                     <div><dt>目前方案</dt><dd>{membershipPlanLabel}</dd></div>
@@ -289,7 +289,7 @@ function MembershipCenter() {
             </header>
 
             <section className="platform-card membership-feature-overview" aria-labelledby="feature-access-heading">
-                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">YOUR ACCESS</span><h2 id="feature-access-heading">目前可用功能</h2><p>已開通 {availableFeatureItems.length} 項，點一下就能開始使用。</p></div><strong className="membership-feature-count">{availableFeatureItems.length}／{FEATURE_OVERVIEW.length}</strong></div>
+                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">YOUR ACCESS</span><h2 id="feature-access-heading">選一個開始學</h2><p>你現在可以使用 {availableFeatureItems.length} 項功能。</p></div><strong className="membership-feature-count">{availableFeatureItems.length}／{FEATURE_OVERVIEW.length}</strong></div>
                 <div className="membership-feature-columns">
                     <div className="membership-feature-list" role="list" aria-label="已開通功能">
                         {availableFeatureItems.length === 0
@@ -307,7 +307,7 @@ function MembershipCenter() {
             </section>
 
             <section className="platform-card membership-plans" id="plans">
-                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">MEMBERSHIP & AI</span><h2>延續使用與功能加購</h2><p>基本會員可使用全部正式聽力教材；AI 教材與發音練習為獨立加購。</p></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
+                <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">FOR FAMILY</span><h2>家長：方案與付款</h2><p>基本會員可使用全部正式聽力教材；AI 教材與發音練習為獨立加購。</p></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>
                 {membership?.stripe_subscription_status && !isActiveAcademyStudent && <div className="membership-billing-notice"><p>{membership.cancel_at_period_end ? `已排程於 ${formatDate(membership.current_period_end)} 取消，到期前可恢復。` : membership.stripe_subscription_status === "past_due" ? "付款失敗，請由 Customer Portal 更新付款方式。" : `目前付款週期至 ${formatDate(membership.current_period_end)}。`}</p>{membership.stripe_subscription_status !== "canceled" && <button className="platform-secondary" type="button" disabled={Boolean(working)} onClick={() => updateRenewal(membership.cancel_at_period_end)}>{membership.cancel_at_period_end ? "到期前恢復續訂" : "本期結束取消"}</button>}</div>}
                 {hasAiPremium && <div className="membership-active-addon" role="status" aria-label="AI Premium｜AI 教材與發音練習已啟用"><span className="membership-active-addon-icon"><FiZap aria-hidden="true" /></span><div><span>AI Premium</span><strong>你的 AI 學習力已升級</strong><small>{hasAiAddon ? aiAddonCancelling ? `使用至 ${formatDate(aiRenewalAt)}，到期後不再扣款` : aiRenewalDay ? `每月 ${aiRenewalDay} 日續訂 · 每日 5 次、每月 150 次` : "AI 教材與發音練習已啟用" : "英文班在校期間已包含 · 每日 5 次、每月 150 次"}</small></div><div className="membership-active-addon-actions"><Link to="/student/ai-generator">AI 教材</Link><Link to="/student/pronunciation">發音練習</Link>{hasAiAddon && aiAddonSubscription?.stripe_subscription_id && <button type="button" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "恢復續訂" : "到期取消"}</button>}</div></div>}
                 {publicPlans.length === 0
