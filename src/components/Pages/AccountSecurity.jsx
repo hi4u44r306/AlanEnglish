@@ -44,8 +44,8 @@ function AccountSecurity() {
     };
 
     return (
-        <main className="platform-page platform-narrow">
-            <header className="platform-hero"><div><span className="platform-eyebrow">ACCOUNT SECURITY</span><h1>帳號與密碼</h1><p>你可以隨時更換自己的密碼；管理員與櫃檯人員不會看到密碼。</p></div></header>
+        <main className={`platform-page platform-narrow ${role === "student" ? "student-account-security" : ""}`}>
+            <header className="platform-hero"><div><span className="platform-eyebrow">ACCOUNT SECURITY</span><h1>{role === "student" ? "更改密碼" : "帳號與密碼"}</h1><p>{role === "student" ? "輸入目前密碼，再設定一組新密碼。" : "你可以隨時更換自己的密碼；管理員與櫃檯人員不會看到密碼。"}</p></div></header>
             <section className="platform-card">
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>{usesStudentPin ? "登入帳號" : "登入 Email"}</span><input value={usesStudentPin ? studentProfile?.login_username || "" : firebaseUser?.email || ""} readOnly /></label>

@@ -53,8 +53,8 @@ function Support() {
         <main className="platform-public">
             <section className="platform-public-card">
                 <span className="platform-eyebrow">CUSTOMER SUPPORT</span>
-                <h1>聯絡客服</h1>
-                <p>帳號、密碼、付款、兌換碼或教材使用遇到問題，都可以在這裡留言。請勿填寫密碼或信用卡完整號碼。</p>
+                <h1>需要幫忙嗎？</h1>
+                <p>告訴我們遇到什麼問題。請不要填寫密碼或信用卡完整號碼。</p>
                 <form className="platform-form" onSubmit={submit}>
                     <div className="platform-form-grid"><label><span>姓名</span><input name="name" value={form.name} onChange={update} maxLength="100" autoComplete="name" required /></label><label><span>可收信 Email</span><input name="email" type="email" value={form.email} onChange={update} placeholder="name@gmail.com" autoComplete="email" required /></label></div>
                     <small>{RECEIVABLE_EMAIL_HELP}</small>
