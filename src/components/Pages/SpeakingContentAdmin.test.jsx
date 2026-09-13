@@ -7,7 +7,8 @@ import {
     createWorkbookOneStarterQuestionSet,
     createWorkbookTwoStarterQuestionSet,
     getSpeakingContentBootstrap,
-    getSpeakingQuestionAudioPreview
+    getSpeakingQuestionAudioPreview,
+    getSpeakingQuestionPicturePreview
 } from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
@@ -19,6 +20,7 @@ jest.mock("../../services/speakingContentService", () => ({
     createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
     getSpeakingQuestionAudioPreview: jest.fn(),
+    getSpeakingQuestionPicturePreview: jest.fn(),
     extractSpeakingSourceDocument: jest.fn(), extractSpeakingBookChunk: jest.fn(),
     publishSpeakingQuestionSet: jest.fn(), generateSpeakingQuestionSetAudio: jest.fn(), reviewSpeakingOcrSource: jest.fn(),
     generateSpeakingVisibleWordAudio: jest.fn(), createWorkbookOnePictureDraft: jest.fn(), uploadSpeakingQuestionPicture: jest.fn(),
@@ -36,6 +38,12 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
+        getSpeakingQuestionPicturePreview.mockResolvedValue({
+            question_id: 53,
+            image_url: "https://r2.example/p21-preview.png",
+            alt_zh: "教材中的蘋果插圖",
+            expires_in_seconds: 900
+        });
         getSpeakingContentBootstrap.mockResolvedValue({
         books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }, { id: 2, name: "Workbook 2", code: "Workbook_2" }],
         documents: [{ id: 20, book_id: 2, title: "Workbook 2 口說大關卡", page_count: 115, chunk_count: 12 }],
@@ -140,8 +148,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
                 generation_metadata: { interaction_type: "picture_qa", requires_content_review: true },
                 speaking_questions: [{
                     id: 53, sort_order: 0, question_text: "What is that?", hint_zh: "看圖說完整問答。",
-                    simple_answer: "It is an apple.", model_answer: "It is an apple.", keywords: [], accepted_intents: [],
-                    visual_aid: { kind: "private-image", image_url: "https://r2.example/p21-preview.png", alt_zh: "教材中的蘋果插圖" }
+                    simple_answer: "It is an apple.", model_answer: "It is an apple.", keywords: [], accepted_intents: []
                 }]
             }]
         });
@@ -150,8 +157,12 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         expect(await screen.findByText("P21／P22 題目已鎖定同步編輯")).toBeInTheDocument();
         expect(screen.queryByLabelText("AI 要問學生的問題")).not.toBeInTheDocument();
+        expect(getSpeakingQuestionPicturePreview).not.toHaveBeenCalled();
+        expect(screen.queryByRole("img", { name: "教材中的蘋果插圖" })).not.toBeInTheDocument();
         fireEvent.click(screen.getByText("預覽學生畫面"));
-        expect(screen.getByRole("img", { name: "教材中的蘋果插圖" })).toHaveAttribute("src", "https://r2.example/p21-preview.png");
+        fireEvent.click(screen.getByRole("button", { name: "載入第 1 題圖片預覽" }));
+        await waitFor(() => expect(getSpeakingQuestionPicturePreview).toHaveBeenCalledWith(mockFirebaseUser, 53));
+        expect(await screen.findByRole("img", { name: "教材中的蘋果插圖" })).toHaveAttribute("src", "https://r2.example/p21-preview.png");
         expect(screen.getByText("學生只會看到圖片，並在同一次錄音說出完整問句與回答。")).toBeInTheDocument();
     });
 

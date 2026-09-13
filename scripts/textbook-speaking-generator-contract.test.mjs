@@ -242,8 +242,17 @@ test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(manager, /manual_picture_manifest/);
     assert.match(manager, /source_document_id: Number\(sourceSection\.document_id\)/);
     assert.match(manager, /hasExpectedSignature\(signatureBytes, asset\.mime_type\)/);
-    assert.match(manager, /visualAidByQuestion/);
+    assert.match(manager, /action === "preview_question_picture"/);
     assert.match(manager, /image_url: await createR2PresignedUrl\(asset\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(manager, /expires_in_seconds: 15 \* 60/);
+    assert.match(manager, /"Cache-Control": "private, no-store, max-age=0"/);
+    const bootstrapSection = manager.slice(
+        manager.indexOf("const loadBootstrap"),
+        manager.indexOf("const validateApprovedFoundationSet")
+    );
+    assert.doesNotMatch(bootstrapSection, /createR2PresignedUrl|private_object_key|image_url/);
+    assert.match(manager, /\.eq\("status", "draft"\)[\s\S]*?\.eq\("version", Number\(questionSet\.version\)\)[\s\S]*?\.eq\("updated_at", questionSet\.updated_at\)[\s\S]*?\.select\("id"\)[\s\S]*?\.maybeSingle\(\)/);
+    assert.match(manager, /if \(!publishedSet\)/);
     assert.match(ttsManager, /generate_visible_word_audio/);
     assert.match(ttsManager, /visibleSentenceWords/);
     assert.match(ttsManager, /status !== "ready" && item\.status !== "failed"/);

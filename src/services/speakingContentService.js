@@ -32,6 +32,9 @@ export const getSpeakingQuestionAudioPreview = (firebaseUser, questionSetId, que
         action: "preview_question_audio", question_set_id: questionSetId, question_id: questionId
     })
 );
+export const getSpeakingQuestionPicturePreview = (firebaseUser, questionId) => (
+    callSpeakingContent(firebaseUser, "preview_question_picture", { question_id: questionId })
+);
 export const generateSpeakingVisibleWordAudio = (firebaseUser, questionSetId) => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_visible_word_audio", question_set_id: questionSetId })
 );

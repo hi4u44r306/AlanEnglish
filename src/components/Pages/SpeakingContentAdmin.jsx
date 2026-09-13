@@ -14,6 +14,7 @@ import {
     generateSpeakingQuestionSetAudio,
     generateSpeakingVisibleWordAudio,
     getSpeakingQuestionAudioPreview,
+    getSpeakingQuestionPicturePreview,
     publishSpeakingQuestionSet,
     reviewSpeakingOcrSource,
     saveReviewedSpeakingSource,
@@ -122,6 +123,43 @@ const QuestionAudioPreview = ({ firebaseUser, questionSet, question }) => {
     </div>;
 };
 
+const QuestionPicturePreview = ({ firebaseUser, question }) => {
+    const [preview, setPreview] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const loadPreview = async () => {
+        setLoading(true);
+        setFailed(false);
+        try {
+            const result = await getSpeakingQuestionPicturePreview(firebaseUser, question.id);
+            if (Number(result?.question_id) !== Number(question.id) || !result?.image_url || !result?.alt_zh) {
+                throw new Error("圖片預覽回應不完整");
+            }
+            setPreview(result);
+        } catch {
+            setPreview(null);
+            setFailed(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+    return <div className="speaking-picture-preview">
+        <button
+            type="button"
+            className="platform-secondary"
+            disabled={loading}
+            onClick={loadPreview}
+            aria-label={`${preview ? "重新載入" : "載入"}第 ${Number(question.sort_order || 0) + 1} 題圖片預覽`}
+        >
+            <Eye size={17} />{loading ? "載入中…" : preview ? "重新載入圖片" : "載入圖片預覽"}
+        </button>
+        {failed && <p role="status">圖片尚未準備完成，請確認上傳狀態後再試。</p>}
+        {preview?.image_url && <SpeakingVisualAid aid={{
+            kind: "private-image", image_url: preview.image_url, alt_zh: preview.alt_zh
+        }} />}
+    </div>;
+};
+
 const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
     const questions = [...(questionSet.speaking_questions || [])].sort((a, b) => a.sort_order - b.sort_order);
     const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
@@ -139,7 +177,9 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
             <header><span>口說大挑戰預覽</span><h5>{questionSet.title}</h5><p>{previewDescription}</p></header>
             <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
                 <span>第 {index + 1} 題</span>{!isPictureQa && <strong>{question.question_text}</strong>}
-                <SpeakingVisualAid aid={question.visual_aid} />
+                {isPictureSet
+                    ? <QuestionPicturePreview firebaseUser={firebaseUser} question={question} />
+                    : <SpeakingVisualAid aid={question.visual_aid} />}
                 {isPictureSet
                     ? <details><summary>查看管理員核對資料（學生不會看到）</summary><p>{question.question_text}</p><em>{question.model_answer}</em></details>
                     : <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>}

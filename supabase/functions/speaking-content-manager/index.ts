@@ -19,7 +19,13 @@ const corsHeaders = {
 };
 const json = (status: number, payload: Record<string, unknown>) => new Response(JSON.stringify(payload), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
+    headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "private, no-store, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    }
 });
 const AI_MODEL = "gpt-5-mini";
 const MAX_SOURCE_FILE_BYTES = 20 * 1024 * 1024;
@@ -306,38 +312,10 @@ const loadBootstrap = async (admin: any) => {
     ]);
     const error = bookRes.error || documentRes.error || chunkRes.error || sectionRes.error || setRes.error;
     if (error) throw error;
-    const questionSets = setRes.data || [];
-    const pictureQuestionIds = questionSets.flatMap((questionSet: any) => (
-        ["picture_qa", "picture_gap_sentence"].includes(String(questionSet?.generation_metadata?.interaction_type || ""))
-            ? (questionSet.speaking_questions || []).map((question: any) => Number(question.id))
-            : []
-    ));
-    const visualAidByQuestion = new Map<number, any>();
-    if (pictureQuestionIds.length) {
-        const { data: visualLinks, error: visualError } = await admin.from("speaking_question_visual_assets")
-            .select("question_id,speaking_visual_assets!inner(status,private_object_key,alt_zh)")
-            .in("question_id", pictureQuestionIds);
-        if (visualError) throw visualError;
-        await Promise.all((visualLinks || []).map(async (row: any) => {
-            const asset = Array.isArray(row.speaking_visual_assets)
-                ? row.speaking_visual_assets[0] : row.speaking_visual_assets;
-            if (asset?.status !== "ready" || !asset?.private_object_key || !asset?.alt_zh) return;
-            visualAidByQuestion.set(Number(row.question_id), {
-                kind: "private-image", alt_zh: asset.alt_zh,
-                image_url: await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60)
-            });
-        }));
-    }
     return {
         books: bookRes.data || [], documents: documentRes.data || [],
         chunks: chunkRes.data || [], sections: sectionRes.data || [],
-        question_sets: questionSets.map((questionSet: any) => ({
-            ...questionSet,
-            speaking_questions: (questionSet.speaking_questions || []).map((question: any) => ({
-                ...question,
-                visual_aid: visualAidByQuestion.get(Number(question.id)) || question.visual_aid
-            }))
-        }))
+        question_sets: setRes.data || []
     };
 };
 
@@ -388,6 +366,41 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action, 80);
 
         if (action === "bootstrap") return json(200, { success: true, ...await loadBootstrap(admin) });
+
+        if (action === "preview_question_picture") {
+            const questionId = Number(body?.question_id);
+            if (!Number.isInteger(questionId) || questionId <= 0) {
+                return json(400, { error: "圖片預覽題目編號無效" });
+            }
+            const { data: question, error: questionError } = await admin.from("speaking_questions")
+                .select("id,question_set_id,speaking_question_sets!inner(status,generation_metadata)")
+                .eq("id", questionId)
+                .maybeSingle();
+            if (questionError) throw questionError;
+            const questionSet = Array.isArray(question?.speaking_question_sets)
+                ? question?.speaking_question_sets[0] : question?.speaking_question_sets;
+            const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+            if (!question || !["draft", "published"].includes(String(questionSet?.status || ""))
+                || !["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
+                return json(404, { error: "找不到可預覽的圖片題目" });
+            }
+            const { data: visualLink, error: visualError } = await admin.from("speaking_question_visual_assets")
+                .select("question_id,speaking_visual_assets!inner(status,private_object_key,alt_zh)")
+                .eq("question_id", questionId)
+                .maybeSingle();
+            if (visualError) throw visualError;
+            const asset = Array.isArray(visualLink?.speaking_visual_assets)
+                ? visualLink?.speaking_visual_assets[0] : visualLink?.speaking_visual_assets;
+            if (!visualLink || asset?.status !== "ready" || !asset?.private_object_key || !asset?.alt_zh) {
+                return json(409, { error: "這題的圖片尚未準備完成" });
+            }
+            return json(200, {
+                question_id: questionId,
+                image_url: await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60),
+                alt_zh: asset.alt_zh,
+                expires_in_seconds: 15 * 60
+            });
+        }
 
         if (action === "confirm_workbook_1_foundation_source") {
             const setId = Number(body?.question_set_id);
@@ -1336,7 +1349,7 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,book_id,status,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
+                .select("id,book_id,status,version,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
@@ -1438,8 +1451,18 @@ Deno.serve(async (req: Request) => {
                 }
             }
             const now = new Date().toISOString();
-            const { error } = await admin.from("speaking_question_sets").update({ status: "published", reviewed_by: user.id, published_at: now, updated_at: now }).eq("id", setId).eq("status", "draft");
+            const { data: publishedSet, error } = await admin.from("speaking_question_sets")
+                .update({ status: "published", reviewed_by: user.id, published_at: now, updated_at: now })
+                .eq("id", setId)
+                .eq("status", "draft")
+                .eq("version", Number(questionSet.version))
+                .eq("updated_at", questionSet.updated_at)
+                .select("id")
+                .maybeSingle();
             if (error) throw error;
+            if (!publishedSet) {
+                return json(409, { error: "題庫已由其他操作更新，請重新整理並再次核對後發布" });
+            }
             return json(200, { success: true, published_at: now });
         }
 

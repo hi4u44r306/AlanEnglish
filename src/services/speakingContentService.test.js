@@ -6,6 +6,7 @@ import {
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
     getSpeakingQuestionAudioPreview,
+    getSpeakingQuestionPicturePreview,
     getSpeakingContentBootstrap,
     prepareSpeakingSourceUpload,
     publishSpeakingQuestionSet,
@@ -46,6 +47,7 @@ describe("speakingContentService", () => {
         await publishSpeakingQuestionSet(firebaseUser, 4);
         await generateSpeakingQuestionSetAudio(firebaseUser, 4);
         await getSpeakingQuestionAudioPreview(firebaseUser, 4, 8);
+        await getSpeakingQuestionPicturePreview(firebaseUser, 9);
 
         expect(callEdgeFunction.mock.calls.map(call => [call[0], call[2].action])).toEqual([
             ["speaking-content-manager", "bootstrap"],
@@ -63,8 +65,13 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "update_draft_question"],
             ["speaking-content-manager", "publish_question_set"],
             ["speaking-tts-manager", "generate_set_audio"],
-            ["speaking-tts-manager", "preview_question_audio"]
+            ["speaking-tts-manager", "preview_question_audio"],
+            ["speaking-content-manager", "preview_question_picture"]
         ]);
+        expect(callEdgeFunction.mock.calls.at(-1)?.[2]).toEqual({
+            action: "preview_question_picture",
+            question_id: 9
+        });
     });
 
     it("uploads the private file before asking the manager to extract OCR text", async () => {
