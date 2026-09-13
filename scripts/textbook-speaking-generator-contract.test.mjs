@@ -190,6 +190,18 @@ test("15. Workbook 1 基礎關卡只建立草稿，P14～P17 必須逐字符合�
     assert.match(manager, /reviewed_at: null/);
     assert.match(manager, /questionIds\.length !== 26/);
     assert.match(manager, /A–Z 的 26 個標準發音尚未全部完成/);
+    assert.match(manager, /alphabetRoundContentMatches/);
+    assert.match(manager, /A–Z 題庫由固定 26 個字母模板鎖定/);
+    assert.match(manager, /source_text,byte_size,completed_at/);
+    assert.match(ttsManager, /\.eq\("question_id", question\.id\)\.eq\("purpose", "model_answer"\)/);
+    assert.doesNotMatch(ttsManager, /onConflict: "question_id"/);
+    assert.match(ttsManager, /existing\?\.error_code === "42P10"/);
+    assert.match(ttsManager, /fetchR2\(existing\.private_object_key, \{ method: "HEAD" \}\)/);
+    assert.match(ttsManager, /stored\.headers\.get\("content-length"\)/);
+    assert.match(ttsManager, /if \(stored\.status !== 404\)/);
+    assert.match(ttsManager, /\.eq\("status", existing\.status\)/);
+    assert.match(ttsManager, /\.eq\("updated_at", existing\.updated_at\)/);
+    assert.match(ttsManager, /if \(!retriedLink\)/);
     assert.match(foundationUniquenessMigration, /speaking_question_sets_foundation_template_active_unique/);
     assert.match(foundationUniquenessMigration, /workbook_1_p17_letter_spelling_v1/);
     assert.match(ttsManager, /mayPrepareAlphabetDraft/);

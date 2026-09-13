@@ -133,10 +133,24 @@ const linkGeneratedAsset = async (admin: any, question: any, assetId: string, ta
         if (error) throw error;
         return;
     }
-    const { error } = await admin.from("speaking_question_audio").upsert({
+    const payload = {
         question_id: question.id, asset_id: assetId, purpose: "model_answer", updated_at: updatedAt
-    }, { onConflict: "question_id" });
-    if (error) throw error;
+    };
+    const { data: existingLink, error: updateError } = await admin.from("speaking_question_audio")
+        .update({ asset_id: assetId, updated_at: updatedAt })
+        .eq("question_id", question.id).eq("purpose", "model_answer")
+        .select("question_id").maybeSingle();
+    if (updateError) throw updateError;
+    if (existingLink) return;
+    const { error: insertError } = await admin.from("speaking_question_audio").insert(payload);
+    if (!insertError) return;
+    if (insertError.code !== "23505") throw insertError;
+    const { data: retriedLink, error: retryError } = await admin.from("speaking_question_audio")
+        .update({ asset_id: assetId, updated_at: updatedAt })
+        .eq("question_id", question.id).eq("purpose", "model_answer")
+        .select("question_id").maybeSingle();
+    if (retryError) throw retryError;
+    if (!retriedLink) throw Object.assign(new Error("示範語音無法連結至題目"), { status: 409, code: "audio_link_race_failed" });
 };
 
 const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
@@ -151,13 +165,45 @@ const generateQuestionAudio = async (admin: any, question: any, target: any = nu
     }));
 
     const { data: existing, error: existingError } = await admin.from("speaking_tts_assets")
-        .select("id,status,private_object_key,updated_at")
+        .select("id,status,private_object_key,byte_size,completed_at,error_code,updated_at")
         .eq("provider", PROVIDER).eq("content_hash", contentHash)
         .eq("voice_id", selectedVoice).eq("settings_hash", settingsHash).maybeSingle();
     if (existingError) throw existingError;
     if (existing?.status === "ready" && existing.private_object_key) {
         await linkGeneratedAsset(admin, question, existing.id, target, new Date().toISOString());
         return { question_id: Number(question.id), token_index: target?.tokenIndex ?? null, status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+    }
+    const mayRecoverStoredAsset = existing?.status === "failed"
+        && existing?.error_code === "42P10"
+        && Boolean(existing?.private_object_key)
+        && Number(existing?.byte_size || 0) > 0
+        && Boolean(existing?.completed_at);
+    if (mayRecoverStoredAsset) {
+        const stored = await fetchR2(existing.private_object_key, { method: "HEAD" });
+        if (stored.ok) {
+            const storedBytes = Number(stored.headers.get("content-length") || 0);
+            if (!Number.isFinite(storedBytes) || storedBytes !== Number(existing.byte_size)) {
+                throw Object.assign(new Error("既有示範語音的儲存大小與資料庫不一致"), {
+                    status: 502, code: "stored_audio_size_mismatch"
+                });
+            }
+            const recoveredAt = new Date().toISOString();
+            const { error: recoverError } = await admin.from("speaking_tts_assets").update({
+                status: "ready", error_code: null, error_message: null, updated_at: recoveredAt
+            }).eq("id", existing.id);
+            if (recoverError) throw recoverError;
+            await linkGeneratedAsset(admin, question, existing.id, target, recoveredAt);
+            return {
+                question_id: Number(question.id), token_index: target?.tokenIndex ?? null,
+                status: "ready", reused: true, recovered: true,
+                voice_id: selectedVoice, voice_gender: selected.gender
+            };
+        }
+        if (stored.status !== 404) {
+            throw Object.assign(new Error("暫時無法確認既有示範語音，已停止以避免重複產生費用"), {
+                status: 502, code: `stored_audio_probe_${stored.status}`
+            });
+        }
     }
     if (existing?.status === "processing" && Date.now() - Date.parse(existing.updated_at) < 5 * 60 * 1000) {
         return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
@@ -168,8 +214,18 @@ const generateQuestionAudio = async (admin: any, question: any, target: any = nu
     if (asset) {
         const { data, error } = await admin.from("speaking_tts_assets").update({
             status: "processing", error_code: null, error_message: null, updated_at: now
-        }).eq("id", asset.id).select("id").single();
+        }).eq("id", asset.id)
+            .eq("status", existing.status)
+            .eq("updated_at", existing.updated_at)
+            .select("id").maybeSingle();
         if (error) throw error;
+        if (!data) {
+            return {
+                question_id: Number(question.id), token_index: target?.tokenIndex ?? null,
+                status: "processing", reused: true,
+                voice_id: selectedVoice, voice_gender: selected.gender
+            };
+        }
         asset = data;
     } else {
         const { data, error } = await admin.from("speaking_tts_assets").insert({

@@ -7,6 +7,7 @@ import {
     visibleSentenceWords
 } from "../_shared/speaking-foundation-answer.ts";
 import {
+    alphabetRoundContentMatches,
     approvedSpellingContentMatches,
     workbookOneFoundationTemplateByKey,
     WORKBOOK_ONE_FOUNDATION_TEMPLATES
@@ -322,6 +323,19 @@ const loadBootstrap = async (admin: any) => {
 const validateApprovedFoundationSet = async (admin: any, questionSet: any) => {
     const metadata = questionSet?.generation_metadata || {};
     const template = workbookOneFoundationTemplateByKey(metadata?.template_key);
+    if (template?.metadata?.interaction_type === "alphabet_round") {
+        const { data: questions, error: questionError } = await admin.from("speaking_questions")
+            .select("id,sort_order,question_text,simple_answer,model_answer")
+            .eq("question_set_id", Number(questionSet.id))
+            .order("sort_order");
+        if (questionError) throw questionError;
+        return {
+            applies: true,
+            valid: alphabetRoundContentMatches(template, questions),
+            pageLabel: "A–Z",
+            questions: questions || []
+        };
+    }
     if (!template?.approvedSourcePageLabel) return { applies: false, valid: true };
     const [{ data: publishedSource, error: sourceError }, { data: questions, error: questionError }] = await Promise.all([
         admin.from("book_page_spiral_review_content")
@@ -348,7 +362,8 @@ const validateApprovedFoundationSet = async (admin: any, questionSet: any) => {
         valid: Boolean(publishedSource)
             && sourceVersionMatches
             && approvedSpellingContentMatches(template, publishedSource?.pronunciation_prompts, questions),
-        pageLabel: template.approvedSourcePageLabel
+        pageLabel: template.approvedSourcePageLabel,
+        questions: questions || []
     };
 };
 
@@ -1066,6 +1081,9 @@ Deno.serve(async (req: Request) => {
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
             if (!question || questionSet?.status !== "draft") return json(409, { error: "只有草稿題庫可以修改" });
             const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+            if (interactionType === "alphabet_round") {
+                return json(409, { error: "A–Z 題庫由固定 26 個字母模板鎖定，不能使用通用題目編輯器修改" });
+            }
             if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
                 return json(409, { error: "P21／P22 圖片題庫的顯示內容與後端完整答案必須同步，不能使用通用題目編輯器修改" });
             }
@@ -1368,22 +1386,30 @@ Deno.serve(async (req: Request) => {
                 return json(409, { error: `${approvedFoundationValidation.pageLabel || "Workbook 1"} 題庫已過期或與最新正式核准內容不一致，請封存後重新建立` });
             }
             if (metadata?.interaction_type === "alphabet_round") {
-                const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
+                const alphabetQuestions = approvedFoundationValidation.questions || [];
+                const questionIds = alphabetQuestions.map((question: any) => Number(question.id));
                 const { data: audioLinks, error: audioLinkError } = await admin.from("speaking_question_audio")
                     .select("question_id,asset_id").eq("purpose", "model_answer").in("question_id", questionIds);
                 if (audioLinkError) throw audioLinkError;
                 const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
                 const { data: assets, error: assetError } = assetIds.length
-                    ? await admin.from("speaking_tts_assets").select("id,status,private_object_key").in("id", assetIds)
+                    ? await admin.from("speaking_tts_assets")
+                        .select("id,status,private_object_key,source_text,byte_size,completed_at")
+                        .in("id", assetIds)
                     : { data: [], error: null };
                 if (assetError) throw assetError;
-                const readyAssetIds = new Set((assets || [])
-                    .filter((asset: any) => asset.status === "ready" && Boolean(asset.private_object_key))
-                    .map((asset: any) => String(asset.id)));
-                const readyQuestionIds = new Set((audioLinks || [])
-                    .filter((link: any) => readyAssetIds.has(String(link.asset_id)))
-                    .map((link: any) => Number(link.question_id)));
-                if (questionIds.length !== 26 || questionIds.some((id: number) => !readyQuestionIds.has(id))) {
+                const assetById = new Map((assets || []).map((asset: any) => [String(asset.id), asset]));
+                const linkByQuestionId = new Map((audioLinks || []).map((link: any) => [Number(link.question_id), link]));
+                const incompleteAudio = alphabetQuestions.some((question: any) => {
+                    const link: any = linkByQuestionId.get(Number(question.id));
+                    const asset: any = assetById.get(String(link?.asset_id || ""));
+                    return asset?.status !== "ready"
+                        || !asset?.private_object_key
+                        || Number(asset?.byte_size || 0) <= 0
+                        || !asset?.completed_at
+                        || String(asset?.source_text || "").trim() !== String(question?.model_answer || "").trim();
+                });
+                if (questionIds.length !== 26 || incompleteAudio) {
                     return json(409, { error: "A–Z 的 26 個標準發音尚未全部完成，不能發布半套關卡" });
                 }
             }

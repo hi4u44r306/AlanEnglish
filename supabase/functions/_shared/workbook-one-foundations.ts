@@ -58,6 +58,24 @@ export const approvedSpellingContentMatches = (
         });
 };
 
+export const alphabetRoundContentMatches = (
+    template: any,
+    questions: unknown
+) => {
+    if (template?.metadata?.interaction_type !== "alphabet_round" || !Array.isArray(questions)) return false;
+    const expectedQuestions = Array.isArray(template?.questions) ? template.questions : [];
+    const orderedQuestions = [...questions].sort((left: any, right: any) => Number(left?.sort_order) - Number(right?.sort_order));
+    return expectedQuestions.length === 26
+        && orderedQuestions.length === expectedQuestions.length
+        && orderedQuestions.every((question: any, index: number) => {
+            const expected = expectedQuestions[index];
+            return Number(question?.sort_order) === index
+                && String(question?.question_text || "").trim() === String(expected?.question_text || "").trim()
+                && String(question?.simple_answer || "").trim() === String(expected?.simple_answer || "").trim()
+                && String(question?.model_answer || "").trim() === String(expected?.model_answer || "").trim();
+        });
+};
+
 const spellingTemplate = (page: number, words: string[], extraMetadata: Record<string, unknown> = {}) => ({
     catalogKey: "workbook1",
     templateKey: `workbook_1_p${page}_letter_spelling_v1`,

@@ -11,6 +11,7 @@ import {
     visibleSentenceWords
 } from "../supabase/functions/_shared/speaking-foundation-answer.ts";
 import {
+    alphabetRoundContentMatches,
     approvedSpellingContentMatches,
     WORKBOOK_ONE_FOUNDATION_ACTIONS,
     WORKBOOK_ONE_FOUNDATION_TEMPLATES,
@@ -58,6 +59,15 @@ assert.equal(pictureQaResponseHasQuestionAndAnswer("It is an apple."), false);
 
 assert.equal(WORKBOOK_ONE_FOUNDATION_ACTIONS.length, 5);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_alphabet_round.questions.length, 26);
+const alphabetTemplate = WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_alphabet_round;
+const canonicalAlphabetQuestions = alphabetTemplate.questions.map((question, sortOrder) => ({ ...question, sort_order: sortOrder }));
+assert.equal(alphabetRoundContentMatches(alphabetTemplate, canonicalAlphabetQuestions), true);
+assert.equal(alphabetRoundContentMatches(alphabetTemplate, canonicalAlphabetQuestions.map((question, index) => (
+    index === 1 ? { ...question, model_answer: "D" } : question
+))), false);
+assert.equal(alphabetRoundContentMatches(alphabetTemplate, canonicalAlphabetQuestions.map((question, index) => (
+    index === 1 ? { ...question, sort_order: 2 } : question
+))), false);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.questions.length, 10);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p15.questions.length, 12);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p16.questions.length, 12);
