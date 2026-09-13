@@ -37,21 +37,51 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const phaseFocusRef = useRef(null);
     const startPendingRef = useRef(false);
     const startRequestRef = useRef(0);
+    const segmentTimerRef = useRef(null);
+    const audioOperationRef = useRef(0);
     const copy = interactionCopy[interactionType] || interactionCopy.letter_spelling;
+    const alphabetAudio = challenge?.alphabet_audio;
+    const alphabetSegments = useMemo(() => Array.isArray(alphabetAudio?.segments)
+        ? alphabetAudio.segments : [], [alphabetAudio]);
+    const segmentByQuestionId = useMemo(() => new Map(alphabetSegments.map(segment => [
+        Number(segment.question_id), segment
+    ])), [alphabetSegments]);
     const allAlphabetAudioReady = sourceQuestions.length === 26
-        && sourceQuestions.every(question => Boolean(question.model_audio_url));
+        && Boolean(alphabetAudio?.audio_url)
+        && alphabetSegments.length === 26
+        && sourceQuestions.every(question => {
+            const segment = segmentByQuestionId.get(Number(question.id));
+            return Number.isFinite(Number(segment?.start_ms))
+                && Number(segment?.end_ms) > Number(segment?.start_ms);
+        });
 
     const stopAudio = useCallback(() => {
+        audioOperationRef.current += 1;
+        if (segmentTimerRef.current) {
+            window.clearTimeout(segmentTimerRef.current);
+            segmentTimerRef.current = null;
+        }
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.onended = null;
             audioRef.current.onerror = null;
-            audioRef.current = null;
+            audioRef.current.ontimeupdate = null;
+            audioRef.current.onloadedmetadata = null;
+            audioRef.current.oncanplay = null;
         }
         setIntroPlaying(false);
     }, []);
 
-    useEffect(() => () => stopAudio(), [stopAudio]);
+    useEffect(() => {
+        if (!alphabetMode || !alphabetAudio?.audio_url) return undefined;
+        const audio = new Audio(alphabetAudio.audio_url);
+        audio.preload = "auto";
+        audioRef.current = audio;
+        return () => {
+            stopAudio();
+            if (audioRef.current === audio) audioRef.current = null;
+        };
+    }, [alphabetAudio?.audio_url, alphabetMode, stopAudio]);
     useEffect(() => {
         startRequestRef.current += 1;
         stopAudio();
@@ -65,49 +95,121 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         setStatusError("");
         startPendingRef.current = false;
     }, [alphabetMode, challenge?.id, stopAudio]);
-    const playAudio = useCallback((question, { onEnded, markIntro = false } = {}) => {
+    const playAlphabetAudio = useCallback(({ segment = null, startIndex = 0, onEnded, markIntro = false } = {}) => {
         stopAudio();
-        if (!question?.model_audio_url) {
+        const operationId = audioOperationRef.current;
+        const audio = audioRef.current;
+        if (!audio || !allAlphabetAudioReady) {
             setPromptBlocked(true);
-            setStatusError("標準發音尚未準備完成，請稍後再試");
+            setStatusError("A–Z 單一慢速音檔尚未準備完成，請稍後再試");
             return false;
         }
-        const audio = new Audio(question.model_audio_url);
-        audioRef.current = audio;
         if (markIntro) setIntroPlaying(true);
-        audio.onended = () => {
-            audioRef.current = null;
+        let finished = false;
+        const finish = () => {
+            if (finished || operationId !== audioOperationRef.current) return;
+            finished = true;
+            if (segmentTimerRef.current) {
+                window.clearTimeout(segmentTimerRef.current);
+                segmentTimerRef.current = null;
+            }
+            audio.pause();
+            audio.onended = null;
+            audio.onerror = null;
+            audio.ontimeupdate = null;
+            audio.onloadedmetadata = null;
+            audio.oncanplay = null;
             if (markIntro) setIntroPlaying(false);
             onEnded?.();
         };
+        const startSeconds = segment
+            ? Number(segment.start_ms) / 1000
+            : Number(alphabetSegments[Math.min(startIndex, alphabetSegments.length - 1)]?.start_ms || 0) / 1000;
+        if (segment) {
+            const endSeconds = Number(segment.end_ms) / 1000;
+            audio.ontimeupdate = () => {
+                if (audio.currentTime >= endSeconds) finish();
+            };
+        } else {
+            audio.ontimeupdate = () => {
+                const currentMs = Number(audio.currentTime || 0) * 1000;
+                const activeSegmentIndex = alphabetSegments.findIndex(item => (
+                    currentMs >= Number(item.start_ms) && currentMs < Number(item.end_ms)
+                ));
+                if (activeSegmentIndex >= 0) setIntroIndex(activeSegmentIndex);
+            };
+        }
+        audio.onended = finish;
         audio.onerror = () => {
-            audioRef.current = null;
+            stopAudio();
             if (markIntro) setIntroPlaying(false);
             setPromptBlocked(true);
             setStatusError("標準發音暫時無法播放，請重新整理後再試");
         };
-        audio.play().catch(() => {
-            audioRef.current = null;
+        const handlePlayBlocked = () => {
+            if (operationId !== audioOperationRef.current) return;
+            stopAudio();
             if (markIntro) setIntroPlaying(false);
             setPromptBlocked(true);
             setStatusError("瀏覽器暫時無法播放標準發音，請再按一次");
-        });
+        };
+        const beginPlayback = () => {
+            if (operationId !== audioOperationRef.current) return;
+            if (typeof audio.readyState === "number" && audio.readyState < 1) {
+                const resumeWhenReady = () => {
+                    audio.onloadedmetadata = null;
+                    audio.oncanplay = null;
+                    beginPlayback();
+                };
+                audio.onloadedmetadata = resumeWhenReady;
+                audio.oncanplay = resumeWhenReady;
+                return;
+            }
+            try {
+                audio.currentTime = startSeconds;
+            } catch {
+                audio.onloadedmetadata = () => {
+                    audio.onloadedmetadata = null;
+                    beginPlayback();
+                };
+                return;
+            }
+            Promise.resolve(audio.play()).then(() => {
+                if (operationId !== audioOperationRef.current || finished) return;
+                if (segment && !segmentTimerRef.current) {
+                    const watchdogStartedAt = Date.now();
+                    const maxWaitMs = Math.max(15000, (Number(segment.end_ms) - Number(segment.start_ms)) * 4 + 5000);
+                    const checkSegmentProgress = () => {
+                        if (operationId !== audioOperationRef.current || finished) return;
+                        if (Number(audio.currentTime) >= Number(segment.end_ms) / 1000 - 0.05) {
+                            finish();
+                            return;
+                        }
+                        if (Date.now() - watchdogStartedAt >= maxWaitMs) {
+                            handlePlayBlocked();
+                            return;
+                        }
+                        segmentTimerRef.current = window.setTimeout(checkSegmentProgress, 250);
+                    };
+                    segmentTimerRef.current = window.setTimeout(checkSegmentProgress, 250);
+                }
+            }).catch(handlePlayBlocked);
+        };
+        beginPlayback();
         return true;
-    }, [stopAudio]);
+    }, [allAlphabetAudioReady, alphabetSegments, stopAudio]);
 
     const playIntroFrom = useCallback(index => {
-        if (index >= sourceQuestions.length) {
-            stopAudio();
-            setIntroIndex(sourceQuestions.length - 1);
-            setIntroComplete(true);
-            return;
-        }
         setIntroIndex(index);
-        playAudio(sourceQuestions[index], {
+        playAlphabetAudio({
+            startIndex: index,
             markIntro: true,
-            onEnded: () => playIntroFrom(index + 1)
+            onEnded: () => {
+                setIntroIndex(sourceQuestions.length - 1);
+                setIntroComplete(true);
+            }
         });
-    }, [playAudio, sourceQuestions, stopAudio]);
+    }, [playAlphabetAudio, sourceQuestions]);
 
     const startRound = useCallback(async () => {
         if (startPendingRef.current) return;
@@ -165,8 +267,9 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         if (!activeQuestion) return;
         setPromptBlocked(false);
         setPromptReady(false);
-        playAudio(activeQuestion, { onEnded: () => setPromptReady(true) });
-    }, [activeQuestion, playAudio]);
+        const segment = segmentByQuestionId.get(Number(activeQuestion.id));
+        playAlphabetAudio({ segment, onEnded: () => setPromptReady(true) });
+    }, [activeQuestion, playAlphabetAudio, segmentByQuestionId]);
 
     useEffect(() => {
         if (!alphabetMode || phase !== "challenge" || !activeQuestion) return undefined;
@@ -222,7 +325,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             <h2>先聽一遍 A 到 Z</h2>
             <p>跟著亮起來的字母仔細聽，全部聽完就能開始挑戰。</p>
             <div className="speaking-alphabet-list" aria-label="英文字母 A 到 Z">{sourceQuestions.map((question, index) => <span className={index === introIndex && introPlaying ? "active" : index < introIndex || introComplete ? "heard" : ""} key={question.id}>{question.question_text}</span>)}</div>
-            {!allAlphabetAudioReady && <p className="speaking-foundation-warning" role="alert">26 個標準發音尚未全部準備完成，這個關卡暫時不能開始。</p>}
+            {!allAlphabetAudioReady && <p className="speaking-foundation-warning" role="alert">A–Z 單一慢速音檔尚未準備完成，這個關卡暫時不能開始。</p>}
             {statusAlert}
             <div className="speaking-foundation-actions">
                 <button type="button" onClick={() => playIntroFrom(introComplete ? 0 : introIndex)} disabled={!allAlphabetAudioReady || introPlaying}><FiPlay />{introComplete ? "重新聽 A–Z" : introIndex > 0 ? "繼續聽" : "開始聽 A–Z"}</button>

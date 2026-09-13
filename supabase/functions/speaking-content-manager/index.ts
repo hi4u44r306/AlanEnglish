@@ -12,6 +12,12 @@ import {
     workbookOneFoundationTemplateByKey,
     WORKBOOK_ONE_FOUNDATION_TEMPLATES
 } from "../_shared/workbook-one-foundations.ts";
+import {
+    ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
+    ALPHABET_SEQUENCE_GAP_MS,
+    alphabetAudioSequenceValid,
+    alphabetSourceFingerprint
+} from "../_shared/alphabet-audio-sequence.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -1394,7 +1400,7 @@ Deno.serve(async (req: Request) => {
                 const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
                 const { data: assets, error: assetError } = assetIds.length
                     ? await admin.from("speaking_tts_assets")
-                        .select("id,status,private_object_key,source_text,byte_size,completed_at")
+                        .select("id,status,private_object_key,source_text,content_hash,byte_size,completed_at")
                         .in("id", assetIds)
                     : { data: [], error: null };
                 if (assetError) throw assetError;
@@ -1411,6 +1417,37 @@ Deno.serve(async (req: Request) => {
                 });
                 if (questionIds.length !== 26 || incompleteAudio) {
                     return json(409, { error: "A–Z 的 26 個標準發音尚未全部完成，不能發布半套關卡" });
+                }
+                const sourceRecords = alphabetQuestions.map((question: any) => {
+                    const link: any = linkByQuestionId.get(Number(question.id));
+                    const asset: any = assetById.get(String(link?.asset_id || ""));
+                    return {
+                        questionId: Number(question.id),
+                        letter: String(question.model_answer || "").trim().toUpperCase(),
+                        assetId: String(asset?.id || ""),
+                        contentHash: String(asset?.content_hash || ""),
+                        byteSize: Number(asset?.byte_size || 0)
+                    };
+                });
+                const expectedFingerprint = await alphabetSourceFingerprint(sourceRecords, ALPHABET_SEQUENCE_GAP_MS);
+                const { data: sequence, error: sequenceError } = await admin.from("speaking_question_set_audio_sequences")
+                    .select("question_set_version,source_fingerprint,assembler_version,status,private_object_key,mime_type,byte_size,duration_ms,segments")
+                    .eq("question_set_id", Number(questionSet.id))
+                    .eq("purpose", "alphabet_master")
+                    .maybeSingle();
+                if (sequenceError) throw sequenceError;
+                const validMaster = Number(sequence?.question_set_version) === Number(questionSet.version)
+                    && sequence?.source_fingerprint === expectedFingerprint
+                    && sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
+                    && sequence?.mime_type === "audio/wav"
+                    && alphabetAudioSequenceValid(alphabetQuestions, sequence);
+                if (!validMaster) {
+                    return json(409, { error: "A–Z 的單一慢速主音檔尚未完成或已過期，不能發布" });
+                }
+                const masterHead = await fetchR2(sequence.private_object_key, { method: "HEAD" });
+                if (!masterHead.ok
+                    || Number(masterHead.headers.get("content-length") || 0) !== Number(sequence.byte_size)) {
+                    return json(409, { error: "A–Z 的單一慢速主音檔不存在或大小不一致，不能發布" });
                 }
             }
             const pictureMode = metadata?.interaction_type === "picture_qa"

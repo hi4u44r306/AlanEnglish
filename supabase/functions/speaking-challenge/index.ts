@@ -6,6 +6,12 @@ import { createR2PresignedUrl } from "../_shared/r2.ts";
 import { toPublicErrorResponse } from "../_shared/public-error.ts";
 import { matchesFoundationAnswer, readFoundationInteractionType } from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
+import {
+    ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
+    ALPHABET_SEQUENCE_GAP_MS,
+    alphabetAudioSequenceValid,
+    alphabetSourceFingerprint
+} from "../_shared/alphabet-audio-sequence.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -89,6 +95,7 @@ Deno.serve(async (req: Request) => {
         if (action === "question_set") {
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
             const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
+            const alphabetMode = interactionType === "alphabet_round";
             const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
             const { data: progress, error: progressError } = ids.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", ids)
@@ -101,7 +108,7 @@ Deno.serve(async (req: Request) => {
             if (audioLinkError) throw audioLinkError;
             const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
             const { data: assets, error: assetError } = assetIds.length
-                ? await admin.from("speaking_tts_assets").select("id,status,private_object_key").in("id", assetIds)
+                ? await admin.from("speaking_tts_assets").select("id,status,private_object_key,content_hash,byte_size").in("id", assetIds)
                 : { data: [], error: null };
             if (assetError) throw assetError;
             const assetById = new Map((assets || []).map((row: any) => [String(row.id), row]));
@@ -143,6 +150,46 @@ Deno.serve(async (req: Request) => {
                     { ...row, asset }
                 ]);
             }
+            let alphabetAudio = null;
+            if (alphabetMode) {
+                const orderedQuestions = [...(questionSet.speaking_questions || [])]
+                    .sort((left: any, right: any) => Number(left.sort_order) - Number(right.sort_order));
+                const sourceRecords = orderedQuestions.map((question: any) => {
+                    const asset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
+                    return {
+                        questionId: Number(question.id),
+                        letter: String(question.model_answer || "").trim().toUpperCase(),
+                        assetId: String(asset?.id || ""),
+                        contentHash: String(asset?.content_hash || ""),
+                        byteSize: Number(asset?.byte_size || 0)
+                    };
+                });
+                const sourceFingerprint = await alphabetSourceFingerprint(sourceRecords, ALPHABET_SEQUENCE_GAP_MS);
+                const { data: sequence, error: sequenceError } = await admin.from("speaking_question_set_audio_sequences")
+                    .select("question_set_version,source_fingerprint,assembler_version,status,private_object_key,mime_type,byte_size,duration_ms,segments")
+                    .eq("question_set_id", Number(questionSet.id)).eq("purpose", "alphabet_master").maybeSingle();
+                if (sequenceError) throw sequenceError;
+                const validSequence = Number(sequence?.question_set_version) === Number(questionSet.version)
+                    && sequence?.source_fingerprint === sourceFingerprint
+                    && sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
+                    && sequence?.mime_type === "audio/wav"
+                    && alphabetAudioSequenceValid(orderedQuestions, sequence);
+                if (!validSequence) {
+                    return json(409, {
+                        error: "A–Z 的單一慢速音檔尚未完成或已過期",
+                        code: "alphabet_master_not_ready"
+                    });
+                }
+                alphabetAudio = {
+                    audio_url: await createR2PresignedUrl(sequence.private_object_key, "GET", 15 * 60),
+                    duration_ms: Number(sequence.duration_ms),
+                    segments: sequence.segments.map((segment: any) => ({
+                        question_id: Number(segment.question_id),
+                        start_ms: Number(segment.start_ms),
+                        end_ms: Number(segment.end_ms)
+                    }))
+                };
+            }
             const questions = [];
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
                 const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
@@ -163,7 +210,11 @@ Deno.serve(async (req: Request) => {
                     )
                 }));
             }
-            return json(200, { success: true, demo_mode: demoMode, challenge: { ...questionSet, speaking_questions: questions } });
+            return json(200, {
+                success: true,
+                demo_mode: demoMode,
+                challenge: { ...questionSet, speaking_questions: questions, alphabet_audio: alphabetAudio }
+            });
         }
 
         if (action === "start_foundation_round") {

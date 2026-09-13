@@ -26,9 +26,24 @@ const alphabetQuestions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, in
     id: index + 1,
     sort_order: index,
     question_text: letter,
-    model_answer: letter,
-    model_audio_url: `https://audio.test/${letter}.wav`
+    model_answer: letter
 }));
+const alphabetAudio = {
+    audio_url: "https://audio.test/alphabet-master.wav",
+    duration_ms: 52000,
+    segments: alphabetQuestions.map((question, index) => ({
+        question_id: question.id,
+        start_ms: index * 2000,
+        end_ms: index * 2000 + 1200
+    }))
+};
+const alphabetChallenge = {
+    id: 1,
+    title: "A–Z 大小寫挑戰",
+    generation_metadata: { interaction_type: "alphabet_round" },
+    speaking_questions: alphabetQuestions,
+    alphabet_audio: alphabetAudio
+};
 const alphabetRoundResponse = {
     round: {
         round_id: "11111111-1111-4111-8111-111111111111",
@@ -49,6 +64,8 @@ describe("WorkbookOneFoundationChallenge", () => {
         global.Audio = jest.fn().mockImplementation(() => ({
             onended: null,
             onerror: null,
+            ontimeupdate: null,
+            currentTime: 0,
             pause: jest.fn(),
             play() {
                 window.setTimeout(() => this.onended?.(), 0);
@@ -65,7 +82,7 @@ describe("WorkbookOneFoundationChallenge", () => {
     it("字母關必須先聽完 A–Z，倒數三秒後才能錄音，答錯整輪歸零", async () => {
         const onComplete = jest.fn().mockResolvedValue(true);
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={onComplete}
             onStartRound={startAlphabetRound}
@@ -96,9 +113,9 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(onComplete).not.toHaveBeenCalled();
     });
 
-    it("字母教學會依 A 到 Z 各播放一次標準音", async () => {
+    it("字母教學只載入一次 A–Z 單一主音檔", async () => {
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn().mockResolvedValue(true)}
             onStartRound={startAlphabetRound}
@@ -108,15 +125,14 @@ describe("WorkbookOneFoundationChallenge", () => {
         fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
         await act(async () => jest.runAllTimers());
 
-        expect(global.Audio.mock.calls.map(([url]) => url)).toEqual(
-            alphabetQuestions.map(question => question.model_audio_url)
-        );
+        expect(global.Audio).toHaveBeenCalledTimes(1);
+        expect(global.Audio).toHaveBeenCalledWith(alphabetAudio.audio_url);
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
     });
 
-    it("字母提示音播放失敗後必須重試並聽完才解鎖錄音", async () => {
+    it("完整聽完後重新播放必須從 A 的起點開始", async () => {
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn()}
             onStartRound={startAlphabetRound}
@@ -125,21 +141,115 @@ describe("WorkbookOneFoundationChallenge", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
         await act(async () => jest.runAllTimers());
-        const blockedAudio = {
+        const masterAudio = global.Audio.mock.results[0].value;
+        masterAudio.currentTime = 50;
+        fireEvent.click(screen.getByRole("button", { name: "重新聽 A–Z" }));
+
+        expect(masterAudio.currentTime).toBe(0);
+    });
+
+    it("Safari 尚未取得 metadata 時會等候再 seek 與播放", async () => {
+        let mediaTime = 0;
+        const safariAudio = {
+            readyState: 0,
             onended: null,
             onerror: null,
-            pause: jest.fn(),
-            play: jest.fn().mockRejectedValue(new Error("blocked"))
-        };
-        const retryAudio = {
-            onended: null,
-            onerror: null,
+            ontimeupdate: null,
+            onloadedmetadata: null,
+            oncanplay: null,
             pause: jest.fn(),
             play: jest.fn().mockResolvedValue(undefined)
         };
-        global.Audio
-            .mockImplementationOnce(() => blockedAudio)
-            .mockImplementationOnce(() => retryAudio);
+        Object.defineProperty(safariAudio, "currentTime", {
+            get: () => mediaTime,
+            set: value => { if (safariAudio.readyState >= 1) mediaTime = value; }
+        });
+        global.Audio.mockImplementationOnce(() => safariAudio);
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        expect(safariAudio.play).not.toHaveBeenCalled();
+        safariAudio.readyState = 1;
+        await act(async () => safariAudio.onloadedmetadata());
+
+        expect(safariAudio.currentTime).toBe(0);
+        expect(safariAudio.play).toHaveBeenCalledTimes(1);
+    });
+
+    it("提示音停滯時不會因牆鐘 timeout 提早解鎖錄音", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        const masterAudio = global.Audio.mock.results[0].value;
+        masterAudio.play = jest.fn().mockResolvedValue(undefined);
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        await act(async () => jest.advanceTimersByTime(3000));
+        await act(async () => jest.advanceTimersByTime(3000));
+        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
+
+        await act(async () => jest.advanceTimersByTime(15000));
+        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
+        expect(screen.getByRole("alert")).toHaveTextContent("標準發音");
+    });
+
+    it("提示音只在媒體時間到達片段終點後解鎖，且只完成一次", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        const masterAudio = global.Audio.mock.results[0].value;
+        masterAudio.play = jest.fn().mockResolvedValue(undefined);
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        await act(async () => jest.advanceTimersByTime(3000));
+        const pauseCallsBeforeCompletion = masterAudio.pause.mock.calls.length;
+        masterAudio.currentTime = 51.2;
+        act(() => masterAudio.ontimeupdate());
+        act(() => masterAudio.ontimeupdate?.());
+
+        expect(screen.getByRole("button", { name: "模擬答對" })).toBeEnabled();
+        expect(masterAudio.pause.mock.calls.length - pauseCallsBeforeCompletion).toBe(1);
+    });
+
+    it("字母提示音播放失敗後必須重試並聽完才解鎖錄音", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        const masterAudio = global.Audio.mock.results[0].value;
+        masterAudio.play = jest.fn().mockRejectedValueOnce(new Error("blocked"));
 
         await act(async () => {
             fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
@@ -153,15 +263,16 @@ describe("WorkbookOneFoundationChallenge", () => {
 
         expect(screen.getByRole("alert")).toHaveTextContent("標準發音");
         expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
+        masterAudio.play.mockResolvedValueOnce(undefined);
         fireEvent.click(screen.getByRole("button", { name: "播放提示音" }));
         expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
-        act(() => retryAudio.onended());
+        act(() => masterAudio.onended());
         expect(screen.getByRole("button", { name: "模擬答對" })).toBeEnabled();
     });
 
-    it("字母答錯後選擇重新聽，會再次依 A 到 Z 播完 26 個標準音", async () => {
+    it("字母答錯後選擇重新聽，會重播同一個 A–Z 主音檔", async () => {
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn()}
             onStartRound={startAlphabetRound}
@@ -185,16 +296,14 @@ describe("WorkbookOneFoundationChallenge", () => {
         fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
         await act(async () => jest.runAllTimers());
 
-        expect(global.Audio.mock.calls.map(([url]) => url)).toEqual(
-            alphabetQuestions.map(question => question.model_audio_url)
-        );
+        expect(global.Audio).not.toHaveBeenCalled();
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
     });
 
     it("中途答錯後直接重玩會回到新一輪第一題", async () => {
         const onComplete = jest.fn().mockResolvedValue(true);
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={onComplete}
             onStartRound={startAlphabetRound}
@@ -233,7 +342,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             { code: "foundation_round_busy" }
         ));
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn()}
             onStartRound={startAlphabetRound}
@@ -257,7 +366,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         let resolveRound;
         startAlphabetRound.mockImplementationOnce(() => new Promise(resolve => { resolveRound = resolve; }));
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn()}
             onStartRound={startAlphabetRound}
@@ -280,7 +389,7 @@ describe("WorkbookOneFoundationChallenge", () => {
 
     it("後端判定回合失效時立即歸零並要求建立新回合", async () => {
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn()}
             onStartRound={startAlphabetRound}
@@ -312,7 +421,7 @@ describe("WorkbookOneFoundationChallenge", () => {
     it("完整 26 題只沿用同一個後端 round，最後一題確認完成後才顯示結果", async () => {
         const onComplete = jest.fn();
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
             onComplete={onComplete}
             onStartRound={startAlphabetRound}
@@ -345,18 +454,15 @@ describe("WorkbookOneFoundationChallenge", () => {
     });
 
     it("缺少任一字母標準音時不能開始教學或挑戰", () => {
-        const incompleteQuestions = alphabetQuestions.map(question => (
-            question.question_text === "Z" ? { ...question, model_audio_url: null } : question
-        ));
         render(<WorkbookOneFoundationChallenge
-            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: incompleteQuestions }}
+            challenge={{ ...alphabetChallenge, alphabet_audio: { ...alphabetAudio, segments: alphabetAudio.segments.slice(0, 25) } }}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn()}
             onStartRound={startAlphabetRound}
             onExit={jest.fn()}
         />);
 
-        expect(screen.getByRole("alert")).toHaveTextContent("26 個標準發音尚未全部準備完成");
+        expect(screen.getByRole("alert")).toHaveTextContent("單一慢速音檔尚未準備完成");
         expect(screen.getByRole("button", { name: "開始聽 A–Z" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeDisabled();
     });

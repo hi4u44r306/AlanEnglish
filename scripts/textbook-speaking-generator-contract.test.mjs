@@ -21,6 +21,9 @@ const foundationUniquenessMigration = read("supabase/migrations/20260913113000_w
 const pronunciationLedgerMigration = read("supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql");
 const speakingCompletionMigration = read("supabase/migrations/20260907155832_speaking_challenge_completion_rewards.sql");
 const foundationRoundMigration = read("supabase/migrations/20260913023814_speaking_foundation_round_sessions.sql");
+const alphabetSequenceMigration = read("supabase/migrations/20260913170000_speaking_alphabet_audio_sequences.sql");
+const alphabetSequenceClaimMigration = read("supabase/migrations/20260913173000_claim_speaking_alphabet_audio_sequence.sql");
+const alphabetSequence = read("supabase/functions/_shared/alphabet-audio-sequence.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -192,7 +195,7 @@ test("15. Workbook 1 基礎關卡只建立草稿，P14～P17 必須逐字符合�
     assert.match(manager, /A–Z 的 26 個標準發音尚未全部完成/);
     assert.match(manager, /alphabetRoundContentMatches/);
     assert.match(manager, /A–Z 題庫由固定 26 個字母模板鎖定/);
-    assert.match(manager, /source_text,byte_size,completed_at/);
+    assert.match(manager, /source_text,content_hash,byte_size,completed_at/);
     assert.match(ttsManager, /\.eq\("question_id", question\.id\)\.eq\("purpose", "model_answer"\)/);
     assert.doesNotMatch(ttsManager, /onConflict: "question_id"/);
     assert.match(ttsManager, /existing\?\.error_code === "42P10"/);
@@ -402,4 +405,35 @@ test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存",
     assert.match(pronunciationFlow, /if \(claimToken && releaseClaim\)/);
     assert.match(coach, /p_answer_match: normalized\.answer_match/);
     assert.doesNotMatch(challenge, /p_student_id: Number\(body/);
+});
+
+test("22. A–Z 使用 server-only 單一主音檔與 26 個時間區段，不重新呼叫付費 TTS", () => {
+    assert.match(alphabetSequenceMigration, /create table if not exists public\.speaking_question_set_audio_sequences/);
+    assert.match(alphabetSequenceMigration, /primary key \(question_set_id, purpose\)/);
+    assert.match(alphabetSequenceMigration, /enable row level security/);
+    assert.match(alphabetSequenceMigration, /revoke all on table public\.speaking_question_set_audio_sequences from public, anon, authenticated/);
+    assert.match(alphabetSequenceMigration, /grant select, insert, update, delete on table public\.speaking_question_set_audio_sequences to service_role/);
+    assert.match(alphabetSequenceMigration, /jsonb_array_length\(segments\) = 26/);
+    assert.match(alphabetSequenceClaimMigration, /claim_speaking_alphabet_audio_sequence/);
+    assert.match(alphabetSequenceClaimMigration, /assembly_token uuid/);
+    assert.match(alphabetSequenceClaimMigration, /revoke all on function public\.claim_speaking_alphabet_audio_sequence[\s\S]*from public, anon, authenticated/);
+    assert.match(alphabetSequence, /ALPHABET_SEQUENCE_GAP_MS = 800/);
+    assert.match(alphabetSequence, /單聲道 16-bit PCM WAV/);
+    assert.match(ttsManager, /action === "assemble_alphabet_master_audio"/);
+    assert.match(ttsManager, /provider_requests: 0/);
+    assert.match(ttsManager, /alphabet_provider_generation_disabled/);
+    assert.match(ttsManager, /admin\.rpc\("claim_speaking_alphabet_audio_sequence"/);
+    assert.match(ttsManager, /\.eq\("assembly_token", assemblyToken\)/);
+    const assemblySection = ttsManager.slice(
+        ttsManager.indexOf("const assembleAlphabetMasterAudio"),
+        ttsManager.indexOf("Deno.serve")
+    );
+    assert.doesNotMatch(assemblySection, /requestGoogleAudio/);
+    assert.match(manager, /A–Z 的單一慢速主音檔尚未完成或已過期，不能發布/);
+    assert.match(manager, /fetchR2\(sequence\.private_object_key, \{ method: "HEAD" \}\)/);
+    assert.match(challenge, /alphabet_audio: alphabetAudio/);
+    assert.match(challenge, /createR2PresignedUrl\(sequence\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(challengeView, /interactionType === "alphabet_round"/);
+    assert.doesNotMatch(challenge, /private_object_key: sequence\.private_object_key/);
+    assert.match(adminPage, /建立／確認單一 A–Z 慢速音檔/);
 });

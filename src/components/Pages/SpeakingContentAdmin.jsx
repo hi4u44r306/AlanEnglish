@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { AlertTriangle, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, RefreshCcw, Sparkles, UploadCloud, Volume2 } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
+    assembleSpeakingAlphabetMasterAudio,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
@@ -413,7 +414,7 @@ export default function SpeakingContentAdmin() {
             const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
             if (["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence"].includes(interactionType)) {
                 const successMessage = {
-                    alphabet_round: "A–Z 題庫已發布；26 個標準發音已在發布前確認完成",
+                    alphabet_round: "A–Z 題庫已發布；單一慢速主音檔與 26 個播放區段已確認完成",
                     letter_spelling: "拼讀題庫已發布；學生端不播放答案音檔",
                     picture_qa: "P21 圖片問答已發布；完整答案只由後端核對",
                     picture_gap_sentence: "P22 看圖補句已發布；可見單字發音已在發布前確認完成"
@@ -450,6 +451,21 @@ export default function SpeakingContentAdmin() {
         catch (error) { toast.error(error.message || "示範語音產生失敗"); }
         finally { setWorking(""); }
     };
+    const assembleAlphabetAudio = async questionSet => {
+        setWorking(`alphabet-master-${questionSet.id}`);
+        try {
+            const audio = await assembleSpeakingAlphabetMasterAudio(firebaseUser, questionSet.id);
+            if (audio.success !== true || Number(audio.segments_count) !== 26) {
+                toast.warning("A–Z 單一慢速音檔尚未完整");
+            } else {
+                toast.success(audio.reused
+                    ? "A–Z 單一慢速音檔已存在，可直接發布"
+                    : "已用現有字母音檔組合成一個 A–Z 慢速音檔，沒有新增 TTS 費用");
+            }
+            await load();
+        } catch (error) { toast.error(error.message || "A–Z 單一慢速音檔組合失敗"); }
+        finally { setWorking(""); }
+    };
 
     return <main className="platform-page speaking-content-admin">
         <header className="platform-hero"><div><span className="platform-eyebrow">TEXTBOOK TO SPEAKING</span><h1>教材 AI 口說題庫</h1><p>上傳 PDF／課本圖片或貼入文字，先人工核對 OCR 結果，再讓 AI 根據教材主題規劃問題、提示與示範回答。</p></div></header>
@@ -480,8 +496,8 @@ export default function SpeakingContentAdmin() {
                     {existing && needsReview && <button type="button" className="platform-secondary" disabled={working === `confirm-${existing.id}`} onClick={() => confirmWorkbookOneFoundation(starter, existing)}>
                         <CheckCircle2 size={17} />{working === `confirm-${existing.id}` ? "核准中…" : "已對照原頁，核准內容"}
                     </button>}
-                    {existing && starter.templateKey === "workbook_1_alphabet_round_v1" && existing.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `audio-${existing.id}`} onClick={() => generateAudio(existing)}>
-                        <Volume2 size={17} />{working === `audio-${existing.id}` ? "準備 26 個發音中…" : "產生／補齊 A–Z 標準發音"}
+                    {existing && starter.templateKey === "workbook_1_alphabet_round_v1" && existing.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `alphabet-master-${existing.id}`} onClick={() => assembleAlphabetAudio(existing)}>
+                        <Volume2 size={17} />{working === `alphabet-master-${existing.id}` ? "組合單一音檔中…" : "建立／確認單一 A–Z 慢速音檔"}
                     </button>}
                     {existing && !needsReview && <span className="speaking-foundation-starters__status"><CheckCircle2 size={17} />{existing.status === "published" ? "已發布" : "草稿已建立"}</span>}
                 </article>;

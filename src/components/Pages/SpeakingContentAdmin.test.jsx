@@ -2,6 +2,7 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
 import {
+    assembleSpeakingAlphabetMasterAudio,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
@@ -14,6 +15,7 @@ import {
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
+    assembleSpeakingAlphabetMasterAudio: jest.fn(),
     confirmWorkbookOneFoundationSource: jest.fn(),
     createWorkbookOneFoundationQuestionSet: jest.fn(),
     createWorkbookOneStarterQuestionSet: jest.fn(),
@@ -36,6 +38,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         createWorkbookOneFoundationQuestionSet.mockResolvedValue({ success: true, reused: false });
         confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
+        assembleSpeakingAlphabetMasterAudio.mockResolvedValue({ success: true, reused: false, segments_count: 26 });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
         getSpeakingQuestionPicturePreview.mockResolvedValue({
@@ -96,6 +99,25 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
             1,
             "create_workbook_1_spelling_p14"
         ));
+    });
+
+    it("assembles one A–Z master audio without using the generic TTS generator", async () => {
+        getSpeakingContentBootstrap.mockResolvedValueOnce({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [], chunks: [], sections: [],
+            question_sets: [{
+                id: 7, source_section_id: 70, title: "A–Z 大小寫挑戰", status: "draft", version: 1,
+                generation_metadata: { template_key: "workbook_1_alphabet_round_v1", interaction_type: "alphabet_round" },
+                speaking_questions: []
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: "建立／確認單一 A–Z 慢速音檔" }));
+
+        await waitFor(() => expect(assembleSpeakingAlphabetMasterAudio).toHaveBeenCalledWith(mockFirebaseUser, 7));
+        const service = jest.requireMock("../../services/speakingContentService");
+        expect(service.generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
     });
 
     it("sends an explicit confirmation for a reviewed Workbook 1 foundation draft", async () => {

@@ -223,10 +223,11 @@ test("字母、拼讀與一般口說維持原本答案及音檔顯示邊界", as
     });
     assert.equal(alphabet.question_text, "A");
     assert.equal(alphabet.model_answer, "");
-    assert.equal(alphabet.question_audio_status, "ready");
-    assert.equal(alphabet.model_audio_status, "ready");
-    assert.equal(alphabet.question_audio_url, "https://signed.test/1");
-    assert.equal(alphabet.model_audio_url, "https://signed.test/2");
+    assert.equal(alphabet.question_audio_status, "hidden");
+    assert.equal(alphabet.model_audio_status, "hidden");
+    assert.equal(alphabet.question_audio_url, null);
+    assert.equal(alphabet.model_audio_url, null);
+    assert.deepEqual(hiddenSigner.keys, []);
 
     const spellingSigner = createOpaqueSigner();
     const spelling = await buildPublicSpeakingQuestion({
