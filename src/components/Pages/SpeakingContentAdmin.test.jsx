@@ -2,20 +2,21 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
 import {
-    assembleSpeakingAlphabetMasterAudio,
+    activateSpeakingAlphabetAudioCandidate,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
     createWorkbookTwoStarterQuestionSet,
     getSpeakingContentBootstrap,
     getSpeakingQuestionAudioPreview,
-    getSpeakingQuestionPicturePreview
+    getSpeakingQuestionPicturePreview,
+    prepareSpeakingAlphabetAudioCandidate
 } from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
-    assembleSpeakingAlphabetMasterAudio: jest.fn(),
+    activateSpeakingAlphabetAudioCandidate: jest.fn(),
     confirmWorkbookOneFoundationSource: jest.fn(),
     createWorkbookOneFoundationQuestionSet: jest.fn(),
     createWorkbookOneStarterQuestionSet: jest.fn(),
@@ -29,7 +30,7 @@ jest.mock("../../services/speakingContentService", () => ({
     discardWorkbookOnePictureDraft: jest.fn(),
     saveReviewedSpeakingSource: jest.fn(), uploadAndExtractSpeakingSource: jest.fn(),
     uploadWholeBookSource: jest.fn(), updateDraftSpeakingQuestion: jest.fn(),
-    generateSpeakingQuestionSet: jest.fn()
+    generateSpeakingQuestionSet: jest.fn(), prepareSpeakingAlphabetAudioCandidate: jest.fn()
 }));
 
 describe("SpeakingContentAdmin whole-book OCR", () => {
@@ -38,7 +39,11 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         createWorkbookOneFoundationQuestionSet.mockResolvedValue({ success: true, reused: false });
         confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
-        assembleSpeakingAlphabetMasterAudio.mockResolvedValue({ success: true, reused: false, segments_count: 26 });
+        prepareSpeakingAlphabetAudioCandidate.mockResolvedValue({
+            success: true, reused: false, status: "ready", candidate_id: "11111111-1111-4111-8111-111111111111",
+            audio_url: "https://audio.example/alphabet-candidate.wav", segments: []
+        });
+        activateSpeakingAlphabetAudioCandidate.mockResolvedValue({ success: true, activated: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
         getSpeakingQuestionPicturePreview.mockResolvedValue({
@@ -101,7 +106,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         ));
     });
 
-    it("prepares one female A–Z master audio without using the generic TTS generator", async () => {
+    it("previews one female A–Z candidate before explicitly activating it", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
         getSpeakingContentBootstrap.mockResolvedValueOnce({
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
@@ -114,9 +119,20 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
-        fireEvent.click(await screen.findByRole("button", { name: "建立／確認單一 A–Z 女聲音檔" }));
+        fireEvent.click(await screen.findByRole("button", { name: "產生／載入新版 A–Z 女聲候選音檔" }));
 
-        await waitFor(() => expect(assembleSpeakingAlphabetMasterAudio).toHaveBeenCalledWith(mockFirebaseUser, 7));
+        await waitFor(() => expect(prepareSpeakingAlphabetAudioCandidate).toHaveBeenCalledWith(mockFirebaseUser, 7));
+        expect(await screen.findByText("先完整試聽，再決定是否套用")).toBeInTheDocument();
+        expect(screen.getByText(/單一 Neural2 女聲音檔/)).toBeInTheDocument();
+        const approveButton = screen.getByRole("button", { name: "試聽完成，核准套用學生版本" });
+        expect(approveButton).toBeDisabled();
+        expect(screen.getByText("完整播放到結尾後，才會開放核准按鈕。")).toBeInTheDocument();
+        fireEvent.ended(screen.getByLabelText("新版 A–Z 女聲候選音檔"));
+        expect(approveButton).toBeEnabled();
+        fireEvent.click(approveButton);
+        await waitFor(() => expect(activateSpeakingAlphabetAudioCandidate).toHaveBeenCalledWith(
+            mockFirebaseUser, 7, "11111111-1111-4111-8111-111111111111"
+        ));
         const service = jest.requireMock("../../services/speakingContentService");
         expect(service.generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
     });

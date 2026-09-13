@@ -23,7 +23,9 @@ const speakingCompletionMigration = read("supabase/migrations/20260907155832_spe
 const foundationRoundMigration = read("supabase/migrations/20260913023814_speaking_foundation_round_sessions.sql");
 const alphabetSequenceMigration = read("supabase/migrations/20260913170000_speaking_alphabet_audio_sequences.sql");
 const alphabetSequenceClaimMigration = read("supabase/migrations/20260913173000_claim_speaking_alphabet_audio_sequence.sql");
+const alphabetCandidateMigration = read("supabase/migrations/20260913180000_speaking_alphabet_audio_candidates.sql");
 const alphabetSequence = read("supabase/functions/_shared/alphabet-audio-sequence.ts");
+const alphabetMasterVoice = read("supabase/functions/_shared/alphabet-master-voice.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -191,8 +193,8 @@ test("15. Workbook 1 基礎關卡只建立草稿，P14～P17 必須逐字符合�
     assert.match(manager, /speaking_source_sections!inner\(status\)/);
     assert.match(manager, /content_reviewed_at: null/);
     assert.match(manager, /reviewed_at: null/);
-    assert.match(manager, /questionIds\.length !== 26/);
-    assert.match(manager, /A–Z 的 26 個標準發音尚未全部完成/);
+    assert.match(manager, /questionIds\.length === 26 && !incompleteAudio/);
+    assert.match(manager, /legacyMaster \|\| candidateMaster/);
     assert.match(manager, /alphabetRoundContentMatches/);
     assert.match(manager, /A–Z 題庫由固定 26 個字母模板鎖定/);
     assert.match(manager, /source_text,content_hash,byte_size,completed_at/);
@@ -419,13 +421,7 @@ test("22. A–Z 使用 server-only 單一女聲主音檔與 26 個時間區段�
     assert.match(alphabetSequenceClaimMigration, /revoke all on function public\.claim_speaking_alphabet_audio_sequence[\s\S]*from public, anon, authenticated/);
     assert.match(alphabetSequence, /ALPHABET_SEQUENCE_GAP_MS = 800/);
     assert.match(alphabetSequence, /單聲道 16-bit PCM WAV/);
-    assert.match(ttsManager, /action === "assemble_alphabet_master_audio"/);
-    assert.match(ttsManager, /voiceChoice: \{ gender: "female", voiceId: femaleVoice \}/);
-    assert.match(ttsManager, /prepared\.filter\(item => item\.reused === false\)\.length/);
-    assert.match(ttsManager, /voice_id: voicePool\(\)\.female/);
-    assert.match(ttsManager, /alphabet_provider_generation_disabled/);
-    assert.match(ttsManager, /admin\.rpc\("claim_speaking_alphabet_audio_sequence"/);
-    assert.match(ttsManager, /\.eq\("assembly_token", assemblyToken\)/);
+    assert.doesNotMatch(ttsManager.slice(ttsManager.indexOf("Deno.serve")), /assemble_alphabet_master_audio/);
     const assemblySection = ttsManager.slice(
         ttsManager.indexOf("const assembleAlphabetMasterAudio"),
         ttsManager.indexOf("Deno.serve")
@@ -434,9 +430,39 @@ test("22. A–Z 使用 server-only 單一女聲主音檔與 26 個時間區段�
     assert.match(manager, /A–Z 的單一慢速主音檔尚未完成或已過期，不能發布/);
     assert.match(manager, /fetchR2\(sequence\.private_object_key, \{ method: "HEAD" \}\)/);
     assert.match(challenge, /alphabet_audio: alphabetAudio/);
-    assert.match(challenge, /segment\?\.voice_id === alphabetFemaleVoiceId\(\)/);
+    assert.match(challenge, /ALPHABET_CANDIDATE_VOICE/);
     assert.match(challenge, /createR2PresignedUrl\(sequence\.private_object_key, "GET", 15 \* 60\)/);
     assert.match(challengeView, /interactionType === "alphabet_round"/);
     assert.doesNotMatch(challenge, /private_object_key: sequence\.private_object_key/);
-    assert.match(adminPage, /建立／確認單一 A–Z 女聲音檔/);
+    assert.match(adminPage, /產生／載入新版 A–Z 女聲候選音檔/);
+});
+
+test("23. A–Z 新版以單一女聲請求建立候選音檔，試聽核准後才原子切換", () => {
+    assert.match(alphabetCandidateMigration, /create table if not exists public\.speaking_alphabet_audio_candidates/);
+    assert.match(alphabetCandidateMigration, /enable row level security/);
+    assert.match(alphabetCandidateMigration, /revoke all on table public\.speaking_alphabet_audio_candidates from public, anon, authenticated/);
+    assert.match(alphabetCandidateMigration, /security invoker/);
+    assert.match(alphabetCandidateMigration, /previous_sequence = to_jsonb\(current_sequence\)/);
+    assert.match(alphabetCandidateMigration, /status = 'ready'/);
+    assert.match(alphabetMasterVoice, /ALPHABET_CANDIDATE_VOICE = "en-US-Neural2-F"/);
+    assert.match(ttsManager, /v1beta1\/text:synthesize/);
+    assert.match(ttsManager, /input: \{ ssml \}/);
+    assert.match(ttsManager, /enableTimePointing: \["SSML_MARK"\]/);
+    assert.match(alphabetMasterVoice, /<say-as interpret-as="characters">/);
+    assert.match(ttsManager, /prepare_alphabet_audio_candidate/);
+    assert.match(ttsManager, /activate_alphabet_audio_candidate/);
+    assert.match(ttsManager, /alphabetTemplateValid\(questionSet, questions\)/);
+    assert.match(ttsManager, /alphabetCandidateValid\(candidate, ordered, questionSet, settingsHash, sourceFingerprint\)/);
+    assert.match(ttsManager, /alphabetCandidateStored\(candidate\)/);
+    assert.match(ttsManager, /fetchR2\(candidate\.private_object_key, \{ method: "HEAD" \}\)/);
+    assert.ok(ttsManager.indexOf("alphabetTemplateValid(questionSet, questions)") < ttsManager.indexOf("prepareAlphabetCandidate(admin, questions, questionSet)"));
+    assert.match(manager, /ALPHABET_CANDIDATE_REVISION/);
+    assert.match(manager, /candidateMaster/);
+    assert.match(manager, /activeCandidate\?\.private_object_key === sequence\?\.private_object_key/);
+    assert.match(service, /prepareSpeakingAlphabetAudioCandidate/);
+    assert.match(service, /activateSpeakingAlphabetAudioCandidate/);
+    assert.match(adminPage, /先完整試聽，再決定是否套用/);
+    assert.match(adminPage, /試聽完成，核准套用學生版本/);
+    assert.match(adminPage, /onEnded=\{\(\) => setAlphabetCandidateListened\(true\)\}/);
+    assert.match(adminPage, /disabled=\{!alphabetCandidateListened/);
 });

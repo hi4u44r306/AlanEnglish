@@ -7,6 +7,13 @@ import {
     assembleAlphabetAudioSequence,
     parseLinear16MonoWav
 } from "../supabase/functions/_shared/alphabet-audio-sequence.ts";
+import {
+    ALPHABET_CANDIDATE_ASSEMBLER,
+    ALPHABET_CANDIDATE_SETTINGS,
+    ALPHABET_CANDIDATE_VOICE,
+    buildAlphabetCandidateSegments,
+    buildAlphabetMasterSsml
+} from "../supabase/functions/_shared/alphabet-master-voice.ts";
 
 const writeAscii = (bytes, offset, value) => {
     for (let index = 0; index < value.length; index += 1) bytes[offset + index] = value.charCodeAt(index);
@@ -100,4 +107,56 @@ test("manifest 的題目、字母、順序或時間越界時不可對學生公�
         ...base,
         segments: assembled.segments.map((segment, index) => index === 25 ? { ...segment, end_ms: assembled.durationMs + 1 } : segment)
     }), false);
+});
+
+test("新版 A–Z 使用單一固定女聲請求與 26 個可分段時間碼", () => {
+    const ssml = buildAlphabetMasterSsml(800);
+    assert.equal((ssml.match(/<mark name="[A-Z]"\/>/g) || []).length, 26);
+    assert.equal((ssml.match(/<say-as interpret-as="characters">[A-Z]<\/say-as>/g) || []).length, 26);
+    assert.equal((ssml.match(/<break time="800ms"\/>/g) || []).length, 25);
+    assert.doesNotMatch(ssml, /<prosody|rate=|pitch=|volume=/);
+    assert.equal(ALPHABET_CANDIDATE_VOICE, "en-US-Neural2-F");
+    assert.equal(ALPHABET_CANDIDATE_ASSEMBLER, "alphabet-single-sequence-v1");
+    assert.deepEqual(ALPHABET_CANDIDATE_SETTINGS, {
+        audioEncoding: "LINEAR16", speakingRate: 0.82, pitch: 1.5, volumeGainDb: 2
+    });
+
+    const questions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
+        id: index + 1, sort_order: index, model_answer: letter
+    }));
+    const timepoints = questions.map((question, index) => ({
+        markName: question.model_answer, timeSeconds: index * 1.5
+    }));
+    const segments = buildAlphabetCandidateSegments(questions, timepoints, 39000);
+    assert.equal(segments.length, 26);
+    assert.deepEqual(segments[0], {
+        question_id: 1, letter: "A", start_ms: 0, end_ms: 1500, voice_id: "en-US-Neural2-F"
+    });
+    assert.equal(segments[25].end_ms, 39000);
+});
+
+test("新版 A–Z 缺少或錯置時間碼時 fail closed", () => {
+    const questions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
+        id: index + 1, sort_order: index, model_answer: letter
+    }));
+    const timepoints = questions.map((question, index) => ({
+        markName: question.model_answer, timeSeconds: index * 1.5
+    }));
+    assert.throws(() => buildAlphabetCandidateSegments(questions, timepoints.slice(0, 25), 39000), /缺少完整字母時間碼/);
+    assert.throws(() => buildAlphabetCandidateSegments(questions, [...timepoints, { markName: "A", timeSeconds: 40 }], 42000), /缺少完整字母時間碼/);
+    const duplicate = timepoints.map(point => ({ ...point }));
+    duplicate[10].markName = "J";
+    assert.throws(() => buildAlphabetCandidateSegments(questions, duplicate, 39000), /缺少完整字母時間碼/);
+    const nullTime = timepoints.map(point => ({ ...point }));
+    nullTime[0].timeSeconds = null;
+    assert.throws(() => buildAlphabetCandidateSegments(questions, nullTime, 39000), /缺少完整字母時間碼/);
+    const negativeTime = timepoints.map(point => ({ ...point }));
+    negativeTime[0].timeSeconds = -0.1;
+    assert.throws(() => buildAlphabetCandidateSegments(questions, negativeTime, 39000), /缺少完整字母時間碼/);
+    const unordered = timepoints.map(point => ({ ...point }));
+    unordered[10].timeSeconds = unordered[9].timeSeconds;
+    assert.throws(() => buildAlphabetCandidateSegments(questions, unordered, 39000), /時間碼順序不正確/);
+    const wrongQuestions = questions.map(question => ({ ...question }));
+    wrongQuestions[8].model_answer = "J";
+    assert.throws(() => buildAlphabetCandidateSegments(wrongQuestions, timepoints, 39000), /題目順序不正確/);
 });

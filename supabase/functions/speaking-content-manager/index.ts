@@ -18,6 +18,11 @@ import {
     alphabetAudioSequenceValid,
     alphabetSourceFingerprint
 } from "../_shared/alphabet-audio-sequence.ts";
+import {
+    ALPHABET_CANDIDATE_ASSEMBLER,
+    ALPHABET_CANDIDATE_REVISION,
+    ALPHABET_CANDIDATE_VOICE
+} from "../_shared/alphabet-master-voice.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -1415,9 +1420,6 @@ Deno.serve(async (req: Request) => {
                         || !asset?.completed_at
                         || String(asset?.source_text || "").trim() !== String(question?.model_answer || "").trim();
                 });
-                if (questionIds.length !== 26 || incompleteAudio) {
-                    return json(409, { error: "A–Z 的 26 個標準發音尚未全部完成，不能發布半套關卡" });
-                }
                 const sourceRecords = alphabetQuestions.map((question: any) => {
                     const link: any = linkByQuestionId.get(Number(question.id));
                     const asset: any = assetById.get(String(link?.asset_id || ""));
@@ -1436,9 +1438,29 @@ Deno.serve(async (req: Request) => {
                     .eq("purpose", "alphabet_master")
                     .maybeSingle();
                 if (sequenceError) throw sequenceError;
-                const validMaster = Number(sequence?.question_set_version) === Number(questionSet.version)
+                const legacyMaster = questionIds.length === 26 && !incompleteAudio
                     && sequence?.source_fingerprint === expectedFingerprint
-                    && sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
+                    && sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION;
+                let candidateMaster = false;
+                if (sequence?.assembler_version === ALPHABET_CANDIDATE_ASSEMBLER) {
+                    const { data: activeCandidate, error: candidateError } = await admin.from("speaking_alphabet_audio_candidates")
+                        .select("question_set_id,question_set_version,revision,voice_id,source_fingerprint,assembler_version,private_object_key,mime_type,byte_size,duration_ms,segments,status")
+                        .eq("question_set_id", Number(questionSet.id)).eq("status", "active").maybeSingle();
+                    if (candidateError) throw candidateError;
+                    candidateMaster = Number(activeCandidate?.question_set_version) === Number(questionSet.version)
+                        && activeCandidate?.revision === ALPHABET_CANDIDATE_REVISION
+                        && activeCandidate?.voice_id === ALPHABET_CANDIDATE_VOICE
+                        && activeCandidate?.assembler_version === ALPHABET_CANDIDATE_ASSEMBLER
+                        && activeCandidate?.source_fingerprint === sequence?.source_fingerprint
+                        && activeCandidate?.private_object_key === sequence?.private_object_key
+                        && activeCandidate?.mime_type === sequence?.mime_type
+                        && Number(activeCandidate?.byte_size) === Number(sequence?.byte_size)
+                        && Number(activeCandidate?.duration_ms) === Number(sequence?.duration_ms)
+                        && JSON.stringify(activeCandidate?.segments) === JSON.stringify(sequence?.segments)
+                        && sequence?.segments?.every((segment: any) => segment?.voice_id === ALPHABET_CANDIDATE_VOICE);
+                }
+                const validMaster = Number(sequence?.question_set_version) === Number(questionSet.version)
+                    && (legacyMaster || candidateMaster)
                     && sequence?.mime_type === "audio/wav"
                     && alphabetAudioSequenceValid(alphabetQuestions, sequence);
                 if (!validMaster) {

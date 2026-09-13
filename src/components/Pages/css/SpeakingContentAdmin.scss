@@ -14,6 +14,11 @@
 .speaking-foundation-starters__list strong { color: #17233f; }
 .speaking-foundation-starters__list small { color: #65758c; line-height: 1.5; }
 .speaking-foundation-starters__status { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: #19714a; font-weight: 850; }
+.speaking-alphabet-candidate { display: grid; gap: 9px; width: min(100%, 560px); padding: 14px; border: 1px solid #9bc4ec; border-radius: 14px; background: #f3f8ff; }
+.speaking-alphabet-candidate strong { color: #173f80; }
+.speaking-alphabet-candidate span { color: #65758c; font-size: 13px; line-height: 1.5; }
+.speaking-alphabet-candidate audio { width: 100%; min-height: 44px; }
+.speaking-alphabet-candidate button { width: fit-content; min-height: 44px; }
 .speaking-picture-authoring { border-color: #c8d9f2; background: linear-gradient(145deg, #f7faff, #fff); }
 .speaking-picture-authoring__notice { display: flex; align-items: flex-start; gap: 9px; padding: 13px 15px; border-radius: 13px; color: #73571e; background: #fff7df; font-size: 14px; line-height: 1.6; }
 .speaking-picture-authoring__notice svg { flex: 0 0 auto; margin-top: 2px; }

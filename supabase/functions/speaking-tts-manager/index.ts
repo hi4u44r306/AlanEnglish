@@ -11,8 +11,17 @@ import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
     ALPHABET_SEQUENCE_GAP_MS,
     alphabetSourceFingerprint,
-    assembleAlphabetAudioSequence
+    assembleAlphabetAudioSequence,
+    parseLinear16MonoWav
 } from "../_shared/alphabet-audio-sequence.ts";
+import {
+    ALPHABET_CANDIDATE_ASSEMBLER,
+    ALPHABET_CANDIDATE_REVISION,
+    ALPHABET_CANDIDATE_SETTINGS,
+    ALPHABET_CANDIDATE_VOICE,
+    buildAlphabetCandidateSegments,
+    buildAlphabetMasterSsml
+} from "../_shared/alphabet-master-voice.ts";
 import {
     chooseSpeakingVoice,
     DEFAULT_FEMALE_VOICE_ID,
@@ -162,6 +171,164 @@ const linkGeneratedAsset = async (admin: any, question: any, assetId: string, ta
         .select("question_id").maybeSingle();
     if (retryError) throw retryError;
     if (!retriedLink) throw Object.assign(new Error("示範語音無法連結至題目"), { status: 409, code: "audio_link_race_failed" });
+};
+
+const requestGoogleAlphabetMaster = async () => {
+    const accessToken = await getGoogleAccessToken();
+    const ssml = buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS);
+    const response = await fetch("https://texttospeech.googleapis.com/v1beta1/text:synthesize", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+            input: { ssml },
+            voice: { languageCode: LANGUAGE_CODE, name: ALPHABET_CANDIDATE_VOICE },
+            audioConfig: ALPHABET_CANDIDATE_SETTINGS,
+            enableTimePointing: ["SSML_MARK"]
+        })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.audioContent) {
+        throw Object.assign(new Error("Google Cloud TTS 暫時無法產生 A–Z 候選音檔"), {
+            status: response.status >= 500 ? 502 : 400,
+            code: cleanText(payload?.error?.status, 80) || `google_tts_http_${response.status}`
+        });
+    }
+    const bytes = decodeGoogleAudio(payload.audioContent);
+    const wav = parseLinear16MonoWav(bytes);
+    const durationMs = Math.round(wav.data.length / wav.byteRate * 1000);
+    return { bytes, durationMs, timepoints: payload?.timepoints, usedCharacters: ssml.replace(/<mark name="[A-Z]"\/>/g, "").length };
+};
+
+const alphabetTemplateValid = (questionSet: any, questions: any[]) => {
+    const template = workbookOneFoundationTemplateByKey(questionSet?.generation_metadata?.template_key);
+    const ordered = [...questions].sort((left, right) => Number(left.sort_order) - Number(right.sort_order));
+    return questionSet?.generation_metadata?.template_key === "workbook_1_alphabet_round_v1"
+        && questionSet?.generation_metadata?.interaction_type === "alphabet_round"
+        && alphabetRoundContentMatches(template, ordered);
+};
+
+const alphabetCandidateResponse = async (candidate: any, reused = true) => ({
+    success: true,
+    candidate_id: candidate.id,
+    reused,
+    status: candidate.status,
+    voice_id: candidate.voice_id,
+    duration_ms: Number(candidate.duration_ms),
+    segments: candidate.segments,
+    audio_url: await createR2PresignedUrl(candidate.private_object_key, "GET", 15 * 60)
+});
+
+const alphabetCandidateValid = (
+    candidate: any,
+    questions: any[],
+    questionSet: any,
+    settingsHash: string,
+    sourceFingerprint: string,
+    allowedStatuses = ["ready"]
+) => Boolean(candidate)
+    && Number(candidate.question_set_id) === Number(questionSet.id)
+    && Number(candidate.question_set_version) === Number(questionSet.version)
+    && candidate.revision === ALPHABET_CANDIDATE_REVISION
+    && candidate.voice_id === ALPHABET_CANDIDATE_VOICE
+    && candidate.settings_hash === settingsHash
+    && candidate.source_fingerprint === sourceFingerprint
+    && candidate.assembler_version === ALPHABET_CANDIDATE_ASSEMBLER
+    && candidate.mime_type === "audio/wav"
+    && allowedStatuses.includes(candidate.status)
+    && alphabetAudioSequenceValid(questions, { ...candidate, status: "ready" });
+
+const alphabetCandidateStored = async (candidate: any) => {
+    if (!candidate?.private_object_key || Number(candidate?.byte_size || 0) <= 0) return false;
+    const probe = await fetchR2(candidate.private_object_key, { method: "HEAD" });
+    return probe.ok && Number(probe.headers.get("content-length") || 0) === Number(candidate.byte_size);
+};
+
+const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSet: any) => {
+    if (!alphabetTemplateValid(questionSet, questions)) {
+        throw Object.assign(new Error("A–Z 題庫不是固定 26 個字母模板"), { status: 409, code: "alphabet_template_invalid" });
+    }
+    const ordered = [...questions].sort((left, right) => Number(left.sort_order) - Number(right.sort_order));
+    const settingsHash = await sha256(JSON.stringify({
+        revision: ALPHABET_CANDIDATE_REVISION,
+        voice_id: ALPHABET_CANDIDATE_VOICE,
+        settings: ALPHABET_CANDIDATE_SETTINGS,
+        ssml: buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS)
+    }));
+    const sourceFingerprint = await sha256(JSON.stringify({
+        question_set_id: Number(questionSet.id), question_set_version: Number(questionSet.version), settings_hash: settingsHash,
+        questions: ordered.map(question => ({ id: Number(question.id), letter: String(question.model_answer).trim().toUpperCase() }))
+    }));
+    const selectFields = "id,question_set_id,question_set_version,revision,voice_id,settings_hash,source_fingerprint,assembler_version,private_object_key,mime_type,byte_size,duration_ms,segments,status,updated_at";
+    const { data: existing, error: existingError } = await admin.from("speaking_alphabet_audio_candidates")
+        .select(selectFields).eq("question_set_id", Number(questionSet.id))
+        .eq("question_set_version", Number(questionSet.version)).eq("revision", ALPHABET_CANDIDATE_REVISION).maybeSingle();
+    if (existingError) throw existingError;
+    if (["ready", "active"].includes(existing?.status)) {
+        if (!alphabetCandidateValid(existing, ordered, questionSet, settingsHash, sourceFingerprint, ["ready", "active"])
+            || !(await alphabetCandidateStored(existing))) {
+            throw Object.assign(new Error("既有 A–Z 候選音檔不完整，不能沿用"), { status: 409, code: "alphabet_candidate_invalid" });
+        }
+        return alphabetCandidateResponse(existing);
+    }
+    if (existing?.status === "superseded") {
+        throw Object.assign(new Error("這個 A–Z 候選版本已被取代，請由程式更新建立新版本"), { status: 409, code: "alphabet_candidate_superseded" });
+    }
+    if (existing?.status === "processing" && Date.now() - Date.parse(existing.updated_at) < 10 * 60 * 1000) {
+        throw Object.assign(new Error("A–Z 候選音檔正在產生，請稍後重新整理"), { status: 409, code: "alphabet_candidate_processing" });
+    }
+    const processingToken = crypto.randomUUID();
+    const now = new Date().toISOString();
+    let candidateId = existing?.id;
+    if (existing) {
+        const { data: claimed, error } = await admin.from("speaking_alphabet_audio_candidates").update({
+            status: "processing", processing_token: processingToken, error_code: null, error_message: null, updated_at: now
+        }).eq("id", existing.id).eq("updated_at", existing.updated_at).select("id").maybeSingle();
+        if (error) throw error;
+        if (!claimed) throw Object.assign(new Error("A–Z 候選音檔已由另一個工作接手"), { status: 409, code: "alphabet_candidate_claimed" });
+        candidateId = claimed.id;
+    } else {
+        const { data: inserted, error } = await admin.from("speaking_alphabet_audio_candidates").insert({
+            question_set_id: Number(questionSet.id), question_set_version: Number(questionSet.version),
+            revision: ALPHABET_CANDIDATE_REVISION, voice_id: ALPHABET_CANDIDATE_VOICE,
+            settings_hash: settingsHash, source_fingerprint: sourceFingerprint,
+            assembler_version: ALPHABET_CANDIDATE_ASSEMBLER, status: "processing",
+            processing_token: processingToken, updated_at: now
+        }).select("id").single();
+        if (error) {
+            if (error.code === "23505") throw Object.assign(new Error("A–Z 候選音檔已開始產生，請稍後重新整理"), { status: 409, code: "alphabet_candidate_processing" });
+            throw error;
+        }
+        candidateId = inserted.id;
+    }
+    try {
+        const generated = await requestGoogleAlphabetMaster();
+        const objectKey = normalizeObjectKey(`speaking-tts/derived/alphabet-candidates/${sourceFingerprint}.wav`);
+        const stored = await fetchR2(objectKey, {
+            method: "PUT", body: generated.bytes,
+            headers: { "Content-Type": "audio/wav", "Cache-Control": "private, max-age=31536000, immutable" }
+        });
+        if (!stored.ok) throw Object.assign(new Error("A–Z 候選音檔無法寫入私人儲存空間"), { status: 502, code: `r2_put_${stored.status}` });
+        const probe = await fetchR2(objectKey, { method: "HEAD" });
+        if (!probe.ok || Number(probe.headers.get("content-length") || 0) !== generated.bytes.length) {
+            throw Object.assign(new Error("A–Z 候選音檔儲存驗證失敗"), { status: 502, code: "alphabet_candidate_size_mismatch" });
+        }
+        const segments = buildAlphabetCandidateSegments(ordered, generated.timepoints, generated.durationMs);
+        const completedAt = new Date().toISOString();
+        const { data: ready, error } = await admin.from("speaking_alphabet_audio_candidates").update({
+            private_object_key: objectKey, byte_size: generated.bytes.length, duration_ms: generated.durationMs,
+            segments, status: "ready", processing_token: null, completed_at: completedAt, updated_at: completedAt
+        }).eq("id", candidateId).eq("processing_token", processingToken).select(selectFields).maybeSingle();
+        if (error) throw error;
+        if (!ready) throw Object.assign(new Error("A–Z 候選音檔已有較新的工作"), { status: 409, code: "alphabet_candidate_superseded" });
+        return alphabetCandidateResponse(ready, false);
+    } catch (error: any) {
+        await admin.from("speaking_alphabet_audio_candidates").update({
+            status: "failed", processing_token: null,
+            error_code: cleanText(error?.code, 120) || "alphabet_candidate_failed",
+            error_message: cleanText(error?.message, 500) || "A–Z 候選音檔產生失敗", updated_at: new Date().toISOString()
+        }).eq("id", candidateId).eq("processing_token", processingToken);
+        throw error;
+    }
 };
 
 const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
@@ -470,7 +637,7 @@ Deno.serve(async (req: Request) => {
         if (user.role !== "admin") return json(403, { error: "只有管理員可以產生教材示範語音" });
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
-        if (!["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio", "assemble_alphabet_master_audio"].includes(action)) return json(400, { error: "不支援的操作" });
+        if (!["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio", "prepare_alphabet_audio_candidate", "activate_alphabet_audio_candidate"].includes(action)) return json(400, { error: "不支援的操作" });
         const setId = Number(body?.question_set_id);
         const requestedQuestionId = action === "retry_question_audio" || action === "preview_question_audio" ? Number(body?.question_id) : null;
         if (!Number.isInteger(setId) || setId <= 0 || (requestedQuestionId !== null && (!Number.isInteger(requestedQuestionId) || requestedQuestionId <= 0))) {
@@ -491,34 +658,42 @@ Deno.serve(async (req: Request) => {
         if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPrepareP22Draft) {
             return json(409, { error: "只有已發布題庫、待發布 A–Z，或待發布 P22 可見單字可以產生正式語音" });
         }
-        if (action === "assemble_alphabet_master_audio") {
-            if (interactionType !== "alphabet_round") {
-                return json(409, { error: "只有 A–Z 固定教材可以建立單一主音檔" });
+        if (["prepare_alphabet_audio_candidate", "activate_alphabet_audio_candidate"].includes(action)
+            && !alphabetTemplateValid(questionSet, questions)) {
+            return json(409, { error: "A–Z 題庫不是固定 26 個字母模板", code: "alphabet_template_invalid" });
+        }
+        if (action === "prepare_alphabet_audio_candidate") {
+            return json(200, await prepareAlphabetCandidate(admin, questions, questionSet));
+        }
+        if (action === "activate_alphabet_audio_candidate") {
+            const candidateId = cleanText(body?.candidate_id, 80);
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(candidateId)) {
+                return json(400, { error: "候選音檔編號不正確" });
             }
-            const femaleVoice = voicePool().female;
-            const prepared = [];
-            for (const question of questions) {
-                prepared.push(await generateQuestionAudio(admin, question, {
-                    voiceChoice: { gender: "female", voiceId: femaleVoice }
-                }));
+            const selectFields = "id,question_set_id,question_set_version,revision,voice_id,settings_hash,source_fingerprint,assembler_version,private_object_key,mime_type,byte_size,duration_ms,segments,status,updated_at";
+            const { data: candidate, error: candidateError } = await admin.from("speaking_alphabet_audio_candidates")
+                .select(selectFields).eq("id", candidateId).maybeSingle();
+            if (candidateError) throw candidateError;
+            const ordered = [...questions].sort((left, right) => Number(left.sort_order) - Number(right.sort_order));
+            const settingsHash = await sha256(JSON.stringify({
+                revision: ALPHABET_CANDIDATE_REVISION,
+                voice_id: ALPHABET_CANDIDATE_VOICE,
+                settings: ALPHABET_CANDIDATE_SETTINGS,
+                ssml: buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS)
+            }));
+            const sourceFingerprint = await sha256(JSON.stringify({
+                question_set_id: Number(questionSet.id), question_set_version: Number(questionSet.version), settings_hash: settingsHash,
+                questions: ordered.map(question => ({ id: Number(question.id), letter: String(question.model_answer).trim().toUpperCase() }))
+            }));
+            if (!alphabetCandidateValid(candidate, ordered, questionSet, settingsHash, sourceFingerprint)
+                || !(await alphabetCandidateStored(candidate))) {
+                return json(409, { error: "候選音檔尚未準備完成或不屬於這個題庫" });
             }
-            const incomplete = prepared.filter(item => item.status !== "ready");
-            if (incomplete.length) {
-                return json(409, {
-                    error: `A–Z 女聲來源仍有 ${incomplete.length} 題處理中，請稍後再按一次`,
-                    code: "alphabet_female_audio_pending"
-                });
-            }
-            const assembled = await assembleAlphabetMasterAudio(admin, questions, questionSet);
-            return json(200, {
-                success: true,
-                reused: assembled.reused,
-                duration_ms: assembled.duration_ms,
-                segments_count: Array.isArray(assembled.segments) ? assembled.segments.length : 0,
-                provider_requests: prepared.filter(item => item.reused === false).length,
-                voice_id: femaleVoice,
-                voice_gender: "female"
+            const { data: activated, error: activateError } = await admin.rpc("activate_speaking_alphabet_audio_candidate", {
+                p_candidate_id: candidateId
             });
+            if (activateError) throw activateError;
+            return json(200, { success: true, ...activated });
         }
         if (interactionType === "alphabet_round"
             && ["generate_set_audio", "retry_question_audio"].includes(action)) {

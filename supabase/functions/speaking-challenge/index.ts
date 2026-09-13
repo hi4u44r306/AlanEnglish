@@ -13,6 +13,10 @@ import {
     alphabetSourceFingerprint
 } from "../_shared/alphabet-audio-sequence.ts";
 import { DEFAULT_FEMALE_VOICE_ID } from "../_shared/speaking-voice-assignment.ts";
+import {
+    ALPHABET_CANDIDATE_ASSEMBLER,
+    ALPHABET_CANDIDATE_VOICE
+} from "../_shared/alphabet-master-voice.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -173,12 +177,15 @@ Deno.serve(async (req: Request) => {
                     .select("question_set_version,source_fingerprint,assembler_version,status,private_object_key,mime_type,byte_size,duration_ms,segments")
                     .eq("question_set_id", Number(questionSet.id)).eq("purpose", "alphabet_master").maybeSingle();
                 if (sequenceError) throw sequenceError;
-                const validSequence = Number(sequence?.question_set_version) === Number(questionSet.version)
+                const legacySequence = sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
                     && sequence?.source_fingerprint === sourceFingerprint
-                    && sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
+                    && sequence?.segments?.every((segment: any) => segment?.voice_id === alphabetFemaleVoiceId());
+                const singleSequence = sequence?.assembler_version === ALPHABET_CANDIDATE_ASSEMBLER
+                    && sequence?.segments?.every((segment: any) => segment?.voice_id === ALPHABET_CANDIDATE_VOICE);
+                const validSequence = Number(sequence?.question_set_version) === Number(questionSet.version)
+                    && (legacySequence || singleSequence)
                     && sequence?.mime_type === "audio/wav"
                     && Array.isArray(sequence?.segments)
-                    && sequence.segments.every((segment: any) => segment?.voice_id === alphabetFemaleVoiceId())
                     && alphabetAudioSequenceValid(orderedQuestions, sequence);
                 if (!validSequence) {
                     return json(409, {

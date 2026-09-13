@@ -1,5 +1,5 @@
 import {
-    assembleSpeakingAlphabetMasterAudio,
+    activateSpeakingAlphabetAudioCandidate,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
@@ -10,6 +10,7 @@ import {
     getSpeakingQuestionPicturePreview,
     getSpeakingContentBootstrap,
     prepareSpeakingSourceUpload,
+    prepareSpeakingAlphabetAudioCandidate,
     publishSpeakingQuestionSet,
     reviewSpeakingOcrSource,
     saveReviewedSpeakingSource,
@@ -47,7 +48,8 @@ describe("speakingContentService", () => {
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
         await publishSpeakingQuestionSet(firebaseUser, 4);
         await generateSpeakingQuestionSetAudio(firebaseUser, 4);
-        await assembleSpeakingAlphabetMasterAudio(firebaseUser, 7);
+        await prepareSpeakingAlphabetAudioCandidate(firebaseUser, 7);
+        await activateSpeakingAlphabetAudioCandidate(firebaseUser, 7, "11111111-1111-4111-8111-111111111111");
         await getSpeakingQuestionAudioPreview(firebaseUser, 4, 8);
         await getSpeakingQuestionPicturePreview(firebaseUser, 9);
 
@@ -67,7 +69,8 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "update_draft_question"],
             ["speaking-content-manager", "publish_question_set"],
             ["speaking-tts-manager", "generate_set_audio"],
-            ["speaking-tts-manager", "assemble_alphabet_master_audio"],
+            ["speaking-tts-manager", "prepare_alphabet_audio_candidate"],
+            ["speaking-tts-manager", "activate_alphabet_audio_candidate"],
             ["speaking-tts-manager", "preview_question_audio"],
             ["speaking-content-manager", "preview_question_picture"]
         ]);
