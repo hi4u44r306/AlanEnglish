@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
+import { assertBookEntitled, isBookEntitled, relationOne } from "../_shared/book-entitlement.ts";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
@@ -20,7 +21,7 @@ const assertChallengeAccess = async (admin: any, user: any) => {
     if (!access.is_active || !access.features.pronunciation) {
         throw Object.assign(new Error("目前方案不包含 AI 發音練習"), { status: 403, code: "pronunciation_access_required" });
     }
-    return { demoMode: false };
+    return { demoMode: false, effectiveAccess: access };
 };
 
 Deno.serve(async (req: Request) => {
@@ -32,22 +33,31 @@ Deno.serve(async (req: Request) => {
         if (!supabaseUrl || !serviceRoleKey) return json(500, { error: "Supabase 伺服器設定不完整" });
         const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
         const user = await verifyFirebaseRequest(req, admin);
-        const { demoMode } = await assertChallengeAccess(admin, user);
+        const { demoMode, effectiveAccess } = await assertChallengeAccess(admin, user);
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
 
         if (action === "catalog") {
             const { data: sets, error } = await admin.from("speaking_question_sets")
-                .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code),speaking_questions(id,sort_order)")
+                .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code,content_scope,enabled,archived_at),speaking_questions(id,sort_order)")
                 .eq("status", "published").order("published_at", { ascending: true });
             if (error) throw error;
-            const questionIds = (sets || []).flatMap((set: any) => (set.speaking_questions || []).map((question: any) => Number(question.id)));
+            const entitlementByBook = new Map<number, boolean>();
+            const visibleSets = [];
+            for (const set of (sets || [])) {
+                const bookId = Number(set.book_id);
+                if (!entitlementByBook.has(bookId)) {
+                    entitlementByBook.set(bookId, demoMode || await isBookEntitled(admin, user, effectiveAccess, relationOne(set.books)));
+                }
+                if (entitlementByBook.get(bookId)) visibleSets.push(set);
+            }
+            const questionIds = visibleSets.flatMap((set: any) => (set.speaking_questions || []).map((question: any) => Number(question.id)));
             const { data: progress, error: progressError } = questionIds.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", questionIds)
                 : { data: [], error: null };
             if (progressError) throw progressError;
             const completed = new Set((progress || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
-            return json(200, { success: true, demo_mode: demoMode, challenges: (sets || []).map((set: any) => ({
+            return json(200, { success: true, demo_mode: demoMode, challenges: visibleSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, generation_metadata: set.generation_metadata || {},
@@ -58,11 +68,17 @@ Deno.serve(async (req: Request) => {
 
         const setId = Number(body?.question_set_id);
         if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "找不到口說小關卡" });
-        const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-            .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,books(id,name,code),speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,visual_aid,sort_order)")
+        const { data: questionSetRecord, error: setError } = await admin.from("speaking_question_sets")
+            .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,books(id,name,code,content_scope,enabled,archived_at)")
             .eq("id", setId).eq("status", "published").maybeSingle();
         if (setError) throw setError;
-        if (!questionSet) return json(404, { error: "找不到已發布的口說小關卡" });
+        if (!questionSetRecord) return json(404, { error: "找不到已發布的口說小關卡" });
+        await assertBookEntitled(admin, user, effectiveAccess, relationOne(questionSetRecord.books));
+        const { data: setQuestions, error: questionError } = await admin.from("speaking_questions")
+            .select("id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,visual_aid,sort_order")
+            .eq("question_set_id", setId).order("sort_order", { ascending: true });
+        if (questionError) throw questionError;
+        const questionSet = { ...questionSetRecord, speaking_questions: setQuestions || [] };
 
         if (action === "question_set") {
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));

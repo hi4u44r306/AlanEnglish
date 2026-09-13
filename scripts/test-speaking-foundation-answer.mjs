@@ -83,8 +83,11 @@ assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts, p17Question
 
 const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8");
 const challengeSource = readFileSync(new URL("../supabase/functions/speaking-challenge/index.ts", import.meta.url), "utf8");
+const requestLedgerSource = readFileSync(new URL("../supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql", import.meta.url), "utf8");
 assert.match(coachSource, /matchesFoundationAnswer/);
-assert.match(coachSource, /FOUNDATION_RATE_REQUEST_LIMIT/);
+assert.match(coachSource, /reserveProviderRequest/);
+assert.match(requestLedgerSource, /v_recent_limit integer := case when v_is_foundation then 60 else 12 end/);
+assert.match(requestLedgerSource, /v_daily_count >= 160/);
 assert.match(challengeSource, /correct_assessment_required/);
 
 console.log("Workbook 1 foundation answer and template contract passed");

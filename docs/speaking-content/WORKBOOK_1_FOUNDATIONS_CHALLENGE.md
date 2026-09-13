@@ -145,6 +145,10 @@ P21／P22 不使用任意遠端 URL，也不把私人 R2 object key 直接傳給
 
 只有管理員可上傳及核准圖片。學生讀取題庫時，`speaking-challenge` 必須先驗證 Firebase Token、角色、有效 membership、Workbook 1 entitlement 與 `pronunciation` 功能，再回傳短效預簽圖片網址。Migration、圖片上傳與 Edge Function 部署都需要另行核准，本規格階段不執行。
 
+題庫清單、指定題庫與發音評分都必須在讀取完整答案、取得私人 R2 短效網址或呼叫付費 Speech provider 前完成逐本教材 entitlement 檢查。直接輸入其他教材的題庫 ID 也必須回傳 403；老師與管理員只能以既有 demo 模式預覽，不能用學生評分端點寫入進度或產生費用。
+
+每次準備送出 Azure 發音評分前，後端會先透過尚未套用的 server-only request ledger RPC，以每位學生的資料庫 advisory lock 原子保留額度。一般口說每 10 分鐘最多 12 次；Workbook 1 基礎題每 10 分鐘最多 60 次、24 小時最多 160 次。成功、網路／供應商失敗、無法評分及後端保存失敗都會保留稽核狀態並計入限流；資料表不含原始錄音，`public`、`anon`、`authenticated` 均無直接讀寫或執行 RPC 權限。
+
 ## 9. 發布閘門
 
 以下條件全部成立前，P21／P22 必須維持草稿：

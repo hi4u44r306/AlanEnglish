@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { assertBookEntitled, relationOne } from "../_shared/book-entitlement.ts";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { readAzureWordAssessment, selectAzureAssessmentResult } from "../_shared/azure-pronunciation.ts";
@@ -27,10 +28,6 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 const MAX_AUDIO_BYTES = 1024 * 1024;
 const MIN_AUDIO_SECONDS = 0.35;
 const MAX_AUDIO_SECONDS = 20;
-const RATE_WINDOW_MINUTES = 10;
-const RATE_REQUEST_LIMIT = 12;
-const FOUNDATION_RATE_REQUEST_LIMIT = 60;
-const FOUNDATION_DAILY_REQUEST_LIMIT = 160;
 
 const normalizeWord = (value: unknown) => String(value || "")
     .toLowerCase()
@@ -127,14 +124,20 @@ const buildAzureSpeechEndpoint = (region: string) => {
     return url.toString();
 };
 
-const assertPublishedQuestionAccess = async (admin: any, questionId: number) => {
+const assertPublishedQuestionAccess = async (admin: any, questionId: number, user: any, effectiveAccess: any) => {
     const { data, error } = await admin.from("speaking_questions")
-        .select("id,question_set_id,model_answer,pronunciation_notes_zh,speaking_question_sets!inner(id,status,generation_metadata)")
+        .select("id,question_set_id,speaking_question_sets!inner(id,book_id,status,generation_metadata,books(id,name,code,content_scope,enabled,archived_at))")
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
     const questionSet = Array.isArray(data.speaking_question_sets)
         ? data.speaking_question_sets[0] : data.speaking_question_sets;
+    const book = relationOne(questionSet?.books);
+    await assertBookEntitled(admin, user, effectiveAccess, book);
+    const { data: answerData, error: answerError } = await admin.from("speaking_questions")
+        .select("model_answer,pronunciation_notes_zh").eq("id", questionId).maybeSingle();
+    if (answerError) throw answerError;
+    if (!answerData) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
     const interactionType = readFoundationInteractionType(questionSet?.generation_metadata);
     const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
     const { data: pictureInteraction, error: pictureError } = pictureMode
@@ -150,7 +153,7 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number) => 
         ? interactionType === "picture_qa"
             ? `${pictureInteraction.prompt_text} ${pictureInteraction.answer_text}`
             : pictureInteraction.answer_text
-        : data.model_answer || "").replace(/\s+/g, " ").trim();
+        : answerData.model_answer || "").replace(/\s+/g, " ").trim();
     const acceptedAnswers = pictureMode && Array.isArray(pictureInteraction?.accepted_full_responses)
         ? pictureInteraction.accepted_full_responses.map((value: unknown) => String(value || "").trim()).filter(Boolean).slice(0, 12)
         : [];
@@ -162,31 +165,43 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number) => 
     return {
         questionId: Number(data.id),
         questionSetId: Number(data.question_set_id),
+        book,
         answerTemplate,
         answerPrompt: speakingAnswerPrompt(answerTemplate),
         acceptedAnswers,
         interactionType,
         isStructuredAnswer,
         referenceText,
-        feedback: String(data.pronunciation_notes_zh || "")
+        feedback: String(answerData.pronunciation_notes_zh || "")
     };
 };
 
-const assertRateLimit = async (admin: any, studentId: number, interactionType: string) => {
-    const since = new Date(Date.now() - RATE_WINDOW_MINUTES * 60 * 1000).toISOString();
-    const isFoundationRound = Boolean(interactionType);
-    const recentRequest = admin.from("speaking_pronunciation_attempts")
-        .select("id", { count: "exact", head: true }).eq("student_id", studentId).gte("created_at", since);
-    const dailyRequest = isFoundationRound
-        ? admin.from("speaking_pronunciation_attempts").select("id", { count: "exact", head: true })
-            .eq("student_id", studentId).gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        : Promise.resolve({ count: 0, error: null });
-    const [recent, daily] = await Promise.all([recentRequest, dailyRequest]);
-    if (recent.error) throw recent.error;
-    if (daily.error) throw daily.error;
-    if ((recent.count || 0) >= (isFoundationRound ? FOUNDATION_RATE_REQUEST_LIMIT : RATE_REQUEST_LIMIT)
-        || (isFoundationRound && (daily.count || 0) >= FOUNDATION_DAILY_REQUEST_LIMIT)) {
+const reserveProviderRequest = async (admin: any, studentId: number, question: any) => {
+    const { data, error } = await admin.rpc("reserve_speaking_pronunciation_request", {
+        p_student_id: studentId,
+        p_question_set_id: question.questionSetId,
+        p_question_id: question.questionId,
+        p_interaction_type: question.interactionType || null
+    });
+    if (error) throw error;
+    if (data?.allowed !== true || !data?.request_id) {
         throw Object.assign(new Error("短時間練習次數較多，請休息一下再繼續"), { status: 429, code: "rate_limited" });
+    }
+    return String(data.request_id);
+};
+
+const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null) => {
+    const { data, error } = await admin.from("speaking_pronunciation_requests").update({
+        status,
+        error_code: errorCode,
+        completed_at: new Date().toISOString()
+    }).eq("id", requestId).eq("status", "reserved").select("id").maybeSingle();
+    if (error) throw error;
+    if (!data?.id) {
+        throw Object.assign(new Error("發音評分請求狀態無法完成"), {
+            status: 500,
+            code: "provider_request_finalize_failed"
+        });
     }
 };
 
@@ -262,11 +277,13 @@ Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
 
+    let admin: any = null;
+    let providerRequestId: string | null = null;
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
         if (!supabaseUrl || !serviceRoleKey) return json(500, { error: "Supabase 伺服器設定不完整" });
-        const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+        admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
         const user = await verifyFirebaseRequest(req, admin);
         const effectiveAccess = await loadEffectiveAccess(admin, Number(user.id));
         if (user.role !== "student") return json(403, { error: "只有學生可以送出發音評分" });
@@ -277,7 +294,7 @@ Deno.serve(async (req: Request) => {
         const questionId = Number(form?.get("question_id"));
         const audio = form?.get("audio");
         if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
-        const question = await assertPublishedQuestionAccess(admin, questionId);
+        const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
         if (audio.type !== "audio/wav") return json(415, { error: "錄音格式不正確，請重新錄音" });
         if (audio.size < 1000 || audio.size > MAX_AUDIO_BYTES) {
@@ -305,7 +322,7 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
-        await assertRateLimit(admin, Number(user.id), question.interactionType);
+        providerRequestId = await reserveProviderRequest(admin, Number(user.id), question);
 
         const assessmentConfig: Record<string, unknown> = {
             GradingSystem: "HundredMark",
@@ -320,22 +337,30 @@ Deno.serve(async (req: Request) => {
         // scripted and keep omission/insertion checking.
         if (!question.isStructuredAnswer) assessmentConfig.ReferenceText = question.referenceText;
         const assessmentHeader = btoa(JSON.stringify(assessmentConfig));
-        const providerResponse = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
-                "Ocp-Apim-Subscription-Key": speechKey,
-                "Pronunciation-Assessment": assessmentHeader
-            },
-            body: audioBuffer
-        });
+        let providerResponse: Response;
+        try {
+            providerResponse = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
+                    "Ocp-Apim-Subscription-Key": speechKey,
+                    "Pronunciation-Assessment": assessmentHeader
+                },
+                body: audioBuffer
+            });
+        } catch {
+            await finishProviderRequest(admin, providerRequestId, "provider_failed", "network_error");
+            return json(502, { error: "發音評分暫時無法連線，請稍後再試", code: "provider_failed" });
+        }
         const providerResult = await providerResponse.json().catch(() => ({}));
         if (!providerResponse.ok) {
+            await finishProviderRequest(admin, providerRequestId, "provider_failed", `http_${providerResponse.status}`);
             console.error("Azure pronunciation assessment failed", providerResponse.status, providerResult?.RecognitionStatus || "unknown");
             return json(502, { error: "發音評分暫時無法完成，請稍後再試", code: "provider_failed" });
         }
         if (!selectAzureAssessmentResult(providerResult)) {
+            await finishProviderRequest(admin, providerRequestId, "unassessable", String(providerResult?.RecognitionStatus || "missing").slice(0, 120));
             return json(providerResult?.RecognitionStatus === "Success" ? 502 : 422, speechRecognitionError(providerResult, wavInfo));
         }
 
@@ -348,6 +373,7 @@ Deno.serve(async (req: Request) => {
             word_results: normalized.words
         });
         if (saveError) throw saveError;
+        await finishProviderRequest(admin, providerRequestId, "completed");
 
         return json(200, {
             success: true,
@@ -356,7 +382,22 @@ Deno.serve(async (req: Request) => {
             ...normalized
         });
     } catch (error) {
+        if (admin && providerRequestId) {
+            try {
+                await finishProviderRequest(
+                    admin,
+                    providerRequestId,
+                    "internal_failed",
+                    String((error as any)?.code || "internal_error").slice(0, 120)
+                );
+            } catch {
+                console.error("Pronunciation request ledger finalization failed");
+            }
+        }
         const status = Number((error as any)?.status || 500);
-        return json(status, { error: status < 500 ? String((error as any)?.message || "請求失敗") : "發音評分服務發生錯誤" });
+        return json(status, {
+            error: status < 500 ? String((error as any)?.message || "請求失敗") : "發音評分服務發生錯誤",
+            code: String((error as any)?.code || "") || null
+        });
     }
 });

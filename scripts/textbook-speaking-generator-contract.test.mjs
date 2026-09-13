@@ -13,8 +13,10 @@ const challenge = read("supabase/functions/speaking-challenge/index.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
 const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
 const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
+const bookEntitlement = read("supabase/functions/_shared/book-entitlement.ts");
 const visualAssetMigration = read("supabase/migrations/20260912143926_workbook1_speaking_visual_assets.sql");
 const foundationUniquenessMigration = read("supabase/migrations/20260913113000_workbook1_foundation_template_uniqueness.sql");
+const pronunciationLedgerMigration = read("supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -197,7 +199,8 @@ test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前�
     assert.match(challenge, /matchesFoundationAnswer/);
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /matchesFoundationAnswer/);
-    assert.match(coach, /FOUNDATION_DAILY_REQUEST_LIMIT/);
+    assert.match(coach, /reserveProviderRequest/);
+    assert.match(pronunciationLedgerMigration, /v_daily_count >= 160/);
     assert.match(coach, /foundationRetryFeedback/);
 });
 
@@ -256,4 +259,27 @@ test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句�
     assert.match(coach, /pictureInteraction\.prompt_text/);
     assert.match(coach, /pictureInteraction\.answer_text/);
     assert.match(coach, /reference_text: question\.interactionType \? null/);
+});
+
+test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先原子保留額度", () => {
+    assert.match(challenge, /_shared\/book-entitlement\.ts/);
+    assert.match(challenge, /isBookEntitled/);
+    assert.match(challenge, /assertBookEntitled/);
+    assert.match(bookEntitlement, /book_entitlement_required/);
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(coach, /assertBookEntitled/);
+    assert.ok(coach.indexOf("await assertBookEntitled") < coach.indexOf('.select("model_answer,pronunciation_notes_zh")'));
+    assert.match(coach, /reserve_speaking_pronunciation_request/);
+    assert.match(coach, /finishProviderRequest/);
+    assert.match(coach, /\.select\("id"\)\.maybeSingle\(\)/);
+    assert.match(coach, /"internal_failed"/);
+    assert.ok(challenge.indexOf("await assertBookEntitled") < challenge.indexOf("const { data: setQuestions"));
+    assert.match(pronunciationLedgerMigration, /pg_advisory_xact_lock/);
+    assert.match(pronunciationLedgerMigration, /speaking_pronunciation_requests_student_created_idx/);
+    assert.match(pronunciationLedgerMigration, /status in \('reserved', 'completed', 'provider_failed', 'unassessable', 'internal_failed'\)/);
+    assert.match(pronunciationLedgerMigration, /security invoker/);
+    assert.doesNotMatch(pronunciationLedgerMigration, /security definer/);
+    assert.match(pronunciationLedgerMigration, /revoke all on table public\.speaking_pronunciation_requests from public, anon, authenticated/);
+    assert.match(pronunciationLedgerMigration, /grant execute on function public\.reserve_speaking_pronunciation_request/);
+    assert.match(pronunciationLedgerMigration, /Raw microphone audio is never stored/);
 });
