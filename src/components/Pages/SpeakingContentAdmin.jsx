@@ -248,8 +248,8 @@ export default function SpeakingContentAdmin() {
     const [pendingDocumentId, setPendingDocumentId] = useState(null);
     const [working, setWorking] = useState("");
     const [loading, setLoading] = useState(true);
-    const [alphabetCandidate, setAlphabetCandidate] = useState(null);
-    const [alphabetCandidateListened, setAlphabetCandidateListened] = useState(false);
+    const [alphabetCandidates, setAlphabetCandidates] = useState(null);
+    const [alphabetCandidatesListened, setAlphabetCandidatesListened] = useState({});
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
@@ -457,23 +457,23 @@ export default function SpeakingContentAdmin() {
         finally { setWorking(""); }
     };
     const prepareAlphabetAudioCandidate = async questionSet => {
-        if (!window.confirm("確定要產生新版 A–Z 女聲候選音檔嗎？26 個字母只會使用一次 TTS 請求，完成後不會立刻取代學生目前的版本。")) return;
+        if (!window.confirm("確定要產生 Leda、Aoede、Zephyr 三個 A–Z 女聲候選嗎？每個聲音各用一次完整 A–Z 請求，完成後不會取代學生目前的版本。")) return;
         setWorking(`alphabet-candidate-${questionSet.id}`);
         try {
-            const candidate = await prepareSpeakingAlphabetAudioCandidate(firebaseUser, questionSet.id);
-            setAlphabetCandidate({ ...candidate, questionSetId: questionSet.id });
-            setAlphabetCandidateListened(false);
-            toast.success(candidate.reused ? "已載入既有候選音檔，請完整試聽" : "新版單一 A–Z 女聲候選音檔已完成，請完整試聽");
+            const result = await prepareSpeakingAlphabetAudioCandidate(firebaseUser, questionSet.id);
+            setAlphabetCandidates({ candidates: result.candidates || [], questionSetId: questionSet.id });
+            setAlphabetCandidatesListened({});
+            toast.success(result.reused ? "已載入三個既有候選音檔，請逐一完整試聽" : "三個自然女聲 A–Z 候選音檔已完成，請逐一試聽");
         } catch (error) { toast.error(error.message || "A–Z 候選音檔產生失敗"); }
         finally { setWorking(""); }
     };
-    const activateAlphabetAudioCandidate = async questionSet => {
-        if (!alphabetCandidate?.candidate_id || Number(alphabetCandidate.questionSetId) !== Number(questionSet.id)) return;
+    const activateAlphabetAudioCandidate = async (questionSet, candidate) => {
+        if (!candidate?.candidate_id || Number(alphabetCandidates?.questionSetId) !== Number(questionSet.id)) return;
         if (!window.confirm("確認已完整試聽 A 到 Z，包含 I、J、K、L、N、R、S、V、Z，音量與語氣都適合兒童嗎？核准後才會安全切換學生版本。")) return;
         setWorking(`alphabet-activate-${questionSet.id}`);
         try {
-            await activateSpeakingAlphabetAudioCandidate(firebaseUser, questionSet.id, alphabetCandidate.candidate_id);
-            setAlphabetCandidate(null);
+            await activateSpeakingAlphabetAudioCandidate(firebaseUser, questionSet.id, candidate.candidate_id);
+            setAlphabetCandidates(null);
             toast.success("新版 A–Z 女聲音檔已安全啟用；舊版快照已保留供緊急人工回復");
             await load();
         } catch (error) { toast.error(error.message || "A–Z 候選音檔啟用失敗"); }
@@ -513,17 +513,21 @@ export default function SpeakingContentAdmin() {
                         <button type="button" className="platform-secondary" disabled={working === `alphabet-candidate-${existing.id}`} onClick={() => prepareAlphabetAudioCandidate(existing)}>
                             <Volume2 size={17} />{working === `alphabet-candidate-${existing.id}` ? "產生女聲候選音檔中…" : "產生／載入新版 A–Z 女聲候選音檔"}
                         </button>
-                        {alphabetCandidate?.audio_url && Number(alphabetCandidate.questionSetId) === Number(existing.id) && <div className="speaking-alphabet-candidate">
-                            <strong>先完整試聽，再決定是否套用</strong>
-                            <span>單一 Neural2 女聲音檔 · 適合兒童的慢速、明亮中性語氣</span>
-                            <audio controls preload="metadata" src={alphabetCandidate.audio_url} aria-label="新版 A–Z 女聲候選音檔"
-                                onEnded={() => setAlphabetCandidateListened(true)}
-                                onError={() => setAlphabetCandidateListened(false)}
-                                onEmptied={() => setAlphabetCandidateListened(false)}>瀏覽器不支援音訊播放。</audio>
-                            {alphabetCandidate.status === "ready" ? <button type="button" className="platform-primary" disabled={!alphabetCandidateListened || working === `alphabet-activate-${existing.id}`} onClick={() => activateAlphabetAudioCandidate(existing)}>
-                                <CheckCircle2 size={17} />{working === `alphabet-activate-${existing.id}` ? "安全切換中…" : "試聽完成，核准套用學生版本"}
-                            </button> : <span className="speaking-foundation-starters__status"><CheckCircle2 size={17} />這個候選音檔已是學生目前使用版本</span>}
-                            {alphabetCandidate.status === "ready" && !alphabetCandidateListened && <span>完整播放到結尾後，才會開放核准按鈕。</span>}
+                        {alphabetCandidates?.candidates?.length > 0 && Number(alphabetCandidates.questionSetId) === Number(existing.id) && <div className="speaking-alphabet-candidates">
+                            <strong>先逐一完整試聽，再選一個套用</strong>
+                            <span>三個 Chirp 3 HD 自然女聲 · 相同兒童友善語速 · Z 固定為美式 zee</span>
+                            {alphabetCandidates.candidates.map(candidate => <div className="speaking-alphabet-candidate" key={candidate.candidate_id}>
+                                <strong>{candidate.voice_label}</strong>
+                                <span>單次連續念完 A–Z，不會拆成 26 次生成。</span>
+                                <audio controls preload="metadata" src={candidate.audio_url} aria-label={`${candidate.voice_label} A–Z 女聲候選音檔`}
+                                    onEnded={() => setAlphabetCandidatesListened(current => ({ ...current, [candidate.candidate_id]: true }))}
+                                    onError={() => setAlphabetCandidatesListened(current => ({ ...current, [candidate.candidate_id]: false }))}
+                                    onEmptied={() => setAlphabetCandidatesListened(current => ({ ...current, [candidate.candidate_id]: false }))}>瀏覽器不支援音訊播放。</audio>
+                                {candidate.status === "ready" ? <button type="button" className="platform-primary" disabled={!alphabetCandidatesListened[candidate.candidate_id] || working === `alphabet-activate-${existing.id}`} onClick={() => activateAlphabetAudioCandidate(existing, candidate)}>
+                                    <CheckCircle2 size={17} />{working === `alphabet-activate-${existing.id}` ? "安全切換中…" : `核准 ${candidate.voice_label} 套用學生版本`}
+                                </button> : <span className="speaking-foundation-starters__status"><CheckCircle2 size={17} />這個候選音檔已是學生目前使用版本</span>}
+                                {candidate.status === "ready" && !alphabetCandidatesListened[candidate.candidate_id] && <span>完整播放到結尾後，才會開放這個候選的核准按鈕。</span>}
+                            </div>)}
                         </div>}
                     </>}
                     {existing && !needsReview && <span className="speaking-foundation-starters__status"><CheckCircle2 size={17} />{existing.status === "published" ? "已發布" : "草稿已建立"}</span>}

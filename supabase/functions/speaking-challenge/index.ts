@@ -14,8 +14,7 @@ import {
 } from "../_shared/alphabet-audio-sequence.ts";
 import { DEFAULT_FEMALE_VOICE_ID } from "../_shared/speaking-voice-assignment.ts";
 import {
-    ALPHABET_CANDIDATE_ASSEMBLER,
-    ALPHABET_CANDIDATE_VOICE
+    alphabetCandidateSequenceAllowed
 } from "../_shared/alphabet-master-voice.ts";
 
 const corsHeaders = {
@@ -180,8 +179,7 @@ Deno.serve(async (req: Request) => {
                 const legacySequence = sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
                     && sequence?.source_fingerprint === sourceFingerprint
                     && sequence?.segments?.every((segment: any) => segment?.voice_id === alphabetFemaleVoiceId());
-                const singleSequence = sequence?.assembler_version === ALPHABET_CANDIDATE_ASSEMBLER
-                    && sequence?.segments?.every((segment: any) => segment?.voice_id === ALPHABET_CANDIDATE_VOICE);
+                const singleSequence = alphabetCandidateSequenceAllowed(sequence?.assembler_version, sequence?.segments);
                 const validSequence = Number(sequence?.question_set_version) === Number(questionSet.version)
                     && (legacySequence || singleSequence)
                     && sequence?.mime_type === "audio/wav"

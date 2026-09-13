@@ -9,10 +9,11 @@ import {
 } from "../supabase/functions/_shared/alphabet-audio-sequence.ts";
 import {
     ALPHABET_CANDIDATE_ASSEMBLER,
+    ALPHABET_CANDIDATE_PROFILES,
     ALPHABET_CANDIDATE_SETTINGS,
-    ALPHABET_CANDIDATE_VOICE,
     buildAlphabetCandidateSegments,
-    buildAlphabetMasterSsml
+    buildAlphabetMasterSsml,
+    detectAlphabetSpeechBoundaries
 } from "../supabase/functions/_shared/alphabet-master-voice.ts";
 
 const writeAscii = (bytes, offset, value) => {
@@ -50,6 +51,23 @@ const sources = (override = {}) => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((l
     bytes: wav(),
     ...override
 }));
+
+const alphabetPcm = ({ sampleRate = 16000, gapMs = 800, letterMs = 300, missingGap = false } = {}) => {
+    const gapSamples = Math.round(sampleRate * gapMs / 1000);
+    const letterSamples = Math.round(sampleRate * letterMs / 1000);
+    const samples = [];
+    for (let letter = 0; letter < 26; letter += 1) {
+        for (let index = 0; index < letterSamples; index += 1) samples.push(index % 2 === 0 ? 8000 : -8000);
+        if (letter < 25) {
+            const length = missingGap && letter === 12 ? Math.round(sampleRate * 100 / 1000) : gapSamples;
+            for (let index = 0; index < length; index += 1) samples.push(0);
+        }
+    }
+    const pcm = new Uint8Array(samples.length * 2);
+    const view = new DataView(pcm.buffer);
+    samples.forEach((sample, index) => view.setInt16(index * 2, sample, true));
+    return pcm;
+};
 
 test("26 個 mono LINEAR16 WAV 會組成一個含 800ms 間隔的主音檔", async () => {
     const assembled = assembleAlphabetAudioSequence(sources(), 800);
@@ -109,54 +127,42 @@ test("manifest 的題目、字母、順序或時間越界時不可對學生公�
     }), false);
 });
 
-test("新版 A–Z 使用單一固定女聲請求與 26 個可分段時間碼", () => {
+test("新版 A–Z 提供三個固定 Chirp 3 HD 女聲候選且 Z 明確念 zee", () => {
     const ssml = buildAlphabetMasterSsml(800);
-    assert.equal((ssml.match(/<mark name="[A-Z]"\/>/g) || []).length, 26);
-    assert.equal((ssml.match(/<say-as interpret-as="characters">[A-Z]<\/say-as>/g) || []).length, 26);
+    assert.equal((ssml.match(/<say-as interpret-as="characters">[A-Y]<\/say-as>/g) || []).length, 25);
     assert.equal((ssml.match(/<break time="800ms"\/>/g) || []).length, 25);
-    assert.doesNotMatch(ssml, /<prosody|rate=|pitch=|volume=/);
-    assert.equal(ALPHABET_CANDIDATE_VOICE, "en-US-Neural2-F");
-    assert.equal(ALPHABET_CANDIDATE_ASSEMBLER, "alphabet-single-sequence-v1");
-    assert.deepEqual(ALPHABET_CANDIDATE_SETTINGS, {
-        audioEncoding: "LINEAR16", speakingRate: 0.82, pitch: 1.5, volumeGainDb: 2
-    });
-
-    const questions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
-        id: index + 1, sort_order: index, model_answer: letter
-    }));
-    const timepoints = questions.map((question, index) => ({
-        markName: question.model_answer, timeSeconds: index * 1.5
-    }));
-    const segments = buildAlphabetCandidateSegments(questions, timepoints, 39000);
-    assert.equal(segments.length, 26);
-    assert.deepEqual(segments[0], {
-        question_id: 1, letter: "A", start_ms: 0, end_ms: 1500, voice_id: "en-US-Neural2-F"
-    });
-    assert.equal(segments[25].end_ms, 39000);
+    assert.match(ssml, /<phoneme alphabet="ipa" ph="ziː">Z<\/phoneme>/);
+    assert.doesNotMatch(ssml, /<mark|<prosody|pitch=|volume=/);
+    assert.deepEqual(ALPHABET_CANDIDATE_PROFILES.map(profile => profile.voiceId), [
+        "en-US-Chirp3-HD-Leda", "en-US-Chirp3-HD-Aoede", "en-US-Chirp3-HD-Zephyr"
+    ]);
+    assert.equal(new Set(ALPHABET_CANDIDATE_PROFILES.map(profile => profile.revision)).size, 3);
+    assert.equal(ALPHABET_CANDIDATE_ASSEMBLER, "alphabet-chirp3-silence-sequence-v1");
+    assert.deepEqual(ALPHABET_CANDIDATE_SETTINGS, { audioEncoding: "LINEAR16", speakingRate: 0.92 });
 });
 
-test("新版 A–Z 缺少或錯置時間碼時 fail closed", () => {
+test("單次完整 A–Z WAV 會以 25 個靜音邊界建立 26 段", () => {
     const questions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
         id: index + 1, sort_order: index, model_answer: letter
     }));
-    const timepoints = questions.map((question, index) => ({
-        markName: question.model_answer, timeSeconds: index * 1.5
+    const pcm = alphabetPcm();
+    const boundaries = detectAlphabetSpeechBoundaries(pcm, 16000);
+    assert.equal(boundaries.length, 27);
+    const segments = buildAlphabetCandidateSegments(questions, pcm, 16000, ALPHABET_CANDIDATE_PROFILES[0].voiceId);
+    assert.equal(segments.length, 26);
+    assert.deepEqual(segments[0], {
+        question_id: 1, letter: "A", start_ms: 0, end_ms: 700, voice_id: "en-US-Chirp3-HD-Leda"
+    });
+    assert.equal(segments[25].end_ms, 27800);
+});
+
+test("Chirp 音檔缺少長靜音、題序錯誤或 voice 未核准時 fail closed", () => {
+    const questions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
+        id: index + 1, sort_order: index, model_answer: letter
     }));
-    assert.throws(() => buildAlphabetCandidateSegments(questions, timepoints.slice(0, 25), 39000), /缺少完整字母時間碼/);
-    assert.throws(() => buildAlphabetCandidateSegments(questions, [...timepoints, { markName: "A", timeSeconds: 40 }], 42000), /缺少完整字母時間碼/);
-    const duplicate = timepoints.map(point => ({ ...point }));
-    duplicate[10].markName = "J";
-    assert.throws(() => buildAlphabetCandidateSegments(questions, duplicate, 39000), /缺少完整字母時間碼/);
-    const nullTime = timepoints.map(point => ({ ...point }));
-    nullTime[0].timeSeconds = null;
-    assert.throws(() => buildAlphabetCandidateSegments(questions, nullTime, 39000), /缺少完整字母時間碼/);
-    const negativeTime = timepoints.map(point => ({ ...point }));
-    negativeTime[0].timeSeconds = -0.1;
-    assert.throws(() => buildAlphabetCandidateSegments(questions, negativeTime, 39000), /缺少完整字母時間碼/);
-    const unordered = timepoints.map(point => ({ ...point }));
-    unordered[10].timeSeconds = unordered[9].timeSeconds;
-    assert.throws(() => buildAlphabetCandidateSegments(questions, unordered, 39000), /時間碼順序不正確/);
+    assert.throws(() => detectAlphabetSpeechBoundaries(alphabetPcm({ missingGap: true }), 16000), /缺少 25 個清楚停頓/);
+    assert.throws(() => buildAlphabetCandidateSegments(questions, alphabetPcm(), 16000, "en-US-Neural2-F"), /voice 不在允許清單/);
     const wrongQuestions = questions.map(question => ({ ...question }));
     wrongQuestions[8].model_answer = "J";
-    assert.throws(() => buildAlphabetCandidateSegments(wrongQuestions, timepoints, 39000), /題目順序不正確/);
+    assert.throws(() => buildAlphabetCandidateSegments(wrongQuestions, alphabetPcm(), 16000, ALPHABET_CANDIDATE_PROFILES[1].voiceId), /題目順序不正確/);
 });

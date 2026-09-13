@@ -40,8 +40,11 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         createWorkbookOneFoundationQuestionSet.mockResolvedValue({ success: true, reused: false });
         confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
         prepareSpeakingAlphabetAudioCandidate.mockResolvedValue({
-            success: true, reused: false, status: "ready", candidate_id: "11111111-1111-4111-8111-111111111111",
-            audio_url: "https://audio.example/alphabet-candidate.wav", segments: []
+            success: true, reused: false, candidates: [
+                { status: "ready", candidate_id: "11111111-1111-4111-8111-111111111111", voice_label: "Leda", audio_url: "https://audio.example/leda.wav", segments: [] },
+                { status: "ready", candidate_id: "22222222-2222-4222-8222-222222222222", voice_label: "Aoede", audio_url: "https://audio.example/aoede.wav", segments: [] },
+                { status: "ready", candidate_id: "33333333-3333-4333-8333-333333333333", voice_label: "Zephyr", audio_url: "https://audio.example/zephyr.wav", segments: [] }
+            ]
         });
         activateSpeakingAlphabetAudioCandidate.mockResolvedValue({ success: true, activated: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
@@ -106,7 +109,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         ));
     });
 
-    it("previews one female A–Z candidate before explicitly activating it", async () => {
+    it("previews three A–Z candidates and only unlocks the one fully played", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
         getSpeakingContentBootstrap.mockResolvedValueOnce({
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
@@ -122,14 +125,16 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(await screen.findByRole("button", { name: "產生／載入新版 A–Z 女聲候選音檔" }));
 
         await waitFor(() => expect(prepareSpeakingAlphabetAudioCandidate).toHaveBeenCalledWith(mockFirebaseUser, 7));
-        expect(await screen.findByText("先完整試聽，再決定是否套用")).toBeInTheDocument();
-        expect(screen.getByText(/單一 Neural2 女聲音檔/)).toBeInTheDocument();
-        const approveButton = screen.getByRole("button", { name: "試聽完成，核准套用學生版本" });
-        expect(approveButton).toBeDisabled();
-        expect(screen.getByText("完整播放到結尾後，才會開放核准按鈕。")).toBeInTheDocument();
-        fireEvent.ended(screen.getByLabelText("新版 A–Z 女聲候選音檔"));
-        expect(approveButton).toBeEnabled();
-        fireEvent.click(approveButton);
+        expect(await screen.findByText("先逐一完整試聽，再選一個套用")).toBeInTheDocument();
+        expect(screen.getByText(/三個 Chirp 3 HD 自然女聲/)).toBeInTheDocument();
+        const ledaButton = screen.getByRole("button", { name: "核准 Leda 套用學生版本" });
+        const aoedeButton = screen.getByRole("button", { name: "核准 Aoede 套用學生版本" });
+        expect(ledaButton).toBeDisabled();
+        expect(aoedeButton).toBeDisabled();
+        fireEvent.ended(screen.getByLabelText("Leda A–Z 女聲候選音檔"));
+        expect(ledaButton).toBeEnabled();
+        expect(aoedeButton).toBeDisabled();
+        fireEvent.click(ledaButton);
         await waitFor(() => expect(activateSpeakingAlphabetAudioCandidate).toHaveBeenCalledWith(
             mockFirebaseUser, 7, "11111111-1111-4111-8111-111111111111"
         ));

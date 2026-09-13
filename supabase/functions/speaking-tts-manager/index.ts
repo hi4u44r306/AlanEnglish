@@ -16,9 +16,9 @@ import {
 } from "../_shared/alphabet-audio-sequence.ts";
 import {
     ALPHABET_CANDIDATE_ASSEMBLER,
-    ALPHABET_CANDIDATE_REVISION,
+    ALPHABET_CANDIDATE_PROFILES,
     ALPHABET_CANDIDATE_SETTINGS,
-    ALPHABET_CANDIDATE_VOICE,
+    alphabetCandidateProfileForRecord,
     buildAlphabetCandidateSegments,
     buildAlphabetMasterSsml
 } from "../_shared/alphabet-master-voice.ts";
@@ -173,17 +173,16 @@ const linkGeneratedAsset = async (admin: any, question: any, assetId: string, ta
     if (!retriedLink) throw Object.assign(new Error("示範語音無法連結至題目"), { status: 409, code: "audio_link_race_failed" });
 };
 
-const requestGoogleAlphabetMaster = async () => {
+const requestGoogleAlphabetMaster = async (profile: any) => {
     const accessToken = await getGoogleAccessToken();
     const ssml = buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS);
-    const response = await fetch("https://texttospeech.googleapis.com/v1beta1/text:synthesize", {
+    const response = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({
             input: { ssml },
-            voice: { languageCode: LANGUAGE_CODE, name: ALPHABET_CANDIDATE_VOICE },
-            audioConfig: ALPHABET_CANDIDATE_SETTINGS,
-            enableTimePointing: ["SSML_MARK"]
+            voice: { languageCode: LANGUAGE_CODE, name: profile.voiceId },
+            audioConfig: ALPHABET_CANDIDATE_SETTINGS
         })
     });
     const payload = await response.json().catch(() => ({}));
@@ -196,7 +195,7 @@ const requestGoogleAlphabetMaster = async () => {
     const bytes = decodeGoogleAudio(payload.audioContent);
     const wav = parseLinear16MonoWav(bytes);
     const durationMs = Math.round(wav.data.length / wav.byteRate * 1000);
-    return { bytes, durationMs, timepoints: payload?.timepoints, usedCharacters: ssml.replace(/<mark name="[A-Z]"\/>/g, "").length };
+    return { bytes, pcm: wav.data, sampleRate: wav.sampleRate, durationMs, usedCharacters: ssml.length };
 };
 
 const alphabetTemplateValid = (questionSet: any, questions: any[]) => {
@@ -213,6 +212,7 @@ const alphabetCandidateResponse = async (candidate: any, reused = true) => ({
     reused,
     status: candidate.status,
     voice_id: candidate.voice_id,
+    voice_label: alphabetCandidateProfileForRecord(candidate)?.label || candidate.voice_id,
     duration_ms: Number(candidate.duration_ms),
     segments: candidate.segments,
     audio_url: await createR2PresignedUrl(candidate.private_object_key, "GET", 15 * 60)
@@ -226,10 +226,9 @@ const alphabetCandidateValid = (
     sourceFingerprint: string,
     allowedStatuses = ["ready"]
 ) => Boolean(candidate)
+    && Boolean(alphabetCandidateProfileForRecord(candidate))
     && Number(candidate.question_set_id) === Number(questionSet.id)
     && Number(candidate.question_set_version) === Number(questionSet.version)
-    && candidate.revision === ALPHABET_CANDIDATE_REVISION
-    && candidate.voice_id === ALPHABET_CANDIDATE_VOICE
     && candidate.settings_hash === settingsHash
     && candidate.source_fingerprint === sourceFingerprint
     && candidate.assembler_version === ALPHABET_CANDIDATE_ASSEMBLER
@@ -243,14 +242,14 @@ const alphabetCandidateStored = async (candidate: any) => {
     return probe.ok && Number(probe.headers.get("content-length") || 0) === Number(candidate.byte_size);
 };
 
-const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSet: any) => {
+const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSet: any, profile: any) => {
     if (!alphabetTemplateValid(questionSet, questions)) {
         throw Object.assign(new Error("A–Z 題庫不是固定 26 個字母模板"), { status: 409, code: "alphabet_template_invalid" });
     }
     const ordered = [...questions].sort((left, right) => Number(left.sort_order) - Number(right.sort_order));
     const settingsHash = await sha256(JSON.stringify({
-        revision: ALPHABET_CANDIDATE_REVISION,
-        voice_id: ALPHABET_CANDIDATE_VOICE,
+        revision: profile.revision,
+        voice_id: profile.voiceId,
         settings: ALPHABET_CANDIDATE_SETTINGS,
         ssml: buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS)
     }));
@@ -261,7 +260,7 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
     const selectFields = "id,question_set_id,question_set_version,revision,voice_id,settings_hash,source_fingerprint,assembler_version,private_object_key,mime_type,byte_size,duration_ms,segments,status,updated_at";
     const { data: existing, error: existingError } = await admin.from("speaking_alphabet_audio_candidates")
         .select(selectFields).eq("question_set_id", Number(questionSet.id))
-        .eq("question_set_version", Number(questionSet.version)).eq("revision", ALPHABET_CANDIDATE_REVISION).maybeSingle();
+        .eq("question_set_version", Number(questionSet.version)).eq("revision", profile.revision).maybeSingle();
     if (existingError) throw existingError;
     if (["ready", "active"].includes(existing?.status)) {
         if (!alphabetCandidateValid(existing, ordered, questionSet, settingsHash, sourceFingerprint, ["ready", "active"])
@@ -289,7 +288,7 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
     } else {
         const { data: inserted, error } = await admin.from("speaking_alphabet_audio_candidates").insert({
             question_set_id: Number(questionSet.id), question_set_version: Number(questionSet.version),
-            revision: ALPHABET_CANDIDATE_REVISION, voice_id: ALPHABET_CANDIDATE_VOICE,
+            revision: profile.revision, voice_id: profile.voiceId,
             settings_hash: settingsHash, source_fingerprint: sourceFingerprint,
             assembler_version: ALPHABET_CANDIDATE_ASSEMBLER, status: "processing",
             processing_token: processingToken, updated_at: now
@@ -301,7 +300,7 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
         candidateId = inserted.id;
     }
     try {
-        const generated = await requestGoogleAlphabetMaster();
+        const generated = await requestGoogleAlphabetMaster(profile);
         const objectKey = normalizeObjectKey(`speaking-tts/derived/alphabet-candidates/${sourceFingerprint}.wav`);
         const stored = await fetchR2(objectKey, {
             method: "PUT", body: generated.bytes,
@@ -312,7 +311,7 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
         if (!probe.ok || Number(probe.headers.get("content-length") || 0) !== generated.bytes.length) {
             throw Object.assign(new Error("A–Z 候選音檔儲存驗證失敗"), { status: 502, code: "alphabet_candidate_size_mismatch" });
         }
-        const segments = buildAlphabetCandidateSegments(ordered, generated.timepoints, generated.durationMs);
+        const segments = buildAlphabetCandidateSegments(ordered, generated.pcm, generated.sampleRate, profile.voiceId);
         const completedAt = new Date().toISOString();
         const { data: ready, error } = await admin.from("speaking_alphabet_audio_candidates").update({
             private_object_key: objectKey, byte_size: generated.bytes.length, duration_ms: generated.durationMs,
@@ -329,6 +328,14 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
         }).eq("id", candidateId).eq("processing_token", processingToken);
         throw error;
     }
+};
+
+const prepareAlphabetCandidates = async (admin: any, questions: any[], questionSet: any) => {
+    const candidates = [];
+    for (const profile of ALPHABET_CANDIDATE_PROFILES) {
+        candidates.push(await prepareAlphabetCandidate(admin, questions, questionSet, profile));
+    }
+    return { success: true, candidates, reused: candidates.every(candidate => candidate.reused) };
 };
 
 const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
@@ -663,7 +670,7 @@ Deno.serve(async (req: Request) => {
             return json(409, { error: "A–Z 題庫不是固定 26 個字母模板", code: "alphabet_template_invalid" });
         }
         if (action === "prepare_alphabet_audio_candidate") {
-            return json(200, await prepareAlphabetCandidate(admin, questions, questionSet));
+            return json(200, await prepareAlphabetCandidates(admin, questions, questionSet));
         }
         if (action === "activate_alphabet_audio_candidate") {
             const candidateId = cleanText(body?.candidate_id, 80);
@@ -674,10 +681,12 @@ Deno.serve(async (req: Request) => {
             const { data: candidate, error: candidateError } = await admin.from("speaking_alphabet_audio_candidates")
                 .select(selectFields).eq("id", candidateId).maybeSingle();
             if (candidateError) throw candidateError;
+            const profile = alphabetCandidateProfileForRecord(candidate);
+            if (!profile) return json(409, { error: "候選音檔不是目前允許的語音版本" });
             const ordered = [...questions].sort((left, right) => Number(left.sort_order) - Number(right.sort_order));
             const settingsHash = await sha256(JSON.stringify({
-                revision: ALPHABET_CANDIDATE_REVISION,
-                voice_id: ALPHABET_CANDIDATE_VOICE,
+                revision: profile.revision,
+                voice_id: profile.voiceId,
                 settings: ALPHABET_CANDIDATE_SETTINGS,
                 ssml: buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS)
             }));
