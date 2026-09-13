@@ -167,7 +167,8 @@ const linkGeneratedAsset = async (admin: any, question: any, assetId: string, ta
 const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
     const text = spokenExampleText(target?.text ?? question?.model_answer);
     if (!text) return { question_id: Number(question.id), status: "failed", error: "示範回答是空白" };
-    const selected = chooseSpeakingVoice(question.question_set_id, target?.tokenIndex ?? question.sort_order, voicePool());
+    const selected = target?.voiceChoice
+        || chooseSpeakingVoice(question.question_set_id, target?.tokenIndex ?? question.sort_order, voicePool());
     const selectedVoice = selected.voiceId;
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
@@ -286,7 +287,7 @@ const generateQuestionAudio = async (admin: any, question: any, target: any = nu
 
 const recoverStoredQuestionAudio = async (admin: any, question: any) => {
     const text = spokenExampleText(question?.model_answer);
-    const selected = chooseSpeakingVoice(question.question_set_id, question.sort_order, voicePool());
+    const selected = { gender: "female", voiceId: voicePool().female };
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
         provider: PROVIDER, voice_id: selected.voiceId, language_code: LANGUAGE_CODE,
@@ -367,6 +368,8 @@ const assembleAlphabetMasterAudio = async (admin: any, questions: any[], questio
     if (existingSequence?.source_fingerprint === sourceFingerprint
         && Number(existingSequence?.question_set_version) === Number(questionSet.version)
         && existingSequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
+        && Array.isArray(existingSequence?.segments)
+        && existingSequence.segments.every((segment: any) => segment?.voice_id === voicePool().female)
         && existingSequence?.status === "ready" && existingSequence?.private_object_key) {
         const stored = await fetchR2(existingSequence.private_object_key, { method: "HEAD" });
         if (stored.ok && Number(stored.headers.get("content-length") || 0) === Number(existingSequence.byte_size)) {
@@ -411,6 +414,7 @@ const assembleAlphabetMasterAudio = async (admin: any, questions: any[], questio
             sources.push({ ...source, bytes });
         }
         const assembled = assembleAlphabetAudioSequence(sources, ALPHABET_SEQUENCE_GAP_MS);
+        const femaleSegments = assembled.segments.map(segment => ({ ...segment, voice_id: voicePool().female }));
         const stored = await fetchR2(objectKey, {
             method: "PUT",
             body: assembled.bytes,
@@ -426,7 +430,7 @@ const assembleAlphabetMasterAudio = async (admin: any, questions: any[], questio
             status: "ready",
             byte_size: assembled.bytes.length,
             duration_ms: assembled.durationMs,
-            segments: assembled.segments,
+            segments: femaleSegments,
             error_code: null,
             error_message: null,
             completed_at: completedAt,
@@ -441,7 +445,7 @@ const assembleAlphabetMasterAudio = async (admin: any, questions: any[], questio
                 status: 409, code: "alphabet_assembly_superseded"
             });
         }
-        return { reused: false, duration_ms: assembled.durationMs, segments: assembled.segments };
+        return { reused: false, duration_ms: assembled.durationMs, segments: femaleSegments };
     } catch (error: any) {
         await admin.from("speaking_question_set_audio_sequences").update({
             status: "failed",
@@ -488,13 +492,32 @@ Deno.serve(async (req: Request) => {
             return json(409, { error: "只有已發布題庫、待發布 A–Z，或待發布 P22 可見單字可以產生正式語音" });
         }
         if (action === "assemble_alphabet_master_audio") {
+            if (interactionType !== "alphabet_round") {
+                return json(409, { error: "只有 A–Z 固定教材可以建立單一主音檔" });
+            }
+            const femaleVoice = voicePool().female;
+            const prepared = [];
+            for (const question of questions) {
+                prepared.push(await generateQuestionAudio(admin, question, {
+                    voiceChoice: { gender: "female", voiceId: femaleVoice }
+                }));
+            }
+            const incomplete = prepared.filter(item => item.status !== "ready");
+            if (incomplete.length) {
+                return json(409, {
+                    error: `A–Z 女聲來源仍有 ${incomplete.length} 題處理中，請稍後再按一次`,
+                    code: "alphabet_female_audio_pending"
+                });
+            }
             const assembled = await assembleAlphabetMasterAudio(admin, questions, questionSet);
             return json(200, {
                 success: true,
                 reused: assembled.reused,
                 duration_ms: assembled.duration_ms,
                 segments_count: Array.isArray(assembled.segments) ? assembled.segments.length : 0,
-                provider_requests: 0
+                provider_requests: prepared.filter(item => item.reused === false).length,
+                voice_id: femaleVoice,
+                voice_gender: "female"
             });
         }
         if (interactionType === "alphabet_round"

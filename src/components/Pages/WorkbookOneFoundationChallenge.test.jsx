@@ -4,6 +4,28 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 
 let mockFoundationScoreCalls = 0;
+let mockAutomaticRecorderMounts = 0;
+
+jest.mock("./AlphabetAutomaticRecorder", () => function AutomaticRecorder({ question, foundationRoundId, paused, onScored, onRoundInvalid }) {
+    const MockReact = require("react");
+    MockReact.useEffect(() => {
+        mockAutomaticRecorderMounts += 1;
+    }, []);
+    return <div>
+        <span data-testid="round-id">{foundationRoundId}</span>
+        <span data-testid="practice-question-id">{question.id}</span>
+        <span>麥克風已開啟</span>
+        <button type="button" disabled={paused} onClick={() => {
+            mockFoundationScoreCalls += 1;
+            onScored({
+                answer_match: true,
+                foundation_round: { status: mockFoundationScoreCalls === 26 ? "completed" : "open" }
+            });
+        }}>模擬自動答對</button>
+        <button type="button" disabled={paused} onClick={() => onScored({ answer_match: false, foundation_round: { status: "failed" } })}>模擬自動答錯</button>
+        <button type="button" disabled={paused} onClick={() => onRoundInvalid?.({ code: "foundation_round_invalid" })}>模擬自動回合失效</button>
+    </div>;
+});
 
 jest.mock("./SpeakingPracticeSteps", () => function Practice({ question, disabledReason, onCompleted, onIncorrect, onRoundInvalid, foundationRoundId }) {
     return <div>
@@ -60,6 +82,7 @@ describe("WorkbookOneFoundationChallenge", () => {
     beforeEach(() => {
         jest.useFakeTimers();
         mockFoundationScoreCalls = 0;
+        mockAutomaticRecorderMounts = 0;
         startAlphabetRound.mockReset().mockResolvedValue(alphabetRoundResponse);
         global.Audio = jest.fn().mockImplementation(() => ({
             onended: null,
@@ -79,7 +102,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         jest.useRealTimers();
     });
 
-    it("字母關必須先聽完 A–Z，倒數三秒後才能錄音，答錯整輪歸零", async () => {
+    it("字母關必須先聽完 A–Z，挑戰中自動收音且答錯整輪歸零", async () => {
         const onComplete = jest.fn().mockResolvedValue(true);
         render(<WorkbookOneFoundationChallenge
             challenge={alphabetChallenge}
@@ -99,13 +122,10 @@ describe("WorkbookOneFoundationChallenge", () => {
             await Promise.resolve();
             await Promise.resolve();
         });
-        expect(screen.getByText("3")).toBeInTheDocument();
         expect(screen.getByLabelText(/^字母 /)).toHaveFocus();
-        expect(screen.getByRole("button", { name: "模擬答錯" })).toBeDisabled();
-        await act(async () => jest.advanceTimersByTime(3000));
-        await act(async () => jest.runOnlyPendingTimers());
-        expect(screen.getByRole("button", { name: "模擬答錯" })).toBeEnabled();
-        fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
+        expect(screen.getByText("麥克風已開啟")).toBeInTheDocument();
+        expect(screen.queryByText(/提示音/)).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "模擬自動答錯" }));
 
         expect(screen.getByRole("heading", { name: "沒關係，我們從第一題再來！" })).toHaveFocus();
         expect(screen.getByRole("button", { name: /重新聽 A–Z/ })).toBeInTheDocument();
@@ -128,6 +148,49 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(global.Audio).toHaveBeenCalledTimes(1);
         expect(global.Audio).toHaveBeenCalledWith(alphabetAudio.audio_url);
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
+    });
+
+    it("介紹頁的 26 個圖塊同時顯示大小寫字母", () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        expect(screen.getByLabelText("大寫 A，小寫 a")).toHaveTextContent("Aa");
+        expect(screen.getByLabelText("大寫 Z，小寫 z")).toHaveTextContent("Zz");
+        expect(screen.getByLabelText("英文字母 A 到 Z").querySelectorAll("span")).toHaveLength(26);
+    });
+
+    it("進入挑戰後回到列表前會警告本輪不存檔，取消留在原題、確定才退出", async () => {
+        const onExit = jest.fn();
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={onExit}
+        />);
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: "回到列表" }));
+        expect(screen.getByRole("alertdialog")).toHaveTextContent("挑戰紀錄不會存檔");
+        expect(screen.getByRole("button", { name: "模擬自動答對" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "取消" }));
+        expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+        expect(onExit).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole("button", { name: "回到列表" }));
+        fireEvent.click(screen.getByRole("button", { name: "確定" }));
+        expect(onExit).toHaveBeenCalledTimes(1);
     });
 
     it("完整聽完後重新播放必須從 A 的起點開始", async () => {
@@ -182,7 +245,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(safariAudio.play).toHaveBeenCalledTimes(1);
     });
 
-    it("提示音停滯時不會因牆鐘 timeout 提早解鎖錄音", async () => {
+    it("開始正式挑戰後不會再播放 A–Z 主音檔或任何字母提示音", async () => {
         render(<WorkbookOneFoundationChallenge
             challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
@@ -200,74 +263,10 @@ describe("WorkbookOneFoundationChallenge", () => {
             await Promise.resolve();
             await Promise.resolve();
         });
-        await act(async () => jest.advanceTimersByTime(3000));
-        await act(async () => jest.advanceTimersByTime(3000));
-        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
 
-        await act(async () => jest.advanceTimersByTime(15000));
-        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
-        expect(screen.getByRole("alert")).toHaveTextContent("標準發音");
-    });
-
-    it("提示音只在媒體時間到達片段終點後解鎖，且只完成一次", async () => {
-        render(<WorkbookOneFoundationChallenge
-            challenge={alphabetChallenge}
-            firebaseUser={{ uid: "student" }}
-            onComplete={jest.fn()}
-            onStartRound={startAlphabetRound}
-            onExit={jest.fn()}
-        />);
-
-        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
-        await act(async () => jest.runAllTimers());
-        const masterAudio = global.Audio.mock.results[0].value;
-        masterAudio.play = jest.fn().mockResolvedValue(undefined);
-        await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-            await Promise.resolve();
-            await Promise.resolve();
-        });
-        await act(async () => jest.advanceTimersByTime(3000));
-        const pauseCallsBeforeCompletion = masterAudio.pause.mock.calls.length;
-        masterAudio.currentTime = 51.2;
-        act(() => masterAudio.ontimeupdate());
-        act(() => masterAudio.ontimeupdate?.());
-
-        expect(screen.getByRole("button", { name: "模擬答對" })).toBeEnabled();
-        expect(masterAudio.pause.mock.calls.length - pauseCallsBeforeCompletion).toBe(1);
-    });
-
-    it("字母提示音播放失敗後必須重試並聽完才解鎖錄音", async () => {
-        render(<WorkbookOneFoundationChallenge
-            challenge={alphabetChallenge}
-            firebaseUser={{ uid: "student" }}
-            onComplete={jest.fn()}
-            onStartRound={startAlphabetRound}
-            onExit={jest.fn()}
-        />);
-
-        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
-        await act(async () => jest.runAllTimers());
-        const masterAudio = global.Audio.mock.results[0].value;
-        masterAudio.play = jest.fn().mockRejectedValueOnce(new Error("blocked"));
-
-        await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-            await Promise.resolve();
-            await Promise.resolve();
-        });
-        await act(async () => {
-            jest.advanceTimersByTime(3000);
-            await Promise.resolve();
-        });
-
-        expect(screen.getByRole("alert")).toHaveTextContent("標準發音");
-        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
-        masterAudio.play.mockResolvedValueOnce(undefined);
-        fireEvent.click(screen.getByRole("button", { name: "播放提示音" }));
-        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
-        act(() => masterAudio.onended());
-        expect(screen.getByRole("button", { name: "模擬答對" })).toBeEnabled();
+        expect(masterAudio.play).not.toHaveBeenCalled();
+        expect(screen.queryByRole("button", { name: /播放提示音/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("timer")).not.toBeInTheDocument();
     });
 
     it("字母答錯後選擇重新聽，會重播同一個 A–Z 主音檔", async () => {
@@ -286,9 +285,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             await Promise.resolve();
             await Promise.resolve();
         });
-        await act(async () => jest.advanceTimersByTime(3000));
-        await act(async () => jest.runOnlyPendingTimers());
-        fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
+        fireEvent.click(screen.getByRole("button", { name: "模擬自動答錯" }));
 
         global.Audio.mockClear();
         fireEvent.click(screen.getByRole("button", { name: /重新聽 A–Z/ }));
@@ -317,14 +314,10 @@ describe("WorkbookOneFoundationChallenge", () => {
             await Promise.resolve();
             await Promise.resolve();
         });
-        await act(async () => jest.advanceTimersByTime(3000));
-        await act(async () => jest.runOnlyPendingTimers());
-        fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
+        fireEvent.click(screen.getByRole("button", { name: "模擬自動答對" }));
         expect(await screen.findByText("第 2 題，共 26 題")).toBeInTheDocument();
         expect(onComplete).not.toHaveBeenCalled();
-        await act(async () => jest.advanceTimersByTime(3000));
-        await act(async () => jest.runOnlyPendingTimers());
-        fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
+        fireEvent.click(screen.getByRole("button", { name: "模擬自動答錯" }));
 
         await act(async () => {
             fireEvent.click(screen.getByRole("button", { name: /直接再玩一次/ }));
@@ -332,7 +325,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             await Promise.resolve();
         });
         expect(await screen.findByText("第 1 題，共 26 題")).toBeInTheDocument();
-        expect(screen.getByRole("timer")).toHaveTextContent("3先看清楚");
+        expect(screen.getByText("麥克風已開啟")).toBeInTheDocument();
         expect(startAlphabetRound).toHaveBeenCalledTimes(2);
     });
 
@@ -403,9 +396,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             await Promise.resolve();
             await Promise.resolve();
         });
-        await act(async () => jest.advanceTimersByTime(3000));
-        await act(async () => jest.runOnlyPendingTimers());
-        fireEvent.click(screen.getByRole("button", { name: "模擬回合失效" }));
+        fireEvent.click(screen.getByRole("button", { name: "模擬自動回合失效" }));
 
         expect(screen.getByRole("heading", { name: "沒關係，我們從第一題再來！" })).toBeInTheDocument();
         expect(screen.queryByTestId("round-id")).not.toBeInTheDocument();
@@ -440,14 +431,13 @@ describe("WorkbookOneFoundationChallenge", () => {
         for (let index = 0; index < 26; index += 1) {
             expect(screen.getByTestId("round-id")).toHaveTextContent("11111111-1111-4111-8111-111111111111");
             seenQuestionIds.push(Number(screen.getByTestId("practice-question-id").textContent));
-            await act(async () => jest.advanceTimersByTime(3000));
-            await act(async () => jest.runOnlyPendingTimers());
-            fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
+            fireEvent.click(screen.getByRole("button", { name: "模擬自動答對" }));
             if (index < 25) expect(await screen.findByText(`第 ${index + 2} 題，共 26 題`)).toBeInTheDocument();
         }
 
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
         expect(startAlphabetRound).toHaveBeenCalledTimes(1);
+        expect(mockAutomaticRecorderMounts).toBe(1);
         expect(onComplete).not.toHaveBeenCalled();
         expect(seenQuestionIds).toEqual([...alphabetQuestions].reverse().map(question => question.id));
         expect(new Set(seenQuestionIds).size).toBe(26);

@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiChevronLeft, FiHeadphones, FiPause, FiPlay, FiRefreshCw, FiVolume2 } from "react-icons/fi";
 import { createFoundationRound } from "../../utils/speakingChallengeRound";
+import AlphabetAutomaticRecorder from "./AlphabetAutomaticRecorder";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 
 const interactionCopy = {
     alphabet_round: {
         eyebrow: "A–Z 起始關",
         instruction: "先聽完 A 到 Z，再看大小寫字母開口唸。",
-        prompt: "看清楚字母，聽完提示音後照著唸。"
+        prompt: "看清楚字母，直接唸出來；系統會自動收音與評分。"
     },
     letter_spelling: {
         eyebrow: "看字拼讀",
@@ -27,12 +28,11 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const [introIndex, setIntroIndex] = useState(0);
     const [introPlaying, setIntroPlaying] = useState(false);
     const [introComplete, setIntroComplete] = useState(false);
-    const [countdown, setCountdown] = useState(3);
-    const [promptReady, setPromptReady] = useState(!alphabetMode);
-    const [promptBlocked, setPromptBlocked] = useState(false);
     const [roundId, setRoundId] = useState("");
     const [startingRound, setStartingRound] = useState(false);
     const [statusError, setStatusError] = useState("");
+    const [exitDialogOpen, setExitDialogOpen] = useState(false);
+    const [automaticRecorderStatus, setAutomaticRecorderStatus] = useState("preparing");
     const audioRef = useRef(null);
     const phaseFocusRef = useRef(null);
     const startPendingRef = useRef(false);
@@ -100,7 +100,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         const operationId = audioOperationRef.current;
         const audio = audioRef.current;
         if (!audio || !allAlphabetAudioReady) {
-            setPromptBlocked(true);
             setStatusError("A–Z 單一慢速音檔尚未準備完成，請稍後再試");
             return false;
         }
@@ -143,14 +142,12 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         audio.onerror = () => {
             stopAudio();
             if (markIntro) setIntroPlaying(false);
-            setPromptBlocked(true);
             setStatusError("標準發音暫時無法播放，請重新整理後再試");
         };
         const handlePlayBlocked = () => {
             if (operationId !== audioOperationRef.current) return;
             stopAudio();
             if (markIntro) setIntroPlaying(false);
-            setPromptBlocked(true);
             setStatusError("瀏覽器暫時無法播放標準發音，請再按一次");
         };
         const beginPlayback = () => {
@@ -242,8 +239,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             setRound(nextRound);
             setRoundId(nextRoundId);
             setActiveIndex(0);
-            setPromptBlocked(false);
-            setPromptReady(!alphabetMode);
             setPhase("challenge");
         } catch (cause) {
             if (requestId === startRequestRef.current) {
@@ -263,31 +258,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             phaseFocusRef.current?.focus({ preventScroll: true });
         }
     }, [activeQuestion?.id, phase]);
-    const playChallengePrompt = useCallback(() => {
-        if (!activeQuestion) return;
-        setPromptBlocked(false);
-        setPromptReady(false);
-        const segment = segmentByQuestionId.get(Number(activeQuestion.id));
-        playAlphabetAudio({ segment, onEnded: () => setPromptReady(true) });
-    }, [activeQuestion, playAlphabetAudio, segmentByQuestionId]);
-
-    useEffect(() => {
-        if (!alphabetMode || phase !== "challenge" || !activeQuestion) return undefined;
-        let remaining = 3;
-        setCountdown(remaining);
-        setPromptReady(false);
-        setPromptBlocked(false);
-        const timer = window.setInterval(() => {
-            remaining -= 1;
-            setCountdown(remaining);
-            if (remaining === 0) {
-                window.clearInterval(timer);
-                playChallengePrompt();
-            }
-        }, 1000);
-        return () => window.clearInterval(timer);
-    }, [activeQuestion, alphabetMode, phase, playChallengePrompt]);
-
     const handleIncorrect = () => {
         if (!alphabetMode) return;
         stopAudio();
@@ -324,7 +294,11 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             <FiHeadphones aria-hidden="true" />
             <h2>先聽一遍 A 到 Z</h2>
             <p>跟著亮起來的字母仔細聽，全部聽完就能開始挑戰。</p>
-            <div className="speaking-alphabet-list" aria-label="英文字母 A 到 Z">{sourceQuestions.map((question, index) => <span className={index === introIndex && introPlaying ? "active" : index < introIndex || introComplete ? "heard" : ""} key={question.id}>{question.question_text}</span>)}</div>
+            <div className="speaking-alphabet-list" aria-label="英文字母 A 到 Z">{sourceQuestions.map((question, index) => {
+                const uppercase = String(question.question_text || "").toUpperCase();
+                const lowercase = uppercase.toLowerCase();
+                return <span aria-label={`大寫 ${uppercase}，小寫 ${lowercase}`} className={index === introIndex && introPlaying ? "active" : index < introIndex || introComplete ? "heard" : ""} key={question.id}>{uppercase}<small>{lowercase}</small></span>;
+            })}</div>
             {!allAlphabetAudioReady && <p className="speaking-foundation-warning" role="alert">A–Z 單一慢速音檔尚未準備完成，這個關卡暫時不能開始。</p>}
             {statusAlert}
             <div className="speaking-foundation-actions">
@@ -349,37 +323,51 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     </main>;
 
     if (!activeQuestion) return null;
-    const disabledReason = alphabetMode && !promptReady
-        ? (promptBlocked ? "請先按「播放提示音」，聽完後再錄音。" : countdown > 0 ? `先看清楚，${countdown} 秒後播放提示音。` : "正在播放提示音，聽完就輪到你。")
-        : "";
+    const requestExit = () => setExitDialogOpen(true);
+    const confirmExit = () => {
+        setExitDialogOpen(false);
+        onExit?.();
+    };
+    const exitDialog = exitDialogOpen && <div className="speaking-exit-dialog-backdrop" role="presentation">
+        <section className="speaking-exit-dialog" role="alertdialog" aria-modal="true" aria-labelledby="speaking-exit-title" aria-describedby="speaking-exit-description">
+            <h2 id="speaking-exit-title">確定要回到列表嗎？</h2>
+            <p id="speaking-exit-description">如果要回到列表，你的挑戰紀錄不會存檔，你確定要回到列表嗎？</p>
+            <div><button type="button" className="secondary" autoFocus onClick={() => setExitDialogOpen(false)}>取消</button><button type="button" className="primary" onClick={confirmExit}>確定</button></div>
+        </section>
+    </div>;
 
     return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
         <header className="speaking-lesson-header">
-            <button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />退出本輪</button>
+            <button className="speaking-back" type="button" onClick={requestExit} disabled={alphabetMode && automaticRecorderStatus === "submitting"}><FiChevronLeft />{alphabetMode && automaticRecorderStatus === "submitting" ? "評分中…" : "回到列表"}</button>
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.prompt}</p></div>
             <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{Math.round((activeIndex / Math.max(round.length, 1)) * 100)}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round((activeIndex / Math.max(round.length, 1)) * 100)}><span style={{ width: `${Math.round((activeIndex / Math.max(round.length, 1)) * 100)}%` }} /></div></div>
         </header>
-        <section className="speaking-question-stage"><article key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card">
+        <section className="speaking-question-stage"><article className="speaking-focus-card speaking-foundation-card">
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
             <div ref={phaseFocusRef} tabIndex="-1" className={alphabetMode ? "speaking-foundation-letter" : "speaking-foundation-word"} aria-label={alphabetMode ? `字母 ${activeQuestion.display_text}` : `單字 ${activeQuestion.question_text}`}>{alphabetMode ? activeQuestion.display_text : activeQuestion.question_text}</div>
-            {alphabetMode && countdown > 0 && <div className="speaking-foundation-countdown" role="timer"><strong>{countdown}</strong><span>先看清楚</span></div>}
-            {alphabetMode && <p className="speaking-sr-only" role="status" aria-live="polite" aria-atomic="true">{promptBlocked ? "提示音播放失敗，請按播放提示音重試。" : promptReady ? "提示音播放完畢，可以開始錄音。" : countdown > 0 ? "三秒後播放提示音。" : "正在播放提示音。"}</p>}
-            {alphabetMode && promptBlocked && <button type="button" className="speaking-foundation-replay" onClick={playChallengePrompt}><FiVolume2 />播放提示音</button>}
-            <SpeakingPracticeSteps
+            {alphabetMode ? <AlphabetAutomaticRecorder
+                firebaseUser={firebaseUser}
+                question={activeQuestion}
+                foundationRoundId={roundId}
+                paused={exitDialogOpen}
+                onStatusChange={setAutomaticRecorderStatus}
+                onScored={handleCorrect}
+                onRoundInvalid={handleIncorrect}
+            /> : <SpeakingPracticeSteps
                 key={activeQuestion.id}
                 firebaseUser={firebaseUser}
                 question={activeQuestion}
                 interactionType={interactionType}
                 foundationRoundId={roundId}
-                disabledReason={disabledReason}
                 hideHelp
-                promptTitle={alphabetMode ? "輪到你唸這個字母" : "輪到你逐字母拼讀"}
-                promptDetail={alphabetMode ? "按下麥克風，只唸畫面上的字母。" : "按下麥克風，把每個字母依序唸清楚。"}
+                promptTitle="輪到你逐字母拼讀"
+                promptDetail="按下麥克風，把每個字母依序唸清楚。"
                 onCompleted={handleCorrect}
                 onIncorrect={handleIncorrect}
                 onRoundInvalid={handleIncorrect}
-            />
+            />}
             {statusAlert}
         </article></section>
+        {exitDialog}
     </main>;
 }

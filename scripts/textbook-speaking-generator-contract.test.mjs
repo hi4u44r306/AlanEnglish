@@ -407,7 +407,7 @@ test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存",
     assert.doesNotMatch(challenge, /p_student_id: Number\(body/);
 });
 
-test("22. A–Z 使用 server-only 單一主音檔與 26 個時間區段，不重新呼叫付費 TTS", () => {
+test("22. A–Z 使用 server-only 單一女聲主音檔與 26 個時間區段，缺少來源只生成一次", () => {
     assert.match(alphabetSequenceMigration, /create table if not exists public\.speaking_question_set_audio_sequences/);
     assert.match(alphabetSequenceMigration, /primary key \(question_set_id, purpose\)/);
     assert.match(alphabetSequenceMigration, /enable row level security/);
@@ -420,7 +420,9 @@ test("22. A–Z 使用 server-only 單一主音檔與 26 個時間區段，不�
     assert.match(alphabetSequence, /ALPHABET_SEQUENCE_GAP_MS = 800/);
     assert.match(alphabetSequence, /單聲道 16-bit PCM WAV/);
     assert.match(ttsManager, /action === "assemble_alphabet_master_audio"/);
-    assert.match(ttsManager, /provider_requests: 0/);
+    assert.match(ttsManager, /voiceChoice: \{ gender: "female", voiceId: femaleVoice \}/);
+    assert.match(ttsManager, /prepared\.filter\(item => item\.reused === false\)\.length/);
+    assert.match(ttsManager, /voice_id: voicePool\(\)\.female/);
     assert.match(ttsManager, /alphabet_provider_generation_disabled/);
     assert.match(ttsManager, /admin\.rpc\("claim_speaking_alphabet_audio_sequence"/);
     assert.match(ttsManager, /\.eq\("assembly_token", assemblyToken\)/);
@@ -432,8 +434,9 @@ test("22. A–Z 使用 server-only 單一主音檔與 26 個時間區段，不�
     assert.match(manager, /A–Z 的單一慢速主音檔尚未完成或已過期，不能發布/);
     assert.match(manager, /fetchR2\(sequence\.private_object_key, \{ method: "HEAD" \}\)/);
     assert.match(challenge, /alphabet_audio: alphabetAudio/);
+    assert.match(challenge, /segment\?\.voice_id === alphabetFemaleVoiceId\(\)/);
     assert.match(challenge, /createR2PresignedUrl\(sequence\.private_object_key, "GET", 15 \* 60\)/);
     assert.match(challengeView, /interactionType === "alphabet_round"/);
     assert.doesNotMatch(challenge, /private_object_key: sequence\.private_object_key/);
-    assert.match(adminPage, /建立／確認單一 A–Z 慢速音檔/);
+    assert.match(adminPage, /建立／確認單一 A–Z 女聲音檔/);
 });

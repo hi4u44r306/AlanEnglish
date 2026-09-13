@@ -101,7 +101,8 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         ));
     });
 
-    it("assembles one A–Z master audio without using the generic TTS generator", async () => {
+    it("prepares one female A–Z master audio without using the generic TTS generator", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
         getSpeakingContentBootstrap.mockResolvedValueOnce({
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
             documents: [], chunks: [], sections: [],
@@ -113,7 +114,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
-        fireEvent.click(await screen.findByRole("button", { name: "建立／確認單一 A–Z 慢速音檔" }));
+        fireEvent.click(await screen.findByRole("button", { name: "建立／確認單一 A–Z 女聲音檔" }));
 
         await waitFor(() => expect(assembleSpeakingAlphabetMasterAudio).toHaveBeenCalledWith(mockFirebaseUser, 7));
         const service = jest.requireMock("../../services/speakingContentService");

@@ -12,6 +12,7 @@ import {
     alphabetAudioSequenceValid,
     alphabetSourceFingerprint
 } from "../_shared/alphabet-audio-sequence.ts";
+import { DEFAULT_FEMALE_VOICE_ID } from "../_shared/speaking-voice-assignment.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -21,6 +22,9 @@ const corsHeaders = {
 const json = (status: number, payload: Record<string, unknown>) => new Response(JSON.stringify(payload), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
 });
+const alphabetFemaleVoiceId = () => cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_FEMALE_VOICE_NAME"), 120)
+    || cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_VOICE_NAME"), 120)
+    || DEFAULT_FEMALE_VOICE_ID;
 
 const secureShuffle = <T>(items: T[]) => {
     const next = [...items];
@@ -173,6 +177,8 @@ Deno.serve(async (req: Request) => {
                     && sequence?.source_fingerprint === sourceFingerprint
                     && sequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
                     && sequence?.mime_type === "audio/wav"
+                    && Array.isArray(sequence?.segments)
+                    && sequence.segments.every((segment: any) => segment?.voice_id === alphabetFemaleVoiceId())
                     && alphabetAudioSequenceValid(orderedQuestions, sequence);
                 if (!validSequence) {
                     return json(409, {

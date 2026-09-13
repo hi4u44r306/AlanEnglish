@@ -36,7 +36,7 @@ const SOURCE_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const emptyWholeBook = { book_id: "", document_title: "" };
 const WORKBOOK_ONE_FOUNDATION_STARTERS = [
-    { action: "create_workbook_1_alphabet_round", templateKey: "workbook_1_alphabet_round_v1", title: "A–Z 大小寫挑戰", note: "26 個字母；先完整聆聽，再進入 3 秒辨識與發音挑戰。" },
+    { action: "create_workbook_1_alphabet_round", templateKey: "workbook_1_alphabet_round_v1", title: "A–Z 大小寫挑戰", note: "26 個大小寫字母；介紹頁播放單一女聲主音檔，挑戰時自動收音且不播放答案。" },
     { action: "create_workbook_1_spelling_p14", templateKey: "workbook_1_p14_letter_spelling_v1", title: "P14 看字拼讀", note: "10 個正式來源已核准單字；建立時由後端再次核對版本。" },
     { action: "create_workbook_1_spelling_p15", templateKey: "workbook_1_p15_letter_spelling_v1", title: "P15 看字拼讀", note: "12 個正式來源已核准單字；建立時由後端再次核對版本。" },
     { action: "create_workbook_1_spelling_p16", templateKey: "workbook_1_p16_letter_spelling_v1", title: "P16 看字拼讀", note: "12 個已核准專有名詞／品牌；保留正式拼字與大小寫。" },
@@ -97,8 +97,10 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
     </div>;
 };
 
-const plannedVoice = (questionSetId, sortOrder) => (
-    (Math.abs(Number(questionSetId) || 0) + Math.abs(Number(sortOrder) || 0)) % 2 === 0
+const plannedVoice = (questionSetId, sortOrder, interactionType = "") => (
+    interactionType === "alphabet_round"
+        ? { gender: "female", label: "女聲 · Autonoe" }
+        : (Math.abs(Number(questionSetId) || 0) + Math.abs(Number(sortOrder) || 0)) % 2 === 0
         ? { gender: "female", label: "女聲 · Autonoe" }
         : { gender: "male", label: "男聲 · Puck" }
 );
@@ -106,7 +108,7 @@ const plannedVoice = (questionSetId, sortOrder) => (
 const QuestionAudioPreview = ({ firebaseUser, questionSet, question }) => {
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
-    const voice = plannedVoice(questionSet.id, question.sort_order);
+    const voice = plannedVoice(questionSet.id, question.sort_order, questionSet.generation_metadata?.interaction_type);
     const loadPreview = async () => {
         setLoading(true);
         try {
@@ -452,6 +454,7 @@ export default function SpeakingContentAdmin() {
         finally { setWorking(""); }
     };
     const assembleAlphabetAudio = async questionSet => {
+        if (!window.confirm("確定要準備單一 A–Z 女聲主音檔嗎？系統會優先沿用既有 Autonoe 女聲資產，缺少的字母只產生一次。")) return;
         setWorking(`alphabet-master-${questionSet.id}`);
         try {
             const audio = await assembleSpeakingAlphabetMasterAudio(firebaseUser, questionSet.id);
@@ -459,8 +462,8 @@ export default function SpeakingContentAdmin() {
                 toast.warning("A–Z 單一慢速音檔尚未完整");
             } else {
                 toast.success(audio.reused
-                    ? "A–Z 單一慢速音檔已存在，可直接發布"
-                    : "已用現有字母音檔組合成一個 A–Z 慢速音檔，沒有新增 TTS 費用");
+                    ? "A–Z 單一女聲慢速音檔已存在，可直接使用"
+                    : `A–Z 單一女聲慢速音檔已完成（新產生 ${Number(audio.provider_requests || 0)} 個缺少字母）`);
             }
             await load();
         } catch (error) { toast.error(error.message || "A–Z 單一慢速音檔組合失敗"); }
@@ -496,8 +499,8 @@ export default function SpeakingContentAdmin() {
                     {existing && needsReview && <button type="button" className="platform-secondary" disabled={working === `confirm-${existing.id}`} onClick={() => confirmWorkbookOneFoundation(starter, existing)}>
                         <CheckCircle2 size={17} />{working === `confirm-${existing.id}` ? "核准中…" : "已對照原頁，核准內容"}
                     </button>}
-                    {existing && starter.templateKey === "workbook_1_alphabet_round_v1" && existing.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `alphabet-master-${existing.id}`} onClick={() => assembleAlphabetAudio(existing)}>
-                        <Volume2 size={17} />{working === `alphabet-master-${existing.id}` ? "組合單一音檔中…" : "建立／確認單一 A–Z 慢速音檔"}
+                    {existing && starter.templateKey === "workbook_1_alphabet_round_v1" && ["draft", "published"].includes(existing.status) && <button type="button" className="platform-secondary" disabled={working === `alphabet-master-${existing.id}`} onClick={() => assembleAlphabetAudio(existing)}>
+                        <Volume2 size={17} />{working === `alphabet-master-${existing.id}` ? "準備女聲主音檔中…" : "建立／確認單一 A–Z 女聲音檔"}
                     </button>}
                     {existing && !needsReview && <span className="speaking-foundation-starters__status"><CheckCircle2 size={17} />{existing.status === "published" ? "已發布" : "草稿已建立"}</span>}
                 </article>;
