@@ -282,6 +282,16 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
     assert.match(coach, /reserve_speaking_pronunciation_request/);
     assert.match(coach, /finishProviderRequest/);
     assert.match(coach, /\.select\("id"\)\.maybeSingle\(\)/);
+    const finishProviderRequestSource = coach.slice(
+        coach.indexOf("const finishProviderRequest"),
+        coach.indexOf("const releaseFoundationRoundClaim")
+    );
+    assert.match(finishProviderRequestSource, /for \(let tryIndex = 0; tryIndex < 2; tryIndex \+= 1\)/);
+    assert.match(finishProviderRequestSource, /\.eq\("status", "reserved"\)/);
+    assert.match(finishProviderRequestSource, /\.select\("status,error_code,completed_at"\)/);
+    assert.match(finishProviderRequestSource, /existing\?\.status === status/);
+    assert.match(finishProviderRequestSource, /String\(existing\?\.error_code \|\| ""\) === String\(errorCode \|\| ""\)/);
+    assert.match(finishProviderRequestSource, /Boolean\(existing\?\.completed_at\)/);
     assert.match(pronunciationFlow, /"internal_failed"/);
     assert.ok(challenge.indexOf("await assertBookEntitled") < challenge.indexOf("const { data: setQuestions"));
     assert.match(pronunciationLedgerMigration, /pg_advisory_xact_lock/);
@@ -333,6 +343,14 @@ test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存",
     assert.match(foundationRoundMigration, /revoke all on function public\.record_speaking_foundation_round_attempt_v1/);
     assert.match(foundationRoundMigration, /record_speaking_foundation_assessment_v1/);
     assert.match(foundationRoundMigration, /insert into public\.speaking_pronunciation_attempts/);
+    assert.match(foundationRoundMigration, /create unique index if not exists speaking_pronunciation_attempts_foundation_claim_unique/);
+    assert.match(foundationRoundMigration, /on public\.speaking_pronunciation_attempts\(foundation_claim_token\)/);
+    assert.match(foundationRoundMigration, /where foundation_claim_token is not null/);
+    assert.match(foundationRoundMigration, /on conflict \(foundation_claim_token\) where foundation_claim_token is not null/);
+    assert.match(foundationRoundMigration, /FOUNDATION_ASSESSMENT_REPLAY_MISMATCH/);
+    assert.match(foundationRoundMigration, /attempt\.word_results = coalesce\(p_word_results, '\[\]'::jsonb\)/);
+    assert.match(foundationRoundMigration, /attempt\.pronunciation_score is not distinct from round\(p_pronunciation_score, 2\)/);
+    assert.match(coach, /FOUNDATION_\(\?:ROUND\|SET\|ASSESSMENT_REPLAY_MISMATCH\)/);
     assert.match(foundationRoundMigration, /v_round_result := public\.record_speaking_foundation_round_attempt_v1/);
     assert.match(challenge, /start_foundation_round/);
     assert.match(challenge, /crypto\.getRandomValues/);

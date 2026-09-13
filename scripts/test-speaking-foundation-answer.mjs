@@ -70,15 +70,37 @@ assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p16.me
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.sourceRequiresReview, false);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.approvedSourcePageLabel, "P14");
 
-for (const action of [
-    "create_workbook_1_spelling_p14",
-    "create_workbook_1_spelling_p15",
-    "create_workbook_1_spelling_p16",
-    "create_workbook_1_spelling_p17"
-]) {
+const EXPECTED_WORDS_BY_ACTION = {
+    create_workbook_1_spelling_p14: [
+        "apple", "juice", "world", "orange", "purple", "dance", "plane", "black", "queen", "friends"
+    ],
+    create_workbook_1_spelling_p15: [
+        "thanks", "welcome", "nice", "great", "teacher", "chair", "elephant", "paper", "bottle", "computer", "sunny", "weather"
+    ],
+    create_workbook_1_spelling_p16: [
+        "Taiwan", "Chinese", "McDonald's", "America", "Kentucky", "Starbucks", "Costco", "Tasty", "Family", "Gogoro", "Microsoft", "Domino's"
+    ],
+    create_workbook_1_spelling_p17: [
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"
+    ]
+};
+
+for (const [action, expectedWords] of Object.entries(EXPECTED_WORDS_BY_ACTION)) {
     const template = WORKBOOK_ONE_FOUNDATION_TEMPLATES[action];
     const prompts = template.questions.map(question => question.question_text);
     const questions = template.questions.map((question, sortOrder) => ({ ...question, sort_order: sortOrder }));
+    const pageLabel = action.match(/p(\d+)$/)?.[1];
+    assert.deepEqual(prompts, expectedWords);
+    assert.equal(template.sourceText, expectedWords.join(", "));
+    assert.equal(template.approvedSourcePageLabel, `P${pageLabel}`);
+    assert.deepEqual(
+        template.questions.map(question => question.simple_answer),
+        expectedWords.map(word => word.toUpperCase().replace(/[^A-Z]/g, "").split("").join(" "))
+    );
+    assert.deepEqual(
+        template.questions.map(question => question.model_answer),
+        expectedWords.map(word => word.toUpperCase().replace(/[^A-Z]/g, "").split("").join(" "))
+    );
     assert.equal(workbookOneFoundationTemplateByKey(template.templateKey), template);
     assert.equal(approvedSpellingContentMatches(template, prompts, questions), true);
     assert.equal(approvedSpellingContentMatches(template, [...prompts, "not-approved"], questions), false);

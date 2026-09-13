@@ -73,6 +73,10 @@ alter table public.speaking_pronunciation_attempts
 create index if not exists speaking_pronunciation_attempts_foundation_round_idx
     on public.speaking_pronunciation_attempts(foundation_round_id, created_at);
 
+create unique index if not exists speaking_pronunciation_attempts_foundation_claim_unique
+    on public.speaking_pronunciation_attempts(foundation_claim_token)
+    where foundation_claim_token is not null;
+
 alter table public.speaking_foundation_rounds
     add constraint speaking_foundation_rounds_last_attempt_fk
     foreign key (last_attempt_id)
@@ -554,10 +558,42 @@ begin
     from public.speaking_foundation_rounds round
     where round.id = p_round_id
       and round.student_id = p_student_id
+    on conflict (foundation_claim_token) where foundation_claim_token is not null
+    do nothing
     returning id into v_attempt_id;
 
     if v_attempt_id is null then
-        raise exception 'FOUNDATION_ROUND_NOT_FOUND';
+        if not exists (
+            select 1
+            from public.speaking_foundation_rounds round
+            where round.id = p_round_id
+              and round.student_id = p_student_id
+        ) then
+            raise exception 'FOUNDATION_ROUND_NOT_FOUND';
+        end if;
+
+        select attempt.id into v_attempt_id
+        from public.speaking_pronunciation_attempts attempt
+        join public.speaking_foundation_rounds round
+          on round.id = attempt.foundation_round_id
+        where attempt.student_id = p_student_id
+          and attempt.foundation_round_id = p_round_id
+          and attempt.foundation_claim_token = p_claim_token
+          and attempt.question_set_id = round.question_set_id
+          and round.student_id = p_student_id
+          and attempt.question_id = p_question_id
+          and attempt.pronunciation_score is not distinct from round(p_pronunciation_score, 2)
+          and attempt.accuracy_score is not distinct from round(p_accuracy_score, 2)
+          and attempt.fluency_score is not distinct from round(p_fluency_score, 2)
+          and attempt.completeness_score is not distinct from round(p_completeness_score, 2)
+          and attempt.prosody_score is not distinct from round(p_prosody_score, 2)
+          and coalesce(attempt.recognized_text, '') = coalesce(p_recognized_text, '')
+          and attempt.word_results = coalesce(p_word_results, '[]'::jsonb)
+          and attempt.answer_match is not distinct from p_answer_match;
+    end if;
+
+    if v_attempt_id is null then
+        raise exception 'FOUNDATION_ASSESSMENT_REPLAY_MISMATCH';
     end if;
 
     v_round_result := public.record_speaking_foundation_round_attempt_v1(
@@ -612,6 +648,6 @@ comment on function public.record_speaking_foundation_round_attempt_v1(bigint, u
     'Atomically fails or advances an A-Z round and only persists all 26 questions after uninterrupted success.';
 comment on function public.record_speaking_foundation_assessment_v1(
     bigint, uuid, bigint, uuid, numeric, numeric, numeric, numeric, numeric, text, jsonb, boolean
-) is 'Atomically saves one paid pronunciation assessment and advances its claimed A-Z round; any failure rolls both writes back.';
+) is 'Idempotently saves one paid pronunciation assessment by claim token and advances its claimed A-Z round; any failure rolls both writes back.';
 
 commit;

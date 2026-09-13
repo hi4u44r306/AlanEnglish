@@ -196,18 +196,29 @@ const reserveProviderRequest = async (admin: any, studentId: number, question: a
 };
 
 const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null) => {
-    const { data, error } = await admin.from("speaking_pronunciation_requests").update({
-        status,
-        error_code: errorCode,
-        completed_at: new Date().toISOString()
-    }).eq("id", requestId).eq("status", "reserved").select("id").maybeSingle();
-    if (error) throw error;
-    if (!data?.id) {
-        throw Object.assign(new Error("發音評分請求狀態無法完成"), {
-            status: 500,
-            code: "provider_request_finalize_failed"
-        });
+    let lastError: any = null;
+    for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
+        const { data, error } = await admin.from("speaking_pronunciation_requests").update({
+            status,
+            error_code: errorCode,
+            completed_at: new Date().toISOString()
+        }).eq("id", requestId).eq("status", "reserved").select("id").maybeSingle();
+        if (data?.id) return;
+        lastError = error;
+        if (!error) {
+            const { data: existing, error: readError } = await admin.from("speaking_pronunciation_requests")
+                .select("status,error_code,completed_at").eq("id", requestId).maybeSingle();
+            if (!readError
+                && existing?.status === status
+                && String(existing?.error_code || "") === String(errorCode || "")
+                && Boolean(existing?.completed_at)) return;
+            lastError = readError;
+        }
     }
+    throw lastError || Object.assign(new Error("發音評分請求狀態無法完成"), {
+        status: 500,
+        code: "provider_request_finalize_failed"
+    });
 };
 
 const releaseFoundationRoundClaim = async (admin: any, studentId: number, roundId: string, claimToken: string) => {
@@ -485,7 +496,7 @@ Deno.serve(async (req: Request) => {
                 }
                 if (roundError) {
                     const message = String(roundError.message || "");
-                    if (/FOUNDATION_(ROUND|SET)/.test(message)) {
+                    if (/FOUNDATION_(?:ROUND|SET|ASSESSMENT_REPLAY_MISMATCH)/.test(message)) {
                         throw Object.assign(new Error("這一輪已失效，請從第一題重新開始"), {
                             status: 409,
                             code: "foundation_round_invalid"

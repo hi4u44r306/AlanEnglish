@@ -51,13 +51,31 @@ const recordAttempt = async ({ studentId, roundId, attemptId, claimToken }) => (
     ) result
 `)).result;
 
-const recordAssessment = async ({ studentId, roundId, claimToken, questionId, answerMatch }) => (await scalar(`
+const recordAssessment = async ({
+    studentId,
+    roundId,
+    claimToken,
+    questionId,
+    answerMatch,
+    pronunciationScore = 88,
+    accuracyScore = 89,
+    fluencyScore = 87,
+    completenessScore = 90,
+    prosodyScore = 86,
+    recognizedText = "test answer",
+    wordResults = []
+}) => (await scalar(`
     select public.record_speaking_foundation_assessment_v1(
         $1, $2::uuid, $3, $4::uuid,
-        88, 89, 87, 90, 86, 'test answer',
-        '[]'::jsonb, $5
+        $5, $6, $7, $8, $9, $10,
+        $11::jsonb, $12
     ) result
-`, [studentId, roundId, questionId, claimToken, answerMatch])).result;
+`, [
+    studentId, roundId, questionId, claimToken,
+    pronunciationScore, accuracyScore, fluencyScore,
+    completenessScore, prosodyScore, recognizedText,
+    JSON.stringify(wordResults), answerMatch
+])).result;
 
 before(async () => {
     await db.exec(`
@@ -394,11 +412,83 @@ test("付費評分 attempt 與 round 推進使用單一交易，round 失敗不�
         roundId: round.round_id,
         claimToken: claim.claim_token,
         questionId: ids[0],
-        answerMatch: true
+        answerMatch: true,
+        pronunciationScore: 88.123
     });
     assert.equal(completedStep.status, "open");
     assert.equal(completedStep.next_index, 1);
     assert.equal(Number.isInteger(Number(completedStep.attempt_id)), true);
+
+    const afterFirstCount = (await scalar("select count(*)::int count from public.speaking_pronunciation_attempts where student_id=7")).count;
+    const replayedStep = await recordAssessment({
+        studentId: 7,
+        roundId: round.round_id,
+        claimToken: claim.claim_token,
+        questionId: ids[0],
+        answerMatch: true,
+        pronunciationScore: 88.123
+    });
+    assert.equal(replayedStep.attempt_id, completedStep.attempt_id);
+    assert.equal(replayedStep.status, "open");
+    assert.equal(replayedStep.next_index, 1);
+    assert.equal(
+        (await scalar("select count(*)::int count from public.speaking_pronunciation_attempts where student_id=7")).count,
+        afterFirstCount
+    );
+
+    await assert.rejects(
+        recordAssessment({
+            studentId: 7,
+            roundId: round.round_id,
+            claimToken: claim.claim_token,
+            questionId: ids[0],
+            answerMatch: false
+        }),
+        /FOUNDATION_ASSESSMENT_REPLAY_MISMATCH/
+    );
+    await assert.rejects(
+        recordAssessment({
+            studentId: 7,
+            roundId: round.round_id,
+            claimToken: claim.claim_token,
+            questionId: ids[0],
+            answerMatch: true,
+            pronunciationScore: 87
+        }),
+        /FOUNDATION_ASSESSMENT_REPLAY_MISMATCH/
+    );
+    await assert.rejects(
+        recordAssessment({
+            studentId: 7,
+            roundId: round.round_id,
+            claimToken: claim.claim_token,
+            questionId: ids[0],
+            answerMatch: true,
+            recognizedText: "different answer"
+        }),
+        /FOUNDATION_ASSESSMENT_REPLAY_MISMATCH/
+    );
+    await assert.rejects(
+        recordAssessment({
+            studentId: 7,
+            roundId: round.round_id,
+            claimToken: claim.claim_token,
+            questionId: ids[0],
+            answerMatch: true,
+            wordResults: [{ word: "different" }]
+        }),
+        /FOUNDATION_ASSESSMENT_REPLAY_MISMATCH/
+    );
+    await assert.rejects(
+        recordAssessment({
+            studentId: 7,
+            roundId: "00000000-0000-4000-8000-000000000007",
+            claimToken: "00000000-0000-4000-8000-000000000008",
+            questionId: ids[0],
+            answerMatch: true
+        }),
+        /FOUNDATION_ROUND_NOT_FOUND/
+    );
 });
 
 test("新 table 與五個 round RPC 只開放 service_role", async () => {
