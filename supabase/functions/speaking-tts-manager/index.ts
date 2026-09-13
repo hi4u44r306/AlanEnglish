@@ -10,6 +10,7 @@ import {
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
     ALPHABET_SEQUENCE_GAP_MS,
+    alphabetAudioSequenceValid,
     alphabetSourceFingerprint,
     assembleAlphabetAudioSequence,
     parseLinear16MonoWav
@@ -238,17 +239,8 @@ const alphabetCandidateValid = (
 
 const alphabetCandidateStored = async (candidate: any) => {
     if (!candidate?.private_object_key || Number(candidate?.byte_size || 0) <= 0) return false;
-    try {
-        const probeUrl = await createR2PresignedUrl(candidate.private_object_key, "HEAD", 60);
-        const probe = await fetch(probeUrl, { method: "HEAD" });
-        return probe.ok && Number(probe.headers.get("content-length") || 0) === Number(candidate.byte_size);
-    } catch (error: any) {
-        console.error("alphabet candidate storage probe failed", String(error?.name || "unknown"));
-        throw Object.assign(new Error("暫時無法確認候選音檔完整性"), {
-            status: 502,
-            code: "alphabet_candidate_storage_probe_failed"
-        });
-    }
+    const probe = await fetchR2(candidate.private_object_key, { method: "HEAD" });
+    return probe.ok && Number(probe.headers.get("content-length") || 0) === Number(candidate.byte_size);
 };
 
 const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSet: any, profile: any) => {

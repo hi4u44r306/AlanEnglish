@@ -458,8 +458,8 @@ test("23. A–Z 以三個單次 Chirp 女聲請求建立候選，試聽核准後
     assert.match(ttsManager, /alphabetTemplateValid\(questionSet, questions\)/);
     assert.match(ttsManager, /alphabetCandidateValid\(candidate, ordered, questionSet, settingsHash, sourceFingerprint\)/);
     assert.match(ttsManager, /alphabetCandidateStored\(candidate\)/);
-    assert.match(ttsManager, /createR2PresignedUrl\(candidate\.private_object_key, "HEAD", 60\)/);
-    assert.match(ttsManager, /alphabet_candidate_storage_probe_failed/);
+    assert.match(ttsManager, /fetchR2\(candidate\.private_object_key, \{ method: "HEAD" \}\)/);
+    assert.match(ttsManager, /ALPHABET_SEQUENCE_GAP_MS,\s+alphabetAudioSequenceValid,/);
     assert.ok(ttsManager.indexOf("alphabetTemplateValid(questionSet, questions)") < ttsManager.indexOf("prepareAlphabetCandidate(admin, questions, questionSet, profile)"));
     assert.match(manager, /alphabetActiveCandidateAllowed/);
     assert.match(manager, /candidateMaster/);
