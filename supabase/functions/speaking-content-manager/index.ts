@@ -6,7 +6,11 @@ import {
     pictureQaResponseHasQuestionAndAnswer,
     visibleSentenceWords
 } from "../_shared/speaking-foundation-answer.ts";
-import { WORKBOOK_ONE_FOUNDATION_TEMPLATES } from "../_shared/workbook-one-foundations.ts";
+import {
+    approvedSpellingContentMatches,
+    workbookOneFoundationTemplateByKey,
+    WORKBOOK_ONE_FOUNDATION_TEMPLATES
+} from "../_shared/workbook-one-foundations.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -337,6 +341,39 @@ const loadBootstrap = async (admin: any) => {
     };
 };
 
+const validateApprovedFoundationSet = async (admin: any, questionSet: any) => {
+    const metadata = questionSet?.generation_metadata || {};
+    const template = workbookOneFoundationTemplateByKey(metadata?.template_key);
+    if (!template?.approvedSourcePageLabel) return { applies: false, valid: true };
+    const [{ data: publishedSource, error: sourceError }, { data: questions, error: questionError }] = await Promise.all([
+        admin.from("book_page_spiral_review_content")
+            .select("page_label,version,pronunciation_prompts,updated_at")
+            .eq("book_id", Number(questionSet.book_id))
+            .eq("page_label", template.approvedSourcePageLabel)
+            .eq("status", "published")
+            .order("version", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        admin.from("speaking_questions")
+            .select("id,sort_order,question_text,simple_answer,model_answer")
+            .eq("question_set_id", Number(questionSet.id))
+            .order("sort_order")
+    ]);
+    if (sourceError) throw sourceError;
+    if (questionError) throw questionError;
+    const approvedSource = metadata?.approved_source || {};
+    const sourceVersionMatches = Number(approvedSource?.version) === Number(publishedSource?.version)
+        && String(approvedSource?.page_label || "") === String(publishedSource?.page_label || "")
+        && String(approvedSource?.table || "") === "book_page_spiral_review_content";
+    return {
+        applies: true,
+        valid: Boolean(publishedSource)
+            && sourceVersionMatches
+            && approvedSpellingContentMatches(template, publishedSource?.pronunciation_prompts, questions),
+        pageLabel: template.approvedSourcePageLabel
+    };
+};
+
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -365,6 +402,10 @@ Deno.serve(async (req: Request) => {
             const templateKey = String(metadata?.template_key || "");
             const isFoundationTemplate = Object.values(WORKBOOK_ONE_FOUNDATION_TEMPLATES)
                 .some((template: any) => template.templateKey === templateKey);
+            const foundationTemplate = workbookOneFoundationTemplateByKey(templateKey);
+            if (foundationTemplate?.approvedSourcePageLabel) {
+                return json(409, { error: "P14～P17 題庫必須與正式核准來源一致，不能使用舊人工核准流程" });
+            }
             if (!questionSet || questionSet.status !== "draft" || !isFoundationTemplate
                 || metadata?.requires_content_review !== true || !(questionSet.speaking_questions || []).length) {
                 return json(409, { error: "這份題庫不是可核准的 Workbook 1 基礎草稿" });
@@ -397,12 +438,48 @@ Deno.serve(async (req: Request) => {
             const catalogKey = String(book?.code || book?.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
             if (!book?.enabled || catalogKey !== curatedStarter.catalogKey) return json(400, { error: "教材與精選關卡不相符" });
 
+            let approvedSource: Record<string, unknown> | null = null;
+            const approvedSourcePageLabel = String(curatedStarter.approvedSourcePageLabel || "").trim();
+            if (approvedSourcePageLabel) {
+                const { data: publishedSource, error: publishedSourceError } = await admin
+                    .from("book_page_spiral_review_content")
+                    .select("page_label,version,pronunciation_prompts,updated_at")
+                    .eq("book_id", bookId)
+                    .eq("page_label", approvedSourcePageLabel)
+                    .eq("status", "published")
+                    .order("version", { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                if (publishedSourceError) throw publishedSourceError;
+                const approvedPrompts = Array.isArray(publishedSource?.pronunciation_prompts)
+                    ? publishedSource.pronunciation_prompts.map((value: unknown) => String(value || "").trim()).filter(Boolean)
+                    : [];
+                const templatePrompts = curatedStarter.questions.map((question: any) => String(question.question_text || "").trim());
+                const sourceMatches = approvedPrompts.length === templatePrompts.length
+                    && approvedPrompts.every((prompt: string, index: number) => prompt === templatePrompts[index]);
+                if (!publishedSource || !sourceMatches) {
+                    return json(409, { error: `${approvedSourcePageLabel} 的正式核准單字與內建草稿不一致，請先更新內容版本` });
+                }
+                approvedSource = {
+                    table: "book_page_spiral_review_content",
+                    page_label: publishedSource.page_label,
+                    version: Number(publishedSource.version),
+                    updated_at: publishedSource.updated_at
+                };
+            }
+
             const { data: existing, error: existingError } = await admin.from("speaking_question_sets")
-                .select("id,status").eq("book_id", bookId)
+                .select("id,book_id,status,generation_metadata").eq("book_id", bookId)
                 .contains("generation_metadata", { template_key: curatedStarter.templateKey })
                 .neq("status", "archived").order("updated_at", { ascending: false }).limit(1).maybeSingle();
             if (existingError) throw existingError;
-            if (existing) return json(200, { success: true, question_set_id: existing.id, status: existing.status, reused: true });
+            if (existing) {
+                const validation = await validateApprovedFoundationSet(admin, existing);
+                if (!validation.valid) {
+                    return json(409, { error: `${validation.pageLabel || approvedSourcePageLabel} 的現有題庫已過期或與正式核准內容不一致，請封存後重新建立` });
+                }
+                return json(200, { success: true, question_set_id: existing.id, status: existing.status, reused: true });
+            }
 
             const now = new Date().toISOString();
             const sourceRequiresReview = curatedStarter.sourceRequiresReview === true;
@@ -429,6 +506,7 @@ Deno.serve(async (req: Request) => {
                     generation_metadata: {
                         source: "curated_template", template_key: curatedStarter.templateKey,
                         source_pages: curatedStarter.sourcePages, answer_type: curatedStarter.answerType,
+                        ...(approvedSource ? { approved_source: approvedSource } : {}),
                         ...(curatedStarter.metadata || {})
                     },
                     created_by: user.id, created_at: now, updated_at: now
@@ -978,6 +1056,9 @@ Deno.serve(async (req: Request) => {
             if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
                 return json(409, { error: "P21／P22 圖片題庫的顯示內容與後端完整答案必須同步，不能使用通用題目編輯器修改" });
             }
+            if (questionSet?.generation_metadata?.approved_source_page_label) {
+                return json(409, { error: "P14～P17 題庫由正式核准來源鎖定；如需更改，請先更新來源版本並重建題庫" });
+            }
             const normalized = normalizeQuestions([body?.question], 1)?.[0];
             if (!normalized) return json(400, { error: "問題、提示、關鍵字與兩種示範回答都必須完整" });
             const now = new Date().toISOString();
@@ -1268,6 +1349,10 @@ Deno.serve(async (req: Request) => {
             }
             if (metadata?.requires_content_review === true && !metadata?.content_reviewed_at) {
                 return json(409, { error: "Workbook 1 基礎題目尚未完成逐題人工核對" });
+            }
+            const approvedFoundationValidation = await validateApprovedFoundationSet(admin, questionSet);
+            if (!approvedFoundationValidation.valid) {
+                return json(409, { error: `${approvedFoundationValidation.pageLabel || "Workbook 1"} 題庫已過期或與最新正式核准內容不一致，請封存後重新建立` });
             }
             if (metadata?.interaction_type === "alphabet_round") {
                 const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));

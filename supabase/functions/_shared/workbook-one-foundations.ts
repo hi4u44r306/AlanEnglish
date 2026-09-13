@@ -26,6 +26,38 @@ const spellingQuestion = (word: string) => {
     };
 };
 
+const spellingAnswer = (word: unknown) => String(word || "")
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "")
+    .split("")
+    .join(" ");
+
+export const workbookOneFoundationTemplateByKey = (templateKey: unknown) => Object.values(
+    WORKBOOK_ONE_FOUNDATION_TEMPLATES
+).find((template: any) => template.templateKey === String(templateKey || "")) || null;
+
+export const approvedSpellingContentMatches = (
+    template: any,
+    sourcePrompts: unknown,
+    questions: unknown
+) => {
+    if (!template?.approvedSourcePageLabel || !Array.isArray(sourcePrompts) || !Array.isArray(questions)) return false;
+    const approvedPrompts = sourcePrompts.map(value => String(value || "").trim()).filter(Boolean);
+    const expectedPrompts = template.questions.map((question: any) => String(question.question_text || "").trim());
+    const orderedQuestions = [...questions].sort((left: any, right: any) => Number(left?.sort_order) - Number(right?.sort_order));
+    return approvedPrompts.length === expectedPrompts.length
+        && approvedPrompts.every((prompt, index) => prompt === expectedPrompts[index])
+        && orderedQuestions.length === expectedPrompts.length
+        && orderedQuestions.every((question: any, index: number) => {
+            const prompt = String(question?.question_text || "").trim();
+            const expectedAnswer = spellingAnswer(expectedPrompts[index]);
+            return Number(question?.sort_order) === index
+                && prompt === expectedPrompts[index]
+                && String(question?.simple_answer || "").trim() === expectedAnswer
+                && String(question?.model_answer || "").trim() === expectedAnswer;
+        });
+};
+
 const spellingTemplate = (page: number, words: string[], extraMetadata: Record<string, unknown> = {}) => ({
     catalogKey: "workbook1",
     templateKey: `workbook_1_p${page}_letter_spelling_v1`,
@@ -39,11 +71,13 @@ const spellingTemplate = (page: number, words: string[], extraMetadata: Record<s
     sourceText: words.join(", "),
     difficulty: "國小低年級",
     answerType: "exact_letter_sequence",
-    sourceRequiresReview: true,
+    approvedSourcePageLabel: `P${page}`,
+    sourceRequiresReview: false,
     metadata: {
         interaction_type: "letter_spelling",
         shuffle: true,
-        requires_content_review: true,
+        approved_source_table: "book_page_spiral_review_content",
+        approved_source_page_label: `P${page}`,
         ...extraMetadata
     },
     questions: words.map(spellingQuestion)
@@ -90,8 +124,8 @@ export const WORKBOOK_ONE_FOUNDATION_TEMPLATES: Record<string, any> = {
     ]),
     create_workbook_1_spelling_p16: spellingTemplate(16, [
         "Taiwan", "Chinese", "McDonald's", "America", "Kentucky", "Starbucks", "Costco", "Tasty", "Family", "Gogoro", "Microsoft", "Domino's"
-    ], { requires_brand_review: true }),
+    ], { contains_brand_names: true, brand_review_completed: true }),
     create_workbook_1_spelling_p17: spellingTemplate(17, [
-        "eight", "six", "seven", "five", "two", "ten", "twelve", "three", "thirteen", "four", "eleven", "one", "nine"
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"
     ])
 };

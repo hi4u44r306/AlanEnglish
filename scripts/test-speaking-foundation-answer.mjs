@@ -10,8 +10,10 @@ import {
     visibleSentenceWords
 } from "../supabase/functions/_shared/speaking-foundation-answer.ts";
 import {
+    approvedSpellingContentMatches,
     WORKBOOK_ONE_FOUNDATION_ACTIONS,
-    WORKBOOK_ONE_FOUNDATION_TEMPLATES
+    WORKBOOK_ONE_FOUNDATION_TEMPLATES,
+    workbookOneFoundationTemplateByKey
 } from "../supabase/functions/_shared/workbook-one-foundations.ts";
 
 assert.equal(readFoundationInteractionType({ interaction_type: "alphabet_round" }), "alphabet_round");
@@ -55,9 +57,29 @@ assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_alphabet_round.
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.questions.length, 10);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p15.questions.length, 12);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p16.questions.length, 12);
-assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p17.questions.length, 13);
-assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p16.metadata.requires_brand_review, true);
-assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.sourceRequiresReview, true);
+assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p17.questions.length, 12);
+assert.deepEqual(
+    WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p17.questions.map(question => question.question_text),
+    ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"]
+);
+assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p16.metadata.brand_review_completed, true);
+assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.sourceRequiresReview, false);
+assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.approvedSourcePageLabel, "P14");
+
+const p17Template = WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p17;
+const p17Prompts = p17Template.questions.map(question => question.question_text);
+const p17Questions = p17Template.questions.map((question, sortOrder) => ({ ...question, sort_order: sortOrder }));
+assert.equal(workbookOneFoundationTemplateByKey(p17Template.templateKey), p17Template);
+assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts, p17Questions), true);
+assert.equal(approvedSpellingContentMatches(p17Template, [...p17Prompts, "thirteen"], p17Questions), false);
+assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts.slice(0, -1), p17Questions), false);
+assert.equal(approvedSpellingContentMatches(p17Template, [...p17Prompts].reverse(), p17Questions), false);
+assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts, [...p17Questions, {
+    ...p17Questions[0], sort_order: 12, question_text: "thirteen", simple_answer: "T H I R T E E N", model_answer: "T H I R T E E N"
+}]), false);
+assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts, p17Questions.map((question, index) => (
+    index === 0 ? { ...question, model_answer: "O N" } : question
+))), false);
 
 const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8");
 const challengeSource = readFileSync(new URL("../supabase/functions/speaking-challenge/index.ts", import.meta.url), "utf8");

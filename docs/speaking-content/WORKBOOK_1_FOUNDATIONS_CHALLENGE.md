@@ -1,7 +1,7 @@
 # Workbook 1 基礎口說闖關規格
 
 最後更新：2026-09-12
-狀態：A–Z、P14～P17、P21／P22 學生端框架與管理員人工匯入流程已完成本機驗證；尚未部署、尚未建立正式題庫
+狀態：A–Z、P14～P17、P21／P22 學生端框架與管理員人工匯入流程已完成本機驗證；P14～P17 已連結正式核准來源，尚未部署、尚未建立正式題庫
 
 ## 1. 本階段範圍
 
@@ -20,7 +20,10 @@
 - 開發分支：`codex/workbook1-speaking-challenges`。
 - 既有 Speaking 視覺提示、換題同步與台灣國旗修正已從乾淨 integration branch 套入；沒有帶入 Academy 或其他產品歷史。
 - Supabase 已存在 `speaking_question_visual_aids` migration，`speaking_questions.visual_aid` 欄位可保存安全的結構化提示；學生仍只能透過驗證 Firebase Token 與 entitlement 的 Edge Function 取得題目。
-- 正式資料目前有 Workbook 1 的 P11～P20、P21～P30 OCR section，但文件仍是 `draft`、OCR 狀態是 `review_required`。
+- 正式 `book_page_spiral_review_content` 已有 Workbook 1 P14～P17 的 `published` 人工核對內容；建立拼讀草稿時後端會逐字、逐順序比對最新發布版本，不相符即拒絕建立。
+- 沿用既有草稿與發布前也會重新比對正式來源、題序及完整字母答案；舊 13 題 P17、遭編輯的草稿或來源升版後的舊草稿都必須封存後重建。來源鎖定題庫不開放通用題目編輯器，active template 另有唯一索引避免並行重複建立。
+- `book_page_spiral_review_content` 的建表與正式來源 migration 目前仍在未合併的 PR #109；此 dependency 進入 `main` 前，本功能 PR 必須維持 Draft，不可只因正式環境已存在資料表就略過版本庫依賴。
+- 正式資料另有 Workbook 1 的 P21～P30 OCR section，但原 PDF／OCR 文件仍是 `draft`、OCR 狀態是 `review_required`；P21／P22 的圖片內容與空格答案不能由 OCR 還原。
 - 目前已發布的 Workbook 1 題庫沒有涵蓋 A–Z、P14～P17、P21 或 P22。本批不能把 OCR 草稿直接當成正式答案發布。
 
 ## 3. 共用學生流程
@@ -74,14 +77,14 @@
 
 ## 5. P14～P17 拼字關
 
-四頁分成四個短關卡，避免國小生一次完成 47 題；每一頁內題序獨立洗牌。
+四頁分成四個短關卡，避免國小生一次完成 46 題；每一頁內題序獨立洗牌。
 
-| 頁面 | 題數 | 已由 OCR 取得、待管理員核對的單字 |
+| 頁面 | 題數 | 正式資料已發布並人工核對的單字 |
 | --- | ---: | --- |
 | P14 | 10 | apple, juice, world, orange, purple, dance, plane, black, queen, friends |
 | P15 | 12 | thanks, welcome, nice, great, teacher, chair, elephant, paper, bottle, computer, sunny, weather |
 | P16 | 12 | Taiwan, Chinese, McDonald's, America, Kentucky, Starbucks, Costco, Tasty, Family, Gogoro, Microsoft, Domino's |
-| P17 | 13 | eight, six, seven, five, two, ten, twelve, three, thirteen, four, eleven, one, nine |
+| P17 | 12 | one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve |
 
 顯示與判定規則：
 
@@ -90,7 +93,7 @@
 - 後端以題庫中的完整字母序列比對辨識結果；漏字、換序或多字都不能完成。
 - 大小寫不影響發音判定；撇號不作為要朗讀的字母，`McDonald's` 的答案序列為字母本身。
 - metadata 使用 `interaction_type: "letter_spelling"` 與 `shuffle: true`。
-- P16 含品牌及專有名詞，正式建立草稿前須由管理員確認拼字、大小寫與是否保留全部品牌題。
+- P16 含品牌及專有名詞；正式來源已完成人工核對，草稿仍須保留該版本的拼字、撇號與大小寫。若正式來源日後更新，後端會拒絕沿用不一致的內建清單。
 
 ## 6. P21 圖片問答
 
@@ -157,7 +160,7 @@ P21／P22 不使用任意遠端 URL，也不把私人 R2 object key 直接傳給
 
 已完成並通過本機測試：
 
-1. A–Z 與 P14～P17 的 curated draft templates；P14～P17 只能在管理員逐頁核准後發布。
+1. A–Z 與 P14～P17 的 curated draft templates；P14～P17 建立前必須逐字符合 `book_page_spiral_review_content` 最新 `published` 版本，P17 已依正式資料修正為 12 題並移除不屬於該頁的 `thirteen`。
 2. 後端 `alphabet_round`／`letter_spelling` 完整答案比對，以及完成紀錄的最近正確評分閘門。
 3. 前端完整洗牌、A–Z 大小寫隨機、3 秒提示、答錯回到第一題、重聽與重玩流程。
 4. A–Z 草稿可由管理員預先產生音檔，但 26 題未全部 ready 前不能發布；學生端只讀短效私人網址，不產生 TTS 費用。

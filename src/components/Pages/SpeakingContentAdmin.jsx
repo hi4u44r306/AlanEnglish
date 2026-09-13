@@ -35,10 +35,10 @@ const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const emptyWholeBook = { book_id: "", document_title: "" };
 const WORKBOOK_ONE_FOUNDATION_STARTERS = [
     { action: "create_workbook_1_alphabet_round", templateKey: "workbook_1_alphabet_round_v1", title: "A–Z 大小寫挑戰", note: "26 個字母；先完整聆聽，再進入 3 秒辨識與發音挑戰。" },
-    { action: "create_workbook_1_spelling_p14", templateKey: "workbook_1_p14_letter_spelling_v1", title: "P14 看字拼讀", note: "10 個 OCR 草稿單字；建立後必須逐題對照原頁。" },
-    { action: "create_workbook_1_spelling_p15", templateKey: "workbook_1_p15_letter_spelling_v1", title: "P15 看字拼讀", note: "12 個 OCR 草稿單字；建立後必須逐題對照原頁。" },
-    { action: "create_workbook_1_spelling_p16", templateKey: "workbook_1_p16_letter_spelling_v1", title: "P16 看字拼讀", note: "12 個專有名詞／品牌草稿；正式發布前需要額外核對。" },
-    { action: "create_workbook_1_spelling_p17", templateKey: "workbook_1_p17_letter_spelling_v1", title: "P17 看字拼讀", note: "13 個數字單字草稿；建立後必須逐題對照原頁。" }
+    { action: "create_workbook_1_spelling_p14", templateKey: "workbook_1_p14_letter_spelling_v1", title: "P14 看字拼讀", note: "10 個正式來源已核准單字；建立時由後端再次核對版本。" },
+    { action: "create_workbook_1_spelling_p15", templateKey: "workbook_1_p15_letter_spelling_v1", title: "P15 看字拼讀", note: "12 個正式來源已核准單字；建立時由後端再次核對版本。" },
+    { action: "create_workbook_1_spelling_p16", templateKey: "workbook_1_p16_letter_spelling_v1", title: "P16 看字拼讀", note: "12 個已核准專有名詞／品牌；保留正式拼字與大小寫。" },
+    { action: "create_workbook_1_spelling_p17", templateKey: "workbook_1_p17_letter_spelling_v1", title: "P17 看字拼讀", note: "12 個正式來源已核准數字單字；建立時由後端再次核對版本。" }
 ];
 
 const chunkStatusLabel = status => ({
@@ -319,7 +319,7 @@ export default function SpeakingContentAdmin() {
         setWorking(starter.action);
         try {
             const result = await createWorkbookOneFoundationQuestionSet(firebaseUser, workbookOne.id, starter.action);
-            toast.success(result.reused ? `${starter.title}草稿已存在` : `${starter.title}草稿已建立；請先逐題核對再發布`);
+            toast.success(result.reused ? `${starter.title}草稿已存在` : `${starter.title}草稿已建立；請先預覽再發布`);
             await load();
         } catch (error) { toast.error(error.message || `${starter.title}建立失敗`); }
         finally { setWorking(""); }
@@ -427,7 +427,7 @@ export default function SpeakingContentAdmin() {
         </section>
 
         <section className="platform-card speaking-starter-card speaking-foundation-starters">
-            <div><span className="platform-eyebrow">WORKBOOK 1 FOUNDATIONS</span><h2>建立 A–Z 與 P14～P17 基礎口說草稿</h2><p>這些按鈕只建立可編輯草稿，不執行 OCR、不呼叫付費 AI，也不會自動發布。P14～P17 必須逐題對照原教材後才能通過後端發布閘門。</p></div>
+            <div><span className="platform-eyebrow">WORKBOOK 1 FOUNDATIONS</span><h2>建立 A–Z 與 P14～P17 基礎口說草稿</h2><p>這些按鈕只建立可預覽草稿，不執行 OCR、不呼叫付費 AI，也不會自動發布。P14～P17 建立時會由後端逐字核對目前已發布的正式頁面來源。</p></div>
             <div className="speaking-foundation-starters__list">{WORKBOOK_ONE_FOUNDATION_STARTERS.map(starter => {
                 const existing = workbookOneFoundationSets.get(starter.templateKey);
                 const needsReview = existing?.generation_metadata?.requires_content_review === true

@@ -14,6 +14,7 @@ const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignme
 const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
 const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
 const visualAssetMigration = read("supabase/migrations/20260912143926_workbook1_speaking_visual_assets.sql");
+const foundationUniquenessMigration = read("supabase/migrations/20260913113000_workbook1_foundation_template_uniqueness.sql");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -148,7 +149,7 @@ test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {
     assert.match(challenge, /complete_speaking_challenge_question_v2/);
 });
 
-test("15. Workbook 1 基礎關卡只建立草稿，OCR 單字需人工核准", () => {
+test("15. Workbook 1 基礎關卡只建立草稿，P14～P17 必須逐字符合已發布正式來源", () => {
     for (const action of [
         "create_workbook_1_alphabet_round",
         "create_workbook_1_spelling_p14",
@@ -157,8 +158,19 @@ test("15. Workbook 1 基礎關卡只建立草稿，OCR 單字需人工核准", (
         "create_workbook_1_spelling_p17"
     ]) assert.match(foundationTemplates, new RegExp(action));
     assert.match(foundationTemplates, /questions: alphabet\.map\(letterQuestion\)/);
-    assert.match(foundationTemplates, /sourceRequiresReview: true/);
-    assert.match(foundationTemplates, /requires_brand_review: true/);
+    assert.match(foundationTemplates, /approvedSourcePageLabel: `P\$\{page\}`/);
+    assert.match(foundationTemplates, /sourceRequiresReview: false/);
+    assert.match(foundationTemplates, /brand_review_completed: true/);
+    assert.doesNotMatch(foundationTemplates, /"thirteen"/);
+    assert.match(manager, /book_page_spiral_review_content/);
+    assert.match(manager, /approvedPrompts\.length === templatePrompts\.length/);
+    assert.match(manager, /正式核准單字與內建草稿不一致/);
+    assert.match(manager, /approved_source: approvedSource/);
+    assert.match(manager, /validateApprovedFoundationSet/);
+    assert.match(manager, /現有題庫已過期或與正式核准內容不一致/);
+    assert.match(manager, /題庫已過期或與最新正式核准內容不一致/);
+    assert.match(manager, /P14～P17 題庫由正式核准來源鎖定/);
+    assert.match(manager, /不能使用舊人工核准流程/);
     assert.match(manager, /confirm_workbook_1_foundation_source/);
     assert.match(manager, /content_reviewed_at/);
     assert.match(manager, /if \(!reviewedSection\) return json\(409/);
@@ -168,6 +180,8 @@ test("15. Workbook 1 基礎關卡只建立草稿，OCR 單字需人工核准", (
     assert.match(manager, /reviewed_at: null/);
     assert.match(manager, /questionIds\.length !== 26/);
     assert.match(manager, /A–Z 的 26 個標準發音尚未全部完成/);
+    assert.match(foundationUniquenessMigration, /speaking_question_sets_foundation_template_active_unique/);
+    assert.match(foundationUniquenessMigration, /workbook_1_p17_letter_spelling_v1/);
     assert.match(ttsManager, /mayPrepareAlphabetDraft/);
     assert.match(ttsManager, /questions\.slice\(0, 50\)/);
     assert.match(service, /createWorkbookOneFoundationQuestionSet/);
