@@ -114,6 +114,51 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
     });
 
+    it("字母提示音播放失敗後必須重試並聽完才解鎖錄音", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        const blockedAudio = {
+            onended: null,
+            onerror: null,
+            pause: jest.fn(),
+            play: jest.fn().mockRejectedValue(new Error("blocked"))
+        };
+        const retryAudio = {
+            onended: null,
+            onerror: null,
+            pause: jest.fn(),
+            play: jest.fn().mockResolvedValue(undefined)
+        };
+        global.Audio
+            .mockImplementationOnce(() => blockedAudio)
+            .mockImplementationOnce(() => retryAudio);
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        await act(async () => {
+            jest.advanceTimersByTime(3000);
+            await Promise.resolve();
+        });
+
+        expect(screen.getByRole("alert")).toHaveTextContent("標準發音");
+        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "播放提示音" }));
+        expect(screen.getByRole("button", { name: "模擬答對" })).toBeDisabled();
+        act(() => retryAudio.onended());
+        expect(screen.getByRole("button", { name: "模擬答對" })).toBeEnabled();
+    });
+
     it("字母答錯後選擇重新聽，會再次依 A 到 Z 播完 26 個標準音", async () => {
         render(<WorkbookOneFoundationChallenge
             challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
@@ -337,6 +382,47 @@ describe("WorkbookOneFoundationChallenge", () => {
 
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
         expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ id: 20 }), expect.objectContaining({ answer_match: true }));
+    });
+
+    it("拼讀答錯或完成紀錄保存失敗時留在同一題", async () => {
+        const onComplete = jest.fn()
+            .mockResolvedValueOnce(false)
+            .mockResolvedValueOnce(true);
+        render(<WorkbookOneFoundationChallenge
+            challenge={{
+                id: 2,
+                title: "P14 看字拼讀",
+                generation_metadata: { interaction_type: "letter_spelling" },
+                speaking_questions: [
+                    { id: 20, sort_order: 0, question_text: "apple", model_answer: "A P P L E" },
+                    { id: 21, sort_order: 1, question_text: "book", model_answer: "B O O K" }
+                ]
+            }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={onComplete}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始拼讀" }));
+        const firstQuestionId = screen.getByTestId("practice-question-id").textContent;
+        fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
+        expect(screen.getByTestId("practice-question-id")).toHaveTextContent(firstQuestionId);
+        expect(onComplete).not.toHaveBeenCalled();
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
+            await Promise.resolve();
+        });
+        expect(screen.getByTestId("practice-question-id")).toHaveTextContent(firstQuestionId);
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole("heading", { name: "太棒了，全部完成！" })).not.toBeInTheDocument();
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
+            await Promise.resolve();
+        });
+        expect(onComplete).toHaveBeenCalledTimes(2);
+        expect(screen.getByTestId("practice-question-id")).not.toHaveTextContent(firstQuestionId);
     });
 
     it.each([

@@ -139,6 +139,14 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     });
 
     it("does not expose P21/P22 drafts to the generic question editor", async () => {
+        getSpeakingQuestionPicturePreview
+            .mockRejectedValueOnce(new Error("preview unavailable"))
+            .mockResolvedValueOnce({
+                question_id: 53,
+                image_url: "https://r2.example/p21-preview.png",
+                alt_zh: "教材中的蘋果插圖",
+                expires_in_seconds: 900
+            });
         getSpeakingContentBootstrap.mockResolvedValueOnce({
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
             documents: [{ id: 50, book_id: 1, title: "Workbook 1 P21 人工圖片內容", chunk_count: 0 }], chunks: [],
@@ -162,6 +170,10 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(screen.getByText("預覽學生畫面"));
         fireEvent.click(screen.getByRole("button", { name: "載入第 1 題圖片預覽" }));
         await waitFor(() => expect(getSpeakingQuestionPicturePreview).toHaveBeenCalledWith(mockFirebaseUser, 53));
+        expect(await screen.findByRole("status")).toHaveTextContent("圖片尚未準備完成，請確認上傳狀態後再試。");
+        expect(screen.queryByRole("img", { name: "教材中的蘋果插圖" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "載入第 1 題圖片預覽" }));
+        await waitFor(() => expect(getSpeakingQuestionPicturePreview).toHaveBeenCalledTimes(2));
         expect(await screen.findByRole("img", { name: "教材中的蘋果插圖" })).toHaveAttribute("src", "https://r2.example/p21-preview.png");
         expect(screen.getByText("學生只會看到圖片，並在同一次錄音說出完整問句與回答。")).toBeInTheDocument();
     });
