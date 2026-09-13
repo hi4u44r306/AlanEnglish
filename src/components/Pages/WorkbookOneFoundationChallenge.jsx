@@ -17,7 +17,7 @@ const interactionCopy = {
     }
 };
 
-export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onExit }) {
+export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
@@ -27,7 +27,10 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const [activeIndex, setActiveIndex] = useState(0);
     const [introIndex, setIntroIndex] = useState(0);
     const [introPlaying, setIntroPlaying] = useState(false);
-    const [introComplete, setIntroComplete] = useState(false);
+    const [introComplete, setIntroComplete] = useState(Boolean(challenge?.alphabet_audio?.intro_listen_completed));
+    const [introListenSessionId, setIntroListenSessionId] = useState("");
+    const [retryFeedback, setRetryFeedback] = useState(null);
+    const [failureFeedback, setFailureFeedback] = useState(null);
     const [roundId, setRoundId] = useState("");
     const [startingRound, setStartingRound] = useState(false);
     const [statusError, setStatusError] = useState("");
@@ -89,12 +92,15 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         setRound([]);
         setActiveIndex(0);
         setIntroIndex(0);
-        setIntroComplete(false);
+        setIntroComplete(Boolean(challenge?.alphabet_audio?.intro_listen_completed));
+        setIntroListenSessionId("");
+        setRetryFeedback(null);
+        setFailureFeedback(null);
         setRoundId("");
         setStartingRound(false);
         setStatusError("");
         startPendingRef.current = false;
-    }, [alphabetMode, challenge?.id, stopAudio]);
+    }, [alphabetMode, challenge?.alphabet_audio?.intro_listen_completed, challenge?.id, stopAudio]);
     const playAlphabetAudio = useCallback(({ segment = null, startIndex = 0, onEnded, markIntro = false } = {}) => {
         stopAudio();
         const operationId = audioOperationRef.current;
@@ -196,17 +202,50 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         return true;
     }, [allAlphabetAudioReady, alphabetSegments, stopAudio]);
 
-    const playIntroFrom = useCallback(index => {
+    useEffect(() => {
+        if (!retryFeedback) return undefined;
+        const timeout = window.setTimeout(() => setRetryFeedback(null), 3000);
+        return () => window.clearTimeout(timeout);
+    }, [retryFeedback]);
+
+    const playIntroFrom = useCallback(async index => {
         setIntroIndex(index);
+        setStatusError("");
+        let listenSessionId = introListenSessionId;
+        if (!introComplete && !listenSessionId && index === 0 && onStartAlphabetIntro) {
+            try {
+                const response = await onStartAlphabetIntro();
+                if (response?.already_completed) {
+                    setIntroComplete(true);
+                    return;
+                }
+                listenSessionId = String(response?.listen_session_id || "");
+                if (!listenSessionId) throw new Error("A–Z 聆聽紀錄尚未準備完成");
+                setIntroListenSessionId(listenSessionId);
+            } catch (cause) {
+                setStatusError(cause?.message || "目前無法開始 A–Z 聆聽");
+                return;
+            }
+        }
         playAlphabetAudio({
             startIndex: index,
             markIntro: true,
-            onEnded: () => {
+            onEnded: async () => {
                 setIntroIndex(sourceQuestions.length - 1);
                 setIntroComplete(true);
+                if (!introComplete && listenSessionId && onCompleteAlphabetIntro) {
+                    try {
+                        const response = await onCompleteAlphabetIntro(listenSessionId);
+                        if (!response?.completed) throw new Error("A–Z 聆聽尚未完成，請再聽一次");
+                    } catch (cause) {
+                        setIntroComplete(false);
+                        setIntroListenSessionId("");
+                        setStatusError(cause?.message || "A–Z 聆聽紀錄尚未完成，請再聽一次");
+                    }
+                }
             }
         });
-    }, [playAlphabetAudio, sourceQuestions]);
+    }, [introComplete, introListenSessionId, onCompleteAlphabetIntro, onStartAlphabetIntro, playAlphabetAudio, sourceQuestions]);
 
     const startRound = useCallback(async () => {
         if (startPendingRef.current) return;
@@ -258,9 +297,11 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             phaseFocusRef.current?.focus({ preventScroll: true });
         }
     }, [activeQuestion?.id, phase]);
-    const handleIncorrect = () => {
+    const handleIncorrect = result => {
         if (!alphabetMode) return;
         stopAudio();
+        setRetryFeedback(null);
+        setFailureFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
         setRound([]);
         setRoundId("");
         setActiveIndex(0);
@@ -270,8 +311,12 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const handleCorrect = async result => {
         if (alphabetMode) {
             const expectedStatus = activeIndex >= round.length - 1 ? "completed" : "open";
+            if (result?.foundation_round?.status === "retry") {
+                setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
+                return;
+            }
             if (result?.foundation_round?.status !== expectedStatus) {
-                handleIncorrect();
+                handleIncorrect(result);
                 return;
             }
         } else {
@@ -293,7 +338,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         <section className="speaking-foundation-intro">
             <FiHeadphones aria-hidden="true" />
             <h2>先聽一遍 A 到 Z</h2>
-            <p>跟著亮起來的字母仔細聽，全部聽完就能開始挑戰。</p>
+            <p>{introComplete ? "你已經完整聽過這個版本，現在可以直接開始挑戰。" : "跟著亮起來的字母仔細聽，全部聽完就能開始挑戰。"}</p>
             <div className="speaking-alphabet-list" aria-label="英文字母 A 到 Z">{sourceQuestions.map((question, index) => {
                 const uppercase = String(question.question_text || "").toUpperCase();
                 const lowercase = uppercase.toLowerCase();
@@ -315,7 +360,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     </main>;
 
     if (phase === "failed") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
-        <section className="speaking-foundation-result is-retry"><FiRefreshCw aria-hidden="true" /><h1 ref={phaseFocusRef} tabIndex="-1">沒關係，我們從第一題再來！</h1><p>這一輪已重新歸零。你可以再聽一次 A–Z，或直接換一個新順序挑戰。</p>{statusAlert}<div className="speaking-foundation-actions"><button type="button" onClick={() => { setIntroIndex(0); setIntroComplete(false); setPhase("intro"); }}><FiHeadphones />重新聽 A–Z</button><button type="button" className="primary" onClick={startRound} disabled={startingRound}><FiRefreshCw />{startingRound ? "正在準備…" : "直接再玩一次"}</button></div></section>
+        <section className="speaking-foundation-result is-retry"><FiRefreshCw aria-hidden="true" /><h1 ref={phaseFocusRef} tabIndex="-1">沒關係，我們從第一題再來！</h1>{failureFeedback?.expected && <p className="speaking-foundation-feedback">剛剛這題是 <strong>{failureFeedback.expected}</strong>。{failureFeedback.heard ? <>系統聽到的是「{failureFeedback.heard}」。</> : "系統剛剛沒有聽清楚。"}</p>}<p>這一輪已重新歸零。你可以再聽一次 A–Z，或直接換一個新順序挑戰。</p>{statusAlert}<div className="speaking-foundation-actions"><button type="button" onClick={() => { setIntroIndex(0); setPhase("intro"); }}><FiHeadphones />重新聽 A–Z</button><button type="button" className="primary" onClick={startRound} disabled={startingRound}><FiRefreshCw />{startingRound ? "正在準備…" : "直接再玩一次"}</button></div></section>
     </main>;
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
@@ -349,7 +394,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 firebaseUser={firebaseUser}
                 question={activeQuestion}
                 foundationRoundId={roundId}
-                paused={exitDialogOpen}
+                paused={exitDialogOpen || Boolean(retryFeedback)}
                 onStatusChange={setAutomaticRecorderStatus}
                 onScored={handleCorrect}
                 onRoundInvalid={handleIncorrect}
@@ -366,6 +411,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 onIncorrect={handleIncorrect}
                 onRoundInvalid={handleIncorrect}
             />}
+            {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></aside>}
             {statusAlert}
         </article></section>
         {exitDialog}

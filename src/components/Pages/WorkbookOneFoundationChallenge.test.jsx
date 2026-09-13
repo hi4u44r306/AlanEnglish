@@ -23,6 +23,7 @@ jest.mock("./AlphabetAutomaticRecorder", () => function AutomaticRecorder({ ques
             });
         }}>模擬自動答對</button>
         <button type="button" disabled={paused} onClick={() => onScored({ answer_match: false, foundation_round: { status: "failed" } })}>模擬自動答錯</button>
+        <button type="button" disabled={paused} onClick={() => onScored({ answer_match: false, recognized_text: "B", foundation_round: { status: "retry" } })}>模擬自動再試</button>
         <button type="button" disabled={paused} onClick={() => onRoundInvalid?.({ code: "foundation_round_invalid" })}>模擬自動回合失效</button>
     </div>;
 });
@@ -150,6 +151,28 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
     });
 
+    it("第一次答錯會先清楚提示同一題，再自動恢復持續收音", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn().mockResolvedValue(true)}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+        });
+        fireEvent.click(screen.getByRole("button", { name: "模擬自動再試" }));
+        expect(screen.getByText("沒關係，再試一次！")).toBeInTheDocument();
+        expect(screen.getByText(/系統剛剛聽到「B」/)).toBeInTheDocument();
+        await act(async () => jest.advanceTimersByTime(3000));
+        expect(screen.queryByText("沒關係，再試一次！")).not.toBeInTheDocument();
+        expect(screen.getByText("麥克風已開啟")).toBeInTheDocument();
+    });
+
     it("介紹頁的 26 個圖塊同時顯示大小寫字母", () => {
         render(<WorkbookOneFoundationChallenge
             challenge={alphabetChallenge}
@@ -269,7 +292,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(screen.queryByRole("timer")).not.toBeInTheDocument();
     });
 
-    it("字母答錯後選擇重新聽，會重播同一個 A–Z 主音檔", async () => {
+    it("字母答錯後選擇重新聽，會重播同一個 A–Z 主音檔且保留已完成導聽資格", async () => {
         render(<WorkbookOneFoundationChallenge
             challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
@@ -289,8 +312,7 @@ describe("WorkbookOneFoundationChallenge", () => {
 
         global.Audio.mockClear();
         fireEvent.click(screen.getByRole("button", { name: /重新聽 A–Z/ }));
-        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeDisabled();
-        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
         await act(async () => jest.runAllTimers());
 
         expect(global.Audio).not.toHaveBeenCalled();

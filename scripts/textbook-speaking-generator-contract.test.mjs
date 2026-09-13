@@ -389,7 +389,7 @@ test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存",
     assert.match(coach, /foundation_round_id/);
     assert.match(coach, /p_claim_token: claimToken/);
     assert.match(coach, /claim_speaking_foundation_round_question_v1/);
-    assert.match(coach, /record_speaking_foundation_assessment_v1/);
+    assert.match(coach, /record_speaking_foundation_assessment_v2/);
     assert.match(pronunciationFlow, /const claimResult = await claim\(\)/);
     assert.match(pronunciationFlow, /requestId = await reserve\(\)/);
     assert.match(pronunciationFlow, /const assessment = await assess\(\)/);

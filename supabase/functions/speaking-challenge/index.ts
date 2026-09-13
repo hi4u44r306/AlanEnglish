@@ -191,9 +191,21 @@ Deno.serve(async (req: Request) => {
                         code: "alphabet_master_not_ready"
                     });
                 }
+                const { data: introListen, error: introListenError } = !demoMode
+                    ? await admin.from("speaking_alphabet_intro_listens")
+                        .select("completed_at")
+                        .eq("student_id", Number(user.id))
+                        .eq("question_set_id", Number(questionSet.id))
+                        .eq("question_set_version", Number(questionSet.version))
+                        .eq("sequence_fingerprint", String(sequence.source_fingerprint))
+                        .not("completed_at", "is", null)
+                        .maybeSingle()
+                    : { data: null, error: null };
+                if (introListenError) throw introListenError;
                 alphabetAudio = {
                     audio_url: await createR2PresignedUrl(sequence.private_object_key, "GET", 15 * 60),
                     duration_ms: Number(sequence.duration_ms),
+                    intro_listen_completed: Boolean(introListen?.completed_at),
                     segments: sequence.segments.map((segment: any) => ({
                         question_id: Number(segment.question_id),
                         start_ms: Number(segment.start_ms),
@@ -226,6 +238,70 @@ Deno.serve(async (req: Request) => {
                 demo_mode: demoMode,
                 challenge: { ...questionSet, speaking_questions: questions, alphabet_audio: alphabetAudio }
             });
+        }
+
+        if (["start_alphabet_intro_listen", "complete_alphabet_intro_listen"].includes(action)) {
+            if (demoMode) return json(403, { error: "示範模式不會建立學生聆聽紀錄", code: "demo_read_only" });
+            if (readFoundationInteractionType(questionSet.generation_metadata) !== "alphabet_round") {
+                return json(409, { error: "這個小關卡不使用 A–Z 導聽", code: "alphabet_intro_not_supported" });
+            }
+            const orderedQuestions = [...(questionSet.speaking_questions || [])]
+                .sort((left: any, right: any) => Number(left.sort_order) - Number(right.sort_order));
+            const { data: sequence, error: sequenceError } = await admin.from("speaking_question_set_audio_sequences")
+                .select("question_set_version,source_fingerprint,status,duration_ms,segments")
+                .eq("question_set_id", Number(questionSet.id)).eq("purpose", "alphabet_master").maybeSingle();
+            if (sequenceError) throw sequenceError;
+            const sequenceReady = sequence?.status === "ready"
+                && Number(sequence?.question_set_version) === Number(questionSet.version)
+                && Boolean(sequence?.source_fingerprint)
+                && alphabetAudioSequenceValid(orderedQuestions, sequence);
+            if (!sequenceReady) return json(409, { error: "A–Z 單一慢速音檔尚未完成或已過期", code: "alphabet_master_not_ready" });
+
+            const fingerprint = String(sequence.source_fingerprint);
+            if (action === "start_alphabet_intro_listen") {
+                const { data: completed, error: completedError } = await admin.from("speaking_alphabet_intro_listens")
+                    .select("completed_at").eq("student_id", Number(user.id)).eq("question_set_id", Number(questionSet.id))
+                    .eq("question_set_version", Number(questionSet.version)).eq("sequence_fingerprint", fingerprint)
+                    .not("completed_at", "is", null).maybeSingle();
+                if (completedError) throw completedError;
+                if (completed?.completed_at) return json(200, { success: true, already_completed: true });
+                const now = new Date();
+                const sessionId = crypto.randomUUID();
+                const minimumListenMs = Math.ceil(Math.max(1000, Number(sequence.duration_ms) * 0.8));
+                const minCompleteAt = new Date(now.getTime() + minimumListenMs).toISOString();
+                const { error: startError } = await admin.from("speaking_alphabet_intro_listens").upsert({
+                    student_id: Number(user.id), question_set_id: Number(questionSet.id),
+                    question_set_version: Number(questionSet.version), sequence_fingerprint: fingerprint,
+                    listen_session_id: sessionId, started_at: now.toISOString(), min_complete_at: minCompleteAt,
+                    completed_at: null, updated_at: now.toISOString()
+                }, { onConflict: "student_id,question_set_id,question_set_version,sequence_fingerprint" });
+                if (startError) throw startError;
+                return json(200, { success: true, listen_session_id: sessionId, minimum_listen_ms: minimumListenMs });
+            }
+
+            const listenSessionId = cleanText(body?.listen_session_id, 80);
+            if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(listenSessionId)) {
+                return json(400, { error: "A–Z 聆聽工作階段無效", code: "alphabet_intro_session_invalid" });
+            }
+            const { data: listen, error: listenError } = await admin.from("speaking_alphabet_intro_listens")
+                .select("listen_session_id,min_complete_at,completed_at").eq("student_id", Number(user.id))
+                .eq("question_set_id", Number(questionSet.id)).eq("question_set_version", Number(questionSet.version))
+                .eq("sequence_fingerprint", fingerprint).maybeSingle();
+            if (listenError) throw listenError;
+            if (!listen || String(listen.listen_session_id) !== listenSessionId) {
+                return json(409, { error: "A–Z 聆聽工作階段已更新，請重新開始", code: "alphabet_intro_session_invalid" });
+            }
+            if (listen.completed_at) return json(200, { success: true, completed: true });
+            if (new Date(listen.min_complete_at).getTime() > Date.now()) {
+                return json(409, { error: "請完整聽完 A–Z 後再開始挑戰", code: "alphabet_intro_too_short" });
+            }
+            const { error: completeError } = await admin.from("speaking_alphabet_intro_listens")
+                .update({ completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                .eq("student_id", Number(user.id)).eq("question_set_id", Number(questionSet.id))
+                .eq("question_set_version", Number(questionSet.version)).eq("sequence_fingerprint", fingerprint)
+                .eq("listen_session_id", listenSessionId).is("completed_at", null);
+            if (completeError) throw completeError;
+            return json(200, { success: true, completed: true });
         }
 
         if (action === "start_foundation_round") {

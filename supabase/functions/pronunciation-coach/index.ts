@@ -476,7 +476,7 @@ Deno.serve(async (req: Request) => {
                 let foundationAssessment = null;
                 let roundError = null;
                 for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
-                    const result = await admin.rpc("record_speaking_foundation_assessment_v1", {
+                    const result = await admin.rpc("record_speaking_foundation_assessment_v2", {
                         p_student_id: Number(user.id),
                         p_round_id: foundationRoundId,
                         p_question_id: question.questionId,
