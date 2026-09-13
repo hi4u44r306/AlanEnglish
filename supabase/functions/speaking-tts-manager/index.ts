@@ -790,7 +790,16 @@ Deno.serve(async (req: Request) => {
         });
     } catch (error: any) {
         const status = Number(error?.status) || 500;
-        console.error("speaking-tts-manager error", status, String(error?.code || "unknown"));
+        const diagnostic = cleanText(error?.message, 180)
+            .replace(/https?:\/\/\S+/gi, "[url]")
+            .replace(/[A-Za-z0-9_-]{40,}/g, "[redacted]");
+        console.error(
+            "speaking-tts-manager error",
+            status,
+            String(error?.code || "unknown"),
+            String(error?.name || "Error"),
+            diagnostic || "no_message"
+        );
         return json(status, { error: status < 500 ? String(error?.message || "請求失敗") : "教材示範語音服務發生錯誤", code: error?.code || null });
     }
 });
