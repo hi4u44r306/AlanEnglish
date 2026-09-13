@@ -1,9 +1,10 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-12
+最後更新：2026-09-13
 
-本次進行中（2026-09-12，尚未部署）：
+本次進行中（2026-09-13，尚未部署）：
 
+- Workbook 1 人工核准頁面來源 prerequisite：分支 `codex/workbook1-approved-page-source` 從 `origin/main` commit `02f0b442` 建立，只把已存在正式 Supabase 且 migration history 已登記為 `20260911093000` 的 `book_page_spiral_review_content` migration，以原 timestamp、原檔名及相同 Git blob `6a316de1` 納回 Repository；沒有重新套用資料庫。另加入窄 contract test，鎖定 119 頁 seed、P14～P17 正式字詞、P17 one～twelve、RLS／GRANT 與 unsafe OCR／歌曲防護。此 prerequisite 應先於 Workbook 1 speaking Draft PR #119 進入 `main`；不包含 PR #109 其他功能或歷史。
 - 公開首頁折疊版 Navbar 新增常駐「登入」按鈕，使用者在平板與手機寬度不必先打開漢堡選單即可找到登入頁；抽屜內原登入入口仍保留，桌面寬版導覽不變。按鈕維持至少 44px 觸控高度，並補上 hover 與鍵盤 focus 狀態。本批不修改登入流程、Firebase、Supabase、權限、套件或產品資料。
 
 本次正式發布（2026-09-12）：
