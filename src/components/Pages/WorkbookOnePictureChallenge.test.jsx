@@ -21,6 +21,7 @@ describe("WorkbookOnePictureChallenge", () => {
 
     afterEach(() => {
         global.Audio = originalAudio;
+        jest.restoreAllMocks();
     });
 
     it("P21 只顯示經審核圖片，不洩漏問句或回答", async () => {
@@ -60,6 +61,50 @@ describe("WorkbookOnePictureChallenge", () => {
             expect.objectContaining({ id: 2101 }),
             expect.objectContaining({ answer_match: true, recognized_text: "complete" })
         );
+    });
+
+    it("P21 多張圖片會以洗牌後題序全部出現一次，最後一題完成後才結束", async () => {
+        jest.spyOn(Math, "random").mockReturnValue(0);
+        const questions = [1, 2, 3].map((number, index) => ({
+            id: 2100 + number,
+            sort_order: index,
+            visual_aid: {
+                kind: "private-image",
+                image_url: `https://r2.example/signed-picture-${number}.webp`,
+                alt_zh: `核准圖片 ${number}`
+            },
+            picture_interaction: { type: "picture_qa" }
+        }));
+        const onComplete = jest.fn().mockResolvedValue(true);
+        render(<WorkbookOnePictureChallenge
+            challenge={{
+                id: 21,
+                title: "P21 看圖問答",
+                generation_metadata: { interaction_type: "picture_qa" },
+                speaking_questions: questions
+            }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={onComplete}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        for (let index = 0; index < questions.length; index += 1) {
+            expect(screen.getByRole("article", { name: `第 ${index + 1} 題，共 3 題` })).toHaveFocus();
+            expect(screen.queryByRole("heading", { name: "太棒了，全部完成！" })).not.toBeInTheDocument();
+            await act(async () => {
+                fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+                await Promise.resolve();
+            });
+            if (index < questions.length - 1) {
+                expect(await screen.findByRole("article", { name: `第 ${index + 2} 題，共 3 題` })).toBeInTheDocument();
+            }
+        }
+
+        const completedIds = onComplete.mock.calls.map(([question]) => question.id);
+        expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
+        expect(completedIds).toEqual([2102, 2103, 2101]);
+        expect(new Set(completedIds).size).toBe(3);
     });
 
     it("P22 依 token index 播放所有可見單字，空格不可播放且完整句才完成", async () => {

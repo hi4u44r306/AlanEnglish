@@ -3,6 +3,7 @@ import { assertBookEntitled, isBookEntitled, relationOne } from "../_shared/book
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
+import { toPublicErrorResponse } from "../_shared/public-error.ts";
 import { matchesFoundationAnswer, readFoundationInteractionType, visibleSentenceWords } from "../_shared/speaking-foundation-answer.ts";
 
 const corsHeaders = {
@@ -321,6 +322,13 @@ Deno.serve(async (req: Request) => {
         }
         return json(400, { error: "不支援的操作" });
     } catch (error: any) {
-        return json(Number(error?.status) || 500, { error: error?.message || "口說大挑戰服務發生錯誤", code: error?.code || null });
+        const publicError = toPublicErrorResponse(error, "口說大挑戰服務發生錯誤");
+        if (publicError.status >= 500) {
+            console.error("speaking-challenge internal failure", {
+                name: typeof error?.name === "string" ? error.name : "Error",
+                code: typeof error?.code === "string" ? error.code : null
+            });
+        }
+        return json(publicError.status, publicError.payload);
     }
 });

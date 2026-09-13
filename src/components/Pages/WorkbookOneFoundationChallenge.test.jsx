@@ -58,6 +58,7 @@ describe("WorkbookOneFoundationChallenge", () => {
     });
     afterEach(() => {
         global.Audio = originalAudio;
+        jest.restoreAllMocks();
         jest.useRealTimers();
     });
 
@@ -104,6 +105,38 @@ describe("WorkbookOneFoundationChallenge", () => {
             onExit={jest.fn()}
         />);
 
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+
+        expect(global.Audio.mock.calls.map(([url]) => url)).toEqual(
+            alphabetQuestions.map(question => question.model_audio_url)
+        );
+        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
+    });
+
+    it("字母答錯後選擇重新聽，會再次依 A 到 Z 播完 26 個標準音", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        await act(async () => jest.advanceTimersByTime(3000));
+        await act(async () => jest.runOnlyPendingTimers());
+        fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
+
+        global.Audio.mockClear();
+        fireEvent.click(screen.getByRole("button", { name: /重新聽 A–Z/ }));
+        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeDisabled();
         fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
         await act(async () => jest.runAllTimers());
 
@@ -304,5 +337,54 @@ describe("WorkbookOneFoundationChallenge", () => {
 
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
         expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ id: 20 }), expect.objectContaining({ answer_match: true }));
+    });
+
+    it.each([
+        [14, 10],
+        [15, 12],
+        [16, 12],
+        [17, 12]
+    ])("P%s 拼讀關會以洗牌後題序完成全部 %s 個單字，沒有遺漏或重複", async (pageNumber, questionCount) => {
+        const randomSpy = jest.spyOn(Math, "random").mockReturnValue(0);
+        const questions = Array.from({ length: questionCount }, (_, index) => ({
+            id: pageNumber * 100 + index,
+            sort_order: index,
+            question_text: `word-${pageNumber}-${index}`,
+            model_answer: `W O R D ${index}`
+        }));
+        const onComplete = jest.fn().mockResolvedValue(true);
+
+        render(<WorkbookOneFoundationChallenge
+            challenge={{
+                id: pageNumber,
+                title: `P${pageNumber} 看字拼讀`,
+                generation_metadata: { interaction_type: "letter_spelling" },
+                speaking_questions: questions
+            }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={onComplete}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始拼讀" }));
+        const seenQuestionIds = [];
+        for (let index = 0; index < questionCount; index += 1) {
+            seenQuestionIds.push(Number(screen.getByTestId("practice-question-id").textContent));
+            await act(async () => {
+                fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
+                await Promise.resolve();
+            });
+            if (index < questionCount - 1) {
+                expect(await screen.findByText(`第 ${index + 2} 題，共 ${questionCount} 題`)).toBeInTheDocument();
+            }
+        }
+
+        expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
+        expect(seenQuestionIds).not.toEqual(questions.map(question => question.id));
+        expect([...seenQuestionIds].sort((a, b) => a - b)).toEqual(questions.map(question => question.id));
+        expect(new Set(seenQuestionIds).size).toBe(questionCount);
+        expect(onComplete).toHaveBeenCalledTimes(questionCount);
+        expect(onComplete.mock.calls.map(([question]) => question.id)).toEqual(seenQuestionIds);
+        randomSpy.mockRestore();
     });
 });
