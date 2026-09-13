@@ -7,6 +7,7 @@ import {
     pictureQaResponseHasQuestionAndAnswer,
     readFoundationInteractionType,
     spokenLetterSequence,
+    usesUnscriptedFoundationAssessment,
     visibleSentenceWords
 } from "../supabase/functions/_shared/speaking-foundation-answer.ts";
 import {
@@ -18,6 +19,9 @@ import {
 
 assert.equal(readFoundationInteractionType({ interaction_type: "alphabet_round" }), "alphabet_round");
 assert.equal(readFoundationInteractionType({ interaction_type: "unknown" }), "");
+assert.equal(usesUnscriptedFoundationAssessment("picture_qa"), true);
+assert.equal(usesUnscriptedFoundationAssessment("picture_gap_sentence"), true);
+assert.equal(usesUnscriptedFoundationAssessment("letter_spelling"), false);
 
 assert.deepEqual(spokenLetterSequence("A, P, P, L, E"), ["A", "P", "P", "L", "E"]);
 assert.deepEqual(spokenLetterSequence("ay pee pee ell e"), ["A", "P", "P", "L", "E"]);
@@ -66,25 +70,31 @@ assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p16.me
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.sourceRequiresReview, false);
 assert.equal(WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p14.approvedSourcePageLabel, "P14");
 
-const p17Template = WORKBOOK_ONE_FOUNDATION_TEMPLATES.create_workbook_1_spelling_p17;
-const p17Prompts = p17Template.questions.map(question => question.question_text);
-const p17Questions = p17Template.questions.map((question, sortOrder) => ({ ...question, sort_order: sortOrder }));
-assert.equal(workbookOneFoundationTemplateByKey(p17Template.templateKey), p17Template);
-assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts, p17Questions), true);
-assert.equal(approvedSpellingContentMatches(p17Template, [...p17Prompts, "thirteen"], p17Questions), false);
-assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts.slice(0, -1), p17Questions), false);
-assert.equal(approvedSpellingContentMatches(p17Template, [...p17Prompts].reverse(), p17Questions), false);
-assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts, [...p17Questions, {
-    ...p17Questions[0], sort_order: 12, question_text: "thirteen", simple_answer: "T H I R T E E N", model_answer: "T H I R T E E N"
-}]), false);
-assert.equal(approvedSpellingContentMatches(p17Template, p17Prompts, p17Questions.map((question, index) => (
-    index === 0 ? { ...question, model_answer: "O N" } : question
-))), false);
+for (const action of [
+    "create_workbook_1_spelling_p14",
+    "create_workbook_1_spelling_p15",
+    "create_workbook_1_spelling_p16",
+    "create_workbook_1_spelling_p17"
+]) {
+    const template = WORKBOOK_ONE_FOUNDATION_TEMPLATES[action];
+    const prompts = template.questions.map(question => question.question_text);
+    const questions = template.questions.map((question, sortOrder) => ({ ...question, sort_order: sortOrder }));
+    assert.equal(workbookOneFoundationTemplateByKey(template.templateKey), template);
+    assert.equal(approvedSpellingContentMatches(template, prompts, questions), true);
+    assert.equal(approvedSpellingContentMatches(template, [...prompts, "not-approved"], questions), false);
+    assert.equal(approvedSpellingContentMatches(template, prompts.slice(0, -1), questions), false);
+    assert.equal(approvedSpellingContentMatches(template, [...prompts].reverse(), questions), false);
+    assert.equal(approvedSpellingContentMatches(template, prompts, questions.map((question, index) => (
+        index === 0 ? { ...question, model_answer: `${question.model_answer} X` } : question
+    ))), false);
+}
 
 const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8");
 const challengeSource = readFileSync(new URL("../supabase/functions/speaking-challenge/index.ts", import.meta.url), "utf8");
 const requestLedgerSource = readFileSync(new URL("../supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql", import.meta.url), "utf8");
 assert.match(coachSource, /matchesFoundationAnswer/);
+assert.match(coachSource, /usesUnscriptedFoundationAssessment/);
+assert.match(coachSource, /reference_text: question\.interactionType \? null/);
 assert.match(coachSource, /reserveProviderRequest/);
 assert.match(requestLedgerSource, /v_recent_limit integer := case when v_is_foundation then 60 else 12 end/);
 assert.match(requestLedgerSource, /v_daily_count >= 160/);

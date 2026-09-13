@@ -40,7 +40,9 @@ export default function SpeakingPracticeSteps({
     onPlayAudio,
     onCompleted,
     onIncorrect,
+    onRoundInvalid,
     interactionType = "",
+    foundationRoundId = "",
     disabledReason = "",
     hideHelp = false,
     promptTitle = "直接開口回答",
@@ -87,8 +89,10 @@ export default function SpeakingPracticeSteps({
             key={question.id}
             firebaseUser={firebaseUser}
             question={question}
+            foundationRoundId={foundationRoundId}
             disabledReason={disabledReason}
             onScored={handleScored}
+            onRoundInvalid={onRoundInvalid}
         />
 
         {lastResult?.answer_match !== false && lastResult && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成，可以前往下一題或再練一次。</p>}

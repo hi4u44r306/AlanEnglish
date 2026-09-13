@@ -15,8 +15,21 @@ const recordingMimeType = () => {
 
 const scoreLabel = score => score >= 80 ? "表現良好" : score >= 60 ? "再練一次會更好" : "先聽示範，再慢慢重讀";
 const scoreTone = score => score >= 80 ? "good" : score >= 60 ? "practice" : "retry";
+const ROUND_RESET_ERROR_CODES = new Set([
+    "foundation_round_invalid",
+    "foundation_round_required",
+    "foundation_round_expired",
+    "foundation_round_not_open"
+]);
 
-export default function SpeakingPronunciationRecorder({ firebaseUser, question, disabledReason = "", onScored }) {
+export default function SpeakingPronunciationRecorder({
+    firebaseUser,
+    question,
+    foundationRoundId = "",
+    disabledReason = "",
+    onScored,
+    onRoundInvalid
+}) {
     const [recording, setRecording] = useState(false);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
@@ -87,7 +100,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
         prepareSpeakingFeedbackSound();
         setSubmitting(true); setError("");
         try {
-            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob });
+            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId });
             setResult(score);
             playSpeakingFeedbackSound(
                 score?.answer_match === false
@@ -95,7 +108,10 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
                     : scoreTone(Math.round(score?.scores?.pronunciation || 0))
             );
             onScored?.(score);
-        } catch (cause) { setError(cause?.message || "發音評分失敗，請稍後再試"); }
+        } catch (cause) {
+            setError(cause?.message || "發音評分失敗，請稍後再試");
+            if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) onRoundInvalid?.(cause);
+        }
         finally { setSubmitting(false); }
     };
 

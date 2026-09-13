@@ -30,7 +30,7 @@ export const submitPronunciationAttempt = async ({ firebaseUser, lessonId, audio
 // The browser sends only the published question id and audio. The Edge Function
 // decides whether to run fixed-text or structured open-answer assessment and
 // never trusts a browser-supplied reference sentence.
-export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questionId, audio }) => {
+export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questionId, audio, foundationRoundId = "" }) => {
     if (!firebaseUser) throw new Error("請先登入 Alan English");
     if (!Number.isInteger(Number(questionId)) || !(audio instanceof Blob)) {
         throw new Error("錄音資料不完整，請重新錄音");
@@ -39,6 +39,7 @@ export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questio
     const firebaseToken = await firebaseUser.getIdToken();
     const form = new FormData();
     form.append("question_id", String(questionId));
+    if (foundationRoundId) form.append("foundation_round_id", String(foundationRoundId));
     form.append("audio", audio, `speaking-question-${questionId}.wav`);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/pronunciation-coach`, {

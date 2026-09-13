@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic } from "react-icons/fi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
@@ -135,8 +135,8 @@ export default function TextbookSpeakingChallenge() {
         challenge={challenge}
         firebaseUser={firebaseUser}
         onComplete={markScored}
+        onStartRound={() => startSpeakingFoundationRound(firebaseUser, challenge.id)}
         onExit={() => navigate("/student/speaking-challenges")}
-        onError={setError}
     />;
     if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return <WorkbookOnePictureChallenge
         challenge={challenge}
@@ -179,7 +179,7 @@ export default function TextbookSpeakingChallenge() {
                 </header>
                 <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                 <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
-                <small className="speaking-no-reward">這裡專心練口說，不會發放 XP 或 AE Points。</small>
+                <small className="speaking-no-reward">完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。</small>
             </article>
         </section>
 

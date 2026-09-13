@@ -39,6 +39,10 @@ export const readFoundationInteractionType = (metadata: unknown) => {
     return FOUNDATION_INTERACTION_TYPES.has(type) ? type : "";
 };
 
+export const usesUnscriptedFoundationAssessment = (interactionType: unknown) => (
+    interactionType === "picture_qa" || interactionType === "picture_gap_sentence"
+);
+
 const normalizedTokens = (value: unknown) => String(value || "")
     .toLowerCase()
     .replace(/[’]/g, "'")

@@ -3,11 +3,22 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 
-jest.mock("./SpeakingPracticeSteps", () => function Practice({ disabledReason, onCompleted, onIncorrect }) {
+let mockFoundationScoreCalls = 0;
+
+jest.mock("./SpeakingPracticeSteps", () => function Practice({ question, disabledReason, onCompleted, onIncorrect, onRoundInvalid, foundationRoundId }) {
     return <div>
+        {foundationRoundId && <span data-testid="round-id">{foundationRoundId}</span>}
+        {question?.id && <span data-testid="practice-question-id">{question.id}</span>}
         {disabledReason && <span>{disabledReason}</span>}
-        <button type="button" disabled={Boolean(disabledReason)} onClick={() => onCompleted({ answer_match: true })}>模擬答對</button>
-        <button type="button" disabled={Boolean(disabledReason)} onClick={() => onIncorrect({ answer_match: false })}>模擬答錯</button>
+        <button type="button" disabled={Boolean(disabledReason)} onClick={() => {
+            if (foundationRoundId) mockFoundationScoreCalls += 1;
+            onCompleted({
+                answer_match: true,
+                foundation_round: foundationRoundId ? { status: mockFoundationScoreCalls === 26 ? "completed" : "open" } : null
+            });
+        }}>模擬答對</button>
+        <button type="button" disabled={Boolean(disabledReason)} onClick={() => onIncorrect({ answer_match: false, foundation_round: { status: "failed" } })}>模擬答錯</button>
+        <button type="button" disabled={Boolean(disabledReason)} onClick={() => onRoundInvalid?.({ code: "foundation_round_invalid" })}>模擬回合失效</button>
     </div>;
 });
 
@@ -18,11 +29,23 @@ const alphabetQuestions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, in
     model_answer: letter,
     model_audio_url: `https://audio.test/${letter}.wav`
 }));
+const alphabetRoundResponse = {
+    round: {
+        round_id: "11111111-1111-4111-8111-111111111111",
+        questions: [...alphabetQuestions].reverse().map((question, index) => ({
+            question_id: question.id,
+            display_text: index % 2 ? question.question_text.toLowerCase() : question.question_text
+        }))
+    }
+};
+const startAlphabetRound = jest.fn();
 
 describe("WorkbookOneFoundationChallenge", () => {
     const originalAudio = global.Audio;
     beforeEach(() => {
         jest.useFakeTimers();
+        mockFoundationScoreCalls = 0;
+        startAlphabetRound.mockReset().mockResolvedValue(alphabetRoundResponse);
         global.Audio = jest.fn().mockImplementation(() => ({
             onended: null,
             onerror: null,
@@ -44,6 +67,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
             firebaseUser={{ uid: "student" }}
             onComplete={onComplete}
+            onStartRound={startAlphabetRound}
             onExit={jest.fn()}
         />);
 
@@ -52,7 +76,11 @@ describe("WorkbookOneFoundationChallenge", () => {
         await act(async () => jest.runAllTimers());
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
 
-        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
         expect(screen.getByText("3")).toBeInTheDocument();
         expect(screen.getByLabelText(/^字母 /)).toHaveFocus();
         expect(screen.getByRole("button", { name: "模擬答錯" })).toBeDisabled();
@@ -72,6 +100,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn().mockResolvedValue(true)}
+            onStartRound={startAlphabetRound}
             onExit={jest.fn()}
         />);
 
@@ -85,27 +114,156 @@ describe("WorkbookOneFoundationChallenge", () => {
     });
 
     it("中途答錯後直接重玩會回到新一輪第一題", async () => {
+        const onComplete = jest.fn().mockResolvedValue(true);
         render(<WorkbookOneFoundationChallenge
             challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
             firebaseUser={{ uid: "student" }}
-            onComplete={jest.fn().mockResolvedValue(true)}
+            onComplete={onComplete}
+            onStartRound={startAlphabetRound}
             onExit={jest.fn()}
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
         await act(async () => jest.runAllTimers());
-        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
         await act(async () => jest.advanceTimersByTime(3000));
         await act(async () => jest.runOnlyPendingTimers());
         fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
         expect(await screen.findByText("第 2 題，共 26 題")).toBeInTheDocument();
+        expect(onComplete).not.toHaveBeenCalled();
         await act(async () => jest.advanceTimersByTime(3000));
         await act(async () => jest.runOnlyPendingTimers());
         fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
 
-        fireEvent.click(screen.getByRole("button", { name: /直接再玩一次/ }));
-        expect(screen.getByText("第 1 題，共 26 題")).toBeInTheDocument();
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: /直接再玩一次/ }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        expect(await screen.findByText("第 1 題，共 26 題")).toBeInTheDocument();
         expect(screen.getByRole("timer")).toHaveTextContent("3先看清楚");
+        expect(startAlphabetRound).toHaveBeenCalledTimes(2);
+    });
+
+    it("後端回報上一題仍在評分時留在原畫面並允許稍後重試", async () => {
+        startAlphabetRound.mockRejectedValueOnce(Object.assign(
+            new Error("上一題正在評分，請稍候再開始新回合"),
+            { code: "foundation_round_busy" }
+        ));
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+
+        expect(screen.getByRole("alert")).toHaveTextContent("上一題正在評分");
+        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
+        expect(screen.queryByText("口說大挑戰暫時無法開啟")).not.toBeInTheDocument();
+    });
+
+    it("建立回合期間重複點擊只送出一次請求", async () => {
+        let resolveRound;
+        startAlphabetRound.mockImplementationOnce(() => new Promise(resolve => { resolveRound = resolve; }));
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        const startButton = screen.getByRole("button", { name: "開始挑戰" });
+        fireEvent.click(startButton);
+        fireEvent.click(startButton);
+        expect(startAlphabetRound).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            resolveRound(alphabetRoundResponse);
+            await Promise.resolve();
+        });
+        expect(await screen.findByText("第 1 題，共 26 題")).toBeInTheDocument();
+    });
+
+    it("後端判定回合失效時立即歸零並要求建立新回合", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        await act(async () => jest.advanceTimersByTime(3000));
+        await act(async () => jest.runOnlyPendingTimers());
+        fireEvent.click(screen.getByRole("button", { name: "模擬回合失效" }));
+
+        expect(screen.getByRole("heading", { name: "沒關係，我們從第一題再來！" })).toBeInTheDocument();
+        expect(screen.queryByTestId("round-id")).not.toBeInTheDocument();
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: /直接再玩一次/ }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+        expect(startAlphabetRound).toHaveBeenCalledTimes(2);
+        expect(screen.getByTestId("round-id")).toHaveTextContent("11111111-1111-4111-8111-111111111111");
+    });
+
+    it("完整 26 題只沿用同一個後端 round，最後一題確認完成後才顯示結果", async () => {
+        const onComplete = jest.fn();
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={onComplete}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+            await Promise.resolve();
+            await Promise.resolve();
+        });
+
+        const seenQuestionIds = [];
+        for (let index = 0; index < 26; index += 1) {
+            expect(screen.getByTestId("round-id")).toHaveTextContent("11111111-1111-4111-8111-111111111111");
+            seenQuestionIds.push(Number(screen.getByTestId("practice-question-id").textContent));
+            await act(async () => jest.advanceTimersByTime(3000));
+            await act(async () => jest.runOnlyPendingTimers());
+            fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
+            if (index < 25) expect(await screen.findByText(`第 ${index + 2} 題，共 26 題`)).toBeInTheDocument();
+        }
+
+        expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
+        expect(startAlphabetRound).toHaveBeenCalledTimes(1);
+        expect(onComplete).not.toHaveBeenCalled();
+        expect(seenQuestionIds).toEqual([...alphabetQuestions].reverse().map(question => question.id));
+        expect(new Set(seenQuestionIds).size).toBe(26);
     });
 
     it("缺少任一字母標準音時不能開始教學或挑戰", () => {
@@ -116,6 +274,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: incompleteQuestions }}
             firebaseUser={{ uid: "student" }}
             onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
             onExit={jest.fn()}
         />);
 
@@ -144,6 +303,6 @@ describe("WorkbookOneFoundationChallenge", () => {
         fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
 
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
-        expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ id: 20 }), { answer_match: true });
+        expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ id: 20 }), expect.objectContaining({ answer_match: true }));
     });
 });

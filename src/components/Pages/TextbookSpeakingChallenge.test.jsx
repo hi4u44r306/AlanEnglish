@@ -3,16 +3,17 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
 import SpeakingVisualAid from "./SpeakingVisualAid";
-import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 
 const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingChallengeService", () => ({
-    completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn()
+    completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn(), startSpeakingFoundationRound: jest.fn()
 }));
-jest.mock("./WorkbookOneFoundationChallenge", () => function MockFoundationChallenge({ challenge, onComplete }) {
+jest.mock("./WorkbookOneFoundationChallenge", () => function MockFoundationChallenge({ challenge, onComplete, onStartRound }) {
     return <section data-testid="foundation-challenge" data-interaction={challenge.generation_metadata.interaction_type}>
         <button type="button" onClick={() => onComplete(challenge.speaking_questions[0], { answer_match: true })}>完成基礎題</button>
+        <button type="button" onClick={onStartRound}>建立 A–Z 回合</button>
     </section>;
 });
 jest.mock("./WorkbookOnePictureChallenge", () => function MockPictureChallenge({ challenge, onComplete }) {
@@ -46,8 +47,25 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByTestId(testId)).toHaveAttribute("data-interaction", interactionType);
     });
 
-    it("Workbook 1 關卡完成時沿用既有完成紀錄服務", async () => {
+    it("Workbook 1 拼讀關完成時沿用既有完成紀錄服務", async () => {
         completeSpeakingChallengeQuestion.mockResolvedValue({ success: true });
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 7,
+                title: "Workbook 1 拼讀關",
+                generation_metadata: { interaction_type: "letter_spelling" },
+                speaking_questions: [{ id: 9, progress_status: "opened" }]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: "完成基礎題" }));
+
+        await waitFor(() => expect(completeSpeakingChallengeQuestion).toHaveBeenCalledWith(mockFirebaseUser, 7, 9));
+    });
+
+    it("A–Z 關卡透過後端建立受保護回合，不逐題呼叫一般完成服務", async () => {
+        startSpeakingFoundationRound.mockResolvedValue({ round: { round_id: "round-1", questions: [] } });
         getSpeakingChallengeSet.mockResolvedValue({
             challenge: {
                 id: 7,
@@ -58,9 +76,10 @@ describe("TextbookSpeakingChallenge model audio", () => {
         });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        fireEvent.click(await screen.findByRole("button", { name: "完成基礎題" }));
+        fireEvent.click(await screen.findByRole("button", { name: "建立 A–Z 回合" }));
 
-        await waitFor(() => expect(completeSpeakingChallengeQuestion).toHaveBeenCalledWith(mockFirebaseUser, 7, 9));
+        await waitFor(() => expect(startSpeakingFoundationRound).toHaveBeenCalledWith(mockFirebaseUser, 7));
+        expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
     });
 
     it("removes the global mobile player clearance while the detail page is open", async () => {

@@ -13,10 +13,13 @@ const challenge = read("supabase/functions/speaking-challenge/index.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
 const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
 const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
+const pronunciationFlow = read("supabase/functions/_shared/speaking-pronunciation-flow.ts");
 const bookEntitlement = read("supabase/functions/_shared/book-entitlement.ts");
 const visualAssetMigration = read("supabase/migrations/20260912143926_workbook1_speaking_visual_assets.sql");
 const foundationUniquenessMigration = read("supabase/migrations/20260913113000_workbook1_foundation_template_uniqueness.sql");
 const pronunciationLedgerMigration = read("supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql");
+const speakingCompletionMigration = read("supabase/migrations/20260907155832_speaking_challenge_completion_rewards.sql");
+const foundationRoundMigration = read("supabase/migrations/20260913023814_speaking_foundation_round_sessions.sql");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
@@ -152,7 +155,7 @@ test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {
     assert.match(challenge, /demoMode/);
     assert.match(challenge, /question_prompt/);
     assert.match(challenge, /model_answer/);
-    assert.match(challenge, /complete_speaking_challenge_question_v2/);
+    assert.match(challenge, /speaking_challenge_question_progress/);
 });
 
 test("15. Workbook 1 基礎關卡只建立草稿，P14～P17 必須逐字符合已發布正式來源", () => {
@@ -204,6 +207,7 @@ test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前�
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /matchesFoundationAnswer/);
     assert.match(coach, /reserveProviderRequest/);
+    assert.match(coach, /runSpeakingPronunciationFlow/);
     assert.match(pronunciationLedgerMigration, /v_daily_count >= 160/);
     assert.match(coach, /foundationRetryFeedback/);
 });
@@ -250,6 +254,7 @@ test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(challenge, /createR2PresignedUrl\(visualAsset\.private_object_key, "GET", 15 \* 60\)/);
     assert.match(challenge, /question_text: ""/);
     assert.match(challenge, /model_answer: ""/);
+    assert.match(challenge, /pronunciation_notes_zh: ""/);
     assert.match(challenge, /correct_assessment_required/);
     assert.doesNotMatch(challenge, /private_object_key:/);
 });
@@ -262,6 +267,7 @@ test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句�
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /pictureInteraction\.prompt_text/);
     assert.match(coach, /pictureInteraction\.answer_text/);
+    assert.match(coach, /usesUnscriptedFoundationAssessment\(interactionType\)/);
     assert.match(coach, /reference_text: question\.interactionType \? null/);
 });
 
@@ -276,7 +282,7 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
     assert.match(coach, /reserve_speaking_pronunciation_request/);
     assert.match(coach, /finishProviderRequest/);
     assert.match(coach, /\.select\("id"\)\.maybeSingle\(\)/);
-    assert.match(coach, /"internal_failed"/);
+    assert.match(pronunciationFlow, /"internal_failed"/);
     assert.ok(challenge.indexOf("await assertBookEntitled") < challenge.indexOf("const { data: setQuestions"));
     assert.match(pronunciationLedgerMigration, /pg_advisory_xact_lock/);
     assert.match(pronunciationLedgerMigration, /speaking_pronunciation_requests_student_created_idx/);
@@ -301,4 +307,57 @@ test("20. 手機口說操作列避開 Bottom Nav 與播放器，階段切換可�
     assert.match(pronunciationRecorder, /role="status" aria-live="polite" aria-atomic="true"/);
     assert.match(pronunciationRecorderStyles, /\.speaking-pronunciation button:focus-visible/);
     assert.match(pronunciationRecorderStyles, /min-height: 44px; height: 44px/);
+});
+
+test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存", () => {
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(foundationRoundMigration, /create table if not exists public\.speaking_foundation_rounds/);
+    assert.match(foundationRoundMigration, /cardinality\(question_order\) = 26/);
+    assert.match(foundationRoundMigration, /status in \('open', 'failed', 'completed', 'expired'\)/);
+    assert.match(foundationRoundMigration, /pg_advisory_xact_lock/);
+    assert.match(foundationRoundMigration, /active_claim_token/);
+    assert.match(foundationRoundMigration, /claim_speaking_foundation_round_question_v1/);
+    assert.match(foundationRoundMigration, /release_speaking_foundation_round_claim_v1/);
+    assert.match(foundationRoundMigration, /v_attempt\.answer_match is not true/);
+    assert.match(foundationRoundMigration, /set status = 'failed', next_index = 0/);
+    assert.match(foundationRoundMigration, /foreach v_question_id in array v_round\.question_order loop/);
+    assert.match(foundationRoundMigration, /public\.complete_speaking_challenge_question_v2/);
+    assert.match(speakingCompletionMigration, /private\.ae_gamification_grant_v2/);
+    assert.match(speakingCompletionMigration, /'speaking_challenge_complete'/);
+    assert.match(foundationRoundMigration, /security invoker/g);
+    assert.doesNotMatch(foundationRoundMigration, /security definer/);
+    assert.match(foundationRoundMigration, /revoke all on table public\.speaking_foundation_rounds from public, anon, authenticated/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.start_speaking_foundation_round_v1/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.claim_speaking_foundation_round_question_v1/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.release_speaking_foundation_round_claim_v1/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.record_speaking_foundation_round_attempt_v1/);
+    assert.match(foundationRoundMigration, /record_speaking_foundation_assessment_v1/);
+    assert.match(foundationRoundMigration, /insert into public\.speaking_pronunciation_attempts/);
+    assert.match(foundationRoundMigration, /v_round_result := public\.record_speaking_foundation_round_attempt_v1/);
+    assert.match(challenge, /start_foundation_round/);
+    assert.match(challenge, /crypto\.getRandomValues/);
+    assert.match(challenge, /foundation_round_required/);
+    assert.match(challenge, /complete_speaking_challenge_question_v2/);
+    assert.match(challenge, /hideChallengeAnswerAudio/);
+    assert.match(coach, /foundation_round_id/);
+    assert.match(coach, /p_claim_token: claimToken/);
+    assert.match(coach, /claim_speaking_foundation_round_question_v1/);
+    assert.match(coach, /record_speaking_foundation_assessment_v1/);
+    assert.match(pronunciationFlow, /const claimResult = await claim\(\)/);
+    assert.match(pronunciationFlow, /requestId = await reserve\(\)/);
+    assert.match(pronunciationFlow, /const assessment = await assess\(\)/);
+    assert.match(pronunciationFlow, /const persisted = await saveAndRecordRound/);
+    assert.match(pronunciationFlow, /attempt = persisted\.attempt/);
+    assert.match(pronunciationFlow, /round = persisted\.round/);
+    assert.match(pronunciationFlow, /await finishRequest\(requestId, "completed", null\)/);
+    assert.ok(pronunciationFlow.indexOf("const claimResult = await claim()") < pronunciationFlow.indexOf("requestId = await reserve()"));
+    assert.ok(pronunciationFlow.indexOf("requestId = await reserve()") < pronunciationFlow.indexOf("const assessment = await assess()"));
+    assert.ok(pronunciationFlow.indexOf("const persisted = await saveAndRecordRound") < pronunciationFlow.indexOf('await finishRequest(requestId, "completed", null)'));
+    assert.match(coach, /const PROVIDER_TIMEOUT_MS = 75_000/);
+    assert.match(coach, /new AbortController\(\)/);
+    assert.match(coach, /signal: providerController\.signal/);
+    assert.match(coach, /return data === true/);
+    assert.match(pronunciationFlow, /if \(claimToken && releaseClaim\)/);
+    assert.match(coach, /p_answer_match: normalized\.answer_match/);
+    assert.doesNotMatch(challenge, /p_student_id: Number\(body/);
 });

@@ -14,6 +14,17 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
     status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
 });
 
+const secureShuffle = <T>(items: T[]) => {
+    const next = [...items];
+    for (let index = next.length - 1; index > 0; index -= 1) {
+        const random = new Uint32Array(1);
+        crypto.getRandomValues(random);
+        const swapIndex = random[0] % (index + 1);
+        [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+    }
+    return next;
+};
+
 const assertChallengeAccess = async (admin: any, user: any) => {
     if (user.role === "teacher" || user.role === "admin") return { demoMode: true };
     if (user.role !== "student") throw Object.assign(new Error("目前帳號不能開啟口說大挑戰"), { status: 403 });
@@ -84,6 +95,7 @@ Deno.serve(async (req: Request) => {
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
             const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
             const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
+            const hideChallengeAnswerAudio = interactionType === "letter_spelling" || pictureMode;
             const { data: progress, error: progressError } = ids.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", ids)
                 : { data: [], error: null };
@@ -169,6 +181,7 @@ Deno.serve(async (req: Request) => {
                         throw Object.assign(new Error("P22 的可見單字發音尚未完整"), { status: 409, code: "word_audio_incomplete" });
                     }
                 }
+                const foundationAnswerHidden = interactionType === "alphabet_round" || interactionType === "letter_spelling";
                 const safeQuestion = pictureMode ? {
                     id: question.id,
                     question_text: "",
@@ -177,7 +190,7 @@ Deno.serve(async (req: Request) => {
                     simple_answer: "",
                     model_answer: "",
                     follow_up_question: null,
-                    pronunciation_notes_zh: question.pronunciation_notes_zh,
+                    pronunciation_notes_zh: "",
                     visual_aid: {
                         kind: "private-image",
                         image_url: await createR2PresignedUrl(visualAsset.private_object_key, "GET", 15 * 60),
@@ -189,17 +202,75 @@ Deno.serve(async (req: Request) => {
                         word_audio: interactionType === "picture_gap_sentence" ? wordAudio : []
                     },
                     sort_order: question.sort_order
+                } : foundationAnswerHidden ? {
+                    ...question,
+                    hint_zh: "",
+                    keywords: [],
+                    simple_answer: "",
+                    model_answer: ""
                 } : question;
                 questions.push({
                     ...safeQuestion,
                     progress_status: statusByQuestion.get(Number(question.id)) || "opened",
-                    question_audio_status: promptReady ? "ready" : (promptAsset?.status || "missing"),
-                    question_audio_url: promptReady ? await createR2PresignedUrl(promptAsset.private_object_key, "GET", 15 * 60) : null,
-                    model_audio_status: modelReady ? "ready" : (modelAsset?.status || "missing"),
-                    model_audio_url: modelReady ? await createR2PresignedUrl(modelAsset.private_object_key, "GET", 15 * 60) : null
+                    question_audio_status: hideChallengeAnswerAudio ? "hidden" : (promptReady ? "ready" : (promptAsset?.status || "missing")),
+                    question_audio_url: !hideChallengeAnswerAudio && promptReady
+                        ? await createR2PresignedUrl(promptAsset.private_object_key, "GET", 15 * 60) : null,
+                    model_audio_status: hideChallengeAnswerAudio ? "hidden" : (modelReady ? "ready" : (modelAsset?.status || "missing")),
+                    model_audio_url: !hideChallengeAnswerAudio && modelReady
+                        ? await createR2PresignedUrl(modelAsset.private_object_key, "GET", 15 * 60) : null
                 });
             }
             return json(200, { success: true, demo_mode: demoMode, challenge: { ...questionSet, speaking_questions: questions } });
+        }
+
+        if (action === "start_foundation_round") {
+            if (demoMode) return json(403, { error: "示範模式不會建立學生挑戰回合", code: "demo_read_only" });
+            const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
+            if (interactionType !== "alphabet_round") {
+                return json(409, { error: "這個小關卡不使用整輪挑戰", code: "foundation_round_not_supported" });
+            }
+            const canonicalQuestions = (questionSet.speaking_questions || []).filter((question: any) => (
+                /^[A-Z]$/i.test(String(question.model_answer || "").trim())
+            ));
+            const canonicalLetters = new Set(canonicalQuestions.map((question: any) => String(question.model_answer).trim().toUpperCase()));
+            if (canonicalQuestions.length !== 26 || canonicalLetters.size !== 26) {
+                return json(409, { error: "A–Z 題庫尚未完整核准", code: "foundation_round_incomplete" });
+            }
+            const shuffled = secureShuffle(canonicalQuestions);
+            const questionOrder = shuffled.map((question: any) => Number(question.id));
+            const { data: round, error: roundError } = await admin.rpc("start_speaking_foundation_round_v1", {
+                p_student_id: Number(user.id),
+                p_question_set_id: setId,
+                p_question_set_version: Number(questionSet.version),
+                p_question_order: questionOrder
+            });
+            if (roundError) throw roundError;
+            if (round?.status === "busy") {
+                return json(409, {
+                    error: "上一題正在評分，請稍候再開始新回合",
+                    code: "foundation_round_busy",
+                    retry_after_seconds: Number(round.retry_after_seconds || 1)
+                });
+            }
+            if (!round?.round_id || !Array.isArray(round?.question_order) || round.question_order.length !== 26) {
+                return json(409, { error: "A–Z 挑戰回合尚未準備完成", code: "foundation_round_invalid" });
+            }
+            const randomCases = new Uint32Array(26);
+            crypto.getRandomValues(randomCases);
+            return json(200, {
+                success: true,
+                round: {
+                    round_id: round.round_id,
+                    expires_at: round.expires_at,
+                    questions: shuffled.map((question: any, index: number) => {
+                        const letter = String(question.model_answer).trim().toUpperCase();
+                        return {
+                            question_id: Number(question.id),
+                            display_text: randomCases[index] % 2 === 0 ? letter : letter.toLowerCase()
+                        };
+                    })
+                }
+            });
         }
 
         if (action === "complete_question") {
@@ -208,6 +279,9 @@ Deno.serve(async (req: Request) => {
             const question = (questionSet.speaking_questions || []).find((item: any) => Number(item.id) === questionId);
             if (!question) return json(403, { error: "這題不屬於指定的小關卡" });
             const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
+            if (interactionType === "alphabet_round") {
+                return json(409, { error: "A–Z 必須完成同一個連續挑戰回合", code: "foundation_round_required" });
+            }
             if (interactionType) {
                 const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
                 const { data: pictureInteraction, error: pictureError } = pictureMode

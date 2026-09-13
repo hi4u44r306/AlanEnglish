@@ -12,8 +12,10 @@ import {
 import {
     foundationRetryFeedback,
     matchesFoundationAnswer,
-    readFoundationInteractionType
+    readFoundationInteractionType,
+    usesUnscriptedFoundationAssessment
 } from "../_shared/speaking-foundation-answer.ts";
+import { runSpeakingPronunciationFlow } from "../_shared/speaking-pronunciation-flow.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -28,6 +30,7 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 const MAX_AUDIO_BYTES = 1024 * 1024;
 const MIN_AUDIO_SECONDS = 0.35;
 const MAX_AUDIO_SECONDS = 20;
+const PROVIDER_TIMEOUT_MS = 75_000;
 
 const normalizeWord = (value: unknown) => String(value || "")
     .toLowerCase()
@@ -126,7 +129,7 @@ const buildAzureSpeechEndpoint = (region: string) => {
 
 const assertPublishedQuestionAccess = async (admin: any, questionId: number, user: any, effectiveAccess: any) => {
     const { data, error } = await admin.from("speaking_questions")
-        .select("id,question_set_id,speaking_question_sets!inner(id,book_id,status,generation_metadata,books(id,name,code,content_scope,enabled,archived_at))")
+        .select("id,question_set_id,speaking_question_sets!inner(id,book_id,status,version,generation_metadata,books(id,name,code,content_scope,enabled,archived_at))")
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
@@ -157,7 +160,8 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
     const acceptedAnswers = pictureMode && Array.isArray(pictureInteraction?.accepted_full_responses)
         ? pictureInteraction.accepted_full_responses.map((value: unknown) => String(value || "").trim()).filter(Boolean).slice(0, 12)
         : [];
-    const isStructuredAnswer = interactionType === "picture_qa" || hasSpeakingAnswerSlots(answerTemplate);
+    const isStructuredAnswer = usesUnscriptedFoundationAssessment(interactionType)
+        || hasSpeakingAnswerSlots(answerTemplate);
     const referenceText = isStructuredAnswer ? "" : buildSpeakingReferenceText(answerTemplate, {});
     if (!answerTemplate || answerTemplate.length > 500) {
         throw Object.assign(new Error("這題尚未設定可朗讀的完整示範回答"), { status: 422 });
@@ -165,6 +169,7 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
     return {
         questionId: Number(data.id),
         questionSetId: Number(data.question_set_id),
+        questionSetVersion: Number(questionSet?.version),
         book,
         answerTemplate,
         answerPrompt: speakingAnswerPrompt(answerTemplate),
@@ -203,6 +208,16 @@ const finishProviderRequest = async (admin: any, requestId: string, status: stri
             code: "provider_request_finalize_failed"
         });
     }
+};
+
+const releaseFoundationRoundClaim = async (admin: any, studentId: number, roundId: string, claimToken: string) => {
+    const { data, error } = await admin.rpc("release_speaking_foundation_round_claim_v1", {
+        p_student_id: studentId,
+        p_round_id: roundId,
+        p_claim_token: claimToken
+    });
+    if (error) throw error;
+    return data === true;
 };
 
 const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof assertPublishedQuestionAccess>>) => {
@@ -278,7 +293,7 @@ Deno.serve(async (req: Request) => {
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
 
     let admin: any = null;
-    let providerRequestId: string | null = null;
+    let foundationRoundId: string | null = null;
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -292,9 +307,32 @@ Deno.serve(async (req: Request) => {
         }
         const form = await req.formData().catch(() => null);
         const questionId = Number(form?.get("question_id"));
+        const requestedRoundId = String(form?.get("foundation_round_id") || "").trim();
         const audio = form?.get("audio");
         if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
+        if (question.interactionType === "alphabet_round") {
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedRoundId)) {
+                return json(409, { error: "請重新開始這一輪 A–Z 挑戰", code: "foundation_round_required" });
+            }
+            const { data: round, error: roundError } = await admin.from("speaking_foundation_rounds")
+                .select("id,student_id,question_set_id,question_set_version,question_order,next_index,status,expires_at")
+                .eq("id", requestedRoundId).maybeSingle();
+            if (roundError) throw roundError;
+            const questionOrder = Array.isArray(round?.question_order) ? round.question_order.map(Number) : [];
+            const expectedQuestionId = questionOrder[Number(round?.next_index)];
+            const expiresAt = Date.parse(String(round?.expires_at || ""));
+            if (!round || Number(round.student_id) !== Number(user.id)
+                || Number(round.question_set_id) !== question.questionSetId
+                || Number(round.question_set_version) !== question.questionSetVersion
+                || round.status !== "open" || !Number.isFinite(expiresAt) || expiresAt <= Date.now()
+                || expectedQuestionId !== question.questionId) {
+                return json(409, { error: "這一輪已失效，請從第一題重新開始", code: "foundation_round_invalid" });
+            }
+            foundationRoundId = String(round.id);
+        } else if (requestedRoundId) {
+            return json(400, { error: "這個題型不接受 A–Z 挑戰回合", code: "foundation_round_not_supported" });
+        }
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
         if (audio.type !== "audio/wav") return json(415, { error: "錄音格式不正確，請重新錄音" });
         if (audio.size < 1000 || audio.size > MAX_AUDIO_BYTES) {
@@ -322,8 +360,6 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
-        providerRequestId = await reserveProviderRequest(admin, Number(user.id), question);
-
         const assessmentConfig: Record<string, unknown> = {
             GradingSystem: "HundredMark",
             Granularity: "Phoneme",
@@ -332,68 +368,162 @@ Deno.serve(async (req: Request) => {
             EnableProsodyAssessment: true,
             PhonemeAlphabet: "IPA"
         };
-        // A personalized answer is assessed as unscripted speech so the child can
-        // say their real name without typing it first. Fixed textbook answers stay
-        // scripted and keep omission/insertion checking.
+        // Personalized and picture answers are assessed as unscripted speech.
+        // The server still checks the complete response, but no answer-derived
+        // reference words are returned to the student after an incorrect try.
         if (!question.isStructuredAnswer) assessmentConfig.ReferenceText = question.referenceText;
         const assessmentHeader = btoa(JSON.stringify(assessmentConfig));
-        let providerResponse: Response;
-        try {
-            providerResponse = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
-                    "Ocp-Apim-Subscription-Key": speechKey,
-                    "Pronunciation-Assessment": assessmentHeader
-                },
-                body: audioBuffer
-            });
-        } catch {
-            await finishProviderRequest(admin, providerRequestId, "provider_failed", "network_error");
-            return json(502, { error: "發音評分暫時無法連線，請稍後再試", code: "provider_failed" });
-        }
-        const providerResult = await providerResponse.json().catch(() => ({}));
-        if (!providerResponse.ok) {
-            await finishProviderRequest(admin, providerRequestId, "provider_failed", `http_${providerResponse.status}`);
-            console.error("Azure pronunciation assessment failed", providerResponse.status, providerResult?.RecognitionStatus || "unknown");
-            return json(502, { error: "發音評分暫時無法完成，請稍後再試", code: "provider_failed" });
-        }
-        if (!selectAzureAssessmentResult(providerResult)) {
-            await finishProviderRequest(admin, providerRequestId, "unassessable", String(providerResult?.RecognitionStatus || "missing").slice(0, 120));
-            return json(providerResult?.RecognitionStatus === "Success" ? 502 : 422, speechRecognitionError(providerResult, wavInfo));
-        }
-
-        const normalized = normalizeAzureResult(providerResult, question);
-        const { error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
-            student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
-            pronunciation_score: normalized.scores.pronunciation, accuracy_score: normalized.scores.accuracy,
-            fluency_score: normalized.scores.fluency, completeness_score: normalized.scores.completeness,
-            prosody_score: normalized.scores.prosody, recognized_text: normalized.recognized_text,
-            word_results: normalized.words
+        const flow = await runSpeakingPronunciationFlow({
+            foundationRound: Boolean(foundationRoundId),
+            claim: foundationRoundId ? async () => {
+                const { data: claim, error: claimError } = await admin.rpc("claim_speaking_foundation_round_question_v1", {
+                    p_student_id: Number(user.id),
+                    p_round_id: foundationRoundId,
+                    p_question_id: question.questionId
+                });
+                if (claimError) throw claimError;
+                if (claim?.status === "busy") {
+                    return { status: "busy" as const, retryAfterSeconds: Number(claim.retry_after_seconds || 1) };
+                }
+                if (claim?.status !== "claimed" || !claim?.claim_token) return { status: "invalid" as const };
+                return { status: "claimed" as const, claimToken: String(claim.claim_token) };
+            } : undefined,
+            reserve: () => reserveProviderRequest(admin, Number(user.id), question),
+            assess: async () => {
+                let providerResponse: Response;
+                const providerController = new AbortController();
+                const providerTimeout = setTimeout(() => providerController.abort(), PROVIDER_TIMEOUT_MS);
+                try {
+                    providerResponse = await fetch(endpoint, {
+                        method: "POST",
+                        headers: {
+                            Accept: "application/json",
+                            "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
+                            "Ocp-Apim-Subscription-Key": speechKey,
+                            "Pronunciation-Assessment": assessmentHeader
+                        },
+                        signal: providerController.signal,
+                        body: audioBuffer
+                    });
+                } catch (providerError) {
+                    const providerErrorCode = (providerError as any)?.name === "AbortError" ? "timeout" : "network_error";
+                    return {
+                        ok: false as const,
+                        ledgerStatus: "provider_failed" as const,
+                        errorCode: providerErrorCode,
+                        failure: {
+                            status: providerErrorCode === "timeout" ? 504 : 502,
+                            payload: {
+                                error: providerErrorCode === "timeout"
+                                    ? "發音評分等待時間過長，請稍後再試"
+                                    : "發音評分暫時無法連線，請稍後再試",
+                                code: providerErrorCode === "timeout" ? "provider_timeout" : "provider_failed"
+                            }
+                        }
+                    };
+                } finally {
+                    clearTimeout(providerTimeout);
+                }
+                const providerResult = await providerResponse.json().catch(() => ({}));
+                if (!providerResponse.ok) {
+                    console.error("Azure pronunciation assessment failed", providerResponse.status, providerResult?.RecognitionStatus || "unknown");
+                    return {
+                        ok: false as const,
+                        ledgerStatus: "provider_failed" as const,
+                        errorCode: `http_${providerResponse.status}`,
+                        failure: {
+                            status: 502,
+                            payload: { error: "發音評分暫時無法完成，請稍後再試", code: "provider_failed" }
+                        }
+                    };
+                }
+                if (!selectAzureAssessmentResult(providerResult)) {
+                    return {
+                        ok: false as const,
+                        ledgerStatus: "unassessable" as const,
+                        errorCode: String(providerResult?.RecognitionStatus || "missing").slice(0, 120),
+                        failure: {
+                            status: providerResult?.RecognitionStatus === "Success" ? 502 : 422,
+                            payload: speechRecognitionError(providerResult, wavInfo)
+                        }
+                    };
+                }
+                return { ok: true as const, value: normalizeAzureResult(providerResult, question) };
+            },
+            saveAttempt: !foundationRoundId ? async normalized => {
+                const { data: attempt, error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
+                    student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
+                    pronunciation_score: normalized.scores.pronunciation, accuracy_score: normalized.scores.accuracy,
+                    fluency_score: normalized.scores.fluency, completeness_score: normalized.scores.completeness,
+                    prosody_score: normalized.scores.prosody, recognized_text: normalized.recognized_text,
+                    word_results: normalized.words, answer_match: normalized.answer_match
+                }).select("id").single();
+                if (saveError || !attempt?.id) throw saveError || new Error("發音評分紀錄無法建立");
+                return Number(attempt.id);
+            } : undefined,
+            saveAndRecordRound: foundationRoundId ? async (normalized, claimToken) => {
+                let foundationAssessment = null;
+                let roundError = null;
+                for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
+                    const result = await admin.rpc("record_speaking_foundation_assessment_v1", {
+                        p_student_id: Number(user.id),
+                        p_round_id: foundationRoundId,
+                        p_question_id: question.questionId,
+                        p_claim_token: claimToken,
+                        p_pronunciation_score: normalized.scores.pronunciation,
+                        p_accuracy_score: normalized.scores.accuracy,
+                        p_fluency_score: normalized.scores.fluency,
+                        p_completeness_score: normalized.scores.completeness,
+                        p_prosody_score: normalized.scores.prosody,
+                        p_recognized_text: normalized.recognized_text,
+                        p_word_results: normalized.words,
+                        p_answer_match: normalized.answer_match
+                    });
+                    foundationAssessment = result.data;
+                    roundError = result.error;
+                    if (!roundError) break;
+                }
+                if (roundError) {
+                    const message = String(roundError.message || "");
+                    if (/FOUNDATION_(ROUND|SET)/.test(message)) {
+                        throw Object.assign(new Error("這一輪已失效，請從第一題重新開始"), {
+                            status: 409,
+                            code: "foundation_round_invalid"
+                        });
+                    }
+                    throw roundError;
+                }
+                const attemptId = Number(foundationAssessment?.attempt_id);
+                if (!Number.isInteger(attemptId) || attemptId <= 0) throw new Error("發音評分紀錄無法建立");
+                return { attempt: attemptId, round: foundationAssessment };
+            } : undefined,
+            finishRequest: (requestId, status, errorCode) => finishProviderRequest(admin, requestId, status, errorCode),
+            releaseClaim: foundationRoundId
+                ? claimToken => releaseFoundationRoundClaim(admin, Number(user.id), foundationRoundId, claimToken)
+                : undefined,
+            warn: message => console.warn(message)
         });
-        if (saveError) throw saveError;
-        await finishProviderRequest(admin, providerRequestId, "completed");
+
+        if (flow.status === "busy") {
+            return json(409, {
+                error: "這一題正在評分，請稍候再試",
+                code: "foundation_round_busy",
+                retry_after_seconds: flow.retryAfterSeconds
+            });
+        }
+        if (flow.status === "invalid") {
+            return json(409, { error: "這一輪已失效，請從第一題重新開始", code: "foundation_round_invalid" });
+        }
+        if (flow.status === "provider_failure") return json(flow.failure.status, flow.failure.payload);
 
         return json(200, {
             success: true,
             question_id: question.questionId,
             reference_text: question.interactionType ? null : (question.referenceText || null),
-            ...normalized
+            foundation_round: flow.round,
+            ...flow.value
         });
     } catch (error) {
-        if (admin && providerRequestId) {
-            try {
-                await finishProviderRequest(
-                    admin,
-                    providerRequestId,
-                    "internal_failed",
-                    String((error as any)?.code || "internal_error").slice(0, 120)
-                );
-            } catch {
-                console.error("Pronunciation request ledger finalization failed");
-            }
-        }
         const status = Number((error as any)?.status || 500);
         return json(status, {
             error: status < 500 ? String((error as any)?.message || "請求失敗") : "發音評分服務發生錯誤",
