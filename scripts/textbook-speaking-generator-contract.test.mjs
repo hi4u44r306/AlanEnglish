@@ -10,6 +10,7 @@ const wholeBookSizeMigration = read("supabase/migrations/20260904030633_allow_wh
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const challenge = read("supabase/functions/speaking-challenge/index.ts");
+const challengeView = read("supabase/functions/_shared/speaking-challenge-view.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
 const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
 const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
@@ -248,15 +249,17 @@ test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(ttsManager, /status !== "ready" && item\.status !== "failed"/);
     assert.match(service, /uploadSpeakingQuestionPicture/);
     assert.match(adminPage, /WorkbookOnePictureContentAdmin/);
-    assert.match(challenge, /圖片口說題目尚未完成安全發布/);
-    assert.match(challenge, /P22 的可見單字發音尚未完整/);
-    assert.match(challenge, /kind: "private-image"/);
-    assert.match(challenge, /createR2PresignedUrl\(visualAsset\.private_object_key, "GET", 15 \* 60\)/);
-    assert.match(challenge, /question_text: ""/);
-    assert.match(challenge, /model_answer: ""/);
-    assert.match(challenge, /pronunciation_notes_zh: ""/);
+    assert.match(challenge, /authorizeSpeakingChallenge/);
+    assert.match(challenge, /buildPublicSpeakingQuestion/);
+    assert.match(challengeView, /圖片口說題目尚未完成安全發布/);
+    assert.match(challengeView, /P22 的可見單字發音尚未完整/);
+    assert.match(challengeView, /kind: "private-image"/);
+    assert.match(challengeView, /signPrivateObject\(visualAsset\.private_object_key\)/);
+    assert.match(challengeView, /question_text: ""/);
+    assert.match(challengeView, /model_answer: ""/);
+    assert.match(challengeView, /pronunciation_notes_zh: ""/);
     assert.match(challenge, /correct_assessment_required/);
-    assert.doesNotMatch(challenge, /private_object_key:/);
+    assert.doesNotMatch(challengeView, /private_object_key:/);
 });
 
 test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
@@ -356,7 +359,7 @@ test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存",
     assert.match(challenge, /crypto\.getRandomValues/);
     assert.match(challenge, /foundation_round_required/);
     assert.match(challenge, /complete_speaking_challenge_question_v2/);
-    assert.match(challenge, /hideChallengeAnswerAudio/);
+    assert.match(challengeView, /hideChallengeAnswerAudio/);
     assert.match(coach, /foundation_round_id/);
     assert.match(coach, /p_claim_token: claimToken/);
     assert.match(coach, /claim_speaking_foundation_round_question_v1/);

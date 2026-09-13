@@ -64,6 +64,27 @@ describe("TextbookSpeakingChallenge model audio", () => {
         await waitFor(() => expect(completeSpeakingChallengeQuestion).toHaveBeenCalledWith(mockFirebaseUser, 7, 9));
     });
 
+    it.each([
+        ["picture_qa", 21, 2101],
+        ["picture_gap_sentence", 22, 2201]
+    ])("Workbook 1 %s 圖片題完成時只寫入對應題目的完成紀錄", async (interactionType, questionSetId, questionId) => {
+        completeSpeakingChallengeQuestion.mockResolvedValue({ success: true });
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: questionSetId,
+                title: "Workbook 1 圖片口說",
+                generation_metadata: { interaction_type: interactionType },
+                speaking_questions: [{ id: questionId, progress_status: "opened" }]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={[`/student/speaking-challenges/${questionSetId}`]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: "完成圖片題" }));
+
+        await waitFor(() => expect(completeSpeakingChallengeQuestion).toHaveBeenCalledWith(mockFirebaseUser, questionSetId, questionId));
+        expect(startSpeakingFoundationRound).not.toHaveBeenCalled();
+    });
+
     it("A–Z 關卡透過後端建立受保護回合，不逐題呼叫一般完成服務", async () => {
         startSpeakingFoundationRound.mockResolvedValue({ round: { round_id: "round-1", questions: [] } });
         getSpeakingChallengeSet.mockResolvedValue({

@@ -4,7 +4,8 @@ import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
 import { toPublicErrorResponse } from "../_shared/public-error.ts";
-import { matchesFoundationAnswer, readFoundationInteractionType, visibleSentenceWords } from "../_shared/speaking-foundation-answer.ts";
+import { matchesFoundationAnswer, readFoundationInteractionType } from "../_shared/speaking-foundation-answer.ts";
+import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -26,16 +27,6 @@ const secureShuffle = <T>(items: T[]) => {
     return next;
 };
 
-const assertChallengeAccess = async (admin: any, user: any) => {
-    if (user.role === "teacher" || user.role === "admin") return { demoMode: true };
-    if (user.role !== "student") throw Object.assign(new Error("目前帳號不能開啟口說大挑戰"), { status: 403 });
-    const access = await loadEffectiveAccess(admin, Number(user.id));
-    if (!access.is_active || !access.features.pronunciation) {
-        throw Object.assign(new Error("目前方案不包含 AI 發音練習"), { status: 403, code: "pronunciation_access_required" });
-    }
-    return { demoMode: false, effectiveAccess: access };
-};
-
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -45,7 +36,10 @@ Deno.serve(async (req: Request) => {
         if (!supabaseUrl || !serviceRoleKey) return json(500, { error: "Supabase 伺服器設定不完整" });
         const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
         const user = await verifyFirebaseRequest(req, admin);
-        const { demoMode, effectiveAccess } = await assertChallengeAccess(admin, user);
+        const { demoMode, effectiveAccess } = await authorizeSpeakingChallenge(
+            user,
+            studentId => loadEffectiveAccess(admin, studentId)
+        );
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
 
@@ -96,7 +90,6 @@ Deno.serve(async (req: Request) => {
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
             const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
             const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
-            const hideChallengeAnswerAudio = interactionType === "letter_spelling" || pictureMode;
             const { data: progress, error: progressError } = ids.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", ids)
                 : { data: [], error: null };
@@ -154,72 +147,21 @@ Deno.serve(async (req: Request) => {
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
                 const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
                 const promptAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:question_prompt`);
-                const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
-                const promptReady = promptAsset?.status === "ready" && promptAsset?.private_object_key;
                 const pictureInteraction: any = pictureInteractionByQuestion.get(Number(question.id));
                 const visualAsset: any = visualByQuestion.get(Number(question.id));
-                if (pictureMode && (pictureInteraction?.interaction_type !== interactionType
-                    || visualAsset?.status !== "ready" || !visualAsset?.private_object_key)) {
-                    throw Object.assign(new Error("圖片口說題目尚未完成安全發布"), { status: 409, code: "picture_content_incomplete" });
-                }
-                const wordAudio: any[] = [];
-                for (const row of (wordsByQuestion.get(Number(question.id)) || [])) {
-                    if (row.asset?.status !== "ready" || !row.asset?.private_object_key) continue;
-                    wordAudio.push({
-                        token_index: Number(row.token_index),
-                        word: String(row.word),
-                        audio_url: await createR2PresignedUrl(row.asset.private_object_key, "GET", 15 * 60)
-                    });
-                }
-                if (interactionType === "picture_gap_sentence") {
-                    const expectedWords = visibleSentenceWords(pictureInteraction.prompt_text);
-                    const completeWordAudio = expectedWords.length === wordAudio.length
-                        && expectedWords.every(expected => wordAudio.some(item => (
-                            item.token_index === expected.tokenIndex
-                            && item.word.toLowerCase() === expected.text.toLowerCase()
-                        )));
-                    if (!completeWordAudio) {
-                        throw Object.assign(new Error("P22 的可見單字發音尚未完整"), { status: 409, code: "word_audio_incomplete" });
-                    }
-                }
-                const foundationAnswerHidden = interactionType === "alphabet_round" || interactionType === "letter_spelling";
-                const safeQuestion = pictureMode ? {
-                    id: question.id,
-                    question_text: "",
-                    hint_zh: "",
-                    keywords: [],
-                    simple_answer: "",
-                    model_answer: "",
-                    follow_up_question: null,
-                    pronunciation_notes_zh: "",
-                    visual_aid: {
-                        kind: "private-image",
-                        image_url: await createR2PresignedUrl(visualAsset.private_object_key, "GET", 15 * 60),
-                        alt_zh: visualAsset.alt_zh
-                    },
-                    picture_interaction: {
-                        type: interactionType,
-                        sentence_pattern: interactionType === "picture_gap_sentence" ? pictureInteraction.prompt_text : null,
-                        word_audio: interactionType === "picture_gap_sentence" ? wordAudio : []
-                    },
-                    sort_order: question.sort_order
-                } : foundationAnswerHidden ? {
-                    ...question,
-                    hint_zh: "",
-                    keywords: [],
-                    simple_answer: "",
-                    model_answer: ""
-                } : question;
-                questions.push({
-                    ...safeQuestion,
-                    progress_status: statusByQuestion.get(Number(question.id)) || "opened",
-                    question_audio_status: hideChallengeAnswerAudio ? "hidden" : (promptReady ? "ready" : (promptAsset?.status || "missing")),
-                    question_audio_url: !hideChallengeAnswerAudio && promptReady
-                        ? await createR2PresignedUrl(promptAsset.private_object_key, "GET", 15 * 60) : null,
-                    model_audio_status: hideChallengeAnswerAudio ? "hidden" : (modelReady ? "ready" : (modelAsset?.status || "missing")),
-                    model_audio_url: !hideChallengeAnswerAudio && modelReady
-                        ? await createR2PresignedUrl(modelAsset.private_object_key, "GET", 15 * 60) : null
-                });
+                questions.push(await buildPublicSpeakingQuestion({
+                    question,
+                    interactionType,
+                    progressStatus: statusByQuestion.get(Number(question.id)),
+                    modelAsset,
+                    promptAsset,
+                    pictureInteraction,
+                    visualAsset,
+                    wordAudioRows: wordsByQuestion.get(Number(question.id)) || [],
+                    signPrivateObject: (privateObjectKey: string) => (
+                        createR2PresignedUrl(privateObjectKey, "GET", 15 * 60)
+                    )
+                }));
             }
             return json(200, { success: true, demo_mode: demoMode, challenge: { ...questionSet, speaking_questions: questions } });
         }
