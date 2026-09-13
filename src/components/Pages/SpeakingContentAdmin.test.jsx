@@ -1,17 +1,32 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
-import { createWorkbookOneStarterQuestionSet, createWorkbookTwoStarterQuestionSet, getSpeakingContentBootstrap, getSpeakingQuestionAudioPreview } from "../../services/speakingContentService";
+import {
+    assembleSpeakingAlphabetMasterAudio,
+    confirmWorkbookOneFoundationSource,
+    createWorkbookOneFoundationQuestionSet,
+    createWorkbookOneStarterQuestionSet,
+    createWorkbookTwoStarterQuestionSet,
+    getSpeakingContentBootstrap,
+    getSpeakingQuestionAudioPreview,
+    getSpeakingQuestionPicturePreview
+} from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
+    assembleSpeakingAlphabetMasterAudio: jest.fn(),
+    confirmWorkbookOneFoundationSource: jest.fn(),
+    createWorkbookOneFoundationQuestionSet: jest.fn(),
     createWorkbookOneStarterQuestionSet: jest.fn(),
     createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
     getSpeakingQuestionAudioPreview: jest.fn(),
+    getSpeakingQuestionPicturePreview: jest.fn(),
     extractSpeakingSourceDocument: jest.fn(), extractSpeakingBookChunk: jest.fn(),
     publishSpeakingQuestionSet: jest.fn(), generateSpeakingQuestionSetAudio: jest.fn(), reviewSpeakingOcrSource: jest.fn(),
+    generateSpeakingVisibleWordAudio: jest.fn(), createWorkbookOnePictureDraft: jest.fn(), uploadSpeakingQuestionPicture: jest.fn(),
+    discardWorkbookOnePictureDraft: jest.fn(),
     saveReviewedSpeakingSource: jest.fn(), uploadAndExtractSpeakingSource: jest.fn(),
     uploadWholeBookSource: jest.fn(), updateDraftSpeakingQuestion: jest.fn(),
     generateSpeakingQuestionSet: jest.fn()
@@ -21,8 +36,17 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
+        createWorkbookOneFoundationQuestionSet.mockResolvedValue({ success: true, reused: false });
+        confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
+        assembleSpeakingAlphabetMasterAudio.mockResolvedValue({ success: true, reused: false, segments_count: 26 });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
+        getSpeakingQuestionPicturePreview.mockResolvedValue({
+            question_id: 53,
+            image_url: "https://r2.example/p21-preview.png",
+            alt_zh: "教材中的蘋果插圖",
+            expires_in_seconds: 900
+        });
         getSpeakingContentBootstrap.mockResolvedValue({
         books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }, { id: 2, name: "Workbook 2", code: "Workbook_2" }],
         documents: [{ id: 20, book_id: 2, title: "Workbook 2 口說大關卡", page_count: 115, chunk_count: 12 }],
@@ -33,9 +57,11 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         sections: [], question_sets: []
         });
     });
+    afterEach(() => jest.restoreAllMocks());
 
     it("shows persistent batch progress and a per-batch retry control", async () => {
         render(<SpeakingContentAdmin />);
+        expect(await screen.findByRole("heading", { name: "P21／P22 人工內容與私人圖片" })).toBeInTheDocument();
         expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
         expect(await screen.findByText("整本教材 · 115 頁")).toBeInTheDocument();
         expect(screen.getByText("P1–P10")).toBeInTheDocument();
@@ -62,6 +88,58 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         await waitFor(() => expect(createWorkbookTwoStarterQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 2));
     });
 
+    it("creates Workbook 1 foundation drafts and requires source review before publishing", async () => {
+        render(<SpeakingContentAdmin />);
+        const createButtons = await screen.findAllByRole("button", { name: "建立草稿" });
+        expect(createButtons).toHaveLength(5);
+        fireEvent.click(createButtons[1]);
+
+        await waitFor(() => expect(createWorkbookOneFoundationQuestionSet).toHaveBeenCalledWith(
+            mockFirebaseUser,
+            1,
+            "create_workbook_1_spelling_p14"
+        ));
+    });
+
+    it("prepares one female A–Z master audio without using the generic TTS generator", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValueOnce({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [], chunks: [], sections: [],
+            question_sets: [{
+                id: 7, source_section_id: 70, title: "A–Z 大小寫挑戰", status: "draft", version: 1,
+                generation_metadata: { template_key: "workbook_1_alphabet_round_v1", interaction_type: "alphabet_round" },
+                speaking_questions: []
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: "建立／確認單一 A–Z 女聲音檔" }));
+
+        await waitFor(() => expect(assembleSpeakingAlphabetMasterAudio).toHaveBeenCalledWith(mockFirebaseUser, 7));
+        const service = jest.requireMock("../../services/speakingContentService");
+        expect(service.generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+    });
+
+    it("sends an explicit confirmation for a reviewed Workbook 1 foundation draft", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValueOnce({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 40, book_id: 1, title: "Workbook 1 P14 拼讀關", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 41, document_id: 40, topic: "看單字逐字母拼讀", unit_label: "P14 拼讀", page_from_label: "P14", page_to_label: "P14", language_level: "國小低年級", status: "draft" }],
+            question_sets: [{
+                id: 42, source_section_id: 41, title: "P14 看字拼讀", status: "draft", version: 1,
+                generation_metadata: { template_key: "workbook_1_p14_letter_spelling_v1", requires_content_review: true },
+                speaking_questions: [{ id: 43, sort_order: 0, question_text: "apple", hint_zh: "逐字母拼讀", simple_answer: "A P P L E", model_answer: "A P P L E", keywords: ["apple"], accepted_intents: ["完整拼讀"] }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /已對照原頁，核准內容/ }));
+
+        await waitFor(() => expect(confirmWorkbookOneFoundationSource).toHaveBeenCalledWith(mockFirebaseUser, 42));
+    });
+
     it("shows a student-facing preview for an editable starter draft", async () => {
         getSpeakingContentBootstrap.mockResolvedValueOnce({
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
@@ -81,6 +159,46 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
         expect(screen.getByText("女聲 · Autonoe")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "核准、發布並產生語音" })).toBeInTheDocument();
+    });
+
+    it("does not expose P21/P22 drafts to the generic question editor", async () => {
+        getSpeakingQuestionPicturePreview
+            .mockRejectedValueOnce(new Error("preview unavailable"))
+            .mockResolvedValueOnce({
+                question_id: 53,
+                image_url: "https://r2.example/p21-preview.png",
+                alt_zh: "教材中的蘋果插圖",
+                expires_in_seconds: 900
+            });
+        getSpeakingContentBootstrap.mockResolvedValueOnce({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 50, book_id: 1, title: "Workbook 1 P21 人工圖片內容", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 51, document_id: 50, topic: "P21 看圖問答", unit_label: "P21", page_from_label: "P21", page_to_label: "P21", language_level: "國小低年級", status: "reviewed" }],
+            question_sets: [{
+                id: 52, source_section_id: 51, title: "P21 看圖完整問答", status: "draft", version: 1,
+                generation_metadata: { interaction_type: "picture_qa", requires_content_review: true },
+                speaking_questions: [{
+                    id: 53, sort_order: 0, question_text: "What is that?", hint_zh: "看圖說完整問答。",
+                    simple_answer: "It is an apple.", model_answer: "It is an apple.", keywords: [], accepted_intents: []
+                }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+
+        expect(await screen.findByText("P21／P22 題目已鎖定同步編輯")).toBeInTheDocument();
+        expect(screen.queryByLabelText("AI 要問學生的問題")).not.toBeInTheDocument();
+        expect(getSpeakingQuestionPicturePreview).not.toHaveBeenCalled();
+        expect(screen.queryByRole("img", { name: "教材中的蘋果插圖" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByText("預覽學生畫面"));
+        fireEvent.click(screen.getByRole("button", { name: "載入第 1 題圖片預覽" }));
+        await waitFor(() => expect(getSpeakingQuestionPicturePreview).toHaveBeenCalledWith(mockFirebaseUser, 53));
+        expect(await screen.findByRole("status")).toHaveTextContent("圖片尚未準備完成，請確認上傳狀態後再試。");
+        expect(screen.queryByRole("img", { name: "教材中的蘋果插圖" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "載入第 1 題圖片預覽" }));
+        await waitFor(() => expect(getSpeakingQuestionPicturePreview).toHaveBeenCalledTimes(2));
+        expect(await screen.findByRole("img", { name: "教材中的蘋果插圖" })).toHaveAttribute("src", "https://r2.example/p21-preview.png");
+        expect(screen.getByText("學生只會看到圖片，並在同一次錄音說出完整問句與回答。")).toBeInTheDocument();
     });
 
     it("shows the balanced voice plan and loads a stored preview for a published question", async () => {

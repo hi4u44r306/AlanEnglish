@@ -1,9 +1,13 @@
 import {
+    assembleSpeakingAlphabetMasterAudio,
+    confirmWorkbookOneFoundationSource,
+    createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
     createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
     getSpeakingQuestionAudioPreview,
+    getSpeakingQuestionPicturePreview,
     getSpeakingContentBootstrap,
     prepareSpeakingSourceUpload,
     publishSpeakingQuestionSet,
@@ -37,11 +41,15 @@ describe("speakingContentService", () => {
         await saveReviewedSpeakingSource(firebaseUser, { book_id: 1 });
         await generateSpeakingQuestionSet(firebaseUser, { source_section_id: 2, request_key: "key" });
         await createWorkbookOneStarterQuestionSet(firebaseUser, 1);
+        await createWorkbookOneFoundationQuestionSet(firebaseUser, 1, "create_workbook_1_spelling_p14");
+        await confirmWorkbookOneFoundationSource(firebaseUser, 14);
         await createWorkbookTwoStarterQuestionSet(firebaseUser, 2);
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
         await publishSpeakingQuestionSet(firebaseUser, 4);
         await generateSpeakingQuestionSetAudio(firebaseUser, 4);
+        await assembleSpeakingAlphabetMasterAudio(firebaseUser, 7);
         await getSpeakingQuestionAudioPreview(firebaseUser, 4, 8);
+        await getSpeakingQuestionPicturePreview(firebaseUser, 9);
 
         expect(callEdgeFunction.mock.calls.map(call => [call[0], call[2].action])).toEqual([
             ["speaking-content-manager", "bootstrap"],
@@ -53,12 +61,20 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "save_reviewed_source"],
             ["speaking-content-manager", "generate_question_set"],
             ["speaking-content-manager", "create_workbook_1_starter"],
+            ["speaking-content-manager", "create_workbook_1_spelling_p14"],
+            ["speaking-content-manager", "confirm_workbook_1_foundation_source"],
             ["speaking-content-manager", "create_workbook_2_starter"],
             ["speaking-content-manager", "update_draft_question"],
             ["speaking-content-manager", "publish_question_set"],
             ["speaking-tts-manager", "generate_set_audio"],
-            ["speaking-tts-manager", "preview_question_audio"]
+            ["speaking-tts-manager", "assemble_alphabet_master_audio"],
+            ["speaking-tts-manager", "preview_question_audio"],
+            ["speaking-content-manager", "preview_question_picture"]
         ]);
+        expect(callEdgeFunction.mock.calls.at(-1)?.[2]).toEqual({
+            action: "preview_question_picture",
+            question_id: 9
+        });
     });
 
     it("uploads the private file before asking the manager to extract OCR text", async () => {

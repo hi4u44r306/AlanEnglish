@@ -12,19 +12,64 @@ export const reviewSpeakingOcrSource = (firebaseUser, payload) => callSpeakingCo
 export const saveReviewedSpeakingSource = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "save_reviewed_source", payload);
 export const generateSpeakingQuestionSet = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "generate_question_set", payload);
 export const createWorkbookOneStarterQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_1_starter", { book_id: bookId });
+export const createWorkbookOneFoundationQuestionSet = (firebaseUser, bookId, action) => callSpeakingContent(firebaseUser, action, { book_id: bookId });
+export const confirmWorkbookOneFoundationSource = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "confirm_workbook_1_foundation_source", {
+    question_set_id: questionSetId,
+    confirmed: true
+});
 export const createWorkbookTwoStarterQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_2_starter", { book_id: bookId });
+export const createWorkbookOnePictureDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_workbook_1_picture_draft", payload);
+export const discardWorkbookOnePictureDraft = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "discard_workbook_1_picture_draft", {
+    question_set_id: questionSetId
+});
 export const updateDraftSpeakingQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_draft_question", payload);
 export const publishSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "publish_question_set", { question_set_id: questionSetId });
 export const generateSpeakingQuestionSetAudio = (firebaseUser, questionSetId) => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_set_audio", question_set_id: questionSetId })
+);
+export const assembleSpeakingAlphabetMasterAudio = (firebaseUser, questionSetId) => (
+    callEdgeFunction("speaking-tts-manager", firebaseUser, {
+        action: "assemble_alphabet_master_audio", question_set_id: questionSetId
+    })
 );
 export const getSpeakingQuestionAudioPreview = (firebaseUser, questionSetId, questionId) => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, {
         action: "preview_question_audio", question_set_id: questionSetId, question_id: questionId
     })
 );
+export const getSpeakingQuestionPicturePreview = (firebaseUser, questionId) => (
+    callSpeakingContent(firebaseUser, "preview_question_picture", { question_id: questionId })
+);
+export const generateSpeakingVisibleWordAudio = (firebaseUser, questionSetId) => (
+    callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_visible_word_audio", question_set_id: questionSetId })
+);
 export const extractSpeakingBookChunk = (firebaseUser, chunkId) => callSpeakingContent(firebaseUser, "extract_book_chunk", { chunk_id: chunkId });
 export const discardSpeakingSourceUpload = (firebaseUser, documentId) => callSpeakingContent(firebaseUser, "discard_document_upload", { document_id: documentId });
+
+export const uploadSpeakingQuestionPicture = async (firebaseUser, questionId, pageLabel, altZh, file) => {
+    const prepared = await callSpeakingContent(firebaseUser, "create_picture_upload", {
+        question_id: questionId,
+        source_page_label: pageLabel,
+        alt_zh: altZh,
+        mime_type: file.type,
+        byte_size: file.size
+    });
+    try {
+        const response = await fetch(prepared.upload.url, {
+            method: prepared.upload.method || "PUT",
+            headers: prepared.upload.headers || { "Content-Type": file.type },
+            body: file
+        });
+        if (!response.ok) throw new Error(`私人圖片上傳失敗（HTTP ${response.status}）`);
+        return await callSpeakingContent(firebaseUser, "confirm_picture_upload", {
+            question_id: questionId,
+            asset_id: prepared.asset_id
+        });
+    } catch (error) {
+        await callSpeakingContent(firebaseUser, "discard_picture_upload", { asset_id: prepared.asset_id }).catch(() => null);
+        throw error;
+    }
+};
 
 const uploadPrivatePdf = async (upload, body) => {
     let response;

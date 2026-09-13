@@ -2,6 +2,17 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
 import { spokenExampleText } from "../_shared/speaking-tts-text.ts";
+import { visibleSentenceWords } from "../_shared/speaking-foundation-answer.ts";
+import {
+    alphabetRoundContentMatches,
+    workbookOneFoundationTemplateByKey
+} from "../_shared/workbook-one-foundations.ts";
+import {
+    ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
+    ALPHABET_SEQUENCE_GAP_MS,
+    alphabetSourceFingerprint,
+    assembleAlphabetAudioSequence
+} from "../_shared/alphabet-audio-sequence.ts";
 import {
     chooseSpeakingVoice,
     DEFAULT_FEMALE_VOICE_ID,
@@ -23,6 +34,7 @@ const OUTPUT_FORMAT = "wav";
 const PIPELINE_VERSION = "elementary-bright-v4";
 const SAMPLE_RATE_METADATA = 24000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+const MAX_ALPHABET_SOURCE_BYTES = 20 * 1024 * 1024;
 const SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.82 });
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;
@@ -123,10 +135,40 @@ const requestGoogleAudio = async (text: string, selectedVoice: string) => {
     return { bytes: decodeGoogleAudio(payload.audioContent), usedCharacters: text.length };
 };
 
-const generateQuestionAudio = async (admin: any, question: any) => {
-    const text = spokenExampleText(question?.model_answer);
+const linkGeneratedAsset = async (admin: any, question: any, assetId: string, target: any, updatedAt: string) => {
+    if (target?.kind === "visible_word") {
+        const { error } = await admin.from("speaking_question_word_audio").upsert({
+            question_id: question.id, token_index: target.tokenIndex, word: target.word,
+            asset_id: assetId, updated_at: updatedAt
+        }, { onConflict: "question_id,token_index" });
+        if (error) throw error;
+        return;
+    }
+    const payload = {
+        question_id: question.id, asset_id: assetId, purpose: "model_answer", updated_at: updatedAt
+    };
+    const { data: existingLink, error: updateError } = await admin.from("speaking_question_audio")
+        .update({ asset_id: assetId, updated_at: updatedAt })
+        .eq("question_id", question.id).eq("purpose", "model_answer")
+        .select("question_id").maybeSingle();
+    if (updateError) throw updateError;
+    if (existingLink) return;
+    const { error: insertError } = await admin.from("speaking_question_audio").insert(payload);
+    if (!insertError) return;
+    if (insertError.code !== "23505") throw insertError;
+    const { data: retriedLink, error: retryError } = await admin.from("speaking_question_audio")
+        .update({ asset_id: assetId, updated_at: updatedAt })
+        .eq("question_id", question.id).eq("purpose", "model_answer")
+        .select("question_id").maybeSingle();
+    if (retryError) throw retryError;
+    if (!retriedLink) throw Object.assign(new Error("示範語音無法連結至題目"), { status: 409, code: "audio_link_race_failed" });
+};
+
+const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
+    const text = spokenExampleText(target?.text ?? question?.model_answer);
     if (!text) return { question_id: Number(question.id), status: "failed", error: "示範回答是空白" };
-    const selected = chooseSpeakingVoice(question.question_set_id, question.sort_order, voicePool());
+    const selected = target?.voiceChoice
+        || chooseSpeakingVoice(question.question_set_id, target?.tokenIndex ?? question.sort_order, voicePool());
     const selectedVoice = selected.voiceId;
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
@@ -135,16 +177,45 @@ const generateQuestionAudio = async (admin: any, question: any) => {
     }));
 
     const { data: existing, error: existingError } = await admin.from("speaking_tts_assets")
-        .select("id,status,private_object_key,updated_at")
+        .select("id,status,private_object_key,byte_size,completed_at,error_code,updated_at")
         .eq("provider", PROVIDER).eq("content_hash", contentHash)
         .eq("voice_id", selectedVoice).eq("settings_hash", settingsHash).maybeSingle();
     if (existingError) throw existingError;
     if (existing?.status === "ready" && existing.private_object_key) {
-        const { error: linkError } = await admin.from("speaking_question_audio").upsert({
-            question_id: question.id, asset_id: existing.id, purpose: "model_answer", updated_at: new Date().toISOString()
-        }, { onConflict: "question_id" });
-        if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+        await linkGeneratedAsset(admin, question, existing.id, target, new Date().toISOString());
+        return { question_id: Number(question.id), token_index: target?.tokenIndex ?? null, status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+    }
+    const mayRecoverStoredAsset = existing?.status === "failed"
+        && existing?.error_code === "42P10"
+        && Boolean(existing?.private_object_key)
+        && Number(existing?.byte_size || 0) > 0
+        && Boolean(existing?.completed_at);
+    if (mayRecoverStoredAsset) {
+        const stored = await fetchR2(existing.private_object_key, { method: "HEAD" });
+        if (stored.ok) {
+            const storedBytes = Number(stored.headers.get("content-length") || 0);
+            if (!Number.isFinite(storedBytes) || storedBytes !== Number(existing.byte_size)) {
+                throw Object.assign(new Error("既有示範語音的儲存大小與資料庫不一致"), {
+                    status: 502, code: "stored_audio_size_mismatch"
+                });
+            }
+            const recoveredAt = new Date().toISOString();
+            const { error: recoverError } = await admin.from("speaking_tts_assets").update({
+                status: "ready", error_code: null, error_message: null, updated_at: recoveredAt
+            }).eq("id", existing.id);
+            if (recoverError) throw recoverError;
+            await linkGeneratedAsset(admin, question, existing.id, target, recoveredAt);
+            return {
+                question_id: Number(question.id), token_index: target?.tokenIndex ?? null,
+                status: "ready", reused: true, recovered: true,
+                voice_id: selectedVoice, voice_gender: selected.gender
+            };
+        }
+        if (stored.status !== 404) {
+            throw Object.assign(new Error("暫時無法確認既有示範語音，已停止以避免重複產生費用"), {
+                status: 502, code: `stored_audio_probe_${stored.status}`
+            });
+        }
     }
     if (existing?.status === "processing" && Date.now() - Date.parse(existing.updated_at) < 5 * 60 * 1000) {
         return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
@@ -155,8 +226,18 @@ const generateQuestionAudio = async (admin: any, question: any) => {
     if (asset) {
         const { data, error } = await admin.from("speaking_tts_assets").update({
             status: "processing", error_code: null, error_message: null, updated_at: now
-        }).eq("id", asset.id).select("id").single();
+        }).eq("id", asset.id)
+            .eq("status", existing.status)
+            .eq("updated_at", existing.updated_at)
+            .select("id").maybeSingle();
         if (error) throw error;
+        if (!data) {
+            return {
+                question_id: Number(question.id), token_index: target?.tokenIndex ?? null,
+                status: "processing", reused: true,
+                voice_id: selectedVoice, voice_gender: selected.gender
+            };
+        }
         asset = data;
     } else {
         const { data, error } = await admin.from("speaking_tts_assets").insert({
@@ -170,8 +251,8 @@ const generateQuestionAudio = async (admin: any, question: any) => {
                 .eq("voice_id", selectedVoice).eq("settings_hash", settingsHash).single();
             if (raceError) throw raceError;
             if (raced.status === "ready" && raced.private_object_key) {
-                await admin.from("speaking_question_audio").upsert({ question_id: question.id, asset_id: raced.id, purpose: "model_answer", updated_at: now }, { onConflict: "question_id" });
-                return { question_id: Number(question.id), status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
+                await linkGeneratedAsset(admin, question, raced.id, target, now);
+                return { question_id: Number(question.id), token_index: target?.tokenIndex ?? null, status: "ready", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
             }
             return { question_id: Number(question.id), status: "processing", reused: true, voice_id: selectedVoice, voice_gender: selected.gender };
         }
@@ -193,16 +274,186 @@ const generateQuestionAudio = async (admin: any, question: any) => {
             used_characters: generated.usedCharacters, completed_at: completedAt, updated_at: completedAt
         }).eq("id", asset.id);
         if (readyError) throw readyError;
-        const { error: linkError } = await admin.from("speaking_question_audio").upsert({
-            question_id: question.id, asset_id: asset.id, purpose: "model_answer", updated_at: completedAt
-        }, { onConflict: "question_id" });
-        if (linkError) throw linkError;
-        return { question_id: Number(question.id), status: "ready", reused: false, voice_id: selectedVoice, voice_gender: selected.gender };
+        await linkGeneratedAsset(admin, question, asset.id, target, completedAt);
+        return { question_id: Number(question.id), token_index: target?.tokenIndex ?? null, status: "ready", reused: false, voice_id: selectedVoice, voice_gender: selected.gender };
     } catch (error: any) {
         await admin.from("speaking_tts_assets").update({
             status: "failed", error_code: cleanText(error?.code, 120) || "generation_failed",
             error_message: cleanText(error?.message, 500) || "語音生成失敗", updated_at: new Date().toISOString()
         }).eq("id", asset.id);
+        throw error;
+    }
+};
+
+const recoverStoredQuestionAudio = async (admin: any, question: any) => {
+    const text = spokenExampleText(question?.model_answer);
+    const selected = { gender: "female", voiceId: voicePool().female };
+    const contentHash = await sha256(text);
+    const settingsHash = await sha256(JSON.stringify({
+        provider: PROVIDER, voice_id: selected.voiceId, language_code: LANGUAGE_CODE,
+        output_format: OUTPUT_FORMAT, sample_rate: "provider_default",
+        pipeline_version: PIPELINE_VERSION, settings: SETTINGS
+    }));
+    const { data: asset, error } = await admin.from("speaking_tts_assets")
+        .select("id,status,content_hash,private_object_key,byte_size,completed_at,error_code")
+        .eq("provider", PROVIDER).eq("content_hash", contentHash)
+        .eq("voice_id", selected.voiceId).eq("settings_hash", settingsHash).maybeSingle();
+    if (error) throw error;
+    if (!asset?.private_object_key || Number(asset?.byte_size || 0) <= 0 || !asset?.completed_at) {
+        throw Object.assign(new Error(`字母 ${text} 尚無可復用的私人 WAV，已停止且不會重新呼叫付費語音`), {
+            status: 409, code: "alphabet_source_audio_missing"
+        });
+    }
+    const stored = await fetchR2(asset.private_object_key, { method: "HEAD" });
+    if (!stored.ok) {
+        throw Object.assign(new Error(`字母 ${text} 的既有私人 WAV 無法確認，已停止且不會重新呼叫付費語音`), {
+            status: 502, code: `alphabet_source_probe_${stored.status}`
+        });
+    }
+    const storedBytes = Number(stored.headers.get("content-length") || 0);
+    if (storedBytes !== Number(asset.byte_size)) {
+        throw Object.assign(new Error(`字母 ${text} 的既有私人 WAV 大小不一致`), {
+            status: 502, code: "alphabet_source_size_mismatch"
+        });
+    }
+    if (asset.status !== "ready") {
+        if (asset.error_code !== "42P10") {
+            throw Object.assign(new Error(`字母 ${text} 的既有音檔狀態不可安全復用`), {
+                status: 409, code: "alphabet_source_not_ready"
+            });
+        }
+        const { error: recoverError } = await admin.from("speaking_tts_assets").update({
+            status: "ready", error_code: null, error_message: null, updated_at: new Date().toISOString()
+        }).eq("id", asset.id);
+        if (recoverError) throw recoverError;
+    }
+    await linkGeneratedAsset(admin, question, asset.id, null, new Date().toISOString());
+    return {
+        questionId: Number(question.id),
+        letter: text.toUpperCase(),
+        assetId: String(asset.id),
+        contentHash: String(asset.content_hash),
+        byteSize: Number(asset.byte_size),
+        privateObjectKey: String(asset.private_object_key)
+    };
+};
+
+const assembleAlphabetMasterAudio = async (admin: any, questions: any[], questionSet: any) => {
+    const template = workbookOneFoundationTemplateByKey(questionSet?.generation_metadata?.template_key);
+    const orderedQuestions = [...questions].sort((left, right) => Number(left.sort_order) - Number(right.sort_order));
+    if (questionSet?.generation_metadata?.interaction_type !== "alphabet_round"
+        || !alphabetRoundContentMatches(template, orderedQuestions)) {
+        throw Object.assign(new Error("A–Z 題庫不是固定 26 個字母模板"), {
+            status: 409, code: "alphabet_template_invalid"
+        });
+    }
+    const sourceRecords = [];
+    for (const question of orderedQuestions) sourceRecords.push(await recoverStoredQuestionAudio(admin, question));
+    const totalSourceBytes = sourceRecords.reduce((sum, source) => sum + source.byteSize, 0);
+    if (totalSourceBytes > MAX_ALPHABET_SOURCE_BYTES) {
+        throw Object.assign(new Error("A–Z 來源音檔總大小超過安全上限"), { status: 409, code: "alphabet_source_too_large" });
+    }
+    const sourceFingerprint = await alphabetSourceFingerprint(sourceRecords.map(source => ({
+        questionId: source.questionId,
+        letter: source.letter,
+        assetId: source.assetId,
+        contentHash: source.contentHash,
+        byteSize: source.byteSize
+    })), ALPHABET_SEQUENCE_GAP_MS);
+    const { data: existingSequence, error: sequenceError } = await admin.from("speaking_question_set_audio_sequences")
+        .select("question_set_version,source_fingerprint,assembler_version,status,private_object_key,byte_size,duration_ms,segments")
+        .eq("question_set_id", Number(questionSet.id)).eq("purpose", "alphabet_master").maybeSingle();
+    if (sequenceError) throw sequenceError;
+    let forceRebuild = false;
+    if (existingSequence?.source_fingerprint === sourceFingerprint
+        && Number(existingSequence?.question_set_version) === Number(questionSet.version)
+        && existingSequence?.assembler_version === ALPHABET_SEQUENCE_ASSEMBLER_VERSION
+        && Array.isArray(existingSequence?.segments)
+        && existingSequence.segments.every((segment: any) => segment?.voice_id === voicePool().female)
+        && existingSequence?.status === "ready" && existingSequence?.private_object_key) {
+        const stored = await fetchR2(existingSequence.private_object_key, { method: "HEAD" });
+        if (stored.ok && Number(stored.headers.get("content-length") || 0) === Number(existingSequence.byte_size)) {
+            return { reused: true, duration_ms: Number(existingSequence.duration_ms), segments: existingSequence.segments };
+        }
+        if (stored.status !== 404) {
+            throw Object.assign(new Error("暫時無法確認既有 A–Z 主音檔，已停止以避免重複處理"), {
+                status: 502, code: `alphabet_master_probe_${stored.status}`
+            });
+        }
+        forceRebuild = true;
+    }
+    const objectKey = normalizeObjectKey(`speaking-tts/derived/alphabet/${sourceFingerprint}.wav`);
+    const assemblyToken = crypto.randomUUID();
+    const { data: claim, error: processingError } = await admin.rpc("claim_speaking_alphabet_audio_sequence", {
+        p_question_set_id: Number(questionSet.id),
+        p_question_set_version: Number(questionSet.version),
+        p_source_fingerprint: sourceFingerprint,
+        p_assembler_version: ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
+        p_assembly_token: assemblyToken,
+        p_force_rebuild: forceRebuild
+    });
+    if (processingError) throw processingError;
+    if (!claim?.claimed) {
+        throw Object.assign(new Error(claim?.status === "processing"
+            ? "A–Z 主音檔正在組合，請稍後重新整理"
+            : "A–Z 主音檔已有較新的版本，請重新整理"), {
+            status: 409, code: "alphabet_assembly_in_progress"
+        });
+    }
+    try {
+        const sources = [];
+        for (const source of sourceRecords) {
+            const response = await fetchR2(source.privateObjectKey, { method: "GET" });
+            if (!response.ok) throw Object.assign(new Error(`字母 ${source.letter} 的私人 WAV 讀取失敗`), {
+                status: 502, code: `alphabet_source_get_${response.status}`
+            });
+            const bytes = new Uint8Array(await response.arrayBuffer());
+            if (bytes.length !== source.byteSize) throw Object.assign(new Error(`字母 ${source.letter} 的私人 WAV 大小不一致`), {
+                status: 502, code: "alphabet_source_download_size_mismatch"
+            });
+            sources.push({ ...source, bytes });
+        }
+        const assembled = assembleAlphabetAudioSequence(sources, ALPHABET_SEQUENCE_GAP_MS);
+        const femaleSegments = assembled.segments.map(segment => ({ ...segment, voice_id: voicePool().female }));
+        const stored = await fetchR2(objectKey, {
+            method: "PUT",
+            body: assembled.bytes,
+            headers: { "Content-Type": "audio/wav", "Cache-Control": "private, max-age=31536000, immutable" }
+        });
+        if (!stored.ok) throw Object.assign(new Error("A–Z 主音檔無法寫入私人儲存空間"), {
+            status: 502, code: `alphabet_master_put_${stored.status}`
+        });
+        const completedAt = new Date().toISOString();
+        const { data: readySequence, error: readyError } = await admin.from("speaking_question_set_audio_sequences").update({
+            private_object_key: objectKey,
+            mime_type: "audio/wav",
+            status: "ready",
+            byte_size: assembled.bytes.length,
+            duration_ms: assembled.durationMs,
+            segments: femaleSegments,
+            error_code: null,
+            error_message: null,
+            completed_at: completedAt,
+            assembly_token: null,
+            updated_at: completedAt
+        }).eq("question_set_id", Number(questionSet.id)).eq("purpose", "alphabet_master")
+            .eq("assembly_token", assemblyToken)
+            .select("status").maybeSingle();
+        if (readyError) throw readyError;
+        if (!readySequence) {
+            throw Object.assign(new Error("A–Z 主音檔已有較新的組合工作，請稍後重新整理"), {
+                status: 409, code: "alphabet_assembly_superseded"
+            });
+        }
+        return { reused: false, duration_ms: assembled.durationMs, segments: femaleSegments };
+    } catch (error: any) {
+        await admin.from("speaking_question_set_audio_sequences").update({
+            status: "failed",
+            error_code: cleanText(error?.code, 120) || "alphabet_assembly_failed",
+            error_message: cleanText(error?.message, 500) || "A–Z 主音檔組合失敗",
+            updated_at: new Date().toISOString()
+        }).eq("question_set_id", Number(questionSet.id)).eq("purpose", "alphabet_master")
+            .eq("assembly_token", assemblyToken);
         throw error;
     }
 };
@@ -219,20 +470,97 @@ Deno.serve(async (req: Request) => {
         if (user.role !== "admin") return json(403, { error: "只有管理員可以產生教材示範語音" });
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
-        if (!["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action)) return json(400, { error: "不支援的操作" });
+        if (!["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio", "assemble_alphabet_master_audio"].includes(action)) return json(400, { error: "不支援的操作" });
         const setId = Number(body?.question_set_id);
         const requestedQuestionId = action === "retry_question_audio" || action === "preview_question_audio" ? Number(body?.question_id) : null;
         if (!Number.isInteger(setId) || setId <= 0 || (requestedQuestionId !== null && (!Number.isInteger(requestedQuestionId) || requestedQuestionId <= 0))) {
             return json(400, { error: "題庫或題目編號不正確" });
         }
-        let query = admin.from("speaking_questions").select("id,question_set_id,model_answer,sort_order,speaking_question_sets(status)").eq("question_set_id", setId);
+        let query = admin.from("speaking_questions").select("id,question_set_id,question_text,simple_answer,model_answer,sort_order,speaking_question_sets(id,status,version,generation_metadata)").eq("question_set_id", setId);
         if (requestedQuestionId !== null) query = query.eq("id", requestedQuestionId);
         const { data: questions, error } = await query.order("sort_order");
         if (error) throw error;
         if (!questions?.length) return json(404, { error: "找不到需要產生語音的題目" });
-        const setStatus = Array.isArray(questions[0]?.speaking_question_sets)
-            ? questions[0].speaking_question_sets[0]?.status : questions[0]?.speaking_question_sets?.status;
-        if (setStatus !== "published") return json(409, { error: "只有已發布題庫可以產生正式示範語音" });
+        const questionSet = Array.isArray(questions[0]?.speaking_question_sets)
+            ? questions[0].speaking_question_sets[0] : questions[0]?.speaking_question_sets;
+        const setStatus = questionSet?.status;
+        const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+        const mayPrepareAlphabetDraft = setStatus === "draft" && interactionType === "alphabet_round";
+        const mayPrepareP22Draft = setStatus === "draft" && interactionType === "picture_gap_sentence"
+            && action === "generate_visible_word_audio";
+        if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPrepareP22Draft) {
+            return json(409, { error: "只有已發布題庫、待發布 A–Z，或待發布 P22 可見單字可以產生正式語音" });
+        }
+        if (action === "assemble_alphabet_master_audio") {
+            if (interactionType !== "alphabet_round") {
+                return json(409, { error: "只有 A–Z 固定教材可以建立單一主音檔" });
+            }
+            const femaleVoice = voicePool().female;
+            const prepared = [];
+            for (const question of questions) {
+                prepared.push(await generateQuestionAudio(admin, question, {
+                    voiceChoice: { gender: "female", voiceId: femaleVoice }
+                }));
+            }
+            const incomplete = prepared.filter(item => item.status !== "ready");
+            if (incomplete.length) {
+                return json(409, {
+                    error: `A–Z 女聲來源仍有 ${incomplete.length} 題處理中，請稍後再按一次`,
+                    code: "alphabet_female_audio_pending"
+                });
+            }
+            const assembled = await assembleAlphabetMasterAudio(admin, questions, questionSet);
+            return json(200, {
+                success: true,
+                reused: assembled.reused,
+                duration_ms: assembled.duration_ms,
+                segments_count: Array.isArray(assembled.segments) ? assembled.segments.length : 0,
+                provider_requests: prepared.filter(item => item.reused === false).length,
+                voice_id: femaleVoice,
+                voice_gender: "female"
+            });
+        }
+        if (interactionType === "alphabet_round"
+            && ["generate_set_audio", "retry_question_audio"].includes(action)) {
+            return json(409, {
+                error: "A–Z 固定教材只使用既有來源組合單一音檔，不會重新呼叫付費 TTS",
+                code: "alphabet_provider_generation_disabled"
+            });
+        }
+        if (action === "generate_visible_word_audio") {
+            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有 P22 看圖補句可產生逐字發音" });
+            const questionIds = questions.map((question: any) => Number(question.id));
+            const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
+                .select("question_id,interaction_type,prompt_text").in("question_id", questionIds);
+            if (interactionError) throw interactionError;
+            const interactionByQuestion = new Map((interactions || []).map((row: any) => [Number(row.question_id), row]));
+            const wordTargets = questions.flatMap((question: any) => {
+                const interaction: any = interactionByQuestion.get(Number(question.id));
+                if (interaction?.interaction_type !== "picture_gap_sentence") return [];
+                return visibleSentenceWords(interaction.prompt_text).map(token => ({ question, token }));
+            });
+            if (!wordTargets.length || wordTargets.length > 160) {
+                return json(409, { error: "P22 可見單字資料不完整或超過安全處理上限" });
+            }
+            const results = [];
+            for (const { question, token } of wordTargets) {
+                try {
+                    results.push(await generateQuestionAudio(admin, question, {
+                        kind: "visible_word", text: token.text, word: token.text, tokenIndex: token.tokenIndex
+                    }));
+                } catch (generationError: any) {
+                    results.push({ question_id: Number(question.id), token_index: token.tokenIndex, status: "failed", error: cleanText(generationError?.message, 300) || "單字語音生成失敗" });
+                }
+            }
+            const failed = results.filter(item => item.status === "failed").length;
+            const pending = results.filter(item => item.status !== "ready" && item.status !== "failed").length;
+            return json(failed || pending ? 207 : 200, {
+                success: failed === 0 && pending === 0,
+                generated: results.filter(item => item.status === "ready" && !item.reused).length,
+                reused: results.filter(item => item.status === "ready" && item.reused).length,
+                failed, pending, results
+            });
+        }
         if (action === "preview_question_audio") {
             const question = questions[0];
             const { data: link, error: linkError } = await admin.from("speaking_question_audio")
@@ -256,7 +584,7 @@ Deno.serve(async (req: Request) => {
             });
         }
         const results = [];
-        for (const question of questions.slice(0, 20)) {
+        for (const question of questions.slice(0, 50)) {
             try { results.push(await generateQuestionAudio(admin, question)); }
             catch (generationError: any) {
                 results.push({ question_id: Number(question.id), status: "failed", error: cleanText(generationError?.message, 300) || "語音生成失敗" });

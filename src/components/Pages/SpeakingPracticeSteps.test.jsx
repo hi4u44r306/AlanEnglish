@@ -58,4 +58,21 @@ describe("SpeakingPracticeSteps", () => {
         expect(onCompleted).toHaveBeenCalledTimes(1);
         expect(screen.getByText("本題已完成，可以前往下一題或再練一次。")).toBeInTheDocument();
     });
+
+    it("基礎拼讀模式隱藏答案提示並把錯誤交回關卡流程", () => {
+        const onIncorrect = jest.fn();
+        render(<SpeakingPracticeSteps
+            firebaseUser={{}}
+            question={question}
+            interactionType="letter_spelling"
+            hideHelp
+            disabledReason="先聽提示音"
+            onIncorrect={onIncorrect}
+        />);
+
+        expect(screen.queryByRole("button", { name: "不知道怎麼說？" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
+        expect(onIncorrect).toHaveBeenCalledTimes(1);
+        expect(screen.getByText("請慢慢逐字母再試一次。")).toBeInTheDocument();
+    });
 });

@@ -9,10 +9,28 @@ const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_b
 const wholeBookSizeMigration = read("supabase/migrations/20260904030633_allow_whole_book_document_size.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
+const challenge = read("supabase/functions/speaking-challenge/index.ts");
+const challengeView = read("supabase/functions/_shared/speaking-challenge-view.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
+const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
+const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
+const pronunciationFlow = read("supabase/functions/_shared/speaking-pronunciation-flow.ts");
+const bookEntitlement = read("supabase/functions/_shared/book-entitlement.ts");
+const visualAssetMigration = read("supabase/migrations/20260912143926_workbook1_speaking_visual_assets.sql");
+const foundationUniquenessMigration = read("supabase/migrations/20260913113000_workbook1_foundation_template_uniqueness.sql");
+const pronunciationLedgerMigration = read("supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql");
+const speakingCompletionMigration = read("supabase/migrations/20260907155832_speaking_challenge_completion_rewards.sql");
+const foundationRoundMigration = read("supabase/migrations/20260913023814_speaking_foundation_round_sessions.sql");
+const alphabetSequenceMigration = read("supabase/migrations/20260913170000_speaking_alphabet_audio_sequences.sql");
+const alphabetSequenceClaimMigration = read("supabase/migrations/20260913173000_claim_speaking_alphabet_audio_sequence.sql");
+const alphabetSequence = read("supabase/functions/_shared/alphabet-audio-sequence.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
+const challengeStyles = read("src/components/Pages/css/TextbookSpeakingChallenge.scss");
+const foundationChallenge = read("src/components/Pages/WorkbookOneFoundationChallenge.jsx");
+const pronunciationRecorder = read("src/components/Pages/SpeakingPronunciationRecorder.jsx");
+const pronunciationRecorderStyles = read("src/components/Pages/css/SpeakingPronunciationRecorder.scss");
 
 test("1. 教材來源、版本題庫、題目與生成工作都有 additive schema", () => {
     for (const table of ["speaking_source_documents", "speaking_source_sections", "speaking_question_sets", "speaking_questions", "speaking_generation_jobs"]) {
@@ -134,4 +152,291 @@ test("13. 示範語音固定男女聲交錯並可由管理員安全預覽", () =
     assert.match(service, /getSpeakingQuestionAudioPreview/);
     assert.match(adminPage, /女聲 · Autonoe/);
     assert.match(adminPage, /男聲 · Puck/);
+});
+
+test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {
+    assert.match(challenge, /pronunciation_notes_zh,visual_aid,sort_order/);
+    assert.match(challenge, /demoMode/);
+    assert.match(challenge, /question_prompt/);
+    assert.match(challenge, /model_answer/);
+    assert.match(challenge, /speaking_challenge_question_progress/);
+});
+
+test("15. Workbook 1 基礎關卡只建立草稿，P14～P17 必須逐字符合已發布正式來源", () => {
+    for (const action of [
+        "create_workbook_1_alphabet_round",
+        "create_workbook_1_spelling_p14",
+        "create_workbook_1_spelling_p15",
+        "create_workbook_1_spelling_p16",
+        "create_workbook_1_spelling_p17"
+    ]) assert.match(foundationTemplates, new RegExp(action));
+    assert.match(foundationTemplates, /questions: alphabet\.map\(letterQuestion\)/);
+    assert.match(foundationTemplates, /approvedSourcePageLabel: `P\$\{page\}`/);
+    assert.match(foundationTemplates, /sourceRequiresReview: false/);
+    assert.match(foundationTemplates, /brand_review_completed: true/);
+    assert.doesNotMatch(foundationTemplates, /"thirteen"/);
+    assert.match(manager, /book_page_spiral_review_content/);
+    assert.match(manager, /approvedPrompts\.length === templatePrompts\.length/);
+    assert.match(manager, /正式核准單字與內建草稿不一致/);
+    assert.match(manager, /approved_source: approvedSource/);
+    assert.match(manager, /validateApprovedFoundationSet/);
+    assert.match(manager, /現有題庫已過期或與正式核准內容不一致/);
+    assert.match(manager, /題庫已過期或與最新正式核准內容不一致/);
+    assert.match(manager, /P14～P17 題庫由正式核准來源鎖定/);
+    assert.match(manager, /不能使用舊人工核准流程/);
+    assert.match(manager, /confirm_workbook_1_foundation_source/);
+    assert.match(manager, /content_reviewed_at/);
+    assert.match(manager, /if \(!reviewedSection\) return json\(409/);
+    assert.match(manager, /if \(!reviewedSet\) return json\(409/);
+    assert.match(manager, /speaking_source_sections!inner\(status\)/);
+    assert.match(manager, /content_reviewed_at: null/);
+    assert.match(manager, /reviewed_at: null/);
+    assert.match(manager, /questionIds\.length !== 26/);
+    assert.match(manager, /A–Z 的 26 個標準發音尚未全部完成/);
+    assert.match(manager, /alphabetRoundContentMatches/);
+    assert.match(manager, /A–Z 題庫由固定 26 個字母模板鎖定/);
+    assert.match(manager, /source_text,content_hash,byte_size,completed_at/);
+    assert.match(ttsManager, /\.eq\("question_id", question\.id\)\.eq\("purpose", "model_answer"\)/);
+    assert.doesNotMatch(ttsManager, /onConflict: "question_id"/);
+    assert.match(ttsManager, /existing\?\.error_code === "42P10"/);
+    assert.match(ttsManager, /fetchR2\(existing\.private_object_key, \{ method: "HEAD" \}\)/);
+    assert.match(ttsManager, /stored\.headers\.get\("content-length"\)/);
+    assert.match(ttsManager, /if \(stored\.status !== 404\)/);
+    assert.match(ttsManager, /\.eq\("status", existing\.status\)/);
+    assert.match(ttsManager, /\.eq\("updated_at", existing\.updated_at\)/);
+    assert.match(ttsManager, /if \(!retriedLink\)/);
+    assert.match(foundationUniquenessMigration, /speaking_question_sets_foundation_template_active_unique/);
+    assert.match(foundationUniquenessMigration, /workbook_1_p17_letter_spelling_v1/);
+    assert.match(ttsManager, /mayPrepareAlphabetDraft/);
+    assert.match(ttsManager, /questions\.slice\(0, 50\)/);
+    assert.match(service, /createWorkbookOneFoundationQuestionSet/);
+    assert.match(adminPage, /已對照原頁，核准內容/);
+});
+
+test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前端直接偽造", () => {
+    assert.match(foundationAnswers, /alphabet_round/);
+    assert.match(foundationAnswers, /letter_spelling/);
+    assert.match(foundationAnswers, /spoken\.length !== expected\.length/);
+    assert.match(challenge, /speaking_pronunciation_attempts/);
+    assert.match(challenge, /correct_assessment_required/);
+    assert.match(challenge, /matchesFoundationAnswer/);
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(coach, /matchesFoundationAnswer/);
+    assert.match(coach, /reserveProviderRequest/);
+    assert.match(coach, /runSpeakingPronunciationFlow/);
+    assert.match(pronunciationLedgerMigration, /v_daily_count >= 160/);
+    assert.match(coach, /foundationRetryFeedback/);
+});
+
+test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取", () => {
+    for (const table of [
+        "speaking_visual_assets",
+        "speaking_question_visual_assets",
+        "speaking_question_interactions",
+        "speaking_question_word_audio"
+    ]) {
+        assert.match(visualAssetMigration, new RegExp(`create table if not exists public\\.${table}`));
+        assert.match(visualAssetMigration, new RegExp(`alter table public\\.${table} enable row level security`));
+        assert.match(visualAssetMigration, new RegExp(`revoke all on table public\\.${table} from public, anon, authenticated`));
+        assert.match(visualAssetMigration, new RegExp(`grant select, insert, update, delete on table public\\.${table} to service_role`));
+    }
+    assert.match(visualAssetMigration, /image\/jpeg.*image\/png.*image\/webp/s);
+    assert.match(visualAssetMigration, /byte_size between 1 and 10485760/);
+    assert.match(visualAssetMigration, /speaking_question_sets_picture_template_active_unique/);
+    assert.match(manager, /speaking_question_visual_assets/);
+    assert.match(manager, /speaking_question_word_audio/);
+    assert.match(manager, /create_workbook_1_picture_draft/);
+    assert.match(manager, /pictureGapAnswerMatchesPrompt/);
+    assert.match(manager, /pictureQaResponseHasQuestionAndAnswer/);
+    assert.match(manager, /acceptedResponsesValid/);
+    assert.match(manager, /P21／P22 圖片題庫的顯示內容與後端完整答案必須同步/);
+    assert.match(manager, /createdQuestionSetId/);
+    assert.match(manager, /create_picture_upload/);
+    assert.match(manager, /confirm_picture_upload/);
+    assert.match(manager, /discard_workbook_1_picture_draft/);
+    assert.match(manager, /manual_picture_manifest/);
+    assert.match(manager, /source_document_id: Number\(sourceSection\.document_id\)/);
+    assert.match(manager, /hasExpectedSignature\(signatureBytes, asset\.mime_type\)/);
+    assert.match(manager, /action === "preview_question_picture"/);
+    assert.match(manager, /image_url: await createR2PresignedUrl\(asset\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(manager, /expires_in_seconds: 15 \* 60/);
+    assert.match(manager, /"Cache-Control": "private, no-store, max-age=0"/);
+    const bootstrapSection = manager.slice(
+        manager.indexOf("const loadBootstrap"),
+        manager.indexOf("const validateApprovedFoundationSet")
+    );
+    assert.doesNotMatch(bootstrapSection, /createR2PresignedUrl|private_object_key|image_url/);
+    assert.match(manager, /\.eq\("status", "draft"\)[\s\S]*?\.eq\("version", Number\(questionSet\.version\)\)[\s\S]*?\.eq\("updated_at", questionSet\.updated_at\)[\s\S]*?\.select\("id"\)[\s\S]*?\.maybeSingle\(\)/);
+    assert.match(manager, /if \(!publishedSet\)/);
+    assert.match(ttsManager, /generate_visible_word_audio/);
+    assert.match(ttsManager, /visibleSentenceWords/);
+    assert.match(ttsManager, /status !== "ready" && item\.status !== "failed"/);
+    assert.match(service, /uploadSpeakingQuestionPicture/);
+    assert.match(adminPage, /WorkbookOnePictureContentAdmin/);
+    assert.match(challenge, /authorizeSpeakingChallenge/);
+    assert.match(challenge, /buildPublicSpeakingQuestion/);
+    assert.match(challengeView, /圖片口說題目尚未完成安全發布/);
+    assert.match(challengeView, /P22 的可見單字發音尚未完整/);
+    assert.match(challengeView, /kind: "private-image"/);
+    assert.match(challengeView, /signPrivateObject\(visualAsset\.private_object_key\)/);
+    assert.match(challengeView, /question_text: ""/);
+    assert.match(challengeView, /model_answer: ""/);
+    assert.match(challengeView, /pronunciation_notes_zh: ""/);
+    assert.match(challenge, /correct_assessment_required/);
+    assert.doesNotMatch(challengeView, /private_object_key:/);
+});
+
+test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
+    assert.match(foundationAnswers, /picture_qa/);
+    assert.match(foundationAnswers, /picture_gap_sentence/);
+    assert.match(foundationAnswers, /accepted\.includes\(spoken\)/);
+    assert.match(challenge, /`\$\{pictureInteraction\.prompt_text\} \$\{pictureInteraction\.answer_text\}`/);
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(coach, /pictureInteraction\.prompt_text/);
+    assert.match(coach, /pictureInteraction\.answer_text/);
+    assert.match(coach, /usesUnscriptedFoundationAssessment\(interactionType\)/);
+    assert.match(coach, /reference_text: question\.interactionType \? null/);
+});
+
+test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先原子保留額度", () => {
+    assert.match(challenge, /_shared\/book-entitlement\.ts/);
+    assert.match(challenge, /isBookEntitled/);
+    assert.match(challenge, /assertBookEntitled/);
+    assert.match(bookEntitlement, /book_entitlement_required/);
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(coach, /assertBookEntitled/);
+    assert.ok(coach.indexOf("await assertBookEntitled") < coach.indexOf('.select("model_answer,pronunciation_notes_zh")'));
+    assert.match(coach, /reserve_speaking_pronunciation_request/);
+    assert.match(coach, /finishProviderRequest/);
+    assert.match(coach, /\.select\("id"\)\.maybeSingle\(\)/);
+    const finishProviderRequestSource = coach.slice(
+        coach.indexOf("const finishProviderRequest"),
+        coach.indexOf("const releaseFoundationRoundClaim")
+    );
+    assert.match(finishProviderRequestSource, /for \(let tryIndex = 0; tryIndex < 2; tryIndex \+= 1\)/);
+    assert.match(finishProviderRequestSource, /\.eq\("status", "reserved"\)/);
+    assert.match(finishProviderRequestSource, /\.select\("status,error_code,completed_at"\)/);
+    assert.match(finishProviderRequestSource, /existing\?\.status === status/);
+    assert.match(finishProviderRequestSource, /String\(existing\?\.error_code \|\| ""\) === String\(errorCode \|\| ""\)/);
+    assert.match(finishProviderRequestSource, /Boolean\(existing\?\.completed_at\)/);
+    assert.match(pronunciationFlow, /"internal_failed"/);
+    assert.ok(challenge.indexOf("await assertBookEntitled") < challenge.indexOf("const { data: setQuestions"));
+    assert.match(pronunciationLedgerMigration, /pg_advisory_xact_lock/);
+    assert.match(pronunciationLedgerMigration, /speaking_pronunciation_requests_student_created_idx/);
+    assert.match(pronunciationLedgerMigration, /status in \('reserved', 'completed', 'provider_failed', 'unassessable', 'internal_failed'\)/);
+    assert.match(pronunciationLedgerMigration, /security invoker/);
+    assert.doesNotMatch(pronunciationLedgerMigration, /security definer/);
+    assert.match(pronunciationLedgerMigration, /revoke all on table public\.speaking_pronunciation_requests from public, anon, authenticated/);
+    assert.match(pronunciationLedgerMigration, /grant execute on function public\.reserve_speaking_pronunciation_request/);
+    assert.match(pronunciationLedgerMigration, /Raw microphone audio is never stored/);
+});
+
+test("20. 手機口說操作列避開 Bottom Nav 與播放器，階段切換可由輔助科技得知", () => {
+    assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.speaking-question-navigation/);
+    assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.app-content\.has-player \.speaking-question-navigation/);
+    assert.match(challengeStyles, /var\(--app-player-space, 110px\) \+ 74px/);
+    assert.match(challengeStyles, /\.speaking-sr-only/);
+    assert.match(challengeStyles, /\.speaking-back:focus-visible/);
+    assert.match(foundationChallenge, /ref=\{phaseFocusRef\} tabIndex="-1"/);
+    assert.doesNotMatch(foundationChallenge, /speaking-foundation-countdown" role="timer" aria-live/);
+    const recorderSectionLine = pronunciationRecorder.split(/\r?\n/).find(line => line.includes("return <section")) || "";
+    assert.doesNotMatch(recorderSectionLine, /aria-live/);
+    assert.match(pronunciationRecorder, /role="status" aria-live="polite" aria-atomic="true"/);
+    assert.match(pronunciationRecorderStyles, /\.speaking-pronunciation button:focus-visible/);
+    assert.match(pronunciationRecorderStyles, /min-height: 44px; height: 44px/);
+});
+
+test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存", () => {
+    const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(foundationRoundMigration, /create table if not exists public\.speaking_foundation_rounds/);
+    assert.match(foundationRoundMigration, /cardinality\(question_order\) = 26/);
+    assert.match(foundationRoundMigration, /status in \('open', 'failed', 'completed', 'expired'\)/);
+    assert.match(foundationRoundMigration, /pg_advisory_xact_lock/);
+    assert.match(foundationRoundMigration, /active_claim_token/);
+    assert.match(foundationRoundMigration, /claim_speaking_foundation_round_question_v1/);
+    assert.match(foundationRoundMigration, /release_speaking_foundation_round_claim_v1/);
+    assert.match(foundationRoundMigration, /v_attempt\.answer_match is not true/);
+    assert.match(foundationRoundMigration, /set status = 'failed', next_index = 0/);
+    assert.match(foundationRoundMigration, /foreach v_question_id in array v_round\.question_order loop/);
+    assert.match(foundationRoundMigration, /public\.complete_speaking_challenge_question_v2/);
+    assert.match(speakingCompletionMigration, /private\.ae_gamification_grant_v2/);
+    assert.match(speakingCompletionMigration, /'speaking_challenge_complete'/);
+    assert.match(foundationRoundMigration, /security invoker/g);
+    assert.doesNotMatch(foundationRoundMigration, /security definer/);
+    assert.match(foundationRoundMigration, /revoke all on table public\.speaking_foundation_rounds from public, anon, authenticated/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.start_speaking_foundation_round_v1/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.claim_speaking_foundation_round_question_v1/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.release_speaking_foundation_round_claim_v1/);
+    assert.match(foundationRoundMigration, /revoke all on function public\.record_speaking_foundation_round_attempt_v1/);
+    assert.match(foundationRoundMigration, /record_speaking_foundation_assessment_v1/);
+    assert.match(foundationRoundMigration, /insert into public\.speaking_pronunciation_attempts/);
+    assert.match(foundationRoundMigration, /create unique index if not exists speaking_pronunciation_attempts_foundation_claim_unique/);
+    assert.match(foundationRoundMigration, /on public\.speaking_pronunciation_attempts\(foundation_claim_token\)/);
+    assert.match(foundationRoundMigration, /where foundation_claim_token is not null/);
+    assert.match(foundationRoundMigration, /on conflict \(foundation_claim_token\) where foundation_claim_token is not null/);
+    assert.match(foundationRoundMigration, /FOUNDATION_ASSESSMENT_REPLAY_MISMATCH/);
+    assert.match(foundationRoundMigration, /attempt\.word_results = coalesce\(p_word_results, '\[\]'::jsonb\)/);
+    assert.match(foundationRoundMigration, /attempt\.pronunciation_score is not distinct from round\(p_pronunciation_score, 2\)/);
+    assert.match(coach, /FOUNDATION_\(\?:ROUND\|SET\|ASSESSMENT_REPLAY_MISMATCH\)/);
+    assert.match(foundationRoundMigration, /v_round_result := public\.record_speaking_foundation_round_attempt_v1/);
+    assert.match(challenge, /start_foundation_round/);
+    assert.match(challenge, /crypto\.getRandomValues/);
+    assert.match(challenge, /foundation_round_required/);
+    assert.match(challenge, /complete_speaking_challenge_question_v2/);
+    assert.match(challengeView, /hideChallengeAnswerAudio/);
+    assert.match(coach, /foundation_round_id/);
+    assert.match(coach, /p_claim_token: claimToken/);
+    assert.match(coach, /claim_speaking_foundation_round_question_v1/);
+    assert.match(coach, /record_speaking_foundation_assessment_v1/);
+    assert.match(pronunciationFlow, /const claimResult = await claim\(\)/);
+    assert.match(pronunciationFlow, /requestId = await reserve\(\)/);
+    assert.match(pronunciationFlow, /const assessment = await assess\(\)/);
+    assert.match(pronunciationFlow, /const persisted = await saveAndRecordRound/);
+    assert.match(pronunciationFlow, /attempt = persisted\.attempt/);
+    assert.match(pronunciationFlow, /round = persisted\.round/);
+    assert.match(pronunciationFlow, /await finishRequest\(requestId, "completed", null\)/);
+    assert.ok(pronunciationFlow.indexOf("const claimResult = await claim()") < pronunciationFlow.indexOf("requestId = await reserve()"));
+    assert.ok(pronunciationFlow.indexOf("requestId = await reserve()") < pronunciationFlow.indexOf("const assessment = await assess()"));
+    assert.ok(pronunciationFlow.indexOf("const persisted = await saveAndRecordRound") < pronunciationFlow.indexOf('await finishRequest(requestId, "completed", null)'));
+    assert.match(coach, /const PROVIDER_TIMEOUT_MS = 75_000/);
+    assert.match(coach, /new AbortController\(\)/);
+    assert.match(coach, /signal: providerController\.signal/);
+    assert.match(coach, /return data === true/);
+    assert.match(pronunciationFlow, /if \(claimToken && releaseClaim\)/);
+    assert.match(coach, /p_answer_match: normalized\.answer_match/);
+    assert.doesNotMatch(challenge, /p_student_id: Number\(body/);
+});
+
+test("22. A–Z 使用 server-only 單一女聲主音檔與 26 個時間區段，缺少來源只生成一次", () => {
+    assert.match(alphabetSequenceMigration, /create table if not exists public\.speaking_question_set_audio_sequences/);
+    assert.match(alphabetSequenceMigration, /primary key \(question_set_id, purpose\)/);
+    assert.match(alphabetSequenceMigration, /enable row level security/);
+    assert.match(alphabetSequenceMigration, /revoke all on table public\.speaking_question_set_audio_sequences from public, anon, authenticated/);
+    assert.match(alphabetSequenceMigration, /grant select, insert, update, delete on table public\.speaking_question_set_audio_sequences to service_role/);
+    assert.match(alphabetSequenceMigration, /jsonb_array_length\(segments\) = 26/);
+    assert.match(alphabetSequenceClaimMigration, /claim_speaking_alphabet_audio_sequence/);
+    assert.match(alphabetSequenceClaimMigration, /assembly_token uuid/);
+    assert.match(alphabetSequenceClaimMigration, /revoke all on function public\.claim_speaking_alphabet_audio_sequence[\s\S]*from public, anon, authenticated/);
+    assert.match(alphabetSequence, /ALPHABET_SEQUENCE_GAP_MS = 800/);
+    assert.match(alphabetSequence, /單聲道 16-bit PCM WAV/);
+    assert.match(ttsManager, /action === "assemble_alphabet_master_audio"/);
+    assert.match(ttsManager, /voiceChoice: \{ gender: "female", voiceId: femaleVoice \}/);
+    assert.match(ttsManager, /prepared\.filter\(item => item\.reused === false\)\.length/);
+    assert.match(ttsManager, /voice_id: voicePool\(\)\.female/);
+    assert.match(ttsManager, /alphabet_provider_generation_disabled/);
+    assert.match(ttsManager, /admin\.rpc\("claim_speaking_alphabet_audio_sequence"/);
+    assert.match(ttsManager, /\.eq\("assembly_token", assemblyToken\)/);
+    const assemblySection = ttsManager.slice(
+        ttsManager.indexOf("const assembleAlphabetMasterAudio"),
+        ttsManager.indexOf("Deno.serve")
+    );
+    assert.doesNotMatch(assemblySection, /requestGoogleAudio/);
+    assert.match(manager, /A–Z 的單一慢速主音檔尚未完成或已過期，不能發布/);
+    assert.match(manager, /fetchR2\(sequence\.private_object_key, \{ method: "HEAD" \}\)/);
+    assert.match(challenge, /alphabet_audio: alphabetAudio/);
+    assert.match(challenge, /segment\?\.voice_id === alphabetFemaleVoiceId\(\)/);
+    assert.match(challenge, /createR2PresignedUrl\(sequence\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(challengeView, /interactionType === "alphabet_round"/);
+    assert.doesNotMatch(challenge, /private_object_key: sequence\.private_object_key/);
+    assert.match(adminPage, /建立／確認單一 A–Z 女聲音檔/);
 });

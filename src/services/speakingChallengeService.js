@@ -6,4 +6,5 @@ const callChallenge = (firebaseUser, action, payload = {}) => (
 
 export const getSpeakingChallengeCatalog = firebaseUser => callChallenge(firebaseUser, "catalog");
 export const getSpeakingChallengeSet = (firebaseUser, questionSetId) => callChallenge(firebaseUser, "question_set", { question_set_id: questionSetId });
+export const startSpeakingFoundationRound = (firebaseUser, questionSetId) => callChallenge(firebaseUser, "start_foundation_round", { question_set_id: questionSetId });
 export const completeSpeakingChallengeQuestion = (firebaseUser, questionSetId, questionId) => callChallenge(firebaseUser, "complete_question", { question_set_id: questionSetId, question_id: questionId });

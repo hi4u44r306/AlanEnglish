@@ -51,6 +51,23 @@ describe("SpeakingPronunciationRecorder", () => {
         jest.clearAllMocks();
     });
 
+    it("倒數期間只公告一次固定提示，不逐秒朗讀數字", () => {
+        const { rerender } = render(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 9 }}
+            disabledReason="先看清楚，3 秒後播放提示音。"
+        />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("三秒後播放提示音");
+        rerender(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 9 }}
+            disabledReason="先看清楚，2 秒後播放提示音。"
+        />);
+        expect(screen.getByRole("status")).toHaveTextContent("三秒後播放提示音");
+        expect(screen.getByRole("status")).not.toHaveTextContent("2 秒");
+    });
+
     it("回聽與送評使用同一份轉換後 WAV，不在送出時重複轉檔", async () => {
         const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
         convertAudioBlobToWav.mockResolvedValue(wav);
@@ -69,7 +86,9 @@ describe("SpeakingPronunciationRecorder", () => {
         render(<SpeakingPronunciationRecorder
             firebaseUser={{ getIdToken: jest.fn() }}
             question={{ id: 9 }}
+            foundationRoundId="11111111-1111-4111-8111-111111111111"
         />);
+        expect(screen.getByRole("status")).toHaveTextContent("可以開始錄音");
         fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
         fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
 
@@ -77,9 +96,13 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(await screen.findByText("錄音完成，先聽聽看送評的聲音")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: /送出評分/ }));
 
-        await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({ audio: wav })));
+        await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({
+            audio: wav,
+            foundationRoundId: "11111111-1111-4111-8111-111111111111"
+        })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
         expect(await screen.findByText("表現良好")).toBeInTheDocument();
+        expect(screen.getByRole("status")).toHaveTextContent("本次練習結果");
         expect(screen.getByText("我聽到")).toBeInTheDocument();
         expect(screen.getByText("My name is Amy.")).toBeInTheDocument();
         expect(screen.queryByText("88 分")).not.toBeInTheDocument();
@@ -92,5 +115,57 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(screen.queryByText("查看詳細分析")).not.toBeInTheDocument();
         expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(1);
         expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("good");
+    });
+
+    it("後端判定 A–Z 回合失效時通知外層回到第一題", async () => {
+        const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
+        const onRoundInvalid = jest.fn();
+        convertAudioBlobToWav.mockResolvedValue(wav);
+        submitSpeakingPronunciationAttempt.mockRejectedValue(Object.assign(
+            new Error("這一輪已失效，請從第一題重新開始"),
+            { code: "foundation_round_invalid" }
+        ));
+
+        render(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 9 }}
+            foundationRoundId="11111111-1111-4111-8111-111111111111"
+            onRoundInvalid={onRoundInvalid}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
+        await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1));
+        fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
+
+        await waitFor(() => expect(onRoundInvalid).toHaveBeenCalledWith(expect.objectContaining({
+            code: "foundation_round_invalid"
+        })));
+        expect(screen.getByRole("alert")).toHaveTextContent("這一輪已失效，請從第一題重新開始");
+        expect(playSpeakingFeedbackSound).not.toHaveBeenCalled();
+    });
+
+    it("另一個請求正在評分時只提示等待，不把有效回合歸零", async () => {
+        const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
+        const onRoundInvalid = jest.fn();
+        convertAudioBlobToWav.mockResolvedValue(wav);
+        submitSpeakingPronunciationAttempt.mockRejectedValue(Object.assign(
+            new Error("這一題正在評分，請稍候再試"),
+            { code: "foundation_round_busy" }
+        ));
+
+        render(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 9 }}
+            foundationRoundId="11111111-1111-4111-8111-111111111111"
+            onRoundInvalid={onRoundInvalid}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
+        fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("這一題正在評分");
+        expect(onRoundInvalid).not.toHaveBeenCalled();
     });
 });
