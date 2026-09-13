@@ -33,6 +33,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
     const [audioToken, setAudioToken] = useState(null);
     const [audioError, setAudioError] = useState("");
     const audioRef = useRef(null);
+    const phaseFocusRef = useRef(null);
 
     const stopAudio = () => {
         audioRef.current?.pause();
@@ -58,6 +59,11 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
     };
 
     const activeQuestion = round[activeIndex];
+    useEffect(() => {
+        if (["challenge", "result"].includes(phase)) {
+            phaseFocusRef.current?.focus({ preventScroll: true });
+        }
+    }, [activeQuestion?.id, phase]);
     const sentenceTokens = useMemo(() => tokenizeSpeakingSentence(
         activeQuestion?.picture_interaction?.sentence_pattern
     ), [activeQuestion]);
@@ -103,7 +109,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
     </main>;
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page">
-        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1>太棒了，全部完成！</h1><p>你已完成這一組看圖口說挑戰。</p><div className="speaking-foundation-actions"><button type="button" className="primary" onClick={startRound}><FiRefreshCw />再玩一次</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
+        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">太棒了，全部完成！</h1><p>你已完成這一組看圖口說挑戰。</p><div className="speaking-foundation-actions"><button type="button" className="primary" onClick={startRound}><FiRefreshCw />再玩一次</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
     </main>;
 
     if (!activeQuestion) return null;
@@ -115,7 +121,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div>
             <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{progress}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div></div>
         </header>
-        <section className="speaking-question-stage"><article key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
+        <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
             <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
             {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>

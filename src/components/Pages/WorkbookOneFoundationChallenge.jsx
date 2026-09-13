@@ -31,6 +31,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const [promptReady, setPromptReady] = useState(!alphabetMode);
     const [promptBlocked, setPromptBlocked] = useState(false);
     const audioRef = useRef(null);
+    const phaseFocusRef = useRef(null);
     const copy = interactionCopy[interactionType] || interactionCopy.letter_spelling;
     const allAlphabetAudioReady = sourceQuestions.length === 26
         && sourceQuestions.every(question => Boolean(question.model_audio_url));
@@ -54,7 +55,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         setIntroIndex(0);
         setIntroComplete(false);
     }, [alphabetMode, challenge?.id, stopAudio]);
-
     const playAudio = useCallback((question, { onEnded, markIntro = false } = {}) => {
         stopAudio();
         if (!question?.model_audio_url) {
@@ -108,6 +108,11 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     }, [alphabetMode, interactionType, sourceQuestions, stopAudio]);
 
     const activeQuestion = round[activeIndex];
+    useEffect(() => {
+        if (["challenge", "failed", "result"].includes(phase)) {
+            phaseFocusRef.current?.focus({ preventScroll: true });
+        }
+    }, [activeQuestion?.id, phase]);
     const playChallengePrompt = useCallback(() => {
         if (!activeQuestion) return;
         setPromptBlocked(false);
@@ -172,11 +177,11 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     </main>;
 
     if (phase === "failed") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
-        <section className="speaking-foundation-result is-retry"><FiRefreshCw aria-hidden="true" /><h1>沒關係，我們從第一題再來！</h1><p>這一輪已重新歸零。你可以再聽一次 A–Z，或直接換一個新順序挑戰。</p><div className="speaking-foundation-actions"><button type="button" onClick={() => { setIntroIndex(0); setIntroComplete(false); setPhase("intro"); }}><FiHeadphones />重新聽 A–Z</button><button type="button" className="primary" onClick={startRound}><FiRefreshCw />直接再玩一次</button></div></section>
+        <section className="speaking-foundation-result is-retry"><FiRefreshCw aria-hidden="true" /><h1 ref={phaseFocusRef} tabIndex="-1">沒關係，我們從第一題再來！</h1><p>這一輪已重新歸零。你可以再聽一次 A–Z，或直接換一個新順序挑戰。</p><div className="speaking-foundation-actions"><button type="button" onClick={() => { setIntroIndex(0); setIntroComplete(false); setPhase("intro"); }}><FiHeadphones />重新聽 A–Z</button><button type="button" className="primary" onClick={startRound}><FiRefreshCw />直接再玩一次</button></div></section>
     </main>;
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
-        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1>太棒了，全部完成！</h1><p>你把這一關的每一道題目都說完了。</p><div className="speaking-foundation-actions">{alphabetMode && <button type="button" onClick={() => { setIntroIndex(0); setIntroComplete(false); setPhase("intro"); }}><FiHeadphones />再聽 A–Z</button>}<button type="button" className="primary" onClick={startRound}><FiRefreshCw />再玩一次</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
+        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">太棒了，全部完成！</h1><p>你把這一關的每一道題目都說完了。</p><div className="speaking-foundation-actions">{alphabetMode && <button type="button" onClick={() => { setIntroIndex(0); setIntroComplete(false); setPhase("intro"); }}><FiHeadphones />再聽 A–Z</button>}<button type="button" className="primary" onClick={startRound}><FiRefreshCw />再玩一次</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
     </main>;
 
     if (!activeQuestion) return null;
@@ -192,8 +197,9 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         </header>
         <section className="speaking-question-stage"><article key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card">
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
-            <div className={alphabetMode ? "speaking-foundation-letter" : "speaking-foundation-word"} aria-label={alphabetMode ? `字母 ${activeQuestion.display_text}` : `單字 ${activeQuestion.question_text}`}>{alphabetMode ? activeQuestion.display_text : activeQuestion.question_text}</div>
-            {alphabetMode && countdown > 0 && <div className="speaking-foundation-countdown" role="timer" aria-live="assertive"><strong>{countdown}</strong><span>先看清楚</span></div>}
+            <div ref={phaseFocusRef} tabIndex="-1" className={alphabetMode ? "speaking-foundation-letter" : "speaking-foundation-word"} aria-label={alphabetMode ? `字母 ${activeQuestion.display_text}` : `單字 ${activeQuestion.question_text}`}>{alphabetMode ? activeQuestion.display_text : activeQuestion.question_text}</div>
+            {alphabetMode && countdown > 0 && <div className="speaking-foundation-countdown" role="timer"><strong>{countdown}</strong><span>先看清楚</span></div>}
+            {alphabetMode && <p className="speaking-sr-only" role="status" aria-live="polite" aria-atomic="true">{promptBlocked ? "提示音播放失敗，請按播放提示音重試。" : promptReady ? "提示音播放完畢，可以開始錄音。" : countdown > 0 ? "三秒後播放提示音。" : "正在播放提示音。"}</p>}
             {alphabetMode && promptBlocked && <button type="button" className="speaking-foundation-replay" onClick={playChallengePrompt}><FiVolume2 />播放提示音</button>}
             <SpeakingPracticeSteps
                 key={activeQuestion.id}

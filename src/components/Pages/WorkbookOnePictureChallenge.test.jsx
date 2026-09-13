@@ -44,6 +44,7 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        expect(screen.getByRole("article", { name: "第 1 題，共 1 題" })).toHaveFocus();
         expect(screen.getByRole("img", { name: "樹上的蘋果" })).toHaveAttribute("src", privateVisual.image_url);
         expect(screen.queryByText("樹上的蘋果")).not.toBeInTheDocument();
         expect(screen.queryByText(/What is it/i)).not.toBeInTheDocument();
@@ -80,6 +81,7 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        expect(screen.getByRole("img", { name: "樹上的蘋果" })).toHaveAttribute("src", privateVisual.image_url);
         expect(screen.getByLabelText("請依圖片補上的答案")).toHaveTextContent("____");
         expect(screen.queryByRole("button", { name: /apple/i })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "播放 is 的發音" })).toBeDisabled();

@@ -54,16 +54,74 @@ describe("WorkbookOneFoundationChallenge", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         expect(screen.getByText("3")).toBeInTheDocument();
+        expect(screen.getByLabelText(/^字母 /)).toHaveFocus();
         expect(screen.getByRole("button", { name: "模擬答錯" })).toBeDisabled();
         await act(async () => jest.advanceTimersByTime(3000));
         await act(async () => jest.runOnlyPendingTimers());
         expect(screen.getByRole("button", { name: "模擬答錯" })).toBeEnabled();
         fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
 
-        expect(screen.getByRole("heading", { name: "沒關係，我們從第一題再來！" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "沒關係，我們從第一題再來！" })).toHaveFocus();
         expect(screen.getByRole("button", { name: /重新聽 A–Z/ })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /直接再玩一次/ })).toBeInTheDocument();
         expect(onComplete).not.toHaveBeenCalled();
+    });
+
+    it("字母教學會依 A 到 Z 各播放一次標準音", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn().mockResolvedValue(true)}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+
+        expect(global.Audio.mock.calls.map(([url]) => url)).toEqual(
+            alphabetQuestions.map(question => question.model_audio_url)
+        );
+        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
+    });
+
+    it("中途答錯後直接重玩會回到新一輪第一題", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: alphabetQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn().mockResolvedValue(true)}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "開始聽 A–Z" }));
+        await act(async () => jest.runAllTimers());
+        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        await act(async () => jest.advanceTimersByTime(3000));
+        await act(async () => jest.runOnlyPendingTimers());
+        fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
+        expect(await screen.findByText("第 2 題，共 26 題")).toBeInTheDocument();
+        await act(async () => jest.advanceTimersByTime(3000));
+        await act(async () => jest.runOnlyPendingTimers());
+        fireEvent.click(screen.getByRole("button", { name: "模擬答錯" }));
+
+        fireEvent.click(screen.getByRole("button", { name: /直接再玩一次/ }));
+        expect(screen.getByText("第 1 題，共 26 題")).toBeInTheDocument();
+        expect(screen.getByRole("timer")).toHaveTextContent("3先看清楚");
+    });
+
+    it("缺少任一字母標準音時不能開始教學或挑戰", () => {
+        const incompleteQuestions = alphabetQuestions.map(question => (
+            question.question_text === "Z" ? { ...question, model_audio_url: null } : question
+        ));
+        render(<WorkbookOneFoundationChallenge
+            challenge={{ id: 1, title: "A–Z 大小寫挑戰", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: incompleteQuestions }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onExit={jest.fn()}
+        />);
+
+        expect(screen.getByRole("alert")).toHaveTextContent("26 個標準發音尚未全部準備完成");
+        expect(screen.getByRole("button", { name: "開始聽 A–Z" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeDisabled();
     });
 
     it("拼讀關只顯示單字，不在提示中洩漏字母答案", async () => {

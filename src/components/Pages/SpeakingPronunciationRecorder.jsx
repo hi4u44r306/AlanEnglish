@@ -102,8 +102,12 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
     const pronunciationScore = Math.round(result?.scores?.pronunciation || 0);
     const answerMatched = result?.answer_match !== false;
     const resultTone = answerMatched ? scoreTone(pronunciationScore) : "retry";
+    const accessibleDisabledReason = /\d+\s*秒後播放提示音/.test(disabledReason)
+        ? "三秒後播放提示音。"
+        : disabledReason;
 
-    return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""}`} aria-live="polite">
+    return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""}`}>
+        {!result && <p className="speaking-sr-only" role="status" aria-live="polite" aria-atomic="true">{recording ? "錄音進行中。" : preparing ? "正在準備評分音檔。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
         {!result && <>
             <div className="speaking-recording-heading">
                 <strong>{recording ? "正在聽你朗讀…" : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "輪到你開口說"}</strong>
@@ -123,7 +127,7 @@ export default function SpeakingPronunciationRecorder({ firebaseUser, question, 
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : "送出評分"}</button></div></div>}
             <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
         </>}
-        {result && <div className={`speaking-pronunciation-result is-${resultTone}`}>
+        {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : "回答方式還差一點"}</strong></header>
             {result.recognized_text && <p className="speaking-recognized-answer"><strong>我聽到</strong><span>{result.recognized_text}</span></p>}
             <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>

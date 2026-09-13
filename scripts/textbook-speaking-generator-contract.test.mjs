@@ -20,6 +20,10 @@ const pronunciationLedgerMigration = read("supabase/migrations/20260913013037_sp
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const app = read("src/app/App.jsx");
+const challengeStyles = read("src/components/Pages/css/TextbookSpeakingChallenge.scss");
+const foundationChallenge = read("src/components/Pages/WorkbookOneFoundationChallenge.jsx");
+const pronunciationRecorder = read("src/components/Pages/SpeakingPronunciationRecorder.jsx");
+const pronunciationRecorderStyles = read("src/components/Pages/css/SpeakingPronunciationRecorder.scss");
 
 test("1. 教材來源、版本題庫、題目與生成工作都有 additive schema", () => {
     for (const table of ["speaking_source_documents", "speaking_source_sections", "speaking_question_sets", "speaking_questions", "speaking_generation_jobs"]) {
@@ -282,4 +286,19 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
     assert.match(pronunciationLedgerMigration, /revoke all on table public\.speaking_pronunciation_requests from public, anon, authenticated/);
     assert.match(pronunciationLedgerMigration, /grant execute on function public\.reserve_speaking_pronunciation_request/);
     assert.match(pronunciationLedgerMigration, /Raw microphone audio is never stored/);
+});
+
+test("20. 手機口說操作列避開 Bottom Nav 與播放器，階段切換可由輔助科技得知", () => {
+    assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.speaking-question-navigation/);
+    assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.app-content\.has-player \.speaking-question-navigation/);
+    assert.match(challengeStyles, /var\(--app-player-space, 110px\) \+ 74px/);
+    assert.match(challengeStyles, /\.speaking-sr-only/);
+    assert.match(challengeStyles, /\.speaking-back:focus-visible/);
+    assert.match(foundationChallenge, /ref=\{phaseFocusRef\} tabIndex="-1"/);
+    assert.doesNotMatch(foundationChallenge, /speaking-foundation-countdown" role="timer" aria-live/);
+    const recorderSectionLine = pronunciationRecorder.split(/\r?\n/).find(line => line.includes("return <section")) || "";
+    assert.doesNotMatch(recorderSectionLine, /aria-live/);
+    assert.match(pronunciationRecorder, /role="status" aria-live="polite" aria-atomic="true"/);
+    assert.match(pronunciationRecorderStyles, /\.speaking-pronunciation button:focus-visible/);
+    assert.match(pronunciationRecorderStyles, /min-height: 44px; height: 44px/);
 });

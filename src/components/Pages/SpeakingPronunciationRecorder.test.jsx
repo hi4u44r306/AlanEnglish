@@ -51,6 +51,23 @@ describe("SpeakingPronunciationRecorder", () => {
         jest.clearAllMocks();
     });
 
+    it("倒數期間只公告一次固定提示，不逐秒朗讀數字", () => {
+        const { rerender } = render(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 9 }}
+            disabledReason="先看清楚，3 秒後播放提示音。"
+        />);
+
+        expect(screen.getByRole("status")).toHaveTextContent("三秒後播放提示音");
+        rerender(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 9 }}
+            disabledReason="先看清楚，2 秒後播放提示音。"
+        />);
+        expect(screen.getByRole("status")).toHaveTextContent("三秒後播放提示音");
+        expect(screen.getByRole("status")).not.toHaveTextContent("2 秒");
+    });
+
     it("回聽與送評使用同一份轉換後 WAV，不在送出時重複轉檔", async () => {
         const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
         convertAudioBlobToWav.mockResolvedValue(wav);
@@ -70,6 +87,7 @@ describe("SpeakingPronunciationRecorder", () => {
             firebaseUser={{ getIdToken: jest.fn() }}
             question={{ id: 9 }}
         />);
+        expect(screen.getByRole("status")).toHaveTextContent("可以開始錄音");
         fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
         fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
 
@@ -80,6 +98,7 @@ describe("SpeakingPronunciationRecorder", () => {
         await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({ audio: wav })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
         expect(await screen.findByText("表現良好")).toBeInTheDocument();
+        expect(screen.getByRole("status")).toHaveTextContent("本次練習結果");
         expect(screen.getByText("我聽到")).toBeInTheDocument();
         expect(screen.getByText("My name is Amy.")).toBeInTheDocument();
         expect(screen.queryByText("88 分")).not.toBeInTheDocument();

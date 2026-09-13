@@ -1,19 +1,67 @@
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
 import SpeakingVisualAid from "./SpeakingVisualAid";
-import { getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
+import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet } from "../../services/speakingChallengeService";
 
 const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingChallengeService", () => ({
     completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn()
 }));
+jest.mock("./WorkbookOneFoundationChallenge", () => function MockFoundationChallenge({ challenge, onComplete }) {
+    return <section data-testid="foundation-challenge" data-interaction={challenge.generation_metadata.interaction_type}>
+        <button type="button" onClick={() => onComplete(challenge.speaking_questions[0], { answer_match: true })}>完成基礎題</button>
+    </section>;
+});
+jest.mock("./WorkbookOnePictureChallenge", () => function MockPictureChallenge({ challenge, onComplete }) {
+    return <section data-testid="picture-challenge" data-interaction={challenge.generation_metadata.interaction_type}>
+        <button type="button" onClick={() => onComplete(challenge.speaking_questions[0], { answer_match: true })}>完成圖片題</button>
+    </section>;
+});
 
 describe("TextbookSpeakingChallenge model audio", () => {
     const originalAudio = global.Audio;
+    beforeEach(() => { jest.clearAllMocks(); });
     afterEach(() => { global.Audio = originalAudio; });
+
+    it.each([
+        ["alphabet_round", "foundation-challenge"],
+        ["letter_spelling", "foundation-challenge"],
+        ["picture_qa", "picture-challenge"],
+        ["picture_gap_sentence", "picture-challenge"]
+    ])("會把 %s 題型分派到正確的 Workbook 1 關卡", async (interactionType, testId) => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 7,
+                title: "Workbook 1 基礎口說",
+                generation_metadata: { interaction_type: interactionType },
+                speaking_questions: [{ id: 9, progress_status: "opened" }]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByTestId(testId)).toHaveAttribute("data-interaction", interactionType);
+    });
+
+    it("Workbook 1 關卡完成時沿用既有完成紀錄服務", async () => {
+        completeSpeakingChallengeQuestion.mockResolvedValue({ success: true });
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 7,
+                title: "Workbook 1 字母關",
+                generation_metadata: { interaction_type: "alphabet_round" },
+                speaking_questions: [{ id: 9, progress_status: "opened" }]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: "完成基礎題" }));
+
+        await waitFor(() => expect(completeSpeakingChallengeQuestion).toHaveBeenCalledWith(mockFirebaseUser, 7, 9));
+    });
 
     it("removes the global mobile player clearance while the detail page is open", async () => {
         getSpeakingChallengeSet.mockResolvedValue({
@@ -84,6 +132,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("progressbar", { name: "大挑戰完成進度" })).toHaveAttribute("aria-valuenow", "50");
         fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
         expect(screen.getByText("How old are you?")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "How old are you?" })).toHaveFocus();
         expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: /完成大挑戰/ })).toBeDisabled();
     });
