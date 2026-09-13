@@ -457,7 +457,6 @@ export default function SpeakingContentAdmin() {
         finally { setWorking(""); }
     };
     const prepareAlphabetAudioCandidate = async questionSet => {
-        if (!window.confirm("確定要產生 Leda、Aoede、Zephyr 三個 A–Z 女聲候選嗎？每個聲音各用一次完整 A–Z 請求，完成後不會取代學生目前的版本。")) return;
         setWorking(`alphabet-candidate-${questionSet.id}`);
         try {
             const result = await prepareSpeakingAlphabetAudioCandidate(firebaseUser, questionSet.id);
