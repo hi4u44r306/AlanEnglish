@@ -1,6 +1,6 @@
 # Workbook 1 基礎口說闖關規格
 
-最後更新：2026-09-12
+最後更新：2026-09-13
 狀態：A–Z、P14～P17、P21／P22 學生端框架與管理員人工匯入流程已完成本機驗證；P14～P17 已連結正式核准來源，尚未部署、尚未建立正式題庫
 
 ## 1. 本階段範圍
@@ -22,7 +22,7 @@
 - Supabase 已存在 `speaking_question_visual_aids` migration，`speaking_questions.visual_aid` 欄位可保存安全的結構化提示；學生仍只能透過驗證 Firebase Token 與 entitlement 的 Edge Function 取得題目。
 - 正式 `book_page_spiral_review_content` 已有 Workbook 1 P14～P17 的 `published` 人工核對內容；建立拼讀草稿時後端會逐字、逐順序比對最新發布版本，不相符即拒絕建立。
 - 沿用既有草稿與發布前也會重新比對正式來源、題序及完整字母答案；舊 13 題 P17、遭編輯的草稿或來源升版後的舊草稿都必須封存後重建。來源鎖定題庫不開放通用題目編輯器，active template 另有唯一索引避免並行重複建立。
-- `book_page_spiral_review_content` 的建表與正式來源 migration 目前仍在未合併的 PR #109；此 dependency 進入 `main` 前，本功能 PR 必須維持 Draft，不可只因正式環境已存在資料表就略過版本庫依賴。
+- `book_page_spiral_review_content` 的建表與正式來源 migration 目前仍在未合併的 PR #120；此 dependency 進入 `main` 前，本功能 PR 必須維持 Draft，不可只因正式環境已存在資料表就略過版本庫依賴。
 - 正式資料另有 Workbook 1 的 P21～P30 OCR section，但原 PDF／OCR 文件仍是 `draft`、OCR 狀態是 `review_required`；P21／P22 的圖片內容與空格答案不能由 OCR 還原。
 - 目前已發布的 Workbook 1 題庫沒有涵蓋 A–Z、P14～P17、P21 或 P22。本批不能把 OCR 草稿直接當成正式答案發布。
 
@@ -175,3 +175,5 @@ P21／P22 不使用任意遠端 URL，也不把私人 R2 object key 直接傳給
 9. P21／P22 的通用題目編輯器已停用，後端也會拒絕通用更新，避免學生顯示文字與伺服器完整答案分離。
 
 下一步須先取得並人工核准 Workbook 1 P21／P22 的實際圖片、每題名詞、冠詞及完整答案，再使用已完成的管理員流程建立草稿並實際預覽。不得以 OCR 空格或推測內容補題，也不得在未取得 migration／Edge Function 部署授權時建立正式圖片資料。
+
+逐題收集與核准請使用 `WORKBOOK_1_P21_P22_CONTENT_APPROVAL.md`。該文件只作人工審查，不是資料庫匯入 manifest，也不得記錄私人 R2 object key 或 signed URL。
