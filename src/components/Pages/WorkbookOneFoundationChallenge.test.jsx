@@ -168,6 +168,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         fireEvent.click(screen.getByRole("button", { name: "模擬自動再試" }));
         expect(screen.getByText("沒關係，再試一次！")).toBeInTheDocument();
         expect(screen.getByText(/系統剛剛聽到「B」/)).toBeInTheDocument();
+        expect(screen.getByText(/小提示：Z 是 zee，不是 C 的 see/)).toBeInTheDocument();
         await act(async () => jest.advanceTimersByTime(3000));
         expect(screen.queryByText("沒關係，再試一次！")).not.toBeInTheDocument();
         expect(screen.getByText("麥克風已開啟")).toBeInTheDocument();

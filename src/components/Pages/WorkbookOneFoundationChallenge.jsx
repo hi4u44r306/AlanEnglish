@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiChevronLeft, FiHeadphones, FiPause, FiPlay, FiRefreshCw, FiVolume2 } from "react-icons/fi";
 import { createFoundationRound } from "../../utils/speakingChallengeRound";
+import { alphabetRetryTip } from "../../utils/alphabetRetryTip";
 import AlphabetAutomaticRecorder from "./AlphabetAutomaticRecorder";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 
@@ -43,6 +44,15 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const segmentTimerRef = useRef(null);
     const audioOperationRef = useRef(0);
     const copy = interactionCopy[interactionType] || interactionCopy.letter_spelling;
+    const activeQuestion = round[activeIndex];
+    const buildAlphabetFeedback = useCallback(result => {
+        const expected = activeQuestion?.display_text || "";
+        return {
+            expected,
+            heard: String(result?.recognized_text || "").trim(),
+            tip: alphabetRetryTip(expected)
+        };
+    }, [activeQuestion?.display_text]);
     const alphabetAudio = challenge?.alphabet_audio;
     const alphabetSegments = useMemo(() => Array.isArray(alphabetAudio?.segments)
         ? alphabetAudio.segments : [], [alphabetAudio]);
@@ -291,7 +301,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         }
     }, [alphabetMode, interactionType, onStartRound, sourceQuestions, stopAudio]);
 
-    const activeQuestion = round[activeIndex];
     useEffect(() => {
         if (["challenge", "failed", "result"].includes(phase)) {
             phaseFocusRef.current?.focus({ preventScroll: true });
@@ -301,7 +310,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         if (!alphabetMode) return;
         stopAudio();
         setRetryFeedback(null);
-        setFailureFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
+        setFailureFeedback(buildAlphabetFeedback(result));
         setRound([]);
         setRoundId("");
         setActiveIndex(0);
@@ -312,7 +321,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         if (alphabetMode) {
             const expectedStatus = activeIndex >= round.length - 1 ? "completed" : "open";
             if (result?.foundation_round?.status === "retry") {
-                setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
+                setRetryFeedback(buildAlphabetFeedback(result));
                 return;
             }
             if (result?.foundation_round?.status !== expectedStatus) {
@@ -360,7 +369,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     </main>;
 
     if (phase === "failed") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
-        <section className="speaking-foundation-result is-retry"><FiRefreshCw aria-hidden="true" /><h1 ref={phaseFocusRef} tabIndex="-1">沒關係，我們從第一題再來！</h1>{failureFeedback?.expected && <p className="speaking-foundation-feedback">剛剛這題是 <strong>{failureFeedback.expected}</strong>。{failureFeedback.heard ? <>系統聽到的是「{failureFeedback.heard}」。</> : "系統剛剛沒有聽清楚。"}</p>}<p>這一輪已重新歸零。你可以再聽一次 A–Z，或直接換一個新順序挑戰。</p>{statusAlert}<div className="speaking-foundation-actions"><button type="button" onClick={() => { setIntroIndex(0); setPhase("intro"); }}><FiHeadphones />重新聽 A–Z</button><button type="button" className="primary" onClick={startRound} disabled={startingRound}><FiRefreshCw />{startingRound ? "正在準備…" : "直接再玩一次"}</button></div></section>
+        <section className="speaking-foundation-result is-retry"><FiRefreshCw aria-hidden="true" /><h1 ref={phaseFocusRef} tabIndex="-1">沒關係，我們從第一題再來！</h1>{failureFeedback?.expected && <p className="speaking-foundation-feedback">剛剛這題是 <strong>{failureFeedback.expected}</strong>。{failureFeedback.heard ? <>系統聽到的是「{failureFeedback.heard}」。</> : "系統剛剛沒有聽清楚。"}<small>小提示：{failureFeedback.tip}</small></p>}<p>這一輪已重新歸零。你可以再聽一次 A–Z，或直接換一個新順序挑戰。</p>{statusAlert}<div className="speaking-foundation-actions"><button type="button" onClick={() => { setIntroIndex(0); setPhase("intro"); }}><FiHeadphones />重新聽 A–Z</button><button type="button" className="primary" onClick={startRound} disabled={startingRound}><FiRefreshCw />{startingRound ? "正在準備…" : "直接再玩一次"}</button></div></section>
     </main>;
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
@@ -411,7 +420,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 onIncorrect={handleIncorrect}
                 onRoundInvalid={handleIncorrect}
             />}
-            {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></aside>}
+            {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span><small>小提示：{retryFeedback.tip}</small></aside>}
             {statusAlert}
         </article></section>
         {exitDialog}
