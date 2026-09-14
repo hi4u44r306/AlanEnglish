@@ -13,7 +13,6 @@ import Links from "../components/Pages/Links";
 import LinkAdmin from "../components/Pages/LinkAdmin";
 import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
-import User from "../components/Pages/User";
 import AddMusic from "../components/Pages/AddMusicV3";
 import NotFound from "../components/Pages/NotFound";
 import ManagementDashboard from "../components/Pages/ManagementDashboard";
@@ -142,7 +141,7 @@ const App = () => {
                     <Route path="/shop/orders/:orderNumber" element={<StoreOrders />} />
                     <Route path="/shop/payment/success" element={<StorePaymentResult />} />
 
-                    <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><User /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><WeeklyReport /></Containerfull></ProtectedRoute>} />
