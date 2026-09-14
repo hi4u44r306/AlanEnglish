@@ -91,9 +91,6 @@
 .speaking-focus-card .speaking-visual-aid figcaption { padding: 7px 10px; background: #f7faff; color: #536886; font-size: 12px; font-weight: 800; }
 
 .speaking-challenge-detail { padding-top: 24px; }
-body.speaking-challenge-active .app-header { display: none; }
-body.speaking-challenge-active .app-shell { padding-top: 0; }
-body.speaking-challenge-active .speaking-challenge-page { padding-top: max(18px, env(safe-area-inset-top)); }
 
 .speaking-lesson-header {
   display: grid;
@@ -481,6 +478,10 @@ body.speaking-challenge-active .speaking-challenge-page { padding-top: max(18px,
 .speaking-practice-finished svg { flex: 0 0 auto; }
 
 @media (max-width: 760px) {
+  /* 手機闖關採專注模式；桌面保留完整 Navbar。 */
+  body.speaking-challenge-active .app-header { display: none; }
+  body.speaking-challenge-active .app-shell { padding-top: 0; }
+  body.speaking-challenge-active .speaking-challenge-page { padding-top: max(18px, env(safe-area-inset-top)); }
   body.speaking-challenge-active .app-content { padding-bottom: 0; }
   body.speaking-challenge-active { overscroll-behavior-y: none; }
   .speaking-challenge-page { padding: 20px 14px calc(72px + env(safe-area-inset-bottom)); }
