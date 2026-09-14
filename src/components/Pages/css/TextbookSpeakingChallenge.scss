@@ -1,6 +1,6 @@
 .speaking-challenge-page {
   min-height: 100vh;
-  padding: 112px 24px 80px;
+  padding: 40px 24px 80px;
   background: #f3f7fc;
   color: #17233f;
 }
@@ -24,8 +24,8 @@
 }
 
 .speaking-challenge-hero h1 {
-  margin: 8px 0;
-  font-size: clamp(34px, 6vw, 56px);
+  margin: 5px 0;
+  font-size: clamp(32px, 5vw, 46px);
 }
 
 .speaking-challenge-hero p,
@@ -36,9 +36,9 @@
 
 .speaking-challenge-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr;
   gap: 18px;
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .speaking-challenge-grid > button,
@@ -62,56 +62,38 @@
 .speaking-no-reward { color: #718099; }
 .speaking-challenge-grid footer { color: #1f579f; font-weight: 900; }
 
-.speaking-catalog-switch {
-  display: flex;
-  gap: 6px;
-  width: min(920px, 100%);
-  margin: 24px auto 0;
-  padding: 5px;
-  border: 1px solid #d8e3f2;
-  border-radius: 15px;
-  background: #eaf0f8;
-}
-.speaking-catalog-switch button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 44px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 11px;
-  background: transparent;
-  color: #63728a;
-  font-weight: 900;
-  cursor: pointer;
-}
-.speaking-catalog-switch button.active { background: #fff; color: #17366f; box-shadow: 0 5px 14px rgba(22, 54, 103, .1); }
-.speaking-catalog-group { grid-column: 1 / -1; overflow: hidden; border: 1px solid #d8e3f2; border-radius: 22px; background: #fff; box-shadow: 0 12px 32px rgba(20, 47, 91, .07); }
-.speaking-catalog-group > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; background: linear-gradient(120deg, #17366f, #2b66bd); color: #fff; }
+.speaking-catalog-group { grid-column: 1 / -1; overflow: hidden; border: 1px solid #cfdcf0; border-radius: 24px; background: #fff; box-shadow: 0 12px 32px rgba(20, 47, 91, .07); }
+.speaking-catalog-group > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 20px; background: linear-gradient(120deg, #17366f, #2b66bd); color: #fff; }
 .speaking-catalog-group > header div { display: grid; gap: 2px; }
 .speaking-catalog-group > header small { color: #ffd66b; font-size: 11px; font-weight: 900; letter-spacing: .12em; }
 .speaking-catalog-group > header h2 { margin: 0; font-size: clamp(22px, 4vw, 30px); }
 .speaking-catalog-group > header > span { padding: 6px 10px; border-radius: 999px; background: rgba(255, 255, 255, .13); color: #fff; font-size: 12px; font-weight: 850; white-space: nowrap; }
 .speaking-catalog-lessons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: #e3ebf6; }
-.speaking-challenge-lesson { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 102px; padding: 16px 18px; border: 0; background: #fff; color: #17233f; text-align: left; cursor: pointer; }
+.speaking-challenge-lesson { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 13px; align-items: center; min-height: 94px; padding: 14px 18px; border: 0; background: #fff; color: #17233f; text-align: left; cursor: pointer; }
 .speaking-challenge-lesson:hover, .speaking-challenge-lesson:focus-visible { position: relative; z-index: 1; background: #f4f8ff; outline: 3px solid #8cb7ef; outline-offset: -3px; }
-.speaking-challenge-lesson__number { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: #eaf3ff; color: #245eb3; font-size: 16px; font-weight: 950; }
+.speaking-challenge-lesson__number { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 17px; background: #eaf3ff; color: #245eb3; font-size: 17px; font-weight: 950; }
 .speaking-challenge-lesson__copy { display: grid; gap: 4px; min-width: 0; }
 .speaking-challenge-lesson__copy strong { font-size: 17px; }
 .speaking-challenge-lesson__copy small { overflow: hidden; color: #718099; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
 .speaking-challenge-lesson__meta { display: grid; gap: 1px; justify-items: end; color: #245eb3; white-space: nowrap; }
 .speaking-challenge-lesson__meta b { font-size: 14px; }
 .speaking-challenge-lesson__meta small { color: #7b8799; font-size: 10px; }
+.speaking-challenge-lesson__meta svg { width: 20px; height: 20px; }
+.speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number { color: #14754b; background: #e8f8ef; }
+.speaking-challenge-lesson.is-completed .speaking-challenge-lesson__meta { color: #14754b; }
+.speaking-challenge-lesson.is-locked { color: #8a96a8; background: #f7f9fc; cursor: not-allowed; }
+.speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number { color: #8793a5; background: #edf1f6; }
+.speaking-challenge-lesson.is-locked .speaking-challenge-lesson__meta { color: #7c899c; }
+.speaking-challenge-lesson:disabled { opacity: 1; }
 .speaking-challenge-loading-status { grid-column: 1 / -1; color: #526884; font-weight: 800; }
 .speaking-focus-card .speaking-visual-aid { width: min(300px, 100%); margin: 0 auto; overflow: hidden; border: 1px solid #d9e4f2; border-radius: 16px; background: #fff; box-shadow: 0 8px 20px rgba(20, 47, 91, .08); }
 .speaking-focus-card .speaking-visual-aid svg { display: block; width: 100%; height: auto; }
 .speaking-focus-card .speaking-visual-aid figcaption { padding: 7px 10px; background: #f7faff; color: #536886; font-size: 12px; font-weight: 800; }
 
-.speaking-challenge-detail { padding-top: 96px; }
-body.speaking-challenge-detail-active .app-header { display: none; }
-body.speaking-challenge-detail-active .app-shell { padding-top: 0; }
-body.speaking-challenge-detail-active .speaking-challenge-detail { padding-top: 24px; }
+.speaking-challenge-detail { padding-top: 24px; }
+body.speaking-challenge-active .app-header { display: none; }
+body.speaking-challenge-active .app-shell { padding-top: 0; }
+body.speaking-challenge-active .speaking-challenge-page { padding-top: max(18px, env(safe-area-inset-top)); }
 
 .speaking-lesson-header {
   display: grid;
@@ -257,7 +239,6 @@ body.speaking-challenge-detail-active .speaking-challenge-detail { padding-top: 
 .speaking-question-navigation button:disabled { opacity: .45; cursor: not-allowed; }
 
 .speaking-back:focus-visible,
-.speaking-catalog-switch button:focus-visible,
 .speaking-question-navigation button:focus-visible,
 .speaking-help-toggle:focus-visible,
 .speaking-practice-tabs button:focus-visible,
@@ -500,9 +481,9 @@ body.speaking-challenge-detail-active .speaking-challenge-detail { padding-top: 
 .speaking-practice-finished svg { flex: 0 0 auto; }
 
 @media (max-width: 760px) {
-  body.speaking-challenge-detail-active .app-content { padding-bottom: 0; }
-  body.speaking-challenge-detail-active { overscroll-behavior-y: none; }
-  .speaking-challenge-page { padding: 80px 14px calc(72px + env(safe-area-inset-bottom)); }
+  body.speaking-challenge-active .app-content { padding-bottom: 0; }
+  body.speaking-challenge-active { overscroll-behavior-y: none; }
+  .speaking-challenge-page { padding: 20px 14px calc(72px + env(safe-area-inset-bottom)); }
   .speaking-challenge-page.speaking-challenge-detail {
     display: block;
     gap: 8px;
@@ -657,7 +638,7 @@ body.speaking-challenge-detail-active .speaking-challenge-detail { padding-top: 
   .app-content.has-player .speaking-question-navigation {
     bottom: calc(var(--app-player-space, 110px) + 8px);
   }
-  body.speaking-challenge-detail-active .speaking-lesson-header { top: max(4px, env(safe-area-inset-top)); }
+  body.speaking-challenge-active .speaking-lesson-header { top: max(4px, env(safe-area-inset-top)); }
   body:has(.ae-student-bottom-nav) .speaking-question-navigation {
     bottom: calc(74px + max(8px, env(safe-area-inset-bottom, 0px)));
   }
@@ -683,8 +664,6 @@ body.speaking-challenge-detail-active .speaking-challenge-detail { padding-top: 
 }
 
 @media (max-width: 700px) {
-  .speaking-catalog-switch { margin-top: 16px; }
-  .speaking-catalog-switch button { flex: 1; padding-inline: 10px; }
   .speaking-catalog-group > header { align-items: flex-start; padding: 15px 16px; }
   .speaking-catalog-lessons { grid-template-columns: 1fr; }
   .speaking-challenge-lesson { grid-template-columns: 42px minmax(0, 1fr) auto; min-height: 88px; padding: 13px 14px; }
@@ -876,7 +855,7 @@ body.speaking-challenge-detail-active .speaking-challenge-detail { padding-top: 
     grid-template-columns: 44px minmax(0, 1fr) auto;
     min-height: 58px;
   }
-  body.speaking-challenge-detail-active .speaking-foundation-page .speaking-lesson-header--alphabet {
+  body.speaking-challenge-active .speaking-foundation-page .speaking-lesson-header--alphabet {
     top: max(4px, env(safe-area-inset-top));
   }
   .speaking-foundation-page .speaking-lesson-header--alphabet .speaking-lesson-heading > p {

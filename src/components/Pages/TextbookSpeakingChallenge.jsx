@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic } from "react-icons/fi";
+import { FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiLock, FiMic } from "react-icons/fi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
@@ -9,32 +9,25 @@ import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
 import "./css/TextbookSpeakingChallenge.scss";
 
-const THEME_RULES = [
-    { id: "introductions", label: "認識新朋友", pattern: /名字|自我介紹|來自哪裡|name|country/i },
-    { id: "daily", label: "日常對話", pattern: /打招呼|禮貌|一天|時間|問候|greeting|daily|time/i },
-    { id: "school", label: "校園英語", pattern: /學校|教室|文具|數字|算術|school|class|number|math/i },
-    { id: "people", label: "家人與人物", pattern: /家人|人物|身體|family|people|body/i },
-    { id: "places", label: "位置與問路", pattern: /位置|指示|問路|方向|place|direction|where/i },
-    { id: "things", label: "生活物品與顏色", pattern: /顏色|物品|水果|color|thing|fruit/i }
-];
-
-const getTheme = item => THEME_RULES.find(theme => theme.pattern.test(`${item.title} ${item.topic}`)) || { id: "review", label: "綜合口說" };
-const lessonNumber = item => String(item.title || "").match(/^\s*(\d{1,2})/)?.[1]?.padStart(2, "0") || "GO";
+const lessonNumber = item => String(item.title || "").match(/^\s*(?:P\s*)?(\d{1,4})\b/i)?.[1]?.padStart(2, "0") || "GO";
 const lessonTitle = item => String(item.title || "口說練習").replace(/^\s*\d{1,2}\s*/, "").trim();
 
-const ChallengeLesson = ({ item, onOpen }) => <button className="speaking-challenge-lesson" type="button" onClick={onOpen}>
+const ChallengeLesson = ({ item, onOpen, staffPreview }) => {
+    const locked = !staffPreview && item.is_unlocked === false;
+    const completed = item.is_completed === true;
+    return <button className={`speaking-challenge-lesson ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
     <span className="speaking-challenge-lesson__number">{lessonNumber(item)}</span>
     <span className="speaking-challenge-lesson__copy"><strong>{lessonTitle(item)}</strong><small>{item.intro_zh || `${item.topic} · ${item.difficulty}`}</small></span>
-    <span className="speaking-challenge-lesson__meta"><b>{item.completed_count}/{item.question_count}</b><small>已練習</small></span>
-</button>;
+    <span className="speaking-challenge-lesson__meta">{locked ? <><FiLock aria-hidden="true" /><small id={`speaking-challenge-lock-${item.id}`}>先完成前一關</small></> : completed ? <><FiCheck aria-hidden="true" /><small>已通關</small></> : <><b>{item.completed_count}/{item.question_count}</b><small>{staffPreview ? "預覽" : "開始挑戰"}</small></>}</span>
+    </button>;
+};
 
 export default function TextbookSpeakingChallenge() {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, role } = useAuth();
     const { questionSetId } = useParams();
     const navigate = useNavigate();
     const [catalog, setCatalog] = useState([]);
     const [catalogLoading, setCatalogLoading] = useState(!questionSetId);
-    const [catalogView, setCatalogView] = useState("books");
     const [challenge, setChallenge] = useState(null);
     const [error, setError] = useState("");
     const [audioWorking, setAudioWorking] = useState("");
@@ -44,18 +37,20 @@ export default function TextbookSpeakingChallenge() {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const questions = challenge?.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
+    const staffPreview = role === "teacher" || role === "admin";
     const catalogGroups = useMemo(() => {
         const groups = new Map();
         catalog.forEach(item => {
             const book = item.book || item.books || {};
-            const group = catalogView === "books"
-                ? { id: `book-${book.id || book.code || book.name}`, label: book.name || "其他教材", eyebrow: "教材大關卡" }
-                : { ...getTheme(item), eyebrow: "生活主題" };
+            const group = { id: `book-${book.id || book.code || book.name}`, label: book.name || "其他教材", eyebrow: "照順序完成" };
             if (!groups.has(group.id)) groups.set(group.id, { ...group, items: [] });
             groups.get(group.id).items.push(item);
         });
-        return [...groups.values()];
-    }, [catalog, catalogView]);
+        return [...groups.values()].map(group => ({
+            ...group,
+            items: [...group.items].sort((left, right) => Number(left.sequence_order || 0) - Number(right.sequence_order || 0) || Number(left.id) - Number(right.id))
+        }));
+    }, [catalog]);
 
     useEffect(() => () => {
         audioRef.current?.pause();
@@ -63,10 +58,9 @@ export default function TextbookSpeakingChallenge() {
     }, []);
 
     useEffect(() => {
-        if (!questionSetId) return undefined;
-        document.body.classList.add("speaking-challenge-detail-active");
-        return () => document.body.classList.remove("speaking-challenge-detail-active");
-    }, [questionSetId]);
+        document.body.classList.add("speaking-challenge-active");
+        return () => document.body.classList.remove("speaking-challenge-active");
+    }, []);
     useEffect(() => {
         if (questionSetId && activeQuestion?.id && !["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence"].includes(interactionType)) {
             questionHeadingRef.current?.focus({ preventScroll: true });
@@ -129,7 +123,7 @@ export default function TextbookSpeakingChallenge() {
     };
 
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
-    if (!questionSetId) return <main className="speaking-challenge-page"><header className="speaking-challenge-hero"><span>TEXTBOOK SPEAKING</span><h1>口說大挑戰</h1><p>選一本課本順著練，或直接挑一個生活主題開始說英文。</p></header><div className="speaking-catalog-switch" role="group" aria-label="口說大挑戰瀏覽方式"><button type="button" className={catalogView === "books" ? "active" : ""} aria-pressed={catalogView === "books"} onClick={() => setCatalogView("books")}><FiBookOpen />依教材</button><button type="button" className={catalogView === "themes" ? "active" : ""} aria-pressed={catalogView === "themes"} onClick={() => setCatalogView("themes")}><FiMic />依主題</button></div><section className="speaking-challenge-grid" aria-busy={catalogLoading}>{catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}{!catalogLoading && catalogGroups.map(group => <section className="speaking-catalog-group" key={group.id}><header><div><small>{group.eyebrow}</small><h2>{group.label}</h2></div><span>{group.items.length} 個小關卡</span></header><div className="speaking-catalog-lessons">{group.items.map(item => <ChallengeLesson key={item.id} item={item} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}{!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
+    if (!questionSetId) return <main className="speaking-challenge-page speaking-challenge-catalog"><header className="speaking-challenge-hero"><span>{staffPreview ? "STAFF PREVIEW" : "STEP BY STEP"}</span><h1>口說大挑戰</h1><p>{staffPreview ? "這是唯讀預覽，所有已發布關卡都可直接開啟。" : "照著教材順序通關；完成這一關，下一關才會開啟。"}</p></header><section className="speaking-challenge-grid" aria-busy={catalogLoading}>{catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}{!catalogLoading && catalogGroups.map(group => <section className="speaking-catalog-group" key={group.id}><header><div><small>{group.eyebrow}</small><h2>{group.label}</h2></div><span>{group.items.length} 個小關卡</span></header><div className="speaking-catalog-lessons">{group.items.map(item => <ChallengeLesson key={item.id} item={item} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}{!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
     if (["alphabet_round", "letter_spelling"].includes(interactionType)) return <WorkbookOneFoundationChallenge
         challenge={challenge}

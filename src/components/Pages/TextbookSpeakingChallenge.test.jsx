@@ -6,7 +6,8 @@ import SpeakingVisualAid from "./SpeakingVisualAid";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 
 const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
-jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
+let mockRole = "student";
+jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser, role: mockRole }) }));
 jest.mock("../../services/speakingChallengeService", () => ({
     completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn(), startSpeakingFoundationRound: jest.fn()
 }));
@@ -24,7 +25,7 @@ jest.mock("./WorkbookOnePictureChallenge", () => function MockPictureChallenge({
 
 describe("TextbookSpeakingChallenge model audio", () => {
     const originalAudio = global.Audio;
-    beforeEach(() => { jest.clearAllMocks(); });
+    beforeEach(() => { jest.clearAllMocks(); mockRole = "student"; });
     afterEach(() => { global.Audio = originalAudio; });
 
     it.each([
@@ -113,9 +114,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         await screen.findByText("What's your name?");
-        expect(document.body).toHaveClass("speaking-challenge-detail-active");
+        expect(document.body).toHaveClass("speaking-challenge-active");
         unmount();
-        expect(document.body).not.toHaveClass("speaking-challenge-detail-active");
+        expect(document.body).not.toHaveClass("speaking-challenge-active");
     });
 
     it("plays the stored private model audio instead of browser speech synthesis", async () => {
@@ -177,11 +178,11 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: /完成大挑戰/ })).toBeDisabled();
     });
 
-    it("可依教材或生活主題瀏覽口說大挑戰", async () => {
+    it("學生依教材固定順序看見下一關鎖定狀態", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [
-                { id: 1, title: "01 我的名字與自我介紹", topic: "Names", difficulty: "E1", book: { name: "Workbook 1" }, question_count: 4, completed_count: 1 },
-                { id: 2, title: "02 顏色與生活物品", topic: "Colors", difficulty: "E1", book: { name: "Workbook 1" }, question_count: 6, completed_count: 0 }
+                { id: 2, title: "02 顏色與生活物品", topic: "Colors", difficulty: "E1", book: { name: "Workbook 1" }, question_count: 6, completed_count: 0, sequence_order: 2, is_unlocked: false },
+                { id: 1, title: "01 我的名字與自我介紹", topic: "Names", difficulty: "E1", book: { name: "Workbook 1" }, question_count: 4, completed_count: 1, sequence_order: 1, is_unlocked: true }
             ]
         });
 
@@ -190,10 +191,28 @@ describe("TextbookSpeakingChallenge model audio", () => {
         });
 
         expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "依教材" })).toHaveAttribute("aria-pressed", "true");
-        fireEvent.click(screen.getByRole("button", { name: "依主題" }));
-        expect(screen.getByRole("heading", { name: "認識新朋友" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "生活物品與顏色" })).toBeInTheDocument();
+        const firstLesson = screen.getByRole("button", { name: /我的名字與自我介紹/ });
+        const secondLesson = screen.getByRole("button", { name: /顏色與生活物品/ });
+        expect(firstLesson).toBeEnabled();
+        expect(secondLesson).toBeDisabled();
+        expect(secondLesson).toHaveTextContent("先完成前一關");
+        expect(firstLesson.compareDocumentPosition(secondLesson) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it("老師預覽會保留固定順序但不鎖任何已發布關卡", async () => {
+        mockRole = "teacher";
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            demo_mode: true,
+            challenges: [
+                { id: 2, title: "02 顏色與生活物品", book: { name: "Workbook 1" }, question_count: 6, completed_count: 0, sequence_order: 2, is_unlocked: true },
+                { id: 1, title: "01 我的名字與自我介紹", book: { name: "Workbook 1" }, question_count: 4, completed_count: 0, sequence_order: 1, is_unlocked: true }
+            ]
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByText("這是唯讀預覽，所有已發布關卡都可直接開啟。")).toBeInTheDocument();
+        expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
     });
 
     it("以真正的台灣國旗呈現台灣視覺提示", () => {

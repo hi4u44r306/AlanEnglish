@@ -770,7 +770,11 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
-## 本次進行中（2026-09-14，Navbar 角色入口稽核完成，尚未部署）
+## 本次進行中（2026-09-14，學生口說固定順序闖關，尚未部署）
+
+- 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。口說列表與詳細頁統一收起 Logo Header，縮小頂部留白。待 React、Edge Function syntax／progression contract、production build 與 diff check 後推送；本批不含 migration 或 Function 部署。
+
+## 歷史進行中（2026-09-14，Navbar 角色入口稽核完成，尚未部署）
 
 - 學生／老師／管理員 Navbar 角色稽核：學生桌面版補上右上角明確「登出」按鈕，保留頭像直達「我的設定」；學生手機版仍在「更多」抽屜提供登出。老師與管理員的桌面帳號選單及手機選單原本都已有登出，本次不改其權限或入口。待相關 React 測試、production build 與 diff check 通過後再推送分支。
 
