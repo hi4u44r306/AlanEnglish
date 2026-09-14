@@ -417,7 +417,10 @@
   font-weight: 900;
 }
 
-@media (max-width: 900px) {
+// iPad Pro 13 reports a 1032px CSS viewport.  Keeping the full desktop
+// navigation at that width leaves too little room for the account controls,
+// so tablets use the same clear header and bottom navigation as phones.
+@media (max-width: 1100px) {
   .ae-student-navbar,
   .ae-student-navbar .ae-navbar-container {
     min-height: 66px;
