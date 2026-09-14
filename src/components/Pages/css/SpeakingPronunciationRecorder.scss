@@ -60,6 +60,11 @@
 }
 .speaking-pronunciation button.secondary { border: 1px solid #9db8e1; background: #fff; color: #245eaf; }
 .speaking-pronunciation button:disabled { opacity: .6; cursor: not-allowed; }
+.speaking-pronunciation button:focus-visible,
+.speaking-recording-preview audio:focus-visible {
+  outline: 3px solid rgba(246, 190, 46, .88);
+  outline-offset: 3px;
+}
 
 .speaking-pronunciation-notice,
 .speaking-pronunciation-error {
@@ -156,7 +161,7 @@
   .speaking-pronunciation-mic span { font-size: 12px; }
   .speaking-recording-privacy { font-size: 10px; line-height: 1.25; }
   .speaking-recording-preview { gap: 7px; }
-  .speaking-recording-preview audio { height: 40px; }
+  .speaking-recording-preview audio { min-height: 44px; height: 44px; }
   .speaking-recording-preview > div { gap: 7px; }
   .speaking-recording-preview button { flex: 1 1 120px; }
   .speaking-pronunciation-result { gap: 7px; }

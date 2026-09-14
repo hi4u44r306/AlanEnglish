@@ -80,5 +80,42 @@ describe("submitPronunciationAttempt", () => {
         expect(body.get("lesson_id")).toBeNull();
         expect(body.get("reference_text")).toBeNull();
         expect(body.get("slot_values")).toBeNull();
+        expect(body.get("foundation_round_id")).toBeNull();
+    });
+
+    it("A–Z 評分只附上後端簽發的 round id，不傳成功狀態或題序", async () => {
+        global.fetch.mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue({ success: true }) });
+        await submitSpeakingPronunciationAttempt({
+            firebaseUser: { getIdToken: jest.fn().mockResolvedValue("firebase-token") },
+            questionId: 42,
+            foundationRoundId: "11111111-1111-4111-8111-111111111111",
+            audio: new Blob(["wav-data"], { type: "audio/wav" })
+        });
+
+        const body = global.fetch.mock.calls[0][1].body;
+        expect(body.get("foundation_round_id")).toBe("11111111-1111-4111-8111-111111111111");
+        expect(body.get("answer_match")).toBeNull();
+        expect(body.get("question_order")).toBeNull();
+    });
+
+    it("保留 A–Z 回合失效代碼，讓畫面安全歸零", async () => {
+        global.fetch.mockResolvedValue({
+            ok: false,
+            status: 409,
+            json: jest.fn().mockResolvedValue({
+                error: "這一輪已失效，請從第一題重新開始",
+                code: "foundation_round_invalid"
+            })
+        });
+
+        await expect(submitSpeakingPronunciationAttempt({
+            firebaseUser: { getIdToken: jest.fn().mockResolvedValue("firebase-token") },
+            questionId: 42,
+            foundationRoundId: "11111111-1111-4111-8111-111111111111",
+            audio: new Blob(["wav-data"], { type: "audio/wav" })
+        })).rejects.toMatchObject({
+            status: 409,
+            code: "foundation_round_invalid"
+        });
     });
 });
