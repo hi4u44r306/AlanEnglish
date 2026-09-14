@@ -499,6 +499,12 @@
 @media (max-width: 760px) {
   body.speaking-challenge-detail-active .app-content { padding-bottom: 0; }
   body.speaking-challenge-detail-active { overscroll-behavior-y: none; }
+  body.speaking-challenge-detail-active .app-header { transition: transform .18s ease, box-shadow .18s ease; }
+  body.speaking-challenge-compact-header .app-header {
+    transform: translateY(calc(-100% - 2px));
+    box-shadow: none;
+    pointer-events: none;
+  }
   .speaking-challenge-page { padding: 80px 14px calc(72px + env(safe-area-inset-bottom)); }
   .speaking-challenge-page.speaking-challenge-detail {
     display: block;
@@ -867,8 +873,40 @@
   .speaking-foundation-page { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
   .speaking-foundation-page .speaking-lesson-header { grid-template-columns: 44px minmax(0, 1fr); }
   .speaking-foundation-page .speaking-lesson-progress { grid-column: 1 / -1; width: 100%; }
+  .speaking-foundation-page .speaking-lesson-header--alphabet {
+    top: 66px;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    min-height: 58px;
+  }
+  body.speaking-challenge-compact-header .speaking-foundation-page .speaking-lesson-header--alphabet {
+    top: max(4px, env(safe-area-inset-top));
+  }
+  .speaking-foundation-page .speaking-lesson-header--alphabet .speaking-lesson-heading > p {
+    display: block;
+    margin: 2px 0 0;
+    overflow: hidden;
+    color: #60718b;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .speaking-foundation-page .speaking-lesson-header--alphabet .speaking-lesson-progress {
+    grid-column: auto;
+    width: auto;
+    align-self: center;
+  }
+  .speaking-foundation-page .speaking-lesson-header--alphabet .speaking-lesson-progress > div:first-child {
+    justify-content: flex-end;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .speaking-foundation-page .speaking-lesson-header--alphabet .speaking-lesson-progress strong,
+  .speaking-foundation-page .speaking-lesson-header--alphabet .speaking-progress-track { display: none; }
   .speaking-foundation-intro,
   .speaking-foundation-result { width: calc(100% - 20px); margin-block: 14px; padding: 22px 16px; border-radius: 22px; }
+  .speaking-foundation-intro { gap: 12px; margin-block: 10px; padding: 16px 14px; }
   .speaking-alphabet-list { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
   .speaking-alphabet-list span { min-height: 66px; gap: 4px; border-radius: 15px; font-size: clamp(28px, 8vw, 36px); }
   .speaking-alphabet-list span small { font-size: .84em; }

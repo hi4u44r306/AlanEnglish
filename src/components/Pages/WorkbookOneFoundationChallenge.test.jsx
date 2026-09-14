@@ -187,6 +187,25 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(screen.getByLabelText("英文字母 A 到 Z").querySelectorAll("span")).toHaveLength(26);
     });
 
+    it("A–Z 介紹頁把可開始狀態收在精簡關卡列，避免重複的大型說明", () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={{
+                ...alphabetChallenge,
+                alphabet_audio: { ...alphabetChallenge.alphabet_audio, intro_listen_completed: true }
+            }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        const header = document.querySelector(".speaking-lesson-header--alphabet");
+        expect(header).toHaveTextContent(alphabetChallenge.title);
+        expect(header).toHaveTextContent("已聽完，可以直接開始挑戰");
+        expect(screen.queryByRole("heading", { name: "先聽一遍 A 到 Z" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
+    });
+
     it("進入挑戰後回到列表前會警告本輪不存檔，取消留在原題、確定才退出", async () => {
         const onExit = jest.fn();
         render(<WorkbookOneFoundationChallenge
