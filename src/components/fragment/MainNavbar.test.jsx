@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import MainNavbar from "./MainNavbar";
@@ -70,6 +70,32 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("link", { name: "我的設定" })).toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
+    });
+
+    it("keeps the materials entry available while the accessible catalog is loading", async () => {
+        let resolveCatalog;
+        getAccessibleCatalog.mockImplementationOnce(() => new Promise(resolve => {
+            resolveCatalog = resolve;
+        }));
+
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+
+        expect(screen.getByRole("button", { name: "我的教材" })).toBeInTheDocument();
+        const bottomNavigation = screen.getByRole("navigation", { name: "學生主要導覽" });
+        fireEvent.click(within(bottomNavigation).getByRole("button", { name: "教材" }));
+        expect(await screen.findByText("教材載入中...")).toBeInTheDocument();
+
+        await act(async () => {
+            resolveCatalog({
+                categories: [{
+                    id: "workbook",
+                    name: "習作本",
+                    books: [{ id: "book-1", code: "Workbook_1", name: "Workbook 1", locked: false }]
+                }]
+            });
+        });
+
+        expect(await screen.findByLabelText("切換習作本，1 本教材")).toBeInTheDocument();
     });
 
     it("groups unlocked student materials into collapsible desktop and mobile categories", async () => {

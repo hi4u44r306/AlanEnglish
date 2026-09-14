@@ -54,6 +54,9 @@ const StudentNavbar = ({
     const accessibleCategories = categories || [];
     const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
     const hasMaterials = materialCount > 0;
+    // Keep the student-facing entry stable while the entitlement catalog is loading.
+    // It only reveals the loading state, never material names or links before access is known.
+    const shouldShowMaterials = loading || hasMaterials || Boolean(navError);
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
     const hasAssignmentsAccess = hasActiveLearningAccess && features.assignments === true;
@@ -178,7 +181,7 @@ const StudentNavbar = ({
     const bottomNavigation = (
         <nav className="ae-student-bottom-nav" aria-label="學生主要導覽">
             <Link to="/student/dashboard" className={isPathActive("/student/dashboard") ? "active" : ""}><FiHome /><span>首頁</span></Link>
-            {hasMaterials && <button type="button" onClick={() => openDrawer("materials")} className={isPathActive("/student/books") ? "active" : ""}><FiBookOpen /><span>教材</span></button>}
+            {shouldShowMaterials && <button type="button" onClick={() => openDrawer("materials")} className={isPathActive("/student/books") ? "active" : ""}><FiBookOpen /><span>教材</span></button>}
             {hasPronunciationAccess && <button type="button" onClick={() => openDrawer("speaking")} className={speakingActive ? "active" : ""}><FiMic /><span>開口說</span></button>}
             <button type="button" onClick={() => openDrawer("more")} className={moreActive ? "active" : ""}><FiMoreHorizontal /><span>更多</span></button>
         </nav>
@@ -191,9 +194,9 @@ const StudentNavbar = ({
                     <Navbar.Brand as={Link} to="/student/dashboard" className="ae-brand" aria-label="Alan English 學生首頁"><Brand /></Navbar.Brand>
                     <Nav className="ae-student-desktop-nav">
                         <Nav.Link as={Link} to="/student/dashboard" className={isPathActive("/student/dashboard") ? "active" : ""}><span><FiHome />首頁</span></Nav.Link>
-                        {hasMaterials && (
+                        {shouldShowMaterials && (
                             <NavDropdown id="student-materials" title={<span><FiBookOpen />我的教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} className={isPathActive("/student/books") ? "active" : ""}>
-                                <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{materialCount} 本可使用</small></div>
+                                <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>
                                 {renderMaterials("desktop")}
                             </NavDropdown>
                         )}
