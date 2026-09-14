@@ -272,6 +272,34 @@
   color: #2355c7 !important;
 }
 
+.ae-student-desktop-logout {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border: 1px solid #f0d8d8;
+  border-radius: 14px;
+  color: #aa3030;
+  background: #fff8f8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.ae-student-desktop-logout:hover:not(:disabled) {
+  border-color: #e7aaaa;
+  background: #fff0f0;
+}
+
+.ae-student-desktop-logout:focus-visible {
+  outline: 3px solid #f4bd37;
+  outline-offset: 2px;
+}
+
+.ae-student-desktop-logout:disabled { opacity: 0.65; cursor: wait; }
+.ae-student-desktop-logout svg { width: 17px; height: 17px; stroke-width: 2.6; }
+
 .ae-student-account-chip {
   display: inline-flex;
   align-items: center;

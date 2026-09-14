@@ -77,6 +77,19 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
     });
 
+    it("keeps a direct desktop logout action while mobile logout remains in 更多", async () => {
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+
+        const logoutButtons = screen.getAllByRole("button", { name: "登出" });
+        expect(logoutButtons).toHaveLength(1);
+        expect(logoutButtons[0]).toHaveClass("ae-student-desktop-logout");
+
+        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        const expandedLogoutButtons = await screen.findAllByRole("button", { name: "登出" });
+        expect(expandedLogoutButtons).toHaveLength(2);
+        expect(expandedLogoutButtons[1]).toHaveClass("ae-student-drawer-logout");
+    });
+
     it("keeps the materials entry available while the accessible catalog is loading", async () => {
         let resolveCatalog;
         getAccessibleCatalog.mockImplementationOnce(() => new Promise(resolve => {
