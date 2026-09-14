@@ -432,6 +432,7 @@ test("22. A–Z 使用 server-only 單一女聲主音檔與 26 個時間區段�
     assert.match(challenge, /alphabet_audio: alphabetAudio/);
     assert.match(challenge, /alphabetCandidateSequenceAllowed/);
     assert.match(challenge, /createR2PresignedUrl\(sequence\.private_object_key, "GET", 15 \* 60\)/);
+    assert.match(challenge, /select\("question_set_version,source_fingerprint,status,duration_ms,private_object_key,byte_size,segments"\)/);
     assert.match(challengeView, /interactionType === "alphabet_round"/);
     assert.doesNotMatch(challenge, /private_object_key: sequence\.private_object_key/);
     assert.match(adminPage, /產生／載入新版 A–Z 女聲候選音檔/);

@@ -248,7 +248,10 @@ Deno.serve(async (req: Request) => {
             const orderedQuestions = [...(questionSet.speaking_questions || [])]
                 .sort((left: any, right: any) => Number(left.sort_order) - Number(right.sort_order));
             const { data: sequence, error: sequenceError } = await admin.from("speaking_question_set_audio_sequences")
-                .select("question_set_version,source_fingerprint,status,duration_ms,segments")
+                // alphabetAudioSequenceValid verifies the private object and payload size too.
+                // Keep this projection aligned with that validation; omitting either field
+                // made a ready A–Z master sequence appear unavailable when a student started it.
+                .select("question_set_version,source_fingerprint,status,duration_ms,private_object_key,byte_size,segments")
                 .eq("question_set_id", Number(questionSet.id)).eq("purpose", "alphabet_master").maybeSingle();
             if (sequenceError) throw sequenceError;
             const sequenceReady = sequence?.status === "ready"
