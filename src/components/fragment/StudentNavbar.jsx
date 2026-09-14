@@ -217,7 +217,7 @@ const StudentNavbar = ({
                     </div>
                     <div className="ae-student-mobile-account">
                         <Link to="/student/notifications" aria-label={unreadCount > 0 ? `查看通知，目前有 ${unreadCount} 則未讀` : "查看通知"}><FiBell />{unreadCount > 0 && <b>{unreadCount > 99 ? "99+" : unreadCount}</b>}</Link>
-                        <button type="button" onClick={() => openDrawer("more")} aria-label="開啟帳號與更多選單"><span>{profile?.name?.slice(0, 1) || "A"}</span></button>
+                        <Link to="/student/settings" aria-label="前往我的資料與頭像設定"><span>{profile?.name?.slice(0, 1) || "A"}</span></Link>
                     </div>
                 </Container>
             </Navbar>

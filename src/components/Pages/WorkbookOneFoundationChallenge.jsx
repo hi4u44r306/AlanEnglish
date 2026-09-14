@@ -38,7 +38,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const [automaticRecorderStatus, setAutomaticRecorderStatus] = useState("preparing");
     const audioRef = useRef(null);
     const phaseFocusRef = useRef(null);
-    const lessonHeaderRef = useRef(null);
     const startPendingRef = useRef(false);
     const startRequestRef = useRef(0);
     const segmentTimerRef = useRef(null);
@@ -104,25 +103,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         startPendingRef.current = false;
     }, [alphabetMode, challenge?.alphabet_audio?.intro_listen_completed, challenge?.id, stopAudio]);
 
-    useEffect(() => {
-        if (!alphabetMode) return undefined;
-        const syncCompactHeader = () => {
-            const headerTop = lessonHeaderRef.current?.getBoundingClientRect?.().top;
-            const isMobile = window.matchMedia?.("(max-width: 760px)").matches;
-            document.body.classList.toggle(
-                "speaking-challenge-compact-header",
-                Boolean(isMobile && Number.isFinite(headerTop) && headerTop <= 72)
-            );
-        };
-        syncCompactHeader();
-        window.addEventListener("scroll", syncCompactHeader, { passive: true });
-        window.addEventListener("resize", syncCompactHeader);
-        return () => {
-            window.removeEventListener("scroll", syncCompactHeader);
-            window.removeEventListener("resize", syncCompactHeader);
-            document.body.classList.remove("speaking-challenge-compact-header");
-        };
-    }, [alphabetMode, phase]);
     const playAlphabetAudio = useCallback(({ segment = null, startIndex = 0, onEnded, markIntro = false } = {}) => {
         stopAudio();
         const operationId = audioOperationRef.current;
@@ -364,7 +344,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 : introComplete ? "已聽完，可以直接開始挑戰" : "先聽完 A–Z，就能開始挑戰")
             : (challengeActive ? copy.prompt : copy.instruction);
         const progress = Math.round((activeIndex / Math.max(round.length, 1)) * 100);
-        return <header ref={lessonHeaderRef} className={`speaking-lesson-header${alphabetMode ? " speaking-lesson-header--alphabet" : ""}`}>
+        return <header className={`speaking-lesson-header${alphabetMode ? " speaking-lesson-header--alphabet" : ""}`}>
             <button className="speaking-back" type="button" onClick={challengeActive ? requestExit : onExit} disabled={challengeActive && alphabetMode && automaticRecorderStatus === "submitting"}>
                 <FiChevronLeft />{challengeActive && alphabetMode && automaticRecorderStatus === "submitting" ? "評分中…" : challengeActive ? "回到列表" : "全部大挑戰"}
             </button>

@@ -20,6 +20,12 @@ jest.mock("react-bootstrap/Offcanvas", () => {
     return { __esModule: true, default: Offcanvas };
 });
 
+const openStudentMore = () => {
+    const moreButton = screen.getAllByRole("button", { name: "更多" })
+        .find(button => button.closest(".ae-student-bottom-nav"));
+    fireEvent.click(moreButton);
+};
+
 describe("MainNavbar student navigation", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -60,7 +66,8 @@ describe("MainNavbar student navigation", () => {
         expect(bottomNavigation).toBeInTheDocument();
         expect(bottomNavigation.parentElement).toBe(document.body);
 
-        fireEvent.click(screen.getByRole("button", { name: "開啟帳號與更多選單" }));
+        expect(screen.getByRole("link", { name: "前往我的資料與頭像設定" })).toHaveAttribute("href", "/student/settings");
+        openStudentMore();
 
         expect(await screen.findByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
@@ -137,7 +144,7 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        fireEvent.click(screen.getByRole("button", { name: "開啟帳號與更多選單" }));
+        openStudentMore();
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
     });
 
@@ -155,7 +162,7 @@ describe("MainNavbar student navigation", () => {
         });
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getByRole("button", { name: "開啟帳號與更多選單" }));
+        openStudentMore();
 
         expect(await screen.findByText("學習功能")).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
@@ -186,7 +193,7 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getAllByRole("button", { name: "開口說" })[0]);
         expect(screen.getByRole("link", { name: /發音教練/ })).toHaveAttribute("href", "/student/pronunciation");
         expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
-        fireEvent.click(screen.getByRole("button", { name: "開啟帳號與更多選單" }));
+        openStudentMore();
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
     });
 
@@ -240,7 +247,7 @@ describe("MainNavbar student navigation", () => {
 
     it("highlights the active student route in the full menu", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getByRole("button", { name: "開啟帳號與更多選單" }));
+        openStudentMore();
         expect(screen.getAllByRole("link", { name: "會員與功能" }).every(link => link.classList.contains("active"))).toBe(true);
         expect(screen.getAllByRole("link", { name: /首頁/ }).every(link => !link.classList.contains("active"))).toBe(true);
     });

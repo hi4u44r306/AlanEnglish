@@ -109,6 +109,9 @@
 .speaking-focus-card .speaking-visual-aid figcaption { padding: 7px 10px; background: #f7faff; color: #536886; font-size: 12px; font-weight: 800; }
 
 .speaking-challenge-detail { padding-top: 96px; }
+body.speaking-challenge-detail-active .app-header { display: none; }
+body.speaking-challenge-detail-active .app-shell { padding-top: 0; }
+body.speaking-challenge-detail-active .speaking-challenge-detail { padding-top: 24px; }
 
 .speaking-lesson-header {
   display: grid;
@@ -499,12 +502,6 @@
 @media (max-width: 760px) {
   body.speaking-challenge-detail-active .app-content { padding-bottom: 0; }
   body.speaking-challenge-detail-active { overscroll-behavior-y: none; }
-  body.speaking-challenge-detail-active .app-header { transition: transform .18s ease, box-shadow .18s ease; }
-  body.speaking-challenge-compact-header .app-header {
-    transform: translateY(calc(-100% - 2px));
-    box-shadow: none;
-    pointer-events: none;
-  }
   .speaking-challenge-page { padding: 80px 14px calc(72px + env(safe-area-inset-bottom)); }
   .speaking-challenge-page.speaking-challenge-detail {
     display: block;
@@ -660,6 +657,7 @@
   .app-content.has-player .speaking-question-navigation {
     bottom: calc(var(--app-player-space, 110px) + 8px);
   }
+  body.speaking-challenge-detail-active .speaking-lesson-header { top: max(4px, env(safe-area-inset-top)); }
   body:has(.ae-student-bottom-nav) .speaking-question-navigation {
     bottom: calc(74px + max(8px, env(safe-area-inset-bottom, 0px)));
   }
@@ -878,7 +876,7 @@
     grid-template-columns: 44px minmax(0, 1fr) auto;
     min-height: 58px;
   }
-  body.speaking-challenge-compact-header .speaking-foundation-page .speaking-lesson-header--alphabet {
+  body.speaking-challenge-detail-active .speaking-foundation-page .speaking-lesson-header--alphabet {
     top: max(4px, env(safe-area-inset-top));
   }
   .speaking-foundation-page .speaking-lesson-header--alphabet .speaking-lesson-heading > p {
