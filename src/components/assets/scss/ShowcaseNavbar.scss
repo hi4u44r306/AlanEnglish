@@ -197,6 +197,7 @@
 
   .showcase-navbar-container {
     width: min(100% - 28px, 1180px);
+    flex-wrap: nowrap;
   }
 
   .showcase-navbar-brand {
@@ -244,6 +245,36 @@
     &:focus-visible {
       outline: 3px solid rgba(49, 91, 200, 0.28);
       outline-offset: 2px;
+    }
+  }
+
+  @media (max-width: 470px) {
+    .showcase-navbar-brand {
+      margin-right: 8px !important;
+    }
+
+    .showcase-navbar-brand .brand {
+      font-size: 22px;
+      letter-spacing: 1px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .showcase-navbar-compact-actions {
+      gap: 6px;
+    }
+
+    .showcase-navbar-quick-login {
+      gap: 4px;
+      padding-right: 10px;
+      padding-left: 10px;
+    }
+  }
+
+  @media (max-width: 340px) {
+    .showcase-navbar-brand .brand {
+      font-size: 18px;
+      letter-spacing: 0.5px;
     }
   }
 
