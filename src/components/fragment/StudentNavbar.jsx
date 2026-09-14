@@ -209,15 +209,13 @@ const StudentNavbar = ({
                     </Nav>
                     <div className="ae-student-desktop-account">
                         {notificationMenu}
-                        <NavDropdown id="student-account" title={<span className="ae-student-account-chip"><span>{profile?.name?.slice(0, 1) || "A"}</span><strong>{profile?.name || "同學"}</strong></span>} align="end">
-                            <NavDropdown.Item as={Link} to="/student/settings" className="ae-dropdown-item"><FiSettings />我的設定</NavDropdown.Item>
-                            <NavDropdown.Item as={Link} to="/account/security" className="ae-dropdown-item"><FiLock />帳號與密碼</NavDropdown.Item>
-                            <NavDropdown.Item as="button" onClick={onLogout} disabled={loggingOut} className="ae-dropdown-item"><FiLogOut />{loggingOut ? "登出中..." : "登出"}</NavDropdown.Item>
-                        </NavDropdown>
+                        <Link to="/student/settings" className="ae-student-account-link" aria-label="前往我的設定">
+                            <span className="ae-student-account-chip"><span>{profile?.name?.slice(0, 1) || "A"}</span><strong>{profile?.name || "同學"}</strong></span>
+                        </Link>
                     </div>
                     <div className="ae-student-mobile-account">
                         <Link to="/student/notifications" aria-label={unreadCount > 0 ? `查看通知，目前有 ${unreadCount} 則未讀` : "查看通知"}><FiBell />{unreadCount > 0 && <b>{unreadCount > 99 ? "99+" : unreadCount}</b>}</Link>
-                        <button type="button" onClick={() => openDrawer("more")} aria-label="開啟帳號與更多選單"><span>{profile?.name?.slice(0, 1) || "A"}</span></button>
+                        <Link to="/student/settings" className="ae-student-avatar-link" aria-label="前往我的設定"><span>{profile?.name?.slice(0, 1) || "A"}</span></Link>
                     </div>
                 </Container>
             </Navbar>

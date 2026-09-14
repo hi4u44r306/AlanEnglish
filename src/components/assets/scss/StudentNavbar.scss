@@ -52,7 +52,7 @@
 
 .ae-student-desktop-nav > .nav-link:focus-visible,
 .ae-student-desktop-nav > .dropdown > .nav-link:focus-visible,
-.ae-student-desktop-account > .dropdown > .nav-link:focus-visible,
+.ae-student-desktop-account > .ae-student-account-link:focus-visible,
 .ae-student-mobile-account > a:focus-visible,
 .ae-student-mobile-account > button:focus-visible,
 .ae-student-bottom-nav > a:focus-visible,
@@ -257,13 +257,19 @@
   gap: 6px;
 }
 
-.ae-student-desktop-account > .dropdown > .nav-link {
+.ae-student-desktop-account > .ae-student-account-link {
   min-height: 48px;
   display: flex;
   align-items: center;
   padding: 5px 9px !important;
   border-radius: 16px;
   color: #243553 !important;
+  text-decoration: none;
+}
+
+.ae-student-desktop-account > .ae-student-account-link:hover {
+  background: #edf4ff;
+  color: #2355c7 !important;
 }
 
 .ae-student-account-chip {
@@ -417,7 +423,7 @@
     text-decoration: none;
   }
 
-  .ae-student-mobile-account > button > span {
+  .ae-student-mobile-account > .ae-student-avatar-link > span {
     width: 32px;
     height: 32px;
     display: grid;
