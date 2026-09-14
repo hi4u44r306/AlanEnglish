@@ -5,15 +5,45 @@ type ChallengeSet = {
     speaking_questions?: Array<{ id: number }> | null;
 };
 
+const TOPIC_TEMPLATE_KEYS = new Set([
+    "workbook_1_greetings_polite_v1",
+    "workbook_1_colors_objects_v1",
+    "workbook_1_numbers_math_v1"
+]);
+
+export type SpeakingChallengeCatalogSection = "preparation" | "textbook" | "topic";
+
+export const speakingChallengeCatalogSection = (set: ChallengeSet): SpeakingChallengeCatalogSection => {
+    const metadata = set?.generation_metadata || {};
+    if (metadata.interaction_type === "alphabet_round") return "preparation";
+    if (TOPIC_TEMPLATE_KEYS.has(String(metadata.template_key || ""))) return "topic";
+    return "textbook";
+};
+
+export const speakingChallengeSourcePages = (set: ChallengeSet): number[] => {
+    const pages = Array.isArray(set?.generation_metadata?.source_pages)
+        ? set.generation_metadata.source_pages
+        : [];
+    return [...new Set(pages
+        .map(page => Number(page))
+        .filter(page => Number.isInteger(page) && page > 0))]
+        .sort((left, right) => left - right);
+};
+
 const explicitOrder = (set: ChallengeSet) => Number(set?.generation_metadata?.challenge_order);
 
 export const speakingChallengeSequenceOrder = (set: ChallengeSet): number => {
+    const section = speakingChallengeCatalogSection(set);
+    const sectionOffset = section === "preparation" ? 0 : section === "textbook" ? 10000 : 20000;
     const configured = explicitOrder(set);
-    if (Number.isInteger(configured) && configured >= 0) return configured;
+    if (Number.isInteger(configured) && configured >= 0) return sectionOffset + configured;
+
+    const firstSourcePage = speakingChallengeSourcePages(set)[0];
+    if (section !== "preparation" && firstSourcePage) return sectionOffset + firstSourcePage;
 
     const fromTitle = String(set?.title || "").match(/^\s*(?:P\s*)?(\d{1,4})\b/i);
-    if (fromTitle) return Number(fromTitle[1]);
-    return 100000 + Number(set?.id || 0);
+    if (fromTitle) return sectionOffset + Number(fromTitle[1]);
+    return sectionOffset + 5000 + Number(set?.id || 0);
 };
 
 export const sortSpeakingChallengeSets = <T extends ChallengeSet>(sets: T[]): T[] => (
@@ -30,10 +60,27 @@ export const speakingChallengeIsComplete = (set: ChallengeSet, completedQuestion
 
 export const speakingChallengeUnlockState = <T extends ChallengeSet>(sets: T[], completedQuestionIds: Set<number>) => {
     const ordered = sortSpeakingChallengeSets(sets);
-    return ordered.map((set, index) => ({
-        id: Number(set.id),
-        sequence_order: speakingChallengeSequenceOrder(set),
-        is_completed: speakingChallengeIsComplete(set, completedQuestionIds),
-        is_unlocked: index === 0 || speakingChallengeIsComplete(ordered[index - 1], completedQuestionIds)
-    }));
+    const preparation = ordered.filter(set => speakingChallengeCatalogSection(set) === "preparation");
+    const textbook = ordered.filter(set => speakingChallengeCatalogSection(set) === "textbook");
+    const preparationComplete = preparation.every(set => speakingChallengeIsComplete(set, completedQuestionIds));
+
+    return ordered.map(set => {
+        const section = speakingChallengeCatalogSection(set);
+        const sectionSets = section === "preparation" ? preparation : textbook;
+        const sectionIndex = sectionSets.indexOf(set);
+        const previousComplete = sectionIndex <= 0 || speakingChallengeIsComplete(sectionSets[sectionIndex - 1], completedQuestionIds);
+        const isUnlocked = section === "preparation"
+            ? previousComplete
+            : section === "topic"
+                ? preparationComplete
+                : preparationComplete && previousComplete;
+        return {
+            id: Number(set.id),
+            catalog_section: section,
+            source_pages: speakingChallengeSourcePages(set),
+            sequence_order: speakingChallengeSequenceOrder(set),
+            is_completed: speakingChallengeIsComplete(set, completedQuestionIds),
+            is_unlocked: isUnlocked
+        };
+    });
 };

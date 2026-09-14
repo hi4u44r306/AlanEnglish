@@ -123,6 +123,8 @@ Deno.serve(async (req: Request) => {
                 version: set.version, generation_metadata: set.generation_metadata || {},
                 question_count: (set.speaking_questions || []).length,
                 completed_count: (set.speaking_questions || []).filter((question: any) => completed.has(Number(question.id))).length,
+                catalog_section: String(stateBySet.get(Number(set.id))?.catalog_section || "textbook"),
+                source_pages: stateBySet.get(Number(set.id))?.source_pages || [],
                 sequence_order: Number(stateBySet.get(Number(set.id))?.sequence_order || 0),
                 is_completed: demoMode ? false : Boolean(stateBySet.get(Number(set.id))?.is_completed),
                 is_unlocked: demoMode || Boolean(stateBySet.get(Number(set.id))?.is_unlocked)

@@ -215,6 +215,28 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
     });
 
+    it("學生依入門、課本與主題分區，名稱旁顯示精確配合頁碼", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [
+                { id: 7, title: "00 A–Z 大小寫挑戰", topic: "字母", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { interaction_type: "alphabet_round" }, source_pages: [], question_count: 26, completed_count: 26, sequence_order: 0, is_unlocked: true, is_completed: true },
+                { id: 10, title: "P14 看字拼讀", topic: "拼讀", difficulty: "E1", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [14], question_count: 10, completed_count: 0, sequence_order: 10014, is_unlocked: true },
+                { id: 1, title: "01 我的名字與自我介紹", topic: "名字", difficulty: "E1", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [18, 19, 20], question_count: 4, completed_count: 0, sequence_order: 10018, is_unlocked: false },
+                { id: 3, title: "02 打招呼與禮貌對話", topic: "問候", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { template_key: "workbook_1_greetings_polite_v1" }, source_pages: [35, 36, 60, 99, 100], question_count: 8, completed_count: 0, sequence_order: 20035, is_unlocked: true }
+            ]
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByRole("heading", { name: "入門準備" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "課本練習" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "主題練習" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("配合第 14 頁");
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("配合第 18～20 頁");
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("配合第 35～36、60、99～100 頁");
+        expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
+        expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
+    });
+
     it("以真正的台灣國旗呈現台灣視覺提示", () => {
         const { container } = render(<SpeakingVisualAid aid={{ kind: "flag", value: "taiwan", alt_zh: "台灣國旗" }} />);
         expect(screen.getByRole("figure", { name: "台灣國旗" })).toBeInTheDocument();
