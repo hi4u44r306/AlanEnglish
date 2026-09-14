@@ -2,9 +2,9 @@
 
 最後更新：2026-09-14
 
-本次進行中（2026-09-14，整合驗證中，尚未重新部署）：
+本次進行中（2026-09-14，固定測試站已部署，待登入學生驗收）：
 
-- 為避免後續學生導覽部署覆蓋 Workbook 1 口說前端，已從目前 `main` 建立 `integration/workbook1-speaking-recovery`，並整合 `codex/workbook1-speaking-challenges` 的完整前端與測試歷史。衝突只在學生 Navbar 與文件：保留已正式發布的排行榜起點、教材載入穩定化與頂部頭像直達我的設定，同時保留口說詳細關卡隱藏頂端 Logo Header 的專注模式。共用 Supabase 已登記的 additive migrations 與 ACTIVE Speaking Edge Functions 不會重跑或先行部署；P21／P22 仍保持未發布。
+- 為避免後續學生導覽部署覆蓋 Workbook 1 口說前端，已從目前 `main` 建立 `integration/workbook1-speaking-recovery`，並整合 `codex/workbook1-speaking-challenges` 的完整前端與測試歷史。衝突只在學生 Navbar 與文件：保留已正式發布的排行榜起點、教材載入穩定化與頂部頭像直達我的設定，同時保留口說詳細關卡隱藏頂端 Logo Header 的專注模式。固定測試站 deploy `6aa7d7d6395dbb8889ddfc18` 已 ready，首頁與口說大挑戰路由 HTTP 200；共用 Supabase 已登記的 additive migrations 與 ACTIVE Speaking Edge Functions 不會重跑或先行部署；P21／P22 仍保持未發布。
 
 本次正式發布（2026-09-14）：
 
