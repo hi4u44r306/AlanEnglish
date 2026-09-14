@@ -770,9 +770,9 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
-## 本次完成（2026-09-14，學生口說固定順序闖關，尚未部署）
+## 本次完成（2026-09-14，學生口說固定順序闖關，已部署）
 
-- 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。口說列表與詳細頁統一收起 Logo Header，縮小頂部留白。功能 commit `c29c1e0` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已建立；相關 React 26/26、progression contract 3/3、Edge Function syntax、Production build 與 `git diff --check` 均成功。本批不含 migration、Function 或 Netlify 部署。
+- 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。口說列表與詳細頁統一收起 Logo Header，縮小頂部留白。功能 commit `c29c1e0` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已建立；相關 React 26/26、progression contract 3/3、Edge Function syntax、Production build 與 `git diff --check` 均成功。共用 Supabase `speaking-challenge` 已部署；固定測試站 deploy `6aa81226e2f567741cf7d90b` 與正式站 deploy `6aa812ad97870b0095c94db8` 已就緒，首頁與 `/student/speaking-challenges` 都回應 HTTP 200，Function CORS preflight 回應 200。本批沒有 migration。
 
 ## 歷史進行中（2026-09-14，Navbar 角色入口稽核完成，尚未部署）
 
