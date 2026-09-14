@@ -20,7 +20,9 @@ const LETTER_ALIASES: Record<string, string> = {
     l: "L", el: "L", ell: "L",
     m: "M", em: "M",
     n: "N", en: "N",
-    o: "O", oh: "O",
+    // Speech recognition can render the letter name "O" as a numeral or word.
+    // These aliases apply only to the controlled letter-answer modes below.
+    o: "O", oh: "O", zero: "O", "0": "O",
     p: "P", pea: "P", pee: "P",
     q: "Q", cue: "Q", queue: "Q",
     r: "R", are: "R",
@@ -46,7 +48,7 @@ export const usesUnscriptedFoundationAssessment = (interactionType: unknown) => 
 const normalizedTokens = (value: unknown) => String(value || "")
     .toLowerCase()
     .replace(/[’]/g, "'")
-    .replace(/[^a-z\s]+/g, " ")
+    .replace(/[^a-z0\s]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .split(" ")

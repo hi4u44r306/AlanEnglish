@@ -28,10 +28,14 @@ assert.deepEqual(spokenLetterSequence("A, P, P, L, E"), ["A", "P", "P", "L", "E"
 assert.deepEqual(spokenLetterSequence("ay pee pee ell e"), ["A", "P", "P", "L", "E"]);
 assert.deepEqual(spokenLetterSequence("A double P L E"), ["A", "P", "P", "L", "E"]);
 assert.deepEqual(spokenLetterSequence("double u"), ["W"]);
+assert.deepEqual(spokenLetterSequence("0"), ["O"]);
+assert.deepEqual(spokenLetterSequence("zero"), ["O"]);
 assert.equal(spokenLetterSequence("apple"), null);
 
 assert.equal(matchesFoundationAnswer("alphabet_round", "B", "bee"), true);
 assert.equal(matchesFoundationAnswer("alphabet_round", "C", "sea"), true);
+assert.equal(matchesFoundationAnswer("alphabet_round", "O", "0"), true);
+assert.equal(matchesFoundationAnswer("alphabet_round", "O", "zero"), true);
 assert.equal(matchesFoundationAnswer("alphabet_round", "B", "D"), false);
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P P L E"), true);
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P L E"), false);
