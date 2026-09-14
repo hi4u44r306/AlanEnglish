@@ -210,6 +210,23 @@ const cleanArray = (value: unknown, maxItems: number, maxLength: number) => Arra
     (Array.isArray(value) ? value : []).map(item => cleanText(item, maxLength)).filter(Boolean)
 )).slice(0, maxItems);
 
+const VISUAL_AID_KINDS = new Set(["flag", "color-object", "clock", "routine"]);
+const VISUAL_AID_VALUES: Record<string, Set<string>> = {
+    flag: new Set(["taiwan", "japan", "france", "england", "australia"]),
+    "color-object": new Set(["banana", "sky", "eggplant", "orange", "apple", "rainbow"]),
+    clock: new Set(["7"]),
+    routine: new Set(["breakfast-seven", "homework-before-nine", "brush-bedtime"])
+};
+
+const normalizeVisualAid = (value: unknown) => {
+    const kind = cleanText((value as any)?.kind, 40);
+    const visualValue = cleanText((value as any)?.value, 80);
+    const altZh = cleanText((value as any)?.alt_zh, 160);
+    if (!kind && !visualValue && !altZh) return {};
+    if (!VISUAL_AID_KINDS.has(kind) || !VISUAL_AID_VALUES[kind]?.has(visualValue) || !altZh) return {};
+    return { kind, value: visualValue, alt_zh: altZh };
+};
+
 const normalizeQuestions = (value: unknown, expectedCount: number) => {
     const rows = Array.isArray(value) ? value : [];
     const questions = rows.map((row: any) => ({
@@ -220,7 +237,8 @@ const normalizeQuestions = (value: unknown, expectedCount: number) => {
         model_answer: cleanText(row?.model_answer, 2000),
         follow_up_question: cleanText(row?.follow_up_question, 800) || null,
         pronunciation_notes_zh: cleanText(row?.pronunciation_notes_zh, 1200) || null,
-        accepted_intents: cleanArray(row?.accepted_intents, 8, 300)
+        accepted_intents: cleanArray(row?.accepted_intents, 8, 300),
+        visual_aid: normalizeVisualAid(row?.visual_aid)
     })).filter(row => (
         row.question_text
         && row.hint_zh
@@ -243,7 +261,7 @@ const loadBootstrap = async (admin: any) => {
         admin.from("speaking_source_documents").select("id,book_id,title,source_kind,original_filename,mime_type,byte_size,page_count,chunk_page_size,chunk_count,original_upload_status,status,ocr_status,ocr_error_code,ocr_model,created_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
         admin.from("speaking_source_chunks").select("id,document_id,source_section_id,chunk_index,page_from,page_to,byte_size,status,attempt_count,error_code,ocr_model,input_tokens,output_tokens,total_tokens,upload_verified_at,processing_started_at,completed_at,updated_at").order("chunk_index"),
         admin.from("speaking_source_sections").select("id,document_id,unit_label,page_from_label,page_to_label,topic,source_text,language_level,status,version,reviewed_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
-        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,published_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,sort_order)").neq("status", "archived").order("updated_at", { ascending: false })
+        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,published_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order)").neq("status", "archived").order("updated_at", { ascending: false })
     ]);
     const error = bookRes.error || documentRes.error || chunkRes.error || sectionRes.error || setRes.error;
     if (error) throw error;
