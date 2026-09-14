@@ -14,7 +14,6 @@ import {
     FiCreditCard,
     FiGift,
     FiHelpCircle,
-    FiHome,
     FiLock,
     FiLogOut,
     FiMic,
@@ -69,7 +68,6 @@ const StudentNavbar = ({
         "/student/review",
         "/student/weekly-report",
         "/student/level",
-        "/student/leaderboard",
         "/student/rewards",
         "/student/ai-generator",
         "/student/membership",
@@ -143,7 +141,6 @@ const StudentNavbar = ({
                 {hasReviewAccess && <Link to="/student/review" onClick={closeDrawer} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</Link>}
                 {hasActiveLearningAccess && <Link to="/student/weekly-report" onClick={closeDrawer} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</Link>}
                 {hasActiveLearningAccess && <Link to="/student/level" onClick={closeDrawer} className={isPathActive("/student/level") ? "active" : ""}><FiAward />等級晉級</Link>}
-                {hasActiveLearningAccess && <Link to="/student/leaderboard" onClick={closeDrawer} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp />學習排行榜</Link>}
                 {hasRewardsAccess && <Link to="/student/rewards" onClick={closeDrawer} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</Link>}
                 {hasAiAccess && <Link to="/student/ai-generator" onClick={closeDrawer} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</Link>}
             </section>
@@ -180,7 +177,7 @@ const StudentNavbar = ({
 
     const bottomNavigation = (
         <nav className="ae-student-bottom-nav" aria-label="學生主要導覽">
-            <Link to="/student/dashboard" className={isPathActive("/student/dashboard") ? "active" : ""}><FiHome /><span>首頁</span></Link>
+            <Link to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>排行榜</span></Link>
             {shouldShowMaterials && <button type="button" onClick={() => openDrawer("materials")} className={isPathActive("/student/books") ? "active" : ""}><FiBookOpen /><span>教材</span></button>}
             {hasPronunciationAccess && <button type="button" onClick={() => openDrawer("speaking")} className={speakingActive ? "active" : ""}><FiMic /><span>開口說</span></button>}
             <button type="button" onClick={() => openDrawer("more")} className={moreActive ? "active" : ""}><FiMoreHorizontal /><span>更多</span></button>
@@ -191,9 +188,9 @@ const StudentNavbar = ({
         <>
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
-                    <Navbar.Brand as={Link} to="/student/dashboard" className="ae-brand" aria-label="Alan English 學生首頁"><Brand /></Navbar.Brand>
+                    <Navbar.Brand as={Link} to="/student/leaderboard" className="ae-brand" aria-label="Alan English 學習排行榜"><Brand /></Navbar.Brand>
                     <Nav className="ae-student-desktop-nav">
-                        <Nav.Link as={Link} to="/student/dashboard" className={isPathActive("/student/dashboard") ? "active" : ""}><span><FiHome />首頁</span></Nav.Link>
+                        <Nav.Link as={Link} to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><span><FiTrendingUp />排行榜</span></Nav.Link>
                         {shouldShowMaterials && (
                             <NavDropdown id="student-materials" title={<span><FiBookOpen />我的教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} className={isPathActive("/student/books") ? "active" : ""}>
                                 <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>

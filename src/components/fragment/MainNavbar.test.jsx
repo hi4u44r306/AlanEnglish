@@ -47,7 +47,9 @@ describe("MainNavbar student navigation", () => {
     it("keeps only the child-friendly primary destinations in the student navbar", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        expect(screen.getAllByRole("link", { name: /首頁/ }).length).toBeGreaterThan(0);
+        const leaderboardLinks = screen.getAllByRole("link", { name: "排行榜" });
+        expect(leaderboardLinks).toHaveLength(2);
+        leaderboardLinks.forEach(link => expect(link).toHaveAttribute("href", "/student/leaderboard"));
         expect(screen.queryByRole("link", { name: "方案與功能" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "英文對話" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "口說大挑戰" })).not.toBeInTheDocument();
@@ -65,7 +67,7 @@ describe("MainNavbar student navigation", () => {
         expect(await screen.findByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "學習排行榜" })).toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "我的設定" })).toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
@@ -268,6 +270,6 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "開啟帳號與更多選單" }));
         expect(screen.getAllByRole("link", { name: "會員與功能" }).every(link => link.classList.contains("active"))).toBe(true);
-        expect(screen.getAllByRole("link", { name: /首頁/ }).every(link => !link.classList.contains("active"))).toBe(true);
+        expect(screen.getAllByRole("link", { name: "排行榜" }).every(link => !link.classList.contains("active"))).toBe(true);
     });
 });

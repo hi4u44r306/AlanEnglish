@@ -5,7 +5,7 @@ import { useAuth } from "./AuthContext";
 const getRoleHome = (role) => {
     if (role === "admin") return "/admin/dashboard";
     if (role === "teacher") return "/teacher/dashboard";
-    return "/student/dashboard";
+    return "/student/leaderboard";
 };
 
 const RoleHomeRedirect = () => {
