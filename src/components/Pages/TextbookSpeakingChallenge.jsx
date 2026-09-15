@@ -135,9 +135,16 @@ export default function TextbookSpeakingChallenge() {
     }, []);
 
     useEffect(() => {
+        // 只有實際進入小關卡時才啟用手機的專注模式。教材總覽與
+        // Workbook 關卡列表仍須保留 Navbar，避免學生失去導覽入口。
+        if (!questionSetId) {
+            document.body.classList.remove("speaking-challenge-active");
+            return undefined;
+        }
+
         document.body.classList.add("speaking-challenge-active");
         return () => document.body.classList.remove("speaking-challenge-active");
-    }, []);
+    }, [questionSetId]);
     useEffect(() => {
         if (questionSetId && activeQuestion?.id && !["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence"].includes(interactionType)) {
             questionHeadingRef.current?.focus({ preventScroll: true });
