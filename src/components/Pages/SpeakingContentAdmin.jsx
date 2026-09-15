@@ -598,7 +598,7 @@ export default function SpeakingContentAdmin() {
                         <div className="speaking-set__heading"><div><span>第 {questionSet.version} 版 · {questionSet.status === "published" ? "已發布" : "草稿"}</span><h4>{questionSet.title}</h4></div>{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布與產生語音中…" : "核准、發布並產生語音"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生逐字發音" : "補產生示範語音"}</button>}</div>
                         <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />
                         {isPictureSet
-                            ? <div className="speaking-ocr-review__notice"><strong>P21／P22 題目已鎖定同步編輯</strong><span>圖片、顯示句型與後端完整答案是一組資料；如需修正，請先不要發布，交由專用修正流程處理。</span></div>
+                            ? <div className="speaking-ocr-review__notice"><strong>P21～P24 題目已鎖定同步編輯</strong><span>圖片、顯示句型與後端完整答案是一組資料；如需修正，請先不要發布，交由專用修正流程處理。</span></div>
                             : <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>}
                     </section>;
                 })}

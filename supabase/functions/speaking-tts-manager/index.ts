@@ -46,6 +46,22 @@ const SAMPLE_RATE_METADATA = 24000;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 const MAX_ALPHABET_SOURCE_BYTES = 20 * 1024 * 1024;
 const SETTINGS = Object.freeze({ audioEncoding: "LINEAR16", speakingRate: 0.82 });
+const WORKBOOK_ONE_PICTURE_GAP_TEMPLATES = new Map([
+    ["workbook_1_p22_picture_gap_v1", 22],
+    ["workbook_1_p23_picture_gap_v1", 23],
+    ["workbook_1_p24_picture_gap_v1", 24]
+]);
+const workbookOnePictureGapDraftPage = (questionSet: any) => {
+    const metadata = questionSet?.generation_metadata || {};
+    const expectedPage = WORKBOOK_ONE_PICTURE_GAP_TEMPLATES.get(String(metadata.template_key || ""));
+    return questionSet?.status === "draft"
+        && metadata.source === "manual_picture_manifest"
+        && metadata.interaction_type === "picture_gap_sentence"
+        && Array.isArray(metadata.source_pages)
+        && metadata.source_pages.length === 1
+        && Number(metadata.source_pages[0]) === expectedPage
+        ? `P${expectedPage}` : null;
+};
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;
 
@@ -661,10 +677,10 @@ Deno.serve(async (req: Request) => {
         const setStatus = questionSet?.status;
         const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
         const mayPrepareAlphabetDraft = setStatus === "draft" && interactionType === "alphabet_round";
-        const mayPrepareP22Draft = setStatus === "draft" && interactionType === "picture_gap_sentence"
-            && action === "generate_visible_word_audio";
-        if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPrepareP22Draft) {
-            return json(409, { error: "只有已發布題庫、待發布 A–Z，或待發布 P22 可見單字可以產生正式語音" });
+        const pictureGapPage = workbookOnePictureGapDraftPage(questionSet);
+        const mayPreparePictureGapDraft = Boolean(pictureGapPage) && action === "generate_visible_word_audio";
+        if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPreparePictureGapDraft) {
+            return json(409, { error: "只有已發布題庫、待發布 A–Z，或待發布 P22～P24 可見單字可以產生正式語音" });
         }
         if (["prepare_alphabet_audio_candidate", "activate_alphabet_audio_candidate"].includes(action)
             && !alphabetTemplateValid(questionSet, questions)) {
@@ -713,7 +729,7 @@ Deno.serve(async (req: Request) => {
             });
         }
         if (action === "generate_visible_word_audio") {
-            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有 P22 看圖補句可產生逐字發音" });
+            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有看圖補句關卡可產生逐字發音" });
             const questionIds = questions.map((question: any) => Number(question.id));
             const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
                 .select("question_id,interaction_type,prompt_text").in("question_id", questionIds);
@@ -725,7 +741,7 @@ Deno.serve(async (req: Request) => {
                 return visibleSentenceWords(interaction.prompt_text).map(token => ({ question, token }));
             });
             if (!wordTargets.length || wordTargets.length > 160) {
-                return json(409, { error: "P22 可見單字資料不完整或超過安全處理上限" });
+                return json(409, { error: `${pictureGapPage || "看圖補句"} 可見單字資料不完整或超過安全處理上限` });
             }
             const results = [];
             for (const { question, token } of wordTargets) {

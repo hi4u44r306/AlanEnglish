@@ -66,7 +66,7 @@ describe("WorkbookOnePictureContentAdmin", () => {
 
     it("P22 會要求挖空句型並在圖片完成後產生可見單字音檔", async () => {
         render(<WorkbookOnePictureContentAdmin firebaseUser={{ uid: "admin" }} workbookOne={{ id: 1 }} onCreated={jest.fn()} />);
-        fireEvent.change(screen.getByLabelText("活動類型"), { target: { value: "picture_gap_sentence" } });
+        fireEvent.change(screen.getByLabelText("活動類型"), { target: { value: "P22" } });
         const prompts = screen.getAllByLabelText("挖空句型");
         const answers = screen.getAllByLabelText("補好答案的完整句子");
         const alts = screen.getAllByLabelText("圖片替代文字（繁體中文）");
@@ -81,6 +81,42 @@ describe("WorkbookOnePictureContentAdmin", () => {
         fireEvent.click(screen.getByRole("button", { name: "建立 P22 草稿並上傳私人圖片" }));
 
         await waitFor(() => expect(generateSpeakingVisibleWordAudio).toHaveBeenCalledWith({ uid: "admin" }, 21));
+    });
+
+    it("P23 使用自己的來源頁與固定補句類型，不會偽裝成 P22", async () => {
+        render(<WorkbookOnePictureContentAdmin firebaseUser={{ uid: "admin" }} workbookOne={{ id: 1 }} onCreated={jest.fn()} />);
+        fireEvent.change(screen.getByLabelText("活動類型"), { target: { value: "P23" } });
+        expect(screen.getByLabelText("關卡名稱")).toHaveValue("P23 看圖補句");
+        const prompts = screen.getAllByLabelText("挖空句型");
+        const answers = screen.getAllByLabelText("補好答案的完整句子");
+        const alts = screen.getAllByLabelText("圖片替代文字（繁體中文）");
+        const files = screen.getAllByLabelText("經核准圖片");
+        for (let index = 0; index < 3; index += 1) {
+            fireEvent.change(prompts[index], { target: { value: "The ____ is in my closet." } });
+            fireEvent.change(answers[index], { target: { value: "The jacket is in my closet." } });
+            fireEvent.change(alts[index], { target: { value: `P23 教材圖片 ${index + 1}` } });
+            fireEvent.change(files[index], { target: { files: [new File(["image"], `p23-${index + 1}.png`, { type: "image/png" })] } });
+        }
+        fireEvent.click(screen.getByRole("checkbox"));
+        fireEvent.click(screen.getByRole("button", { name: "建立 P23 草稿並上傳私人圖片" }));
+
+        await waitFor(() => expect(createWorkbookOnePictureDraft).toHaveBeenCalledWith(
+            { uid: "admin" },
+            expect.objectContaining({ page_label: "P23", interaction_type: "picture_gap_sentence", confirmed: true })
+        ));
+        await waitFor(() => expect(uploadSpeakingQuestionPicture).toHaveBeenCalledWith(
+            { uid: "admin" }, 101, "P23", "P23 教材圖片 1", expect.any(File)
+        ));
+        expect(generateSpeakingVisibleWordAudio).toHaveBeenCalledWith({ uid: "admin" }, 21);
+    });
+
+    it("切換教材頁時清空前一頁尚未核准的輸入", () => {
+        render(<WorkbookOnePictureContentAdmin firebaseUser={{ uid: "admin" }} workbookOne={{ id: 1 }} />);
+        fireEvent.change(screen.getAllByLabelText("完整問句")[0], { target: { value: "What is that?" } });
+        fireEvent.click(screen.getByRole("checkbox"));
+        fireEvent.change(screen.getByLabelText("活動類型"), { target: { value: "P24" } });
+        expect(screen.getAllByLabelText("挖空句型")[0]).toHaveValue("");
+        expect(screen.getByRole("checkbox")).not.toBeChecked();
     });
 
     it("圖片上傳中途失敗時會回復未發布草稿，避免留下無法重試的半套資料", async () => {

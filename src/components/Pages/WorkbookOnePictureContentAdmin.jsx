@@ -10,6 +10,12 @@ import {
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const PICTURE_PAGE_OPTIONS = [
+    { pageLabel: "P21", interactionType: "picture_qa", title: "看圖問答" },
+    { pageLabel: "P22", interactionType: "picture_gap_sentence", title: "看圖補句" },
+    { pageLabel: "P23", interactionType: "picture_gap_sentence", title: "看圖補句" },
+    { pageLabel: "P24", interactionType: "picture_gap_sentence", title: "看圖補句" }
+];
 let localRowId = 0;
 const makeRow = () => ({
     key: `picture-row-${Date.now()}-${localRowId += 1}`, prompt_text: "", answer_text: "",
@@ -17,13 +23,14 @@ const makeRow = () => ({
 });
 
 export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookOne, onCreated }) {
-    const [interactionType, setInteractionType] = useState("picture_qa");
+    const [pageLabel, setPageLabel] = useState("P21");
     const [title, setTitle] = useState("P21 看圖問答");
     const [topic, setTopic] = useState("P21 看圖問答");
     const [rows, setRows] = useState(() => [makeRow(), makeRow(), makeRow()]);
     const [confirmed, setConfirmed] = useState(false);
     const [working, setWorking] = useState(false);
-    const pageLabel = interactionType === "picture_qa" ? "P21" : "P22";
+    const pageConfig = PICTURE_PAGE_OPTIONS.find(option => option.pageLabel === pageLabel) || PICTURE_PAGE_OPTIONS[0];
+    const interactionType = pageConfig.interactionType;
     const isGap = interactionType === "picture_gap_sentence";
     const invalidImage = useMemo(() => rows.find(row => (
         !row.file || !ALLOWED_IMAGE_TYPES.has(row.file.type) || row.file.size < 1 || row.file.size > MAX_IMAGE_BYTES
@@ -32,12 +39,12 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
     const updateRow = (key, field, value) => setRows(current => current.map(row => (
         row.key === key ? { ...row, [field]: value } : row
     )));
-    const changeType = value => {
-        setInteractionType(value);
-        const nextPage = value === "picture_qa" ? "P21" : "P22";
-        const nextTitle = value === "picture_qa" ? "看圖問答" : "看圖補句";
-        setTitle(`${nextPage} ${nextTitle}`);
-        setTopic(`${nextPage} ${nextTitle}`);
+    const changePage = value => {
+        const next = PICTURE_PAGE_OPTIONS.find(option => option.pageLabel === value) || PICTURE_PAGE_OPTIONS[0];
+        setPageLabel(next.pageLabel);
+        setTitle(`${next.pageLabel} ${next.title}`);
+        setTopic(`${next.pageLabel} ${next.title}`);
+        setRows([makeRow(), makeRow(), makeRow()]);
         setConfirmed(false);
     };
 
@@ -104,12 +111,12 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
     return <section className="platform-card speaking-picture-authoring">
         <div className="platform-section-title"><div>
             <span className="platform-eyebrow">WORKBOOK 1 PICTURE CHALLENGES</span>
-            <h2>P21／P22 人工內容與私人圖片</h2>
+            <h2>P21～P24 人工內容與私人圖片</h2>
             <p>只輸入已對照原頁的文字與圖片。系統不會從空格猜答案，也不會自動發布。</p>
         </div></div>
         <form className="platform-form" onSubmit={submit}>
             <div className="platform-form-grid">
-                <label><span>活動類型</span><select value={interactionType} onChange={event => changeType(event.target.value)} disabled={working}><option value="picture_qa">P21 看圖說完整問答</option><option value="picture_gap_sentence">P22 看圖補完整句</option></select></label>
+                <label><span>活動類型</span><select value={pageLabel} onChange={event => changePage(event.target.value)} disabled={working}>{PICTURE_PAGE_OPTIONS.map(option => <option key={option.pageLabel} value={option.pageLabel}>{option.pageLabel} {option.interactionType === "picture_qa" ? "看圖說完整問答" : "看圖補完整句"}</option>)}</select></label>
                 <label><span>關卡名稱</span><input required value={title} onChange={event => setTitle(event.target.value)} disabled={working} /></label>
                 <label><span>主題</span><input required value={topic} onChange={event => setTopic(event.target.value)} disabled={working} /></label>
             </div>

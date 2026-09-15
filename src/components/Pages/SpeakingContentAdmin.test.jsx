@@ -69,7 +69,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
     it("shows persistent batch progress and a per-batch retry control", async () => {
         render(<SpeakingContentAdmin />);
-        expect(await screen.findByRole("heading", { name: "P21／P22 人工內容與私人圖片" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "P21～P24 人工內容與私人圖片" })).toBeInTheDocument();
         expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
         expect(await screen.findByText("整本教材 · 115 頁")).toBeInTheDocument();
         expect(screen.getByText("P1–P10")).toBeInTheDocument();
@@ -207,7 +207,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
 
-        expect(await screen.findByText("P21／P22 題目已鎖定同步編輯")).toBeInTheDocument();
+        expect(await screen.findByText("P21～P24 題目已鎖定同步編輯")).toBeInTheDocument();
         expect(screen.queryByLabelText("AI 要問學生的問題")).not.toBeInTheDocument();
         expect(getSpeakingQuestionPicturePreview).not.toHaveBeenCalled();
         expect(screen.queryByRole("img", { name: "教材中的蘋果插圖" })).not.toBeInTheDocument();

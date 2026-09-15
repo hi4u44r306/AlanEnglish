@@ -13,7 +13,7 @@ const copyByType = {
         promptDetail: "按下麥克風，先說完整問句，再接著說完整回答。"
     },
     picture_gap_sentence: {
-        eyebrow: "P22 看圖補句",
+        eyebrow: "看圖補完整句",
         title: "看圖片，說完整句子",
         instruction: "先看圖片和句型。空格要用圖片答案補上，再把整句英文說出來。",
         promptTitle: "輪到你說完整句子",
