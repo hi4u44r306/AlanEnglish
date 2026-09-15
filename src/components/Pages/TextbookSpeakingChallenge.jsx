@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiLock, FiMic } from "react-icons/fi";
+import { FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiLock, FiMic } from "react-icons/fi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
@@ -60,21 +60,27 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     </button>;
 };
 
-const ChallengeRules = () => <section className="speaking-challenge-rules" aria-labelledby="speaking-challenge-rules-title">
-    <header>
-        <span aria-hidden="true">?</span>
-        <div>
-            <small>HOW TO PLAY</small>
-            <h2 id="speaking-challenge-rules-title">遊戲規則</h2>
-        </div>
-    </header>
-    <ol>
-        <li><b>選一關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
-        <li><b>看題目</b><span>看清楚畫面上的字、圖片或問題，想好要說的英文。</span></li>
-        <li><b>開口說</b><span>允許麥克風後清楚說；沒成功沒關係，可以再試一次。</span></li>
-    </ol>
-    <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
-</section>;
+const ChallengeRules = () => {
+    const [expanded, setExpanded] = useState(false);
+    return <section className={`speaking-challenge-rules ${expanded ? "is-expanded" : ""}`} aria-labelledby="speaking-challenge-rules-title">
+        <button type="button" className="speaking-challenge-rules__toggle" aria-expanded={expanded} aria-controls="speaking-challenge-rules-content" onClick={() => setExpanded(current => !current)}>
+            <span className="speaking-challenge-rules__icon" aria-hidden="true">?</span>
+            <span className="speaking-challenge-rules__heading">
+                <small>HOW TO PLAY</small>
+                <strong id="speaking-challenge-rules-title">遊戲規則</strong>
+            </span>
+            <span className="speaking-challenge-rules__action">{expanded ? "收起規則" : "查看規則"}<FiChevronDown aria-hidden="true" /></span>
+        </button>
+        {expanded && <div id="speaking-challenge-rules-content" className="speaking-challenge-rules__content">
+            <ol>
+                <li><b>選一關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
+                <li><b>看題目</b><span>看清楚畫面上的字、圖片或問題，想好要說的英文。</span></li>
+                <li><b>開口說</b><span>允許麥克風後清楚說；沒成功沒關係，可以再試一次。</span></li>
+            </ol>
+            <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
+        </div>}
+    </section>;
+};
 
 export default function TextbookSpeakingChallenge() {
     const { firebaseUser, role } = useAuth();

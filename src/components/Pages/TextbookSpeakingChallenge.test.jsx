@@ -237,22 +237,29 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
     });
 
-    it("學生列表顯示簡短遊戲規則，老師預覽不重複顯示", async () => {
+    it("學生列表預設收合遊戲規則，點擊後可展開及再次收起，老師預覽不重複顯示", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [] });
 
         const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByRole("heading", { name: "遊戲規則" })).toBeInTheDocument();
+        const rulesToggle = await screen.findByRole("button", { name: /遊戲規則.*查看規則/ });
+        expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("選一關")).not.toBeInTheDocument();
+        fireEvent.click(rulesToggle);
+        expect(rulesToggle).toHaveAttribute("aria-expanded", "true");
         expect(screen.getByText("選一關")).toBeInTheDocument();
         expect(screen.getByText("看題目")).toBeInTheDocument();
         expect(screen.getByText("開口說")).toBeInTheDocument();
         expect(screen.getByText(/通關會顯示打勾並開啟下一關/)).toBeInTheDocument();
+        fireEvent.click(rulesToggle);
+        expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("選一關")).not.toBeInTheDocument();
         unmount();
 
         mockRole = "teacher";
         render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         expect(await screen.findByText("這是唯讀預覽，所有已發布關卡都可直接開啟。")).toBeInTheDocument();
-        expect(screen.queryByRole("heading", { name: "遊戲規則" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /遊戲規則/ })).not.toBeInTheDocument();
     });
 
     it("以真正的台灣國旗呈現台灣視覺提示", () => {
