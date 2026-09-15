@@ -187,10 +187,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         });
 
         await act(async () => {
-            render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+            render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         });
 
-        expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
         const firstLesson = screen.getByRole("button", { name: /我的名字與自我介紹/ });
         const secondLesson = screen.getByRole("button", { name: /顏色與生活物品/ });
         expect(firstLesson).toBeEnabled();
@@ -209,7 +208,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
             ]
         });
 
-        render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         expect(await screen.findByText("這是唯讀預覽，所有已發布關卡都可直接開啟。")).toBeInTheDocument();
         expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
@@ -225,7 +224,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
             ]
         });
 
-        render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         expect(await screen.findByRole("heading", { name: "入門準備" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "課本練習" })).toBeInTheDocument();

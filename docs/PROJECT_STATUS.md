@@ -794,6 +794,10 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 
 - 學生口說大挑戰列表上方新增兒童易讀的三步驟遊戲規則：「選一關、看題目、開口說」，並說明通關打勾、下一關解鎖與主題練習自由選擇。規則只顯示於學生列表，老師／管理員唯讀預覽不重複顯示；沒有修改判分、麥克風、Firebase、membership、entitlement、migration 或 Edge Function。相關 React 18/18、Production build 與 `git diff --check` 已通過；Netlify 正式 deploy `6aa892f3697a3b5b9ae0521e` 已發布，正式站 JS／CSS hash 與本次 build 一致，線上 JS 已確認包含遊戲規則標記。
 
+## 進行中（2026-09-15，口說大挑戰互動與教材層級）
+
+- 將口說大挑戰改為教材第一層、關卡第二層，並以獨立教材網址支援返回操作；學生所有口說頁隱藏浮動「今日作業」，Navbar 的作業入口維持。非 A–Z 題目改為明確啟用麥克風後立即收音、聲音偵測光暈及送出評分；A–Z 自動收音流程不變。關卡資訊列和通關畫面會只使用伺服器回傳的實際獎勵資料，不在前端自行發放 XP。尚未完成測試、build、push 或部署。
+
 ## 歷史進行中（2026-09-14，Navbar 角色入口稽核完成，尚未部署）
 
 - 學生／老師／管理員 Navbar 角色稽核：學生桌面版補上右上角明確「登出」按鈕，保留頭像直達「我的設定」；學生手機版仍在「更多」抽屜提供登出。老師與管理員的桌面帳號選單及手機選單原本都已有登出，本次不改其權限或入口。待相關 React 測試、production build 與 diff check 通過後再推送分支。

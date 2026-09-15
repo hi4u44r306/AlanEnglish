@@ -38,22 +38,31 @@ export default function SpeakingPronunciationRecorder({
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
+    const [voiceDetected, setVoiceDetected] = useState(false);
     const recorderRef = useRef(null);
     const streamRef = useRef(null);
     const chunksRef = useRef([]);
     const stopTimerRef = useRef(null);
     const elapsedTimerRef = useRef(null);
+    const analyserRef = useRef(null);
+    const audioContextRef = useRef(null);
+    const activityFrameRef = useRef(null);
 
     const release = () => {
         window.clearTimeout(stopTimerRef.current);
         window.clearInterval(elapsedTimerRef.current);
         streamRef.current?.getTracks().forEach(track => track.stop());
         streamRef.current = null;
+        if (activityFrameRef.current) window.cancelAnimationFrame(activityFrameRef.current);
+        activityFrameRef.current = null;
+        audioContextRef.current?.close?.();
+        audioContextRef.current = null;
+        analyserRef.current = null;
     };
     const reset = () => {
         release();
         if (previewUrl) URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setElapsed(0); setRecording(false); setPreparing(false);
+        setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setElapsed(0); setRecording(false); setPreparing(false); setVoiceDetected(false);
     };
     useEffect(() => () => release(), []);
     useEffect(() => reset, [question.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -67,6 +76,22 @@ export default function SpeakingPronunciationRecorder({
                 audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
             });
             streamRef.current = stream; chunksRef.current = [];
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const context = new AudioContext();
+                const analyser = context.createAnalyser();
+                analyser.fftSize = 512;
+                context.createMediaStreamSource(stream).connect(analyser);
+                audioContextRef.current = context; analyserRef.current = analyser;
+                const values = new Uint8Array(analyser.fftSize);
+                const observe = () => {
+                    analyser.getByteTimeDomainData(values);
+                    const volume = values.reduce((sum, value) => sum + Math.abs(value - 128), 0) / values.length;
+                    if (volume > 5) setVoiceDetected(true);
+                    activityFrameRef.current = window.requestAnimationFrame(observe);
+                };
+                observe();
+            } catch { /* 音量動畫不影響錄音與評分。 */ }
             const type = recordingMimeType();
             const recorder = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream);
             recorderRef.current = recorder;
@@ -125,12 +150,12 @@ export default function SpeakingPronunciationRecorder({
         ? "三秒後播放提示音。"
         : disabledReason;
 
-    return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""}`}>
+    return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""} ${voiceDetected ? "has-voice" : ""}`}>
         {!result && <p className="speaking-sr-only" role="status" aria-live="polite" aria-atomic="true">{recording ? "錄音進行中。" : preparing ? "正在準備評分音檔。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
         {!result && <>
             <div className="speaking-recording-heading">
-                <strong>{recording ? "正在聽你朗讀…" : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "輪到你開口說"}</strong>
-                <span>{recording ? `${elapsed} / ${MAX_RECORDING_SECONDS} 秒` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : "按下麥克風，慢慢說完整句子。"}</span>
+                <strong>{recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "啟用麥克風開始挑戰"}</strong>
+                <span>{recording ? `${elapsed} / ${MAX_RECORDING_SECONDS} 秒，說完後按送出。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : "只需啟用一次；本題會立刻開始收音。"}</span>
             </div>
             {disabledReason && !recordedBlob && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
             {!recordedBlob && <button
@@ -140,8 +165,8 @@ export default function SpeakingPronunciationRecorder({
                 disabled={preparing || Boolean(disabledReason)}
                 aria-label={recording ? "完成錄音" : "開始錄音"}
             >
-                {recording ? <FiSquare aria-hidden="true" /> : <FiMic aria-hidden="true" />}
-                <span>{recording ? "完成錄音" : preparing ? "準備中…" : "開始錄音"}</span>
+                {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
+                <span>{recording ? (voiceDetected ? "送出並評分" : "我已說完，送出") : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : "送出評分"}</button></div></div>}
             <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>

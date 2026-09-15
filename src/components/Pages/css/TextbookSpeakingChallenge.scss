@@ -95,6 +95,11 @@
 .speaking-challenge-grid small,
 .speaking-no-reward { color: #718099; }
 .speaking-challenge-grid footer { color: #1f579f; font-weight: 900; }
+.speaking-book-card { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 14px; }
+.speaking-book-card > svg { grid-row: span 3; width: 52px; height: 52px; padding: 12px; border-radius: 16px; background: #eaf3ff; }
+.speaking-book-card strong { align-self: end; }
+.speaking-book-card small { align-self: start; }
+.speaking-book-card footer { grid-column: 2; display: inline-flex; align-items: center; gap: 5px; }
 
 .speaking-catalog-group { grid-column: 1 / -1; overflow: hidden; border: 1px solid #cfdcf0; border-radius: 24px; background: #fff; box-shadow: 0 12px 32px rgba(20, 47, 91, .07); }
 .speaking-catalog-group > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 20px; background: linear-gradient(120deg, #17366f, #2b66bd); color: #fff; }
@@ -175,6 +180,10 @@
 }
 
 .speaking-lesson-progress { display: grid; gap: 7px; }
+.speaking-lesson-reward { display: grid; grid-template-columns: auto 1fr; gap: 1px 7px; align-items: center; padding: 9px 11px; border-radius: 13px; background: #fff4d5; color: #7a5600; }
+.speaking-lesson-reward svg { grid-row: span 2; font-size: 22px; }
+.speaking-lesson-reward span { font-size: 11px; font-weight: 850; }
+.speaking-lesson-reward strong { font-size: 16px; }
 .speaking-lesson-progress > div:first-child {
   display: flex;
   justify-content: space-between;
@@ -261,6 +270,18 @@
   font-weight: 800;
   text-align: center;
 }
+.speaking-reward-dialog { position: fixed; z-index: 3000; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(10, 30, 61, .48); }
+.speaking-reward-dialog > section { display: grid; justify-items: center; gap: 14px; width: min(430px, 100%); padding: 30px; border-radius: 26px; background: #fff; color: #17233f; text-align: center; box-shadow: 0 22px 60px rgba(5, 22, 47, .32); animation: speaking-reward-pop .32s ease-out; }
+.speaking-reward-dialog svg { width: 62px; height: 62px; padding: 14px; border-radius: 22px; background: #fff1bb; color: #bd8100; }
+.speaking-reward-dialog h2, .speaking-reward-dialog p { margin: 0; }
+.speaking-reward-dialog p strong { color: #2459a2; font-size: 22px; }
+.speaking-reward-dialog__stars { color: #e8ad18; font-size: 24px; letter-spacing: 10px; animation: speaking-stars 1.2s ease-in-out infinite; }
+.speaking-reward-dialog > section > div { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.speaking-reward-dialog button { min-height: 44px; padding: 10px 15px; border: 1px solid #9db8e1; border-radius: 12px; background: #fff; color: #2459a2; font-weight: 900; cursor: pointer; }
+.speaking-reward-dialog button.primary { border-color: #2b66bd; background: #2b66bd; color: #fff; }
+@keyframes speaking-reward-pop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes speaking-stars { 50% { transform: translateY(-6px) scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .speaking-reward-dialog > section, .speaking-reward-dialog__stars { animation: none; } }
 .speaking-question-navigation button {
   display: inline-flex;
   gap: 6px;
