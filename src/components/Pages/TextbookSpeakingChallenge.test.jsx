@@ -144,6 +144,16 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(document.body).not.toHaveClass("speaking-challenge-active");
     });
 
+    it("keeps the mobile Navbar available on the challenge catalog", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [] });
+
+        const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        await screen.findByText("還沒有可挑戰的教材");
+        expect(document.body).not.toHaveClass("speaking-challenge-active");
+        unmount();
+    });
+
     it("plays the stored private model audio instead of browser speech synthesis", async () => {
         const play = jest.fn().mockResolvedValue(undefined);
         global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));

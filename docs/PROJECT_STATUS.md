@@ -2,6 +2,14 @@
 
 最後更新：2026-09-15
 
+本次手機口說大挑戰導覽修正（2026-09-15，待正式發布）：
+
+- 修正手機進入口說大挑戰「全部教材」或單一 Workbook 關卡列表時，外層專注模式錯誤隱藏 Navbar 的問題。現在只有實際進入 `/student/speaking-challenges/:questionSetId` 小關卡時才收起頂端 Logo Header；教材列表與 Workbook 關卡列表會保留手機 Navbar 與既有底部導覽。教材播放器的口說範圍暫停／隱藏規則、學生解鎖、老師／管理員預覽、Firebase、Supabase 與題組資料均未修改。相關 React 測試通過；待 build、提交、推送及正式站驗收。
+
+本次 P21 管理員草稿（2026-09-15，未發布）：
+
+- 管理員已在正式站「教材 AI 口說題庫」建立 Workbook 1「P21 看圖問答」第 1 版草稿，共 9 題，使用人工核對的完整問答與私人圖片。題組仍是草稿，學生端不可見；未產生 TTS、未發布，P22～P24 仍未建立。
+
 本次 Workbook 1 管理員核准流程（2026-09-15，管理工具與後端已正式發布；P21～P24 題組仍未建立）：
 
 - Phase 1 圖片內容核准流程新增 server-only 候選載入：P21～P24 的人工轉錄候選只由驗證管理員身分的 `speaking-content-manager` 回傳，不放入學生前端資料或公開 API；載入不寫資料庫。管理員須為每題補上核准圖片並逐題勾選，任何文字或圖片異動會撤銷該題確認，全部確認後才可建立 draft，仍不會自動發布。PR #140 已合併至 `main` commit `597ae41`；additive migration `20260915054923_workbook1_p23_p24_picture_templates.sql` 已套用，共用 Supabase 的 `speaking-content-manager` v20 與 `speaking-tts-manager` v19 均為 ACTIVE。Netlify 正式 deploy `6aa932fff976f1d91ce05dfd` 與固定測試站 deploy `6aa932768f71a641f8c6c641` 已發布，兩站資源雜湊均與驗證 build 一致。發布後資料庫確認 P21～P24 題組數仍為 0；本批沒有建立草稿、產生 TTS 或發布題組。
