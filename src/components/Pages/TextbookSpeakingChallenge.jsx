@@ -127,12 +127,14 @@ export default function TextbookSpeakingChallenge() {
                 }));
             // Keep the list safe even if a stale catalog response incorrectly
             // marks a later challenge as open. Staff preview remains unrestricted.
-            let previousCompleted = true;
+            let allPreviousCompleted = true;
             const guardedSections = sections.map(section => ({
                 ...section,
-                items: section.items.map((item, index) => {
-                    const itemUnlocked = staffPreview || (item.is_unlocked !== false && (index === 0 && section.id === "preparation" ? true : previousCompleted));
-                    previousCompleted = item.is_completed === true;
+                items: section.items.map(item => {
+                    const itemUnlocked = staffPreview || (item.is_unlocked !== false && allPreviousCompleted);
+                    // Once the sequence is broken, a historical completion on
+                    // a currently locked challenge must not reopen later ones.
+                    allPreviousCompleted = allPreviousCompleted && item.is_completed === true;
                     return { ...item, is_unlocked: itemUnlocked };
                 })
             }));

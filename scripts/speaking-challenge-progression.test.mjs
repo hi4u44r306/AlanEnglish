@@ -33,6 +33,9 @@ test("學生必須完整通關前一關才會解鎖下一關", () => {
 
     const secondComplete = speakingChallengeUnlockState(challenges, new Set([1101, 1102, 1201]));
     assert.deepEqual(secondComplete.map(item => item.is_unlocked), [true, true, true]);
+
+    const historicalLaterComplete = speakingChallengeUnlockState(challenges, new Set([1101, 1102, 1301]));
+    assert.deepEqual(historicalLaterComplete.map(item => item.is_unlocked), [true, true, false]);
 });
 
 test("Workbook 1 依入門、課本頁序、主題分區排序", () => {
