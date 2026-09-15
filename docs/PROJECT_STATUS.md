@@ -2,12 +2,16 @@
 
 最後更新：2026-09-15
 
+本次管理員口說預覽與題庫工作台（2026-09-15，尚未部署）：
+
+- 管理員與老師繼續使用學生端的 Workbook／關卡版型預覽所有已發布題庫；一般題在 staff 唯讀模式可直接使用上一題／下一題瀏覽，不需完成前題，且前端不呼叫學生完成服務、不寫進度、不發放獎勵。管理員「教材 AI 口說題庫」新增草稿／已發布／全部篩選與數量、醒目的目前編輯題庫／版本標示，並一次只展開一份題庫；已發布題庫提供另開學生版型的預覽連結。P21～P24 專用圖片草稿框架保留各自來源頁與 template key。本批尚未執行 additive migration、Speaking Edge Function 或 Netlify 部署。
+
 本次規劃（2026-09-15，未建立題庫、未部署）：
 
 - 已建立持續執行文件 `docs/speaking-content/WORKBOOK_1_SPEAKING_CHALLENGE_PLAN.md`，計畫名稱固定為「workbook1口說大挑戰」。計畫以學生版 119 頁為顯示頁碼、教師版 109 頁為交叉核對來源，分成基準鎖定、P21／P22 圖片基礎、句型／顏色／問候、數字／時間、Be 動詞／身體、生活／家庭、冠詞／位置、人物／疑問詞及最終挑戰九個階段；永久保護既有 A-Z、P14 至 P17、循序解鎖、staff 預覽、私人資產、一次性示範音檔及後端答案權威。下一步只先執行 Phase 0 唯讀基準盤點，再利用本次提供的兩份 PDF 完成 P21／P22 來源、圖片、名詞、完整答案與 accepted responses 核對。未經管理員核准不發布；本批沒有 migration、Edge Function 或 Netlify 操作。
 - Phase 0 唯讀基準已完成並保存於 `docs/speaking-content/WORKBOOK_1_PHASE_0_BASELINE.md`：Workbook 1 目前 8 個 published、4 個 draft 題組；正式 curated template key 無重複；A–Z 題組 ID 7 的主音檔維持 `ready`、26 段；P21／P22 題組仍不存在且未發布；既有 A–Z、P14、P15 等進度已依穩定 question set／question ID 記錄。另發現「03 顏色與生活物品」有 7 筆 2026-09-07 的舊 attempt 仍帶私人錄音 object key 且未標記刪除，分類為 P1 歷史資料保留問題；現行 Function 新寫入不再保存錄音，但在確認 R2 物件、回復方式及取得正式資料刪除授權前不自行清理。本批仍未建立題庫、未發布 P21／P22、未執行 migration／Function／Netlify 部署。
 - Phase 1 來源轉錄已開始：學生版 P21 已確認 9 個圖片物件，但原頁沒有把各圖片綁定 Mary's 所有權或 Yes／No，候選內容只採可直接核對的 `What is that?`＋`It is a ...`；學生版 P22 與教師版 P19 已交叉確認 9 個 A-I 圖片補句。P23／P24 另有 J-R 與 S-Z 延伸題，後續必須使用各自來源頁與 template key，不能偽裝成 P22。逐題候選問答、完整句與 alt text 已寫入人工核准清單；圖片使用權、最終用詞與管理員核准仍未完成，因此沒有建立草稿、上傳圖片、產生 TTS 或發布。
-- Phase 1 P23／P24 來源轉錄已完成：學生版 P23／教師版 P20 的 J-R 共 9 題、學生版 P24／教師版 P21 的 S-Z 共 8 題，均已記錄挖空句型、候選主詞、完整句、alt text、單複數與需人工確認的圖片用詞。建議使用 `workbook_1_p23_picture_gap_v1` 與 `workbook_1_p24_picture_gap_v1`，不得共用 P22 template。現有管理流程仍只允許 P21／P22，下一步須先擴充 source page／template allowlist 與測試；管理員確認用詞與圖片權利前仍不建立草稿、不上傳圖片、不產生 TTS、不發布。
+- Phase 1 P23／P24 來源轉錄及本機管理框架已完成：學生版 P23／教師版 P20 的 J-R 共 9 題、學生版 P24／教師版 P21 的 S-Z 共 8 題，均已記錄挖空句型、候選主詞、完整句、alt text、單複數與需人工確認的圖片用詞。專用流程已使用 `workbook_1_p23_picture_gap_v1` 與 `workbook_1_p24_picture_gap_v1`，並擴充 source page／template allowlist 與測試，不會共用 P22 template。Additive migration 與相關 Function 尚未部署；管理員確認用詞與圖片權利前仍不建立正式草稿、不上傳圖片、不產生 TTS、不發布。
 本次口說關卡返回層級修正（2026-09-15，正式站發布）：
 
 - 修正小關卡頂端返回箭頭、A–Z／拼讀／圖片題離開、一般題最後完成及通關彈窗硬編碼返回口說根目錄的問題。現在只要題組含教材資料，就會回到該 Workbook 的關卡列表；只有舊資料缺少教材識別時才安全回到全部教材。未修改進度、判分、解鎖、Firebase、Supabase、migration 或 Edge Function。

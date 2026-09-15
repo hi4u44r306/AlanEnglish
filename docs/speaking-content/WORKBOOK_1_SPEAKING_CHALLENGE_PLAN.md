@@ -158,4 +158,4 @@
 
 ## 9. 目前下一步
 
-Phase 0 已完成。Phase 1 已完成 P21／P22 與 P23／P24 的候選圖片、名詞、完整答案、accepted responses、alt text 及來源頁轉錄；下一步先擴充現有 P21／P22 專用管理流程，使 P23／P24 使用各自 source page 與穩定 template key，並交由管理員確認用詞與圖片權利。未經核准不建立或發布正式題組。另須規劃 P1 歷史錄音保留問題的安全清理與回復方式，取得正式資料刪除授權後才能執行。
+Phase 0 已完成。Phase 1 已完成 P21／P22 與 P23／P24 的候選圖片、名詞、完整答案、accepted responses、alt text、來源頁轉錄及本機專用管理框架；P23／P24 已使用各自 source page 與穩定 template key，並有後端 allowlist 與契約測試保護。下一步先由管理員確認用詞與圖片權利，再依重大改動閘門決定是否套用 additive migration、部署相關 Speaking Function 並建立未發布草稿。未經核准不發布正式題組。另須規劃 P1 歷史錄音保留問題的安全清理與回復方式，取得正式資料刪除授權後才能執行。

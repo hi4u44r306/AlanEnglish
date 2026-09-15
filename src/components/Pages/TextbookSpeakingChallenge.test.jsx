@@ -290,6 +290,27 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("button", { name: /遊戲規則/ })).not.toBeInTheDocument();
     });
 
+    it("管理員在學生版型中可逐題預覽，但不會寫入學生進度", async () => {
+        mockRole = "admin";
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 14, title: "P14 看字拼讀", topic: "Spelling", difficulty: "E1", books: { id: 1, name: "Workbook 1" },
+                speaking_questions: [
+                    { id: 141, question_text: "apple", progress_status: "opened" },
+                    { id: 142, question_text: "ball", progress_status: "opened" }
+                ]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/14"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByText("工作人員唯讀預覽")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /下一題/ })).toBeEnabled();
+        fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
+        expect(screen.getByText("ball")).toBeInTheDocument();
+        expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
+    });
+
     it("以真正的台灣國旗呈現台灣視覺提示", () => {
         const { container } = render(<SpeakingVisualAid aid={{ kind: "flag", value: "taiwan", alt_zh: "台灣國旗" }} />);
         expect(screen.getByRole("figure", { name: "台灣國旗" })).toBeInTheDocument();

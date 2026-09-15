@@ -183,6 +183,7 @@ export default function TextbookSpeakingChallenge() {
     }, [firebaseUser, questionSetId]);
 
     const markComplete = async question => {
+        if (staffPreview) return { success: true, demo_mode: true };
         try {
             const response = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id);
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
@@ -263,7 +264,7 @@ export default function TextbookSpeakingChallenge() {
 
     if (!activeQuestion) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button></section></main>;
 
-    const isCompleted = activeQuestion.progress_status === "completed";
+    const isCompleted = staffPreview || activeQuestion.progress_status === "completed";
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
     const goForward = () => {
         if (!isCompleted) return;
@@ -272,6 +273,7 @@ export default function TextbookSpeakingChallenge() {
     };
 
     return <main className="speaking-challenge-page speaking-challenge-detail">
+        {staffPreview && <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>工作人員唯讀預覽</strong>所有已發布題目都可查看，不會寫入學生進度或發放獎勵。</span></aside>}
         <header className="speaking-lesson-header">
             <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
             <div className="speaking-lesson-heading">
@@ -300,7 +302,7 @@ export default function TextbookSpeakingChallenge() {
 
         <nav className="speaking-question-navigation" aria-label="小關卡切換">
             <button type="button" onClick={() => setActiveQuestionIndex(current => current - 1)} disabled={activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
-            <span>{completedCount} / {questions.length} 題已完成</span>
+            <span>{staffPreview ? `預覽第 ${activeQuestionIndex + 1} / ${questions.length} 題` : `${completedCount} / ${questions.length} 題已完成`}</span>
             <button type="button" className="primary" onClick={goForward} disabled={!isCompleted}>{isLastQuestion ? "完成大挑戰" : "下一題"}<FiChevronRight /></button>
         </nav>
         {completionNotice && <div className="speaking-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="speaking-reward-title">

@@ -4,6 +4,10 @@
   background: #f3f7fc;
   color: #17233f;
 }
+.speaking-staff-preview-banner { width: min(100%, 1080px); min-height: 48px; display: flex; align-items: center; gap: 10px; margin: 0 auto 12px; padding: 10px 14px; border: 1px solid #9db8df; border-radius: 10px; color: #173f80; background: #eef5ff; }
+.speaking-staff-preview-banner svg { flex: 0 0 auto; }
+.speaking-staff-preview-banner span { line-height: 1.5; }
+.speaking-staff-preview-banner strong { margin-right: 6px; }
 
 .speaking-challenge-hero,
 .speaking-book-toolbar,

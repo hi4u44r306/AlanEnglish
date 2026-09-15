@@ -70,6 +70,19 @@
 .speaking-ocr-review__notice span { font-size: 14px; line-height: 1.6; }
 .speaking-count { display: flex; align-items: center; gap: 9px; color: #526079; font-weight: 750; }
 .speaking-count select { min-height: 42px; padding: 0 34px 0 12px; border: 1px solid #d9dde7; border-radius: 11px; background: #fff; }
+.speaking-bank-workspace { display: grid; gap: 18px; }
+.speaking-bank-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 150px)); gap: 10px; }
+.speaking-bank-filters button { min-height: 58px; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 9px 15px; border: 1px solid #d7e1ef; border-radius: 12px; color: #526079; background: #f8faff; }
+.speaking-bank-filters button strong { color: #17233f; font-size: 20px; }
+.speaking-bank-filters button.active { border-color: #315fa9; color: #173f80; background: #eaf2ff; box-shadow: inset 0 0 0 1px #315fa9; }
+.speaking-bank-filters button:focus-visible { outline: 3px solid rgba(49, 95, 169, .28); outline-offset: 2px; }
+.speaking-current-set { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px 14px; padding: 14px 16px; border: 2px solid #3f70bb; border-radius: 14px; color: #173f80; background: #eef5ff; }
+.speaking-current-set > span { padding: 5px 9px; border-radius: 999px; color: #fff; background: #315fa9; font-size: 12px; font-weight: 900; }
+.speaking-current-set > strong { color: #17233f; }
+.speaking-current-set > small { color: #65758c; }
+.speaking-current-set > a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 13px; border: 1px solid #9db8df; border-radius: 10px; color: #173f80; background: #fff; font-weight: 850; text-decoration: none; }
+.speaking-current-set.is-published { border-color: #66b48b; background: #f1fbf5; }
+.speaking-current-set.is-published > span { background: #19714a; }
 .speaking-source-list, .speaking-question-list { display: grid; gap: 18px; }
 .speaking-source-card { padding: 20px; border: 1px solid #dce4f1; border-radius: 19px; background: #fbfcff; }
 .speaking-source-card > header, .speaking-set__heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
@@ -78,8 +91,14 @@
 .speaking-source-card__empty { padding: 18px 0 0; }
 .speaking-set { margin-top: 18px; padding: 18px; border: 1px solid #d8e0ed; border-radius: 16px; background: #fff; }
 .speaking-set.published { border-color: #a9ddc4; background: #f7fcf9; }
+.speaking-set.is-current { border-width: 2px; border-color: #3f70bb; box-shadow: 0 12px 30px rgba(23, 63, 128, .1); }
+.speaking-set.published.is-current { border-color: #55a87d; }
 .speaking-set__heading { margin-bottom: 16px; }
 .speaking-set__heading span { color: #315fa9; font-size: 12px; font-weight: 850; letter-spacing: .04em; }
+.speaking-set__selector { min-width: 0; flex: 1; display: grid; gap: 3px; padding: 0; border: 0; color: inherit; background: transparent; text-align: left; }
+.speaking-set__selector h4 { margin: 0; }
+.speaking-set__selector small { color: #718096; }
+.speaking-set__selector:focus-visible { outline: 3px solid rgba(49, 95, 169, .28); outline-offset: 6px; border-radius: 6px; }
 .speaking-student-preview { margin: 0 0 18px; border: 1px solid #cbdaf0; border-radius: 15px; overflow: hidden; background: #f6f9ff; }
 .speaking-student-preview > summary { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; color: #173f80; font-weight: 850; cursor: pointer; }
 .speaking-student-preview__screen { padding: 18px; border-top: 1px solid #dbe5f3; background: #edf3fc; }
@@ -120,4 +139,9 @@
     .speaking-student-preview__questions { grid-template-columns: 1fr; }
     .speaking-picture-authoring__rows > article { padding: 13px; }
     .speaking-picture-authoring__add { width: 100%; }
+    .speaking-bank-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .speaking-bank-filters button { display: grid; gap: 0; padding: 8px; }
+    .speaking-current-set { grid-template-columns: auto minmax(0, 1fr); }
+    .speaking-current-set > small, .speaking-current-set > a { grid-column: 1 / -1; }
+    .speaking-current-set > a { width: 100%; }
 }
