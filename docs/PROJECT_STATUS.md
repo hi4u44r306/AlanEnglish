@@ -18,6 +18,7 @@
 - Phase 5 來源審閱已完成：學生版 P60、P70～P71、P73、P75、P79～P80、P87、P90、P100 已與教師版可對應頁面核對，整理為早晨、下午、晚上與虛構家庭樹四個候選關卡。P60／P70／P80／P90 因沒有固定角色配對答案，只列非計分暖身；P79 的舊式稱謂／婚姻分類排除；P100 在去品牌、家庭假設與不自然台詞的改寫核准前暫緩。逐句候選答案、accepted responses、數字／縮寫正規化、隱私與刻板印象護欄已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_5_CONTENT_APPROVAL.md`；未建立題庫、TTS、migration、Function 或部署。
 - Phase 6 來源審閱已完成：學生版 P82、P84、P89、P92、P94、P96、P109 已與教師版可對應頁面核對，整理為字母冠詞、名詞冠詞、代名詞 Be 動詞、`in/on/under` 與 `here/there` 五個候選關卡。字母冠詞依實際字母名稱開頭音判定；P84 不自然末題、P89 外貌評價及 P92／P94 的高難度、羞辱性／家庭假設句均排除。逐題答案、accepted responses、位置箭頭複核與兒童容錯護欄已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_6_CONTENT_APPROVAL.md`；未建立題庫、TTS、migration、Function 或部署。
 - Phase 7 來源審閱已完成：學生版 P99、P101～P106、P108 已與教師版 P90～P96、P98 核對，整理為工作／地點、工作／地點／身分、Who／Where、疑問詞與教材角色年齡五個候選關卡。`What are you?` 的自然 adapted 版本需管理員核准；P99、P103、P104 的錯誤選項、純抄寫與不適合兒童的羞辱／外貌內容均排除。逐題問答、accepted responses、數字正規化與個資護欄已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_7_CONTENT_APPROVAL.md`；未建立題庫、TTS、migration、Function 或部署。
+- Phase 8 來源審閱已完成：學生版 P111～P114、P117～P119 已與教師版 P101～P104、P107～P109 核對。P111 整理八題指示詞候選；P112 前六題與 P114 的遠近資訊不足，管理員逐題核准前不建立；P113 純抄寫排除。P117～P119 只作技能覆蓋參考，最終挑戰改由後端從學生可用、已核准且已發布的前置口說題建立 12 題不可變 round snapshot，不直接匯入外貌／家庭假設或錯誤干擾句。完整規則位於 `docs/speaking-content/WORKBOOK_1_PHASE_8_CONTENT_APPROVAL.md`；至此 Phase 0～8 來源審閱完成，但仍未建立新題庫、TTS、migration、Function 或部署。
 本次口說關卡返回層級修正（2026-09-15，正式站發布）：
 
 - 修正小關卡頂端返回箭頭、A–Z／拼讀／圖片題離開、一般題最後完成及通關彈窗硬編碼返回口說根目錄的問題。現在只要題組含教材資料，就會回到該 Workbook 的關卡列表；只有舊資料缺少教材識別時才安全回到全部教材。未修改進度、判分、解鎖、Firebase、Supabase、migration 或 Edge Function。
