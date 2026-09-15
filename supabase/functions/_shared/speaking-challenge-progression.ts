@@ -60,20 +60,20 @@ export const speakingChallengeIsComplete = (set: ChallengeSet, completedQuestion
 
 export const speakingChallengeUnlockState = <T extends ChallengeSet>(sets: T[], completedQuestionIds: Set<number>) => {
     const ordered = sortSpeakingChallengeSets(sets);
-    const preparation = ordered.filter(set => speakingChallengeCatalogSection(set) === "preparation");
-    const textbook = ordered.filter(set => speakingChallengeCatalogSection(set) === "textbook");
-    const preparationComplete = preparation.every(set => speakingChallengeIsComplete(set, completedQuestionIds));
+    let activeSection: SpeakingChallengeCatalogSection | null = null;
+    let allPreviousComplete = true;
 
-    return ordered.map(set => {
+    return ordered.map((set) => {
         const section = speakingChallengeCatalogSection(set);
-        const sectionSets = section === "preparation" ? preparation : textbook;
-        const sectionIndex = sectionSets.indexOf(set);
-        const previousComplete = sectionIndex <= 0 || speakingChallengeIsComplete(sectionSets[sectionIndex - 1], completedQuestionIds);
-        const isUnlocked = section === "preparation"
-            ? previousComplete
-            : section === "topic"
-                ? preparationComplete
-                : preparationComplete && previousComplete;
+        // Preparation, textbook, and topic practice are independent paths.
+        // The first challenge in every section is always available; after that,
+        // an unfinished challenge keeps the rest of that section locked.
+        if (section !== activeSection) {
+            activeSection = section;
+            allPreviousComplete = true;
+        }
+        const isUnlocked = allPreviousComplete;
+        allPreviousComplete = allPreviousComplete && speakingChallengeIsComplete(set, completedQuestionIds);
         return {
             id: Number(set.id),
             catalog_section: section,

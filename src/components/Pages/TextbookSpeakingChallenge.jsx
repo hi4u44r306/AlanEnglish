@@ -125,9 +125,24 @@ export default function TextbookSpeakingChallenge() {
                     ...CATALOG_SECTION_COPY[section],
                     items: [...group.sections.get(section)].sort((left, right) => Number(left.sequence_order || 0) - Number(right.sequence_order || 0) || Number(left.id) - Number(right.id))
                 }));
-            return { ...group, sections, itemCount: sections.reduce((count, section) => count + section.items.length, 0) };
+            const guardedSections = sections.map(section => ({
+                ...section,
+                items: section.items.map((item, itemIndex) => {
+                    // Every catalog section is an independent learning path:
+                    // its first challenge is always available, while later
+                    // challenges must follow the completed chain in that section.
+                    const previousItemsCompleted = section.items
+                        .slice(0, itemIndex)
+                        .every(previousItem => previousItem.is_completed === true);
+                    const itemUnlocked = staffPreview
+                        || itemIndex === 0
+                        || (item.is_unlocked !== false && previousItemsCompleted);
+                    return { ...item, is_unlocked: itemUnlocked };
+                })
+            }));
+            return { ...group, sections: guardedSections, itemCount: guardedSections.reduce((count, section) => count + section.items.length, 0) };
         });
-    }, [catalog]);
+    }, [catalog, staffPreview]);
 
     useEffect(() => () => {
         audioRef.current?.pause();

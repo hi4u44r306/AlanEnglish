@@ -69,6 +69,10 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
     it("shows persistent batch progress and a per-batch retry control", async () => {
         render(<SpeakingContentAdmin />);
+        expect(await screen.findByRole("heading", { name: "今天要處理什麼？" })).toBeInTheDocument();
+        expect(screen.getByRole("navigation", { name: "口說題庫快速操作" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /處理草稿/ })).toHaveAttribute("href", "#speaking-question-bank");
+        expect(screen.getByRole("link", { name: /匯入教材/ })).toHaveAttribute("href", "#speaking-source-tools");
         expect(await screen.findByRole("heading", { name: "P21～P24 人工內容與私人圖片" })).toBeInTheDocument();
         expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
         expect(await screen.findByText("整本教材 · 115 頁")).toBeInTheDocument();
@@ -175,6 +179,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         expect(await screen.findByRole("heading", { name: "題庫工作台" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /處理草稿/ })).toHaveTextContent("1 份待編輯");
         expect(screen.getByRole("button", { name: /^1\s*草稿$/ })).toHaveAttribute("aria-pressed", "true");
         expect(await screen.findByText("正在編輯")).toBeInTheDocument();
         expect(screen.getByText("第 1 版 · 尚未發布")).toBeInTheDocument();

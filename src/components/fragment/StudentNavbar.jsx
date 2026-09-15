@@ -73,7 +73,10 @@ const StudentNavbar = ({
     ].some(isPathActive);
 
     const openDrawer = view => setDrawer(view);
-    const closeDrawer = () => setDrawer("");
+    const closeDrawer = () => {
+        setDrawer("");
+        setMaterialsOpen(false);
+    };
 
     useEffect(() => {
         const handleMenuRequest = event => {
@@ -186,7 +189,7 @@ const StudentNavbar = ({
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
                     <Navbar.Brand as={Link} to="/student/leaderboard" className="ae-brand" aria-label="Alan English 學習排行榜"><Brand /></Navbar.Brand>
-                    <Nav className="ae-student-desktop-nav">
+                    <Nav className="ae-student-desktop-nav" onSelect={closeDrawer}>
                         <Nav.Link as={Link} to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><span><FiTrendingUp />排行榜</span></Nav.Link>
                         {shouldShowMaterials && (
                             <NavDropdown id="student-materials" title={<span><FiBookOpen />我的教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} className={isPathActive("/student/books") ? "active" : ""}>

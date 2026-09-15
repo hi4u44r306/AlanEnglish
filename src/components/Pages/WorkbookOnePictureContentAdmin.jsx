@@ -140,7 +140,7 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
         }
     };
 
-    return <section className="platform-card speaking-picture-authoring">
+    return <section className="platform-card speaking-picture-authoring speaking-admin-block--curated">
         <div className="platform-section-title"><div>
             <span className="platform-eyebrow">WORKBOOK 1 PICTURE CHALLENGES</span>
             <h2>P21～P24 人工內容與私人圖片</h2>
