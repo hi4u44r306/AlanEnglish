@@ -40,7 +40,7 @@ describe("AssignmentShortcut", () => {
         expect(screen.queryByRole("link", { name: /今日作業/ })).not.toBeInTheDocument();
     });
 
-    test("shows homework to a student with assignment access", () => {
+    test("never renders the floating homework shortcut for a student with assignment access", () => {
         renderShortcut({
             isAuthenticated: true,
             role: "student",
@@ -53,10 +53,7 @@ describe("AssignmentShortcut", () => {
             }
         });
 
-        expect(screen.getByRole("link", { name: /今日作業/ })).toHaveAttribute(
-            "href",
-            "/student/assignments"
-        );
+        expect(screen.queryByRole("link", { name: /今日作業/ })).not.toBeInTheDocument();
     });
 
     test("hides the floating homework shortcut inside a speaking challenge", () => {

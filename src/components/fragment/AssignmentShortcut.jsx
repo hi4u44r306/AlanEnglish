@@ -12,8 +12,7 @@ const AssignmentShortcut = ({
 }) => {
     const {
         role,
-        isAuthenticated,
-        studentProfile
+        isAuthenticated
     } = useAuth();
 
     const location = useLocation();
@@ -26,11 +25,9 @@ const AssignmentShortcut = ({
         role === "teacher" ||
         role === "admin";
 
-    const studentCanUseAssignments =
-        role === "student" &&
-        studentProfile?.membership?.effective_access?.features?.assignments === true;
-
-    if (!manager && !studentCanUseAssignments) {
+    // 學生從 Navbar／更多進入「我的作業」，不再顯示會遮住
+    // 學習內容的浮動捷徑；老師與管理員仍保留發布作業的快捷鈕。
+    if (!manager) {
         return null;
     }
 
@@ -48,19 +45,7 @@ const AssignmentShortcut = ({
             `${path}/`
         );
 
-    const insideSpeakingChallenge =
-        role === "student" &&
-        location.pathname.startsWith("/student/speaking-challenges");
-
-    const hiddenByActiveStudentPlayer =
-        role === "student" &&
-        playerVisible;
-
-    if (
-        alreadyOnAssignmentPage ||
-        insideSpeakingChallenge ||
-        hiddenByActiveStudentPlayer
-    ) {
+    if (alreadyOnAssignmentPage) {
         return null;
     }
 

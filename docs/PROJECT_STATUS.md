@@ -2,6 +2,10 @@
 
 最後更新：2026-09-15
 
+本次學生浮動作業捷徑移除（2026-09-15，待正式發布）：
+
+- 學生端不再於任何頁面渲染浮動「今日作業」捷徑，避免遮住教材、口說與一般頁面內容；學生仍可依既有 assignment entitlement 從 Navbar／更多的「我的作業」入口進入作業。老師與管理員的浮動「發布作業」快捷鈕維持原狀。沒有修改作業資料、班級隔離、Firebase、Supabase 或權限判定；相關元件測試通過，待 Production build、提交、推送與正式站驗收。
+
 本次全站路由回頂修正（2026-09-15，已正式發布）：
 
 - 新增 Router 層級的共用回頂處理。公開首頁、登入、商城、學生、老師與管理員每次切換到不同頁面路徑時，都會以非動畫方式回到頁面頂端；同頁表單、收合區塊、播放器、麥克風互動與資料載入不會觸發捲動。沒有修改 Firebase、Supabase、權限、資料、音檔或個別頁面內容。路由切換測試、Production build 與 `git diff --check` 通過；PR #144 已合併至 `main` commit `9d96f3f`，GitHub main deploy `6aa94afacc52b9000803e54a` 與手動 production deploy `6aa94b1f31a6297bc37bb015` 均為 ready。
