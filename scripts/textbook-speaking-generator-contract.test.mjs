@@ -267,6 +267,9 @@ test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(manager, /P23:[\s\S]*?questionCount: 9/);
     assert.match(manager, /P24:[\s\S]*?questionCount: 8/);
     assert.match(manager, /value\.length !== expectedQuestionCount/);
+    assert.match(manager, /get_workbook_1_picture_review_candidates/);
+    assert.match(manager, /workbookOnePictureReviewCandidates/);
+    assert.match(service, /getWorkbookOnePictureReviewCandidates/);
     assert.match(manager, /asset\.source_page_label !== pictureConfig\?\.pageLabel/);
     assert.match(manager, /createdQuestionSetId/);
     assert.match(manager, /create_picture_upload/);

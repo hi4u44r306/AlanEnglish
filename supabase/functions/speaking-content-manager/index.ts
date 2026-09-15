@@ -24,6 +24,7 @@ import {
     alphabetActiveCandidateAllowed,
     alphabetCandidateSequenceAllowed
 } from "../_shared/alphabet-master-voice.ts";
+import { workbookOnePictureReviewCandidates } from "../_shared/workbook-one-picture-review-candidates.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -417,6 +418,22 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action, 80);
 
         if (action === "bootstrap") return json(200, { success: true, ...await loadBootstrap(admin) });
+
+        if (action === "get_workbook_1_picture_review_candidates") {
+            const pageLabel = cleanText(body?.page_label, 40).toUpperCase();
+            const pictureConfig = workbookOnePictureConfig(pageLabel);
+            const candidates = workbookOnePictureReviewCandidates(pageLabel);
+            if (!pictureConfig || !candidates || candidates.length !== pictureConfig.questionCount) {
+                return json(400, { error: "找不到完整的 Workbook 1 圖片題審閱候選" });
+            }
+            return json(200, {
+                success: true,
+                page_label: pictureConfig.pageLabel,
+                interaction_type: pictureConfig.interactionType,
+                question_count: pictureConfig.questionCount,
+                candidates
+            });
+        }
 
         if (action === "preview_question_picture") {
             const questionId = Number(body?.question_id);

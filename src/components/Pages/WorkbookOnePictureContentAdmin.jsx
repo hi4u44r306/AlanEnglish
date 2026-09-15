@@ -1,15 +1,17 @@
 import React, { useMemo, useState } from "react";
-import { AlertTriangle, ImagePlus } from "lucide-react";
+import { AlertTriangle, ClipboardCheck, ImagePlus } from "lucide-react";
 import { toast } from "react-toastify";
 import {
     createWorkbookOnePictureDraft,
     discardWorkbookOnePictureDraft,
     generateSpeakingVisibleWordAudio,
+    getWorkbookOnePictureReviewCandidates,
     uploadSpeakingQuestionPicture
 } from "../../services/speakingContentService";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const imageIsValid = file => Boolean(file && ALLOWED_IMAGE_TYPES.has(file.type) && file.size >= 1 && file.size <= MAX_IMAGE_BYTES);
 const PICTURE_PAGE_OPTIONS = [
     { pageLabel: "P21", interactionType: "picture_qa", title: "看圖問答", questionCount: 9 },
     { pageLabel: "P22", interactionType: "picture_gap_sentence", title: "看圖補句", questionCount: 9 },
@@ -17,9 +19,10 @@ const PICTURE_PAGE_OPTIONS = [
     { pageLabel: "P24", interactionType: "picture_gap_sentence", title: "看圖補句", questionCount: 8 }
 ];
 let localRowId = 0;
-const makeRow = () => ({
+const makeRow = (seed = {}) => ({
     key: `picture-row-${Date.now()}-${localRowId += 1}`, prompt_text: "", answer_text: "",
-    accepted_full_responses: "", pronunciation_notes_zh: "", alt_zh: "", file: null
+    accepted_full_responses: "", pronunciation_notes_zh: "", alt_zh: "", file: null, reviewed: false,
+    ...seed
 });
 const makeRows = count => Array.from({ length: count }, () => makeRow());
 
@@ -30,16 +33,43 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
     const [rows, setRows] = useState(() => makeRows(PICTURE_PAGE_OPTIONS[0].questionCount));
     const [confirmed, setConfirmed] = useState(false);
     const [working, setWorking] = useState(false);
+    const [loadingCandidates, setLoadingCandidates] = useState(false);
     const pageConfig = PICTURE_PAGE_OPTIONS.find(option => option.pageLabel === pageLabel) || PICTURE_PAGE_OPTIONS[0];
     const interactionType = pageConfig.interactionType;
     const isGap = interactionType === "picture_gap_sentence";
-    const invalidImage = useMemo(() => rows.find(row => (
-        !row.file || !ALLOWED_IMAGE_TYPES.has(row.file.type) || row.file.size < 1 || row.file.size > MAX_IMAGE_BYTES
-    )), [rows]);
+    const invalidImage = useMemo(() => rows.find(row => !imageIsValid(row.file)), [rows]);
+    const allRowsReviewed = rows.length === pageConfig.questionCount && rows.every(row => row.reviewed === true);
 
-    const updateRow = (key, field, value) => setRows(current => current.map(row => (
-        row.key === key ? { ...row, [field]: value } : row
-    )));
+    const updateRow = (key, field, value) => {
+        setRows(current => current.map(row => row.key === key
+            ? { ...row, [field]: value, ...(field === "reviewed" ? {} : { reviewed: false }) }
+            : row));
+        if (field !== "reviewed") setConfirmed(false);
+    };
+    const loadReviewCandidates = async () => {
+        setLoadingCandidates(true);
+        try {
+            const result = await getWorkbookOnePictureReviewCandidates(firebaseUser, pageLabel);
+            if (result?.page_label !== pageLabel || result?.interaction_type !== interactionType
+                || Number(result?.question_count) !== pageConfig.questionCount
+                || !Array.isArray(result?.candidates) || result.candidates.length !== pageConfig.questionCount) {
+                throw new Error("審閱候選題數或來源頁不一致");
+            }
+            setRows(result.candidates.map(item => makeRow({
+                prompt_text: item.prompt_text || "",
+                answer_text: item.answer_text || "",
+                accepted_full_responses: (item.accepted_full_responses || []).join("\n"),
+                pronunciation_notes_zh: item.pronunciation_notes_zh || "",
+                alt_zh: item.alt_zh || ""
+            })));
+            setConfirmed(false);
+            toast.success(`${pageLabel} 候選文字已載入；請逐題對照原頁並選擇核准圖片`);
+        } catch (error) {
+            toast.error(error.message || "無法載入逐頁核對候選文字");
+        } finally {
+            setLoadingCandidates(false);
+        }
+    };
     const changePage = value => {
         const next = PICTURE_PAGE_OPTIONS.find(option => option.pageLabel === value) || PICTURE_PAGE_OPTIONS[0];
         setPageLabel(next.pageLabel);
@@ -53,6 +83,7 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
         event.preventDefault();
         if (!workbookOne) return toast.error("目前找不到已啟用的 Workbook 1");
         if (invalidImage) return toast.error("每題都要選擇 10MB 內的 JPG、PNG 或 WebP 圖片");
+        if (!allRowsReviewed) return toast.error("請先逐題確認文字與圖片");
         if (!confirmed) return toast.error("請先確認文字與圖片都已逐題對照原教材");
         setWorking(true);
         let draftId = null;
@@ -122,8 +153,11 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
                 <label><span>主題</span><input required value={topic} onChange={event => setTopic(event.target.value)} disabled={working} /></label>
             </div>
             <div className="speaking-picture-authoring__notice"><AlertTriangle size={18} /><span>本頁固定 {pageConfig.questionCount} 題。{isGap ? "句型只能有一個底線空格；完整答案欄要填入已補好圖片答案的整句。" : "問句必須完整並以 ? 結尾；回答欄要填入同一張圖片的完整回答。"}</span></div>
+            <button type="button" className="platform-secondary speaking-picture-authoring__load" onClick={loadReviewCandidates} disabled={working || loadingCandidates}>
+                <ClipboardCheck size={17} />{loadingCandidates ? "載入候選中…" : `載入 ${pageLabel} 逐頁核對候選文字`}
+            </button>
             <div className="speaking-picture-authoring__rows">{rows.map((row, index) => <article key={row.key}>
-                <header><strong>{pageLabel} 第 {index + 1}／{pageConfig.questionCount} 題</strong></header>
+                <header><strong>{pageLabel} 第 {index + 1}／{pageConfig.questionCount} 題</strong><label className="speaking-picture-authoring__row-check"><input type="checkbox" checked={row.reviewed} onChange={event => updateRow(row.key, "reviewed", event.target.checked)} disabled={working || !row.prompt_text.trim() || !row.answer_text.trim() || !row.alt_zh.trim() || !imageIsValid(row.file)} /><span>本題內容與圖片已核對</span></label></header>
                 <div className="platform-form">
                     <label><span>{isGap ? "挖空句型" : "完整問句"}</span><input required value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} disabled={working} placeholder={isGap ? "The ____ is in the tree." : "What is that?"} /></label>
                     <label><span>{isGap ? "補好答案的完整句子" : "完整回答"}</span><input required value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} disabled={working} placeholder={isGap ? "The apple is in the tree." : "It is an apple."} /></label>
@@ -135,8 +169,8 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
                     </div>
                 </div>
             </article>)}</div>
-            <label className="speaking-confirm"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={working} /><span>我已逐題對照 Workbook 1 {pageLabel}，確認圖片、問句／句型、完整回答、冠詞、所有權答案與替代文字正確，且圖片可用於本教材。</span></label>
-            <button className="platform-primary" disabled={working || !confirmed || Boolean(invalidImage)}>{working ? "正在建立安全草稿…" : `建立 ${pageLabel} 草稿並上傳私人圖片`}</button>
+            <label className="speaking-confirm"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={working || !allRowsReviewed} /><span>我已逐題對照 Workbook 1 {pageLabel}，確認圖片、問句／句型、完整回答、冠詞、所有權答案與替代文字正確，且圖片可用於本教材。</span></label>
+            <button className="platform-primary" disabled={working || !confirmed || !allRowsReviewed || Boolean(invalidImage)}>{working ? "正在建立安全草稿…" : `建立 ${pageLabel} 草稿並上傳私人圖片`}</button>
         </form>
     </section>;
 }
