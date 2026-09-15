@@ -60,14 +60,19 @@ export const speakingChallengeIsComplete = (set: ChallengeSet, completedQuestion
 
 export const speakingChallengeUnlockState = <T extends ChallengeSet>(sets: T[], completedQuestionIds: Set<number>) => {
     const ordered = sortSpeakingChallengeSets(sets);
+    let activeSection: SpeakingChallengeCatalogSection | null = null;
     let allPreviousComplete = true;
 
-    return ordered.map((set, index) => {
-        // Students progress through one linear sequence per Workbook. A later
-        // topic or textbook challenge must never bypass an unfinished earlier
-        // challenge, regardless of its catalog section.
+    return ordered.map((set) => {
         const section = speakingChallengeCatalogSection(set);
-        const isUnlocked = index === 0 || allPreviousComplete;
+        // Preparation, textbook, and topic practice are independent paths.
+        // The first challenge in every section is always available; after that,
+        // an unfinished challenge keeps the rest of that section locked.
+        if (section !== activeSection) {
+            activeSection = section;
+            allPreviousComplete = true;
+        }
+        const isUnlocked = allPreviousComplete;
         allPreviousComplete = allPreviousComplete && speakingChallengeIsComplete(set, completedQuestionIds);
         return {
             id: Number(set.id),
