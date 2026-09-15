@@ -192,6 +192,10 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         const firstLesson = screen.getByRole("button", { name: /我的名字與自我介紹/ });
         const secondLesson = screen.getByRole("button", { name: /顏色與生活物品/ });
+        const compactToolbar = screen.getByRole("button", { name: /全部教材/ }).closest(".speaking-book-toolbar");
+        expect(compactToolbar).toContainElement(screen.getByRole("heading", { name: "Workbook 1" }));
+        expect(compactToolbar).toHaveTextContent("依順序完成，解鎖下一關");
+        expect(compactToolbar).toHaveTextContent("0/2");
         expect(firstLesson).toBeEnabled();
         expect(secondLesson).toBeDisabled();
         expect(secondLesson).toHaveTextContent("先完成前一關");
