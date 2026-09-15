@@ -2,9 +2,9 @@
 
 最後更新：2026-09-15
 
-本次手機口說大挑戰導覽修正（2026-09-15，待正式發布）：
+本次手機口說大挑戰導覽修正（2026-09-15，已正式發布）：
 
-- 修正手機進入口說大挑戰「全部教材」或單一 Workbook 關卡列表時，外層專注模式錯誤隱藏 Navbar 的問題。現在只有實際進入 `/student/speaking-challenges/:questionSetId` 小關卡時才收起頂端 Logo Header；教材列表與 Workbook 關卡列表會保留手機 Navbar 與既有底部導覽。教材播放器的口說範圍暫停／隱藏規則、學生解鎖、老師／管理員預覽、Firebase、Supabase 與題組資料均未修改。相關 React 測試通過；待 build、提交、推送及正式站驗收。
+- 修正手機進入口說大挑戰「全部教材」或單一 Workbook 關卡列表時，外層專注模式錯誤隱藏 Navbar 的問題。現在只有實際進入 `/student/speaking-challenges/:questionSetId` 小關卡時才收起頂端 Logo Header；教材列表與 Workbook 關卡列表會保留手機 Navbar 與既有底部導覽。教材播放器的口說範圍暫停／隱藏規則、學生解鎖、老師／管理員預覽、Firebase、Supabase 與題組資料均未修改。相關 React 測試、Production build 與 `git diff --check` 通過；PR #142 已合併至 `main` commit `5d6afc0`，Netlify production deploy `6aa945ff2d8c4f65f12aa34f` 與固定測試站 deploy `6aa94534263dfdfa7443d08b` 均為 ready。
 
 本次 P21 管理員草稿（2026-09-15，未發布）：
 
