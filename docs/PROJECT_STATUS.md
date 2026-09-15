@@ -2,6 +2,10 @@
 
 最後更新：2026-09-15
 
+本次 Workbook 口說關卡線性解鎖修正（2026-09-15，尚未部署）：
+
+- 學生在同一本 Workbook 中必須完成上一個已發布關卡，下一個關卡才會解鎖；課本練習與主題練習不再互相繞過順序。老師／管理員預覽模式維持可直接查看全部關卡。已更新 `speaking-challenge` 共用 progression 邏輯與測試；尚待部署 Edge Function 才會套用至正式／測試站。
+
 本次 Navbar 收合與路由載入改善（2026-09-15，已正式發布）：
 
 - Navbar／學生 Navbar 在選取入口後立即關閉抽屜與下拉選單，避免點擊後殘留遮罩；大型管理、教材與口說頁改為路由層級延遲載入，降低首次下載量。教材、作業、通知、會員與 entitlement 仍由既有 API 即時驗證，未修改 Firebase、Supabase 或後端權限。相關測試與 Production build 通過；production deploy `6aa959647c0144b730fc5303` ready，正式學生頁 HTTP 200 且載入本次 build 資產。
