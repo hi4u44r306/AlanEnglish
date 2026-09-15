@@ -1,7 +1,9 @@
 # Workbook 1 口說大挑戰 Phase 0 基準
 
-盤點時間：2026-09-15  
-資料來源：共用 Supabase 專案 `alan-english`（唯讀查詢）  
+盤點時間：2026-09-15
+
+資料來源：共用 Supabase 專案 `alan-english`（唯讀查詢）
+
 用途：後續建立、發布或部署前後的防覆蓋比對；本文件不包含學生識別資料、私人 R2 object key 或 Secret。
 
 ## 1. 正式教材
