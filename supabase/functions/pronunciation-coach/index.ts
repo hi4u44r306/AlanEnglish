@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { assertBookEntitled, relationOne } from "../_shared/book-entitlement.ts";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
-import { readAzureWordAssessment, selectAzureAssessmentResult } from "../_shared/azure-pronunciation.ts";
+import { listAzureAssessmentResults, readAzureWordAssessment, selectAzureAssessmentResult } from "../_shared/azure-pronunciation.ts";
 import {
     buildSpeakingReferenceText,
     hasSpeakingAnswerSlots,
@@ -11,6 +11,7 @@ import {
 } from "../_shared/speaking-pronunciation-reference.ts";
 import {
     foundationRetryFeedback,
+    evaluateLetterSpellingAssessment,
     matchesFoundationAnswer,
     readFoundationInteractionType,
     usesUnscriptedFoundationAssessment
@@ -232,8 +233,25 @@ const releaseFoundationRoundClaim = async (admin: any, studentId: number, roundI
 };
 
 const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof assertPublishedQuestionAccess>>) => {
-    const selected = selectAzureAssessmentResult(data);
+    const assessmentResults = listAzureAssessmentResults(data);
+    let selected = assessmentResults[0] || selectAzureAssessmentResult(data);
     if (!selected) throw Object.assign(new Error("發音評分服務沒有回傳完整分數"), { status: 502, code: "provider_assessment_unavailable" });
+    let spellingDecision: ReturnType<typeof evaluateLetterSpellingAssessment> | null = null;
+    if (question.interactionType === "letter_spelling") {
+        for (const candidate of assessmentResults) {
+            const candidateText = String(candidate.best?.Display || candidate.best?.Lexical || "").trim();
+            const decision = evaluateLetterSpellingAssessment(
+                question.answerTemplate,
+                candidateText,
+                candidate.best?.Words
+            );
+            if (!spellingDecision || decision.answerMatch) {
+                spellingDecision = decision;
+                selected = candidate;
+            }
+            if (decision.answerMatch) break;
+        }
+    }
     const { best, assessment } = selected;
     const azureWords = Array.isArray(best?.Words) ? best.Words : [];
     const recognizedText = String(best?.Display || best?.Lexical || data?.DisplayText || "").trim();
@@ -261,8 +279,13 @@ const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof ass
             const errorType = String(wordAssessment.errorType || (item ? "None" : "Omission"));
             return { text, score, status: errorType === "None" ? statusForScore(score) : "retry", error_type: errorType };
         });
+    if (question.interactionType === "letter_spelling" && !spellingDecision) {
+        spellingDecision = evaluateLetterSpellingAssessment(question.answerTemplate, recognizedText, azureWords);
+    }
     const answerMatch = question.interactionType
-        ? matchesFoundationAnswer(question.interactionType, question.answerTemplate, recognizedText, question.acceptedAnswers)
+        ? question.interactionType === "letter_spelling"
+            ? spellingDecision?.answerMatch === true
+            : matchesFoundationAnswer(question.interactionType, question.answerTemplate, recognizedText, question.acceptedAnswers)
         : question.isStructuredAnswer
             ? matchesSpeakingAnswerTemplate(question.answerTemplate, recognizedText)
             : true;
@@ -278,6 +301,9 @@ const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof ass
     return {
         answer_mode: question.interactionType || (question.isStructuredAnswer ? "structured_voice" : "scripted_voice"),
         answer_match: answerMatch,
+        assessment_status: question.interactionType === "letter_spelling"
+            ? answerMatch ? "matched" : spellingDecision?.uncertain ? "uncertain" : "mismatch"
+            : null,
         answer_prompt: question.interactionType ? null : question.answerPrompt,
         interaction_type: question.interactionType || null,
         recognized_text: recognizedText,
@@ -289,7 +315,9 @@ const normalizeAzureResult = (data: any, question: Awaited<ReturnType<typeof ass
             prosody: numberScore(assessment?.ProsodyScore)
         },
         words,
-        feedback: !answerMatch
+        feedback: question.interactionType === "letter_spelling" && spellingDecision?.uncertain
+            ? "系統這次沒有聽清楚，不算你答錯；請把每個字母稍微分開，再試一次。"
+            : !answerMatch
             ? (question.interactionType
                 ? foundationRetryFeedback(question.interactionType)
                 : `請用「${question.answerPrompt}」的完整句型再回答一次。`)

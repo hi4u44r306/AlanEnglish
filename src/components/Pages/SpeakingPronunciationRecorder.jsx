@@ -103,7 +103,9 @@ export default function SpeakingPronunciationRecorder({
             const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId });
             setResult(score);
             playSpeakingFeedbackSound(
-                score?.answer_match === false
+                score?.assessment_status === "uncertain"
+                    ? "practice"
+                    : score?.answer_match === false
                     ? "retry"
                     : scoreTone(Math.round(score?.scores?.pronunciation || 0))
             );
@@ -117,6 +119,7 @@ export default function SpeakingPronunciationRecorder({
 
     const pronunciationScore = Math.round(result?.scores?.pronunciation || 0);
     const answerMatched = result?.answer_match !== false;
+    const assessmentUncertain = result?.assessment_status === "uncertain";
     const resultTone = answerMatched ? scoreTone(pronunciationScore) : "retry";
     const accessibleDisabledReason = /\d+\s*秒後播放提示音/.test(disabledReason)
         ? "三秒後播放提示音。"
@@ -144,7 +147,7 @@ export default function SpeakingPronunciationRecorder({
             <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
-            <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : "回答方式還差一點"}</strong></header>
+            <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
             {result.recognized_text && <p className="speaking-recognized-answer"><strong>我聽到</strong><span>{result.recognized_text}</span></p>}
             <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>
             {(result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}</span>)}</div>}

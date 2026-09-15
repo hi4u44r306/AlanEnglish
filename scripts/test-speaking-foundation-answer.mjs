@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+    evaluateLetterSpellingAssessment,
     matchesFoundationAnswer,
     normalizedSpokenSentence,
     pictureGapAnswerMatchesPrompt,
@@ -41,6 +42,37 @@ assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P P L E"
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P L E"), false);
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "A P P E L"), false);
 assert.equal(matchesFoundationAnswer("letter_spelling", "A P P L E", "apple"), false);
+assert.deepEqual(
+    evaluateLetterSpellingAssessment("A P P L E", "apple", [
+        { Word: "A", AccuracyScore: 55, ErrorType: "None" },
+        { Word: "P", AccuracyScore: 52, ErrorType: "None" },
+        { Word: "P", AccuracyScore: 48, ErrorType: "Mispronunciation" },
+        { Word: "L", AccuracyScore: 46, ErrorType: "None" },
+        { Word: "E", AccuracyScore: 44, ErrorType: "None" }
+    ]),
+    { answerMatch: true, uncertain: false, basis: "aligned_words", averageAccuracy: 49, lowestAccuracy: 44 }
+);
+assert.equal(evaluateLetterSpellingAssessment("A P P L E", "apple", [
+    { Word: "A", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "P", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "P", AccuracyScore: 10, ErrorType: "Mispronunciation" },
+    { Word: "L", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "E", AccuracyScore: 70, ErrorType: "None" }
+]).uncertain, true);
+assert.equal(evaluateLetterSpellingAssessment("A P P L E", "apple", [
+    { Word: "A", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "P", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "P", AccuracyScore: 70, ErrorType: "Omission" },
+    { Word: "L", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "E", AccuracyScore: 70, ErrorType: "None" }
+]).answerMatch, false);
+assert.equal(evaluateLetterSpellingAssessment("A P P L E", "apple", [
+    { Word: "A", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "P", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "L", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "P", AccuracyScore: 70, ErrorType: "None" },
+    { Word: "E", AccuracyScore: 70, ErrorType: "None" }
+]).basis, "sequence_mismatch");
 assert.equal(normalizedSpokenSentence("What is that?  It is an apple."), "what is that it is an apple");
 assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple.", "What is that? It is an apple."), true);
 assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple.", "It is an apple."), false);
@@ -129,6 +161,8 @@ const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-co
 const challengeSource = readFileSync(new URL("../supabase/functions/speaking-challenge/index.ts", import.meta.url), "utf8");
 const requestLedgerSource = readFileSync(new URL("../supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql", import.meta.url), "utf8");
 assert.match(coachSource, /matchesFoundationAnswer/);
+assert.match(coachSource, /evaluateLetterSpellingAssessment/);
+assert.match(coachSource, /assessment_status/);
 assert.match(coachSource, /usesUnscriptedFoundationAssessment/);
 assert.match(coachSource, /reference_text: question\.interactionType \? null/);
 assert.match(coachSource, /reserveProviderRequest/);

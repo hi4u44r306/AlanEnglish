@@ -145,6 +145,34 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(playSpeakingFeedbackSound).not.toHaveBeenCalled();
     });
 
+    it("拼讀辨識不確定時不顯示答錯，並使用練習提示音", async () => {
+        const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
+        convertAudioBlobToWav.mockResolvedValue(wav);
+        submitSpeakingPronunciationAttempt.mockResolvedValue({
+            answer_match: false,
+            assessment_status: "uncertain",
+            recognized_text: "apple",
+            scores: { pronunciation: 52 },
+            words: [{ text: "P", score: 18, status: "retry" }],
+            feedback: "系統這次沒有聽清楚，不算你答錯；請把每個字母稍微分開，再試一次。"
+        });
+
+        render(<SpeakingPronunciationRecorder
+            firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 14 }}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
+        await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1));
+        fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
+
+        expect(await screen.findByText("系統沒有聽清楚")).toBeInTheDocument();
+        expect(screen.queryByText("回答方式還差一點")).not.toBeInTheDocument();
+        expect(screen.getByText(/不算你答錯/)).toBeInTheDocument();
+        expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("practice");
+    });
+
     it("另一個請求正在評分時只提示等待，不把有效回合歸零", async () => {
         const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
         const onRoundInvalid = jest.fn();
