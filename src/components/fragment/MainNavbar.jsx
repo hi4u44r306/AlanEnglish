@@ -180,6 +180,10 @@ function MainNavbar() {
     }, [firebaseUser]);
 
     const closeMobileMenu = () => setMobileOpen(false);
+    const closeNavigation = () => {
+        setMobileOpen(false);
+        setDesktopMaterialsOpen(false);
+    };
     const handleLogout = async () => {
         if (loggingOut) return;
         setLoggingOut(true);
@@ -272,7 +276,7 @@ function MainNavbar() {
             <Navbar className={`ae-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
                     <Navbar.Brand as={Link} to={homePath} className="ae-brand" data-tour="home"><Brand /></Navbar.Brand>
-                    <Nav className={`ae-desktop-nav ${isStudent ? "is-student" : ""}`}>
+                    <Nav className={`ae-desktop-nav ${isStudent ? "is-student" : ""}`} onSelect={closeNavigation}>
                         {isAuthenticated && <Nav.Link as={Link} to={homePath} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><span className="ae-nav-inline"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</span></Nav.Link>}
                         {hasAccessibleStudentMaterials && <NavDropdown id="desktop-student-materials" title={<span className="ae-nav-inline"><FiBookOpen />我的教材</span>} className={`ae-desktop-dropdown ae-student-materials-dropdown ${accessibleStudentCategories.some(isMaterialCategoryActive) ? "is-active" : ""}`} align="end" data-tour="materials" show={desktopMaterialsOpen} onToggle={setDesktopMaterialsOpen} autoClose="outside"><div className="ae-materials-dropdown-heading"><strong>選擇教材分類</strong><span>共 {accessibleStudentCategories.reduce((total, category) => total + category.books.length, 0)} 本</span></div>{accessibleStudentCategories.map(category => renderStudentMaterialCategory(category, "desktop"))}</NavDropdown>}
                         {isAuthenticated && hasPronunciationAccess && <Nav.Link as={Link} to="/student/pronunciation" className={isPathActive("/student/pronunciation") ? "active" : ""}><span className="ae-nav-inline"><FiMic />{isTeacher ? "發音教練示範" : "發音教練"}</span></Nav.Link>}

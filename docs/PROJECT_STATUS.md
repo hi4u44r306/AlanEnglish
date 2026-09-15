@@ -2,6 +2,10 @@
 
 最後更新：2026-09-15
 
+本次 Navbar 收合與路由載入改善（2026-09-15，待發布）：
+
+- Navbar／學生 Navbar 在選取入口後立即關閉抽屜與下拉選單，避免點擊後殘留遮罩；大型管理、教材與口說頁改為路由層級延遲載入，降低首次下載量。教材、作業、通知、會員與 entitlement 仍由既有 API 即時驗證，未修改 Firebase、Supabase 或後端權限。相關測試已通過，待 Production build、提交與推送。
+
 本次學生浮動作業捷徑移除（2026-09-15，已正式發布）：
 
 - 學生端不再於任何頁面渲染浮動「今日作業」捷徑，避免遮住教材、口說與一般頁面內容；學生仍可依既有 assignment entitlement 從 Navbar／更多的「我的作業」入口進入作業。老師與管理員的浮動「發布作業」快捷鈕維持原狀。沒有修改作業資料、班級隔離、Firebase、Supabase 或權限判定；相關元件測試、Production build 與 `git diff --check` 通過。PR #146 已合併至 `main` commit `e98ed5d`，production deploy `6aa94d954575d996f543f9c2` 為 ready，正式學生頁 HTTP 200 且載入本次 build 資產。
