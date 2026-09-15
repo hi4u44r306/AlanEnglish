@@ -128,7 +128,7 @@
 .speaking-book-card small { align-self: start; }
 .speaking-book-card footer { grid-column: 2; display: inline-flex; align-items: center; gap: 5px; }
 
-.speaking-catalog-group { grid-column: 1 / -1; overflow: hidden; border: 1px solid #cfdcf0; border-radius: 24px; background: #fff; box-shadow: 0 12px 32px rgba(20, 47, 91, .07); }
+.speaking-catalog-group { grid-column: 1 / -1; overflow: hidden; border: 1px solid #cfdcf0; border-radius: 5px; background: #fff; box-shadow: 0 12px 32px rgba(20, 47, 91, .07); }
 .speaking-catalog-group > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 20px; background: linear-gradient(120deg, #17366f, #2b66bd); color: #fff; }
 .speaking-catalog-group > header div { display: grid; gap: 2px; }
 .speaking-catalog-group > header small { color: #ffd66b; font-size: 11px; font-weight: 900; letter-spacing: .12em; }
@@ -148,11 +148,11 @@
 .speaking-catalog-section.is-topic > header h2,
 .speaking-catalog-section.is-topic > header h3 { color: #6040a4; }
 .speaking-catalog-lessons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: #e3ebf6; }
-.speaking-challenge-lesson { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 13px; align-items: center; min-height: 94px; padding: 14px 18px; border: 0; background: #fff; color: #17233f; text-align: left; cursor: pointer; transition: background .16s ease, box-shadow .16s ease, transform .16s ease; }
+.speaking-challenge-lesson { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 13px; align-items: center; min-height: 94px; padding: 14px 18px; border: 0; background: #fff; color: #17233f; text-align: left; cursor: pointer; }
 .speaking-challenge-lesson::before { position: absolute; inset: 12px auto 12px 0; width: 4px; border-radius: 0 4px 4px 0; background: #73a8e9; content: ""; }
 .speaking-challenge-lesson.is-preparation::before { background: #f0bb35; }
 .speaking-challenge-lesson.is-topic::before { background: #9b79df; }
-.speaking-challenge-lesson:hover, .speaking-challenge-lesson:focus-visible { z-index: 1; background: #f4f8ff; box-shadow: 0 8px 22px rgba(31, 87, 159, .1); outline: 3px solid #8cb7ef; outline-offset: -3px; transform: translateY(-1px); }
+.speaking-challenge-lesson:focus-visible { z-index: 1; outline: 3px solid #8cb7ef; outline-offset: -3px; }
 .speaking-challenge-lesson__number { display: grid; place-items: center; width: 52px; height: 52px; padding: 4px; border-radius: 17px; background: #eaf3ff; color: #245eb3; font-size: 12px; font-weight: 950; text-align: center; }
 .speaking-challenge-lesson__copy { display: grid; gap: 4px; min-width: 0; }
 .speaking-challenge-lesson__copy strong { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 17px; }
@@ -171,7 +171,6 @@
 .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__meta { color: #7c899c; }
 .speaking-challenge-lesson.is-locked::before { background: #c7d0dc; }
 .speaking-challenge-lesson:disabled { opacity: 1; }
-.speaking-challenge-lesson:disabled:hover { box-shadow: none; outline: 0; transform: none; }
 .speaking-challenge-loading-status { grid-column: 1 / -1; color: #526884; font-weight: 800; }
 .speaking-focus-card .speaking-visual-aid { width: min(300px, 100%); margin: 0 auto; overflow: hidden; border: 1px solid #d9e4f2; border-radius: 16px; background: #fff; box-shadow: 0 8px 20px rgba(20, 47, 91, .08); }
 .speaking-focus-card .speaking-visual-aid svg { display: block; width: 100%; height: auto; }
@@ -321,9 +320,6 @@
 @media (prefers-reduced-motion: reduce) {
   .speaking-reward-dialog > section,
   .speaking-reward-dialog__stars { animation: none; }
-  .speaking-challenge-lesson { transition: none; }
-  .speaking-challenge-lesson:hover,
-  .speaking-challenge-lesson:focus-visible { transform: none; }
 }
 .speaking-question-navigation button {
   display: inline-flex;
