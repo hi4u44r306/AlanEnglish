@@ -109,9 +109,7 @@ function PlayerOptionsPanel({
 
 function MusicPlayer({
     music,
-    pausePlayback = false,
-    focusMode = false,
-    onFocusPlayerExpand
+    pausePlayback = false
 }) {
     const dispatch = useDispatch();
     const audioElement = useRef(null);
@@ -1295,24 +1293,13 @@ function MusicPlayer({
     // =====================================
 
     return (
-        <div className={`footer-player${focusMode ? " is-speaking-focus" : ""}`}>
-            {focusMode ? (
-                <button
-                    type="button"
-                    className="player-focus-toggle"
-                    onClick={onFocusPlayerExpand}
-                    aria-label="展開教材播放器（目前已暫停）"
-                    title="教材音檔已暫停，點此展開播放器"
-                >
-                    <MdMusicNote aria-hidden="true" />
-                </button>
-            ) : (
-                <button
-                    type="button"
-                    className="player-mobile-expand"
-                    onClick={() => setIsMobileExpanded(true)}
-                    aria-label="展開播放器"
-                >
+        <div className="footer-player">
+            <button
+                type="button"
+                className="player-mobile-expand"
+                onClick={() => setIsMobileExpanded(true)}
+                aria-label="展開播放器"
+            >
                 <span className="player-track-art" aria-hidden="true">
                     <MdMusicNote />
                 </span>
@@ -1333,11 +1320,10 @@ function MusicPlayer({
                             : `有效聆聽 ${Math.floor(coveragePercent)}%${compactRewardProgress}`}
                     </span>
                 </span>
-                </button>
-            )}
+            </button>
             <AudioPlayer
-                autoPlay={true}
-                autoPlayAfterSrcChange={true}
+                autoPlay={!pausePlayback}
+                autoPlayAfterSrcChange={!pausePlayback}
                 preload="auto"
                 volume={0.5}
                 loop={false}

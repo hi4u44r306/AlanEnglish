@@ -19,7 +19,7 @@ jest.mock("react-h5-audio-player", () => {
         default: React.forwardRef((props, ref) => {
             const audio = React.useRef(null);
             React.useImperativeHandle(ref, () => ({ audio }));
-            return <audio data-testid="audio" ref={audio} src={props.src} onPlay={props.onPlay} onPause={props.onPause} onEnded={props.onEnded} />;
+            return <audio data-testid="audio" data-autoplay={String(props.autoPlay)} data-autoplay-after-src-change={String(props.autoPlayAfterSrcChange)} ref={audio} src={props.src} onPlay={props.onPlay} onPause={props.onPause} onEnded={props.onEnded} />;
         })
     };
 });
@@ -120,8 +120,7 @@ test("續播失敗時仍鎖定確認，可再次點擊成功續播", async () =>
     expect(audio.paused).toBe(false);
 });
 
-test("進入口說挑戰時保留曲目但立即暫停，並提供小型播放器圖示", async () => {
-    const onFocusPlayerExpand = jest.fn();
+test("進入口說挑戰時保留曲目但立即暫停", async () => {
     const { audio, rerender } = await begin();
 
     await act(async () => {
@@ -129,15 +128,11 @@ test("進入口說挑戰時保留曲目但立即暫停，並提供小型播放�
             <MusicPlayer
                 music={track}
                 pausePlayback
-                focusMode
-                onFocusPlayerExpand={onFocusPlayerExpand}
             />
         );
     });
 
     expect(audio.paused).toBe(true);
-    fireEvent.click(screen.getByRole("button", {
-        name: "展開教材播放器（目前已暫停）"
-    }));
-    expect(onFocusPlayerExpand).toHaveBeenCalledTimes(1);
+    expect(audio).toHaveAttribute("data-autoplay", "false");
+    expect(audio).toHaveAttribute("data-autoplay-after-src-change", "false");
 });

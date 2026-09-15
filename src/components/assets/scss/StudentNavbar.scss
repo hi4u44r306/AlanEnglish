@@ -529,7 +529,6 @@
   body:has(.ae-student-bottom-nav) .app-content { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
   body:has(.ae-student-bottom-nav) .app-content.has-player { padding-bottom: calc(176px + env(safe-area-inset-bottom, 0px)); }
   body:has(.ae-student-bottom-nav) .app-content.has-mini-player { padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px)); }
-  body:has(.ae-student-bottom-nav) .app-content.has-focus-player { padding-bottom: calc(134px + env(safe-area-inset-bottom, 0px)); }
   body:has(.ae-student-bottom-nav) .app-player,
   body:has(.ae-student-bottom-nav) .app-player.mini {
     bottom: calc(66px + max(8px, env(safe-area-inset-bottom, 0px)));
