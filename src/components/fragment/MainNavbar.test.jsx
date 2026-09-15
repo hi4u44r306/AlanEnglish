@@ -245,6 +245,7 @@ describe("MainNavbar student navigation", () => {
         getAccessibleCatalog.mockResolvedValue({ categories: [] });
 
         render(<MemoryRouter initialEntries={["/admin/dashboard"]}><MainNavbar /></MemoryRouter>);
+        expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
         fireEvent.click(screen.getByRole("button", { name: "音檔" }));
 
         const musicManagementLink = screen.getByRole("link", { name: "音檔管理" });
@@ -276,6 +277,7 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/teacher/dashboard"]}><MainNavbar /></MemoryRouter>);
         await waitFor(() => expect(screen.queryByText("教材載入中...")).not.toBeInTheDocument());
+        expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
         fireEvent.click(screen.getByRole("button", { name: "音檔" }));
 
         expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");
