@@ -53,7 +53,7 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     const completed = item.is_completed === true;
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
     const pages = pageReference(item);
-    return <button className={`speaking-challenge-lesson ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
+    return <button className={`speaking-challenge-lesson is-${section} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
     <span className="speaking-challenge-lesson__number">{sectionCopy.badge}</span>
     <span className="speaking-challenge-lesson__copy"><strong>{lessonTitle(item)}{pages && <em>{pages}</em>}</strong><small>{item.intro_zh || `${item.topic} · ${item.difficulty}`}</small></span>
     <span className="speaking-challenge-lesson__meta">{locked ? <><FiLock aria-hidden="true" /><small id={`speaking-challenge-lock-${item.id}`}>先完成前一關</small></> : completed ? <><FiCheck aria-hidden="true" /><small>已通關</small></> : <><b>{item.completed_count}/{item.question_count}</b><small>{staffPreview ? "預覽" : "開始挑戰"}</small></>}</span>
@@ -203,7 +203,34 @@ export default function TextbookSpeakingChallenge() {
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
     if (!questionSetId) {
         const selectedBook = bookKey ? catalogGroups.find(group => group.id === bookKey || encodeURIComponent(group.id) === bookKey) : null;
-        return <main className="speaking-challenge-page speaking-challenge-catalog"><header className="speaking-challenge-hero"><span>{staffPreview ? "STAFF PREVIEW" : "STEP BY STEP"}</span><h1>{selectedBook ? selectedBook.label : "口說大挑戰"}</h1><p>{selectedBook ? "依照順序完成關卡；完成後會開啟下一關。" : (staffPreview ? "這是唯讀預覽，所有已發布關卡都可直接開啟。" : "選一本教材，開始你的口說挑戰。")}</p></header>{!staffPreview && !selectedBook && <ChallengeRules />}<section className="speaking-challenge-grid" aria-busy={catalogLoading}>{catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}{!catalogLoading && !selectedBook && catalogGroups.map(group => <button type="button" className="speaking-book-card" key={group.id} onClick={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)}><FiBookOpen /><strong>{group.label}</strong><span>{group.itemCount} 個小關卡</span><small>{group.sections.flatMap(section => section.items).filter(item => item.is_completed).length} / {group.itemCount} 已完成</small><footer>查看關卡 <FiChevronRight /></footer></button>)}{!catalogLoading && selectedBook && <><button type="button" className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部教材</button><section className="speaking-catalog-group"><header><div><small>{selectedBook.eyebrow}</small><h2>{selectedBook.label}</h2></div><span>{selectedBook.itemCount} 個小關卡</span></header>{selectedBook.sections.map(section => <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h3>{section.label}</h3></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons">{section.items.map(item => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}</section></>}{!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
+        const selectedBookCompleted = selectedBook?.sections
+            .flatMap(section => section.items)
+            .filter(item => item.is_completed).length || 0;
+        return <main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
+            {selectedBook ? <header className="speaking-book-toolbar">
+                <button type="button" className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部教材</button>
+                <div className="speaking-book-toolbar__title">
+                    <FiBookOpen aria-hidden="true" />
+                    <div><h1>{selectedBook.label}</h1><p>{staffPreview ? "所有已發布關卡皆可預覽" : "依順序完成，解鎖下一關"}</p></div>
+                </div>
+                <div className="speaking-book-toolbar__progress" aria-label={`已完成 ${selectedBookCompleted} / ${selectedBook.itemCount} 關`}>
+                    <strong>{selectedBookCompleted}/{selectedBook.itemCount}</strong><span>已完成</span>
+                </div>
+            </header> : <header className="speaking-challenge-hero">
+                <span>{staffPreview ? "STAFF PREVIEW" : "STEP BY STEP"}</span>
+                <h1>口說大挑戰</h1>
+                <p>{staffPreview ? "這是唯讀預覽，所有已發布關卡都可直接開啟。" : "選一本教材，開始你的口說挑戰。"}</p>
+            </header>}
+            {!staffPreview && !selectedBook && <ChallengeRules />}
+            <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
+                {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
+                {!catalogLoading && !selectedBook && catalogGroups.map(group => <button type="button" className="speaking-book-card" key={group.id} onClick={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)}><FiBookOpen /><strong>{group.label}</strong><span>{group.itemCount} 個小關卡</span><small>{group.sections.flatMap(section => section.items).filter(item => item.is_completed).length} / {group.itemCount} 已完成</small><footer>查看關卡 <FiChevronRight /></footer></button>)}
+                {!catalogLoading && selectedBook && <section className="speaking-catalog-group">
+                    {selectedBook.sections.map(section => <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h2>{section.label}</h2></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons">{section.items.map(item => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}
+                </section>}
+                {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
+            </section>
+        </main>;
     }
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
     if (["alphabet_round", "letter_spelling"].includes(interactionType)) return <WorkbookOneFoundationChallenge
