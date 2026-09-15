@@ -20,6 +20,7 @@
 - Phase 2 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_2_CONTENT_APPROVAL.md`
 - Phase 3 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_3_CONTENT_APPROVAL.md`
 - Phase 4 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_4_CONTENT_APPROVAL.md`
+- Phase 5 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_5_CONTENT_APPROVAL.md`
 - 既有基礎關卡規則：`docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`
 
 ## 3. 不可被後續工作覆蓋的既有成果
@@ -109,6 +110,8 @@
 
 完成條件：個人答案可安全代換、固定句型可評分、自由欄位不因字典不存在而直接判錯。
 
+狀態（2026-09-15）：已完成學生版 P60、P70～P71、P73、P75、P79～P80、P87、P90、P100 與教師版可對應頁面的人工核對。P71、P73、P75 整理為早晨、下午、晚上三個固定句型候選，P87 整理為虛構家庭樹問答；P60／P70／P80／P90 沒有固定配對答案，只列非計分暖身，P79 的舊式稱謂分類排除，P100 在去品牌與家庭假設的改寫核准前暫緩。尚未建立題庫、TTS、migration、Function 或部署。
+
 ### Phase 6：冠詞、代名詞與位置
 
 - 「A 還是 An？」：第 82、84 頁。
@@ -167,4 +170,4 @@
 
 ## 9. 目前下一步
 
-Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2、Phase 3 與 Phase 4 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2～4 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。若先繼續安全的唯讀來源工作，下一階段為 Phase 5「一天生活與家庭」。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
+Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2～Phase 5 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2～5 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。若先繼續安全的唯讀來源工作，下一階段為 Phase 6「冠詞、代名詞與位置」。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
