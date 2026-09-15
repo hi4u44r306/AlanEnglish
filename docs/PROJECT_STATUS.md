@@ -778,6 +778,10 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 
 - 學生口說列表改在每本教材內分為「入門準備」、「課本練習」及「主題練習」；隱藏 `P14`、`02` 等內部題庫前綴，名稱旁以精確 `source_pages` 顯示「配合第幾頁」。A–Z 保持第一關；課本練習按實際頁碼排序並逐關解鎖；三個跨頁主題在完成入門後可自由開啟，不會阻擋課本頁序。管理員題庫原始名稱與來源資料不變，沒有 migration 或資料更新。React 17/17、progression contract 5/5、Edge Function syntax／Speaking contracts、Production build 與 `git diff --check` 已通過；共用 Supabase `speaking-challenge` v24 為 ACTIVE，Netlify 正式 deploy `6aa826c655d8dd39a2b60728` 已發布，正式站 JS／CSS hash 與本次 build 一致。固定測試站未重新部署，P21／P22 仍未發布。
 
+## 本次完成（2026-09-15，口說大挑戰遊戲規則，尚未部署）
+
+- 學生口說大挑戰列表上方新增兒童易讀的三步驟遊戲規則：「選一關、看題目、開口說」，並說明通關打勾、下一關解鎖與主題練習自由選擇。規則只顯示於學生列表，老師／管理員唯讀預覽不重複顯示；沒有修改判分、麥克風、Firebase、membership、entitlement、migration 或 Edge Function。相關 React 18/18 與 Production build 已通過；尚未部署，待使用者確認發布。
+
 ## 歷史進行中（2026-09-14，Navbar 角色入口稽核完成，尚未部署）
 
 - 學生／老師／管理員 Navbar 角色稽核：學生桌面版補上右上角明確「登出」按鈕，保留頭像直達「我的設定」；學生手機版仍在「更多」抽屜提供登出。老師與管理員的桌面帳號選單及手機選單原本都已有登出，本次不改其權限或入口。待相關 React 測試、production build 與 diff check 通過後再推送分支。

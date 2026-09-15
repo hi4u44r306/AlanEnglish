@@ -6,6 +6,7 @@
 }
 
 .speaking-challenge-hero,
+.speaking-challenge-rules,
 .speaking-challenge-grid,
 .speaking-question-stage,
 .speaking-lesson-header,
@@ -33,6 +34,28 @@
   margin: 0;
   color: #687790;
 }
+
+.speaking-challenge-rules {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid #f0cf70;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #fffdf5, #fff7dd);
+  box-shadow: 0 10px 26px rgba(90, 67, 16, .07);
+}
+
+.speaking-challenge-rules > header { display: flex; align-items: center; gap: 12px; }
+.speaking-challenge-rules > header > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: #ffd45f; color: #17366f; font-size: 23px; font-weight: 950; }
+.speaking-challenge-rules > header div { display: grid; gap: 1px; }
+.speaking-challenge-rules > header small { color: #8a6300; font-size: 10px; font-weight: 900; letter-spacing: .1em; }
+.speaking-challenge-rules h2 { margin: 0; color: #1b3155; font-size: 22px; }
+.speaking-challenge-rules ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0 12px; padding: 0; list-style: none; counter-reset: speaking-rule; }
+.speaking-challenge-rules li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 2px 9px; align-content: center; min-height: 74px; padding: 11px 12px; border: 1px solid #f1dfaa; border-radius: 16px; background: rgba(255, 255, 255, .82); counter-increment: speaking-rule; }
+.speaking-challenge-rules li::before { grid-row: 1 / span 2; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 11px; background: #2b66bd; color: #fff; content: counter(speaking-rule); font-weight: 950; }
+.speaking-challenge-rules li b { color: #17366f; font-size: 15px; }
+.speaking-challenge-rules li span { color: #65758c; font-size: 12px; line-height: 1.45; }
+.speaking-challenge-rules > p { display: flex; align-items: center; gap: 7px; margin: 0; color: #256448; font-size: 13px; font-weight: 850; }
+.speaking-challenge-rules > p svg { flex: 0 0 auto; color: #188258; font-size: 18px; }
 
 .speaking-challenge-grid {
   display: grid;
@@ -680,6 +703,10 @@
   .speaking-catalog-section > header { align-items: flex-start; padding: 11px 14px; }
   .speaking-catalog-section > header div { display: grid; gap: 1px; }
   .speaking-catalog-lessons { grid-template-columns: 1fr; }
+  .speaking-challenge-rules { margin-top: 14px; padding: 15px 14px; border-radius: 18px; }
+  .speaking-challenge-rules ol { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+  .speaking-challenge-rules li { min-height: 62px; padding: 9px 10px; }
+  .speaking-challenge-rules > p { align-items: flex-start; line-height: 1.5; }
   .speaking-challenge-lesson { grid-template-columns: 42px minmax(0, 1fr) auto; min-height: 88px; padding: 13px 14px; }
   .speaking-challenge-lesson__number { width: 42px; height: 42px; border-radius: 13px; }
 }

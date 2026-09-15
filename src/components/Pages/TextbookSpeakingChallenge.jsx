@@ -60,6 +60,22 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     </button>;
 };
 
+const ChallengeRules = () => <section className="speaking-challenge-rules" aria-labelledby="speaking-challenge-rules-title">
+    <header>
+        <span aria-hidden="true">?</span>
+        <div>
+            <small>HOW TO PLAY</small>
+            <h2 id="speaking-challenge-rules-title">遊戲規則</h2>
+        </div>
+    </header>
+    <ol>
+        <li><b>選一關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
+        <li><b>看題目</b><span>看清楚畫面上的字、圖片或問題，想好要說的英文。</span></li>
+        <li><b>開口說</b><span>允許麥克風後清楚說；沒成功沒關係，可以再試一次。</span></li>
+    </ol>
+    <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
+</section>;
+
 export default function TextbookSpeakingChallenge() {
     const { firebaseUser, role } = useAuth();
     const { questionSetId } = useParams();
@@ -169,7 +185,7 @@ export default function TextbookSpeakingChallenge() {
     };
 
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
-    if (!questionSetId) return <main className="speaking-challenge-page speaking-challenge-catalog"><header className="speaking-challenge-hero"><span>{staffPreview ? "STAFF PREVIEW" : "STEP BY STEP"}</span><h1>口說大挑戰</h1><p>{staffPreview ? "這是唯讀預覽，所有已發布關卡都可直接開啟。" : "先完成入門準備，再照著課本順序挑戰；主題練習可以自由選擇。"}</p></header><section className="speaking-challenge-grid" aria-busy={catalogLoading}>{catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}{!catalogLoading && catalogGroups.map(group => <section className="speaking-catalog-group" key={group.id}><header><div><small>{group.eyebrow}</small><h2>{group.label}</h2></div><span>{group.itemCount} 個小關卡</span></header>{group.sections.map(section => <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h3>{section.label}</h3></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons">{section.items.map(item => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}</section>)}{!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
+    if (!questionSetId) return <main className="speaking-challenge-page speaking-challenge-catalog"><header className="speaking-challenge-hero"><span>{staffPreview ? "STAFF PREVIEW" : "STEP BY STEP"}</span><h1>口說大挑戰</h1><p>{staffPreview ? "這是唯讀預覽，所有已發布關卡都可直接開啟。" : "先完成入門準備，再照著課本順序挑戰；主題練習可以自由選擇。"}</p></header>{!staffPreview && <ChallengeRules />}<section className="speaking-challenge-grid" aria-busy={catalogLoading}>{catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}{!catalogLoading && catalogGroups.map(group => <section className="speaking-catalog-group" key={group.id}><header><div><small>{group.eyebrow}</small><h2>{group.label}</h2></div><span>{group.itemCount} 個小關卡</span></header>{group.sections.map(section => <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h3>{section.label}</h3></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons">{section.items.map(item => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}</section>)}{!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}</section></main>;
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
     if (["alphabet_round", "letter_spelling"].includes(interactionType)) return <WorkbookOneFoundationChallenge
         challenge={challenge}
