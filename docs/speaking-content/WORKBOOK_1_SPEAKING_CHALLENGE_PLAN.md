@@ -18,6 +18,7 @@
 - 逐頁分類：`docs/speaking-content/WORKBOOK_1_SPEAKING_MAP.md`
 - P21／P22 核准清單：`docs/speaking-content/WORKBOOK_1_P21_P22_CONTENT_APPROVAL.md`
 - Phase 2 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_2_CONTENT_APPROVAL.md`
+- Phase 3 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_3_CONTENT_APPROVAL.md`
 - 既有基礎關卡規則：`docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`
 
 ## 3. 不可被後續工作覆蓋的既有成果
@@ -84,6 +85,8 @@
 - 「電話號碼聽說挑戰」：第 47 至 48 頁，只使用虛構或教材號碼。
 
 完成條件：數字同音／近音容錯有契約測試，圖片數量與標準答案完成人工核對。
+
+狀態（2026-09-15）：已完成學生版 P39、P40、P42～P43、P46～P50 與教師版可對應頁面的人工核對，整理七個候選關卡及逐題答案。`and` 算式、單一 sandwich 複數題、可能是真實格式的電話號碼與索取父母手機號碼均已排除；電話練習改以非聯絡用途的教材數字代碼設計。P40、P50 在提供的教師版未找到同版頁，所有名詞與 P39／P49 圖片數量仍待管理員複核。尚未建立草稿、TTS、migration、Function 或部署。
 
 ### Phase 4：Be 動詞與身體部位
 
@@ -161,4 +164,4 @@
 
 ## 9. 目前下一步
 
-Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成，仍等待管理員確認用詞與圖片權利；Phase 2 的 P26～P28、P32、P34～P36、P85 也已完成來源審閱與候選核准清單，但尚未建立實作。下一個可執行階段是由管理員核准 Phase 1 內容與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。若管理員先核准 Phase 2，後續再設計其 additive schema／Function 與 idempotent 草稿流程。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
+Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2 與 Phase 3 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2／3 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。

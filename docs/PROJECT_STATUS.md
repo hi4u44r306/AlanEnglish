@@ -13,6 +13,7 @@
 - Phase 1 來源轉錄已開始：學生版 P21 已確認 9 個圖片物件，但原頁沒有把各圖片綁定 Mary's 所有權或 Yes／No，候選內容只採可直接核對的 `What is that?`＋`It is a ...`；學生版 P22 與教師版 P19 已交叉確認 9 個 A-I 圖片補句。P23／P24 另有 J-R 與 S-Z 延伸題，後續必須使用各自來源頁與 template key，不能偽裝成 P22。逐題候選問答、完整句與 alt text 已寫入人工核准清單；圖片使用權、最終用詞與管理員核准仍未完成，因此沒有建立草稿、上傳圖片、產生 TTS 或發布。
 - Phase 1 P23／P24 來源轉錄及本機管理框架已完成：學生版 P23／教師版 P20 的 J-R 共 9 題、學生版 P24／教師版 P21 的 S-Z 共 8 題，均已記錄挖空句型、候選主詞、完整句、alt text、單複數與需人工確認的圖片用詞。專用流程已使用 `workbook_1_p23_picture_gap_v1` 與 `workbook_1_p24_picture_gap_v1`，並擴充 source page／template allowlist 與測試，不會共用 P22 template。Additive migration 與相關 Function 尚未部署；管理員確認用詞與圖片權利前仍不建立正式草稿、不上傳圖片、不產生 TTS、不發布。
 - Phase 2 來源審閱已完成：學生版 P26～P28、P32、P34～P36、P85 已與教師版可對應頁面逐頁核對，整理為「完整句與縮寫、顏色快問快答、客廳裡有什麼、看情境說問候、禮貌回答」五個候選關卡。逐題提示、主要答案、accepted responses、alt text、同義物件、個人回答與排除理由已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_2_CONTENT_APPROVAL.md`；歧義顏色、沒有答案的箭頭圖、過時用語、負面干擾選項及學生／教師版後段不一致都不會被 AI 猜成正式答案。尚待管理員核准，沒有建立草稿、TTS、migration、Function 或部署。
+- Phase 3 來源審閱已完成：學生版 P39、P40、P42～P43、P46～P50 已與教師版可對應頁面核對，整理為看圖數量、近／遠複數物品、英文算術、整點時間、數字代碼與動物數量七個候選關卡；逐題完整答案、accepted responses、alt text、數字正規化與隱私排除規則已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_3_CONTENT_APPROVAL.md`。模糊運算符、單複數矛盾、可能是真實格式的電話號碼及索取父母電話題均不列入必過內容；P40／P50 無教師版同版頁，圖片名詞與 P39／P49 數量仍待管理員複核。未建立草稿、TTS、migration、Function 或部署。
 本次口說關卡返回層級修正（2026-09-15，正式站發布）：
 
 - 修正小關卡頂端返回箭頭、A–Z／拼讀／圖片題離開、一般題最後完成及通關彈窗硬編碼返回口說根目錄的問題。現在只要題組含教材資料，就會回到該 Workbook 的關卡列表；只有舊資料缺少教材識別時才安全回到全部教材。未修改進度、判分、解鎖、Firebase、Supabase、migration 或 Edge Function。
