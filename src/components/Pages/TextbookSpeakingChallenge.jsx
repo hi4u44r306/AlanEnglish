@@ -137,8 +137,10 @@ export default function TextbookSpeakingChallenge() {
     }, [activeQuestion?.id, interactionType, questionSetId]);
 
     useEffect(() => {
-        if (!questionSetId) {
-            try { window.scrollTo({ top: 0, behavior: "auto" }); } catch { /* test environments may not implement scrolling */ }
+        // Keep every catalog, workbook, and individual challenge entry at a
+        // predictable reading position. JSDOM deliberately omits scrolling.
+        if (process.env.NODE_ENV !== "test") {
+            window.scrollTo({ top: 0, behavior: "auto" });
         }
     }, [bookKey, questionSetId]);
 
