@@ -2,9 +2,9 @@
 
 最後更新：2026-09-15
 
-本次 Navbar 收合與路由載入改善（2026-09-15，待發布）：
+本次 Navbar 收合與路由載入改善（2026-09-15，已正式發布）：
 
-- Navbar／學生 Navbar 在選取入口後立即關閉抽屜與下拉選單，避免點擊後殘留遮罩；大型管理、教材與口說頁改為路由層級延遲載入，降低首次下載量。教材、作業、通知、會員與 entitlement 仍由既有 API 即時驗證，未修改 Firebase、Supabase 或後端權限。相關測試已通過，待 Production build、提交與推送。
+- Navbar／學生 Navbar 在選取入口後立即關閉抽屜與下拉選單，避免點擊後殘留遮罩；大型管理、教材與口說頁改為路由層級延遲載入，降低首次下載量。教材、作業、通知、會員與 entitlement 仍由既有 API 即時驗證，未修改 Firebase、Supabase 或後端權限。相關測試與 Production build 通過；production deploy `6aa959647c0144b730fc5303` ready，正式學生頁 HTTP 200 且載入本次 build 資產。
 
 本次學生浮動作業捷徑移除（2026-09-15，已正式發布）：
 
