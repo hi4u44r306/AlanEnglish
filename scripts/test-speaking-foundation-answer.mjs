@@ -169,5 +169,8 @@ assert.match(coachSource, /reserveProviderRequest/);
 assert.match(requestLedgerSource, /v_recent_limit integer := case when v_is_foundation then 60 else 12 end/);
 assert.match(requestLedgerSource, /v_daily_count >= 160/);
 assert.match(challengeSource, /correct_assessment_required/);
+assert.match(challengeSource, /\.select\("answer_match,created_at"\)/);
+assert.match(challengeSource, /attempt\.answer_match !== true/);
+assert.doesNotMatch(challengeSource, /body\?\.answer_match/);
 
 console.log("Workbook 1 foundation answer and template contract passed");

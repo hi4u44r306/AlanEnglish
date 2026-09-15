@@ -4,7 +4,7 @@ import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
 import { toPublicErrorResponse } from "../_shared/public-error.ts";
-import { matchesFoundationAnswer, readFoundationInteractionType } from "../_shared/speaking-foundation-answer.ts";
+import { readFoundationInteractionType } from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
@@ -424,21 +424,17 @@ Deno.serve(async (req: Request) => {
                 if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
                     return json(409, { error: "這題的圖片口說內容尚未完成核准", code: "picture_interaction_missing" });
                 }
-                const expectedAnswer = pictureMode
-                    ? interactionType === "picture_qa"
-                        ? `${pictureInteraction.prompt_text} ${pictureInteraction.answer_text}`
-                        : pictureInteraction.answer_text
-                    : question.model_answer;
-                const acceptedAnswers = pictureMode && Array.isArray(pictureInteraction?.accepted_full_responses)
-                    ? pictureInteraction.accepted_full_responses
-                    : [];
                 const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
                 const { data: attempt, error: attemptError } = await admin.from("speaking_pronunciation_attempts")
-                    .select("recognized_text,created_at").eq("student_id", Number(user.id))
+                    .select("answer_match,created_at").eq("student_id", Number(user.id))
                     .eq("question_set_id", setId).eq("question_id", questionId)
                     .gte("created_at", since).order("created_at", { ascending: false }).limit(1).maybeSingle();
                 if (attemptError) throw attemptError;
-                if (!attempt || !matchesFoundationAnswer(interactionType, expectedAnswer, attempt.recognized_text, acceptedAnswers)) {
+                // pronunciation-coach computes answer_match from the provider response and
+                // persists it server-side. Reusing that authoritative decision keeps the
+                // child-tolerant spelling policy consistent while still rejecting any
+                // completion value supplied by the browser.
+                if (!attempt || attempt.answer_match !== true) {
                     return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
                 }
             }

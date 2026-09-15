@@ -221,7 +221,9 @@ test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前�
     assert.match(foundationAnswers, /spoken\.length !== expected\.length/);
     assert.match(challenge, /speaking_pronunciation_attempts/);
     assert.match(challenge, /correct_assessment_required/);
-    assert.match(challenge, /matchesFoundationAnswer/);
+    assert.match(challenge, /\.select\("answer_match,created_at"\)/);
+    assert.match(challenge, /attempt\.answer_match !== true/);
+    assert.doesNotMatch(challenge, /body\?\.answer_match/);
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /matchesFoundationAnswer/);
     assert.match(coach, /reserveProviderRequest/);
@@ -292,8 +294,8 @@ test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句�
     assert.match(foundationAnswers, /picture_qa/);
     assert.match(foundationAnswers, /picture_gap_sentence/);
     assert.match(foundationAnswers, /accepted\.includes\(spoken\)/);
-    assert.match(challenge, /`\$\{pictureInteraction\.prompt_text\} \$\{pictureInteraction\.answer_text\}`/);
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
+    assert.match(coach, /matchesFoundationAnswer\(question\.interactionType, question\.answerTemplate, recognizedText, question\.acceptedAnswers\)/);
     assert.match(coach, /pictureInteraction\.prompt_text/);
     assert.match(coach, /pictureInteraction\.answer_text/);
     assert.match(coach, /usesUnscriptedFoundationAssessment\(interactionType\)/);
