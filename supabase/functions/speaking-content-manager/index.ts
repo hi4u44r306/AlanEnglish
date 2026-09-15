@@ -53,11 +53,12 @@ const WORKBOOK_ONE_PICTURE_CONFIGS: Record<string, {
     interactionType: "picture_qa" | "picture_gap_sentence";
     templateKey: string;
     defaultTopic: string;
+    questionCount: number;
 }> = {
-    P21: { pageLabel: "P21", interactionType: "picture_qa", templateKey: "workbook_1_p21_picture_qa_v1", defaultTopic: "P21 看圖問答" },
-    P22: { pageLabel: "P22", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p22_picture_gap_v1", defaultTopic: "P22 看圖補句" },
-    P23: { pageLabel: "P23", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p23_picture_gap_v1", defaultTopic: "P23 看圖補句" },
-    P24: { pageLabel: "P24", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p24_picture_gap_v1", defaultTopic: "P24 看圖補句" }
+    P21: { pageLabel: "P21", interactionType: "picture_qa", templateKey: "workbook_1_p21_picture_qa_v1", defaultTopic: "P21 看圖問答", questionCount: 9 },
+    P22: { pageLabel: "P22", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p22_picture_gap_v1", defaultTopic: "P22 看圖補句", questionCount: 9 },
+    P23: { pageLabel: "P23", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p23_picture_gap_v1", defaultTopic: "P23 看圖補句", questionCount: 9 },
+    P24: { pageLabel: "P24", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p24_picture_gap_v1", defaultTopic: "P24 看圖補句", questionCount: 8 }
 };
 const workbookOnePictureConfig = (pageLabel: unknown, interactionType?: unknown) => {
     const normalizedPage = cleanText(pageLabel, 40).toUpperCase();
@@ -304,8 +305,8 @@ const normalizeQuestions = (value: unknown, expectedCount: number) => {
     return questions.length === expectedCount ? questions : null;
 };
 
-const normalizePictureDraftQuestions = (value: unknown, interactionType: string) => {
-    if (!Array.isArray(value) || value.length < 3 || value.length > 20) return null;
+const normalizePictureDraftQuestions = (value: unknown, interactionType: string, expectedQuestionCount?: number) => {
+    if (!Array.isArray(value) || !Number.isInteger(expectedQuestionCount) || value.length !== expectedQuestionCount) return null;
     const rows = value.map((row: any) => {
         const promptText = cleanText(row?.prompt_text, 800);
         const answerText = cleanText(row?.answer_text, 2000);
@@ -1157,10 +1158,10 @@ Deno.serve(async (req: Request) => {
             const expectedPage = pictureConfig?.pageLabel || "";
             const title = cleanText(body?.title, 200);
             const topic = cleanText(body?.topic, 200) || pictureConfig?.defaultTopic || "";
-            const questions = normalizePictureDraftQuestions(body?.questions, interactionType);
+            const questions = normalizePictureDraftQuestions(body?.questions, interactionType, pictureConfig?.questionCount);
             if (!Number.isInteger(bookId) || bookId <= 0 || !pictureConfig || pageLabel !== expectedPage
                 || !title || !questions || body?.confirmed !== true) {
-                return json(400, { error: "請逐題核對 Workbook 1 原頁，填妥至少三題完整內容後再建立草稿" });
+                return json(400, { error: `請逐題核對 Workbook 1 ${expectedPage || pageLabel} 原頁，填妥固定題數的完整內容後再建立草稿` });
             }
             const { data: book, error: bookError } = await admin.from("books")
                 .select("id,name,code,enabled").eq("id", bookId).maybeSingle();

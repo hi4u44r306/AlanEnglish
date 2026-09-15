@@ -262,6 +262,11 @@ test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(manager, /P21～P24 圖片題庫的顯示內容與後端完整答案必須同步/);
     assert.match(manager, /workbook_1_p23_picture_gap_v1/);
     assert.match(manager, /workbook_1_p24_picture_gap_v1/);
+    assert.match(manager, /P21:[\s\S]*?questionCount: 9/);
+    assert.match(manager, /P22:[\s\S]*?questionCount: 9/);
+    assert.match(manager, /P23:[\s\S]*?questionCount: 9/);
+    assert.match(manager, /P24:[\s\S]*?questionCount: 8/);
+    assert.match(manager, /value\.length !== expectedQuestionCount/);
     assert.match(manager, /asset\.source_page_label !== pictureConfig\?\.pageLabel/);
     assert.match(manager, /createdQuestionSetId/);
     assert.match(manager, /create_picture_upload/);

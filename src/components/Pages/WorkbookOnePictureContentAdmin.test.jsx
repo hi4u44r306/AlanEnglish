@@ -23,16 +23,17 @@ describe("WorkbookOnePictureContentAdmin", () => {
         jest.clearAllMocks();
         createWorkbookOnePictureDraft.mockResolvedValue({
             question_set_id: 21,
-            questions: [{ id: 101, sort_order: 0 }, { id: 102, sort_order: 1 }, { id: 103, sort_order: 2 }]
+            questions: Array.from({ length: 9 }, (_, index) => ({ id: 101 + index, sort_order: index }))
         });
         uploadSpeakingQuestionPicture.mockResolvedValue({ success: true });
         discardWorkbookOnePictureDraft.mockResolvedValue({ success: true });
         generateSpeakingVisibleWordAudio.mockResolvedValue({ success: true, failed: 0 });
     });
 
-    it("沒有三題完整圖片與人工確認時不能建立 P21 草稿", () => {
+    it("P21 固定顯示九題，沒有完整圖片與人工確認時不能建立草稿", () => {
         render(<WorkbookOnePictureContentAdmin firebaseUser={{ uid: "admin" }} workbookOne={{ id: 1 }} />);
-        expect(screen.getAllByLabelText("經核准圖片")).toHaveLength(3);
+        expect(screen.getAllByLabelText("經核准圖片")).toHaveLength(9);
+        expect(screen.getByText("P21 第 9／9 題")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "建立 P21 草稿並上傳私人圖片" })).toBeDisabled();
     });
 
@@ -43,7 +44,7 @@ describe("WorkbookOnePictureContentAdmin", () => {
         const answers = screen.getAllByLabelText("完整回答");
         const alts = screen.getAllByLabelText("圖片替代文字（繁體中文）");
         const files = screen.getAllByLabelText("經核准圖片");
-        for (let index = 0; index < 3; index += 1) {
+        for (let index = 0; index < prompts.length; index += 1) {
             fireEvent.change(prompts[index], { target: { value: "What is that?" } });
             fireEvent.change(answers[index], { target: { value: `It is item ${index + 1}.` } });
             fireEvent.change(alts[index], { target: { value: `教材圖片 ${index + 1}` } });
@@ -59,7 +60,7 @@ describe("WorkbookOnePictureContentAdmin", () => {
                 questions: expect.arrayContaining([expect.objectContaining({ prompt_text: "What is that?" })])
             })
         ));
-        await waitFor(() => expect(uploadSpeakingQuestionPicture).toHaveBeenCalledTimes(3));
+        await waitFor(() => expect(uploadSpeakingQuestionPicture).toHaveBeenCalledTimes(9));
         expect(generateSpeakingVisibleWordAudio).not.toHaveBeenCalled();
         expect(onCreated).toHaveBeenCalled();
     });
@@ -71,7 +72,7 @@ describe("WorkbookOnePictureContentAdmin", () => {
         const answers = screen.getAllByLabelText("補好答案的完整句子");
         const alts = screen.getAllByLabelText("圖片替代文字（繁體中文）");
         const files = screen.getAllByLabelText("經核准圖片");
-        for (let index = 0; index < 3; index += 1) {
+        for (let index = 0; index < prompts.length; index += 1) {
             fireEvent.change(prompts[index], { target: { value: "The ____ is in the tree." } });
             fireEvent.change(answers[index], { target: { value: "The apple is in the tree." } });
             fireEvent.change(alts[index], { target: { value: `樹上的教材圖片 ${index + 1}` } });
@@ -91,7 +92,7 @@ describe("WorkbookOnePictureContentAdmin", () => {
         const answers = screen.getAllByLabelText("補好答案的完整句子");
         const alts = screen.getAllByLabelText("圖片替代文字（繁體中文）");
         const files = screen.getAllByLabelText("經核准圖片");
-        for (let index = 0; index < 3; index += 1) {
+        for (let index = 0; index < prompts.length; index += 1) {
             fireEvent.change(prompts[index], { target: { value: "The ____ is in my closet." } });
             fireEvent.change(answers[index], { target: { value: "The jacket is in my closet." } });
             fireEvent.change(alts[index], { target: { value: `P23 教材圖片 ${index + 1}` } });
@@ -115,6 +116,8 @@ describe("WorkbookOnePictureContentAdmin", () => {
         fireEvent.change(screen.getAllByLabelText("完整問句")[0], { target: { value: "What is that?" } });
         fireEvent.click(screen.getByRole("checkbox"));
         fireEvent.change(screen.getByLabelText("活動類型"), { target: { value: "P24" } });
+        expect(screen.getAllByLabelText("挖空句型")).toHaveLength(8);
+        expect(screen.getByText("P24 第 8／8 題")).toBeInTheDocument();
         expect(screen.getAllByLabelText("挖空句型")[0]).toHaveValue("");
         expect(screen.getByRole("checkbox")).not.toBeChecked();
     });
@@ -126,7 +129,7 @@ describe("WorkbookOnePictureContentAdmin", () => {
         const answers = screen.getAllByLabelText("完整回答");
         const alts = screen.getAllByLabelText("圖片替代文字（繁體中文）");
         const files = screen.getAllByLabelText("經核准圖片");
-        for (let index = 0; index < 3; index += 1) {
+        for (let index = 0; index < prompts.length; index += 1) {
             fireEvent.change(prompts[index], { target: { value: "What is that?" } });
             fireEvent.change(answers[index], { target: { value: `It is item ${index + 1}.` } });
             fireEvent.change(alts[index], { target: { value: `教材圖片 ${index + 1}` } });

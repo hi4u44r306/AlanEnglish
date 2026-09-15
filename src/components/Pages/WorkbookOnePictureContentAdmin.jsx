@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { AlertTriangle, ImagePlus, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, ImagePlus } from "lucide-react";
 import { toast } from "react-toastify";
 import {
     createWorkbookOnePictureDraft,
@@ -11,22 +11,23 @@ import {
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const PICTURE_PAGE_OPTIONS = [
-    { pageLabel: "P21", interactionType: "picture_qa", title: "看圖問答" },
-    { pageLabel: "P22", interactionType: "picture_gap_sentence", title: "看圖補句" },
-    { pageLabel: "P23", interactionType: "picture_gap_sentence", title: "看圖補句" },
-    { pageLabel: "P24", interactionType: "picture_gap_sentence", title: "看圖補句" }
+    { pageLabel: "P21", interactionType: "picture_qa", title: "看圖問答", questionCount: 9 },
+    { pageLabel: "P22", interactionType: "picture_gap_sentence", title: "看圖補句", questionCount: 9 },
+    { pageLabel: "P23", interactionType: "picture_gap_sentence", title: "看圖補句", questionCount: 9 },
+    { pageLabel: "P24", interactionType: "picture_gap_sentence", title: "看圖補句", questionCount: 8 }
 ];
 let localRowId = 0;
 const makeRow = () => ({
     key: `picture-row-${Date.now()}-${localRowId += 1}`, prompt_text: "", answer_text: "",
     accepted_full_responses: "", pronunciation_notes_zh: "", alt_zh: "", file: null
 });
+const makeRows = count => Array.from({ length: count }, () => makeRow());
 
 export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookOne, onCreated }) {
     const [pageLabel, setPageLabel] = useState("P21");
     const [title, setTitle] = useState("P21 看圖問答");
     const [topic, setTopic] = useState("P21 看圖問答");
-    const [rows, setRows] = useState(() => [makeRow(), makeRow(), makeRow()]);
+    const [rows, setRows] = useState(() => makeRows(PICTURE_PAGE_OPTIONS[0].questionCount));
     const [confirmed, setConfirmed] = useState(false);
     const [working, setWorking] = useState(false);
     const pageConfig = PICTURE_PAGE_OPTIONS.find(option => option.pageLabel === pageLabel) || PICTURE_PAGE_OPTIONS[0];
@@ -44,7 +45,7 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
         setPageLabel(next.pageLabel);
         setTitle(`${next.pageLabel} ${next.title}`);
         setTopic(`${next.pageLabel} ${next.title}`);
-        setRows([makeRow(), makeRow(), makeRow()]);
+        setRows(makeRows(next.questionCount));
         setConfirmed(false);
     };
 
@@ -84,7 +85,7 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
                 }
             }
             toast.success(`${pageLabel} 圖片草稿、私人圖片${isGap ? "與逐字發音" : ""}已準備完成，請預覽後再發布`);
-            setRows([makeRow(), makeRow(), makeRow()]);
+            setRows(makeRows(pageConfig.questionCount));
             setConfirmed(false);
             await onCreated?.();
         } catch (error) {
@@ -120,9 +121,9 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
                 <label><span>關卡名稱</span><input required value={title} onChange={event => setTitle(event.target.value)} disabled={working} /></label>
                 <label><span>主題</span><input required value={topic} onChange={event => setTopic(event.target.value)} disabled={working} /></label>
             </div>
-            <div className="speaking-picture-authoring__notice"><AlertTriangle size={18} /><span>{isGap ? "句型只能有一個底線空格；完整答案欄要填入已補好圖片答案的整句。" : "問句必須完整並以 ? 結尾；回答欄要填入同一張圖片的完整回答。"}</span></div>
+            <div className="speaking-picture-authoring__notice"><AlertTriangle size={18} /><span>本頁固定 {pageConfig.questionCount} 題。{isGap ? "句型只能有一個底線空格；完整答案欄要填入已補好圖片答案的整句。" : "問句必須完整並以 ? 結尾；回答欄要填入同一張圖片的完整回答。"}</span></div>
             <div className="speaking-picture-authoring__rows">{rows.map((row, index) => <article key={row.key}>
-                <header><strong>{pageLabel} 第 {index + 1} 題</strong>{rows.length > 3 && <button type="button" onClick={() => setRows(current => current.filter(item => item.key !== row.key))} disabled={working} aria-label={`刪除第 ${index + 1} 題`}><Trash2 size={17} /></button>}</header>
+                <header><strong>{pageLabel} 第 {index + 1}／{pageConfig.questionCount} 題</strong></header>
                 <div className="platform-form">
                     <label><span>{isGap ? "挖空句型" : "完整問句"}</span><input required value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} disabled={working} placeholder={isGap ? "The ____ is in the tree." : "What is that?"} /></label>
                     <label><span>{isGap ? "補好答案的完整句子" : "完整回答"}</span><input required value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} disabled={working} placeholder={isGap ? "The apple is in the tree." : "It is an apple."} /></label>
@@ -134,7 +135,6 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
                     </div>
                 </div>
             </article>)}</div>
-            {rows.length < 20 && <button type="button" className="platform-secondary speaking-picture-authoring__add" onClick={() => setRows(current => [...current, makeRow()])} disabled={working}><Plus size={17} />新增一題</button>}
             <label className="speaking-confirm"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={working} /><span>我已逐題對照 Workbook 1 {pageLabel}，確認圖片、問句／句型、完整回答、冠詞、所有權答案與替代文字正確，且圖片可用於本教材。</span></label>
             <button className="platform-primary" disabled={working || !confirmed || Boolean(invalidImage)}>{working ? "正在建立安全草稿…" : `建立 ${pageLabel} 草稿並上傳私人圖片`}</button>
         </form>
