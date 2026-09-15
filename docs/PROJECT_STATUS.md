@@ -2,6 +2,10 @@
 
 最後更新：2026-09-15
 
+本次全站路由回頂修正（2026-09-15，待正式發布）：
+
+- 新增 Router 層級的共用回頂處理。公開首頁、登入、商城、學生、老師與管理員每次切換到不同頁面路徑時，都會以非動畫方式回到頁面頂端；同頁表單、收合區塊、播放器、麥克風互動與資料載入不會觸發捲動。沒有修改 Firebase、Supabase、權限、資料、音檔或個別頁面內容。已新增路由切換測試；待 Production build、提交、推送與正式站驗收。
+
 本次手機口說大挑戰導覽修正（2026-09-15，已正式發布）：
 
 - 修正手機進入口說大挑戰「全部教材」或單一 Workbook 關卡列表時，外層專注模式錯誤隱藏 Navbar 的問題。現在只有實際進入 `/student/speaking-challenges/:questionSetId` 小關卡時才收起頂端 Logo Header；教材列表與 Workbook 關卡列表會保留手機 Navbar 與既有底部導覽。教材播放器的口說範圍暫停／隱藏規則、學生解鎖、老師／管理員預覽、Firebase、Supabase 與題組資料均未修改。相關 React 測試、Production build 與 `git diff --check` 通過；PR #142 已合併至 `main` commit `5d6afc0`，Netlify production deploy `6aa945ff2d8c4f65f12aa34f` 與固定測試站 deploy `6aa94534263dfdfa7443d08b` 均為 ready。

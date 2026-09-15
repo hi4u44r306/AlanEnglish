@@ -65,6 +65,7 @@ import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
 import { StoreProvider } from "../store/StoreContext";
 import publicSeo from "../config/publicSeo.json";
+import RouteScrollToTop from "./RouteScrollToTop";
 
 const LegacyPlaylistRedirect = () => {
     const { playlistId } = useParams();
@@ -88,6 +89,7 @@ const RouteSeoPolicy = () => {
 const App = () => {
     return (
         <Router>
+            <RouteScrollToTop />
             <AuthProvider>
                 <StoreProvider>
                 <ToastContainer
