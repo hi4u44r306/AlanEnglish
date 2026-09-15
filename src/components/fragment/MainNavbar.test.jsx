@@ -77,6 +77,19 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
     });
 
+    it("keeps a direct desktop logout action while mobile logout remains in 更多", async () => {
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+
+        const logoutButtons = screen.getAllByRole("button", { name: "登出" });
+        expect(logoutButtons).toHaveLength(1);
+        expect(logoutButtons[0]).toHaveClass("ae-student-desktop-logout");
+
+        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        const expandedLogoutButtons = await screen.findAllByRole("button", { name: "登出" });
+        expect(expandedLogoutButtons).toHaveLength(2);
+        expect(expandedLogoutButtons[1]).toHaveClass("ae-student-drawer-logout");
+    });
+
     it("keeps the materials entry available while the accessible catalog is loading", async () => {
         let resolveCatalog;
         getAccessibleCatalog.mockImplementationOnce(() => new Promise(resolve => {
@@ -232,6 +245,7 @@ describe("MainNavbar student navigation", () => {
         getAccessibleCatalog.mockResolvedValue({ categories: [] });
 
         render(<MemoryRouter initialEntries={["/admin/dashboard"]}><MainNavbar /></MemoryRouter>);
+        expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
         fireEvent.click(screen.getByRole("button", { name: "音檔" }));
 
         const musicManagementLink = screen.getByRole("link", { name: "音檔管理" });
@@ -263,6 +277,7 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/teacher/dashboard"]}><MainNavbar /></MemoryRouter>);
         await waitFor(() => expect(screen.queryByText("教材載入中...")).not.toBeInTheDocument());
+        expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
         fireEvent.click(screen.getByRole("button", { name: "音檔" }));
 
         expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");

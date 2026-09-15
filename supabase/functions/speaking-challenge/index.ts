@@ -16,6 +16,10 @@ import { DEFAULT_FEMALE_VOICE_ID } from "../_shared/speaking-voice-assignment.ts
 import {
     alphabetCandidateSequenceAllowed
 } from "../_shared/alphabet-master-voice.ts";
+import {
+    sortSpeakingChallengeSets,
+    speakingChallengeUnlockState
+} from "../_shared/speaking-challenge-progression.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -40,6 +44,32 @@ const secureShuffle = <T>(items: T[]) => {
     return next;
 };
 
+const challengeProgress = async (admin: any, studentId: number, sets: any[]) => {
+    const questionIds = sets.flatMap(set => (set.speaking_questions || []).map((question: any) => Number(question.id)));
+    if (!questionIds.length) return new Set<number>();
+    const { data, error } = await admin.from("speaking_challenge_question_progress")
+        .select("question_id,status").eq("student_id", studentId).in("question_id", questionIds);
+    if (error) throw error;
+    return new Set((data || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
+};
+
+const assertStudentChallengeUnlocked = async (admin: any, studentId: number, questionSet: any) => {
+    const { data: sets, error } = await admin.from("speaking_question_sets")
+        .select("id,title,generation_metadata,speaking_questions(id)")
+        .eq("book_id", Number(questionSet.book_id)).eq("status", "published");
+    if (error) throw error;
+    const orderedSets = sortSpeakingChallengeSets(sets || []);
+    const progress = await challengeProgress(admin, studentId, orderedSets);
+    const state = speakingChallengeUnlockState(orderedSets, progress)
+        .find(item => item.id === Number(questionSet.id));
+    if (!state?.is_unlocked) {
+        throw Object.assign(new Error("請先完成前一關，再繼續下一關"), {
+            status: 403,
+            code: "speaking_challenge_locked"
+        });
+    }
+};
+
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -59,7 +89,7 @@ Deno.serve(async (req: Request) => {
         if (action === "catalog") {
             const { data: sets, error } = await admin.from("speaking_question_sets")
                 .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code,content_scope,enabled,archived_at),speaking_questions(id,sort_order)")
-                .eq("status", "published").order("published_at", { ascending: true });
+                .eq("status", "published");
             if (error) throw error;
             const entitlementByBook = new Map<number, boolean>();
             const visibleSets = [];
@@ -70,18 +100,34 @@ Deno.serve(async (req: Request) => {
                 }
                 if (entitlementByBook.get(bookId)) visibleSets.push(set);
             }
-            const questionIds = visibleSets.flatMap((set: any) => (set.speaking_questions || []).map((question: any) => Number(question.id)));
-            const { data: progress, error: progressError } = questionIds.length && !demoMode
-                ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", questionIds)
-                : { data: [], error: null };
-            if (progressError) throw progressError;
-            const completed = new Set((progress || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
-            return json(200, { success: true, demo_mode: demoMode, challenges: visibleSets.map((set: any) => ({
+            const completed = demoMode ? new Set<number>() : await challengeProgress(admin, Number(user.id), visibleSets);
+            const stateBySet = new Map<number, any>();
+            const setsByBook = new Map<string, any[]>();
+            for (const set of visibleSets) {
+                const bookKey = String(set.book_id);
+                setsByBook.set(bookKey, [...(setsByBook.get(bookKey) || []), set]);
+            }
+            for (const bookSets of setsByBook.values()) {
+                for (const state of speakingChallengeUnlockState(bookSets, completed)) stateBySet.set(state.id, state);
+            }
+            const orderedSets = [...visibleSets].sort((left: any, right: any) => {
+                const leftBook = String(left.books?.name || "");
+                const rightBook = String(right.books?.name || "");
+                return leftBook.localeCompare(rightBook, "zh-Hant")
+                    || Number(stateBySet.get(Number(left.id))?.sequence_order || 0) - Number(stateBySet.get(Number(right.id))?.sequence_order || 0)
+                    || Number(left.id) - Number(right.id);
+            });
+            return json(200, { success: true, demo_mode: demoMode, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, generation_metadata: set.generation_metadata || {},
                 question_count: (set.speaking_questions || []).length,
-                completed_count: (set.speaking_questions || []).filter((question: any) => completed.has(Number(question.id))).length
+                completed_count: (set.speaking_questions || []).filter((question: any) => completed.has(Number(question.id))).length,
+                catalog_section: String(stateBySet.get(Number(set.id))?.catalog_section || "textbook"),
+                source_pages: stateBySet.get(Number(set.id))?.source_pages || [],
+                sequence_order: Number(stateBySet.get(Number(set.id))?.sequence_order || 0),
+                is_completed: demoMode ? false : Boolean(stateBySet.get(Number(set.id))?.is_completed),
+                is_unlocked: demoMode || Boolean(stateBySet.get(Number(set.id))?.is_unlocked)
             })) });
         }
 
@@ -93,6 +139,7 @@ Deno.serve(async (req: Request) => {
         if (setError) throw setError;
         if (!questionSetRecord) return json(404, { error: "找不到已發布的口說小關卡" });
         await assertBookEntitled(admin, user, effectiveAccess, relationOne(questionSetRecord.books));
+        if (!demoMode) await assertStudentChallengeUnlocked(admin, Number(user.id), questionSetRecord);
         const { data: setQuestions, error: questionError } = await admin.from("speaking_questions")
             .select("id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,visual_aid,sort_order")
             .eq("question_set_id", setId).order("sort_order", { ascending: true });

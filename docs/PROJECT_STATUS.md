@@ -770,6 +770,22 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
-## 本次進行中（2026-09-09，測試站已部署，正式尚未部署）
+## 本次完成（2026-09-14，學生口說固定順序闖關，已部署）
+
+- 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。手機版口說列表與詳細頁收起 Logo Header，縮小頂部留白；A–Z 介紹頁在超過手機寬度時也採 5 欄大卡片，字級提高至 34–48px，手機版既有 5 欄與尺寸不變。學生專用 Navbar 在 `1100px`（包含 iPad Pro 13 的 `1032px` CSS viewport）以下改用精簡頂欄與底部四入口，避免完整桌面選單截斷帳號控制項；寬螢幕仍維持完整桌面導覽。功能 commit `62ec3c8` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已更新；Production build 與 `git diff --check` 均成功。共用 Supabase `speaking-challenge` 已部署；正式站 deploy `6aa81e7089018100ccffaa7f` 已就緒，正式 CSS 確認含新版 `max-width:1100px` 規則。本批沒有 migration，固定測試站沒有再次部署。
+
+## 本次完成（2026-09-15，Workbook 1 口說列表分區，已部署）
+
+- 學生口說列表改在每本教材內分為「入門準備」、「課本練習」及「主題練習」；隱藏 `P14`、`02` 等內部題庫前綴，名稱旁以精確 `source_pages` 顯示「配合第幾頁」。A–Z 保持第一關；課本練習按實際頁碼排序並逐關解鎖；三個跨頁主題在完成入門後可自由開啟，不會阻擋課本頁序。管理員題庫原始名稱與來源資料不變，沒有 migration 或資料更新。React 17/17、progression contract 5/5、Edge Function syntax／Speaking contracts、Production build 與 `git diff --check` 已通過；共用 Supabase `speaking-challenge` v24 為 ACTIVE，Netlify 正式 deploy `6aa826c655d8dd39a2b60728` 已發布，正式站 JS／CSS hash 與本次 build 一致。固定測試站未重新部署，P21／P22 仍未發布。
+
+## 本次完成（2026-09-15，口說大挑戰遊戲規則，已部署）
+
+- 學生口說大挑戰列表上方新增兒童易讀的三步驟遊戲規則：「選一關、看題目、開口說」，並說明通關打勾、下一關解鎖與主題練習自由選擇。規則只顯示於學生列表，老師／管理員唯讀預覽不重複顯示；沒有修改判分、麥克風、Firebase、membership、entitlement、migration 或 Edge Function。相關 React 18/18、Production build 與 `git diff --check` 已通過；Netlify 正式 deploy `6aa892f3697a3b5b9ae0521e` 已發布，正式站 JS／CSS hash 與本次 build 一致，線上 JS 已確認包含遊戲規則標記。
+
+## 歷史進行中（2026-09-14，Navbar 角色入口稽核完成，尚未部署）
+
+- 學生／老師／管理員 Navbar 角色稽核：學生桌面版補上右上角明確「登出」按鈕，保留頭像直達「我的設定」；學生手機版仍在「更多」抽屜提供登出。老師與管理員的桌面帳號選單及手機選單原本都已有登出，本次不改其權限或入口。待相關 React 測試、production build 與 diff check 通過後再推送分支。
+
+## 歷史進行中（2026-09-09，測試站已部署，正式尚未部署）
 
 - 公開教材停售與方案文案統一：公開教材包、平台月費與 AI 加購都已在前端關閉新的購物車／結帳入口；首頁、教材頁與商城改為明確說明「教材包暫未販售」、「公開付款暫停」。公開規劃改為平台 NT$299／月、AI 教材與發音練習加購 NT$299／月；英文班內部方案與費用不公開在網站。未來實體教材恢復販售時，預定以同一個已驗證 Email 領取 90 天網站使用權，但本批不啟用銷售或領取流程。測試 Supabase 已套用並登記 `20260909100000_pause_public_sales_and_update_membership_pricing.sql`，只更新四個方案設定、不變更既有教材包或訂單；`billing-manager` 與 `store-commerce` 已部署停售防護，三種新付款入口的無身分請求皆正確回傳 503。固定測試站公開路由驗收通過；尚待提交、推送、合併與正式部署。
