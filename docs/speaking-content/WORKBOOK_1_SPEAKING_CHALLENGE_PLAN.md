@@ -17,6 +17,7 @@
 - 教師版：`D:\彬的檔案\AlanEnglish 檔案\Alan's workbook 1 teacher .pdf`（109 頁，只供題型與教學意圖核對，不視為完整答案本）
 - 逐頁分類：`docs/speaking-content/WORKBOOK_1_SPEAKING_MAP.md`
 - P21／P22 核准清單：`docs/speaking-content/WORKBOOK_1_P21_P22_CONTENT_APPROVAL.md`
+- Phase 2 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_2_CONTENT_APPROVAL.md`
 - 既有基礎關卡規則：`docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`
 
 ## 3. 不可被後續工作覆蓋的既有成果
@@ -72,6 +73,8 @@
 - 過時或不自然的教材語句只作來源參考，發布前由管理員確認兒童可用說法。
 
 完成條件：每關 6 至 12 題，固定答案與情境答案分開建模，桌面與手機流程通過。
+
+狀態（2026-09-15）：已完成學生版 P26～P28、P32、P34～P36、P85 與可對應教師版頁面的人工核對，並建立五個候選關卡的逐題提示、主要答案、accepted responses、alt text 與排除理由。P28 的歧義顏色、P32 未標英文答案、P34 同義物件、P36 過時或負面選項，以及 P85 與教師版後段不一致均已標記，不會由 AI 猜成正式答案。尚待管理員核准，未建立草稿、未產生 TTS、未發布。
 
 ### Phase 3：數字、數量、算術與時間
 
@@ -158,4 +161,4 @@
 
 ## 9. 目前下一步
 
-Phase 0 已完成。Phase 1 已完成 P21／P22 與 P23／P24 的候選圖片、名詞、完整答案、accepted responses、alt text、來源頁轉錄及本機專用管理框架；P23／P24 已使用各自 source page 與穩定 template key，並有後端 allowlist 與契約測試保護。下一步先由管理員確認用詞與圖片權利，再依重大改動閘門決定是否套用 additive migration、部署相關 Speaking Function 並建立未發布草稿。未經核准不發布正式題組。另須規劃 P1 歷史錄音保留問題的安全清理與回復方式，取得正式資料刪除授權後才能執行。
+Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成，仍等待管理員確認用詞與圖片權利；Phase 2 的 P26～P28、P32、P34～P36、P85 也已完成來源審閱與候選核准清單，但尚未建立實作。下一個可執行階段是由管理員核准 Phase 1 內容與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。若管理員先核准 Phase 2，後續再設計其 additive schema／Function 與 idempotent 草稿流程。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
