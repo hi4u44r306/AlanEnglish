@@ -21,6 +21,7 @@
 - Phase 3 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_3_CONTENT_APPROVAL.md`
 - Phase 4 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_4_CONTENT_APPROVAL.md`
 - Phase 5 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_5_CONTENT_APPROVAL.md`
+- Phase 6 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_6_CONTENT_APPROVAL.md`
 - 既有基礎關卡規則：`docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`
 
 ## 3. 不可被後續工作覆蓋的既有成果
@@ -121,6 +122,8 @@
 
 完成條件：冠詞依實際開頭音判定；位置圖片、單複數與代名詞答案完成核准。
 
+狀態（2026-09-15）：已完成學生版 P82、P84、P89、P92、P94、P96、P109 與教師版可對應頁面的人工核對，整理字母冠詞、名詞冠詞、代名詞 Be 動詞、`in/on/under` 與 `here/there` 五個候選關卡。P84 不自然的 `yellow`／`Gary`／`my car` 題排除；P89 不使用外貌評價；P92／P94 因難度、羞辱性／外貌句及家庭假設暫不建立。尚待管理員核准，未建立題庫、TTS、migration、Function 或部署。
+
 ### Phase 7：人物、疑問詞與年齡
 
 - 「人物、職業與地點」：第 99、101 至 106 頁。
@@ -170,4 +173,4 @@
 
 ## 9. 目前下一步
 
-Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2～Phase 5 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2～5 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。若先繼續安全的唯讀來源工作，下一階段為 Phase 6「冠詞、代名詞與位置」。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
+Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2～Phase 6 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2～6 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。若先繼續安全的唯讀來源工作，下一階段為 Phase 7「人物、疑問詞與年齡」。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
