@@ -52,7 +52,7 @@
 
 完成條件：既有題組、版本與學生進度均有可比對的 postflight 證據。
 
-狀態（2026-09-15）：唯讀盤點已完成，證據保存於 `docs/speaking-content/WORKBOOK_1_PHASE_0_BASELINE.md`。既有 curated template 無重複，P21／P22 仍不存在且未發布；但發現 7 筆舊 attempt 的私人錄音物件尚未標記刪除，列為 P1 歷史資料保留問題。未取得正式資料清理授權前不自行刪除。
+狀態（2026-09-15）：唯讀盤點已完成，證據保存於 `docs/speaking-content/WORKBOOK_1_PHASE_0_BASELINE.md`。既有 curated template 無重複，P21／P22 仍不存在且未發布；全題組重新盤點確認共有 12 筆舊 attempt 的私人錄音物件尚未標記刪除（題組 ID 2 為 5 筆、題組 ID 4 為 7 筆；原基準只統計後者），列為 P1 歷史資料保留問題。未取得正式資料清理授權前不自行刪除。
 
 ### Phase 1：圖片基礎關卡
 

@@ -229,6 +229,8 @@ test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前�
     assert.match(coach, /matchesFoundationAnswer/);
     assert.match(coach, /reserveProviderRequest/);
     assert.match(coach, /runSpeakingPronunciationFlow/);
+    assert.doesNotMatch(coach, /audio_object_key|audio_saved_at/);
+    assert.doesNotMatch(foundationRoundMigration, /audio_object_key|audio_saved_at/);
     assert.match(pronunciationLedgerMigration, /v_daily_count >= 160/);
     assert.match(coach, /foundationRetryFeedback/);
 });
