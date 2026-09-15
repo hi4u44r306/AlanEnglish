@@ -174,6 +174,10 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
+        expect(await screen.findByRole("heading", { name: "題庫工作台" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /^1\s*草稿$/ })).toHaveAttribute("aria-pressed", "true");
+        expect(await screen.findByText("正在編輯")).toBeInTheDocument();
+        expect(screen.getByText("第 1 版 · 尚未發布")).toBeInTheDocument();
         fireEvent.click(await screen.findByText("預覽學生畫面"));
 
         expect(screen.getByText("What's your name?")).toBeInTheDocument();
