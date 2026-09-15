@@ -24,6 +24,7 @@ import {
     alphabetActiveCandidateAllowed,
     alphabetCandidateSequenceAllowed
 } from "../_shared/alphabet-master-voice.ts";
+import { workbookOnePictureReviewCandidates } from "../_shared/workbook-one-picture-review-candidates.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -48,6 +49,30 @@ const MAX_WHOLE_BOOK_PAGES = 500;
 const ALLOWED_SOURCE_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_PICTURE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_PICTURE_BYTES = 10 * 1024 * 1024;
+const WORKBOOK_ONE_PICTURE_CONFIGS: Record<string, {
+    pageLabel: string;
+    interactionType: "picture_qa" | "picture_gap_sentence";
+    templateKey: string;
+    defaultTopic: string;
+    questionCount: number;
+}> = {
+    P21: { pageLabel: "P21", interactionType: "picture_qa", templateKey: "workbook_1_p21_picture_qa_v1", defaultTopic: "P21 看圖問答", questionCount: 9 },
+    P22: { pageLabel: "P22", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p22_picture_gap_v1", defaultTopic: "P22 看圖補句", questionCount: 9 },
+    P23: { pageLabel: "P23", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p23_picture_gap_v1", defaultTopic: "P23 看圖補句", questionCount: 9 },
+    P24: { pageLabel: "P24", interactionType: "picture_gap_sentence", templateKey: "workbook_1_p24_picture_gap_v1", defaultTopic: "P24 看圖補句", questionCount: 8 }
+};
+const workbookOnePictureConfig = (pageLabel: unknown, interactionType?: unknown) => {
+    const normalizedPage = cleanText(pageLabel, 40).toUpperCase();
+    const config = WORKBOOK_ONE_PICTURE_CONFIGS[normalizedPage] || null;
+    if (!config || (interactionType && config.interactionType !== cleanText(interactionType, 40))) return null;
+    return config;
+};
+const workbookOnePictureConfigForMetadata = (metadata: any) => {
+    const sourcePage = Array.isArray(metadata?.source_pages) && metadata.source_pages.length === 1
+        ? `P${Number(metadata.source_pages[0])}` : "";
+    const config = workbookOnePictureConfig(sourcePage, metadata?.interaction_type);
+    return config && config.templateKey === metadata?.template_key ? config : null;
+};
 const WORKBOOK_ONE_STARTER_KEY = "workbook_1_name_intro_v1";
 const WORKBOOK_ONE_STARTER_QUESTIONS = [
     {
@@ -281,8 +306,8 @@ const normalizeQuestions = (value: unknown, expectedCount: number) => {
     return questions.length === expectedCount ? questions : null;
 };
 
-const normalizePictureDraftQuestions = (value: unknown, interactionType: string) => {
-    if (!Array.isArray(value) || value.length < 3 || value.length > 20) return null;
+const normalizePictureDraftQuestions = (value: unknown, interactionType: string, expectedQuestionCount?: number) => {
+    if (!Array.isArray(value) || !Number.isInteger(expectedQuestionCount) || value.length !== expectedQuestionCount) return null;
     const rows = value.map((row: any) => {
         const promptText = cleanText(row?.prompt_text, 800);
         const answerText = cleanText(row?.answer_text, 2000);
@@ -393,6 +418,22 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action, 80);
 
         if (action === "bootstrap") return json(200, { success: true, ...await loadBootstrap(admin) });
+
+        if (action === "get_workbook_1_picture_review_candidates") {
+            const pageLabel = cleanText(body?.page_label, 40).toUpperCase();
+            const pictureConfig = workbookOnePictureConfig(pageLabel);
+            const candidates = workbookOnePictureReviewCandidates(pageLabel);
+            if (!pictureConfig || !candidates || candidates.length !== pictureConfig.questionCount) {
+                return json(400, { error: "找不到完整的 Workbook 1 圖片題審閱候選" });
+            }
+            return json(200, {
+                success: true,
+                page_label: pictureConfig.pageLabel,
+                interaction_type: pictureConfig.interactionType,
+                question_count: pictureConfig.questionCount,
+                candidates
+            });
+        }
 
         if (action === "preview_question_picture") {
             const questionId = Number(body?.question_id);
@@ -1097,7 +1138,7 @@ Deno.serve(async (req: Request) => {
                 return json(409, { error: "A–Z 題庫由固定 26 個字母模板鎖定，不能使用通用題目編輯器修改" });
             }
             if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
-                return json(409, { error: "P21／P22 圖片題庫的顯示內容與後端完整答案必須同步，不能使用通用題目編輯器修改" });
+                return json(409, { error: "P21～P24 圖片題庫的顯示內容與後端完整答案必須同步，不能使用通用題目編輯器修改" });
             }
             if (questionSet?.generation_metadata?.approved_source_page_label) {
                 return json(409, { error: "P14～P17 題庫由正式核准來源鎖定；如需更改，請先更新來源版本並重建題庫" });
@@ -1129,23 +1170,22 @@ Deno.serve(async (req: Request) => {
         if (action === "create_workbook_1_picture_draft") {
             const bookId = Number(body?.book_id);
             const interactionType = cleanText(body?.interaction_type, 40);
-            const expectedPage = interactionType === "picture_qa" ? "P21"
-                : interactionType === "picture_gap_sentence" ? "P22" : "";
             const pageLabel = cleanText(body?.page_label, 40).toUpperCase();
+            const pictureConfig = workbookOnePictureConfig(pageLabel, interactionType);
+            const expectedPage = pictureConfig?.pageLabel || "";
             const title = cleanText(body?.title, 200);
-            const topic = cleanText(body?.topic, 200) || (interactionType === "picture_qa" ? "P21 看圖問答" : "P22 看圖補句");
-            const questions = normalizePictureDraftQuestions(body?.questions, interactionType);
-            if (!Number.isInteger(bookId) || bookId <= 0 || !expectedPage || pageLabel !== expectedPage
+            const topic = cleanText(body?.topic, 200) || pictureConfig?.defaultTopic || "";
+            const questions = normalizePictureDraftQuestions(body?.questions, interactionType, pictureConfig?.questionCount);
+            if (!Number.isInteger(bookId) || bookId <= 0 || !pictureConfig || pageLabel !== expectedPage
                 || !title || !questions || body?.confirmed !== true) {
-                return json(400, { error: "請逐題核對 Workbook 1 原頁，填妥至少三題完整內容後再建立草稿" });
+                return json(400, { error: `請逐題核對 Workbook 1 ${expectedPage || pageLabel} 原頁，填妥固定題數的完整內容後再建立草稿` });
             }
             const { data: book, error: bookError } = await admin.from("books")
                 .select("id,name,code,enabled").eq("id", bookId).maybeSingle();
             if (bookError) throw bookError;
             const catalogKey = String(book?.code || book?.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
             if (!book?.enabled || catalogKey !== "workbook1") return json(400, { error: "這個圖片草稿只適用 Workbook 1" });
-            const templateKey = interactionType === "picture_qa"
-                ? "workbook_1_p21_picture_qa_v1" : "workbook_1_p22_picture_gap_v1";
+            const templateKey = pictureConfig.templateKey;
             const { data: existing, error: existingError } = await admin.from("speaking_question_sets")
                 .select("id,status").eq("book_id", bookId).contains("generation_metadata", { template_key: templateKey })
                 .neq("status", "archived").limit(1).maybeSingle();
@@ -1223,7 +1263,7 @@ Deno.serve(async (req: Request) => {
             const height = body?.height == null ? null : Number(body.height);
             if (!Number.isInteger(questionId) || questionId <= 0 || !ALLOWED_PICTURE_TYPES.has(mimeType)
                 || !Number.isInteger(byteSize) || byteSize < 1 || byteSize > MAX_PICTURE_BYTES || !altZh
-                || !["P21", "P22"].includes(sourcePageLabel)
+                || !workbookOnePictureConfig(sourcePageLabel)
                 || ((width !== null || height !== null) && (!Number.isInteger(width) || !Number.isInteger(height)
                     || width < 1 || width > 8192 || height < 1 || height > 8192))) {
                 return json(400, { error: "圖片必須是 10MB 內的 JPG、PNG 或 WebP，並填寫正確頁碼與替代文字" });
@@ -1234,10 +1274,10 @@ Deno.serve(async (req: Request) => {
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
-            const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
-            const expectedPage = interactionType === "picture_qa" ? "P21" : interactionType === "picture_gap_sentence" ? "P22" : "";
+            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
+            const expectedPage = pictureConfig?.pageLabel || "";
             if (!question || questionSet?.status !== "draft" || sourcePageLabel !== expectedPage) {
-                return json(409, { error: "只能替 P21／P22 草稿題目上傳對應頁面的圖片" });
+                return json(409, { error: "只能替 P21～P24 草稿題目上傳對應頁面的圖片" });
             }
             const { data: sourceSection, error: sectionError } = await admin.from("speaking_source_sections")
                 .select("document_id").eq("id", Number(questionSet.source_section_id)).maybeSingle();
@@ -1268,13 +1308,14 @@ Deno.serve(async (req: Request) => {
             const questionId = Number(body?.question_id);
             const assetId = cleanText(body?.asset_id, 80);
             const { data: asset, error: assetError } = await admin.from("speaking_visual_assets")
-                .select("id,book_id,source_document_id,status,private_object_key,mime_type,byte_size").eq("id", assetId).maybeSingle();
+                .select("id,book_id,source_document_id,source_page_label,status,private_object_key,mime_type,byte_size").eq("id", assetId).maybeSingle();
             if (assetError) throw assetError;
             const { data: question, error: questionError } = await admin.from("speaking_questions")
                 .select("id,speaking_question_sets!inner(book_id,status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
+            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
             const { data: sourceSection, error: sectionError } = questionSet?.source_section_id
                 ? await admin.from("speaking_source_sections").select("document_id")
                     .eq("id", Number(questionSet.source_section_id)).maybeSingle()
@@ -1283,7 +1324,7 @@ Deno.serve(async (req: Request) => {
             if (!asset?.private_object_key || asset.status !== "draft" || !question || questionSet?.status !== "draft"
                 || Number(asset.book_id) !== Number(questionSet.book_id)
                 || Number(asset.source_document_id) !== Number(sourceSection?.document_id)
-                || !["picture_qa", "picture_gap_sentence"].includes(String(questionSet?.generation_metadata?.interaction_type || ""))) {
+                || asset.source_page_label !== pictureConfig?.pageLabel) {
                 return json(409, { error: "圖片上傳工作與草稿題目不相符" });
             }
             const head = await fetchR2(asset.private_object_key, { method: "HEAD" });
@@ -1339,8 +1380,9 @@ Deno.serve(async (req: Request) => {
             const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
             if (!questionSet || questionSet.status !== "draft"
                 || questionSet?.generation_metadata?.source !== "manual_picture_manifest"
+                || !workbookOnePictureConfigForMetadata(questionSet?.generation_metadata)
                 || !["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
-                return json(409, { error: "只能回復尚未發布的 Workbook 1 P21／P22 人工圖片草稿" });
+                return json(409, { error: "只能回復尚未發布的 Workbook 1 P21～P24 人工圖片草稿" });
             }
             const { data: section, error: sectionError } = await admin.from("speaking_source_sections")
                 .select("document_id").eq("id", Number(questionSet.source_section_id)).maybeSingle();
@@ -1475,13 +1517,17 @@ Deno.serve(async (req: Request) => {
             const pictureMode = metadata?.interaction_type === "picture_qa"
                 || metadata?.interaction_type === "picture_gap_sentence";
             if (pictureMode) {
+                const pictureConfig = workbookOnePictureConfigForMetadata(metadata);
+                if (!pictureConfig) {
+                    return json(409, { error: "圖片題庫的教材頁碼或固定模板不正確" });
+                }
                 const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
                 const [{ data: interactions, error: interactionError }, { data: visualLinks, error: visualError }] = await Promise.all([
                     admin.from("speaking_question_interactions")
                         .select("question_id,interaction_type,prompt_text,answer_text,accepted_full_responses")
                         .in("question_id", questionIds),
                     admin.from("speaking_question_visual_assets")
-                        .select("question_id,speaking_visual_assets!inner(id,book_id,status,private_object_key,mime_type,alt_zh)")
+                        .select("question_id,speaking_visual_assets!inner(id,book_id,source_page_label,status,private_object_key,mime_type,alt_zh)")
                         .in("question_id", questionIds)
                 ]);
                 if (interactionError) throw interactionError;
@@ -1505,6 +1551,7 @@ Deno.serve(async (req: Request) => {
                             && (String(interaction?.prompt_text || "").match(/_{2,}/g) || []).length !== 1)
                         || visual?.status !== "ready"
                         || Number(visual?.book_id) !== Number(questionSet.book_id)
+                        || visual?.source_page_label !== pictureConfig.pageLabel
                         || !visual?.private_object_key
                         || !visual?.alt_zh;
                 });
@@ -1531,7 +1578,7 @@ Deno.serve(async (req: Request) => {
                                 || linked.asset?.status !== "ready" || !linked.asset?.private_object_key;
                         });
                     if (incompleteWords) {
-                        return json(409, { error: "P22 每個可見單字的標準發音尚未全部完成" });
+                        return json(409, { error: `${pictureConfig.pageLabel} 每個可見單字的標準發音尚未全部完成` });
                     }
                 }
             }

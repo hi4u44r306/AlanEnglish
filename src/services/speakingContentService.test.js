@@ -8,6 +8,7 @@ import {
     generateSpeakingQuestionSetAudio,
     getSpeakingQuestionAudioPreview,
     getSpeakingQuestionPicturePreview,
+    getWorkbookOnePictureReviewCandidates,
     getSpeakingContentBootstrap,
     prepareSpeakingSourceUpload,
     prepareSpeakingAlphabetAudioCandidate,
@@ -52,6 +53,7 @@ describe("speakingContentService", () => {
         await activateSpeakingAlphabetAudioCandidate(firebaseUser, 7, "11111111-1111-4111-8111-111111111111");
         await getSpeakingQuestionAudioPreview(firebaseUser, 4, 8);
         await getSpeakingQuestionPicturePreview(firebaseUser, 9);
+        await getWorkbookOnePictureReviewCandidates(firebaseUser, "P21");
 
         expect(callEdgeFunction.mock.calls.map(call => [call[0], call[2].action])).toEqual([
             ["speaking-content-manager", "bootstrap"],
@@ -72,11 +74,12 @@ describe("speakingContentService", () => {
             ["speaking-tts-manager", "prepare_alphabet_audio_candidate"],
             ["speaking-tts-manager", "activate_alphabet_audio_candidate"],
             ["speaking-tts-manager", "preview_question_audio"],
-            ["speaking-content-manager", "preview_question_picture"]
+            ["speaking-content-manager", "preview_question_picture"],
+            ["speaking-content-manager", "get_workbook_1_picture_review_candidates"]
         ]);
         expect(callEdgeFunction.mock.calls.at(-1)?.[2]).toEqual({
-            action: "preview_question_picture",
-            question_id: 9
+            action: "get_workbook_1_picture_review_candidates",
+            page_label: "P21"
         });
     });
 

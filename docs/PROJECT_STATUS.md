@@ -2,9 +2,25 @@
 
 最後更新：2026-09-15
 
-本次管理員口說預覽與題庫工作台（2026-09-15，正式發布）：
+本次 Workbook 1 管理員核准流程（2026-09-15，題庫工作台已正式發布；P21～P24 新流程尚未部署）：
 
-- 管理員與老師繼續使用學生端的 Workbook／關卡版型預覽所有已發布題庫；一般題在 staff 唯讀模式可直接使用上一題／下一題瀏覽，不需完成前題，且前端不呼叫學生完成服務、不寫進度、不發放獎勵。管理員「教材 AI 口說題庫」新增草稿／已發布／全部篩選與數量、醒目的目前編輯題庫／版本標示，並一次只展開一份題庫；已發布題庫提供另開學生版型的預覽連結。本次 release 僅含前端、測試與文件，不含 migration 或 Edge Function 變更；由最新 `main` 建立乾淨 release 並完成 React 29/29、解鎖契約 5/5、Production build 與 `git diff --check`。
+- Phase 1 圖片內容核准流程新增 server-only 候選載入：P21～P24 的人工轉錄候選只由驗證管理員身分的 `speaking-content-manager` 回傳，不放入學生前端資料或公開 API；載入不寫資料庫。管理員須為每題補上核准圖片並逐題勾選，任何文字或圖片異動會撤銷該題確認，全部確認後才可建立 draft，仍不會自動發布。本批尚未部署 Function、建立草稿、產生 TTS 或發布題組。
+- Phase 1 圖片草稿題數防護已補強：管理頁依教材來源固定產生 P21／P22／P23 各 9 列、P24 8 列，移除任意增刪題目入口；`speaking-content-manager` 同步以 page allowlist 驗證精確題數，避免只填三題或額外加入非教材題仍建立草稿。本批只完成本機程式與測試，尚未建立草稿、執行 migration、部署 Function 或發布題組。
+- 管理員與老師繼續使用學生端的 Workbook／關卡版型預覽所有已發布題庫；一般題在 staff 唯讀模式可直接使用上一題／下一題瀏覽，不需完成前題，且前端不呼叫學生完成服務、不寫進度、不發放獎勵。管理員「教材 AI 口說題庫」的草稿／已發布／全部篩選、目前編輯標示與單一展開工作台已由正式 `main` 發布；P21～P24 專用圖片草稿框架、精確題數防護與 server-only 候選載入仍尚未部署，也尚未建立草稿、產生 TTS 或發布題組。
+
+本次規劃（2026-09-15，未建立題庫、未部署）：
+
+- 已建立持續執行文件 `docs/speaking-content/WORKBOOK_1_SPEAKING_CHALLENGE_PLAN.md`，計畫名稱固定為「workbook1口說大挑戰」。計畫以學生版 119 頁為顯示頁碼、教師版 109 頁為交叉核對來源，分成基準鎖定、P21／P22 圖片基礎、句型／顏色／問候、數字／時間、Be 動詞／身體、生活／家庭、冠詞／位置、人物／疑問詞及最終挑戰九個階段；永久保護既有 A-Z、P14 至 P17、循序解鎖、staff 預覽、私人資產、一次性示範音檔及後端答案權威。下一步只先執行 Phase 0 唯讀基準盤點，再利用本次提供的兩份 PDF 完成 P21／P22 來源、圖片、名詞、完整答案與 accepted responses 核對。未經管理員核准不發布；本批沒有 migration、Edge Function 或 Netlify 操作。
+- Phase 0 唯讀基準已完成並保存於 `docs/speaking-content/WORKBOOK_1_PHASE_0_BASELINE.md`：Workbook 1 目前 8 個 published、4 個 draft 題組；正式 curated template key 無重複；A–Z 題組 ID 7 的主音檔維持 `ready`、26 段；P21／P22 題組仍不存在且未發布；既有 A–Z、P14、P15 等進度已依穩定 question set／question ID 記錄。2026-09-15 以全題組範圍重新盤點後，確認共有 12 筆 2026-09-07 的舊 attempt 仍帶私人錄音 object key 且未標記刪除：題組 ID 2 為 5 筆、題組 ID 4「03 顏色與生活物品」為 7 筆；原基準只統計後者，並非問題持續新增。此項仍分類為 P1 歷史資料保留問題；現行 Function 新寫入不再保存錄音，但在確認 R2 物件、回復方式及取得正式資料刪除授權前不自行清理。本批仍未建立題庫、未發布 P21～P24、未執行 migration／Function／Netlify 部署。
+- Phase 1 來源轉錄已開始：學生版 P21 已確認 9 個圖片物件，但原頁沒有把各圖片綁定 Mary's 所有權或 Yes／No，候選內容只採可直接核對的 `What is that?`＋`It is a ...`；學生版 P22 與教師版 P19 已交叉確認 9 個 A-I 圖片補句。P23／P24 另有 J-R 與 S-Z 延伸題，後續必須使用各自來源頁與 template key，不能偽裝成 P22。逐題候選問答、完整句與 alt text 已寫入人工核准清單；圖片使用權、最終用詞與管理員核准仍未完成，因此沒有建立草稿、上傳圖片、產生 TTS 或發布。
+- Phase 1 P23／P24 來源轉錄及本機管理框架已完成：學生版 P23／教師版 P20 的 J-R 共 9 題、學生版 P24／教師版 P21 的 S-Z 共 8 題，均已記錄挖空句型、候選主詞、完整句、alt text、單複數與需人工確認的圖片用詞。專用流程已使用 `workbook_1_p23_picture_gap_v1` 與 `workbook_1_p24_picture_gap_v1`，並擴充 source page／template allowlist 與測試，不會共用 P22 template。Additive migration 與相關 Function 尚未部署；管理員確認用詞與圖片權利前仍不建立正式草稿、不上傳圖片、不產生 TTS、不發布。
+- Phase 2 來源審閱已完成：學生版 P26～P28、P32、P34～P36、P85 已與教師版可對應頁面逐頁核對，整理為「完整句與縮寫、顏色快問快答、客廳裡有什麼、看情境說問候、禮貌回答」五個候選關卡。逐題提示、主要答案、accepted responses、alt text、同義物件、個人回答與排除理由已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_2_CONTENT_APPROVAL.md`；歧義顏色、沒有答案的箭頭圖、過時用語、負面干擾選項及學生／教師版後段不一致都不會被 AI 猜成正式答案。尚待管理員核准，沒有建立草稿、TTS、migration、Function 或部署。
+- Phase 3 來源審閱已完成：學生版 P39、P40、P42～P43、P46～P50 已與教師版可對應頁面核對，整理為看圖數量、近／遠複數物品、英文算術、整點時間、數字代碼與動物數量七個候選關卡；逐題完整答案、accepted responses、alt text、數字正規化與隱私排除規則已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_3_CONTENT_APPROVAL.md`。模糊運算符、單複數矛盾、可能是真實格式的電話號碼及索取父母電話題均不列入必過內容；P40／P50 無教師版同版頁，圖片名詞與 P39／P49 數量仍待管理員複核。未建立草稿、TTS、migration、Function 或部署。
+- Phase 4 來源審閱已完成：學生版 P51、P53、P55、P57、P59、P64、P66、P78 已與教師版 P46、P48、P50、P52、P54、P58、P60、P71 核對，整理為人物 Be 動詞、This、That、It 與身體部位五個候選關卡；教材錯句只作提示，後端標準答案固定使用修正後的完整句，主觀評價、未明示姓名及圖片不清項目不納入必過題。P78 的十二條箭線在兩版都無答案且互相交叉，管理員逐題核准並重製清楚標記前不建立草稿。完整清單位於 `docs/speaking-content/WORKBOOK_1_PHASE_4_CONTENT_APPROVAL.md`；未建立題庫、TTS、migration、Function 或部署。
+- Phase 5 來源審閱已完成：學生版 P60、P70～P71、P73、P75、P79～P80、P87、P90、P100 已與教師版可對應頁面核對，整理為早晨、下午、晚上與虛構家庭樹四個候選關卡。P60／P70／P80／P90 因沒有固定角色配對答案，只列非計分暖身；P79 的舊式稱謂／婚姻分類排除；P100 在去品牌、家庭假設與不自然台詞的改寫核准前暫緩。逐句候選答案、accepted responses、數字／縮寫正規化、隱私與刻板印象護欄已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_5_CONTENT_APPROVAL.md`；未建立題庫、TTS、migration、Function 或部署。
+- Phase 6 來源審閱已完成：學生版 P82、P84、P89、P92、P94、P96、P109 已與教師版可對應頁面核對，整理為字母冠詞、名詞冠詞、代名詞 Be 動詞、`in/on/under` 與 `here/there` 五個候選關卡。字母冠詞依實際字母名稱開頭音判定；P84 不自然末題、P89 外貌評價及 P92／P94 的高難度、羞辱性／家庭假設句均排除。逐題答案、accepted responses、位置箭頭複核與兒童容錯護欄已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_6_CONTENT_APPROVAL.md`；未建立題庫、TTS、migration、Function 或部署。
+- Phase 7 來源審閱已完成：學生版 P99、P101～P106、P108 已與教師版 P90～P96、P98 核對，整理為工作／地點、工作／地點／身分、Who／Where、疑問詞與教材角色年齡五個候選關卡。`What are you?` 的自然 adapted 版本需管理員核准；P99、P103、P104 的錯誤選項、純抄寫與不適合兒童的羞辱／外貌內容均排除。逐題問答、accepted responses、數字正規化與個資護欄已寫入 `docs/speaking-content/WORKBOOK_1_PHASE_7_CONTENT_APPROVAL.md`；未建立題庫、TTS、migration、Function 或部署。
+- Phase 8 來源審閱已完成：學生版 P111～P114、P117～P119 已與教師版 P101～P104、P107～P109 核對。P111 整理八題指示詞候選；P112 前六題與 P114 的遠近資訊不足，管理員逐題核准前不建立；P113 純抄寫排除。P117～P119 只作技能覆蓋參考，最終挑戰改由後端從學生可用、已核准且已發布的前置口說題建立 12 題不可變 round snapshot，不直接匯入外貌／家庭假設或錯誤干擾句。完整規則位於 `docs/speaking-content/WORKBOOK_1_PHASE_8_CONTENT_APPROVAL.md`；至此 Phase 0～8 來源審閱完成，但仍未建立新題庫、TTS、migration、Function 或部署。
 本次口說關卡返回層級修正（2026-09-15，正式站發布）：
 
 - 修正小關卡頂端返回箭頭、A–Z／拼讀／圖片題離開、一般題最後完成及通關彈窗硬編碼返回口說根目錄的問題。現在只要題組含教材資料，就會回到該 Workbook 的關卡列表；只有舊資料缺少教材識別時才安全回到全部教材。未修改進度、判分、解鎖、Firebase、Supabase、migration 或 Edge Function。

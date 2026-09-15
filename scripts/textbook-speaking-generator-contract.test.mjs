@@ -17,6 +17,7 @@ const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-a
 const pronunciationFlow = read("supabase/functions/_shared/speaking-pronunciation-flow.ts");
 const bookEntitlement = read("supabase/functions/_shared/book-entitlement.ts");
 const visualAssetMigration = read("supabase/migrations/20260912143926_workbook1_speaking_visual_assets.sql");
+const pictureExtensionMigration = read("supabase/migrations/20260915054923_workbook1_p23_p24_picture_templates.sql");
 const foundationUniquenessMigration = read("supabase/migrations/20260913113000_workbook1_foundation_template_uniqueness.sql");
 const pronunciationLedgerMigration = read("supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql");
 const speakingCompletionMigration = read("supabase/migrations/20260907155832_speaking_challenge_completion_rewards.sql");
@@ -228,11 +229,13 @@ test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前�
     assert.match(coach, /matchesFoundationAnswer/);
     assert.match(coach, /reserveProviderRequest/);
     assert.match(coach, /runSpeakingPronunciationFlow/);
+    assert.doesNotMatch(coach, /audio_object_key|audio_saved_at/);
+    assert.doesNotMatch(foundationRoundMigration, /audio_object_key|audio_saved_at/);
     assert.match(pronunciationLedgerMigration, /v_daily_count >= 160/);
     assert.match(coach, /foundationRetryFeedback/);
 });
 
-test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取", () => {
+test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取", () => {
     for (const table of [
         "speaking_visual_assets",
         "speaking_question_visual_assets",
@@ -247,13 +250,27 @@ test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(visualAssetMigration, /image\/jpeg.*image\/png.*image\/webp/s);
     assert.match(visualAssetMigration, /byte_size between 1 and 10485760/);
     assert.match(visualAssetMigration, /speaking_question_sets_picture_template_active_unique/);
+    assert.match(pictureExtensionMigration, /speaking_question_sets_p23_p24_template_unique/);
+    assert.match(pictureExtensionMigration, /workbook_1_p23_picture_gap_v1/);
+    assert.match(pictureExtensionMigration, /workbook_1_p24_picture_gap_v1/);
     assert.match(manager, /speaking_question_visual_assets/);
     assert.match(manager, /speaking_question_word_audio/);
     assert.match(manager, /create_workbook_1_picture_draft/);
     assert.match(manager, /pictureGapAnswerMatchesPrompt/);
     assert.match(manager, /pictureQaResponseHasQuestionAndAnswer/);
     assert.match(manager, /acceptedResponsesValid/);
-    assert.match(manager, /P21／P22 圖片題庫的顯示內容與後端完整答案必須同步/);
+    assert.match(manager, /P21～P24 圖片題庫的顯示內容與後端完整答案必須同步/);
+    assert.match(manager, /workbook_1_p23_picture_gap_v1/);
+    assert.match(manager, /workbook_1_p24_picture_gap_v1/);
+    assert.match(manager, /P21:[\s\S]*?questionCount: 9/);
+    assert.match(manager, /P22:[\s\S]*?questionCount: 9/);
+    assert.match(manager, /P23:[\s\S]*?questionCount: 9/);
+    assert.match(manager, /P24:[\s\S]*?questionCount: 8/);
+    assert.match(manager, /value\.length !== expectedQuestionCount/);
+    assert.match(manager, /get_workbook_1_picture_review_candidates/);
+    assert.match(manager, /workbookOnePictureReviewCandidates/);
+    assert.match(service, /getWorkbookOnePictureReviewCandidates/);
+    assert.match(manager, /asset\.source_page_label !== pictureConfig\?\.pageLabel/);
     assert.match(manager, /createdQuestionSetId/);
     assert.match(manager, /create_picture_upload/);
     assert.match(manager, /confirm_picture_upload/);
@@ -273,6 +290,7 @@ test("17. P21／P22 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(manager, /\.eq\("status", "draft"\)[\s\S]*?\.eq\("version", Number\(questionSet\.version\)\)[\s\S]*?\.eq\("updated_at", questionSet\.updated_at\)[\s\S]*?\.select\("id"\)[\s\S]*?\.maybeSingle\(\)/);
     assert.match(manager, /if \(!publishedSet\)/);
     assert.match(ttsManager, /generate_visible_word_audio/);
+    assert.match(ttsManager, /WORKBOOK_ONE_PICTURE_GAP_TEMPLATES/);
     assert.match(ttsManager, /visibleSentenceWords/);
     assert.match(ttsManager, /status !== "ready" && item\.status !== "failed"/);
     assert.match(service, /uploadSpeakingQuestionPicture/);

@@ -19,6 +19,9 @@ export const confirmWorkbookOneFoundationSource = (firebaseUser, questionSetId) 
 });
 export const createWorkbookTwoStarterQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_2_starter", { book_id: bookId });
 export const createWorkbookOnePictureDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_workbook_1_picture_draft", payload);
+export const getWorkbookOnePictureReviewCandidates = (firebaseUser, pageLabel) => callSpeakingContent(firebaseUser, "get_workbook_1_picture_review_candidates", {
+    page_label: pageLabel
+});
 export const discardWorkbookOnePictureDraft = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "discard_workbook_1_picture_draft", {
     question_set_id: questionSetId
 });

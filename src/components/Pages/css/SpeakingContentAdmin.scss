@@ -25,9 +25,12 @@
 .speaking-picture-authoring { border-color: #c8d9f2; background: linear-gradient(145deg, #f7faff, #fff); }
 .speaking-picture-authoring__notice { display: flex; align-items: flex-start; gap: 9px; padding: 13px 15px; border-radius: 13px; color: #73571e; background: #fff7df; font-size: 14px; line-height: 1.6; }
 .speaking-picture-authoring__notice svg { flex: 0 0 auto; margin-top: 2px; }
+.speaking-picture-authoring__load { width: fit-content; display: inline-flex; align-items: center; gap: 7px; }
 .speaking-picture-authoring__rows { display: grid; gap: 15px; }
 .speaking-picture-authoring__rows > article { padding: 17px; border: 1px solid #d7e3f3; border-radius: 17px; background: #fff; }
 .speaking-picture-authoring__rows > article > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; color: #173f80; }
+.speaking-picture-authoring__row-check { display: inline-flex !important; grid-template-columns: none !important; align-items: center; gap: 7px; color: #526079; font-size: 13px; font-weight: 750; }
+.speaking-picture-authoring__row-check input { width: 20px !important; min-height: 20px !important; }
 .speaking-picture-authoring__rows > article > header button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; color: #9d2d28; background: #ffeceb; }
 .speaking-picture-authoring .speaking-file-picker span { display: flex; align-items: center; gap: 7px; }
 .speaking-picture-authoring__add { width: fit-content; }
@@ -138,6 +141,8 @@
     .speaking-book-job__chunks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .speaking-student-preview__questions { grid-template-columns: 1fr; }
     .speaking-picture-authoring__rows > article { padding: 13px; }
+    .speaking-picture-authoring__load { width: 100%; }
+    .speaking-picture-authoring__rows > article > header { align-items: flex-start; flex-direction: column; }
     .speaking-picture-authoring__add { width: 100%; }
     .speaking-bank-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .speaking-bank-filters button { display: grid; gap: 0; padding: 8px; }
