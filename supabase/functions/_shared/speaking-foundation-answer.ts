@@ -1,3 +1,5 @@
+import { readAzureWordAssessment } from "./azure-pronunciation.ts";
+
 export const FOUNDATION_INTERACTION_TYPES = new Set([
     "alphabet_round",
     "letter_spelling",
@@ -141,6 +143,61 @@ export const matchesFoundationAnswer = (
     if (type === "alphabet_round" && expected.length !== 1) return false;
     if (type === "letter_spelling" && expected.length < 2) return false;
     return expected.every((letter, index) => spoken[index] === letter);
+};
+
+const CHILD_SPELLING_AVERAGE_ACCURACY_FLOOR = 45;
+const CHILD_SPELLING_SINGLE_LETTER_FLOOR = 20;
+
+export const evaluateLetterSpellingAssessment = (
+    expectedAnswer: unknown,
+    recognizedText: unknown,
+    providerWords: unknown
+) => {
+    if (matchesFoundationAnswer("letter_spelling", expectedAnswer, recognizedText)) {
+        return { answerMatch: true, uncertain: false, basis: "recognized_text" };
+    }
+
+    const expected = expectedLetterSequence(expectedAnswer);
+    const words = Array.isArray(providerWords) ? providerWords : [];
+    if (expected.length < 2 || !words.length) {
+        return { answerMatch: false, uncertain: true, basis: "unassessable" };
+    }
+
+    const alignedLetters: string[] = [];
+    const accuracyScores: number[] = [];
+    for (const item of words) {
+        const assessment = readAzureWordAssessment(item);
+        const errorType = String(assessment.errorType || "None").trim().toLowerCase();
+        if (errorType === "omission" || errorType === "insertion") {
+            return { answerMatch: false, uncertain: false, basis: errorType };
+        }
+
+        const letters = spokenLetterSequence((item as any)?.Word);
+        const accuracy = Number(assessment.accuracyScore);
+        if (!letters?.length || !Number.isFinite(accuracy)) {
+            return { answerMatch: false, uncertain: true, basis: "unassessable" };
+        }
+        alignedLetters.push(...letters);
+        accuracyScores.push(...letters.map(() => Math.max(0, Math.min(100, accuracy))));
+    }
+
+    if (alignedLetters.length !== expected.length
+        || !expected.every((letter, index) => alignedLetters[index] === letter)) {
+        return { answerMatch: false, uncertain: false, basis: "sequence_mismatch" };
+    }
+
+    const averageAccuracy = accuracyScores.reduce((sum, score) => sum + score, 0) / accuracyScores.length;
+    const lowestAccuracy = Math.min(...accuracyScores);
+    const answerMatch = averageAccuracy >= CHILD_SPELLING_AVERAGE_ACCURACY_FLOOR
+        && lowestAccuracy >= CHILD_SPELLING_SINGLE_LETTER_FLOOR;
+
+    return {
+        answerMatch,
+        uncertain: !answerMatch,
+        basis: answerMatch ? "aligned_words" : "low_confidence",
+        averageAccuracy: Math.round(averageAccuracy * 100) / 100,
+        lowestAccuracy: Math.round(lowestAccuracy * 100) / 100
+    };
 };
 
 export const foundationRetryFeedback = (interactionType: unknown) => (
