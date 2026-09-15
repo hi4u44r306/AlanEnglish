@@ -7,7 +7,6 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import { Link, useLocation } from "react-router-dom";
 import {
-    FiAward,
     FiBarChart2,
     FiBell,
     FiBookOpen,
@@ -67,7 +66,6 @@ const StudentNavbar = ({
         "/student/assignments",
         "/student/review",
         "/student/weekly-report",
-        "/student/level",
         "/student/rewards",
         "/student/ai-generator",
         "/student/membership",
@@ -140,7 +138,6 @@ const StudentNavbar = ({
                 {hasAssignmentsAccess && <Link to="/student/assignments" onClick={closeDrawer} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</Link>}
                 {hasReviewAccess && <Link to="/student/review" onClick={closeDrawer} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</Link>}
                 {hasActiveLearningAccess && <Link to="/student/weekly-report" onClick={closeDrawer} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</Link>}
-                {hasActiveLearningAccess && <Link to="/student/level" onClick={closeDrawer} className={isPathActive("/student/level") ? "active" : ""}><FiAward />等級晉級</Link>}
                 {hasRewardsAccess && <Link to="/student/rewards" onClick={closeDrawer} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</Link>}
                 {hasAiAccess && <Link to="/student/ai-generator" onClick={closeDrawer} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</Link>}
             </section>
@@ -212,6 +209,9 @@ const StudentNavbar = ({
                         <Link to="/student/settings" className="ae-student-account-link" aria-label="前往我的設定">
                             <span className="ae-student-account-chip"><span>{profile?.name?.slice(0, 1) || "A"}</span><strong>{profile?.name || "同學"}</strong></span>
                         </Link>
+                        <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut}>
+                            <FiLogOut aria-hidden="true" />{loggingOut ? "登出中..." : "登出"}
+                        </button>
                     </div>
                     <div className="ae-student-mobile-account">
                         <Link to="/student/notifications" aria-label={unreadCount > 0 ? `查看通知，目前有 ${unreadCount} 則未讀` : "查看通知"}><FiBell />{unreadCount > 0 && <b>{unreadCount > 99 ? "99+" : unreadCount}</b>}</Link>
