@@ -39,6 +39,10 @@
   &.has-mini-player {
     padding-bottom: 132px;
   }
+
+  &.has-focus-player {
+    padding-bottom: 72px;
+  }
 }
 
 .app-player {
@@ -66,6 +70,67 @@
 
 .app-player-toggle {
   display: none;
+}
+
+.app-player.focus {
+  right: 14px;
+  bottom: 14px;
+  left: auto;
+  width: 48px;
+  overflow: visible;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+
+  .footer-player {
+    display: grid;
+    width: 48px;
+    min-height: 48px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .rhap_container,
+  .listening-coverage-status,
+  .listening-daily-reward-status {
+    display: none;
+  }
+
+  .player-focus-toggle {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border: 2px solid #dce8fb;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(18, 50, 94, 0.18);
+    color: #245ec4;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: #eef5ff;
+      box-shadow: 0 10px 22px rgba(18, 50, 94, 0.24);
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgba(47, 128, 237, 0.42);
+      outline-offset: 3px;
+    }
+  }
 }
 
 .app-player.mini {
@@ -220,6 +285,15 @@ body {
 
   .app-content.has-mini-player {
     padding-bottom: 126px;
+  }
+
+  .app-content.has-focus-player {
+    padding-bottom: 72px;
+  }
+
+  .app-player.focus {
+    right: 12px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 
   .app-player.mini {

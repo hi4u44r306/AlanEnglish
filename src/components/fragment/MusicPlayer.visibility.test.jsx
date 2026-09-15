@@ -119,3 +119,25 @@ test("續播失敗時仍鎖定確認，可再次點擊成功續播", async () =>
     await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(audio.paused).toBe(false);
 });
+
+test("進入口說挑戰時保留曲目但立即暫停，並提供小型播放器圖示", async () => {
+    const onFocusPlayerExpand = jest.fn();
+    const { audio, rerender } = await begin();
+
+    await act(async () => {
+        rerender(
+            <MusicPlayer
+                music={track}
+                pausePlayback
+                focusMode
+                onFocusPlayerExpand={onFocusPlayerExpand}
+            />
+        );
+    });
+
+    expect(audio.paused).toBe(true);
+    fireEvent.click(screen.getByRole("button", {
+        name: "展開教材播放器（目前已暫停）"
+    }));
+    expect(onFocusPlayerExpand).toHaveBeenCalledTimes(1);
+});
