@@ -19,6 +19,7 @@
 - P21／P22 核准清單：`docs/speaking-content/WORKBOOK_1_P21_P22_CONTENT_APPROVAL.md`
 - Phase 2 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_2_CONTENT_APPROVAL.md`
 - Phase 3 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_3_CONTENT_APPROVAL.md`
+- Phase 4 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_4_CONTENT_APPROVAL.md`
 - 既有基礎關卡規則：`docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`
 
 ## 3. 不可被後續工作覆蓋的既有成果
@@ -96,6 +97,8 @@
 
 完成條件：故意錯誤的教材句不會被存成標準答案；身體圖片標示逐一核准。
 
+狀態（2026-09-15）：已完成學生版 P51、P53、P55、P57、P59、P64、P66、P78 與教師版對應頁面的人工核對，整理五個候選關卡的教材原句、修正後完整答案、accepted responses 與 alt text。主觀人物評價、未明示姓名、圖片不清項目均已排除；P78 的十二條箭線在學生版與教師版都沒有答案且互相交叉，管理員逐題核准並重製清楚標記前固定不建立草稿。尚未建立題庫、TTS、migration、Function 或部署。
+
 ### Phase 5：一天生活與家庭
 
 - 「我的早晨」：第 60、71 頁。
@@ -164,4 +167,4 @@
 
 ## 9. 目前下一步
 
-Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2 與 Phase 3 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2／3 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
+Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2、Phase 3 與 Phase 4 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2～4 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。若先繼續安全的唯讀來源工作，下一階段為 Phase 5「一天生活與家庭」。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
