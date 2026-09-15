@@ -5,6 +5,7 @@
 本次規劃（2026-09-15，未建立題庫、未部署）：
 
 - 已建立持續執行文件 `docs/speaking-content/WORKBOOK_1_SPEAKING_CHALLENGE_PLAN.md`，計畫名稱固定為「workbook1口說大挑戰」。計畫以學生版 119 頁為顯示頁碼、教師版 109 頁為交叉核對來源，分成基準鎖定、P21／P22 圖片基礎、句型／顏色／問候、數字／時間、Be 動詞／身體、生活／家庭、冠詞／位置、人物／疑問詞及最終挑戰九個階段；永久保護既有 A-Z、P14 至 P17、循序解鎖、staff 預覽、私人資產、一次性示範音檔及後端答案權威。下一步只先執行 Phase 0 唯讀基準盤點，再利用本次提供的兩份 PDF 完成 P21／P22 來源、圖片、名詞、完整答案與 accepted responses 核對。未經管理員核准不發布；本批沒有 migration、Edge Function 或 Netlify 操作。
+- Phase 0 唯讀基準已完成並保存於 `docs/speaking-content/WORKBOOK_1_PHASE_0_BASELINE.md`：Workbook 1 目前 8 個 published、4 個 draft 題組；正式 curated template key 無重複；A–Z 題組 ID 7 的主音檔維持 `ready`、26 段；P21／P22 題組仍不存在且未發布；既有 A–Z、P14、P15 等進度已依穩定 question set／question ID 記錄。另發現「03 顏色與生活物品」有 7 筆 2026-09-07 的舊 attempt 仍帶私人錄音 object key 且未標記刪除，分類為 P1 歷史資料保留問題；現行 Function 新寫入不再保存錄音，但在確認 R2 物件、回復方式及取得正式資料刪除授權前不自行清理。本批仍未建立題庫、未發布 P21／P22、未執行 migration／Function／Netlify 部署。
 
 本次進行中（2026-09-14，固定測試站與正式站已部署，待登入學生驗收）：
 
