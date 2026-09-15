@@ -271,6 +271,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("配合第 14 頁");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("配合第 18～20 頁");
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("配合第 35～36、60、99～100 頁");
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toBeDisabled();
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("先完成前一關");
         expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
     });
