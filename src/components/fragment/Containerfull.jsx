@@ -62,12 +62,10 @@ const Containerfull = ({ children }) => {
         !playerExpanded
     );
 
-    // 口說挑戰需要保留孩子可閱讀題目的空間，也不能讓教材音檔在
-    // 麥克風練習時持續播放。保留曲目與時間，僅把播放器收成圖示。
-    const showSpeakingPlayerFocus = Boolean(
-        currMusic &&
-        speakingChallengePage &&
-        !playerExpanded
+    // 口說挑戰期間保留曲目與播放位置，但完整封鎖教材播放器的
+    // 顯示與操作，避免孩子在麥克風練習時分心或同時播放教材音檔。
+    const hidePlayerForSpeaking = Boolean(
+        currMusic && speakingChallengePage
     );
 
     const playerSpace =
@@ -123,23 +121,19 @@ const Containerfull = ({ children }) => {
 
             <main
                 className={`app-content ${
-                    currMusic
+                    currMusic && !hidePlayerForSpeaking
                         ? 'has-player'
                         : ''
                  } ${
                      showMiniPlayer
                          ? 'has-mini-player'
                          : ''
-                 } ${
-                     showSpeakingPlayerFocus
-                         ? 'has-focus-player'
-                         : ''
                  }`}
                 style={{
                     paddingBottom:
                         currMusic &&
-                        !showMiniPlayer &&
-                        !showSpeakingPlayerFocus
+                        !hidePlayerForSpeaking &&
+                        !showMiniPlayer
                             ? curr_margin ||
                               '110px'
                             : undefined
@@ -150,7 +144,8 @@ const Containerfull = ({ children }) => {
 
             <AssignmentShortcut
                 playerVisible={
-                    Boolean(currMusic)
+                    Boolean(currMusic) &&
+                    !hidePlayerForSpeaking
                 }
                 compactPlayer={
                     showMiniPlayer
@@ -168,13 +163,20 @@ const Containerfull = ({ children }) => {
                             ? 'mini'
                             : ''
                     } ${
-                        showSpeakingPlayerFocus
-                            ? 'focus'
+                        hidePlayerForSpeaking
+                            ? 'speaking-player-blocked'
                             : ''
                     }`}
                     aria-label="音樂播放器"
+                    aria-hidden={hidePlayerForSpeaking}
+                    hidden={hidePlayerForSpeaking}
+                    data-speaking-player-hidden={
+                        hidePlayerForSpeaking
+                            ? 'true'
+                            : undefined
+                    }
                 >
-                    {miniPlayerPage && !showSpeakingPlayerFocus && (
+                    {miniPlayerPage && (
                         <button
                             type="button"
                             className="app-player-toggle"
@@ -207,11 +209,7 @@ const Containerfull = ({ children }) => {
 
                     <MusicPlayer
                         music={currMusic}
-                        pausePlayback={showSpeakingPlayerFocus}
-                        focusMode={showSpeakingPlayerFocus}
-                        onFocusPlayerExpand={() =>
-                            setPlayerExpanded(true)
-                        }
+                        pausePlayback={hidePlayerForSpeaking}
                     />
                 </footer>
             )}
