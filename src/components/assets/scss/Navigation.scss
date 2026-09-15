@@ -705,20 +705,21 @@
     max-width: calc(100% - 68px);
   }
 
-  .ae-desktop-nav {
-    display: none;
+  .ae-navbar .ae-desktop-nav {
+    /* Override Bootstrap's responsive navbar display at tablet widths. */
+    display: none !important;
   }
 
-  .ae-mobile-actions {
-    display: flex;
+  .ae-navbar .ae-mobile-actions {
+    display: flex !important;
   }
 
-  .ae-mobile-toggle {
-    display: inline-flex;
+  .ae-navbar .ae-mobile-toggle {
+    display: inline-flex !important;
   }
 
-  .ae-mobile-notification {
-    display: inline-grid;
+  .ae-navbar .ae-mobile-notification {
+    display: inline-grid !important;
   }
 }
 

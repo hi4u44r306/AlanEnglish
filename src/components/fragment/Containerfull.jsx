@@ -50,10 +50,22 @@ const Containerfull = ({ children }) => {
                 )
         );
 
+    const speakingChallengePage =
+        location.pathname === '/student/speaking-challenges' ||
+        location.pathname.startsWith(
+            '/student/speaking-challenges/'
+        );
+
     const showMiniPlayer = Boolean(
         currMusic &&
         miniPlayerPage &&
         !playerExpanded
+    );
+
+    // 口說挑戰期間保留曲目與播放位置，但完整封鎖教材播放器的
+    // 顯示與操作，避免孩子在麥克風練習時分心或同時播放教材音檔。
+    const hidePlayerForSpeaking = Boolean(
+        currMusic && speakingChallengePage
     );
 
     const playerSpace =
@@ -109,17 +121,18 @@ const Containerfull = ({ children }) => {
 
             <main
                 className={`app-content ${
-                    currMusic
+                    currMusic && !hidePlayerForSpeaking
                         ? 'has-player'
                         : ''
-                } ${
-                    showMiniPlayer
-                        ? 'has-mini-player'
-                        : ''
-                }`}
+                 } ${
+                     showMiniPlayer
+                         ? 'has-mini-player'
+                         : ''
+                 }`}
                 style={{
                     paddingBottom:
                         currMusic &&
+                        !hidePlayerForSpeaking &&
                         !showMiniPlayer
                             ? curr_margin ||
                               '110px'
@@ -131,7 +144,8 @@ const Containerfull = ({ children }) => {
 
             <AssignmentShortcut
                 playerVisible={
-                    Boolean(currMusic)
+                    Boolean(currMusic) &&
+                    !hidePlayerForSpeaking
                 }
                 compactPlayer={
                     showMiniPlayer
@@ -148,8 +162,19 @@ const Containerfull = ({ children }) => {
                         showMiniPlayer
                             ? 'mini'
                             : ''
+                    } ${
+                        hidePlayerForSpeaking
+                            ? 'speaking-player-blocked'
+                            : ''
                     }`}
                     aria-label="音樂播放器"
+                    aria-hidden={hidePlayerForSpeaking}
+                    hidden={hidePlayerForSpeaking}
+                    data-speaking-player-hidden={
+                        hidePlayerForSpeaking
+                            ? 'true'
+                            : undefined
+                    }
                 >
                     {miniPlayerPage && (
                         <button
@@ -184,6 +209,7 @@ const Containerfull = ({ children }) => {
 
                     <MusicPlayer
                         music={currMusic}
+                        pausePlayback={hidePlayerForSpeaking}
                     />
                 </footer>
             )}

@@ -15,9 +15,10 @@ const hasAssessmentScore = (value: Record<string, unknown> | null) => Boolean(
     })
 );
 
-export const selectAzureAssessmentResult = (data: unknown) => {
+export const listAzureAssessmentResults = (data: unknown) => {
     const payload = objectValue(data);
     const candidates = Array.isArray(payload?.NBest) ? payload.NBest : [];
+    const results: Array<{ best: Record<string, unknown>; assessment: Record<string, unknown> }> = [];
 
     for (const candidate of candidates) {
         const best = objectValue(candidate);
@@ -26,14 +27,16 @@ export const selectAzureAssessmentResult = (data: unknown) => {
             || objectValue(best.pronunciationAssessment);
         if (!hasAssessmentScore(best) && !hasAssessmentScore(nested)) continue;
 
-        return {
+        results.push({
             best,
             assessment: Object.fromEntries(SCORE_KEYS.map(key => [key, firstDefined(nested?.[key], best[key])]))
-        };
+        });
     }
 
-    return null;
+    return results;
 };
+
+export const selectAzureAssessmentResult = (data: unknown) => listAzureAssessmentResults(data)[0] || null;
 
 export const readAzureWordAssessment = (value: unknown) => {
     const word = objectValue(value);

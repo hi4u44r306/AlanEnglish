@@ -8,6 +8,41 @@
 - Phase 0 唯讀基準已完成並保存於 `docs/speaking-content/WORKBOOK_1_PHASE_0_BASELINE.md`：Workbook 1 目前 8 個 published、4 個 draft 題組；正式 curated template key 無重複；A–Z 題組 ID 7 的主音檔維持 `ready`、26 段；P21／P22 題組仍不存在且未發布；既有 A–Z、P14、P15 等進度已依穩定 question set／question ID 記錄。另發現「03 顏色與生活物品」有 7 筆 2026-09-07 的舊 attempt 仍帶私人錄音 object key 且未標記刪除，分類為 P1 歷史資料保留問題；現行 Function 新寫入不再保存錄音，但在確認 R2 物件、回復方式及取得正式資料刪除授權前不自行清理。本批仍未建立題庫、未發布 P21／P22、未執行 migration／Function／Netlify 部署。
 - Phase 1 來源轉錄已開始：學生版 P21 已確認 9 個圖片物件，但原頁沒有把各圖片綁定 Mary's 所有權或 Yes／No，候選內容只採可直接核對的 `What is that?`＋`It is a ...`；學生版 P22 與教師版 P19 已交叉確認 9 個 A-I 圖片補句。P23／P24 另有 J-R 與 S-Z 延伸題，後續必須使用各自來源頁與 template key，不能偽裝成 P22。逐題候選問答、完整句與 alt text 已寫入人工核准清單；圖片使用權、最終用詞與管理員核准仍未完成，因此沒有建立草稿、上傳圖片、產生 TTS 或發布。
 - Phase 1 P23／P24 來源轉錄已完成：學生版 P23／教師版 P20 的 J-R 共 9 題、學生版 P24／教師版 P21 的 S-Z 共 8 題，均已記錄挖空句型、候選主詞、完整句、alt text、單複數與需人工確認的圖片用詞。建議使用 `workbook_1_p23_picture_gap_v1` 與 `workbook_1_p24_picture_gap_v1`，不得共用 P22 template。現有管理流程仍只允許 P21／P22，下一步須先擴充 source page／template allowlist 與測試；管理員確認用詞與圖片權利前仍不建立草稿、不上傳圖片、不產生 TTS、不發布。
+本次口說關卡返回層級修正（2026-09-15，正式站發布）：
+
+- 修正小關卡頂端返回箭頭、A–Z／拼讀／圖片題離開、一般題最後完成及通關彈窗硬編碼返回口說根目錄的問題。現在只要題組含教材資料，就會回到該 Workbook 的關卡列表；只有舊資料缺少教材識別時才安全回到全部教材。未修改進度、判分、解鎖、Firebase、Supabase、migration 或 Edge Function。
+
+本次口說關卡列表樣式修正（2026-09-15，正式站發布）：
+
+- Workbook 關卡列表取消滑鼠 hover 的位移、陰影與變色，避免孩子誤以為滑過即代表選取；整體列表外框圓角由 24px 收斂為 5px。鍵盤 `focus-visible` 外框保留，鎖定、完成與可挑戰狀態，以及學生逐關解鎖、老師／管理員預覽權限均未變更。無 Firebase、Supabase、migration 或 Edge Function 變更。
+
+本次播放器專注修正（2026-09-15，正式站發布）：
+
+- 修正第一版仍可點擊 48px 音樂圖示重新播放教材的專注漏洞。學生進入口說大挑戰的教材列表、關卡列表或任何小關卡時，教材音檔會立即暫停，MusicPlayer 與播放入口完整隱藏，也不再為播放器預留底部空間；曲目與目前時間仍保留，離開口說範圍後才恢復播放器。手機版一般頁面的教材摘要與上一首／播放／下一首控制鍵仍採同一垂直對齊基準。無 Firebase、Supabase、R2、migration、Edge Function 或權限邏輯變更。
+
+本次口說列表版面改善（2026-09-15）：
+
+- Workbook 關卡列表移除重複的大型頁首、獨立返回卡與第二個 Workbook 標題，合併為同一列的「全部教材／教材名稱與解鎖提示／完成進度」精簡工具列；手機窄版只保留返回箭頭但維持 44px 觸控範圍。關卡分類與第一張關卡更早進入首屏，完成、可挑戰與鎖定狀態仍沿用既有後端資料及逐關解鎖規則。桌面、平板與手機共用相同資訊層級，沒有修改 Firebase、Supabase、migration、Edge Function 或教材權限。
+
+本次正式發布（2026-09-15，口說大挑戰互動與教材層級）：
+
+- 口說大挑戰改為先選 Workbook、再查看該教材的關卡與主題；教材與單一關卡都有可返回的網址。學生在口說範圍內不再看到會遮住內容的浮動「今日作業」，但 Navbar／更多選單的作業入口與既有權限規則維持不變。非 A–Z 關卡改為先啟用麥克風、再依說話音量顯示錄音光暈與清楚的送出評分動作；A–Z 的既有自動流程沒有變更。所有進入教材或小關卡的路由會回到頁面頂端。關卡頂端與完成結果僅在後端回傳實際獎勵資料時顯示 XP，避免前端誤導學生。PR #133 已合併至 `main` commit `a08db53`，Netlify production deploy `6aa8b4c5c17405000800f42a` 已 ready。無 migration、無 Edge Function、無權限邏輯變更；相關 React 測試 28/28、Production build 與 `git diff --check` 通過。
+
+本次口說列表 UI 調整（2026-09-15）：
+
+- 學生口說大挑戰的「遊戲規則」改為預設收合，只保留一列清楚的查看按鈕；學生需要時點擊才展開「選一關、看題目、開口說」三步驟，再次點擊可收起。控制項提供 `aria-expanded`、鍵盤 focus、展開方向提示及手機至少 44px 的觸控範圍；老師與管理員唯讀預覽仍不重複顯示學生規則。PR #131 已合併；Netlify production deploy `6aa8ad75fddd040009e58e8b` 已 ready，正式站載入 `main.3f972ae0.js`／`main.1b4a1697.css` 並確認摺疊元件結構存在。無 migration、無 Edge Function 變更。
+
+本次正式修正（2026-09-15）：
+
+- 修正 P14～P17 第一題發音已由 `pronunciation-coach` 依兒童容錯判定通過後，`speaking-challenge` 在保存完成進度時又用舊版嚴格轉寫規則重判，造成 409 並讓學生看到「口說大挑戰暫時無法開啟」的問題。完成服務改讀取最近一次由伺服器保存的 `answer_match`，不接受前端傳入正誤值，因此兒童容錯判定與進度保存一致，漏字／多字／換序仍不會通過。PR #129 已合併；`speaking-challenge` v25 為 ACTIVE，OPTIONS 200、未登入 POST 401。無 migration、無前端變更，P21／P22 維持未發布。
+
+本次正式發布（2026-09-15）：
+
+- Workbook 1 P14～P17 看字拼讀的兒童容錯判定：保留字母數量與順序必須完全正確、漏字／多字／換序仍不通過；當 Azure 整句轉寫不可靠時，後端會改核對所有候選中的逐字母對齊結果，以平均清楚度 45、單字母最低 20 作為兒童發音容錯。逐字母已對齊但分數不足或資料不完整時標記為「系統沒有聽清楚」，不算學生答錯、不跳題也不保存完成，並使用練習提示音請學生把字母稍微分開再試。A–Z 關卡、題庫答案、Firebase／教材 entitlement、原始錄音不保存與費用限制均維持不變；無 migration。`pronunciation-coach` v16 已 ACTIVE，OPTIONS 200、未登入 POST 401；Netlify production deploy `6aa8a57ed61b3671e6165931` 已 ready，正式站載入 `main.e78a7fcf.js` 並確認新版判定標記存在。P21／P22 維持未發布。
+
+本次正式發布（2026-09-14，release integration）：
+
+- 正式站 release branch `integration/production-speaking-membership` 同時包含 Workbook 1／A–Z 口說大挑戰與學生會員頁修正：學生端不再顯示「等級晉級」入口，舊 `/student/level` 安全導回排行榜；有效在校英文班學生的「方案與功能」頁保留既有權限與 AI Premium 狀態，但不顯示延續使用、功能加購、付款／訂閱管理、續訂或到期取消按鈕。英文班外的會員與離校生付款流程維持不變。未重新執行 migration、未重新部署 Edge Function，P21／P22 維持未發布。
 
 本次進行中（2026-09-14，固定測試站與正式站已部署，待登入學生驗收）：
 
@@ -773,6 +808,26 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
-## 本次進行中（2026-09-09，測試站已部署，正式尚未部署）
+## 本次完成（2026-09-14，學生口說固定順序闖關，已部署）
+
+- 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。手機版口說列表與詳細頁收起 Logo Header，縮小頂部留白；A–Z 介紹頁在超過手機寬度時也採 5 欄大卡片，字級提高至 34–48px，手機版既有 5 欄與尺寸不變。學生專用 Navbar 在 `1100px`（包含 iPad Pro 13 的 `1032px` CSS viewport）以下改用精簡頂欄與底部四入口，避免完整桌面選單截斷帳號控制項；寬螢幕仍維持完整桌面導覽。功能 commit `62ec3c8` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已更新；Production build 與 `git diff --check` 均成功。共用 Supabase `speaking-challenge` 已部署；正式站 deploy `6aa81e7089018100ccffaa7f` 已就緒，正式 CSS 確認含新版 `max-width:1100px` 規則。本批沒有 migration，固定測試站沒有再次部署。
+
+## 本次完成（2026-09-15，Workbook 1 口說列表分區，已部署）
+
+- 學生口說列表改在每本教材內分為「入門準備」、「課本練習」及「主題練習」；隱藏 `P14`、`02` 等內部題庫前綴，名稱旁以精確 `source_pages` 顯示「配合第幾頁」。A–Z 保持第一關；課本練習按實際頁碼排序並逐關解鎖；三個跨頁主題在完成入門後可自由開啟，不會阻擋課本頁序。管理員題庫原始名稱與來源資料不變，沒有 migration 或資料更新。React 17/17、progression contract 5/5、Edge Function syntax／Speaking contracts、Production build 與 `git diff --check` 已通過；共用 Supabase `speaking-challenge` v24 為 ACTIVE，Netlify 正式 deploy `6aa826c655d8dd39a2b60728` 已發布，正式站 JS／CSS hash 與本次 build 一致。固定測試站未重新部署，P21／P22 仍未發布。
+
+## 本次完成（2026-09-15，口說大挑戰遊戲規則，已部署）
+
+- 學生口說大挑戰列表上方新增兒童易讀的三步驟遊戲規則：「選一關、看題目、開口說」，並說明通關打勾、下一關解鎖與主題練習自由選擇。規則只顯示於學生列表，老師／管理員唯讀預覽不重複顯示；沒有修改判分、麥克風、Firebase、membership、entitlement、migration 或 Edge Function。相關 React 18/18、Production build 與 `git diff --check` 已通過；Netlify 正式 deploy `6aa892f3697a3b5b9ae0521e` 已發布，正式站 JS／CSS hash 與本次 build 一致，線上 JS 已確認包含遊戲規則標記。
+
+## 進行中（2026-09-15，口說大挑戰互動與教材層級）
+
+- 將口說大挑戰改為教材第一層、關卡第二層，並以獨立教材網址支援返回操作；學生所有口說頁隱藏浮動「今日作業」，Navbar 的作業入口維持。非 A–Z 題目改為明確啟用麥克風後立即收音、聲音偵測光暈及送出評分；A–Z 自動收音流程不變。關卡資訊列和通關畫面會只使用伺服器回傳的實際獎勵資料，不在前端自行發放 XP。尚未完成測試、build、push 或部署。
+
+## 歷史進行中（2026-09-14，Navbar 角色入口稽核完成，尚未部署）
+
+- 學生／老師／管理員 Navbar 角色稽核：學生桌面版補上右上角明確「登出」按鈕，保留頭像直達「我的設定」；學生手機版仍在「更多」抽屜提供登出。老師與管理員的桌面帳號選單及手機選單原本都已有登出，本次不改其權限或入口。待相關 React 測試、production build 與 diff check 通過後再推送分支。
+
+## 歷史進行中（2026-09-09，測試站已部署，正式尚未部署）
 
 - 公開教材停售與方案文案統一：公開教材包、平台月費與 AI 加購都已在前端關閉新的購物車／結帳入口；首頁、教材頁與商城改為明確說明「教材包暫未販售」、「公開付款暫停」。公開規劃改為平台 NT$299／月、AI 教材與發音練習加購 NT$299／月；英文班內部方案與費用不公開在網站。未來實體教材恢復販售時，預定以同一個已驗證 Email 領取 90 天網站使用權，但本批不啟用銷售或領取流程。測試 Supabase 已套用並登記 `20260909100000_pause_public_sales_and_update_membership_pricing.sql`，只更新四個方案設定、不變更既有教材包或訂單；`billing-manager` 與 `store-commerce` 已部署停售防護，三種新付款入口的無身分請求皆正確回傳 503。固定測試站公開路由驗收通過；尚待提交、推送、合併與正式部署。

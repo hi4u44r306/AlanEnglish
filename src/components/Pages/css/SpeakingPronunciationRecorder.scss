@@ -38,6 +38,11 @@
   box-shadow: 0 0 0 10px rgba(232, 102, 85, .12), 0 14px 28px rgba(160, 54, 40, .2);
   animation: speaking-recording-pulse 1.4s ease-in-out infinite;
 }
+.speaking-pronunciation.is-recording.has-voice .speaking-pronunciation-mic {
+  background: #25a86f;
+  box-shadow: 0 0 0 10px rgba(37, 168, 111, .14), 0 0 0 22px rgba(37, 168, 111, .08), 0 14px 28px rgba(17, 103, 66, .22);
+  animation: speaking-voice-rings .9s ease-in-out infinite;
+}
 
 .speaking-recording-preview { display: grid; gap: 12px; width: min(480px, 100%); }
 .speaking-recording-preview audio { width: 100%; }
@@ -140,6 +145,9 @@
 
 @keyframes speaking-recording-pulse {
   50% { transform: scale(1.035); }
+}
+@keyframes speaking-voice-rings {
+  50% { transform: scale(1.08); box-shadow: 0 0 0 15px rgba(37, 168, 111, .16), 0 0 0 32px rgba(37, 168, 111, 0), 0 14px 28px rgba(17, 103, 66, .22); }
 }
 
 @media (max-width: 760px) {

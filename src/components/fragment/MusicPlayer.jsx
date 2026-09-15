@@ -107,7 +107,10 @@ function PlayerOptionsPanel({
     );
 }
 
-function MusicPlayer({ music }) {
+function MusicPlayer({
+    music,
+    pausePlayback = false
+}) {
     const dispatch = useDispatch();
     const audioElement = useRef(null);
     const automaticTrackChangeRef = useRef(false);
@@ -348,6 +351,17 @@ function MusicPlayer({ music }) {
     }, [music]);
 
     useEffect(() => {
+        if (!pausePlayback) {
+            return;
+        }
+
+        // 進入口說挑戰時只暫停，不清除曲目、播放位置或有效聆聽資料。
+        // 這也避免教材音檔與麥克風練習同時出聲。
+        pendingPlaybackRef.current = false;
+        audioElement.current?.audio?.current?.pause();
+    }, [pausePlayback]);
+
+    useEffect(() => {
         resetListeningSession();
         setTrackReaction(null);
         setIsDesktopOptionsOpen(false);
@@ -479,7 +493,8 @@ function MusicPlayer({ music }) {
         if (
             !audio ||
             !audio.src ||
-            !pendingPlaybackRef.current
+            !pendingPlaybackRef.current ||
+            pausePlayback
         ) {
             return;
         }
@@ -504,7 +519,7 @@ function MusicPlayer({ music }) {
                 }
             });
         }
-    }, []);
+    }, [pausePlayback]);
 
     useEffect(() => {
         if (
@@ -1092,7 +1107,12 @@ function MusicPlayer({ music }) {
 
     const handlePlay = () => {
         const audio = audioElement.current?.audio?.current;
-        if (!isDocumentVisibleRef.current || pausedForVisibilityRef.current || attentionCheckRef.current) {
+        if (
+            pausePlayback ||
+            !isDocumentVisibleRef.current ||
+            pausedForVisibilityRef.current ||
+            attentionCheckRef.current
+        ) {
             audio?.pause();
             dispatch(setPlayPauseStatus(false));
             setIsPlaybackActive(false);
@@ -1302,8 +1322,8 @@ function MusicPlayer({ music }) {
                 </span>
             </button>
             <AudioPlayer
-                autoPlay={true}
-                autoPlayAfterSrcChange={true}
+                autoPlay={!pausePlayback}
+                autoPlayAfterSrcChange={!pausePlayback}
                 preload="auto"
                 volume={0.5}
                 loop={false}

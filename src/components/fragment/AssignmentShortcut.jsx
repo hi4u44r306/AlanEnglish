@@ -50,7 +50,7 @@ const AssignmentShortcut = ({
 
     const insideSpeakingChallenge =
         role === "student" &&
-        /^\/student\/speaking-challenges\/[^/]+/.test(location.pathname);
+        location.pathname.startsWith("/student/speaking-challenges");
 
     const hiddenByActiveStudentPlayer =
         role === "student" &&
