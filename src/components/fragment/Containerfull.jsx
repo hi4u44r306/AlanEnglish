@@ -50,9 +50,23 @@ const Containerfull = ({ children }) => {
                 )
         );
 
+    const speakingChallengePage =
+        location.pathname === '/student/speaking-challenges' ||
+        location.pathname.startsWith(
+            '/student/speaking-challenges/'
+        );
+
     const showMiniPlayer = Boolean(
         currMusic &&
         miniPlayerPage &&
+        !playerExpanded
+    );
+
+    // 口說挑戰需要保留孩子可閱讀題目的空間，也不能讓教材音檔在
+    // 麥克風練習時持續播放。保留曲目與時間，僅把播放器收成圖示。
+    const showSpeakingPlayerFocus = Boolean(
+        currMusic &&
+        speakingChallengePage &&
         !playerExpanded
     );
 
@@ -112,15 +126,20 @@ const Containerfull = ({ children }) => {
                     currMusic
                         ? 'has-player'
                         : ''
-                } ${
-                    showMiniPlayer
-                        ? 'has-mini-player'
-                        : ''
-                }`}
+                 } ${
+                     showMiniPlayer
+                         ? 'has-mini-player'
+                         : ''
+                 } ${
+                     showSpeakingPlayerFocus
+                         ? 'has-focus-player'
+                         : ''
+                 }`}
                 style={{
                     paddingBottom:
                         currMusic &&
-                        !showMiniPlayer
+                        !showMiniPlayer &&
+                        !showSpeakingPlayerFocus
                             ? curr_margin ||
                               '110px'
                             : undefined
@@ -148,10 +167,14 @@ const Containerfull = ({ children }) => {
                         showMiniPlayer
                             ? 'mini'
                             : ''
+                    } ${
+                        showSpeakingPlayerFocus
+                            ? 'focus'
+                            : ''
                     }`}
                     aria-label="音樂播放器"
                 >
-                    {miniPlayerPage && (
+                    {miniPlayerPage && !showSpeakingPlayerFocus && (
                         <button
                             type="button"
                             className="app-player-toggle"
@@ -184,6 +207,11 @@ const Containerfull = ({ children }) => {
 
                     <MusicPlayer
                         music={currMusic}
+                        pausePlayback={showSpeakingPlayerFocus}
+                        focusMode={showSpeakingPlayerFocus}
+                        onFocusPlayerExpand={() =>
+                            setPlayerExpanded(true)
+                        }
                     />
                 </footer>
             )}

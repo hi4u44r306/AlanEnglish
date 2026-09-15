@@ -799,7 +799,7 @@
   .player-mobile-expand {
     position: absolute;
     z-index: 4;
-    top: 4px;
+    top: 0;
     right: 128px;
     bottom: 0;
     left: 10px;
@@ -812,13 +812,14 @@
   .rhap_controls-section {
     z-index: 5;
     position: absolute;
-    top: 23px;
+    top: 50%;
     right: 10px;
     display: flex;
     height: auto;
     width: auto;
     gap: 0;
     margin: 0;
+    transform: translateY(-50%);
     justify-content: flex-end;
   }
   .rhap_main-controls {

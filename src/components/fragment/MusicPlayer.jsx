@@ -107,7 +107,12 @@ function PlayerOptionsPanel({
     );
 }
 
-function MusicPlayer({ music }) {
+function MusicPlayer({
+    music,
+    pausePlayback = false,
+    focusMode = false,
+    onFocusPlayerExpand
+}) {
     const dispatch = useDispatch();
     const audioElement = useRef(null);
     const automaticTrackChangeRef = useRef(false);
@@ -348,6 +353,17 @@ function MusicPlayer({ music }) {
     }, [music]);
 
     useEffect(() => {
+        if (!pausePlayback) {
+            return;
+        }
+
+        // 進入口說挑戰時只暫停，不清除曲目、播放位置或有效聆聽資料。
+        // 這也避免教材音檔與麥克風練習同時出聲。
+        pendingPlaybackRef.current = false;
+        audioElement.current?.audio?.current?.pause();
+    }, [pausePlayback]);
+
+    useEffect(() => {
         resetListeningSession();
         setTrackReaction(null);
         setIsDesktopOptionsOpen(false);
@@ -479,7 +495,8 @@ function MusicPlayer({ music }) {
         if (
             !audio ||
             !audio.src ||
-            !pendingPlaybackRef.current
+            !pendingPlaybackRef.current ||
+            pausePlayback
         ) {
             return;
         }
@@ -504,7 +521,7 @@ function MusicPlayer({ music }) {
                 }
             });
         }
-    }, []);
+    }, [pausePlayback]);
 
     useEffect(() => {
         if (
@@ -1092,7 +1109,12 @@ function MusicPlayer({ music }) {
 
     const handlePlay = () => {
         const audio = audioElement.current?.audio?.current;
-        if (!isDocumentVisibleRef.current || pausedForVisibilityRef.current || attentionCheckRef.current) {
+        if (
+            pausePlayback ||
+            !isDocumentVisibleRef.current ||
+            pausedForVisibilityRef.current ||
+            attentionCheckRef.current
+        ) {
             audio?.pause();
             dispatch(setPlayPauseStatus(false));
             setIsPlaybackActive(false);
@@ -1273,13 +1295,24 @@ function MusicPlayer({ music }) {
     // =====================================
 
     return (
-        <div className="footer-player">
-            <button
-                type="button"
-                className="player-mobile-expand"
-                onClick={() => setIsMobileExpanded(true)}
-                aria-label="展開播放器"
-            >
+        <div className={`footer-player${focusMode ? " is-speaking-focus" : ""}`}>
+            {focusMode ? (
+                <button
+                    type="button"
+                    className="player-focus-toggle"
+                    onClick={onFocusPlayerExpand}
+                    aria-label="展開教材播放器（目前已暫停）"
+                    title="教材音檔已暫停，點此展開播放器"
+                >
+                    <MdMusicNote aria-hidden="true" />
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    className="player-mobile-expand"
+                    onClick={() => setIsMobileExpanded(true)}
+                    aria-label="展開播放器"
+                >
                 <span className="player-track-art" aria-hidden="true">
                     <MdMusicNote />
                 </span>
@@ -1300,7 +1333,8 @@ function MusicPlayer({ music }) {
                             : `有效聆聽 ${Math.floor(coveragePercent)}%${compactRewardProgress}`}
                     </span>
                 </span>
-            </button>
+                </button>
+            )}
             <AudioPlayer
                 autoPlay={true}
                 autoPlayAfterSrcChange={true}
