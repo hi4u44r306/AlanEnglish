@@ -48,6 +48,14 @@ const pageReference = item => {
     return pages ? `配合第 ${pages} 頁` : "";
 };
 
+const challengeBookCatalogPath = challenge => {
+    const book = challenge?.book || challenge?.books || {};
+    const bookIdentity = book.id || book.code || book.name;
+    return bookIdentity
+        ? `/student/speaking-challenges/book/${encodeURIComponent(`book-${bookIdentity}`)}`
+        : "/student/speaking-challenges";
+};
+
 const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     const locked = !staffPreview && item.is_unlocked === false;
     const completed = item.is_completed === true;
@@ -233,6 +241,8 @@ export default function TextbookSpeakingChallenge() {
         </main>;
     }
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
+    const bookCatalogPath = challengeBookCatalogPath(challenge);
+    const returnToBookCatalog = () => navigate(bookCatalogPath);
     if (["alphabet_round", "letter_spelling"].includes(interactionType)) return <WorkbookOneFoundationChallenge
         challenge={challenge}
         firebaseUser={firebaseUser}
@@ -240,30 +250,30 @@ export default function TextbookSpeakingChallenge() {
         onStartRound={() => startSpeakingFoundationRound(firebaseUser, challenge.id)}
         onStartAlphabetIntro={() => startAlphabetIntroListen(firebaseUser, challenge.id)}
         onCompleteAlphabetIntro={listenSessionId => completeAlphabetIntroListen(firebaseUser, challenge.id, listenSessionId)}
-        onExit={() => navigate("/student/speaking-challenges")}
+        onExit={returnToBookCatalog}
     />;
     if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return <WorkbookOnePictureChallenge
         challenge={challenge}
         firebaseUser={firebaseUser}
         onComplete={markScored}
-        onExit={() => navigate("/student/speaking-challenges")}
+        onExit={returnToBookCatalog}
     />;
     const completedCount = questions.filter(question => question.progress_status === "completed").length;
     const progressPercent = questions.length ? Math.round((completedCount / questions.length) * 100) : 0;
 
-    if (!activeQuestion) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部大挑戰</button></section></main>;
+    if (!activeQuestion) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button></section></main>;
 
     const isCompleted = activeQuestion.progress_status === "completed";
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
     const goForward = () => {
         if (!isCompleted) return;
-        if (isLastQuestion) navigate("/student/speaking-challenges");
+        if (isLastQuestion) returnToBookCatalog();
         else setActiveQuestionIndex(current => current + 1);
     };
 
     return <main className="speaking-challenge-page speaking-challenge-detail">
         <header className="speaking-lesson-header">
-            <button className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部大挑戰</button>
+            <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
@@ -299,7 +309,7 @@ export default function TextbookSpeakingChallenge() {
                 <FiAward aria-hidden="true" />
                 <h2 id="speaking-reward-title">太棒了，成功通關！</h2>
                 {Number.isFinite(Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)) ? <p><strong>🏆 獲得 {Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)} XP</strong></p> : <p>這一關已完成，下一關已開啟！</p>}
-                <div><button type="button" onClick={() => navigate("/student/speaking-challenges")}>回到關卡列表</button><button type="button" className="primary" onClick={() => { setCompletionNotice(null); navigate("/student/speaking-challenges"); }}>繼續挑戰</button></div>
+                <div><button type="button" onClick={returnToBookCatalog}>回到關卡列表</button><button type="button" className="primary" onClick={() => { setCompletionNotice(null); returnToBookCatalog(); }}>繼續挑戰</button></div>
             </section>
         </div>}
     </main>;

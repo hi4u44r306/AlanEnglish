@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
@@ -11,10 +11,11 @@ jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: moc
 jest.mock("../../services/speakingChallengeService", () => ({
     completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn(), startSpeakingFoundationRound: jest.fn()
 }));
-jest.mock("./WorkbookOneFoundationChallenge", () => function MockFoundationChallenge({ challenge, onComplete, onStartRound }) {
+jest.mock("./WorkbookOneFoundationChallenge", () => function MockFoundationChallenge({ challenge, onComplete, onStartRound, onExit }) {
     return <section data-testid="foundation-challenge" data-interaction={challenge.generation_metadata.interaction_type}>
         <button type="button" onClick={() => onComplete(challenge.speaking_questions[0], { answer_match: true })}>完成基礎題</button>
         <button type="button" onClick={onStartRound}>建立 A–Z 回合</button>
+        <button type="button" onClick={onExit}>返回教材關卡列表</button>
     </section>;
 });
 jest.mock("./WorkbookOnePictureChallenge", () => function MockPictureChallenge({ challenge, onComplete }) {
@@ -22,6 +23,11 @@ jest.mock("./WorkbookOnePictureChallenge", () => function MockPictureChallenge({
         <button type="button" onClick={() => onComplete(challenge.speaking_questions[0], { answer_match: true })}>完成圖片題</button>
     </section>;
 });
+
+const LocationProbe = () => {
+    const location = useLocation();
+    return <output data-testid="location-path">{location.pathname}</output>;
+};
 
 describe("TextbookSpeakingChallenge model audio", () => {
     const originalAudio = global.Audio;
@@ -102,6 +108,25 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         await waitFor(() => expect(startSpeakingFoundationRound).toHaveBeenCalledWith(mockFirebaseUser, 7));
         expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
+    });
+
+    it("A–Z 返回箭頭會回到目前 Workbook 的關卡列表", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 7,
+                title: "A–Z 大小寫挑戰",
+                books: { name: "Workbook 1" },
+                generation_metadata: { interaction_type: "alphabet_round" },
+                speaking_questions: [{ id: 9, progress_status: "opened" }]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><LocationProbe /><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /><Route path="/student/speaking-challenges/book/:bookKey" element={<div>Workbook 關卡列表</div>} /></Routes></MemoryRouter>);
+
+        fireEvent.click(await screen.findByRole("button", { name: "返回教材關卡列表" }));
+
+        expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-Workbook%201");
+        expect(screen.getByText("Workbook 關卡列表")).toBeInTheDocument();
     });
 
     it("removes the global mobile player clearance while the detail page is open", async () => {
