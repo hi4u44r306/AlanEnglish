@@ -22,6 +22,7 @@
 - Phase 4 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_4_CONTENT_APPROVAL.md`
 - Phase 5 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_5_CONTENT_APPROVAL.md`
 - Phase 6 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_6_CONTENT_APPROVAL.md`
+- Phase 7 核准清單：`docs/speaking-content/WORKBOOK_1_PHASE_7_CONTENT_APPROVAL.md`
 - 既有基礎關卡規則：`docs/speaking-content/WORKBOOK_1_FOUNDATIONS_CHALLENGE.md`
 
 ## 3. 不可被後續工作覆蓋的既有成果
@@ -132,6 +133,8 @@
 
 完成條件：What／Who／Where／How 題型分流正確，個人答案與固定答案使用不同評分規則。
 
+狀態（2026-09-15）：已完成學生版 P99、P101～P106、P108 與教師版 P90～P96、P98 的人工核對，整理職業／地點、職業／地點／身分、Who／Where、疑問詞及教材角色年齡五個候選關卡。P99、P103、P104 的錯誤選項、純抄寫及羞辱／外貌內容不納入主線；學生真實姓名、年齡、家庭與所在地不作公開答案或帳號資料。尚待管理員核准，未建立題庫、TTS、migration、Function 或部署。
+
 ### Phase 8：指示詞與最終挑戰
 
 - 「This／That／These／Those」：第 111 至 114 頁。
@@ -173,4 +176,4 @@
 
 ## 9. 目前下一步
 
-Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2～Phase 6 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2～6 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。若先繼續安全的唯讀來源工作，下一階段為 Phase 7「人物、疑問詞與年齡」。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
+Phase 0 已完成。Phase 1 的 P21～P24 內容與本機專用管理框架已完成；Phase 2～Phase 7 也已完成來源審閱及候選核准清單，但都尚待管理員核准。下一個可執行的發布階段仍是先核准 Phase 1 用詞與圖片權利，再依重大改動閘門套用既有 additive migration、部署相關 Speaking Function 並建立未發布草稿；未經核准不發布。Phase 2～7 核准後，再各自設計 additive schema、後端 allowlist、兒童容錯契約與 idempotent 草稿流程。若先繼續安全的唯讀來源工作，下一階段為 Phase 8「指示詞與最終挑戰」。P1 歷史錄音的安全清理仍需另案規劃、回復方式與正式資料刪除授權。
