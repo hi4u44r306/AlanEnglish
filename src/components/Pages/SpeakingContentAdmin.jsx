@@ -283,6 +283,10 @@ export default function SpeakingContentAdmin() {
         published: data.question_sets.filter(questionSet => questionSet.status === "published").length,
         all: data.question_sets.length
     }), [data.question_sets]);
+    const reviewQueueCount = useMemo(() => (
+        data.sections.filter(section => section.status === "draft").length
+        + data.chunks.filter(chunk => ["review_required", "failed"].includes(chunk.status)).length
+    ), [data.chunks, data.sections]);
     const visibleSourceRows = useMemo(() => sourceRows.map(section => ({
         ...section,
         questionSets: section.questionSets.filter(questionSet => questionSetFilter === "all" || questionSet.status === questionSetFilter)
@@ -505,11 +509,25 @@ export default function SpeakingContentAdmin() {
     return <main className="platform-page speaking-content-admin">
         <header className="platform-hero"><div><span className="platform-eyebrow">TEXTBOOK TO SPEAKING</span><h1>教材 AI 口說題庫</h1><p>上傳 PDF／課本圖片或貼入文字，先人工核對 OCR 結果，再讓 AI 根據教材主題規劃問題、提示與示範回答。</p></div></header>
 
-        <section className="platform-card speaking-workflow" aria-label="製作流程">
+        <section className="platform-card speaking-admin-command" aria-labelledby="speaking-admin-command-title">
+            <div className="speaking-admin-command__intro">
+                <span className="platform-eyebrow">AUTHORING DESK</span>
+                <h2 id="speaking-admin-command-title">今天要處理什麼？</h2>
+                <p>從目前工作直接開始；建立、核對、預覽與發布都集中在同一頁。</p>
+            </div>
+            <nav className="speaking-admin-command__actions" aria-label="口說題庫快速操作">
+                <a className="is-primary" href="#speaking-question-bank" onClick={() => setQuestionSetFilter("draft")}><FileText /><span><strong>處理草稿</strong><small>{questionSetCounts.draft} 份待編輯</small></span></a>
+                <a href="#speaking-question-bank" onClick={() => setQuestionSetFilter("published")}><Eye /><span><strong>查看已發布</strong><small>{questionSetCounts.published} 份題庫</small></span></a>
+                <a href="#speaking-quick-create"><Sparkles /><span><strong>快速建立</strong><small>使用已核對範本</small></span></a>
+                <a href="#speaking-source-tools"><UploadCloud /><span><strong>匯入教材</strong><small>{reviewQueueCount} 個項目待核對</small></span></a>
+            </nav>
+        </section>
+
+        <section className="platform-card speaking-workflow speaking-admin-block--overview" aria-label="製作流程">
             <div><UploadCloud /><strong>1. 上傳與 OCR</strong><span>私人保存 PDF／圖片</span></div><div><FileText /><strong>2. 人工核對</strong><span>校正文字與頁碼</span></div><div><Sparkles /><strong>3. AI 題庫</strong><span>逐題修改後發布</span></div>
         </section>
 
-        <section className="platform-card speaking-starter-card">
+        <section className="platform-card speaking-starter-card speaking-admin-block--curated" id="speaking-quick-create">
             <div><span className="platform-eyebrow">CURATED STARTER</span><h2>先建立第一個 Workbook 1 小關卡</h2><p>使用已人工規劃的 P18～P20「我的名字與自我介紹」，直接建立四題可編輯草稿；不執行 OCR，也不呼叫付費 AI。</p></div>
             <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(workbookOneStarter) || working === "workbook-1-starter"} onClick={createWorkbookOneStarter}>
                 <Sparkles size={17} />{working === "workbook-1-starter" ? "建立草稿中…" : workbookOneStarter ? (workbookOneStarter.status === "published" ? "範例已發布" : "範例草稿已建立") : "建立範例草稿"}
@@ -517,7 +535,7 @@ export default function SpeakingContentAdmin() {
             {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
         </section>
 
-        <section className="platform-card speaking-starter-card speaking-foundation-starters">
+        <section className="platform-card speaking-starter-card speaking-foundation-starters speaking-admin-block--curated">
             <div><span className="platform-eyebrow">WORKBOOK 1 FOUNDATIONS</span><h2>建立 A–Z 與 P14～P17 基礎口說草稿</h2><p>這些按鈕只建立可預覽草稿，不執行 OCR、不呼叫付費 AI，也不會自動發布。P14～P17 建立時會由後端逐字核對目前已發布的正式頁面來源。</p></div>
             <div className="speaking-foundation-starters__list">{WORKBOOK_ONE_FOUNDATION_STARTERS.map(starter => {
                 const existing = workbookOneFoundationSets.get(starter.templateKey);
@@ -560,7 +578,7 @@ export default function SpeakingContentAdmin() {
 
         <WorkbookOnePictureContentAdmin firebaseUser={firebaseUser} workbookOne={workbookOne} onCreated={load} />
 
-        <section className="platform-card speaking-starter-card">
+        <section className="platform-card speaking-starter-card speaking-admin-block--curated">
             <div><span className="platform-eyebrow">CURATED WORKBOOK 2</span><h2>建立 Workbook 2「我來自哪裡？」</h2><p>依教師版 P56～P58 人工核對內容建立六題，練習 I／he／she／they 與 come from；不執行 OCR，也不呼叫付費 AI。</p></div>
             <button type="button" className="platform-primary" disabled={!workbookTwo || Boolean(workbookTwoStarter) || working === "workbook-2-starter"} onClick={createWorkbookTwoStarter}>
                 <Sparkles size={17} />{working === "workbook-2-starter" ? "建立草稿中…" : workbookTwoStarter ? (workbookTwoStarter.status === "published" ? "關卡已發布" : "關卡草稿已建立") : "建立 Workbook 2 草稿"}
@@ -568,7 +586,7 @@ export default function SpeakingContentAdmin() {
             {!workbookTwo && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 2，請先確認教材已啟用。</p>}
         </section>
 
-        <section className="platform-card speaking-whole-book">
+        <section className="platform-card speaking-whole-book speaking-admin-block--source" id="speaking-source-tools">
             <div className="platform-section-title"><div><span className="platform-eyebrow">WHOLE BOOK OCR</span><h2>整本教材分批辨識</h2><p>一次選擇完整 PDF；瀏覽器會在本機切成每 10 頁一批，私人上傳後可分批辨識、保留進度與單獨重試。</p></div></div>
             <form className="platform-form" onSubmit={uploadWholeBook}>
                 <div className="platform-form-grid">
@@ -587,7 +605,7 @@ export default function SpeakingContentAdmin() {
             {wholeBookProgress?.phase === "ocr" && <div className="speaking-ocr-floating-progress" role="status"><LoaderCircle className="speaking-spin" /><span>批次 OCR：{wholeBookProgress.completed}/{wholeBookProgress.total}</span></div>}
         </section>
 
-        <section className="platform-card">
+        <section className="platform-card speaking-admin-block--source">
             <div className="platform-section-title"><div><span className="platform-eyebrow">SINGLE SOURCE</span><h2>單一範圍或貼入文字</h2><p>適合單張課本圖片、單一 Unit 或已人工整理的教材文字。</p></div></div>
             <form className="platform-form" onSubmit={saveSource}>
                 <div className="platform-form-grid">
@@ -607,7 +625,7 @@ export default function SpeakingContentAdmin() {
             </form>
         </section>
 
-        <section className="platform-card speaking-bank-workspace">
+        <section className="platform-card speaking-bank-workspace" id="speaking-question-bank">
             <div className="platform-section-title"><div><span className="platform-eyebrow">QUESTION BANK WORKSPACE</span><h2>題庫工作台</h2><p>先選狀態，再只展開一個正在處理的題庫。</p></div><label className="speaking-count"><span>每次題數</span><select value={questionCount} onChange={event => setQuestionCount(Number(event.target.value))}>{[3, 5, 8, 10, 12].map(count => <option key={count}>{count}</option>)}</select></label></div>
             <div className="speaking-bank-filters" role="group" aria-label="題庫狀態篩選">
                 {[["draft", "草稿"], ["published", "已發布"], ["all", "全部"]].map(([value, label]) => <button key={value} type="button" className={questionSetFilter === value ? "active" : ""} aria-pressed={questionSetFilter === value} onClick={() => setQuestionSetFilter(value)}><strong>{questionSetCounts[value]}</strong><span>{label}</span></button>)}
