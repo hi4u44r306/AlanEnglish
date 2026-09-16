@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { authentication } from "../components/Pages/firebase-config";
 import {
@@ -145,6 +145,18 @@ export const AuthProvider = ({ children }) => {
         };
     }, [firebaseUser]);
 
+    const refreshStudentProfile = useCallback(async () => {
+        if (!firebaseUser) return null;
+        setProfileRefreshing(true);
+        try {
+            const profile = await loadStudentProfile(firebaseUser);
+            setStudentProfile(profile);
+            return profile;
+        } finally {
+            setProfileRefreshing(false);
+        }
+    }, [firebaseUser]);
+
     const logout = async () => {
         setAuthLoading(true);
 
@@ -166,8 +178,9 @@ export const AuthProvider = ({ children }) => {
         profileRefreshing,
         isAuthenticated: Boolean(firebaseUser && studentProfile),
         setStudentProfile,
+        refreshStudentProfile,
         logout
-    }), [firebaseUser, studentProfile, authLoading, profileRefreshing]);
+    }), [firebaseUser, studentProfile, authLoading, profileRefreshing, refreshStudentProfile]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

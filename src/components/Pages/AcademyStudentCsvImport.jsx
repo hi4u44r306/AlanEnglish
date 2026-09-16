@@ -75,7 +75,7 @@ function StudentLoginCards({ results, rows }) {
             <div className="academy-csv-results-heading academy-login-cards-heading">
                 <div>
                     <h2>學生登入卡</h2>
-                    <p>QR Code 在這台裝置本機產生。請立即列印或另存 PDF；復原碼不會再次顯示。</p>
+                    <p>一次性臨時密碼與復原碼只會顯示這一次。請立即列印或另存 PDF，並分別交給學生。</p>
                 </div>
                 <button type="button" onClick={() => window.print()}>列印 A4 登入卡</button>
             </div>
@@ -89,17 +89,19 @@ function StudentLoginCards({ results, rows }) {
                                 <h3>{result.student.chinese_name || "學生"}{result.student.english_name ? ` · ${result.student.english_name}` : ""}</h3>
                                 <span>登入帳號</span>
                                 <strong className="academy-login-card-username">{result.credentials.username}</strong>
+                                <span>一次性臨時密碼</span>
+                                <strong className="academy-login-card-username">{result.credentials.temporary_password}</strong>
                                 <ol>
-                                    <li>掃描 QR Code 開啟啟用頁。</li>
-                                    <li>設定自己至少 6 個字元的登入密碼。</li>
-                                    <li>之後用「帳號＋密碼」登入。</li>
+                                    <li>用「帳號＋一次性臨時密碼」登入。</li>
+                                    <li>依畫面更換自己的密碼、設定生日。</li>
+                                    <li>輸入家長 Email 並完成驗證碼確認。</li>
                                 </ol>
                             </div>
                             <div className="academy-login-card-qr">
                                 {qrCodes[result.source_row]
                                     ? <img src={qrCodes[result.source_row]} alt={`${result.credentials.username} 啟用 QR Code`} />
                                     : <span>QR 產生中…</span>}
-                                <small>首次啟用專用</small>
+                                <small>也可掃描 QR Code 開始設定</small>
                             </div>
                         </div>
                         <footer>
@@ -302,7 +304,7 @@ function AcademyStudentCsvImport() {
                         <div className="academy-csv-create-bar">
                             <div>
                                 <strong>建立前請再次確認</strong>
-                                <span>建立後會產生一次性啟用卡與兩組復原碼；原碼不會儲存在系統中。</span>
+                                <span>建立後會產生每人不同的一次性臨時密碼、啟用卡與兩組復原碼；原碼不會儲存在系統中。</span>
                             </div>
                             <button type="button" disabled={!canCreate} onClick={handleCreate}>
                                 {submitting ? "建立中，請勿關閉..." : `建立 ${preview.summary?.valid || 0} 位學生`}
@@ -316,7 +318,7 @@ function AcademyStudentCsvImport() {
                         <div className="academy-csv-results-heading">
                             <div>
                                 <h2>批次建立結果</h2>
-                                <p>請立即下載結果並列印登入卡。離開或重新整理後，啟用與復原原碼不會再次顯示。</p>
+                                <p>請立即下載結果並列印登入卡。離開或重新整理後，臨時密碼、啟用與復原原碼不會再次顯示。</p>
                             </div>
                             <button type="button" onClick={downloadResults}>下載成功／失敗結果</button>
                         </div>
@@ -330,7 +332,7 @@ function AcademyStudentCsvImport() {
                                             <td>{result.source_row}</td>
                                             <td>{result.credentials?.username || result.login_username || "—"}</td>
                                             <td>{result.status === "success" ? "成功" : result.error}</td>
-                                            <td>{result.status === "success" ? <><strong className="academy-csv-password">啟用連結已建立</strong><small>復原碼 2 組，只顯示於下載結果與登入卡</small></> : "—"}</td>
+                                            <td>{result.status === "success" ? <><strong className="academy-csv-password">臨時密碼與啟用連結已建立</strong><small>臨時密碼、復原碼 2 組，只顯示於下載結果與登入卡</small></> : "—"}</td>
                                         </tr>
                                     ))}
                                 </tbody>

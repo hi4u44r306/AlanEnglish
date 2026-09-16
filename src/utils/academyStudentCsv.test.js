@@ -65,6 +65,7 @@ describe("academyStudentCsv", () => {
                 status: "success",
                 credentials: {
                     username: "alanwang",
+                    temporary_password: "Ae7!UniquePassword",
                     activation_url: "https://alanenglish.com.tw/academy/student-setup?token=one-time",
                     recovery_codes: ["AE-AAAA-BBBB-CCCC", "AE-DDDD-EEEE-FFFF"]
                 }
@@ -79,6 +80,8 @@ describe("academyStudentCsv", () => {
         ]);
 
         expect(csv).toContain("AE-AAAA-BBBB-CCCC");
+        expect(csv).toContain("Ae7!UniquePassword");
+        expect(csv).toContain("一次性臨時密碼");
         expect(csv).toContain('"帳號已存在, 請確認"');
         expect(csv.match(/AE-AAAA-BBBB-CCCC/g)).toHaveLength(1);
     });

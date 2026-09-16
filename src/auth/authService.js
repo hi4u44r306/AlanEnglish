@@ -3,7 +3,7 @@ import { authentication } from "../components/Pages/firebase-config";
 import { recordLoginActivity } from "../services/learningActivityService";
 import { getMembershipProfile } from "../services/membershipService";
 
-const PROFILE_CACHE_KEY = "ae-profile-cache-v1";
+const PROFILE_CACHE_KEY = "ae-profile-cache-v2";
 const pendingProfileRequests = new Map();
 
 const STORAGE_KEYS = [
@@ -15,6 +15,7 @@ const STORAGE_KEYS = [
     "ae-plan",
     "ae-role",
     "ae-teacherschool",
+    "ae-profile-cache-v1",
     PROFILE_CACHE_KEY
 ];
 

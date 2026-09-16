@@ -78,7 +78,10 @@ function Login() {
             showSuccess(student.name || "同學");
             window.scrollTo(0, 0);
             loginAttemptRef.current = false;
-            navigate(destination, { replace: true });
+            navigate(
+                student?.onboarding?.required === true ? "/student/onboarding" : destination,
+                { replace: true }
+            );
         } catch (error) {
             loginAttemptRef.current = false;
             console.error("Login error:", error);
