@@ -14,9 +14,13 @@ jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: 
 jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
 jest.mock("../../services/reviewService", () => ({ prefetchReviewDashboard: jest.fn() }));
+const mockOffcanvasRender = jest.fn();
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
-    const Offcanvas = ({ show, children, id }) => show ? ReactModule.createElement("aside", { id }, children) : null;
+    const Offcanvas = ({ show, children, id, placement }) => {
+        mockOffcanvasRender({ show, placement });
+        return show ? ReactModule.createElement("aside", { id, "data-placement": placement }, children) : null;
+    };
     Offcanvas.Header = ({ children }) => ReactModule.createElement("header", null, children);
     Offcanvas.Body = ReactModule.forwardRef(({ children }, ref) => ReactModule.createElement("div", { ref }, children));
     return { __esModule: true, default: Offcanvas };
@@ -110,10 +114,12 @@ describe("MainNavbar student navigation", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         const mobileMenu = await screen.findByRole("complementary");
+        expect(mobileMenu).toHaveAttribute("data-placement", "end");
         fireEvent.click(within(mobileMenu).getByRole("link", { name: "智慧複習" }));
 
         expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/review");
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+        expect(mockOffcanvasRender).toHaveBeenLastCalledWith({ show: false, placement: "end" });
     });
 
     it("keeps the materials entry available while the accessible catalog is loading", async () => {

@@ -69,6 +69,7 @@ const StudentNavbar = ({
 }) => {
     const location = useLocation();
     const [drawer, setDrawer] = useState("");
+    const [drawerOpen, setDrawerOpen] = useState(false);
     const [materialsOpen, setMaterialsOpen] = useState(false);
     const accessibleCategories = categories || [];
     const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
@@ -104,11 +105,15 @@ const StudentNavbar = ({
     }, [firebaseUser, hasReviewAccess]);
     const openDrawer = useCallback(view => {
         setDrawer(view);
+        setDrawerOpen(true);
         if (view === "menu") warmReviewExperience();
     }, [warmReviewExperience]);
     const closeDrawer = () => {
-        setDrawer("");
+        setDrawerOpen(false);
         setMaterialsOpen(false);
+    };
+    const handleDrawerExited = () => {
+        if (!drawerOpen) setDrawer("");
     };
 
     useEffect(() => {
@@ -255,14 +260,14 @@ const StudentNavbar = ({
                     </div>
                     <div className="ae-student-mobile-account">
                         <Link to="/student/notifications" aria-label={unreadCount > 0 ? `查看通知，目前有 ${unreadCount} 則未讀` : "查看通知"}><FiBell />{unreadCount > 0 && <b>{unreadCount > 99 ? "99+" : unreadCount}</b>}</Link>
-                        <button type="button" className="ae-student-mobile-menu-button" onClick={() => openDrawer("menu")} aria-label="開啟功能選單" aria-expanded={drawer === "menu"} aria-controls="student-navigation-drawer"><FiMenu /></button>
+                        <button type="button" className="ae-student-mobile-menu-button" onClick={() => openDrawer("menu")} aria-label="開啟功能選單" aria-expanded={drawerOpen && drawer === "menu"} aria-controls="student-navigation-drawer"><FiMenu /></button>
                     </div>
                 </Container>
             </Navbar>
 
             {typeof document === "undefined" ? bottomNavigation : createPortal(bottomNavigation, document.body)}
 
-            <Offcanvas id="student-navigation-drawer" show={Boolean(drawer)} onHide={closeDrawer} placement={drawer === "menu" ? "end" : "bottom"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : "is-choice"}`} backdrop scroll={false}>
+            <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "menu" ? "end" : "bottom"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
                     <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "開口說" : "功能選單"}</strong><small>{drawer === "materials" ? "選一本想練習的教材" : drawer === "speaking" ? "選擇一種口說練習" : "學習、帳號與幫助"}</small></div>
                 </Offcanvas.Header>

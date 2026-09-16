@@ -880,6 +880,10 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
 
+## 本次完成（2026-09-16，手機側欄退場方向修正，待部署）
+
+- 修正手機右側功能選單在按關閉或選擇頁面後，退場途中短暫切換為底部抽屜、造成畫面向下縮的問題。側欄現在會維持原本的右側定位直到退場動畫完成，再清除目前選單內容；教材與開口說的底部選擇面板仍維持原有方向。新增 Navbar 回歸測試，確認右側選單關閉期間的 `placement` 不會改變。相關 React 16/16 已通過；本批沒有 migration 或 Edge Function 變更。
+
 ## 本次完成（2026-09-16，手機導覽與智慧複習暖載入，已部署）
 
 - 依手機實機錄影確認，Navbar 收合與路由切換約在 0.1～0.2 秒內完成；主要等待來自智慧複習頁的個人化資料請求。手機抽屜現在會先開始收合再切換頁面，開啟「更多」時會預先下載智慧複習頁面程式碼並暖載入學生複習摘要；45 秒記憶體快取會共用同一請求，答題後立即失效，未把個人資料寫死到前端。React 15/15、Production build、release preflight 與 `git diff --check` 通過；功能 commit `2ea23b7` 已推送 `feature/mobile-navigation-performance`。Netlify 正式 deploy `6aaa5a4672094a3fd0c664e2` 已就緒，正式網域與唯一部署網址皆回傳 `main.935090f4.js`。本批沒有 migration 或 Edge Function 變更。
