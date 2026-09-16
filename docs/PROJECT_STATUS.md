@@ -2,6 +2,13 @@
 
 最後更新：2026-09-16
 
+本次口說女聲與整句示範（2026-09-16，本機驗證完成，尚未合併或部署）：
+
+- 口說題庫預設語音統一為 Google Chirp 3 HD `Leda` 女聲，不再依題目交錯男女聲。所有包含獨立單字 `the` 的新語音都以 IPA `/ðə/` 明確指定，避免供應商自行判斷造成音色與重音漂移；既有私人 R2 音檔不刪除，重新產生時以新版本雜湊建立並重新連結。
+- P22～P24 保留可見單字逐字點讀，另新增「聽整句（空格停 2 秒）」：後端只把挖空句型的空格前後文字分別交給 TTS，再以 PCM WAV 嵌入精準 2 秒靜音後合成，未把 `answer_text` 或空格答案交給 TTS。學生只取得短效私人網址；整句或逐字任一音檔未完成時，新草稿不能發布。
+- 新增 additive migration `20260916140618_speaking_picture_sentence_audio.sql`，只擴充 server-only `speaking_question_audio.purpose` 允許 `question_prompt`；尚未套用。尚未部署 `speaking-tts-manager`、`speaking-content-manager`、`speaking-challenge` 或 Netlify，正式站仍維持現況。
+- 驗證：語音／2 秒靜音與學生輸出測試 9 項、口說內容契約 23 項、React targeted tests 15 項、全套 Edge Function 語法、Production build 與 `git diff --check` 均通過；build 只有既有 `SpeakingPronunciationRecorder.jsx` 未使用 `FiSquare`、Browserslist 與 Node deprecation 警告。
+
 本次好友與戰績恢復（2026-09-16，隔離整合完成，尚未部署）：
 
 - 從目前正式站使用的手機導覽基準 `c268e5e` 建立 `feature/restore-friends`，只移植原好友系統的六個功能／修正 commit，沒有合併含其他舊功能的 PR #105，也沒有覆蓋目前兒童首頁、首次登入、生日、家長 Email 驗證、口說、教材或 Navbar 效能修正。學生重新取得 `/student/friends`、完整暱稱／好友碼搜尋、邀請與接受、好友 XP／等級、在線隱私、私人頭貼短效預覽、刪除好友、封鎖、解除封鎖與檢舉；Navbar、首頁、設定及排行榜以公開暱稱優先，教師／管理／客服仍使用真實姓名。

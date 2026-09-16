@@ -180,6 +180,7 @@ describe("WorkbookOnePictureChallenge", () => {
                     picture_interaction: {
                         type: "picture_gap_sentence",
                         sentence_pattern: "The ____ is in the tree.",
+                        sentence_audio_url: "https://r2.example/sentence.wav",
                         word_audio: wordAudio
                     }
                 }]
@@ -194,14 +195,19 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.getByLabelText("請依圖片補上的答案")).toHaveTextContent("____");
         expect(screen.queryByRole("button", { name: /apple/i })).not.toBeInTheDocument();
 
+        fireEvent.click(screen.getByRole("button", { name: "播放整句發音；空格停留 2 秒" }));
+        expect(global.Audio).toHaveBeenLastCalledWith("https://r2.example/sentence.wav");
+        expect(audioInstances.at(-1).play).toHaveBeenCalledTimes(1);
+        act(() => audioInstances.at(-1).onended());
+
         for (const item of wordAudio) {
             fireEvent.click(screen.getByRole("button", { name: `播放 ${item.word} 的發音` }));
             expect(global.Audio).toHaveBeenLastCalledWith(item.audio_url);
             expect(audioInstances.at(-1).play).toHaveBeenCalledTimes(1);
             act(() => audioInstances.at(-1).onended());
         }
-        expect(global.Audio).toHaveBeenNthCalledWith(1, "https://r2.example/the-first.mp3");
-        expect(global.Audio).toHaveBeenNthCalledWith(4, "https://r2.example/the-second.mp3");
+        expect(global.Audio).toHaveBeenNthCalledWith(2, "https://r2.example/the-first.mp3");
+        expect(global.Audio).toHaveBeenNthCalledWith(5, "https://r2.example/the-second.mp3");
 
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
         expect(onComplete).not.toHaveBeenCalled();

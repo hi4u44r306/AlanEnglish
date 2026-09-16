@@ -28,6 +28,15 @@ import {
     DEFAULT_FEMALE_VOICE_ID,
     DEFAULT_MALE_VOICE_ID
 } from "../_shared/speaking-voice-assignment.ts";
+import {
+    assemblePictureGapSentenceWav,
+    googleSpeechInputForText,
+    pictureGapSentenceParts,
+    PICTURE_SENTENCE_AUDIO_VERSION,
+    PICTURE_SENTENCE_GAP_MS,
+    VISIBLE_WORD_AUDIO_VERSION,
+    type GoogleSpeechInput
+} from "../_shared/speaking-picture-audio.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -71,9 +80,7 @@ const sha256 = async (value: string) => {
 };
 
 const voicePool = () => ({
-    female: cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_FEMALE_VOICE_NAME"), 120)
-        || cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_VOICE_NAME"), 120)
-        || DEFAULT_FEMALE_VOICE_ID,
+    female: DEFAULT_FEMALE_VOICE_ID,
     male: cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_MALE_VOICE_NAME"), 120) || DEFAULT_MALE_VOICE_ID
 });
 
@@ -142,13 +149,13 @@ const decodeGoogleAudio = (audioContent: unknown) => {
     return bytes;
 };
 
-const requestGoogleAudio = async (text: string, selectedVoice: string) => {
+const requestGoogleAudio = async (input: GoogleSpeechInput, selectedVoice: string) => {
     const accessToken = await getGoogleAccessToken();
     const response = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-            input: { text }, voice: { languageCode: LANGUAGE_CODE, name: selectedVoice }, audioConfig: SETTINGS
+            input, voice: { languageCode: LANGUAGE_CODE, name: selectedVoice }, audioConfig: SETTINGS
         })
     });
     const payload = await response.json().catch(() => ({}));
@@ -158,7 +165,19 @@ const requestGoogleAudio = async (text: string, selectedVoice: string) => {
             code: cleanText(payload?.error?.status, 80) || `google_tts_http_${response.status}`
         });
     }
-    return { bytes: decodeGoogleAudio(payload.audioContent), usedCharacters: text.length };
+    const source = "text" in input ? input.text : input.ssml;
+    return { bytes: decodeGoogleAudio(payload.audioContent), usedCharacters: source.length };
+};
+
+const requestGoogleGapSentenceAudio = async (pattern: string, selectedVoice: string) => {
+    const { before, after } = pictureGapSentenceParts(pattern);
+    const beforeAudio = await requestGoogleAudio(googleSpeechInputForText(before), selectedVoice);
+    const afterAudio = await requestGoogleAudio(googleSpeechInputForText(after), selectedVoice);
+    const assembled = assemblePictureGapSentenceWav(beforeAudio.bytes, afterAudio.bytes, PICTURE_SENTENCE_GAP_MS);
+    return {
+        ...assembled,
+        usedCharacters: beforeAudio.usedCharacters + afterAudio.usedCharacters
+    };
 };
 
 const linkGeneratedAsset = async (admin: any, question: any, assetId: string, target: any, updatedAt: string) => {
@@ -168,6 +187,23 @@ const linkGeneratedAsset = async (admin: any, question: any, assetId: string, ta
             asset_id: assetId, updated_at: updatedAt
         }, { onConflict: "question_id,token_index" });
         if (error) throw error;
+        return;
+    }
+    if (target?.kind === "sentence_pattern") {
+        const payload = { question_id: question.id, asset_id: assetId, purpose: "question_prompt", updated_at: updatedAt };
+        const { data: existingPrompt, error: promptUpdateError } = await admin.from("speaking_question_audio")
+            .update({ asset_id: assetId, purpose: "question_prompt", updated_at: updatedAt })
+            .eq("question_id", question.id).select("question_id").maybeSingle();
+        if (promptUpdateError) throw promptUpdateError;
+        if (existingPrompt) return;
+        const { error: promptInsertError } = await admin.from("speaking_question_audio").insert(payload);
+        if (!promptInsertError) return;
+        if (promptInsertError.code !== "23505") throw promptInsertError;
+        const { data: retriedPrompt, error: promptRetryError } = await admin.from("speaking_question_audio")
+            .update({ asset_id: assetId, purpose: "question_prompt", updated_at: updatedAt })
+            .eq("question_id", question.id).select("question_id").maybeSingle();
+        if (promptRetryError) throw promptRetryError;
+        if (!retriedPrompt) throw Object.assign(new Error("整句語音無法連結至題目"), { status: 409, code: "audio_link_race_failed" });
         return;
     }
     const payload = {
@@ -356,7 +392,9 @@ const prepareAlphabetCandidates = async (admin: any, questions: any[], questionS
 };
 
 const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
-    const text = spokenExampleText(target?.text ?? question?.model_answer);
+    const text = target?.kind === "sentence_pattern"
+        ? String(target?.text || "").trim()
+        : spokenExampleText(target?.text ?? question?.model_answer);
     if (!text) return { question_id: Number(question.id), status: "failed", error: "示範回答是空白" };
     const selected = target?.voiceChoice
         || chooseSpeakingVoice(question.question_set_id, target?.tokenIndex ?? question.sort_order, voicePool());
@@ -364,7 +402,10 @@ const generateQuestionAudio = async (admin: any, question: any, target: any = nu
     const contentHash = await sha256(text);
     const settingsHash = await sha256(JSON.stringify({
         provider: PROVIDER, voice_id: selectedVoice, language_code: LANGUAGE_CODE,
-        output_format: OUTPUT_FORMAT, sample_rate: "provider_default", pipeline_version: PIPELINE_VERSION, settings: SETTINGS
+        output_format: OUTPUT_FORMAT, sample_rate: "provider_default", pipeline_version: PIPELINE_VERSION,
+        audio_version: target?.audioVersion || (/\bthe\b/i.test(text) ? "the-ipa-v1" : "default-v1"),
+        gap_ms: target?.kind === "sentence_pattern" ? PICTURE_SENTENCE_GAP_MS : null,
+        settings: SETTINGS
     }));
 
     const { data: existing, error: existingError } = await admin.from("speaking_tts_assets")
@@ -452,7 +493,9 @@ const generateQuestionAudio = async (admin: any, question: any, target: any = nu
     }
 
     try {
-        const generated = await requestGoogleAudio(text, selectedVoice);
+        const generated = target?.kind === "sentence_pattern"
+            ? await requestGoogleGapSentenceAudio(text, selectedVoice)
+            : await requestGoogleAudio(googleSpeechInputForText(text), selectedVoice);
         const objectKey = normalizeObjectKey(`speaking-tts/google/${selectedVoice}/${contentHash}-${settingsHash.slice(0, 16)}.wav`);
         const stored = await fetchR2(objectKey, {
             method: "PUT", body: generated.bytes,
@@ -729,7 +772,7 @@ Deno.serve(async (req: Request) => {
             });
         }
         if (action === "generate_visible_word_audio") {
-            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有看圖補句關卡可產生逐字發音" });
+            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有看圖補句關卡可產生逐字與整句發音" });
             const questionIds = questions.map((question: any) => Number(question.id));
             const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
                 .select("question_id,interaction_type,prompt_text").in("question_id", questionIds);
@@ -744,13 +787,29 @@ Deno.serve(async (req: Request) => {
                 return json(409, { error: `${pictureGapPage || "看圖補句"} 可見單字資料不完整或超過安全處理上限` });
             }
             const results = [];
+            const femaleVoice = { gender: "female", voiceId: voicePool().female };
             for (const { question, token } of wordTargets) {
                 try {
                     results.push(await generateQuestionAudio(admin, question, {
-                        kind: "visible_word", text: token.text, word: token.text, tokenIndex: token.tokenIndex
+                        kind: "visible_word", text: token.text, word: token.text, tokenIndex: token.tokenIndex,
+                        voiceChoice: femaleVoice, audioVersion: VISIBLE_WORD_AUDIO_VERSION
                     }));
                 } catch (generationError: any) {
                     results.push({ question_id: Number(question.id), token_index: token.tokenIndex, status: "failed", error: cleanText(generationError?.message, 300) || "單字語音生成失敗" });
+                }
+            }
+            for (const question of questions) {
+                const interaction: any = interactionByQuestion.get(Number(question.id));
+                try {
+                    results.push(await generateQuestionAudio(admin, question, {
+                        kind: "sentence_pattern", text: interaction?.prompt_text,
+                        voiceChoice: femaleVoice, audioVersion: PICTURE_SENTENCE_AUDIO_VERSION
+                    }));
+                } catch (generationError: any) {
+                    results.push({
+                        question_id: Number(question.id), kind: "sentence_pattern", status: "failed",
+                        error: cleanText(generationError?.message, 300) || "整句語音生成失敗"
+                    });
                 }
             }
             const failed = results.filter(item => item.status === "failed").length;

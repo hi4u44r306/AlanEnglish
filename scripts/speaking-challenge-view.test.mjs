@@ -154,6 +154,7 @@ test("P22 只保留挖空句型、核准圖片與完整可見單字短效網址"
             private_object_key: "private/secret-p22.webp",
             alt_zh: "樹上的蘋果"
         },
+        promptAsset: { status: "ready", private_object_key: "private/p22-sentence.wav" },
         wordAudioRows: words,
         signPrivateObject: signer.sign
     });
@@ -170,6 +171,8 @@ test("P22 只保留挖空句型、核准圖片與完整可見單字短效網址"
         ]
     );
     assert.equal(result.picture_interaction.word_audio.every(item => item.audio_url.startsWith("https://signed.test/")), true);
+    assert.equal(result.picture_interaction.sentence_audio_status, "ready");
+    assert.equal(result.picture_interaction.sentence_audio_url, "https://signed.test/7");
     assert.equal(result.visual_aid.image_url, "https://signed.test/6");
     assert.equal(result.progress_status, "completed");
     assert.equal(result.model_answer, "");
@@ -208,7 +211,7 @@ test("P21 圖片未 ready 與 P22 可見單字音檔不完整時拒絕輸出", a
             }],
             signPrivateObject: async () => "https://signed.test/audio"
         }),
-        error => error.status === 409 && error.code === "word_audio_incomplete"
+        error => error.status === 409 && error.code === "picture_audio_incomplete"
     );
 });
 

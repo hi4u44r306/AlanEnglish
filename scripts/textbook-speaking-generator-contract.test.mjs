@@ -146,15 +146,14 @@ test("12. Workbook 2 精選大關卡依教師版內容建立，仍需管理員�
     assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
 });
 
-test("13. 示範語音固定男女聲交錯並可由管理員安全預覽", () => {
-    assert.match(voiceAssignment, /en-US-Chirp3-HD-Autonoe/);
+test("13. 示範語音固定 Leda 女聲並可由管理員安全預覽", () => {
+    assert.match(voiceAssignment, /en-US-Chirp3-HD-Leda/);
     assert.match(voiceAssignment, /en-US-Chirp3-HD-Puck/);
-    assert.match(voiceAssignment, /questionSetId.*sortOrder/s);
+    assert.match(voiceAssignment, /SpeakingVoiceGender => "female"/);
     assert.match(ttsManager, /preview_question_audio/);
     assert.match(ttsManager, /createR2PresignedUrl\(asset\.private_object_key, "GET", 15 \* 60\)/);
     assert.match(service, /getSpeakingQuestionAudioPreview/);
-    assert.match(adminPage, /女聲 · Autonoe/);
-    assert.match(adminPage, /男聲 · Puck/);
+    assert.match(adminPage, /女聲 · Leda/);
 });
 
 test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {
@@ -292,13 +291,18 @@ test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(ttsManager, /generate_visible_word_audio/);
     assert.match(ttsManager, /WORKBOOK_ONE_PICTURE_GAP_TEMPLATES/);
     assert.match(ttsManager, /visibleSentenceWords/);
+    assert.match(ttsManager, /PICTURE_SENTENCE_GAP_MS/);
+    assert.match(ttsManager, /sentence_pattern/);
+    assert.match(manager, /\.eq\("purpose", "question_prompt"\)/);
+    assert.match(manager, /空格停 2 秒的整句女聲發音尚未全部完成/);
     assert.match(ttsManager, /status !== "ready" && item\.status !== "failed"/);
     assert.match(service, /uploadSpeakingQuestionPicture/);
     assert.match(adminPage, /WorkbookOnePictureContentAdmin/);
     assert.match(challenge, /authorizeSpeakingChallenge/);
     assert.match(challenge, /buildPublicSpeakingQuestion/);
     assert.match(challengeView, /圖片口說題目尚未完成安全發布/);
-    assert.match(challengeView, /P22 的可見單字發音尚未完整/);
+    assert.match(challengeView, /P22～P24 的逐字或整句女聲發音尚未完整/);
+    assert.match(challengeView, /sentence_audio_url/);
     assert.match(challengeView, /kind: "private-image"/);
     assert.match(challengeView, /signPrivateObject\(visualAsset\.private_object_key\)/);
     assert.match(challengeView, /question_text: ""/);

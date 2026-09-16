@@ -48,7 +48,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
         activateSpeakingAlphabetAudioCandidate.mockResolvedValue({ success: true, activated: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
-        getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Puck", voice_gender: "male", audio_url: "https://audio.example/puck.wav" });
+        getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Leda", voice_gender: "female", audio_url: "https://audio.example/leda.wav" });
         getSpeakingQuestionPicturePreview.mockResolvedValue({
             question_id: 53,
             image_url: "https://r2.example/p21-preview.png",
@@ -187,7 +187,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         expect(screen.getByText("What's your name?")).toBeInTheDocument();
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
-        expect(screen.getByText("女聲 · Autonoe")).toBeInTheDocument();
+        expect(screen.getByText("女聲 · Leda")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "核准、發布並產生語音" })).toBeInTheDocument();
     });
 
@@ -231,7 +231,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByText("學生只會看到圖片，並在同一次錄音說出完整問句與回答。")).toBeInTheDocument();
     });
 
-    it("shows the balanced voice plan and loads a stored preview for a published question", async () => {
+    it("shows the Leda female voice plan and loads a stored preview for a published question", async () => {
         getSpeakingContentBootstrap.mockResolvedValueOnce({
             books: [{ id: 2, name: "Workbook 2", code: "Workbook_2" }],
             documents: [{ id: 20, book_id: 2, title: "Workbook 2 口說大挑戰", chunk_count: 0 }], chunks: [],
@@ -245,10 +245,10 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByText("預覽學生畫面"));
-        expect(screen.getByText("男聲 · Puck")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題男聲示範" }));
+        expect(screen.getByText("女聲 · Leda")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題女聲示範" }));
 
         await waitFor(() => expect(getSpeakingQuestionAudioPreview).toHaveBeenCalledWith(mockFirebaseUser, 13, 31));
-        expect(await screen.findByLabelText("第 1 題示範語音")).toHaveAttribute("src", "https://audio.example/puck.wav");
+        expect(await screen.findByLabelText("第 1 題示範語音")).toHaveAttribute("src", "https://audio.example/leda.wav");
     });
 });

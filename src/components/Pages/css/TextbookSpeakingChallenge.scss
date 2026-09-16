@@ -951,6 +951,24 @@
 @keyframes speaking-spin { to { transform: rotate(360deg); } }
 .speaking-picture-card .speaking-visual-aid--private { width: min(440px, 100%); }
 .speaking-visual-aid--private img { display: block; width: 100%; max-height: min(48vh, 420px); object-fit: contain; background: #f7faff; }
+.speaking-gap-sentence-audio {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 18px;
+  border: 2px solid #2465c5;
+  border-radius: 14px;
+  color: #fff;
+  background: #2465c5;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.speaking-gap-sentence-audio:hover:not(:disabled) { background: #174f9e; }
+.speaking-gap-sentence-audio:focus-visible { outline: 3px solid rgba(246, 190, 46, .85); outline-offset: 3px; }
+.speaking-gap-sentence-audio:disabled { cursor: not-allowed; opacity: .58; }
 .speaking-gap-sentence {
   width: min(720px, 100%);
   display: flex;
@@ -1038,6 +1056,7 @@
   .speaking-foundation-card { padding: 18px 14px; }
   .speaking-picture-card .speaking-visual-aid--private { width: 100%; }
   .speaking-visual-aid--private img { max-height: 38vh; }
+  .speaking-gap-sentence-audio { width: 100%; }
   .speaking-gap-sentence { gap: 6px; padding: 14px 10px; border-radius: 18px; font-size: clamp(22px, 7vw, 30px); }
   .speaking-gap-sentence button { min-height: 46px; padding-inline: 7px; }
 }
