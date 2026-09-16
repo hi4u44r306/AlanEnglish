@@ -3,7 +3,12 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { getRoleHome } from "./RoleHomeRedirect";
 
-const ProtectedRoute = ({ children, allowedRoles, requiresActiveMembership = false }) => {
+const ProtectedRoute = ({
+    children,
+    allowedRoles,
+    requiresActiveMembership = false,
+    allowsIncompleteOnboarding = false
+}) => {
     const { authLoading, isAuthenticated, role, studentProfile } = useAuth();
     const location = useLocation();
 
@@ -27,6 +32,14 @@ const ProtectedRoute = ({ children, allowedRoles, requiresActiveMembership = fal
 
     if (Array.isArray(allowedRoles) && allowedRoles.length > 0 && !allowedRoles.includes(role)) {
         return <Navigate to={getRoleHome(role)} replace />;
+    }
+
+    if (
+        role === "student"
+        && studentProfile?.onboarding?.required === true
+        && !allowsIncompleteOnboarding
+    ) {
+        return <Navigate to="/student/onboarding" replace state={{ from: location }} />;
     }
 
     if (

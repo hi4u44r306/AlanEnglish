@@ -30,6 +30,7 @@ import ForgotPassword from "../components/Pages/ForgotPassword";
 import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
+import StudentOnboarding from "../components/Pages/StudentOnboarding";
 import StudentNotifications from "../components/Pages/StudentNotifications";
 import MaterialCatalog from "../components/Pages/MaterialCatalog";
 import StoreCatalog from "../components/Pages/StoreCatalog";
@@ -144,6 +145,7 @@ const App = () => {
                     <Route path="/shop/orders/:orderNumber" element={<StoreOrders />} />
                     <Route path="/shop/payment/success" element={<StorePaymentResult />} />
 
+                    <Route path="/student/onboarding" element={<ProtectedRoute allowedRoles={["student"]} allowsIncompleteOnboarding><StudentOnboarding /></ProtectedRoute>} />
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />

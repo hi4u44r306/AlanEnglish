@@ -4,7 +4,11 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
-import { updateStudentProfile } from "../../services/membershipService";
+import {
+    confirmGuardianEmailVerification,
+    requestGuardianEmailVerification,
+    updateStudentProfile
+} from "../../services/membershipService";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import BirthdaySelect from "../fragment/BirthdaySelect";
@@ -44,7 +48,7 @@ const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
 };
 
 function StudentSettings() {
-    const { firebaseUser, studentProfile, setStudentProfile } = useAuth();
+    const { firebaseUser, studentProfile, setStudentProfile, refreshStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
     const [summary, setSummary] = useState(null);
     const [commerce, setCommerce] = useState(null);
@@ -53,6 +57,7 @@ function StudentSettings() {
     const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
     const [guardianEmail, setGuardianEmail] = useState("");
     const [savingGuardian, setSavingGuardian] = useState(false);
+    const [guardianVerification, setGuardianVerification] = useState({ requestId: null, maskedEmail: "", code: "" });
     const [avatarDraft, setAvatarDraft] = useState(null);
     const [avatarConfirmation, setAvatarConfirmation] = useState(null);
     const avatarDragRef = useRef(null);
@@ -74,7 +79,7 @@ function StudentSettings() {
 
     useEffect(() => { load(); }, [load]);
     useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
-    useEffect(() => { setGuardianEmail(commerce?.guardian?.email || ""); }, [commerce?.guardian?.email]);
+    useEffect(() => { setGuardianEmail(commerce?.guardian?.email || studentProfile?.guardian?.email || ""); }, [commerce?.guardian?.email, studentProfile?.guardian?.email]);
     useEffect(() => () => {
         if (avatarConfirmation?.revokePreview && avatarConfirmation.previewUrl) {
             URL.revokeObjectURL(avatarConfirmation.previewUrl);
@@ -257,7 +262,8 @@ function StudentSettings() {
             const savedDate = result?.profile?.date_of_birth || dateOfBirth;
             setDateOfBirth(savedDate);
             setStudentProfile(current => current ? { ...current, date_of_birth: savedDate } : current);
-            toast.success("出生年月日已更新");
+            if (refreshStudentProfile) await refreshStudentProfile();
+            toast.success("出生年月日已保存，之後不可自行修改");
         } catch (error) {
             toast.error(error.message || "無法更新出生年月日");
         } finally {
@@ -265,19 +271,47 @@ function StudentSettings() {
         }
     };
 
-    const saveGuardianEmail = async event => {
+    const sendGuardianVerification = async event => {
         event.preventDefault();
         if (!firebaseUser) return;
         setSavingGuardian(true);
         try {
-            await updateStudentProfile(firebaseUser, { guardian_email: guardianEmail });
-            setCommerce(current => current ? { ...current, guardian: { ...(current.guardian || {}), email: guardianEmail } } : current);
-            toast.success("家長 Email 已更新");
-        } catch (error) { toast.error(error.message || "無法更新家長 Email"); }
+            const result = await requestGuardianEmailVerification(firebaseUser, guardianEmail);
+            if (result?.already_verified) {
+                toast.info("這個家長 Email 已完成驗證");
+                return;
+            }
+            setGuardianVerification({
+                requestId: result?.request_id || null,
+                maskedEmail: result?.masked_email || "家長信箱",
+                code: ""
+            });
+            toast.success("驗證碼已寄出，請家長查看收件匣與垃圾郵件");
+        } catch (error) { toast.error(error.message || "無法寄送家長 Email 驗證碼"); }
+        finally { setSavingGuardian(false); }
+    };
+
+    const confirmGuardianVerification = async event => {
+        event.preventDefault();
+        if (!firebaseUser || !guardianVerification.requestId) return;
+        if (!/^\d{6}$/.test(guardianVerification.code)) {
+            toast.error("請輸入信件中的 6 位數驗證碼");
+            return;
+        }
+        setSavingGuardian(true);
+        try {
+            await confirmGuardianEmailVerification(firebaseUser, guardianVerification.requestId, guardianVerification.code);
+            if (refreshStudentProfile) await refreshStudentProfile();
+            await load();
+            setGuardianVerification({ requestId: null, maskedEmail: "", code: "" });
+            toast.success("家長 Email 已驗證並更新");
+        } catch (error) { toast.error(error.message || "家長 Email 驗證失敗"); }
         finally { setSavingGuardian(false); }
     };
 
     const profile = studentProfile || {};
+    const currentGuardian = commerce?.guardian || profile?.guardian || null;
+    const guardianVerified = Boolean(currentGuardian?.email && currentGuardian?.email_verified_at);
     const balance = summary?.balance || {};
     const avatarUrl = summary?.profile?.avatar_url || null;
     const avatarDisplayUrl = getStudentAvatarDisplayUrl(avatarUrl, 256);
@@ -475,26 +509,49 @@ function StudentSettings() {
                         <div><dt>中文姓名</dt><dd>{profile.chinese_name || profile.name || "—"}</dd></div>
                         <div><dt>英文姓名</dt><dd>{profile.english_name || "尚未設定"}</dd></div>
                         <div><dt>班級</dt><dd>{profile.class ? `${profile.class} 班` : "尚未分班"}</dd></div>
+                        <div><dt>登入帳號</dt><dd>{profile.login_username || firebaseUser?.email || "—"}</dd></div>
                     </dl>
-                    <p className="student-settings-readonly"><FiLock /> 姓名與班級由英文班／帳號管理維護；如需更正請聯絡老師或櫃檯。</p>
+                    <p className="student-settings-readonly"><FiLock /> 姓名、班級與登入帳號由英文班／帳號管理維護；如需更正請聯絡老師或櫃檯。</p>
                 </article>
 
                 <article className="student-settings-panel">
                     <header><FiGift /><div><span>BIRTHDAY</span><h2>出生年月日</h2></div></header>
-                    <p>資料僅用於帳號基本資料與未來的生日獎勵，不會顯示在排行榜。</p>
-                    <form className="student-settings-birthday-form" onSubmit={saveBirthday}>
-                        <div className="student-settings-birthday-field"><span>出生年月日</span><BirthdaySelect value={dateOfBirth} onChange={setDateOfBirth} disabled={savingBirthday} required idPrefix="student-settings-birthday" /></div>
-                        <button type="submit" disabled={savingBirthday}>{savingBirthday ? "儲存中…" : "儲存生日資料"}</button>
-                    </form>
+                    <p>生日會影響生日獎勵，不會顯示在排行榜。為避免獎勵紀錄錯誤，設定後學生不能自行修改。</p>
+                    {profile.date_of_birth ? (
+                        <dl className="student-settings-data-list">
+                            <div><dt>出生年月日</dt><dd>{profile.date_of_birth}</dd></div>
+                            <div><dt>狀態</dt><dd>已鎖定</dd></div>
+                        </dl>
+                    ) : (
+                        <form className="student-settings-birthday-form" onSubmit={saveBirthday}>
+                            <div className="student-settings-birthday-field"><span>出生年月日</span><BirthdaySelect value={dateOfBirth} onChange={setDateOfBirth} disabled={savingBirthday} required idPrefix="student-settings-birthday" /></div>
+                            <button type="submit" disabled={savingBirthday}>{savingBirthday ? "儲存中…" : "確認並保存生日"}</button>
+                        </form>
+                    )}
                 </article>
 
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>GUARDIAN</span><h2>家長 Email</h2></div></header>
-                    <p>Checkout 與到期前三天提醒會使用這個 Email；缺少有效 Email 時無法開始付款。</p>
-                    <form className="student-settings-birthday-form" onSubmit={saveGuardianEmail}>
-                        <label className="student-settings-birthday-field"><span>家長 Email</span><input type="email" required value={guardianEmail} onChange={event => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label>
-                        <button type="submit" disabled={savingGuardian}>{savingGuardian ? "儲存中…" : "儲存家長 Email"}</button>
-                    </form>
+                    <p>付款與重要通知只會寄到已驗證的家長 Email。更換時，驗證成功前仍保留原本的信箱。</p>
+                    {currentGuardian?.email && (
+                        <dl className="student-settings-data-list">
+                            <div><dt>目前家長 Email</dt><dd>{currentGuardian.email}</dd></div>
+                            <div><dt>驗證狀態</dt><dd>{guardianVerified ? "已驗證" : "尚未驗證"}</dd></div>
+                        </dl>
+                    )}
+                    {guardianVerification.requestId ? (
+                        <form className="student-settings-birthday-form" onSubmit={confirmGuardianVerification}>
+                            <p>驗證碼已寄到 {guardianVerification.maskedEmail}。</p>
+                            <label className="student-settings-birthday-field"><span>6 位數驗證碼</span><input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={guardianVerification.code} onChange={event => setGuardianVerification(current => ({ ...current, code: event.target.value.replace(/\D/g, "") }))} /></label>
+                            <button type="submit" disabled={savingGuardian}>{savingGuardian ? "驗證中…" : "確認驗證碼並更新"}</button>
+                            <button type="button" className="student-settings-secondary-button" disabled={savingGuardian} onClick={() => setGuardianVerification({ requestId: null, maskedEmail: "", code: "" })}>更換 Email／重新寄送</button>
+                        </form>
+                    ) : (
+                        <form className="student-settings-birthday-form" onSubmit={sendGuardianVerification}>
+                            <label className="student-settings-birthday-field"><span>{currentGuardian?.email ? "新的家長 Email" : "家長 Email"}</span><input type="email" required value={guardianEmail} onChange={event => setGuardianEmail(event.target.value)} placeholder="parent@example.com" /></label>
+                            <button type="submit" disabled={savingGuardian}>{savingGuardian ? "寄送中…" : "寄送驗證碼"}</button>
+                        </form>
+                    )}
                 </article>
             </section>
         </main>
