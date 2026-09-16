@@ -23,6 +23,7 @@ jest.mock("react-bootstrap/Offcanvas", () => {
 describe("MainNavbar student navigation", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        localStorage.clear();
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-test" },
             role: "student",

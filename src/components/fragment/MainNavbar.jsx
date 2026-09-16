@@ -18,6 +18,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
+import { readAppShellCache, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
 import StudentNavbar from "./StudentNavbar";
 
 const restoreDocumentScroll = () => {
@@ -122,19 +123,31 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
+        const cachedSummary = readAppShellCache(firebaseUser.uid, "gamification", 5 * 60 * 1000);
+        if (cachedSummary) setGamificationSummary(cachedSummary);
         const refreshGamification = () => {
             getGamificationSummary(firebaseUser)
                 .then(result => {
-                    if (!cancelled) setGamificationSummary(result || null);
+                    if (!cancelled) {
+                        const summary = result || null;
+                        setGamificationSummary(summary);
+                        writeAppShellCache(firebaseUser.uid, "gamification", summary);
+                    }
                 })
                 .catch(() => {
                     if (!cancelled) setGamificationSummary(null);
                 });
         };
-        refreshGamification();
+        const cancelIdleRefresh = cachedSummary
+            ? scheduleWhenIdle(refreshGamification)
+            : (() => {
+                refreshGamification();
+                return () => {};
+            })();
         window.addEventListener("ae:gamification-updated", refreshGamification);
         return () => {
             cancelled = true;
+            cancelIdleRefresh();
             window.removeEventListener("ae:gamification-updated", refreshGamification);
         };
     }, [firebaseUser, isStudent]);
@@ -145,14 +158,31 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
-        getStudentNotifications(firebaseUser)
-            .then(result => {
-                if (!cancelled) setNotifications(result?.notifications || []);
-            })
-            .catch(() => {
-                if (!cancelled) setNotifications([]);
-            });
-        return () => { cancelled = true; };
+        const cachedNotifications = readAppShellCache(firebaseUser.uid, "notifications", 90 * 1000);
+        if (cachedNotifications) setNotifications(cachedNotifications);
+        const refreshNotifications = () => {
+            getStudentNotifications(firebaseUser)
+                .then(result => {
+                    if (!cancelled) {
+                        const nextNotifications = result?.notifications || [];
+                        setNotifications(nextNotifications);
+                        writeAppShellCache(firebaseUser.uid, "notifications", nextNotifications);
+                    }
+                })
+                .catch(() => {
+                    if (!cancelled && !cachedNotifications) setNotifications([]);
+                });
+        };
+        const cancelIdleRefresh = cachedNotifications
+            ? scheduleWhenIdle(refreshNotifications)
+            : (() => {
+                refreshNotifications();
+                return () => {};
+            })();
+        return () => {
+            cancelled = true;
+            cancelIdleRefresh();
+        };
     }, [firebaseUser, isStudent]);
 
     useEffect(() => {
@@ -162,12 +192,21 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
+        const cachedCategories = readAppShellCache(firebaseUser.uid, "catalog", 10 * 60 * 1000);
+        if (cachedCategories) {
+            setCategories(cachedCategories);
+            setLoading(false);
+        }
         const fetchNavbarData = async () => {
             try {
-                setLoading(true);
+                if (!cachedCategories) setLoading(true);
                 setNavError(null);
                 const result = await getAccessibleCatalog(firebaseUser);
-                if (!cancelled) setCategories(result?.categories || []);
+                if (!cancelled) {
+                    const nextCategories = result?.categories || [];
+                    setCategories(nextCategories);
+                    writeAppShellCache(firebaseUser.uid, "catalog", nextCategories);
+                }
             } catch (error) {
                 console.error("MainNavbar 載入失敗:", error);
                 if (!cancelled) setNavError(error?.message || "教材載入失敗");
@@ -175,8 +214,16 @@ function MainNavbar() {
                 if (!cancelled) setLoading(false);
             }
         };
-        fetchNavbarData();
-        return () => { cancelled = true; };
+        const cancelIdleRefresh = cachedCategories
+            ? scheduleWhenIdle(fetchNavbarData)
+            : (() => {
+                fetchNavbarData();
+                return () => {};
+            })();
+        return () => {
+            cancelled = true;
+            cancelIdleRefresh();
+        };
     }, [firebaseUser]);
 
     const closeMobileMenu = () => setMobileOpen(false);

@@ -5,7 +5,7 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Offcanvas from "react-bootstrap/Offcanvas";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
     FiBarChart2,
     FiBell,
@@ -25,6 +25,22 @@ import {
 } from "react-icons/fi";
 import Brand from "./Brand";
 import "../assets/scss/StudentNavbar.scss";
+
+const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
+    const navigate = useNavigate();
+
+    const handleClick = event => {
+        onClick?.(event);
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return;
+
+        event.preventDefault();
+        // 先換頁，避免 Bootstrap Offcanvas 的收合動畫卡住內容首屏。
+        navigate(to);
+        window.requestAnimationFrame(() => onNavigate?.());
+    };
+
+    return <Link {...props} to={to} onClick={handleClick} />;
+};
 
 const StudentNavbar = ({
     categories,
@@ -107,14 +123,14 @@ const StudentNavbar = ({
                 </summary>
                 <div>
                     {category.books.map(book => (
-                        <Link
+                        <InstantDrawerLink
                             key={book.id || book.code}
                             to={`/student/books/${book.code}`}
-                            onClick={closeDrawer}
+                            onNavigate={closeDrawer}
                             className={isPathActive(`/student/books/${book.code}`) ? "active" : ""}
                         >
                             {book.name}
-                        </Link>
+                        </InstantDrawerLink>
                     ))}
                 </div>
             </details>
@@ -123,14 +139,14 @@ const StudentNavbar = ({
 
     const speakingLinks = (
         <div className="ae-student-choice-list">
-            <Link to="/student/pronunciation" onClick={closeDrawer} className={isPathActive("/student/pronunciation") ? "active" : ""}>
+            <InstantDrawerLink to="/student/pronunciation" onNavigate={closeDrawer} className={isPathActive("/student/pronunciation") ? "active" : ""}>
                 <span className="is-blue"><FiMic /></span>
                 <span><strong>發音教練</strong><small>跟著句子練清楚發音</small></span>
-            </Link>
-            <Link to="/student/speaking-challenges" onClick={closeDrawer} className={isPathActive("/student/speaking-challenges") ? "active" : ""}>
+            </InstantDrawerLink>
+            <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawer} className={isPathActive("/student/speaking-challenges") ? "active" : ""}>
                 <span className="is-orange"><FiStar /></span>
                 <span><strong>口說大挑戰</strong><small>聽問題，用完整英文回答</small></span>
-            </Link>
+            </InstantDrawerLink>
         </div>
     );
 
@@ -138,19 +154,19 @@ const StudentNavbar = ({
         <>
             <section className="ae-student-drawer-section">
                 <span>學習功能</span>
-                {hasAssignmentsAccess && <Link to="/student/assignments" onClick={closeDrawer} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</Link>}
-                {hasReviewAccess && <Link to="/student/review" onClick={closeDrawer} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</Link>}
-                {hasActiveLearningAccess && <Link to="/student/weekly-report" onClick={closeDrawer} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</Link>}
-                {hasRewardsAccess && <Link to="/student/rewards" onClick={closeDrawer} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</Link>}
-                {hasAiAccess && <Link to="/student/ai-generator" onClick={closeDrawer} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</Link>}
+                {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawer} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
+                {hasReviewAccess && <InstantDrawerLink to="/student/review" onNavigate={closeDrawer} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</InstantDrawerLink>}
+                {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawer} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
+                {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawer} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
+                {hasAiAccess && <InstantDrawerLink to="/student/ai-generator" onNavigate={closeDrawer} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</InstantDrawerLink>}
             </section>
             <section className="ae-student-drawer-section">
                 <span>帳號與幫助</span>
-                <Link to="/student/membership" onClick={closeDrawer} className={isPathActive("/student/membership") ? "active" : ""}><FiCreditCard />會員與功能</Link>
-                <Link to="/student/settings" onClick={closeDrawer} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的設定</Link>
-                <Link to="/account/security" onClick={closeDrawer}><FiLock />帳號與密碼</Link>
+                <InstantDrawerLink to="/student/membership" onNavigate={closeDrawer} className={isPathActive("/student/membership") ? "active" : ""}><FiCreditCard />會員與功能</InstantDrawerLink>
+                <InstantDrawerLink to="/student/settings" onNavigate={closeDrawer} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的設定</InstantDrawerLink>
+                <InstantDrawerLink to="/account/security" onNavigate={closeDrawer}><FiLock />帳號與密碼</InstantDrawerLink>
                 <button type="button" onClick={() => { closeDrawer(); onOpenTour(); }}><FiHelpCircle />使用教學</button>
-                <Link to="/support" onClick={closeDrawer}><FiHelpCircle />聯絡客服</Link>
+                <InstantDrawerLink to="/support" onNavigate={closeDrawer}><FiHelpCircle />聯絡客服</InstantDrawerLink>
             </section>
         </>
     );
