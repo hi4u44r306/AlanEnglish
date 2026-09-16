@@ -458,8 +458,12 @@ export default function SpeakingContentAdmin() {
         finally { setWorking(""); }
     };
     const archiveSet = async questionSet => {
-        const verb = questionSet.status === "draft" ? "刪除這份草稿" : "下架這個正式關卡";
-        if (!window.confirm(`確定要${verb}「${questionSet.title}」嗎？學生學習紀錄會保留。`)) return;
+        const isDraft = questionSet.status === "draft";
+        const questionCount = (questionSet.speaking_questions || []).length;
+        const confirmation = isDraft
+            ? `確定刪除未發布草稿「${questionSet.title}」第 ${questionSet.version} 版嗎？\n\n草稿內的 ${questionCount} 題會一併刪除；已發布版本與學生進度不受影響。此動作無法復原。`
+            : `確定要下架正式關卡「${questionSet.title}」嗎？學生學習紀錄會保留。`;
+        if (!window.confirm(confirmation)) return;
         setWorking(`archive-${questionSet.id}`);
         try {
             await archiveSpeakingQuestionSet(firebaseUser, questionSet.id);
@@ -686,7 +690,7 @@ export default function SpeakingContentAdmin() {
                     const isPictureSet = ["picture_qa", "picture_gap_sentence"].includes(interactionType);
                     const isSelected = Number(selectedQuestionSetId) === Number(questionSet.id);
                     return <section className={`speaking-set ${questionSet.status} ${isSelected ? "is-current" : ""}`} key={questionSet.id}>
-                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "正在展開" : "點擊查看與編輯"}</small></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}{questionSet.status === "published" && isPictureSet && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生逐字與整句發音" : "補產生示範語音"}</button>}{isPictureSet && <button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button>}</div>}</div>
+                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "正在展開" : "點擊查看與編輯"}</small></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}{questionSet.status === "published" && isPictureSet && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生逐字與整句發音" : "補產生示範語音"}</button>}{(questionSet.status === "draft" || isPictureSet) && <button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button>}</div>}</div>
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
                         {isSelected && (isPictureSet
                             ? questionSet.status === "draft"

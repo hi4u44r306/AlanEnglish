@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
 import {
     activateSpeakingAlphabetAudioCandidate,
+    archiveSpeakingQuestionSet,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
@@ -199,6 +200,32 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
         expect(screen.getByText("女聲 · Leda")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "核准並發布" })).toBeInTheDocument();
+    });
+
+    it("deletes any selected unpublished draft without affecting the published version", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        archiveSpeakingQuestionSet.mockResolvedValue({ success: true, deleted: true });
+        getSpeakingContentBootstrap.mockResolvedValueOnce({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 60, book_id: 1, title: "Workbook 1 P21 人工圖片內容", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 61, document_id: 60, topic: "P21 看圖問答", unit_label: "P21", page_from_label: "P21", page_to_label: "P21", language_level: "國小低年級", status: "reviewed" }],
+            question_sets: [{
+                id: 62, source_section_id: 61, title: "P21 看圖問答 題庫", status: "draft", version: 4,
+                generation_metadata: { source: "ai_generated" },
+                speaking_questions: [
+                    { id: 63, sort_order: 0, question_text: "What is that?", hint_zh: "看圖回答。", simple_answer: "It is a ball.", model_answer: "It is a ball.", keywords: ["ball"], accepted_intents: [] },
+                    { id: 64, sort_order: 1, question_text: "What is this?", hint_zh: "看圖回答。", simple_answer: "It is a book.", model_answer: "It is a book.", keywords: ["book"], accepted_intents: [] }
+                ]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        const deleteButton = await screen.findByRole("button", { name: "刪除草稿" });
+        fireEvent.click(deleteButton);
+
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("草稿內的 2 題會一併刪除"));
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("已發布版本與學生進度不受影響"));
+        await waitFor(() => expect(archiveSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 62));
     });
 
     it("does not expose P21/P22 drafts to the generic question editor", async () => {

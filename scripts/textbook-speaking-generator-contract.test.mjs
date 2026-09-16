@@ -330,6 +330,27 @@ test("24. 已發布圖片關卡以新版草稿安全修訂並原子切換", () =
     assert.match(authoringRevisionMigration, /grant execute on function public\.publish_speaking_question_set_revision_v1[\s\S]*to service_role/);
 });
 
+test("25. 管理員可刪除任何未發布草稿，但已發布關卡仍受圖片題庫下架規則保護", () => {
+    const archiveBlock = manager.slice(
+        manager.indexOf('if (action === "archive_question_set")'),
+        manager.indexOf('if (action === "create_workbook_1_picture_draft")')
+    );
+    assert.match(archiveBlock, /questionSet\.status === "draft"/);
+    assert.match(archiveBlock, /speaking_challenge_question_progress/);
+    assert.match(archiveBlock, /speaking_pronunciation_attempts/);
+    assert.match(archiveBlock, /speaking_pronunciation_requests/);
+    assert.match(archiveBlock, /speaking_foundation_rounds/);
+    assert.match(archiveBlock, /speaking_alphabet_intro_listens/);
+    assert.match(archiveBlock, /linkedStudentRows\.some\(Boolean\)/);
+    assert.match(archiveBlock, /\.delete\(\)[\s\S]*?\.eq\("id", setId\)\.eq\("status", "draft"\)\.select\("id"\)\.maybeSingle\(\)/);
+    assert.ok(
+        archiveBlock.indexOf('questionSet.status === "draft"')
+            < archiveBlock.indexOf('workbookOnePictureConfigForMetadata(questionSet.generation_metadata)'),
+        "draft deletion must happen before the P21-P24-only published archive guard"
+    );
+    assert.match(archiveBlock, /questionSet\.status !== "published"/);
+});
+
 test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
     assert.match(foundationAnswers, /picture_qa/);
     assert.match(foundationAnswers, /picture_gap_sentence/);
