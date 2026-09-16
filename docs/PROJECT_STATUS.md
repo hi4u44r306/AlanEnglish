@@ -884,9 +884,9 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 
 - 依手機實機錄影確認，Navbar 收合與路由切換約在 0.1～0.2 秒內完成；主要等待來自智慧複習頁的個人化資料請求。手機抽屜現在會先開始收合再切換頁面，開啟「更多」時會預先下載智慧複習頁面程式碼並暖載入學生複習摘要；45 秒記憶體快取會共用同一請求，答題後立即失效，未把個人資料寫死到前端。React 15/15、Production build、release preflight 與 `git diff --check` 通過；功能 commit `2ea23b7` 已推送 `feature/mobile-navigation-performance`。Netlify 正式 deploy `6aaa5a4672094a3fd0c664e2` 已就緒，正式網域與唯一部署網址皆回傳 `main.935090f4.js`。本批沒有 migration 或 Edge Function 變更。
 
-## 進行中（2026-09-16，學生手機導覽低延遲改版）
+## 本次完成（2026-09-16，學生手機導覽低延遲改版，已部署）
 
-- 手機／平板頂欄改為 Logo、通知與右側功能選單，底欄改為排行榜、教材、開口說與學生頭像；頭像直達我的設定。電腦版保留排行榜、我的教材、開口說及學習功能，右側頭像直達設定並保留登出。修正觸控 click 未提供 `button` 時可能退回瀏覽器整頁載入、導致 AuthProvider 重建及「正在確認登入狀態」畫面的問題；新增站內路由回歸測試。尚待完整測試、build、push 與正式部署；沒有 migration 或 Edge Function 變更。
+- 手機／平板頂欄改為 Logo、通知與右側功能選單，底欄改為排行榜、教材、開口說與學生頭像；頭像直達我的設定。電腦版保留排行榜、我的教材、開口說及學習功能，右側頭像直達設定並保留登出。修正觸控 click 未提供 `button` 時可能退回瀏覽器整頁載入、導致 AuthProvider 重建及「正在確認登入狀態」畫面的問題；新增站內路由回歸測試。相關 React 16/16、Production build 與 `git diff --check` 通過；正式站 deploy `6aaa625d783a0e66d4618c27` 與固定測試站 deploy `6aaa618b466ab155d35b20d4` 已就緒，兩站皆提供 `main.aad38ac0.js`／`main.aa3bd326.css`。沒有 migration 或 Edge Function 變更；登入後手機實機手感仍待使用者驗收。
 ## 本次完成（2026-09-14，學生口說固定順序闖關，已部署）
 
 - 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。手機版口說列表與詳細頁收起 Logo Header，縮小頂部留白；A–Z 介紹頁在超過手機寬度時也採 5 欄大卡片，字級提高至 34–48px，手機版既有 5 欄與尺寸不變。學生專用 Navbar 在 `1100px`（包含 iPad Pro 13 的 `1032px` CSS viewport）以下改用精簡頂欄與底部四入口，避免完整桌面選單截斷帳號控制項；寬螢幕仍維持完整桌面導覽。功能 commit `62ec3c8` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已更新；Production build 與 `git diff --check` 均成功。共用 Supabase `speaking-challenge` 已部署；正式站 deploy `6aa81e7089018100ccffaa7f` 已就緒，正式 CSS 確認含新版 `max-width:1100px` 規則。本批沒有 migration，固定測試站沒有再次部署。
