@@ -6,6 +6,16 @@ const callMembership = (firebaseUser, action, payload = {}) => (
 
 export const getMembershipProfile = firebaseUser => callMembership(firebaseUser, "profile");
 export const updateStudentProfile = (firebaseUser, payload) => callMembership(firebaseUser, "update_student_profile", payload);
+export const requestGuardianEmailVerification = (firebaseUser, guardianEmail) => callMembership(
+    firebaseUser,
+    "request_guardian_email_verification",
+    { guardian_email: guardianEmail }
+);
+export const confirmGuardianEmailVerification = (firebaseUser, requestId, code) => callMembership(
+    firebaseUser,
+    "confirm_guardian_email_verification",
+    { request_id: requestId, code }
+);
 export const getStudentNotifications = (firebaseUser, payload = {}) => callMembership(firebaseUser, "notifications", payload);
 export const markStudentNotificationRead = (firebaseUser, notificationId) => (
     callMembership(firebaseUser, "mark_notification_read", { notification_id: notificationId })

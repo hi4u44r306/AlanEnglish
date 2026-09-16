@@ -174,7 +174,7 @@ async function studentProfile(admin: any, caller: VerifiedAlanUser) {
         admin.from("student_book_entitlements").select("*,books(id,name,code)").eq("student_id", caller.id).eq("status", "active"),
         admin.from("material_purchases").select("id,status,price_type,amount_twd,paid_at,created_at,material_packages(id,name,level_code)").eq("student_id", caller.id).order("created_at", { ascending: false }),
         loadEffectiveAccess(admin, caller.id),
-        admin.from("guardian_contacts").select("guardian_name,email,notification_enabled").eq("student_id", caller.id).maybeSingle(),
+        admin.from("guardian_contacts").select("guardian_name,email,email_verified_at,notification_enabled").eq("student_id", caller.id).maybeSingle(),
         admin.from("student_gamification_balances").select("total_xp,points_balance").eq("student_id", caller.id).maybeSingle(),
         admin.from("student_level_progress").select("unlocked_rank,learning_levels(id,code,name_zh,name_en,rank)").eq("student_id", caller.id).maybeSingle(),
         admin.from("student_access_grants").select("id,status,ends_at,current_period_end,cancel_at_period_end,stripe_subscription_status,subscription_plans(id,code,name,access_model)").eq("student_id", caller.id).order("created_at", { ascending: false })

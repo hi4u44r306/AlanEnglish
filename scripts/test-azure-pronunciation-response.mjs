@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readAzureWordAssessment, selectAzureAssessmentResult } from "../supabase/functions/_shared/azure-pronunciation.ts";
+import { listAzureAssessmentResults, readAzureWordAssessment, selectAzureAssessmentResult } from "../supabase/functions/_shared/azure-pronunciation.ts";
 
 const flatRestResponse = {
     RecognitionStatus: "Success",
@@ -30,5 +30,7 @@ assert.equal(nestedResult?.assessment.PronScore, 87);
 assert.deepEqual(readAzureWordAssessment(nestedSdkResponse.NBest[0].Words[0]), { accuracyScore: 84, errorType: "Mispronunciation" });
 
 assert.equal(selectAzureAssessmentResult({ RecognitionStatus: "Success", NBest: [{ Display: "My name is Amy." }] }), null);
+
+assert.equal(listAzureAssessmentResults({ NBest: [flatRestResponse.NBest[0], nestedSdkResponse.NBest[0]] }).length, 2);
 
 console.log("Azure pronunciation REST and SDK response contracts passed");

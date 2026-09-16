@@ -505,7 +505,7 @@ const Showcase = () => {
                                 <h3>每一種身分，都有清楚的使用方式。</h3>
                             </div>
                             <p className="showcase-plan-scroll-hint" aria-hidden="true">← 左右滑動查看完整方案 →</p>
-                            <div className="showcase-plan-table-wrap">
+                            <div className="showcase-plan-table-wrap" tabIndex={0} role="region" aria-label="方案比較表，可左右滑動查看完整內容">
                                 <table>
                                     <thead>
                                         <tr>

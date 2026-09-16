@@ -19,7 +19,7 @@ jest.mock("react-h5-audio-player", () => {
         default: React.forwardRef((props, ref) => {
             const audio = React.useRef(null);
             React.useImperativeHandle(ref, () => ({ audio }));
-            return <audio data-testid="audio" ref={audio} src={props.src} onPlay={props.onPlay} onPause={props.onPause} onEnded={props.onEnded} />;
+            return <audio data-testid="audio" data-autoplay={String(props.autoPlay)} data-autoplay-after-src-change={String(props.autoPlayAfterSrcChange)} ref={audio} src={props.src} onPlay={props.onPlay} onPause={props.onPause} onEnded={props.onEnded} />;
         })
     };
 });
@@ -118,4 +118,21 @@ test("續播失敗時仍鎖定確認，可再次點擊成功續播", async () =>
     fireEvent.click(screen.getByRole("button", { name: "我知道了，繼續播放" }));
     await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(audio.paused).toBe(false);
+});
+
+test("進入口說挑戰時保留曲目但立即暫停", async () => {
+    const { audio, rerender } = await begin();
+
+    await act(async () => {
+        rerender(
+            <MusicPlayer
+                music={track}
+                pausePlayback
+            />
+        );
+    });
+
+    expect(audio.paused).toBe(true);
+    expect(audio).toHaveAttribute("data-autoplay", "false");
+    expect(audio).toHaveAttribute("data-autoplay-after-src-change", "false");
 });

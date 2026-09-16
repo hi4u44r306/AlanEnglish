@@ -39,6 +39,7 @@
   &.has-mini-player {
     padding-bottom: 132px;
   }
+
 }
 
 .app-player {
@@ -62,6 +63,10 @@
     bottom 180ms ease,
     border-radius 180ms ease,
     box-shadow 180ms ease;
+
+  &.speaking-player-blocked {
+    display: none;
+  }
 }
 
 .app-player-toggle {

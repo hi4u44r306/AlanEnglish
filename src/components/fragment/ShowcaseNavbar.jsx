@@ -54,8 +54,9 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
                     <Navbar.Toggle
                         className="showcase-navbar-toggle"
                         aria-controls="showcase-navbar-offcanvas"
+                        label={mobileOpen ? "關閉導覽選單" : "開啟導覽選單"}
                     >
-                        <img src={Menu} alt="開啟選單" />
+                        <img src={Menu} alt="" aria-hidden="true" />
                     </Navbar.Toggle>
                 </div>
 

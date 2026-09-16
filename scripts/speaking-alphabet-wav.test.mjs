@@ -1,0 +1,168 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+    ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
+    alphabetAudioSequenceValid,
+    alphabetSourceFingerprint,
+    assembleAlphabetAudioSequence,
+    parseLinear16MonoWav
+} from "../supabase/functions/_shared/alphabet-audio-sequence.ts";
+import {
+    ALPHABET_CANDIDATE_ASSEMBLER,
+    ALPHABET_CANDIDATE_PROFILES,
+    ALPHABET_CANDIDATE_SETTINGS,
+    buildAlphabetCandidateSegments,
+    buildAlphabetMasterSsml,
+    detectAlphabetSpeechBoundaries
+} from "../supabase/functions/_shared/alphabet-master-voice.ts";
+
+const writeAscii = (bytes, offset, value) => {
+    for (let index = 0; index < value.length; index += 1) bytes[offset + index] = value.charCodeAt(index);
+};
+
+const wav = ({ sampleRate = 24000, samples = 2400, channels = 1, bitsPerSample = 16 } = {}) => {
+    const blockAlign = channels * bitsPerSample / 8;
+    const pcm = new Uint8Array(samples * blockAlign);
+    const output = new Uint8Array(44 + pcm.length);
+    const view = new DataView(output.buffer);
+    writeAscii(output, 0, "RIFF");
+    view.setUint32(4, output.length - 8, true);
+    writeAscii(output, 8, "WAVE");
+    writeAscii(output, 12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, channels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeAscii(output, 36, "data");
+    view.setUint32(40, pcm.length, true);
+    output.set(pcm, 44);
+    return output;
+};
+
+const sources = (override = {}) => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
+    questionId: index + 1,
+    letter,
+    assetId: `asset-${letter}`,
+    contentHash: letter.repeat(64).slice(0, 64),
+    byteSize: wav().length,
+    bytes: wav(),
+    ...override
+}));
+
+const alphabetPcm = ({ sampleRate = 16000, gapMs = 800, letterMs = 300, missingGap = false } = {}) => {
+    const gapSamples = Math.round(sampleRate * gapMs / 1000);
+    const letterSamples = Math.round(sampleRate * letterMs / 1000);
+    const samples = [];
+    for (let letter = 0; letter < 26; letter += 1) {
+        for (let index = 0; index < letterSamples; index += 1) samples.push(index % 2 === 0 ? 8000 : -8000);
+        if (letter < 25) {
+            const length = missingGap && letter === 12 ? Math.round(sampleRate * 100 / 1000) : gapSamples;
+            for (let index = 0; index < length; index += 1) samples.push(0);
+        }
+    }
+    const pcm = new Uint8Array(samples.length * 2);
+    const view = new DataView(pcm.buffer);
+    samples.forEach((sample, index) => view.setInt16(index * 2, sample, true));
+    return pcm;
+};
+
+test("26 個 mono LINEAR16 WAV 會組成一個含 800ms 間隔的主音檔", async () => {
+    const assembled = assembleAlphabetAudioSequence(sources(), 800);
+    const parsed = parseLinear16MonoWav(assembled.bytes);
+    assert.equal(parsed.sampleRate, 24000);
+    assert.equal(assembled.segments.length, 26);
+    assert.equal(assembled.segments[0].start_ms, 0);
+    assert.equal(assembled.segments[0].end_ms, 100);
+    assert.equal(assembled.segments[1].start_ms, 900);
+    assert.equal(assembled.durationMs, 22600);
+    const questions = sources().map((source, index) => ({
+        id: source.questionId, sort_order: index, model_answer: source.letter
+    }));
+    assert.equal(alphabetAudioSequenceValid(questions, {
+        status: "ready",
+        private_object_key: "speaking-tts/derived/alphabet/master.wav",
+        byte_size: assembled.bytes.length,
+        duration_ms: assembled.durationMs,
+        segments: assembled.segments
+    }), true);
+    const fingerprint = await alphabetSourceFingerprint(sources().map(({ bytes, ...source }) => source), 800);
+    assert.match(fingerprint, /^[a-f0-9]{64}$/);
+    assert.equal(ALPHABET_SEQUENCE_ASSEMBLER_VERSION, "alphabet-pcm-sequence-v1");
+});
+
+test("缺字母、順序錯誤或取樣格式不一致時 fail closed", () => {
+    assert.throws(() => assembleAlphabetAudioSequence(sources().slice(0, 25), 800), /完整 26 個字母/);
+    const wrongOrder = sources();
+    wrongOrder[1] = { ...wrongOrder[1], letter: "C" };
+    assert.throws(() => assembleAlphabetAudioSequence(wrongOrder, 800), /來源字母或順序不正確/);
+    const mismatched = sources();
+    mismatched[25] = { ...mismatched[25], bytes: wav({ sampleRate: 16000 }), byteSize: wav({ sampleRate: 16000 }).length };
+    assert.throws(() => assembleAlphabetAudioSequence(mismatched, 800), /取樣格式不一致/);
+    assert.throws(() => parseLinear16MonoWav(wav({ channels: 2 })), /單聲道 16-bit PCM/);
+});
+
+test("manifest 的題目、字母、順序或時間越界時不可對學生公開", () => {
+    const assembled = assembleAlphabetAudioSequence(sources(), 800);
+    const questions = sources().map((source, index) => ({
+        id: source.questionId, sort_order: index, model_answer: source.letter
+    }));
+    const base = {
+        status: "ready",
+        private_object_key: "speaking-tts/derived/alphabet/master.wav",
+        byte_size: assembled.bytes.length,
+        duration_ms: assembled.durationMs,
+        segments: assembled.segments
+    };
+    assert.equal(alphabetAudioSequenceValid(questions, { ...base, segments: assembled.segments.slice(0, 25) }), false);
+    assert.equal(alphabetAudioSequenceValid(questions, {
+        ...base,
+        segments: assembled.segments.map((segment, index) => index === 2 ? { ...segment, question_id: 999 } : segment)
+    }), false);
+    assert.equal(alphabetAudioSequenceValid(questions, {
+        ...base,
+        segments: assembled.segments.map((segment, index) => index === 25 ? { ...segment, end_ms: assembled.durationMs + 1 } : segment)
+    }), false);
+});
+
+test("新版 A–Z 提供三個固定 Chirp 3 HD 女聲候選且 Z 明確念 zee", () => {
+    const ssml = buildAlphabetMasterSsml(800);
+    assert.equal((ssml.match(/<say-as interpret-as="characters">[A-Y]<\/say-as>/g) || []).length, 25);
+    assert.equal((ssml.match(/<break time="800ms"\/>/g) || []).length, 25);
+    assert.match(ssml, /<phoneme alphabet="ipa" ph="ziː">Z<\/phoneme>/);
+    assert.doesNotMatch(ssml, /<mark|<prosody|pitch=|volume=/);
+    assert.deepEqual(ALPHABET_CANDIDATE_PROFILES.map(profile => profile.voiceId), [
+        "en-US-Chirp3-HD-Leda", "en-US-Chirp3-HD-Aoede", "en-US-Chirp3-HD-Zephyr"
+    ]);
+    assert.equal(new Set(ALPHABET_CANDIDATE_PROFILES.map(profile => profile.revision)).size, 3);
+    assert.equal(ALPHABET_CANDIDATE_ASSEMBLER, "alphabet-chirp3-silence-sequence-v1");
+    assert.deepEqual(ALPHABET_CANDIDATE_SETTINGS, { audioEncoding: "LINEAR16", speakingRate: 0.92 });
+});
+
+test("單次完整 A–Z WAV 會以 25 個靜音邊界建立 26 段", () => {
+    const questions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
+        id: index + 1, sort_order: index, model_answer: letter
+    }));
+    const pcm = alphabetPcm();
+    const boundaries = detectAlphabetSpeechBoundaries(pcm, 16000);
+    assert.equal(boundaries.length, 27);
+    const segments = buildAlphabetCandidateSegments(questions, pcm, 16000, ALPHABET_CANDIDATE_PROFILES[0].voiceId);
+    assert.equal(segments.length, 26);
+    assert.deepEqual(segments[0], {
+        question_id: 1, letter: "A", start_ms: 0, end_ms: 700, voice_id: "en-US-Chirp3-HD-Leda"
+    });
+    assert.equal(segments[25].end_ms, 27800);
+});
+
+test("Chirp 音檔缺少長靜音、題序錯誤或 voice 未核准時 fail closed", () => {
+    const questions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((letter, index) => ({
+        id: index + 1, sort_order: index, model_answer: letter
+    }));
+    assert.throws(() => detectAlphabetSpeechBoundaries(alphabetPcm({ missingGap: true }), 16000), /缺少 25 個清楚停頓/);
+    assert.throws(() => buildAlphabetCandidateSegments(questions, alphabetPcm(), 16000, "en-US-Neural2-F"), /voice 不在允許清單/);
+    const wrongQuestions = questions.map(question => ({ ...question }));
+    wrongQuestions[8].model_answer = "J";
+    assert.throws(() => buildAlphabetCandidateSegments(wrongQuestions, alphabetPcm(), 16000, ALPHABET_CANDIDATE_PROFILES[1].voiceId), /題目順序不正確/);
+});

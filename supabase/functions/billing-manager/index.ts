@@ -182,15 +182,15 @@ Deno.serve(async (req: Request) => {
         const loadGuardianEmail = async () => {
             const { data, error } = await admin
                 .from("guardian_contacts")
-                .select("email")
+                .select("email,email_verified_at")
                 .eq("student_id", student.id)
                 .maybeSingle();
             if (error) throw error;
             const guardianEmail = cleanText(data?.email, 320).toLowerCase();
-            if (!isReceivableEmail(guardianEmail)) {
-                throw Object.assign(new Error("付費前請先在學生設定補上有效的家長 Email"), {
+            if (!isReceivableEmail(guardianEmail) || !data?.email_verified_at) {
+                throw Object.assign(new Error("付費前請先在學生設定完成家長 Email 驗證"), {
                     status: 409,
-                    code: "guardian_email_required"
+                    code: "guardian_email_verification_required"
                 });
             }
             return guardianEmail;

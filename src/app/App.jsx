@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { ToastContainer } from "react-toastify";
@@ -15,22 +15,11 @@ import Playlist from "../components/fragment/Playlist";
 import Containerfull from "../components/fragment/Containerfull";
 import AddMusic from "../components/Pages/AddMusicV3";
 import NotFound from "../components/Pages/NotFound";
-import ManagementDashboard from "../components/Pages/ManagementDashboard";
 import AccountManagement from "../components/Pages/AccountManagement";
 import AcademyStudentCsvImport from "../components/Pages/AcademyStudentCsvImport";
-import AIMaterialGenerator from "../components/Pages/AIMaterialGenerator";
-import ConversationPractice from "../components/Pages/ConversationPractice";
-import PronunciationCoach from "../components/Pages/PronunciationCoach";
-import TextbookSpeakingChallenge from "../components/Pages/TextbookSpeakingChallenge";
-import TeacherAssignments from "../components/Pages/TeacherAssignments";
-import StudentAssignments from "../components/Pages/StudentAssignments";
-import ReviewCenter from "../components/Pages/ReviewCenter";
-import WeeklyReport from "../components/Pages/WeeklyReport";
 import FreeTrialSignup from "../components/Pages/FreeTrialSignup";
-import MembershipCenter from "../components/Pages/MembershipCenter";
 import BillingResult from "../components/Pages/BillingResult";
 import LearningLeaderboard from "../components/Pages/LearningLeaderboard";
-import Rewards from "../components/Pages/Rewards";
 import RewardsAdmin from "../components/Pages/RewardsAdmin";
 import ApiUsageAdmin from "../components/Pages/ApiUsageAdmin";
 import MembershipAdmin from "../components/Pages/MembershipAdmin";
@@ -41,6 +30,7 @@ import ForgotPassword from "../components/Pages/ForgotPassword";
 import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
+import StudentOnboarding from "../components/Pages/StudentOnboarding";
 import StudentNotifications from "../components/Pages/StudentNotifications";
 import MaterialCatalog from "../components/Pages/MaterialCatalog";
 import StoreCatalog from "../components/Pages/StoreCatalog";
@@ -65,6 +55,19 @@ import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
 import { StoreProvider } from "../store/StoreContext";
 import publicSeo from "../config/publicSeo.json";
+import RouteScrollToTop from "./RouteScrollToTop";
+
+const ManagementDashboard = lazy(() => import("../components/Pages/ManagementDashboard"));
+const AIMaterialGenerator = lazy(() => import("../components/Pages/AIMaterialGenerator"));
+const ConversationPractice = lazy(() => import("../components/Pages/ConversationPractice"));
+const PronunciationCoach = lazy(() => import("../components/Pages/PronunciationCoach"));
+const TextbookSpeakingChallenge = lazy(() => import("../components/Pages/TextbookSpeakingChallenge"));
+const TeacherAssignments = lazy(() => import("../components/Pages/TeacherAssignments"));
+const StudentAssignments = lazy(() => import("../components/Pages/StudentAssignments"));
+const ReviewCenter = lazy(() => import("../components/Pages/ReviewCenter"));
+const WeeklyReport = lazy(() => import("../components/Pages/WeeklyReport"));
+const MembershipCenter = lazy(() => import("../components/Pages/MembershipCenter"));
+const Rewards = lazy(() => import("../components/Pages/Rewards"));
 
 const LegacyPlaylistRedirect = () => {
     const { playlistId } = useParams();
@@ -88,6 +91,7 @@ const RouteSeoPolicy = () => {
 const App = () => {
     return (
         <Router>
+            <RouteScrollToTop />
             <AuthProvider>
                 <StoreProvider>
                 <ToastContainer
@@ -113,6 +117,7 @@ const App = () => {
 
                 <RouteSeoPolicy />
 
+                <Suspense fallback={<div className="app-route-loading" role="status">頁面載入中...</div>}>
                 <Routes>
                     <Route path="/" element={<Showcase />} />
                     <Route path="/links" element={<Links />} />
@@ -140,6 +145,7 @@ const App = () => {
                     <Route path="/shop/orders/:orderNumber" element={<StoreOrders />} />
                     <Route path="/shop/payment/success" element={<StorePaymentResult />} />
 
+                    <Route path="/student/onboarding" element={<ProtectedRoute allowedRoles={["student"]} allowsIncompleteOnboarding><StudentOnboarding /></ProtectedRoute>} />
                     <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentAssignments /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><ReviewCenter /></Containerfull></ProtectedRoute>} />
@@ -152,8 +158,9 @@ const App = () => {
                     <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><Rewards /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><ConversationPractice /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/pronunciation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><PronunciationCoach /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
-                    <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/speaking-challenges/book/:bookKey" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><TextbookSpeakingChallenge /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><AIMaterialGenerator /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Containerfull><Playlist /></Containerfull></ProtectedRoute>} />
                     <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><BillingResult /></Containerfull></ProtectedRoute>} />
@@ -202,6 +209,7 @@ const App = () => {
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
                 </StoreProvider>
             </AuthProvider>
         </Router>

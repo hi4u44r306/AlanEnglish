@@ -73,7 +73,10 @@ const StudentNavbar = ({
     ].some(isPathActive);
 
     const openDrawer = view => setDrawer(view);
-    const closeDrawer = () => setDrawer("");
+    const closeDrawer = () => {
+        setDrawer("");
+        setMaterialsOpen(false);
+    };
 
     useEffect(() => {
         const handleMenuRequest = event => {
@@ -186,7 +189,7 @@ const StudentNavbar = ({
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
                     <Navbar.Brand as={Link} to="/student/leaderboard" className="ae-brand" aria-label="Alan English 學習排行榜"><Brand /></Navbar.Brand>
-                    <Nav className="ae-student-desktop-nav">
+                    <Nav className="ae-student-desktop-nav" onSelect={closeDrawer}>
                         <Nav.Link as={Link} to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><span><FiTrendingUp />排行榜</span></Nav.Link>
                         {shouldShowMaterials && (
                             <NavDropdown id="student-materials" title={<span><FiBookOpen />我的教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} className={isPathActive("/student/books") ? "active" : ""}>
@@ -209,6 +212,9 @@ const StudentNavbar = ({
                         <Link to="/student/settings" className="ae-student-account-link" aria-label="前往我的設定">
                             <span className="ae-student-account-chip"><span>{profile?.name?.slice(0, 1) || "A"}</span><strong>{profile?.name || "同學"}</strong></span>
                         </Link>
+                        <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut}>
+                            <FiLogOut aria-hidden="true" />{loggingOut ? "登出中..." : "登出"}
+                        </button>
                     </div>
                     <div className="ae-student-mobile-account">
                         <Link to="/student/notifications" aria-label={unreadCount > 0 ? `查看通知，目前有 ${unreadCount} 則未讀` : "查看通知"}><FiBell />{unreadCount > 0 && <b>{unreadCount > 99 ? "99+" : unreadCount}</b>}</Link>
