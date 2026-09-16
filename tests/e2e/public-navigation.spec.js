@@ -9,7 +9,7 @@ const {
 const APP_404_HEADING = "404";
 
 const publicRoutes = [
-    { path: "/", heading: /教材音檔/ },
+    { path: "/", heading: /每天聽一點.*讓孩子聽懂英文.*也更有自信說出來/ },
     { path: "/home", heading: /每天聽一點.*讓孩子聽懂英文.*也更有自信說出來/ },
     { path: "/login", heading: /歡迎回來/ },
     { path: "/forgot-password", heading: "忘記密碼" },
@@ -18,8 +18,7 @@ const publicRoutes = [
 ];
 
 const legacyRedirects = [
-    { from: "/links", to: "/" },
-    { from: "/showcase", to: "/home" },
+    { from: "/showcase", to: "/" },
     { from: "/solve", to: "/forgot-password" },
     { from: "/linksadmin", to: "/login" },
     { from: "/teacher/add-music", to: "/login" },
@@ -59,9 +58,10 @@ const protectedRoutes = [
     "/admin/api-usage",
     "/admin/levels",
     "/admin/catalog",
-    "/admin/legacy-cleanup",
     "/admin/support"
 ];
+
+publicRoutes.push({ path: "/links", heading: /教材音檔，一點就能開始/ });
 
 test.describe("公開頁面導覽", () => {
     for (const route of publicRoutes) {

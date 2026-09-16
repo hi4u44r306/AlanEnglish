@@ -25,7 +25,39 @@ const startRuntimeAudit = page => {
         }
     });
 
+    page.on("requestfailed", request => {
+        const failure = request.failure()?.errorText || "unknown failure";
+        if (!failure.includes("ERR_ABORTED")) {
+            errors.push(`requestfailed: ${request.method()} ${request.url()} (${failure})`);
+        }
+    });
+
     return errors;
+};
+
+const expectInViewport = async locator => {
+    await expect(locator).toBeVisible();
+    await locator.scrollIntoViewIfNeeded();
+    await expect(locator).toBeInViewport({ ratio: 0.9 });
+    const box = await locator.boundingBox();
+    expect(box, "元素沒有可點擊的 bounding box").not.toBeNull();
+
+    const viewport = locator.page().viewportSize();
+    expect(viewport, "測試沒有 viewport 資訊").not.toBeNull();
+    expect(box.width).toBeGreaterThan(0);
+    expect(box.height).toBeGreaterThan(0);
+};
+
+const expectNoHorizontalOverflow = async page => {
+    const dimensions = await page.locator("html").evaluate(element => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth
+    }));
+
+    expect(
+        dimensions.scrollWidth,
+        `頁面出現水平溢位：scrollWidth=${dimensions.scrollWidth}, clientWidth=${dimensions.clientWidth}`
+    ).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 };
 
 const expectHealthyPage = async page => {
@@ -53,6 +85,8 @@ const getInternalLinks = async page => {
 
 module.exports = {
     expectHealthyPage,
+    expectInViewport,
+    expectNoHorizontalOverflow,
     expectNoRuntimeErrors,
     getInternalLinks,
     startRuntimeAudit

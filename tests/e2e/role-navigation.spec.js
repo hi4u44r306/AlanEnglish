@@ -10,9 +10,10 @@ const roleCases = [
         passwordEnv: "E2E_STUDENT_PASSWORD",
         allowedRoute: "/student/settings",
         allowedLink: "/student/review",
+        navigationMenu: "更多",
         absentLink: "/teacher/music/manage",
         forbiddenRoute: "/admin/dashboard",
-        redirectedHome: /\/student\/(?:dashboard|membership)$/
+        redirectedHome: /\/student\/leaderboard$/
     },
     {
         role: "teacher",
@@ -32,6 +33,7 @@ const roleCases = [
         passwordEnv: "E2E_ADMIN_PASSWORD",
         allowedRoute: "/admin/links",
         allowedLink: "/admin/links",
+        navigationMenu: "音檔",
         absentLink: "/student/review",
         forbiddenRoute: null,
         redirectedHome: /\/admin\/dashboard$/
@@ -48,6 +50,9 @@ for (const roleCase of roleCases) {
         test("登入後只顯示符合角色的導覽入口", async ({ page }) => {
             await login(page, identifier, password);
 
+            if (roleCase.navigationMenu) {
+                await page.getByRole("button", { name: roleCase.navigationMenu, exact: true }).click();
+            }
             await expect(page.locator(`a[href="${roleCase.allowedLink}"]`).first()).toBeAttached();
             await expect(page.locator(`a[href="${roleCase.absentLink}"]`)).toHaveCount(0);
         });
