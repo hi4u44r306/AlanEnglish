@@ -111,6 +111,10 @@
 
 - 為避免後續學生導覽部署覆蓋 Workbook 1 口說前端，已從目前 `main` 建立 `integration/workbook1-speaking-recovery`，並整合 `codex/workbook1-speaking-challenges` 的完整前端與測試歷史。衝突只在學生 Navbar 與文件：保留已正式發布的排行榜起點、教材載入穩定化與頂部頭像直達我的設定，同時保留口說詳細關卡隱藏頂端 Logo Header 的專注模式。固定測試站 deploy `6aa7d7d6395dbb8889ddfc18` 與正式站 deploy `6aa7d93973f9c37439632e1c` 均已 ready，首頁與口說大挑戰路由 HTTP 200；共用 Supabase 已登記的 additive migrations 與 ACTIVE Speaking Edge Functions 不會重跑或先行部署；P21／P22 仍保持未發布。
 
+本次進行中（2026-09-14，尚未部署）：
+
+- 分支 `fix/academy-membership-ui`：學生端已移除「等級晉級」導航入口與獨立頁面；舊 `/student/level` 網址安全導回排行榜，鎖定教材不再指向已移除的頁面。有效在校英文班學生的「方案與功能」頁保留已取得權限與 AI Premium 狀態，但不顯示「延續使用與功能加購」、付款／訂閱管理、續訂、到期取消或加購按鈕；英文班外的會員與離校生原有付款、到期與自助訂閱流程維持不變。未修改 Firebase、Supabase、Stripe、membership 後端或權限判定。
+
 本次正式發布（2026-09-14）：
 
 - 學生 Navbar 的「我的教材／教材」入口在 Firebase 登入後或重新整理時固定保留；學生登入起點、Logo 與 Navbar 第一格改為排行榜，並移除重複首頁入口；頂部姓名／頭像直接前往「我的設定」。PR #121 已合併 main，正式站部署與首頁、`/student/dashboard`、`/student/leaderboard`、`/student/settings` HTTP 驗收皆成功。
