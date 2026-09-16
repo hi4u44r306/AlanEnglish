@@ -2,6 +2,13 @@
 
 最後更新：2026-09-16
 
+本次口說大挑戰製作中心與 P21～P24 安全修訂（2026-09-16，本批直接發布正式站）：
+
+- 功能分支 `feature/speaking-authoring-studio`、Worktree `D:\dev\AlanEnglish-worktrees\speaking-authoring-studio`。管理員頁面改為「題庫管理／建立新關卡／教材來源／OCR」三個互斥工作區；題庫可依關鍵字、Workbook 與狀態篩選，桌面版使用清楚的題目導覽＋編輯面板，手機版自動切成單欄，避免全部工具同時展開造成頁面過長。
+- P21～P24 已發布題庫新增安全修訂流程：先複製為新版草稿，管理員可修改題組名稱、主題、各題內容與私人圖片，並新增、刪除、排序題目；P21～P23 必須回到 9 題、P24 必須回到 8 題且圖片／語音完整才可發布。草稿可以刪除；已發布版本只能封存，避免破壞學生歷史資料。
+- 新增 additive migration `20260916151037_speaking_authoring_revisions.sql` 與 server-only `publish_speaking_question_set_revision_v1`。新版發布時會在單一交易中封存舊版並啟用新版；只有舊版已完整通關的學生會延續完成／解鎖狀態，部分進度、錄音與答題嘗試不複製、不重複發獎。前端不能直接執行該 RPC，仍由驗證管理員 Firebase Token 與資料庫角色的 `speaking-content-manager` 呼叫。
+- 本批不部署固定測試站。尚待完成 Production build、Git／GitHub 整合、正式 migration、`speaking-content-manager` 部署、Netlify 正式發布與正式網址驗收；完成後再把本段更新為實際部署證據。
+
 本次口說女聲與整句示範（2026-09-16，本機驗證完成，尚未合併或部署）：
 
 - 口說題庫預設語音統一為 Google Chirp 3 HD `Leda` 女聲，不再依題目交錯男女聲。所有包含獨立單字 `the` 的新語音都以 IPA `/ðə/` 明確指定，避免供應商自行判斷造成音色與重音漂移；既有私人 R2 音檔不刪除，重新產生時以新版本雜湊建立並重新連結。

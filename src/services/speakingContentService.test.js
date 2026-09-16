@@ -3,7 +3,14 @@ import {
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
+    createSpeakingQuestionSetRevision,
     createWorkbookTwoStarterQuestionSet,
+    updateSpeakingQuestionSetDraft,
+    updatePictureDraftQuestion,
+    addPictureDraftQuestion,
+    deleteDraftSpeakingQuestion,
+    reorderDraftSpeakingQuestions,
+    archiveSpeakingQuestionSet,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
     getSpeakingQuestionAudioPreview,
@@ -47,6 +54,13 @@ describe("speakingContentService", () => {
         await confirmWorkbookOneFoundationSource(firebaseUser, 14);
         await createWorkbookTwoStarterQuestionSet(firebaseUser, 2);
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
+        await createSpeakingQuestionSetRevision(firebaseUser, 21);
+        await updateSpeakingQuestionSetDraft(firebaseUser, { question_set_id: 22, title: "P21", topic: "看圖問答" });
+        await updatePictureDraftQuestion(firebaseUser, { question_set_id: 22, question_id: 23, question: {} });
+        await addPictureDraftQuestion(firebaseUser, { question_set_id: 22, question: {} });
+        await deleteDraftSpeakingQuestion(firebaseUser, 22, 23);
+        await reorderDraftSpeakingQuestions(firebaseUser, 22, [24, 23]);
+        await archiveSpeakingQuestionSet(firebaseUser, 22);
         await publishSpeakingQuestionSet(firebaseUser, 4);
         await generateSpeakingQuestionSetAudio(firebaseUser, 4);
         await prepareSpeakingAlphabetAudioCandidate(firebaseUser, 7);
@@ -69,6 +83,13 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "confirm_workbook_1_foundation_source"],
             ["speaking-content-manager", "create_workbook_2_starter"],
             ["speaking-content-manager", "update_draft_question"],
+            ["speaking-content-manager", "create_question_set_revision"],
+            ["speaking-content-manager", "update_question_set_draft"],
+            ["speaking-content-manager", "update_picture_draft_question"],
+            ["speaking-content-manager", "add_picture_draft_question"],
+            ["speaking-content-manager", "delete_draft_question"],
+            ["speaking-content-manager", "reorder_draft_questions"],
+            ["speaking-content-manager", "archive_question_set"],
             ["speaking-content-manager", "publish_question_set"],
             ["speaking-tts-manager", "generate_set_audio"],
             ["speaking-tts-manager", "prepare_alphabet_audio_candidate"],
