@@ -94,7 +94,7 @@ const StudentNavbar = ({
         "/student/ai-generator"
     ].some(isPathActive);
     const avatarUrl = profile?.avatar_url ? getStudentAvatarDisplayUrl(profile.avatar_url, 96) : "";
-    const profileName = profile?.name || "Alan English 學生";
+    const profileName = profile?.nickname || profile?.name || "Alan English 學生";
     const profileInitial = profileName.slice(0, 1) || "A";
     const profileAvatar = avatarUrl
         ? <img src={avatarUrl} alt="" />
@@ -255,7 +255,7 @@ const StudentNavbar = ({
                     <div className="ae-student-desktop-account">
                         {notificationMenu}
                         <Link to="/student/settings" className="ae-student-account-link" aria-label="前往我的設定">
-                            <span className="ae-student-account-chip"><span>{profileAvatar}</span><strong>{profile?.name || "同學"}</strong></span>
+                            <span className="ae-student-account-chip"><span>{profileAvatar}</span><strong>{profileName}</strong></span>
                         </Link>
                         <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut}>
                             <FiLogOut aria-hidden="true" />{loggingOut ? "登出中..." : "登出"}

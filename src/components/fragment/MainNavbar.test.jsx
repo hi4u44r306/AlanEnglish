@@ -336,6 +336,9 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("link", { name: "查看通知，目前有 1 則未讀" })).toBeInTheDocument();
         act(() => window.dispatchEvent(new CustomEvent("ae:notifications-read", { detail: { notificationIds: "all" } })));
         await waitFor(() => expect(screen.getByRole("link", { name: "查看通知" })).toBeInTheDocument());
+
+        act(() => window.dispatchEvent(new CustomEvent("ae:notifications-read", { detail: { notificationIds: { unreadIds: [9] } } })));
+        await waitFor(() => expect(screen.getByRole("link", { name: "查看通知，目前有 1 則未讀" })).toBeInTheDocument());
     });
 
     it("highlights the active student route in the full menu", () => {

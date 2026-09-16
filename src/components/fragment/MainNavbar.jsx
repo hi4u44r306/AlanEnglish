@@ -126,8 +126,8 @@ function MainNavbar() {
                 const ids = new Set(notificationIds.map(Number));
                 const readAt = new Date().toISOString();
                 setNotifications(current => current.map(item => ids.has(Number(item.id)) ? { ...item, read_at: item.read_at || readAt } : item));
-            } else if (Array.isArray(event?.detail?.unreadIds) && event.detail.unreadIds.length > 0) {
-                const ids = new Set(event.detail.unreadIds.map(Number));
+            } else if (Array.isArray(notificationIds?.unreadIds) && notificationIds.unreadIds.length > 0) {
+                const ids = new Set(notificationIds.unreadIds.map(Number));
                 setNotifications(current => current.map(item => ids.has(Number(item.id)) ? { ...item, read_at: null } : item));
             }
         };
