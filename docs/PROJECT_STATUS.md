@@ -5,7 +5,7 @@
 本次好友與戰績恢復（2026-09-16，隔離整合完成，尚未部署）：
 
 - 從目前正式站使用的手機導覽基準 `c268e5e` 建立 `feature/restore-friends`，只移植原好友系統的六個功能／修正 commit，沒有合併含其他舊功能的 PR #105，也沒有覆蓋目前兒童首頁、首次登入、生日、家長 Email 驗證、口說、教材或 Navbar 效能修正。學生重新取得 `/student/friends`、完整暱稱／好友碼搜尋、邀請與接受、好友 XP／等級、在線隱私、私人頭貼短效預覽、刪除好友、封鎖、解除封鎖與檢舉；Navbar、首頁、設定及排行榜以公開暱稱優先，教師／管理／客服仍使用真實姓名。
-- 安全邊界維持 Firebase Token 驗證的 `student-social` Edge Function；正式 Supabase 已確認 additive migration `20260908053030_student_social_foundation` 存在，社交資料表啟用 RLS 並撤銷 `anon`／`authenticated` 直連權限，正式 `student-social` v6 為 ACTIVE，OPTIONS 200、未登入 POST 401。本分支把暱稱讀取安全地疊加到現有 `membership-manager` 首次登入／家長驗證流程與現有 `gamification`，但尚未部署或更動正式 Functions。好友契約 5／5、Edge Function 語法、React targeted tests 6 suites／30 tests、Production build 與 `git diff --check` 已通過；仍待 Push 與隔離站登入驗收。
+- 安全邊界維持 Firebase Token 驗證的 `student-social` Edge Function；正式 Supabase 已確認 additive migration `20260908053030_student_social_foundation` 存在，社交資料表啟用 RLS 並撤銷 `anon`／`authenticated` 直連權限，正式 `student-social` v6 為 ACTIVE，OPTIONS 200、未登入 POST 401。本分支把暱稱讀取安全地疊加到現有 `membership-manager` 首次登入／家長驗證流程與現有 `gamification`，但尚未部署或更動正式 Functions。好友契約 5／5、Edge Function 語法、React targeted tests 6 suites／30 tests、Production build 與 `git diff --check` 已通過；`feature/restore-friends` 已推送至 GitHub，未建立 PR、未合併 `main`、未部署，仍待隔離站登入驗收。
 
 本次進行中（2026-09-16，尚未合併或部署）：
 
