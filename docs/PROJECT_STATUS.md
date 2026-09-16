@@ -2,9 +2,9 @@
 
 最後更新：2026-09-16
 
-本次公開頁 Accessibility 修正（2026-09-16，尚未部署）：
+本次公開頁 Accessibility 修正（2026-09-16，已正式部署）：
 
-- 修正公開首頁與登入頁共 16 個 axe `color-contrast` serious 節點：登入頁的歡迎標籤、說明、忘記密碼、啟用／復原／註冊／客服連結與版權文字改用符合 WCAG 2 AA 的色彩；首頁示範畫面、答題回饋、方案註記與頁尾輔助文字同步提高對比。方案比較表改為可由鍵盤取得焦點、以方向鍵水平捲動，並顯示可見 focus ring；公開手機 Navbar Toggle 改用 React Bootstrap 的中文 `label`，不再讀出英文 `Toggle navigation`。新增 4 項 Playwright＋axe 回歸測試，390px 行動版全數通過；沒有修改 Firebase、Supabase、權限、資料、音檔、付款或路由。
+- 修正公開首頁與登入頁共 16 個 axe `color-contrast` serious 節點：登入頁的歡迎標籤、說明、忘記密碼、啟用／復原／註冊／客服連結與版權文字改用符合 WCAG 2 AA 的色彩；首頁示範畫面、答題回饋、方案註記與頁尾輔助文字同步提高對比。方案比較表改為可由鍵盤取得焦點、以方向鍵水平捲動，並顯示可見 focus ring；公開手機 Navbar Toggle 改用 React Bootstrap 的中文 `label`，不再讀出英文 `Toggle navigation`。新增 4 項 Playwright＋axe 回歸測試，390px 行動版全數通過；沒有修改 Firebase、Supabase、權限、資料、音檔、付款或路由。功能 commit `8cbd750` 已快轉至 `main`；固定測試站 deploy `6aaa2f7ca1ae61ed7cda5c8f` 與正式站 deploy `6aaa2fbb07259d689d85ebc5` 均已 ready，正式 `https://alanenglish.com.tw/`、`/login` 均回應 HTTP 200，並在正式站重跑 4 項 Playwright 回歸測試全數通過。
 
 本次英文班學生首次登入安全設定（2026-09-16，已正式部署）：
 
