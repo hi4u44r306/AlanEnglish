@@ -7,11 +7,13 @@ import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications } from "../../services/membershipService";
+import { prefetchReviewDashboard } from "../../services/reviewService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
+jest.mock("../../services/reviewService", () => ({ prefetchReviewDashboard: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, id }) => show ? ReactModule.createElement("aside", { id }, children) : null;
@@ -69,6 +71,7 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
 
         expect(await screen.findByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
+        expect(prefetchReviewDashboard).toHaveBeenCalledWith(expect.objectContaining({ uid: "student-test" }));
         expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();

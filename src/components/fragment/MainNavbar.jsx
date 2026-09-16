@@ -297,6 +297,7 @@ function MainNavbar() {
         return (
             <StudentNavbar
                 categories={accessibleStudentCategories}
+                firebaseUser={firebaseUser}
                 gamificationLevel={gamificationLevel}
                 hasAiAccess={hasAiAccess}
                 hasAiPremium={hasAiPremium}

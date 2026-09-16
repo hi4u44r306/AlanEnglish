@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
@@ -24,6 +24,7 @@ import {
     FiZap
 } from "react-icons/fi";
 import Brand from "./Brand";
+import { prefetchReviewDashboard } from "../../services/reviewService";
 import "../assets/scss/StudentNavbar.scss";
 
 const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
@@ -34,9 +35,9 @@ const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
         if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return;
 
         event.preventDefault();
-        // 先換頁，避免 Bootstrap Offcanvas 的收合動畫卡住內容首屏。
-        navigate(to);
-        window.requestAnimationFrame(() => onNavigate?.());
+        // 先讓抽屜開始收合，再換頁；避免較重的頁面 render 時抽屜看起來卡住。
+        onNavigate?.();
+        window.requestAnimationFrame(() => navigate(to));
     };
 
     return <Link {...props} to={to} onClick={handleClick} />;
@@ -44,6 +45,7 @@ const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
 
 const StudentNavbar = ({
     categories,
+    firebaseUser,
     gamificationLevel,
     hasAiAccess,
     hasAiPremium,
@@ -88,7 +90,15 @@ const StudentNavbar = ({
         "/student/settings"
     ].some(isPathActive);
 
-    const openDrawer = view => setDrawer(view);
+    const warmReviewExperience = useCallback(() => {
+        if (!firebaseUser || !hasReviewAccess) return;
+        prefetchReviewDashboard(firebaseUser);
+        import("../Pages/ReviewCenter").catch(() => {});
+    }, [firebaseUser, hasReviewAccess]);
+    const openDrawer = useCallback(view => {
+        setDrawer(view);
+        if (view === "more") warmReviewExperience();
+    }, [warmReviewExperience]);
     const closeDrawer = () => {
         setDrawer("");
         setMaterialsOpen(false);
@@ -103,7 +113,7 @@ const StudentNavbar = ({
         };
         window.addEventListener("ae:open-student-menu", handleMenuRequest);
         return () => window.removeEventListener("ae:open-student-menu", handleMenuRequest);
-    }, []);
+    }, [openDrawer]);
 
     useEffect(() => {
         closeDrawer();
