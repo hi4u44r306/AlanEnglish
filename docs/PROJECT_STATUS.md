@@ -861,6 +861,10 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
+
+## 本次完成（2026-09-16，正式站 QA／E2E 稽核，未修改產品功能）
+
+- 新增公開導覽、Authentication、六種指定 viewport、RWD、新使用者公開流程與 Accessibility Playwright 回歸測試，並更新既有公開路由測試以符合目前正式站。共 107 項：90 通過、2 項 axe serious 失敗、15 項因未提供專用角色／方案 E2E 帳密而跳過。確認登入頁與公開首頁各有 8 個低對比節點，首頁方案比較表的水平捲動區無法以鍵盤聚焦；沒有發現公開頁 React crash、主要資源 4xx／5xx、非預期 request failure、blank page 或六種尺寸的 document-level 水平溢位。完整證據與建議記錄於 `QA_REPORT.md`；本批沒有修改產品功能、資料、migration、Edge Function 或部署。
 ## 本次完成（2026-09-14，學生口說固定順序闖關，已部署）
 
 - 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。手機版口說列表與詳細頁收起 Logo Header，縮小頂部留白；A–Z 介紹頁在超過手機寬度時也採 5 欄大卡片，字級提高至 34–48px，手機版既有 5 欄與尺寸不變。學生專用 Navbar 在 `1100px`（包含 iPad Pro 13 的 `1032px` CSS viewport）以下改用精簡頂欄與底部四入口，避免完整桌面選單截斷帳號控制項；寬螢幕仍維持完整桌面導覽。功能 commit `62ec3c8` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已更新；Production build 與 `git diff --check` 均成功。共用 Supabase `speaking-challenge` 已部署；正式站 deploy `6aa81e7089018100ccffaa7f` 已就緒，正式 CSS 確認含新版 `max-width:1100px` 規則。本批沒有 migration，固定測試站沒有再次部署。
