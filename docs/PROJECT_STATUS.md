@@ -4,7 +4,7 @@
 
 本次進行中（2026-09-16，尚未合併或部署）：
 
-- 手機導覽首屏效能第一批：學生 Navbar 側欄連結改為先導航、下一個畫面幀才收合側欄，避免 Offcanvas 收合動畫延後路由首屏。新增以 Firebase UID 隔離的短效 App Shell 快取：教材目錄 10 分鐘、XP 摘要 5 分鐘、通知 90 秒；有快取時先同步顯示，再於瀏覽器閒置時背景更新，無快取仍立即讀取。快取只改善畫面速度，不作為授權依據；後端 entitlement 與頁面資料仍照既有規則即時驗證。相關檔案：`MainNavbar.jsx`、`StudentNavbar.jsx`、`appShellCache.js`。`MainNavbar`／快取測試 12/12、Production build 與 `git diff --check` 通過；未改 Supabase、Firebase、Edge Function、會員權限或教材資料。尚未合併或部署。
+- 手機導覽首屏效能第一批：學生 Navbar 側欄連結改為先導航、下一個畫面幀才收合側欄，避免 Offcanvas 收合動畫延後路由首屏。新增以 Firebase UID 隔離的短效 App Shell 快取：教材目錄 10 分鐘、XP 摘要 5 分鐘、通知 90 秒；有快取時先同步顯示，再於瀏覽器閒置時背景更新，無快取仍立即讀取。快取只改善畫面速度，不作為授權依據；後端 entitlement 與頁面資料仍照既有規則即時驗證。相關檔案：`MainNavbar.jsx`、`StudentNavbar.jsx`、`appShellCache.js`。`MainNavbar`／快取測試 12/12、Production build 與 `git diff --check` 通過；未改 Supabase、Firebase、Edge Function、會員權限或教材資料。Netlify production deploy `6aaa53bffd125e29e20548d2` 已 ready，正式首頁 HTTP 200 並載入 `main.3a7523b7.js`。
 
 本次公開頁 Accessibility 修正（2026-09-16，已正式部署）：
 
