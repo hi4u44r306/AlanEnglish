@@ -80,7 +80,7 @@ export const StudentLaunchpad = ({ user }) => {
         <main className="student-launchpad">
             <header className="student-launchpad__hero">
                 <span>ALAN ENGLISH</span>
-                <h1>{user.name || "同學"}，想學什麼？</h1>
+                <h1>{user.nickname || user.name || "同學"}，想學什麼？</h1>
                 <p>選一個喜歡的功能，就可以開始囉！</p>
             </header>
 

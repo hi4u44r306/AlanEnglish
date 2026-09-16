@@ -18,7 +18,10 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
+import { readAppShellCache, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
 import StudentNavbar from "./StudentNavbar";
+import { sendSocialHeartbeat } from "../../services/studentSocialService";
+import { NOTIFICATIONS_READ_EVENT, notifyNotificationsRead } from "../../constants/notificationEvents";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -88,6 +91,7 @@ function MainNavbar() {
         if (isTeacher) return "Teacher";
         return "Student";
     }, [isAdmin, isTeacher]);
+    const displayName = studentProfile?.nickname || studentProfile?.name || displayRole;
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 24);
@@ -95,6 +99,41 @@ function MainNavbar() {
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    useEffect(() => {
+        if (!firebaseUser || !isStudent) return undefined;
+        const heartbeat = () => sendSocialHeartbeat(firebaseUser).catch(() => null);
+        heartbeat();
+        const timer = window.setInterval(heartbeat, 60 * 1000);
+        const onVisibility = () => {
+            if (document.visibilityState === "visible") heartbeat();
+        };
+        document.addEventListener("visibilitychange", onVisibility);
+        return () => {
+            window.clearInterval(timer);
+            document.removeEventListener("visibilitychange", onVisibility);
+        };
+    }, [firebaseUser, isStudent]);
+
+    useEffect(() => {
+        if (!isStudent) return undefined;
+        const onNotificationsRead = event => {
+            const notificationIds = event?.detail?.notificationIds;
+            if (notificationIds === "all") {
+                const readAt = new Date().toISOString();
+                setNotifications(current => current.map(item => ({ ...item, read_at: item.read_at || readAt })));
+            } else if (Array.isArray(notificationIds) && notificationIds.length > 0) {
+                const ids = new Set(notificationIds.map(Number));
+                const readAt = new Date().toISOString();
+                setNotifications(current => current.map(item => ids.has(Number(item.id)) ? { ...item, read_at: item.read_at || readAt } : item));
+            } else if (Array.isArray(notificationIds?.unreadIds) && notificationIds.unreadIds.length > 0) {
+                const ids = new Set(notificationIds.unreadIds.map(Number));
+                setNotifications(current => current.map(item => ids.has(Number(item.id)) ? { ...item, read_at: null } : item));
+            }
+        };
+        window.addEventListener(NOTIFICATIONS_READ_EVENT, onNotificationsRead);
+        return () => window.removeEventListener(NOTIFICATIONS_READ_EVENT, onNotificationsRead);
+    }, [isStudent]);
 
     useEffect(() => {
         setMobileOpen(false);
@@ -122,19 +161,31 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
+        const cachedSummary = readAppShellCache(firebaseUser.uid, "gamification", 5 * 60 * 1000);
+        if (cachedSummary) setGamificationSummary(cachedSummary);
         const refreshGamification = () => {
             getGamificationSummary(firebaseUser)
                 .then(result => {
-                    if (!cancelled) setGamificationSummary(result || null);
+                    if (!cancelled) {
+                        const summary = result || null;
+                        setGamificationSummary(summary);
+                        writeAppShellCache(firebaseUser.uid, "gamification", summary);
+                    }
                 })
                 .catch(() => {
                     if (!cancelled) setGamificationSummary(null);
                 });
         };
-        refreshGamification();
+        const cancelIdleRefresh = cachedSummary
+            ? scheduleWhenIdle(refreshGamification)
+            : (() => {
+                refreshGamification();
+                return () => {};
+            })();
         window.addEventListener("ae:gamification-updated", refreshGamification);
         return () => {
             cancelled = true;
+            cancelIdleRefresh();
             window.removeEventListener("ae:gamification-updated", refreshGamification);
         };
     }, [firebaseUser, isStudent]);
@@ -145,14 +196,31 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
-        getStudentNotifications(firebaseUser)
-            .then(result => {
-                if (!cancelled) setNotifications(result?.notifications || []);
-            })
-            .catch(() => {
-                if (!cancelled) setNotifications([]);
-            });
-        return () => { cancelled = true; };
+        const cachedNotifications = readAppShellCache(firebaseUser.uid, "notifications", 90 * 1000);
+        if (cachedNotifications) setNotifications(cachedNotifications);
+        const refreshNotifications = () => {
+            getStudentNotifications(firebaseUser)
+                .then(result => {
+                    if (!cancelled) {
+                        const nextNotifications = result?.notifications || [];
+                        setNotifications(nextNotifications);
+                        writeAppShellCache(firebaseUser.uid, "notifications", nextNotifications);
+                    }
+                })
+                .catch(() => {
+                    if (!cancelled && !cachedNotifications) setNotifications([]);
+                });
+        };
+        const cancelIdleRefresh = cachedNotifications
+            ? scheduleWhenIdle(refreshNotifications)
+            : (() => {
+                refreshNotifications();
+                return () => {};
+            })();
+        return () => {
+            cancelled = true;
+            cancelIdleRefresh();
+        };
     }, [firebaseUser, isStudent]);
 
     useEffect(() => {
@@ -162,12 +230,21 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
+        const cachedCategories = readAppShellCache(firebaseUser.uid, "catalog", 10 * 60 * 1000);
+        if (cachedCategories) {
+            setCategories(cachedCategories);
+            setLoading(false);
+        }
         const fetchNavbarData = async () => {
             try {
-                setLoading(true);
+                if (!cachedCategories) setLoading(true);
                 setNavError(null);
                 const result = await getAccessibleCatalog(firebaseUser);
-                if (!cancelled) setCategories(result?.categories || []);
+                if (!cancelled) {
+                    const nextCategories = result?.categories || [];
+                    setCategories(nextCategories);
+                    writeAppShellCache(firebaseUser.uid, "catalog", nextCategories);
+                }
             } catch (error) {
                 console.error("MainNavbar 載入失敗:", error);
                 if (!cancelled) setNavError(error?.message || "教材載入失敗");
@@ -175,8 +252,16 @@ function MainNavbar() {
                 if (!cancelled) setLoading(false);
             }
         };
-        fetchNavbarData();
-        return () => { cancelled = true; };
+        const cancelIdleRefresh = cachedCategories
+            ? scheduleWhenIdle(fetchNavbarData)
+            : (() => {
+                fetchNavbarData();
+                return () => {};
+            })();
+        return () => {
+            cancelled = true;
+            cancelIdleRefresh();
+        };
     }, [firebaseUser]);
 
     const closeMobileMenu = () => setMobileOpen(false);
@@ -205,6 +290,7 @@ function MainNavbar() {
     const markNotificationRead = async notification => {
         if (!notification || notification.read_at || !firebaseUser) return;
         setNotifications(current => current.map(item => item.id === notification.id ? { ...item, read_at: new Date().toISOString() } : item));
+        notifyNotificationsRead([notification.id]);
         try {
             await markStudentNotificationRead(firebaseUser, notification.id);
         } catch (error) {
@@ -250,6 +336,7 @@ function MainNavbar() {
         return (
             <StudentNavbar
                 categories={accessibleStudentCategories}
+                firebaseUser={firebaseUser}
                 gamificationLevel={gamificationLevel}
                 hasAiAccess={hasAiAccess}
                 hasAiPremium={hasAiPremium}
@@ -289,7 +376,7 @@ function MainNavbar() {
                         {isAdmin && <NavDropdown id="desktop-system-tools" title={<span className="ae-nav-inline"><FiSettings />系統</span>} className="ae-desktop-dropdown" align="end"><NavDropdown.Item as={Link} to="/admin/rewards" className="ae-dropdown-item"><FiGift />獎品與兌換管理</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/membership" className="ae-dropdown-item"><FiCreditCard />會員與啟用碼</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/material-packages" className="ae-dropdown-item"><FiBookOpen />教材商品包</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/store-orders" className="ae-dropdown-item"><FiCreditCard />商城訂單與出貨</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/student-lifecycle" className="ae-dropdown-item"><FiUsers />在校／離校管理</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/speaking-content" className="ae-dropdown-item"><FiBookOpen />教材 AI 口說題庫</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/support" className="ae-dropdown-item"><FiHelpCircle />客服案件</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/api-usage" className="ae-dropdown-item"><FiBarChart2 />API 成本</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/levels" className="ae-dropdown-item"><FiAward />等級與晉級測驗</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/catalog" className="ae-dropdown-item"><FiBookOpen />教材導覽管理</NavDropdown.Item></NavDropdown>}
                         {!isStudent && <button type="button" className="ae-desktop-help" onClick={openTour} data-tour="help"><FiHelpCircle />使用教學</button>}
                         {isStudent && <NavDropdown id="desktop-notifications" title={<span className="ae-notification-trigger"><FiBell aria-hidden="true" />{unreadNotificationCount > 0 && <b>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</b>}</span>} className="ae-notification-dropdown" align="end"><div className="ae-notification-heading"><strong>通知</strong><span>{unreadNotificationCount > 0 ? `${unreadNotificationCount} 則未讀` : "已讀取最新消息"}</span></div>{notifications.length === 0 ? <div className="ae-notification-empty">目前沒有新通知</div> : notifications.slice(0, 4).map(notification => <NavDropdown.Item as="button" type="button" key={notification.id} onClick={() => markNotificationRead(notification)} className={`ae-notification-item ${notification.read_at ? "is-read" : ""}`}><FiBell /><span><strong>{notification.title}</strong><small>{notification.body}</small></span></NavDropdown.Item>)}<NavDropdown.Divider /><NavDropdown.Item as={Link} to="/student/notifications" className="ae-dropdown-item"><FiBell />查看全部通知</NavDropdown.Item></NavDropdown>}
-                        {isAuthenticated && <NavDropdown id="desktop-user-menu" title={<span className="ae-user-chip"><span className="ae-user-chip-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</span><span className="ae-user-chip-name">{studentProfile?.name || displayRole}</span>{hasAiPremium && <span className="ae-ai-premium-badge" title="AI Premium｜AI 教材與發音練習已啟用"><FiZap aria-hidden="true" />AI Premium</span>}</span>} className="ae-user-dropdown" align="end"><NavDropdown.Item as={Link} to={homePath} className="ae-dropdown-item"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</NavDropdown.Item>{isStudent && <NavDropdown.Item as={Link} to="/student/membership" className={`ae-dropdown-item ${isPathActive("/student/membership") ? "active" : ""}`}><FiCreditCard />方案與功能</NavDropdown.Item>}{isStudent && <NavDropdown.Item as={Link} to="/student/settings" className="ae-dropdown-item"><FiSettings />我的設定</NavDropdown.Item>}<NavDropdown.Item as={Link} to="/shop" className="ae-dropdown-item"><FiShoppingBag />實體教材商城</NavDropdown.Item><NavDropdown.Item as={Link} to="/account/security" className="ae-dropdown-item"><FiLock />帳號與密碼</NavDropdown.Item><NavDropdown.Item as={Link} to="/support" className="ae-dropdown-item"><FiHelpCircle />聯絡客服</NavDropdown.Item><NavDropdown.Item as="button" onClick={handleLogout} disabled={loggingOut} className="ae-dropdown-item"><FiLogOut />{loggingOut ? "登出中..." : "登出"}</NavDropdown.Item></NavDropdown>}
+                        {isAuthenticated && <NavDropdown id="desktop-user-menu" title={<span className="ae-user-chip"><span className="ae-user-chip-avatar">{displayName.slice(0, 1) || "A"}</span><span className="ae-user-chip-name">{displayName}</span>{hasAiPremium && <span className="ae-ai-premium-badge" title="AI Premium｜AI 教材與發音練習已啟用"><FiZap aria-hidden="true" />AI Premium</span>}</span>} className="ae-user-dropdown" align="end"><NavDropdown.Item as={Link} to={homePath} className="ae-dropdown-item"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</NavDropdown.Item>{isStudent && <NavDropdown.Item as={Link} to="/student/friends" className={`ae-dropdown-item ${isPathActive("/student/friends") ? "active" : ""}`}><FiUsers />好友與戰績</NavDropdown.Item>}{isStudent && <NavDropdown.Item as={Link} to="/student/membership" className={`ae-dropdown-item ${isPathActive("/student/membership") ? "active" : ""}`}><FiCreditCard />方案與功能</NavDropdown.Item>}{isStudent && <NavDropdown.Item as={Link} to="/student/settings" className="ae-dropdown-item"><FiSettings />我的設定</NavDropdown.Item>}<NavDropdown.Item as={Link} to="/shop" className="ae-dropdown-item"><FiShoppingBag />實體教材商城</NavDropdown.Item><NavDropdown.Item as={Link} to="/account/security" className="ae-dropdown-item"><FiLock />帳號與密碼</NavDropdown.Item><NavDropdown.Item as={Link} to="/support" className="ae-dropdown-item"><FiHelpCircle />聯絡客服</NavDropdown.Item><NavDropdown.Item as="button" onClick={handleLogout} disabled={loggingOut} className="ae-dropdown-item"><FiLogOut />{loggingOut ? "登出中..." : "登出"}</NavDropdown.Item></NavDropdown>}
                     </Nav>
                     <div className="ae-mobile-actions">
                         {isStudent && <Link to="/student/notifications" className="ae-mobile-notification" aria-label={unreadNotificationCount > 0 ? `查看通知，目前有 ${unreadNotificationCount} 則未讀` : "查看通知"}><FiBell aria-hidden="true" />{unreadNotificationCount > 0 && <b>{unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}</b>}</Link>}
@@ -308,10 +395,11 @@ function MainNavbar() {
                     </div>
                 </Offcanvas.Header>
                 <Offcanvas.Body ref={mobileBodyRef}>
-                    {isAuthenticated && <div className={`ae-mobile-profile ${hasAiPremium ? "has-ai-premium" : ""}`}><div className="ae-mobile-avatar">{studentProfile?.name?.slice(0, 1) || "A"}</div><div><strong>{studentProfile?.name || "Alan English User"}</strong><span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span>{hasAiPremium && <span className="ae-ai-premium-badge"><FiZap aria-hidden="true" />AI Premium</span>}</div></div>}
+                    {isAuthenticated && <div className={`ae-mobile-profile ${hasAiPremium ? "has-ai-premium" : ""}`}><div className="ae-mobile-avatar">{displayName.slice(0, 1) || "A"}</div><div><strong>{displayName}</strong><span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span>{hasAiPremium && <span className="ae-ai-premium-badge"><FiZap aria-hidden="true" />AI Premium</span>}</div></div>}
                     {isStudent && <section className="ae-mobile-xp-card" aria-label="學習榮譽進度"><div className="ae-mobile-xp-heading"><span><FiZap aria-hidden="true" />學習榮譽</span><strong>Lv.{gamificationLevel}</strong></div><div className="ae-mobile-xp-track" role="progressbar" aria-label={`目前等級 Lv.${gamificationLevel} 的經驗值進度`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={xpProgressPercent}><span style={{ width: `${xpProgressPercent}%` }} /></div><div className="ae-mobile-xp-meta"><span>目前等級 Lv.{gamificationLevel}</span><strong>{totalXp.toLocaleString("zh-TW")} XP</strong></div><p>距離 Lv.{gamificationLevel + 1} 還差 {xpToNextLevel.toLocaleString("zh-TW")} XP</p></section>}
                     <section className="ae-mobile-section"><span className="ae-mobile-section-title">{isStudent ? "開始學習" : "主要功能"}</span><Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span></Link>{isAuthenticated && hasPronunciationAccess && <Link to="/student/pronunciation" onClick={closeMobileMenu} className={isPathActive("/student/pronunciation") ? "active" : ""}><FiMic /><span>{isTeacher ? "發音教練示範" : "發音教練"}</span></Link>}{isAuthenticated && hasPronunciationAccess && <Link to="/student/speaking-challenges" onClick={closeMobileMenu} className={isPathActive("/student/speaking-challenges") ? "active" : ""}><FiMic /><span>{isStudent ? "口說大挑戰" : "口說大挑戰預覽"}</span></Link>}{isAuthenticated && <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar /><span>{hasAiAccess ? "AI 教材" : "AI 教材與發音方案"}</span></Link>}</section>
                     {hasAccessibleStudentMaterials && <section className="ae-mobile-section ae-mobile-materials"><span className="ae-mobile-section-title">我的教材 · 共 {accessibleStudentCategories.reduce((total, category) => total + category.books.length, 0)} 本</span>{accessibleStudentCategories.map(category => renderStudentMaterialCategory(category, "mobile"))}</section>}
+                    {isStudent && <section className="ae-mobile-section"><span className="ae-mobile-section-title">學習成果</span><Link to="/student/review" onClick={closeMobileMenu} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw /><span>智慧複習</span></Link><Link to="/student/weekly-report" onClick={closeMobileMenu} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 /><span>每週報告</span></Link><Link to="/student/leaderboard" onClick={closeMobileMenu} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>學習排行榜</span></Link>{hasRewardsAccess && <Link to="/student/rewards" onClick={closeMobileMenu} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift /><span>獎品商城</span></Link>}</section>}
                     {isStudent && <section className="ae-mobile-section"><span className="ae-mobile-section-title">學習成果</span><Link to="/student/review" onClick={closeMobileMenu} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw /><span>智慧複習</span></Link><Link to="/student/weekly-report" onClick={closeMobileMenu} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 /><span>每週報告</span></Link><Link to="/student/leaderboard" onClick={closeMobileMenu} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>學習排行榜</span></Link>{hasRewardsAccess && <Link to="/student/rewards" onClick={closeMobileMenu} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift /><span>獎品商城</span></Link>}</section>}
                     {!isStudent && <section className="ae-mobile-section"><span className="ae-mobile-section-title">教材</span>{renderMobileCategories()}</section>}
                     {isTeacher && <section className="ae-mobile-section" data-tour="accounts"><span className="ae-mobile-section-title">管理</span><Link to={reportPath} onClick={closeMobileMenu}><FiBarChart2 /><span>每週學習報告</span></Link><Link to={leaderboardPath} onClick={closeMobileMenu}><FiTrendingUp /><span>班級排行榜</span></Link><Link to={accountManagementPath} onClick={closeMobileMenu}><FiUsers /><span>帳號管理</span></Link><Link to="/teacher/accounts/create" onClick={closeMobileMenu}><FiUsers /><span>建立單一學生</span></Link><Link to="/teacher/class-materials" onClick={closeMobileMenu}><FiBookOpen /><span>班級教材設定</span></Link>{isAdmin && <Link to="/admin/accounts/import" onClick={closeMobileMenu}><FiUpload /><span>CSV 批次建立</span></Link>}</section>}

@@ -33,6 +33,7 @@ import StudentSettings from "../components/Pages/StudentSettings";
 import StudentOnboarding from "../components/Pages/StudentOnboarding";
 import StudentNotifications from "../components/Pages/StudentNotifications";
 import MaterialCatalog from "../components/Pages/MaterialCatalog";
+import StudentFriends from "../components/Pages/StudentFriends";
 import StoreCatalog from "../components/Pages/StoreCatalog";
 import StoreSalesPaused from "../components/Pages/StoreSalesPaused";
 import { PUBLIC_MATERIAL_SALES_ENABLED } from "../constants/commerceAvailability";
@@ -153,6 +154,7 @@ const App = () => {
                     <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><MembershipCenter /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/settings" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentSettings /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><Containerfull><StudentNotifications /></Containerfull></ProtectedRoute>} />
+                    <Route path="/student/friends" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><StudentFriends /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/level" element={<Navigate to="/student/leaderboard" replace />} />
                     <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><LearningLeaderboard /></Containerfull></ProtectedRoute>} />
                     <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Containerfull><Rewards /></Containerfull></ProtectedRoute>} />

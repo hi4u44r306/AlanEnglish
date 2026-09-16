@@ -2,6 +2,15 @@
 
 最後更新：2026-09-16
 
+本次好友與戰績恢復（2026-09-16，隔離整合完成，尚未部署）：
+
+- 從目前正式站使用的手機導覽基準 `c268e5e` 建立 `feature/restore-friends`，只移植原好友系統的六個功能／修正 commit，沒有合併含其他舊功能的 PR #105，也沒有覆蓋目前兒童首頁、首次登入、生日、家長 Email 驗證、口說、教材或 Navbar 效能修正。學生重新取得 `/student/friends`、完整暱稱／好友碼搜尋、邀請與接受、好友 XP／等級、在線隱私、私人頭貼短效預覽、刪除好友、封鎖、解除封鎖與檢舉；Navbar、首頁、設定及排行榜以公開暱稱優先，教師／管理／客服仍使用真實姓名。
+- 安全邊界維持 Firebase Token 驗證的 `student-social` Edge Function；正式 Supabase 已確認 additive migration `20260908053030_student_social_foundation` 存在，社交資料表啟用 RLS 並撤銷 `anon`／`authenticated` 直連權限，正式 `student-social` v6 為 ACTIVE，OPTIONS 200、未登入 POST 401。本分支把暱稱讀取安全地疊加到現有 `membership-manager` 首次登入／家長驗證流程與現有 `gamification`，但尚未部署或更動正式 Functions。好友契約 5／5、Edge Function 語法、React targeted tests 6 suites／30 tests、Production build 與 `git diff --check` 已通過；`feature/restore-friends` 已推送至 GitHub，未建立 PR、未合併 `main`、未部署，仍待隔離站登入驗收。
+
+本次進行中（2026-09-16，尚未合併或部署）：
+
+- 手機導覽首屏效能第一批：學生 Navbar 側欄連結改為先導航、下一個畫面幀才收合側欄，避免 Offcanvas 收合動畫延後路由首屏。新增以 Firebase UID 隔離的短效 App Shell 快取：教材目錄 10 分鐘、XP 摘要 5 分鐘、通知 90 秒；有快取時先同步顯示，再於瀏覽器閒置時背景更新，無快取仍立即讀取。快取只改善畫面速度，不作為授權依據；後端 entitlement 與頁面資料仍照既有規則即時驗證。相關檔案：`MainNavbar.jsx`、`StudentNavbar.jsx`、`appShellCache.js`。`MainNavbar`／快取測試 12/12、Production build 與 `git diff --check` 通過；未改 Supabase、Firebase、Edge Function、會員權限或教材資料。Netlify production deploy `6aaa53bffd125e29e20548d2` 已 ready，正式首頁 HTTP 200 並載入 `main.3a7523b7.js`。
+
 本次公開頁 Accessibility 修正（2026-09-16，已正式部署）：
 
 - 修正公開首頁與登入頁共 16 個 axe `color-contrast` serious 節點：登入頁的歡迎標籤、說明、忘記密碼、啟用／復原／註冊／客服連結與版權文字改用符合 WCAG 2 AA 的色彩；首頁示範畫面、答題回饋、方案註記與頁尾輔助文字同步提高對比。方案比較表改為可由鍵盤取得焦點、以方向鍵水平捲動，並顯示可見 focus ring；公開手機 Navbar Toggle 改用 React Bootstrap 的中文 `label`，不再讀出英文 `Toggle navigation`。新增 4 項 Playwright＋axe 回歸測試，390px 行動版全數通過；沒有修改 Firebase、Supabase、權限、資料、音檔、付款或路由。功能 commit `8cbd750` 已快轉至 `main`；固定測試站 deploy `6aaa2f7ca1ae61ed7cda5c8f` 與正式站 deploy `6aaa2fbb07259d689d85ebc5` 均已 ready，正式 `https://alanenglish.com.tw/`、`/login` 均回應 HTTP 200，並在正式站重跑 4 項 Playwright 回歸測試全數通過。
@@ -766,11 +775,26 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 7. Navbar、Guided Tour、TTS component tests
 8. Playwright responsive、Stripe、Storage 與完整 Production E2E
 
-### P2 未來規劃：好友、戰績與社交競賽（尚未開始）
+### P2 好友、戰績與社交競賽（第一階段本機完成，尚未部署）
 
-產品方向：讓學生在安全、雙方同意的前提下加入好友，查看彼此的學習戰績；資料與互動基礎穩定後，再評估 PK 賽與合作型比賽。此項目目前只記錄需求，尚未建立資料表、API、Edge Function、頁面或部署。
+2026-09-08 已在分支 `codex/p2-friends-profile`（基準 commit `401a78b`）完成第一階段本機實作：新增 additive migration、`student-social` Edge Function、好友與戰績頁、前端服務、路由及 Navbar 入口。尚未建立 checkpoint、Push、套用遠端 migration、部署 Edge Function 或部署 Netlify。
 
-第一階段「好友與戰績」預計包含：
+第一階段採用的安全規則：
+
+1. 只允許有效方案的學生使用；Edge Function 驗證 Firebase ID Token，並重新查詢學生角色、帳號狀態及有效方案。
+2. 學生先建立 2～20 字暱稱，系統另產生不可推測的 `AE-XXXXXXXX` 好友碼；搜尋只接受完整暱稱或完整好友碼，不提供模糊列舉。
+3. 好友邀請需由對方接受；支援拒絕、刪除好友、封鎖、解除封鎖及檢舉。封鎖會立即移除既有好友關係。
+4. 對好友只顯示暱稱、粗略在線狀態、等級與總 XP；不顯示 Email、班級、生日、家長資料或精確登入時間。戰績與在線狀態皆可改為不公開。
+5. 在線狀態由登入後全站 Navbar 每 60 秒更新，對外只顯示「在線／最近在線／離線／未公開」。
+6. 搜尋每 15 分鐘最多 30 次、好友邀請每小時最多 5 次、檢舉每日最多 3 次；敏感操作寫入後端稽核表。
+
+本機驗證：好友服務與頁面測試、Navbar 測試、社交安全契約 4/4、Edge Function 語法檢查及 Production build 均通過；完整前端為 53 suites／178 tests 通過。尚未以兩個真實學生帳號驗證邀請、在線狀態、封鎖與跨帳號隱私。
+
+最新本機修正：搜尋結果新增直接「封鎖」入口，避免學生必須先成為好友才可保護自己；已補上 UI 測試，尚未推送或部署。
+
+下一步：驗證搜尋結果封鎖後，再由使用者決定是否 Push、部署測試站，最後才評估建立 PR、合併 `main` 與部署正式網站。檢舉與隱私切換可在取得獨立雲端資料異動授權後補做。PK 賽與合作型比賽仍留在第二、三階段，不在本次範圍。
+
+第一階段「好友與戰績」已包含：
 
 1. 使用不暴露 Email、生日、家長資料或真實班級的方式搜尋／邀請好友；採好友邀請、接受或拒絕的雙向確認流程，不允許單方面直接追蹤。
 2. 提供好友名單、待處理邀請、解除好友、封鎖與檢舉；封鎖後雙方不得查看戰績、傳送邀請或發起比賽。
@@ -791,7 +815,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 需防止單一成員代打或掛機，並清楚顯示個人貢獻、團隊進度、任務期限與獎勵規則。
 - 是否支援跨班、公開隊伍、老師建立活動及家長可見報告仍待產品確認。
 
-開始實作前必須先確認：好友搜尋識別方式、戰績可見欄位、封鎖／檢舉處理流程、PK 採非同步或即時、計分與獎勵規則、合作賽組隊限制，以及未成年使用者的隱私與家長／老師管理邊界。資料層必須採 additive migration、RLS 與 Firebase Token 驗證 Edge Function；不得讓前端直接讀取所有學生資料。此功能排在目前測試站已驗收內容同步正式站之後，正式站尚未更新前不開始功能實作。
+第一階段已固定完整暱稱／好友碼搜尋、安全戰績欄位、雙向邀請、封鎖、檢舉、頻率限制、additive migration、RLS 與 Firebase Token 驗證 Edge Function；前端不能直接讀取所有學生資料。PK 採非同步或即時、計分與獎勵、合作賽組隊限制，以及老師／家長介入方式，留待第二階段開始前確認。
 
 ## 13. 已知注意事項
 
@@ -875,6 +899,18 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
+
+## 本次完成（2026-09-16，手機側欄退場方向修正，已部署）
+
+- 修正手機右側功能選單在按關閉或選擇頁面後，退場途中短暫切換為底部抽屜、造成畫面向下縮的問題。側欄現在會維持原本的右側定位直到退場動畫完成，再清除目前選單內容；教材與開口說的底部選擇面板仍維持原有方向。新增 Navbar 回歸測試，確認右側選單關閉期間的 `placement` 不會改變。相關 React 16/16、Production build、release deploy preflight 與 `git diff --check` 已通過；Netlify 正式 deploy `6aaa88486aa71b776fd8408b` 已就緒，正式網域與唯一部署網址皆回傳 `main.c14ed986.js`。本批沒有 migration 或 Edge Function 變更。
+
+## 本次完成（2026-09-16，手機導覽與智慧複習暖載入，已部署）
+
+- 依手機實機錄影確認，Navbar 收合與路由切換約在 0.1～0.2 秒內完成；主要等待來自智慧複習頁的個人化資料請求。手機抽屜現在會先開始收合再切換頁面，開啟「更多」時會預先下載智慧複習頁面程式碼並暖載入學生複習摘要；45 秒記憶體快取會共用同一請求，答題後立即失效，未把個人資料寫死到前端。React 15/15、Production build、release preflight 與 `git diff --check` 通過；功能 commit `2ea23b7` 已推送 `feature/mobile-navigation-performance`。Netlify 正式 deploy `6aaa5a4672094a3fd0c664e2` 已就緒，正式網域與唯一部署網址皆回傳 `main.935090f4.js`。本批沒有 migration 或 Edge Function 變更。
+
+## 本次完成（2026-09-16，學生手機導覽低延遲改版，已部署）
+
+- 手機／平板頂欄改為 Logo、通知與右側功能選單，底欄改為排行榜、教材、開口說與學生頭像；頭像直達我的設定。電腦版保留排行榜、我的教材、開口說及學習功能，右側頭像直達設定並保留登出。修正觸控 click 未提供 `button` 時可能退回瀏覽器整頁載入、導致 AuthProvider 重建及「正在確認登入狀態」畫面的問題；新增站內路由回歸測試。相關 React 16/16、Production build 與 `git diff --check` 通過；正式站 deploy `6aaa625d783a0e66d4618c27` 與固定測試站 deploy `6aaa618b466ab155d35b20d4` 已就緒，兩站皆提供 `main.aad38ac0.js`／`main.aa3bd326.css`。沒有 migration 或 Edge Function 變更；登入後手機實機手感仍待使用者驗收。
 ## 本次完成（2026-09-14，學生口說固定順序闖關，已部署）
 
 - 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。手機版口說列表與詳細頁收起 Logo Header，縮小頂部留白；A–Z 介紹頁在超過手機寬度時也採 5 欄大卡片，字級提高至 34–48px，手機版既有 5 欄與尺寸不變。學生專用 Navbar 在 `1100px`（包含 iPad Pro 13 的 `1032px` CSS viewport）以下改用精簡頂欄與底部四入口，避免完整桌面選單截斷帳號控制項；寬螢幕仍維持完整桌面導覽。功能 commit `62ec3c8` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已更新；Production build 與 `git diff --check` 均成功。共用 Supabase `speaking-challenge` 已部署；正式站 deploy `6aa81e7089018100ccffaa7f` 已就緒，正式 CSS 確認含新版 `max-width:1100px` 規則。本批沒有 migration，固定測試站沒有再次部署。
