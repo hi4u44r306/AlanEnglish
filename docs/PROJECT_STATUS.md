@@ -2,13 +2,15 @@
 
 最後更新：2026-09-16
 
-本次正式站登入後學生 QA 補測（2026-09-16，未修改產品功能）：
+本次公開頁 Accessibility 修正（2026-09-16，已正式部署）：
 
-- 使用專案擁有者提供的在校學生測試帳號，執行登入、重整 session、登出與受保護頁面拒絕、學生／Admin 路由隔離、更多選單、作業／學生資料／教材讀取及口說入口等 19 項 targeted Playwright 案例；9 項通過、0 項失敗、10 項因無 Teacher／Admin／一般會員／離校生或未授權教材 fixture 而跳過。進入口說大挑戰列表未要求麥克風、未錄音、未寫入進度，且未觀察到瀏覽器 runtime error。本批未修改資料、migration、Edge Function 或正式部署；完整證據在 `QA_REPORT.md`。
+- 修正公開首頁與登入頁共 16 個 axe `color-contrast` serious 節點：登入頁的歡迎標籤、說明、忘記密碼、啟用／復原／註冊／客服連結與版權文字改用符合 WCAG 2 AA 的色彩；首頁示範畫面、答題回饋、方案註記與頁尾輔助文字同步提高對比。方案比較表改為可由鍵盤取得焦點、以方向鍵水平捲動，並顯示可見 focus ring；公開手機 Navbar Toggle 改用 React Bootstrap 的中文 `label`，不再讀出英文 `Toggle navigation`。新增 4 項 Playwright＋axe 回歸測試，390px 行動版全數通過；沒有修改 Firebase、Supabase、權限、資料、音檔、付款或路由。功能 commit `8cbd750` 已快轉至 `main`；固定測試站 deploy `6aaa2f7ca1ae61ed7cda5c8f` 與正式站 deploy `6aaa2fbb07259d689d85ebc5` 均已 ready，正式 `https://alanenglish.com.tw/`、`/login` 均回應 HTTP 200，並在正式站重跑 4 項 Playwright 回歸測試全數通過。
 
-本次正式站管理員與會員 QA 補測（2026-09-16，未修改產品功能）：
+本次英文班學生首次登入安全設定（2026-09-16，已正式部署）：
 
-- 使用專案擁有者提供的管理員、一般會員與離校會員帳號，追加驗證登入與 session、管理員導覽、授權頁面、作業入口及作業／教材後端邊界：6 項通過、0 項失敗；「方案已到期的離校會員」因沒有專用 fixture 跳過。管理員「新增連結」實際位於 Navbar 的「音檔」選單；原本 E2E 假設入口直接顯示，已依現行產品導覽更新測試後通過。未修改資料、migration、Edge Function 或正式部署。
+- 功能分支 `feature/student-first-login-onboarding`、Worktree `D:\dev\AlanEnglish-worktrees\student-first-login-onboarding`。CSV 建立成功後會為每位學生各自回傳一次性臨時密碼，保留既有 QR 啟用與復原碼；CSV 不再預先寫入未驗證的家長 Email。學生使用臨時密碼登入後，全站學生路由會強制導向三步設定：實際更換 Firebase 密碼、一次性設定生日、以 6 位數驗證碼驗證家長 Email。生日設定後由資料庫阻止再次修改；更換家長 Email 時只有驗證成功才原子替換，失敗或未完成時保留原信箱；付款流程只接受已驗證家長 Email。
+- 新增 additive migration `20260916015253_student_onboarding_guardian_email_verification.sql`、server-only 驗證要求表、RLS／權限撤銷、寄送節流、錯誤嘗試限制與 HMAC code hash。現有家長 Email 已相容回填為已驗證，避免既有家庭突然被鎖定；正式資料庫已套用並確認 RLS、前端角色權限撤銷、4 個 RPC 與 migration 紀錄完整。`GUARDIAN_EMAIL_OTP_SECRET` 已使用隨機值寫入正式 Edge Function secrets，未寫入 Repository 或輸出其值。
+- 正式 Edge Functions：`academy-student-manager` v30、`membership-manager` v42、`commerce-manager` v17、`billing-manager` v35 均為 ACTIVE；OPTIONS 與明確受保護的未登入 action 已驗收，四支皆回應 401。驗證：首次登入／設定／路由／CSV React targeted tests 5 suites、19 tests 全數通過；安全 contract、全部 Edge Function 語法、Production build 與 `git diff --check` 通過。Build 只有既有 `SpeakingPronunciationRecorder.jsx` 未使用 `FiSquare`、Browserslist 與 Node deprecation 警告。
 
 本次教材 AI 口說題庫管理介面改版（2026-09-16，已正式部署）：
 
@@ -108,6 +110,10 @@
 本次進行中（2026-09-14，固定測試站與正式站已部署，待登入學生驗收）：
 
 - 為避免後續學生導覽部署覆蓋 Workbook 1 口說前端，已從目前 `main` 建立 `integration/workbook1-speaking-recovery`，並整合 `codex/workbook1-speaking-challenges` 的完整前端與測試歷史。衝突只在學生 Navbar 與文件：保留已正式發布的排行榜起點、教材載入穩定化與頂部頭像直達我的設定，同時保留口說詳細關卡隱藏頂端 Logo Header 的專注模式。固定測試站 deploy `6aa7d7d6395dbb8889ddfc18` 與正式站 deploy `6aa7d93973f9c37439632e1c` 均已 ready，首頁與口說大挑戰路由 HTTP 200；共用 Supabase 已登記的 additive migrations 與 ACTIVE Speaking Edge Functions 不會重跑或先行部署；P21／P22 仍保持未發布。
+
+本次進行中（2026-09-14，尚未部署）：
+
+- 分支 `fix/academy-membership-ui`：學生端已移除「等級晉級」導航入口與獨立頁面；舊 `/student/level` 網址安全導回排行榜，鎖定教材不再指向已移除的頁面。有效在校英文班學生的「方案與功能」頁保留已取得權限與 AI Premium 狀態，但不顯示「延續使用與功能加購」、付款／訂閱管理、續訂、到期取消或加購按鈕；英文班外的會員與離校生原有付款、到期與自助訂閱流程維持不變。未修改 Firebase、Supabase、Stripe、membership 後端或權限判定。
 
 本次正式發布（2026-09-14）：
 
@@ -869,10 +875,6 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 - 尚未部署內容
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
-
-## 本次完成（2026-09-16，正式站 QA／E2E 稽核，未修改產品功能）
-
-- 新增公開導覽、Authentication、六種指定 viewport、RWD、新使用者公開流程與 Accessibility Playwright 回歸測試，並更新既有公開路由測試以符合目前正式站。共 107 項：90 通過、2 項 axe serious 失敗、15 項因未提供專用角色／方案 E2E 帳密而跳過。確認登入頁與公開首頁各有 8 個低對比節點，首頁方案比較表的水平捲動區無法以鍵盤聚焦；沒有發現公開頁 React crash、主要資源 4xx／5xx、非預期 request failure、blank page 或六種尺寸的 document-level 水平溢位。完整證據與建議記錄於 `QA_REPORT.md`；本批沒有修改產品功能、資料、migration、Edge Function 或部署。
 ## 本次完成（2026-09-14，學生口說固定順序闖關，已部署）
 
 - 學生口說大挑戰固定順序與角色預覽：學生列表改依教材關卡編號排序，完成前一關才會開啟下一關；前端鎖定卡與 `speaking-challenge` 後端網址保護一致，不能透過直接網址跳關。老師／管理員可從 Navbar 的「口說大挑戰預覽」唯讀開啟全部已發布關卡，不會寫入進度或獎勵。手機版口說列表與詳細頁收起 Logo Header，縮小頂部留白；A–Z 介紹頁在超過手機寬度時也採 5 欄大卡片，字級提高至 34–48px，手機版既有 5 欄與尺寸不變。學生專用 Navbar 在 `1100px`（包含 iPad Pro 13 的 `1032px` CSS viewport）以下改用精簡頂欄與底部四入口，避免完整桌面選單截斷帳號控制項；寬螢幕仍維持完整桌面導覽。功能 commit `62ec3c8` 已推送 `feature/speaking-challenge-progression`，stacked PR #127 已更新；Production build 與 `git diff --check` 均成功。共用 Supabase `speaking-challenge` 已部署；正式站 deploy `6aa81e7089018100ccffaa7f` 已就緒，正式 CSS 確認含新版 `max-width:1100px` 規則。本批沒有 migration，固定測試站沒有再次部署。

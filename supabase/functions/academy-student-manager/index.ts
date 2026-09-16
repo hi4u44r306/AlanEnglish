@@ -31,6 +31,7 @@ type FirebaseLookupResponse = {
         email?: string;
         emailVerified?: boolean;
         disabled?: boolean;
+        passwordUpdatedAt?: number;
     }>;
 };
 
@@ -38,6 +39,7 @@ type FirebaseUser = {
     uid: string;
     email: string | null;
     emailVerified: boolean;
+    passwordUpdatedAt: number | null;
 };
 
 type FirebaseSignupResponse = {
@@ -482,7 +484,10 @@ const verifyFirebaseUser = async (token: string): Promise<FirebaseUser> => {
     return {
         uid,
         email: normalizeEmail(user?.email) || null,
-        emailVerified: user?.emailVerified === true
+        emailVerified: user?.emailVerified === true,
+        passwordUpdatedAt: Number.isFinite(Number(user?.passwordUpdatedAt))
+            ? Number(user?.passwordUpdatedAt)
+            : null
     };
 };
 
@@ -1252,7 +1257,9 @@ const createStudentAccount = async (
         p_recovery_code_hints: recoveryCodes.map(code => code.slice(-4)),
         p_english_name: input.englishName,
         p_guardian_name: input.guardianName,
-        p_guardian_email: input.guardianEmail,
+        // Guardian email must be supplied and verified by the student/guardian
+        // during first-login onboarding. Never treat a CSV cell as verified.
+        p_guardian_email: null,
         p_guardian_phone: input.guardianPhone,
         p_enrolled_at: input.enrolledAt,
         p_access_ends_at: input.accessEndsAt,
@@ -1300,11 +1307,13 @@ const createStudentAccount = async (
         account: safeAccount,
         credentials: {
             username: input.loginUsername,
+            temporary_password: hiddenBootstrapPassword,
             activation_url: `${origin}/academy/student-setup?token=${encodeURIComponent(activationToken)}`,
             activation_code: activationToken,
             activation_expires_at: activationExpiresAt,
             recovery_codes: recoveryCodes,
             must_change_password: true,
+            onboarding_required: true,
             shown_once: true
         }
     };
@@ -1899,14 +1908,46 @@ const recoverStudentLogin = async (
 const markPasswordChanged = async (
     req: Request,
     admin: SupabaseClient,
-    caller: CallerProfile
+    caller: CallerProfile,
+    firebaseUser: FirebaseUser
 ): Promise<Response> => {
     if (caller.role !== "student" || caller.learner_type !== "academy_student") {
         throw new HttpError(403, "ACADEMY_STUDENT_REQUIRED", "只有英文班學生需要完成臨時密碼更換");
     }
 
+    const { data: state, error: stateError } = await admin
+        .from("students")
+        .select("must_change_password,temporary_password_issued_at")
+        .eq("id", caller.id)
+        .eq("firebase_uid", firebaseUser.uid)
+        .single();
+    if (stateError) throw new HttpError(500, "PASSWORD_STATUS_LOOKUP_FAILED", "目前無法確認密碼狀態");
+    if (state?.must_change_password !== true) {
+        return json(req, 200, {
+            success: true,
+            student_id: caller.id,
+            must_change_password: false,
+            already_complete: true
+        });
+    }
+
+    const issuedAt = Date.parse(String(state?.temporary_password_issued_at || ""));
+    if (
+        !Number.isFinite(issuedAt)
+        || !firebaseUser.passwordUpdatedAt
+        || firebaseUser.passwordUpdatedAt <= issuedAt
+    ) {
+        throw new HttpError(
+            409,
+            "PASSWORD_CHANGE_NOT_CONFIRMED",
+            "Firebase 尚未確認新密碼，請完成密碼更新後再繼續"
+        );
+    }
+
+    const changedAt = new Date(firebaseUser.passwordUpdatedAt).toISOString();
     const { data, error } = await admin.rpc("mark_academy_student_password_changed", {
-        p_firebase_uid: caller.firebase_uid
+        p_firebase_uid: caller.firebase_uid,
+        p_changed_at: changedAt
     });
 
     if (error) {
@@ -2031,7 +2072,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
             return await createInvitation(req, admin, caller, body);
         }
         if (action === "mark_password_changed") {
-            return await markPasswordChanged(req, admin, caller);
+            return await markPasswordChanged(req, admin, caller, firebaseUser);
         }
 
         throw new HttpError(400, "UNKNOWN_ACTION", "不支援的學生帳號操作");

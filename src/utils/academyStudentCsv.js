@@ -7,7 +7,6 @@ export const ACADEMY_STUDENT_CSV_HEADERS = [
     "班級",
     "入班日期",
     "權限截止日",
-    "家長Email(選填)",
     "備註"
 ];
 
@@ -145,11 +144,12 @@ export const buildAcademyStudentCsvTemplate = () => (
 );
 
 export const buildAcademyStudentResultCsv = results => {
-    const headers = ["原始列號", "建立結果", "登入帳號", "啟用連結", "復原碼1", "復原碼2", "錯誤代碼", "錯誤訊息"];
+    const headers = ["原始列號", "建立結果", "登入帳號", "一次性臨時密碼", "啟用連結", "復原碼1", "復原碼2", "錯誤代碼", "錯誤訊息"];
     const rows = (Array.isArray(results) ? results : []).map(result => [
         Number(result?.source_row || result?.row_number || 0),
         result?.status === "success" ? "成功" : "失敗",
         result?.credentials?.username || result?.login_username || "",
+        result?.credentials?.temporary_password || "",
         result?.credentials?.activation_url || "",
         result?.credentials?.recovery_codes?.[0] || "",
         result?.credentials?.recovery_codes?.[1] || "",

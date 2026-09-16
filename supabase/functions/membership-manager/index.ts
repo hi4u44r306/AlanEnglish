@@ -107,6 +107,70 @@ const sha256 = async (value: string) => {
     return Array.from(digest).map(byte => byte.toString(16).padStart(2, "0")).join("");
 };
 
+const escapeHtml = (value: unknown) => String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+const randomGuardianCode = () => {
+    const bytes = crypto.getRandomValues(new Uint8Array(6));
+    return Array.from(bytes, byte => String(byte % 10)).join("");
+};
+
+const guardianCodeHash = async (
+    secret: string,
+    studentId: number,
+    email: string,
+    code: string
+) => {
+    const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    const signature = new Uint8Array(await crypto.subtle.sign(
+        "HMAC",
+        key,
+        new TextEncoder().encode(`${studentId}:${email}:${code}`)
+    ));
+    return Array.from(signature).map(byte => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const maskedEmail = (email: string) => {
+    const [local = "", domain = ""] = email.split("@");
+    const visible = local.slice(0, Math.min(2, local.length));
+    return `${visible}${"*".repeat(Math.max(2, local.length - visible.length))}@${domain}`;
+};
+
+const sendWithResend = async (apiKey: string, payload: unknown, idempotencyKey: string) => {
+    const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "Idempotency-Key": idempotencyKey
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({})) as { id?: string; message?: string };
+    if (!response.ok) throw new Error(data.message || `RESEND_${response.status}`);
+    return data;
+};
+
+const guardianVerificationEmail = (studentName: string, code: string) => {
+    const safeName = escapeHtml(studentName || "學生");
+    const safeCode = escapeHtml(code);
+    return {
+        subject: "Alan English 家長 Email 驗證碼",
+        text: `您好，${studentName || "學生"} 正在設定 Alan English 家長 Email。\n\n驗證碼：${code}\n\n驗證碼 10 分鐘內有效。若不是您本人操作，請忽略這封信。`,
+        html: `<!doctype html><html lang="zh-Hant"><body style="margin:0;background:#f3f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#17233d"><div style="max-width:600px;margin:0 auto;padding:28px 16px"><div style="background:#142443;color:#fff;padding:28px;border-radius:20px 20px 0 0"><div style="font-size:12px;letter-spacing:.16em;color:#ffd45c">ALAN ENGLISH</div><h1 style="font-size:25px;margin:10px 0 0">家長 Email 驗證</h1></div><div style="background:#fff;padding:28px;border-radius:0 0 20px 20px"><p style="font-size:16px;line-height:1.8;margin-top:0">您好，${safeName} 正在設定 Alan English 家長 Email。</p><p style="font-size:13px;color:#667085;margin-bottom:8px">10 分鐘內輸入這組驗證碼：</p><div style="font-size:34px;font-weight:800;letter-spacing:.22em;color:#244680;background:#eef4ff;border-radius:14px;padding:18px;text-align:center">${safeCode}</div><p style="font-size:13px;color:#667085;line-height:1.7;margin-bottom:0">如果不是您本人操作，請忽略這封信。Alan English 不會透過 Email 要求密碼。</p></div></div></body></html>`
+    };
+};
+
 const normalizeActivationCode = (value: unknown) => cleanText(value, 80)
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
@@ -407,7 +471,8 @@ const profilePayload = (
     membership: any,
     levelProgress: any,
     effectiveAccess: any = null,
-    aiAddonSubscription: any = null
+    aiAddonSubscription: any = null,
+    guardianContact: any = null
 ) => ({
     id: student.id,
     firebase_uid: student.firebase_uid,
@@ -433,6 +498,25 @@ const profilePayload = (
     last_login_at: student.last_login_at,
     last_active_at: student.last_active_at,
     last_learning_at: student.last_learning_at,
+    must_change_password: student.must_change_password === true,
+    guardian: guardianContact ? {
+        email: guardianContact.email || null,
+        email_verified_at: guardianContact.email_verified_at || null,
+        verified: Boolean(guardianContact.email && guardianContact.email_verified_at)
+    } : {
+        email: null,
+        email_verified_at: null,
+        verified: false
+    },
+    onboarding: {
+        required: student.onboarding_required === true,
+        completed_at: student.onboarding_completed_at || null,
+        steps: {
+            password_complete: student.must_change_password !== true,
+            birthday_complete: Boolean(student.date_of_birth),
+            guardian_email_complete: Boolean(guardianContact?.email && guardianContact?.email_verified_at)
+        }
+    },
     membership: serializeMembership(
         membership,
         student.role || "student",
@@ -488,10 +572,16 @@ const loadCompleteProfile = async (
     firebaseUser: VerifiedFirebaseUser,
     publicSignup = false
 ) => {
-    const [membership, levelProgress] = await Promise.all([
+    const [membership, levelProgress, guardianResult] = await Promise.all([
         ensureMembership(admin, student, firebaseUser, { publicSignup }),
-        ensureLevelProgress(admin, student, publicSignup)
+        ensureLevelProgress(admin, student, publicSignup),
+        admin
+            .from("guardian_contacts")
+            .select("email,email_verified_at")
+            .eq("student_id", student.id)
+            .maybeSingle()
     ]);
+    if (guardianResult.error) throw guardianResult.error;
     const effectiveAccess = await loadEffectiveAccess(admin, Number(student.id));
     const aiAddonSubscription = await loadAiAddonSubscription(admin, effectiveAccess);
     return profilePayload(
@@ -499,8 +589,209 @@ const loadCompleteProfile = async (
         membership,
         levelProgress,
         effectiveAccess,
-        aiAddonSubscription
+        aiAddonSubscription,
+        guardianResult.data || null
     );
+};
+
+const requestGuardianEmailVerification = async (
+    admin: any,
+    student: any,
+    emailValue: unknown
+) => {
+    if (student.role !== "student") {
+        return { status: 403, body: { error: "只有學生可以設定家長 Email" } };
+    }
+
+    const email = normalizeEmail(emailValue);
+    if (!isReceivableEmail(email)) {
+        return { status: 400, body: { error: "請輸入可正常收信的家長 Email" } };
+    }
+
+    const otpSecret = cleanText(Deno.env.get("GUARDIAN_EMAIL_OTP_SECRET"), 500);
+    const resendApiKey = cleanText(Deno.env.get("RESEND_API_KEY"), 500);
+    if (otpSecret.length < 32 || !resendApiKey) {
+        return { status: 503, body: { error: "家長 Email 驗證服務尚未完成設定" } };
+    }
+
+    const { data: currentGuardian, error: guardianError } = await admin
+        .from("guardian_contacts")
+        .select("email,email_verified_at")
+        .eq("student_id", student.id)
+        .maybeSingle();
+    if (guardianError) throw guardianError;
+    if (normalizeEmail(currentGuardian?.email) === email && currentGuardian?.email_verified_at) {
+        return {
+            status: 200,
+            body: {
+                success: true,
+                already_verified: true,
+                masked_email: maskedEmail(email)
+            }
+        };
+    }
+
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const [recentResult, hourlyResult] = await Promise.all([
+        admin
+            .from("guardian_email_verification_requests")
+            .select("id", { count: "exact", head: true })
+            .eq("student_id", student.id)
+            .gte("requested_at", oneMinuteAgo),
+        admin
+            .from("guardian_email_verification_requests")
+            .select("id", { count: "exact", head: true })
+            .eq("student_id", student.id)
+            .gte("requested_at", oneHourAgo)
+    ]);
+    if (recentResult.error || hourlyResult.error) throw recentResult.error || hourlyResult.error;
+    if ((recentResult.count || 0) > 0) {
+        return { status: 429, body: { error: "請稍候 60 秒再重新寄送驗證碼" } };
+    }
+    if ((hourlyResult.count || 0) >= 5) {
+        return { status: 429, body: { error: "驗證碼寄送次數過多，請一小時後再試" } };
+    }
+
+    const { data: settings, error: settingsError } = await admin
+        .from("guardian_email_settings")
+        .select("from_email,from_name,reply_to")
+        .eq("id", 1)
+        .maybeSingle();
+    if (settingsError) throw settingsError;
+    if (!settings?.from_email) {
+        return { status: 503, body: { error: "寄件網域尚未完成設定" } };
+    }
+
+    const expireResult = await admin
+        .from("guardian_email_verification_requests")
+        .update({ status: "expired" })
+        .eq("student_id", student.id)
+        .in("status", ["pending", "sent"]);
+    if (expireResult.error) throw expireResult.error;
+
+    const code = randomGuardianCode();
+    const codeHash = await guardianCodeHash(otpSecret, Number(student.id), email, code);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    const { data: requestRow, error: requestError } = await admin
+        .from("guardian_email_verification_requests")
+        .insert({
+            student_id: student.id,
+            pending_email: email,
+            code_hash: codeHash,
+            expires_at: expiresAt,
+            status: "pending"
+        })
+        .select("id")
+        .single();
+    if (requestError) throw requestError;
+
+    try {
+        const content = guardianVerificationEmail(
+            cleanText(student.chinese_name || student.name, 100) || "學生",
+            code
+        );
+        await sendWithResend(resendApiKey, {
+            from: `${settings.from_name || "Alan English"} <${settings.from_email}>`,
+            to: [email],
+            subject: content.subject,
+            html: content.html,
+            text: content.text,
+            ...(settings.reply_to ? { reply_to: settings.reply_to } : {})
+        }, `guardian-verify-${requestRow.id}`);
+        const sentResult = await admin
+            .from("guardian_email_verification_requests")
+            .update({ status: "sent", sent_at: new Date().toISOString() })
+            .eq("id", requestRow.id)
+            .eq("student_id", student.id);
+        if (sentResult.error) throw sentResult.error;
+    } catch (error) {
+        await admin
+            .from("guardian_email_verification_requests")
+            .update({ status: "failed" })
+            .eq("id", requestRow.id)
+            .eq("student_id", student.id);
+        console.error("Guardian email verification delivery failed", {
+            studentId: student.id,
+            requestId: requestRow.id,
+            message: error instanceof Error ? cleanText(error.message, 120) : "UNKNOWN"
+        });
+        return { status: 502, body: { error: "目前無法寄送驗證碼，原本的家長 Email 沒有變更" } };
+    }
+
+    return {
+        status: 200,
+        body: {
+            success: true,
+            request_id: requestRow.id,
+            masked_email: maskedEmail(email),
+            expires_at: expiresAt
+        }
+    };
+};
+
+const confirmGuardianEmailVerification = async (
+    admin: any,
+    student: any,
+    firebaseUser: VerifiedFirebaseUser,
+    requestIdValue: unknown,
+    codeValue: unknown
+) => {
+    if (student.role !== "student") {
+        return { status: 403, body: { error: "只有學生可以設定家長 Email" } };
+    }
+    const requestId = positiveInteger(requestIdValue);
+    const code = cleanText(codeValue, 6);
+    if (!requestId || !/^\d{6}$/.test(code)) {
+        return { status: 400, body: { error: "請輸入 6 位數驗證碼" } };
+    }
+    const otpSecret = cleanText(Deno.env.get("GUARDIAN_EMAIL_OTP_SECRET"), 500);
+    if (otpSecret.length < 32) {
+        return { status: 503, body: { error: "家長 Email 驗證服務尚未完成設定" } };
+    }
+
+    const { data: requestRow, error: requestError } = await admin
+        .from("guardian_email_verification_requests")
+        .select("id,pending_email")
+        .eq("id", requestId)
+        .eq("student_id", student.id)
+        .maybeSingle();
+    if (requestError) throw requestError;
+    if (!requestRow?.id) {
+        return { status: 404, body: { error: "找不到這次驗證要求，請重新寄送驗證碼" } };
+    }
+
+    const codeHash = await guardianCodeHash(
+        otpSecret,
+        Number(student.id),
+        normalizeEmail(requestRow.pending_email),
+        code
+    );
+    const { data, error } = await admin.rpc("confirm_guardian_email_verification", {
+        p_student_id: student.id,
+        p_firebase_uid: firebaseUser.uid,
+        p_request_id: requestId,
+        p_code_hash: codeHash
+    });
+    if (error) throw error;
+    if (data?.verified !== true) {
+        const messages: Record<string, string> = {
+            INVALID_CODE: "驗證碼不正確，請重新確認",
+            CODE_EXPIRED: "驗證碼已過期，請重新寄送",
+            TOO_MANY_ATTEMPTS: "驗證失敗次數過多，請重新寄送驗證碼",
+            REQUEST_NOT_FOUND: "找不到這次驗證要求，請重新寄送驗證碼"
+        };
+        return {
+            status: data?.code === "INVALID_CODE" ? 400 : 409,
+            body: {
+                error: messages[data?.code] || "目前無法完成家長 Email 驗證",
+                code: data?.code || "VERIFICATION_FAILED",
+                attempts_remaining: data?.attempts_remaining ?? null
+            }
+        };
+    }
+
+    return { status: 200, body: { success: true, ...data } };
 };
 
 Deno.serve(async (req: Request) => {
@@ -670,34 +961,63 @@ Deno.serve(async (req: Request) => {
             return json(200, { success: true, profile });
         }
 
+        if (action === "request_guardian_email_verification") {
+            const result = await requestGuardianEmailVerification(admin, caller, body?.guardian_email);
+            return json(result.status, result.body);
+        }
+
+        if (action === "confirm_guardian_email_verification") {
+            const result = await confirmGuardianEmailVerification(
+                admin,
+                caller,
+                firebaseUser,
+                body?.request_id,
+                body?.code
+            );
+            return json(result.status, result.body);
+        }
+
         if (action === "update_student_profile") {
             if (caller.role !== "student") return json(403, { error: "目前只有學生可以更新自己的基本資料" });
+            if (Object.prototype.hasOwnProperty.call(body || {}, "guardian_email")) {
+                return json(409, {
+                    error: "家長 Email 必須先完成驗證；原本的 Email 尚未變更",
+                    code: "GUARDIAN_EMAIL_VERIFICATION_REQUIRED"
+                });
+            }
+
             let dateOfBirth = caller.date_of_birth || null;
+            let onboarding = null;
             if (Object.prototype.hasOwnProperty.call(body || {}, "date_of_birth")) {
                 try {
                     dateOfBirth = normalizeDateOfBirth(body?.date_of_birth);
                 } catch (error) {
                     return json(400, { error: error instanceof Error ? error.message : "出生年月日格式不正確" });
                 }
+                const { data, error } = await admin.rpc("set_student_birth_date_once", {
+                    p_student_id: caller.id,
+                    p_firebase_uid: firebaseUser.uid,
+                    p_date_of_birth: dateOfBirth
+                });
+                if (error) {
+                    if (error.message?.includes("student_date_of_birth_is_immutable")) {
+                        return json(409, {
+                            error: "出生年月日設定後不可由學生修改；如資料有誤請聯絡櫃檯",
+                            code: "DATE_OF_BIRTH_IMMUTABLE"
+                        });
+                    }
+                    throw error;
+                }
+                dateOfBirth = data?.date_of_birth || dateOfBirth;
+                onboarding = data?.onboarding || null;
             }
-            const { data, error } = await admin
-                .from("students")
-                .update({ date_of_birth: dateOfBirth, updated_at: new Date().toISOString() })
-                .eq("id", caller.id)
-                .eq("firebase_uid", firebaseUser.uid)
-                .select("date_of_birth")
-                .single();
-            if (error) throw error;
-            const guardianEmail = normalizeEmail(body?.guardian_email);
-            if (guardianEmail && !isReceivableEmail(guardianEmail)) return json(400, { error: "請輸入可收信的家長 Email" });
-            if (Object.prototype.hasOwnProperty.call(body || {}, "guardian_email")) {
-                const guardianUpdate = await admin.from("guardian_contacts").upsert({
-                    student_id: caller.id, email: guardianEmail || null,
-                    notification_enabled: true, updated_at: new Date().toISOString()
-                }, { onConflict: "student_id" });
-                if (guardianUpdate.error) throw guardianUpdate.error;
-            }
-            return json(200, { success: true, profile: { date_of_birth: data?.date_of_birth || null, guardian_email: guardianEmail || null } });
+            return json(200, {
+                success: true,
+                profile: {
+                    date_of_birth: dateOfBirth,
+                    onboarding
+                }
+            });
         }
 
         if (action === "notifications") {

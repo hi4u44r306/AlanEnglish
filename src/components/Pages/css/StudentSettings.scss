@@ -124,6 +124,7 @@
 .birthday-select label > span { color: #78869d; font-size: 10px; }
 .birthday-select select { display: block; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; min-height: 44px; padding: 8px 25px 8px 8px; border: 1px solid #d8dfeb; border-radius: 11px; color: #223451; background-color: #fff; font: inherit; font-size: 16px; font-weight: 700; }
 .student-settings-birthday-form button { box-sizing: border-box; width: 100%; max-width: 100%; min-height: 44px; padding: 0 15px; border: 0; border-radius: 11px; color: #fff; background: #244680; font-weight: 850; cursor: pointer; white-space: nowrap; }
+.student-settings-birthday-form .student-settings-secondary-button { border: 1px solid #cbd8ec; color: #244680; background: #fff; }
 .student-settings-birthday-form button:disabled { opacity: .65; cursor: wait; }
 
 @media (max-width: 720px) {

@@ -30,8 +30,8 @@ describe("AcademyStudentCsvImport", () => {
         );
 
         const csv = [
-            "中文姓名,英文姓名,登入帳號(選填),班級,入班日期,權限截止日,家長Email(選填),備註",
-            "王小明,Alan,alanwang,E1,2026-08-24,,parent@example.com,"
+            "中文姓名,英文姓名,登入帳號(選填),班級,入班日期,權限截止日,備註",
+            "王小明,Alan,alanwang,E1,2026-08-24,,"
         ].join("\n");
         const file = new File([csv], "students.csv", { type: "text/csv" });
         file.text = jest.fn().mockResolvedValue(csv);

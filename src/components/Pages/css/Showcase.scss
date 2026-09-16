@@ -647,7 +647,7 @@
   span,
   p {
     margin: 0;
-    color: #98a2b3;
+    color: #667085;
     font-size: 12px;
   }
 }
@@ -905,7 +905,7 @@
   padding: 0 16px;
   border-bottom: 1px solid #edf0f5;
   background: #fbfcff;
-  color: #98a2b3;
+  color: #596780;
   font-size: 10px;
   font-weight: 700;
 }
@@ -986,7 +986,7 @@
 
   small {
     margin-bottom: 5px;
-    color: #98a2b3;
+    color: #596780;
     font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -1082,7 +1082,7 @@
 
   p {
     margin: 0;
-    color: #98a2b3;
+    color: #667085;
     font-size: 10px;
   }
 }
@@ -1127,7 +1127,7 @@
   }
 
   time {
-    color: #98a2b3;
+    color: #667085;
     font-size: 8px;
   }
 }
@@ -1404,7 +1404,7 @@
   }
 
   span {
-    color: #43806a;
+    color: #24654f;
     font-size: 11px;
   }
 }
@@ -1737,7 +1737,7 @@
 
 .showcase-plan-note {
   margin: 30px 0 0;
-  color: #98a2b3;
+  color: #667085;
   font-size: 12px;
   text-align: center;
 }
@@ -1797,6 +1797,11 @@
 .showcase-plan-table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+
+  &:focus-visible {
+    outline: 3px solid #315bc8;
+    outline-offset: -3px;
+  }
 
   table {
     width: 100%;

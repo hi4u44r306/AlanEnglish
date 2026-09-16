@@ -4,7 +4,11 @@ import "@testing-library/jest-dom";
 import StudentSettings from "./StudentSettings";
 import { useAuth } from "../../auth/AuthContext";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
-import { updateStudentProfile } from "../../services/membershipService";
+import {
+    confirmGuardianEmailVerification,
+    requestGuardianEmailVerification,
+    updateStudentProfile
+} from "../../services/membershipService";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
@@ -16,6 +20,8 @@ jest.mock("../../services/gamificationService", () => ({
     uploadGamificationImage: jest.fn()
 }));
 jest.mock("../../services/membershipService", () => ({
+    confirmGuardianEmailVerification: jest.fn(),
+    requestGuardianEmailVerification: jest.fn(),
     updateStudentProfile: jest.fn()
 }));
 jest.mock("../../services/commerceService", () => ({
@@ -24,6 +30,7 @@ jest.mock("../../services/commerceService", () => ({
 
 describe("StudentSettings", () => {
     const setStudentProfile = jest.fn();
+    const refreshStudentProfile = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -33,6 +40,7 @@ describe("StudentSettings", () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-1" },
             setStudentProfile,
+            refreshStudentProfile,
             studentProfile: {
                 name: "王小明",
                 chinese_name: "王小明",
@@ -54,7 +62,11 @@ describe("StudentSettings", () => {
                 enrollment_history: [],
                 direct_entitlements: [],
                 class_books: [],
-                plans: []
+                plans: [],
+                guardian: {
+                    email: "parent@example.com",
+                    email_verified_at: "2026-09-01T00:00:00Z"
+                }
             }
         });
     });
@@ -73,7 +85,7 @@ describe("StudentSettings", () => {
         fireEvent(target, event);
     };
 
-    it("shows student profile, protected learning honors, and birthday controls", async () => {
+    it("shows student profile, protected learning honors, and locks an existing birthday", async () => {
         render(<StudentSettings />);
 
         expect(await screen.findByRole("heading", { name: "我的設定" })).toBeInTheDocument();
@@ -83,22 +95,75 @@ describe("StudentSettings", () => {
         expect(screen.getByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText("英文班方案已包含")).toBeInTheDocument();
 
-        expect(screen.queryByDisplayValue("2015-05-12")).not.toBeInTheDocument();
+        expect(screen.getByText("2015-05-12")).toBeInTheDocument();
+        expect(screen.getByText("已鎖定")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "確認並保存生日" })).not.toBeInTheDocument();
+    });
+
+    it("allows a missing birthday to be set exactly once", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "student-1" },
+            setStudentProfile,
+            refreshStudentProfile,
+            studentProfile: {
+                name: "王小明",
+                chinese_name: "王小明",
+                class: "E5",
+                learner_type: "academy_student",
+                date_of_birth: null,
+                membership: { effective_access: { plan_codes: ["academy_internal"], features: {} } }
+            }
+        });
+        render(<StudentSettings />);
+
+        fireEvent.change(screen.getByLabelText("出生年"), { target: { value: "2015" } });
         fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
         fireEvent.change(screen.getByLabelText("出生日"), { target: { value: "01" } });
         updateStudentProfile.mockResolvedValue({ profile: { date_of_birth: "2015-06-01" } });
-        fireEvent.click(screen.getByRole("button", { name: "儲存生日資料" }));
+        fireEvent.click(screen.getByRole("button", { name: "確認並保存生日" }));
 
         await waitFor(() => expect(updateStudentProfile).toHaveBeenCalledWith(
             { uid: "student-1" },
             { date_of_birth: "2015-06-01" }
         ));
+        expect(refreshStudentProfile).toHaveBeenCalled();
+    });
+
+    it("keeps the verified guardian email until the replacement code succeeds", async () => {
+        requestGuardianEmailVerification.mockResolvedValue({
+            request_id: 88,
+            masked_email: "n***@example.com"
+        });
+        confirmGuardianEmailVerification.mockResolvedValue({ success: true });
+        render(<StudentSettings />);
+
+        expect(await screen.findByText("parent@example.com")).toBeInTheDocument();
+        expect(screen.getByText("已驗證")).toBeInTheDocument();
+        fireEvent.change(screen.getByLabelText("新的家長 Email"), {
+            target: { value: "new-parent@example.com" }
+        });
+        fireEvent.click(screen.getByRole("button", { name: "寄送驗證碼" }));
+
+        await waitFor(() => expect(requestGuardianEmailVerification).toHaveBeenCalledWith(
+            { uid: "student-1" },
+            "new-parent@example.com"
+        ));
+        expect(screen.getByText("parent@example.com")).toBeInTheDocument();
+        fireEvent.change(await screen.findByLabelText("6 位數驗證碼"), { target: { value: "123456" } });
+        fireEvent.click(screen.getByRole("button", { name: "確認驗證碼並更新" }));
+        await waitFor(() => expect(confirmGuardianEmailVerification).toHaveBeenCalledWith(
+            { uid: "student-1" },
+            88,
+            "123456"
+        ));
+        expect(refreshStudentProfile).toHaveBeenCalled();
     });
 
     it("recognizes the general-member AI materials and pronunciation plan", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-2" },
             setStudentProfile,
+            refreshStudentProfile,
             studentProfile: {
                 name: "林小美",
                 learner_type: "textbook_customer",
