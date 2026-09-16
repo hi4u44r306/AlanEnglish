@@ -206,6 +206,8 @@
   gap: 12px;
 }
 
+.ae-student-more-grid.is-learning-only { grid-template-columns: 1fr; }
+
 .ae-student-drawer-section {
   display: grid;
   align-content: start;
@@ -316,6 +318,20 @@
   background: #ffd15f;
   font-size: 15px;
   font-weight: 950;
+  overflow: hidden;
+}
+
+.ae-student-account-chip > span > img,
+.ae-student-account-chip > span > span,
+.ae-student-bottom-avatar > img,
+.ae-student-bottom-avatar > span,
+.ae-student-drawer-avatar > img,
+.ae-student-drawer-avatar > span {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  object-fit: cover;
 }
 
 .ae-student-account-chip strong {
@@ -349,6 +365,13 @@
   background: #fffdf7;
 }
 
+.ae-student-drawer.is-menu {
+  width: min(88vw, 380px) !important;
+  height: 100% !important;
+  max-height: none;
+  border-radius: 22px 0 0 22px;
+}
+
 .ae-student-drawer .offcanvas-header {
   min-height: 76px;
   padding: 15px 20px;
@@ -374,7 +397,7 @@
   background: linear-gradient(135deg, #1b3260, #284f9f);
 }
 
-.ae-student-drawer-profile > span {
+.ae-student-drawer-profile > .ae-student-drawer-avatar {
   width: 46px;
   height: 46px;
   display: grid;
@@ -385,6 +408,7 @@
   background: #ffd15f;
   font-size: 18px;
   font-weight: 950;
+  overflow: hidden;
 }
 
 .ae-student-drawer-profile > div { min-width: 0; display: grid; flex: 1; gap: 2px; }
@@ -454,17 +478,7 @@
     text-decoration: none;
   }
 
-  .ae-student-mobile-account > .ae-student-avatar-link > span {
-    width: 32px;
-    height: 32px;
-    display: grid;
-    place-items: center;
-    border-radius: 11px;
-    color: #17213d;
-    background: #ffd15f;
-    font-size: 14px;
-    font-weight: 950;
-  }
+  .ae-student-mobile-menu-button svg { width: 23px; height: 23px; stroke-width: 2.6; }
 
   .ae-student-mobile-account b {
     position: absolute;
@@ -523,6 +537,20 @@
   }
 
   .ae-student-bottom-nav svg { width: 22px; height: 22px; stroke-width: 2.5; }
+  .ae-student-bottom-nav .ae-student-bottom-avatar {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 2px solid currentColor;
+    border-radius: 9px;
+    color: #17213d;
+    background: #ffd15f;
+    font-size: 11px;
+    font-weight: 950;
+  }
+  .ae-student-bottom-nav .ae-student-bottom-profile.active .ae-student-bottom-avatar { color: #2454c3; }
   .ae-student-bottom-nav > a.active,
   .ae-student-bottom-nav > button.active { color: #2454c3; background: #eaf2ff; }
 
@@ -540,6 +568,15 @@
   .ae-student-more-grid { grid-template-columns: 1fr; gap: 10px; }
   .ae-student-drawer-section > a,
   .ae-student-drawer-section > button { min-height: 52px; font-size: 15px; }
+
+  .ae-student-drawer.is-menu .offcanvas-header {
+    padding-top: max(15px, env(safe-area-inset-top));
+  }
+
+  .ae-student-drawer.is-menu .offcanvas-body {
+    align-content: start;
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 380px) {

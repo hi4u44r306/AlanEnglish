@@ -1,7 +1,7 @@
 import React from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import MainNavbar from "./MainNavbar";
 import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
@@ -21,6 +21,11 @@ jest.mock("react-bootstrap/Offcanvas", () => {
     Offcanvas.Body = ReactModule.forwardRef(({ children }, ref) => ReactModule.createElement("div", { ref }, children));
     return { __esModule: true, default: Offcanvas };
 });
+
+const LocationProbe = () => {
+    const location = useLocation();
+    return <output aria-label="目前路徑">{location.pathname}</output>;
+};
 
 describe("MainNavbar student navigation", () => {
     beforeEach(() => {
@@ -60,38 +65,55 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(screen.getAllByRole("button", { name: "開口說" })).toHaveLength(2);
-        expect(screen.getAllByRole("button", { name: "更多" })).toHaveLength(2);
-        const settingsLinks = screen.getAllByRole("link", { name: "前往我的設定" });
-        expect(settingsLinks).toHaveLength(2);
-        settingsLinks.forEach(link => expect(link).toHaveAttribute("href", "/student/settings"));
+        expect(screen.getByRole("button", { name: "學習功能" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "前往我的設定" })).toHaveAttribute("href", "/student/settings");
+        expect(screen.getByRole("link", { name: "我的設定" })).toHaveAttribute("href", "/student/settings");
         const bottomNavigation = screen.getByRole("navigation", { name: "學生主要導覽" });
         expect(bottomNavigation).toBeInTheDocument();
         expect(bottomNavigation.parentElement).toBe(document.body);
 
-        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
 
-        expect(await screen.findByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
+        const mobileMenu = await screen.findByRole("complementary");
+        expect(within(mobileMenu).getByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
         expect(prefetchReviewDashboard).toHaveBeenCalledWith(expect.objectContaining({ uid: "student-test" }));
-        expect(screen.getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "我的設定" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "我的設定" })).toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
     });
 
-    it("keeps a direct desktop logout action while mobile logout remains in 更多", async () => {
+    it("keeps a direct desktop logout action while mobile logout remains in the offcanvas menu", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
         const logoutButtons = screen.getAllByRole("button", { name: "登出" });
         expect(logoutButtons).toHaveLength(1);
         expect(logoutButtons[0]).toHaveClass("ae-student-desktop-logout");
 
-        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         const expandedLogoutButtons = await screen.findAllByRole("button", { name: "登出" });
         expect(expandedLogoutButtons).toHaveLength(2);
         expect(expandedLogoutButtons[1]).toHaveClass("ae-student-drawer-logout");
+    });
+
+    it("uses client-side routing when a mobile offcanvas destination is selected", async () => {
+        render(
+            <MemoryRouter initialEntries={["/student/dashboard"]}>
+                <MainNavbar />
+                <LocationProbe />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
+        const mobileMenu = await screen.findByRole("complementary");
+        fireEvent.click(within(mobileMenu).getByRole("link", { name: "智慧複習" }));
+
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/review");
+        expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     });
 
     it("keeps the materials entry available while the accessible catalog is loading", async () => {
@@ -185,7 +207,7 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
     });
 
@@ -203,9 +225,9 @@ describe("MainNavbar student navigation", () => {
         });
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
 
-        expect(await screen.findByText("學習功能")).toBeInTheDocument();
+        expect(await screen.findAllByText("學習功能")).not.toHaveLength(0);
         expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });
@@ -234,7 +256,7 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getAllByRole("button", { name: "開口說" })[0]);
         expect(screen.getByRole("link", { name: /發音教練/ })).toHaveAttribute("href", "/student/pronunciation");
         expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
-        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
     });
 
@@ -290,7 +312,7 @@ describe("MainNavbar student navigation", () => {
 
     it("highlights the active student route in the full menu", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getAllByRole("button", { name: "更多" })[1]);
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(screen.getAllByRole("link", { name: "會員與功能" }).every(link => link.classList.contains("active"))).toBe(true);
         expect(screen.getAllByRole("link", { name: "排行榜" }).every(link => !link.classList.contains("active"))).toBe(true);
     });
