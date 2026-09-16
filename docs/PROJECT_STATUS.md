@@ -880,9 +880,9 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 
 不要把完整對話、完整程式碼或大量終端機輸出貼進本文件。
 
-## 本次完成（2026-09-16，手機側欄退場方向修正，待部署）
+## 本次完成（2026-09-16，手機側欄退場方向修正，已部署）
 
-- 修正手機右側功能選單在按關閉或選擇頁面後，退場途中短暫切換為底部抽屜、造成畫面向下縮的問題。側欄現在會維持原本的右側定位直到退場動畫完成，再清除目前選單內容；教材與開口說的底部選擇面板仍維持原有方向。新增 Navbar 回歸測試，確認右側選單關閉期間的 `placement` 不會改變。相關 React 16/16 已通過；本批沒有 migration 或 Edge Function 變更。
+- 修正手機右側功能選單在按關閉或選擇頁面後，退場途中短暫切換為底部抽屜、造成畫面向下縮的問題。側欄現在會維持原本的右側定位直到退場動畫完成，再清除目前選單內容；教材與開口說的底部選擇面板仍維持原有方向。新增 Navbar 回歸測試，確認右側選單關閉期間的 `placement` 不會改變。相關 React 16/16、Production build、release deploy preflight 與 `git diff --check` 已通過；Netlify 正式 deploy `6aaa88486aa71b776fd8408b` 已就緒，正式網域與唯一部署網址皆回傳 `main.c14ed986.js`。本批沒有 migration 或 Edge Function 變更。
 
 ## 本次完成（2026-09-16，手機導覽與智慧複習暖載入，已部署）
 
