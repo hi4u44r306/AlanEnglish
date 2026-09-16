@@ -66,10 +66,10 @@ export const buildPublicSpeakingQuestion = async ({
                 item.token_index === expected.tokenIndex
                 && item.word.toLowerCase() === expected.text.toLowerCase()
             )));
-        if (!completeWordAudio) {
-            throw Object.assign(new Error("P22 的可見單字發音尚未完整"), {
+        if (!completeWordAudio || !promptReady) {
+            throw Object.assign(new Error("P22～P24 的逐字或整句女聲發音尚未完整"), {
                 status: 409,
-                code: "word_audio_incomplete"
+                code: "picture_audio_incomplete"
             });
         }
     }
@@ -92,7 +92,11 @@ export const buildPublicSpeakingQuestion = async ({
         picture_interaction: {
             type: interactionType,
             sentence_pattern: interactionType === "picture_gap_sentence" ? pictureInteraction.prompt_text : null,
-            word_audio: interactionType === "picture_gap_sentence" ? wordAudio : []
+            word_audio: interactionType === "picture_gap_sentence" ? wordAudio : [],
+            ...(interactionType === "picture_gap_sentence" ? {
+                sentence_audio_status: "ready",
+                sentence_audio_url: await signPrivateObject(promptAsset.private_object_key)
+            } : {})
         },
         sort_order: question.sort_order
     } : foundationAnswerHidden ? {

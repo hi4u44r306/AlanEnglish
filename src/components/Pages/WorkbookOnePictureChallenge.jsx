@@ -17,7 +17,7 @@ const copyByType = {
         title: "看圖片，說完整句子",
         instruction: "先看圖片和句型。空格要用圖片答案補上，再把整句英文說出來。",
         promptTitle: "輪到你說完整句子",
-        promptDetail: "可以點句型中的單字聽發音；空格答案不會播放。"
+        promptDetail: "可以聽整句或點單字聽發音；整句會在空格停 2 秒，不會播放答案。"
     }
 };
 
@@ -72,13 +72,12 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
             .map(item => [Number(item.token_index), item])
     ), [activeQuestion]);
 
-    const playWord = token => {
-        const item = wordAudioByToken.get(token.tokenIndex);
-        if (!item?.audio_url) return;
+    const playAudio = (url, token, errorMessage, blockedMessage) => {
+        if (!url) return;
         stopAudio();
         setAudioError("");
-        setAudioToken(token.tokenIndex);
-        const audio = new Audio(item.audio_url);
+        setAudioToken(token);
+        const audio = new Audio(url);
         audioRef.current = audio;
         const clear = () => {
             audioRef.current = null;
@@ -87,13 +86,30 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
         audio.onended = clear;
         audio.onerror = () => {
             clear();
-            setAudioError("這個單字的發音暫時無法播放，請稍後再試。");
+            setAudioError(errorMessage);
         };
         audio.play().catch(() => {
             clear();
-            setAudioError("瀏覽器阻擋了播放，請再按一次單字。");
+            setAudioError(blockedMessage);
         });
     };
+
+    const playWord = token => {
+        const item = wordAudioByToken.get(token.tokenIndex);
+        playAudio(
+            item?.audio_url,
+            `word-${token.tokenIndex}`,
+            "這個單字的發音暫時無法播放，請稍後再試。",
+            "瀏覽器阻擋了播放，請再按一次單字。"
+        );
+    };
+
+    const playSentence = () => playAudio(
+        activeQuestion?.picture_interaction?.sentence_audio_url,
+        "sentence",
+        "整句發音暫時無法播放，請稍後再試。",
+        "瀏覽器阻擋了播放，請再按一次聽整句。"
+    );
 
     const handleCorrect = async result => {
         const saved = await onComplete?.(activeQuestion, result);
@@ -124,6 +140,13 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
         <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
             <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
+            {gapMode && <button
+                type="button"
+                className="speaking-gap-sentence-audio"
+                onClick={playSentence}
+                disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioToken !== null}
+                aria-label="播放整句發音；空格停留 2 秒"
+            ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（空格停 2 秒）"}</button>}
             {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <button type="button" key={token.tokenIndex} onClick={() => playWord(token)} disabled={!wordAudioByToken.get(token.tokenIndex)?.audio_url || audioToken !== null} aria-label={`播放 ${token.text} 的發音`}><FiVolume2 aria-hidden="true" />{token.text}</button>

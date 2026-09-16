@@ -98,13 +98,7 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
     </div>;
 };
 
-const plannedVoice = (questionSetId, sortOrder, interactionType = "") => (
-    interactionType === "alphabet_round"
-        ? { gender: "female", label: "女聲 · Autonoe" }
-        : (Math.abs(Number(questionSetId) || 0) + Math.abs(Number(sortOrder) || 0)) % 2 === 0
-        ? { gender: "female", label: "女聲 · Autonoe" }
-        : { gender: "male", label: "男聲 · Puck" }
-);
+const plannedVoice = () => ({ gender: "female", label: "女聲 · Leda" });
 
 const QuestionAudioPreview = ({ firebaseUser, questionSet, question }) => {
     const [preview, setPreview] = useState(null);
@@ -449,7 +443,7 @@ export default function SpeakingContentAdmin() {
                     alphabet_round: "A–Z 題庫已發布；單一慢速主音檔與 26 個播放區段已確認完成",
                     letter_spelling: "拼讀題庫已發布；學生端不播放答案音檔",
                     picture_qa: "P21 圖片問答已發布；完整答案只由後端核對",
-                    picture_gap_sentence: "P22 看圖補句已發布；可見單字發音已在發布前確認完成"
+                    picture_gap_sentence: "看圖補句已發布；逐字與空格停 2 秒的整句女聲發音已確認完成"
                 }[interactionType];
                 toast.success(successMessage);
                 await load();
@@ -641,7 +635,7 @@ export default function SpeakingContentAdmin() {
                     const isPictureSet = ["picture_qa", "picture_gap_sentence"].includes(interactionType);
                     const isSelected = Number(selectedQuestionSetId) === Number(questionSet.id);
                     return <section className={`speaking-set ${questionSet.status} ${isSelected ? "is-current" : ""}`} key={questionSet.id}>
-                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "正在展開" : "點擊查看與編輯"}</small></button>{isSelected && questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布與產生語音中…" : "核准、發布並產生語音"}</button>}{isSelected && questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生逐字發音" : "補產生示範語音"}</button>}</div>
+                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "正在展開" : "點擊查看與編輯"}</small></button>{isSelected && questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布與產生語音中…" : "核准、發布並產生語音"}</button>}{isSelected && questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生逐字與整句發音" : "補產生示範語音"}</button>}</div>
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
                         {isSelected && (isPictureSet
                             ? <div className="speaking-ocr-review__notice"><strong>P21～P24 題目已鎖定同步編輯</strong><span>圖片、顯示句型與後端完整答案是一組資料；如需修正，請先不要發布，交由專用修正流程處理。</span></div>
