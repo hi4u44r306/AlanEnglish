@@ -1437,16 +1437,36 @@ Deno.serve(async (req: Request) => {
 
         if (action === "archive_question_set") {
             const setId = Number(body?.question_set_id);
+            if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "找不到指定題庫" });
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
                 .select("id,status,previous_set_id,generation_metadata").eq("id", setId).maybeSingle();
             if (setError) throw setError;
-            if (!questionSet || !workbookOnePictureConfigForMetadata(questionSet.generation_metadata)) {
-                return json(409, { error: "目前只支援封存 P21～P24 圖片關卡" });
-            }
+            if (!questionSet) return json(404, { error: "找不到指定題庫" });
             if (questionSet.status === "draft") {
-                const { error } = await admin.from("speaking_question_sets").delete().eq("id", setId).eq("status", "draft");
+                const protectedStudentTables = [
+                    "speaking_challenge_question_progress",
+                    "speaking_pronunciation_attempts",
+                    "speaking_pronunciation_requests",
+                    "speaking_foundation_rounds",
+                    "speaking_alphabet_intro_listens"
+                ];
+                const linkedStudentRows = await Promise.all(protectedStudentTables.map(async table => {
+                    const { data, error } = await admin.from(table).select("question_set_id")
+                        .eq("question_set_id", setId).limit(1).maybeSingle();
+                    if (error) throw error;
+                    return data;
+                }));
+                if (linkedStudentRows.some(Boolean)) {
+                    return json(409, { error: "這份草稿已有學生進度或評分紀錄，為避免影響學生資料，不能刪除" });
+                }
+                const { data: deletedDraft, error } = await admin.from("speaking_question_sets").delete()
+                    .eq("id", setId).eq("status", "draft").select("id").maybeSingle();
                 if (error) throw error;
+                if (!deletedDraft) return json(409, { error: "草稿狀態已變更，請重新整理後再試" });
                 return json(200, { success: true, deleted: true });
+            }
+            if (!workbookOnePictureConfigForMetadata(questionSet.generation_metadata)) {
+                return json(409, { error: "目前只支援封存 P21～P24 圖片關卡" });
             }
             if (questionSet.status !== "published") return json(409, { error: "這個關卡已經下架" });
             const { data: revisionDraft, error: revisionDraftError } = await admin.from("speaking_question_sets")
