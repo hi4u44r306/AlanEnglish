@@ -33,6 +33,7 @@ const roleCases = [
         passwordEnv: "E2E_ADMIN_PASSWORD",
         allowedRoute: "/admin/links",
         allowedLink: "/admin/links",
+        navigationMenu: "音檔",
         absentLink: "/student/review",
         forbiddenRoute: null,
         redirectedHome: /\/admin\/dashboard$/
