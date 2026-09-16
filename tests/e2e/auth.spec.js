@@ -38,4 +38,16 @@ test.describe("Authentication", () => {
             await expectHealthyPage(page);
         });
     }
+
+    test("student 可主動登出、回到公開首頁且無法再進 protected route", async ({ page }) => {
+        const student = credentials.find(account => account.role === "student");
+        test.skip(!student?.identifier || !student?.password, "缺少 student E2E 測試帳密");
+
+        await login(page, student.identifier, student.password);
+        await page.getByRole("button", { name: "登出", exact: true }).click();
+        await expect(page).toHaveURL(/\/$/);
+        await page.goto("/student/settings");
+        await expect(page).toHaveURL(/\/login\/?$/);
+        await expect(page.getByRole("heading", { name: /歡迎回來/ })).toBeVisible();
+    });
 });

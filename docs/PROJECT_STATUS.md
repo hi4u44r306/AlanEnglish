@@ -2,6 +2,10 @@
 
 最後更新：2026-09-16
 
+本次正式站登入後學生 QA 補測（2026-09-16，未修改產品功能）：
+
+- 使用專案擁有者提供的在校學生測試帳號，執行登入、重整 session、登出與受保護頁面拒絕、學生／Admin 路由隔離、更多選單、作業／學生資料／教材讀取及口說入口等 19 項 targeted Playwright 案例；9 項通過、0 項失敗、10 項因無 Teacher／Admin／一般會員／離校生或未授權教材 fixture 而跳過。進入口說大挑戰列表未要求麥克風、未錄音、未寫入進度，且未觀察到瀏覽器 runtime error。本批未修改資料、migration、Edge Function 或正式部署；完整證據在 `QA_REPORT.md`。
+
 本次教材 AI 口說題庫管理介面改版（2026-09-16，已正式部署）：
 
 - 管理頁新增「今天要處理什麼？」任務入口，直接顯示待編輯草稿、已發布題庫、快速建立與教材匯入及其即時數量；題庫工作台視覺上提升到範本與 OCR 工具之前，讓管理員進頁面即可辨認正在編輯的題庫。桌面版擴充工作區寬度，手機版將快速入口依寬度切換為雙欄／單欄，三步製作流程壓縮為不佔高度的橫向提示。既有 OCR、人工核對、AI 產生、私人圖片、發布、Firebase／Supabase 權限及後端流程均未修改。固定測試站 deploy `6aa96b2631a6296e8c7baf13` 與正式站 deploy `6aa96c1eb6d6f77cb8e464cf` 均已 ready；正式 `https://alanenglish.com.tw/admin/speaking-content` 回應 HTTP 200 並載入 `main.e977bbed.js`／`main.d211ffcc.css`。
