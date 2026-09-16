@@ -2,11 +2,11 @@
 
 最後更新：2026-09-16
 
-本次英文班學生首次登入安全設定（2026-09-16，本機完成，尚未部署）：
+本次英文班學生首次登入安全設定（2026-09-16，已正式部署）：
 
 - 功能分支 `feature/student-first-login-onboarding`、Worktree `D:\dev\AlanEnglish-worktrees\student-first-login-onboarding`。CSV 建立成功後會為每位學生各自回傳一次性臨時密碼，保留既有 QR 啟用與復原碼；CSV 不再預先寫入未驗證的家長 Email。學生使用臨時密碼登入後，全站學生路由會強制導向三步設定：實際更換 Firebase 密碼、一次性設定生日、以 6 位數驗證碼驗證家長 Email。生日設定後由資料庫阻止再次修改；更換家長 Email 時只有驗證成功才原子替換，失敗或未完成時保留原信箱；付款流程只接受已驗證家長 Email。
-- 新增 additive migration `20260916015253_student_onboarding_guardian_email_verification.sql`、server-only 驗證要求表、RLS／權限撤銷、寄送節流、錯誤嘗試限制與 HMAC code hash。現有家長 Email 會相容回填為已驗證，避免既有家庭突然被鎖定；正式資料庫尚未套用。本批需新增 `GUARDIAN_EMAIL_OTP_SECRET` Edge Function secret，且必須依序套用 migration，再部署 `academy-student-manager`、`membership-manager`、`commerce-manager`、`billing-manager` 與前端，否則前後端版本不相容。
-- 驗證：首次登入／設定／路由／CSV React targeted tests 5 suites、19 tests 全數通過；安全 contract、兩支主要 Edge Function TypeScript syntax、Production build 與 `git diff --check` 通過。Build 只有既有 `SpeakingPronunciationRecorder.jsx` 未使用 `FiSquare`、Browserslist 與 Node deprecation 警告。本批只推送獨立功能分支，尚未套用 migration、設定 secret、部署 Function、合併 `main` 或部署 Netlify；正式發布仍須另行取得這批高風險操作同意。
+- 新增 additive migration `20260916015253_student_onboarding_guardian_email_verification.sql`、server-only 驗證要求表、RLS／權限撤銷、寄送節流、錯誤嘗試限制與 HMAC code hash。現有家長 Email 已相容回填為已驗證，避免既有家庭突然被鎖定；正式資料庫已套用並確認 RLS、前端角色權限撤銷、4 個 RPC 與 migration 紀錄完整。`GUARDIAN_EMAIL_OTP_SECRET` 已使用隨機值寫入正式 Edge Function secrets，未寫入 Repository 或輸出其值。
+- 正式 Edge Functions：`academy-student-manager` v30、`membership-manager` v42、`commerce-manager` v17、`billing-manager` v35 均為 ACTIVE；OPTIONS 與明確受保護的未登入 action 已驗收，四支皆回應 401。驗證：首次登入／設定／路由／CSV React targeted tests 5 suites、19 tests 全數通過；安全 contract、全部 Edge Function 語法、Production build 與 `git diff --check` 通過。Build 只有既有 `SpeakingPronunciationRecorder.jsx` 未使用 `FiSquare`、Browserslist 與 Node deprecation 警告。
 
 本次教材 AI 口說題庫管理介面改版（2026-09-16，已正式部署）：
 
