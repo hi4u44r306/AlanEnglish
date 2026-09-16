@@ -26,6 +26,21 @@ export const discardWorkbookOnePictureDraft = (firebaseUser, questionSetId) => c
     question_set_id: questionSetId
 });
 export const updateDraftSpeakingQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_draft_question", payload);
+export const createSpeakingQuestionSetRevision = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "create_question_set_revision", {
+    question_set_id: questionSetId
+});
+export const updateSpeakingQuestionSetDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_question_set_draft", payload);
+export const updatePictureDraftQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_picture_draft_question", payload);
+export const addPictureDraftQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "add_picture_draft_question", payload);
+export const deleteDraftSpeakingQuestion = (firebaseUser, questionSetId, questionId) => callSpeakingContent(firebaseUser, "delete_draft_question", {
+    question_set_id: questionSetId, question_id: questionId
+});
+export const reorderDraftSpeakingQuestions = (firebaseUser, questionSetId, questionIds) => callSpeakingContent(firebaseUser, "reorder_draft_questions", {
+    question_set_id: questionSetId, question_ids: questionIds
+});
+export const archiveSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "archive_question_set", {
+    question_set_id: questionSetId
+});
 export const publishSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "publish_question_set", { question_set_id: questionSetId });
 export const generateSpeakingQuestionSetAudio = (firebaseUser, questionSetId) => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_set_audio", question_set_id: questionSetId })

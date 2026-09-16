@@ -18,6 +18,7 @@ const pronunciationFlow = read("supabase/functions/_shared/speaking-pronunciatio
 const bookEntitlement = read("supabase/functions/_shared/book-entitlement.ts");
 const visualAssetMigration = read("supabase/migrations/20260912143926_workbook1_speaking_visual_assets.sql");
 const pictureExtensionMigration = read("supabase/migrations/20260915054923_workbook1_p23_p24_picture_templates.sql");
+const authoringRevisionMigration = read("supabase/migrations/20260916151037_speaking_authoring_revisions.sql");
 const foundationUniquenessMigration = read("supabase/migrations/20260913113000_workbook1_foundation_template_uniqueness.sql");
 const pronunciationLedgerMigration = read("supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql");
 const speakingCompletionMigration = read("supabase/migrations/20260907155832_speaking_challenge_completion_rewards.sql");
@@ -69,7 +70,7 @@ test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示",
 
 test("5. 管理頁透過指定 Edge Function 並有受保護管理員路由", () => {
     assert.match(service, /speaking-content-manager/);
-    assert.match(adminPage, /教材 AI 口說題庫/);
+    assert.match(adminPage, /口說大挑戰製作中心/);
     assert.match(adminPage, /人工核對/);
     assert.match(app, /path="\/admin\/speaking-content"/);
     assert.match(app, /allowedRoles=\{\["admin"\]\}/);
@@ -133,7 +134,7 @@ test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管�
     assert.match(service, /createWorkbookOneStarterQuestionSet/);
     assert.match(adminPage, /不執行 OCR，也不呼叫付費 AI/);
     assert.match(adminPage, /預覽學生畫面/);
-    assert.match(adminPage, /核准、發布並產生語音/);
+    assert.match(adminPage, /核准並發布/);
 });
 
 test("12. Workbook 2 精選大關卡依教師版內容建立，仍需管理員預覽發布", () => {
@@ -310,6 +311,23 @@ test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(challengeView, /pronunciation_notes_zh: ""/);
     assert.match(challenge, /correct_assessment_required/);
     assert.doesNotMatch(challengeView, /private_object_key:/);
+});
+
+test("24. 已發布圖片關卡以新版草稿安全修訂並原子切換", () => {
+    assert.match(manager, /create_question_set_revision/);
+    assert.match(manager, /update_picture_draft_question/);
+    assert.match(manager, /add_picture_draft_question/);
+    assert.match(manager, /delete_draft_question/);
+    assert.match(manager, /reorder_draft_questions/);
+    assert.match(manager, /upsert\(\{[\s\S]*question_id: questionId, asset_id: asset\.id/);
+    assert.match(manager, /publish_speaking_question_set_revision_v1/);
+    assert.match(authoringRevisionMigration, /status = 'draft'/);
+    assert.match(authoringRevisionMigration, /status = 'published'/);
+    assert.match(authoringRevisionMigration, /for update/);
+    assert.match(authoringRevisionMigration, /status = 'archived'/);
+    assert.match(authoringRevisionMigration, /having count\(distinct progress\.question_id\) = v_old_question_count/);
+    assert.match(authoringRevisionMigration, /revoke all on function public\.publish_speaking_question_set_revision_v1/);
+    assert.match(authoringRevisionMigration, /grant execute on function public\.publish_speaking_question_set_revision_v1[\s\S]*to service_role/);
 });
 
 test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {

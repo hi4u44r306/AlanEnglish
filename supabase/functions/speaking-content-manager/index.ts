@@ -334,6 +334,32 @@ const normalizePictureDraftQuestions = (value: unknown, interactionType: string,
     return rows.every(Boolean) ? rows : null;
 };
 
+const normalizePictureDraftQuestion = (value: unknown, interactionType: string) => {
+    const row: any = value || {};
+    const promptText = cleanText(row?.prompt_text, 800);
+    const answerText = cleanText(row?.answer_text, 2000);
+    const acceptedFullResponses = cleanArray(row?.accepted_full_responses, 12, 500);
+    const pronunciationNotes = cleanText(row?.pronunciation_notes_zh, 1200) || null;
+    const altZh = cleanText(row?.alt_zh, 240);
+    const blankCount = (promptText.match(/_{2,}/g) || []).length;
+    const visibleWords = visibleSentenceWords(promptText);
+    const expectedFullAnswer = interactionType === "picture_qa" ? `${promptText} ${answerText}`.trim() : answerText;
+    const acceptedResponsesValid = acceptedFullResponses.every(response => (
+        interactionType === "picture_qa"
+            ? pictureQaResponseHasQuestionAndAnswer(response)
+            : pictureGapAnswerMatchesPrompt(promptText, response)
+    ));
+    const valid = Boolean(promptText && answerText && altZh && expectedFullAnswer.length <= 500)
+        && (interactionType !== "picture_qa" || /\?$/.test(promptText))
+        && (interactionType !== "picture_gap_sentence" || (
+            blankCount === 1 && !answerText.includes("_") && pictureGapAnswerMatchesPrompt(promptText, answerText)
+            && visibleWords.length >= 1 && visibleWords.length <= 48
+            && visibleWords.every(token => token.tokenIndex <= 63)
+        ))
+        && acceptedResponsesValid;
+    return valid ? { promptText, answerText, acceptedFullResponses, pronunciationNotes, expectedFullAnswer, altZh } : null;
+};
+
 const assertEditor = (user: any) => {
     if (user.role !== "admin") {
         throw Object.assign(new Error("只有管理員可以管理教材口說題庫"), { status: 403 });
@@ -346,7 +372,7 @@ const loadBootstrap = async (admin: any) => {
         admin.from("speaking_source_documents").select("id,book_id,title,source_kind,original_filename,mime_type,byte_size,page_count,chunk_page_size,chunk_count,original_upload_status,status,ocr_status,ocr_error_code,ocr_model,created_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
         admin.from("speaking_source_chunks").select("id,document_id,source_section_id,chunk_index,page_from,page_to,byte_size,status,attempt_count,error_code,ocr_model,input_tokens,output_tokens,total_tokens,upload_verified_at,processing_started_at,completed_at,updated_at").order("chunk_index"),
         admin.from("speaking_source_sections").select("id,document_id,unit_label,page_from_label,page_to_label,topic,source_text,language_level,status,version,reviewed_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
-        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,published_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order)").neq("status", "archived").order("updated_at", { ascending: false })
+        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,previous_set_id,generation_metadata,published_at,created_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order,speaking_question_interactions(interaction_type,prompt_text,answer_text,accepted_full_responses),speaking_question_visual_assets(asset_id,crop_metadata,speaking_visual_assets(id,status,source_page_label,mime_type,byte_size,width,height,alt_zh)))").neq("status", "archived").order("updated_at", { ascending: false })
     ]);
     const error = bookRes.error || documentRes.error || chunkRes.error || sectionRes.error || setRes.error;
     if (error) throw error;
@@ -1167,6 +1193,275 @@ Deno.serve(async (req: Request) => {
             return json(200, { success: true });
         }
 
+        if (action === "create_question_set_revision") {
+            const setId = Number(body?.question_set_id);
+            if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "題庫編號不正確" });
+            const { data: original, error: originalError } = await admin.from("speaking_question_sets")
+                .select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order)")
+                .eq("id", setId).maybeSingle();
+            if (originalError) throw originalError;
+            const pictureConfig = workbookOnePictureConfigForMetadata(original?.generation_metadata);
+            const interactionType = String(original?.generation_metadata?.interaction_type || "");
+            if (!original || original.status !== "published" || !pictureConfig
+                || !["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
+                return json(409, { error: "目前只支援替已發布的 P21～P24 圖片關卡建立新版草稿" });
+            }
+            const templateKey = String(original.generation_metadata?.template_key || "");
+            const { data: existingDraft, error: draftError } = await admin.from("speaking_question_sets")
+                .select("id").eq("book_id", Number(original.book_id)).eq("status", "draft")
+                .contains("generation_metadata", { template_key: templateKey }).limit(1).maybeSingle();
+            if (draftError) throw draftError;
+            if (existingDraft) return json(409, { error: "這個關卡已有新版草稿，請直接繼續編輯" });
+            const originalQuestions = [...(original.speaking_questions || [])]
+                .sort((a: any, b: any) => Number(a.sort_order) - Number(b.sort_order));
+            if (originalQuestions.length !== pictureConfig.questionCount) {
+                return json(409, { error: "目前正式版本的題數不完整，請先由管理員檢查資料" });
+            }
+            const originalQuestionIds = originalQuestions.map((question: any) => Number(question.id));
+            const [interactionResult, visualResult, wordAudioResult, questionAudioResult] = await Promise.all([
+                admin.from("speaking_question_interactions").select("question_id,interaction_type,prompt_text,answer_text,accepted_full_responses").in("question_id", originalQuestionIds),
+                admin.from("speaking_question_visual_assets").select("question_id,asset_id,crop_metadata").in("question_id", originalQuestionIds),
+                admin.from("speaking_question_word_audio").select("question_id,token_index,word,asset_id").in("question_id", originalQuestionIds),
+                admin.from("speaking_question_audio").select("question_id,asset_id,purpose").in("question_id", originalQuestionIds)
+            ]);
+            const cloneError = interactionResult.error || visualResult.error || wordAudioResult.error || questionAudioResult.error;
+            if (cloneError) throw cloneError;
+            const now = new Date().toISOString();
+            let revisionId: number | null = null;
+            try {
+                const { data: revision, error: revisionError } = await admin.from("speaking_question_sets").insert({
+                    source_section_id: Number(original.source_section_id), book_id: Number(original.book_id),
+                    title: original.title, topic: original.topic, difficulty: original.difficulty, status: "draft",
+                    version: Number(original.version || 1) + 1, previous_set_id: Number(original.id),
+                    generation_metadata: {
+                        ...(original.generation_metadata || {}),
+                        requires_content_review: true,
+                        content_reviewed_at: now,
+                        content_reviewed_by: Number(user.id),
+                        revision_source: "published_picture_set"
+                    },
+                    created_by: user.id, created_at: now, updated_at: now
+                }).select("id").single();
+                if (revisionError?.code === "23505") {
+                    throw Object.assign(new Error("這個關卡已有新版草稿，請重新整理後繼續編輯"), { status: 409 });
+                }
+                if (revisionError) throw revisionError;
+                revisionId = Number(revision.id);
+                const { data: clonedQuestions, error: questionError } = await admin.from("speaking_questions").insert(
+                    originalQuestions.map(({ id: _id, ...question }: any) => ({
+                        ...question, question_set_id: revisionId, created_at: now, updated_at: now
+                    }))
+                ).select("id,sort_order");
+                if (questionError) throw questionError;
+                const newByOrder = new Map((clonedQuestions || []).map((question: any) => [Number(question.sort_order), Number(question.id)]));
+                const oldOrderById = new Map(originalQuestions.map((question: any) => [Number(question.id), Number(question.sort_order)]));
+                const mapQuestionId = (oldId: number) => newByOrder.get(Number(oldOrderById.get(Number(oldId))));
+                const interactions = (interactionResult.data || []).map((row: any) => ({
+                    question_id: mapQuestionId(row.question_id), interaction_type: row.interaction_type,
+                    prompt_text: row.prompt_text, answer_text: row.answer_text,
+                    accepted_full_responses: row.accepted_full_responses || [], created_at: now, updated_at: now
+                })).filter((row: any) => row.question_id);
+                const visualLinks = (visualResult.data || []).map((row: any) => ({
+                    question_id: mapQuestionId(row.question_id), asset_id: row.asset_id,
+                    crop_metadata: row.crop_metadata || {}, created_at: now, updated_at: now
+                })).filter((row: any) => row.question_id);
+                if (interactions.length !== originalQuestions.length || visualLinks.length !== originalQuestions.length) {
+                    throw new Error("正式版本的圖片或作答規則不完整，無法安全建立新版草稿");
+                }
+                const { error: interactionInsertError } = await admin.from("speaking_question_interactions").insert(interactions);
+                if (interactionInsertError) throw interactionInsertError;
+                const { error: visualInsertError } = await admin.from("speaking_question_visual_assets").insert(visualLinks);
+                if (visualInsertError) throw visualInsertError;
+                const wordAudioLinks = (wordAudioResult.data || []).map((row: any) => ({
+                    question_id: mapQuestionId(row.question_id), token_index: row.token_index,
+                    word: row.word, asset_id: row.asset_id, created_at: now, updated_at: now
+                })).filter((row: any) => row.question_id);
+                if (wordAudioLinks.length > 0) {
+                    const { error } = await admin.from("speaking_question_word_audio").insert(wordAudioLinks);
+                    if (error) throw error;
+                }
+                const questionAudioLinks = (questionAudioResult.data || []).map((row: any) => ({
+                    question_id: mapQuestionId(row.question_id), asset_id: row.asset_id,
+                    purpose: row.purpose, created_at: now, updated_at: now
+                })).filter((row: any) => row.question_id);
+                if (questionAudioLinks.length > 0) {
+                    const { error } = await admin.from("speaking_question_audio").insert(questionAudioLinks);
+                    if (error) throw error;
+                }
+                return json(201, { success: true, question_set_id: revisionId });
+            } catch (error) {
+                if (revisionId) await admin.from("speaking_question_sets").delete().eq("id", revisionId).eq("status", "draft");
+                throw error;
+            }
+        }
+
+        if (action === "update_question_set_draft") {
+            const setId = Number(body?.question_set_id);
+            const title = cleanText(body?.title, 200);
+            const topic = cleanText(body?.topic, 200);
+            if (!Number.isInteger(setId) || setId <= 0 || !title || !topic) {
+                return json(400, { error: "請填寫完整的關卡名稱與主題" });
+            }
+            const { data, error } = await admin.from("speaking_question_sets").update({
+                title, topic, updated_at: new Date().toISOString()
+            }).eq("id", setId).eq("status", "draft").select("id").maybeSingle();
+            if (error) throw error;
+            if (!data) return json(409, { error: "只有草稿題庫可以修改" });
+            return json(200, { success: true });
+        }
+
+        if (action === "update_picture_draft_question" || action === "add_picture_draft_question") {
+            const setId = Number(body?.question_set_id);
+            const questionId = Number(body?.question_id);
+            const lookupId = action === "update_picture_draft_question" ? questionId : setId;
+            if (!Number.isInteger(lookupId) || lookupId <= 0) return json(400, { error: "題庫或題目編號不正確" });
+            const setQuery = action === "update_picture_draft_question"
+                ? admin.from("speaking_questions").select("id,question_set_id,speaking_question_sets!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
+                : admin.from("speaking_question_sets").select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
+            const { data: record, error: recordError } = await setQuery;
+            if (recordError) throw recordError;
+            const questionSet: any = action === "update_picture_draft_question"
+                ? (Array.isArray((record as any)?.speaking_question_sets) ? (record as any).speaking_question_sets[0] : (record as any)?.speaking_question_sets)
+                : record;
+            const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
+            const normalized = normalizePictureDraftQuestion(body?.question, interactionType);
+            if (!questionSet || questionSet.status !== "draft" || !pictureConfig || !normalized) {
+                return json(409, { error: "只有 P21～P24 完整且格式正確的草稿題目可以編輯" });
+            }
+            const now = new Date().toISOString();
+            if (action === "add_picture_draft_question") {
+                const existingQuestions = [...(questionSet.speaking_questions || [])];
+                if (existingQuestions.length >= pictureConfig.questionCount) {
+                    return json(409, { error: `${pictureConfig.pageLabel} 固定 ${pictureConfig.questionCount} 題；請先刪除不需要的題目再新增` });
+                }
+                const nextOrder = existingQuestions.length
+                    ? Math.max(...existingQuestions.map((question: any) => Number(question.sort_order))) + 1 : 0;
+                const { data: created, error: createError } = await admin.from("speaking_questions").insert({
+                    question_set_id: Number(questionSet.id), question_text: normalized.promptText,
+                    hint_zh: interactionType === "picture_qa" ? "看圖片，先說完整問句，再接著說完整回答。" : "看圖片，把空格答案補進去並說完整句子。",
+                    keywords: [], simple_answer: normalized.expectedFullAnswer, model_answer: normalized.expectedFullAnswer,
+                    pronunciation_notes_zh: normalized.pronunciationNotes, accepted_intents: [], sort_order: nextOrder,
+                    created_at: now, updated_at: now
+                }).select("id").single();
+                if (createError) throw createError;
+                const { error: interactionError } = await admin.from("speaking_question_interactions").insert({
+                    question_id: created.id, interaction_type: interactionType,
+                    prompt_text: normalized.promptText, answer_text: normalized.answerText,
+                    accepted_full_responses: normalized.acceptedFullResponses, created_at: now, updated_at: now
+                });
+                if (interactionError) {
+                    await admin.from("speaking_questions").delete().eq("id", created.id);
+                    throw interactionError;
+                }
+                await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", Number(questionSet.id));
+                return json(201, { success: true, question_id: created.id, page_label: pictureConfig.pageLabel });
+            }
+            const { data: currentInteraction, error: currentError } = await admin.from("speaking_question_interactions")
+                .select("prompt_text,answer_text").eq("question_id", questionId).maybeSingle();
+            if (currentError) throw currentError;
+            const textChanged = String(currentInteraction?.prompt_text || "") !== normalized.promptText
+                || String(currentInteraction?.answer_text || "") !== normalized.answerText;
+            const { error: questionUpdateError } = await admin.from("speaking_questions").update({
+                question_text: normalized.promptText, simple_answer: normalized.expectedFullAnswer,
+                model_answer: normalized.expectedFullAnswer, pronunciation_notes_zh: normalized.pronunciationNotes,
+                updated_at: now
+            }).eq("id", questionId).eq("question_set_id", Number(questionSet.id));
+            if (questionUpdateError) throw questionUpdateError;
+            const { error: interactionUpdateError } = await admin.from("speaking_question_interactions").update({
+                prompt_text: normalized.promptText, answer_text: normalized.answerText,
+                accepted_full_responses: normalized.acceptedFullResponses, updated_at: now
+            }).eq("question_id", questionId);
+            if (interactionUpdateError) throw interactionUpdateError;
+            if (textChanged) {
+                const [wordDelete, sentenceDelete] = await Promise.all([
+                    admin.from("speaking_question_word_audio").delete().eq("question_id", questionId),
+                    admin.from("speaking_question_audio").delete().eq("question_id", questionId)
+                ]);
+                if (wordDelete.error) throw wordDelete.error;
+                if (sentenceDelete.error) throw sentenceDelete.error;
+            }
+            await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", Number(questionSet.id));
+            return json(200, { success: true, audio_invalidated: textChanged, page_label: pictureConfig.pageLabel });
+        }
+
+        if (action === "delete_draft_question" || action === "reorder_draft_questions") {
+            const setId = Number(body?.question_set_id);
+            const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
+                .select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
+            if (setError) throw setError;
+            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
+            if (!questionSet || questionSet.status !== "draft" || !pictureConfig) {
+                return json(409, { error: "只有 P21～P24 草稿題目可以刪除或排序" });
+            }
+            const questions = [...(questionSet.speaking_questions || [])]
+                .sort((a: any, b: any) => Number(a.sort_order) - Number(b.sort_order));
+            const now = new Date().toISOString();
+            if (action === "delete_draft_question") {
+                const questionId = Number(body?.question_id);
+                if (questions.length <= 1 || !questions.some((question: any) => Number(question.id) === questionId)) {
+                    return json(409, { error: "草稿至少要保留一題" });
+                }
+                const { error } = await admin.from("speaking_questions").delete()
+                    .eq("id", questionId).eq("question_set_id", setId);
+                if (error) throw error;
+                const remaining = questions.filter((question: any) => Number(question.id) !== questionId);
+                for (let index = 0; index < remaining.length; index += 1) {
+                    if (Number(remaining[index].sort_order) === index) continue;
+                    const { error: orderError } = await admin.from("speaking_questions")
+                        .update({ sort_order: index, updated_at: now }).eq("id", Number(remaining[index].id));
+                    if (orderError) throw orderError;
+                }
+                await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", setId);
+                return json(200, { success: true });
+            }
+            const orderedIds = Array.isArray(body?.question_ids) ? body.question_ids.map(Number) : [];
+            const existingIds = questions.map((question: any) => Number(question.id));
+            if (orderedIds.length !== existingIds.length || new Set(orderedIds).size !== existingIds.length
+                || orderedIds.some((id: number) => !existingIds.includes(id))) {
+                return json(400, { error: "新的題目順序不完整" });
+            }
+            for (let index = 0; index < orderedIds.length; index += 1) {
+                const { error } = await admin.from("speaking_questions").update({ sort_order: 1000 + index, updated_at: now })
+                    .eq("id", orderedIds[index]).eq("question_set_id", setId);
+                if (error) throw error;
+            }
+            for (let index = 0; index < orderedIds.length; index += 1) {
+                const { error } = await admin.from("speaking_questions").update({ sort_order: index, updated_at: now })
+                    .eq("id", orderedIds[index]).eq("question_set_id", setId);
+                if (error) throw error;
+            }
+            await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", setId);
+            return json(200, { success: true });
+        }
+
+        if (action === "archive_question_set") {
+            const setId = Number(body?.question_set_id);
+            const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
+                .select("id,status,previous_set_id,generation_metadata").eq("id", setId).maybeSingle();
+            if (setError) throw setError;
+            if (!questionSet || !workbookOnePictureConfigForMetadata(questionSet.generation_metadata)) {
+                return json(409, { error: "目前只支援封存 P21～P24 圖片關卡" });
+            }
+            if (questionSet.status === "draft") {
+                const { error } = await admin.from("speaking_question_sets").delete().eq("id", setId).eq("status", "draft");
+                if (error) throw error;
+                return json(200, { success: true, deleted: true });
+            }
+            if (questionSet.status !== "published") return json(409, { error: "這個關卡已經下架" });
+            const { data: revisionDraft, error: revisionDraftError } = await admin.from("speaking_question_sets")
+                .select("id").eq("previous_set_id", setId).eq("status", "draft").limit(1).maybeSingle();
+            if (revisionDraftError) throw revisionDraftError;
+            if (revisionDraft) {
+                return json(409, { error: "這個關卡已有新版草稿；請先發布或刪除新版草稿，再封存目前正式版本" });
+            }
+            const { error } = await admin.from("speaking_question_sets").update({
+                status: "archived", updated_at: new Date().toISOString()
+            }).eq("id", setId).eq("status", "published");
+            if (error) throw error;
+            return json(200, { success: true, archived: true });
+        }
+
         if (action === "create_workbook_1_picture_draft") {
             const bookId = Number(body?.book_id);
             const interactionType = cleanText(body?.interaction_type, 40);
@@ -1339,17 +1634,16 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "上傳內容不是有效的 JPG、PNG 或 WebP 圖片" });
             }
             const now = new Date().toISOString();
-            const { error: linkError } = await admin.from("speaking_question_visual_assets").insert({
-                question_id: questionId, asset_id: asset.id, updated_at: now
-            });
-            if (linkError) throw linkError;
             const { error: readyError } = await admin.from("speaking_visual_assets").update({
                 status: "ready", reviewed_by: user.id, reviewed_at: now, updated_at: now
             }).eq("id", asset.id).eq("status", "draft");
-            if (readyError) {
-                await admin.from("speaking_question_visual_assets").delete()
-                    .eq("question_id", questionId).eq("asset_id", asset.id);
-                throw readyError;
+            if (readyError) throw readyError;
+            const { error: linkError } = await admin.from("speaking_question_visual_assets").upsert({
+                question_id: questionId, asset_id: asset.id, crop_metadata: {}, updated_at: now
+            }, { onConflict: "question_id" });
+            if (linkError) {
+                await admin.from("speaking_visual_assets").update({ status: "archived", updated_at: now }).eq("id", asset.id);
+                throw linkError;
             }
             return json(200, { success: true, asset_id: asset.id });
         }
@@ -1421,7 +1715,7 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,book_id,status,version,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
+                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
@@ -1521,6 +1815,9 @@ Deno.serve(async (req: Request) => {
                 if (!pictureConfig) {
                     return json(409, { error: "圖片題庫的教材頁碼或固定模板不正確" });
                 }
+                if ((questionSet.speaking_questions || []).length !== pictureConfig.questionCount) {
+                    return json(409, { error: `${pictureConfig.pageLabel} 必須剛好有 ${pictureConfig.questionCount} 題才能發布` });
+                }
                 const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
                 const [{ data: interactions, error: interactionError }, { data: visualLinks, error: visualError }] = await Promise.all([
                     admin.from("speaking_question_interactions")
@@ -1598,6 +1895,19 @@ Deno.serve(async (req: Request) => {
                         return json(409, { error: `${pictureConfig.pageLabel} 空格停 2 秒的整句女聲發音尚未全部完成` });
                     }
                 }
+            }
+            if (questionSet.previous_set_id) {
+                const { data: result, error: revisionError } = await admin.rpc("publish_speaking_question_set_revision_v1", {
+                    p_question_set_id: Number(questionSet.id),
+                    p_reviewer_id: Number(user.id),
+                    p_expected_version: Number(questionSet.version),
+                    p_expected_updated_at: questionSet.updated_at
+                });
+                if (revisionError) throw revisionError;
+                if (result?.success !== true) {
+                    return json(409, { error: "題庫版本已變更，請重新整理並再次核對後發布" });
+                }
+                return json(200, { success: true, published_at: result.published_at, archived_question_set_id: result.archived_question_set_id });
             }
             const now = new Date().toISOString();
             const { data: publishedSet, error } = await admin.from("speaking_question_sets")
