@@ -2,6 +2,10 @@
 
 最後更新：2026-09-16
 
+本次公開頁 Accessibility 修正（2026-09-16，尚未部署）：
+
+- 修正公開首頁與登入頁共 16 個 axe `color-contrast` serious 節點：登入頁的歡迎標籤、說明、忘記密碼、啟用／復原／註冊／客服連結與版權文字改用符合 WCAG 2 AA 的色彩；首頁示範畫面、答題回饋、方案註記與頁尾輔助文字同步提高對比。方案比較表改為可由鍵盤取得焦點、以方向鍵水平捲動，並顯示可見 focus ring；公開手機 Navbar Toggle 改用 React Bootstrap 的中文 `label`，不再讀出英文 `Toggle navigation`。新增 4 項 Playwright＋axe 回歸測試，390px 行動版全數通過；沒有修改 Firebase、Supabase、權限、資料、音檔、付款或路由。
+
 本次英文班學生首次登入安全設定（2026-09-16，已正式部署）：
 
 - 功能分支 `feature/student-first-login-onboarding`、Worktree `D:\dev\AlanEnglish-worktrees\student-first-login-onboarding`。CSV 建立成功後會為每位學生各自回傳一次性臨時密碼，保留既有 QR 啟用與復原碼；CSV 不再預先寫入未驗證的家長 Email。學生使用臨時密碼登入後，全站學生路由會強制導向三步設定：實際更換 Firebase 密碼、一次性設定生日、以 6 位數驗證碼驗證家長 Email。生日設定後由資料庫阻止再次修改；更換家長 Email 時只有驗證成功才原子替換，失敗或未完成時保留原信箱；付款流程只接受已驗證家長 Email。
