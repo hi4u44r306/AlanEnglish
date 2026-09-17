@@ -5,12 +5,25 @@ export const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_AVATAR_SOURCE_SIZE = 20 * 1024 * 1024;
 const MAX_AVATAR_DIMENSION = 1600;
 const AVATAR_OUTPUT_SIZE = 800;
+const summaryRequests = new Map();
 
 const callGamification = (firebaseUser, action, payload = {}) => (
     callEdgeFunction("gamification", firebaseUser, { action, ...payload })
 );
 
-export const getGamificationSummary = firebaseUser => callGamification(firebaseUser, "summary");
+export const getGamificationSummary = firebaseUser => {
+    const cacheKey = firebaseUser?.uid;
+    if (!cacheKey) return callGamification(firebaseUser, "summary");
+
+    const existingRequest = summaryRequests.get(cacheKey);
+    if (existingRequest) return existingRequest;
+
+    const request = callGamification(firebaseUser, "summary");
+    summaryRequests.set(cacheKey, request);
+    return request.finally(() => {
+        if (summaryRequests.get(cacheKey) === request) summaryRequests.delete(cacheKey);
+    });
+};
 export const selectStudentAvatarPreset = (firebaseUser, avatarPath) => callGamification(firebaseUser, "select_avatar_preset", { avatar_path: avatarPath });
 export const getGamificationClasses = firebaseUser => callGamification(firebaseUser, "classes");
 export const getGamificationLeaderboard = (firebaseUser, period = "week", classCode = null) => (

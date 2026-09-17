@@ -10,7 +10,11 @@ const safeStorage = () => {
 
 const cacheKey = (firebaseUid, section) => `${CACHE_PREFIX}:${firebaseUid}:${section}`;
 
-export const readAppShellCache = (firebaseUid, section, maxAgeMs) => {
+export const readAppShellCacheEntry = (
+    firebaseUid,
+    section,
+    { freshForMs, keepForMs = freshForMs } = {}
+) => {
     if (!firebaseUid || typeof window === "undefined") return null;
 
     try {
@@ -19,11 +23,25 @@ export const readAppShellCache = (firebaseUid, section, maxAgeMs) => {
 
         const entry = JSON.parse(raw);
         if (!entry || !Number.isFinite(entry.cachedAt)) return null;
-        if (Date.now() - entry.cachedAt > maxAgeMs) return null;
-        return entry.value ?? null;
+
+        const ageMs = Math.max(0, Date.now() - entry.cachedAt);
+        if (!Number.isFinite(keepForMs) || ageMs > keepForMs) return null;
+
+        return {
+            value: entry.value ?? null,
+            cachedAt: entry.cachedAt,
+            isStale: !Number.isFinite(freshForMs) || ageMs > freshForMs
+        };
     } catch (error) {
         return null;
     }
+};
+
+export const readAppShellCache = (firebaseUid, section, maxAgeMs) => {
+    return readAppShellCacheEntry(firebaseUid, section, {
+        freshForMs: maxAgeMs,
+        keepForMs: maxAgeMs
+    })?.value ?? null;
 };
 
 export const writeAppShellCache = (firebaseUid, section, value) => {
@@ -36,6 +54,23 @@ export const writeAppShellCache = (firebaseUid, section, value) => {
         }));
     } catch (error) {
         // 快取僅用於加速首屏；儲存空間不足時不影響正常功能。
+    }
+};
+
+export const clearAppShellCache = firebaseUid => {
+    if (!firebaseUid || typeof window === "undefined") return;
+
+    try {
+        const storage = safeStorage();
+        if (!storage) return;
+
+        const userPrefix = `${CACHE_PREFIX}:${firebaseUid}:`;
+        for (let index = storage.length - 1; index >= 0; index -= 1) {
+            const key = storage.key(index);
+            if (key?.startsWith(userPrefix)) storage.removeItem(key);
+        }
+    } catch (error) {
+        // 登出流程不應因瀏覽器禁止 localStorage 而中斷。
     }
 };
 

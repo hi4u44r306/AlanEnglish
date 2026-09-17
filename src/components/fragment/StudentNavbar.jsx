@@ -34,12 +34,7 @@ const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
         onClick?.(event);
         const isNonPrimaryClick = typeof event.button === "number" && event.button !== 0;
         if (event.defaultPrevented || isNonPrimaryClick || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return;
-        if (!onNavigate) return;
-
-        event.preventDefault();
-        // Touch-generated clicks may not expose event.button. Always keep ordinary
-        // taps inside React Router so AuthProvider is not remounted by a document load.
-        onNavigate(to);
+        onNavigate?.(to, event);
     };
 
     return <Link {...props} to={to} onClick={handleClick} />;
@@ -114,8 +109,13 @@ const StudentNavbar = ({
         setDrawerOpen(false);
         setMaterialsOpen(false);
     };
-    const closeDrawerThenNavigate = destination => {
-        pendingNavigationRef.current = destination;
+    const closeDrawerThenNavigate = (destination, event) => {
+        const staysInShell = ["/student", "/teacher", "/admin", "/account", "/billing"]
+            .some(prefix => destination === prefix || destination.startsWith(`${prefix}/`));
+        if (!staysInShell) {
+            event.preventDefault();
+            pendingNavigationRef.current = destination;
+        }
         closeDrawer();
     };
     const handleDrawerExited = () => {
