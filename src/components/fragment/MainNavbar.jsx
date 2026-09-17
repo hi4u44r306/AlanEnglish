@@ -45,6 +45,7 @@ function MainNavbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [desktopMaterialsOpen, setDesktopMaterialsOpen] = useState(false);
     const mobileBodyRef = useRef(null);
+    const pendingMobileNavigationRef = useRef("");
     const [gamificationSummary, setGamificationSummary] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const navigate = useNavigate();
@@ -265,6 +266,21 @@ function MainNavbar() {
     }, [firebaseUser]);
 
     const closeMobileMenu = () => setMobileOpen(false);
+    const handleMobileMenuNavigation = event => {
+        const link = event.target.closest("a[href]");
+        const isNonPrimaryClick = typeof event.button === "number" && event.button !== 0;
+        if (!link || event.defaultPrevented || isNonPrimaryClick || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return;
+
+        event.preventDefault();
+        pendingMobileNavigationRef.current = link.getAttribute("href") || "";
+        closeMobileMenu();
+    };
+    const handleMobileMenuExited = () => {
+        restoreDocumentScroll();
+        const destination = pendingMobileNavigationRef.current;
+        pendingMobileNavigationRef.current = "";
+        if (destination) navigate(destination);
+    };
     const closeNavigation = () => {
         setMobileOpen(false);
         setDesktopMaterialsOpen(false);
@@ -384,7 +400,7 @@ function MainNavbar() {
                     </div>
                 </Container>
             </Navbar>
-            <Offcanvas id="main-navigation-drawer" show={mobileOpen} onHide={closeMobileMenu} onExited={restoreDocumentScroll} placement="end" className="ae-mobile-offcanvas" backdrop scroll={false}>
+            <Offcanvas id="main-navigation-drawer" show={mobileOpen} onHide={closeMobileMenu} onExited={handleMobileMenuExited} placement="end" className="ae-mobile-offcanvas" backdrop scroll={false}>
                 <Offcanvas.Header closeButton>
                     <div className="ae-mobile-brand">
                         <span className="ae-mobile-brand-mark">AE</span>
@@ -394,7 +410,7 @@ function MainNavbar() {
                         </div>
                     </div>
                 </Offcanvas.Header>
-                <Offcanvas.Body ref={mobileBodyRef}>
+                <Offcanvas.Body ref={mobileBodyRef} onClickCapture={handleMobileMenuNavigation}>
                     {isAuthenticated && <div className={`ae-mobile-profile ${hasAiPremium ? "has-ai-premium" : ""}`}><div className="ae-mobile-avatar">{displayName.slice(0, 1) || "A"}</div><div><strong>{displayName}</strong><span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span>{hasAiPremium && <span className="ae-ai-premium-badge"><FiZap aria-hidden="true" />AI Premium</span>}</div></div>}
                     {isStudent && <section className="ae-mobile-xp-card" aria-label="學習榮譽進度"><div className="ae-mobile-xp-heading"><span><FiZap aria-hidden="true" />學習榮譽</span><strong>Lv.{gamificationLevel}</strong></div><div className="ae-mobile-xp-track" role="progressbar" aria-label={`目前等級 Lv.${gamificationLevel} 的經驗值進度`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={xpProgressPercent}><span style={{ width: `${xpProgressPercent}%` }} /></div><div className="ae-mobile-xp-meta"><span>目前等級 Lv.{gamificationLevel}</span><strong>{totalXp.toLocaleString("zh-TW")} XP</strong></div><p>距離 Lv.{gamificationLevel + 1} 還差 {xpToNextLevel.toLocaleString("zh-TW")} XP</p></section>}
                     <section className="ae-mobile-section"><span className="ae-mobile-section-title">{isStudent ? "開始學習" : "主要功能"}</span><Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span></Link>{isAuthenticated && hasPronunciationAccess && <Link to="/student/pronunciation" onClick={closeMobileMenu} className={isPathActive("/student/pronunciation") ? "active" : ""}><FiMic /><span>{isTeacher ? "發音教練示範" : "發音教練"}</span></Link>}{isAuthenticated && hasPronunciationAccess && <Link to="/student/speaking-challenges" onClick={closeMobileMenu} className={isPathActive("/student/speaking-challenges") ? "active" : ""}><FiMic /><span>{isStudent ? "口說大挑戰" : "口說大挑戰預覽"}</span></Link>}{isAuthenticated && <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar /><span>{hasAiAccess ? "AI 教材" : "AI 教材與發音方案"}</span></Link>}</section>

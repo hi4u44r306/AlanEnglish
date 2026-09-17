@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
@@ -30,18 +30,16 @@ import { prefetchReviewDashboard } from "../../services/reviewService";
 import "../assets/scss/StudentNavbar.scss";
 
 const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
-    const navigate = useNavigate();
-
     const handleClick = event => {
         onClick?.(event);
         const isNonPrimaryClick = typeof event.button === "number" && event.button !== 0;
         if (event.defaultPrevented || isNonPrimaryClick || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return;
+        if (!onNavigate) return;
 
         event.preventDefault();
         // Touch-generated clicks may not expose event.button. Always keep ordinary
         // taps inside React Router so AuthProvider is not remounted by a document load.
-        onNavigate?.();
-        navigate(to);
+        onNavigate(to);
     };
 
     return <Link {...props} to={to} onClick={handleClick} />;
@@ -69,6 +67,8 @@ const StudentNavbar = ({
     xpToNextLevel
 }) => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const pendingNavigationRef = useRef("");
     const [drawer, setDrawer] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [materialsOpen, setMaterialsOpen] = useState(false);
@@ -114,8 +114,16 @@ const StudentNavbar = ({
         setDrawerOpen(false);
         setMaterialsOpen(false);
     };
+    const closeDrawerThenNavigate = destination => {
+        pendingNavigationRef.current = destination;
+        closeDrawer();
+    };
     const handleDrawerExited = () => {
-        if (!drawerOpen) setDrawer("");
+        if (drawerOpen) return;
+        setDrawer("");
+        const destination = pendingNavigationRef.current;
+        pendingNavigationRef.current = "";
+        if (destination) navigate(destination);
     };
 
     useEffect(() => {
@@ -150,7 +158,7 @@ const StudentNavbar = ({
                         <InstantDrawerLink
                             key={book.id || book.code}
                             to={`/student/books/${book.code}`}
-                            onNavigate={closeDrawer}
+                            onNavigate={closeDrawerThenNavigate}
                             className={isPathActive(`/student/books/${book.code}`) ? "active" : ""}
                         >
                             {book.name}
@@ -163,11 +171,11 @@ const StudentNavbar = ({
 
     const speakingLinks = (
         <div className="ae-student-choice-list">
-            <InstantDrawerLink to="/student/pronunciation" onNavigate={closeDrawer} className={isPathActive("/student/pronunciation") ? "active" : ""}>
+            <InstantDrawerLink to="/student/pronunciation" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/pronunciation") ? "active" : ""}>
                 <span className="is-blue"><FiMic /></span>
                 <span><strong>發音教練</strong><small>跟著句子練清楚發音</small></span>
             </InstantDrawerLink>
-            <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawer} className={isPathActive("/student/speaking-challenges") ? "active" : ""}>
+            <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/speaking-challenges") ? "active" : ""}>
                 <span className="is-orange"><FiStar /></span>
                 <span><strong>口說大挑戰</strong><small>聽問題，用完整英文回答</small></span>
             </InstantDrawerLink>
@@ -177,23 +185,23 @@ const StudentNavbar = ({
     const learningLinks = (
         <section className="ae-student-drawer-section">
             <span>學習功能</span>
-            {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawer} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
-            {hasReviewAccess && <InstantDrawerLink to="/student/review" onNavigate={closeDrawer} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</InstantDrawerLink>}
-            {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawer} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
-            {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawer} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友與戰績</InstantDrawerLink>}
-            {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawer} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
-            {hasAiAccess && <InstantDrawerLink to="/student/ai-generator" onNavigate={closeDrawer} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</InstantDrawerLink>}
+            {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
+            {hasReviewAccess && <InstantDrawerLink to="/student/review" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</InstantDrawerLink>}
+            {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
+            {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友與戰績</InstantDrawerLink>}
+            {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
+            {hasAiAccess && <InstantDrawerLink to="/student/ai-generator" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</InstantDrawerLink>}
         </section>
     );
 
     const accountLinks = (
         <section className="ae-student-drawer-section">
             <span>帳號與幫助</span>
-            <InstantDrawerLink to="/student/membership" onNavigate={closeDrawer} className={isPathActive("/student/membership") ? "active" : ""}><FiCreditCard />會員與功能</InstantDrawerLink>
-            <InstantDrawerLink to="/student/settings" onNavigate={closeDrawer} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的設定</InstantDrawerLink>
-            <InstantDrawerLink to="/account/security" onNavigate={closeDrawer}><FiLock />帳號與密碼</InstantDrawerLink>
+            <InstantDrawerLink to="/student/membership" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/membership") ? "active" : ""}><FiCreditCard />會員與功能</InstantDrawerLink>
+            <InstantDrawerLink to="/student/settings" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的設定</InstantDrawerLink>
+            <InstantDrawerLink to="/account/security" onNavigate={closeDrawerThenNavigate}><FiLock />帳號與密碼</InstantDrawerLink>
             <button type="button" onClick={() => { closeDrawer(); onOpenTour(); }}><FiHelpCircle />使用教學</button>
-            <InstantDrawerLink to="/support" onNavigate={closeDrawer}><FiHelpCircle />聯絡客服</InstantDrawerLink>
+            <InstantDrawerLink to="/support" onNavigate={closeDrawerThenNavigate}><FiHelpCircle />聯絡客服</InstantDrawerLink>
         </section>
     );
 

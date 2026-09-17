@@ -1,8 +1,8 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Container, Nav, Navbar, Offcanvas } from "react-bootstrap";
 import { BiChevronRight, BiLogIn } from "react-icons/bi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Brand from "./Brand";
 import Menu from "../assets/img/menu.png";
 import "../assets/scss/ShowcaseNavbar.scss";
@@ -10,6 +10,8 @@ import "../assets/scss/ShowcaseNavbar.scss";
 function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const pendingNavigationRef = useRef("");
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -33,6 +35,21 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
     ];
 
     const closeMobileMenu = () => setMobileOpen(false);
+    const handleMobileNavigation = event => {
+        const link = event.target.closest("a[href]");
+        const destination = link?.getAttribute("href") || "";
+        const isNonPrimaryClick = typeof event.button === "number" && event.button !== 0;
+        if (!destination.startsWith("/") || event.defaultPrevented || isNonPrimaryClick || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return;
+
+        event.preventDefault();
+        pendingNavigationRef.current = destination;
+        closeMobileMenu();
+    };
+    const handleMobileMenuExited = () => {
+        const destination = pendingNavigationRef.current;
+        pendingNavigationRef.current = "";
+        if (destination) navigate(destination);
+    };
 
     return (
         <Navbar
@@ -65,6 +82,7 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
                     aria-labelledby="showcase-navbar-offcanvas-label"
                     placement="end"
                     onHide={closeMobileMenu}
+                    onExited={handleMobileMenuExited}
                 >
                     <Offcanvas.Header closeButton>
                         <div className="showcase-mobile-brand" id="showcase-navbar-offcanvas-label">
@@ -76,7 +94,7 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
                         </div>
                     </Offcanvas.Header>
 
-                    <Offcanvas.Body>
+                    <Offcanvas.Body onClickCapture={handleMobileNavigation}>
                         <div className="showcase-mobile-intro">
                             <span>7-DAY GUIDED TRIAL</span>
                             <strong>先讓孩子找到每天願意持續的學習節奏。</strong>
