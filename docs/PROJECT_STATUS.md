@@ -6,8 +6,8 @@
 
 - 只重新設計 `/student/speaking-challenges` 的 Workbook 選擇層：新增彩色冒險主視覺、四組循環教材配色、卡通書本角色、關卡數、完成進度條與「開始冒險／繼續冒險／再次挑戰」狀態。整張卡片仍可點擊，鍵盤焦點與螢幕閱讀器教材／進度描述均保留。
 - 桌面版採兩欄大卡片，手機／平板改為單欄橫式卡片並縮小插圖與文字；標題與按鈕設有尺寸上限。Workbook 內關卡列表、A–Z、P14～P24 題目、錄音、資料讀取、權限與題庫內容均未修改。
-- 390×844 正式站驗收發現管理員專用「發布作業」浮動捷徑會壓到第二張 Workbook 卡片；手機第一層將隱藏該捷徑，管理員仍可從漢堡選單進入發布作業，桌面版與 Workbook 關卡列表不受影響。此最小 hotfix 已完成本機驗證，尚待合併與部署。
-- `TextbookSpeakingChallenge.test.jsx` 22/22、最新 `main` Production build 與 `git diff --check` 均通過；新增教材配色、可存取名稱、進度值、行動文字與路由回歸測試。PR #172 已合併至 `main` commit `5c833d8`；Netlify production deploy `6aabce7f5cae861b1b081bac` 已 live。正式站管理員唯讀預覽已確認兩本教材使用不同配色、桌面版無重疊，且卡片可進入原 Workbook 1 的 13 關列表；build 只有既有 `FiSquare` 未使用、Browserslist 與 Node deprecation 警告。本批沒有 Supabase、Edge Function、Firebase、權限或正式資料異動。
+- 390×844 正式站驗收發現管理員專用「發布作業」浮動捷徑會壓到第二張 Workbook 卡片；手機第一層已隱藏該捷徑，管理員仍可從漢堡選單進入發布作業，桌面版與 Workbook 關卡列表不受影響。hotfix PR #174 已合併，正式手機畫面重新驗收後兩張卡片、進度及行動按鈕均完整可見且無重疊。
+- `TextbookSpeakingChallenge.test.jsx` 22/22、最新 `main` Production build 與 `git diff --check` 均通過；新增教材配色、可存取名稱、進度值、行動文字與路由回歸測試。PR #172 與 hotfix PR #174 已合併，最新功能 `main` commit `e3b7fa2`；Netlify production deploy `6aabd1be4ca4af2df0337273` 已 live。正式站管理員唯讀預覽已確認兩本教材使用不同配色、桌面與 390×844 手機版無重疊，且卡片可進入原 Workbook 1 的 13 關列表；build 只有既有 `FiSquare` 未使用、Browserslist 與 Node deprecation 警告。本批沒有 Supabase、Edge Function、Firebase、權限或正式資料異動。
 
 本次口說圖片固定 4:3 顯示與上傳預覽（2026-09-17，正式站已部署）：
 
