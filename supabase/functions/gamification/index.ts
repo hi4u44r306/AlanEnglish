@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { resolveLeaderboardScope } from "../_shared/gamification-leaderboard.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -285,7 +286,12 @@ Deno.serve(async (req: Request) => {
             const requestedPeriod = cleanText(body?.period || "week", 20);
             const period = PERIODS.has(requestedPeriod) ? requestedPeriod : "week";
             const requestedClass = cleanText(body?.class_code, 30) || null;
-            const classCode = student.role === "student" ? (cleanText(student.class, 30) || null) : requestedClass;
+            const { scope, classCode } = resolveLeaderboardScope({
+                role: student.role,
+                ownClass: student.class,
+                requestedScope: body?.scope,
+                requestedClass
+            });
             const { data: rows, error } = await admin.rpc("get_gamification_leaderboard", {
                 p_period: period,
                 p_class: classCode,
@@ -305,7 +311,7 @@ Deno.serve(async (req: Request) => {
                 level: getLevelInfo(row.total_xp).level,
                 is_current_user: Number(row.student_id) === Number(student.id)
             })));
-            return json(200, { success: true, period, class_code: classCode, leaderboard });
+            return json(200, { success: true, period, scope, class_code: classCode, leaderboard });
         }
 
         if (action === "rewards") {

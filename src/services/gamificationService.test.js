@@ -1,5 +1,5 @@
 import { callEdgeFunction } from "./edgeFunctionClient";
-import { getGamificationSummary } from "./gamificationService";
+import { getGamificationLeaderboard, getGamificationSummary } from "./gamificationService";
 
 jest.mock("./edgeFunctionClient", () => ({ callEdgeFunction: jest.fn() }));
 
@@ -22,5 +22,19 @@ describe("getGamificationSummary", () => {
             { balance: { level: 3 } },
             { balance: { level: 3 } }
         ]);
+    });
+});
+
+test("排行榜會將班級或綜合範圍交給驗證後端", async () => {
+    callEdgeFunction.mockResolvedValue({ leaderboard: [] });
+    const firebaseUser = { uid: "student-1" };
+
+    await getGamificationLeaderboard(firebaseUser, "month", null, "overall");
+
+    expect(callEdgeFunction).toHaveBeenCalledWith("gamification", firebaseUser, {
+        action: "leaderboard",
+        period: "month",
+        class_code: null,
+        scope: "overall"
     });
 });
