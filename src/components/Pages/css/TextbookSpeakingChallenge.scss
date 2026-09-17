@@ -718,6 +718,8 @@
   .speaking-book-card__content { gap: 7px; padding: 19px 18px; }
   .speaking-book-card__content > strong { font-size: clamp(23px, 6.8vw, 28px); }
   .speaking-book-card__content > .speaking-book-card__action { min-height: 42px; }
+  /* 管理員仍可由漢堡選單進入作業頁；此處避免浮動捷徑遮住 Workbook 卡片。 */
+  body:has(.speaking-challenge-catalog:not(.is-book-open)) .assignment-shortcut { display: none; }
   .speaking-challenge-page.is-book-open { padding-top: max(8px, env(safe-area-inset-top)); }
   .speaking-book-toolbar {
     grid-template-columns: auto minmax(0, 1fr) auto;
