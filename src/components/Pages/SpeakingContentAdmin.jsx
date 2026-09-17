@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { AlertTriangle, Archive, BookOpen, CheckCircle2, Eye, FileText, LoaderCircle, Pencil, RefreshCcw, Search, Sparkles, UploadCloud, Volume2, Wrench } from "lucide-react";
+import { AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, Eye, FileText, LoaderCircle, Pencil, RefreshCcw, Search, Sparkles, UploadCloud, Volume2, Wrench } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
     activateSpeakingAlphabetAudioCandidate,
@@ -317,10 +317,8 @@ export default function SpeakingContentAdmin() {
             return;
         }
         if (selectedQuestionSet && (questionSetFilter === "all" || selectedQuestionSet.status === questionSetFilter)) return;
-        const preferred = data.question_sets.find(questionSet => questionSet.status === questionSetFilter)
-            || (questionSetFilter === "all" ? data.question_sets.find(questionSet => questionSet.status === "draft") || data.question_sets[0] : null);
-        setSelectedQuestionSetId(preferred?.id || null);
-    }, [data.question_sets, loading, questionSetCounts, questionSetFilter, selectedQuestionSet]);
+        if (selectedQuestionSetId !== null) setSelectedQuestionSetId(null);
+    }, [data.question_sets, loading, questionSetCounts, questionSetFilter, selectedQuestionSet, selectedQuestionSetId]);
 
     const updateSource = (key, value) => setSource(current => ({ ...current, [key]: value }));
     const uploadWholeBook = async event => {
@@ -556,13 +554,11 @@ export default function SpeakingContentAdmin() {
     };
 
     return <main className="platform-page speaking-content-admin">
-        <header className="platform-hero"><div><span className="platform-eyebrow">SPEAKING AUTHORING STUDIO</span><h1>口說大挑戰製作中心</h1><p>題庫管理、關卡建立與教材來源分開處理；每次只顯示正在使用的工作區。</p></div></header>
+        <header className="platform-hero speaking-admin-hero"><div><h1>教材 AI 口說題庫</h1><p>管理題庫、建立關卡與教材來源。</p></div></header>
 
         <section className="platform-card speaking-admin-command" aria-labelledby="speaking-admin-command-title">
             <div className="speaking-admin-command__intro">
-                <span className="platform-eyebrow">AUTHORING DESK</span>
                 <h2 id="speaking-admin-command-title">選擇工作區</h2>
-                <p>不再把所有工具堆在同一頁；切換後只看目前需要的內容。</p>
             </div>
             <nav className="speaking-admin-command__actions" aria-label="口說題庫快速操作">
                 <button type="button" className={activeWorkspace === "library" ? "is-primary" : ""} onClick={() => setActiveWorkspace("library")}><FileText /><span><strong>題庫管理</strong><small>{questionSetCounts.draft} 份草稿 · {questionSetCounts.published} 份已發布</small></span></button>
@@ -572,10 +568,6 @@ export default function SpeakingContentAdmin() {
         </section>
 
         {activeWorkspace === "create" && <>
-        <section className="platform-card speaking-workflow speaking-admin-block--overview" aria-label="製作流程">
-            <div><UploadCloud /><strong>1. 上傳與 OCR</strong><span>私人保存 PDF／圖片</span></div><div><FileText /><strong>2. 人工核對</strong><span>校正文字與頁碼</span></div><div><Sparkles /><strong>3. AI 題庫</strong><span>逐題修改後發布</span></div>
-        </section>
-
         <section className="platform-card speaking-starter-card speaking-admin-block--curated" id="speaking-quick-create">
             <div><span className="platform-eyebrow">CURATED STARTER</span><h2>先建立第一個 Workbook 1 小關卡</h2><p>使用已人工規劃的 P18～P20「我的名字與自我介紹」，直接建立四題可編輯草稿；不執行 OCR，也不呼叫付費 AI。</p></div>
             <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(workbookOneStarter) || working === "workbook-1-starter"} onClick={createWorkbookOneStarter}>
@@ -711,7 +703,6 @@ export default function SpeakingContentAdmin() {
                 <label><Search size={18} /><span className="sr-only">搜尋題庫</span><input value={questionSetSearch} onChange={event => setQuestionSetSearch(event.target.value)} placeholder="搜尋關卡名稱、主題或頁碼" /></label>
                 <label><span className="sr-only">依教材篩選</span><select value={bookFilter} onChange={event => setBookFilter(event.target.value)}><option value="all">全部教材</option>{data.books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
             </div>
-            {selectedQuestionSet && <aside className={`speaking-current-set is-${selectedQuestionSet.status}`} aria-live="polite"><span>{selectedQuestionSet.status === "draft" ? "正在編輯" : "目前查看"}</span><strong>{selectedQuestionSet.title}</strong><small>第 {selectedQuestionSet.version} 版 · {selectedQuestionSet.status === "draft" ? "尚未發布" : "已發布"}</small>{selectedQuestionSet.status === "published" && <a href={`/student/speaking-challenges/${selectedQuestionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />用學生版型預覽</a>}</aside>}
             {loading ? <div className="platform-loading">題庫載入中…</div> : sourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>尚未建立教材來源</strong><p>先在上方貼入並核對第一個教材單元。</p></div> : visibleSourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>這個狀態目前沒有題庫</strong><p>切換上方篩選即可查看其他題庫。</p></div> : <div className="speaking-source-list">{visibleSourceRows.map(section => <article className="speaking-source-card" key={section.id}>
                 <header><div><span>{section.document?.title || "教材來源"}{section.document?.original_filename ? ` · ${section.document.original_filename}` : ""}</span><h3>{section.topic}</h3><p>{section.unit_label || "未標示單元"} · {section.page_from_label || "未標示頁碼"}{section.page_to_label ? `–${section.page_to_label}` : ""} · {section.language_level}</p></div>{section.status === "reviewed" && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "產生新版草稿"}</button>}</header>
                 {section.status === "draft" && section.questionSets.some(questionSet => questionSet.generation_metadata?.requires_content_review)
@@ -724,7 +715,7 @@ export default function SpeakingContentAdmin() {
                         && questionSet.generation_metadata?.source === "admin_manual_builder";
                     const isSelected = Number(selectedQuestionSetId) === Number(questionSet.id);
                     return <section className={`speaking-set ${questionSet.status} ${isSelected ? "is-current" : ""}`} key={questionSet.id}>
-                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "正在展開" : "點擊查看與編輯"}</small></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}{questionSet.status === "published" && isPictureSet && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}{(questionSet.status === "draft" || isPictureSet) && <button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button>}</div>}</div>
+                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && isPictureSet && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}{(questionSet.status === "draft" || isPictureSet) && <button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button>}</div>}</div>
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
                         {isSelected && (isPictureSet
                             ? questionSet.status === "draft"
