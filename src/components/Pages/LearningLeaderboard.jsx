@@ -29,6 +29,7 @@ function LearningLeaderboard() {
         && studentProfile?.learner_type === "academy_student"
         && studentProfile?.membership?.effective_access?.plan_codes?.includes("academy_internal") === true;
     const [period, setPeriod] = useState("week");
+    const [leaderboardScope, setLeaderboardScope] = useState(studentProfile?.class ? "class" : "overall");
     const [classCode, setClassCode] = useState(studentProfile?.class || "");
     const [classes, setClasses] = useState([]);
     const [data, setData] = useState(null);
@@ -48,7 +49,7 @@ function LearningLeaderboard() {
         silent ? setRefreshing(true) : setLoading(true);
         try {
             const requests = [
-                getGamificationLeaderboard(firebaseUser, period, isStaff ? classCode || null : null)
+                getGamificationLeaderboard(firebaseUser, period, isStaff ? classCode || null : null, leaderboardScope)
             ];
             if (isStudent) requests.push(getGamificationSummary(firebaseUser));
             if (isStaff) requests.push(getGamificationClasses(firebaseUser));
@@ -71,25 +72,43 @@ function LearningLeaderboard() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [firebaseUser, period, classCode, isStudent, isStaff]);
+    }, [firebaseUser, period, classCode, leaderboardScope, isStudent, isStaff]);
 
     useEffect(() => {
         load();
     }, [load]);
 
     const rows = data?.leaderboard || [];
-    const currentClass = data?.class_code || classCode || studentProfile?.class || "";
+    const isOverall = data?.scope === "overall" || leaderboardScope === "overall";
+    const currentClass = isOverall ? "" : (data?.class_code || classCode || studentProfile?.class || "");
 
     return (
         <main className="gamification-page">
             <section className="gamification-hero">
                 <div>
-                    <span className="gamification-eyebrow"><FiTrendingUp /> {currentClass ? "CLASS LEADERBOARD" : "LEARNING LEADERBOARD"}</span>
-                    <h1>{currentClass ? `${currentClass} 班排行榜` : "學習排行榜"}</h1>
+                    <span className="gamification-eyebrow"><FiTrendingUp /> {isOverall ? "OVERALL LEADERBOARD" : "CLASS LEADERBOARD"}</span>
+                    <h1>{isOverall ? "綜合排行榜" : (currentClass ? `${currentClass} 班排行榜` : "我的班級排行榜")}</h1>
                     <p>完成聽力、作業與遊戲都能累積 XP；排行榜以 XP 排名，兌換獎品不會讓排名下降。</p>
                 </div>
                 <div className="gamification-hero__actions">
-                    {isStaff && classes.length > 0 && (
+                    <div className="gamification-segment" role="group" aria-label="排行榜範圍">
+                        <button
+                            className={leaderboardScope === "class" ? "active" : ""}
+                            type="button"
+                            onClick={() => setLeaderboardScope("class")}
+                            disabled={isStudent && !studentProfile?.class}
+                        >
+                            {isStudent ? "我的班級" : "班級排行"}
+                        </button>
+                        <button
+                            className={leaderboardScope === "overall" ? "active" : ""}
+                            type="button"
+                            onClick={() => setLeaderboardScope("overall")}
+                        >
+                            綜合排行
+                        </button>
+                    </div>
+                    {isStaff && leaderboardScope === "class" && classes.length > 0 && (
                         <label className="gamification-select">
                             <span>班級</span>
                             <select value={classCode} onChange={event => setClassCode(event.target.value)}>
@@ -158,7 +177,7 @@ function LearningLeaderboard() {
                 {loading ? (
                     <div className="gamification-loading">排行榜載入中…</div>
                 ) : rows.length === 0 ? (
-                    <div className="gamification-empty">這個班級還沒有 XP 紀錄。</div>
+                    <div className="gamification-empty">{isOverall ? "目前還沒有綜合 XP 紀錄。" : "這個班級還沒有 XP 紀錄。"}</div>
                 ) : (
                     <div className="gamification-ranking-list">
                         {rows.map(row => {
@@ -174,6 +193,9 @@ function LearningLeaderboard() {
                                     </div>
                                     <div className="gamification-student-copy">
                                         <strong>{row.nickname || row.student_name}{row.is_current_user ? " · 你" : ""}</strong>
+                                        {row.nickname && row.student_name && row.nickname !== row.student_name && (
+                                            <span className="gamification-student-original">原名：{row.student_name}</span>
+                                        )}
                                         <span>{row.class_name ? `${row.class_name} 班` : "Alan English"} · Lv.{row.level || 1}</span>
                                     </div>
                                     <div className="gamification-xp">

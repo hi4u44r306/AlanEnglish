@@ -26,8 +26,8 @@ export const getGamificationSummary = firebaseUser => {
 };
 export const selectStudentAvatarPreset = (firebaseUser, avatarPath) => callGamification(firebaseUser, "select_avatar_preset", { avatar_path: avatarPath });
 export const getGamificationClasses = firebaseUser => callGamification(firebaseUser, "classes");
-export const getGamificationLeaderboard = (firebaseUser, period = "week", classCode = null) => (
-    callGamification(firebaseUser, "leaderboard", { period, class_code: classCode })
+export const getGamificationLeaderboard = (firebaseUser, period = "week", classCode = null, scope = "class") => (
+    callGamification(firebaseUser, "leaderboard", { period, class_code: classCode, scope })
 );
 export const getRewards = firebaseUser => callGamification(firebaseUser, "rewards");
 export const redeemReward = (firebaseUser, rewardId) => callGamification(firebaseUser, "redeem", { reward_id: rewardId });
