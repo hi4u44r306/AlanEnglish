@@ -2,11 +2,11 @@
 
 最後更新：2026-09-17
 
-本次口說 TTS 句尾句號處理（2026-09-17，本機驗證完成，尚未部署）：
+本次口說 TTS 句尾句號處理（2026-09-17，已正式部署）：
 
 - 自訂口說題目可保留完整英文句號供畫面顯示與答案核對；送交 Google TTS 前會移除句尾英文句點、全形句點與省略號，避免語音把標點當成可朗讀文字。
 - 看圖補句標準整句、`The` 弱讀候選與一般示範音檔皆提升語音版本，新產生時不會沿用修正前的私人 WAV 快取；既有音檔不刪除。
-- `speaking-picture-audio` 5/5、全部 Edge Function 語法與語音合約測試已通過；待 Production build、PR 合併與 `speaking-tts-manager` 正式部署。本批不含 migration、RLS、題庫內容或學生進度異動。
+- `speaking-picture-audio` 5/5、全部 Edge Function 語法與語音合約、Production build、`git diff --check` 及 Netlify PR 預覽檢查均通過；PR #179 已合併至 `main` commit `fd54d17`，正式 `speaking-tts-manager` v25 為 ACTIVE，OPTIONS 200、未登入 POST 401。本批不含 migration、RLS、題庫內容或學生進度異動。
 
 本次 Workbook 1「顏色與生活物品」主題關卡下架（2026-09-17，正式資料已安全封存）：
 
