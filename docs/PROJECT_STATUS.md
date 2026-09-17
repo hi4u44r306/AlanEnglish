@@ -2,11 +2,11 @@
 
 最後更新：2026-09-17
 
-本次口說大挑戰 Workbook 第一層獎勵提示（2026-09-17，本機驗證完成，尚未部署）：
+本次口說大挑戰 Workbook 第一層獎勵提示（2026-09-17，正式站已部署）：
 
 - `/student/speaking-challenges` 的 Workbook 1／Workbook 2 彩色冒險卡新增「每關首次通關 30 XP／最多 3 AE Points」提示；「最多」表示只有符合既有在校生點數資格者會取得 AE Points，XP 與實際發獎條件不變。
 - 獎勵數字由既有 `speaking-challenge` catalog 的唯讀 `reward_policy` 回傳，前端不自行決定或發放獎勵；本批不含 migration、RLS、題庫、學生進度或正式資料異動。
-- `TextbookSpeakingChallenge.test.jsx` 22/22、口說題庫契約 26/26、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過；build 只有既有 `FiSquare` 未使用、Browserslist 與 Node deprecation 警告。尚未 Push、建立 PR、部署 `speaking-challenge` 或發布 Netlify。
+- `TextbookSpeakingChallenge.test.jsx` 22/22、口說題庫契約 26/26、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過；build 只有既有 `FiSquare` 未使用、Browserslist 與 Node deprecation 警告。PR #176 已合併至 `main` commit `8263a41`；正式 `speaking-challenge` v31 為 ACTIVE，OPTIONS 200、未登入 POST 401。Netlify production deploy `6aabdfd18da2e678a12d9a26` 已 live，正式網域與唯一部署網址皆回應 200 並載入 `main.beded9a4.js`／`main.fa92e409.css`。正式站管理員唯讀預覽已確認 Workbook 1 與 Workbook 2 卡片均顯示「每關首次通關 30 XP／最多 3 AE Points」。本批沒有 migration、RLS、題庫、學生進度或正式資料異動。
 
 本次口說大挑戰 Workbook 第一層冒險卡片（2026-09-17，正式站已部署）：
 
