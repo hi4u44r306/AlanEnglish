@@ -213,6 +213,30 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: /完成大挑戰/ })).toBeDisabled();
     });
 
+    it("教材第一層顯示彩色冒險卡、完成進度並可進入指定 Workbook", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [
+                { id: 1, title: "01 自我介紹", topic: "Names", difficulty: "E1", book: { id: 1, name: "Workbook 1" }, question_count: 4, completed_count: 4, sequence_order: 1, is_completed: true },
+                { id: 2, title: "02 顏色", topic: "Colors", difficulty: "E1", book: { id: 1, name: "Workbook 1" }, question_count: 6, completed_count: 0, sequence_order: 2, is_completed: false },
+                { id: 3, title: "01 打招呼", topic: "Greetings", difficulty: "E3", book: { id: 2, name: "Workbook 2" }, question_count: 5, completed_count: 0, sequence_order: 1, is_completed: false }
+            ]
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><LocationProbe /><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /><Route path="/student/speaking-challenges/book/:bookKey" element={<div>Workbook 關卡列表</div>} /></Routes></MemoryRouter>);
+
+        const workbookOne = await screen.findByRole("button", { name: "開啟 Workbook 1，共 2 關，已完成 1 關" });
+        const workbookTwo = screen.getByRole("button", { name: "開啟 Workbook 2，共 1 關，已完成 0 關" });
+        expect(workbookOne).toHaveClass("speaking-book-card--theme-0");
+        expect(workbookTwo).toHaveClass("speaking-book-card--theme-1");
+        expect(screen.getByRole("progressbar", { name: "Workbook 1 完成進度" })).toHaveAttribute("aria-valuenow", "50");
+        expect(screen.getByRole("progressbar", { name: "Workbook 2 完成進度" })).toHaveAttribute("aria-valuenow", "0");
+        expect(workbookOne).toHaveTextContent("繼續冒險");
+        expect(workbookTwo).toHaveTextContent("開始冒險");
+
+        fireEvent.click(workbookTwo);
+        expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-2");
+    });
+
     it("學生依教材固定順序看見下一關鎖定狀態", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [
