@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Eye, ImagePlus, Plus, Save, Trash2, Volume2 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
+    activatePictureGapTheAudioCandidate,
     addPictureDraftQuestion,
     deleteDraftSpeakingQuestion,
     generateSpeakingVisibleWordAudio,
@@ -9,6 +10,7 @@ import {
     getSpeakingQuestionAudioPreview,
     getSpeakingQuestionPicturePreview,
     reorderDraftSpeakingQuestions,
+    restorePictureGapStandardAudio,
     updatePictureDraftQuestion,
     updateSpeakingQuestionSetDraft,
     uploadSpeakingQuestionPicture
@@ -59,6 +61,8 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
     const [preview, setPreview] = useState(null);
     const [audioUrl, setAudioUrl] = useState("");
     const [theAudioCandidates, setTheAudioCandidates] = useState([]);
+    const [activeTheCandidateId, setActiveTheCandidateId] = useState(null);
+    const [heardTheCandidateIds, setHeardTheCandidateIds] = useState([]);
     const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
     const isGap = interactionType === "picture_gap_sentence";
     const templateKey = String(questionSet?.generation_metadata?.template_key || "");
@@ -76,6 +80,8 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
             setPreview(null);
             setAudioUrl("");
             setTheAudioCandidates([]);
+            setActiveTheCandidateId(null);
+            setHeardTheCandidateIds([]);
         }
     }, [questionSet?.id, questionSet?.updated_at, questions, selectedId, adding]);
     useEffect(() => {
@@ -186,7 +192,35 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
         try {
             const result = await getPictureGapTheAudioCandidates(firebaseUser, questionSet.id, selectedQuestion.id);
             setTheAudioCandidates(result.candidates || []);
+            setActiveTheCandidateId(result.active_candidate_id || null);
+            setHeardTheCandidateIds([]);
         } catch (error) { toast.error(error.message || "The 弱讀候選載入失敗"); }
+        finally { setWorking(""); }
+    };
+    const applyTheCandidate = async candidate => {
+        if (!selectedQuestion || !heardTheCandidateIds.includes(candidate.id)) return;
+        const liveWarning = questionSet?.status === "published" ? "這會立即更新學生聽到的這一題整句音檔。" : "這會更新這份草稿的整句音檔。";
+        if (!window.confirm(`確定套用「${candidate.label}」嗎？${liveWarning}`)) return;
+        setWorking(`the-audio-apply-${candidate.id}`);
+        try {
+            await activatePictureGapTheAudioCandidate(firebaseUser, questionSet.id, selectedQuestion.id, candidate.id);
+            setActiveTheCandidateId(candidate.id);
+            setAudioUrl(candidate.audio_url || "");
+            toast.success(`已套用「${candidate.label}」到這一題`);
+        } catch (error) { toast.error(error.message || "The 弱讀候選套用失敗"); }
+        finally { setWorking(""); }
+    };
+    const restoreStandardAudio = async () => {
+        if (!selectedQuestion || activeTheCandidateId === null) return;
+        const liveWarning = questionSet?.status === "published" ? "這會立即恢復學生聽到的標準分段版。" : "這會恢復這份草稿的標準分段版。";
+        if (!window.confirm(`確定恢復標準分段版嗎？${liveWarning}`)) return;
+        setWorking("the-audio-restore");
+        try {
+            await restorePictureGapStandardAudio(firebaseUser, questionSet.id, selectedQuestion.id);
+            setActiveTheCandidateId(null);
+            setAudioUrl("");
+            toast.success("已恢復這一題的標準分段版");
+        } catch (error) { toast.error(error.message || "標準分段版恢復失敗"); }
         finally { setWorking(""); }
     };
     const startAdd = () => {
@@ -197,6 +231,8 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
         setForm(emptyQuestion(pageLabels[0]));
         setPreview(null);
         setTheAudioCandidates([]);
+        setActiveTheCandidateId(null);
+        setHeardTheCandidateIds([]);
     };
 
     return <div className="speaking-picture-editor">
@@ -210,7 +246,7 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
         <div className="speaking-picture-editor__workspace">
             <aside className="speaking-picture-editor__navigator" aria-label="題目清單">
                 <header><strong>{pageLabel} 題目</strong><span>{questions.length}{expectedCount ? `/${expectedCount}` : ""}</span></header>
-                <div>{questions.map((question, index) => <button type="button" key={question.id} className={!adding && Number(question.id) === Number(selectedQuestion?.id) ? "active" : ""} onClick={() => { setAdding(false); setSelectedId(question.id); setForm(readQuestion(question)); setPreview(null); setTheAudioCandidates([]); }}>
+                <div>{questions.map((question, index) => <button type="button" key={question.id} className={!adding && Number(question.id) === Number(selectedQuestion?.id) ? "active" : ""} onClick={() => { setAdding(false); setSelectedId(question.id); setForm(readQuestion(question)); setPreview(null); setTheAudioCandidates([]); setActiveTheCandidateId(null); setHeardTheCandidateIds([]); }}>
                     <strong>{index + 1}</strong><span>{asOne(question.speaking_question_interactions)?.prompt_text || question.question_text}</span>
                 </button>)}</div>
                 <button type="button" className="speaking-picture-editor__add" disabled={expectedCount ? questions.length >= expectedCount : questions.length >= 50} onClick={startAdd}><Plus size={17} />新增一題</button>
@@ -233,8 +269,14 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
                     {!adding && isGap && /^The\s+_+/i.test(asOne(selectedQuestion?.speaking_question_interactions)?.prompt_text || "") && <section className="speaking-picture-editor__voice-candidates" aria-label="The 弱讀候選">
                         <button type="button" className="platform-secondary" disabled={working === "the-audio-candidates"} onClick={previewTheCandidates}><Volume2 size={17} />{working === "the-audio-candidates" ? "產生候選中…" : "比較 The 弱讀候選"}</button>
                         {theAudioCandidates.length > 0 && <div>
-                            <p>這些只供管理員試聽，不會替換學生目前的音檔。</p>
-                            {theAudioCandidates.map(candidate => <label key={candidate.id}><span>{candidate.label}</span><audio controls preload="none" src={candidate.audio_url}>瀏覽器不支援音訊播放。</audio></label>)}
+                            <p>請先完整試聽，再套用到目前這一題。已發布題庫套用後會立即更新學生音檔。</p>
+                            <p className="speaking-picture-editor__voice-status">目前版本：{activeTheCandidateId ? theAudioCandidates.find(candidate => candidate.id === activeTheCandidateId)?.label || "自訂候選" : "標準分段版"}</p>
+                            {theAudioCandidates.map(candidate => <article key={candidate.id}>
+                                <strong>{candidate.label}{activeTheCandidateId === candidate.id ? "（目前使用中）" : ""}</strong>
+                                <audio controls preload="none" src={candidate.audio_url} onEnded={() => setHeardTheCandidateIds(current => current.includes(candidate.id) ? current : [...current, candidate.id])}>瀏覽器不支援音訊播放。</audio>
+                                <button type="button" className="platform-secondary" disabled={!heardTheCandidateIds.includes(candidate.id) || activeTheCandidateId === candidate.id || Boolean(working)} onClick={() => applyTheCandidate(candidate)}>{working === `the-audio-apply-${candidate.id}` ? "套用中…" : activeTheCandidateId === candidate.id ? "目前使用中" : "套用到這一題"}</button>
+                            </article>)}
+                            <button type="button" className="platform-secondary" disabled={activeTheCandidateId === null || Boolean(working)} onClick={restoreStandardAudio}>{working === "the-audio-restore" ? "恢復中…" : activeTheCandidateId === null ? "目前是標準分段版" : "恢復標準分段版"}</button>
                         </div>}
                     </section>}
                     <div className="speaking-picture-editor__actions">

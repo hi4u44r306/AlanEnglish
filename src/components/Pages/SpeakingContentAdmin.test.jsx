@@ -2,6 +2,7 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
 import {
+    activatePictureGapTheAudioCandidate,
     activateSpeakingAlphabetAudioCandidate,
     archiveSpeakingQuestionSet,
     confirmWorkbookOneFoundationSource,
@@ -18,6 +19,7 @@ import {
 const mockFirebaseUser = { uid: "admin" };
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser }) }));
 jest.mock("../../services/speakingContentService", () => ({
+    activatePictureGapTheAudioCandidate: jest.fn(),
     activateSpeakingAlphabetAudioCandidate: jest.fn(),
     confirmWorkbookOneFoundationSource: jest.fn(),
     createWorkbookOneFoundationQuestionSet: jest.fn(),
@@ -37,6 +39,7 @@ jest.mock("../../services/speakingContentService", () => ({
     createSpeakingQuestionSetRevision: jest.fn(), updateSpeakingQuestionSetDraft: jest.fn(),
     updatePictureDraftQuestion: jest.fn(), addPictureDraftQuestion: jest.fn(),
     deleteDraftSpeakingQuestion: jest.fn(), reorderDraftSpeakingQuestions: jest.fn(),
+    restorePictureGapStandardAudio: jest.fn(),
     archiveSpeakingQuestionSet: jest.fn()
 }));
 
@@ -54,6 +57,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
             ]
         });
         activateSpeakingAlphabetAudioCandidate.mockResolvedValue({ success: true, activated: true });
+        activatePictureGapTheAudioCandidate.mockResolvedValue({ success: true, applied: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Leda", voice_gender: "female", audio_url: "https://audio.example/leda.wav" });
         getPictureGapTheAudioCandidates.mockResolvedValue({

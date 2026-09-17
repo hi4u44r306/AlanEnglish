@@ -1,9 +1,13 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingPictureQuestionSetEditor from "./SpeakingPictureQuestionSetEditor";
-import { getPictureGapTheAudioCandidates } from "../../services/speakingContentService";
+import {
+    activatePictureGapTheAudioCandidate,
+    getPictureGapTheAudioCandidates
+} from "../../services/speakingContentService";
 
 jest.mock("../../services/speakingContentService", () => ({
+    activatePictureGapTheAudioCandidate: jest.fn(),
     addPictureDraftQuestion: jest.fn(),
     deleteDraftSpeakingQuestion: jest.fn(),
     generateSpeakingVisibleWordAudio: jest.fn(),
@@ -11,6 +15,7 @@ jest.mock("../../services/speakingContentService", () => ({
     getSpeakingQuestionAudioPreview: jest.fn(),
     getSpeakingQuestionPicturePreview: jest.fn(),
     reorderDraftSpeakingQuestions: jest.fn(),
+    restorePictureGapStandardAudio: jest.fn(),
     updatePictureDraftQuestion: jest.fn(),
     updateSpeakingQuestionSetDraft: jest.fn(),
     uploadSpeakingQuestionPicture: jest.fn()
@@ -42,8 +47,11 @@ const questionSet = {
     }]
 };
 
-test("P24 的 The 題目可載入兩個不會直接啟用的弱讀候選", async () => {
+test("P24 的 The 題目必須完整試聽後才能套用單題候選", async () => {
+    jest.spyOn(window, "confirm").mockReturnValue(true);
+    activatePictureGapTheAudioCandidate.mockResolvedValue({ success: true, applied: true });
     getPictureGapTheAudioCandidates.mockResolvedValue({
+        active_candidate_id: null,
         candidates: [
             { id: "context-natural", label: "自然弱讀（連句語境）", audio_url: "https://audio.example/natural.wav" },
             { id: "context-clear", label: "清楚弱讀（The 稍慢）", audio_url: "https://audio.example/clear.wav" }
@@ -62,6 +70,16 @@ test("P24 的 The 題目可載入兩個不會直接啟用的弱讀候選", async
     ));
     expect(await screen.findByText("自然弱讀（連句語境）")).toBeInTheDocument();
     expect(screen.getByText("清楚弱讀（The 稍慢）")).toBeInTheDocument();
-    expect(screen.getByText("這些只供管理員試聽，不會替換學生目前的音檔。")).toBeInTheDocument();
+    expect(screen.getByText(/請先完整試聽/)).toBeInTheDocument();
+    expect(screen.getByText("目前版本：標準分段版")).toBeInTheDocument();
     expect(container.querySelectorAll("audio")).toHaveLength(2);
+    const applyButtons = screen.getAllByRole("button", { name: "套用到這一題" });
+    expect(applyButtons[0]).toBeDisabled();
+    fireEvent.ended(container.querySelectorAll("audio")[0]);
+    expect(applyButtons[0]).toBeEnabled();
+    fireEvent.click(applyButtons[0]);
+    await waitFor(() => expect(activatePictureGapTheAudioCandidate).toHaveBeenCalledWith(
+        { uid: "admin" }, 24, 241, "context-natural"
+    ));
+    expect(await screen.findByRole("button", { name: "目前使用中" })).toBeDisabled();
 });

@@ -177,7 +177,10 @@
 .speaking-picture-editor__voice-candidates > button { width: fit-content; }
 .speaking-picture-editor__voice-candidates > div { display: grid; gap: 10px; }
 .speaking-picture-editor__voice-candidates p { margin: 0; color: #526079; font-size: 13px; }
-.speaking-picture-editor__voice-candidates label { display: grid; grid-template-columns: minmax(160px, .42fr) minmax(220px, 1fr); align-items: center; gap: 10px; color: #173f80; font-weight: 800; }
+.speaking-picture-editor__voice-candidates article { display: grid; grid-template-columns: minmax(160px, .42fr) minmax(220px, 1fr) auto; align-items: center; gap: 10px; color: #173f80; }
+.speaking-picture-editor__voice-candidates article strong { font-weight: 850; }
+.speaking-picture-editor__voice-candidates article button { min-height: 44px; }
+.speaking-picture-editor__voice-status { color: #173f80 !important; font-weight: 850; }
 .speaking-picture-editor__voice-candidates audio { width: 100%; }
 .speaking-picture-editor__warning, .speaking-picture-editor__error { margin: 0; color: #94352f; font-weight: 750; }
 @media (max-width: 760px) {
@@ -219,7 +222,7 @@
     .speaking-picture-editor__navigator > div { max-height: 220px; }
     .speaking-picture-editor__set > button, .speaking-picture-editor__audio { width: 100%; }
     .speaking-picture-editor__voice-candidates > button { width: 100%; }
-    .speaking-picture-editor__voice-candidates label { grid-template-columns: 1fr; }
+    .speaking-picture-editor__voice-candidates article { grid-template-columns: 1fr; }
     .speaking-picture-editor__actions { display: grid; grid-template-columns: 1fr; }
     .speaking-set__actions { width: 100%; display: grid; grid-template-columns: 1fr; }
 }
