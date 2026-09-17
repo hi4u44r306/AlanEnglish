@@ -9,6 +9,7 @@ import {
     getGamificationLeaderboard,
     getGamificationSummary
 } from "../../services/gamificationService";
+import { readAppShellCacheEntry, writeAppShellCache } from "../../services/appShellCache";
 import "./css/Gamification.scss";
 
 const PERIODS = [
@@ -31,7 +32,14 @@ function LearningLeaderboard() {
     const [classCode, setClassCode] = useState(studentProfile?.class || "");
     const [classes, setClasses] = useState([]);
     const [data, setData] = useState(null);
-    const [summary, setSummary] = useState(null);
+    const [summary, setSummary] = useState(() => (
+        isStudent && firebaseUser?.uid
+            ? readAppShellCacheEntry(firebaseUser.uid, "gamification", {
+                freshForMs: 5 * 60 * 1000,
+                keepForMs: 24 * 60 * 60 * 1000
+            })?.value || null
+            : null
+    ));
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -47,7 +55,10 @@ function LearningLeaderboard() {
 
             const results = await Promise.all(requests);
             setData(results[0]);
-            if (isStudent) setSummary(results[1]);
+            if (isStudent) {
+                setSummary(results[1]);
+                writeAppShellCache(firebaseUser.uid, "gamification", results[1]);
+            }
             if (isStaff) {
                 const classResult = results[1];
                 const nextClasses = classResult?.classes || [];

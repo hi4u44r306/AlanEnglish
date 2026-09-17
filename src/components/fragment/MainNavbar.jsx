@@ -18,7 +18,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
-import { readAppShellCache, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
+import { readAppShellCache, readAppShellCacheEntry, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
 import StudentNavbar from "./StudentNavbar";
 import { sendSocialHeartbeat } from "../../services/studentSocialService";
 import { NOTIFICATIONS_READ_EVENT, notifyNotificationsRead } from "../../constants/notificationEvents";
@@ -35,6 +35,14 @@ const restoreDocumentScroll = () => {
         document.body.classList.remove('modal-open');
     });
 };
+
+const staysInAuthenticatedShell = destination => [
+    "/student",
+    "/teacher",
+    "/admin",
+    "/account",
+    "/billing"
+].some(prefix => destination === prefix || destination.startsWith(`${prefix}/`));
 
 function MainNavbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -162,7 +170,11 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
-        const cachedSummary = readAppShellCache(firebaseUser.uid, "gamification", 5 * 60 * 1000);
+        const cacheEntry = readAppShellCacheEntry(firebaseUser.uid, "gamification", {
+            freshForMs: 5 * 60 * 1000,
+            keepForMs: 24 * 60 * 60 * 1000
+        });
+        const cachedSummary = cacheEntry?.value;
         if (cachedSummary) setGamificationSummary(cachedSummary);
         const refreshGamification = () => {
             getGamificationSummary(firebaseUser)
@@ -177,7 +189,7 @@ function MainNavbar() {
                     if (!cancelled) setGamificationSummary(null);
                 });
         };
-        const cancelIdleRefresh = cachedSummary
+        const cancelIdleRefresh = cachedSummary && !cacheEntry.isStale
             ? scheduleWhenIdle(refreshGamification)
             : (() => {
                 refreshGamification();
@@ -231,7 +243,11 @@ function MainNavbar() {
             return undefined;
         }
         let cancelled = false;
-        const cachedCategories = readAppShellCache(firebaseUser.uid, "catalog", 10 * 60 * 1000);
+        const cacheEntry = readAppShellCacheEntry(firebaseUser.uid, "catalog", {
+            freshForMs: 10 * 60 * 1000,
+            keepForMs: 30 * 60 * 1000
+        });
+        const cachedCategories = cacheEntry?.value;
         if (cachedCategories) {
             setCategories(cachedCategories);
             setLoading(false);
@@ -253,7 +269,7 @@ function MainNavbar() {
                 if (!cancelled) setLoading(false);
             }
         };
-        const cancelIdleRefresh = cachedCategories
+        const cancelIdleRefresh = cachedCategories && !cacheEntry.isStale
             ? scheduleWhenIdle(fetchNavbarData)
             : (() => {
                 fetchNavbarData();
@@ -271,8 +287,11 @@ function MainNavbar() {
         const isNonPrimaryClick = typeof event.button === "number" && event.button !== 0;
         if (!link || event.defaultPrevented || isNonPrimaryClick || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) return;
 
-        event.preventDefault();
-        pendingMobileNavigationRef.current = link.getAttribute("href") || "";
+        const destination = link.getAttribute("href") || "";
+        if (!staysInAuthenticatedShell(destination)) {
+            event.preventDefault();
+            pendingMobileNavigationRef.current = destination;
+        }
         closeMobileMenu();
     };
     const handleMobileMenuExited = () => {

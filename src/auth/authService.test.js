@@ -35,7 +35,7 @@ describe("loadStudentProfile", () => {
         resolveProfile({ profile });
 
         await expect(Promise.all([loginRequest, authContextRequest])).resolves.toEqual([profile, profile]);
-        expect(JSON.parse(localStorage.getItem("ae-profile-cache-v1"))).toMatchObject(profile);
+        expect(JSON.parse(localStorage.getItem("ae-profile-cache-v2"))).toMatchObject(profile);
     });
 });
 

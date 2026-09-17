@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { MemoryRouter, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import MainNavbar from "./MainNavbar";
 import { APP_ROUTER_FUTURE } from "../../app/routerFuture";
 import { useAuth } from "../../auth/AuthContext";
@@ -35,6 +35,16 @@ const LocationProbe = () => {
     const location = useLocation();
     return <output aria-label="目前路徑">{location.pathname}</output>;
 };
+
+const PersistentTestLayout = () => (
+    <>
+        <MainNavbar />
+        <LocationProbe />
+        <Suspense fallback={<div role="status">正在準備內容</div>}>
+            <Outlet />
+        </Suspense>
+    </>
+);
 
 describe("MainNavbar student navigation", () => {
     beforeEach(() => {
@@ -125,18 +135,12 @@ describe("MainNavbar student navigation", () => {
         expect(mobileMenu).toHaveAttribute("data-placement", "end");
         fireEvent.click(within(mobileMenu).getByRole("link", { name: "智慧複習" }));
 
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/dashboard");
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/review");
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
         expect(mockOffcanvasRender).toHaveBeenLastCalledWith({ show: false, placement: "end" });
-
-        await act(async () => {
-            mockOffcanvasExited();
-        });
-
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/review");
     });
 
-    it("closes the mobile offcanvas without replacing the visible shell while a lazy route loads", async () => {
+    it("keeps the navbar mounted while a lazy route loads inside the persistent app shell", async () => {
         let resolveReviewPage;
         const LazyReviewPage = lazy(() => new Promise(resolve => {
             resolveReviewPage = () => resolve({ default: () => <h1>智慧複習頁面</h1> });
@@ -144,12 +148,12 @@ describe("MainNavbar student navigation", () => {
 
         render(
             <MemoryRouter initialEntries={["/student/dashboard"]} future={APP_ROUTER_FUTURE}>
-                <Suspense fallback={<div role="status">頁面載入中...</div>}>
-                    <Routes>
-                        <Route path="/student/dashboard" element={<><MainNavbar /><LocationProbe /></>} />
-                        <Route path="/student/review" element={<><MainNavbar /><LazyReviewPage /></>} />
-                    </Routes>
-                </Suspense>
+                <Routes>
+                    <Route element={<PersistentTestLayout />}>
+                        <Route path="/student/dashboard" element={<h1>學習首頁</h1>} />
+                        <Route path="/student/review" element={<LazyReviewPage />} />
+                    </Route>
+                </Routes>
             </MemoryRouter>
         );
 
@@ -157,15 +161,8 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "智慧複習" }));
 
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
         expect(screen.queryByText("頁面載入中...")).not.toBeInTheDocument();
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/dashboard");
-
-        await act(async () => {
-            mockOffcanvasExited();
-        });
-
-        expect(screen.queryByText("頁面載入中...")).not.toBeInTheDocument();
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/dashboard");
 
         await act(async () => {
             resolveReviewPage();
@@ -174,7 +171,7 @@ describe("MainNavbar student navigation", () => {
         expect(await screen.findByRole("heading", { name: "智慧複習頁面" })).toBeInTheDocument();
     });
 
-    it("waits for the teacher and admin offcanvas exit before navigating", async () => {
+    it("starts teacher and admin navigation while the offcanvas closes", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "admin-test" },
             role: "admin",
@@ -193,14 +190,8 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
         fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "每週學習報告" }));
 
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/admin/dashboard");
-        expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
-
-        await act(async () => {
-            mockOffcanvasExited();
-        });
-
         expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/admin/reports");
+        expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     });
 
     it("keeps the materials entry available while the accessible catalog is loading", async () => {
