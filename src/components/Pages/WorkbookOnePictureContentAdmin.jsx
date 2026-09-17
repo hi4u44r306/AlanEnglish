@@ -8,6 +8,7 @@ import {
     getWorkbookOnePictureReviewCandidates,
     uploadSpeakingQuestionPicture
 } from "../../services/speakingContentService";
+import SpeakingSelectedImagePreview from "./SpeakingSelectedImagePreview";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -167,6 +168,7 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
                         <label><span>圖片替代文字（繁體中文）</span><input required value={row.alt_zh} onChange={event => updateRow(row.key, "alt_zh", event.target.value)} disabled={working} placeholder="只描述圖片，不加入作答提示" /></label>
                         <label className="speaking-file-picker"><span><ImagePlus size={16} />經核准圖片</span><input required type="file" aria-label="經核准圖片" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={event => updateRow(row.key, "file", event.target.files?.[0] || null)} disabled={working} /><small>{row.file ? `${row.file.name} · ${(row.file.size / 1024 / 1024).toFixed(1)}MB` : "JPG、PNG 或 WebP，單檔 10MB 內"}</small></label>
                     </div>
+                    <SpeakingSelectedImagePreview file={row.file} alt={row.alt_zh} />
                 </div>
             </article>)}</div>
             <label className="speaking-confirm"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={working || !allRowsReviewed} /><span>我已逐題對照 Workbook 1 {pageLabel}，確認圖片、問句／句型、完整回答、冠詞、所有權答案與替代文字正確，且圖片可用於本教材。</span></label>
