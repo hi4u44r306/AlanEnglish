@@ -2,11 +2,11 @@
 
 最後更新：2026-09-17
 
-本次自訂口說草稿移除重複總確認（2026-09-17，本機驗證完成，尚未部署）：
+本次自訂口說草稿移除重複總確認（2026-09-17，正式站已部署）：
 
 - 「從頭建立自訂口說草稿」移除最下方的「我已確認教材、頁碼、所有句子、答案與圖片正確」勾選框；教材、題組名稱、主題及各題必填內容完成並符合格式後，即可直接按「建立未發布草稿」。
 - 頁碼範圍、完整句、唯一挖空答案、問句格式、圖片類型／大小與替代文字等實質驗證均保留；前端仍送出既有的內部確認標記以符合後端契約，因此本批不修改資料庫、RLS、Edge Function 或正式資料。草稿仍不會自動發布，既有逐題核准與發布條件不變。
-- 新增 React 回歸測試 1/1、口說題庫契約 26/26、Production build 與 `git diff --check` 均通過；build 僅有既有未使用 import、Browserslist 與 Node deprecation 警告。
+- 新增 React 回歸測試 1/1、口說題庫契約 26/26、Production build 與 `git diff --check` 均通過；build 僅有既有未使用 import、Browserslist 與 Node deprecation 警告。PR #165 已合併至 `main` commit `662828d`；Netlify production deploy `6aab8b29b3a76fa8d17da600` 已 live，正式首頁、管理頁與唯一部署網址均回應 HTTP 200，正式站載入 `main.fa5bd6bd.js`。
 
 本次 P22～P24 `The` 弱讀候選試聽與管理員單題套用（2026-09-17，正式站已部署）：
 
