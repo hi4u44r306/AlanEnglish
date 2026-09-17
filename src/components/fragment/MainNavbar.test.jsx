@@ -1,8 +1,9 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import MainNavbar from "./MainNavbar";
+import { APP_ROUTER_FUTURE } from "../../app/routerFuture";
 import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
@@ -16,15 +17,17 @@ jest.mock("../../services/gamificationService", () => ({ getGamificationSummary:
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
 jest.mock("../../services/reviewService", () => ({ prefetchReviewDashboard: jest.fn() }));
 const mockOffcanvasRender = jest.fn();
+let mockOffcanvasExited;
 jest.mock("../../services/studentSocialService", () => ({ sendSocialHeartbeat: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
-    const Offcanvas = ({ show, children, id, placement }) => {
+    const Offcanvas = ({ show, children, id, onExited, placement }) => {
         mockOffcanvasRender({ show, placement });
+        mockOffcanvasExited = onExited;
         return show ? ReactModule.createElement("aside", { id, "data-placement": placement }, children) : null;
     };
     Offcanvas.Header = ({ children }) => ReactModule.createElement("header", null, children);
-    Offcanvas.Body = ReactModule.forwardRef(({ children }, ref) => ReactModule.createElement("div", { ref }, children));
+    Offcanvas.Body = ReactModule.forwardRef(({ children, ...props }, ref) => ReactModule.createElement("div", { ...props, ref }, children));
     return { __esModule: true, default: Offcanvas };
 });
 
@@ -36,6 +39,7 @@ const LocationProbe = () => {
 describe("MainNavbar student navigation", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockOffcanvasExited = undefined;
         localStorage.clear();
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-test" },
@@ -121,9 +125,82 @@ describe("MainNavbar student navigation", () => {
         expect(mobileMenu).toHaveAttribute("data-placement", "end");
         fireEvent.click(within(mobileMenu).getByRole("link", { name: "智慧複習" }));
 
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/review");
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/dashboard");
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
         expect(mockOffcanvasRender).toHaveBeenLastCalledWith({ show: false, placement: "end" });
+
+        await act(async () => {
+            mockOffcanvasExited();
+        });
+
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/review");
+    });
+
+    it("closes the mobile offcanvas without replacing the visible shell while a lazy route loads", async () => {
+        let resolveReviewPage;
+        const LazyReviewPage = lazy(() => new Promise(resolve => {
+            resolveReviewPage = () => resolve({ default: () => <h1>智慧複習頁面</h1> });
+        }));
+
+        render(
+            <MemoryRouter initialEntries={["/student/dashboard"]} future={APP_ROUTER_FUTURE}>
+                <Suspense fallback={<div role="status">頁面載入中...</div>}>
+                    <Routes>
+                        <Route path="/student/dashboard" element={<><MainNavbar /><LocationProbe /></>} />
+                        <Route path="/student/review" element={<><MainNavbar /><LazyReviewPage /></>} />
+                    </Routes>
+                </Suspense>
+            </MemoryRouter>
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
+        fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "智慧複習" }));
+
+        expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+        expect(screen.queryByText("頁面載入中...")).not.toBeInTheDocument();
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/dashboard");
+
+        await act(async () => {
+            mockOffcanvasExited();
+        });
+
+        expect(screen.queryByText("頁面載入中...")).not.toBeInTheDocument();
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/dashboard");
+
+        await act(async () => {
+            resolveReviewPage();
+        });
+
+        expect(await screen.findByRole("heading", { name: "智慧複習頁面" })).toBeInTheDocument();
+    });
+
+    it("waits for the teacher and admin offcanvas exit before navigating", async () => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "admin-test" },
+            role: "admin",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: { name: "管理員" }
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/admin/dashboard"]} future={APP_ROUTER_FUTURE}>
+                <MainNavbar />
+                <LocationProbe />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
+        fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "每週學習報告" }));
+
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/admin/dashboard");
+        expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+
+        await act(async () => {
+            mockOffcanvasExited();
+        });
+
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/admin/reports");
     });
 
     it("keeps the materials entry available while the accessible catalog is loading", async () => {

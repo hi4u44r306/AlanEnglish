@@ -967,3 +967,7 @@ grant select, insert, update, delete on table public.listening_coverage_sessions
 ## 歷史進行中（2026-09-09，測試站已部署，正式尚未部署）
 
 - 公開教材停售與方案文案統一：公開教材包、平台月費與 AI 加購都已在前端關閉新的購物車／結帳入口；首頁、教材頁與商城改為明確說明「教材包暫未販售」、「公開付款暫停」。公開規劃改為平台 NT$299／月、AI 教材與發音練習加購 NT$299／月；英文班內部方案與費用不公開在網站。未來實體教材恢復販售時，預定以同一個已驗證 Email 領取 90 天網站使用權，但本批不啟用銷售或領取流程。測試 Supabase 已套用並登記 `20260909100000_pause_public_sales_and_update_membership_pricing.sql`，只更新四個方案設定、不變更既有教材包或訂單；`billing-manager` 與 `store-commerce` 已部署停售防護，三種新付款入口的無身分請求皆正確回傳 503。固定測試站公開路由驗收通過；尚待提交、推送、合併與正式部署。
+
+## 本次完成（2026-09-17，手機 Offcanvas 順暢收合，尚未部署）
+
+- 公開、學生、老師與管理員手機側欄的站內連結改為先關閉 Offcanvas，等 React Bootstrap `onExited` 確認退出動畫完成後才執行 SPA 導覽；避免路由先切換、側欄卡住或直接消失。全站 BrowserRouter 啟用 `v7_startTransition`，lazy 頁面載入期間保留目前 Navbar 與已顯示內容，不再以全頁「頁面載入中」取代整個 App Shell。新增學生 lazy route、學生側欄與管理端側欄的導覽時序測試；相關 React 17/17、Production build 與 `git diff --check` 通過。412×915 本機登入學生流程已確認點擊後先留在原網址、退出完成才進入新網址，且沒有顯示全頁載入 fallback；瀏覽器驗收環境啟用 reduced motion，因此實際 300ms 動畫視覺仍須在一般手機設定下複驗。本批沒有 migration、Edge Function、權限或資料異動。
