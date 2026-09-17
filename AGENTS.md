@@ -355,6 +355,13 @@ coverage/
 
 ## 13. Git 與 GitHub 規則
 
+### 13.1 口說題庫草稿建立授權
+
+- 專案擁有者已明確授權：日後只要使用既有且已部署的 `speaking-content-manager` 草稿建立功能，使用者指定 Workbook 與學生版頁碼範圍時，可直接在遠端建立未發布草稿，不必每次重新補充「只建立草稿」限制。
+- 這項授權不包含自動發布、正式題庫切換、圖片猜測或代替管理員核准；圖片題缺少圖片時，必須停在待新增／待核准圖片狀態。
+- 若指定頁碼需要新增程式邏輯、資料表／migration、RLS、Edge Function action 或重新部署 Function，仍須先說明影響，並取得該批變更的明確授權；完成後才可建立遠端草稿。
+- 每次建立後回報遠端題庫 ID、來源頁碼、題數與草稿狀態。
+
 開始開發前確認：
 
 ```bash
@@ -367,6 +374,11 @@ git status --short
 - 不直接在 `main` 修改。
 - 每個功能使用獨立分支。
 - 分支名稱應清楚，例如 `feature/listening-coverage`、`feature/guided-trial` 或 `fix/mobile-player-overlap`。
+- 未經使用者明確要求，不得建立 Git worktree。
+- 預設同一時間只使用一個進行中的開發分支。
+- 開始新功能前，先同步至最新的 `main`。
+- 不得從功能分支部署正式站；正式部署必須使用已測試的最新 `main` 分支。
+- 不得從平行分支執行 Supabase 正式 migration 或部署 Edge Function。
 
 專案擁有者已提供一般發布流程的持續授權。低至中風險修改在完成相應本機測試、Production build 與 diff 檢查後，可以直接：
 
