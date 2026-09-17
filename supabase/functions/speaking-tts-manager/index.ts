@@ -579,7 +579,7 @@ const generateQuestionAudio = async (admin: any, question: any, target: any = nu
     const settingsHash = await sha256(JSON.stringify({
         provider: PROVIDER, voice_id: selectedVoice, language_code: LANGUAGE_CODE,
         output_format: OUTPUT_FORMAT, sample_rate: "provider_default", pipeline_version: PIPELINE_VERSION,
-        audio_version: target?.audioVersion || (/\bthe\b/i.test(text) ? "the-ipa-v1" : "default-v1"),
+        audio_version: target?.audioVersion || (/\bthe\b/i.test(text) ? "the-ipa-v2" : "default-v2"),
         gap_ms: target?.kind === "sentence_pattern" ? PICTURE_SENTENCE_GAP_MS : null,
         settings: SETTINGS
     }));
