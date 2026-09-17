@@ -2,11 +2,11 @@
 
 最後更新：2026-09-17
 
-本次看圖補句「句尾挖空」語音修正（2026-09-17，本機驗證完成，待部署）：
+本次看圖補句「句尾挖空」語音修正（2026-09-17，已正式部署）：
 
 - 已以正式資料唯讀查核 Workbook 1 P28「顏色」草稿：5 題句型均以 `____.` 結尾，對應語音資產全數失敗，後端錯誤為「語音文字不可為空白」。直接原因是句尾句號會先從 TTS 文字移除，空格右側因此成為空字串，舊流程仍嘗試呼叫第二段語音。
 - 新版允許看圖補句在空格右側只有標點；後端只合成空格前文字，再附加精準 2 秒靜音，不把答案或句號送交 Google TTS。語音資產版本提升為 `picture-gap-leda-v3`，不覆寫或刪除既有私人音檔；管理頁若仍失敗會顯示後端實際原因。
-- 語音契約 6/6、管理頁回歸 2/2、`speaking-tts-manager` 語法、Production build 與 `git diff --check` 均通過；build 只有既有未使用 import、Browserslist 與 Node deprecation 警告。本批不含 migration、RLS、題庫文字、圖片、發布狀態或學生進度異動；待完成 PR、Edge Function 與正式站發布後更新部署紀錄。
+- 語音契約 6/6、管理頁回歸 2/2、`speaking-tts-manager` 語法、Production build 與 `git diff --check` 均通過；build 只有既有未使用 import、Browserslist 與 Node deprecation 警告。PR #183 已合併至 `main` commit `65492bd`；正式 `speaking-tts-manager` v26 為 ACTIVE，OPTIONS 200、未登入 POST 401。Netlify production deploy `6aac062f84764d64770739f3` 已 live，正式管理頁回應 HTTP 200 並載入 `main.99c82c92.js`。本批不含 migration、RLS、題庫文字、圖片、發布狀態或學生進度異動；P28 草稿仍由管理員按「更新停頓整句女聲」後才會產生新版私人音檔。
 
 本次教材 AI 口說題庫緊湊化與語音重試保護（2026-09-17，已正式部署）：
 
