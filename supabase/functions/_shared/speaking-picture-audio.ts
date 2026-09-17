@@ -1,9 +1,9 @@
 import { parseLinear16MonoWav } from "./alphabet-audio-sequence.ts";
 
 export const PICTURE_SENTENCE_GAP_MS = 2000;
-export const PICTURE_SENTENCE_AUDIO_VERSION = "picture-gap-leda-v1";
+export const PICTURE_SENTENCE_AUDIO_VERSION = "picture-gap-leda-v2";
 export const VISIBLE_WORD_AUDIO_VERSION = "visible-word-leda-v2";
-export const PICTURE_GAP_THE_CANDIDATE_VERSION = "picture-gap-the-context-v1";
+export const PICTURE_GAP_THE_CANDIDATE_VERSION = "picture-gap-the-context-v2";
 
 export const PICTURE_GAP_THE_CANDIDATE_PROFILES = Object.freeze([
     Object.freeze({ id: "context-natural", label: "自然弱讀（連句語境）", theRate: "100%" }),
@@ -19,7 +19,12 @@ const xmlEscape = (value: string) => value
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
-const googleSsmlFragmentForText = (text: string) => xmlEscape(text).replace(
+const withoutTerminalFullStops = (value: unknown) => String(value || "")
+    .trim()
+    .replace(/[.\u3002\uff0e\u2026]+$/u, "")
+    .trim();
+
+const googleSsmlFragmentForText = (text: string) => xmlEscape(withoutTerminalFullStops(text)).replace(
     /\bthe\b/gi,
     matched => `<phoneme alphabet="ipa" ph="ðə">${matched}</phoneme>`
 );
@@ -37,7 +42,7 @@ export const pictureGapSentenceParts = (pattern: unknown) => {
 };
 
 export const googleSpeechInputForText = (value: unknown): GoogleSpeechInput => {
-    const text = String(value || "").trim();
+    const text = withoutTerminalFullStops(value);
     if (!text) throw new Error("語音文字不可為空白");
     if (!/\bthe\b/i.test(text)) return { text };
     const escaped = googleSsmlFragmentForText(text);
