@@ -8,6 +8,7 @@ import {
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
     createWorkbookTwoStarterQuestionSet,
+    getPictureGapTheAudioCandidates,
     getSpeakingContentBootstrap,
     getSpeakingQuestionAudioPreview,
     getSpeakingQuestionPicturePreview,
@@ -23,6 +24,7 @@ jest.mock("../../services/speakingContentService", () => ({
     createWorkbookOneStarterQuestionSet: jest.fn(),
     createWorkbookTwoStarterQuestionSet: jest.fn(),
     getSpeakingContentBootstrap: jest.fn(),
+    getPictureGapTheAudioCandidates: jest.fn(),
     getSpeakingQuestionAudioPreview: jest.fn(),
     getSpeakingQuestionPicturePreview: jest.fn(),
     extractSpeakingSourceDocument: jest.fn(), extractSpeakingBookChunk: jest.fn(),
@@ -54,6 +56,13 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         activateSpeakingAlphabetAudioCandidate.mockResolvedValue({ success: true, activated: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Leda", voice_gender: "female", audio_url: "https://audio.example/leda.wav" });
+        getPictureGapTheAudioCandidates.mockResolvedValue({
+            success: true,
+            candidates: [
+                { id: "context-natural", label: "自然弱讀（連句語境）", audio_url: "https://audio.example/the-natural.wav" },
+                { id: "context-clear", label: "清楚弱讀（The 稍慢）", audio_url: "https://audio.example/the-clear.wav" }
+            ]
+        });
         getSpeakingQuestionPicturePreview.mockResolvedValue({
             question_id: 53,
             image_url: "https://r2.example/p21-preview.png",

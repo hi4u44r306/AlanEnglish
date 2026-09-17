@@ -3,6 +3,12 @@ import { parseLinear16MonoWav } from "./alphabet-audio-sequence.ts";
 export const PICTURE_SENTENCE_GAP_MS = 2000;
 export const PICTURE_SENTENCE_AUDIO_VERSION = "picture-gap-leda-v1";
 export const VISIBLE_WORD_AUDIO_VERSION = "visible-word-leda-v2";
+export const PICTURE_GAP_THE_CANDIDATE_VERSION = "picture-gap-the-context-v1";
+
+export const PICTURE_GAP_THE_CANDIDATE_PROFILES = Object.freeze([
+    Object.freeze({ id: "context-natural", label: "自然弱讀（連句語境）", theRate: "100%" }),
+    Object.freeze({ id: "context-clear", label: "清楚弱讀（The 稍慢）", theRate: "88%" })
+]);
 
 export type GoogleSpeechInput = { text: string } | { ssml: string };
 
@@ -12,6 +18,11 @@ const xmlEscape = (value: string) => value
     .replace(/>/g, "&gt;")
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&apos;");
+
+const googleSsmlFragmentForText = (text: string) => xmlEscape(text).replace(
+    /\bthe\b/gi,
+    matched => `<phoneme alphabet="ipa" ph="ðə">${matched}</phoneme>`
+);
 
 export const pictureGapSentenceParts = (pattern: unknown) => {
     const normalized = String(pattern || "").trim();
@@ -29,11 +40,22 @@ export const googleSpeechInputForText = (value: unknown): GoogleSpeechInput => {
     const text = String(value || "").trim();
     if (!text) throw new Error("語音文字不可為空白");
     if (!/\bthe\b/i.test(text)) return { text };
-    const escaped = xmlEscape(text).replace(
-        /\bthe\b/gi,
-        matched => `<phoneme alphabet="ipa" ph="ðə">${matched}</phoneme>`
-    );
+    const escaped = googleSsmlFragmentForText(text);
     return { ssml: `<speak>${escaped}</speak>` };
+};
+
+export const pictureGapTheCandidateInput = (pattern: unknown, profileId: unknown): GoogleSpeechInput => {
+    const profile = PICTURE_GAP_THE_CANDIDATE_PROFILES.find(candidate => candidate.id === String(profileId || ""));
+    if (!profile) throw new Error("The 弱讀候選版本不正確");
+    const { before, after } = pictureGapSentenceParts(pattern);
+    if (!/^the$/i.test(before)) throw new Error("這個候選試聽只適用於以 The 開始的看圖補句");
+    const spokenThe = `<phoneme alphabet="ipa" ph="ðə">${xmlEscape(before)}</phoneme>`;
+    const contextualThe = profile.theRate === "100%"
+        ? spokenThe
+        : `<prosody rate="${profile.theRate}">${spokenThe}</prosody>`;
+    return {
+        ssml: `<speak>${contextualThe}<break time="${PICTURE_SENTENCE_GAP_MS}ms"/>${googleSsmlFragmentForText(after)}</speak>`
+    };
 };
 
 const writeAscii = (bytes: Uint8Array, offset: number, value: string) => {

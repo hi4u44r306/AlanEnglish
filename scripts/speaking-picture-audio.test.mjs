@@ -3,6 +3,7 @@ import test from "node:test";
 import {
     assemblePictureGapSentenceWav,
     googleSpeechInputForText,
+    pictureGapTheCandidateInput,
     pictureGapSentenceParts,
     PICTURE_SENTENCE_GAP_MS
 } from "../supabase/functions/_shared/speaking-picture-audio.ts";
@@ -35,6 +36,17 @@ test("the 使用固定 IPA 弱讀音，避免引擎自行猜音", () => {
     assert.deepEqual(googleSpeechInputForText("The horse is in the race."), {
         ssml: "<speak><phoneme alphabet=\"ipa\" ph=\"ðə\">The</phoneme> horse is in <phoneme alphabet=\"ipa\" ph=\"ðə\">the</phoneme> race.</speak>"
     });
+});
+
+test("The 候選在同一次合成保留連句語境與 2 秒空格", () => {
+    assert.deepEqual(pictureGapTheCandidateInput("The ____ are in the classroom.", "context-natural"), {
+        ssml: "<speak><phoneme alphabet=\"ipa\" ph=\"ðə\">The</phoneme><break time=\"2000ms\"/>are in <phoneme alphabet=\"ipa\" ph=\"ðə\">the</phoneme> classroom.</speak>"
+    });
+    assert.deepEqual(pictureGapTheCandidateInput("The ____ is not in Taipei.", "context-clear"), {
+        ssml: "<speak><prosody rate=\"88%\"><phoneme alphabet=\"ipa\" ph=\"ðə\">The</phoneme></prosody><break time=\"2000ms\"/>is not in Taipei.</speak>"
+    });
+    assert.throws(() => pictureGapTheCandidateInput("We ____ are ready.", "context-natural"), /以 The 開始/);
+    assert.throws(() => pictureGapTheCandidateInput("The ____ are ready.", "missing"), /候選版本/);
 });
 
 test("整句只使用可見句型並在唯一空格切成前後兩段", () => {
