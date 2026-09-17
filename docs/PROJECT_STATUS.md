@@ -2,12 +2,13 @@
 
 最後更新：2026-09-18
 
-本次排行榜班級／綜合競賽與原名顯示（2026-09-18，本機驗證完成，待發布）：
+本次排行榜班級／綜合競賽與原名顯示（2026-09-18，已正式部署）：
 
 - 學生排行榜新增「我的班級」與「綜合排行」切換，並保留本週、本月與總排行期間。學生的班級範圍由後端依登入者目前班級決定，不能用前端參數查看其他指定班級；綜合排行納入所有使用中且未封存的學生。
 - 排行列有公開暱稱時以暱稱為主並補上帳號原名，沒有暱稱時直接顯示原名；維持既有頭像、班級、等級與 XP，未新增 Email、生日、家長資料、登入帳號或精確活動時間。
 - 正式資料唯讀統計目前共有 9 個使用中學生帳號，其中 3 個有班級；低於既有排行榜 100 人上限。本批不需要 migration，尚未修改正式資料或部署 Edge Function。
 - React 頁面與服務測試 3/3、後端範圍安全測試 3/3、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過；build 只有既有未使用 import、React Router future flag、Browserslist、Node deprecation 與 TypeScript module-type 警告。
+- PR #185 已合併至 `main` commit `3e4091d`；正式 `gamification` v16 為 ACTIVE，OPTIONS 200、未登入 POST 401。Netlify production deploy `6aac11f96dad8e5ae65fdda5` 已 live，正式排行榜路由回應 HTTP 200 並載入 `main.ff72e907.js`／`main.f5a426ef.css`。未使用學生帳密進行登入後實機驗收，互動與授權分支由 6 項自動測試覆蓋。
 
 本次看圖補句「句尾挖空」語音修正（2026-09-17，已正式部署）：
 
