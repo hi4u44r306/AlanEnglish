@@ -2,12 +2,12 @@
 
 最後更新：2026-09-17
 
-本次登入後常駐 App Shell 與顯示快取（2026-09-17，預覽站已驗證，正式站尚未部署）：
+本次登入後常駐 App Shell 與顯示快取（2026-09-17，正式站已部署）：
 
 - 學生、老師與管理員登入後共用同一個常駐 Navbar／App 外框；切換內部 route 時只替換中央內容，lazy chunk 載入期間顯示局部「—」佔位，不再卸載並重建整個 Navbar。首次登入設定頁仍維持獨立全頁流程。
 - 手機功能選單選擇登入區內頁面時，React Router 導航與 React Bootstrap Offcanvas 收合會在同一次點擊開始；離開登入區前往商城或客服時仍等退場完成再導航，避免外框切換造成殘影。
 - 教材目錄與 XP 摘要採 Firebase UID 隔離的 stale-while-revalidate 顯示快取：新鮮資料立即使用，較舊但仍安全的資料先顯示再背景更新；排行榜與 Navbar 同時要求 XP 摘要時共用同一個進行中請求。登出會只清除該 UID 的 App Shell 顯示快取。快取不作為教材、作業、會員或角色授權依據，後端驗證規則未變。
-- 相關 React 測試 6 suites／27 tests 全數通過；完整前端測試 62 suites 通過、1 suite 為既有 `SpeakingContentAdmin.test.jsx` 按鈕數量斷言（預期 5、目前畫面 6）失敗，與本批檔案無關。Production build 已通過，僅有既有未使用 import、Browserslist 與 Node deprecation 警告。Netlify Draft deploy `6aab7631588412fb3a314927` 已 ready。本批沒有 migration、Edge Function、Firebase、會員權限或正式資料異動。
+- 相關 React 測試 6 suites／27 tests 全數通過；完整前端測試 62 suites 通過、1 suite 為既有 `SpeakingContentAdmin.test.jsx` 按鈕數量斷言（預期 5、目前畫面 6）失敗，與本批檔案無關。Production build 已通過，僅有既有未使用 import、Browserslist 與 Node deprecation 警告。PR #161 已合併至 `main` commit `c5f73c7`；Netlify production deploy `6aab79275948e62c9c54ae40` 已 live，正式站載入 `main.f12be562.js`／`main.3c2236e6.css`。412×915 正式站公開選單可正常開啟與關閉，Console 0 errors；登入後流程因未使用帳密，由 27 項自動測試覆蓋。本批沒有 migration、Edge Function、Firebase、會員權限或正式資料異動。
 
 本次通用管理員口說草稿建立器（2026-09-17，正式站已部署）：
 
