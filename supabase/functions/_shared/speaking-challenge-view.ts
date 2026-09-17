@@ -1,5 +1,3 @@
-import { visibleSentenceWords } from "./speaking-foundation-answer.ts";
-
 export const authorizeSpeakingChallenge = async (
     user: any,
     loadAccess: (studentId: number) => Promise<any>
@@ -29,7 +27,6 @@ export const buildPublicSpeakingQuestion = async ({
     promptAsset,
     pictureInteraction,
     visualAsset,
-    wordAudioRows = [],
     signPrivateObject
 }: any) => {
     const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
@@ -49,29 +46,11 @@ export const buildPublicSpeakingQuestion = async ({
         });
     }
 
-    const wordAudio = [];
-    for (const row of wordAudioRows) {
-        if (row.asset?.status !== "ready" || !row.asset?.private_object_key) continue;
-        wordAudio.push({
-            token_index: Number(row.token_index),
-            word: String(row.word),
-            audio_url: await signPrivateObject(row.asset.private_object_key)
+    if (interactionType === "picture_gap_sentence" && !promptReady) {
+        throw Object.assign(new Error("看圖補句的整句女聲發音尚未完成"), {
+            status: 409,
+            code: "picture_audio_incomplete"
         });
-    }
-
-    if (interactionType === "picture_gap_sentence") {
-        const expectedWords = visibleSentenceWords(pictureInteraction.prompt_text);
-        const completeWordAudio = expectedWords.length === wordAudio.length
-            && expectedWords.every(expected => wordAudio.some(item => (
-                item.token_index === expected.tokenIndex
-                && item.word.toLowerCase() === expected.text.toLowerCase()
-            )));
-        if (!completeWordAudio || !promptReady) {
-            throw Object.assign(new Error("P22～P24 的逐字或整句女聲發音尚未完整"), {
-                status: 409,
-                code: "picture_audio_incomplete"
-            });
-        }
     }
 
     const foundationAnswerHidden = interactionType === "alphabet_round" || interactionType === "letter_spelling";
@@ -92,7 +71,6 @@ export const buildPublicSpeakingQuestion = async ({
         picture_interaction: {
             type: interactionType,
             sentence_pattern: interactionType === "picture_gap_sentence" ? pictureInteraction.prompt_text : null,
-            word_audio: interactionType === "picture_gap_sentence" ? wordAudio : [],
             ...(interactionType === "picture_gap_sentence" ? {
                 sentence_audio_status: "ready",
                 sentence_audio_url: await signPrivateObject(promptAsset.private_object_key)

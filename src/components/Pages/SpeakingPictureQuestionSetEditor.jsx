@@ -171,7 +171,7 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
             const result = await generateSpeakingVisibleWordAudio(firebaseUser, questionSet.id);
             const incomplete = Number(result.failed || 0) + Number(result.pending || 0);
             if (result.success !== true || incomplete > 0) toast.warning(`仍有 ${incomplete || "部分"} 項語音尚未完成`);
-            else toast.success(`逐字與整句女聲已準備完成（新產生 ${result.generated}、沿用 ${result.reused}）`);
+            else toast.success(`停頓整句女聲已準備完成（新產生 ${result.generated}、沿用 ${result.reused}）`);
             setAudioUrl("");
             await onChanged?.(questionSet.id);
         } catch (error) { toast.error(error.message || "語音準備失敗"); }
@@ -287,7 +287,7 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
                 </div>
             </section>
         </div>
-        {isGap && <button type="button" className="platform-secondary speaking-picture-editor__audio" disabled={working === "audio" || (expectedCount ? questions.length !== expectedCount : questions.length < 1)} onClick={prepareAudio}><Volume2 size={17} />{working === "audio" ? "準備女聲中…" : "更新逐字與整句女聲"}</button>}
+        {isGap && <button type="button" className="platform-secondary speaking-picture-editor__audio" disabled={working === "audio" || (expectedCount ? questions.length !== expectedCount : questions.length < 1)} onClick={prepareAudio}><Volume2 size={17} />{working === "audio" ? "準備女聲中…" : "更新停頓整句女聲"}</button>}
         {expectedCount && questions.length !== expectedCount && <p className="speaking-picture-editor__warning">發布前必須補齊 {expectedCount} 題；目前有 {questions.length} 題。</p>}
         {!expectedCount && questions.length < 3 && <p className="speaking-picture-editor__warning">發布前至少需要 3 題；目前有 {questions.length} 題。</p>}
     </div>;

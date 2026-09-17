@@ -92,7 +92,7 @@ describe("WorkbookOnePictureContentAdmin", () => {
         expect(onCreated).toHaveBeenCalled();
     });
 
-    it("P22 會要求挖空句型並在圖片完成後產生可見單字音檔", async () => {
+    it("P22 會要求挖空句型並在圖片完成後產生停頓整句音檔", async () => {
         render(<WorkbookOnePictureContentAdmin firebaseUser={{ uid: "admin" }} workbookOne={{ id: 1 }} onCreated={jest.fn()} />);
         fireEvent.change(screen.getByLabelText("活動類型"), { target: { value: "P22" } });
         const prompts = screen.getAllByLabelText("挖空句型");

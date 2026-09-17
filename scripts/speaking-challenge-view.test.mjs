@@ -109,8 +109,7 @@ test("P21 學生輸出只保留核准圖片，不含問句、答案、accepted r
         },
         picture_interaction: {
             type: "picture_qa",
-            sentence_pattern: null,
-            word_audio: []
+            sentence_pattern: null
         },
         sort_order: 2,
         progress_status: "opened",
@@ -126,19 +125,8 @@ test("P21 學生輸出只保留核准圖片，不含問句、答案、accepted r
     );
 });
 
-test("P22 只保留挖空句型、核准圖片與完整可見單字短效網址", async () => {
+test("P22 只保留挖空句型、核准圖片與停頓整句短效網址", async () => {
     const signer = createOpaqueSigner();
-    const words = [
-        [0, "The", "private/word-the-1.mp3"],
-        [2, "is", "private/word-is.mp3"],
-        [3, "in", "private/word-in.mp3"],
-        [4, "the", "private/word-the-2.mp3"],
-        [5, "tree", "private/word-tree.mp3"]
-    ].map(([token_index, word, private_object_key]) => ({
-        token_index,
-        word,
-        asset: { status: "ready", private_object_key }
-    }));
     const result = await buildPublicSpeakingQuestion({
         question: { ...secretQuestion, id: 2201 },
         interactionType: "picture_gap_sentence",
@@ -155,25 +143,14 @@ test("P22 只保留挖空句型、核准圖片與完整可見單字短效網址"
             alt_zh: "樹上的蘋果"
         },
         promptAsset: { status: "ready", private_object_key: "private/p22-sentence.wav" },
-        wordAudioRows: words,
         signPrivateObject: signer.sign
     });
 
     assert.equal(result.picture_interaction.sentence_pattern, "The ____ is in the tree.");
-    assert.deepEqual(
-        result.picture_interaction.word_audio.map(({ token_index, word }) => ({ token_index, word })),
-        [
-            { token_index: 0, word: "The" },
-            { token_index: 2, word: "is" },
-            { token_index: 3, word: "in" },
-            { token_index: 4, word: "the" },
-            { token_index: 5, word: "tree" }
-        ]
-    );
-    assert.equal(result.picture_interaction.word_audio.every(item => item.audio_url.startsWith("https://signed.test/")), true);
+    assert.equal("word_audio" in result.picture_interaction, false);
     assert.equal(result.picture_interaction.sentence_audio_status, "ready");
-    assert.equal(result.picture_interaction.sentence_audio_url, "https://signed.test/7");
-    assert.equal(result.visual_aid.image_url, "https://signed.test/6");
+    assert.equal(result.picture_interaction.sentence_audio_url, "https://signed.test/2");
+    assert.equal(result.visual_aid.image_url, "https://signed.test/1");
     assert.equal(result.progress_status, "completed");
     assert.equal(result.model_answer, "");
     assert.equal(result.simple_answer, "");
@@ -183,7 +160,7 @@ test("P22 只保留挖空句型、核准圖片與完整可見單字短效網址"
     );
 });
 
-test("P21 圖片未 ready 與 P22 可見單字音檔不完整時拒絕輸出", async () => {
+test("P21 圖片未 ready 與 P22 整句音檔未完成時拒絕輸出", async () => {
     await assert.rejects(
         buildPublicSpeakingQuestion({
             question: secretQuestion,
@@ -204,11 +181,6 @@ test("P21 圖片未 ready 與 P22 可見單字音檔不完整時拒絕輸出", a
                 prompt_text: "The ____ is in the tree."
             },
             visualAsset: { status: "ready", private_object_key: "private/p22.webp" },
-            wordAudioRows: [{
-                token_index: 0,
-                word: "The",
-                asset: { status: "ready", private_object_key: "private/the.mp3" }
-            }],
             signPrivateObject: async () => "https://signed.test/audio"
         }),
         error => error.status === 409 && error.code === "picture_audio_incomplete"

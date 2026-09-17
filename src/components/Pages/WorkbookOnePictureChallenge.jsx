@@ -17,7 +17,7 @@ const copyByType = {
         title: "看圖片，說完整句子",
         instruction: "先看圖片和句型。空格要用圖片答案補上，再把整句英文說出來。",
         promptTitle: "輪到你說完整句子",
-        promptDetail: "可以聽整句或點單字聽發音；整句會在空格停 2 秒，不會播放答案。"
+        promptDetail: "可以先聽整句；整句會在空格停 2 秒，不會播放答案。"
     }
 };
 
@@ -67,10 +67,6 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
     const sentenceTokens = useMemo(() => tokenizeSpeakingSentence(
         activeQuestion?.picture_interaction?.sentence_pattern
     ), [activeQuestion]);
-    const wordAudioByToken = useMemo(() => new Map(
-        (activeQuestion?.picture_interaction?.word_audio || [])
-            .map(item => [Number(item.token_index), item])
-    ), [activeQuestion]);
 
     const playAudio = (url, token, errorMessage, blockedMessage) => {
         if (!url) return;
@@ -92,16 +88,6 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
             clear();
             setAudioError(blockedMessage);
         });
-    };
-
-    const playWord = token => {
-        const item = wordAudioByToken.get(token.tokenIndex);
-        playAudio(
-            item?.audio_url,
-            `word-${token.tokenIndex}`,
-            "這個單字的發音暫時無法播放，請稍後再試。",
-            "瀏覽器阻擋了播放，請再按一次單字。"
-        );
     };
 
     const playSentence = () => playAudio(
@@ -149,7 +135,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
             ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（空格停 2 秒）"}</button>}
             {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>
                 {sentenceTokens.map(token => token.kind === "word"
-                    ? <button type="button" key={token.tokenIndex} onClick={() => playWord(token)} disabled={!wordAudioByToken.get(token.tokenIndex)?.audio_url || audioToken !== null} aria-label={`播放 ${token.text} 的發音`}><FiVolume2 aria-hidden="true" />{token.text}</button>
+                    ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>
                     : token.kind === "blank"
                         ? <span key={token.tokenIndex} className="answer-blank" aria-label="請依圖片補上的答案">____</span>
                         : <span key={token.tokenIndex} className="punctuation" aria-hidden="true">{token.text}</span>)}

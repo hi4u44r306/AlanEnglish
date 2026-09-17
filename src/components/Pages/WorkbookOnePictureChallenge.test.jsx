@@ -153,7 +153,7 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.getByRole("img")).not.toHaveAttribute("src", firstImageUrl);
     });
 
-    it("P22 依 token index 播放所有可見單字，空格不可播放且完整句才完成", async () => {
+    it("P22 只提供停頓整句播放，句型單字不可點選且完整句才完成", async () => {
         const audioInstances = [];
         global.Audio = jest.fn().mockImplementation(() => {
             const audio = { play: jest.fn().mockResolvedValue(undefined), pause: jest.fn(), onended: null, onerror: null };
@@ -161,13 +161,6 @@ describe("WorkbookOnePictureChallenge", () => {
             return audio;
         });
         const onComplete = jest.fn().mockResolvedValue(true);
-        const wordAudio = [
-            { token_index: 0, word: "The", audio_url: "https://r2.example/the-first.mp3" },
-            { token_index: 2, word: "is", audio_url: "https://r2.example/is.mp3" },
-            { token_index: 3, word: "in", audio_url: "https://r2.example/in.mp3" },
-            { token_index: 4, word: "the", audio_url: "https://r2.example/the-second.mp3" },
-            { token_index: 5, word: "tree", audio_url: "https://r2.example/tree.mp3" }
-        ];
         render(<WorkbookOnePictureChallenge
             challenge={{
                 id: 22,
@@ -180,8 +173,7 @@ describe("WorkbookOnePictureChallenge", () => {
                     picture_interaction: {
                         type: "picture_gap_sentence",
                         sentence_pattern: "The ____ is in the tree.",
-                        sentence_audio_url: "https://r2.example/sentence.wav",
-                        word_audio: wordAudio
+                        sentence_audio_url: "https://r2.example/sentence.wav"
                     }
                 }]
             }}
@@ -194,20 +186,15 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.getByRole("img", { name: "樹上的蘋果" })).toHaveAttribute("src", privateVisual.image_url);
         expect(screen.getByLabelText("請依圖片補上的答案")).toHaveTextContent("____");
         expect(screen.queryByRole("button", { name: /apple/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /播放 The 的發音/ })).not.toBeInTheDocument();
+        expect(screen.getByText("The")).toBeInTheDocument();
+        expect(screen.getByText("the")).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("button", { name: "播放整句發音；空格停留 2 秒" }));
         expect(global.Audio).toHaveBeenLastCalledWith("https://r2.example/sentence.wav");
         expect(audioInstances.at(-1).play).toHaveBeenCalledTimes(1);
         act(() => audioInstances.at(-1).onended());
-
-        for (const item of wordAudio) {
-            fireEvent.click(screen.getByRole("button", { name: `播放 ${item.word} 的發音` }));
-            expect(global.Audio).toHaveBeenLastCalledWith(item.audio_url);
-            expect(audioInstances.at(-1).play).toHaveBeenCalledTimes(1);
-            act(() => audioInstances.at(-1).onended());
-        }
-        expect(global.Audio).toHaveBeenNthCalledWith(2, "https://r2.example/the-first.mp3");
-        expect(global.Audio).toHaveBeenNthCalledWith(5, "https://r2.example/the-second.mp3");
+        expect(global.Audio).toHaveBeenCalledTimes(1);
 
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
         expect(onComplete).not.toHaveBeenCalled();
@@ -219,7 +206,7 @@ describe("WorkbookOnePictureChallenge", () => {
         );
     });
 
-    it("P22 單字播放被瀏覽器拒絕後會解鎖並允許重試", async () => {
+    it("P22 整句播放被瀏覽器拒絕後會解鎖並允許重試", async () => {
         const blockedAudio = { play: jest.fn().mockRejectedValue(new Error("blocked")), pause: jest.fn(), onended: null, onerror: null };
         const retryAudio = { play: jest.fn().mockResolvedValue(undefined), pause: jest.fn(), onended: null, onerror: null };
         global.Audio = jest.fn()
@@ -237,7 +224,7 @@ describe("WorkbookOnePictureChallenge", () => {
                     picture_interaction: {
                         type: "picture_gap_sentence",
                         sentence_pattern: "The ____ is in the tree.",
-                        word_audio: [{ token_index: 0, word: "The", audio_url: "https://r2.example/the.mp3" }]
+                        sentence_audio_url: "https://r2.example/sentence.wav"
                     }
                 }]
             }}
@@ -247,19 +234,19 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-        const wordButton = screen.getByRole("button", { name: "播放 The 的發音" });
-        fireEvent.click(wordButton);
-        expect(await screen.findByRole("alert")).toHaveTextContent("瀏覽器阻擋了播放，請再按一次單字。");
-        await waitFor(() => expect(wordButton).toBeEnabled());
+        const sentenceButton = screen.getByRole("button", { name: "播放整句發音；空格停留 2 秒" });
+        fireEvent.click(sentenceButton);
+        expect(await screen.findByRole("alert")).toHaveTextContent("瀏覽器阻擋了播放，請再按一次聽整句。");
+        await waitFor(() => expect(sentenceButton).toBeEnabled());
 
-        fireEvent.click(wordButton);
+        fireEvent.click(sentenceButton);
         expect(global.Audio).toHaveBeenCalledTimes(2);
         expect(retryAudio.play).toHaveBeenCalledTimes(1);
         act(() => retryAudio.onended());
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
 
-    it("P22 音檔載入錯誤後會解鎖並允許重試", async () => {
+    it("P22 整句音檔載入錯誤後會解鎖並允許重試", async () => {
         const failedAudio = { play: jest.fn().mockResolvedValue(undefined), pause: jest.fn(), onended: null, onerror: null };
         const retryAudio = { play: jest.fn().mockResolvedValue(undefined), pause: jest.fn(), onended: null, onerror: null };
         global.Audio = jest.fn()
@@ -277,7 +264,7 @@ describe("WorkbookOnePictureChallenge", () => {
                     picture_interaction: {
                         type: "picture_gap_sentence",
                         sentence_pattern: "The ____ is in the tree.",
-                        word_audio: [{ token_index: 0, word: "The", audio_url: "https://r2.example/the.mp3" }]
+                        sentence_audio_url: "https://r2.example/sentence.wav"
                     }
                 }]
             }}
@@ -287,13 +274,13 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-        const wordButton = screen.getByRole("button", { name: "播放 The 的發音" });
-        fireEvent.click(wordButton);
+        const sentenceButton = screen.getByRole("button", { name: "播放整句發音；空格停留 2 秒" });
+        fireEvent.click(sentenceButton);
         act(() => failedAudio.onerror());
-        expect(await screen.findByRole("alert")).toHaveTextContent("這個單字的發音暫時無法播放，請稍後再試。");
-        expect(wordButton).toBeEnabled();
+        expect(await screen.findByRole("alert")).toHaveTextContent("整句發音暫時無法播放，請稍後再試。");
+        expect(sentenceButton).toBeEnabled();
 
-        fireEvent.click(wordButton);
+        fireEvent.click(sentenceButton);
         expect(global.Audio).toHaveBeenCalledTimes(2);
         expect(retryAudio.play).toHaveBeenCalledTimes(1);
         act(() => retryAudio.onended());
