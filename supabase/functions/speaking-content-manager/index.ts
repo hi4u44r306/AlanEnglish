@@ -73,6 +73,48 @@ const workbookOnePictureConfigForMetadata = (metadata: any) => {
     const config = workbookOnePictureConfig(sourcePage, metadata?.interaction_type);
     return config && config.templateKey === metadata?.template_key ? config : null;
 };
+const MANUAL_INTERACTION_TYPES = new Set(["standard_sentence", "picture_qa", "picture_gap_sentence"]);
+const normalizePageLabel = (value: unknown) => {
+    const match = cleanText(value, 40).toUpperCase().match(/^P?([1-9][0-9]{0,3})$/);
+    return match ? `P${Number(match[1])}` : "";
+};
+const normalizeManualPageRange = (fromValue: unknown, toValue: unknown) => {
+    const fromLabel = normalizePageLabel(fromValue);
+    const toLabel = normalizePageLabel(toValue || fromValue);
+    const from = Number(fromLabel.slice(1));
+    const to = Number(toLabel.slice(1));
+    if (!fromLabel || !toLabel || from > to || to - from > 49) return null;
+    const sourcePages = Array.from({ length: to - from + 1 }, (_, index) => from + index);
+    return { fromLabel, toLabel, sourcePages, pageLabels: sourcePages.map(page => `P${page}`) };
+};
+const manualDraftPolicyForMetadata = (metadata: any) => {
+    const interactionType = cleanText(metadata?.interaction_type, 40);
+    const rawPages = Array.isArray(metadata?.source_pages) ? metadata.source_pages : [];
+    const sourcePages = rawPages.map(Number);
+    if (metadata?.source !== "admin_manual_builder" || !MANUAL_INTERACTION_TYPES.has(interactionType)
+        || sourcePages.length < 1 || sourcePages.length > 50
+        || sourcePages.some((page: number) => !Number.isInteger(page) || page < 1 || page > 9999)
+        || new Set(sourcePages).size !== sourcePages.length
+        || sourcePages.some((page: number, index: number) => index > 0 && page !== sourcePages[index - 1] + 1)) return null;
+    return {
+        interactionType,
+        sourcePages,
+        pageLabels: sourcePages.map((page: number) => `P${page}`),
+        pageLabel: sourcePages.length === 1 ? `P${sourcePages[0]}` : `P${sourcePages[0]}～P${sourcePages[sourcePages.length - 1]}`,
+        expectedCount: null
+    };
+};
+const pictureDraftPolicyForMetadata = (metadata: any) => {
+    const fixed = workbookOnePictureConfigForMetadata(metadata);
+    if (fixed) return {
+        interactionType: fixed.interactionType,
+        sourcePages: [Number(fixed.pageLabel.slice(1))],
+        pageLabels: [fixed.pageLabel], pageLabel: fixed.pageLabel,
+        expectedCount: fixed.questionCount, fixed
+    };
+    const manual = manualDraftPolicyForMetadata(metadata);
+    return manual && ["picture_qa", "picture_gap_sentence"].includes(manual.interactionType) ? manual : null;
+};
 const WORKBOOK_ONE_STARTER_KEY = "workbook_1_name_intro_v1";
 const WORKBOOK_ONE_STARTER_QUESTIONS = [
     {
@@ -180,6 +222,27 @@ const WORKBOOK_TWO_STARTER_QUESTIONS = [
     }
 ];
 
+const WORKBOOK_ONE_P26_P27_QUESTIONS = [
+    ["Say this with a contraction: What is this?", "請把 What is 縮寫成自然的問句。", "What's this?", ["What is this?"]],
+    ["Say this with a contraction: It is a cat.", "請把 It is 縮寫成自然的完整句。", "It's a cat.", ["It is a cat."]],
+    ["Say this with a contraction: What is that?", "請把 What is 縮寫成自然的問句。", "What's that?", ["What is that?"]],
+    ["Say this with a contraction: That is a mouse.", "請把 That is 縮寫成自然的完整句。", "That's a mouse.", ["That is a mouse."]],
+    ["Say this with a contraction: Yes, it is. It is a pen.", "保留完整回答，將第二句的 It is 說成縮寫。", "Yes, it is. It's a pen.", ["Yes, it is. It is a pen."]],
+    ["Say this with a contraction: No, it is not.", "請用自然的否定縮寫回答。", "No, it isn't.", ["No, it is not.", "No, it's not."]],
+    ["Say this sentence: This is a chair, isn't it?", "請清楚說出 chair 和 isn't it。", "This is a chair, isn't it?", ["This is a chair, is it not?"]],
+    ["Say this sentence: That is a desk, isn't it?", "請清楚說出 desk 和 isn't it。", "That is a desk, isn't it?", ["That is a desk, is it not?"]],
+    ["Say this sentence: It is not a dog, is it?", "請用完整句說出不是狗的意思。", "It is not a dog, is it?", ["It isn't a dog, is it?", "It's not a dog, is it?"]]
+].map(([questionText, hintZh, modelAnswer, alternatives]: [string, string, string, string[]]) => ({
+    question_text: questionText,
+    hint_zh: hintZh,
+    keywords: modelAnswer.toLowerCase().replace(/[^a-z ]/g, "").split(/\s+/).filter(Boolean).slice(0, 5),
+    simple_answer: modelAnswer,
+    model_answer: modelAnswer,
+    follow_up_question: null,
+    pronunciation_notes_zh: "縮寫的尾音要清楚；完整句與正確縮寫都算答對。",
+    accepted_intents: [modelAnswer, ...alternatives]
+}));
+
 const CURATED_STARTER_TEMPLATES: Record<string, any> = {
     ...WORKBOOK_ONE_FOUNDATION_TEMPLATES,
     create_workbook_1_starter: {
@@ -197,6 +260,16 @@ const CURATED_STARTER_TEMPLATES: Record<string, any> = {
         topic: "我來自哪裡？", title: "01 我來自哪裡？",
         sourceText: "Where are you from? I am from Taiwan. Where is he from? He is from Japan. Where is she from? She is from France. Where does he come from? He comes from England. Where do they come from? They come from Australia.",
         difficulty: "國小中年級", answerType: "structured_and_fixed", questions: WORKBOOK_TWO_STARTER_QUESTIONS
+    },
+    create_workbook_1_p26_p27_contractions: {
+        catalogKey: "workbook1", templateKey: "workbook_1_p26_p27_contractions_v1",
+        documentTitle: "Workbook 1 P26～P27 口說草稿", unitLabel: "P26～P27",
+        pageFromLabel: "P26", pageToLabel: "P27", sourcePages: [26, 27],
+        topic: "完整句與縮寫", title: "完整句與縮寫",
+        sourceText: "What is this? It is a cat. What is that? That is a mouse. Yes, it is. It is a pen. No, it is not.",
+        difficulty: "國小低年級", answerType: "fixed_with_contractions",
+        metadata: { page_group: "phase_2", requires_content_review: true },
+        sourceRequiresReview: true, questions: WORKBOOK_ONE_P26_P27_QUESTIONS
     }
 };
 
@@ -307,13 +380,15 @@ const normalizeQuestions = (value: unknown, expectedCount: number) => {
 };
 
 const normalizePictureDraftQuestions = (value: unknown, interactionType: string, expectedQuestionCount?: number) => {
-    if (!Array.isArray(value) || !Number.isInteger(expectedQuestionCount) || value.length !== expectedQuestionCount) return null;
+    if (!Array.isArray(value) || value.length < 1 || value.length > 50
+        || (Number.isInteger(expectedQuestionCount) && value.length !== expectedQuestionCount)) return null;
     const rows = value.map((row: any) => {
         const promptText = cleanText(row?.prompt_text, 800);
         const answerText = cleanText(row?.answer_text, 2000);
         const acceptedFullResponses = cleanArray(row?.accepted_full_responses, 12, 500);
         const pronunciationNotes = cleanText(row?.pronunciation_notes_zh, 1200) || null;
         const blankCount = (promptText.match(/_{2,}/g) || []).length;
+        const blankParts = promptText.split(/_{2,}/);
         const visibleWords = visibleSentenceWords(promptText);
         const expectedFullAnswer = interactionType === "picture_qa" ? `${promptText} ${answerText}`.trim() : answerText;
         const acceptedResponsesValid = acceptedFullResponses.every(response => (
@@ -324,12 +399,24 @@ const normalizePictureDraftQuestions = (value: unknown, interactionType: string,
         const valid = Boolean(promptText && answerText && expectedFullAnswer.length <= 500)
             && (interactionType !== "picture_qa" || /\?$/.test(promptText))
             && (interactionType !== "picture_gap_sentence" || (
-                blankCount === 1 && !answerText.includes("_") && pictureGapAnswerMatchesPrompt(promptText, answerText)
+                blankCount === 1 && blankParts.length === 2 && blankParts.every(part => part.trim())
+                && !answerText.includes("_") && pictureGapAnswerMatchesPrompt(promptText, answerText)
                 && visibleWords.length >= 1 && visibleWords.length <= 48
                 && visibleWords.every(token => token.tokenIndex <= 63)
             ))
             && acceptedResponsesValid;
         return valid ? { promptText, answerText, acceptedFullResponses, pronunciationNotes, expectedFullAnswer } : null;
+    });
+    return rows.every(Boolean) ? rows : null;
+};
+
+const normalizeManualStandardQuestions = (value: unknown) => {
+    if (!Array.isArray(value) || value.length < 1 || value.length > 50) return null;
+    const rows = value.map((row: any) => {
+        const sentence = cleanText(row?.full_sentence ?? row?.answer_text ?? row?.prompt_text, 500);
+        const accepted = cleanArray(row?.accepted_full_responses, 12, 500);
+        const pronunciationNotes = cleanText(row?.pronunciation_notes_zh, 1200) || null;
+        return sentence ? { sentence, accepted, pronunciationNotes } : null;
     });
     return rows.every(Boolean) ? rows : null;
 };
@@ -342,6 +429,7 @@ const normalizePictureDraftQuestion = (value: unknown, interactionType: string) 
     const pronunciationNotes = cleanText(row?.pronunciation_notes_zh, 1200) || null;
     const altZh = cleanText(row?.alt_zh, 240);
     const blankCount = (promptText.match(/_{2,}/g) || []).length;
+    const blankParts = promptText.split(/_{2,}/);
     const visibleWords = visibleSentenceWords(promptText);
     const expectedFullAnswer = interactionType === "picture_qa" ? `${promptText} ${answerText}`.trim() : answerText;
     const acceptedResponsesValid = acceptedFullResponses.every(response => (
@@ -352,7 +440,8 @@ const normalizePictureDraftQuestion = (value: unknown, interactionType: string) 
     const valid = Boolean(promptText && answerText && altZh && expectedFullAnswer.length <= 500)
         && (interactionType !== "picture_qa" || /\?$/.test(promptText))
         && (interactionType !== "picture_gap_sentence" || (
-            blankCount === 1 && !answerText.includes("_") && pictureGapAnswerMatchesPrompt(promptText, answerText)
+            blankCount === 1 && blankParts.length === 2 && blankParts.every(part => part.trim())
+            && !answerText.includes("_") && pictureGapAnswerMatchesPrompt(promptText, answerText)
             && visibleWords.length >= 1 && visibleWords.length <= 48
             && visibleWords.every(token => token.tokenIndex <= 63)
         ))
@@ -509,13 +598,15 @@ Deno.serve(async (req: Request) => {
             const templateKey = String(metadata?.template_key || "");
             const isFoundationTemplate = Object.values(WORKBOOK_ONE_FOUNDATION_TEMPLATES)
                 .some((template: any) => template.templateKey === templateKey);
+            const isPageChallengeTemplate = templateKey === "workbook_1_p26_p27_contractions_v1"
+                && metadata?.page_group === "phase_2";
             const foundationTemplate = workbookOneFoundationTemplateByKey(templateKey);
             if (foundationTemplate?.approvedSourcePageLabel) {
                 return json(409, { error: "P14～P17 題庫必須與正式核准來源一致，不能使用舊人工核准流程" });
             }
-            if (!questionSet || questionSet.status !== "draft" || !isFoundationTemplate
+            if (!questionSet || questionSet.status !== "draft" || (!isFoundationTemplate && !isPageChallengeTemplate)
                 || metadata?.requires_content_review !== true || !(questionSet.speaking_questions || []).length) {
-                return json(409, { error: "這份題庫不是可核准的 Workbook 1 基礎草稿" });
+                return json(409, { error: "這份題庫不是可核准的 Workbook 1 草稿" });
             }
             const now = new Date().toISOString();
             const { data: reviewedSection, error: sectionError } = await admin.from("speaking_source_sections").update({
@@ -1200,11 +1291,11 @@ Deno.serve(async (req: Request) => {
                 .select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order)")
                 .eq("id", setId).maybeSingle();
             if (originalError) throw originalError;
-            const pictureConfig = workbookOnePictureConfigForMetadata(original?.generation_metadata);
+            const picturePolicy = pictureDraftPolicyForMetadata(original?.generation_metadata);
             const interactionType = String(original?.generation_metadata?.interaction_type || "");
-            if (!original || original.status !== "published" || !pictureConfig
+            if (!original || original.status !== "published" || !picturePolicy
                 || !["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
-                return json(409, { error: "目前只支援替已發布的 P21～P24 圖片關卡建立新版草稿" });
+                return json(409, { error: "目前只支援替已發布的圖片關卡建立新版草稿" });
             }
             const templateKey = String(original.generation_metadata?.template_key || "");
             const { data: existingDraft, error: draftError } = await admin.from("speaking_question_sets")
@@ -1214,7 +1305,8 @@ Deno.serve(async (req: Request) => {
             if (existingDraft) return json(409, { error: "這個關卡已有新版草稿，請直接繼續編輯" });
             const originalQuestions = [...(original.speaking_questions || [])]
                 .sort((a: any, b: any) => Number(a.sort_order) - Number(b.sort_order));
-            if (originalQuestions.length !== pictureConfig.questionCount) {
+            if (Number.isInteger(picturePolicy.expectedCount)
+                && originalQuestions.length !== Number(picturePolicy.expectedCount)) {
                 return json(409, { error: "目前正式版本的題數不完整，請先由管理員檢查資料" });
             }
             const originalQuestionIds = originalQuestions.map((question: any) => Number(question.id));
@@ -1310,6 +1402,55 @@ Deno.serve(async (req: Request) => {
             return json(200, { success: true });
         }
 
+        if (action === "update_manual_standard_question" || action === "add_manual_standard_question") {
+            const setId = Number(body?.question_set_id);
+            const questionId = Number(body?.question_id);
+            const lookupId = action === "update_manual_standard_question" ? questionId : setId;
+            if (!Number.isInteger(lookupId) || lookupId <= 0) return json(400, { error: "題庫或題目編號不正確" });
+            const setQuery = action === "update_manual_standard_question"
+                ? admin.from("speaking_questions").select("id,question_set_id,model_answer,speaking_question_sets!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
+                : admin.from("speaking_question_sets").select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
+            const { data: record, error: recordError } = await setQuery;
+            if (recordError) throw recordError;
+            const questionSet: any = action === "update_manual_standard_question"
+                ? (Array.isArray((record as any)?.speaking_question_sets) ? (record as any).speaking_question_sets[0] : (record as any)?.speaking_question_sets)
+                : record;
+            const policy = manualDraftPolicyForMetadata(questionSet?.generation_metadata);
+            const normalized = normalizeManualStandardQuestions([body?.question])?.[0];
+            if (!questionSet || questionSet.status !== "draft" || policy?.interactionType !== "standard_sentence" || !normalized) {
+                return json(409, { error: "只有管理員自訂的完整句朗讀草稿可以使用此編輯功能" });
+            }
+            const now = new Date().toISOString();
+            if (action === "add_manual_standard_question") {
+                const existing = [...(questionSet.speaking_questions || [])];
+                if (existing.length >= 50) return json(409, { error: "自訂草稿最多 50 題" });
+                const nextOrder = existing.length ? Math.max(...existing.map((question: any) => Number(question.sort_order))) + 1 : 0;
+                const { data: created, error: createError } = await admin.from("speaking_questions").insert({
+                    question_set_id: Number(questionSet.id), question_text: normalized.sentence,
+                    hint_zh: "請清楚朗讀完整句子。", keywords: [],
+                    simple_answer: normalized.sentence, model_answer: normalized.sentence,
+                    pronunciation_notes_zh: normalized.pronunciationNotes, accepted_intents: normalized.accepted,
+                    sort_order: nextOrder, created_at: now, updated_at: now
+                }).select("id").single();
+                if (createError) throw createError;
+                await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", Number(questionSet.id));
+                return json(201, { success: true, question_id: created.id });
+            }
+            const textChanged = String((record as any)?.model_answer || "") !== normalized.sentence;
+            const { error: updateError } = await admin.from("speaking_questions").update({
+                question_text: normalized.sentence, simple_answer: normalized.sentence,
+                model_answer: normalized.sentence, pronunciation_notes_zh: normalized.pronunciationNotes,
+                accepted_intents: normalized.accepted, updated_at: now
+            }).eq("id", questionId).eq("question_set_id", Number(questionSet.id));
+            if (updateError) throw updateError;
+            if (textChanged) {
+                const { error: audioDeleteError } = await admin.from("speaking_question_audio").delete().eq("question_id", questionId);
+                if (audioDeleteError) throw audioDeleteError;
+            }
+            await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", Number(questionSet.id));
+            return json(200, { success: true, audio_invalidated: textChanged });
+        }
+
         if (action === "update_picture_draft_question" || action === "add_picture_draft_question") {
             const setId = Number(body?.question_set_id);
             const questionId = Number(body?.question_id);
@@ -1324,16 +1465,19 @@ Deno.serve(async (req: Request) => {
                 ? (Array.isArray((record as any)?.speaking_question_sets) ? (record as any).speaking_question_sets[0] : (record as any)?.speaking_question_sets)
                 : record;
             const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
-            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
+            const picturePolicy = pictureDraftPolicyForMetadata(questionSet?.generation_metadata);
             const normalized = normalizePictureDraftQuestion(body?.question, interactionType);
-            if (!questionSet || questionSet.status !== "draft" || !pictureConfig || !normalized) {
-                return json(409, { error: "只有 P21～P24 完整且格式正確的草稿題目可以編輯" });
+            if (!questionSet || questionSet.status !== "draft" || !picturePolicy || !normalized) {
+                return json(409, { error: "只有完整且格式正確的圖片草稿題目可以編輯" });
             }
             const now = new Date().toISOString();
             if (action === "add_picture_draft_question") {
                 const existingQuestions = [...(questionSet.speaking_questions || [])];
-                if (existingQuestions.length >= pictureConfig.questionCount) {
-                    return json(409, { error: `${pictureConfig.pageLabel} 固定 ${pictureConfig.questionCount} 題；請先刪除不需要的題目再新增` });
+                const limit = Number.isInteger(picturePolicy.expectedCount) ? Number(picturePolicy.expectedCount) : 50;
+                if (existingQuestions.length >= limit) {
+                    return json(409, { error: Number.isInteger(picturePolicy.expectedCount)
+                        ? `${picturePolicy.pageLabel} 固定 ${limit} 題；請先刪除不需要的題目再新增`
+                        : "自訂草稿最多 50 題" });
                 }
                 const nextOrder = existingQuestions.length
                     ? Math.max(...existingQuestions.map((question: any) => Number(question.sort_order))) + 1 : 0;
@@ -1355,7 +1499,7 @@ Deno.serve(async (req: Request) => {
                     throw interactionError;
                 }
                 await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", Number(questionSet.id));
-                return json(201, { success: true, question_id: created.id, page_label: pictureConfig.pageLabel });
+                return json(201, { success: true, question_id: created.id, page_label: picturePolicy.pageLabel });
             }
             const { data: currentInteraction, error: currentError } = await admin.from("speaking_question_interactions")
                 .select("prompt_text,answer_text").eq("question_id", questionId).maybeSingle();
@@ -1382,7 +1526,7 @@ Deno.serve(async (req: Request) => {
                 if (sentenceDelete.error) throw sentenceDelete.error;
             }
             await admin.from("speaking_question_sets").update({ updated_at: now }).eq("id", Number(questionSet.id));
-            return json(200, { success: true, audio_invalidated: textChanged, page_label: pictureConfig.pageLabel });
+            return json(200, { success: true, audio_invalidated: textChanged, page_label: picturePolicy.pageLabel });
         }
 
         if (action === "delete_draft_question" || action === "reorder_draft_questions") {
@@ -1390,9 +1534,10 @@ Deno.serve(async (req: Request) => {
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
                 .select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
-            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
-            if (!questionSet || questionSet.status !== "draft" || !pictureConfig) {
-                return json(409, { error: "只有 P21～P24 草稿題目可以刪除或排序" });
+            const editablePolicy = pictureDraftPolicyForMetadata(questionSet?.generation_metadata)
+                || manualDraftPolicyForMetadata(questionSet?.generation_metadata);
+            if (!questionSet || questionSet.status !== "draft" || !editablePolicy) {
+                return json(409, { error: "只有管理員建立的草稿題目可以刪除或排序" });
             }
             const questions = [...(questionSet.speaking_questions || [])]
                 .sort((a: any, b: any) => Number(a.sort_order) - Number(b.sort_order));
@@ -1465,8 +1610,9 @@ Deno.serve(async (req: Request) => {
                 if (!deletedDraft) return json(409, { error: "草稿狀態已變更，請重新整理後再試" });
                 return json(200, { success: true, deleted: true });
             }
-            if (!workbookOnePictureConfigForMetadata(questionSet.generation_metadata)) {
-                return json(409, { error: "目前只支援封存 P21～P24 圖片關卡" });
+            if (!pictureDraftPolicyForMetadata(questionSet.generation_metadata)
+                && !manualDraftPolicyForMetadata(questionSet.generation_metadata)) {
+                return json(409, { error: "目前只支援封存管理員建立的口說關卡" });
             }
             if (questionSet.status !== "published") return json(409, { error: "這個關卡已經下架" });
             const { data: revisionDraft, error: revisionDraftError } = await admin.from("speaking_question_sets")
@@ -1480,6 +1626,106 @@ Deno.serve(async (req: Request) => {
             }).eq("id", setId).eq("status", "published");
             if (error) throw error;
             return json(200, { success: true, archived: true });
+        }
+
+        if (action === "create_manual_speaking_draft") {
+            const bookId = Number(body?.book_id);
+            const title = cleanText(body?.title, 200);
+            const topic = cleanText(body?.topic, 200);
+            const difficulty = cleanText(body?.difficulty, 80) || "國小低年級";
+            const interactionType = cleanText(body?.interaction_type, 40);
+            const pages = normalizeManualPageRange(body?.page_from_label, body?.page_to_label);
+            const pictureQuestions = ["picture_qa", "picture_gap_sentence"].includes(interactionType)
+                ? normalizePictureDraftQuestions(body?.questions, interactionType)
+                : null;
+            const standardQuestions = interactionType === "standard_sentence"
+                ? normalizeManualStandardQuestions(body?.questions)
+                : null;
+            if (!Number.isInteger(bookId) || bookId <= 0 || !title || !topic || !pages
+                || !MANUAL_INTERACTION_TYPES.has(interactionType) || !(pictureQuestions || standardQuestions)
+                || body?.confirmed !== true) {
+                return json(400, { error: "請選擇教材與頁碼，填妥至少一題內容並確認草稿資料" });
+            }
+            const { data: book, error: bookError } = await admin.from("books")
+                .select("id,name,code,enabled,archived_at").eq("id", bookId).maybeSingle();
+            if (bookError) throw bookError;
+            if (!book?.enabled || book?.archived_at) return json(400, { error: "只能替目前已啟用的教材建立草稿" });
+            const now = new Date().toISOString();
+            const templateKey = `admin_manual_${crypto.randomUUID()}`;
+            const pageRangeLabel = pages.fromLabel === pages.toLabel ? pages.fromLabel : `${pages.fromLabel}～${pages.toLabel}`;
+            const sourceRows: any[] = (pictureQuestions || standardQuestions || []);
+            const sourceText = interactionType === "standard_sentence"
+                ? sourceRows.map((row: any, index: number) => `${index + 1}. ${row.sentence}`).join("\n")
+                : sourceRows.map((row: any, index: number) => `${index + 1}. ${row.promptText}\n${row.answerText}`).join("\n\n");
+            const { data: document, error: documentError } = await admin.from("speaking_source_documents").insert({
+                book_id: bookId, title: `${book.name} ${pageRangeLabel} 管理員自訂口說內容`, source_kind: "pasted_text",
+                status: "ready", created_by: user.id, created_at: now, updated_at: now
+            }).select("id").single();
+            if (documentError) throw documentError;
+            let createdQuestionSetId: number | null = null;
+            try {
+                const { data: section, error: sectionError } = await admin.from("speaking_source_sections").insert({
+                    document_id: document.id, unit_label: pageRangeLabel,
+                    page_from_label: pages.fromLabel, page_to_label: pages.toLabel,
+                    topic, source_text: sourceText, language_level: difficulty, status: "reviewed",
+                    created_by: user.id, reviewed_by: user.id, reviewed_at: now, created_at: now, updated_at: now
+                }).select("id").single();
+                if (sectionError) throw sectionError;
+                const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
+                    source_section_id: section.id, book_id: bookId, title, topic, difficulty,
+                    status: "draft", version: 1, generation_metadata: {
+                        source: "admin_manual_builder", template_key: templateKey,
+                        source_pages: pages.sourcePages, interaction_type: interactionType,
+                        shuffle: true, requires_content_review: false, manual_builder_version: 1,
+                        content_reviewed_at: now, content_reviewed_by: Number(user.id)
+                    },
+                    created_by: user.id, created_at: now, updated_at: now
+                }).select("id").single();
+                if (setError) throw setError;
+                createdQuestionSetId = Number(questionSet.id);
+                const questionRows = interactionType === "standard_sentence"
+                    ? (standardQuestions || []).map((row: any, index: number) => ({
+                        question_set_id: questionSet.id, question_text: row.sentence,
+                        hint_zh: "請清楚朗讀完整句子。", keywords: [],
+                        simple_answer: row.sentence, model_answer: row.sentence,
+                        pronunciation_notes_zh: row.pronunciationNotes, accepted_intents: row.accepted,
+                        sort_order: index, created_at: now, updated_at: now
+                    }))
+                    : (pictureQuestions || []).map((row: any, index: number) => ({
+                        question_set_id: questionSet.id, question_text: row.promptText,
+                        hint_zh: interactionType === "picture_qa"
+                            ? "看圖片，先說完整問句，再接著說完整回答。"
+                            : "看圖片，把空格答案補進去並說完整句子。",
+                        keywords: [], simple_answer: row.expectedFullAnswer, model_answer: row.expectedFullAnswer,
+                        pronunciation_notes_zh: row.pronunciationNotes, accepted_intents: [],
+                        sort_order: index, created_at: now, updated_at: now
+                    }));
+                const { data: createdQuestions, error: questionError } = await admin.from("speaking_questions")
+                    .insert(questionRows).select("id,sort_order");
+                if (questionError) throw questionError;
+                if (interactionType !== "standard_sentence") {
+                    const { error: interactionError } = await admin.from("speaking_question_interactions").insert(
+                        (createdQuestions || []).map((question: any) => {
+                            const row: any = pictureQuestions?.[Number(question.sort_order)];
+                            return {
+                                question_id: question.id, interaction_type: interactionType,
+                                prompt_text: row.promptText, answer_text: row.answerText,
+                                accepted_full_responses: row.acceptedFullResponses,
+                                created_at: now, updated_at: now
+                            };
+                        })
+                    );
+                    if (interactionError) throw interactionError;
+                }
+                return json(201, {
+                    success: true, question_set_id: questionSet.id, questions: createdQuestions || [],
+                    page_labels: pages.pageLabels, interaction_type: interactionType
+                });
+            } catch (error) {
+                if (createdQuestionSetId) await admin.from("speaking_question_sets").delete().eq("id", createdQuestionSetId);
+                await admin.from("speaking_source_documents").delete().eq("id", document.id);
+                throw error;
+            }
         }
 
         if (action === "create_workbook_1_picture_draft") {
@@ -1573,12 +1819,12 @@ Deno.serve(async (req: Request) => {
             const mimeType = cleanText(body?.mime_type, 100).toLowerCase();
             const byteSize = Number(body?.byte_size);
             const altZh = cleanText(body?.alt_zh, 240);
-            const sourcePageLabel = cleanText(body?.source_page_label, 40).toUpperCase();
+            const sourcePageLabel = normalizePageLabel(body?.source_page_label);
             const width = body?.width == null ? null : Number(body.width);
             const height = body?.height == null ? null : Number(body.height);
             if (!Number.isInteger(questionId) || questionId <= 0 || !ALLOWED_PICTURE_TYPES.has(mimeType)
                 || !Number.isInteger(byteSize) || byteSize < 1 || byteSize > MAX_PICTURE_BYTES || !altZh
-                || !workbookOnePictureConfig(sourcePageLabel)
+                || !normalizePageLabel(sourcePageLabel)
                 || ((width !== null || height !== null) && (!Number.isInteger(width) || !Number.isInteger(height)
                     || width < 1 || width > 8192 || height < 1 || height > 8192))) {
                 return json(400, { error: "圖片必須是 10MB 內的 JPG、PNG 或 WebP，並填寫正確頁碼與替代文字" });
@@ -1589,10 +1835,10 @@ Deno.serve(async (req: Request) => {
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
-            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
-            const expectedPage = pictureConfig?.pageLabel || "";
-            if (!question || questionSet?.status !== "draft" || sourcePageLabel !== expectedPage) {
-                return json(409, { error: "只能替 P21～P24 草稿題目上傳對應頁面的圖片" });
+            const picturePolicy = pictureDraftPolicyForMetadata(questionSet?.generation_metadata);
+            if (!question || questionSet?.status !== "draft" || !picturePolicy
+                || !picturePolicy.pageLabels.includes(sourcePageLabel)) {
+                return json(409, { error: "只能替圖片草稿上傳題庫頁碼範圍內的圖片" });
             }
             const { data: sourceSection, error: sectionError } = await admin.from("speaking_source_sections")
                 .select("document_id").eq("id", Number(questionSet.source_section_id)).maybeSingle();
@@ -1630,7 +1876,7 @@ Deno.serve(async (req: Request) => {
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
-            const pictureConfig = workbookOnePictureConfigForMetadata(questionSet?.generation_metadata);
+            const picturePolicy = pictureDraftPolicyForMetadata(questionSet?.generation_metadata);
             const { data: sourceSection, error: sectionError } = questionSet?.source_section_id
                 ? await admin.from("speaking_source_sections").select("document_id")
                     .eq("id", Number(questionSet.source_section_id)).maybeSingle()
@@ -1639,7 +1885,7 @@ Deno.serve(async (req: Request) => {
             if (!asset?.private_object_key || asset.status !== "draft" || !question || questionSet?.status !== "draft"
                 || Number(asset.book_id) !== Number(questionSet.book_id)
                 || Number(asset.source_document_id) !== Number(sourceSection?.document_id)
-                || asset.source_page_label !== pictureConfig?.pageLabel) {
+                || !picturePolicy?.pageLabels.includes(String(asset.source_page_label || ""))) {
                 return json(409, { error: "圖片上傳工作與草稿題目不相符" });
             }
             const head = await fetchR2(asset.private_object_key, { method: "HEAD" });
@@ -1692,11 +1938,12 @@ Deno.serve(async (req: Request) => {
                 .eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+            const picturePolicy = pictureDraftPolicyForMetadata(questionSet?.generation_metadata);
+            const manualPolicy = manualDraftPolicyForMetadata(questionSet?.generation_metadata);
             if (!questionSet || questionSet.status !== "draft"
-                || questionSet?.generation_metadata?.source !== "manual_picture_manifest"
-                || !workbookOnePictureConfigForMetadata(questionSet?.generation_metadata)
-                || !["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
-                return json(409, { error: "只能回復尚未發布的 Workbook 1 P21～P24 人工圖片草稿" });
+                || !(picturePolicy || manualPolicy)
+                || !MANUAL_INTERACTION_TYPES.has(interactionType)) {
+                return json(409, { error: "只能回復尚未發布的管理員人工草稿" });
             }
             const { data: section, error: sectionError } = await admin.from("speaking_source_sections")
                 .select("document_id").eq("id", Number(questionSet.source_section_id)).maybeSingle();
@@ -1828,15 +2075,41 @@ Deno.serve(async (req: Request) => {
                     return json(409, { error: "A–Z 的單一慢速主音檔不存在或大小不一致，不能發布" });
                 }
             }
+            if (metadata?.source === "admin_manual_builder" && metadata?.interaction_type === "standard_sentence") {
+                const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
+                const [{ data: sentenceQuestions, error: sentenceQuestionError }, { data: audioLinks, error: audioLinkError }] = await Promise.all([
+                    admin.from("speaking_questions").select("id,model_answer").in("id", questionIds),
+                    admin.from("speaking_question_audio").select("question_id,asset_id,purpose")
+                        .in("question_id", questionIds).eq("purpose", "model_answer")
+                ]);
+                if (sentenceQuestionError) throw sentenceQuestionError;
+                if (audioLinkError) throw audioLinkError;
+                const assetIds = [...new Set((audioLinks || []).map((row: any) => row.asset_id).filter(Boolean))];
+                const { data: assets, error: assetError } = assetIds.length
+                    ? await admin.from("speaking_tts_assets").select("id,status,private_object_key,source_text").in("id", assetIds)
+                    : { data: [], error: null };
+                if (assetError) throw assetError;
+                const assetById = new Map((assets || []).map((asset: any) => [String(asset.id), asset]));
+                const linkByQuestion = new Map((audioLinks || []).map((link: any) => [Number(link.question_id), link]));
+                const incomplete = (sentenceQuestions || []).length !== questionIds.length
+                    || (sentenceQuestions || []).some((question: any) => {
+                        const link: any = linkByQuestion.get(Number(question.id));
+                        const asset: any = assetById.get(String(link?.asset_id || ""));
+                        return asset?.status !== "ready" || !asset?.private_object_key
+                            || String(asset?.source_text || "").trim() !== String(question?.model_answer || "").trim();
+                    });
+                if (incomplete) return json(409, { error: "完整句朗讀的示範語音尚未全部完成，請先產生並試聽" });
+            }
             const pictureMode = metadata?.interaction_type === "picture_qa"
                 || metadata?.interaction_type === "picture_gap_sentence";
             if (pictureMode) {
-                const pictureConfig = workbookOnePictureConfigForMetadata(metadata);
-                if (!pictureConfig) {
-                    return json(409, { error: "圖片題庫的教材頁碼或固定模板不正確" });
+                const picturePolicy = pictureDraftPolicyForMetadata(metadata);
+                if (!picturePolicy) {
+                    return json(409, { error: "圖片題庫的教材頁碼或建立來源不正確" });
                 }
-                if ((questionSet.speaking_questions || []).length !== pictureConfig.questionCount) {
-                    return json(409, { error: `${pictureConfig.pageLabel} 必須剛好有 ${pictureConfig.questionCount} 題才能發布` });
+                if (Number.isInteger(picturePolicy.expectedCount)
+                    && (questionSet.speaking_questions || []).length !== Number(picturePolicy.expectedCount)) {
+                    return json(409, { error: `${picturePolicy.pageLabel} 必須剛好有 ${picturePolicy.expectedCount} 題才能發布` });
                 }
                 const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
                 const [{ data: interactions, error: interactionError }, { data: visualLinks, error: visualError }] = await Promise.all([
@@ -1868,7 +2141,7 @@ Deno.serve(async (req: Request) => {
                             && (String(interaction?.prompt_text || "").match(/_{2,}/g) || []).length !== 1)
                         || visual?.status !== "ready"
                         || Number(visual?.book_id) !== Number(questionSet.book_id)
-                        || visual?.source_page_label !== pictureConfig.pageLabel
+                        || !picturePolicy.pageLabels.includes(String(visual?.source_page_label || ""))
                         || !visual?.private_object_key
                         || !visual?.alt_zh;
                 });
@@ -1903,7 +2176,7 @@ Deno.serve(async (req: Request) => {
                                 || linked.asset?.status !== "ready" || !linked.asset?.private_object_key;
                         });
                     if (incompleteWords) {
-                        return json(409, { error: `${pictureConfig.pageLabel} 每個可見單字的標準發音尚未全部完成` });
+                        return json(409, { error: `${picturePolicy.pageLabel} 每個可見單字的標準發音尚未全部完成` });
                     }
                     const readySentenceIds = new Set((sentenceLinks || []).filter((row: any) => {
                         const asset = Array.isArray(row.speaking_tts_assets) ? row.speaking_tts_assets[0] : row.speaking_tts_assets;
@@ -1912,7 +2185,7 @@ Deno.serve(async (req: Request) => {
                     }).map((row: any) => Number(row.question_id)));
                     if (readySentenceIds.size !== questionIds.length
                         || questionIds.some((questionId: number) => !readySentenceIds.has(questionId))) {
-                        return json(409, { error: `${pictureConfig.pageLabel} 空格停 2 秒的整句女聲發音尚未全部完成` });
+                        return json(409, { error: `${picturePolicy.pageLabel} 空格停 2 秒的整句女聲發音尚未全部完成` });
                     }
                 }
             }

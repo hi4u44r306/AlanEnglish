@@ -270,7 +270,7 @@ test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(manager, /get_workbook_1_picture_review_candidates/);
     assert.match(manager, /workbookOnePictureReviewCandidates/);
     assert.match(service, /getWorkbookOnePictureReviewCandidates/);
-    assert.match(manager, /asset\.source_page_label !== pictureConfig\?\.pageLabel/);
+    assert.match(manager, /picturePolicy\?\.pageLabels\.includes\(String\(asset\.source_page_label/);
     assert.match(manager, /createdQuestionSetId/);
     assert.match(manager, /create_picture_upload/);
     assert.match(manager, /confirm_picture_upload/);
@@ -345,10 +345,26 @@ test("25. 管理員可刪除任何未發布草稿，但已發布關卡仍受圖�
     assert.match(archiveBlock, /\.delete\(\)[\s\S]*?\.eq\("id", setId\)\.eq\("status", "draft"\)\.select\("id"\)\.maybeSingle\(\)/);
     assert.ok(
         archiveBlock.indexOf('questionSet.status === "draft"')
-            < archiveBlock.indexOf('workbookOnePictureConfigForMetadata(questionSet.generation_metadata)'),
-        "draft deletion must happen before the P21-P24-only published archive guard"
+            < archiveBlock.indexOf('pictureDraftPolicyForMetadata(questionSet.generation_metadata)'),
+        "draft deletion must happen before the published archive guard"
     );
     assert.match(archiveBlock, /questionSet\.status !== "published"/);
+});
+
+test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則產生停頓語音", () => {
+    assert.match(manager, /create_manual_speaking_draft/);
+    assert.match(manager, /admin_manual_builder/);
+    assert.match(manager, /normalizeManualPageRange/);
+    assert.match(manager, /MANUAL_INTERACTION_TYPES/);
+    assert.match(manager, /pictureDraftPolicyForMetadata/);
+    assert.match(manager, /pageLabels\.includes\(sourcePageLabel\)/);
+    assert.match(manager, /update_manual_standard_question/);
+    assert.match(manager, /add_manual_standard_question/);
+    assert.match(ttsManager, /pictureGapDraftLabel/);
+    assert.match(ttsManager, /manualStandardDraft/);
+    assert.match(ttsManager, /PICTURE_SENTENCE_GAP_MS/);
+    assert.match(service, /createManualSpeakingDraft/);
+    assert.match(adminPage, /ManualSpeakingDraftAdmin/);
 });
 
 test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
