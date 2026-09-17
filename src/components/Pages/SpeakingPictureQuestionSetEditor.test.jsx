@@ -1,10 +1,20 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingPictureQuestionSetEditor from "./SpeakingPictureQuestionSetEditor";
+import { toast } from "react-toastify";
 import {
     activatePictureGapTheAudioCandidate,
+    generateSpeakingVisibleWordAudio,
     getPictureGapTheAudioCandidates
 } from "../../services/speakingContentService";
+
+jest.mock("react-toastify", () => ({
+    toast: {
+        error: jest.fn(),
+        success: jest.fn(),
+        warning: jest.fn()
+    }
+}));
 
 jest.mock("../../services/speakingContentService", () => ({
     activatePictureGapTheAudioCandidate: jest.fn(),
@@ -82,4 +92,31 @@ test("P24 的 The 題目必須完整試聽後才能套用單題候選", async ()
         { uid: "admin" }, 24, 241, "context-natural"
     ));
     expect(await screen.findByRole("button", { name: "目前使用中" })).toBeDisabled();
+});
+
+test("語音產生失敗時顯示後端實際原因", async () => {
+    generateSpeakingVisibleWordAudio.mockResolvedValue({
+        success: false,
+        failed: 1,
+        pending: 0,
+        results: [{ status: "failed", error: "語音供應商暫時無法使用" }]
+    });
+
+    const customQuestionSet = {
+        ...questionSet,
+        generation_metadata: {
+            ...questionSet.generation_metadata,
+            template_key: "custom_picture_gap_v1"
+        }
+    };
+    render(<SpeakingPictureQuestionSetEditor
+        firebaseUser={{ uid: "admin" }}
+        questionSet={customQuestionSet}
+        onChanged={jest.fn()}
+    />);
+    fireEvent.click(screen.getByRole("button", { name: "更新停頓整句女聲" }));
+
+    await waitFor(() => expect(toast.warning).toHaveBeenCalledWith(
+        "仍有 1 項語音尚未完成：語音供應商暫時無法使用"
+    ));
 });

@@ -171,7 +171,8 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
         try {
             const result = await generateSpeakingVisibleWordAudio(firebaseUser, questionSet.id);
             const incomplete = Number(result.failed || 0) + Number(result.pending || 0);
-            if (result.success !== true || incomplete > 0) toast.warning(`仍有 ${incomplete || "部分"} 項語音尚未完成`);
+            const firstError = (result.results || []).find(item => item.status === "failed" && item.error)?.error;
+            if (result.success !== true || incomplete > 0) toast.warning(`仍有 ${incomplete || "部分"} 項語音尚未完成${firstError ? `：${firstError}` : ""}`);
             else toast.success(`停頓整句女聲已準備完成（新產生 ${result.generated}、沿用 ${result.reused}）`);
             setAudioUrl("");
             await onChanged?.(questionSet.id);
