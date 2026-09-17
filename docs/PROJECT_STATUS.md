@@ -2,6 +2,12 @@
 
 最後更新：2026-09-17
 
+本次口說大挑戰 Workbook 第一層獎勵提示（2026-09-17，本機驗證完成，尚未部署）：
+
+- `/student/speaking-challenges` 的 Workbook 1／Workbook 2 彩色冒險卡新增「每關首次通關 30 XP／最多 3 AE Points」提示；「最多」表示只有符合既有在校生點數資格者會取得 AE Points，XP 與實際發獎條件不變。
+- 獎勵數字由既有 `speaking-challenge` catalog 的唯讀 `reward_policy` 回傳，前端不自行決定或發放獎勵；本批不含 migration、RLS、題庫、學生進度或正式資料異動。
+- `TextbookSpeakingChallenge.test.jsx` 22/22、口說題庫契約 26/26、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過；build 只有既有 `FiSquare` 未使用、Browserslist 與 Node deprecation 警告。尚未 Push、建立 PR、部署 `speaking-challenge` 或發布 Netlify。
+
 本次口說大挑戰 Workbook 第一層冒險卡片（2026-09-17，正式站已部署）：
 
 - 只重新設計 `/student/speaking-challenges` 的 Workbook 選擇層：新增彩色冒險主視覺、四組循環教材配色、卡通書本角色、關卡數、完成進度條與「開始冒險／繼續冒險／再次挑戰」狀態。整張卡片仍可點擊，鍵盤焦點與螢幕閱讀器教材／進度描述均保留。

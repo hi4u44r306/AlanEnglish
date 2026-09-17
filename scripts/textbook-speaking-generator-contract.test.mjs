@@ -444,6 +444,9 @@ test("21. A–Z 只有同一個後端 round 連續答對 26 題才原子保存",
     assert.match(foundationRoundMigration, /public\.complete_speaking_challenge_question_v2/);
     assert.match(speakingCompletionMigration, /private\.ae_gamification_grant_v2/);
     assert.match(speakingCompletionMigration, /'speaking_challenge_complete'/);
+    assert.match(speakingCompletionMigration, /p_student_id,\s*30,\s*3,/);
+    assert.match(challenge, /SPEAKING_CHALLENGE_REWARD_POLICY = Object\.freeze\(\{\s*xp: 30,\s*ae_points: 3,/);
+    assert.match(challenge, /reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY/);
     assert.match(foundationRoundMigration, /security invoker/g);
     assert.doesNotMatch(foundationRoundMigration, /security definer/);
     assert.match(foundationRoundMigration, /revoke all on table public\.speaking_foundation_rounds from public, anon, authenticated/);

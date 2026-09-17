@@ -215,6 +215,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
     it("教材第一層顯示彩色冒險卡、完成進度並可進入指定 Workbook", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
+            reward_policy: { xp: 30, ae_points: 3, basis: "first_completion_per_challenge", ae_points_eligible_students_only: true },
             challenges: [
                 { id: 1, title: "01 自我介紹", topic: "Names", difficulty: "E1", book: { id: 1, name: "Workbook 1" }, question_count: 4, completed_count: 4, sequence_order: 1, is_completed: true },
                 { id: 2, title: "02 顏色", topic: "Colors", difficulty: "E1", book: { id: 1, name: "Workbook 1" }, question_count: 6, completed_count: 0, sequence_order: 2, is_completed: false },
@@ -224,14 +225,16 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><LocationProbe /><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /><Route path="/student/speaking-challenges/book/:bookKey" element={<div>Workbook 關卡列表</div>} /></Routes></MemoryRouter>);
 
-        const workbookOne = await screen.findByRole("button", { name: "開啟 Workbook 1，共 2 關，已完成 1 關" });
-        const workbookTwo = screen.getByRole("button", { name: "開啟 Workbook 2，共 1 關，已完成 0 關" });
+        const workbookOne = await screen.findByRole("button", { name: "開啟 Workbook 1，共 2 關，已完成 1 關，每關首次通關 30 XP、最多 3 AE Points" });
+        const workbookTwo = screen.getByRole("button", { name: "開啟 Workbook 2，共 1 關，已完成 0 關，每關首次通關 30 XP、最多 3 AE Points" });
         expect(workbookOne).toHaveClass("speaking-book-card--theme-0");
         expect(workbookTwo).toHaveClass("speaking-book-card--theme-1");
         expect(screen.getByRole("progressbar", { name: "Workbook 1 完成進度" })).toHaveAttribute("aria-valuenow", "50");
         expect(screen.getByRole("progressbar", { name: "Workbook 2 完成進度" })).toHaveAttribute("aria-valuenow", "0");
         expect(workbookOne).toHaveTextContent("繼續冒險");
         expect(workbookTwo).toHaveTextContent("開始冒險");
+        expect(workbookOne).toHaveTextContent("每關首次通關30 XP最多 3 AE Points");
+        expect(workbookTwo).toHaveTextContent("每關首次通關30 XP最多 3 AE Points");
 
         fireEvent.click(workbookTwo);
         expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-2");
