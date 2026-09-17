@@ -2,12 +2,12 @@
 
 最後更新：2026-09-17
 
-本次通用管理員口說草稿建立器（2026-09-17，本機驗證完成，準備正式發布）：
+本次通用管理員口說草稿建立器（2026-09-17，正式站已部署）：
 
 - 管理員可在「口說大挑戰製作中心 → 建立新關卡」直接選擇任何已啟用教材與 P1～P9999 的連續頁碼範圍，從零輸入 1～50 題內容；支援一般完整句、看圖完整問答、看圖補完整句三種互動，不再需要每一頁另寫固定範本或重新部署。
 - 看圖題由管理員自行上傳 10MB 內 JPG／PNG／WebP 私人圖片並填寫替代文字；一般完整句與挖空句可在草稿階段預先產生私人 R2 語音。挖空題由管理員輸入完整句與唯一答案，系統建立唯一 `____`，只合成空格前後可見文字並嵌入精準 2 秒靜音，答案不會交給 TTS。
 - 新草稿永遠維持未發布；少於 3 題、圖片未完成、語音未完成、頁碼越界、句子找不到唯一答案或未通過人工核對時，後端拒絕發布。既有 P21～P24 固定題數與頁碼限制仍保留。本批不新增 migration；已確認正式 migration `20260916140618` 存在。
-- 題庫契約 26/26、React service test 4/4、Edge Function 語法／語音契約、Production build 與 `git diff --check` 通過；build 僅有既有未使用 import、Browserslist 與 Node deprecation 警告。待本批 PR 合併後部署 `speaking-content-manager`、`speaking-tts-manager` 與正式 Netlify，再執行正式後台驗收。
+- 題庫契約 26/26、React service test 4/4、Edge Function 語法／語音契約、Production build 與 `git diff --check` 通過；build 僅有既有未使用 import、Browserslist 與 Node deprecation 警告。PR #156 已合併至 `main` commit `eedb3e8`；`speaking-content-manager`、`speaking-tts-manager` 與正式 Netlify deploy `6aab5df0d744695a82d11142` 已發布。正式後台已確認建構器與三種題型完整載入；兩支 Function OPTIONS 200、未登入 POST 401。
 
 本次 Workbook 1 P26～P27 頁碼式口說草稿（2026-09-17，正式站已部署並建立草稿）：
 
