@@ -2,12 +2,13 @@
 
 最後更新：2026-09-17
 
-本次看圖補句整句播放與移除逐字點選（2026-09-17，本機驗證完成，尚未部署）：
+本次看圖補句整句播放與移除逐字點選（2026-09-17，正式站已部署）：
 
 - 唯讀核對正式資料後，受影響的已發布關卡為 Workbook 1 P22（題庫 17，第 2 版，9 題）、P23（題庫 23，第 1 版，9 題）及 P24（題庫 24，第 1 版，8 題）；目前沒有其他已發布 `picture_gap_sentence` 題庫。日後由自訂建立器新增的同題型也套用相同規則。
 - 正式資料的停頓整句音檔實際已全部 ready（P22 9/9、P23 9/9、P24 8/8）。無法播放的原因是正式 `speaking-challenge` v29 仍為舊版輸出，只回傳逐字音檔，沒有回傳 `sentence_audio_url`，前端因此將「聽整句」停用。
 - 學生端改為只顯示不可點選的句型文字與「聽整句（空格停 2 秒）」；後端只簽發整句音檔短效網址，新草稿只產生並要求整句音檔。既有逐字音檔與資料表保留，不執行刪除或 migration。
 - React 相關測試 4 suites／15 tests、後端與題庫契約 36 tests、全部 Edge Function 語法、Production build 及 `git diff --check` 均通過；build 僅有既有未使用 import、Browserslist 與 Node deprecation 警告。
+- PR #167 已合併至 `main` commit `6a5261e`；正式 `speaking-challenge` v30、`speaking-tts-manager` v24、`speaking-content-manager` v27 均為 ACTIVE，OPTIONS 200、未登入 POST 401。Netlify production deploy `6aab8fd5725ffda191dfe4e0` 已 live；首頁、P24 路由與唯一部署網址皆回應 HTTP 200，正式站載入 `main.d3c38a3e.js`。本批未重產音檔、未修改題庫資料，也沒有 migration。
 
 本次自訂口說草稿移除重複總確認（2026-09-17，正式站已部署）：
 
