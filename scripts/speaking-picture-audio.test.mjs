@@ -5,7 +5,8 @@ import {
     googleSpeechInputForText,
     pictureGapTheCandidateInput,
     pictureGapSentenceParts,
-    PICTURE_SENTENCE_GAP_MS
+    PICTURE_SENTENCE_GAP_MS,
+    ttsTextWithoutTerminalFullStops
 } from "../supabase/functions/_shared/speaking-picture-audio.ts";
 import { parseLinear16MonoWav } from "../supabase/functions/_shared/alphabet-audio-sequence.ts";
 
@@ -58,8 +59,13 @@ test("整句只使用可見句型並在唯一空格切成前後兩段", () => {
         before: "The",
         after: "is in the race."
     });
+    assert.deepEqual(pictureGapSentenceParts("What color is the apple? It's ____."), {
+        before: "What color is the apple? It's",
+        after: "."
+    });
+    assert.equal(ttsTextWithoutTerminalFullStops("."), "");
     assert.throws(() => pictureGapSentenceParts("The horse is in the race."), /只有一個空格/);
-    assert.throws(() => pictureGapSentenceParts("____"), /空格前後/);
+    assert.throws(() => pictureGapSentenceParts("____"), /空格前/);
 });
 
 test("整句 WAV 會嵌入精準 2 秒靜音", () => {
@@ -68,6 +74,13 @@ test("整句 WAV 會嵌入精準 2 秒靜音", () => {
     assert.equal(PICTURE_SENTENCE_GAP_MS, 2000);
     assert.equal(assembled.durationMs, 3250);
     assert.equal(Math.round(parsed.data.length / parsed.byteRate * 1000), 3250);
+});
+
+test("空格位於句尾時保留 2 秒停頓且不要求右側語音", () => {
+    const assembled = assemblePictureGapSentenceWav(wav(500), null);
+    const parsed = parseLinear16MonoWav(assembled.bytes);
+    assert.equal(assembled.durationMs, 2500);
+    assert.equal(Math.round(parsed.data.length / parsed.byteRate * 1000), 2500);
 });
 
 test("前後 WAV 規格不同時停止合成", () => {

@@ -1,7 +1,7 @@
 import { parseLinear16MonoWav } from "./alphabet-audio-sequence.ts";
 
 export const PICTURE_SENTENCE_GAP_MS = 2000;
-export const PICTURE_SENTENCE_AUDIO_VERSION = "picture-gap-leda-v2";
+export const PICTURE_SENTENCE_AUDIO_VERSION = "picture-gap-leda-v3";
 export const VISIBLE_WORD_AUDIO_VERSION = "visible-word-leda-v2";
 export const PICTURE_GAP_THE_CANDIDATE_VERSION = "picture-gap-the-context-v2";
 
@@ -19,12 +19,12 @@ const xmlEscape = (value: string) => value
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
-const withoutTerminalFullStops = (value: unknown) => String(value || "")
+export const ttsTextWithoutTerminalFullStops = (value: unknown) => String(value || "")
     .trim()
     .replace(/[.\u3002\uff0e\u2026]+$/u, "")
     .trim();
 
-const googleSsmlFragmentForText = (text: string) => xmlEscape(withoutTerminalFullStops(text)).replace(
+const googleSsmlFragmentForText = (text: string) => xmlEscape(ttsTextWithoutTerminalFullStops(text)).replace(
     /\bthe\b/gi,
     matched => `<phoneme alphabet="ipa" ph="ðə">${matched}</phoneme>`
 );
@@ -37,12 +37,12 @@ export const pictureGapSentenceParts = (pattern: unknown) => {
     const start = Number(match.index);
     const before = normalized.slice(0, start).trim();
     const after = normalized.slice(start + match[0].length).trim();
-    if (!before || !after) throw new Error("看圖補句的空格前後都必須有可朗讀文字");
+    if (!before) throw new Error("看圖補句的空格前必須有可朗讀文字");
     return { before, after };
 };
 
 export const googleSpeechInputForText = (value: unknown): GoogleSpeechInput => {
-    const text = withoutTerminalFullStops(value);
+    const text = ttsTextWithoutTerminalFullStops(value);
     if (!text) throw new Error("語音文字不可為空白");
     if (!/\bthe\b/i.test(text)) return { text };
     const escaped = googleSsmlFragmentForText(text);
@@ -90,25 +90,25 @@ const buildPcmWav = (pcm: Uint8Array, sampleRate: number, channels: number, bits
 
 export const assemblePictureGapSentenceWav = (
     beforeBytes: Uint8Array,
-    afterBytes: Uint8Array,
+    afterBytes: Uint8Array | null,
     gapMs = PICTURE_SENTENCE_GAP_MS
 ) => {
     if (!Number.isInteger(gapMs) || gapMs !== PICTURE_SENTENCE_GAP_MS) {
         throw new Error("看圖補句整句音檔必須保留 2 秒空格");
     }
     const before = parseLinear16MonoWav(beforeBytes);
-    const after = parseLinear16MonoWav(afterBytes);
-    if (before.sampleRate !== after.sampleRate
+    const after = afterBytes?.length ? parseLinear16MonoWav(afterBytes) : null;
+    if (after && (before.sampleRate !== after.sampleRate
         || before.channels !== after.channels
         || before.bitsPerSample !== after.bitsPerSample
-        || before.blockAlign !== after.blockAlign) {
+        || before.blockAlign !== after.blockAlign)) {
         throw new Error("看圖補句前後語音的 WAV 取樣格式不一致");
     }
     const silenceFrames = Math.round(before.sampleRate * gapMs / 1000);
     const silenceBytes = silenceFrames * before.blockAlign;
-    const pcm = new Uint8Array(before.data.length + silenceBytes + after.data.length);
+    const pcm = new Uint8Array(before.data.length + silenceBytes + (after?.data.length || 0));
     pcm.set(before.data, 0);
-    pcm.set(after.data, before.data.length + silenceBytes);
+    if (after) pcm.set(after.data, before.data.length + silenceBytes);
     const durationMs = Math.round((pcm.length / before.blockAlign) * 1000 / before.sampleRate);
     return {
         bytes: buildPcmWav(pcm, before.sampleRate, before.channels, before.bitsPerSample),

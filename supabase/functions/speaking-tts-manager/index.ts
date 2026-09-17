@@ -36,6 +36,7 @@ import {
     PICTURE_GAP_THE_CANDIDATE_VERSION,
     PICTURE_SENTENCE_AUDIO_VERSION,
     PICTURE_SENTENCE_GAP_MS,
+    ttsTextWithoutTerminalFullStops,
     type GoogleSpeechInput
 } from "../_shared/speaking-picture-audio.ts";
 
@@ -181,11 +182,14 @@ const requestGoogleAudio = async (input: GoogleSpeechInput, selectedVoice: strin
 const requestGoogleGapSentenceAudio = async (pattern: string, selectedVoice: string) => {
     const { before, after } = pictureGapSentenceParts(pattern);
     const beforeAudio = await requestGoogleAudio(googleSpeechInputForText(before), selectedVoice);
-    const afterAudio = await requestGoogleAudio(googleSpeechInputForText(after), selectedVoice);
-    const assembled = assemblePictureGapSentenceWav(beforeAudio.bytes, afterAudio.bytes, PICTURE_SENTENCE_GAP_MS);
+    const spokenAfter = ttsTextWithoutTerminalFullStops(after);
+    const afterAudio = spokenAfter
+        ? await requestGoogleAudio(googleSpeechInputForText(spokenAfter), selectedVoice)
+        : null;
+    const assembled = assemblePictureGapSentenceWav(beforeAudio.bytes, afterAudio?.bytes || null, PICTURE_SENTENCE_GAP_MS);
     return {
         ...assembled,
-        usedCharacters: beforeAudio.usedCharacters + afterAudio.usedCharacters
+        usedCharacters: beforeAudio.usedCharacters + (afterAudio?.usedCharacters || 0)
     };
 };
 
