@@ -84,6 +84,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
         if (!allReady) return toast.error("請完成頁碼與題目內容");
         setWorking(true);
         let draftId = null;
+        let draftReadyForAudioRetry = false;
         try {
             const questions = rows.map(row => gapMode ? {
                 prompt_text: gapPattern(row.full_sentence, row.gap_answer), answer_text: row.full_sentence,
@@ -112,6 +113,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
                     );
                 }
             }
+            draftReadyForAudioRetry = true;
             if (gapMode) {
                 const audio = await generateSpeakingVisibleWordAudio(firebaseUser, draftId);
                 if (audio.success !== true) throw new Error("部分停頓整句語音尚未完成");
@@ -123,6 +125,11 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
             setRows(Array.from({ length: 3 }, () => newRow(pages[0] || "P1")));
             await onCreated?.(draftId);
         } catch (error) {
+            if (draftId && draftReadyForAudioRetry) {
+                toast.warning(`${error.message || "語音尚未完成"}；草稿與圖片已保留，請在題庫管理展開此草稿後重試語音。`);
+                await onCreated?.(draftId);
+                return;
+            }
             let rolledBack = false;
             if (draftId) {
                 try { await discardWorkbookOnePictureDraft(firebaseUser, draftId); rolledBack = true; }

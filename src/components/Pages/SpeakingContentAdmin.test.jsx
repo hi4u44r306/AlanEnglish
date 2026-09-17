@@ -125,7 +125,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /建立新關卡/ }));
         const createButtons = await screen.findAllByRole("button", { name: "建立草稿" });
-        expect(createButtons).toHaveLength(5);
+        expect(createButtons).toHaveLength(6);
         fireEvent.click(createButtons[1]);
 
         await waitFor(() => expect(createWorkbookOneFoundationQuestionSet).toHaveBeenCalledWith(
@@ -205,14 +205,19 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(await screen.findByRole("heading", { name: "題庫工作台" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /題庫管理/ })).toHaveTextContent("1 份草稿");
         expect(screen.getByRole("button", { name: /^1\s*草稿$/ })).toHaveAttribute("aria-pressed", "true");
-        expect(await screen.findByText("正在編輯")).toBeInTheDocument();
-        expect(screen.getByText("第 1 版 · 尚未發布")).toBeInTheDocument();
+        const setToggle = await screen.findByRole("button", { name: /01 我的名字與自我介紹/ });
+        expect(setToggle).toHaveAttribute("aria-expanded", "false");
+        fireEvent.click(setToggle);
+        expect(setToggle).toHaveAttribute("aria-expanded", "true");
         fireEvent.click(await screen.findByText("預覽學生畫面"));
 
         expect(screen.getByText("What's your name?")).toBeInTheDocument();
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
         expect(screen.getByText("女聲 · Leda")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "核准並發布" })).toBeInTheDocument();
+        fireEvent.click(setToggle);
+        expect(setToggle).toHaveAttribute("aria-expanded", "false");
+        expect(screen.queryByText("預覽學生畫面")).not.toBeInTheDocument();
     });
 
     it("deletes any selected unpublished draft without affecting the published version", async () => {
@@ -233,6 +238,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /P21 看圖問答 題庫/ }));
         const deleteButton = await screen.findByRole("button", { name: "刪除草稿" });
         fireEvent.click(deleteButton);
 
@@ -268,6 +274,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
 
+        fireEvent.click(await screen.findByRole("button", { name: /P21 看圖完整問答/ }));
         expect(await screen.findByText("P21 題目")).toBeInTheDocument();
         expect(screen.getByLabelText("完整問句（結尾需有 ?）")).toHaveValue("What is that?");
         expect(screen.queryByLabelText("AI 要問學生的問題")).not.toBeInTheDocument();
@@ -297,6 +304,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /01 我來自哪裡/ }));
         fireEvent.click(await screen.findByText("預覽學生畫面"));
         expect(screen.getByText("女聲 · Leda")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題女聲示範" }));
