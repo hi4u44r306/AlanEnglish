@@ -12,6 +12,7 @@
 .speaking-visual-aid--thumbnail { width: min(240px, 100%); }
 
 .speaking-visual-aid__media {
+  position: relative;
   display: grid;
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -22,6 +23,8 @@
 
 .speaking-visual-aid__media img,
 .speaking-visual-aid__media svg {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
