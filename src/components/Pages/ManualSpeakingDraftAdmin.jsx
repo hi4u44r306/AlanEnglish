@@ -47,7 +47,6 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
         difficulty: "國小低年級", interaction_type: "picture_gap_sentence"
     });
     const [rows, setRows] = useState(() => Array.from({ length: 3 }, () => newRow("P1")));
-    const [confirmed, setConfirmed] = useState(false);
     const [working, setWorking] = useState(false);
     const pages = useMemo(() => pageOptions(form.page_from_label, form.page_to_label), [form.page_from_label, form.page_to_label]);
     const pictureMode = isPictureType(form.interaction_type);
@@ -59,11 +58,9 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
     }, [pages]);
     const updateForm = (key, value) => {
         setForm(current => ({ ...current, [key]: value }));
-        setConfirmed(false);
     };
     const updateRow = (key, field, value) => {
         setRows(current => current.map(row => row.key === key ? { ...row, [field]: value } : row));
-        setConfirmed(false);
     };
     const changeType = type => {
         setForm(current => ({ ...current, interaction_type: type }));
@@ -71,7 +68,6 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
             ...newRow(row.page_label), key: row.key,
             full_sentence: type === "standard_sentence" ? (row.full_sentence || row.answer_text) : ""
         })));
-        setConfirmed(false);
     };
     const addRow = () => setRows(current => current.length >= 50 ? current : [...current, newRow(pages[0] || "P1")]);
     const removeRow = key => setRows(current => current.length <= 1 ? current : current.filter(row => row.key !== key));
@@ -84,7 +80,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
 
     const submit = async event => {
         event.preventDefault();
-        if (!allReady || !confirmed) return toast.error("請完成頁碼、題目內容與核對確認");
+        if (!allReady) return toast.error("請完成頁碼與題目內容");
         setWorking(true);
         let draftId = null;
         try {
@@ -124,7 +120,6 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
             }
             toast.success(`草稿已建立：${rows.length} 題${gapMode ? "，停頓語音已完成" : form.interaction_type === "standard_sentence" ? "，示範語音已完成" : ""}`);
             setRows(Array.from({ length: 3 }, () => newRow(pages[0] || "P1")));
-            setConfirmed(false);
             await onCreated?.(draftId);
         } catch (error) {
             let rolledBack = false;
@@ -173,8 +168,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
             })}</div>
             <button type="button" className="platform-secondary" disabled={working || rows.length >= 50} onClick={addRow}><Plus size={17} />新增一題</button>
             {rows.length < 3 && <p className="speaking-picture-editor__warning">草稿可以先保存，但發布前至少需要 3 題。</p>}
-            <label className="speaking-confirm"><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} disabled={working || !allReady} /><span>我已確認教材、頁碼、所有句子、答案與圖片正確；本次只建立未發布草稿。</span></label>
-            <button className="platform-primary" disabled={working || !confirmed || !allReady || !form.book_id || !form.title.trim() || !form.topic.trim()}>{working ? "正在建立草稿與語音…" : "建立未發布草稿"}</button>
+            <button className="platform-primary" disabled={working || !allReady || !form.book_id || !form.title.trim() || !form.topic.trim()}>{working ? "正在建立草稿與語音…" : "建立未發布草稿"}</button>
         </form>
     </section>;
 }
