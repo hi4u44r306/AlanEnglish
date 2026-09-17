@@ -235,7 +235,7 @@ test("16. 字母與逐字拼讀由後端精確核對，完成紀錄不能由前�
     assert.match(coach, /foundationRetryFeedback/);
 });
 
-test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取", () => {
+test("17. P21～P24 圖片、完整答案與停頓整句語音只由驗證後端讀取", () => {
     for (const table of [
         "speaking_visual_assets",
         "speaking_question_visual_assets",
@@ -291,7 +291,7 @@ test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(manager, /if \(!publishedSet\)/);
     assert.match(ttsManager, /generate_visible_word_audio/);
     assert.match(ttsManager, /WORKBOOK_ONE_PICTURE_GAP_TEMPLATES/);
-    assert.match(ttsManager, /visibleSentenceWords/);
+    assert.doesNotMatch(ttsManager, /visibleSentenceWords/);
     assert.match(ttsManager, /PICTURE_SENTENCE_GAP_MS/);
     assert.match(ttsManager, /sentence_pattern/);
     assert.match(manager, /\.eq\("purpose", "question_prompt"\)/);
@@ -301,9 +301,11 @@ test("17. P21～P24 圖片、完整答案與逐字語音只由驗證後端讀取
     assert.match(adminPage, /WorkbookOnePictureContentAdmin/);
     assert.match(challenge, /authorizeSpeakingChallenge/);
     assert.match(challenge, /buildPublicSpeakingQuestion/);
+    assert.doesNotMatch(challenge, /speaking_question_word_audio/);
     assert.match(challengeView, /圖片口說題目尚未完成安全發布/);
-    assert.match(challengeView, /P22～P24 的逐字或整句女聲發音尚未完整/);
+    assert.match(challengeView, /看圖補句的整句女聲發音尚未完成/);
     assert.match(challengeView, /sentence_audio_url/);
+    assert.doesNotMatch(challengeView, /word_audio/);
     assert.match(challengeView, /kind: "private-image"/);
     assert.match(challengeView, /signPrivateObject\(visualAsset\.private_object_key\)/);
     assert.match(challengeView, /question_text: ""/);

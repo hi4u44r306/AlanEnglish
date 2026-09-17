@@ -170,40 +170,25 @@ Deno.serve(async (req: Request) => {
                 `${Number(row.question_id)}:${row.purpose}`,
                 assetById.get(String(row.asset_id))
             ]));
-            const [{ data: pictureInteractions, error: pictureInteractionError }, { data: visualLinks, error: visualLinkError }, { data: wordAudioLinks, error: wordAudioError }] = pictureMode && ids.length
+            const [{ data: pictureInteractions, error: pictureInteractionError }, { data: visualLinks, error: visualLinkError }] = pictureMode && ids.length
                 ? await Promise.all([
                     admin.from("speaking_question_interactions")
                         .select("question_id,interaction_type,prompt_text").in("question_id", ids),
                     admin.from("speaking_question_visual_assets")
-                        .select("question_id,speaking_visual_assets!inner(id,status,private_object_key,mime_type,alt_zh)").in("question_id", ids),
-                    interactionType === "picture_gap_sentence"
-                        ? admin.from("speaking_question_word_audio")
-                            .select("question_id,token_index,word,speaking_tts_assets!inner(id,status,private_object_key)")
-                            .in("question_id", ids).order("token_index")
-                        : Promise.resolve({ data: [], error: null })
+                        .select("question_id,speaking_visual_assets!inner(id,status,private_object_key,mime_type,alt_zh)").in("question_id", ids)
                 ])
                 : [
-                    { data: [], error: null },
                     { data: [], error: null },
                     { data: [], error: null }
                 ];
             if (pictureInteractionError) throw pictureInteractionError;
             if (visualLinkError) throw visualLinkError;
-            if (wordAudioError) throw wordAudioError;
             const pictureInteractionByQuestion = new Map((pictureInteractions || [])
                 .map((row: any) => [Number(row.question_id), row]));
             const visualByQuestion = new Map((visualLinks || []).map((row: any) => [
                 Number(row.question_id),
                 Array.isArray(row.speaking_visual_assets) ? row.speaking_visual_assets[0] : row.speaking_visual_assets
             ]));
-            const wordsByQuestion = new Map<number, any[]>();
-            for (const row of (wordAudioLinks || [])) {
-                const asset = Array.isArray(row.speaking_tts_assets) ? row.speaking_tts_assets[0] : row.speaking_tts_assets;
-                wordsByQuestion.set(Number(row.question_id), [
-                    ...(wordsByQuestion.get(Number(row.question_id)) || []),
-                    { ...row, asset }
-                ]);
-            }
             let alphabetAudio = null;
             if (alphabetMode) {
                 const orderedQuestions = [...(questionSet.speaking_questions || [])]
@@ -274,7 +259,6 @@ Deno.serve(async (req: Request) => {
                     promptAsset,
                     pictureInteraction,
                     visualAsset,
-                    wordAudioRows: wordsByQuestion.get(Number(question.id)) || [],
                     signPrivateObject: (privateObjectKey: string) => (
                         createR2PresignedUrl(privateObjectKey, "GET", 15 * 60)
                     )

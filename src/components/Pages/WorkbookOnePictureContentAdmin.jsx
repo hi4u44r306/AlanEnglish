@@ -111,11 +111,11 @@ export default function WorkbookOnePictureContentAdmin({ firebaseUser, workbookO
                 if (audio.success !== true) {
                     const incomplete = Number(audio.failed || 0) + Number(audio.pending || 0);
                     throw new Error(incomplete > 0
-                        ? `仍有 ${incomplete} 個逐字或整句發音尚未完成`
-                        : "仍有部分逐字或整句發音尚未完成");
+                        ? `仍有 ${incomplete} 個整句發音尚未完成`
+                        : "仍有部分整句發音尚未完成");
                 }
             }
-            toast.success(`${pageLabel} 圖片草稿、私人圖片${isGap ? "、逐字與整句女聲發音" : ""}已準備完成，請預覽後再發布`);
+            toast.success(`${pageLabel} 圖片草稿、私人圖片${isGap ? "、停頓整句女聲發音" : ""}已準備完成，請預覽後再發布`);
             setRows(makeRows(pageConfig.questionCount));
             setConfirmed(false);
             await onCreated?.();

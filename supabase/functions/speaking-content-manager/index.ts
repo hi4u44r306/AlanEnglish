@@ -2149,35 +2149,10 @@ Deno.serve(async (req: Request) => {
                     return json(409, { error: "每一題都必須有人工核准的完整問答、圖片與替代文字" });
                 }
                 if (metadata.interaction_type === "picture_gap_sentence") {
-                    const [wordLinksResult, sentenceLinksResult] = await Promise.all([
-                        admin.from("speaking_question_word_audio")
-                            .select("question_id,token_index,word,speaking_tts_assets!inner(id,status,private_object_key)")
-                            .in("question_id", questionIds),
-                        admin.from("speaking_question_audio")
-                            .select("question_id,purpose,speaking_tts_assets!inner(id,status,private_object_key)")
-                            .in("question_id", questionIds).eq("purpose", "question_prompt")
-                    ]);
-                    const { data: wordLinks, error: wordError } = wordLinksResult;
-                    if (wordError) throw wordError;
-                    const { data: sentenceLinks, error: sentenceError } = sentenceLinksResult;
+                    const { data: sentenceLinks, error: sentenceError } = await admin.from("speaking_question_audio")
+                        .select("question_id,purpose,speaking_tts_assets!inner(id,status,private_object_key)")
+                        .in("question_id", questionIds).eq("purpose", "question_prompt");
                     if (sentenceError) throw sentenceError;
-                    const readyWordByPosition = new Map((wordLinks || []).map((row: any) => {
-                        const asset = Array.isArray(row.speaking_tts_assets) ? row.speaking_tts_assets[0] : row.speaking_tts_assets;
-                        return [`${Number(row.question_id)}:${Number(row.token_index)}`, { ...row, asset }];
-                    }));
-                    const expectedWords = questionIds.flatMap((questionId: number) => {
-                        const interaction: any = interactionByQuestion.get(questionId);
-                        return visibleSentenceWords(interaction?.prompt_text).map(token => ({ questionId, ...token }));
-                    });
-                    const incompleteWords = expectedWords.length !== (wordLinks || []).length
-                        || expectedWords.some(expected => {
-                            const linked: any = readyWordByPosition.get(`${expected.questionId}:${expected.tokenIndex}`);
-                            return !linked || String(linked.word).toLowerCase() !== expected.text.toLowerCase()
-                                || linked.asset?.status !== "ready" || !linked.asset?.private_object_key;
-                        });
-                    if (incompleteWords) {
-                        return json(409, { error: `${picturePolicy.pageLabel} 每個可見單字的標準發音尚未全部完成` });
-                    }
                     const readySentenceIds = new Set((sentenceLinks || []).filter((row: any) => {
                         const asset = Array.isArray(row.speaking_tts_assets) ? row.speaking_tts_assets[0] : row.speaking_tts_assets;
                         return row.purpose === "question_prompt"

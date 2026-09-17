@@ -113,7 +113,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
             }
             if (gapMode) {
                 const audio = await generateSpeakingVisibleWordAudio(firebaseUser, draftId);
-                if (audio.success !== true) throw new Error("部分逐字或停頓語音尚未完成");
+                if (audio.success !== true) throw new Error("部分停頓整句語音尚未完成");
             } else if (form.interaction_type === "standard_sentence") {
                 const audio = await generateSpeakingQuestionSetAudio(firebaseUser, draftId);
                 if (audio.success !== true) throw new Error("部分示範語音尚未完成");

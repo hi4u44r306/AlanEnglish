@@ -2,7 +2,6 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
 import { spokenExampleText } from "../_shared/speaking-tts-text.ts";
-import { visibleSentenceWords } from "../_shared/speaking-foundation-answer.ts";
 import {
     alphabetRoundContentMatches,
     workbookOneFoundationTemplateByKey
@@ -37,7 +36,6 @@ import {
     PICTURE_GAP_THE_CANDIDATE_VERSION,
     PICTURE_SENTENCE_AUDIO_VERSION,
     PICTURE_SENTENCE_GAP_MS,
-    VISIBLE_WORD_AUDIO_VERSION,
     type GoogleSpeechInput
 } from "../_shared/speaking-picture-audio.ts";
 
@@ -995,32 +993,21 @@ Deno.serve(async (req: Request) => {
             });
         }
         if (action === "generate_visible_word_audio") {
-            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有看圖補句關卡可產生逐字與整句發音" });
+            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有看圖補句關卡可產生整句發音" });
             const questionIds = questions.map((question: any) => Number(question.id));
             const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
                 .select("question_id,interaction_type,prompt_text").in("question_id", questionIds);
             if (interactionError) throw interactionError;
             const interactionByQuestion = new Map((interactions || []).map((row: any) => [Number(row.question_id), row]));
-            const wordTargets = questions.flatMap((question: any) => {
+            const invalidInteraction = questions.some((question: any) => {
                 const interaction: any = interactionByQuestion.get(Number(question.id));
-                if (interaction?.interaction_type !== "picture_gap_sentence") return [];
-                return visibleSentenceWords(interaction.prompt_text).map(token => ({ question, token }));
+                return interaction?.interaction_type !== "picture_gap_sentence" || !String(interaction?.prompt_text || "").trim();
             });
-            if (!wordTargets.length || wordTargets.length > 160) {
-                return json(409, { error: `${pictureGapPage || "看圖補句"} 可見單字資料不完整或超過安全處理上限` });
+            if (invalidInteraction || interactions?.length !== questions.length) {
+                return json(409, { error: `${pictureGapPage || "看圖補句"} 整句資料不完整` });
             }
             const results = [];
             const femaleVoice = { gender: "female", voiceId: voicePool().female };
-            for (const { question, token } of wordTargets) {
-                try {
-                    results.push(await generateQuestionAudio(admin, question, {
-                        kind: "visible_word", text: token.text, word: token.text, tokenIndex: token.tokenIndex,
-                        voiceChoice: femaleVoice, audioVersion: VISIBLE_WORD_AUDIO_VERSION
-                    }));
-                } catch (generationError: any) {
-                    results.push({ question_id: Number(question.id), token_index: token.tokenIndex, status: "failed", error: cleanText(generationError?.message, 300) || "單字語音生成失敗" });
-                }
-            }
             for (const question of questions) {
                 const interaction: any = interactionByQuestion.get(Number(question.id));
                 try {
