@@ -176,10 +176,6 @@
 .speaking-challenge-lesson.is-locked::before { background: #c7d0dc; }
 .speaking-challenge-lesson:disabled { opacity: 1; }
 .speaking-challenge-loading-status { grid-column: 1 / -1; color: #526884; font-weight: 800; }
-.speaking-focus-card .speaking-visual-aid { width: min(300px, 100%); margin: 0 auto; overflow: hidden; border: 1px solid #d9e4f2; border-radius: 16px; background: #fff; box-shadow: 0 8px 20px rgba(20, 47, 91, .08); }
-.speaking-focus-card .speaking-visual-aid svg { display: block; width: 100%; height: auto; }
-.speaking-focus-card .speaking-visual-aid figcaption { padding: 7px 10px; background: #f7faff; color: #536886; font-size: 12px; font-weight: 800; }
-
 .speaking-challenge-detail { padding-top: 24px; }
 
 .speaking-lesson-header {
@@ -949,8 +945,6 @@
 .speaking-exit-dialog button:focus-visible { outline: 3px solid rgba(246, 190, 46, .8); outline-offset: 3px; }
 @keyframes speaking-mic-pulse { 50% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(230, 111, 31, .12); } }
 @keyframes speaking-spin { to { transform: rotate(360deg); } }
-.speaking-picture-card .speaking-visual-aid--private { width: min(440px, 100%); }
-.speaking-visual-aid--private img { display: block; width: 100%; max-height: min(48vh, 420px); object-fit: contain; background: #f7faff; }
 .speaking-gap-sentence-audio {
   min-height: 48px;
   display: inline-flex;
@@ -981,7 +975,7 @@
   border-radius: 22px;
   color: #14284e;
   background: linear-gradient(145deg, #fff, #f2f7ff);
-  font-size: clamp(24px, 4vw, 38px);
+  font-size: clamp(24px, 4vw, 34px);
   font-weight: 900;
   line-height: 1.45;
 }
@@ -1045,8 +1039,6 @@
   .speaking-foundation-letter,
   .speaking-foundation-word { min-width: 0; width: 100%; padding-inline: 12px; }
   .speaking-foundation-card { padding: 18px 14px; }
-  .speaking-picture-card .speaking-visual-aid--private { width: 100%; }
-  .speaking-visual-aid--private img { max-height: 38vh; }
   .speaking-gap-sentence-audio { width: 100%; }
   .speaking-gap-sentence { gap: 6px; padding: 14px 10px; border-radius: 18px; font-size: clamp(22px, 7vw, 30px); }
   .speaking-gap-sentence button { min-height: 46px; padding-inline: 7px; }

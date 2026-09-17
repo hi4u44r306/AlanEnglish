@@ -16,6 +16,7 @@ import {
     uploadSpeakingQuestionPicture
 } from "../../services/speakingContentService";
 import SpeakingVisualAid from "./SpeakingVisualAid";
+import SpeakingSelectedImagePreview from "./SpeakingSelectedImagePreview";
 
 const EXPECTED_COUNTS = {
     workbook_1_p21_picture_qa_v1: 9,
@@ -262,8 +263,9 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
                     <label className="speaking-file-picker"><span><ImagePlus size={16} />{adding ? "題目圖片" : "更換圖片（不選則保留目前圖片）"}</span><input type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={event => update("file", event.target.files?.[0] || null)} /><small>{form.file ? `${form.file.name} · ${(form.file.size / 1024 / 1024).toFixed(1)}MB` : "JPG、PNG 或 WebP，單檔 10MB 內"}</small></label>
                     <label><span>圖片替代文字{!adding && !form.file ? "（更換圖片時可修改）" : ""}</span><input value={form.alt_zh} disabled={!adding && !form.file} onChange={event => update("alt_zh", event.target.value)} placeholder="簡短描述圖片，不提示答案" /></label>
                     {!fileValid && <p className="speaking-picture-editor__error">圖片格式或大小不符合規定。</p>}
-                    {!adding && <button type="button" className="platform-secondary" disabled={working === "preview"} onClick={loadPreview}><Eye size={17} />查看目前圖片</button>}
-                    {preview?.image_url && <SpeakingVisualAid aid={{ kind: "private-image", image_url: preview.image_url, alt_zh: preview.alt_zh }} />}
+                    {form.file && <SpeakingSelectedImagePreview file={form.file} alt={form.alt_zh} />}
+                    {!adding && !form.file && <button type="button" className="platform-secondary" disabled={working === "preview"} onClick={loadPreview}><Eye size={17} />查看目前圖片</button>}
+                    {!form.file && preview?.image_url && <SpeakingVisualAid variant="admin" aid={{ kind: "private-image", image_url: preview.image_url, alt_zh: preview.alt_zh }} />}
                     {!adding && isGap && <button type="button" className="platform-secondary" disabled={working === "audio-preview"} onClick={previewAudio}><Volume2 size={17} />試聽空格停 2 秒的整句</button>}
                     {audioUrl && <audio controls autoPlay src={audioUrl}>瀏覽器不支援音訊播放。</audio>}
                     {!adding && isGap && /^The\s+_+/i.test(asOne(selectedQuestion?.speaking_question_interactions)?.prompt_text || "") && <section className="speaking-picture-editor__voice-candidates" aria-label="The 弱讀候選">

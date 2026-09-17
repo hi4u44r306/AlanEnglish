@@ -1,4 +1,5 @@
 import React from "react";
+import "./css/SpeakingVisualAid.scss";
 
 const Flag = ({ value }) => {
     if (value === "taiwan") return <svg viewBox="0 0 900 600" aria-hidden="true"><rect width="900" height="600" fill="#fe0000" /><rect width="450" height="300" fill="#000095" /><g transform="translate(225 150)" fill="#fff">{Array.from({ length: 12 }, (_, index) => <path key={index} d="M0-112 15-64-15-64Z" transform={`rotate(${index * 30})`} />)}<circle r="58" /></g></svg>;
@@ -35,11 +36,12 @@ const Routine = ({ value }) => {
     return null;
 };
 
-export default function SpeakingVisualAid({ aid, showCaption = true }) {
+export default function SpeakingVisualAid({ aid, showCaption = true, variant = "challenge" }) {
+    const className = `speaking-visual-aid speaking-visual-aid--${variant}`;
     if (aid?.kind === "private-image") {
         if (!aid?.image_url || !aid?.alt_zh) return null;
-        return <figure className="speaking-visual-aid speaking-visual-aid--private">
-            <img src={aid.image_url} alt={aid.alt_zh} />
+        return <figure className={`${className} speaking-visual-aid--private`}>
+            <div className="speaking-visual-aid__media"><img src={aid.image_url} alt={aid.alt_zh} /></div>
             {showCaption && <figcaption>{aid.alt_zh}</figcaption>}
         </figure>;
     }
@@ -49,5 +51,8 @@ export default function SpeakingVisualAid({ aid, showCaption = true }) {
             : aid.kind === "clock" ? <Clock hour={Number(aid.value) || 7} />
                 : aid.kind === "routine" ? <Routine value={aid.value} /> : null;
     if (!visual) return null;
-    return <figure className="speaking-visual-aid" aria-label={aid.alt_zh || "題目輔助圖片"}>{visual}<figcaption>{aid.alt_zh || "看圖回答"}</figcaption></figure>;
+    return <figure className={className} aria-label={aid.alt_zh || "題目輔助圖片"}>
+        <div className="speaking-visual-aid__media">{visual}</div>
+        {showCaption && <figcaption>{aid.alt_zh || "看圖回答"}</figcaption>}
+    </figure>;
 }

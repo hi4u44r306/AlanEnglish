@@ -8,6 +8,7 @@ import {
     generateSpeakingVisibleWordAudio,
     uploadSpeakingQuestionPicture
 } from "../../services/speakingContentService";
+import SpeakingSelectedImagePreview from "./SpeakingSelectedImagePreview";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -162,7 +163,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
                         {form.interaction_type === "standard_sentence" && <label><span>完整朗讀句子</span><input required value={row.full_sentence} onChange={event => updateRow(row.key, "full_sentence", event.target.value)} placeholder="This is a pencil." disabled={working} /></label>}
                         <label><span>其他可接受的完整說法（選填，每行一項）</span><textarea rows="2" value={row.accepted_full_responses} onChange={event => updateRow(row.key, "accepted_full_responses", event.target.value)} disabled={working} /></label>
                         <label><span>發音提示（選填）</span><input value={row.pronunciation_notes_zh} onChange={event => updateRow(row.key, "pronunciation_notes_zh", event.target.value)} disabled={working} /></label>
-                        {pictureMode && <div className="platform-form-grid"><label><span>圖片替代文字</span><input required value={row.alt_zh} onChange={event => updateRow(row.key, "alt_zh", event.target.value)} placeholder="描述圖片，不提示答案" disabled={working} /></label><label className="speaking-file-picker"><span><ImagePlus size={16} />題目圖片</span><input required type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={event => updateRow(row.key, "file", event.target.files?.[0] || null)} disabled={working} /><small>{row.file ? `${row.file.name} · ${(row.file.size / 1024 / 1024).toFixed(1)}MB` : "JPG、PNG 或 WebP，10MB 內"}</small></label></div>}
+                        {pictureMode && <><div className="platform-form-grid"><label><span>圖片替代文字</span><input required value={row.alt_zh} onChange={event => updateRow(row.key, "alt_zh", event.target.value)} placeholder="描述圖片，不提示答案" disabled={working} /></label><label className="speaking-file-picker"><span><ImagePlus size={16} />題目圖片</span><input required type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={event => updateRow(row.key, "file", event.target.files?.[0] || null)} disabled={working} /><small>{row.file ? `${row.file.name} · ${(row.file.size / 1024 / 1024).toFixed(1)}MB` : "JPG、PNG 或 WebP，10MB 內"}</small></label></div><SpeakingSelectedImagePreview file={row.file} alt={row.alt_zh} /></>}
                     </div>
                 </article>;
             })}</div>

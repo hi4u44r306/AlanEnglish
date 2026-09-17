@@ -160,7 +160,7 @@ const QuestionPicturePreview = ({ firebaseUser, question }) => {
             <Eye size={17} />{loading ? "載入中…" : preview ? "重新載入圖片" : "載入圖片預覽"}
         </button>
         {failed && <p role="status">圖片尚未準備完成，請確認上傳狀態後再試。</p>}
-        {preview?.image_url && <SpeakingVisualAid aid={{
+        {preview?.image_url && <SpeakingVisualAid variant="thumbnail" aid={{
             kind: "private-image", image_url: preview.image_url, alt_zh: preview.alt_zh
         }} />}
     </div>;
@@ -185,7 +185,7 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
                 <span>第 {index + 1} 題</span>{!isPictureQa && <strong>{question.question_text}</strong>}
                 {isPictureSet
                     ? <QuestionPicturePreview firebaseUser={firebaseUser} question={question} />
-                    : <SpeakingVisualAid aid={question.visual_aid} />}
+                    : <SpeakingVisualAid variant="thumbnail" aid={question.visual_aid} />}
                 {isPictureSet
                     ? <details><summary>查看管理員核對資料（學生不會看到）</summary><p>{question.question_text}</p><em>{question.model_answer}</em></details>
                     : <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>}
