@@ -31,7 +31,10 @@ import {
 import {
     assemblePictureGapSentenceWav,
     googleSpeechInputForText,
+    pictureGapTheCandidateInput,
     pictureGapSentenceParts,
+    PICTURE_GAP_THE_CANDIDATE_PROFILES,
+    PICTURE_GAP_THE_CANDIDATE_VERSION,
     PICTURE_SENTENCE_AUDIO_VERSION,
     PICTURE_SENTENCE_GAP_MS,
     VISIBLE_WORD_AUDIO_VERSION,
@@ -188,6 +191,94 @@ const requestGoogleGapSentenceAudio = async (pattern: string, selectedVoice: str
     };
 };
 
+const pictureGapTheCandidateDescriptor = async (pattern: string, profile: any) => {
+    const selectedVoice = voicePool().female;
+    const input = pictureGapTheCandidateInput(pattern, profile.id);
+    const contentHash = await sha256(pattern);
+    const assetSettings = {
+        ...SETTINGS,
+        audio_version: PICTURE_GAP_THE_CANDIDATE_VERSION,
+        picture_gap_the_profile: profile.id,
+        gap_mode: "ssml_context",
+        gap_ms: PICTURE_SENTENCE_GAP_MS
+    };
+    const settingsHash = await sha256(JSON.stringify({
+        provider: PROVIDER,
+        voice_id: selectedVoice,
+        language_code: LANGUAGE_CODE,
+        output_format: OUTPUT_FORMAT,
+        sample_rate: "provider_default",
+        pipeline_version: PIPELINE_VERSION,
+        settings: assetSettings,
+        input
+    }));
+    const fingerprint = await sha256(JSON.stringify({ content_hash: contentHash, settings_hash: settingsHash }));
+    return {
+        profile,
+        input,
+        selectedVoice,
+        contentHash,
+        settingsHash,
+        assetSettings,
+        objectKey: normalizeObjectKey(`speaking-tts/candidates/picture-gap-the/${fingerprint}.wav`)
+    };
+};
+
+const activePictureGapTheProfile = async (admin: any, questionId: number) => {
+    const { data: link, error: linkError } = await admin.from("speaking_question_audio")
+        .select("asset_id").eq("question_id", questionId).eq("purpose", "question_prompt").maybeSingle();
+    if (linkError) throw linkError;
+    if (!link?.asset_id) return null;
+    const { data: asset, error: assetError } = await admin.from("speaking_tts_assets")
+        .select("settings").eq("id", link.asset_id).maybeSingle();
+    if (assetError) throw assetError;
+    const profileId = String(asset?.settings?.picture_gap_the_profile || "");
+    return PICTURE_GAP_THE_CANDIDATE_PROFILES.some(profile => profile.id === profileId) ? profileId : null;
+};
+
+const preparePictureGapTheCandidates = async (admin: any, question: any, pattern: string) => {
+    const candidates = [];
+    for (const profile of PICTURE_GAP_THE_CANDIDATE_PROFILES) {
+        const descriptor = await pictureGapTheCandidateDescriptor(pattern, profile);
+        let reused = false;
+        const existing = await fetchR2(descriptor.objectKey, { method: "HEAD" });
+        if (existing.ok && Number(existing.headers.get("content-length") || 0) > 0) {
+            reused = true;
+        } else {
+            const generated = await requestGoogleAudio(descriptor.input, descriptor.selectedVoice);
+            const stored = await fetchR2(descriptor.objectKey, {
+                method: "PUT", body: generated.bytes,
+                headers: { "Content-Type": "audio/wav", "Cache-Control": "private, max-age=31536000, immutable" }
+            });
+            if (!stored.ok) {
+                throw Object.assign(new Error("The 弱讀候選音檔無法寫入私人儲存空間"), {
+                    status: 502, code: `r2_put_${stored.status}`
+                });
+            }
+            const probe = await fetchR2(descriptor.objectKey, { method: "HEAD" });
+            if (!probe.ok || Number(probe.headers.get("content-length") || 0) !== generated.bytes.length) {
+                throw Object.assign(new Error("The 弱讀候選音檔儲存驗證失敗"), {
+                    status: 502, code: "picture_gap_the_candidate_size_mismatch"
+                });
+            }
+        }
+        candidates.push({
+            id: profile.id,
+            label: profile.label,
+            reused,
+            audio_url: await createR2PresignedUrl(descriptor.objectKey, "GET", 15 * 60)
+        });
+    }
+    return {
+        success: true,
+        question_id: Number(question.id),
+        voice_id: voicePool().female,
+        active_candidate_id: await activePictureGapTheProfile(admin, Number(question.id)),
+        expires_in_seconds: 15 * 60,
+        candidates
+    };
+};
+
 const linkGeneratedAsset = async (admin: any, question: any, assetId: string, target: any, updatedAt: string) => {
     if (target?.kind === "visible_word") {
         const { error } = await admin.from("speaking_question_word_audio").upsert({
@@ -232,6 +323,85 @@ const linkGeneratedAsset = async (admin: any, question: any, assetId: string, ta
         .select("question_id").maybeSingle();
     if (retryError) throw retryError;
     if (!retriedLink) throw Object.assign(new Error("示範語音無法連結至題目"), { status: 409, code: "audio_link_race_failed" });
+};
+
+const activatePictureGapTheCandidate = async (admin: any, question: any, pattern: string, profileId: string) => {
+    const profile = PICTURE_GAP_THE_CANDIDATE_PROFILES.find(candidate => candidate.id === profileId);
+    if (!profile) return Promise.reject(Object.assign(new Error("The 弱讀候選版本不正確"), { status: 400, code: "invalid_picture_gap_the_candidate" }));
+    const descriptor = await pictureGapTheCandidateDescriptor(pattern, profile);
+    const stored = await fetchR2(descriptor.objectKey, { method: "HEAD" });
+    const byteSize = Number(stored.headers.get("content-length") || 0);
+    if (!stored.ok || !Number.isInteger(byteSize) || byteSize <= 0) {
+        throw Object.assign(new Error("請先產生並完整試聽這個 The 弱讀候選"), {
+            status: 409, code: "picture_gap_the_candidate_not_ready"
+        });
+    }
+    const now = new Date().toISOString();
+    const usedCharacters = "ssml" in descriptor.input ? descriptor.input.ssml.length : descriptor.input.text.length;
+    const selectFields = "id,status,private_object_key";
+    let { data: asset, error: assetError } = await admin.from("speaking_tts_assets")
+        .select(selectFields).eq("provider", PROVIDER).eq("content_hash", descriptor.contentHash)
+        .eq("voice_id", descriptor.selectedVoice).eq("settings_hash", descriptor.settingsHash).maybeSingle();
+    if (assetError) throw assetError;
+    if (asset) {
+        const { data: updated, error } = await admin.from("speaking_tts_assets").update({
+            source_text: pattern,
+            language_code: LANGUAGE_CODE,
+            output_format: OUTPUT_FORMAT,
+            sample_rate: SAMPLE_RATE_METADATA,
+            settings: descriptor.assetSettings,
+            private_object_key: descriptor.objectKey,
+            status: "ready",
+            byte_size: byteSize,
+            used_characters: usedCharacters,
+            error_code: null,
+            error_message: null,
+            completed_at: now,
+            updated_at: now
+        }).eq("id", asset.id).select(selectFields).single();
+        if (error) throw error;
+        asset = updated;
+    } else {
+        const { data: inserted, error } = await admin.from("speaking_tts_assets").insert({
+            provider: PROVIDER,
+            content_hash: descriptor.contentHash,
+            source_text: pattern,
+            voice_id: descriptor.selectedVoice,
+            language_code: LANGUAGE_CODE,
+            output_format: OUTPUT_FORMAT,
+            sample_rate: SAMPLE_RATE_METADATA,
+            settings_hash: descriptor.settingsHash,
+            settings: descriptor.assetSettings,
+            private_object_key: descriptor.objectKey,
+            status: "ready",
+            byte_size: byteSize,
+            used_characters: usedCharacters,
+            completed_at: now,
+            updated_at: now
+        }).select(selectFields).single();
+        if (error?.code === "23505") {
+            const { data: raced, error: raceError } = await admin.from("speaking_tts_assets")
+                .select(selectFields).eq("provider", PROVIDER).eq("content_hash", descriptor.contentHash)
+                .eq("voice_id", descriptor.selectedVoice).eq("settings_hash", descriptor.settingsHash).single();
+            if (raceError) throw raceError;
+            asset = raced;
+        } else if (error) throw error;
+        else asset = inserted;
+    }
+    if (!asset?.id || asset.status !== "ready" || !asset.private_object_key) {
+        throw Object.assign(new Error("The 弱讀候選尚未完成，請重新產生後再套用"), {
+            status: 409, code: "picture_gap_the_candidate_asset_not_ready"
+        });
+    }
+    await linkGeneratedAsset(admin, question, asset.id, { kind: "sentence_pattern" }, now);
+    return {
+        success: true,
+        applied: true,
+        question_id: Number(question.id),
+        active_candidate_id: profile.id,
+        active_candidate_label: profile.label,
+        audio_url: await createR2PresignedUrl(descriptor.objectKey, "GET", 15 * 60)
+    };
 };
 
 const requestGoogleAlphabetMaster = async (profile: any) => {
@@ -712,9 +882,11 @@ Deno.serve(async (req: Request) => {
         if (user.role !== "admin") return json(403, { error: "只有管理員可以產生教材示範語音" });
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body?.action, 40);
-        if (!["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio", "prepare_alphabet_audio_candidate", "activate_alphabet_audio_candidate"].includes(action)) return json(400, { error: "不支援的操作" });
+        if (!["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio", "preview_picture_gap_the_candidates", "activate_picture_gap_the_candidate", "restore_picture_gap_standard_audio", "prepare_alphabet_audio_candidate", "activate_alphabet_audio_candidate"].includes(action)) return json(400, { error: "不支援的操作" });
         const setId = Number(body?.question_set_id);
-        const requestedQuestionId = action === "retry_question_audio" || action === "preview_question_audio" ? Number(body?.question_id) : null;
+        const requestedQuestionId = ["retry_question_audio", "preview_question_audio", "preview_picture_gap_the_candidates", "activate_picture_gap_the_candidate", "restore_picture_gap_standard_audio"].includes(action)
+            ? Number(body?.question_id)
+            : null;
         if (!Number.isInteger(setId) || setId <= 0 || (requestedQuestionId !== null && (!Number.isInteger(requestedQuestionId) || requestedQuestionId <= 0))) {
             return json(400, { error: "題庫或題目編號不正確" });
         }
@@ -735,7 +907,8 @@ Deno.serve(async (req: Request) => {
             && interactionType === "standard_sentence";
         const mayPrepareManualStandardDraft = manualStandardDraft
             && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action);
-        const mayPreviewPictureGapDraft = Boolean(pictureGapPage) && action === "preview_question_audio";
+        const mayPreviewPictureGapDraft = Boolean(pictureGapPage)
+            && ["preview_question_audio", "preview_picture_gap_the_candidates", "activate_picture_gap_the_candidate", "restore_picture_gap_standard_audio"].includes(action);
         if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPreparePictureGapDraft
             && !mayPrepareManualStandardDraft && !mayPreviewPictureGapDraft) {
             return json(409, { error: "只有已發布題庫或管理員待發布草稿可以產生／預覽正式語音" });
@@ -778,6 +951,41 @@ Deno.serve(async (req: Request) => {
             });
             if (activateError) throw activateError;
             return json(200, { success: true, ...activated });
+        }
+        if (["preview_picture_gap_the_candidates", "activate_picture_gap_the_candidate", "restore_picture_gap_standard_audio"].includes(action)) {
+            const fixedPage = WORKBOOK_ONE_PICTURE_GAP_TEMPLATES.get(String(questionSet?.generation_metadata?.template_key || ""));
+            if (!fixedPage || interactionType !== "picture_gap_sentence") {
+                return json(409, { error: "The 弱讀候選只提供 Workbook 1 P22～P24 看圖補句使用" });
+            }
+            const question = questions[0];
+            const { data: interaction, error: interactionError } = await admin.from("speaking_question_interactions")
+                .select("interaction_type,prompt_text").eq("question_id", Number(question.id)).maybeSingle();
+            if (interactionError) throw interactionError;
+            if (interaction?.interaction_type !== "picture_gap_sentence" || !interaction?.prompt_text) {
+                return json(409, { error: "這一題缺少看圖補句語音資料" });
+            }
+            if (action === "preview_picture_gap_the_candidates") {
+                return json(200, await preparePictureGapTheCandidates(admin, question, interaction.prompt_text));
+            }
+            if (action === "activate_picture_gap_the_candidate") {
+                const candidateId = cleanText(body?.candidate_id, 40);
+                return json(200, await activatePictureGapTheCandidate(admin, question, interaction.prompt_text, candidateId));
+            }
+            const restored = await generateQuestionAudio(admin, question, {
+                kind: "sentence_pattern",
+                text: interaction.prompt_text,
+                voiceChoice: { gender: "female", voiceId: voicePool().female },
+                audioVersion: PICTURE_SENTENCE_AUDIO_VERSION
+            });
+            if (restored.status !== "ready") {
+                return json(409, { error: "標準分段版仍在處理中，請稍後再試", result: restored });
+            }
+            return json(200, {
+                success: true,
+                restored: true,
+                question_id: Number(question.id),
+                active_candidate_id: null
+            });
         }
         if (interactionType === "alphabet_round"
             && ["generate_set_audio", "retry_question_audio"].includes(action)) {

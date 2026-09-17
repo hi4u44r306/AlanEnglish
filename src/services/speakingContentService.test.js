@@ -1,4 +1,5 @@
 import {
+    activatePictureGapTheAudioCandidate,
     activateSpeakingAlphabetAudioCandidate,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
@@ -17,11 +18,13 @@ import {
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
     getSpeakingQuestionAudioPreview,
+    getPictureGapTheAudioCandidates,
     getSpeakingQuestionPicturePreview,
     getWorkbookOnePictureReviewCandidates,
     getSpeakingContentBootstrap,
     prepareSpeakingSourceUpload,
     prepareSpeakingAlphabetAudioCandidate,
+    restorePictureGapStandardAudio,
     publishSpeakingQuestionSet,
     reviewSpeakingOcrSource,
     saveReviewedSpeakingSource,
@@ -73,6 +76,9 @@ describe("speakingContentService", () => {
         await prepareSpeakingAlphabetAudioCandidate(firebaseUser, 7);
         await activateSpeakingAlphabetAudioCandidate(firebaseUser, 7, "11111111-1111-4111-8111-111111111111");
         await getSpeakingQuestionAudioPreview(firebaseUser, 4, 8);
+        await getPictureGapTheAudioCandidates(firebaseUser, 4, 8);
+        await activatePictureGapTheAudioCandidate(firebaseUser, 4, 8, "context-natural");
+        await restorePictureGapStandardAudio(firebaseUser, 4, 8);
         await getSpeakingQuestionPicturePreview(firebaseUser, 9);
         await getWorkbookOnePictureReviewCandidates(firebaseUser, "P21");
 
@@ -106,6 +112,9 @@ describe("speakingContentService", () => {
             ["speaking-tts-manager", "prepare_alphabet_audio_candidate"],
             ["speaking-tts-manager", "activate_alphabet_audio_candidate"],
             ["speaking-tts-manager", "preview_question_audio"],
+            ["speaking-tts-manager", "preview_picture_gap_the_candidates"],
+            ["speaking-tts-manager", "activate_picture_gap_the_candidate"],
+            ["speaking-tts-manager", "restore_picture_gap_standard_audio"],
             ["speaking-content-manager", "preview_question_picture"],
             ["speaking-content-manager", "get_workbook_1_picture_review_candidates"]
         ]);
