@@ -19,6 +19,7 @@ export const confirmWorkbookOneFoundationSource = (firebaseUser, questionSetId) 
 });
 export const createWorkbookTwoStarterQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_2_starter", { book_id: bookId });
 export const createWorkbookOnePictureDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_workbook_1_picture_draft", payload);
+export const createManualSpeakingDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_manual_speaking_draft", payload);
 export const getWorkbookOnePictureReviewCandidates = (firebaseUser, pageLabel) => callSpeakingContent(firebaseUser, "get_workbook_1_picture_review_candidates", {
     page_label: pageLabel
 });
@@ -32,6 +33,8 @@ export const createSpeakingQuestionSetRevision = (firebaseUser, questionSetId) =
 export const updateSpeakingQuestionSetDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_question_set_draft", payload);
 export const updatePictureDraftQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_picture_draft_question", payload);
 export const addPictureDraftQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "add_picture_draft_question", payload);
+export const updateManualStandardQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_manual_standard_question", payload);
+export const addManualStandardQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "add_manual_standard_question", payload);
 export const deleteDraftSpeakingQuestion = (firebaseUser, questionSetId, questionId) => callSpeakingContent(firebaseUser, "delete_draft_question", {
     question_set_id: questionSetId, question_id: questionId
 });

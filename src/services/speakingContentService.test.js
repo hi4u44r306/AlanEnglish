@@ -8,6 +8,9 @@ import {
     updateSpeakingQuestionSetDraft,
     updatePictureDraftQuestion,
     addPictureDraftQuestion,
+    createManualSpeakingDraft,
+    updateManualStandardQuestion,
+    addManualStandardQuestion,
     deleteDraftSpeakingQuestion,
     reorderDraftSpeakingQuestions,
     archiveSpeakingQuestionSet,
@@ -51,6 +54,7 @@ describe("speakingContentService", () => {
         await generateSpeakingQuestionSet(firebaseUser, { source_section_id: 2, request_key: "key" });
         await createWorkbookOneStarterQuestionSet(firebaseUser, 1);
         await createWorkbookOneFoundationQuestionSet(firebaseUser, 1, "create_workbook_1_spelling_p14");
+        await createWorkbookOneFoundationQuestionSet(firebaseUser, 1, "create_workbook_1_p26_p27_contractions");
         await confirmWorkbookOneFoundationSource(firebaseUser, 14);
         await createWorkbookTwoStarterQuestionSet(firebaseUser, 2);
         await updateDraftSpeakingQuestion(firebaseUser, { question_id: 3, question: {} });
@@ -58,6 +62,9 @@ describe("speakingContentService", () => {
         await updateSpeakingQuestionSetDraft(firebaseUser, { question_set_id: 22, title: "P21", topic: "看圖問答" });
         await updatePictureDraftQuestion(firebaseUser, { question_set_id: 22, question_id: 23, question: {} });
         await addPictureDraftQuestion(firebaseUser, { question_set_id: 22, question: {} });
+        await createManualSpeakingDraft(firebaseUser, { book_id: 1, page_from_label: "P28", page_to_label: "P29" });
+        await updateManualStandardQuestion(firebaseUser, { question_set_id: 30, question_id: 31, question: {} });
+        await addManualStandardQuestion(firebaseUser, { question_set_id: 30, question: {} });
         await deleteDraftSpeakingQuestion(firebaseUser, 22, 23);
         await reorderDraftSpeakingQuestions(firebaseUser, 22, [24, 23]);
         await archiveSpeakingQuestionSet(firebaseUser, 22);
@@ -80,6 +87,7 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "generate_question_set"],
             ["speaking-content-manager", "create_workbook_1_starter"],
             ["speaking-content-manager", "create_workbook_1_spelling_p14"],
+            ["speaking-content-manager", "create_workbook_1_p26_p27_contractions"],
             ["speaking-content-manager", "confirm_workbook_1_foundation_source"],
             ["speaking-content-manager", "create_workbook_2_starter"],
             ["speaking-content-manager", "update_draft_question"],
@@ -87,6 +95,9 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "update_question_set_draft"],
             ["speaking-content-manager", "update_picture_draft_question"],
             ["speaking-content-manager", "add_picture_draft_question"],
+            ["speaking-content-manager", "create_manual_speaking_draft"],
+            ["speaking-content-manager", "update_manual_standard_question"],
+            ["speaking-content-manager", "add_manual_standard_question"],
             ["speaking-content-manager", "delete_draft_question"],
             ["speaking-content-manager", "reorder_draft_questions"],
             ["speaking-content-manager", "archive_question_set"],

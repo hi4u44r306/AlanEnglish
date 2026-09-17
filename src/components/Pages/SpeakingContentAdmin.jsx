@@ -29,6 +29,8 @@ import {
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingPictureQuestionSetEditor from "./SpeakingPictureQuestionSetEditor";
 import WorkbookOnePictureContentAdmin from "./WorkbookOnePictureContentAdmin";
+import ManualSpeakingDraftAdmin from "./ManualSpeakingDraftAdmin";
+import SpeakingManualStandardEditor from "./SpeakingManualStandardEditor";
 import "./css/Platform.scss";
 import "./css/SpeakingContentAdmin.scss";
 
@@ -45,6 +47,9 @@ const WORKBOOK_ONE_FOUNDATION_STARTERS = [
     { action: "create_workbook_1_spelling_p15", templateKey: "workbook_1_p15_letter_spelling_v1", title: "P15 看字拼讀", note: "12 個正式來源已核准單字；建立時由後端再次核對版本。" },
     { action: "create_workbook_1_spelling_p16", templateKey: "workbook_1_p16_letter_spelling_v1", title: "P16 看字拼讀", note: "12 個已核准專有名詞／品牌；保留正式拼字與大小寫。" },
     { action: "create_workbook_1_spelling_p17", templateKey: "workbook_1_p17_letter_spelling_v1", title: "P17 看字拼讀", note: "12 個正式來源已核准數字單字；建立時由後端再次核對版本。" }
+];
+const WORKBOOK_ONE_PAGE_STARTERS = [
+    { action: "create_workbook_1_p26_p27_contractions", templateKey: "workbook_1_p26_p27_contractions_v1", title: "完整句與縮寫", pages: "P26～P27", note: "9 題固定句型；完整句與正確縮寫都可接受。排除教材中容易混淆的兩題，建立後仍需逐題核准。" }
 ];
 
 const chunkStatusLabel = status => ({
@@ -277,6 +282,9 @@ export default function SpeakingContentAdmin() {
     const workbookTwoStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_2_origin_places_v1"), [data.question_sets]);
     const workbookOneFoundationSets = useMemo(() => new Map(data.question_sets
         .filter(questionSet => WORKBOOK_ONE_FOUNDATION_STARTERS.some(item => item.templateKey === questionSet.generation_metadata?.template_key))
+        .map(questionSet => [questionSet.generation_metadata.template_key, questionSet])), [data.question_sets]);
+    const workbookOnePageSets = useMemo(() => new Map(data.question_sets
+        .filter(questionSet => WORKBOOK_ONE_PAGE_STARTERS.some(item => item.templateKey === questionSet.generation_metadata?.template_key))
         .map(questionSet => [questionSet.generation_metadata.template_key, questionSet])), [data.question_sets]);
     const questionSetCounts = useMemo(() => ({
         draft: data.question_sets.filter(questionSet => questionSet.status === "draft").length,
@@ -617,6 +625,30 @@ export default function SpeakingContentAdmin() {
             {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
         </section>
 
+        <section className="platform-card speaking-starter-card speaking-foundation-starters speaking-admin-block--curated">
+            <div><span className="platform-eyebrow">WORKBOOK 1 · PAGE 26～27</span><h2>依頁碼建立下一關草稿</h2><p>此批只處理 P26～P27 的「完整句與縮寫」。建立後保持草稿，管理員逐題確認文字與答案後才可發布。</p></div>
+            <div className="speaking-foundation-starters__list">{WORKBOOK_ONE_PAGE_STARTERS.map(starter => {
+                const existing = workbookOnePageSets.get(starter.templateKey);
+                const needsReview = existing?.generation_metadata?.requires_content_review === true
+                    && !existing?.generation_metadata?.content_reviewed_at;
+                return <article key={starter.action}>
+                    <div><strong>{starter.title} <small>配合第 {starter.pages.replace("P", "")} 頁</small></strong><small>{starter.note}</small></div>
+                    {!existing && <button type="button" className="platform-primary" disabled={!workbookOne || working === starter.action} onClick={() => createWorkbookOneFoundation(starter)}><Sparkles size={17} />{working === starter.action ? "建立草稿中…" : "建立草稿"}</button>}
+                    {existing && needsReview && <button type="button" className="platform-secondary" disabled={working === `confirm-${existing.id}`} onClick={() => confirmWorkbookOneFoundation(starter, existing)}><CheckCircle2 size={17} />{working === `confirm-${existing.id}` ? "核准中…" : "已對照 P26～P27，核准內容"}</button>}
+                    {existing && !needsReview && <span className="speaking-foundation-starters__status"><CheckCircle2 size={17} />{existing.status === "published" ? "已發布" : "草稿已建立"}</span>}
+                </article>;
+            })}</div>
+        </section>
+
+        <ManualSpeakingDraftAdmin firebaseUser={firebaseUser} books={data.books} onCreated={async questionSetId => {
+            await load();
+            if (questionSetId) {
+                setQuestionSetFilter("draft");
+                setSelectedQuestionSetId(questionSetId);
+                setActiveWorkspace("library");
+            }
+        }} />
+
         <WorkbookOnePictureContentAdmin firebaseUser={firebaseUser} workbookOne={workbookOne} onCreated={load} />
 
         <section className="platform-card speaking-starter-card speaking-admin-block--curated">
@@ -688,6 +720,8 @@ export default function SpeakingContentAdmin() {
                 {section.questionSets.length === 0 ? <p className="speaking-source-card__empty">尚未產生題庫。</p> : section.questionSets.map(questionSet => {
                     const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
                     const isPictureSet = ["picture_qa", "picture_gap_sentence"].includes(interactionType);
+                    const isManualStandard = interactionType === "standard_sentence"
+                        && questionSet.generation_metadata?.source === "admin_manual_builder";
                     const isSelected = Number(selectedQuestionSetId) === Number(questionSet.id);
                     return <section className={`speaking-set ${questionSet.status} ${isSelected ? "is-current" : ""}`} key={questionSet.id}>
                         <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "正在展開" : "點擊查看與編輯"}</small></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}{questionSet.status === "published" && isPictureSet && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生逐字與整句發音" : "補產生示範語音"}</button>}{(questionSet.status === "draft" || isPictureSet) && <button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button>}</div>}</div>
@@ -696,7 +730,9 @@ export default function SpeakingContentAdmin() {
                             ? questionSet.status === "draft"
                                 ? <SpeakingPictureQuestionSetEditor firebaseUser={firebaseUser} questionSet={questionSet} onChanged={reloadQuestionSet} />
                                 : <div className="speaking-ocr-review__notice"><strong>正式版本保持唯讀</strong><span>按「建立新版草稿」即可修改文字、圖片與順序；新版核准前，學生仍使用目前版本。</span></div>
-                            : <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>)}
+                            : isManualStandard && questionSet.status === "draft"
+                                ? <SpeakingManualStandardEditor firebaseUser={firebaseUser} questionSet={questionSet} onChanged={reloadQuestionSet} />
+                                : <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>)}
                     </section>;
                 })}
             </article>)}</div>}

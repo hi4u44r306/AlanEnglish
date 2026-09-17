@@ -60,16 +60,24 @@ const WORKBOOK_ONE_PICTURE_GAP_TEMPLATES = new Map([
     ["workbook_1_p23_picture_gap_v1", 23],
     ["workbook_1_p24_picture_gap_v1", 24]
 ]);
-const workbookOnePictureGapDraftPage = (questionSet: any) => {
+const pictureGapDraftLabel = (questionSet: any) => {
     const metadata = questionSet?.generation_metadata || {};
     const expectedPage = WORKBOOK_ONE_PICTURE_GAP_TEMPLATES.get(String(metadata.template_key || ""));
-    return questionSet?.status === "draft"
+    if (questionSet?.status === "draft"
         && metadata.source === "manual_picture_manifest"
         && metadata.interaction_type === "picture_gap_sentence"
         && Array.isArray(metadata.source_pages)
         && metadata.source_pages.length === 1
         && Number(metadata.source_pages[0]) === expectedPage
-        ? `P${expectedPage}` : null;
+    ) return `P${expectedPage}`;
+    const manualPages = Array.isArray(metadata.source_pages)
+        ? metadata.source_pages.map(Number).filter((page: number) => Number.isInteger(page) && page > 0)
+        : [];
+    if (questionSet?.status === "draft" && metadata.source === "admin_manual_builder"
+        && metadata.interaction_type === "picture_gap_sentence" && manualPages.length > 0 && manualPages.length <= 50) {
+        return manualPages.length === 1 ? `P${manualPages[0]}` : `P${manualPages[0]}～P${manualPages[manualPages.length - 1]}`;
+    }
+    return null;
 };
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 let cachedGoogleToken: { value: string; expiresAt: number } | null = null;
@@ -720,10 +728,17 @@ Deno.serve(async (req: Request) => {
         const setStatus = questionSet?.status;
         const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
         const mayPrepareAlphabetDraft = setStatus === "draft" && interactionType === "alphabet_round";
-        const pictureGapPage = workbookOnePictureGapDraftPage(questionSet);
+        const pictureGapPage = pictureGapDraftLabel(questionSet);
         const mayPreparePictureGapDraft = Boolean(pictureGapPage) && action === "generate_visible_word_audio";
-        if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPreparePictureGapDraft) {
-            return json(409, { error: "只有已發布題庫、待發布 A–Z，或待發布 P22～P24 可見單字可以產生正式語音" });
+        const manualStandardDraft = setStatus === "draft"
+            && questionSet?.generation_metadata?.source === "admin_manual_builder"
+            && interactionType === "standard_sentence";
+        const mayPrepareManualStandardDraft = manualStandardDraft
+            && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action);
+        const mayPreviewPictureGapDraft = Boolean(pictureGapPage) && action === "preview_question_audio";
+        if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPreparePictureGapDraft
+            && !mayPrepareManualStandardDraft && !mayPreviewPictureGapDraft) {
+            return json(409, { error: "只有已發布題庫或管理員待發布草稿可以產生／預覽正式語音" });
         }
         if (["prepare_alphabet_audio_candidate", "activate_alphabet_audio_candidate"].includes(action)
             && !alphabetTemplateValid(questionSet, questions)) {
@@ -824,7 +839,9 @@ Deno.serve(async (req: Request) => {
         if (action === "preview_question_audio") {
             const question = questions[0];
             const { data: link, error: linkError } = await admin.from("speaking_question_audio")
-                .select("asset_id").eq("question_id", question.id).maybeSingle();
+                .select("asset_id,purpose").eq("question_id", question.id)
+                .eq("purpose", interactionType === "picture_gap_sentence" ? "question_prompt" : "model_answer")
+                .maybeSingle();
             if (linkError) throw linkError;
             if (!link?.asset_id) return json(404, { error: "這一題尚未產生示範語音" });
             const { data: asset, error: assetError } = await admin.from("speaking_tts_assets")
