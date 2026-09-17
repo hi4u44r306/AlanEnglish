@@ -56,7 +56,7 @@ const challengeBookCatalogPath = challenge => {
         : "/student/speaking-challenges";
 };
 
-const SpeakingBookCard = ({ group, index, onOpen }) => {
+const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
     const completedCount = group.sections
         .flatMap(section => section.items)
         .filter(item => item.is_completed).length;
@@ -66,12 +66,18 @@ const SpeakingBookCard = ({ group, index, onOpen }) => {
     const actionLabel = completedCount === group.itemCount && group.itemCount > 0
         ? "再次挑戰"
         : completedCount > 0 ? "繼續冒險" : "開始冒險";
+    const rewardXp = Number(rewardPolicy?.xp);
+    const rewardPoints = Number(rewardPolicy?.ae_points);
+    const hasRewardPolicy = Number.isFinite(rewardXp) && Number.isFinite(rewardPoints);
+    const rewardLabel = hasRewardPolicy
+        ? `，每關首次通關 ${rewardXp} XP、最多 ${rewardPoints} AE Points`
+        : "";
 
     return <button
         type="button"
         className={`speaking-book-card speaking-book-card--theme-${index % 4}`}
         onClick={onOpen}
-        aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關`}
+        aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關${rewardLabel}`}
     >
         <span className="speaking-book-card__art" aria-hidden="true">
             <span className="speaking-book-card__spark is-one">✦</span>
@@ -87,6 +93,10 @@ const SpeakingBookCard = ({ group, index, onOpen }) => {
             <small className="speaking-book-card__eyebrow">BOOK {index + 1} · SPEAKING ADVENTURE</small>
             <strong>{group.label}</strong>
             <span className="speaking-book-card__count"><FiMic aria-hidden="true" /> {group.itemCount} 個小關卡</span>
+            {hasRewardPolicy && <span className="speaking-book-card__reward">
+                <FiAward aria-hidden="true" />
+                <span><small>每關首次通關</small><strong>{rewardXp} XP</strong><b>最多 {rewardPoints} AE Points</b></span>
+            </span>}
             <span className="speaking-book-card__progress">
                 <span><b>冒險進度</b><small>{completedCount} / {group.itemCount} 已完成</small></span>
                 <span
@@ -142,6 +152,7 @@ export default function TextbookSpeakingChallenge() {
     const { questionSetId, bookKey } = useParams();
     const navigate = useNavigate();
     const [catalog, setCatalog] = useState([]);
+    const [catalogRewardPolicy, setCatalogRewardPolicy] = useState(null);
     const [catalogLoading, setCatalogLoading] = useState(!questionSetId);
     const [challenge, setChallenge] = useState(null);
     const [error, setError] = useState("");
@@ -237,8 +248,12 @@ export default function TextbookSpeakingChallenge() {
                 }
                 else {
                     setCatalogLoading(true);
-                    const nextCatalog = (await getSpeakingChallengeCatalog(firebaseUser)).challenges || [];
-                    if (!cancelled) setCatalog(nextCatalog);
+                    const catalogResponse = await getSpeakingChallengeCatalog(firebaseUser);
+                    const nextCatalog = catalogResponse.challenges || [];
+                    if (!cancelled) {
+                        setCatalog(nextCatalog);
+                        setCatalogRewardPolicy(catalogResponse.reward_policy || null);
+                    }
                 }
             } catch (loadError) {
                 if (!cancelled) setError(loadError.message || "口說大挑戰載入失敗");
@@ -310,7 +325,7 @@ export default function TextbookSpeakingChallenge() {
             {!staffPreview && !selectedBook && <ChallengeRules />}
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
-                {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
+                {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group">
                     {selectedBook.sections.map(section => <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h2>{section.label}</h2></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons">{section.items.map(item => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}
                 </section>}

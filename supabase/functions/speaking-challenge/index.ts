@@ -29,6 +29,12 @@ const corsHeaders = {
 const json = (status: number, payload: Record<string, unknown>) => new Response(JSON.stringify(payload), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
 });
+const SPEAKING_CHALLENGE_REWARD_POLICY = Object.freeze({
+    xp: 30,
+    ae_points: 3,
+    basis: "first_completion_per_challenge",
+    ae_points_eligible_students_only: true
+});
 const alphabetFemaleVoiceId = () => cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_FEMALE_VOICE_NAME"), 120)
     || cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_VOICE_NAME"), 120)
     || DEFAULT_FEMALE_VOICE_ID;
@@ -117,7 +123,7 @@ Deno.serve(async (req: Request) => {
                     || Number(stateBySet.get(Number(left.id))?.sequence_order || 0) - Number(stateBySet.get(Number(right.id))?.sequence_order || 0)
                     || Number(left.id) - Number(right.id);
             });
-            return json(200, { success: true, demo_mode: demoMode, challenges: orderedSets.map((set: any) => ({
+            return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, generation_metadata: set.generation_metadata || {},
