@@ -467,17 +467,28 @@
     background: #f1f4f8;
     border-radius: 9px 9px 3px 3px;
 
-    i {
+    .weekly-report-day__stack {
       width: 100%;
-      display: block;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow: hidden;
       background: #d7dee8;
       border-radius: inherit;
       transition: height .25s ease;
     }
   }
 
-  &.is-active &__track i {
-    background: linear-gradient(180deg, #5ea0eb, #3478d7);
+  &__segment {
+    width: 100%;
+    min-height: 3px;
+    display: block;
+    background: #3f80dc;
+
+    &--assignments { background: #e6962d; }
+    &--ai { background: #7a58c3; }
+    &--review { background: #299579; }
+    &--conversation { background: #d75d78; }
+    &--speaking_challenge { background: #ef6c45; }
   }
 
   > strong {
@@ -519,12 +530,13 @@
     &.ai { background: #7a58c3; }
     &.review { background: #299579; }
     &.speaking { background: #d75d78; }
+    &.challenge { background: #ef6c45; }
   }
 }
 
 .weekly-report-learning-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
@@ -611,6 +623,81 @@
   &--speaking {
     --learning-color: #bd526e;
     --learning-soft: #fcecf1;
+  }
+
+  &--challenge {
+    --learning-color: #d95732;
+    --learning-soft: #fff0ea;
+  }
+}
+
+.weekly-report-challenge-progress {
+  display: grid;
+  gap: 5px;
+  margin-top: 11px;
+
+  > span {
+    display: flex !important;
+    justify-content: space-between;
+    gap: 8px;
+    color: #68768a !important;
+    font-size: .58rem !important;
+    letter-spacing: 0 !important;
+  }
+
+  b {
+    overflow: hidden;
+    color: #34445b;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > div {
+    height: 7px;
+    overflow: hidden;
+    background: #f2e1db;
+    border-radius: 999px;
+
+    i {
+      height: 100%;
+      display: block;
+      background: linear-gradient(90deg, #ff9a65, #ef6c45);
+      border-radius: inherit;
+    }
+  }
+
+  > small {
+    overflow: hidden;
+    color: #7f8a9a;
+    font-size: .55rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.weekly-report-challenge-link {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 11px;
+  padding: 0 11px;
+  color: #fff;
+  background: #df623d;
+  border-radius: 9px;
+  font-size: .64rem;
+  font-weight: 900;
+  text-decoration: none;
+
+  &:hover {
+    color: #fff;
+    background: #c94e2b;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(239, 108, 69, .35);
+    outline-offset: 2px;
   }
 }
 

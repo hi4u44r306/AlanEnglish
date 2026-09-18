@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { summarizeWeeklySpeakingChallenge } from "../_shared/weekly-report-speaking.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -154,7 +155,10 @@ const buildWeeklyReport = async (
         reviewAttemptsResult,
         reviewItemsResult,
         activityResult,
-        conversationResult
+        conversationResult,
+        speakingProgressResult,
+        speakingSetsResult,
+        speakingRewardsResult
     ] = await Promise.all([
         admin
             .from("guardian_contacts")
@@ -223,7 +227,29 @@ const buildWeeklyReport = async (
             .select("scenario_key,mode,completed_steps,total_steps,completed,last_practiced_at")
             .eq("student_id", target.id)
             .eq("scenario_key", "meet-a-foreigner")
-            .maybeSingle()
+            .maybeSingle(),
+        admin
+            .from("speaking_challenge_question_progress")
+            .select("question_set_id,question_id,completed_at")
+            .eq("student_id", target.id)
+            .eq("status", "completed")
+            .lt("completed_at", week.end_at)
+            .order("completed_at", { ascending: true })
+            .limit(10000),
+        admin
+            .from("speaking_question_sets")
+            .select("id,title,topic,books(id,name,code),speaking_questions(id)")
+            .in("status", ["published", "archived"])
+            .limit(1000),
+        admin
+            .from("student_gamification_ledger")
+            .select("source_key,xp_delta,points_delta,created_at")
+            .eq("student_id", target.id)
+            .eq("source_type", "speaking_challenge_complete")
+            .gte("created_at", twoWeekStart)
+            .lt("created_at", week.end_at)
+            .order("created_at", { ascending: true })
+            .limit(1000)
     ]);
 
     const firstError = [
@@ -236,7 +262,10 @@ const buildWeeklyReport = async (
         reviewAttemptsResult.error,
         reviewItemsResult.error,
         activityResult.error,
-        conversationResult.error
+        conversationResult.error,
+        speakingProgressResult.error,
+        speakingSetsResult.error,
+        speakingRewardsResult.error
     ].find(Boolean);
     if (firstError) throw firstError;
 
@@ -339,6 +368,12 @@ const buildWeeklyReport = async (
 
     const currentConversationEvents = currentEvents.filter((event: any) => event.activity_type === "conversation");
     const previousConversationEvents = previousEvents.filter((event: any) => event.activity_type === "conversation");
+    const speakingChallenge = summarizeWeeklySpeakingChallenge({
+        progress: speakingProgressResult.data || [],
+        questionSets: speakingSetsResult.data || [],
+        rewards: speakingRewardsResult.data || [],
+        week
+    });
     const dailyMap = new Map<string, any>();
     const weekdayLabels = ["一", "二", "三", "四", "五", "六", "日"];
 
@@ -353,6 +388,7 @@ const buildWeeklyReport = async (
             ai: 0,
             review: 0,
             conversation: 0,
+            speaking_challenge: 0,
             total: 0
         });
     }
@@ -377,10 +413,16 @@ const buildWeeklyReport = async (
         const day = dailyMap.get(toTaipeiDateKey(item.occurred_at));
         if (day) day.conversation += 1;
     }
+    for (const item of (speakingProgressResult.data || []).filter((progress: any) => (
+        inCurrentWeek(progress.completed_at, week)
+    ))) {
+        const day = dailyMap.get(toTaipeiDateKey(item.completed_at));
+        if (day) day.speaking_challenge += 1;
+    }
 
     const dailyBreakdown = Array.from(dailyMap.values()).map(day => ({
         ...day,
-        total: day.listening + day.assignments + day.ai + day.review + day.conversation
+        total: day.listening + day.assignments + day.ai + day.review + day.conversation + day.speaking_challenge
     }));
     const activeDays = dailyBreakdown.filter(day => day.total > 0).length;
     const listeningPlays = currentListening.reduce((sum: number, item: any) => sum + safeNumber(item.play_count), 0);
@@ -389,19 +431,22 @@ const buildWeeklyReport = async (
         + currentAssignmentAttempts.length
         + currentAiAttempts.length
         + currentReviewAttempts.length
-        + currentConversationEvents.length;
+        + currentConversationEvents.length
+        + speakingChallenge.completed_questions;
     const previousTotalActions = previousListeningPlays
         + previousAssignmentAttempts.length
         + previousAiAttempts.length
         + previousReviewAttempts.length
-        + previousConversationEvents.length;
+        + previousConversationEvents.length
+        + speakingChallenge.previous_completed_questions;
     const change = totalActions - previousTotalActions;
     const learningCategories = [
         listeningPlays,
         currentAssignmentAttempts.length,
         currentAiAttempts.length,
         currentReviewAttempts.length,
-        currentConversationEvents.length
+        currentConversationEvents.length,
+        speakingChallenge.completed_questions
     ].filter(value => value > 0).length;
     const consistencyPoints = Math.min(60, Math.round((activeDays / 5) * 60));
     const varietyPoints = Math.min(20, learningCategories * 5);
@@ -417,6 +462,11 @@ const buildWeeklyReport = async (
     if (completedAssignments > 0) highlights.push(`完成 ${completedAssignments} 份老師作業`);
     if (currentAiAttempts.length > 0) highlights.push(`完成 ${currentAiAttempts.length} 次 AI 專屬練習`);
     if (masteredThisWeek > 0) highlights.push(`透過智慧複習新掌握 ${masteredThisWeek} 題`);
+    if (speakingChallenge.completed_challenges > 0) {
+        highlights.push(`口說大挑戰通過 ${speakingChallenge.completed_challenges} 關，獲得 ${speakingChallenge.xp_awarded} XP`);
+    } else if (speakingChallenge.completed_questions > 0) {
+        highlights.push(`口說大挑戰完成 ${speakingChallenge.completed_questions} 題`);
+    }
     if (listeningPlays > 0) highlights.push(`累積 ${listeningPlays} 次聽力播放`);
     if (!highlights.length) highlights.push("這週尚無學習紀錄，現在開始仍然來得及");
 
@@ -426,6 +476,7 @@ const buildWeeklyReport = async (
     if (pendingAssignments > 0) nextFocus.push(`優先完成 ${pendingAssignments} 份尚未完成的老師作業`);
     if (weaknesses[0]) nextFocus.push(`智慧複習先加強「${weaknesses[0].label}」`);
     if (listeningPlays < 9) nextFocus.push("每天聽 3 次，讓英文聲音變得更熟悉");
+    if (speakingChallenge.completed_questions === 0) nextFocus.push("完成 1 題口說大挑戰，練習用完整句回答");
     if (!nextFocus.length) nextFocus.push("保持目前節奏，挑戰一份新的 AI 專屬練習");
 
     const comparisonText = change > 0
@@ -518,6 +569,7 @@ const buildWeeklyReport = async (
             completed: Boolean(conversationResult.data?.completed),
             last_practiced_at: conversationResult.data?.last_practiced_at || null
         },
+        speaking_challenge: speakingChallenge,
         daily_breakdown: dailyBreakdown,
         highlights: highlights.slice(0, 4),
         next_focus: nextFocus.slice(0, 3),
