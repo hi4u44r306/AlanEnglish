@@ -45,4 +45,11 @@ test.describe("公開頁 Accessibility 回歸", () => {
         await page.goto("/");
         await expect(page.getByRole("button", { name: "開啟導覽選單" })).toBeVisible();
     });
+
+    test("桌面導覽列登入按鈕可直接前往登入頁", async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 900 });
+        await page.goto("/");
+        await page.locator(".showcase-navbar-login").click();
+        await expect(page).toHaveURL(/\/login$/);
+    });
 });

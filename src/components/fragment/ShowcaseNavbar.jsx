@@ -36,6 +36,8 @@ function ShowcaseNavbar({ nav1, nav2, nav3, nav4 }) {
 
     const closeMobileMenu = () => setMobileOpen(false);
     const handleMobileNavigation = event => {
+        if (!mobileOpen) return;
+
         const link = event.target.closest("a[href]");
         const destination = link?.getAttribute("href") || "";
         const isNonPrimaryClick = typeof event.button === "number" && event.button !== 0;
