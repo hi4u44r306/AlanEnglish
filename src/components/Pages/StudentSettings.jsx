@@ -356,7 +356,7 @@ function StudentSettings() {
     const profile = studentProfile || {};
     const currentGuardian = commerce?.guardian || profile?.guardian || null;
     const guardianVerified = Boolean(currentGuardian?.email && currentGuardian?.email_verified_at);
-    const publicDisplayName = profile.nickname || profile.chinese_name || profile.name || "學生";
+    const publicDisplayName = nicknameSettings.profile?.nickname || profile.nickname || profile.chinese_name || profile.name || "學生";
     const balance = summary?.balance || {};
     const avatarUrl = summary?.profile?.avatar_url || null;
     const avatarDisplayUrl = getStudentAvatarDisplayUrl(avatarUrl, 256);
@@ -424,6 +424,25 @@ function StudentSettings() {
                     <h2>{publicDisplayName}</h2>
                     <p>{profile.english_name || "尚未設定英文姓名"}　·　{profile.class ? `${profile.class} 班` : "尚未分班"}</p>
                     <small><FiImage /> {uploading ? "正在處理頭像…" : "支援 JPG、PNG、WebP；超過 5MB 的照片會先在裝置上壓縮。"}</small>
+                    <form className="student-settings-nickname-form student-settings-profile-nickname-form" onSubmit={saveNickname}>
+                        <label htmlFor="student-settings-nickname">公開暱稱</label>
+                        <div>
+                            <input
+                                id="student-settings-nickname"
+                                value={nicknameDraft}
+                                onChange={event => { setNicknameDraft(event.target.value); if (nicknameError) setNicknameError(""); }}
+                                maxLength="20"
+                                placeholder="例如 Alan Fox"
+                                aria-invalid={Boolean(nicknameError)}
+                                aria-describedby="student-settings-nickname-help"
+                                required
+                            />
+                            <button type="submit" disabled={savingNickname}>{savingNickname ? "儲存中…" : "儲存暱稱"}</button>
+                        </div>
+                        <small id="student-settings-nickname-help" className={nicknameError ? "is-error" : ""}>
+                            {nicknameError || "2～20 字；會顯示在排行榜、好友與學生首頁。"}
+                        </small>
+                    </form>
                 </div>
                 <div className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}>
                     <FiZap />
@@ -549,29 +568,9 @@ function StudentSettings() {
 
             <section className="student-settings-grid">
                 <article className="student-settings-panel student-settings-nickname-panel">
-                    <header><FiUser /><div><span>PUBLIC NICKNAME</span><h2>公開暱稱</h2></div></header>
-                    <p>暱稱會顯示在排行榜、好友與學生首頁；真實姓名仍只用於班務與帳號管理。</p>
-                    <form className="student-settings-nickname-form" onSubmit={saveNickname}>
-                        <label htmlFor="student-settings-nickname">暱稱</label>
-                        <div>
-                            <input
-                                id="student-settings-nickname"
-                                value={nicknameDraft}
-                                onChange={event => { setNicknameDraft(event.target.value); if (nicknameError) setNicknameError(""); }}
-                                maxLength="20"
-                                placeholder="例如 Alan Fox"
-                                aria-invalid={Boolean(nicknameError)}
-                                aria-describedby="student-settings-nickname-help"
-                                required
-                            />
-                            <button type="submit" disabled={savingNickname}>{savingNickname ? "儲存中…" : "儲存暱稱"}</button>
-                        </div>
-                        <small id="student-settings-nickname-help" className={nicknameError ? "is-error" : ""}>
-                            {nicknameError || "2～20 字；限中英文、數字、空格、底線或連字號。暱稱不可與其他人重複。"}
-                        </small>
-                    </form>
+                    <header><FiClock /><div><span>NICKNAME HISTORY</span><h2>暱稱更改紀錄</h2></div></header>
+                    <p>每次實際變更都會留下紀錄；只有本人與管理員能查看。</p>
                     <div className="student-settings-nickname-history">
-                        <h3><FiClock /> 更改紀錄</h3>
                         {nicknameSettings.nickname_history?.length ? (
                             <ol>
                                 {nicknameSettings.nickname_history.map(item => (

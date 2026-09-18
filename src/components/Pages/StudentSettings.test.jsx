@@ -166,8 +166,9 @@ describe("StudentSettings", () => {
         });
         render(<StudentSettings />);
 
-        const nicknameInput = await screen.findByLabelText("暱稱");
+        const nicknameInput = await screen.findByLabelText("公開暱稱");
         expect(nicknameInput).toHaveValue("Sunny Fox");
+        expect(nicknameInput.closest(".student-settings-profile-card")).not.toBeNull();
         expect(screen.getByText("首次設定")).toBeInTheDocument();
         fireEvent.change(nicknameInput, { target: { value: "Brave Owl" } });
         fireEvent.click(screen.getByRole("button", { name: "儲存暱稱" }));
@@ -176,7 +177,8 @@ describe("StudentSettings", () => {
             { uid: "student-1" },
             "Brave Owl"
         ));
-        expect(await screen.findByText("Brave Owl")).toBeInTheDocument();
+        await waitFor(() => expect(nicknameInput).toHaveValue("Brave Owl"));
+        expect(screen.getAllByText("Brave Owl")).toHaveLength(2);
         expect(setStudentProfile).toHaveBeenCalled();
     });
 

@@ -125,7 +125,9 @@
 .student-settings-nickname-form button:disabled { cursor: wait; opacity: .6; }
 .student-settings-nickname-form small { color: #748199; font-size: 11px; line-height: 1.55; }
 .student-settings-nickname-form small.is-error { color: #a72e2e; font-weight: 750; }
+.student-settings-profile-nickname-form { width: min(100%, 520px); margin-top: 13px; }
 .student-settings-nickname-history { margin-top: 20px; padding-top: 16px; border-top: 1px solid #edf0f4; }
+.student-settings-nickname-panel .student-settings-nickname-history { margin-top: 14px; }
 .student-settings-nickname-history h3 { display: flex; align-items: center; gap: 7px; margin: 0 0 9px; color: #344661; font-size: 14px; font-weight: 900; }
 .student-settings-nickname-history ol { display: grid; gap: 0; max-height: 230px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
 .student-settings-nickname-history li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #edf0f4; }
