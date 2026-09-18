@@ -2,12 +2,12 @@
 
 最後更新：2026-09-18
 
-本次學生暱稱編輯與變更紀錄（2026-09-18，本機驗證完成，尚未部署）：
+本次學生暱稱編輯與變更紀錄（2026-09-18，已正式部署）：
 
 - 學生「我的設定」新增公開暱稱編輯與自己的變更紀錄；2～20 字格式、不當內容攔截及全站唯一規則沿用好友系統。從「我的設定」或「好友與戰績」修改，都會在暱稱實際變更時留下舊值、新值、來源與時間；初次建立記為「首次設定」，既有暱稱不製造回填紀錄。
 - 管理員「帳號管理」可按單一學生的「暱稱紀錄」查看目前暱稱及最近 100 筆歷史；教師與其他學生不能查看。歷史表啟用 RLS，撤銷 `public`／`anon`／`authenticated` 直連權限，只由 Firebase Token 驗證後的 Edge Function 依本人或管理員角色讀取。
-- 新增 additive migration `20260918023325_student_nickname_history.sql`，以 server-only RPC 在同一交易更新社交資料與寫入歷史，並以 transaction advisory lock 避免同一學生併發更新產生不一致。migration 尚未套用，兩支 Edge Function 與前端也尚未部署；需完成完整測試並取得正式 migration 授權後才能發布。
-- 驗證：隔離 PGlite migration 行為／權限 2/2、社交安全契約 6/6、React targeted 3 suites／19 tests、完整前端 69 suites／272 tests、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過。Build 僅有既有 `FiSquare` 未使用、Browserslist 與 Node deprecation 警告。
+- 新增 additive migration `20260918023325_student_nickname_history.sql`，以 server-only RPC 在同一交易更新社交資料與寫入歷史，並以 transaction advisory lock 避免同一學生併發更新產生不一致。正式資料庫已套用並登記此版本；已驗證資料表啟用 RLS、`anon`／`authenticated` 無讀取及 RPC 執行權，且沒有替既有暱稱偽造歷史紀錄。
+- 驗證：隔離 PGlite migration 行為／權限 2/2、社交安全契約 6/6、React targeted 3 suites／19 tests、完整前端 69 suites／272 tests、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過。Build 僅有既有 `FiSquare` 未使用、Browserslist 與 Node deprecation 警告。PR #191 已合併至 `main` commit `d296b1e`；正式 `student-social` v8、`membership-manager` v43 均為 ACTIVE，新增 action 的未登入請求正確回應 401。Netlify production deploy `6aacaa1ca454c983448fd489` 已 live，首頁、學生設定、管理員帳號頁與唯一部署網址皆回應 HTTP 200，正式 bundle 已確認包含學生設定與管理員暱稱歷史 action。未使用學生或管理員帳密更動正式資料，登入後實際修改及畫面仍待帳號快速驗收。
 
 本次每週成長報告口說大挑戰整合（2026-09-18，已正式部署）：
 
