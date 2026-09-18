@@ -78,6 +78,29 @@
 .music-card__play:focus-visible { outline: 3px solid #ffd34e; outline-offset: 4px; }
 .music-card__play > svg { position: relative; z-index: 1; }
 .music-card__play-ring { position: absolute; inset: 7px; border: 2px dashed rgba(255, 255, 255, .58); border-radius: 14px; }
+.music-card__equalizer {
+  position: relative;
+  z-index: 1;
+  width: 30px;
+  height: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+}
+
+.music-card__equalizer span {
+  width: 4px;
+  height: 100%;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center bottom;
+  animation: music-card-equalizer .66s ease-in-out infinite alternate;
+}
+
+.music-card__equalizer span:nth-child(2) { animation-delay: -.44s; }
+.music-card__equalizer span:nth-child(3) { animation-delay: -.22s; }
+.music-card__equalizer span:nth-child(4) { animation-delay: -.55s; }
 
 .music-card__info { position: relative; z-index: 1; flex: 1; min-width: 0; }
 .music-card__eyebrow { display: block; margin-bottom: 3px; color: var(--quest-color); font-size: 9px; font-weight: 950; letter-spacing: .09em; }
@@ -99,6 +122,7 @@
   .music-card::before { width: 5px; }
   .music-card__play { width: 50px; height: 50px; border-radius: 16px; font-size: 37px; }
   .music-card__play-ring { inset: 6px; border-radius: 11px; }
+  .music-card__equalizer { width: 26px; height: 24px; gap: 2px; }
   .music-card__eyebrow { font-size: 8px; }
   .music-card__page { font-size: 17px; }
   .music-card__book { font-size: 11px; }
@@ -109,6 +133,11 @@
   .music-card__check span { display: none; }
 }
 
+@keyframes music-card-equalizer {
+  from { transform: scaleY(.28); }
+  to { transform: scaleY(1); }
+}
+
 @media (max-width: 390px) {
   .music-card__plays { padding-inline: 7px; }
   .music-card__plays svg { display: none; }
@@ -117,4 +146,9 @@
 @media (prefers-reduced-motion: reduce) {
   .music-card,
   .music-card__play { transition: none; }
+  .music-card__equalizer span { animation: none; }
+  .music-card__equalizer span:nth-child(1),
+  .music-card__equalizer span:nth-child(3) { height: 55%; }
+  .music-card__equalizer span:nth-child(2) { height: 90%; }
+  .music-card__equalizer span:nth-child(4) { height: 72%; }
 }
