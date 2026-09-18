@@ -35,6 +35,41 @@ const SPEAKING_CHALLENGE_REWARD_POLICY = Object.freeze({
     basis: "first_completion_per_challenge",
     ae_points_eligible_students_only: true
 });
+const SPEAKING_CHALLENGE_DAILY_LIMIT = 5;
+const SPEAKING_RECORDING_LIMIT_SECONDS = 12;
+const taipeiActivityDate = () => {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Taipei",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+};
+
+const speakingChallengePolicy = async (admin: any, studentId: number, demoMode: boolean) => {
+    if (demoMode) return {
+        daily_limit: SPEAKING_CHALLENGE_DAILY_LIMIT,
+        daily_used: null,
+        daily_remaining: null,
+        recording_limit_seconds: SPEAKING_RECORDING_LIMIT_SECONDS,
+        reset_timezone: "Asia/Taipei"
+    };
+    const { count, error } = await admin.from("speaking_challenge_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", studentId)
+        .eq("activity_date", taipeiActivityDate());
+    if (error) throw error;
+    const used = Math.max(0, Number(count) || 0);
+    return {
+        daily_limit: SPEAKING_CHALLENGE_DAILY_LIMIT,
+        daily_used: used,
+        daily_remaining: Math.max(SPEAKING_CHALLENGE_DAILY_LIMIT - used, 0),
+        recording_limit_seconds: SPEAKING_RECORDING_LIMIT_SECONDS,
+        reset_timezone: "Asia/Taipei"
+    };
+};
 const alphabetFemaleVoiceId = () => cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_FEMALE_VOICE_NAME"), 120)
     || cleanText(Deno.env.get("GOOGLE_CLOUD_TTS_VOICE_NAME"), 120)
     || DEFAULT_FEMALE_VOICE_ID;
@@ -123,7 +158,8 @@ Deno.serve(async (req: Request) => {
                     || Number(stateBySet.get(Number(left.id))?.sequence_order || 0) - Number(stateBySet.get(Number(right.id))?.sequence_order || 0)
                     || Number(left.id) - Number(right.id);
             });
-            return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenges: orderedSets.map((set: any) => ({
+            const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);
+            return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenge_policy: challengePolicy, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, generation_metadata: set.generation_metadata || {},
@@ -270,9 +306,11 @@ Deno.serve(async (req: Request) => {
                     )
                 }));
             }
+            const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);
             return json(200, {
                 success: true,
                 demo_mode: demoMode,
+                challenge_policy: challengePolicy,
                 challenge: { ...questionSet, speaking_questions: questions, alphabet_audio: alphabetAudio }
             });
         }

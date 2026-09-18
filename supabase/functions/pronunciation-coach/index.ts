@@ -30,7 +30,7 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 
 const MAX_AUDIO_BYTES = 1024 * 1024;
 const MIN_AUDIO_SECONDS = 0.35;
-const MAX_AUDIO_SECONDS = 20;
+const MAX_AUDIO_SECONDS = 12;
 const PROVIDER_TIMEOUT_MS = 75_000;
 
 const normalizeWord = (value: unknown) => String(value || "")
@@ -196,6 +196,23 @@ const reserveProviderRequest = async (admin: any, studentId: number, question: a
     return String(data.request_id);
 };
 
+const reserveChallengeSession = async (admin: any, studentId: number, question: any, clientSessionId: string) => {
+    const { data, error } = await admin.rpc("reserve_speaking_challenge_session_v1", {
+        p_student_id: studentId,
+        p_question_set_id: question.questionSetId,
+        p_question_id: question.questionId,
+        p_client_session_id: clientSessionId
+    });
+    if (error) throw error;
+    if (data?.allowed !== true) {
+        throw Object.assign(new Error("今天已完成 5 次口說大挑戰，明天再繼續冒險吧！"), {
+            status: 429,
+            code: "speaking_daily_limit_reached"
+        });
+    }
+    return data;
+};
+
 const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null) => {
     let lastError: any = null;
     for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
@@ -347,8 +364,12 @@ Deno.serve(async (req: Request) => {
         const form = await req.formData().catch(() => null);
         const questionId = Number(form?.get("question_id"));
         const requestedRoundId = String(form?.get("foundation_round_id") || "").trim();
+        const challengeSessionId = String(form?.get("challenge_session_id") || "").trim();
         const audio = form?.get("audio");
         if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(challengeSessionId)) {
+            return json(400, { error: "口說挑戰回合無效，請重新進入關卡", code: "challenge_session_required" });
+        }
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
         if (question.interactionType === "alphabet_round") {
             if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedRoundId)) {
@@ -375,7 +396,7 @@ Deno.serve(async (req: Request) => {
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
         if (audio.type !== "audio/wav") return json(415, { error: "錄音格式不正確，請重新錄音" });
         if (audio.size < 1000 || audio.size > MAX_AUDIO_BYTES) {
-            return json(413, { error: "錄音太短或太長，請在 20 秒內完成朗讀" });
+            return json(413, { error: "錄音太短或太長，請在 12 秒內完成朗讀" });
         }
 
         const audioBuffer = await audio.arrayBuffer();
@@ -384,7 +405,7 @@ Deno.serve(async (req: Request) => {
             return json(415, { error: "錄音必須是 16 kHz、單聲道的 PCM WAV，請重新錄音" });
         }
         if (wavInfo.durationSeconds < MIN_AUDIO_SECONDS || wavInfo.durationSeconds > MAX_AUDIO_SECONDS) {
-            return json(413, { error: "錄音太短或太長，請在 20 秒內完成朗讀" });
+            return json(413, { error: "錄音太短或太長，請在 12 秒內完成朗讀" });
         }
         if (wavInfo.peak < 0.002 || wavInfo.rms < 0.0002) {
             return json(422, {
@@ -399,6 +420,7 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
+        const challengeUsage = await reserveChallengeSession(admin, Number(user.id), question, challengeSessionId);
         const assessmentConfig: Record<string, unknown> = {
             GradingSystem: "HundredMark",
             Granularity: "Phoneme",
@@ -558,6 +580,7 @@ Deno.serve(async (req: Request) => {
         return json(200, {
             success: true,
             question_id: question.questionId,
+            challenge_usage: challengeUsage,
             reference_text: question.interactionType ? null : (question.referenceText || null),
             foundation_round: flow.round,
             ...flow.value

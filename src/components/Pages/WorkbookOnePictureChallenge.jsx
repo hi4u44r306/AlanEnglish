@@ -3,6 +3,7 @@ import { FiChevronLeft, FiRefreshCw, FiVolume2 } from "react-icons/fi";
 import { createPictureChallengeRound, tokenizeSpeakingSentence } from "../../utils/speakingPictureChallenge";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
+import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 
 const copyByType = {
     picture_qa: {
@@ -32,6 +33,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
     const [activeIndex, setActiveIndex] = useState(0);
     const [audioToken, setAudioToken] = useState(null);
     const [audioError, setAudioError] = useState("");
+    const [challengeSessionId, setChallengeSessionId] = useState("");
     const audioRef = useRef(null);
     const phaseFocusRef = useRef(null);
 
@@ -48,6 +50,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
         setRound([]);
         setActiveIndex(0);
         setAudioError("");
+        setChallengeSessionId("");
     }, [challenge?.id, interactionType]);
 
     const startRound = () => {
@@ -55,6 +58,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
         setRound(createPictureChallengeRound(sourceQuestions));
         setActiveIndex(0);
         setAudioError("");
+        setChallengeSessionId(createSpeakingChallengeSessionId());
         setPhase("challenge");
     };
 
@@ -145,6 +149,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
                 key={activeQuestion.id}
                 firebaseUser={firebaseUser}
                 question={activeQuestion}
+                challengeSessionId={challengeSessionId}
                 interactionType={interactionType}
                 hideHelp
                 promptTitle={copy.promptTitle}

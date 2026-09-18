@@ -87,9 +87,11 @@ describe("SpeakingPronunciationRecorder", () => {
             firebaseUser={{ getIdToken: jest.fn() }}
             question={{ id: 9 }}
             foundationRoundId="11111111-1111-4111-8111-111111111111"
+            challengeSessionId="22222222-2222-4222-8222-222222222222"
         />);
         expect(screen.getByRole("status")).toHaveTextContent("可以開始錄音");
         fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        expect(await screen.findByRole("timer", { name: "錄音剩餘 12 秒" })).toHaveTextContent("12秒");
         fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
 
         await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1));
@@ -98,7 +100,8 @@ describe("SpeakingPronunciationRecorder", () => {
 
         await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({
             audio: wav,
-            foundationRoundId: "11111111-1111-4111-8111-111111111111"
+            foundationRoundId: "11111111-1111-4111-8111-111111111111",
+            challengeSessionId: "22222222-2222-4222-8222-222222222222"
         })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
         expect(await screen.findByText("表現良好")).toBeInTheDocument();

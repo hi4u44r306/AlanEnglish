@@ -145,7 +145,10 @@ describe("TextbookSpeakingChallenge model audio", () => {
     });
 
     it("keeps the mobile Navbar available on the challenge catalog", async () => {
-        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [] });
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [],
+            challenge_policy: { daily_limit: 5, daily_used: 2, daily_remaining: 3, recording_limit_seconds: 12 }
+        });
 
         const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
@@ -310,22 +313,27 @@ describe("TextbookSpeakingChallenge model audio", () => {
     });
 
     it("學生列表預設收合遊戲規則，點擊後可展開及再次收起，老師預覽不重複顯示", async () => {
-        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [] });
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [],
+            challenge_policy: { daily_limit: 5, daily_used: 2, daily_remaining: 3, recording_limit_seconds: 12 }
+        });
 
         const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         const rulesToggle = await screen.findByRole("button", { name: /遊戲規則.*查看規則/ });
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByText("選一關")).not.toBeInTheDocument();
+        expect(await screen.findByText("每天最多 5 次 · 今天剩 3 次")).toBeInTheDocument();
+        expect(screen.queryByText("送出才計次")).not.toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByText("選一關")).toBeInTheDocument();
-        expect(screen.getByText("看題目")).toBeInTheDocument();
-        expect(screen.getByText("開口說")).toBeInTheDocument();
+        expect(screen.getByText("每天 5 次")).toBeInTheDocument();
+        expect(screen.getByText("送出才計次")).toBeInTheDocument();
+        expect(screen.getByText("重錄不多扣")).toBeInTheDocument();
+        expect(screen.getByText("每次 12 秒")).toBeInTheDocument();
         expect(screen.getByText(/通關會顯示打勾並開啟下一關/)).toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByText("選一關")).not.toBeInTheDocument();
+        expect(screen.queryByText("送出才計次")).not.toBeInTheDocument();
         unmount();
 
         mockRole = "teacher";

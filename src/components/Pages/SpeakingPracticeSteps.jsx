@@ -43,6 +43,7 @@ export default function SpeakingPracticeSteps({
     onRoundInvalid,
     interactionType = "",
     foundationRoundId = "",
+    challengeSessionId = "",
     disabledReason = "",
     hideHelp = false,
     promptTitle = "直接開口回答",
@@ -90,6 +91,7 @@ export default function SpeakingPracticeSteps({
             firebaseUser={firebaseUser}
             question={question}
             foundationRoundId={foundationRoundId}
+            challengeSessionId={challengeSessionId}
             disabledReason={disabledReason}
             onScored={handleScored}
             onRoundInvalid={onRoundInvalid}

@@ -2,6 +2,14 @@
 
 最後更新：2026-09-18
 
+本次教材聽力遊戲化介面與口說大挑戰每日五輪限制（2026-09-18，本機完成，待正式部署）：
+
+- 教材聽力頁改為「聽力冒險」彩色頁首，顯示完成音檔數與累計播放次數；MusicCard 使用輪替配色、任務編號、播放狀態與既有有效聆聽次數。這次只調整介面，不新增聽力次數解鎖口說關卡，也不更動 80% 有效聆聽與作業計次規則。
+- 口說大挑戰改為每位學生每日（Asia/Taipei）最多 5 輪。進入關卡、查看題目或第一次正式送出錄音前離開不計次；同一輪的重錄、答錯重試與後續題目共用同一個 session，只在第一次有效錄音送出時由後端原子保留一次額度。
+- 所有口說大挑戰錄音前後端都限制最長 12 秒，錄音中顯示剩餘秒數；教材／關卡列表的規則卡會持續顯示每日上限與今日剩餘次數，展開後說明送出才計次、同輪重錄不重複扣次及錄音上限。
+- 新增 additive migration `20260918054257_speaking_challenge_daily_sessions.sql`：server-only 紀錄表啟用 RLS，撤銷 `public`／`anon`／`authenticated` 權限；`reserve_speaking_challenge_session_v1` 使用 student/date advisory lock、UUID 冪等鍵與 service-role-only 執行權，避免併發超額或同輪重複扣次。若需回退，可先回復前端與 Edge Function，新增紀錄表保留不用，不需刪除正式資料。
+- 本機驗證：PGlite migration 3/3、口說安全契約與全部 Edge Function 語法、React targeted 6 suites／61 tests、完整前端 69 suites／272 tests、Production build 與 `git diff --check` 均通過；1280px 與 390px 靜態渲染未見橫向溢位或卡片重疊。正式 migration、兩支 Edge Function、Netlify 與登入後實機驗收尚待完成。
+
 本次學生暱稱編輯入口可見性修正（2026-09-18，已正式部署）：
 
 - 原本暱稱編輯卡排在學習榮譽、方案與教材權限後方，桌面首屏看不到，容易誤認為沒有功能。現在將「公開暱稱」輸入框與「儲存暱稱」按鈕直接放入最上方學生基本資料卡；下方卡片只保留本人可見的暱稱更改紀錄。
