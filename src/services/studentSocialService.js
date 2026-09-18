@@ -6,6 +6,8 @@ const callSocial = (firebaseUser, action, payload = {}) => (
 
 export const getSocialOverview = firebaseUser => callSocial(firebaseUser, "overview");
 export const updateSocialProfile = (firebaseUser, profile) => callSocial(firebaseUser, "update_profile", profile);
+export const getNicknameSettings = firebaseUser => callSocial(firebaseUser, "nickname_settings");
+export const updateNickname = (firebaseUser, nickname) => callSocial(firebaseUser, "update_nickname", { nickname });
 export const searchStudents = (firebaseUser, query) => callSocial(firebaseUser, "search", { query });
 export const sendFriendRequest = (firebaseUser, studentId) => callSocial(firebaseUser, "send_request", { student_id: studentId });
 export const respondFriendRequest = (firebaseUser, requestId, decision) => callSocial(firebaseUser, "respond_request", { request_id: requestId, decision });

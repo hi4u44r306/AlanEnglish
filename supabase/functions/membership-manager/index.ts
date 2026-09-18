@@ -1176,6 +1176,29 @@ Deno.serve(async (req: Request) => {
             });
         }
 
+        if (action === "nickname_history") {
+            if (caller.role !== "admin") return json(403, { error: "只有管理員可以查看暱稱紀錄" });
+            const studentId = numberOrNull(body?.student_id);
+            if (!studentId) return json(400, { error: "學生資料不完整" });
+            const [{ data: target, error: targetError }, { data: profile, error: profileError }, { data: history, error: historyError }] = await Promise.all([
+                admin.from("students").select("id,name,class,account_status").eq("id", studentId).eq("role", "student").maybeSingle(),
+                admin.from("student_social_profiles").select("nickname").eq("student_id", studentId).maybeSingle(),
+                admin.from("student_nickname_history")
+                    .select("id,previous_nickname,new_nickname,change_source,changed_at")
+                    .eq("student_id", studentId)
+                    .order("changed_at", { ascending: false })
+                    .order("id", { ascending: false })
+                    .limit(100)
+            ]);
+            if (targetError || profileError || historyError) throw targetError || profileError || historyError;
+            if (!target) return json(404, { error: "找不到學生帳號" });
+            return json(200, {
+                success: true,
+                student: { ...target, nickname: profile?.nickname || null },
+                nickname_history: history || []
+            });
+        }
+
         if (action === "list_accounts") {
             if (!STAFF_ROLES.has(caller.role)) return json(403, { error: "沒有帳號管理權限" });
             let query = admin

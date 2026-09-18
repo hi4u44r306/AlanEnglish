@@ -481,6 +481,80 @@
   }
 }
 
+.management-nickname-history-dialog {
+  border-color: #dce5f5;
+
+  h2 {
+    color: #203f84;
+  }
+
+  .management-delete-dialog__actions button:last-child {
+    background: #203f84;
+  }
+}
+
+.management-nickname-history-student {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #64718a;
+  background: #f3f6fc;
+
+  strong {
+    color: #203456;
+  }
+}
+
+.management-nickname-history-list {
+  display: grid;
+  max-height: 360px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 2px;
+    border-bottom: 1px solid #e8edf5;
+  }
+
+  li > div {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  strong {
+    max-width: 145px;
+    overflow: hidden;
+    color: #243754;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  time {
+    flex: 0 0 auto;
+    color: #75829a;
+    font-size: 0.78rem;
+  }
+}
+
+.management-nickname-history-empty {
+  margin: 12px 0 !important;
+  padding: 14px;
+  border-radius: 11px;
+  background: #f6f8fc;
+}
+
 .management-archive-button {
   color: #9b2c26;
   background: #fff0ef;
@@ -706,6 +780,12 @@
 }
 
 @media screen and (max-width: 760px) {
+  .management-nickname-history-list li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
   .management-account-table-wrap {
     overflow: visible;
   }

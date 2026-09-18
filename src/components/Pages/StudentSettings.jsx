@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FiCamera, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
@@ -10,7 +10,9 @@ import {
     updateStudentProfile
 } from "../../services/membershipService";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
+import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
+import { validatePublicNickname } from "../../utils/nicknameValidation";
 import BirthdaySelect from "../fragment/BirthdaySelect";
 import "./css/StudentSettings.scss";
 
@@ -52,6 +54,10 @@ function StudentSettings() {
     const fileInputRef = useRef(null);
     const [summary, setSummary] = useState(null);
     const [commerce, setCommerce] = useState(null);
+    const [nicknameSettings, setNicknameSettings] = useState({ profile: null, nickname_history: [] });
+    const [nicknameDraft, setNicknameDraft] = useState(studentProfile?.nickname || "");
+    const [nicknameError, setNicknameError] = useState("");
+    const [savingNickname, setSavingNickname] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [savingBirthday, setSavingBirthday] = useState(false);
     const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
@@ -65,17 +71,26 @@ function StudentSettings() {
     const load = useCallback(async () => {
         if (!firebaseUser) return;
         try {
-            const [summaryResult, commerceResult] = await Promise.allSettled([
+            const [summaryResult, commerceResult, nicknameResult] = await Promise.allSettled([
                 getGamificationSummary(firebaseUser),
-                loadStudentCommerceProfile(firebaseUser)
+                loadStudentCommerceProfile(firebaseUser),
+                getNicknameSettings(firebaseUser)
             ]);
             if (summaryResult.status === "fulfilled") setSummary(summaryResult.value || null);
             if (commerceResult.status === "fulfilled") setCommerce(commerceResult.value?.profile || null);
-            if (summaryResult.status === "rejected" && commerceResult.status === "rejected") throw summaryResult.reason;
+            if (nicknameResult.status === "fulfilled") {
+                const nextSettings = nicknameResult.value || { profile: null, nickname_history: [] };
+                setNicknameSettings(nextSettings);
+                setNicknameDraft(nextSettings.profile?.nickname || studentProfile?.nickname || "");
+                setNicknameError("");
+            } else {
+                setNicknameError(nicknameResult.reason?.message || "暱稱資料讀取失敗");
+            }
+            if (summaryResult.status === "rejected" && commerceResult.status === "rejected" && nicknameResult.status === "rejected") throw summaryResult.reason;
         } catch (error) {
             toast.error(error.message || "設定資料讀取失敗");
         }
-    }, [firebaseUser]);
+    }, [firebaseUser, studentProfile?.nickname]);
 
     useEffect(() => { load(); }, [load]);
     useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
@@ -268,6 +283,35 @@ function StudentSettings() {
             toast.error(error.message || "無法更新出生年月日");
         } finally {
             setSavingBirthday(false);
+        }
+    };
+
+    const saveNickname = async event => {
+        event.preventDefault();
+        if (!firebaseUser) return;
+        const validationError = validatePublicNickname(nicknameDraft);
+        if (validationError) {
+            setNicknameError(validationError);
+            return;
+        }
+        setSavingNickname(true);
+        setNicknameError("");
+        try {
+            const result = await updateNickname(firebaseUser, nicknameDraft);
+            const savedNickname = result?.profile?.nickname || nicknameDraft.trim().replace(/\s+/g, " ");
+            setNicknameDraft(savedNickname);
+            setNicknameSettings({
+                profile: result?.profile || { nickname: savedNickname },
+                nickname_history: result?.nickname_history || []
+            });
+            setStudentProfile(current => current ? { ...current, nickname: savedNickname } : current);
+            toast.success("公開暱稱已更新");
+        } catch (error) {
+            const message = error?.message || "暱稱更新失敗";
+            setNicknameError(message);
+            toast.error(message);
+        } finally {
+            setSavingNickname(false);
         }
     };
 
@@ -504,16 +548,56 @@ function StudentSettings() {
             </section>
 
             <section className="student-settings-grid">
+                <article className="student-settings-panel student-settings-nickname-panel">
+                    <header><FiUser /><div><span>PUBLIC NICKNAME</span><h2>公開暱稱</h2></div></header>
+                    <p>暱稱會顯示在排行榜、好友與學生首頁；真實姓名仍只用於班務與帳號管理。</p>
+                    <form className="student-settings-nickname-form" onSubmit={saveNickname}>
+                        <label htmlFor="student-settings-nickname">暱稱</label>
+                        <div>
+                            <input
+                                id="student-settings-nickname"
+                                value={nicknameDraft}
+                                onChange={event => { setNicknameDraft(event.target.value); if (nicknameError) setNicknameError(""); }}
+                                maxLength="20"
+                                placeholder="例如 Alan Fox"
+                                aria-invalid={Boolean(nicknameError)}
+                                aria-describedby="student-settings-nickname-help"
+                                required
+                            />
+                            <button type="submit" disabled={savingNickname}>{savingNickname ? "儲存中…" : "儲存暱稱"}</button>
+                        </div>
+                        <small id="student-settings-nickname-help" className={nicknameError ? "is-error" : ""}>
+                            {nicknameError || "2～20 字；限中英文、數字、空格、底線或連字號。暱稱不可與其他人重複。"}
+                        </small>
+                    </form>
+                    <div className="student-settings-nickname-history">
+                        <h3><FiClock /> 更改紀錄</h3>
+                        {nicknameSettings.nickname_history?.length ? (
+                            <ol>
+                                {nicknameSettings.nickname_history.map(item => (
+                                    <li key={item.id}>
+                                        <div>
+                                            <strong>{item.previous_nickname || "首次設定"}</strong>
+                                            <span aria-hidden="true">→</span>
+                                            <strong>{item.new_nickname}</strong>
+                                        </div>
+                                        <time dateTime={item.changed_at}>{new Date(item.changed_at).toLocaleString("zh-TW")}</time>
+                                    </li>
+                                ))}
+                            </ol>
+                        ) : <p className="student-settings-nickname-empty">尚無暱稱更改紀錄。</p>}
+                    </div>
+                </article>
+
                 <article className="student-settings-panel">
                     <header><FiUser /><div><span>PROFILE</span><h2>基本資料</h2></div></header>
                     <dl className="student-settings-data-list">
-                        <div><dt>公開暱稱</dt><dd>{profile.nickname || "尚未設定（可到好友與戰績建立）"}</dd></div>
                         <div><dt>中文姓名</dt><dd>{profile.chinese_name || profile.name || "—"}</dd></div>
                         <div><dt>英文姓名</dt><dd>{profile.english_name || "尚未設定"}</dd></div>
                         <div><dt>班級</dt><dd>{profile.class ? `${profile.class} 班` : "尚未分班"}</dd></div>
                         <div><dt>登入帳號</dt><dd>{profile.login_username || firebaseUser?.email || "—"}</dd></div>
                     </dl>
-                    <p className="student-settings-readonly"><FiLock /> 姓名、班級與登入帳號由英文班／帳號管理維護；如需更正請聯絡老師或櫃檯。</p>
+                    <p className="student-settings-readonly"><FiLock /> 中文姓名、英文姓名、班級與登入帳號由英文班／帳號管理維護；公開暱稱可在左側自行修改。</p>
                 </article>
 
                 <article className="student-settings-panel">

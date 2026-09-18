@@ -7,6 +7,7 @@ import { useAuth } from "../../auth/AuthContext";
 import {
     archiveManagedAccount,
     getManagedAccounts,
+    getManagedNicknameHistory,
     restoreManagedAccount,
     updateManagedAccount
 } from "../../services/membershipService";
@@ -84,6 +85,9 @@ function AccountManagement() {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState("");
     const [deleting, setDeleting] = useState(false);
+    const [nicknameHistoryTarget, setNicknameHistoryTarget] = useState(null);
+    const [nicknameHistory, setNicknameHistory] = useState([]);
+    const [loadingNicknameHistory, setLoadingNicknameHistory] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [searchText, setSearchText] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
@@ -237,6 +241,23 @@ function AccountManagement() {
             toast.error(error?.message || "密碼重設信寄送失敗");
         } finally {
             setResettingEmail("");
+        }
+    };
+
+    const openNicknameHistory = async account => {
+        if (!isAdmin || !firebaseUser || account?.role !== "student") return;
+        setNicknameHistoryTarget({ ...account, nickname: null });
+        setNicknameHistory([]);
+        setLoadingNicknameHistory(true);
+        try {
+            const result = await getManagedNicknameHistory(firebaseUser, account.id);
+            setNicknameHistoryTarget(result?.student || account);
+            setNicknameHistory(result?.nickname_history || []);
+        } catch (error) {
+            toast.error(error?.message || "暱稱紀錄讀取失敗");
+            setNicknameHistoryTarget(null);
+        } finally {
+            setLoadingNicknameHistory(false);
         }
     };
 
@@ -618,6 +639,15 @@ function AccountManagement() {
                                                                 編輯
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.role === "student" && (
+                                                            <button
+                                                                type="button"
+                                                                className="management-edit-button"
+                                                                onClick={() => openNicknameHistory(account)}
+                                                            >
+                                                                暱稱紀錄
+                                                            </button>
+                                                        )}
                                                         {isAdmin && account.email && account.authentication_method !== "academy_username" && account.account_status !== "archived" && (
                                                             <button
                                                                 type="button"
@@ -881,6 +911,44 @@ function AccountManagement() {
                                 </button>
                             </div>
                         </form>
+                    </section>
+                </div>
+            )}
+
+            {nicknameHistoryTarget && (
+                <div className="management-delete-backdrop" role="presentation">
+                    <section
+                        className="management-delete-dialog management-nickname-history-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="management-nickname-history-title"
+                    >
+                        <span className="management-eyebrow">Nickname history</span>
+                        <h2 id="management-nickname-history-title">暱稱更改紀錄</h2>
+                        <div className="management-nickname-history-student">
+                            <strong>{nicknameHistoryTarget.name || "學生"}</strong>
+                            <span>{nicknameHistoryTarget.class ? `${nicknameHistoryTarget.class} 班` : "未分班"}</span>
+                            <span>目前暱稱：{nicknameHistoryTarget.nickname || "尚未設定"}</span>
+                        </div>
+                        {loadingNicknameHistory ? (
+                            <p className="management-nickname-history-empty">正在讀取紀錄…</p>
+                        ) : nicknameHistory.length ? (
+                            <ol className="management-nickname-history-list">
+                                {nicknameHistory.map(item => (
+                                    <li key={item.id}>
+                                        <div>
+                                            <strong>{item.previous_nickname || "首次設定"}</strong>
+                                            <span aria-hidden="true">→</span>
+                                            <strong>{item.new_nickname}</strong>
+                                        </div>
+                                        <time dateTime={item.changed_at}>{new Date(item.changed_at).toLocaleString("zh-TW")}</time>
+                                    </li>
+                                ))}
+                            </ol>
+                        ) : <p className="management-nickname-history-empty">尚無暱稱更改紀錄。</p>}
+                        <div className="management-delete-dialog__actions">
+                            <button type="button" onClick={() => setNicknameHistoryTarget(null)}>關閉</button>
+                        </div>
                     </section>
                 </div>
             )}

@@ -115,6 +115,25 @@
 .student-settings-data-list dt { color: #748199; font-size: 13px; font-weight: 750; }
 .student-settings-data-list dd { margin: 0; color: #263754; font-weight: 900; text-align: right; }
 .student-settings-readonly { display: flex; align-items: flex-start; gap: 7px; margin-top: 14px !important; padding: 11px 12px; border-radius: 12px; color: #687691 !important; background: #f6f8fc; font-size: 12px !important; }
+.student-settings-nickname-form { display: grid; gap: 7px; margin-top: 16px; }
+.student-settings-nickname-form > label { color: #52617a; font-size: 12px; font-weight: 850; }
+.student-settings-nickname-form > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; }
+.student-settings-nickname-form input { min-width: 0; min-height: 44px; padding: 0 13px; border: 1px solid #d8dfeb; border-radius: 12px; color: #21324e; background: #fff; font-weight: 800; outline: none; }
+.student-settings-nickname-form input:focus { border-color: #3655ad; box-shadow: 0 0 0 3px rgba(54, 85, 173, .12); }
+.student-settings-nickname-form input[aria-invalid="true"] { border-color: #c24d4d; }
+.student-settings-nickname-form button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; color: #fff; background: #23447f; font-weight: 900; cursor: pointer; }
+.student-settings-nickname-form button:disabled { cursor: wait; opacity: .6; }
+.student-settings-nickname-form small { color: #748199; font-size: 11px; line-height: 1.55; }
+.student-settings-nickname-form small.is-error { color: #a72e2e; font-weight: 750; }
+.student-settings-nickname-history { margin-top: 20px; padding-top: 16px; border-top: 1px solid #edf0f4; }
+.student-settings-nickname-history h3 { display: flex; align-items: center; gap: 7px; margin: 0 0 9px; color: #344661; font-size: 14px; font-weight: 900; }
+.student-settings-nickname-history ol { display: grid; gap: 0; max-height: 230px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.student-settings-nickname-history li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #edf0f4; }
+.student-settings-nickname-history li:last-child { border-bottom: 0; }
+.student-settings-nickname-history li > div { display: flex; align-items: center; min-width: 0; gap: 7px; color: #60708a; }
+.student-settings-nickname-history strong { max-width: 130px; overflow: hidden; color: #263754; text-overflow: ellipsis; white-space: nowrap; }
+.student-settings-nickname-history time { flex: 0 0 auto; color: #7b879a; font-size: 11px; }
+.student-settings-nickname-empty { margin-top: 8px !important; padding: 10px 12px; border-radius: 11px; background: #f6f8fc; font-size: 12px !important; }
 
 .student-settings-birthday-form { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 10px; margin-top: 16px; }
 .student-settings-birthday-field { display: grid; width: 100%; max-width: 100%; min-width: 0; gap: 6px; color: #52617a; font-size: 12px; font-weight: 800; }
@@ -140,6 +159,8 @@
     .student-settings-profile-card { grid-template-columns: 1fr; text-align: center; }
     .student-settings-avatar-wrap { margin: 0 auto; }
     .student-settings-profile-copy small { justify-content: center; text-align: left; }
+    .student-settings-nickname-form > div { grid-template-columns: 1fr; }
+    .student-settings-nickname-history li { align-items: flex-start; flex-direction: column; gap: 4px; }
     .student-settings-avatar-presets { text-align: left; }
     .student-settings-avatar-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .student-settings-stats { grid-template-columns: 1fr; }
