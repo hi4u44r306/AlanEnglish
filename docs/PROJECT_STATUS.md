@@ -2,11 +2,11 @@
 
 最後更新：2026-09-18
 
-本次每週成長報告口說大挑戰整合（2026-09-18，功能分支驗證中）：
+本次每週成長報告口說大挑戰整合（2026-09-18，已正式部署）：
 
 - `weekly-report` 新增教材口說大挑戰的首次完成題數、本週首次通關數、累積通關數及實際發放 XP／AE Points；統計沿用伺服器保存的 `completed_at` 與遊戲化 ledger，不信任前端回報，也不因重複練習重複計算。
 - 學生週報把口說大挑戰列為獨立第六種學習活動；每日圖改為六色堆疊長條，成果卡新增最近關卡題數進度與「繼續挑戰」入口，情境口說維持獨立顯示。
-- 本批不需要 migration，不修改既有口說關卡、完成紀錄、獎勵政策或教材權限。口說統計契約 3/3、週報 React 回歸 1/1、全前端 69 suites／270 tests、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過；build 只有既有未使用圖示、Browserslist 與 Node deprecation 警告。正式部署與登入後 RWD 驗收待完成。
+- 本批不需要 migration，不修改既有口說關卡、完成紀錄、獎勵政策或教材權限。口說統計契約 3/3、週報 React 回歸 1/1、全前端 69 suites／270 tests、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過；build 只有既有未使用圖示、Browserslist 與 Node deprecation 警告。PR #189 已合併至 `main` commit `d7ca532`；正式 `weekly-report` v22 為 ACTIVE，Netlify production deploy `6aac9d97c6abea7185e64a7e` 已為 ready。正式受保護路由可正確導向登入頁；因沒有在本次操作中使用學生帳密登入，登入後桌面／390px 實機畫面仍待學生帳號快速驗收，主要渲染與 RWD 規則由 React 測試及 390px CSS 規則覆蓋。
 
 本次公開首頁桌面登入按鈕修正（2026-09-18，已正式部署）：
 
