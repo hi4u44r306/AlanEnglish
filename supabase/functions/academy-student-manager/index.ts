@@ -641,7 +641,12 @@ const randomCharacters = (length: number): string => {
     return Array.from(bytes, value => alphabet[value % alphabet.length]).join("");
 };
 
-const createTemporaryPassword = (): string => `Ae7!${randomCharacters(12)}`;
+const createTemporaryPassword = (): string => {
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const bytes = crypto.getRandomValues(new Uint8Array(8));
+    const compact = Array.from(bytes, value => alphabet[value % alphabet.length]).join("");
+    return `Ae-${compact.slice(0, 4)}-${compact.slice(4, 8)}`;
+};
 
 const createFirebaseAccount = async (
     input: StudentInput,
@@ -975,8 +980,20 @@ const listInvitations = async (
 const createStudentActivationToken = (): string => randomCharacters(40);
 
 const createStudentRecoveryCode = (): string => {
-    const compact = randomCharacters(12).toUpperCase();
-    return `AE-${compact.slice(0, 4)}-${compact.slice(4, 8)}-${compact.slice(8, 12)}`;
+    const range = 1_000_000;
+    const limit = Math.floor(0x1_0000_0000 / range) * range;
+    const values = new Uint32Array(1);
+    do {
+        crypto.getRandomValues(values);
+    } while (values[0] >= limit);
+    return String(values[0] % range).padStart(6, "0");
+};
+
+const createStudentRecoveryCodes = (): [string, string] => {
+    const first = createStudentRecoveryCode();
+    let second = createStudentRecoveryCode();
+    while (second === first) second = createStudentRecoveryCode();
+    return [first, second];
 };
 
 const normalizeRecoveryCode = (value: unknown): string => cleanText(value, 32)
@@ -1229,7 +1246,7 @@ const createStudentAccount = async (
 
     const hiddenBootstrapPassword = createTemporaryPassword();
     const activationToken = createStudentActivationToken();
-    const recoveryCodes = [createStudentRecoveryCode(), createStudentRecoveryCode()];
+    const recoveryCodes = createStudentRecoveryCodes();
     const [activationTokenHash, ...recoveryCodeHashes] = await Promise.all([
         hashInvitationToken(activationToken),
         ...recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
@@ -1368,7 +1385,7 @@ const reissueStudentLoginCard = async (
     }
 
     const activationToken = createStudentActivationToken();
-    const recoveryCodes = [createStudentRecoveryCode(), createStudentRecoveryCode()];
+    const recoveryCodes = createStudentRecoveryCodes();
     const [activationTokenHash, ...recoveryCodeHashes] = await Promise.all([
         hashInvitationToken(activationToken),
         ...recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
@@ -1859,43 +1876,47 @@ const recoverStudentLogin = async (
     const username = normalizeLoginUsername(body.username);
     const recoveryCode = normalizeRecoveryCode(body.recovery_code);
     const password = validateStudentPassword(body.password ?? body.pin);
-    if (!/^[a-z][a-z0-9]{4,31}$/.test(username) || recoveryCode.length < 10) {
+    const isSixDigitCode = /^\d{6}$/.test(recoveryCode);
+    const isLegacyCode = recoveryCode.length >= 10;
+    if (!/^[a-z][a-z0-9]{4,31}$/.test(username) || (!isSixDigitCode && !isLegacyCode)) {
         throw new HttpError(400, "INVALID_RECOVERY_DETAILS", "帳號或復原碼不正確");
     }
     const codeHash = await hashInvitationToken(recoveryCode);
-    const { data, error } = await admin
-        .from("academy_student_recovery_codes")
-        .select("id,student_id,used_at,revoked_at,students!academy_student_recovery_codes_student_id_fkey!inner(id,firebase_uid,login_username,authentication_method,account_status)")
-        .eq("code_hash", codeHash)
-        .maybeSingle();
-    const student = Array.isArray(data?.students) ? data.students[0] : data?.students;
+    const reservation = createStudentActivationToken();
+    const reservationHash = await hashInvitationToken(reservation);
+    const { data, error } = await admin.rpc("reserve_academy_student_recovery_code", {
+        p_username: username,
+        p_code_hash: codeHash,
+        p_reservation_hash: reservationHash
+    });
+    if (error) {
+        console.error("Academy student recovery reservation failed", { code: error.code, message: error.message });
+        throw new HttpError(500, "RECOVERY_RESERVATION_FAILED", "目前無法確認復原碼，請稍後再試");
+    }
+    if (data?.status === "rate_limited") {
+        throw new HttpError(429, "RECOVERY_RATE_LIMITED", "嘗試次數過多，請 1 小時後再試或聯絡老師");
+    }
     if (
-        error
-        || !data?.id
-        || data.used_at
-        || data.revoked_at
-        || normalizeLoginUsername(student?.login_username) !== username
-        || student?.authentication_method !== "academy_username"
-        || student?.account_status === "archived"
+        data?.status !== "reserved"
+        || !Number.isSafeInteger(Number(data.student_id))
+        || !cleanText(data.firebase_uid, 200)
     ) {
         throw new HttpError(404, "RECOVERY_NOT_FOUND", "帳號或復原碼不正確，或這組復原碼已使用");
     }
 
-    await updateFirebasePasswordByUid(student.firebase_uid, password);
+    await updateFirebasePasswordByUid(cleanText(data.firebase_uid, 200), password);
     const now = new Date().toISOString();
-    const [{ error: codeError }, { error: studentError }] = await Promise.all([
-        admin
-            .from("academy_student_recovery_codes")
-            .update({ used_at: now })
-            .eq("id", data.id)
-            .is("used_at", null)
-            .is("revoked_at", null),
+    const [{ data: codeConsumed, error: codeError }, { error: studentError }] = await Promise.all([
+        admin.rpc("complete_academy_student_recovery_code", {
+            p_code_id: Number(data.code_id),
+            p_reservation_hash: reservationHash
+        }),
         admin
             .from("students")
             .update({ must_change_password: false, password_changed_at: now })
-            .eq("id", student.id)
+            .eq("id", Number(data.student_id))
     ]);
-    if (codeError || studentError) {
+    if (codeError || !codeConsumed || studentError) {
         console.error("Academy student recovery audit failed", {
             codeError: codeError?.code || null,
             studentError: studentError?.code || null

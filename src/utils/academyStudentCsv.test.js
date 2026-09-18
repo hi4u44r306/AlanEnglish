@@ -65,9 +65,9 @@ describe("academyStudentCsv", () => {
                 status: "success",
                 credentials: {
                     username: "alanwang",
-                    temporary_password: "Ae7!UniquePassword",
+                    temporary_password: "Ae-K7M2-P9RX",
                     activation_url: "https://alanenglish.com.tw/academy/student-setup?token=one-time",
-                    recovery_codes: ["AE-AAAA-BBBB-CCCC", "AE-DDDD-EEEE-FFFF"]
+                    recovery_codes: ["123456", "654321"]
                 }
             },
             {
@@ -79,10 +79,10 @@ describe("academyStudentCsv", () => {
             }
         ]);
 
-        expect(csv).toContain("AE-AAAA-BBBB-CCCC");
-        expect(csv).toContain("Ae7!UniquePassword");
+        expect(csv).toContain("123456");
+        expect(csv).toContain("Ae-K7M2-P9RX");
         expect(csv).toContain("一次性臨時密碼");
         expect(csv).toContain('"帳號已存在, 請確認"');
-        expect(csv.match(/AE-AAAA-BBBB-CCCC/g)).toHaveLength(1);
+        expect(csv.match(/123456/g)).toHaveLength(1);
     });
 });

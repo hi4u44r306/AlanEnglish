@@ -2,6 +2,13 @@
 
 最後更新：2026-09-18
 
+本次 CSV Word 登入卡與簡化一次性登入資訊（2026-09-18，尚未部署）：
+
+- 分支 `feature/simplified-student-login-cards`。CSV 建立成功後新增 A4 Word 登入卡下載，每頁 8 格；每位學生的中文姓名、英文姓名、帳號、一次性臨時密碼、瀏覽器本機產生的 QR Code 與兩組復原碼集中在同一格，既有 CSV 結果下載與列印入口保留。
+- 臨時密碼由 12 位混合字元改為較短但仍不可預測的 8 位大寫英數分組格式；兩組復原碼改為不同的 6 位數。舊版長復原碼仍可使用，不採用帳號加固定字串。
+- 恢復 Repository 遺漏、但正式 migration history 已確認於 2026-09-09 套用的 `20260909090000_secure_academy_recovery_codes.sql`：失敗嘗試以學生帳號記錄，每小時最多 5 次；復原碼以 5 分鐘 reservation 原子保留／消耗，資料表與 RPC 僅允許 service role。本批不需新增或執行正式 migration；`academy-student-manager` 與前端尚未部署。
+- 驗證：9 位虛構學生 Word 範例由 Microsoft Word 匯出為 2 頁 A4 PDF，已逐頁確認第 1 頁 8 格與第 2 頁不足 8 人的空白格線均正常；DOCX targeted 2/2、相關 targeted 3 suites／8 tests、完整前端 70 suites／274 tests、安全契約、全部 Edge Function 語法、PGlite migration 3/3、Production build 與 `git diff --check` 均通過。Build 僅有既有 Browserslist 與 Node deprecation 警告。重大登入安全改動仍須先走隔離環境，再取得本批 Function／前端正式發布授權。
+
 本次教材聽力遊戲化介面與口說大挑戰每日五輪限制（2026-09-18，已正式部署）：
 
 - 教材聽力頁改為「聽力冒險」彩色頁首，顯示完成音檔數與累計播放次數；MusicCard 使用輪替配色、任務編號、播放狀態與既有有效聆聽次數。這次只調整介面，不新增聽力次數解鎖口說關卡，也不更動 80% 有效聆聽與作業計次規則。

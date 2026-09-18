@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-const [migration, membership, academy, protectedRoute] = await Promise.all([
+const [migration, recoveryMigration, membership, academy, protectedRoute] = await Promise.all([
     read("supabase/migrations/20260916015253_student_onboarding_guardian_email_verification.sql"),
+    read("supabase/migrations/20260909090000_secure_academy_recovery_codes.sql"),
     read("supabase/functions/membership-manager/index.ts"),
     read("supabase/functions/academy-student-manager/index.ts"),
     read("src/auth/ProtectedRoute.jsx")
@@ -35,12 +36,24 @@ assert.doesNotMatch(
 
 assert.match(academy, /passwordUpdatedAt/);
 assert.match(academy, /temporary_password:\s*hiddenBootstrapPassword/);
+assert.match(academy, /return `Ae-\$\{compact\.slice\(0, 4\)\}-\$\{compact\.slice\(4, 8\)\}`/);
+assert.match(academy, /return String\(values\[0\] % range\)\.padStart\(6, "0"\)/);
+assert.match(academy, /createStudentRecoveryCodes/);
+assert.match(academy, /reserve_academy_student_recovery_code/);
+assert.match(academy, /RECOVERY_RATE_LIMITED/);
 assert.match(academy, /p_guardian_email: null/);
 assert.doesNotMatch(
     academy.match(/\.from\("academy_student_import_results"\)[\s\S]*?if \(resultAuditError\)/)?.[0] || "",
     /temporary_password/,
     "the import audit log must not persist a temporary password"
 );
+
+assert.match(recoveryMigration, /academy_student_recovery_attempts/);
+assert.match(recoveryMigration, /v_failed_attempts >= 5/);
+assert.match(recoveryMigration, /now\(\) - interval '1 hour'/);
+assert.match(recoveryMigration, /reservation_expires_at = now\(\) \+ interval '5 minutes'/);
+assert.match(recoveryMigration, /revoke all on public\.academy_student_recovery_attempts from public, anon, authenticated/i);
+assert.match(recoveryMigration, /grant execute on function public\.reserve_academy_student_recovery_code[\s\S]*to service_role/i);
 
 assert.match(protectedRoute, /studentProfile\?\.onboarding\?\.required === true/);
 assert.match(protectedRoute, /to="\/student\/onboarding"/);
