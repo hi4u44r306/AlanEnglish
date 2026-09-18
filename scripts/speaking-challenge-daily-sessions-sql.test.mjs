@@ -10,7 +10,7 @@ const { PGlite } = await import(process.env.PGLITE_MODULE
     : "@electric-sql/pglite");
 const db = new PGlite();
 const migration = readFileSync(
-    new URL("../supabase/migrations/20260918054257_speaking_challenge_daily_sessions.sql", import.meta.url),
+    new URL("../supabase/migrations/20260918063338_speaking_challenge_daily_sessions.sql", import.meta.url),
     "utf8"
 );
 const scalar = async (sql, params = []) => (await db.query(sql, params)).rows[0];

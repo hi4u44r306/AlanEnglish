@@ -160,7 +160,7 @@ for (const [action, expectedWords] of Object.entries(EXPECTED_WORDS_BY_ACTION)) 
 const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8");
 const challengeSource = readFileSync(new URL("../supabase/functions/speaking-challenge/index.ts", import.meta.url), "utf8");
 const requestLedgerSource = readFileSync(new URL("../supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql", import.meta.url), "utf8");
-const challengeSessionSource = readFileSync(new URL("../supabase/migrations/20260918054257_speaking_challenge_daily_sessions.sql", import.meta.url), "utf8");
+const challengeSessionSource = readFileSync(new URL("../supabase/migrations/20260918063338_speaking_challenge_daily_sessions.sql", import.meta.url), "utf8");
 assert.match(coachSource, /matchesFoundationAnswer/);
 assert.match(coachSource, /evaluateLetterSpellingAssessment/);
 assert.match(coachSource, /assessment_status/);
