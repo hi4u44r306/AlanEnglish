@@ -9,6 +9,7 @@ const {
     Paragraph,
     SectionType,
     Table,
+    TableBorders,
     TableCell,
     TableLayoutType,
     TableRow,
@@ -23,6 +24,9 @@ const PAGE_MARGIN_TWIPS = 360;
 const TABLE_WIDTH_TWIPS = A4_WIDTH_TWIPS - (PAGE_MARGIN_TWIPS * 2);
 const CARD_WIDTH_TWIPS = Math.floor(TABLE_WIDTH_TWIPS / 2);
 const CARD_HEIGHT_TWIPS = 3900;
+const CARD_CONTENT_WIDTH_TWIPS = CARD_WIDTH_TWIPS - 220;
+const CARD_INFO_WIDTH_TWIPS = Math.round(CARD_CONTENT_WIDTH_TWIPS * 0.57);
+const CARD_QR_WIDTH_TWIPS = CARD_CONTENT_WIDTH_TWIPS - CARD_INFO_WIDTH_TWIPS;
 const CARDS_PER_PAGE = 8;
 const FONT = "Microsoft JhengHei";
 
@@ -73,7 +77,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
 
     return new TableCell({
         width: { size: CARD_WIDTH_TWIPS, type: WidthType.DXA },
-        margins: { top: 90, bottom: 80, left: 130, right: 130 },
+        margins: { top: 70, bottom: 70, left: 110, right: 110 },
         verticalAlign: VerticalAlign.CENTER,
         borders: {
             top: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
@@ -81,31 +85,67 @@ const buildCardCell = (card, qrCodeDataUrl) => {
             left: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
             right: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" }
         },
-        children: [
-            paragraph([text("ALAN ENGLISH｜英文班登入卡", { bold: true, size: 16, color: "2B66C3" })]),
-            paragraph([text(studentName, { bold: true, size: 24, color: "0F1F3A" })]),
-            paragraph([
-                text("帳號  ", { bold: true, size: 16, color: "64748B" }),
-                text(card.username, { bold: true, size: 21 })
-            ]),
-            paragraph([
-                text("臨時密碼  ", { bold: true, size: 16, color: "64748B" }),
-                text(card.temporaryPassword, { bold: true, size: 21 })
-            ]),
-            paragraph([
-                new ImageRun({
-                    type: "png",
-                    data: dataUrlToBytes(qrCodeDataUrl),
-                    transformation: { width: 66, height: 66 }
-                })
-            ], { spacing: { before: 20, after: 10, line: 200 } }),
-            paragraph([text("掃描 QR Code 設定自己的密碼", { size: 15, color: "475569" })]),
-            paragraph([
-                text("復原碼  ", { bold: true, size: 15, color: "64748B" }),
-                text(`${recoveryOne}　${recoveryTwo}`, { bold: true, size: 19, color: "9A3412" })
-            ]),
-            paragraph([text("每組只能用一次，請交由家長保存。", { size: 14, color: "64748B" })])
-        ]
+        children: [new Table({
+            width: { size: CARD_CONTENT_WIDTH_TWIPS, type: WidthType.DXA },
+            columnWidths: [CARD_INFO_WIDTH_TWIPS, CARD_QR_WIDTH_TWIPS],
+            layout: TableLayoutType.FIXED,
+            borders: TableBorders.NONE,
+            rows: [new TableRow({
+                cantSplit: true,
+                height: { value: 3500, rule: HeightRule.EXACT },
+                children: [
+                    new TableCell({
+                        width: { size: CARD_INFO_WIDTH_TWIPS, type: WidthType.DXA },
+                        margins: { top: 40, bottom: 40, left: 50, right: 90 },
+                        verticalAlign: VerticalAlign.CENTER,
+                        borders: TableBorders.NONE,
+                        children: [
+                            paragraph([
+                                text("ALAN ENGLISH", { bold: true, size: 16, color: "2B66C3" }),
+                                text("  英文班登入卡", { bold: true, size: 15, color: "2B66C3" })
+                            ], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 80, line: 220 } }),
+                            paragraph([text(studentName, { bold: true, size: 26, color: "0F1F3A" })], {
+                                alignment: AlignmentType.LEFT,
+                                spacing: { before: 0, after: 100, line: 280 }
+                            }),
+                            paragraph([
+                                text("帳號  ", { bold: true, size: 15, color: "64748B" }),
+                                text(card.username, { bold: true, size: 22 })
+                            ], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 55, line: 250 } }),
+                            paragraph([
+                                text("臨時密碼  ", { bold: true, size: 15, color: "64748B" }),
+                                text(card.temporaryPassword, { bold: true, size: 20 })
+                            ], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 80, line: 250 } }),
+                            paragraph([text("復原碼", { bold: true, size: 15, color: "64748B" })], {
+                                alignment: AlignmentType.LEFT,
+                                spacing: { before: 0, after: 10, line: 210 }
+                            }),
+                            paragraph([text(`${recoveryOne}  ${recoveryTwo}`, { bold: true, size: 22, color: "9A3412" })], {
+                                alignment: AlignmentType.LEFT,
+                                spacing: { before: 0, after: 60, line: 260 }
+                            }),
+                            paragraph([text("掃描右側 QR Code 設定密碼；復原碼每組只能用一次。", {
+                                size: 14,
+                                color: "64748B"
+                            })], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 0, line: 210 } })
+                        ]
+                    }),
+                    new TableCell({
+                        width: { size: CARD_QR_WIDTH_TWIPS, type: WidthType.DXA },
+                        margins: { top: 20, bottom: 20, left: 20, right: 20 },
+                        verticalAlign: VerticalAlign.CENTER,
+                        borders: TableBorders.NONE,
+                        children: [paragraph([
+                            new ImageRun({
+                                type: "png",
+                                data: dataUrlToBytes(qrCodeDataUrl),
+                                transformation: { width: 112, height: 112 }
+                            })
+                        ], { spacing: { before: 0, after: 0, line: 220 } })]
+                    })
+                ]
+            })]
+        })]
     });
 };
 
