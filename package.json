@@ -13,6 +13,7 @@
     "ajv-keywords": "^5.1.0",
     "bootstrap": "^5.3.3",
     "dayjs": "^1.11.10",
+    "docx": "9.7.1",
     "firebase": "^10.14.1",
     "font-awesome": "^4.7.0",
     "framer-motion": "^12.23.24",

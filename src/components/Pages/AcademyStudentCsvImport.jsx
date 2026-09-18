@@ -12,6 +12,7 @@ import {
     buildAcademyStudentResultCsv,
     parseAcademyStudentCsv
 } from "../../utils/academyStudentCsv";
+import { downloadAcademyStudentLoginCardsDocx } from "../../utils/academyStudentLoginCardsDocx";
 import "./css/ManagementDashboard.scss";
 import "./css/AcademyStudentCsvImport.scss";
 
@@ -50,6 +51,8 @@ function StudentLoginCards({ results, rows }) {
             student: rows.find(row => row.source_row === result.source_row) || {}
         })), [results, rows]);
     const [qrCodes, setQrCodes] = useState({});
+    const [downloadingDocx, setDownloadingDocx] = useState(false);
+    const [docxError, setDocxError] = useState("");
 
     useEffect(() => {
         let active = true;
@@ -69,6 +72,18 @@ function StudentLoginCards({ results, rows }) {
         return () => { active = false; };
     }, [successful]);
 
+    const downloadDocx = async () => {
+        setDownloadingDocx(true);
+        setDocxError("");
+        try {
+            await downloadAcademyStudentLoginCardsDocx(results, rows);
+        } catch (error) {
+            setDocxError(error?.message || "Word 登入卡產生失敗，請稍後再試");
+        } finally {
+            setDownloadingDocx(false);
+        }
+    };
+
     if (successful.length === 0) return null;
     return (
         <section className="academy-login-cards-section">
@@ -77,8 +92,14 @@ function StudentLoginCards({ results, rows }) {
                     <h2>學生登入卡</h2>
                     <p>一次性臨時密碼與復原碼只會顯示這一次。請立即列印或另存 PDF，並分別交給學生。</p>
                 </div>
-                <button type="button" onClick={() => window.print()}>列印 A4 登入卡</button>
+                <div className="academy-login-card-actions">
+                    <button type="button" onClick={downloadDocx} disabled={downloadingDocx}>
+                        {downloadingDocx ? "產生 Word 中…" : "下載 Word 登入卡"}
+                    </button>
+                    <button type="button" onClick={() => window.print()}>列印 A4 登入卡</button>
+                </div>
             </div>
+            {docxError && <p className="academy-csv-audit-warning" role="alert">{docxError}</p>}
             <div className="academy-login-cards-print">
                 {successful.map(result => (
                     <article className="academy-login-card" key={`card-${result.source_row}`}>

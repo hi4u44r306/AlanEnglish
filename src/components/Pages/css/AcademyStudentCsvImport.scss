@@ -276,6 +276,13 @@
   border-top: 1px solid #e5eaf1;
 }
 
+.academy-login-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .academy-login-cards-print {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -405,6 +412,10 @@
   .academy-csv-create-bar,
   .academy-csv-results-heading {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .academy-login-card-actions {
     flex-direction: column;
   }
 
