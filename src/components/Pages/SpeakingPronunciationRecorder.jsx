@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiSquare } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import "./css/SpeakingPronunciationRecorder.scss";
 
-const MAX_RECORDING_SECONDS = 20;
+const MAX_RECORDING_SECONDS = 12;
 
 const recordingMimeType = () => {
     if (!window.MediaRecorder?.isTypeSupported) return "";
@@ -26,6 +26,7 @@ export default function SpeakingPronunciationRecorder({
     firebaseUser,
     question,
     foundationRoundId = "",
+    challengeSessionId = "",
     disabledReason = "",
     onScored,
     onRoundInvalid
@@ -125,7 +126,7 @@ export default function SpeakingPronunciationRecorder({
         prepareSpeakingFeedbackSound();
         setSubmitting(true); setError("");
         try {
-            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId });
+            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId });
             setResult(score);
             playSpeakingFeedbackSound(
                 score?.assessment_status === "uncertain"
@@ -149,14 +150,16 @@ export default function SpeakingPronunciationRecorder({
     const accessibleDisabledReason = /\d+\s*秒後播放提示音/.test(disabledReason)
         ? "三秒後播放提示音。"
         : disabledReason;
+    const remainingSeconds = Math.max(0, MAX_RECORDING_SECONDS - elapsed);
 
     return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""} ${voiceDetected ? "has-voice" : ""}`}>
-        {!result && <p className="speaking-sr-only" role="status" aria-live="polite" aria-atomic="true">{recording ? "錄音進行中。" : preparing ? "正在準備評分音檔。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
+        {!result && <p className="speaking-sr-only" role="status" aria-live="polite" aria-atomic="true">{recording ? `錄音進行中，每次最長 ${MAX_RECORDING_SECONDS} 秒。` : preparing ? "正在準備評分音檔。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
         {!result && <>
             <div className="speaking-recording-heading">
                 <strong>{recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "啟用麥克風開始挑戰"}</strong>
-                <span>{recording ? `${elapsed} / ${MAX_RECORDING_SECONDS} 秒，說完後按送出。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : "只需啟用一次；本題會立刻開始收音。"}</span>
+                <span>{recording ? `最長 ${MAX_RECORDING_SECONDS} 秒，說完後按送出。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : `每次最長 ${MAX_RECORDING_SECONDS} 秒；本題會立刻開始收音。`}</span>
             </div>
+            {recording && <div className="speaking-recording-countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}><strong>{remainingSeconds}</strong><span>秒</span></div>}
             {disabledReason && !recordedBlob && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
             {!recordedBlob && <button
                 type="button"

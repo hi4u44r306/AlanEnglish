@@ -6,7 +6,7 @@ import { convertAudioBlobToWav } from "../../utils/audioWav";
 const CALIBRATION_MS = 450;
 const NO_SPEECH_RETRY_MS = 8000;
 const TRAILING_SILENCE_MS = 900;
-const MAX_UTTERANCE_MS = 6000;
+const MAX_UTTERANCE_MS = 12000;
 const MIN_BLOB_BYTES = 800;
 const ROUND_RESET_ERROR_CODES = new Set([
     "foundation_round_invalid",
@@ -32,6 +32,7 @@ export default function AlphabetAutomaticRecorder({
     firebaseUser,
     question,
     foundationRoundId,
+    challengeSessionId,
     paused = false,
     onStatusChange,
     onScored,
@@ -41,6 +42,7 @@ export default function AlphabetAutomaticRecorder({
     const [error, setError] = useState("");
     const [sessionVersion, setSessionVersion] = useState(0);
     const [attemptVersion, setAttemptVersion] = useState(0);
+    const [remainingSeconds, setRemainingSeconds] = useState(MAX_UTTERANCE_MS / 1000);
     const streamRef = useRef(null);
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
@@ -176,7 +178,8 @@ export default function AlphabetAutomaticRecorder({
                     firebaseUser,
                     questionId: question.id,
                     audio: wav,
-                    foundationRoundId
+                    foundationRoundId,
+                    challengeSessionId
                 });
                 if (operationId !== operationRef.current) return;
                 onScoredRef.current?.(result);
@@ -218,6 +221,7 @@ export default function AlphabetAutomaticRecorder({
             lastVoiceAt = now;
             setError("");
             setStatus("recording");
+            setRemainingSeconds(MAX_UTTERANCE_MS / 1000);
         };
 
         const detect = now => {
@@ -238,6 +242,8 @@ export default function AlphabetAutomaticRecorder({
                         setError("還沒聽到聲音，看到字母後直接唸出來就可以了");
                     }
                 } else if (recorder.state === "recording") {
+                    const nextRemaining = Math.max(0, Math.ceil((MAX_UTTERANCE_MS - (now - speechStartedAt)) / 1000));
+                    setRemainingSeconds(current => current === nextRemaining ? current : nextRemaining);
                     if (level >= continueThreshold) lastVoiceAt = now;
                     if ((now - lastVoiceAt >= TRAILING_SILENCE_MS && now - speechStartedAt >= 300)
                         || now - speechStartedAt >= MAX_UTTERANCE_MS) {
@@ -257,7 +263,7 @@ export default function AlphabetAutomaticRecorder({
             }
             if (recorderRef.current === recorder) recorderRef.current = null;
         };
-    }, [attemptVersion, firebaseUser, foundationRoundId, paused, question?.id, sessionVersion]);
+    }, [attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, paused, question?.id, sessionVersion]);
 
     const copy = status === "preparing"
         ? ["正在開啟麥克風…", "只要允許一次，這一輪會自動收音。"]
@@ -274,6 +280,7 @@ export default function AlphabetAutomaticRecorder({
             {status === "submitting" || status === "preparing" ? <FiLoader /> : status === "blocked" ? <FiMicOff /> : <FiMic />}
         </span>
         <div><strong>{copy[0]}</strong><span>{copy[1]}</span></div>
+        {status === "recording" && <strong className="speaking-alphabet-auto__countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}>還能錄 {remainingSeconds} 秒</strong>}
         <small>每題只會把偵測到的短音訊送至發音評分服務；完成、失敗或離開時會關閉麥克風。</small>
         {error && <p role="alert">{error}</p>}
     </section>;

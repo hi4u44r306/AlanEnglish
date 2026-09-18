@@ -3,6 +3,7 @@ import { FiChevronLeft, FiHeadphones, FiPause, FiPlay, FiRefreshCw, FiVolume2 } 
 import { createFoundationRound } from "../../utils/speakingChallengeRound";
 import AlphabetAutomaticRecorder from "./AlphabetAutomaticRecorder";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
+import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 
 const interactionCopy = {
     alphabet_round: {
@@ -32,6 +33,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const [retryFeedback, setRetryFeedback] = useState(null);
     const [failureFeedback, setFailureFeedback] = useState(null);
     const [roundId, setRoundId] = useState("");
+    const [challengeSessionId, setChallengeSessionId] = useState("");
     const [startingRound, setStartingRound] = useState(false);
     const [statusError, setStatusError] = useState("");
     const [exitDialogOpen, setExitDialogOpen] = useState(false);
@@ -98,6 +100,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         setRetryFeedback(null);
         setFailureFeedback(null);
         setRoundId("");
+        setChallengeSessionId("");
         setStartingRound(false);
         setStatusError("");
         startPendingRef.current = false;
@@ -279,6 +282,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             if (requestId !== startRequestRef.current) return;
             setRound(nextRound);
             setRoundId(nextRoundId);
+            setChallengeSessionId(createSpeakingChallengeSessionId());
             setActiveIndex(0);
             setPhase("challenge");
         } catch (cause) {
@@ -404,6 +408,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 firebaseUser={firebaseUser}
                 question={activeQuestion}
                 foundationRoundId={roundId}
+                challengeSessionId={challengeSessionId}
                 paused={exitDialogOpen || Boolean(retryFeedback)}
                 onStatusChange={setAutomaticRecorderStatus}
                 onScored={handleCorrect}
@@ -414,6 +419,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 question={activeQuestion}
                 interactionType={interactionType}
                 foundationRoundId={roundId}
+                challengeSessionId={challengeSessionId}
                 hideHelp
                 promptTitle="輪到你逐字母拼讀"
                 promptDetail="按下麥克風，把每個字母依序唸清楚。"

@@ -160,14 +160,27 @@ for (const [action, expectedWords] of Object.entries(EXPECTED_WORDS_BY_ACTION)) 
 const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8");
 const challengeSource = readFileSync(new URL("../supabase/functions/speaking-challenge/index.ts", import.meta.url), "utf8");
 const requestLedgerSource = readFileSync(new URL("../supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql", import.meta.url), "utf8");
+const challengeSessionSource = readFileSync(new URL("../supabase/migrations/20260918054257_speaking_challenge_daily_sessions.sql", import.meta.url), "utf8");
 assert.match(coachSource, /matchesFoundationAnswer/);
 assert.match(coachSource, /evaluateLetterSpellingAssessment/);
 assert.match(coachSource, /assessment_status/);
 assert.match(coachSource, /usesUnscriptedFoundationAssessment/);
 assert.match(coachSource, /reference_text: question\.interactionType \? null/);
 assert.match(coachSource, /reserveProviderRequest/);
+assert.match(coachSource, /const MAX_AUDIO_SECONDS = 12/);
+assert.match(coachSource, /challenge_session_id/);
+assert.match(coachSource, /reserveChallengeSession/);
+assert.ok(
+    coachSource.indexOf("wavInfo.durationSeconds < MIN_AUDIO_SECONDS")
+        < coachSource.indexOf("const challengeUsage = await reserveChallengeSession"),
+    "daily challenge count must be reserved only after a valid WAV has passed duration checks"
+);
 assert.match(requestLedgerSource, /v_recent_limit integer := case when v_is_foundation then 60 else 12 end/);
 assert.match(requestLedgerSource, /v_daily_count >= 160/);
+assert.match(challengeSessionSource, /v_daily_limit constant integer := 5/);
+assert.match(challengeSessionSource, /now\(\) at time zone 'Asia\/Taipei'/);
+assert.match(challengeSessionSource, /unique \(student_id, client_session_id\)/);
+assert.match(challengeSessionSource, /revoke all on table public\.speaking_challenge_sessions from public, anon, authenticated/);
 assert.match(challengeSource, /correct_assessment_required/);
 assert.match(challengeSource, /\.select\("answer_match,created_at"\)/);
 assert.match(challengeSource, /attempt\.answer_match !== true/);

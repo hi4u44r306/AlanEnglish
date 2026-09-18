@@ -7,6 +7,7 @@ import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
+import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import "./css/TextbookSpeakingChallenge.scss";
 
 const CATALOG_SECTION_COPY = {
@@ -125,22 +126,27 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     </button>;
 };
 
-const ChallengeRules = () => {
+const ChallengeRules = ({ policy }) => {
     const [expanded, setExpanded] = useState(false);
+    const dailyRemaining = Number(policy?.daily_remaining);
+    const hasUsage = Number.isFinite(dailyRemaining);
     return <section className={`speaking-challenge-rules ${expanded ? "is-expanded" : ""}`} aria-labelledby="speaking-challenge-rules-title">
         <button type="button" className="speaking-challenge-rules__toggle" aria-expanded={expanded} aria-controls="speaking-challenge-rules-content" onClick={() => setExpanded(current => !current)}>
             <span className="speaking-challenge-rules__icon" aria-hidden="true">?</span>
             <span className="speaking-challenge-rules__heading">
                 <small>HOW TO PLAY</small>
                 <strong id="speaking-challenge-rules-title">遊戲規則</strong>
+                <span className="speaking-challenge-rules__quota">每天最多 5 次{hasUsage ? ` · 今天剩 ${dailyRemaining} 次` : ""}</span>
             </span>
             <span className="speaking-challenge-rules__action">{expanded ? "收起規則" : "查看規則"}<FiChevronDown aria-hidden="true" /></span>
         </button>
         {expanded && <div id="speaking-challenge-rules-content" className="speaking-challenge-rules__content">
             <ol>
-                <li><b>選一關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
-                <li><b>看題目</b><span>看清楚畫面上的字、圖片或問題，想好要說的英文。</span></li>
-                <li><b>開口說</b><span>允許麥克風後清楚說；沒成功沒關係，可以再試一次。</span></li>
+                <li><b>每天 5 次</b><span>每天最多開始 5 輪正式挑戰，於台北時間午夜重置。</span></li>
+                <li><b>送出才計次</b><span>只進入關卡、還沒正式送出第一段錄音就離開，不會扣次數。</span></li>
+                <li><b>重錄不多扣</b><span>同一輪裡重新錄音、重試題目或繼續下一題，都只算同一次。</span></li>
+                <li><b>每次 12 秒</b><span>每段錄音最長 12 秒，錄音時會顯示還剩幾秒。</span></li>
+                <li><b>依序闖關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
             </ol>
             <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
         </div>}
@@ -153,12 +159,14 @@ export default function TextbookSpeakingChallenge() {
     const navigate = useNavigate();
     const [catalog, setCatalog] = useState([]);
     const [catalogRewardPolicy, setCatalogRewardPolicy] = useState(null);
+    const [challengePolicy, setChallengePolicy] = useState(null);
     const [catalogLoading, setCatalogLoading] = useState(!questionSetId);
     const [challenge, setChallenge] = useState(null);
     const [error, setError] = useState("");
     const [audioWorking, setAudioWorking] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [completionNotice, setCompletionNotice] = useState(null);
+    const [challengeSessionId, setChallengeSessionId] = useState("");
     const audioRef = useRef(null);
     const questionHeadingRef = useRef(null);
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
@@ -239,12 +247,16 @@ export default function TextbookSpeakingChallenge() {
         if (questionSetId) {
             setActiveQuestionIndex(0);
             setChallenge(null);
+            setChallengeSessionId(createSpeakingChallengeSessionId());
         }
         const load = async () => {
             try {
                 if (questionSetId) {
-                    const nextChallenge = (await getSpeakingChallengeSet(firebaseUser, Number(questionSetId))).challenge;
-                    if (!cancelled) setChallenge(nextChallenge);
+                    const challengeResponse = await getSpeakingChallengeSet(firebaseUser, Number(questionSetId));
+                    if (!cancelled) {
+                        setChallenge(challengeResponse.challenge);
+                        setChallengePolicy(challengeResponse.challenge_policy || null);
+                    }
                 }
                 else {
                     setCatalogLoading(true);
@@ -253,6 +265,7 @@ export default function TextbookSpeakingChallenge() {
                     if (!cancelled) {
                         setCatalog(nextCatalog);
                         setCatalogRewardPolicy(catalogResponse.reward_policy || null);
+                        setChallengePolicy(catalogResponse.challenge_policy || null);
                     }
                 }
             } catch (loadError) {
@@ -322,7 +335,7 @@ export default function TextbookSpeakingChallenge() {
                     <i>★</i><i>✦</i><i>●</i>
                 </span>
             </header>}
-            {!staffPreview && !selectedBook && <ChallengeRules />}
+            {!staffPreview && !selectedBook && <ChallengeRules policy={challengePolicy} />}
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
@@ -387,7 +400,7 @@ export default function TextbookSpeakingChallenge() {
                     <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activeQuestion.question_text}</h2><p>聽懂問題後，按下麥克風直接回答。</p></div>
                 </header>
                 <SpeakingVisualAid aid={activeQuestion.visual_aid} />
-                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
+                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
                 <small className="speaking-no-reward">完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。</small>
             </article>
         </section>

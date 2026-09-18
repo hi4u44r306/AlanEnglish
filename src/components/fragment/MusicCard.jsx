@@ -14,7 +14,8 @@ import {
 function MusicCard({
     music,
     playbackQueue = [],
-    progress = {}
+    progress = {},
+    index = 0
 }) {
     const dispatch = useDispatch();
 
@@ -117,7 +118,8 @@ function MusicCard({
                     : "",
                 completed
                     ? "music-card--completed"
-                    : ""
+                    : "",
+                `music-card--theme-${index % 5}`
             ]
                 .filter(Boolean)
                 .join(" ")}
@@ -132,6 +134,7 @@ function MusicCard({
                         : "播放"
                 }
             >
+                <span className="music-card__play-ring" aria-hidden="true" />
                 {isPlaying ? (
                     <ScaleLoader
                         height={18}
@@ -145,6 +148,7 @@ function MusicCard({
             </button>
 
             <div className="music-card__info">
+                <span className="music-card__eyebrow">LISTENING QUEST {String(index + 1).padStart(2, "0")}</span>
                 <div className="music-card__page">
                     {page || "Audio"}
                 </div>
@@ -157,9 +161,7 @@ function MusicCard({
             <div className="music-card__status">
                 <div className="music-card__plays">
                     <FiHeadphones />
-                    <span>
-                        {playCount} 次
-                    </span>
+                    <span><small>已聽</small><strong>{playCount} 次</strong></span>
                 </div>
 
                 {completed && (
@@ -168,6 +170,7 @@ function MusicCard({
                         title="已完成"
                     >
                         <FiCheck />
+                        <span>完成</span>
                     </div>
                 )}
             </div>

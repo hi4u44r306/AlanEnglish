@@ -162,22 +162,24 @@ function Playlist() {
             <div className="playlist-content">
                 <header className="playlist-header">
                     <div className="playlist-header__main">
-                        <div>
+                        <div className="playlist-header__copy">
                             {homeworkContext.active && (
                                 <Link className="playlist-homework-back" to="/student/assignments">
                                     <ArrowLeft aria-hidden="true" size={16} />
                                     返回今日作業
                                 </Link>
                             )}
+                            <span className="playlist-header__eyebrow"><Headphones aria-hidden="true" size={15} /> LISTENING ADVENTURE</span>
                             <h1>{book?.name || playlistId}</h1>
+                            <p>選一個音檔開始聽，讓耳朵收集更多英文能量！</p>
                         </div>
                         {role === "student" && (
                             <div className="playlist-header__stats">
-                                <span>{homeworkContext.active ? `本次完成 ${homeworkCompletedCount} / ${homeworkTracks.length || homeworkContext.trackIds.length}` : `完成 ${stats.completed} / ${stats.total}`}</span>
-                                <span className="playlist-header__dot">·</span>
-                                <span>累計播放 {stats.totalPlayCount} 次</span>
+                                <span><small>{homeworkContext.active ? "本次任務" : "完成音檔"}</small><strong>{homeworkContext.active ? `${homeworkCompletedCount} / ${homeworkTracks.length || homeworkContext.trackIds.length}` : `${stats.completed} / ${stats.total}`}</strong></span>
+                                <span><small>累計播放</small><strong>{stats.totalPlayCount} 次</strong></span>
                             </div>
                         )}
+                        <div className="playlist-header__art" aria-hidden="true"><span>ABC</span><i>★</i><i>♪</i><i>✦</i></div>
                     </div>
                 </header>
 
@@ -212,12 +214,13 @@ function Playlist() {
 
                 <section className="playlist-list-section">
                     <div className="playlist-list">
-                        {visibleTracks.length > 0 ? visibleTracks.map(track => (
+                        {visibleTracks.length > 0 ? visibleTracks.map((track, index) => (
                             <div className={homeworkTrackSet.has(String(track.id)) ? "playlist-homework-track" : ""} key={track.id}>
                                 <MusicCard
                                     music={track}
                                     playbackQueue={visibleTracks}
                                     progress={progressMap[String(track.id)] || {}}
+                                    index={index}
                                 />
                             </div>
                         )) : <div className="playlist-empty">目前沒有音檔</div>}

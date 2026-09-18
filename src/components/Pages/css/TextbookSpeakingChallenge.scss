@@ -127,11 +127,14 @@
 .speaking-challenge-rules__heading { display: grid; flex: 1; gap: 1px; min-width: 0; }
 .speaking-challenge-rules__heading small { color: #8a6300; font-size: 10px; font-weight: 900; letter-spacing: .1em; }
 .speaking-challenge-rules__heading strong { color: #1b3155; font-size: 22px; }
+.speaking-challenge-rules__heading .speaking-challenge-rules__quota { color: #9b5200; font-size: 12px; font-weight: 900; letter-spacing: 0; }
 .speaking-challenge-rules__action { display: inline-flex; align-items: center; gap: 7px; color: #2459a2; font-size: 14px; font-weight: 900; white-space: nowrap; }
 .speaking-challenge-rules__action svg { font-size: 20px; transition: transform .2s ease; }
 .speaking-challenge-rules.is-expanded .speaking-challenge-rules__action svg { transform: rotate(180deg); }
 .speaking-challenge-rules__content { padding: 0 20px 18px; animation: speaking-rules-reveal .18s ease-out; }
 .speaking-challenge-rules ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0 12px; padding: 0; list-style: none; counter-reset: speaking-rule; }
+.speaking-challenge-rules li:nth-child(4),
+.speaking-challenge-rules li:nth-child(5) { grid-column: span 1; }
 .speaking-challenge-rules li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 2px 9px; align-content: center; min-height: 74px; padding: 11px 12px; border: 1px solid #f1dfaa; border-radius: 16px; background: rgba(255, 255, 255, .82); counter-increment: speaking-rule; }
 .speaking-challenge-rules li::before { grid-row: 1 / span 2; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 11px; background: #2b66bd; color: #fff; content: counter(speaking-rule); font-weight: 950; }
 .speaking-challenge-rules li b { color: #17366f; font-size: 15px; }
@@ -1083,6 +1086,15 @@
 .speaking-alphabet-auto div { display: grid; gap: 4px; }
 .speaking-alphabet-auto strong { font-size: 20px; }
 .speaking-alphabet-auto div span { color: #5f718b; line-height: 1.5; }
+.speaking-alphabet-auto .speaking-alphabet-auto__countdown {
+  justify-self: start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fff;
+  color: #b84b32;
+  box-shadow: 0 5px 14px rgba(184, 75, 50, .12);
+  font-size: 16px;
+}
 .speaking-alphabet-auto small { grid-column: 1 / -1; color: #69788d; line-height: 1.55; }
 .speaking-alphabet-auto p { grid-column: 1 / -1; margin: 0; color: #9b3c27; font-weight: 800; }
 .speaking-exit-dialog-backdrop { position: fixed; inset: 0; z-index: 1400; display: grid; place-items: center; padding: 18px; background: rgba(10, 28, 58, .62); }
