@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import {
     archiveManagedAccount,
     getManagedAccounts,
+    getManagedNicknameHistory,
     restoreManagedAccount
 } from "../../services/membershipService";
 import {
@@ -24,6 +25,7 @@ jest.mock("../../auth/AuthContext", () => ({
 jest.mock("../../services/membershipService", () => ({
     archiveManagedAccount: jest.fn(),
     getManagedAccounts: jest.fn(),
+    getManagedNicknameHistory: jest.fn(),
     restoreManagedAccount: jest.fn(),
     updateManagedAccount: jest.fn()
 }));
@@ -131,6 +133,16 @@ describe("AccountManagement", () => {
         });
         getManagedAccounts.mockResolvedValue({
             accounts: [academyStudent]
+        });
+        getManagedNicknameHistory.mockResolvedValue({
+            student: { id: 67, name: "E3 測試學生", class: "E3", nickname: "Brave Owl" },
+            nickname_history: [{
+                id: 4,
+                previous_nickname: "Sunny Fox",
+                new_nickname: "Brave Owl",
+                change_source: "student_settings",
+                changed_at: "2026-09-18T03:00:00Z"
+            }]
         });
         listAcademyInvitations.mockResolvedValue([]);
         deleteAcademyInvitation.mockResolvedValue({ success: true });
@@ -253,6 +265,17 @@ describe("AccountManagement", () => {
         });
         expect(await screen.findByText("新的學生登入卡")).toBeInTheDocument();
         expect(screen.getByText(/AE-AAAA-BBBB-CCCC/)).toBeInTheDocument();
+    });
+
+    test("lets an admin open one student's nickname change history", async () => {
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("button", { name: "暱稱紀錄" }));
+        await waitFor(() => expect(getManagedNicknameHistory).toHaveBeenCalledWith(firebaseUser, 67));
+        expect(await screen.findByRole("dialog", { name: "暱稱更改紀錄" })).toBeInTheDocument();
+        expect(screen.getByText("目前暱稱：Brave Owl")).toBeInTheDocument();
+        expect(screen.getByText("Sunny Fox")).toBeInTheDocument();
+        expect(screen.getByText("Brave Owl")).toBeInTheDocument();
     });
 
     test("filters by role, class, plan, activation, account and access status", async () => {

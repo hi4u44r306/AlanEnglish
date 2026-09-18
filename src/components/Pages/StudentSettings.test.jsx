@@ -10,6 +10,7 @@ import {
     updateStudentProfile
 } from "../../services/membershipService";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
+import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({
@@ -26,6 +27,10 @@ jest.mock("../../services/membershipService", () => ({
 }));
 jest.mock("../../services/commerceService", () => ({
     loadStudentCommerceProfile: jest.fn()
+}));
+jest.mock("../../services/studentSocialService", () => ({
+    getNicknameSettings: jest.fn(),
+    updateNickname: jest.fn()
 }));
 
 describe("StudentSettings", () => {
@@ -68,6 +73,16 @@ describe("StudentSettings", () => {
                     email_verified_at: "2026-09-01T00:00:00Z"
                 }
             }
+        });
+        getNicknameSettings.mockResolvedValue({
+            profile: { nickname: "Sunny Fox" },
+            nickname_history: [{
+                id: 1,
+                previous_nickname: null,
+                new_nickname: "Sunny Fox",
+                change_source: "student_settings",
+                changed_at: "2026-09-18T02:00:00Z"
+            }]
         });
     });
 
@@ -127,6 +142,42 @@ describe("StudentSettings", () => {
             { date_of_birth: "2015-06-01" }
         ));
         expect(refreshStudentProfile).toHaveBeenCalled();
+    });
+
+    it("allows the student to change a nickname and shows their own change history", async () => {
+        updateNickname.mockResolvedValue({
+            profile: { nickname: "Brave Owl" },
+            nickname_history: [
+                {
+                    id: 2,
+                    previous_nickname: "Sunny Fox",
+                    new_nickname: "Brave Owl",
+                    change_source: "student_settings",
+                    changed_at: "2026-09-18T03:00:00Z"
+                },
+                {
+                    id: 1,
+                    previous_nickname: null,
+                    new_nickname: "Sunny Fox",
+                    change_source: "student_settings",
+                    changed_at: "2026-09-18T02:00:00Z"
+                }
+            ]
+        });
+        render(<StudentSettings />);
+
+        const nicknameInput = await screen.findByLabelText("暱稱");
+        expect(nicknameInput).toHaveValue("Sunny Fox");
+        expect(screen.getByText("首次設定")).toBeInTheDocument();
+        fireEvent.change(nicknameInput, { target: { value: "Brave Owl" } });
+        fireEvent.click(screen.getByRole("button", { name: "儲存暱稱" }));
+
+        await waitFor(() => expect(updateNickname).toHaveBeenCalledWith(
+            { uid: "student-1" },
+            "Brave Owl"
+        ));
+        expect(await screen.findByText("Brave Owl")).toBeInTheDocument();
+        expect(setStudentProfile).toHaveBeenCalled();
     });
 
     it("keeps the verified guardian email until the replacement code succeeds", async () => {

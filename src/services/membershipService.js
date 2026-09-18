@@ -27,6 +27,11 @@ export const completePublicSignup = (firebaseUser, payload) => callMembership(fi
 export const getPublicPlans = firebaseUser => callMembership(firebaseUser, "plans");
 export const redeemActivationCode = (firebaseUser, code) => callMembership(firebaseUser, "redeem_code", { code });
 export const getManagedAccounts = firebaseUser => callMembership(firebaseUser, "list_accounts");
+export const getManagedNicknameHistory = (firebaseUser, studentId) => callMembership(
+    firebaseUser,
+    "nickname_history",
+    { student_id: studentId }
+);
 export const updateManagedAccount = (firebaseUser, account) => callMembership(firebaseUser, "update_account", account);
 export const archiveManagedAccount = (firebaseUser, accountId, reason = "") => callMembership(
     firebaseUser,

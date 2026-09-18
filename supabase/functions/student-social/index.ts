@@ -104,6 +104,46 @@ const ensureFriendCode = async (admin: any) => {
     }
     throw new Error("FRIEND_CODE_UNAVAILABLE");
 };
+const nicknameHistory = async (admin: any, studentId: number) => {
+    const { data, error } = await admin.from("student_nickname_history")
+        .select("id,previous_nickname,new_nickname,change_source,changed_at")
+        .eq("student_id", studentId)
+        .order("changed_at", { ascending: false })
+        .order("id", { ascending: false })
+        .limit(50);
+    if (error) throw error;
+    return data || [];
+};
+const saveSocialProfile = async (
+    admin: any,
+    callerId: number,
+    nickname: string,
+    statsVisibility: string,
+    presenceVisibility: string,
+    changeSource: "student_settings" | "friends_profile"
+) => {
+    const [{ data: existing, error: existingError }, { data: nicknameOwner, error: nicknameOwnerError }] = await Promise.all([
+        admin.from("student_social_profiles").select("friend_code").eq("student_id", callerId).maybeSingle(),
+        admin.from("student_social_profiles").select("student_id").eq("nickname_normalized", nickname.toLowerCase()).maybeSingle()
+    ]);
+    if (existingError || nicknameOwnerError) throw existingError || nicknameOwnerError;
+    if (nicknameOwner && Number(nicknameOwner.student_id) !== Number(callerId)) {
+        return { conflict: true, profile: null };
+    }
+    const friendCode = existing?.friend_code || await ensureFriendCode(admin);
+    const { data, error } = await admin.rpc("set_student_social_profile_v1", {
+        p_student_id: callerId,
+        p_nickname: nickname,
+        p_friend_code: friendCode,
+        p_stats_visibility: statsVisibility,
+        p_presence_visibility: presenceVisibility,
+        p_changed_by: callerId,
+        p_change_source: changeSource
+    }).single();
+    if (error?.code === "23505") return { conflict: true, profile: null };
+    if (error) throw error;
+    return { conflict: false, profile: data };
+};
 
 // A chosen system avatar can be shown while searching. Uploaded photos remain
 // private until both students have accepted the friendship; their URL is short-lived.
@@ -159,15 +199,53 @@ Deno.serve(async (req: Request) => {
         const admin = adminClient();
         const caller = await verifyFirebaseRequest(req, admin);
         if (caller.role !== "student") return json(req, 403, { success: false, error: "好友功能只提供學生帳號使用" });
-        const { data: access, error: accessError } = await admin.rpc("get_student_effective_access", { p_student_id: caller.id, p_as_of: new Date().toISOString() });
-        if (accessError) throw accessError;
-        if (access?.is_active !== true) return json(req, 403, { success: false, error: "學習方案目前未啟用，暫時無法使用好友功能" });
-
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body.action, 40) || "overview";
+        if (!["nickname_settings", "update_nickname"].includes(action)) {
+            const { data: access, error: accessError } = await admin.rpc("get_student_effective_access", { p_student_id: caller.id, p_as_of: new Date().toISOString() });
+            if (accessError) throw accessError;
+            if (access?.is_active !== true) return json(req, 403, { success: false, error: "學習方案目前未啟用，暫時無法使用好友功能" });
+        }
         await admin.from("student_social_profiles").update({ last_active_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("student_id", caller.id);
 
         if (action === "heartbeat") return json(req, 200, { success: true });
+
+        if (action === "nickname_settings") {
+            const [{ data: profile, error: profileError }, history] = await Promise.all([
+                admin.from("student_social_profiles")
+                    .select("student_id,nickname,friend_code,stats_visibility,presence_visibility")
+                    .eq("student_id", caller.id)
+                    .maybeSingle(),
+                nicknameHistory(admin, caller.id)
+            ]);
+            if (profileError) throw profileError;
+            return json(req, 200, { success: true, profile: profile || null, nickname_history: history });
+        }
+
+        if (action === "update_nickname") {
+            const nickname = validNickname(body.nickname);
+            if (!nickname) return json(req, 400, { success: false, error: "暱稱格式不正確或包含不適合公開顯示的內容" });
+            const { data: existing, error: existingError } = await admin.from("student_social_profiles")
+                .select("stats_visibility,presence_visibility")
+                .eq("student_id", caller.id)
+                .maybeSingle();
+            if (existingError) throw existingError;
+            const saved = await saveSocialProfile(
+                admin,
+                caller.id,
+                nickname,
+                existing?.stats_visibility || "friends",
+                existing?.presence_visibility || "friends",
+                "student_settings"
+            );
+            if (saved.conflict) return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
+            await writeAudit(admin, caller.id, "nickname_update", caller.id, { source: "student_settings" });
+            return json(req, 200, {
+                success: true,
+                profile: saved.profile,
+                nickname_history: await nicknameHistory(admin, caller.id)
+            });
+        }
 
         if (action === "update_profile") {
             const nickname = validNickname(body.nickname);
@@ -176,28 +254,10 @@ Deno.serve(async (req: Request) => {
             if (!nickname || !["self", "friends"].includes(statsVisibility) || !["hidden", "friends"].includes(presenceVisibility)) {
                 return json(req, 400, { success: false, error: "暱稱格式不正確或包含不適合公開顯示的內容" });
             }
-            const [{ data: existing, error: existingError }, { data: nicknameOwner, error: nicknameOwnerError }] = await Promise.all([
-                admin.from("student_social_profiles").select("friend_code").eq("student_id", caller.id).maybeSingle(),
-                admin.from("student_social_profiles").select("student_id").eq("nickname_normalized", nickname.toLowerCase()).maybeSingle()
-            ]);
-            if (existingError || nicknameOwnerError) throw existingError || nicknameOwnerError;
-            if (nicknameOwner && Number(nicknameOwner.student_id) !== Number(caller.id)) {
-                return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
-            }
-            const friendCode = existing?.friend_code || await ensureFriendCode(admin);
-            const { data, error } = await admin.from("student_social_profiles").upsert({
-                student_id: caller.id,
-                nickname,
-                friend_code: friendCode,
-                stats_visibility: statsVisibility,
-                presence_visibility: presenceVisibility,
-                last_active_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            }, { onConflict: "student_id" }).select("student_id,nickname,friend_code,stats_visibility,presence_visibility,last_active_at").single();
-            if (error?.code === "23505") return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
-            if (error) throw error;
+            const saved = await saveSocialProfile(admin, caller.id, nickname, statsVisibility, presenceVisibility, "friends_profile");
+            if (saved.conflict) return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
             await writeAudit(admin, caller.id, "profile_update");
-            return json(req, 200, { success: true, profile: data });
+            return json(req, 200, { success: true, profile: saved.profile });
         }
 
         if (action === "overview") {
