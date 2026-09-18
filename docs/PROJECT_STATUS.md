@@ -2,10 +2,11 @@
 
 最後更新：2026-09-18
 
-本次 CSV 登入卡 Word／PDF 匯出修正（2026-09-18，尚未部署）：
+本次 CSV 登入卡 Word／PDF 匯出修正（2026-09-18，已正式部署）：
 
 - 正式站 Word 下載在修正 `WidthType.DXA` 後仍出現 `Cannot read properties of undefined (reading 'CENTER')`；原因是 `docx` 的其他瀏覽器列舉物件同樣可能缺失。本批將 Word 產生器所需的對齊、框線、列高、分節、表格配置與垂直對齊改用 DOCX 規格固定值，並用測試同時模擬全部列舉缺失。
 - CSV 建立成功區新增「下載 PDF 登入卡」，在瀏覽器本機以 A4 每頁 8 格產生 PDF；每格維持左側學生姓名、帳號、臨時密碼與兩組復原碼，右側 QR Code。既有 Word 下載與系統列印入口保留，啟用連結不送往第三方。
+- PR #201 已合併至 `main` commit `6cba0bb`；targeted 3 suites／6 tests、完整前端 71 suites／277 tests、Production build、`git diff --check` 及兩個 Netlify 預覽皆通過。9 位虛構學生的 DOCX／PDF 各 2 頁已逐頁檢查，無文字或 QR Code 裁切；Netlify production deploy `6aad093c286132b7c43e3f50` 已 live，首頁、CSV 匯入路由與唯一部署網址皆回應 HTTP 200，正式 bundle 已確認包含 Word／PDF 按鈕、PDF MIME 與 Word 列舉相容性修正。為保留使用者當前一次性明文資料，本次未重新整理其既有頁面，也未建立或重發正式帳號做下載點擊驗收。
 
 本次 CSV Word 登入卡下載 hotfix（2026-09-18，已正式部署）：
 
