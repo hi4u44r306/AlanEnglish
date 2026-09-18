@@ -1,20 +1,15 @@
 import QRCode from "qrcode";
+import { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
+export { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
 const {
-    AlignmentType,
-    BorderStyle,
     Document,
-    HeightRule,
     ImageRun,
     Packer,
     Paragraph,
-    SectionType,
     Table,
-    TableBorders,
     TableCell,
-    TableLayoutType,
     TableRow,
-    TextRun,
-    VerticalAlign
+    TextRun
 } = require("docx");
 
 const A4_WIDTH_TWIPS = 11906;
@@ -29,9 +24,24 @@ const CARD_QR_WIDTH_TWIPS = CARD_CONTENT_WIDTH_TWIPS - CARD_INFO_WIDTH_TWIPS;
 const CARDS_PER_PAGE = 8;
 const FONT = "Microsoft JhengHei";
 const DXA_WIDTH = "dxa";
+const ALIGN_CENTER = "center";
+const ALIGN_LEFT = "left";
+const BORDER_DASHED = "dashed";
+const HEIGHT_EXACT = "exact";
+const SECTION_NEXT_PAGE = "nextPage";
+const TABLE_LAYOUT_FIXED = "fixed";
+const VERTICAL_CENTER = "center";
+const NO_TABLE_BORDERS = {
+    top: { style: "none", size: 0, color: "auto" },
+    bottom: { style: "none", size: 0, color: "auto" },
+    left: { style: "none", size: 0, color: "auto" },
+    right: { style: "none", size: 0, color: "auto" },
+    insideHorizontal: { style: "none", size: 0, color: "auto" },
+    insideVertical: { style: "none", size: 0, color: "auto" }
+};
 
 const paragraph = (children, options = {}) => new Paragraph({
-    alignment: AlignmentType.CENTER,
+    alignment: ALIGN_CENTER,
     spacing: { before: 0, after: 20, line: 220 },
     ...options,
     children
@@ -52,22 +62,6 @@ const dataUrlToBytes = dataUrl => {
     return Uint8Array.from(binary, character => character.charCodeAt(0));
 };
 
-export const getSuccessfulStudentLoginCards = (results, rows) => (
-    (Array.isArray(results) ? results : [])
-        .filter(result => result?.status === "success" && result?.credentials?.activation_url)
-        .map(result => ({
-            sourceRow: result.source_row,
-            chineseName: (Array.isArray(rows) ? rows : [])
-                .find(row => row.source_row === result.source_row)?.chinese_name || "學生",
-            englishName: (Array.isArray(rows) ? rows : [])
-                .find(row => row.source_row === result.source_row)?.english_name || "",
-            username: result.credentials.username || "",
-            temporaryPassword: result.credentials.temporary_password || "",
-            activationUrl: result.credentials.activation_url,
-            recoveryCodes: result.credentials.recovery_codes || []
-        }))
-);
-
 const buildCardCell = (card, qrCodeDataUrl) => {
     const studentName = card.englishName
         ? `${card.chineseName} · ${card.englishName}`
@@ -78,63 +72,63 @@ const buildCardCell = (card, qrCodeDataUrl) => {
     return new TableCell({
         width: { size: CARD_WIDTH_TWIPS, type: DXA_WIDTH },
         margins: { top: 70, bottom: 70, left: 110, right: 110 },
-        verticalAlign: VerticalAlign.CENTER,
+        verticalAlign: VERTICAL_CENTER,
         borders: {
-            top: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
-            bottom: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
-            left: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
-            right: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" }
+            top: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
+            bottom: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
+            left: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
+            right: { style: BORDER_DASHED, size: 4, color: "A8B4C7" }
         },
         children: [new Table({
             width: { size: CARD_CONTENT_WIDTH_TWIPS, type: DXA_WIDTH },
             columnWidths: [CARD_INFO_WIDTH_TWIPS, CARD_QR_WIDTH_TWIPS],
-            layout: TableLayoutType.FIXED,
-            borders: TableBorders.NONE,
+            layout: TABLE_LAYOUT_FIXED,
+            borders: NO_TABLE_BORDERS,
             rows: [new TableRow({
                 cantSplit: true,
-                height: { value: 3500, rule: HeightRule.EXACT },
+                height: { value: 3500, rule: HEIGHT_EXACT },
                 children: [
                     new TableCell({
                         width: { size: CARD_INFO_WIDTH_TWIPS, type: DXA_WIDTH },
                         margins: { top: 40, bottom: 40, left: 50, right: 90 },
-                        verticalAlign: VerticalAlign.CENTER,
-                        borders: TableBorders.NONE,
+                        verticalAlign: VERTICAL_CENTER,
+                        borders: NO_TABLE_BORDERS,
                         children: [
                             paragraph([
                                 text("ALAN ENGLISH", { bold: true, size: 16, color: "2B66C3" }),
                                 text("  英文班登入卡", { bold: true, size: 15, color: "2B66C3" })
-                            ], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 80, line: 220 } }),
+                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 80, line: 220 } }),
                             paragraph([text(studentName, { bold: true, size: 26, color: "0F1F3A" })], {
-                                alignment: AlignmentType.LEFT,
+                                alignment: ALIGN_LEFT,
                                 spacing: { before: 0, after: 100, line: 280 }
                             }),
                             paragraph([
                                 text("帳號  ", { bold: true, size: 15, color: "64748B" }),
                                 text(card.username, { bold: true, size: 22 })
-                            ], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 55, line: 250 } }),
+                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 55, line: 250 } }),
                             paragraph([
                                 text("臨時密碼  ", { bold: true, size: 15, color: "64748B" }),
                                 text(card.temporaryPassword, { bold: true, size: 20 })
-                            ], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 80, line: 250 } }),
+                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 80, line: 250 } }),
                             paragraph([text("復原碼", { bold: true, size: 15, color: "64748B" })], {
-                                alignment: AlignmentType.LEFT,
+                                alignment: ALIGN_LEFT,
                                 spacing: { before: 0, after: 10, line: 210 }
                             }),
                             paragraph([text(`${recoveryOne}  ${recoveryTwo}`, { bold: true, size: 22, color: "9A3412" })], {
-                                alignment: AlignmentType.LEFT,
+                                alignment: ALIGN_LEFT,
                                 spacing: { before: 0, after: 60, line: 260 }
                             }),
                             paragraph([text("掃描右側 QR Code 設定密碼；復原碼每組只能用一次。", {
                                 size: 14,
                                 color: "64748B"
-                            })], { alignment: AlignmentType.LEFT, spacing: { before: 0, after: 0, line: 210 } })
+                            })], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 0, line: 210 } })
                         ]
                     }),
                     new TableCell({
                         width: { size: CARD_QR_WIDTH_TWIPS, type: DXA_WIDTH },
                         margins: { top: 20, bottom: 20, left: 20, right: 20 },
-                        verticalAlign: VerticalAlign.CENTER,
-                        borders: TableBorders.NONE,
+                        verticalAlign: VERTICAL_CENTER,
+                        borders: NO_TABLE_BORDERS,
                         children: [paragraph([
                             new ImageRun({
                                 type: "png",
@@ -152,10 +146,10 @@ const buildCardCell = (card, qrCodeDataUrl) => {
 const buildBlankCell = () => new TableCell({
     width: { size: CARD_WIDTH_TWIPS, type: DXA_WIDTH },
     borders: {
-        top: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
-        bottom: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
-        left: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
-        right: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" }
+        top: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
+        bottom: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
+        left: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
+        right: { style: BORDER_DASHED, size: 4, color: "A8B4C7" }
     },
     children: [new Paragraph("")]
 });
@@ -175,7 +169,7 @@ const buildPageTable = cards => {
     for (let index = 0; index < paddedCards.length; index += 2) {
         rows.push(new TableRow({
             cantSplit: true,
-            height: { value: CARD_HEIGHT_TWIPS, rule: HeightRule.EXACT },
+            height: { value: CARD_HEIGHT_TWIPS, rule: HEIGHT_EXACT },
             children: [
                 paddedCards[index]?.cell || buildBlankCell(),
                 paddedCards[index + 1]?.cell || buildBlankCell()
@@ -185,7 +179,7 @@ const buildPageTable = cards => {
     return new Table({
         width: { size: TABLE_WIDTH_TWIPS, type: DXA_WIDTH },
         columnWidths: [CARD_WIDTH_TWIPS, CARD_WIDTH_TWIPS],
-        layout: TableLayoutType.FIXED,
+        layout: TABLE_LAYOUT_FIXED,
         rows
     });
 };
@@ -215,7 +209,7 @@ export const buildAcademyStudentLoginCardsDocx = async (results, rows) => {
         },
         sections: pages.map((pageCards, index) => ({
             properties: {
-                type: index === 0 ? undefined : SectionType.NEXT_PAGE,
+                type: index === 0 ? undefined : SECTION_NEXT_PAGE,
                 page: {
                     size: { width: A4_WIDTH_TWIPS, height: A4_HEIGHT_TWIPS },
                     margin: {
