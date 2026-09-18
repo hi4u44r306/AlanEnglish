@@ -2,10 +2,11 @@
 
 最後更新：2026-09-18
 
-本次 CSV Word 登入卡下載 hotfix（2026-09-18，尚未部署）：
+本次 CSV Word 登入卡下載 hotfix（2026-09-18，已正式部署）：
 
 - 正式站點擊「下載 Word 登入卡」時出現 `Cannot read properties of undefined (reading 'DXA')`；原因是瀏覽器 bundle 執行時未取得 `docx` 的 `WidthType` 列舉，但 Word 產生器直接讀取 `WidthType.DXA`。
 - Word 寬度型別改用 DOCX 規格的固定值 `dxa`，不再依賴瀏覽器可能缺少的列舉匯出；版面、學生資訊、QR Code 與下載檔名不變。新增模擬 `WidthType` 缺失的回歸測試。
+- PR #199 已合併至 `main` commit `086119a`；targeted 2/2、Production build、`git diff --check` 及兩個 Netlify 預覽皆通過。Netlify production deploy `6aacfc40df360c0bc5678e01` 已 live。正式頁面重新載入後，原批次的一次性明文資料依既有安全設計清除，因此未建立或重發正式帳號來補做下載點擊驗收。
 
 本次 CSV Word 登入卡與簡化一次性登入資訊（2026-09-18，已正式部署）：
 
