@@ -1,6 +1,5 @@
 import React from "react";
 import "../assets/scss/MusicCard.scss";
-import ScaleLoader from "react-spinners/ScaleLoader";
 import { AiFillPlayCircle } from "react-icons/ai";
 import { FiHeadphones, FiCheck } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
@@ -136,12 +135,12 @@ function MusicCard({
             >
                 <span className="music-card__play-ring" aria-hidden="true" />
                 {isPlaying ? (
-                    <ScaleLoader
-                        height={18}
-                        width={3}
-                        radius={2}
-                        margin={2}
-                    />
+                    <span className="music-card__equalizer" aria-hidden="true">
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                    </span>
                 ) : (
                     <AiFillPlayCircle />
                 )}
