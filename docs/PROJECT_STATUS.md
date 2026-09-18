@@ -2,13 +2,13 @@
 
 最後更新：2026-09-18
 
-本次教材聽力遊戲化介面與口說大挑戰每日五輪限制（2026-09-18，本機完成，待正式部署）：
+本次教材聽力遊戲化介面與口說大挑戰每日五輪限制（2026-09-18，已正式部署）：
 
 - 教材聽力頁改為「聽力冒險」彩色頁首，顯示完成音檔數與累計播放次數；MusicCard 使用輪替配色、任務編號、播放狀態與既有有效聆聽次數。這次只調整介面，不新增聽力次數解鎖口說關卡，也不更動 80% 有效聆聽與作業計次規則。
 - 口說大挑戰改為每位學生每日（Asia/Taipei）最多 5 輪。進入關卡、查看題目或第一次正式送出錄音前離開不計次；同一輪的重錄、答錯重試與後續題目共用同一個 session，只在第一次有效錄音送出時由後端原子保留一次額度。
 - 所有口說大挑戰錄音前後端都限制最長 12 秒，錄音中顯示剩餘秒數；教材／關卡列表的規則卡會持續顯示每日上限與今日剩餘次數，展開後說明送出才計次、同輪重錄不重複扣次及錄音上限。
-- 新增 additive migration `20260918054257_speaking_challenge_daily_sessions.sql`：server-only 紀錄表啟用 RLS，撤銷 `public`／`anon`／`authenticated` 權限；`reserve_speaking_challenge_session_v1` 使用 student/date advisory lock、UUID 冪等鍵與 service-role-only 執行權，避免併發超額或同輪重複扣次。若需回退，可先回復前端與 Edge Function，新增紀錄表保留不用，不需刪除正式資料。
-- 本機驗證：PGlite migration 3/3、口說安全契約與全部 Edge Function 語法、React targeted 6 suites／61 tests、完整前端 69 suites／272 tests、Production build 與 `git diff --check` 均通過；1280px 與 390px 靜態渲染未見橫向溢位或卡片重疊。正式 migration、兩支 Edge Function、Netlify 與登入後實機驗收尚待完成。
+- 新增 additive migration `20260918063338_speaking_challenge_daily_sessions.sql`：server-only 紀錄表啟用 RLS，撤銷 `public`／`anon`／`authenticated` 權限；`reserve_speaking_challenge_session_v1` 使用 student/date advisory lock、UUID 冪等鍵與 service-role-only 執行權，避免併發超額或同輪重複扣次。正式 migration 已套用並確認新表 0 筆、RLS 開啟、學生端無表或 RPC 權限；若需回退，可先回復前端與 Edge Function，新增紀錄表保留不用，不需刪除正式資料。
+- 驗證：PGlite migration 3/3、口說安全契約與全部 Edge Function 語法、React targeted 6 suites／61 tests、完整前端 69 suites／272 tests、Production build 與 `git diff --check` 均通過；1280px 與 390px 靜態渲染未見橫向溢位或卡片重疊。PR #195 已合併至 `main` commit `d5394ca`；正式 `pronunciation-coach` v18、`speaking-challenge` v32 均為 ACTIVE，OPTIONS 200、未登入 POST 401。Netlify production deploy `6aacdac69745060008183354` 已 ready，首頁、口說列表與教材路由均 HTTP 200，正式 bundle／source map 已確認包含聽力冒險介面、每日五輪、同輪規則、12 秒限制及錄音倒數。未使用學生帳密，登入後實際錄音與今日剩餘次數仍待學生帳號快速驗收。
 
 本次學生暱稱編輯入口可見性修正（2026-09-18，已正式部署）：
 
