@@ -14,6 +14,7 @@ import {
     FiHeadphones,
     FiMail,
     FiMessageCircle,
+    FiMic,
     FiPrinter,
     FiRefreshCw,
     FiStar,
@@ -40,6 +41,15 @@ const formatDate = value => {
 const formatPercent = value => (
     value === null || value === undefined ? "—" : `${Number(value)}%`
 );
+
+const ACTIVITY_SEGMENTS = [
+    "listening",
+    "assignments",
+    "ai",
+    "review",
+    "conversation",
+    "speaking_challenge"
+];
 
 const copyText = async value => {
     if (navigator.clipboard?.writeText) {
@@ -192,7 +202,7 @@ const WeeklyReport = () => {
                     <FiRefreshCw className="is-spinning" />
                     <div>
                         <strong>正在整理每週學習成果</strong>
-                        <span>彙整聽力、作業、AI、複習與口說紀錄...</span>
+                        <span>彙整聽力、作業、AI、複習、情境口說與口說大挑戰...</span>
                     </div>
                 </div>
             </main>
@@ -218,6 +228,15 @@ const WeeklyReport = () => {
     const assignmentRate = report.assignments.completion_rate === null
         ? "本週無指定"
         : `${report.assignments.completed}/${report.assignments.assigned}`;
+    const speakingChallenge = report.speaking_challenge || {
+        completed_questions: 0,
+        completed_challenges: 0,
+        all_time_completed_challenges: 0,
+        xp_awarded: 0,
+        ae_points_awarded: 0,
+        current_challenge: null,
+        recent_clears: []
+    };
 
     return (
         <main className={`weekly-report-page ${isManager ? "weekly-report-page--manager" : ""}`}>
@@ -324,7 +343,19 @@ const WeeklyReport = () => {
                             <div className={`weekly-report-day ${day.total ? "is-active" : ""}`} key={day.date}>
                                 <span className="weekly-report-day__count">{day.total || ""}</span>
                                 <div className="weekly-report-day__track">
-                                    <i style={{ height: day.total ? `${Math.max(10, (day.total / maxDailyTotal) * 100)}%` : "4px" }} />
+                                    <div
+                                        className="weekly-report-day__stack"
+                                        style={{ height: day.total ? `${Math.max(10, (day.total / maxDailyTotal) * 100)}%` : "4px" }}
+                                        aria-label={`${day.weekday}共 ${day.total || 0} 次學習活動`}
+                                    >
+                                        {ACTIVITY_SEGMENTS.map(segment => Number(day[segment] || 0) > 0 && (
+                                            <i
+                                                className={`weekly-report-day__segment weekly-report-day__segment--${segment}`}
+                                                style={{ flexGrow: Number(day[segment] || 0) }}
+                                                key={segment}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                                 <strong>{day.weekday}</strong>
                                 <small>{formatDate(day.date)}</small>
@@ -336,7 +367,8 @@ const WeeklyReport = () => {
                         <span><i className="assignment" /> 作業 {report.assignments.attempts}</span>
                         <span><i className="ai" /> AI {report.ai_practice.attempts}</span>
                         <span><i className="review" /> 複習 {report.review.attempts}</span>
-                        <span><i className="speaking" /> 口說 {report.conversation.practice_steps}</span>
+                        <span><i className="speaking" /> 情境口說 {report.conversation.practice_steps}</span>
+                        <span><i className="challenge" /> 大挑戰 {speakingChallenge.completed_questions}</span>
                     </div>
                 </section>
 
@@ -370,6 +402,31 @@ const WeeklyReport = () => {
                         <h3>情境口說</h3>
                         <strong>{report.conversation.completed_steps}<small> / {report.conversation.total_steps} 關</small></strong>
                         <p>{report.conversation.practice_steps ? `本週推進 ${report.conversation.practice_steps} 次口說步驟` : "本週可以安排一次真實情境口說"}</p>
+                    </article>
+                    <article className="weekly-report-learning-card weekly-report-learning-card--challenge">
+                        <div><FiMic /><span>SPEAKING CHALLENGE</span></div>
+                        <h3>口說大挑戰</h3>
+                        <strong>{speakingChallenge.completed_questions}<small> 題新完成</small></strong>
+                        <p>
+                            {speakingChallenge.completed_challenges
+                                ? `本週通過 ${speakingChallenge.completed_challenges} 關，獲得 ${speakingChallenge.xp_awarded} XP${speakingChallenge.ae_points_awarded ? `、${speakingChallenge.ae_points_awarded} AE Points` : ""}`
+                                : "完成整個小關卡即可獲得通關獎勵"}
+                        </p>
+                        {speakingChallenge.current_challenge && (
+                            <div className="weekly-report-challenge-progress">
+                                <span>
+                                    <b>{speakingChallenge.current_challenge.book_name}</b>
+                                    {speakingChallenge.current_challenge.completed_questions}/{speakingChallenge.current_challenge.total_questions}
+                                </span>
+                                <div aria-label={`目前關卡完成 ${speakingChallenge.current_challenge.progress_percent}%`}>
+                                    <i style={{ width: `${speakingChallenge.current_challenge.progress_percent}%` }} />
+                                </div>
+                                <small>{speakingChallenge.current_challenge.title}</small>
+                            </div>
+                        )}
+                        <Link className="weekly-report-challenge-link" to="/student/speaking-challenges">
+                            <FiMic /> {speakingChallenge.current_challenge?.completed_at ? "再次挑戰" : "繼續挑戰"}
+                        </Link>
                     </article>
                 </section>
 
