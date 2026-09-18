@@ -14,8 +14,7 @@ const {
     TableLayoutType,
     TableRow,
     TextRun,
-    VerticalAlign,
-    WidthType
+    VerticalAlign
 } = require("docx");
 
 const A4_WIDTH_TWIPS = 11906;
@@ -29,6 +28,7 @@ const CARD_INFO_WIDTH_TWIPS = Math.round(CARD_CONTENT_WIDTH_TWIPS * 0.57);
 const CARD_QR_WIDTH_TWIPS = CARD_CONTENT_WIDTH_TWIPS - CARD_INFO_WIDTH_TWIPS;
 const CARDS_PER_PAGE = 8;
 const FONT = "Microsoft JhengHei";
+const DXA_WIDTH = "dxa";
 
 const paragraph = (children, options = {}) => new Paragraph({
     alignment: AlignmentType.CENTER,
@@ -76,7 +76,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
     const recoveryTwo = card.recoveryCodes[1] || "—";
 
     return new TableCell({
-        width: { size: CARD_WIDTH_TWIPS, type: WidthType.DXA },
+        width: { size: CARD_WIDTH_TWIPS, type: DXA_WIDTH },
         margins: { top: 70, bottom: 70, left: 110, right: 110 },
         verticalAlign: VerticalAlign.CENTER,
         borders: {
@@ -86,7 +86,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
             right: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" }
         },
         children: [new Table({
-            width: { size: CARD_CONTENT_WIDTH_TWIPS, type: WidthType.DXA },
+            width: { size: CARD_CONTENT_WIDTH_TWIPS, type: DXA_WIDTH },
             columnWidths: [CARD_INFO_WIDTH_TWIPS, CARD_QR_WIDTH_TWIPS],
             layout: TableLayoutType.FIXED,
             borders: TableBorders.NONE,
@@ -95,7 +95,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
                 height: { value: 3500, rule: HeightRule.EXACT },
                 children: [
                     new TableCell({
-                        width: { size: CARD_INFO_WIDTH_TWIPS, type: WidthType.DXA },
+                        width: { size: CARD_INFO_WIDTH_TWIPS, type: DXA_WIDTH },
                         margins: { top: 40, bottom: 40, left: 50, right: 90 },
                         verticalAlign: VerticalAlign.CENTER,
                         borders: TableBorders.NONE,
@@ -131,7 +131,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
                         ]
                     }),
                     new TableCell({
-                        width: { size: CARD_QR_WIDTH_TWIPS, type: WidthType.DXA },
+                        width: { size: CARD_QR_WIDTH_TWIPS, type: DXA_WIDTH },
                         margins: { top: 20, bottom: 20, left: 20, right: 20 },
                         verticalAlign: VerticalAlign.CENTER,
                         borders: TableBorders.NONE,
@@ -150,7 +150,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
 };
 
 const buildBlankCell = () => new TableCell({
-    width: { size: CARD_WIDTH_TWIPS, type: WidthType.DXA },
+    width: { size: CARD_WIDTH_TWIPS, type: DXA_WIDTH },
     borders: {
         top: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
         bottom: { style: BorderStyle.DASHED, size: 4, color: "A8B4C7" },
@@ -183,7 +183,7 @@ const buildPageTable = cards => {
         }));
     }
     return new Table({
-        width: { size: TABLE_WIDTH_TWIPS, type: WidthType.DXA },
+        width: { size: TABLE_WIDTH_TWIPS, type: DXA_WIDTH },
         columnWidths: [CARD_WIDTH_TWIPS, CARD_WIDTH_TWIPS],
         layout: TableLayoutType.FIXED,
         rows

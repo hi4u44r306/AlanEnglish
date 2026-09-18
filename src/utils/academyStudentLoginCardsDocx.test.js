@@ -9,6 +9,11 @@ jest.mock("qrcode", () => ({
     toDataURL: jest.fn()
 }));
 
+jest.mock("docx", () => {
+    const actual = jest.requireActual("docx");
+    return { ...actual, WidthType: undefined };
+});
+
 global.TextEncoder = TextEncoder;
 
 const ONE_PIXEL_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -42,7 +47,7 @@ describe("academyStudentLoginCardsDocx", () => {
         }]);
     });
 
-    test("輸出包含本機產生 QR Code 的 Word 檔", async () => {
+    test("瀏覽器未提供 WidthType 匯出時仍可輸出包含 QR Code 的 Word 檔", async () => {
         QRCode.toDataURL.mockResolvedValue(ONE_PIXEL_PNG);
 
         const blob = await buildAcademyStudentLoginCardsDocx(results, rows);
