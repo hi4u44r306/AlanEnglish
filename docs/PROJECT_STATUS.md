@@ -2,6 +2,11 @@
 
 最後更新：2026-09-18
 
+本次 CSV Word 登入卡下載 hotfix（2026-09-18，尚未部署）：
+
+- 正式站點擊「下載 Word 登入卡」時出現 `Cannot read properties of undefined (reading 'DXA')`；原因是瀏覽器 bundle 執行時未取得 `docx` 的 `WidthType` 列舉，但 Word 產生器直接讀取 `WidthType.DXA`。
+- Word 寬度型別改用 DOCX 規格的固定值 `dxa`，不再依賴瀏覽器可能缺少的列舉匯出；版面、學生資訊、QR Code 與下載檔名不變。新增模擬 `WidthType` 缺失的回歸測試。
+
 本次 CSV Word 登入卡與簡化一次性登入資訊（2026-09-18，已正式部署）：
 
 - 分支 `feature/simplified-student-login-cards`。CSV 建立成功後新增 A4 Word 登入卡下載，每頁 8 格；每格左側集中學生中英文姓名、帳號、一次性臨時密碼與兩組復原碼，右側放大瀏覽器本機產生的 QR Code，並盡量填滿完整格子，既有 CSV 結果下載與列印入口保留。
