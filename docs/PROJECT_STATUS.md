@@ -2,11 +2,12 @@
 
 最後更新：2026-09-18
 
-本次公開首頁桌面登入按鈕修正（2026-09-18，尚未部署）：
+本次公開首頁桌面登入按鈕修正（2026-09-18，已正式部署）：
 
 - 已確認桌面版「登入」連結本身可被游標命中，但事件被手機 Offcanvas 的延後導頁流程攔截；桌面沒有側欄退場事件，因此只取得焦點而不切換網址。
 - 導頁攔截現在只在手機側欄實際開啟時啟用；桌面登入改回 React Router 直接導頁，手機仍保留先收合側欄再切換的動畫。
-- 元件回歸測試 3/3、公開頁桌面／手機 Playwright 10/10、Production build 與 `git diff --check` 均通過；build 只有既有未使用 import、React Router future flag、Browserslist 與 Node deprecation 警告。待正式發布及線上桌面／手機驗收。
+- 元件回歸測試 3/3、公開頁桌面／手機 Playwright 10/10、Production build 與 `git diff --check` 均通過；build 只有既有未使用 import、React Router future flag、Browserslist 與 Node deprecation 警告。
+- PR #187 已合併至 `main` commit `384ffca`；Netlify production deploy `6aac9670597bd4848dcf4683` 已 live。正式站實機確認桌面頂端登入、412px 手機快速登入及手機側欄登入都可進入 `/login`。
 
 本次排行榜班級／綜合競賽與原名顯示（2026-09-18，已正式部署）：
 
