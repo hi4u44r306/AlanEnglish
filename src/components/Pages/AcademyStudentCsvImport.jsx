@@ -13,6 +13,7 @@ import {
     parseAcademyStudentCsv
 } from "../../utils/academyStudentCsv";
 import { downloadAcademyStudentLoginCardsDocx } from "../../utils/academyStudentLoginCardsDocx";
+import { downloadAcademyStudentLoginCardsPdf } from "../../utils/academyStudentLoginCardsPdf";
 import "./css/ManagementDashboard.scss";
 import "./css/AcademyStudentCsvImport.scss";
 
@@ -52,7 +53,8 @@ function StudentLoginCards({ results, rows }) {
         })), [results, rows]);
     const [qrCodes, setQrCodes] = useState({});
     const [downloadingDocx, setDownloadingDocx] = useState(false);
-    const [docxError, setDocxError] = useState("");
+    const [downloadingPdf, setDownloadingPdf] = useState(false);
+    const [downloadError, setDownloadError] = useState("");
 
     useEffect(() => {
         let active = true;
@@ -74,13 +76,25 @@ function StudentLoginCards({ results, rows }) {
 
     const downloadDocx = async () => {
         setDownloadingDocx(true);
-        setDocxError("");
+        setDownloadError("");
         try {
             await downloadAcademyStudentLoginCardsDocx(results, rows);
         } catch (error) {
-            setDocxError(error?.message || "Word 登入卡產生失敗，請稍後再試");
+            setDownloadError(error?.message || "Word 登入卡產生失敗，請稍後再試");
         } finally {
             setDownloadingDocx(false);
+        }
+    };
+
+    const downloadPdf = async () => {
+        setDownloadingPdf(true);
+        setDownloadError("");
+        try {
+            await downloadAcademyStudentLoginCardsPdf(results, rows);
+        } catch (error) {
+            setDownloadError(error?.message || "PDF 登入卡產生失敗，請稍後再試");
+        } finally {
+            setDownloadingPdf(false);
         }
     };
 
@@ -90,16 +104,19 @@ function StudentLoginCards({ results, rows }) {
             <div className="academy-csv-results-heading academy-login-cards-heading">
                 <div>
                     <h2>學生登入卡</h2>
-                    <p>一次性臨時密碼與復原碼只會顯示這一次。請立即列印或另存 PDF，並分別交給學生。</p>
+                    <p>一次性臨時密碼與復原碼只會顯示這一次。請立即下載 Word 或 PDF，並分別交給學生。</p>
                 </div>
                 <div className="academy-login-card-actions">
                     <button type="button" onClick={downloadDocx} disabled={downloadingDocx}>
                         {downloadingDocx ? "產生 Word 中…" : "下載 Word 登入卡"}
                     </button>
+                    <button type="button" onClick={downloadPdf} disabled={downloadingPdf}>
+                        {downloadingPdf ? "產生 PDF 中…" : "下載 PDF 登入卡"}
+                    </button>
                     <button type="button" onClick={() => window.print()}>列印 A4 登入卡</button>
                 </div>
             </div>
-            {docxError && <p className="academy-csv-audit-warning" role="alert">{docxError}</p>}
+            {downloadError && <p className="academy-csv-audit-warning" role="alert">{downloadError}</p>}
             <div className="academy-login-cards-print">
                 {successful.map(result => (
                     <article className="academy-login-card" key={`card-${result.source_row}`}>

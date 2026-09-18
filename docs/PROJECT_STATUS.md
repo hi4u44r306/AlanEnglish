@@ -2,6 +2,11 @@
 
 最後更新：2026-09-18
 
+本次 CSV 登入卡 Word／PDF 匯出修正（2026-09-18，尚未部署）：
+
+- 正式站 Word 下載在修正 `WidthType.DXA` 後仍出現 `Cannot read properties of undefined (reading 'CENTER')`；原因是 `docx` 的其他瀏覽器列舉物件同樣可能缺失。本批將 Word 產生器所需的對齊、框線、列高、分節、表格配置與垂直對齊改用 DOCX 規格固定值，並用測試同時模擬全部列舉缺失。
+- CSV 建立成功區新增「下載 PDF 登入卡」，在瀏覽器本機以 A4 每頁 8 格產生 PDF；每格維持左側學生姓名、帳號、臨時密碼與兩組復原碼，右側 QR Code。既有 Word 下載與系統列印入口保留，啟用連結不送往第三方。
+
 本次 CSV Word 登入卡下載 hotfix（2026-09-18，已正式部署）：
 
 - 正式站點擊「下載 Word 登入卡」時出現 `Cannot read properties of undefined (reading 'DXA')`；原因是瀏覽器 bundle 執行時未取得 `docx` 的 `WidthType` 列舉，但 Word 產生器直接讀取 `WidthType.DXA`。
