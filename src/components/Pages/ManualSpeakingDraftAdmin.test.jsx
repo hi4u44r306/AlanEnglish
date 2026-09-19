@@ -35,7 +35,51 @@ describe("ManualSpeakingDraftAdmin", () => {
         generateSpeakingVisibleWordAudio.mockResolvedValue({ success: true });
     });
 
-    it("allows a complete draft to be created without an extra confirmation checkbox", async () => {
+    it("shows exact field errors instead of silently disabling the create button", () => {
+        render(<ManualSpeakingDraftAdmin
+            firebaseUser={firebaseUser}
+            books={[{ id: 1, name: "Workbook 1", enabled: true }]}
+            onCreated={jest.fn()}
+        />);
+
+        const submitButton = screen.getByRole("button", { name: "建立未發布草稿" });
+        expect(submitButton).toBeEnabled();
+        fireEvent.click(submitButton);
+
+        expect(screen.getByRole("alert")).toHaveTextContent("目前無法建立草稿");
+        expect(screen.getByText("請選擇教材", { selector: "small" })).toBeInTheDocument();
+        expect(screen.getAllByText("請輸入學生看到的題目", { selector: "small" })).toHaveLength(3);
+        expect(screen.getAllByRole("combobox")[0]).toHaveAttribute("aria-invalid", "true");
+        expect(createManualSpeakingDraft).not.toHaveBeenCalled();
+    });
+
+    it("explains that adjacent blanks must be combined into one blank", () => {
+        const { container } = render(<ManualSpeakingDraftAdmin
+            firebaseUser={firebaseUser}
+            books={[{ id: 3, name: "Workbook 3", enabled: true }]}
+            onCreated={jest.fn()}
+        />);
+
+        fireEvent.change(screen.getByLabelText("教材"), { target: { value: "3" } });
+        fireEvent.change(screen.getByLabelText("關卡名稱"), { target: { value: "P4 所有格" } });
+        fireEvent.change(screen.getByLabelText("主題"), { target: { value: "所有格" } });
+        screen.getAllByLabelText("學生看到的題目（用 ____ 標示挖空）").forEach(input => {
+            fireEvent.change(input, { target: { value: "It is ____ ____." } });
+        });
+        screen.getAllByLabelText("補好答案的完整句子").forEach(input => {
+            fireEvent.change(input, { target: { value: "It is my nose." } });
+        });
+        screen.getAllByLabelText("圖片替代文字").forEach(input => fireEvent.change(input, { target: { value: "鼻子" } }));
+        container.querySelectorAll('input[type="file"]').forEach(input => {
+            fireEvent.change(input, { target: { files: [new File(["image"], "nose.png", { type: "image/png" })] } });
+        });
+        fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
+
+        expect(screen.getAllByText(/連續答案請合併成同一個/, { selector: "small" })).toHaveLength(3);
+        expect(createManualSpeakingDraft).not.toHaveBeenCalled();
+    });
+
+    it("shows the complete outline and requires a second confirmation", async () => {
         const onCreated = jest.fn();
         render(<ManualSpeakingDraftAdmin
             firebaseUser={firebaseUser}
@@ -43,9 +87,8 @@ describe("ManualSpeakingDraftAdmin", () => {
             onCreated={onCreated}
         />);
 
-        expect(screen.queryByText(/我已確認教材、頁碼、所有句子/)).not.toBeInTheDocument();
         const submitButton = screen.getByRole("button", { name: "建立未發布草稿" });
-        expect(submitButton).toBeDisabled();
+        expect(submitButton).toBeEnabled();
 
         fireEvent.change(screen.getByLabelText("教材"), { target: { value: "1" } });
         fireEvent.change(screen.getByLabelText("活動類型"), { target: { value: "standard_sentence" } });
@@ -55,8 +98,15 @@ describe("ManualSpeakingDraftAdmin", () => {
             fireEvent.change(input, { target: { value: `This is sentence ${index + 1}.` } });
         });
 
-        expect(submitButton).toBeEnabled();
         fireEvent.click(submitButton);
+
+        expect(createManualSpeakingDraft).not.toHaveBeenCalled();
+        const dialog = screen.getByRole("dialog", { name: "確認建立未發布草稿" });
+        expect(dialog).toHaveTextContent("Workbook 1");
+        expect(dialog).toHaveTextContent("P30 完整句");
+        expect(dialog).toHaveTextContent("完整句朗讀");
+        expect(dialog).toHaveTextContent("This is sentence 1.");
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
 
         await waitFor(() => expect(createManualSpeakingDraft).toHaveBeenCalledWith(
             firebaseUser,
@@ -92,6 +142,7 @@ describe("ManualSpeakingDraftAdmin", () => {
             fireEvent.change(input, { target: { value: `This is sentence ${index + 1}.` } });
         });
         fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
 
         await waitFor(() => expect(toast.warning).toHaveBeenCalledWith(expect.stringContaining("草稿與圖片已保留")));
         expect(discardWorkbookOnePictureDraft).not.toHaveBeenCalled();
@@ -125,6 +176,9 @@ describe("ManualSpeakingDraftAdmin", () => {
         const submitButton = screen.getByRole("button", { name: "建立未發布草稿" });
         expect(submitButton).toBeEnabled();
         fireEvent.click(submitButton);
+        expect(createManualSpeakingDraft).not.toHaveBeenCalled();
+        expect(screen.getByRole("dialog", { name: "確認建立未發布草稿" })).toHaveTextContent("P30 多挖空");
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
 
         await waitFor(() => expect(createManualSpeakingDraft).toHaveBeenCalledWith(
             firebaseUser,
