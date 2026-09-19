@@ -49,7 +49,7 @@
 .student-settings-avatar-preset-grid button { display: grid; place-items: center; min-width: 0; gap: 7px; padding: 9px 5px; border: 2px solid transparent; border-radius: 16px; color: #52617a; background: #f5f7fb; font-size: 11px; font-weight: 800; cursor: pointer; }
 .student-settings-avatar-preset-grid button[aria-pressed="true"] { border-color: #e7b12e; color: #1d3771; background: #fff8df; box-shadow: 0 6px 16px rgba(42, 69, 126, .12); }
 .student-settings-avatar-preset-grid button:disabled { cursor: wait; opacity: .62; }
-.student-settings-avatar-preset-grid img { width: 64px; max-width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover; }
+.student-settings-avatar-preset-image { width: 64px; max-width: 100%; aspect-ratio: 1; border-radius: 16px; }
 
 .student-avatar-editor-backdrop { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 20px; background: rgba(12, 24, 51, .72); backdrop-filter: blur(8px); }
 .student-avatar-editor { width: min(100%, 470px); padding: 22px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 25px; color: #243454; background: #fff; box-shadow: 0 28px 70px rgba(4, 14, 40, .35); }
@@ -60,6 +60,7 @@
 .student-avatar-editor > p { margin: 0 0 17px; color: #6a7790; font-size: 13px; line-height: 1.65; }
 .student-avatar-crop-canvas { position: relative; width: 280px; height: 280px; margin: 0 auto; overflow: hidden; border-radius: 20px; background: repeating-conic-gradient(#e7ebf2 0% 25%, #f7f8fb 0% 50%) 50% / 24px 24px; box-shadow: inset 0 0 0 1px #d9e0eb, 0 13px 30px rgba(36, 54, 91, .16); touch-action: none; overscroll-behavior: contain; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .student-avatar-crop-canvas:active { cursor: grabbing; }
+.student-avatar-crop-loading { position: absolute; z-index: 1; top: 50%; left: 50%; width: 42px; aspect-ratio: 1; border: 4px solid rgba(255, 255, 255, .55); border-top-color: #315eb7; border-radius: 50%; transform: translate(-50%, -50%); animation: ae-student-avatar-spin .75s linear infinite; }
 .student-avatar-crop-canvas img { position: absolute; max-width: none; pointer-events: none; transform: translate(-50%, -50%); }
 .student-avatar-crop-frame { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 8px; border: 3px solid rgba(255, 255, 255, .92); border-radius: 20px; box-shadow: inset 0 0 0 1px rgba(15, 31, 65, .36), inset 0 0 0 999px rgba(10, 24, 52, .06); color: rgba(255, 255, 255, .94); pointer-events: none; text-align: center; text-shadow: 0 1px 5px rgba(14, 27, 55, .7); }
 .student-avatar-crop-frame svg { width: 29px; height: 29px; }
@@ -77,10 +78,13 @@
 .student-avatar-confirmation-comparison > div { display: grid; place-items: center; min-width: 0; gap: 8px; }
 .student-avatar-confirmation-comparison > div > span { color: #6f7c92; font-size: 11px; font-weight: 900; letter-spacing: .06em; }
 .student-avatar-confirmation-comparison > strong { color: #8a97ad; font-size: 24px; }
-.student-avatar-confirmation-comparison img,
+.student-avatar-confirmation-image,
 .student-avatar-confirmation-fallback { width: min(128px, 100%); aspect-ratio: 1; border: 3px solid #fff; border-radius: 24px; object-fit: cover; box-shadow: 0 9px 22px rgba(31, 50, 94, .16); }
-.student-avatar-confirmation-comparison .pending img { outline: 3px solid #f0c04c; outline-offset: 2px; }
+.student-avatar-confirmation-comparison .pending .student-avatar-confirmation-image { outline: 3px solid #f0c04c; outline-offset: 2px; }
 .student-avatar-confirmation-fallback { display: grid; place-items: center; color: #503303; background: linear-gradient(145deg, #ffdb76, #ffaf4f); font-size: 31px; font-weight: 950; }
+.student-nickname-confirmation-details { display: grid; gap: 6px; padding: 16px; border: 1px solid #e3e8f1; border-radius: 16px; background: #f7f9fd; }
+.student-nickname-confirmation-details > span { color: #71809a; font-size: 11px; font-weight: 900; letter-spacing: .06em; }
+.student-nickname-confirmation-details > strong { overflow-wrap: anywhere; color: #243b75; font-size: 20px; font-weight: 950; }
 
 .student-settings-profile-copy { min-width: 0; }
 .student-settings-profile-copy > span,

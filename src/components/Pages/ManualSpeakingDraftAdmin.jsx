@@ -17,7 +17,7 @@ const imageIsValid = file => Boolean(file && ALLOWED_IMAGE_TYPES.has(file.type) 
 let rowSequence = 0;
 const newRow = (pageLabel = "P1") => ({
     key: `manual-speaking-${Date.now()}-${rowSequence += 1}`,
-    page_label: pageLabel, full_sentence: "", gap_answer: "", prompt_text: "", answer_text: "",
+    page_label: pageLabel, full_sentence: "", prompt_text: "", answer_text: "",
     accepted_full_responses: "", pronunciation_notes_zh: "", alt_zh: "", file: null
 });
 const normalizedPage = value => {
@@ -30,16 +30,33 @@ const pageOptions = (fromValue, toValue) => {
     if (!from || !to || from > to || to - from > 49) return [];
     return Array.from({ length: to - from + 1 }, (_, index) => `P${from + index}`);
 };
-const gapPattern = (sentence, answer) => {
-    const source = String(sentence || "").trim();
-    const target = String(answer || "").trim();
-    if (!source || !target) return "";
-    const lower = source.toLocaleLowerCase();
-    const needle = target.toLocaleLowerCase();
-    const first = lower.indexOf(needle);
-    if (first < 0 || lower.indexOf(needle, first + needle.length) >= 0) return "";
-    if (!source.slice(0, first).trim() || !source.slice(first + target.length).trim()) return "";
-    return `${source.slice(0, first)}____${source.slice(first + target.length)}`.replace(/\s+/g, " ").trim();
+const normalizeGapPrompt = value => String(value || "")
+    .replace(/[_＿﹍﹎]{2,}/g, "____");
+const gapPromptMatchesAnswer = (prompt, completeAnswer) => {
+    const rawPieces = normalizeGapPrompt(prompt).trim().split(/_{2,}/);
+    const blankCount = rawPieces.length - 1;
+    if (blankCount < 1 || blankCount > 8) return false;
+    const normalize = value => String(value || "").toLowerCase().replace(/[’]/g, "'")
+        .replace(/[^a-z0-9'\s]+/g, " ").replace(/\s+/g, " ").trim();
+    const pieces = rawPieces.map(piece => normalize(piece).split(" ").filter(Boolean));
+    if (pieces.slice(1, -1).some(piece => piece.length === 0)) return false;
+    const answer = normalize(completeAnswer).split(" ").filter(Boolean);
+    if (!answer.length || !pieces.some(piece => piece.length)) return false;
+    const matchesAt = (piece, start) => piece.every((token, offset) => answer[start + offset] === token);
+    if (pieces[0].length && !matchesAt(pieces[0], 0)) return false;
+    const matchRemaining = (pieceIndex, cursor) => {
+        if (pieceIndex >= pieces.length) return cursor === answer.length;
+        const piece = pieces[pieceIndex];
+        const isLast = pieceIndex === pieces.length - 1;
+        if (!piece.length) return isLast && cursor < answer.length;
+        for (let start = cursor + 1; start + piece.length <= answer.length; start += 1) {
+            if (!matchesAt(piece, start)) continue;
+            const nextCursor = start + piece.length;
+            if (isLast ? nextCursor === answer.length : matchRemaining(pieceIndex + 1, nextCursor)) return true;
+        }
+        return false;
+    };
+    return matchRemaining(1, pieces[0].length);
 };
 
 export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreated }) {
@@ -74,7 +91,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
     const removeRow = key => setRows(current => current.length <= 1 ? current : current.filter(row => row.key !== key));
     const rowReady = row => {
         if (form.interaction_type === "standard_sentence") return Boolean(row.full_sentence.trim());
-        if (gapMode) return Boolean(gapPattern(row.full_sentence, row.gap_answer) && row.alt_zh.trim() && imageIsValid(row.file));
+        if (gapMode) return Boolean(gapPromptMatchesAnswer(row.prompt_text, row.answer_text) && row.alt_zh.trim() && imageIsValid(row.file));
         return Boolean(row.prompt_text.trim().endsWith("?") && row.answer_text.trim() && row.alt_zh.trim() && imageIsValid(row.file));
     };
     const allReady = pages.length > 0 && rows.length > 0 && rows.every(row => pages.includes(normalizedPage(row.page_label)) && rowReady(row));
@@ -87,7 +104,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
         let draftReadyForAudioRetry = false;
         try {
             const questions = rows.map(row => gapMode ? {
-                prompt_text: gapPattern(row.full_sentence, row.gap_answer), answer_text: row.full_sentence,
+                prompt_text: normalizeGapPrompt(row.prompt_text), answer_text: row.answer_text,
                 accepted_full_responses: row.accepted_full_responses.split("\n").map(value => value.trim()).filter(Boolean),
                 pronunciation_notes_zh: row.pronunciation_notes_zh
             } : form.interaction_type === "picture_qa" ? {
@@ -158,14 +175,16 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
                 <label><span>主題</span><input required value={form.topic} onChange={event => updateForm("topic", event.target.value)} disabled={working} /></label>
                 <label><span>程度</span><select value={form.difficulty} onChange={event => updateForm("difficulty", event.target.value)} disabled={working}><option>國小低年級</option><option>國小中年級</option><option>國小高年級</option></select></label>
             </div>
-            <div className="speaking-picture-authoring__notice"><Volume2 size={18} /><span>{gapMode ? "你輸入完整句與挖空答案，系統會自動產生 ____；語音只朗讀空格前後文字並插入 2 秒停頓。" : form.interaction_type === "standard_sentence" ? "系統會朗讀完整句，不插入挖空停頓。" : "學生會看圖片，並在同一次錄音說出完整問句與回答。"}</span></div>
+            {form.book_id && <p className="speaking-picture-authoring__catalog-note">
+                這本教材的第一個關卡發布後，學生端會自動建立「{books.find(book => String(book.id) === String(form.book_id))?.name || "此教材"}」口說大挑戰；小關卡會依學生版頁碼排序。草稿不會顯示給學生。
+            </p>}
+            <div className="speaking-picture-authoring__notice"><Volume2 size={18} /><span>{gapMode ? "直接輸入學生看到的題目，用 ____ 標示 1～8 個挖空；語音會在每個挖空處停頓 2 秒。" : form.interaction_type === "standard_sentence" ? "系統會朗讀完整句，不插入挖空停頓。" : "學生會看圖片，並在同一次錄音說出完整問句與回答。"}</span></div>
             <div className="speaking-picture-authoring__rows">{rows.map((row, index) => {
-                const preview = gapMode ? gapPattern(row.full_sentence, row.gap_answer) : "";
                 return <article key={row.key}>
                     <header><strong>第 {index + 1} 題</strong><button type="button" className="platform-danger" disabled={working || rows.length <= 1} onClick={() => removeRow(row.key)}><Trash2 size={16} />刪除</button></header>
                     <div className="platform-form">
                         {pages.length > 1 && pictureMode && <label><span>圖片來源頁碼</span><select value={row.page_label} onChange={event => updateRow(row.key, "page_label", event.target.value)} disabled={working}>{pages.map(page => <option key={page}>{page}</option>)}</select></label>}
-                        {gapMode && <><label><span>補好答案的完整句子</span><input required value={row.full_sentence} onChange={event => updateRow(row.key, "full_sentence", event.target.value)} placeholder="The pencil is on the desk." disabled={working} /></label><label><span>要挖空的單字或片語</span><input required value={row.gap_answer} onChange={event => updateRow(row.key, "gap_answer", event.target.value)} placeholder="pencil" disabled={working} /></label><p className="speaking-picture-authoring__preview"><strong>學生看到：</strong>{preview || "請確認挖空答案在完整句中只出現一次"}</p></>}
+                        {gapMode && <><label><span>學生看到的題目（用 ____ 標示挖空）</span><input required value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder="They ____ her ____." disabled={working} /></label><label><span>補好答案的完整句子</span><input required value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder="They are her eyes." disabled={working} /></label><p className="speaking-picture-authoring__preview"><strong>學生看到：</strong>{row.prompt_text.trim() || "請輸入含有 ____ 的題目；每個挖空都要能由完整句子補回"}</p>{row.prompt_text.trim() && row.answer_text.trim() && !gapPromptMatchesAnswer(row.prompt_text, row.answer_text) && <p className="speaking-picture-editor__warning">請使用 1～8 個 ____（半形或全形底線都可以），並確認每個挖空都能由完整句子依序補回。</p>}</>}
                         {form.interaction_type === "picture_qa" && <><label><span>完整問句</span><input required value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder="What is that?" disabled={working} /></label><label><span>完整回答</span><input required value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder="It is a pencil." disabled={working} /></label></>}
                         {form.interaction_type === "standard_sentence" && <label><span>完整朗讀句子</span><input required value={row.full_sentence} onChange={event => updateRow(row.key, "full_sentence", event.target.value)} placeholder="This is a pencil." disabled={working} /></label>}
                         <label><span>其他可接受的完整說法（選填，每行一項）</span><textarea rows="2" value={row.accepted_full_responses} onChange={event => updateRow(row.key, "accepted_full_responses", event.target.value)} disabled={working} /></label>

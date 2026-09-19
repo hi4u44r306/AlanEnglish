@@ -3,7 +3,9 @@ import { FiGift, FiRefreshCw, FiSettings, FiStar, FiTrendingUp } from "react-ico
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
+import { cacheStudentAvatarDisplayUrl, getCachedStudentAvatarUrl } from "../../constants/studentAvatarCache";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
+import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import {
     getGamificationClasses,
     getGamificationLeaderboard,
@@ -57,6 +59,10 @@ function LearningLeaderboard() {
             const results = await Promise.all(requests);
             setData(results[0]);
             if (isStudent) {
+                cacheStudentAvatarDisplayUrl(results[1]?.profile?.avatar_url, {
+                    ownerUid: firebaseUser.uid,
+                    sourceKey: studentProfile?.user_image || studentProfile?.userimage
+                });
                 setSummary(results[1]);
                 writeAppShellCache(firebaseUser.uid, "gamification", results[1]);
             }
@@ -72,7 +78,7 @@ function LearningLeaderboard() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [firebaseUser, period, classCode, leaderboardScope, isStudent, isStaff]);
+    }, [firebaseUser, period, classCode, leaderboardScope, isStudent, isStaff, studentProfile?.user_image, studentProfile?.userimage]);
 
     useEffect(() => {
         load();
@@ -138,8 +144,8 @@ function LearningLeaderboard() {
             {isStudent && summary && (
                 <section className="gamification-me-card">
                     <div className="gamification-avatar-wrap">
-                        {summary.profile?.avatar_url
-                            ? <img className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(summary.profile.avatar_url, 240)} alt={`${summary.profile?.nickname || summary.profile?.name || "學生"} 的排行榜照片`} />
+                        {getCachedStudentAvatarUrl(summary.profile?.avatar_url, { ownerUid: firebaseUser?.uid, sourceKey: studentProfile?.user_image || studentProfile?.userimage })
+                            ? <StudentAvatarImage className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(getCachedStudentAvatarUrl(summary.profile?.avatar_url, { ownerUid: firebaseUser?.uid, sourceKey: studentProfile?.user_image || studentProfile?.userimage }), 240)} alt={`${summary.profile?.nickname || summary.profile?.name || "學生"} 的排行榜照片`} />
                             : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback">{getInitial(summary.profile?.nickname || summary.profile?.name)}</div>}
                     </div>
                     <div className="gamification-me-card__identity">
@@ -188,7 +194,7 @@ function LearningLeaderboard() {
                                     <div className="gamification-rank">{medal}</div>
                                     <div className="gamification-row-avatar">
                                         {row.avatar_url
-                                            ? <img className="gamification-avatar" src={getStudentAvatarDisplayUrl(row.avatar_url, 128)} alt="" />
+                                            ? <StudentAvatarImage className="gamification-avatar" src={getStudentAvatarDisplayUrl(row.avatar_url, 128)} alt="" />
                                             : <div className="gamification-avatar gamification-avatar--fallback">{getInitial(row.nickname || row.student_name)}</div>}
                                     </div>
                                     <div className="gamification-student-copy">

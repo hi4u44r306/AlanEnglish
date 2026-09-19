@@ -23,15 +23,24 @@ test("nickname changes are atomic, private, and visible only through verified ro
     assert.match(nicknameHistoryMigration, /grant execute on function[\s\S]*to service_role/i);
     assert.match(edge, /action === "nickname_settings"/);
     assert.match(edge, /action === "update_nickname"/);
+    assert.match(edge, /NICKNAME_CHANGE_COOLDOWN_MS = 7 \* 24 \* 60 \* 60 \* 1000/);
+    assert.match(edge, /nicknameChangeCooldown\(history\)/);
+    assert.match(edge, /history\.find\(\(item\) => item\.previous_nickname\)/);
+    assert.match(edge, /每 7 天只能修改一次/);
     assert.match(edge, /nicknameHistory\(admin, caller\.id\)/);
     assert.match(membershipEdge, /action === "nickname_history"/);
     assert.match(membershipEdge, /caller\.role !== "admin"/);
+    assert.match(edge, /暱稱只能由 update_nickname 修改，避免繞過 7 天限制/);
+    assert.match(edge, /saveSocialProfile\(admin, caller\.id, existing\.nickname, statsVisibility, presenceVisibility, "friends_privacy"\)/);
 });
 
 test("friendship pairs and public nicknames cannot be duplicated", () => {
     assert.match(migration, /student_social_profiles_nickname_key/);
     assert.match(migration, /least\(requester_id, addressee_id\), greatest\(requester_id, addressee_id\)/);
     assert.match(edge, /DISALLOWED_NICKNAME_TERMS/);
+    assert.match(edge, /"幹你娘"/);
+    assert.match(edge, /"機掰"/);
+    assert.match(edge, /"靠北"/);
     assert.match(edge, /這個暱稱已被使用，請換一個/);
     assert.match(edge, /nickname_normalized/);
 });
@@ -43,16 +52,23 @@ test("the Edge Function verifies Firebase and rechecks active platform access", 
     assert.match(edge, /access\?\.is_active !== true/);
 });
 
-test("search, invitations and reports are rate limited and blocks remove friendships", () => {
+test("search, invitations and reports are rate limited and blocks preserve accepted friendships", () => {
     assert.match(edge, /withinLimit\(admin, caller\.id, "search"/);
     assert.match(edge, /withinLimit\(admin, caller\.id, "friend_request"/);
     assert.match(edge, /withinLimit\(admin, caller\.id, "report"/);
-    assert.match(edge, /student_friendships"\)\.delete\(\)\.or\(relationFilter/);
+    assert.match(edge, /student_friendships"\)\.delete\(\)\.neq\("status", "accepted"\)\.or\(relationFilter/);
+    assert.match(edge, /action === "cancel_request"/);
+    assert.match(edge, /friend_request_cancel/);
+    assert.match(edge, /eq\("requester_id", caller\.id\)\.eq\("status", "pending"\)/);
 });
 
-test("uploaded avatars stay private until a friendship is accepted", () => {
+test("uploaded avatars are visible in exact friend searches and use short-lived URLs", () => {
     assert.match(edge, /const socialAvatar = async/);
     assert.match(edge, /if \(!canViewUploadedPhoto\) return null/);
     assert.match(edge, /createSignedUrl\(normalized, 15 \* 60\)/);
-    assert.match(edge, /socialAvatar\(admin, target\.user_image, relation\?\.status === "accepted"\)/);
+    assert.match(edge, /socialAvatar\(admin, target\.user_image, true\)/);
+    assert.match(edge, /const avatarVisibleIds = new Set<number>/);
+    assert.match(edge, /const blockedIds = \(blocks \|\| \[\]\)\.map/);
+    assert.match(edge, /\.\.\.blockedIds/);
+    assert.match(edge, /buildPeople\(admin, ids, caller\.id, friendIds, avatarVisibleIds\)/);
 });

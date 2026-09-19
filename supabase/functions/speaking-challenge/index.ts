@@ -156,6 +156,7 @@ Deno.serve(async (req: Request) => {
                 const rightBook = String(right.books?.name || "");
                 return leftBook.localeCompare(rightBook, "zh-Hant")
                     || Number(stateBySet.get(Number(left.id))?.sequence_order || 0) - Number(stateBySet.get(Number(right.id))?.sequence_order || 0)
+                    || Number(stateBySet.get(Number(left.id))?.source_pages?.at(-1) || 0) - Number(stateBySet.get(Number(right.id))?.source_pages?.at(-1) || 0)
                     || Number(left.id) - Number(right.id);
             });
             const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
     evaluateLetterSpellingAssessment,
     matchesFoundationAnswer,
+    normalizePictureGapPrompt,
     normalizedSpokenSentence,
     pictureGapAnswerMatchesPrompt,
     pictureQaResponseHasQuestionAndAnswer,
@@ -89,6 +90,12 @@ assert.deepEqual(visibleSentenceWords("The ____ is in the tree."), [
 assert.equal(pictureGapAnswerMatchesPrompt("The ____ is in the tree.", "The apple is in the tree."), true);
 assert.equal(pictureGapAnswerMatchesPrompt("The ____ is in the tree.", "Apple"), false);
 assert.equal(pictureGapAnswerMatchesPrompt("The ____ is in the tree.", "The apple is on the table."), false);
+assert.equal(pictureGapAnswerMatchesPrompt("They ____ her ____.", "They are her eyes."), true);
+assert.equal(pictureGapAnswerMatchesPrompt("They ____ her ____.", "They are his eyes."), false);
+assert.equal(pictureGapAnswerMatchesPrompt("____ are her ____.", "They are her eyes."), true);
+assert.equal(pictureGapAnswerMatchesPrompt("＿＿＿＿ are her ＿＿＿＿. (眼睛)", "They are her eyes. (眼睛)"), true);
+assert.equal(normalizePictureGapPrompt("It is ＿＿＿＿. (一隻)"), "It is ____. (一隻)");
+assert.equal(pictureGapAnswerMatchesPrompt("They ____ ____.", "They are her eyes."), false);
 assert.equal(pictureQaResponseHasQuestionAndAnswer("What is that? It is an apple."), true);
 assert.equal(pictureQaResponseHasQuestionAndAnswer("What is that?"), false);
 assert.equal(pictureQaResponseHasQuestionAndAnswer("It is an apple."), false);

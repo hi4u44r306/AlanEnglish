@@ -169,9 +169,13 @@ describe("StudentSettings", () => {
         const nicknameInput = await screen.findByLabelText("公開暱稱");
         expect(nicknameInput).toHaveValue("Sunny Fox");
         expect(nicknameInput.closest(".student-settings-profile-card")).not.toBeNull();
+        expect(screen.getByText(/7 天.*只能修改一次/)).toBeInTheDocument();
         expect(screen.getByText("首次設定")).toBeInTheDocument();
         fireEvent.change(nicknameInput, { target: { value: "Brave Owl" } });
         fireEvent.click(screen.getByRole("button", { name: "儲存暱稱" }));
+        expect(updateNickname).not.toHaveBeenCalled();
+        expect(await screen.findByRole("alertdialog", { name: "確認修改公開暱稱" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "確認修改暱稱" }));
 
         await waitFor(() => expect(updateNickname).toHaveBeenCalledWith(
             { uid: "student-1" },
@@ -337,6 +341,14 @@ describe("StudentSettings", () => {
             { uid: "student-1" },
             "/default-avatars/alan-owl.png"
         ));
+        await waitFor(() => expect(JSON.parse(localStorage.getItem("ae-userimage"))).toEqual(expect.objectContaining({
+            ownerUid: "student-1",
+            displayUrl: "/default-avatars/alan-owl.png"
+        })));
+        expect(setStudentProfile).toHaveBeenCalledWith(expect.objectContaining({
+            avatar_url: "/default-avatars/alan-owl.png",
+            user_image: "/default-avatars/alan-owl.png"
+        }));
     });
 
     it("opens a square avatar adjustment window before uploading", async () => {

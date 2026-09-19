@@ -42,7 +42,7 @@ describe("child-friendly student dashboard", () => {
         expect(screen.getByRole("heading", { name: "測試學生，想學什麼？" })).toBeInTheDocument();
         expect(screen.queryByText(/繼續今天的學習|今天的學習路線|NEXT STEP/)).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: /我的教材/ })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /開口說/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /口說練習/ })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /我的作業/ })).toHaveAttribute("href", "/student/assignments");
         expect(screen.getByRole("link", { name: /AI 教材/ })).toHaveAttribute("href", "/student/ai-generator");
         expect(screen.getByRole("button", { name: /更多功能/ })).toBeInTheDocument();

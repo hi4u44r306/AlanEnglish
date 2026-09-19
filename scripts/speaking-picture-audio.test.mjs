@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
     assemblePictureGapSentenceWav,
+    assemblePictureGapSentenceSegmentsWav,
     googleSpeechInputForText,
     pictureGapTheCandidateInput,
     pictureGapSentenceParts,
+    pictureGapSentenceSegments,
     PICTURE_SENTENCE_GAP_MS,
     ttsTextWithoutTerminalFullStops
 } from "../supabase/functions/_shared/speaking-picture-audio.ts";
@@ -68,6 +70,12 @@ test("整句只使用可見句型並在唯一空格切成前後兩段", () => {
     assert.throws(() => pictureGapSentenceParts("____"), /空格前/);
 });
 
+test("多個挖空會依管理員輸入拆成多段可見文字", () => {
+    assert.deepEqual(pictureGapSentenceSegments("They ____ her ____."), ["They", "her", "."]);
+    assert.deepEqual(pictureGapSentenceSegments("____ are her ____."), ["", "are her", "."]);
+    assert.throws(() => pictureGapSentenceSegments("They ____ ____ eyes."), /相鄰挖空/);
+});
+
 test("整句 WAV 會嵌入精準 2 秒靜音", () => {
     const assembled = assemblePictureGapSentenceWav(wav(500), wav(750));
     const parsed = parseLinear16MonoWav(assembled.bytes);
@@ -81,6 +89,13 @@ test("空格位於句尾時保留 2 秒停頓且不要求右側語音", () => {
     const parsed = parseLinear16MonoWav(assembled.bytes);
     assert.equal(assembled.durationMs, 2500);
     assert.equal(Math.round(parsed.data.length / parsed.byteRate * 1000), 2500);
+});
+
+test("多個挖空各自嵌入精準 2 秒靜音", () => {
+    const assembled = assemblePictureGapSentenceSegmentsWav([wav(500), wav(250), null]);
+    const parsed = parseLinear16MonoWav(assembled.bytes);
+    assert.equal(assembled.durationMs, 4750);
+    assert.equal(Math.round(parsed.data.length / parsed.byteRate * 1000), 4750);
 });
 
 test("前後 WAV 規格不同時停止合成", () => {

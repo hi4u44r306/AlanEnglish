@@ -49,6 +49,7 @@ export const speakingChallengeSequenceOrder = (set: ChallengeSet): number => {
 export const sortSpeakingChallengeSets = <T extends ChallengeSet>(sets: T[]): T[] => (
     [...sets].sort((left, right) => (
         speakingChallengeSequenceOrder(left) - speakingChallengeSequenceOrder(right)
+        || (speakingChallengeSourcePages(left).at(-1) || 0) - (speakingChallengeSourcePages(right).at(-1) || 0)
         || Number(left.id) - Number(right.id)
     ))
 );

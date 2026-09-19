@@ -256,7 +256,7 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
             <section className="speaking-picture-editor__detail">
                 <header><div><span>{adding ? "新增題目" : `第 ${selectedIndex + 1} 題`}</span><h5>{isGap ? "看圖補完整句" : "看圖說完整問答"}</h5></div>{!adding && <div className="speaking-picture-editor__order"><button type="button" disabled={selectedIndex <= 0 || working === "order"} onClick={() => move(-1)} aria-label="題目往前移"><ArrowUp /></button><button type="button" disabled={selectedIndex >= questions.length - 1 || working === "order"} onClick={() => move(1)} aria-label="題目往後移"><ArrowDown /></button></div>}</header>
                 <div className="platform-form">
-                    <label><span>{isGap ? "挖空句型（保留一個空格）" : "完整問句（結尾需有 ?）"}</span><input value={form.prompt_text} onChange={event => update("prompt_text", event.target.value)} placeholder={isGap ? "The ____ is in the race." : "What is that?"} /></label>
+                    <label><span>{isGap ? "學生看到的題目（用 ____ 標示 1～8 個挖空）" : "完整問句（結尾需有 ?）"}</span><input value={form.prompt_text} onChange={event => update("prompt_text", event.target.value)} placeholder={isGap ? "They ____ her ____." : "What is that?"} /></label>
                     <label><span>{isGap ? "補好答案的完整句子" : "完整回答"}</span><input value={form.answer_text} onChange={event => update("answer_text", event.target.value)} placeholder={isGap ? "The horse is in the race." : "It is a horse."} /></label>
                     {pageLabels.length > 1 && <label><span>圖片來源頁碼{!adding && !form.file ? "（更換圖片時可修改）" : ""}</span><select value={form.source_page_label || pageLabels[0]} disabled={!adding && !form.file} onChange={event => update("source_page_label", event.target.value)}>{pageLabels.map(page => <option key={page}>{page}</option>)}</select></label>}
                     <label><span>其他可接受的完整說法（每行一項）</span><textarea rows="3" value={form.accepted_full_responses} onChange={event => update("accepted_full_responses", event.target.value)} /></label>
@@ -269,7 +269,10 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
                     {!form.file && preview?.image_url && <SpeakingVisualAid variant="admin" aid={{ kind: "private-image", image_url: preview.image_url, alt_zh: preview.alt_zh }} />}
                     {!adding && isGap && <button type="button" className="platform-secondary" disabled={working === "audio-preview"} onClick={previewAudio}><Volume2 size={17} />試聽空格停 2 秒的整句</button>}
                     {audioUrl && <audio controls autoPlay src={audioUrl}>瀏覽器不支援音訊播放。</audio>}
-                    {!adding && isGap && /^The\s+_+/i.test(asOne(selectedQuestion?.speaking_question_interactions)?.prompt_text || "") && <section className="speaking-picture-editor__voice-candidates" aria-label="The 弱讀候選">
+                    {!adding && isGap
+                        && /^The\s+_+/i.test(asOne(selectedQuestion?.speaking_question_interactions)?.prompt_text || "")
+                        && ((asOne(selectedQuestion?.speaking_question_interactions)?.prompt_text || "").match(/_{2,}/g) || []).length === 1
+                        && <section className="speaking-picture-editor__voice-candidates" aria-label="The 弱讀候選">
                         <button type="button" className="platform-secondary" disabled={working === "the-audio-candidates"} onClick={previewTheCandidates}><Volume2 size={17} />{working === "the-audio-candidates" ? "產生候選中…" : "比較 The 弱讀候選"}</button>
                         {theAudioCandidates.length > 0 && <div>
                             <p>請先完整試聽，再套用到目前這一題。已發布題庫套用後會立即更新學生音檔。</p>
