@@ -15,6 +15,7 @@
 # production
 /build
 /build-p26/
+/cloudflare-build/
 
 # local Codex and generated review artifacts
 /.codex-temp/

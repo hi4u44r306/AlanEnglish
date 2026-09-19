@@ -42,7 +42,7 @@
   },
   "scripts": {
     "start": "react-scripts start node index.js",
-    "build": "react-scripts build && node scripts/generate-static-seo-pages.mjs",
+    "build": "react-scripts build && node scripts/generate-static-seo-pages.mjs && node scripts/prepare-cloudflare-assets.mjs",
     "test": "react-scripts test",
     "test:material-commerce-contracts": "node --test scripts/material-commerce-contract.test.mjs",
     "test:storefront-contracts": "node --test scripts/storefront-contract.test.mjs",
