@@ -16,9 +16,9 @@ const copyByType = {
     picture_gap_sentence: {
         eyebrow: "看圖補完整句",
         title: "看圖片，說完整句子",
-        instruction: "先看圖片和句型。空格要用圖片答案補上，再把整句英文說出來。",
+        instruction: "先看圖片和句型。每個空格都要補上答案，再把整句英文說出來。",
         promptTitle: "輪到你說完整句子",
-        promptDetail: "可以先聽整句；整句會在空格停 2 秒，不會播放答案。"
+        promptDetail: "可以先聽整句；整句會在每個挖空處停 2 秒，不會播放答案。"
     }
 };
 
@@ -135,8 +135,8 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
                 className="speaking-gap-sentence-audio"
                 onClick={playSentence}
                 disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioToken !== null}
-                aria-label="播放整句發音；空格停留 2 秒"
-            ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（空格停 2 秒）"}</button>}
+                aria-label="播放整句發音；每個挖空處停留 2 秒"
+            ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
             {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>

@@ -13,6 +13,7 @@ const LEVEL_THRESHOLDS = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4
 const REPORT_CATEGORIES = new Set(["inappropriate_nickname", "harassment", "cheating", "other"]);
 const FRIEND_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const AVATAR_BUCKET = "student-avatars";
+const NICKNAME_CHANGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 const DEFAULT_AVATAR_PATHS = new Set([
     "/default-avatars/alan-cat.png",
     "/default-avatars/alan-fox.png",
@@ -22,7 +23,9 @@ const DEFAULT_AVATAR_PATHS = new Set([
 ]);
 const DISALLOWED_NICKNAME_TERMS = [
     "色情", "性愛", "性交", "裸照", "裸體", "成人片", "援交", "約炮", "性奴", "強姦",
-    "雞巴", "陰莖", "乳房", "屌", "屄", "幹", "操", "婊", "賤", "白痴", "智障",
+    "雞巴", "陰莖", "乳房", "屌", "屄", "幹", "肏", "操", "婊", "賤", "白痴", "智障", "低能", "白目", "北七", "87",
+    "幹你", "幹你娘", "幹您娘", "幹拎娘", "幹林娘", "姦恁娘", "姦你娘", "肏你", "肏你媽",
+    "機掰", "雞掰", "機歪", "雞歪", "機八", "雞八", "臭機掰", "臭雞掰", "靠北", "靠邀", "靠夭", "靠母", "靠腰", "靠杯", "g8", "gy",
     "porn", "sex", "nude", "naked", "fuck", "shit", "bitch", "dick", "pussy", "asshole"
 ];
 
@@ -114,6 +117,22 @@ const nicknameHistory = async (admin: any, studentId: number) => {
     if (error) throw error;
     return data || [];
 };
+const nicknameChangeCooldown = (
+    history: Array<{ changed_at?: string; previous_nickname?: string | null }>,
+    now = Date.now(),
+) => {
+    // The first nickname is initial setup, not a rename. Only a real rename starts the cooldown.
+    const latestActualChange = history.find((item) => item.previous_nickname);
+    const latestChangeAt = Date.parse(latestActualChange?.changed_at || "");
+    if (!Number.isFinite(latestChangeAt)) return null;
+
+    const availableAt = latestChangeAt + NICKNAME_CHANGE_COOLDOWN_MS;
+    return availableAt > now ? availableAt : null;
+};
+const formatNicknameChangeAvailableAt = (availableAt: number) => new Date(availableAt).toLocaleString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    hour12: false
+});
 const saveSocialProfile = async (
     admin: any,
     callerId: number,
@@ -145,8 +164,8 @@ const saveSocialProfile = async (
     return { conflict: false, profile: data };
 };
 
-// A chosen system avatar can be shown while searching. Uploaded photos remain
-// private until both students have accepted the friendship; their URL is short-lived.
+// Displayed photos always use a short-lived URL. The caller decides which social
+// relationship is allowed to see an uploaded avatar.
 const socialAvatar = async (admin: any, avatarPath: unknown, canViewUploadedPhoto: boolean) => {
     const normalized = cleanText(avatarPath, 1000);
     if (!normalized) return null;
@@ -158,7 +177,13 @@ const socialAvatar = async (admin: any, avatarPath: unknown, canViewUploadedPhot
     return data?.signedUrl || null;
 };
 
-const buildPeople = async (admin: any, ids: number[], viewerId: number, friendIds: Set<number>) => {
+const buildPeople = async (
+    admin: any,
+    ids: number[],
+    viewerId: number,
+    friendIds: Set<number>,
+    avatarVisibleIds = friendIds,
+) => {
     const uniqueIds = [...new Set(ids.filter(Boolean))];
     if (!uniqueIds.length) return new Map<number, any>();
     const [{ data: students, error: studentError }, { data: profiles, error: profileError }, { data: balances, error: balanceError }] = await Promise.all([
@@ -180,7 +205,7 @@ const buildPeople = async (admin: any, ids: number[], viewerId: number, friendId
         return [id, {
             student_id: id,
             nickname: profile.nickname,
-            avatar_url: await socialAvatar(admin, avatarPathById.get(id), isSelf || isFriend),
+            avatar_url: await socialAvatar(admin, avatarPathById.get(id), isSelf || avatarVisibleIds.has(id)),
             friend_code: isSelf ? profile.friend_code : undefined,
             presence: presenceLabel(profile.last_active_at, isSelf || (isFriend && profile.presence_visibility === "friends")),
             stats: canSeeStats ? { total_xp: totalXp, level: getLevel(totalXp) } : null
@@ -225,11 +250,22 @@ Deno.serve(async (req: Request) => {
         if (action === "update_nickname") {
             const nickname = validNickname(body.nickname);
             if (!nickname) return json(req, 400, { success: false, error: "暱稱格式不正確或包含不適合公開顯示的內容" });
-            const { data: existing, error: existingError } = await admin.from("student_social_profiles")
-                .select("stats_visibility,presence_visibility")
-                .eq("student_id", caller.id)
-                .maybeSingle();
+            const [{ data: existing, error: existingError }, history] = await Promise.all([
+                admin.from("student_social_profiles")
+                    .select("nickname,stats_visibility,presence_visibility")
+                    .eq("student_id", caller.id)
+                    .maybeSingle(),
+                nicknameHistory(admin, caller.id)
+            ]);
             if (existingError) throw existingError;
+            const unchanged = existing?.nickname?.toLocaleLowerCase("en-US") === nickname.toLocaleLowerCase("en-US");
+            const availableAt = unchanged ? null : nicknameChangeCooldown(history);
+            if (availableAt) {
+                return json(req, 429, {
+                    success: false,
+                    error: `公開暱稱每 7 天只能修改一次，可於 ${formatNicknameChangeAvailableAt(availableAt)} 後再試`
+                });
+            }
             const saved = await saveSocialProfile(
                 admin,
                 caller.id,
@@ -248,15 +284,23 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "update_profile") {
-            const nickname = validNickname(body.nickname);
             const statsVisibility = cleanText(body.stats_visibility, 20) || "friends";
             const presenceVisibility = cleanText(body.presence_visibility, 20) || "friends";
-            if (!nickname || !["self", "friends"].includes(statsVisibility) || !["hidden", "friends"].includes(presenceVisibility)) {
-                return json(req, 400, { success: false, error: "暱稱格式不正確或包含不適合公開顯示的內容" });
+            if (!["self", "friends"].includes(statsVisibility) || !["hidden", "friends"].includes(presenceVisibility)) {
+                return json(req, 400, { success: false, error: "公開設定格式不正確" });
             }
-            const saved = await saveSocialProfile(admin, caller.id, nickname, statsVisibility, presenceVisibility, "friends_profile");
+            const { data: existing, error: existingError } = await admin.from("student_social_profiles")
+                .select("nickname")
+                .eq("student_id", caller.id)
+                .maybeSingle();
+            if (existingError) throw existingError;
+            if (!existing?.nickname) {
+                return json(req, 409, { success: false, error: "請先到我的設定建立公開暱稱" });
+            }
+            // 好友頁只調整公開範圍；暱稱只能由 update_nickname 修改，避免繞過 7 天限制。
+            const saved = await saveSocialProfile(admin, caller.id, existing.nickname, statsVisibility, presenceVisibility, "friends_privacy");
             if (saved.conflict) return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
-            await writeAudit(admin, caller.id, "profile_update");
+            await writeAudit(admin, caller.id, "privacy_update");
             return json(req, 200, { success: true, profile: saved.profile });
         }
 
@@ -269,8 +313,15 @@ Deno.serve(async (req: Request) => {
             const outgoing = (relations || []).filter((item: any) => item.status === "pending" && Number(item.requester_id) === caller.id);
             const { data: blocks, error: blockError } = await admin.from("student_social_blocks").select("blocked_id").eq("blocker_id", caller.id);
             if (blockError) throw blockError;
-            const ids = [caller.id, ...friendIds, ...incoming.map((item: any) => Number(item.requester_id)), ...outgoing.map((item: any) => Number(item.addressee_id)), ...(blocks || []).map((item: any) => Number(item.blocked_id))];
-            const people = await buildPeople(admin, ids, caller.id, friendIds);
+            const blockedIds = (blocks || []).map((item: any) => Number(item.blocked_id));
+            const avatarVisibleIds = new Set<number>([
+                ...friendIds,
+                ...incoming.map((item: any) => Number(item.requester_id)),
+                ...outgoing.map((item: any) => Number(item.addressee_id)),
+                ...blockedIds
+            ]);
+            const ids = [caller.id, ...friendIds, ...incoming.map((item: any) => Number(item.requester_id)), ...outgoing.map((item: any) => Number(item.addressee_id)), ...blockedIds];
+            const people = await buildPeople(admin, ids, caller.id, friendIds, avatarVisibleIds);
             const relationPerson = (item: any, id: number) => ({ id: item.id, created_at: item.created_at, person: people.get(id) || null });
             return json(req, 200, {
                 success: true,
@@ -279,7 +330,7 @@ Deno.serve(async (req: Request) => {
                 friends: accepted.map((item: any) => relationPerson(item, Number(item.requester_id) === caller.id ? Number(item.addressee_id) : Number(item.requester_id))).filter((item: any) => item.person),
                 incoming_requests: incoming.map((item: any) => relationPerson(item, Number(item.requester_id))).filter((item: any) => item.person),
                 outgoing_requests: outgoing.map((item: any) => relationPerson(item, Number(item.addressee_id))).filter((item: any) => item.person),
-                blocked: (blocks || []).map((item: any) => people.get(Number(item.blocked_id))).filter(Boolean)
+                blocked: blockedIds.map((id: number) => people.get(id)).filter(Boolean)
             });
         }
 
@@ -303,7 +354,7 @@ Deno.serve(async (req: Request) => {
                 admin.from("student_friendships").select("id,requester_id,addressee_id,status").or(relationFilter(caller.id, targetId)).maybeSingle()
             ]);
             if (block || target?.role !== "student" || target?.account_status !== "active" || targetAccess?.is_active !== true) return json(req, 200, { success: true, result: null });
-            return json(req, 200, { success: true, result: { student_id: targetId, nickname: found.nickname, avatar_url: await socialAvatar(admin, target.user_image, relation?.status === "accepted"), relationship: relation || null } });
+            return json(req, 200, { success: true, result: { student_id: targetId, nickname: found.nickname, avatar_url: await socialAvatar(admin, target.user_image, true), relationship: relation || null } });
         }
 
         if (action === "send_request") {
@@ -353,6 +404,17 @@ Deno.serve(async (req: Request) => {
             return json(req, 200, { success: true, status });
         }
 
+        if (action === "cancel_request") {
+            const requestId = positiveInteger(body.request_id);
+            if (!requestId) return json(req, 400, { success: false, error: "邀請資料不正確" });
+            const { data: relation } = await admin.from("student_friendships").select("id,requester_id,addressee_id,status").eq("id", requestId).maybeSingle();
+            if (!relation || relation.status !== "pending" || Number(relation.requester_id) !== caller.id) return json(req, 404, { success: false, error: "這筆好友邀請已不存在" });
+            const { error } = await admin.from("student_friendships").delete().eq("id", requestId).eq("requester_id", caller.id).eq("status", "pending");
+            if (error) throw error;
+            await writeAudit(admin, caller.id, "friend_request_cancel", Number(relation.addressee_id));
+            return json(req, 200, { success: true });
+        }
+
         if (action === "remove_friend") {
             const targetId = positiveInteger(body.student_id);
             if (!targetId) return json(req, 400, { success: false, error: "好友資料不正確" });
@@ -368,7 +430,9 @@ Deno.serve(async (req: Request) => {
             const { error } = await admin.from("student_social_blocks").upsert({ blocker_id: caller.id, blocked_id: targetId }, { onConflict: "blocker_id,blocked_id" });
             if (error) throw error;
             await Promise.all([
-                admin.from("student_friendships").delete().or(relationFilter(caller.id, targetId)),
+                // 封鎖不解除既有好友；解除封鎖後仍可回到原本的好友與戰績權限。
+                // 只有尚未成立的邀請會取消，避免封鎖期間仍能接受或回覆邀請。
+                admin.from("student_friendships").delete().neq("status", "accepted").or(relationFilter(caller.id, targetId)),
                 writeAudit(admin, caller.id, "block", targetId)
             ]);
             return json(req, 200, { success: true });

@@ -28,10 +28,10 @@ import {
     DEFAULT_MALE_VOICE_ID
 } from "../_shared/speaking-voice-assignment.ts";
 import {
-    assemblePictureGapSentenceWav,
+    assemblePictureGapSentenceSegmentsWav,
     googleSpeechInputForText,
     pictureGapTheCandidateInput,
-    pictureGapSentenceParts,
+    pictureGapSentenceSegments,
     PICTURE_GAP_THE_CANDIDATE_PROFILES,
     PICTURE_GAP_THE_CANDIDATE_VERSION,
     PICTURE_SENTENCE_AUDIO_VERSION,
@@ -180,16 +180,18 @@ const requestGoogleAudio = async (input: GoogleSpeechInput, selectedVoice: strin
 };
 
 const requestGoogleGapSentenceAudio = async (pattern: string, selectedVoice: string) => {
-    const { before, after } = pictureGapSentenceParts(pattern);
-    const beforeAudio = await requestGoogleAudio(googleSpeechInputForText(before), selectedVoice);
-    const spokenAfter = ttsTextWithoutTerminalFullStops(after);
-    const afterAudio = spokenAfter
-        ? await requestGoogleAudio(googleSpeechInputForText(spokenAfter), selectedVoice)
-        : null;
-    const assembled = assemblePictureGapSentenceWav(beforeAudio.bytes, afterAudio?.bytes || null, PICTURE_SENTENCE_GAP_MS);
+    const segments = pictureGapSentenceSegments(pattern);
+    const segmentAudio = await Promise.all(segments.map(segment => {
+        const spoken = ttsTextWithoutTerminalFullStops(segment);
+        return spoken ? requestGoogleAudio(googleSpeechInputForText(spoken), selectedVoice) : Promise.resolve(null);
+    }));
+    const assembled = assemblePictureGapSentenceSegmentsWav(
+        segmentAudio.map(audio => audio?.bytes || null),
+        PICTURE_SENTENCE_GAP_MS
+    );
     return {
         ...assembled,
-        usedCharacters: beforeAudio.usedCharacters + (afterAudio?.usedCharacters || 0)
+        usedCharacters: segmentAudio.reduce((total, audio) => total + (audio?.usedCharacters || 0), 0)
     };
 };
 
@@ -965,6 +967,10 @@ Deno.serve(async (req: Request) => {
             if (interactionError) throw interactionError;
             if (interaction?.interaction_type !== "picture_gap_sentence" || !interaction?.prompt_text) {
                 return json(409, { error: "這一題缺少看圖補句語音資料" });
+            }
+            if (["preview_picture_gap_the_candidates", "activate_picture_gap_the_candidate"].includes(action)
+                && (String(interaction.prompt_text).match(/_{2,}/g) || []).length !== 1) {
+                return json(409, { error: "The 弱讀候選只適用於單一挖空題；多挖空題請使用標準分段語音" });
             }
             if (action === "preview_picture_gap_the_candidates") {
                 return json(200, await preparePictureGapTheCandidates(admin, question, interaction.prompt_text));

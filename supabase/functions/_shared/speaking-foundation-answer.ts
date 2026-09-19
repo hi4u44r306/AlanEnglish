@@ -95,22 +95,42 @@ export const normalizedSpokenSentence = (value: unknown) => String(value || "")
     .replace(/\s+/g, " ")
     .trim();
 
-export const visibleSentenceWords = (value: unknown) => (String(value || "")
+// Chinese IMEs can produce full-width low lines even when the author intends
+// to type ____. Canonicalize both forms before validation and persistence.
+export const normalizePictureGapPrompt = (value: unknown) => String(value || "")
+    .replace(/[_＿﹍﹎]{2,}/g, "____");
+
+export const visibleSentenceWords = (value: unknown) => (normalizePictureGapPrompt(value)
     .match(/_+|[A-Za-z]+(?:['’][A-Za-z]+)?|[^A-Za-z_\s]+/g) || [])
     .map((text, tokenIndex) => ({ text, tokenIndex }))
     .filter(token => /^[A-Za-z]+(?:['’][A-Za-z]+)?$/.test(token.text));
 
 export const pictureGapAnswerMatchesPrompt = (promptText: unknown, answerText: unknown) => {
-    const pieces = String(promptText || "").split(/_{2,}/);
-    if (pieces.length !== 2) return false;
-    const before = normalizedSpokenSentence(pieces[0]);
-    const after = normalizedSpokenSentence(pieces[1]);
-    const answer = normalizedSpokenSentence(answerText);
-    if (!answer || (before && answer !== before && !answer.startsWith(`${before} `))
-        || (after && answer !== after && !answer.endsWith(` ${after}`))) return false;
-    const fillStart = before.length;
-    const fillEnd = after ? answer.length - after.length : answer.length;
-    return Boolean(answer.slice(fillStart, fillEnd).trim());
+    const rawPieces = normalizePictureGapPrompt(promptText).split(/_{2,}/);
+    if (rawPieces.length < 2) return false;
+    const pieces = rawPieces.map(piece => normalizedSpokenSentence(piece).split(" ").filter(Boolean));
+    if (pieces.slice(1, -1).some(piece => piece.length === 0)) return false;
+    const answer = normalizedSpokenSentence(answerText).split(" ").filter(Boolean);
+    if (!answer.length) return false;
+    const matchesAt = (piece: string[], start: number) => (
+        piece.every((token, offset) => answer[start + offset] === token)
+    );
+    if (pieces[0].length && !matchesAt(pieces[0], 0)) return false;
+
+    const matchRemaining = (pieceIndex: number, cursor: number): boolean => {
+        if (pieceIndex >= pieces.length) return cursor === answer.length;
+        const piece = pieces[pieceIndex];
+        const isLast = pieceIndex === pieces.length - 1;
+        if (!piece.length) return isLast && cursor < answer.length;
+        for (let start = cursor + 1; start + piece.length <= answer.length; start += 1) {
+            if (!matchesAt(piece, start)) continue;
+            const nextCursor = start + piece.length;
+            if (isLast ? nextCursor === answer.length : matchRemaining(pieceIndex + 1, nextCursor)) return true;
+        }
+        return false;
+    };
+
+    return matchRemaining(1, pieces[0].length);
 };
 
 export const pictureQaResponseHasQuestionAndAnswer = (value: unknown) => {

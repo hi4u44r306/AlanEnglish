@@ -172,7 +172,7 @@ describe("WorkbookOnePictureChallenge", () => {
                     visual_aid: privateVisual,
                     picture_interaction: {
                         type: "picture_gap_sentence",
-                        sentence_pattern: "The ____ is in the tree.",
+                        sentence_pattern: "The ____ is in the ____.",
                         sentence_audio_url: "https://r2.example/sentence.wav"
                     }
                 }]
@@ -184,13 +184,16 @@ describe("WorkbookOnePictureChallenge", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         expect(screen.getByRole("img", { name: "樹上的蘋果" })).toHaveAttribute("src", privateVisual.image_url);
-        expect(screen.getByLabelText("請依圖片補上的答案")).toHaveTextContent("____");
+        screen.getAllByLabelText("請依圖片補上的答案").forEach(blank => {
+            expect(blank).toHaveTextContent("____");
+        });
         expect(screen.queryByRole("button", { name: /apple/i })).not.toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /播放 The 的發音/ })).not.toBeInTheDocument();
         expect(screen.getByText("The")).toBeInTheDocument();
         expect(screen.getByText("the")).toBeInTheDocument();
+        expect(screen.getAllByLabelText("請依圖片補上的答案")).toHaveLength(2);
 
-        fireEvent.click(screen.getByRole("button", { name: "播放整句發音；空格停留 2 秒" }));
+        fireEvent.click(screen.getByRole("button", { name: "播放整句發音；每個挖空處停留 2 秒" }));
         expect(global.Audio).toHaveBeenLastCalledWith("https://r2.example/sentence.wav");
         expect(audioInstances.at(-1).play).toHaveBeenCalledTimes(1);
         act(() => audioInstances.at(-1).onended());
@@ -234,7 +237,7 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-        const sentenceButton = screen.getByRole("button", { name: "播放整句發音；空格停留 2 秒" });
+        const sentenceButton = screen.getByRole("button", { name: "播放整句發音；每個挖空處停留 2 秒" });
         fireEvent.click(sentenceButton);
         expect(await screen.findByRole("alert")).toHaveTextContent("瀏覽器阻擋了播放，請再按一次聽整句。");
         await waitFor(() => expect(sentenceButton).toBeEnabled());
@@ -274,7 +277,7 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-        const sentenceButton = screen.getByRole("button", { name: "播放整句發音；空格停留 2 秒" });
+        const sentenceButton = screen.getByRole("button", { name: "播放整句發音；每個挖空處停留 2 秒" });
         fireEvent.click(sentenceButton);
         act(() => failedAudio.onerror());
         expect(await screen.findByRole("alert")).toHaveTextContent("整句發音暫時無法播放，請稍後再試。");

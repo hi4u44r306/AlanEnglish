@@ -1,7 +1,7 @@
 import { parseLinear16MonoWav } from "./alphabet-audio-sequence.ts";
 
 export const PICTURE_SENTENCE_GAP_MS = 2000;
-export const PICTURE_SENTENCE_AUDIO_VERSION = "picture-gap-leda-v3";
+export const PICTURE_SENTENCE_AUDIO_VERSION = "picture-gap-leda-v4";
 export const VISIBLE_WORD_AUDIO_VERSION = "visible-word-leda-v2";
 export const PICTURE_GAP_THE_CANDIDATE_VERSION = "picture-gap-the-context-v2";
 
@@ -39,6 +39,20 @@ export const pictureGapSentenceParts = (pattern: unknown) => {
     const after = normalized.slice(start + match[0].length).trim();
     if (!before) throw new Error("看圖補句的空格前必須有可朗讀文字");
     return { before, after };
+};
+
+export const pictureGapSentenceSegments = (pattern: unknown) => {
+    const normalized = String(pattern || "").trim();
+    const segments = normalized.split(/_{2,}/).map(segment => segment.trim());
+    const blankCount = segments.length - 1;
+    if (blankCount < 1 || blankCount > 8) throw new Error("看圖補句必須包含 1～8 個挖空");
+    if (segments.slice(1, -1).some(segment => !ttsTextWithoutTerminalFullStops(segment))) {
+        throw new Error("相鄰挖空之間必須有可朗讀文字");
+    }
+    if (!segments.some(segment => ttsTextWithoutTerminalFullStops(segment))) {
+        throw new Error("看圖補句必須保留可朗讀文字");
+    }
+    return segments;
 };
 
 export const googleSpeechInputForText = (value: unknown): GoogleSpeechInput => {
@@ -93,25 +107,43 @@ export const assemblePictureGapSentenceWav = (
     afterBytes: Uint8Array | null,
     gapMs = PICTURE_SENTENCE_GAP_MS
 ) => {
+    return assemblePictureGapSentenceSegmentsWav([beforeBytes, afterBytes], gapMs);
+};
+
+export const assemblePictureGapSentenceSegmentsWav = (
+    segmentBytes: Array<Uint8Array | null>,
+    gapMs = PICTURE_SENTENCE_GAP_MS
+) => {
     if (!Number.isInteger(gapMs) || gapMs !== PICTURE_SENTENCE_GAP_MS) {
         throw new Error("看圖補句整句音檔必須保留 2 秒空格");
     }
-    const before = parseLinear16MonoWav(beforeBytes);
-    const after = afterBytes?.length ? parseLinear16MonoWav(afterBytes) : null;
-    if (after && (before.sampleRate !== after.sampleRate
-        || before.channels !== after.channels
-        || before.bitsPerSample !== after.bitsPerSample
-        || before.blockAlign !== after.blockAlign)) {
-        throw new Error("看圖補句前後語音的 WAV 取樣格式不一致");
+    if (!Array.isArray(segmentBytes) || segmentBytes.length < 2) {
+        throw new Error("看圖補句整句音檔至少需要一個挖空");
     }
-    const silenceFrames = Math.round(before.sampleRate * gapMs / 1000);
-    const silenceBytes = silenceFrames * before.blockAlign;
-    const pcm = new Uint8Array(before.data.length + silenceBytes + (after?.data.length || 0));
-    pcm.set(before.data, 0);
-    if (after) pcm.set(after.data, before.data.length + silenceBytes);
-    const durationMs = Math.round((pcm.length / before.blockAlign) * 1000 / before.sampleRate);
+    const parsed = segmentBytes.map(bytes => bytes?.length ? parseLinear16MonoWav(bytes) : null);
+    const format = parsed.find(Boolean);
+    if (!format) throw new Error("看圖補句整句音檔缺少可朗讀語音");
+    if (parsed.some(segment => segment && (format.sampleRate !== segment.sampleRate
+        || format.channels !== segment.channels
+        || format.bitsPerSample !== segment.bitsPerSample
+        || format.blockAlign !== segment.blockAlign))) {
+        throw new Error("看圖補句各段語音的 WAV 取樣格式不一致");
+    }
+    const silenceFrames = Math.round(format.sampleRate * gapMs / 1000);
+    const silenceBytes = silenceFrames * format.blockAlign;
+    const dataBytes = parsed.reduce((total, segment) => total + (segment?.data.length || 0), 0);
+    const pcm = new Uint8Array(dataBytes + silenceBytes * (parsed.length - 1));
+    let offset = 0;
+    parsed.forEach((segment, index) => {
+        if (segment) {
+            pcm.set(segment.data, offset);
+            offset += segment.data.length;
+        }
+        if (index < parsed.length - 1) offset += silenceBytes;
+    });
+    const durationMs = Math.round((pcm.length / format.blockAlign) * 1000 / format.sampleRate);
     return {
-        bytes: buildPcmWav(pcm, before.sampleRate, before.channels, before.bitsPerSample),
+        bytes: buildPcmWav(pcm, format.sampleRate, format.channels, format.bitsPerSample),
         durationMs
     };
 };

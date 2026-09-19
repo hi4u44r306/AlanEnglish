@@ -222,7 +222,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
             challenges: [
                 { id: 1, title: "01 自我介紹", topic: "Names", difficulty: "E1", book: { id: 1, name: "Workbook 1" }, question_count: 4, completed_count: 4, sequence_order: 1, is_completed: true },
                 { id: 2, title: "02 顏色", topic: "Colors", difficulty: "E1", book: { id: 1, name: "Workbook 1" }, question_count: 6, completed_count: 0, sequence_order: 2, is_completed: false },
-                { id: 3, title: "01 打招呼", topic: "Greetings", difficulty: "E3", book: { id: 2, name: "Workbook 2" }, question_count: 5, completed_count: 0, sequence_order: 1, is_completed: false }
+                { id: 3, title: "01 打招呼", topic: "Greetings", difficulty: "E3", book: { id: 2, name: "Workbook 2" }, question_count: 5, completed_count: 0, sequence_order: 1, is_completed: false },
+                { id: 4, title: "P4 石榴的眼睛", topic: "Body parts", difficulty: "E5", book: { id: 3, name: "Workbook 3" }, source_pages: [4], question_count: 3, completed_count: 0, sequence_order: 10004, is_completed: false }
             ]
         });
 
@@ -230,12 +231,14 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         const workbookOne = await screen.findByRole("button", { name: "開啟 Workbook 1，共 2 關，已完成 1 關，每關首次通關 30 XP、最多 3 AE Points" });
         const workbookTwo = screen.getByRole("button", { name: "開啟 Workbook 2，共 1 關，已完成 0 關，每關首次通關 30 XP、最多 3 AE Points" });
+        const workbookThree = screen.getByRole("button", { name: "開啟 Workbook 3，共 1 關，已完成 0 關，每關首次通關 30 XP、最多 3 AE Points" });
         expect(workbookOne).toHaveClass("speaking-book-card--theme-0");
         expect(workbookTwo).toHaveClass("speaking-book-card--theme-1");
         expect(screen.getByRole("progressbar", { name: "Workbook 1 完成進度" })).toHaveAttribute("aria-valuenow", "50");
         expect(screen.getByRole("progressbar", { name: "Workbook 2 完成進度" })).toHaveAttribute("aria-valuenow", "0");
         expect(workbookOne).toHaveTextContent("繼續冒險");
         expect(workbookTwo).toHaveTextContent("開始冒險");
+        expect(workbookThree).toHaveTextContent("開始冒險");
         expect(workbookOne).toHaveTextContent("每關首次通關30 XP最多 3 AE Points");
         expect(workbookTwo).toHaveTextContent("每關首次通關30 XP最多 3 AE Points");
 

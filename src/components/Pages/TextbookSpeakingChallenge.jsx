@@ -189,7 +189,9 @@ export default function TextbookSpeakingChallenge() {
                 .map(section => ({
                     id: section,
                     ...CATALOG_SECTION_COPY[section],
-                    items: [...group.sections.get(section)].sort((left, right) => Number(left.sequence_order || 0) - Number(right.sequence_order || 0) || Number(left.id) - Number(right.id))
+                    items: [...group.sections.get(section)].sort((left, right) => Number(left.sequence_order || 0) - Number(right.sequence_order || 0)
+                        || Number(left.source_pages?.at(-1) || 0) - Number(right.source_pages?.at(-1) || 0)
+                        || Number(left.id) - Number(right.id))
                 }));
             const guardedSections = sections.map(section => ({
                 ...section,

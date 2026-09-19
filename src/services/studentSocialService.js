@@ -11,6 +11,7 @@ export const updateNickname = (firebaseUser, nickname) => callSocial(firebaseUse
 export const searchStudents = (firebaseUser, query) => callSocial(firebaseUser, "search", { query });
 export const sendFriendRequest = (firebaseUser, studentId) => callSocial(firebaseUser, "send_request", { student_id: studentId });
 export const respondFriendRequest = (firebaseUser, requestId, decision) => callSocial(firebaseUser, "respond_request", { request_id: requestId, decision });
+export const cancelFriendRequest = (firebaseUser, requestId) => callSocial(firebaseUser, "cancel_request", { request_id: requestId });
 export const removeFriend = (firebaseUser, studentId) => callSocial(firebaseUser, "remove_friend", { student_id: studentId });
 export const blockStudent = (firebaseUser, studentId) => callSocial(firebaseUser, "block", { student_id: studentId });
 export const unblockStudent = (firebaseUser, studentId) => callSocial(firebaseUser, "unblock", { student_id: studentId });

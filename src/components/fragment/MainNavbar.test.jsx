@@ -85,11 +85,11 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
-        expect(screen.getAllByRole("button", { name: "開口說" })).toHaveLength(2);
+        expect(screen.getAllByRole("button", { name: "口說練習" })).toHaveLength(2);
         expect(screen.getByRole("button", { name: "學習功能" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "前往我的設定" })).toHaveAttribute("href", "/student/settings");
-        expect(screen.getByRole("link", { name: "我的設定" })).toHaveAttribute("href", "/student/settings");
+        expect(screen.getByRole("link", { name: "前往帳號" })).toHaveAttribute("href", "/student/settings");
+        expect(screen.getByRole("link", { name: "帳號" })).toHaveAttribute("href", "/student/settings");
         const bottomNavigation = screen.getByRole("navigation", { name: "學生主要導覽" });
         expect(bottomNavigation).toBeInTheDocument();
         expect(bottomNavigation.parentElement).toBe(document.body);
@@ -99,12 +99,12 @@ describe("MainNavbar student navigation", () => {
         const mobileMenu = await screen.findByRole("complementary");
         expect(within(mobileMenu).getByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
         expect(prefetchReviewDashboard).toHaveBeenCalledWith(expect.objectContaining({ uid: "student-test" }));
-        expect(within(mobileMenu).getByRole("link", { name: "好友與戰績" })).toHaveAttribute("href", "/student/friends");
+        expect(within(mobileMenu).getByRole("link", { name: "好友" })).toHaveAttribute("href", "/student/friends");
         expect(within(mobileMenu).getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
-        expect(within(mobileMenu).getByRole("link", { name: "我的設定" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "帳號" })).toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
     });
@@ -331,7 +331,7 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        fireEvent.click(screen.getAllByRole("button", { name: "開口說" })[0]);
+        fireEvent.click(screen.getAllByRole("button", { name: "口說練習" })[0]);
         expect(screen.getByRole("link", { name: /發音教練/ })).toHaveAttribute("href", "/student/pronunciation");
         expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));

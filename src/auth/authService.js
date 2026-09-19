@@ -3,6 +3,7 @@ import { authentication } from "../components/Pages/firebase-config";
 import { recordLoginActivity } from "../services/learningActivityService";
 import { getMembershipProfile } from "../services/membershipService";
 import { clearAppShellCache } from "../services/appShellCache";
+import { cacheStudentAvatarDisplayUrl, clearStudentAvatarCache } from "../constants/studentAvatarCache";
 
 const PROFILE_CACHE_KEY = "ae-profile-cache-v2";
 const pendingProfileRequests = new Map();
@@ -31,7 +32,19 @@ export const saveStudentSession = (firebaseUser, student) => {
     localStorage.setItem("ae-studentid", String(student.id || ""));
     localStorage.setItem("ae-username", student.name || firebaseUser.email?.split("@")[0] || "");
     localStorage.setItem("ae-class", student.class || "");
-    localStorage.setItem("ae-userimage", student.user_image || student.userimage || "");
+    const defaultAvatarPath = String(student.user_image || student.userimage || "").startsWith("/default-avatars/")
+        ? (student.user_image || student.userimage)
+        : "";
+    const avatarDisplayUrl = student.avatar_url || defaultAvatarPath;
+    const avatarSourceKey = student.user_image || student.userimage || defaultAvatarPath;
+    if (avatarDisplayUrl) {
+        cacheStudentAvatarDisplayUrl(avatarDisplayUrl, {
+            ownerUid: firebaseUser.uid,
+            sourceKey: avatarSourceKey
+        });
+    } else {
+        clearStudentAvatarCache(firebaseUser.uid);
+    }
     localStorage.setItem("ae-plan", student.plan || "");
     localStorage.setItem("ae-role", student.role || "student");
     localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(normalizedProfile));

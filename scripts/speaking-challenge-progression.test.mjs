@@ -24,6 +24,14 @@ test("P 開頭的教材頁碼會保留固定關卡順序", () => {
     ]).map(item => item.id), [14, 22]);
 });
 
+test("Workbook 3 首批關卡依起始頁、結束頁與編號穩定排序", () => {
+    assert.deepEqual(sortSpeakingChallengeSets([
+        { id: 32, title: "P8 眼睛", generation_metadata: { source_pages: [8] } },
+        { id: 31, title: "P4～P5 石榴", generation_metadata: { source_pages: [4, 5] } },
+        { id: 30, title: "P4 石榴", generation_metadata: { source_pages: [4] } }
+    ]).map(item => item.id), [30, 31, 32]);
+});
+
 test("學生必須完整通關前一關才會解鎖下一關", () => {
     const noProgress = speakingChallengeUnlockState(challenges, new Set());
     assert.deepEqual(noProgress.map(item => item.is_unlocked), [true, false, false]);

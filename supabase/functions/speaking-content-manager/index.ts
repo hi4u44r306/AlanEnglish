@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
 import {
+    normalizePictureGapPrompt,
     pictureGapAnswerMatchesPrompt,
     pictureQaResponseHasQuestionAndAnswer,
     visibleSentenceWords
@@ -383,7 +384,9 @@ const normalizePictureDraftQuestions = (value: unknown, interactionType: string,
     if (!Array.isArray(value) || value.length < 1 || value.length > 50
         || (Number.isInteger(expectedQuestionCount) && value.length !== expectedQuestionCount)) return null;
     const rows = value.map((row: any) => {
-        const promptText = cleanText(row?.prompt_text, 800);
+        const rawPromptText = cleanText(row?.prompt_text, 800);
+        const promptText = interactionType === "picture_gap_sentence"
+            ? normalizePictureGapPrompt(rawPromptText) : rawPromptText;
         const answerText = cleanText(row?.answer_text, 2000);
         const acceptedFullResponses = cleanArray(row?.accepted_full_responses, 12, 500);
         const pronunciationNotes = cleanText(row?.pronunciation_notes_zh, 1200) || null;
@@ -399,7 +402,8 @@ const normalizePictureDraftQuestions = (value: unknown, interactionType: string,
         const valid = Boolean(promptText && answerText && expectedFullAnswer.length <= 500)
             && (interactionType !== "picture_qa" || /\?$/.test(promptText))
             && (interactionType !== "picture_gap_sentence" || (
-                blankCount === 1 && blankParts.length === 2 && blankParts.every(part => part.trim())
+                blankCount >= 1 && blankCount <= 8 && blankParts.length === blankCount + 1
+                && blankParts.slice(1, -1).every(part => part.trim())
                 && !answerText.includes("_") && pictureGapAnswerMatchesPrompt(promptText, answerText)
                 && visibleWords.length >= 1 && visibleWords.length <= 48
                 && visibleWords.every(token => token.tokenIndex <= 63)
@@ -423,7 +427,9 @@ const normalizeManualStandardQuestions = (value: unknown) => {
 
 const normalizePictureDraftQuestion = (value: unknown, interactionType: string) => {
     const row: any = value || {};
-    const promptText = cleanText(row?.prompt_text, 800);
+    const rawPromptText = cleanText(row?.prompt_text, 800);
+    const promptText = interactionType === "picture_gap_sentence"
+        ? normalizePictureGapPrompt(rawPromptText) : rawPromptText;
     const answerText = cleanText(row?.answer_text, 2000);
     const acceptedFullResponses = cleanArray(row?.accepted_full_responses, 12, 500);
     const pronunciationNotes = cleanText(row?.pronunciation_notes_zh, 1200) || null;
@@ -440,7 +446,8 @@ const normalizePictureDraftQuestion = (value: unknown, interactionType: string) 
     const valid = Boolean(promptText && answerText && altZh && expectedFullAnswer.length <= 500)
         && (interactionType !== "picture_qa" || /\?$/.test(promptText))
         && (interactionType !== "picture_gap_sentence" || (
-            blankCount === 1 && blankParts.length === 2 && blankParts.every(part => part.trim())
+            blankCount >= 1 && blankCount <= 8 && blankParts.length === blankCount + 1
+            && blankParts.slice(1, -1).every(part => part.trim())
             && !answerText.includes("_") && pictureGapAnswerMatchesPrompt(promptText, answerText)
             && visibleWords.length >= 1 && visibleWords.length <= 48
             && visibleWords.every(token => token.tokenIndex <= 63)
@@ -2137,8 +2144,12 @@ Deno.serve(async (req: Request) => {
                         || !String(interaction?.prompt_text || "").trim()
                         || !String(interaction?.answer_text || "").trim()
                         || accepted.some((value: unknown) => !String(value || "").trim())
-                        || (metadata.interaction_type === "picture_gap_sentence"
-                            && (String(interaction?.prompt_text || "").match(/_{2,}/g) || []).length !== 1)
+                        || (metadata.interaction_type === "picture_gap_sentence" && (() => {
+                            const prompt = String(interaction?.prompt_text || "");
+                            const blanks = (prompt.match(/_{2,}/g) || []).length;
+                            return blanks < 1 || blanks > 8
+                                || !pictureGapAnswerMatchesPrompt(prompt, interaction?.answer_text);
+                        })())
                         || visual?.status !== "ready"
                         || Number(visual?.book_id) !== Number(questionSet.book_id)
                         || !picturePolicy.pageLabels.includes(String(visual?.source_page_label || ""))

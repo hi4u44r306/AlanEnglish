@@ -5,7 +5,8 @@ import { toast } from "react-toastify";
 import {
     createManualSpeakingDraft,
     discardWorkbookOnePictureDraft,
-    generateSpeakingQuestionSetAudio
+    generateSpeakingQuestionSetAudio,
+    generateSpeakingVisibleWordAudio
 } from "../../services/speakingContentService";
 
 jest.mock("react-toastify", () => ({ toast: { error: jest.fn(), success: jest.fn(), warning: jest.fn() } }));
@@ -31,6 +32,7 @@ describe("ManualSpeakingDraftAdmin", () => {
             ]
         });
         generateSpeakingQuestionSetAudio.mockResolvedValue({ success: true });
+        generateSpeakingVisibleWordAudio.mockResolvedValue({ success: true });
     });
 
     it("allows a complete draft to be created without an extra confirmation checkbox", async () => {
@@ -94,5 +96,49 @@ describe("ManualSpeakingDraftAdmin", () => {
         await waitFor(() => expect(toast.warning).toHaveBeenCalledWith(expect.stringContaining("草稿與圖片已保留")));
         expect(discardWorkbookOnePictureDraft).not.toHaveBeenCalled();
         expect(onCreated).toHaveBeenCalledWith(81);
+    });
+
+    it("lets Workbook 3 create its first page-based draft with full-width blank markers", async () => {
+        const { container } = render(<ManualSpeakingDraftAdmin
+            firebaseUser={firebaseUser}
+            books={[{ id: 3, name: "Workbook 3", enabled: true }]}
+            onCreated={jest.fn()}
+        />);
+
+        fireEvent.change(screen.getByLabelText("教材"), { target: { value: "3" } });
+        expect(screen.getByText(/這本教材的第一個關卡發布後/)).toHaveTextContent("Workbook 3");
+        fireEvent.change(screen.getByLabelText("關卡名稱"), { target: { value: "P30 多挖空" } });
+        fireEvent.change(screen.getByLabelText("主題"), { target: { value: "身體部位" } });
+        screen.getAllByLabelText("學生看到的題目（用 ____ 標示挖空）").forEach(input => {
+            fireEvent.change(input, { target: { value: "They ＿＿＿＿ her ＿＿＿＿. (眼睛)" } });
+        });
+        screen.getAllByLabelText("補好答案的完整句子").forEach(input => {
+            fireEvent.change(input, { target: { value: "They are her eyes. (眼睛)" } });
+        });
+        screen.getAllByLabelText("圖片替代文字").forEach(input => {
+            fireEvent.change(input, { target: { value: "女孩的眼睛" } });
+        });
+        container.querySelectorAll('input[type="file"]').forEach(input => {
+            fireEvent.change(input, { target: { files: [new File(["image"], "eyes.png", { type: "image/png" })] } });
+        });
+
+        const submitButton = screen.getByRole("button", { name: "建立未發布草稿" });
+        expect(submitButton).toBeEnabled();
+        fireEvent.click(submitButton);
+
+        await waitFor(() => expect(createManualSpeakingDraft).toHaveBeenCalledWith(
+            firebaseUser,
+            expect.objectContaining({
+                book_id: 3,
+                interaction_type: "picture_gap_sentence",
+                questions: expect.arrayContaining([
+                    expect.objectContaining({
+                        prompt_text: "They ____ her ____. (眼睛)",
+                        answer_text: "They are her eyes. (眼睛)"
+                    })
+                ])
+            })
+        ));
+        expect(generateSpeakingVisibleWordAudio).toHaveBeenCalledWith(firebaseUser, 81);
     });
 });

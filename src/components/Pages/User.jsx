@@ -36,7 +36,7 @@ export const StudentLaunchpad = ({ user }) => {
         },
         hasSpeakingAccess && {
             id: "speaking",
-            title: "開口說",
+            title: "口說練習",
             description: "練發音，挑戰完整回答",
             action: "選擇練習",
             icon: FiMic,

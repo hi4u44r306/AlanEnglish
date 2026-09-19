@@ -1,6 +1,63 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-18
+最後更新：2026-09-19
+
+本次 Workbook 3 首關自動目錄與全形挖空修正（2026-09-19，尚未部署）：
+
+- 學生端的 Workbook 大關卡原本就是依已發布的 `speaking_question_sets` 動態分組，不需要先建立獨立的大關卡資料。管理員頁新增說明：任何已啟用 Workbook 的第一個小關卡正式發布後，學生端會自動出現對應教材卡；未發布草稿仍保持管理員可見、學生不可見。
+- 修正中文輸入法輸入全形底線時「建立未發布草稿」持續停用的問題。前端與 `speaking-content-manager` 現在都接受半形 `_`、全形 `＿` 及相容底線字元，並在驗證與保存前統一為 `____`；仍維持 1～8 個挖空及完整句答案核對。
+- 學生目錄、後端目錄與逐關解鎖共用相同穩定排序：先依來源起始頁、再依結束頁、最後依題庫 ID。相同起始頁時，單頁關卡會排在跨頁關卡前；未新增 migration、RLS、Secret 或正式資料異動。
+- 驗證：管理員草稿／學生目錄 React targeted 2 suites／25 tests、foundation answer 契約與 progression 6 tests、完整前端 75 suites／299 tests、全部 Edge Function 語法、Production build 與本批 `git diff --check` 均通過。只有既有 React Router、`act(...)`、Node module type 與 deprecation 警告，沒有測試或編譯錯誤。尚未 commit、Push、部署 Function 或部署前端。
+
+本次暱稱單一入口、口說練習名稱與頭貼即時快取（2026-09-19，尚未部署）：
+
+- 公開暱稱只能在「帳號／我的設定」建立或修改；好友頁只保留戰績與在線狀態的公開範圍。`student-social` 的 `update_profile` 改為從資料庫取得現有暱稱，不再接受前端暱稱，避免繞過 `update_nickname` 的 7 天限制。
+- 學生導覽的「開口說」已統一改為「口說練習」。頭貼快取改為依 Firebase UID 隔離的版本化記錄；學生上傳後把小尺寸圖片預覽轉成 Data URL 存入 Local Storage，重整後先顯示本機圖片，原始圖與私有路徑仍由後端管理；登出或切換帳號不會沿用前一位學生的頭貼。
+- 現有 Supabase Functions 變更全數保留，未修改 migration、RLS、Secret 或 `verify_jwt=false` 的 Firebase 自訂驗證架構。發布時應先將完整變更合併至最新 `main`，再個別部署 `pronunciation-coach`、`speaking-challenge`、`speaking-content-manager`、`speaking-tts-manager` 與 `student-social`，最後部署前端，避免共用模組、前端與後端契約不同步。
+- 驗證：相關 React／快取 targeted 5 suites／36 tests、完整前端 75 suites／299 tests、社交契約 6／6、全部 Edge Function 語法檢查、Production build 與 `git diff --check` 均通過。未 commit、Push、部署 Function 或部署前端。
+
+本次看圖補句多挖空與直接題面輸入（2026-09-19，尚未部署）：
+
+- 「從頭建立自訂口說草稿」與圖片題庫編輯器改由管理員直接輸入學生實際看到的句型，以 `____` 標示 1～8 個挖空，並另填補好後的完整答案；後端會逐段確認固定文字順序，且每個挖空至少對應一個答案單字。
+- 學生端原有句型 tokenizer 可同時顯示多個挖空，提示文字已改為每個挖空都要補上；停頓整句語音改為多段合成，每個挖空各插入精準 2 秒靜音，音檔版本升至 `picture-gap-leda-v4`。既有單一挖空題相容，單一 `The ____` 弱讀候選流程不變。
+- 不新增 migration、RLS 或正式資料異動。答案契約、語音 8 項測試、管理員／學生 React targeted tests 11 項、完整 Edge Function 語法及 Production build 均通過；全域 `git diff --check` 因目前工作目錄大量既有變更未在等待時間內完成，已另對本批檔案完成差異檢查。完整口說契約 26 項有 24 項通過，另 2 項既存失敗位於本批未修改的管理頁標題與手機導覽 CSS 契約。前端、`speaking-content-manager` 及 `speaking-tts-manager` 均尚未部署。
+
+本次封鎖保留好友關係（2026-09-19，後端已部署）：
+
+- `student-social` 的封鎖動作不再刪除已接受的 `student_friendships` 紀錄，因此封鎖期間原有好友資料與戰績可保留；解除封鎖後，雙方直接回到一般好友狀態。只有「刪除好友」會移除已接受的好友關係。尚未接受的好友邀請會在封鎖時取消，避免封鎖期間仍可回覆邀請。好友名單中的已封鎖好友會以紅色「已封鎖」按鈕標示，且不可重複封鎖。
+- 新增共用頭貼載入元件：Navbar、我的設定、排行榜以及好友搜尋／邀請／好友／封鎖與頭貼放大預覽，在圖片尚未成功載入前都顯示轉動動畫；載入失敗則停止動畫並回退既有名字首字或失敗提示。
+- 社交契約 6/6、所有 Edge Function 語法與 Production build 均通過。已依既有授權例外從目前功能分支部署正式 `student-social`，未登入 overview 請求回應 401；未部署 Netlify。本批不含 migration、RLS 或既有學生資料異動；登入後雙帳號行為驗收仍待執行。
+
+本次學生暱稱每週一次修改限制（2026-09-18，後端已部署；前端尚未部署）：
+
+- `student-social` 會依伺服器端暱稱歷史的最近一次實際更名時間，拒絕 7 天內再次更換的要求，並以台北時間回傳下次可修改時間；初次設定與重送未改變的同一暱稱不消耗或觸發冷卻。
+- 我的設定頁同步顯示「每 7 天只能修改一次」說明，並在送出新暱稱後顯示確認彈窗，只有按下確認才會寫入。React 設定頁／好友頁／暱稱驗證測試 25 項、社交契約測試 6 項、Edge Function 語法檢查及 Production build 均已通過。經專案擁有者明確同意的例外流程，已從目前功能分支部署正式 `student-social`；未登入 POST 驗證回應 401。未部署 Netlify，因此確認彈窗與前端說明仍只存在本機 build；本批沒有 migration、RLS 或既有學生資料異動。
+
+本次好友搜尋公開上傳頭像（2026-09-18，後端已部署；前端說明尚未部署）：
+
+- 經專案擁有者明確決定，`student-social` 的精確暱稱／好友碼搜尋現在也會為自行上傳的頭像產生 15 分鐘短效網址，不再要求雙方先成為好友；好友名單、封鎖、搜尋頻率限制與其他資料隱私規則不變。
+- 好友頁文字與學生手冊已改為反映此公開範圍。社交契約 6/6、Edge Function 語法與 Production build 均通過；經已授權的功能分支例外流程，正式 `student-social` 已部署，未登入搜尋請求回應 401。尚未部署 Netlify，因此好友頁的新說明文字尚未出現在正式站；本批沒有 migration、RLS 或既有學生資料異動。
+
+本次好友邀請、封鎖頭貼與取消邀請（2026-09-19，後端已部署；前端尚未部署）：
+
+- 後端 overview 會為 pending 來／去邀請及已封鎖的對象產生上傳頭像短效網址；好友頁頭貼改為完整縮放，若圖片載入失敗會退回顯示暱稱首字，不會卡在破損圖片狀態。搜尋結果的頭貼另有專用 class，明確覆蓋搜尋按鈕通用內距為 `padding: 0`；已封鎖區塊新增可旋轉的展開箭頭，頭貼也可點擊放大。
+- 已送出的好友邀請新增「取消邀請」；後端只允許原邀請者刪除仍為 pending 的指定邀請，並寫入 audit。取消邀請與封鎖頭貼 targeted React tests、社交契約 6/6、Edge Function 語法與 Production build 均通過；正式 `student-social` 已部署，未登入 overview 請求回應 401。尚未部署 Netlify，因此取消按鈕、圖片完整縮放、封鎖展開箭頭與載入失敗回退尚未出現在正式站；登入後雙帳號驗收待執行。本批沒有 migration、RLS 或既有學生資料異動。
+
+本次學生頭像重新整理壞圖修正（2026-09-18，尚未部署）：
+
+- 修正登入刷新時將私有 `user_image` 路徑寫入 Local Storage、再被 Navbar 與設定頁當作可直接顯示網址的問題。快取現在只接受短效簽名網址、Netlify 圖片網址或系統預設頭像路徑；私人 `avatars/...` 路徑會被略過。
+- MainNavbar、我的設定與排行榜取得遊戲化摘要後會更新顯示 URL 快取。快取單元測試與 Navbar／設定／排行榜回歸測試 27/27、Production build 與 `git diff --check` 均通過。本批未改資料庫、R2、Edge Function 或正式資料，尚未 commit、Push 或部署。
+
+本次學生暱稱不雅用語過濾擴充（2026-09-18，尚未部署）：
+
+- 前端與 `student-social` Edge Function 同步加入台語常見辱罵、性器官指涉與諧音／空白變形的暱稱阻擋；保留既有長度、可用字元、禁用英文詞、重複暱稱與後端原子寫入規則。
+- 新增前端驗證案例與 Edge Function contract assertions；前端相關 React tests 25/25、社交安全契約 6/6、全部 Edge Function 語法檢查、Production build 與 `git diff --check` 均通過。本批不新增 migration、不改 RLS、不寫入既有學生資料，且不部署 Function。
+
+本次學生頭像 Local Storage 快取（2026-09-18，尚未部署）：
+
+- 頭像上傳或選擇預設角色成功後，會同步更新 `ae-userimage` 與 `ae-profile-cache-v2`；學生 Navbar、我的設定及排行榜的「本人」照片會優先讀取這份瀏覽器快取，並由 React 個人資料 state 立即重繪，不必重新整理。
+- 排行榜中其他學生與好友照片仍只使用各自 API 回傳資料，不會讀取目前使用者的快取。登出流程維持清除頭像與個人資料快取。
+- 驗證：StudentSettings／LearningLeaderboard React tests 11/11、Production build 與 `git diff --check` 均通過；本批沒有 migration、Edge Function 或權限調整，尚未 commit、Push 或部署。
 
 本次本機開發產物清理（2026-09-18）：
 

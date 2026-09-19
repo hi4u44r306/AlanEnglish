@@ -50,6 +50,7 @@
 .speaking-alphabet-candidate audio { width: 100%; min-height: 44px; }
 .speaking-alphabet-candidate button { width: fit-content; min-height: 44px; }
 .speaking-picture-authoring { border-color: #c8d9f2; background: linear-gradient(145deg, #f7faff, #fff); }
+.speaking-picture-authoring__catalog-note { margin: 0; padding: 10px 12px; border: 1px solid #bfd4f2; border-radius: 10px; color: #244f88; background: #eef5ff; font-size: 13px; line-height: 1.55; }
 .speaking-picture-authoring__notice { display: flex; align-items: flex-start; gap: 7px; padding: 9px 11px; border-radius: 10px; color: #73571e; background: #fff7df; font-size: 13px; line-height: 1.45; }
 .speaking-picture-authoring__notice svg { flex: 0 0 auto; margin-top: 2px; }
 .speaking-picture-authoring__load { width: fit-content; display: inline-flex; align-items: center; gap: 7px; }

@@ -18,6 +18,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
+import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
 import { readAppShellCache, readAppShellCacheEntry, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
 import StudentNavbar from "./StudentNavbar";
 import { sendSocialHeartbeat } from "../../services/studentSocialService";
@@ -181,6 +182,10 @@ function MainNavbar() {
                 .then(result => {
                     if (!cancelled) {
                         const summary = result || null;
+                        cacheStudentAvatarDisplayUrl(summary?.profile?.avatar_url, {
+                            ownerUid: firebaseUser.uid,
+                            sourceKey: studentProfile?.user_image || studentProfile?.userimage
+                        });
                         setGamificationSummary(summary);
                         writeAppShellCache(firebaseUser.uid, "gamification", summary);
                     }
@@ -201,7 +206,7 @@ function MainNavbar() {
             cancelIdleRefresh();
             window.removeEventListener("ae:gamification-updated", refreshGamification);
         };
-    }, [firebaseUser, isStudent]);
+    }, [firebaseUser, isStudent, studentProfile?.user_image, studentProfile?.userimage]);
 
     useEffect(() => {
         if (!firebaseUser || !isStudent) {
@@ -384,7 +389,7 @@ function MainNavbar() {
                 onLogout={handleLogout}
                 onNotificationRead={markNotificationRead}
                 onOpenTour={openTour}
-                profile={studentProfile}
+                profile={{ ...studentProfile, avatar_url: gamificationSummary?.profile?.avatar_url || studentProfile?.avatar_url }}
                 scrolled={scrolled}
                 totalXp={totalXp}
                 xpProgressPercent={xpProgressPercent}

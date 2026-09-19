@@ -1,15 +1,19 @@
 .speaking-visual-aid {
-  width: min(400px, 100%);
+  width: min(250px, 100%);
   margin: 0 auto;
   overflow: hidden;
   border: 1px solid #d9e4f2;
   border-radius: 16px;
   background: #fff;
-  box-shadow: 0 8px 20px rgba(20, 47, 91, .08);
+  box-shadow: 0 8px 20px rgba(20, 47, 91, 0.08);
 }
 
-.speaking-visual-aid--admin { width: min(360px, 100%); }
-.speaking-visual-aid--thumbnail { width: min(240px, 100%); }
+.speaking-visual-aid--admin {
+  width: min(250px, 100%);
+}
+.speaking-visual-aid--thumbnail {
+  width: min(250px, 100%);
+}
 
 .speaking-visual-aid__media {
   position: relative;
@@ -42,6 +46,6 @@
 @media (max-width: 700px) {
   .speaking-visual-aid--challenge,
   .speaking-visual-aid--admin {
-    width: min(320px, calc(100vw - 40px), 100%);
+    width: min(180px, calc(100vw - 40px), 100%);
   }
 }

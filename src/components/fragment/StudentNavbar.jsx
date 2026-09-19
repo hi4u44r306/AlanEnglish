@@ -25,7 +25,9 @@ import {
     FiZap
 } from "react-icons/fi";
 import Brand from "./Brand";
+import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
+import { getCachedStudentAvatarUrl } from "../../constants/studentAvatarCache";
 import { prefetchReviewDashboard } from "../../services/reviewService";
 import "../assets/scss/StudentNavbar.scss";
 
@@ -88,17 +90,20 @@ const StudentNavbar = ({
         "/student/rewards",
         "/student/ai-generator"
     ].some(isPathActive);
-    const avatarUrl = profile?.avatar_url ? getStudentAvatarDisplayUrl(profile.avatar_url, 96) : "";
+    const avatarUrl = getStudentAvatarDisplayUrl(getCachedStudentAvatarUrl(profile?.avatar_url, {
+        ownerUid: firebaseUser?.uid,
+        sourceKey: profile?.user_image || profile?.userimage
+    }), 96);
     const profileName = profile?.nickname || profile?.name || "Alan English 學生";
     const profileInitial = profileName.slice(0, 1) || "A";
     const profileAvatar = avatarUrl
-        ? <img src={avatarUrl} alt="" />
+        ? <StudentAvatarImage src={avatarUrl} alt="" />
         : <span>{profileInitial}</span>;
 
     const warmReviewExperience = useCallback(() => {
         if (!firebaseUser || !hasReviewAccess) return;
         prefetchReviewDashboard(firebaseUser);
-        import("../Pages/ReviewCenter").catch(() => {});
+        import("../Pages/ReviewCenter").catch(() => { });
     }, [firebaseUser, hasReviewAccess]);
     const openDrawer = useCallback(view => {
         setDrawer(view);
@@ -185,12 +190,12 @@ const StudentNavbar = ({
     const learningLinks = (
         <section className="ae-student-drawer-section">
             <span>學習功能</span>
+            {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友</InstantDrawerLink>}
             {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
             {hasReviewAccess && <InstantDrawerLink to="/student/review" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</InstantDrawerLink>}
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
-            {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友與戰績</InstantDrawerLink>}
             {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
-            {hasAiAccess && <InstantDrawerLink to="/student/ai-generator" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 教材</InstantDrawerLink>}
+            {hasAiAccess && <InstantDrawerLink to="/student/ai-generator" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 練習教材</InstantDrawerLink>}
         </section>
     );
 
@@ -198,7 +203,7 @@ const StudentNavbar = ({
         <section className="ae-student-drawer-section">
             <span>帳號與幫助</span>
             <InstantDrawerLink to="/student/membership" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/membership") ? "active" : ""}><FiCreditCard />會員與功能</InstantDrawerLink>
-            <InstantDrawerLink to="/student/settings" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的設定</InstantDrawerLink>
+            <InstantDrawerLink to="/student/settings" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />帳號</InstantDrawerLink>
             <InstantDrawerLink to="/account/security" onNavigate={closeDrawerThenNavigate}><FiLock />帳號與密碼</InstantDrawerLink>
             <button type="button" onClick={() => { closeDrawer(); onOpenTour(); }}><FiHelpCircle />使用教學</button>
             <InstantDrawerLink to="/support" onNavigate={closeDrawerThenNavigate}><FiHelpCircle />聯絡客服</InstantDrawerLink>
@@ -229,10 +234,10 @@ const StudentNavbar = ({
         <nav className="ae-student-bottom-nav" aria-label="學生主要導覽">
             <Link to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>排行榜</span></Link>
             {shouldShowMaterials && <button type="button" onClick={() => openDrawer("materials")} className={isPathActive("/student/books") ? "active" : ""}><FiBookOpen /><span>教材</span></button>}
-            {hasPronunciationAccess && <button type="button" onClick={() => openDrawer("speaking")} className={speakingActive ? "active" : ""}><FiMic /><span>開口說</span></button>}
-            <Link to="/student/settings" className={`ae-student-bottom-profile ${isPathActive("/student/settings") ? "active" : ""}`} aria-label="我的設定">
+            {hasPronunciationAccess && <button type="button" onClick={() => openDrawer("speaking")} className={speakingActive ? "active" : ""}><FiMic /><span>口說練習</span></button>}
+            <Link to="/student/settings" className={`ae-student-bottom-profile ${isPathActive("/student/settings") ? "active" : ""}`} aria-label="帳號">
                 <span className="ae-student-bottom-avatar">{profileAvatar}</span>
-                <span>我的設定</span>
+                <span>帳號</span>
             </Link>
         </nav>
     );
@@ -251,7 +256,7 @@ const StudentNavbar = ({
                             </NavDropdown>
                         )}
                         {hasPronunciationAccess && (
-                            <NavDropdown id="student-speaking" title={<span><FiMic />開口說</span>} className={speakingActive ? "active" : ""}>
+                            <NavDropdown id="student-speaking" title={<span><FiMic />口說練習</span>} className={speakingActive ? "active" : ""}>
                                 <div className="ae-student-dropdown-heading"><strong>今天想怎麼練？</strong><small>選一種練習</small></div>
                                 {speakingLinks}
                             </NavDropdown>
@@ -262,7 +267,7 @@ const StudentNavbar = ({
                     </Nav>
                     <div className="ae-student-desktop-account">
                         {notificationMenu}
-                        <Link to="/student/settings" className="ae-student-account-link" aria-label="前往我的設定">
+                        <Link to="/student/settings" className="ae-student-account-link" aria-label="前往帳號">
                             <span className="ae-student-account-chip"><span>{profileAvatar}</span><strong>{profileName}</strong></span>
                         </Link>
                         <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut}>
@@ -280,7 +285,7 @@ const StudentNavbar = ({
 
             <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "menu" ? "end" : "bottom"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "開口說" : "功能選單"}</strong><small>{drawer === "materials" ? "選一本想練習的教材" : drawer === "speaking" ? "選擇一種口說練習" : "學習、帳號與幫助"}</small></div>
+                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說練習" : "功能選單"}</strong><small>{drawer === "materials" ? "選一本想練習的教材" : drawer === "speaking" ? "選擇一種口說練習" : "學習、帳號與幫助"}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     {drawer === "materials" && renderMaterials("mobile")}
