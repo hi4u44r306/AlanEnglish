@@ -2,25 +2,25 @@
 
 最後更新：2026-09-19
 
-本次 Workbook 3 首關自動目錄與全形挖空修正（2026-09-19，尚未部署）：
+本次 Workbook 3 首關自動目錄與全形挖空修正（2026-09-19，已正式部署）：
 
 - 學生端的 Workbook 大關卡原本就是依已發布的 `speaking_question_sets` 動態分組，不需要先建立獨立的大關卡資料。管理員頁新增說明：任何已啟用 Workbook 的第一個小關卡正式發布後，學生端會自動出現對應教材卡；未發布草稿仍保持管理員可見、學生不可見。
 - 修正中文輸入法輸入全形底線時「建立未發布草稿」持續停用的問題。前端與 `speaking-content-manager` 現在都接受半形 `_`、全形 `＿` 及相容底線字元，並在驗證與保存前統一為 `____`；仍維持 1～8 個挖空及完整句答案核對。
 - 學生目錄、後端目錄與逐關解鎖共用相同穩定排序：先依來源起始頁、再依結束頁、最後依題庫 ID。相同起始頁時，單頁關卡會排在跨頁關卡前；未新增 migration、RLS、Secret 或正式資料異動。
-- 驗證：管理員草稿／學生目錄 React targeted 2 suites／25 tests、foundation answer 契約與 progression 6 tests、完整前端 75 suites／299 tests、全部 Edge Function 語法、Production build 與本批 `git diff --check` 均通過。只有既有 React Router、`act(...)`、Node module type 與 deprecation 警告，沒有測試或編譯錯誤。尚未 commit、Push、部署 Function 或部署前端。
+- 驗證：管理員草稿／學生目錄 React targeted 2 suites／25 tests、foundation answer 契約與 progression 6 tests、完整前端 75 suites／299 tests、全部 Edge Function 語法、Production build 與本批 `git diff --check` 均通過。PR #206 已合併至 `main` commit `3223b2c`；`pronunciation-coach` v19、`speaking-challenge` v33、`speaking-content-manager` v28、`speaking-tts-manager` v27 及 `student-social` v14 均為 ACTIVE。五個未登入驗收請求皆回應 401。Cloudflare `main` build 成功，正式根網域、口說路由與 `app` 子網域皆回應 HTTP 200。
 
-本次暱稱單一入口、口說練習名稱與頭貼即時快取（2026-09-19，尚未部署）：
+本次暱稱單一入口、口說練習名稱與頭貼即時快取（2026-09-19，已正式部署）：
 
 - 公開暱稱只能在「帳號／我的設定」建立或修改；好友頁只保留戰績與在線狀態的公開範圍。`student-social` 的 `update_profile` 改為從資料庫取得現有暱稱，不再接受前端暱稱，避免繞過 `update_nickname` 的 7 天限制。
 - 學生導覽的「開口說」已統一改為「口說練習」。頭貼快取改為依 Firebase UID 隔離的版本化記錄；學生上傳後把小尺寸圖片預覽轉成 Data URL 存入 Local Storage，重整後先顯示本機圖片，原始圖與私有路徑仍由後端管理；登出或切換帳號不會沿用前一位學生的頭貼。
-- 現有 Supabase Functions 變更全數保留，未修改 migration、RLS、Secret 或 `verify_jwt=false` 的 Firebase 自訂驗證架構。發布時應先將完整變更合併至最新 `main`，再個別部署 `pronunciation-coach`、`speaking-challenge`、`speaking-content-manager`、`speaking-tts-manager` 與 `student-social`，最後部署前端，避免共用模組、前端與後端契約不同步。
-- 驗證：相關 React／快取 targeted 5 suites／36 tests、完整前端 75 suites／299 tests、社交契約 6／6、全部 Edge Function 語法檢查、Production build 與 `git diff --check` 均通過。未 commit、Push、部署 Function 或部署前端。
+- 現有 Supabase Functions 變更全數保留，未修改 migration、RLS、Secret 或 `verify_jwt=false` 的 Firebase 自訂驗證架構。完整變更已先合併至最新 `main`，再同步部署 `pronunciation-coach`、`speaking-challenge`、`speaking-content-manager`、`speaking-tts-manager` 與 `student-social`；Cloudflare 連動部署對應前端，避免共用模組、前端與後端契約不同步。
+- 驗證：相關 React／快取 targeted 5 suites／36 tests、完整前端 75 suites／299 tests、社交契約 6／6、全部 Edge Function 語法檢查、Production build 與 `git diff --check` 均通過。PR #206 已合併至 `main` commit `3223b2c`，五個 Function 均為 ACTIVE 且匿名請求皆回應 401；正式網域回應 HTTP 200。
 
-本次看圖補句多挖空與直接題面輸入（2026-09-19，尚未部署）：
+本次看圖補句多挖空與直接題面輸入（2026-09-19，已正式部署）：
 
 - 「從頭建立自訂口說草稿」與圖片題庫編輯器改由管理員直接輸入學生實際看到的句型，以 `____` 標示 1～8 個挖空，並另填補好後的完整答案；後端會逐段確認固定文字順序，且每個挖空至少對應一個答案單字。
 - 學生端原有句型 tokenizer 可同時顯示多個挖空，提示文字已改為每個挖空都要補上；停頓整句語音改為多段合成，每個挖空各插入精準 2 秒靜音，音檔版本升至 `picture-gap-leda-v4`。既有單一挖空題相容，單一 `The ____` 弱讀候選流程不變。
-- 不新增 migration、RLS 或正式資料異動。答案契約、語音 8 項測試、管理員／學生 React targeted tests 11 項、完整 Edge Function 語法及 Production build 均通過；全域 `git diff --check` 因目前工作目錄大量既有變更未在等待時間內完成，已另對本批檔案完成差異檢查。完整口說契約 26 項有 24 項通過，另 2 項既存失敗位於本批未修改的管理頁標題與手機導覽 CSS 契約。前端、`speaking-content-manager` 及 `speaking-tts-manager` 均尚未部署。
+- 不新增 migration、RLS 或正式資料異動。答案契約、語音 8 項測試、管理員／學生 React targeted tests 11 項、完整前端 75 suites／299 tests、完整 Edge Function 語法及 Production build 均通過。PR #206 已合併；`speaking-content-manager` v28、`speaking-tts-manager` v27、其他相依 Speaking Functions 與 Cloudflare 前端均已正式部署。
 
 本次封鎖保留好友關係（2026-09-19，後端已部署）：
 
