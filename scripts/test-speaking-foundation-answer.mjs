@@ -168,6 +168,11 @@ const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-co
 const challengeSource = readFileSync(new URL("../supabase/functions/speaking-challenge/index.ts", import.meta.url), "utf8");
 const requestLedgerSource = readFileSync(new URL("../supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql", import.meta.url), "utf8");
 const challengeSessionSource = readFileSync(new URL("../supabase/migrations/20260918063338_speaking_challenge_daily_sessions.sql", import.meta.url), "utf8");
+
+assert.match(coachSource, /const challengeUsage = adminDemo\s*\? null\s*:\s*await reserveChallengeSession/);
+assert.match(coachSource, /foundationRound: !adminDemo && Boolean\(foundationRoundId\)/);
+assert.match(coachSource, /saveAttempt: adminDemo \? async \(\) => null/);
+assert.match(coachSource, /demo_mode: adminDemo/);
 assert.match(coachSource, /matchesFoundationAnswer/);
 assert.match(coachSource, /evaluateLetterSpellingAssessment/);
 assert.match(coachSource, /assessment_status/);
@@ -179,7 +184,7 @@ assert.match(coachSource, /challenge_session_id/);
 assert.match(coachSource, /reserveChallengeSession/);
 assert.ok(
     coachSource.indexOf("wavInfo.durationSeconds < MIN_AUDIO_SECONDS")
-        < coachSource.indexOf("const challengeUsage = await reserveChallengeSession"),
+        < coachSource.indexOf("const challengeUsage = adminDemo"),
     "daily challenge count must be reserved only after a valid WAV has passed duration checks"
 );
 assert.match(requestLedgerSource, /v_recent_limit integer := case when v_is_foundation then 60 else 12 end/);

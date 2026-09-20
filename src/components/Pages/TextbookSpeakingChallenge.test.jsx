@@ -11,8 +11,8 @@ jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: moc
 jest.mock("../../services/speakingChallengeService", () => ({
     completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn(), startSpeakingFoundationRound: jest.fn()
 }));
-jest.mock("./WorkbookOneFoundationChallenge", () => function MockFoundationChallenge({ challenge, onComplete, onStartRound, onExit }) {
-    return <section data-testid="foundation-challenge" data-interaction={challenge.generation_metadata.interaction_type}>
+jest.mock("./WorkbookOneFoundationChallenge", () => function MockFoundationChallenge({ challenge, onComplete, onStartRound, onExit, adminScoringPreview }) {
+    return <section data-testid="foundation-challenge" data-interaction={challenge.generation_metadata.interaction_type} data-admin-scoring-preview={String(adminScoringPreview)}>
         <button type="button" onClick={() => onComplete(challenge.speaking_questions[0], { answer_match: true })}>完成基礎題</button>
         <button type="button" onClick={onStartRound}>建立 A–Z 回合</button>
         <button type="button" onClick={onExit}>返回教材關卡列表</button>
@@ -359,11 +359,30 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/14"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByText("工作人員唯讀預覽")).toBeInTheDocument();
+        expect(await screen.findByText("管理員評分示範")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /下一題/ })).toBeEnabled();
         fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
         expect(screen.getByText("ball")).toBeInTheDocument();
         expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
+    });
+
+    it("只把 A–Z 管理員預覽標記為可送評，教師維持唯讀", async () => {
+        mockRole = "admin";
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 26,
+                title: "A–Z",
+                generation_metadata: { interaction_type: "alphabet_round" },
+                speaking_questions: [{ id: 261, question_text: "A", progress_status: "opened" }]
+            }
+        });
+        const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges/26"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByTestId("foundation-challenge")).toHaveAttribute("data-admin-scoring-preview", "true");
+        unmount();
+
+        mockRole = "teacher";
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/26"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByTestId("foundation-challenge")).toHaveAttribute("data-admin-scoring-preview", "false");
     });
 
     it("以真正的台灣國旗呈現台灣視覺提示", () => {

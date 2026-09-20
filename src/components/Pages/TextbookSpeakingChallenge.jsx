@@ -173,6 +173,7 @@ export default function TextbookSpeakingChallenge() {
     const questions = challenge?.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
     const staffPreview = role === "teacher" || role === "admin";
+    const adminScoringPreview = role === "admin";
     const catalogGroups = useMemo(() => {
         const groups = new Map();
         catalog.forEach(item => {
@@ -355,6 +356,7 @@ export default function TextbookSpeakingChallenge() {
         challenge={challenge}
         firebaseUser={firebaseUser}
         onComplete={markScored}
+        adminScoringPreview={adminScoringPreview}
         onStartRound={() => startSpeakingFoundationRound(firebaseUser, challenge.id)}
         onStartAlphabetIntro={() => startAlphabetIntroListen(firebaseUser, challenge.id)}
         onCompleteAlphabetIntro={listenSessionId => completeAlphabetIntroListen(firebaseUser, challenge.id, listenSessionId)}
@@ -385,7 +387,7 @@ export default function TextbookSpeakingChallenge() {
     };
 
     return <main className="speaking-challenge-page speaking-challenge-detail">
-        {staffPreview && <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>工作人員唯讀預覽</strong>所有已發布題目都可查看，不會寫入學生進度或發放獎勵。</span></aside>}
+        {staffPreview && <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>{adminScoringPreview ? "管理員評分示範" : "工作人員唯讀預覽"}</strong>{adminScoringPreview ? "可以送出評分；不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "所有已發布題目都可查看，不會寫入學生進度或發放獎勵。"}</span></aside>}
         <header className="speaking-lesson-header">
             <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
             <div className="speaking-lesson-heading">
@@ -409,7 +411,7 @@ export default function TextbookSpeakingChallenge() {
                 <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                 {activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
                 <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
-                <small className="speaking-no-reward">完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。</small>
+                <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。"}</small>
             </article>
         </section>
 
