@@ -1829,7 +1829,7 @@ Deno.serve(async (req: Request) => {
                         keywords: [], simple_answer: row.expectedFullAnswer, model_answer: row.expectedFullAnswer,
                         pronunciation_notes_zh: row.pronunciationNotes, accepted_intents: [], sort_order: index,
                         created_at: now, updated_at: now
-                    }))
+                    })))
                     .select("id,sort_order");
                 if (questionError) throw questionError;
                 const pictureRows = (createdQuestions || []).flatMap((question: any) => {
