@@ -3,8 +3,9 @@ import { FiGift, FiRefreshCw, FiSettings, FiStar, FiTrendingUp } from "react-ico
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
-import { cacheStudentAvatarDisplayUrl, getCachedStudentAvatarUrl } from "../../constants/studentAvatarCache";
+import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
+import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import {
     getGamificationClasses,
@@ -45,6 +46,10 @@ function LearningLeaderboard() {
     ));
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const cachedAvatarUrl = useCachedStudentAvatarUrl(summary?.profile?.avatar_url || studentProfile?.avatar_url, {
+        ownerUid: firebaseUser?.uid,
+        sourceKey: studentProfile?.user_image || studentProfile?.userimage
+    });
 
     const load = useCallback(async ({ silent = false } = {}) => {
         if (!firebaseUser) return;
@@ -144,8 +149,8 @@ function LearningLeaderboard() {
             {isStudent && summary && (
                 <section className="gamification-me-card">
                     <div className="gamification-avatar-wrap">
-                        {getCachedStudentAvatarUrl(summary.profile?.avatar_url, { ownerUid: firebaseUser?.uid, sourceKey: studentProfile?.user_image || studentProfile?.userimage })
-                            ? <StudentAvatarImage className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(getCachedStudentAvatarUrl(summary.profile?.avatar_url, { ownerUid: firebaseUser?.uid, sourceKey: studentProfile?.user_image || studentProfile?.userimage }), 240)} alt={`${summary.profile?.nickname || summary.profile?.name || "學生"} 的排行榜照片`} />
+                        {cachedAvatarUrl
+                            ? <StudentAvatarImage className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(cachedAvatarUrl, 240)} alt={`${summary.profile?.nickname || summary.profile?.name || "學生"} 的排行榜照片`} />
                             : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback">{getInitial(summary.profile?.nickname || summary.profile?.name)}</div>}
                     </div>
                     <div className="gamification-me-card__identity">

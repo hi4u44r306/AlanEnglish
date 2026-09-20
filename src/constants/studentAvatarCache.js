@@ -2,7 +2,10 @@ const AVATAR_CACHE_KEY = "ae-userimage";
 const PROFILE_CACHE_KEY = "ae-profile-cache-v2";
 const AVATAR_CACHE_VERSION = 2;
 const REMOTE_URL_TTL_MS = 10 * 60 * 1000;
-const MAX_LOCAL_PREVIEW_BYTES = 800 * 1024;
+const MAX_LOCAL_PREVIEW_BYTES = 360 * 1024;
+const LOCAL_PREVIEW_MAX_EDGE = 192;
+
+export const STUDENT_AVATAR_CACHE_UPDATED_EVENT = "ae:student-avatar-cache-updated";
 
 const storage = () => {
     if (typeof window === "undefined") return null;
@@ -51,6 +54,7 @@ const writeCacheRecord = record => {
     if (!localStorage) return false;
     try {
         localStorage.setItem(AVATAR_CACHE_KEY, JSON.stringify(record));
+        window.dispatchEvent(new CustomEvent(STUDENT_AVATAR_CACHE_UPDATED_EVENT, { detail: record }));
         return true;
     } catch (error) {
         return false;
@@ -64,14 +68,45 @@ const blobToDataUrl = blob => new Promise((resolve, reject) => {
     reader.readAsDataURL(blob);
 });
 
+const canvasToWebp = (canvas, quality) => new Promise(resolve => canvas.toBlob(resolve, "image/webp", quality));
+
+const createCompactPreviewBlob = async blob => {
+    if (!blob?.type?.startsWith("image/")) return null;
+    if (blob.size <= MAX_LOCAL_PREVIEW_BYTES) return blob;
+    if (typeof document === "undefined" || typeof URL?.createObjectURL !== "function") return null;
+
+    const objectUrl = URL.createObjectURL(blob);
+    try {
+        const image = await new Promise((resolve, reject) => {
+            const nextImage = new Image();
+            nextImage.onload = () => resolve(nextImage);
+            nextImage.onerror = () => reject(new Error("頭貼快取縮圖讀取失敗"));
+            nextImage.src = objectUrl;
+        });
+        const largestEdge = Math.max(image.naturalWidth || image.width || 1, image.naturalHeight || image.height || 1);
+        const scale = Math.min(1, LOCAL_PREVIEW_MAX_EDGE / largestEdge);
+        const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+        const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")?.drawImage(image, 0, 0, width, height);
+        const compactBlob = await canvasToWebp(canvas, 0.82);
+        return compactBlob && compactBlob.size <= MAX_LOCAL_PREVIEW_BYTES ? compactBlob : null;
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+};
+
 const persistLocalPreview = async (imageUrl, record, previewBlob) => {
     try {
         const blob = previewBlob || await fetch(imageUrl, { cache: "force-cache", credentials: "omit" }).then(response => {
             if (!response.ok) throw new Error("頭貼下載失敗");
             return response.blob();
         });
-        if (!blob?.type?.startsWith("image/") || blob.size > MAX_LOCAL_PREVIEW_BYTES) return;
-        const previewDataUrl = await blobToDataUrl(blob);
+        const compactBlob = await createCompactPreviewBlob(blob);
+        if (!compactBlob) return;
+        const previewDataUrl = await blobToDataUrl(compactBlob);
         if (!previewDataUrl) return;
 
         const current = readCacheRecord();

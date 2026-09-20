@@ -27,7 +27,7 @@ import {
 import Brand from "./Brand";
 import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
-import { getCachedStudentAvatarUrl } from "../../constants/studentAvatarCache";
+import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import { prefetchReviewDashboard } from "../../services/reviewService";
 import "../assets/scss/StudentNavbar.scss";
 
@@ -90,10 +90,11 @@ const StudentNavbar = ({
         "/student/rewards",
         "/student/ai-generator"
     ].some(isPathActive);
-    const avatarUrl = getStudentAvatarDisplayUrl(getCachedStudentAvatarUrl(profile?.avatar_url, {
+    const cachedAvatarUrl = useCachedStudentAvatarUrl(profile?.avatar_url, {
         ownerUid: firebaseUser?.uid,
         sourceKey: profile?.user_image || profile?.userimage
-    }), 96);
+    });
+    const avatarUrl = getStudentAvatarDisplayUrl(cachedAvatarUrl, 96);
     const profileName = profile?.nickname || profile?.name || "Alan English 學生";
     const profileInitial = profileName.slice(0, 1) || "A";
     const profileAvatar = avatarUrl
