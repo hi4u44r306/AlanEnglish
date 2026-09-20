@@ -61,6 +61,16 @@ describe("ManualSpeakingDraftAdmin", () => {
         expect(dialog).toHaveTextContent("看圖說完整問答");
     });
 
+    it("opens the local high-resolution PDF crop tool only for a picture question", () => {
+        renderBuilder();
+        expect(screen.getByRole("button", { name: "從 PDF 高解析擷取圖片" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "從 PDF 高解析擷取圖片" }));
+        expect(screen.getByRole("region", { name: "從 PDF 高解析擷取圖片" })).toHaveTextContent("PDF 只在目前瀏覽器繪製");
+        expect(screen.getByLabelText("教材 PDF")).toBeInTheDocument();
+        fireEvent.change(screen.getByLabelText("題型"), { target: { value: "standard_sentence" } });
+        expect(screen.queryByRole("button", { name: "從 PDF 高解析擷取圖片" })).not.toBeInTheDocument();
+    });
+
     it("creates only a draft, uploads the matching private image, and keeps it when audio needs retry", async () => {
         generateSpeakingVisibleWordAudio.mockResolvedValue({ success: false });
         renderBuilder();
