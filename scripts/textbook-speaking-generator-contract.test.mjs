@@ -61,6 +61,17 @@ test("3. AI 只能使用人工核准教材來源且永遠先產生草稿", () =>
     assert.match(manager, /只有草稿題庫可以修改/);
 });
 
+test("3a. 逐頁 OCR 候選會排除同一教材現有的完整句，並保留來源供人工審核", () => {
+    assert.match(manager, /const sentenceFingerprint =/);
+    assert.match(manager, /findExistingSentenceMatches/);
+    assert.match(manager, /\.eq\("book_id", bookId\)\.neq\("status", "archived"\)/);
+    assert.match(manager, /all_questions_duplicate/);
+    assert.match(manager, /duplicate_review: duplicateMatches\.length/);
+    assert.match(manager, /excluded_duplicate_count: duplicateMatches\.length/);
+    assert.match(adminPage, /已略過 \{duplicateReview\.excluded_count\} 題重複完整句/);
+    assert.match(adminPage, /match\.source_page_label \|\| match\.title/);
+});
+
 test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示", () => {
     for (const field of ["question_text", "hint_zh", "keywords", "simple_answer", "model_answer", "follow_up_question", "pronunciation_notes_zh", "accepted_intents"]) {
         assert.match(migration, new RegExp(`${field}`));

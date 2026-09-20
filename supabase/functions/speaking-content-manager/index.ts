@@ -405,6 +405,56 @@ const normalizeQuestions = (value: unknown, expectedCount: number) => {
     return questions.length === expectedCount ? questions : null;
 };
 
+const sentenceFingerprint = (value: unknown) => String(value || "")
+    .normalize("NFKC")
+    .toLocaleLowerCase("en-US")
+    .replace(/[’‘]/g, "'")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+
+const questionSetSourcePageLabel = (metadata: any) => {
+    const directPage = normalizePageLabel(metadata?.source_page_label);
+    if (directPage) return directPage;
+    const page = Number(Array.isArray(metadata?.source_pages) ? metadata.source_pages[0] : null);
+    return Number.isInteger(page) && page > 0 ? `P${page}` : null;
+};
+
+const findExistingSentenceMatches = (questionSets: any[], questions: any[]) => {
+    const existingByFingerprint = new Map<string, any>();
+    for (const questionSet of questionSets || []) {
+        const reference = {
+            question_set_id: Number(questionSet.id),
+            title: cleanText(questionSet.title, 200) || "未命名關卡",
+            status: questionSet.status === "published" ? "published" : "draft",
+            source_page_label: questionSetSourcePageLabel(questionSet.generation_metadata)
+        };
+        for (const question of questionSet.speaking_questions || []) {
+            for (const value of [question?.question_text, question?.simple_answer, question?.model_answer]) {
+                const fingerprint = sentenceFingerprint(value);
+                if (fingerprint && !existingByFingerprint.has(fingerprint)) existingByFingerprint.set(fingerprint, reference);
+            }
+        }
+    }
+    const generatedFingerprints = new Set<string>();
+    const kept: any[] = [];
+    const matches: any[] = [];
+    for (const question of questions) {
+        const fingerprint = sentenceFingerprint(question.question_text);
+        const existing = existingByFingerprint.get(fingerprint);
+        if (existing || generatedFingerprints.has(fingerprint)) {
+            matches.push({
+                sentence: cleanText(question.question_text, 800),
+                ...(existing || { question_set_id: null, title: "本次草稿的另一題", status: "draft", source_page_label: null })
+            });
+            continue;
+        }
+        generatedFingerprints.add(fingerprint);
+        kept.push(question);
+    }
+    return { kept, matches };
+};
+
 const normalizePictureDraftQuestions = (value: unknown, interactionType: string, expectedQuestionCount?: number) => {
     if (!Array.isArray(value) || value.length < 1 || value.length > 50
         || (Number.isInteger(expectedQuestionCount) && value.length !== expectedQuestionCount)) return null;
@@ -1300,10 +1350,29 @@ Deno.serve(async (req: Request) => {
             } catch {
                 generated = null;
             }
-            const questions = normalizeQuestions(generated?.questions, questionCount);
-            if (!questions) {
+            const generatedQuestions = normalizeQuestions(generated?.questions, questionCount);
+            if (!generatedQuestions) {
                 await admin.from("speaking_generation_jobs").update({ status: "failed", error_code: "invalid_output", input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0), total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString() }).eq("id", job.id);
                 return json(502, { error: "AI 回傳的口說題庫格式不完整，請重新產生" });
+            }
+            let questions = generatedQuestions;
+            let duplicateMatches: any[] = [];
+            if (pageCandidate) {
+                const { data: existingQuestionSets, error: duplicateLookupError } = await admin.from("speaking_question_sets")
+                    .select("id,title,status,generation_metadata,speaking_questions(question_text,simple_answer,model_answer)")
+                    .eq("book_id", bookId).neq("status", "archived");
+                if (duplicateLookupError) throw duplicateLookupError;
+                const deduplicated = findExistingSentenceMatches(existingQuestionSets || [], generatedQuestions);
+                questions = deduplicated.kept;
+                duplicateMatches = deduplicated.matches;
+                if (questions.length === 0) {
+                    await admin.from("speaking_generation_jobs").update({
+                        status: "failed", error_code: "all_questions_duplicate",
+                        input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0),
+                        total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString()
+                    }).eq("id", job.id);
+                    return json(409, { error: `${requestedPageLabel} 的候選句子都已存在於這本教材的草稿或已發布關卡；請改用手動題目或調整來源文字` });
+                }
             }
             const latestQuery = admin.from("speaking_question_sets").select("id,version").eq("source_section_id", sourceSectionId);
             if (pageCandidate) latestQuery.contains("generation_metadata", { source: "ocr_page_candidate", source_page_label: requestedPageLabel });
@@ -1319,6 +1388,7 @@ Deno.serve(async (req: Request) => {
                         source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
                         source_page_label: requestedPageLabel, interaction_type: "standard_sentence",
                         image_suggestions: normalizeImageSuggestions(generated?.image_suggestions),
+                        duplicate_review: duplicateMatches.length ? { excluded_count: duplicateMatches.length, matches: duplicateMatches } : null,
                         requires_content_review: true, content_reviewed_at: null, content_reviewed_by: null
                     } : {})
                 },
@@ -1345,7 +1415,7 @@ Deno.serve(async (req: Request) => {
                 input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0),
                 total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString()
             }).eq("id", job.id);
-            return json(201, { success: true, question_set_id: questionSet.id, question_count: questions.length, source_page_label: requestedPageLabel || null });
+            return json(201, { success: true, question_set_id: questionSet.id, question_count: questions.length, excluded_duplicate_count: duplicateMatches.length, source_page_label: requestedPageLabel || null });
         }
 
         if (action === "confirm_page_candidate_draft") {

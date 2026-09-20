@@ -169,6 +169,8 @@
 .speaking-source-card__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .speaking-source-card__actions button { white-space: nowrap; }
 .speaking-page-candidate__images { margin: 8px 0 0; padding-left: 20px; color: #566983; font-size: 13px; }
+.speaking-page-candidate__duplicates { margin-top: 12px; padding: 11px 13px; border: 1px solid #e5bd62; border-radius: 10px; background: #fffdf7; color: #73571e; }
+.speaking-page-candidate__duplicates ul { margin: 7px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.55; }
 .speaking-set { margin-top: 7px; padding: 9px 10px; border: 1px solid #d8e0ed; border-radius: 10px; background: #fff; }
 .speaking-set.published { border-color: #a9ddc4; background: #f7fcf9; }
 .speaking-set.is-current { border-width: 2px; border-color: #3f70bb; box-shadow: 0 6px 16px rgba(23, 63, 128, .08); }
