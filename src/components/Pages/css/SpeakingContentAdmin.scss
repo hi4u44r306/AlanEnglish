@@ -166,6 +166,9 @@
 .speaking-source-card h3, .speaking-set h4 { margin: 2px 0; color: #17233f; font-size: 16px; }
 .speaking-source-card p { margin: 0; color: #718096; font-size: 12px; }
 .speaking-source-card__empty { padding: 18px 0 0; }
+.speaking-source-card__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.speaking-source-card__actions button { white-space: nowrap; }
+.speaking-page-candidate__images { margin: 8px 0 0; padding-left: 20px; color: #566983; font-size: 13px; }
 .speaking-set { margin-top: 7px; padding: 9px 10px; border: 1px solid #d8e0ed; border-radius: 10px; background: #fff; }
 .speaking-set.published { border-color: #a9ddc4; background: #f7fcf9; }
 .speaking-set.is-current { border-width: 2px; border-color: #3f70bb; box-shadow: 0 6px 16px rgba(23, 63, 128, .08); }
@@ -263,6 +266,7 @@
     .speaking-foundation-starters__list > article { grid-template-columns: 1fr; }
     .speaking-source-card > header, .speaking-set__heading { align-items: stretch; flex-direction: column; }
     .speaking-source-card > header button, .speaking-set__heading button { width: 100%; }
+    .speaking-source-card__actions { display: grid; grid-template-columns: 1fr; }
     .speaking-question-editor { grid-template-columns: 1fr; padding: 14px; }
     .speaking-ocr-review { padding: 14px; }
     .speaking-book-job { padding: 14px; }

@@ -5,10 +5,12 @@ import {
     activatePictureGapTheAudioCandidate,
     activateSpeakingAlphabetAudioCandidate,
     archiveSpeakingQuestionSet,
+    confirmPageCandidateSpeakingDraft,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
     createWorkbookTwoStarterQuestionSet,
+    generateSpeakingQuestionSet,
     getPictureGapTheAudioCandidates,
     getSpeakingContentBootstrap,
     getSpeakingQuestionAudioPreview,
@@ -22,6 +24,7 @@ jest.mock("../../services/speakingContentService", () => ({
     activatePictureGapTheAudioCandidate: jest.fn(),
     activateSpeakingAlphabetAudioCandidate: jest.fn(),
     confirmWorkbookOneFoundationSource: jest.fn(),
+    confirmPageCandidateSpeakingDraft: jest.fn(),
     createWorkbookOneFoundationQuestionSet: jest.fn(),
     createWorkbookOneStarterQuestionSet: jest.fn(),
     createWorkbookTwoStarterQuestionSet: jest.fn(),
@@ -49,6 +52,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         createWorkbookOneStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         createWorkbookOneFoundationQuestionSet.mockResolvedValue({ success: true, reused: false });
         confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
+        confirmPageCandidateSpeakingDraft.mockResolvedValue({ success: true });
         prepareSpeakingAlphabetAudioCandidate.mockResolvedValue({
             success: true, reused: false, candidates: [
                 { status: "ready", candidate_id: "11111111-1111-4111-8111-111111111111", voice_label: "Leda", audio_url: "https://audio.example/leda.wav", segments: [] },
@@ -59,6 +63,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         activateSpeakingAlphabetAudioCandidate.mockResolvedValue({ success: true, activated: true });
         activatePictureGapTheAudioCandidate.mockResolvedValue({ success: true, applied: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
+        generateSpeakingQuestionSet.mockResolvedValue({ success: true, question_set_id: 88 });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Leda", voice_gender: "female", audio_url: "https://audio.example/leda.wav" });
         getPictureGapTheAudioCandidates.mockResolvedValue({
             success: true,
@@ -99,6 +104,23 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByText("辨識失敗")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "重試第 2 批" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開始批次 OCR" })).toBeInTheDocument();
+    });
+
+    it("creates page-specific candidate drafts only from OCR text that is marked by page", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }], documents: [{ id: 31, title: "Workbook 1", book_id: 1 }], chunks: [],
+            sections: [{ id: 32, document_id: 31, unit_label: "Unit 1", page_from_label: "P4", page_to_label: "P5", topic: "身體部位", language_level: "國小低年級", status: "reviewed", source_text: "[[PAGE P4]]\\nIt is an eye.\\n[[PAGE P5]]\\nThey are her eyes." }],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        const candidateButton = await screen.findByRole("button", { name: "逐頁建立候選草稿" });
+        fireEvent.click(candidateButton);
+
+        await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
+        expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(1, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P4" }));
+        expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(2, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P5" }));
     });
 
     it("creates the curated Workbook 1 starter without asking AI to generate it", async () => {
