@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     getCachedStudentAvatarUrl,
     STUDENT_AVATAR_CACHE_UPDATED_EVENT
@@ -10,10 +10,10 @@ export const useCachedStudentAvatarUrl = (fallback, { ownerUid, sourceKey } = {}
     const normalizedFallback = normalize(fallback);
     const normalizedOwnerUid = normalize(ownerUid);
     const normalizedSourceKey = normalize(sourceKey);
-    const readAvatar = () => getCachedStudentAvatarUrl(normalizedFallback, {
+    const readAvatar = useCallback(() => getCachedStudentAvatarUrl(normalizedFallback, {
         ownerUid: normalizedOwnerUid,
         sourceKey: normalizedSourceKey
-    });
+    }), [normalizedFallback, normalizedOwnerUid, normalizedSourceKey]);
     const [avatarUrl, setAvatarUrl] = useState(readAvatar);
 
     useEffect(() => {
@@ -21,7 +21,7 @@ export const useCachedStudentAvatarUrl = (fallback, { ownerUid, sourceKey } = {}
         syncAvatar();
         window.addEventListener(STUDENT_AVATAR_CACHE_UPDATED_EVENT, syncAvatar);
         return () => window.removeEventListener(STUDENT_AVATAR_CACHE_UPDATED_EVENT, syncAvatar);
-    }, [normalizedFallback, normalizedOwnerUid, normalizedSourceKey]);
+    }, [readAvatar]);
 
     return avatarUrl;
 };
