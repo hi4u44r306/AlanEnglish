@@ -2,11 +2,11 @@
 
 最後更新：2026-09-20
 
-本次管理員口說大挑戰評分示範（本機完成，尚未部署）：
+本次管理員口說大挑戰評分示範（2026-09-20，已正式部署）：
 
 - 管理員預覽已發布口說關卡時將可送出自己的錄音並取得 AI 評分；教師仍維持唯讀。管理員評分不會寫入學生進度、學生答題紀錄、XP／AE Points、A–Z 回合或每日 5 輪額度，僅保留既有供應商請求 ledger 以控制重送與成本。
 - A–Z 管理員示範會在前端建立暫時的題目順序與本機聆聽完成狀態，不建立學生 A–Z 回合或聆聽紀錄。
-- 驗證：管理員／教師角色契約 2/2、口說流程契約 7/7、Workbook 1 基礎答案契約、相關 React 測試 4 suites／52 tests、完整 Edge Function 語法檢查、Production build 與 `git diff --check` 均通過。尚未 push、合併或部署；登入管理員的真實麥克風／Azure 評分仍待正式部署後人工抽驗。
+- 驗證：管理員／教師角色契約 2/2、口說流程契約 7/7、Workbook 1 基礎答案契約、相關 React 測試 4 suites／52 tests、完整 Edge Function 語法檢查、Production build 與 `git diff --check` 均通過。PR #215 已合併至 `main` commit `51e1444`；`pronunciation-coach` 已重新部署，未登入請求正確回應 401，Cloudflare `main` build 成功，正式 `/student/speaking-challenges` 回應 HTTP 200。登入管理員的真實麥克風／Azure 評分仍待人工抽驗。
 
 本次逐頁 OCR 草稿完整句去重（2026-09-20，已正式部署）：
 
