@@ -44,7 +44,10 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 });
 const AI_MODEL = "gpt-5-mini";
 const MAX_SOURCE_FILE_BYTES = 20 * 1024 * 1024;
-const MAX_WHOLE_BOOK_BYTES = 100 * 1024 * 1024;
+// The original PDF is sent directly to private R2.  Keep it available for
+// high-resolution review/cropping while each OCR request still receives only
+// a 10-page chunk (capped by MAX_SOURCE_FILE_BYTES below).
+const MAX_WHOLE_BOOK_BYTES = 500 * 1024 * 1024;
 const WHOLE_BOOK_CHUNK_PAGES = 10;
 const MAX_WHOLE_BOOK_PAGES = 500;
 const ALLOWED_SOURCE_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
@@ -857,7 +860,7 @@ Deno.serve(async (req: Request) => {
             if (!Number.isInteger(bookId) || bookId <= 0 || !documentTitle
                 || !Number.isInteger(byteSize) || byteSize < 1 || byteSize > MAX_WHOLE_BOOK_BYTES
                 || !Number.isInteger(pageCount) || pageCount < 1 || pageCount > MAX_WHOLE_BOOK_PAGES || !chunks) {
-                return json(400, { error: "整本教材必須是 100MB、500 頁以內的 PDF，並正確切成每批 10 頁" });
+                return json(400, { error: "整本教材必須是 500MB、500 頁以內的 PDF，並正確切成每批 10 頁" });
             }
             const { data: book, error: bookError } = await admin.from("books").select("id").eq("id", bookId).eq("enabled", true).maybeSingle();
             if (bookError) throw bookError;
