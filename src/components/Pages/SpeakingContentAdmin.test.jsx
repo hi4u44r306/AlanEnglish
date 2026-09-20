@@ -99,6 +99,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(await screen.findByRole("heading", { name: "P21～P24 人工內容與私人圖片" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: /教材來源／OCR/ }));
         expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
+        expect(screen.getByText("支援 1～500 頁、500MB 以內；加密或損壞的 PDF 無法處理。")).toBeInTheDocument();
         expect(await screen.findByText("整本教材 · 115 頁")).toBeInTheDocument();
         expect(screen.getByText("P1–P10")).toBeInTheDocument();
         expect(screen.getByText("辨識失敗")).toBeInTheDocument();
