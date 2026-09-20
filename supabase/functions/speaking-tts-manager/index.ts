@@ -79,6 +79,10 @@ const pictureGapDraftLabel = (questionSet: any) => {
         && metadata.interaction_type === "picture_gap_sentence" && manualPages.length > 0 && manualPages.length <= 50) {
         return manualPages.length === 1 ? `P${manualPages[0]}` : `P${manualPages[0]}～P${manualPages[manualPages.length - 1]}`;
     }
+    if (questionSet?.status === "draft" && metadata.source === "admin_page_builder"
+        && metadata.manual_builder_version === 2 && metadata.interaction_type === "mixed" && manualPages.length === 1) {
+        return `P${manualPages[0]}`;
+    }
     return null;
 };
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -909,12 +913,18 @@ Deno.serve(async (req: Request) => {
         const manualStandardDraft = setStatus === "draft"
             && questionSet?.generation_metadata?.source === "admin_manual_builder"
             && interactionType === "standard_sentence";
+        const manualPageDraft = setStatus === "draft"
+            && questionSet?.generation_metadata?.source === "admin_page_builder"
+            && questionSet?.generation_metadata?.manual_builder_version === 2
+            && interactionType === "mixed";
         const mayPrepareManualStandardDraft = manualStandardDraft
             && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action);
+        const mayPrepareManualPageDraft = manualPageDraft
+            && ["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio"].includes(action);
         const mayPreviewPictureGapDraft = Boolean(pictureGapPage)
             && ["preview_question_audio", "preview_picture_gap_the_candidates", "activate_picture_gap_the_candidate", "restore_picture_gap_standard_audio"].includes(action);
         if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPreparePictureGapDraft
-            && !mayPrepareManualStandardDraft && !mayPreviewPictureGapDraft) {
+            && !mayPrepareManualStandardDraft && !mayPrepareManualPageDraft && !mayPreviewPictureGapDraft) {
             return json(409, { error: "只有已發布題庫或管理員待發布草稿可以產生／預覽正式語音" });
         }
         if (["prepare_alphabet_audio_candidate", "activate_alphabet_audio_candidate"].includes(action)
@@ -1003,22 +1013,25 @@ Deno.serve(async (req: Request) => {
             });
         }
         if (action === "generate_visible_word_audio") {
-            if (interactionType !== "picture_gap_sentence") return json(409, { error: "只有看圖補句關卡可產生整句發音" });
+            if (interactionType !== "picture_gap_sentence" && !manualPageDraft) return json(409, { error: "只有看圖補句關卡可產生整句發音" });
             const questionIds = questions.map((question: any) => Number(question.id));
             const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
                 .select("question_id,interaction_type,prompt_text").in("question_id", questionIds);
             if (interactionError) throw interactionError;
             const interactionByQuestion = new Map((interactions || []).map((row: any) => [Number(row.question_id), row]));
-            const invalidInteraction = questions.some((question: any) => {
+            const gapQuestions = manualPageDraft
+                ? questions.filter((question: any) => interactionByQuestion.get(Number(question.id))?.interaction_type === "picture_gap_sentence")
+                : questions;
+            const invalidInteraction = gapQuestions.some((question: any) => {
                 const interaction: any = interactionByQuestion.get(Number(question.id));
                 return interaction?.interaction_type !== "picture_gap_sentence" || !String(interaction?.prompt_text || "").trim();
             });
-            if (invalidInteraction || interactions?.length !== questions.length) {
+            if (!gapQuestions.length || invalidInteraction || (!manualPageDraft && interactions?.length !== questions.length)) {
                 return json(409, { error: `${pictureGapPage || "看圖補句"} 整句資料不完整` });
             }
             const results = [];
             const femaleVoice = { gender: "female", voiceId: voicePool().female };
-            for (const question of questions) {
+            for (const question of gapQuestions) {
                 const interaction: any = interactionByQuestion.get(Number(question.id));
                 try {
                     results.push(await generateQuestionAudio(admin, question, {
@@ -1063,6 +1076,26 @@ Deno.serve(async (req: Request) => {
                 voice_gender: asset.voice_id === configuredVoices.male ? "male"
                     : asset.voice_id === configuredVoices.female ? "female" : "unknown",
                 audio_url: await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60)
+            });
+        }
+        if (manualPageDraft && action === "generate_set_audio") {
+            const questionIds = questions.map((question: any) => Number(question.id));
+            const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
+                .select("question_id").in("question_id", questionIds);
+            if (interactionError) throw interactionError;
+            const pictureQuestionIds = new Set((interactions || []).map((row: any) => Number(row.question_id)));
+            const standardQuestions = questions.filter((question: any) => !pictureQuestionIds.has(Number(question.id)));
+            const results = [];
+            for (const question of standardQuestions) {
+                try { results.push(await generateQuestionAudio(admin, question)); }
+                catch (generationError: any) {
+                    results.push({ question_id: Number(question.id), status: "failed", error: cleanText(generationError?.message, 300) || "語音生成失敗" });
+                }
+            }
+            const failed = results.filter(item => item.status === "failed").length;
+            return json(failed ? 207 : 200, {
+                success: failed === 0, generated: results.filter(item => item.status === "ready" && !item.reused).length,
+                reused: results.filter(item => item.reused).length, failed, results
             });
         }
         const results = [];

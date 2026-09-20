@@ -20,6 +20,7 @@ export const confirmWorkbookOneFoundationSource = (firebaseUser, questionSetId) 
 export const createWorkbookTwoStarterQuestionSet = (firebaseUser, bookId) => callSpeakingContent(firebaseUser, "create_workbook_2_starter", { book_id: bookId });
 export const createWorkbookOnePictureDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_workbook_1_picture_draft", payload);
 export const createManualSpeakingDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_manual_speaking_draft", payload);
+export const createManualPageSpeakingDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_manual_page_speaking_draft", payload);
 export const getWorkbookOnePictureReviewCandidates = (firebaseUser, pageLabel) => callSpeakingContent(firebaseUser, "get_workbook_1_picture_review_candidates", {
     page_label: pageLabel
 });

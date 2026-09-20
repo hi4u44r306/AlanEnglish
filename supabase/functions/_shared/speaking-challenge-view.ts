@@ -29,14 +29,17 @@ export const buildPublicSpeakingQuestion = async ({
     visualAsset,
     signPrivateObject
 }: any) => {
-    const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
+    const effectiveInteractionType = interactionType === "mixed"
+        ? String(pictureInteraction?.interaction_type || "standard_sentence")
+        : interactionType;
+    const pictureMode = effectiveInteractionType === "picture_qa" || effectiveInteractionType === "picture_gap_sentence";
     const hideChallengeAnswerAudio = interactionType === "alphabet_round"
         || interactionType === "letter_spelling" || pictureMode;
     const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
     const promptReady = promptAsset?.status === "ready" && promptAsset?.private_object_key;
 
     if (pictureMode && (
-        pictureInteraction?.interaction_type !== interactionType
+        pictureInteraction?.interaction_type !== effectiveInteractionType
         || visualAsset?.status !== "ready"
         || !visualAsset?.private_object_key
     )) {
@@ -46,7 +49,7 @@ export const buildPublicSpeakingQuestion = async ({
         });
     }
 
-    if (interactionType === "picture_gap_sentence" && !promptReady) {
+    if (effectiveInteractionType === "picture_gap_sentence" && !promptReady) {
         throw Object.assign(new Error("看圖補句的整句女聲發音尚未完成"), {
             status: 409,
             code: "picture_audio_incomplete"
@@ -69,9 +72,9 @@ export const buildPublicSpeakingQuestion = async ({
             alt_zh: visualAsset.alt_zh
         },
         picture_interaction: {
-            type: interactionType,
-            sentence_pattern: interactionType === "picture_gap_sentence" ? pictureInteraction.prompt_text : null,
-            ...(interactionType === "picture_gap_sentence" ? {
+            type: effectiveInteractionType,
+            sentence_pattern: effectiveInteractionType === "picture_gap_sentence" ? pictureInteraction.prompt_text : null,
+            ...(effectiveInteractionType === "picture_gap_sentence" ? {
                 sentence_audio_status: "ready",
                 sentence_audio_url: await signPrivateObject(promptAsset.private_object_key)
             } : {})
@@ -87,6 +90,7 @@ export const buildPublicSpeakingQuestion = async ({
 
     return {
         ...safeQuestion,
+        interaction_type: effectiveInteractionType,
         progress_status: progressStatus || "opened",
         question_audio_status: hideChallengeAnswerAudio ? "hidden" : (promptReady ? "ready" : (promptAsset?.status || "missing")),
         question_audio_url: !hideChallengeAnswerAudio && promptReady
