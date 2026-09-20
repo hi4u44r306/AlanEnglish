@@ -17,6 +17,7 @@ import {
     usesUnscriptedFoundationAssessment
 } from "../_shared/speaking-foundation-answer.ts";
 import { runSpeakingPronunciationFlow } from "../_shared/speaking-pronunciation-flow.ts";
+import { authorizeSpeakingPronunciation } from "../_shared/speaking-pronunciation-access.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -356,22 +357,21 @@ Deno.serve(async (req: Request) => {
         if (!supabaseUrl || !serviceRoleKey) return json(500, { error: "Supabase 伺服器設定不完整" });
         admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
         const user = await verifyFirebaseRequest(req, admin);
-        const effectiveAccess = await loadEffectiveAccess(admin, Number(user.id));
-        if (user.role !== "student") return json(403, { error: "只有學生可以送出發音評分" });
-        if (!effectiveAccess.is_active || !effectiveAccess.features.pronunciation) {
-            return json(403, { error: "目前帳號不包含 AI 發音練習", code: "pronunciation_access_required" });
-        }
+        const { adminDemo, effectiveAccess } = await authorizeSpeakingPronunciation(
+            user,
+            studentId => loadEffectiveAccess(admin, studentId)
+        );
         const form = await req.formData().catch(() => null);
         const questionId = Number(form?.get("question_id"));
         const requestedRoundId = String(form?.get("foundation_round_id") || "").trim();
         const challengeSessionId = String(form?.get("challenge_session_id") || "").trim();
         const audio = form?.get("audio");
         if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(challengeSessionId)) {
+        if (!adminDemo && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(challengeSessionId)) {
             return json(400, { error: "口說挑戰回合無效，請重新進入關卡", code: "challenge_session_required" });
         }
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
-        if (question.interactionType === "alphabet_round") {
+        if (question.interactionType === "alphabet_round" && !adminDemo) {
             if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedRoundId)) {
                 return json(409, { error: "請重新開始這一輪 A–Z 挑戰", code: "foundation_round_required" });
             }
@@ -390,7 +390,7 @@ Deno.serve(async (req: Request) => {
                 return json(409, { error: "這一輪已失效，請從第一題重新開始", code: "foundation_round_invalid" });
             }
             foundationRoundId = String(round.id);
-        } else if (requestedRoundId) {
+        } else if (requestedRoundId && !adminDemo) {
             return json(400, { error: "這個題型不接受 A–Z 挑戰回合", code: "foundation_round_not_supported" });
         }
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
@@ -420,7 +420,9 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
-        const challengeUsage = await reserveChallengeSession(admin, Number(user.id), question, challengeSessionId);
+        const challengeUsage = adminDemo
+            ? null
+            : await reserveChallengeSession(admin, Number(user.id), question, challengeSessionId);
         const assessmentConfig: Record<string, unknown> = {
             GradingSystem: "HundredMark",
             Granularity: "Phoneme",
@@ -435,7 +437,7 @@ Deno.serve(async (req: Request) => {
         if (!question.isStructuredAnswer) assessmentConfig.ReferenceText = question.referenceText;
         const assessmentHeader = btoa(JSON.stringify(assessmentConfig));
         const flow = await runSpeakingPronunciationFlow({
-            foundationRound: Boolean(foundationRoundId),
+            foundationRound: !adminDemo && Boolean(foundationRoundId),
             claim: foundationRoundId ? async () => {
                 const { data: claim, error: claimError } = await admin.rpc("claim_speaking_foundation_round_question_v1", {
                     p_student_id: Number(user.id),
@@ -511,7 +513,7 @@ Deno.serve(async (req: Request) => {
                 }
                 return { ok: true as const, value: normalizeAzureResult(providerResult, question) };
             },
-            saveAttempt: !foundationRoundId ? async normalized => {
+            saveAttempt: adminDemo ? async () => null : !foundationRoundId ? async normalized => {
                 const { data: attempt, error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
                     student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
                     pronunciation_score: normalized.scores.pronunciation, accuracy_score: normalized.scores.accuracy,
@@ -580,6 +582,7 @@ Deno.serve(async (req: Request) => {
         return json(200, {
             success: true,
             question_id: question.questionId,
+            demo_mode: adminDemo,
             challenge_usage: challengeUsage,
             reference_text: question.interactionType ? null : (question.referenceText || null),
             foundation_round: flow.round,

@@ -33,6 +33,7 @@ export default function AlphabetAutomaticRecorder({
     question,
     foundationRoundId,
     challengeSessionId,
+    allowDemoAssessment = false,
     paused = false,
     onStatusChange,
     onScored,
@@ -149,7 +150,7 @@ export default function AlphabetAutomaticRecorder({
         recorderRef.current = null;
         chunksRef.current = [];
 
-        if (paused || !question?.id || !foundationRoundId || !analyserRef.current || !streamRef.current) return undefined;
+        if (paused || !question?.id || (!foundationRoundId && !allowDemoAssessment) || !analyserRef.current || !streamRef.current) return undefined;
         setError("");
         setStatus("listening");
         const analyser = analyserRef.current;
@@ -263,7 +264,7 @@ export default function AlphabetAutomaticRecorder({
             }
             if (recorderRef.current === recorder) recorderRef.current = null;
         };
-    }, [attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, paused, question?.id, sessionVersion]);
+    }, [allowDemoAssessment, attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, paused, question?.id, sessionVersion]);
 
     const copy = status === "preparing"
         ? ["正在開啟麥克風…", "只要允許一次，這一輪會自動收音。"]

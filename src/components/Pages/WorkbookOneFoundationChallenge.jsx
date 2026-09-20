@@ -18,7 +18,7 @@ const interactionCopy = {
     }
 };
 
-export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit }) {
+export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, adminScoringPreview = false }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
@@ -217,7 +217,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         setIntroIndex(index);
         setStatusError("");
         let listenSessionId = introListenSessionId;
-        if (!introComplete && !listenSessionId && index === 0 && onStartAlphabetIntro) {
+        if (!adminScoringPreview && !introComplete && !listenSessionId && index === 0 && onStartAlphabetIntro) {
             try {
                 const response = await onStartAlphabetIntro();
                 if (response?.already_completed) {
@@ -238,7 +238,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             onEnded: async () => {
                 setIntroIndex(sourceQuestions.length - 1);
                 setIntroComplete(true);
-                if (!introComplete && listenSessionId && onCompleteAlphabetIntro) {
+                if (!adminScoringPreview && !introComplete && listenSessionId && onCompleteAlphabetIntro) {
                     try {
                         const response = await onCompleteAlphabetIntro(listenSessionId);
                         if (!response?.completed) throw new Error("A–Z 聆聽尚未完成，請再聽一次");
@@ -250,7 +250,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 }
             }
         });
-    }, [introComplete, introListenSessionId, onCompleteAlphabetIntro, onStartAlphabetIntro, playAlphabetAudio, sourceQuestions]);
+    }, [adminScoringPreview, introComplete, introListenSessionId, onCompleteAlphabetIntro, onStartAlphabetIntro, playAlphabetAudio, sourceQuestions]);
 
     const startRound = useCallback(async () => {
         if (startPendingRef.current) return;
@@ -263,7 +263,15 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         try {
             let nextRound;
             let nextRoundId = "";
-            if (alphabetMode) {
+            if (alphabetMode && adminScoringPreview) {
+                nextRound = sourceQuestions.map(question => ({
+                    ...question,
+                    display_text: String(question.question_text || "").toUpperCase()
+                })).filter(question => /^[A-Za-z]$/.test(question.display_text));
+                if (nextRound.length !== 26 || new Set(nextRound.map(question => Number(question.id))).size !== 26) {
+                    throw new Error("A–Z 示範題目尚未準備完成");
+                }
+            } else if (alphabetMode) {
                 const response = await onStartRound?.();
                 if (requestId !== startRequestRef.current) return;
                 const serverRound = response?.round;
@@ -295,7 +303,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 setStartingRound(false);
             }
         }
-    }, [alphabetMode, interactionType, onStartRound, sourceQuestions, stopAudio]);
+    }, [adminScoringPreview, alphabetMode, interactionType, onStartRound, sourceQuestions, stopAudio]);
 
     useEffect(() => {
         if (["challenge", "failed", "result"].includes(phase)) {
@@ -315,6 +323,15 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
 
     const handleCorrect = async result => {
         if (alphabetMode) {
+            if (adminScoringPreview) {
+                if (result?.answer_match === false) {
+                    setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
+                    return;
+                }
+                if (activeIndex >= round.length - 1) setPhase("result");
+                else setActiveIndex(index => index + 1);
+                return;
+            }
             const expectedStatus = activeIndex >= round.length - 1 ? "completed" : "open";
             if (result?.foundation_round?.status === "retry") {
                 setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
@@ -402,6 +419,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
         {renderLessonHeader({ challengeActive: true })}
         <section className="speaking-question-stage"><article className="speaking-focus-card speaking-foundation-card">
+            {adminScoringPreview && <p className="speaking-staff-preview-banner" role="status"><strong>管理員評分示範</strong>結果不會寫入學生進度、獎勵或每日挑戰額度。</p>}
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
             <div ref={phaseFocusRef} tabIndex="-1" className={alphabetMode ? "speaking-foundation-letter" : "speaking-foundation-word"} aria-label={alphabetMode ? `字母 ${activeQuestion.display_text}` : `單字 ${activeQuestion.question_text}`}>{alphabetMode ? activeQuestion.display_text : activeQuestion.question_text}</div>
             {alphabetMode ? <AlphabetAutomaticRecorder
@@ -409,6 +427,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 question={activeQuestion}
                 foundationRoundId={roundId}
                 challengeSessionId={challengeSessionId}
+                allowDemoAssessment={adminScoringPreview}
                 paused={exitDialogOpen || Boolean(retryFeedback)}
                 onStatusChange={setAutomaticRecorderStatus}
                 onScored={handleCorrect}
