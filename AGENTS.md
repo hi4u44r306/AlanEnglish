@@ -58,7 +58,7 @@ GitHub Repository：<https://github.com/hi4u44r306/AlanEnglish>
 部署服務：
 
 - GitHub
-- Netlify
+- Cloudflare Workers／Pages
 
 正式部署分支：`main`
 
@@ -385,10 +385,10 @@ git status --short
 - 在明確功能分支建立 commit 並 Push 到 GitHub。
 - 建立或更新 Pull Request。
 - 合併至 `main`。
-- 部署相關的非破壞性 Edge Function 與 Netlify 正式站。
+- 部署相關的非破壞性 Edge Function 與 Cloudflare 正式站。
 - 完成正式網址線上驗收，並將結果寫入 `docs/PROJECT_STATUS.md`。
 
-固定測試站 `alanenglish-student-test.netlify.app` 不再是每次發布的必要步驟。一般文案、局部 UI、導覽、RWD、可回復的前端錯誤修正及已有測試保護的低風險功能，可在本機驗證後直接發布正式站。
+固定測試站不再是每次發布的必要步驟。一般文案、局部 UI、導覽、RWD、可回復的前端錯誤修正及已有測試保護的低風險功能，可在本機驗證後直接由 Cloudflare 發布正式站。
 
 下列重大改動必須先使用隔離測試環境／測試站驗證，並在執行正式高影響操作前取得使用者針對該批工作的明確同意：
 
@@ -491,7 +491,7 @@ npm run build
 
 必須遵守：
 
-- 依序確認功能分支／commit、與最新 `main` 的差異、migration、Edge Function、Secret 名稱狀態、GitHub PR、Netlify production 及正式網址實測。
+- 依序確認功能分支／commit、與最新 `main` 的差異、migration、Edge Function、Secret 名稱狀態、GitHub PR、Cloudflare production 及正式網址實測。
 - 一般低至中風險發布依第 13 節的持續授權直接執行；重大改動則先走隔離驗證與該批明確授權。
 - 不得把「直接正式站」解讀成略過本機測試、build、diff、安全檢查或正式站發布後驗收。
 - 若正式部署失敗或線上驗收出現權限、付款、資料或主要流程問題，立即停止新功能，優先回復上一個安全版本或製作最小 hotfix。

@@ -22,7 +22,6 @@ const normalizeSourceKey = value => String(value || "").trim();
 export const isStudentAvatarDisplayUrl = value => {
     const url = String(value || "").trim();
     return url.startsWith("/default-avatars/")
-        || url.startsWith("/.netlify/images?")
         || url.startsWith("data:image/")
         || /^https?:\/\//i.test(url);
 };
@@ -125,9 +124,8 @@ export const getCachedStudentAvatarUrl = (fallback, { ownerUid, sourceKey } = {}
     const expectedOwner = normalizeOwnerUid(ownerUid);
     const expectedSource = normalizeSourceKey(sourceKey);
 
-    // A previously deployed build stored preset thumbnails through Netlify
-    // Image CDN. The source path is authoritative, so immediately migrate
-    // display back to the bundled Cloudflare asset instead of retrying it.
+    // A previous image proxy stored preset thumbnails under a transformed URL.
+    // The source path is authoritative, so immediately use the bundled asset.
     if (expectedSource.startsWith("/default-avatars/")) return expectedSource;
 
     if (record?.version === 1) return record.displayUrl;

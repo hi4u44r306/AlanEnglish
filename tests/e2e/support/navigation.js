@@ -79,7 +79,6 @@ const getInternalLinks = async page => {
     return [...new Set(hrefs)]
         .map(href => new URL(href))
         .filter(url => url.origin === baseOrigin)
-        .filter(url => !url.pathname.startsWith("/.netlify/"))
         .map(url => `${url.pathname}${url.search}`);
 };
 

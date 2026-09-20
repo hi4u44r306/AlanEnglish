@@ -14,4 +14,4 @@ await cp(buildDirectory, cloudflareDirectory, {
     filter: source => !excludedFiles.has(path.basename(source))
 });
 
-console.log("已產生不含 Netlify redirects 的 Cloudflare 靜態資產。");
+console.log("已產生 Cloudflare 靜態資產。");
