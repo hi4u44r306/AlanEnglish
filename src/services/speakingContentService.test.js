@@ -15,6 +15,7 @@ import {
     deleteDraftSpeakingQuestion,
     reorderDraftSpeakingQuestions,
     archiveSpeakingQuestionSet,
+    confirmPageCandidateSpeakingDraft,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
     getSpeakingQuestionAudioPreview,
@@ -55,6 +56,7 @@ describe("speakingContentService", () => {
         await reviewSpeakingOcrSource(firebaseUser, { source_section_id: 1 });
         await saveReviewedSpeakingSource(firebaseUser, { book_id: 1 });
         await generateSpeakingQuestionSet(firebaseUser, { source_section_id: 2, request_key: "key" });
+        await confirmPageCandidateSpeakingDraft(firebaseUser, 41);
         await createWorkbookOneStarterQuestionSet(firebaseUser, 1);
         await createWorkbookOneFoundationQuestionSet(firebaseUser, 1, "create_workbook_1_spelling_p14");
         await createWorkbookOneFoundationQuestionSet(firebaseUser, 1, "create_workbook_1_p26_p27_contractions");
@@ -91,6 +93,7 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "review_ocr_source"],
             ["speaking-content-manager", "save_reviewed_source"],
             ["speaking-content-manager", "generate_question_set"],
+            ["speaking-content-manager", "confirm_page_candidate_draft"],
             ["speaking-content-manager", "create_workbook_1_starter"],
             ["speaking-content-manager", "create_workbook_1_spelling_p14"],
             ["speaking-content-manager", "create_workbook_1_p26_p27_contractions"],

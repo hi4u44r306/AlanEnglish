@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiLock, FiMic } from "react-icons/fi";
+import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiLock, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
@@ -229,7 +229,7 @@ export default function TextbookSpeakingChallenge() {
         return () => document.body.classList.remove("speaking-challenge-active");
     }, [questionSetId]);
     useEffect(() => {
-        if (questionSetId && activeQuestion?.id && !["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence"].includes(interactionType)) {
+        if (questionSetId && activeQuestion?.id && !["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence", "mixed"].includes(interactionType)) {
             questionHeadingRef.current?.focus({ preventScroll: true });
         }
     }, [activeQuestion?.id, interactionType, questionSetId]);
@@ -372,6 +372,11 @@ export default function TextbookSpeakingChallenge() {
     if (!activeQuestion) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button></section></main>;
 
     const isCompleted = staffPreview || activeQuestion.progress_status === "completed";
+    const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
+    const activePictureMode = ["picture_qa", "picture_gap_sentence"].includes(activeInteractionType);
+    const activePrompt = activeInteractionType === "picture_gap_sentence"
+        ? activeQuestion.picture_interaction?.sentence_pattern || "看圖片補完整句"
+        : activeInteractionType === "picture_qa" ? "看圖片，說出完整問句與回答" : activeQuestion.question_text;
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
     const goForward = () => {
         if (!isCompleted) return;
@@ -399,10 +404,11 @@ export default function TextbookSpeakingChallenge() {
             <article key={activeQuestion.id} className={`speaking-focus-card ${isCompleted ? "done" : ""}`}>
                 <header className="speaking-question-heading">
                     <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
-                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activeQuestion.question_text}</h2><p>聽懂問題後，按下麥克風直接回答。</p></div>
+                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2><p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : "聽懂問題後，按下麥克風直接回答。"}</p></div>
                 </header>
                 <SpeakingVisualAid aid={activeQuestion.visual_aid} />
-                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
+                {activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
+                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
                 <small className="speaking-no-reward">完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。</small>
             </article>
         </section>

@@ -194,6 +194,9 @@ Deno.serve(async (req: Request) => {
             const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
             const alphabetMode = interactionType === "alphabet_round";
             const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
+            const manualPageMode = questionSet?.generation_metadata?.source === "admin_page_builder"
+                && questionSet?.generation_metadata?.manual_builder_version === 2
+                && interactionType === "mixed";
             const { data: progress, error: progressError } = ids.length && !demoMode
                 ? await admin.from("speaking_challenge_question_progress").select("question_id,status").eq("student_id", user.id).in("question_id", ids)
                 : { data: [], error: null };
@@ -213,7 +216,7 @@ Deno.serve(async (req: Request) => {
                 `${Number(row.question_id)}:${row.purpose}`,
                 assetById.get(String(row.asset_id))
             ]));
-            const [{ data: pictureInteractions, error: pictureInteractionError }, { data: visualLinks, error: visualLinkError }] = pictureMode && ids.length
+            const [{ data: pictureInteractions, error: pictureInteractionError }, { data: visualLinks, error: visualLinkError }] = (pictureMode || manualPageMode) && ids.length
                 ? await Promise.all([
                     admin.from("speaking_question_interactions")
                         .select("question_id,interaction_type,prompt_text").in("question_id", ids),
