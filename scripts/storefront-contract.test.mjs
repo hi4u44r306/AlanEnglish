@@ -94,7 +94,6 @@ test("Hosted Checkout 使用動態付款方式且不自行收集卡號", () => {
 test("Stripe 完成與取消頁只回到建立結帳的允許商城網域", () => {
     assert.match(store, /req\.headers\.get\("Origin"\)/);
     assert.match(store, /https:\/\/alanenglish\.com\.tw/);
-    assert.match(store, /https:\/\/alanenglish-student-test\.netlify\.app/);
     assert.match(store, /ALLOWED_CHECKOUT_ORIGINS\.has\(requestOrigin\)/);
     assert.match(store, /checkout_origin_forbidden/);
     assert.match(store, /success_url: `\$\{siteUrl\}\/shop\/payment\/success/);

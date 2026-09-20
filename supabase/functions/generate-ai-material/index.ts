@@ -586,7 +586,7 @@ Deno.serve(async (req: Request) => {
                 },
                 { id: "supabase", name: "Supabase", category: "資料庫／Functions", coverage: "external", note: "方案月費、資料庫、流量與 Edge Functions 請至 Supabase Billing 核對。", dashboard_url: "https://supabase.com/dashboard/org/_/billing" },
                 { id: "cloudflare_r2", name: "Cloudflare R2", category: "私有教材儲存", coverage: "external", note: "儲存量、Class A／B 操作與傳輸費需至 Cloudflare R2 Analytics 核對。", dashboard_url: "https://dash.cloudflare.com/" },
-                { id: "netlify", name: "Netlify", category: "網站部署", coverage: "external", note: "頻寬、Build 與 Functions 使用量需至 Netlify Usage 核對。", dashboard_url: "https://app.netlify.com/teams" },
+                { id: "cloudflare_workers", name: "Cloudflare Workers／Pages", category: "網站部署", coverage: "external", note: "網站流量、Workers 與建置使用量需至 Cloudflare Dashboard 核對。", dashboard_url: "https://dash.cloudflare.com/" },
                 { id: "firebase", name: "Firebase Authentication", category: "登入", coverage: "external", note: "目前程式僅使用 Authentication；實際方案與登入額度請至 Firebase Usage 核對。", dashboard_url: "https://console.firebase.google.com/" },
                 { id: "resend", name: "Resend", category: "系統 Email", coverage: "external", note: "驗證信、重設密碼與家長週報寄送量需至 Resend Usage 核對。", dashboard_url: "https://resend.com/overview" },
                 { id: "payuni", name: "PAYUNi／付款服務", category: "交易手續費", coverage: "external", note: "交易手續費不是 API 呼叫費，請依 PAYUNi 月結或交易報表核對。" }

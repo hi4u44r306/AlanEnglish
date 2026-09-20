@@ -8,8 +8,7 @@ export const DEFAULT_STUDENT_AVATARS = [
 
 export const isDefaultStudentAvatar = value => DEFAULT_STUDENT_AVATARS.some(avatar => avatar.path === value);
 
-// Cloudflare serves these bundled files directly.  Do not route them through
-// Netlify Image CDN: that endpoint disappears when Netlify is disconnected.
+// Cloudflare serves these bundled files directly.
 export const getStudentAvatarDisplayUrl = value => {
     const path = String(value || "").trim();
     return path && isDefaultStudentAvatar(path) ? path : path || null;

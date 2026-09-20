@@ -4,7 +4,6 @@ import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 const ALLOWED_ORIGINS = new Set([
     "https://alanenglish.com.tw",
     "https://www.alanenglish.com.tw",
-    "https://alanenglish-student-test.netlify.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000"

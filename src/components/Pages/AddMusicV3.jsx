@@ -45,7 +45,6 @@ const R2_CORS_POLICY = JSON.stringify([
         AllowedOrigins: [
             "https://alanenglish.com.tw",
             "https://www.alanenglish.com.tw",
-            "https://alanenglish-student-test.netlify.app",
             "https://alan-english-listening.web.app",
             "https://alan-english-listening.firebaseapp.com"
         ],

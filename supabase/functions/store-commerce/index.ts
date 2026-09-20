@@ -11,8 +11,7 @@ const corsHeaders = {
 const DEFAULT_SITE_URL = "https://alanenglish.com.tw";
 const PUBLIC_STORE_SALES_ENABLED = false;
 const ALLOWED_CHECKOUT_ORIGINS = new Set([
-    DEFAULT_SITE_URL,
-    "https://alanenglish-student-test.netlify.app"
+    DEFAULT_SITE_URL
 ]);
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json" }

@@ -21,7 +21,7 @@ npm run test:e2e
 測試 Deploy Preview 或正式網址：
 
 ```powershell
-$env:E2E_BASE_URL="https://example.netlify.app"
+$env:E2E_BASE_URL="https://example.com"
 npm run test:e2e
 Remove-Item Env:E2E_BASE_URL
 ```
