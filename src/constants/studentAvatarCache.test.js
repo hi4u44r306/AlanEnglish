@@ -29,6 +29,20 @@ describe("student avatar display cache", () => {
         }));
     });
 
+    it("replaces a legacy Netlify preset cache with its bundled source asset", () => {
+        window.localStorage.setItem("ae-userimage", JSON.stringify({
+            version: 2,
+            ownerUid: "student-1",
+            sourceKey: "/default-avatars/alan-owl.png",
+            displayUrl: "/.netlify/images?url=%2Fdefault-avatars%2Falan-owl.png&w=160&h=160&fit=cover"
+        }));
+
+        expect(getCachedStudentAvatarUrl(null, {
+            ownerUid: "student-1",
+            sourceKey: "/default-avatars/alan-owl.png"
+        })).toBe("/default-avatars/alan-owl.png");
+    });
+
     it("stores an uploaded avatar preview as a data URL for instant refresh rendering", async () => {
         const previewBlob = new Blob(["avatar-preview"], { type: "image/webp" });
         await cacheStudentAvatarDisplayUrl("https://example.com/signed-avatar.webp", {
