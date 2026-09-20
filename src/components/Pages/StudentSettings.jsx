@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
-import { cacheStudentAvatarDisplayUrl, getCachedStudentAvatarUrl, updateStudentAvatarCache } from "../../constants/studentAvatarCache";
+import { cacheStudentAvatarDisplayUrl, updateStudentAvatarCache } from "../../constants/studentAvatarCache";
 import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
+import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import {
     confirmGuardianEmailVerification,
@@ -391,7 +392,7 @@ function StudentSettings() {
     const guardianVerified = Boolean(currentGuardian?.email && currentGuardian?.email_verified_at);
     const publicDisplayName = nicknameSettings.profile?.nickname || profile.nickname || profile.chinese_name || profile.name || "學生";
     const balance = summary?.balance || {};
-    const avatarUrl = getCachedStudentAvatarUrl(summary?.profile?.avatar_url || studentProfile?.avatar_url, {
+    const avatarUrl = useCachedStudentAvatarUrl(summary?.profile?.avatar_url || studentProfile?.avatar_url, {
         ownerUid: firebaseUser?.uid,
         sourceKey: studentProfile?.user_image || studentProfile?.userimage
     });
