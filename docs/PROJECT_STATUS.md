@@ -8,6 +8,7 @@
 - 被略過的題目會寫入新草稿的 `generation_metadata.duplicate_review`，題庫管理會顯示「略過的完整句 → 來源頁碼／題庫名稱 → 草稿或已發布」，讓管理員能判斷是否應人工調整。若整頁候選皆為既有句子，系統不會建立空草稿並明確回傳「全部題目都與既有題庫重複」。
 - 不修改任何既有題庫、學生進度、資料庫 schema、migration、RLS 或 Secret。此規則只處理完全相同的句子，不會自動判定同義改寫；同時由兩位管理員建立相同頁面的極少數競態情況仍以既有頁碼草稿保護與人工審核為準。
 - 驗證：題庫管理 React targeted 11/11、逐頁去重契約測試 1/1、完整 Edge Function 語法檢查、Production build 及 `git diff --check` 均通過。PR #212 已合併至 `main` commit `4c1dbd7`；`speaking-content-manager` 已重新部署，未登入請求正確回應 401，Cloudflare production build `ace89a04` 成功，正式 `/admin/speaking-content` 回應 HTTP 200。登入管理員建立候選草稿的實際去重結果仍待人工抽驗。
+- 遠端草稿抽驗：管理員於 2026-09-20 建立既有人工核對來源的 Workbook 1 P26～P27「完整句與縮寫」草稿，題庫 ID `33`、第 1 版、9 題、狀態 `draft`。未核准、未發布、未建立學生紀錄；這筆固定來源草稿不會觸發 OCR 逐頁去重。Workbook 1 現有 OCR 批次仍為 0/12 批人工核准，必須先逐頁核對來源，才可安全驗收去重候選流程。
 
 本次學生頭貼 Local Storage 切頁快取（2026-09-20，已正式部署）：
 
