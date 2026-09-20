@@ -125,6 +125,11 @@ export const getCachedStudentAvatarUrl = (fallback, { ownerUid, sourceKey } = {}
     const expectedOwner = normalizeOwnerUid(ownerUid);
     const expectedSource = normalizeSourceKey(sourceKey);
 
+    // A previously deployed build stored preset thumbnails through Netlify
+    // Image CDN. The source path is authoritative, so immediately migrate
+    // display back to the bundled Cloudflare asset instead of retrying it.
+    if (expectedSource.startsWith("/default-avatars/")) return expectedSource;
+
     if (record?.version === 1) return record.displayUrl;
     if (record?.version === AVATAR_CACHE_VERSION) {
         if (expectedOwner && record.ownerUid !== expectedOwner) {

@@ -23,4 +23,11 @@ describe("StudentAvatarImage", () => {
         expect(screen.getByAltText("快取頭貼")).toHaveClass("is-loaded");
         expect(screen.queryByRole("status", { name: "頭貼載入中" })).not.toBeInTheDocument();
     });
+
+    it("shows a bundled default avatar immediately while retaining load-error handling", () => {
+        render(<StudentAvatarImage src="/default-avatars/alan-owl.png" alt="預設頭像" />);
+
+        expect(screen.getByAltText("預設頭像")).toHaveClass("is-loaded");
+        expect(screen.queryByRole("status", { name: "頭貼載入中" })).not.toBeInTheDocument();
+    });
 });

@@ -3,9 +3,12 @@ import "../assets/scss/StudentAvatarImage.scss";
 
 const getImageState = src => {
     if (!src) return "failed";
-    // Data URLs are the account-scoped Local Storage preview. Do not briefly
-    // hide an already-local image behind a new loading animation on every route.
-    return String(src).startsWith("data:image/") ? "loaded" : "loading";
+    // Data URLs and bundled presets are immediately available on this origin.
+    // Do not hide them behind a route-change loader; onError still handles a
+    // genuinely missing file.
+    return String(src).startsWith("data:image/") || String(src).startsWith("/default-avatars/")
+        ? "loaded"
+        : "loading";
 };
 
 const StudentAvatarImage = ({ alt = "", className = "", objectFit = "cover", onError, onLoad, src, ...props }) => {
