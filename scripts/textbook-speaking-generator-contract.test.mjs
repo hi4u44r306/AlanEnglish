@@ -129,6 +129,16 @@ test("9. 管理員可查看整本進度、逐批重試並逐批人工核准", ()
     assert.match(manager, /status: "completed"/);
 });
 
+test("9a. OCR 會要求結構化 JSON、保留舊回覆的安全 JSON 擷取，並預留密集十頁教材的輸出空間", () => {
+    assert.match(manager, /const parseJsonObjectFromText =/);
+    assert.match(manager, /const ocrResponseFormat =/);
+    assert.match(manager, /type: "json_schema"/);
+    assert.match(manager, /strict: true/);
+    assert.match(manager, /WHOLE_BOOK_OCR_MAX_OUTPUT_TOKENS = 16_000/);
+    assert.match(manager, /MAX_OCR_SOURCE_TEXT_CHARS = 60_000/);
+    assert.match(manager, /ocr_output_truncated/);
+});
+
 test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 500MB", () => {
     assert.match(wholeBookSizeMigration, /when chunk_count is null then 20971520/);
     assert.match(wholeBookSizeMigration, /else 524288000/);
