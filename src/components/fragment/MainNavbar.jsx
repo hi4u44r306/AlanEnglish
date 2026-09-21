@@ -198,7 +198,7 @@ function MainNavbar() {
             ? scheduleWhenIdle(refreshGamification)
             : (() => {
                 refreshGamification();
-                return () => {};
+                return () => { };
             })();
         window.addEventListener("ae:gamification-updated", refreshGamification);
         return () => {
@@ -233,7 +233,7 @@ function MainNavbar() {
             ? scheduleWhenIdle(refreshNotifications)
             : (() => {
                 refreshNotifications();
-                return () => {};
+                return () => { };
             })();
         return () => {
             cancelled = true;
@@ -278,7 +278,7 @@ function MainNavbar() {
             ? scheduleWhenIdle(fetchNavbarData)
             : (() => {
                 fetchNavbarData();
-                return () => {};
+                return () => { };
             })();
         return () => {
             cancelled = true;
