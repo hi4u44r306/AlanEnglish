@@ -419,10 +419,11 @@ const normalizeWholeBookChunks = (value: unknown, pageCount: number) => {
 };
 
 const extractOutputText = (data: any) => {
-    if (typeof data?.output_text === "string") return data.output_text.trim();
+    const directOutput = typeof data?.output_text === "string" ? data.output_text.trim() : "";
+    if (directOutput) return directOutput;
     return (Array.isArray(data?.output) ? data.output : [])
         .flatMap((item: any) => Array.isArray(item?.content) ? item.content : [])
-        .map((item: any) => item?.text || item?.value || "")
+        .map((item: any) => typeof item?.text === "string" ? item.text : (typeof item?.value === "string" ? item.value : ""))
         .join("")
         .trim();
 };
