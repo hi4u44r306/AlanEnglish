@@ -418,14 +418,40 @@ const normalizeWholeBookChunks = (value: unknown, pageCount: number) => {
     return valid ? rows : null;
 };
 
+const stringifyStructuredOutput = (value: unknown) => {
+    if (!value || typeof value !== "object") return "";
+    try { return JSON.stringify(value); } catch { return ""; }
+};
+
 const extractOutputText = (data: any) => {
     const directOutput = typeof data?.output_text === "string" ? data.output_text.trim() : "";
     if (directOutput) return directOutput;
+    const directParsedOutput = stringifyStructuredOutput(data?.output_parsed || data?.parsed);
+    if (directParsedOutput) return directParsedOutput;
     return (Array.isArray(data?.output) ? data.output : [])
         .flatMap((item: any) => Array.isArray(item?.content) ? item.content : [])
-        .map((item: any) => typeof item?.text === "string" ? item.text : (typeof item?.value === "string" ? item.value : ""))
+        .map((item: any) => {
+            if (typeof item?.text === "string") return item.text;
+            if (typeof item?.text?.value === "string") return item.text.value;
+            if (typeof item?.value === "string") return item.value;
+            return stringifyStructuredOutput(item?.parsed);
+        })
         .join("")
         .trim();
+};
+
+const ocrOutputFailureCode = (data: any) => {
+    const status = cleanText(data?.status, 40).toLowerCase();
+    if (status === "incomplete") return "ocr_response_incomplete";
+    if (status && status !== "completed") return "ocr_response_unfinished";
+    const content = (Array.isArray(data?.output) ? data.output : [])
+        .flatMap((item: any) => Array.isArray(item?.content) ? item.content : []);
+    if (content.some((item: any) => typeof item?.refusal === "string" && item.refusal.trim())) return "ocr_response_refused";
+    const outputText = extractOutputText(data);
+    if (!outputText) return "ocr_output_empty";
+    const parsed = parseJsonObjectFromText(outputText);
+    if (!parsed) return "ocr_output_not_json";
+    return String(parsed.source_text || "").trim().length < 20 ? "ocr_source_text_missing" : "ocr_output_invalid";
 };
 
 const cleanArray = (value: unknown, maxItems: number, maxLength: number) => Array.from(new Set(
@@ -1084,7 +1110,7 @@ Deno.serve(async (req: Request) => {
                     throw Object.assign(new Error("ocr_output_truncated"), { code: "ocr_output_truncated" });
                 }
                 const extracted = parseOcrOutput(aiData);
-                if (!extracted) throw Object.assign(new Error("invalid_ocr_output"), { code: "invalid_ocr_output" });
+                if (!extracted) throw Object.assign(new Error("invalid_ocr_output"), { code: ocrOutputFailureCode(aiData) });
                 const now = new Date().toISOString();
                 const { data: section, error: sectionError } = await admin.from("speaking_source_sections").insert({
                     document_id: document.id, unit_label: extracted.suggestedUnit,
@@ -2649,6 +2675,14 @@ Deno.serve(async (req: Request) => {
         if (code === "23514" && message.includes("speaking_source_documents_byte_size_check")) {
             return json(400, { error: "教材檔案大小超過限制；單一來源上限 20MB，整本分批 PDF 上限 500MB" });
         }
-        return json(status, { error: status < 500 ? String((error as any)?.message || "請求失敗") : "教材口說題庫服務發生錯誤" });
+        const safeOcrFailure = /^ocr_(?:response_(?:incomplete|unfinished|refused)|output_(?:empty|not_json|invalid)|source_text_missing)$/.test(code);
+        return json(status, {
+            error: status < 500
+                ? String((error as any)?.message || "請求失敗")
+                : safeOcrFailure
+                    ? `這一批 OCR 沒有產生可核對的教材文字（${code}）。原始 PDF 與其他批次都已保留。`
+                    : "教材口說題庫服務發生錯誤",
+            ...(safeOcrFailure ? { code } : {})
+        });
     }
 });
