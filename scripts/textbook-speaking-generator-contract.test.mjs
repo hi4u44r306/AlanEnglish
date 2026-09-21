@@ -6,7 +6,7 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8"
 const migration = read("supabase/migrations/20260903152751_textbook_speaking_question_bank.sql");
 const ocrMigration = read("supabase/migrations/20260904005001_textbook_speaking_ocr_pipeline.sql");
 const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_book_ocr_batches.sql");
-const wholeBookSizeMigration = read("supabase/migrations/20260904030633_allow_whole_book_document_size.sql");
+const wholeBookSizeMigration = read("supabase/migrations/20260921110000_allow_500mb_whole_book_source.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const challenge = read("supabase/functions/speaking-challenge/index.ts");
@@ -114,7 +114,7 @@ test("8. 整本 PDF 會建立可續跑的十頁批次與私人檔案狀態", () 
     assert.match(batchMigration, /enable row level security/);
     assert.match(batchMigration, /revoke all on table public\.speaking_source_chunks from public, anon, authenticated/);
     assert.match(manager, /WHOLE_BOOK_CHUNK_PAGES = 10/);
-    assert.match(manager, /MAX_WHOLE_BOOK_BYTES = 100 \* 1024 \* 1024/);
+    assert.match(manager, /MAX_WHOLE_BOOK_BYTES = 500 \* 1024 \* 1024/);
     assert.match(manager, /create_book_upload/);
     assert.match(manager, /confirm_book_upload/);
     assert.match(manager, /extract_book_chunk/);
@@ -129,12 +129,12 @@ test("9. 管理員可查看整本進度、逐批重試並逐批人工核准", ()
     assert.match(manager, /status: "completed"/);
 });
 
-test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 100MB", () => {
+test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 500MB", () => {
     assert.match(wholeBookSizeMigration, /when chunk_count is null then 20971520/);
-    assert.match(wholeBookSizeMigration, /else 104857600/);
+    assert.match(wholeBookSizeMigration, /else 524288000/);
     assert.match(wholeBookSizeMigration, /drop constraint if exists speaking_source_documents_byte_size_check/);
     assert.match(manager, /code === "23514"/);
-    assert.match(manager, /單一來源上限 20MB，整本分批 PDF 上限 100MB/);
+    assert.match(manager, /單一來源上限 20MB，整本分批 PDF 上限 500MB/);
 });
 
 test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管理員發布", () => {
