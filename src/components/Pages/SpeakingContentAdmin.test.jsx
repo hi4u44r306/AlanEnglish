@@ -124,6 +124,27 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(2, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P5" }));
     });
 
+    it("only batch-approves OCR candidates the administrator explicitly selected as reviewed", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }], documents: [], chunks: [], sections: [],
+            question_sets: [
+                { id: 41, title: "P4 口說練習", status: "draft", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P4", requires_content_review: true, image_suggestions: ["眼睛插圖"] }, speaking_questions: [{ id: 1 }, { id: 2 }, { id: 3 }] },
+                { id: 42, title: "P5 口說練習", status: "draft", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P5", requires_content_review: true, duplicate_review: { excluded_count: 1 } }, speaking_questions: [{ id: 4 }, { id: 5 }, { id: 6 }] }
+            ]
+        });
+
+        render(<SpeakingContentAdmin />);
+        expect(await screen.findByRole("heading", { name: "逐頁候選待審核" })).toBeInTheDocument();
+        expect(screen.getByLabelText("已逐題核對 P4 候選草稿")).not.toBeChecked();
+        fireEvent.click(screen.getByRole("button", { name: "選取全部已核對" }));
+        fireEvent.click(screen.getByRole("button", { name: "批次核准 2 份草稿" }));
+
+        await waitFor(() => expect(confirmPageCandidateSpeakingDraft).toHaveBeenCalledWith(mockFirebaseUser, 41));
+        expect(confirmPageCandidateSpeakingDraft).toHaveBeenCalledWith(mockFirebaseUser, 42);
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("絕不會發布給學生"));
+    });
+
     it("creates the curated Workbook 1 starter without asking AI to generate it", async () => {
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /建立新關卡/ }));

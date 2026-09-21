@@ -153,6 +153,21 @@
 .speaking-bank-toolbar { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(190px, 260px); gap: 7px; }
 .speaking-bank-toolbar label { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid #d7e1ef; border-radius: 9px; color: #526079; background: #fff; }
 .speaking-bank-toolbar input, .speaking-bank-toolbar select { width: 100%; min-width: 0; min-height: 44px; padding: 0; border: 0; outline: 0; color: #17233f; background: transparent; }
+.speaking-page-review-queue { display: grid; gap: 11px; padding: 15px; border: 1px solid #e6c770; border-radius: 13px; background: #fffaf0; }
+.speaking-page-review-queue > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.speaking-page-review-queue h3 { margin: 2px 0; color: #5c4613; font-size: 17px; }
+.speaking-page-review-queue p { max-width: 680px; margin: 0; color: #73571e; font-size: 13px; line-height: 1.55; }
+.speaking-page-review-queue > header span { color: #9a6a0d; font-size: 11px; font-weight: 900; letter-spacing: .1em; }
+.speaking-page-review-queue__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.speaking-page-review-queue__items { display: grid; gap: 7px; }
+.speaking-page-review-queue__item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 58px; padding: 9px 10px; border: 1px solid #eadcae; border-radius: 10px; color: #4f5f75; background: #fff; }
+.speaking-page-review-queue__item:has(input:checked) { border-color: #315fa9; background: #f3f7ff; box-shadow: inset 0 0 0 1px #315fa9; }
+.speaking-page-review-queue__item > label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; cursor: pointer; }
+.speaking-page-review-queue__item input { width: 19px; height: 19px; accent-color: #315fa9; }
+.speaking-page-review-queue__item span { display: grid; gap: 2px; min-width: 0; }
+.speaking-page-review-queue__item strong { color: #17233f; }
+.speaking-page-review-queue__item small { color: #65758c; font-size: 12px; line-height: 1.45; }
+.speaking-page-review-queue__item button { white-space: nowrap; }
 .speaking-current-set { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px 14px; padding: 14px 16px; border: 2px solid #3f70bb; border-radius: 14px; color: #173f80; background: #eef5ff; }
 .speaking-current-set > span { padding: 5px 9px; border-radius: 999px; color: #fff; background: #315fa9; font-size: 12px; font-weight: 900; }
 .speaking-current-set > strong { color: #17233f; }
@@ -289,6 +304,11 @@
     .speaking-current-set > small, .speaking-current-set > a { grid-column: 1 / -1; }
     .speaking-current-set > a { width: 100%; }
     .speaking-bank-toolbar { grid-template-columns: 1fr; }
+    .speaking-page-review-queue { padding: 13px; }
+    .speaking-page-review-queue > header { align-items: stretch; flex-direction: column; }
+    .speaking-page-review-queue__actions { display: grid; grid-template-columns: 1fr; }
+    .speaking-page-review-queue__item { grid-template-columns: 1fr; }
+    .speaking-page-review-queue__item button { grid-column: 1 / -1; width: 100%; }
     .speaking-picture-editor__workspace { grid-template-columns: 1fr; }
     .speaking-picture-editor__navigator > div { max-height: 220px; }
     .speaking-picture-editor__set > button, .speaking-picture-editor__audio { width: 100%; }
