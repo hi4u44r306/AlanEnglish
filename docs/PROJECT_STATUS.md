@@ -2,10 +2,10 @@
 
 最後更新：2026-09-21
 
-本次整本教材 OCR 結構化輸出修正（2026-09-21，正式 Function 已部署，待重試驗證）：
+本次整本教材 OCR 結構化輸出修正（2026-09-21，歌曲歌詞略過修正待部署）：
 
 - 遠端 Workbook 3 的 P61–P70 OCR 衍生批次已確認完整上傳（4.46MB），前八次嘗試都在模型回覆解析階段失敗；這不是 500MB 上傳、R2 讀取或輸出 token 上限問題，P1–P60 的既有待核對文字不受影響。
-- `speaking-content-manager` 以 Responses Structured Outputs 固定 OCR 的 `source_text`、`detected_pages`、單元與主題欄位；支援頂層文字、巢狀內容、巢狀文字值及已解析的結構化回覆。整本每十頁 OCR 的輸出上限為 16,000 tokens，保存的 OCR 文字上限為 60,000 字元。若供應商沒有產生可用文字，會安全回報 `ocr_output_empty`、`ocr_output_not_json`、`ocr_source_text_missing`、`ocr_response_incomplete` 或 `ocr_response_refused`，不再只顯示通用服務錯誤。
+- `speaking-content-manager` 以 Responses Structured Outputs 固定 OCR 的 `source_text`、`detected_pages`、單元與主題欄位；支援頂層文字、巢狀內容、巢狀文字值及已解析的結構化回覆。整本每十頁 OCR 的輸出上限為 16,000 tokens，保存的 OCR 文字上限為 60,000 字元。歌曲或韻文頁只保留歌曲名稱、教材單字與標題，歌詞正文統一寫為 `[歌曲歌詞略]`，避免要求供應商逐行重製完整歌詞。若供應商沒有產生可用文字，會安全回報 `ocr_output_empty`、`ocr_output_not_json`、`ocr_source_text_missing`、`ocr_response_incomplete`、`ocr_response_content_filtered` 或 `ocr_response_refused`，不再只顯示通用服務錯誤。
 - 沒有 migration、RLS、資料修改或自動重試。部署後只需對既有 P61–P70 按一次「單獨重試」，成功後仍停在人工核對，不會建立或發布學生題目。
 - 驗證：新增 OCR 合約通過，完整 Edge Function 語法檢查、Production build 與 `git diff --check` 通過。既有題庫合約測試仍有兩項與本批無關的基準失敗：管理頁舊標題與已移除的手機播放器 CSS 斷言。
 
