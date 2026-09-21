@@ -1,13 +1,14 @@
 .speaking-content-admin { width: min(1440px, calc(100% - 24px)); display: flex; flex-direction: column; padding-top: 14px; padding-bottom: 40px; }
 .speaking-content-admin > .platform-hero { order: 0; }
 .speaking-content-admin > .platform-card { margin-bottom: 10px; padding: 14px; border-radius: 15px; box-shadow: 0 8px 24px rgba(25, 39, 73, .06); }
-.speaking-admin-hero { margin-bottom: 9px; }
+.speaking-admin-hero { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 9px; }
 .speaking-admin-hero h1 { margin: 0 0 2px; font-size: clamp(24px, 3vw, 32px); }
 .speaking-admin-hero p { font-size: 13px; line-height: 1.4; }
+.speaking-create-shortcut { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; }
 .speaking-admin-command { order: 1; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; border-color: #c8d7ec; background: #f8faff; }
 .speaking-admin-command__intro h2 { margin: 0; color: #17233f; font-size: 16px; white-space: nowrap; }
 .speaking-admin-command__intro p { margin: 0; color: #65758c; line-height: 1.55; }
-.speaking-admin-command__actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.speaking-admin-command__actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
 .speaking-admin-command__actions button { min-width: 0; min-height: 48px; display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid #d7e2f2; border-radius: 10px; color: #173f80; background: #fff; text-align: left; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
 .speaking-admin-command__actions button:hover { border-color: #86abe0; box-shadow: 0 8px 20px rgba(23, 63, 128, .1); transform: translateY(-1px); }
 .speaking-admin-command__actions button:focus-visible { outline: 3px solid rgba(49, 95, 169, .28); outline-offset: 2px; }
@@ -91,6 +92,14 @@
 .speaking-draft-validation-summary { padding: 12px 14px; border: 1px solid #e09a94; border-radius: 12px; color: #8f2f2a; background: #fff4f3; }
 .speaking-draft-validation-summary > strong { display: flex; align-items: center; gap: 7px; }
 .speaking-draft-validation-summary ul { margin: 8px 0 0; padding-left: 22px; line-height: 1.6; }
+.speaking-readiness { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: start; gap: 9px; margin-top: 10px; padding: 12px 14px; border: 1px solid; border-radius: 12px; }
+.speaking-readiness > svg { margin-top: 1px; }
+.speaking-readiness > div { min-width: 0; display: grid; gap: 4px; }
+.speaking-readiness strong { font-size: 14px; }
+.speaking-readiness span { font-size: 13px; line-height: 1.55; }
+.speaking-readiness ul { margin: 2px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.65; }
+.speaking-readiness.is-ready { border-color: #8dccab; color: #176b48; background: #f1fbf6; }
+.speaking-readiness.has-issues { border-color: #e09a94; color: #8f2f2a; background: #fff4f3; }
 .speaking-draft-confirmation-backdrop { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); overflow: auto; background: rgba(18, 31, 55, .66); }
 .speaking-draft-confirmation { width: min(720px, 100%); max-height: min(820px, calc(100dvh - 32px)); display: grid; gap: 14px; padding: 20px; overflow: auto; border-radius: 20px; background: #fff; box-shadow: 0 24px 70px rgba(9, 22, 48, .32); }
 .speaking-draft-confirmation > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
@@ -167,6 +176,8 @@
 .speaking-page-review-queue__item span { display: grid; gap: 2px; min-width: 0; }
 .speaking-page-review-queue__item strong { color: #17233f; }
 .speaking-page-review-queue__item small { color: #65758c; font-size: 12px; line-height: 1.45; }
+.speaking-source-card__page-note { max-width: 440px; display: block; padding: 10px 12px; border-radius: 10px; color: #73571e; background: #fff7df; font-size: 13px; line-height: 1.5; }
+.speaking-source-card__page-note code { font-weight: 850; }
 .speaking-page-review-queue__item button { white-space: nowrap; }
 .speaking-current-set { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px 14px; padding: 14px 16px; border: 2px solid #3f70bb; border-radius: 14px; color: #173f80; background: #eef5ff; }
 .speaking-current-set > span { padding: 5px 9px; border-radius: 999px; color: #fff; background: #315fa9; font-size: 12px; font-weight: 900; }
@@ -259,16 +270,18 @@
 .speaking-picture-editor__voice-status { color: #173f80 !important; font-weight: 850; }
 .speaking-picture-editor__voice-candidates audio { width: 100%; }
 .speaking-picture-editor__warning, .speaking-picture-editor__error { margin: 0; color: #94352f; font-weight: 750; }
+.speaking-set__locked { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 12px; border-radius: 10px; color: #73571e; background: #fff7df; font-size: 13px; font-weight: 800; }
 .speaking-selected-image-preview { display: grid; gap: 9px; justify-items: center; padding: 12px; border: 1px dashed #abc2e2; border-radius: 12px; background: #f7faff; }
 .speaking-selected-image-preview > strong { color: #315f9d; font-size: 13px; }
 @media (max-width: 760px) {
     .speaking-content-admin { width: min(100% - 12px, 1440px); padding-top: 8px; padding-bottom: 28px; }
     .speaking-content-admin > .platform-card { padding: 10px; margin-bottom: 7px; border-radius: 12px; }
     .speaking-content-admin > .platform-hero h1 { font-size: 24px; }
-    .speaking-admin-hero { margin-bottom: 6px; }
+    .speaking-admin-hero { align-items: stretch; flex-direction: column; gap: 10px; margin-bottom: 6px; }
+    .speaking-create-shortcut { width: 100%; min-height: 48px; }
     .speaking-admin-command { grid-template-columns: 1fr; gap: 6px; padding: 10px; }
     .speaking-admin-command__intro h2 { font-size: 15px; }
-    .speaking-admin-command__actions { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+    .speaking-admin-command__actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
     .speaking-admin-command__actions button { min-height: 48px; grid-template-columns: 26px minmax(0, 1fr); gap: 5px; padding: 5px 6px; border-radius: 9px; }
     .speaking-admin-command__actions svg { width: 26px; height: 26px; padding: 6px; }
     .speaking-admin-command__actions strong { font-size: 12px; }
