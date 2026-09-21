@@ -132,6 +132,7 @@ test("9. 管理員可查看整本進度、逐批重試並逐批人工核准", ()
 test("9a. OCR 會要求結構化 JSON、保留舊回覆的安全 JSON 擷取，並預留密集十頁教材的輸出空間", () => {
     assert.match(manager, /const parseJsonObjectFromText =/);
     assert.match(manager, /const ocrResponseFormat =/);
+    assert.match(manager, /const directOutput =/);
     assert.match(manager, /type: "json_schema"/);
     assert.match(manager, /strict: true/);
     assert.match(manager, /WHOLE_BOOK_OCR_MAX_OUTPUT_TOKENS = 16_000/);
