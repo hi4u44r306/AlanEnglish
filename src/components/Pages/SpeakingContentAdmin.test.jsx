@@ -11,10 +11,12 @@ import {
     createWorkbookOneStarterQuestionSet,
     createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
+    generateSpeakingQuestionSetAudio,
     getPictureGapTheAudioCandidates,
     getSpeakingContentBootstrap,
     getSpeakingQuestionAudioPreview,
     getSpeakingQuestionPicturePreview,
+    publishSpeakingQuestionSet,
     prepareSpeakingAlphabetAudioCandidate
 } from "../../services/speakingContentService";
 
@@ -64,6 +66,8 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         activatePictureGapTheAudioCandidate.mockResolvedValue({ success: true, applied: true });
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         generateSpeakingQuestionSet.mockResolvedValue({ success: true, question_set_id: 88 });
+        generateSpeakingQuestionSetAudio.mockResolvedValue({ success: true, generated: 3, reused: 0, failed: 0, pending: 0 });
+        publishSpeakingQuestionSet.mockResolvedValue({ success: true });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Leda", voice_gender: "female", audio_url: "https://audio.example/leda.wav" });
         getPictureGapTheAudioCandidates.mockResolvedValue({
             success: true,
@@ -92,12 +96,12 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
     it("shows persistent batch progress and a per-batch retry control", async () => {
         render(<SpeakingContentAdmin />);
-        expect(await screen.findByRole("heading", { name: "選擇工作區" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "關卡製作流程" })).toBeInTheDocument();
         expect(screen.getByRole("navigation", { name: "口說題庫快速操作" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /題庫管理/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /2 製作中草稿/ })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: /建立新關卡/ }));
         expect(await screen.findByRole("heading", { name: "P21～P24 人工內容與私人圖片" })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: /教材來源／OCR/ }));
+        fireEvent.click(screen.getByRole("button", { name: /1 教材來源/ }));
         expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
         expect(screen.getByText("支援 1～500 頁、500MB 以內；單頁原始掃描可達 200MB。加密或損壞的 PDF 無法處理。")).toBeInTheDocument();
         expect(await screen.findByText("整本教材 · 115 頁")).toBeInTheDocument();
@@ -116,7 +120,8 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
-        const candidateButton = await screen.findByRole("button", { name: "逐頁建立候選草稿" });
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        const candidateButton = await screen.findByRole("button", { name: "依每頁建立候選草稿" });
         fireEvent.click(candidateButton);
 
         await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
@@ -246,9 +251,8 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
-        expect(await screen.findByRole("heading", { name: "題庫工作台" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /題庫管理/ })).toHaveTextContent("1 份草稿");
-        expect(screen.getByRole("button", { name: /^1\s*草稿$/ })).toHaveAttribute("aria-pressed", "true");
+        expect(await screen.findByRole("heading", { name: "製作中草稿" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /2 製作中草稿/ })).toHaveTextContent("1 份需要處理");
         const setToggle = await screen.findByRole("button", { name: /01 我的名字與自我介紹/ });
         expect(setToggle).toHaveAttribute("aria-expanded", "false");
         fireEvent.click(setToggle);
@@ -258,10 +262,39 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByText("What's your name?")).toBeInTheDocument();
         expect(screen.getByText("學生會先聽問題，自行回答；需要時才展開提示與示範句。")).toBeInTheDocument();
         expect(screen.getByText("女聲 · Leda")).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "核准並發布" })).toBeInTheDocument();
+        expect(screen.getByText(/目前只有 1 題/)).toBeInTheDocument();
         fireEvent.click(setToggle);
         expect(setToggle).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByText("預覽學生畫面")).not.toBeInTheDocument();
+    });
+
+    it("keeps complete page drafts in ready and prepares audio before publishing", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 80, book_id: 1, title: "Workbook 1", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 81, document_id: 80, topic: "身體部位", unit_label: "P4", page_from_label: "P4", page_to_label: "P4", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [{
+                id: 82, source_section_id: 81, book_id: 1, title: "P4 身體部位", status: "draft", version: 1,
+                generation_metadata: { source: "admin_manual_builder", source_pages: [4], interaction_type: "standard_sentence" },
+                speaking_questions: [
+                    { id: 83, sort_order: 0, question_text: "It is an eye.", model_answer: "It is an eye." },
+                    { id: 84, sort_order: 1, question_text: "They are her eyes.", model_answer: "They are her eyes." },
+                    { id: 85, sort_order: 2, question_text: "It is my nose.", model_answer: "It is my nose." }
+                ]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        await waitFor(() => expect(screen.getByRole("button", { name: /3 待發布/ })).toHaveTextContent("1 份已通過內容檢查"));
+        fireEvent.click(screen.getByRole("button", { name: /3 待發布/ }));
+        fireEvent.click(await screen.findByRole("button", { name: /P4 身體部位/ }));
+        expect(screen.getByText("內容檢查完成")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "準備語音並發布" }));
+
+        await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 82));
+        expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(mockFirebaseUser, 82);
+        expect(generateSpeakingQuestionSetAudio.mock.invocationCallOrder[0]).toBeLessThan(publishSpeakingQuestionSet.mock.invocationCallOrder[0]);
     });
 
     it("deletes any selected unpublished draft without affecting the published version", async () => {
@@ -348,6 +381,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         });
 
         render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /4 已發布/ }));
         fireEvent.click(await screen.findByRole("button", { name: /01 我來自哪裡/ }));
         fireEvent.click(await screen.findByText("預覽學生畫面"));
         expect(screen.getByText("女聲 · Leda")).toBeInTheDocument();

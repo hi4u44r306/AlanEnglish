@@ -1630,20 +1630,22 @@ Deno.serve(async (req: Request) => {
             if (originalError) throw originalError;
             const picturePolicy = pictureDraftPolicyForMetadata(original?.generation_metadata);
             const interactionType = String(original?.generation_metadata?.interaction_type || "");
-            if (!original || original.status !== "published" || !picturePolicy
-                || !["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
-                return json(409, { error: "目前只支援替已發布的圖片關卡建立新版草稿" });
+            const isPictureSet = ["picture_qa", "picture_gap_sentence"].includes(interactionType);
+            if (!original || original.status !== "published" || (isPictureSet && !picturePolicy)) {
+                return json(409, { error: "找不到可建立新版草稿的已發布關卡" });
             }
-            const templateKey = String(original.generation_metadata?.template_key || "");
+            if (interactionType === "alphabet_round" || original.generation_metadata?.approved_source_page_label) {
+                return json(409, { error: "這個固定教材模板由正式來源鎖定，請更新來源後重建，不可建立通用新版草稿" });
+            }
             const { data: existingDraft, error: draftError } = await admin.from("speaking_question_sets")
                 .select("id").eq("book_id", Number(original.book_id)).eq("status", "draft")
-                .contains("generation_metadata", { template_key: templateKey }).limit(1).maybeSingle();
+                .eq("previous_set_id", Number(original.id)).limit(1).maybeSingle();
             if (draftError) throw draftError;
             if (existingDraft) return json(409, { error: "這個關卡已有新版草稿，請直接繼續編輯" });
             const originalQuestions = [...(original.speaking_questions || [])]
                 .sort((a: any, b: any) => Number(a.sort_order) - Number(b.sort_order));
-            if (Number.isInteger(picturePolicy.expectedCount)
-                && originalQuestions.length !== Number(picturePolicy.expectedCount)) {
+            if (Number.isInteger(picturePolicy?.expectedCount)
+                && originalQuestions.length !== Number(picturePolicy?.expectedCount)) {
                 return json(409, { error: "目前正式版本的題數不完整，請先由管理員檢查資料" });
             }
             const originalQuestionIds = originalQuestions.map((question: any) => Number(question.id));
@@ -1664,10 +1666,9 @@ Deno.serve(async (req: Request) => {
                     version: Number(original.version || 1) + 1, previous_set_id: Number(original.id),
                     generation_metadata: {
                         ...(original.generation_metadata || {}),
-                        requires_content_review: true,
-                        content_reviewed_at: now,
-                        content_reviewed_by: Number(user.id),
-                        revision_source: "published_picture_set"
+                        revision_source: "published_question_set",
+                        revision_created_at: now,
+                        revision_created_by: Number(user.id)
                     },
                     created_by: user.id, created_at: now, updated_at: now
                 }).select("id").single();
@@ -1694,13 +1695,17 @@ Deno.serve(async (req: Request) => {
                     question_id: mapQuestionId(row.question_id), asset_id: row.asset_id,
                     crop_metadata: row.crop_metadata || {}, created_at: now, updated_at: now
                 })).filter((row: any) => row.question_id);
-                if (interactions.length !== originalQuestions.length || visualLinks.length !== originalQuestions.length) {
+                if (isPictureSet && (interactions.length !== originalQuestions.length || visualLinks.length !== originalQuestions.length)) {
                     throw new Error("正式版本的圖片或作答規則不完整，無法安全建立新版草稿");
                 }
-                const { error: interactionInsertError } = await admin.from("speaking_question_interactions").insert(interactions);
-                if (interactionInsertError) throw interactionInsertError;
-                const { error: visualInsertError } = await admin.from("speaking_question_visual_assets").insert(visualLinks);
-                if (visualInsertError) throw visualInsertError;
+                if (interactions.length > 0) {
+                    const { error: interactionInsertError } = await admin.from("speaking_question_interactions").insert(interactions);
+                    if (interactionInsertError) throw interactionInsertError;
+                }
+                if (visualLinks.length > 0) {
+                    const { error: visualInsertError } = await admin.from("speaking_question_visual_assets").insert(visualLinks);
+                    if (visualInsertError) throw visualInsertError;
+                }
                 const wordAudioLinks = (wordAudioResult.data || []).map((row: any) => ({
                     question_id: mapQuestionId(row.question_id), token_index: row.token_index,
                     word: row.word, asset_id: row.asset_id, created_at: now, updated_at: now
@@ -1953,10 +1958,6 @@ Deno.serve(async (req: Request) => {
                 if (error) throw error;
                 if (!deletedDraft) return json(409, { error: "草稿狀態已變更，請重新整理後再試" });
                 return json(200, { success: true, deleted: true });
-            }
-            if (!pictureDraftPolicyForMetadata(questionSet.generation_metadata)
-                && !manualDraftPolicyForMetadata(questionSet.generation_metadata)) {
-                return json(409, { error: "目前只支援封存管理員建立的口說關卡" });
             }
             if (questionSet.status !== "published") return json(409, { error: "這個關卡已經下架" });
             const { data: revisionDraft, error: revisionDraftError } = await admin.from("speaking_question_sets")

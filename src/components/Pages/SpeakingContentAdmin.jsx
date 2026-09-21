@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, Eye, FileText, LoaderCircle, Pencil, RefreshCcw, Search, Sparkles, UploadCloud, Volume2, Wrench } from "lucide-react";
+import { AlertCircle, AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, Eye, FileText, LoaderCircle, Pencil, Plus, RefreshCcw, Search, Sparkles, UploadCloud, Volume2, Wrench } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import {
     activateSpeakingAlphabetAudioCandidate,
@@ -52,6 +52,57 @@ const WORKBOOK_ONE_FOUNDATION_STARTERS = [
 const WORKBOOK_ONE_PAGE_STARTERS = [
     { action: "create_workbook_1_p26_p27_contractions", templateKey: "workbook_1_p26_p27_contractions_v1", title: "完整句與縮寫", pages: "P26～P27", note: "9 題固定句型；完整句與正確縮寫都可接受。排除教材中容易混淆的兩題，建立後仍需逐題核准。" }
 ];
+
+const asOne = value => Array.isArray(value) ? value[0] : value;
+const pageNumber = value => Number(String(value || "").match(/\d+/)?.[0] || Number.MAX_SAFE_INTEGER);
+const questionSetPageLabels = (questionSet, section) => {
+    const metadata = questionSet?.generation_metadata || {};
+    const labels = Array.isArray(metadata.source_pages)
+        ? metadata.source_pages.map(page => `P${Number(page)}`).filter(label => /^P\d+$/.test(label))
+        : metadata.source_page_label ? [String(metadata.source_page_label).toUpperCase()] : sourcePageLabels(section);
+    return [...new Set(labels)];
+};
+const questionSetOrigin = questionSet => ({
+    admin_manual_builder: "手動建立",
+    ocr_page_candidate: "OCR 候選",
+    ai_generated: "AI 產生"
+}[questionSet?.generation_metadata?.source] || (questionSet?.generation_metadata?.template_key ? "系統範本" : "既有題庫"));
+
+const draftReadiness = (questionSet, section) => {
+    if (questionSet?.status !== "draft") return { ready: false, issues: [] };
+    const metadata = questionSet.generation_metadata || {};
+    const interactionType = String(metadata.interaction_type || "");
+    const questions = [...(questionSet.speaking_questions || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
+    const issues = [];
+    const manualSinglePage = metadata.source === "admin_manual_builder"
+        && Array.isArray(metadata.source_pages) && metadata.source_pages.length === 1;
+    if (!manualSinglePage && questions.length < 3) issues.push({ message: `目前只有 ${questions.length} 題，發布至少需要 3 題。` });
+    if (section?.status !== "reviewed") issues.push({ message: "教材來源尚未完成人工核對。" });
+    if (metadata.requires_content_review === true && !metadata.content_reviewed_at) {
+        issues.push({ message: "這份候選草稿尚未完成逐題人工核准。" });
+    }
+    questions.forEach((question, index) => {
+        const label = `第 ${index + 1} 題`;
+        const interaction = asOne(question.speaking_question_interactions);
+        const visualLink = asOne(question.speaking_question_visual_assets);
+        const visual = asOne(visualLink?.speaking_visual_assets);
+        if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
+            if (!String(interaction?.prompt_text || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少學生看到的題目。` });
+            if (!String(interaction?.answer_text || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少完整答案。` });
+            if (interactionType === "picture_qa" && !String(interaction?.prompt_text || "").trim().endsWith("?")) issues.push({ questionId: question.id, message: `${label}的完整問句必須以 ? 結尾。` });
+            if (interactionType === "picture_gap_sentence" && !/_{2,}/.test(String(interaction?.prompt_text || ""))) issues.push({ questionId: question.id, message: `${label}至少需要一個挖空。` });
+            if (visual?.status !== "ready") issues.push({ questionId: question.id, message: `${label}尚未完成私人圖片上傳。` });
+            if (!String(visual?.alt_zh || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少圖片替代文字。` });
+        } else if (!String(question.model_answer || "").trim()) {
+            issues.push({ questionId: question.id, message: `${label}缺少完整示範回答。` });
+        }
+    });
+    return { ready: issues.length === 0, issues };
+};
+
+const DraftReadinessPanel = ({ readiness, interactionType }) => readiness.ready
+    ? <div className="speaking-readiness is-ready"><CheckCircle2 /><div><strong>內容檢查完成</strong><span>{interactionType === "picture_gap_sentence" ? "發布時會自動產生或更新停頓整句語音。" : interactionType === "standard_sentence" ? "發布時會自動產生或更新全部示範語音。" : "可以預覽學生畫面並發布。"}</span></div></div>
+    : <div className="speaking-readiness has-issues" role="alert"><AlertCircle /><div><strong>還有 {readiness.issues.length} 項需要處理</strong><ul>{readiness.issues.map((issue, index) => <li key={`${issue.questionId || "set"}-${index}`}>{issue.message}</li>)}</ul></div></div>;
 
 const sourcePageLabels = section => {
     const from = String(section?.page_from_label || "").trim().toUpperCase().match(/^P?(\d{1,4})$/);
@@ -270,7 +321,7 @@ export default function SpeakingContentAdmin() {
     const [alphabetCandidatesListened, setAlphabetCandidatesListened] = useState({});
     const [questionSetFilter, setQuestionSetFilter] = useState("draft");
     const [selectedQuestionSetId, setSelectedQuestionSetId] = useState(null);
-    const [activeWorkspace, setActiveWorkspace] = useState("library");
+    const [activeWorkspace, setActiveWorkspace] = useState("drafts");
     const [questionSetSearch, setQuestionSetSearch] = useState("");
     const [bookFilter, setBookFilter] = useState("all");
     const [selectedPageCandidateIds, setSelectedPageCandidateIds] = useState([]);
@@ -287,8 +338,11 @@ export default function SpeakingContentAdmin() {
     const sourceRows = useMemo(() => data.sections.map(section => ({
         ...section,
         document: data.documents.find(document => document.id === section.document_id),
+        book: data.books.find(book => Number(book.id) === Number(data.documents.find(document => document.id === section.document_id)?.book_id)),
         questionSets: data.question_sets.filter(questionSet => questionSet.source_section_id === section.id)
-    })), [data]);
+    })).sort((left, right) => String(left.book?.name || "").localeCompare(String(right.book?.name || ""), "zh-Hant")
+        || pageNumber(left.page_from_label) - pageNumber(right.page_from_label)
+        || Number(left.id) - Number(right.id)), [data]);
     const wholeBookRows = useMemo(() => data.documents.filter(document => Number(document.chunk_count) > 0).map(document => ({
         document,
         chunks: data.chunks.filter(chunk => chunk.document_id === document.id).sort((a, b) => a.chunk_index - b.chunk_index)
@@ -303,11 +357,18 @@ export default function SpeakingContentAdmin() {
     const workbookOnePageSets = useMemo(() => new Map(data.question_sets
         .filter(questionSet => WORKBOOK_ONE_PAGE_STARTERS.some(item => item.templateKey === questionSet.generation_metadata?.template_key))
         .map(questionSet => [questionSet.generation_metadata.template_key, questionSet])), [data.question_sets]);
+    const questionSetSection = useMemo(() => new Map(sourceRows.flatMap(section => section.questionSets.map(questionSet => [Number(questionSet.id), section]))), [sourceRows]);
+    const questionSetWorkflowStatus = useCallback(questionSet => {
+        if (questionSet.status === "published") return "published";
+        if (questionSet.status !== "draft") return questionSet.status;
+        return draftReadiness(questionSet, questionSetSection.get(Number(questionSet.id))).ready ? "ready" : "draft";
+    }, [questionSetSection]);
     const questionSetCounts = useMemo(() => ({
-        draft: data.question_sets.filter(questionSet => questionSet.status === "draft").length,
+        draft: data.question_sets.filter(questionSet => questionSetWorkflowStatus(questionSet) === "draft").length,
+        ready: data.question_sets.filter(questionSet => questionSetWorkflowStatus(questionSet) === "ready").length,
         published: data.question_sets.filter(questionSet => questionSet.status === "published").length,
         all: data.question_sets.length
-    }), [data.question_sets]);
+    }), [data.question_sets, questionSetWorkflowStatus]);
     const pageCandidateReviewQueue = useMemo(() => data.question_sets
         .filter(questionSet => questionSet.status === "draft"
             && questionSet.generation_metadata?.source === "ocr_page_candidate"
@@ -327,25 +388,19 @@ export default function SpeakingContentAdmin() {
         return sourceRows.map(section => ({
             ...section,
             questionSets: section.questionSets.filter(questionSet => (
-                (questionSetFilter === "all" || questionSet.status === questionSetFilter)
+                (questionSetFilter === "all" || questionSetWorkflowStatus(questionSet) === questionSetFilter)
                 && (bookFilter === "all" || Number(questionSet.book_id) === Number(bookFilter))
                 && (!query || [questionSet.title, questionSet.topic, section.topic, section.unit_label]
                     .some(value => String(value || "").toLowerCase().includes(query)))
             ))
-        })).filter(section => section.questionSets.length > 0 || (
-            !query && bookFilter === "all" && questionSetFilter !== "published" && ["draft", "reviewed"].includes(section.status)
-        ));
-    }, [bookFilter, questionSetFilter, questionSetSearch, sourceRows]);
+        })).filter(section => section.questionSets.length > 0);
+    }, [bookFilter, questionSetFilter, questionSetSearch, questionSetWorkflowStatus, sourceRows]);
     const selectedQuestionSet = useMemo(() => data.question_sets.find(questionSet => Number(questionSet.id) === Number(selectedQuestionSetId)) || null, [data.question_sets, selectedQuestionSetId]);
 
     useEffect(() => {
-        if (!loading && questionSetFilter === "draft" && questionSetCounts.draft === 0 && questionSetCounts.published > 0) {
-            setQuestionSetFilter("published");
-            return;
-        }
-        if (selectedQuestionSet && (questionSetFilter === "all" || selectedQuestionSet.status === questionSetFilter)) return;
+        if (selectedQuestionSet && (questionSetFilter === "all" || questionSetWorkflowStatus(selectedQuestionSet) === questionSetFilter)) return;
         if (selectedQuestionSetId !== null) setSelectedQuestionSetId(null);
-    }, [data.question_sets, loading, questionSetCounts, questionSetFilter, selectedQuestionSet, selectedQuestionSetId]);
+    }, [data.question_sets, loading, questionSetFilter, questionSetWorkflowStatus, selectedQuestionSet, selectedQuestionSetId]);
 
     useEffect(() => {
         const availableIds = new Set(pageCandidateReviewQueue.map(questionSet => Number(questionSet.id)));
@@ -563,7 +618,8 @@ export default function SpeakingContentAdmin() {
         setWorking(`revision-${questionSet.id}`);
         try {
             const result = await createSpeakingQuestionSetRevision(firebaseUser, questionSet.id);
-            setQuestionSetFilter("draft");
+            setQuestionSetFilter("ready");
+            setActiveWorkspace("ready");
             setSelectedQuestionSetId(result.question_set_id);
             toast.success("新版草稿已建立；學生仍會使用目前正式版，直到你核准發布新版");
             await load();
@@ -590,14 +646,34 @@ export default function SpeakingContentAdmin() {
         setSelectedQuestionSetId(questionSetId);
         await load();
     };
+    const openQuestionWorkspace = workspace => {
+        const filter = workspace === "ready" ? "ready" : workspace === "published" ? "published" : "draft";
+        setActiveWorkspace(workspace);
+        setQuestionSetFilter(filter);
+        setSelectedQuestionSetId(null);
+    };
     const publish = async questionSet => {
-        if (!window.confirm(`確定發布「${questionSet.title}」嗎？發布後不能直接修改，修正時要建立新版本。`)) return;
+        const section = questionSetSection.get(Number(questionSet.id));
+        const readiness = draftReadiness(questionSet, section);
+        if (!readiness.ready) {
+            toast.error(`草稿還有 ${readiness.issues.length} 項需要處理；請查看紅色檢查清單`);
+            return;
+        }
+        const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
+        const pageLabels = questionSetPageLabels(questionSet, section);
+        if (!window.confirm(`即將發布：\n${section?.book?.name || "教材"} · ${pageLabels.join("、") || "未標示頁碼"}\n${questionSet.title} · ${(questionSet.speaking_questions || []).length} 題\n\n系統會先完成必要語音；發布後學生會立即看到此版本。之後修改請建立新版草稿。`)) return;
         setWorking(`publish-${questionSet.id}`);
         let published = false;
         try {
+            if (interactionType === "picture_gap_sentence") {
+                const audio = await generateSpeakingVisibleWordAudio(firebaseUser, questionSet.id);
+                if (audio.success !== true || Number(audio.failed || 0) + Number(audio.pending || 0) > 0) throw new Error("停頓整句語音尚未全部完成，草稿沒有發布");
+            } else if (!["picture_qa", "alphabet_round", "letter_spelling"].includes(interactionType)) {
+                const audio = await generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id);
+                if (audio.success !== true || Number(audio.failed || 0) + Number(audio.pending || 0) > 0) throw new Error("示範語音尚未全部完成，草稿沒有發布");
+            }
             await publishSpeakingQuestionSet(firebaseUser, questionSet.id);
             published = true;
-            const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
             if (["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence"].includes(interactionType)) {
                 const successMessage = {
                     alphabet_round: "A–Z 題庫已發布；單一慢速主音檔與 26 個播放區段已確認完成",
@@ -609,9 +685,7 @@ export default function SpeakingContentAdmin() {
                 await load();
                 return;
             }
-            const audio = await generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id);
-            if (audio.failed > 0) toast.warning(`題庫已發布，但有 ${audio.failed} 題語音尚未完成`);
-            else toast.success(`題庫已發布，示範語音已完成（新產生 ${audio.generated}、沿用 ${audio.reused}）`);
+            toast.success("題庫與示範語音已完成並發布");
             await load();
         }
         catch (error) {
@@ -661,16 +735,17 @@ export default function SpeakingContentAdmin() {
     };
 
     return <main className="platform-page speaking-content-admin">
-        <header className="platform-hero speaking-admin-hero"><div><h1>教材 AI 口說題庫</h1><p>管理題庫、建立關卡與教材來源。</p></div></header>
+        <header className="platform-hero speaking-admin-hero"><div><h1>教材 AI 口說題庫</h1><p>每本教材、每一頁就是一個關卡；從來源、草稿、待發布到正式版本清楚分流。</p></div><button type="button" className="platform-primary speaking-create-shortcut" onClick={() => setActiveWorkspace("create")}><Plus size={18} />建立新關卡</button></header>
 
         <section className="platform-card speaking-admin-command" aria-labelledby="speaking-admin-command-title">
             <div className="speaking-admin-command__intro">
-                <h2 id="speaking-admin-command-title">選擇工作區</h2>
+                <h2 id="speaking-admin-command-title">關卡製作流程</h2>
             </div>
             <nav className="speaking-admin-command__actions" aria-label="口說題庫快速操作">
-                <button type="button" className={activeWorkspace === "library" ? "is-primary" : ""} onClick={() => setActiveWorkspace("library")}><FileText /><span><strong>題庫管理</strong><small>{questionSetCounts.draft} 份草稿 · {questionSetCounts.published} 份已發布</small></span></button>
-                <button type="button" className={activeWorkspace === "create" ? "is-primary" : ""} onClick={() => setActiveWorkspace("create")}><Wrench /><span><strong>建立新關卡</strong><small>核准範本與圖片題</small></span></button>
-                <button type="button" className={activeWorkspace === "sources" ? "is-primary" : ""} onClick={() => setActiveWorkspace("sources")}><UploadCloud /><span><strong>教材來源／OCR</strong><small>{reviewQueueCount} 個項目待核對</small></span></button>
+                <button type="button" className={activeWorkspace === "sources" ? "is-primary" : ""} onClick={() => setActiveWorkspace("sources")}><UploadCloud /><span><strong>1 教材來源</strong><small>{reviewQueueCount} 個項目待核對</small></span></button>
+                <button type="button" className={activeWorkspace === "drafts" ? "is-primary" : ""} onClick={() => openQuestionWorkspace("drafts")}><Wrench /><span><strong>2 製作中草稿</strong><small>{questionSetCounts.draft} 份需要處理</small></span></button>
+                <button type="button" className={activeWorkspace === "ready" ? "is-primary" : ""} onClick={() => openQuestionWorkspace("ready")}><CheckCircle2 /><span><strong>3 待發布</strong><small>{questionSetCounts.ready} 份已通過內容檢查</small></span></button>
+                <button type="button" className={activeWorkspace === "published" ? "is-primary" : ""} onClick={() => openQuestionWorkspace("published")}><FileText /><span><strong>4 已發布</strong><small>{questionSetCounts.published} 個學生版本</small></span></button>
             </nav>
         </section>
 
@@ -744,7 +819,7 @@ export default function SpeakingContentAdmin() {
             if (questionSetId) {
                 setQuestionSetFilter("draft");
                 setSelectedQuestionSetId(questionSetId);
-                setActiveWorkspace("library");
+                setActiveWorkspace("drafts");
             }
         }} />
 
@@ -798,19 +873,28 @@ export default function SpeakingContentAdmin() {
                 <button className="platform-primary" disabled={working === "source"}>{working === "source" ? (sourceFile ? "上傳並辨識中…" : "儲存中…") : (pendingDocumentId ? "重試 OCR" : sourceFile ? "上傳並開始 OCR" : "儲存核准來源")}</button>
             </form>
         </section>
+        <section className="platform-card speaking-admin-block--source">
+            <div className="platform-section-title"><div><span className="platform-eyebrow">REVIEWED PAGE SOURCES</span><h2>已核准教材頁面</h2><p>從核准來源依頁建立候選草稿；草稿建立後會移到「製作中草稿」。</p></div><label className="speaking-count"><span>每頁題數</span><select value={questionCount} onChange={event => setQuestionCount(Number(event.target.value))}>{[3, 5, 8, 10, 12].map(count => <option key={count}>{count}</option>)}</select></label></div>
+            <div className="speaking-source-list">{sourceRows.filter(section => section.status === "reviewed").map(section => {
+                const pageLabels = sourcePageLabels(section);
+                const isSinglePage = pageLabels.length === 1;
+                const canGenerateByPage = pageLabels.length > 1 && pageLabels.length <= 10
+                    && pageLabels.every(pageLabel => hasMarkedPageSource(section, pageLabel));
+                return <article className="speaking-source-card" key={`source-${section.id}`}>
+                    <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{canGenerateByPage && <button type="button" className="platform-primary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{working === `page-candidates-${section.id}` ? "逐頁建立中…" : "依每頁建立候選草稿"}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">跨頁來源必須先保留每頁的 <code>[[PAGE P頁碼]]</code> 標記，才能逐頁建立關卡。</span>}</div></header>
+                </article>;
+            })}</div>
+        </section>
         </>}
 
-        {activeWorkspace === "library" &&
+        {["drafts", "ready", "published"].includes(activeWorkspace) &&
         <section className="platform-card speaking-bank-workspace" id="speaking-question-bank">
-            <div className="platform-section-title"><div><span className="platform-eyebrow">QUESTION BANK WORKSPACE</span><h2>題庫工作台</h2><p>先選狀態，再只展開一個正在處理的題庫。</p></div><label className="speaking-count"><span>每次題數</span><select value={questionCount} onChange={event => setQuestionCount(Number(event.target.value))}>{[3, 5, 8, 10, 12].map(count => <option key={count}>{count}</option>)}</select></label></div>
-            <div className="speaking-bank-filters" role="group" aria-label="題庫狀態篩選">
-                {[["draft", "草稿"], ["published", "已發布"], ["all", "全部"]].map(([value, label]) => <button key={value} type="button" className={questionSetFilter === value ? "active" : ""} aria-pressed={questionSetFilter === value} onClick={() => setQuestionSetFilter(value)}><strong>{questionSetCounts[value]}</strong><span>{label}</span></button>)}
-            </div>
+            <div className="platform-section-title"><div><span className="platform-eyebrow">PAGE-BASED QUESTION BANK</span><h2>{activeWorkspace === "drafts" ? "製作中草稿" : activeWorkspace === "ready" ? "待發布關卡" : "已發布關卡"}</h2><p>{activeWorkspace === "drafts" ? "只顯示仍有缺漏或尚未核准的草稿；展開即可修改。" : activeWorkspace === "ready" ? "內容已通過檢查；按一次即可準備必要語音並安全發布。" : "正式版本保持唯讀；需要修改時先建立新版草稿。"}</p></div><button type="button" className="platform-primary" onClick={() => setActiveWorkspace("create")}><Plus size={17} />新增關卡</button></div>
             <div className="speaking-bank-toolbar">
                 <label><Search size={18} /><span className="sr-only">搜尋題庫</span><input value={questionSetSearch} onChange={event => setQuestionSetSearch(event.target.value)} placeholder="搜尋關卡名稱、主題或頁碼" /></label>
                 <label><span className="sr-only">依教材篩選</span><select value={bookFilter} onChange={event => setBookFilter(event.target.value)}><option value="all">全部教材</option>{data.books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
             </div>
-            {pageCandidateReviewQueue.length > 0 && <section className="speaking-page-review-queue" aria-labelledby="speaking-page-review-queue-title">
+            {activeWorkspace === "drafts" && pageCandidateReviewQueue.length > 0 && <section className="speaking-page-review-queue" aria-labelledby="speaking-page-review-queue-title">
                 <header><div><span>OCR REVIEW QUEUE</span><h3 id="speaking-page-review-queue-title">逐頁候選待審核</h3><p>先在下方逐份展開檢查原教材，再勾選已核對的草稿。批次核准不會發布學生版本。</p></div><div className="speaking-page-review-queue__actions"><button type="button" className="platform-secondary" onClick={() => setSelectedPageCandidateIds(pageCandidateReviewQueue.map(questionSet => questionSet.id))}>選取全部已核對</button><button type="button" className="platform-primary" disabled={working === "approve-page-candidates" || selectedPageCandidateIds.length === 0} onClick={approveSelectedPageCandidates}>{working === "approve-page-candidates" ? "批次核准中…" : `批次核准 ${selectedPageCandidateIds.length} 份草稿`}</button></div></header>
                 <div className="speaking-page-review-queue__items">{pageCandidateReviewQueue.map(questionSet => {
                     const metadata = questionSet.generation_metadata || {};
@@ -824,8 +908,8 @@ export default function SpeakingContentAdmin() {
                     </div>;
                 })}</div>
             </section>}
-            {loading ? <div className="platform-loading">題庫載入中…</div> : sourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>尚未建立教材來源</strong><p>先在上方貼入並核對第一個教材單元。</p></div> : visibleSourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>這個狀態目前沒有題庫</strong><p>切換上方篩選即可查看其他題庫。</p></div> : <div className="speaking-source-list">{visibleSourceRows.map(section => <article className="speaking-source-card" key={section.id}>
-                <header><div><span>{section.document?.title || "教材來源"}{section.document?.original_filename ? ` · ${section.document.original_filename}` : ""}</span><h3>{section.topic}</h3><p>{section.unit_label || "未標示單元"} · {section.page_from_label || "未標示頁碼"}{section.page_to_label ? `–${section.page_to_label}` : ""} · {section.language_level}</p></div>{section.status === "reviewed" && <div className="speaking-source-card__actions"><button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "產生新版草稿"}</button>{sourcePageLabels(section).length > 1 && sourcePageLabels(section).length <= 10 && <button type="button" className="platform-secondary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{working === `page-candidates-${section.id}` ? "逐頁建立中…" : "逐頁建立候選草稿"}</button>}</div>}</header>
+            {loading ? <div className="platform-loading">題庫載入中…</div> : sourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>尚未建立教材來源</strong><p>請先到「教材來源」加入教材。</p></div> : visibleSourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>這個區域目前沒有關卡</strong><p>{activeWorkspace === "ready" ? "完成草稿缺漏後，關卡會自動移到這裡。" : activeWorkspace === "published" ? "目前沒有符合篩選條件的正式關卡。" : "所有草稿都已完成內容檢查。"}</p></div> : <div className="speaking-source-list">{visibleSourceRows.map(section => <article className="speaking-source-card" key={section.id}>
+                <header><div><span>{section.book?.name || "教材"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}（舊版跨頁）` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · {section.language_level}</p></div></header>
                 {section.status === "draft" && section.questionSets.some(questionSet => questionSet.generation_metadata?.requires_content_review)
                     ? <div className="speaking-ocr-review__notice"><strong>精選草稿尚未核准</strong><span>請先逐題對照 Workbook 1 原頁面，再使用上方對應關卡的「已對照原頁，核准內容」。</span></div>
                     : section.status === "draft" && <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />}
@@ -839,8 +923,13 @@ export default function SpeakingContentAdmin() {
                     const duplicateReview = questionSet.generation_metadata?.duplicate_review;
                     const candidateFilter = questionSet.generation_metadata?.candidate_filter;
                     const isSelected = Number(selectedQuestionSetId) === Number(questionSet.id);
+                    const readiness = draftReadiness(questionSet, section);
+                    const pageLabels = questionSetPageLabels(questionSet, section);
+                    const isLockedTemplate = interactionType === "alphabet_round"
+                        || Boolean(questionSet.generation_metadata?.approved_source_page_label);
                     return <section className={`speaking-set ${questionSet.status} ${isSelected ? "is-current" : ""}`} key={questionSet.id}>
-                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : "草稿"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && isPageCandidate && !candidateReviewed && <button type="button" className="platform-secondary" disabled={working === `confirm-page-${questionSet.id}`} onClick={() => confirmPageCandidate(questionSet)}>{working === `confirm-page-${questionSet.id}` ? "核准中…" : "已逐題對照原頁，核准內容"}</button>}{questionSet.status === "draft" && <button type="button" className="platform-secondary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "發布中…" : "核准並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && isPictureSet && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}{(questionSet.status === "draft" || isPictureSet) && <button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button>}</div>}</div>
+                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : readiness.ready ? "待發布" : "製作中"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{pageLabels.join("、") || "未標示頁碼"} · {questionSetOrigin(questionSet)} · {(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && isPageCandidate && !candidateReviewed && <button type="button" className="platform-secondary" disabled={working === `confirm-page-${questionSet.id}`} onClick={() => confirmPageCandidate(questionSet)}>{working === `confirm-page-${questionSet.id}` ? "核准中…" : "已逐題對照原頁，核准內容"}</button>}{questionSet.status === "draft" && readiness.ready && <button type="button" className="platform-primary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "準備語音並發布中…" : "準備語音並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && !isLockedTemplate && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && isLockedTemplate && <span className="speaking-set__locked">固定教材模板請從來源重建</span>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}<button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button></div>}</div>
+                        {isSelected && questionSet.status === "draft" && <DraftReadinessPanel readiness={readiness} interactionType={interactionType} />}
                         {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : "逐頁 OCR 候選草稿尚未核准"}</strong><span>{candidateReviewed ? "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
                         {isSelected && (isPictureSet

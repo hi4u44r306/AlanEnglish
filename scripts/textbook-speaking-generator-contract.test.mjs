@@ -81,7 +81,11 @@ test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示",
 
 test("5. 管理頁透過指定 Edge Function 並有受保護管理員路由", () => {
     assert.match(service, /speaking-content-manager/);
-    assert.match(adminPage, /口說大挑戰製作中心/);
+    assert.match(adminPage, /教材 AI 口說題庫/);
+    assert.match(adminPage, /1 教材來源/);
+    assert.match(adminPage, /2 製作中草稿/);
+    assert.match(adminPage, /3 待發布/);
+    assert.match(adminPage, /4 已發布/);
     assert.match(adminPage, /人工核對/);
     assert.match(app, /path="\/admin\/speaking-content"/);
     assert.match(app, /allowedRoles=\{\["admin"\]\}/);
@@ -353,8 +357,11 @@ test("17. P21～P24 圖片、完整答案與停頓整句語音只由驗證後端
     assert.doesNotMatch(challengeView, /private_object_key:/);
 });
 
-test("24. 已發布圖片關卡以新版草稿安全修訂並原子切換", () => {
+test("24. 一般已發布關卡可建立新版草稿，固定來源模板維持鎖定，並以交易原子切換", () => {
     assert.match(manager, /create_question_set_revision/);
+    assert.match(manager, /revision_source: "published_question_set"/);
+    assert.match(manager, /interactionType === "alphabet_round" \|\| original\.generation_metadata\?\.approved_source_page_label/);
+    assert.match(manager, /\.eq\("previous_set_id", Number\(original\.id\)\)/);
     assert.match(manager, /update_picture_draft_question/);
     assert.match(manager, /add_picture_draft_question/);
     assert.match(manager, /delete_draft_question/);
@@ -370,7 +377,7 @@ test("24. 已發布圖片關卡以新版草稿安全修訂並原子切換", () =
     assert.match(authoringRevisionMigration, /grant execute on function public\.publish_speaking_question_set_revision_v1[\s\S]*to service_role/);
 });
 
-test("25. 管理員可刪除任何未發布草稿，但已發布關卡仍受圖片題庫下架規則保護", () => {
+test("25. 管理員可刪除未發布草稿並安全下架任何正式關卡", () => {
     const archiveBlock = manager.slice(
         manager.indexOf('if (action === "archive_question_set")'),
         manager.indexOf('if (action === "create_workbook_1_picture_draft")')
@@ -383,12 +390,9 @@ test("25. 管理員可刪除任何未發布草稿，但已發布關卡仍受圖�
     assert.match(archiveBlock, /speaking_alphabet_intro_listens/);
     assert.match(archiveBlock, /linkedStudentRows\.some\(Boolean\)/);
     assert.match(archiveBlock, /\.delete\(\)[\s\S]*?\.eq\("id", setId\)\.eq\("status", "draft"\)\.select\("id"\)\.maybeSingle\(\)/);
-    assert.ok(
-        archiveBlock.indexOf('questionSet.status === "draft"')
-            < archiveBlock.indexOf('pictureDraftPolicyForMetadata(questionSet.generation_metadata)'),
-        "draft deletion must happen before the published archive guard"
-    );
     assert.match(archiveBlock, /questionSet\.status !== "published"/);
+    assert.match(archiveBlock, /\.eq\("previous_set_id", setId\)\.eq\("status", "draft"\)/);
+    assert.doesNotMatch(archiveBlock, /目前只支援封存管理員建立的口說關卡/);
 });
 
 test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則產生停頓語音", () => {
