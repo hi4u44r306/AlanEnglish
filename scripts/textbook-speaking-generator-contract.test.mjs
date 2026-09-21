@@ -137,6 +137,17 @@ test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 500MB",
     assert.match(manager, /單一來源上限 20MB，整本分批 PDF 上限 500MB/);
 });
 
+test("10a. 超大原始掃描頁可保留至 200MB，OCR 只使用安全的高品質衍生批次", () => {
+    const splitter = read("src/services/pdfBookSplitter.js");
+    assert.match(splitter, /MAX_WHOLE_BOOK_PAGE_BYTES = 200 \* 1024 \* 1024/);
+    assert.match(splitter, /MAX_OCR_CHUNK_BYTES = 20 \* 1024 \* 1024/);
+    assert.match(splitter, /createOcrDerivative/);
+    assert.match(splitter, /original stays private in R2/);
+    assert.match(service, /splitWholeBookPdf\(file, \{ onProgress \}\)/);
+    assert.match(adminPage, /單頁原始掃描可達 200MB/);
+    assert.match(adminPage, /建立高品質 OCR 副本/);
+});
+
 test("11. Workbook 1 人工範例不呼叫付費 AI，仍需草稿預覽與管理員發布", () => {
     assert.match(manager, /create_workbook_1_starter/);
     assert.match(manager, /workbook_1_name_intro_v1/);

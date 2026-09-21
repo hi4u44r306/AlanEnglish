@@ -1,5 +1,12 @@
 import { PDFDocument } from "pdf-lib";
-import { MAX_WHOLE_BOOK_BYTES, splitWholeBookPdf, WHOLE_BOOK_CHUNK_PAGES } from "./pdfBookSplitter";
+import {
+    MAX_OCR_CHUNK_BYTES,
+    MAX_WHOLE_BOOK_BYTES,
+    MAX_WHOLE_BOOK_PAGE_BYTES,
+    needsOcrReencoding,
+    splitWholeBookPdf,
+    WHOLE_BOOK_CHUNK_PAGES
+} from "./pdfBookSplitter";
 
 const createPdfFile = async pageCount => {
     const pdf = await PDFDocument.create();
@@ -32,5 +39,11 @@ describe("splitWholeBookPdf", () => {
 
     it("allows whole-book PDFs up to 500MB and rejects only larger files", async () => {
         await expect(splitWholeBookPdf({ type: "application/pdf", size: MAX_WHOLE_BOOK_BYTES + 1 })).rejects.toThrow("不可超過 500MB");
+    });
+
+    it("allows a 200MB original page while keeping OCR derivatives inside the safe Edge Function limit", () => {
+        expect(MAX_WHOLE_BOOK_PAGE_BYTES).toBe(200 * 1024 * 1024);
+        expect(needsOcrReencoding(MAX_OCR_CHUNK_BYTES)).toBe(false);
+        expect(needsOcrReencoding(MAX_OCR_CHUNK_BYTES + 1)).toBe(true);
     });
 });

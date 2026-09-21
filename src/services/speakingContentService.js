@@ -150,7 +150,7 @@ const runUploadPool = async (items, concurrency, worker) => {
 
 export const uploadWholeBookSource = async (firebaseUser, file, metadata, onProgress = () => {}) => {
     onProgress({ phase: "splitting", completed: 0, total: 1 });
-    const { pageCount, chunks } = await splitWholeBookPdf(file);
+    const { pageCount, chunks } = await splitWholeBookPdf(file, { onProgress });
     onProgress({ phase: "preparing", completed: 0, total: chunks.length + 1, pageCount });
     const prepared = await callSpeakingContent(firebaseUser, "create_book_upload", {
         book_id: Number(metadata.book_id),
