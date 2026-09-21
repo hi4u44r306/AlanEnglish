@@ -1,5 +1,5 @@
 import { PDFDocument } from "pdf-lib";
-import { splitWholeBookPdf, WHOLE_BOOK_CHUNK_PAGES } from "./pdfBookSplitter";
+import { MAX_WHOLE_BOOK_BYTES, splitWholeBookPdf, WHOLE_BOOK_CHUNK_PAGES } from "./pdfBookSplitter";
 
 const createPdfFile = async pageCount => {
     const pdf = await PDFDocument.create();
@@ -16,6 +16,7 @@ describe("splitWholeBookPdf", () => {
     it("splits a whole book into deterministic ten-page chunks", async () => {
         const result = await splitWholeBookPdf(await createPdfFile(23));
         expect(WHOLE_BOOK_CHUNK_PAGES).toBe(10);
+        expect(MAX_WHOLE_BOOK_BYTES).toBe(500 * 1024 * 1024);
         expect(result.pageCount).toBe(23);
         expect(result.chunks.map(({ chunk_index, page_from, page_to }) => ({ chunk_index, page_from, page_to }))).toEqual([
             { chunk_index: 0, page_from: 1, page_to: 10 },
@@ -27,5 +28,9 @@ describe("splitWholeBookPdf", () => {
 
     it("rejects non-PDF input before processing", async () => {
         await expect(splitWholeBookPdf({ type: "image/png", size: 10 })).rejects.toThrow("只接受 PDF");
+    });
+
+    it("allows whole-book PDFs up to 500MB and rejects only larger files", async () => {
+        await expect(splitWholeBookPdf({ type: "application/pdf", size: MAX_WHOLE_BOOK_BYTES + 1 })).rejects.toThrow("不可超過 500MB");
     });
 });

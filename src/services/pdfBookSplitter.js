@@ -1,10 +1,10 @@
 export const WHOLE_BOOK_CHUNK_PAGES = 10;
-export const MAX_WHOLE_BOOK_BYTES = 100 * 1024 * 1024;
+export const MAX_WHOLE_BOOK_BYTES = 500 * 1024 * 1024;
 export const MAX_WHOLE_BOOK_PAGES = 500;
 
 export const splitWholeBookPdf = async file => {
     if (!file || file.type !== "application/pdf") throw new Error("整本教材只接受 PDF 檔案");
-    if (file.size < 1 || file.size > MAX_WHOLE_BOOK_BYTES) throw new Error("整本 PDF 必須小於 100MB");
+    if (file.size < 1 || file.size > MAX_WHOLE_BOOK_BYTES) throw new Error("整本 PDF 不可超過 500MB");
     let sourcePdf;
     try {
         const { PDFDocument } = await import("pdf-lib");
