@@ -133,6 +133,9 @@ test("9a. OCR 會要求結構化 JSON、保留舊回覆的安全 JSON 擷取，�
     assert.match(manager, /const parseJsonObjectFromText =/);
     assert.match(manager, /const ocrResponseFormat =/);
     assert.match(manager, /const directOutput =/);
+    assert.match(manager, /const ocrOutputFailureCode =/);
+    assert.match(manager, /ocr_output_empty/);
+    assert.match(manager, /ocr_output_not_json/);
     assert.match(manager, /type: "json_schema"/);
     assert.match(manager, /strict: true/);
     assert.match(manager, /WHOLE_BOOK_OCR_MAX_OUTPUT_TOKENS = 16_000/);
