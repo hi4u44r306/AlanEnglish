@@ -14,6 +14,8 @@ import {
     evaluateLetterSpellingAssessment,
     matchesFoundationAnswer,
     readFoundationInteractionType,
+    readQuestionSetInteractionType,
+    resolveQuestionInteractionType,
     usesUnscriptedFoundationAssessment
 } from "../_shared/speaking-foundation-answer.ts";
 import { runSpeakingPronunciationFlow } from "../_shared/speaking-pronunciation-flow.ts";
@@ -143,14 +145,18 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
         .select("model_answer,pronunciation_notes_zh").eq("id", questionId).maybeSingle();
     if (answerError) throw answerError;
     if (!answerData) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
-    const interactionType = readFoundationInteractionType(questionSet?.generation_metadata);
-    const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
-    const { data: pictureInteraction, error: pictureError } = pictureMode
+    const questionSetInteractionType = readQuestionSetInteractionType(questionSet?.generation_metadata);
+    const shouldLoadPictureInteraction = questionSetInteractionType === "mixed"
+        || questionSetInteractionType === "picture_qa"
+        || questionSetInteractionType === "picture_gap_sentence";
+    const { data: pictureInteraction, error: pictureError } = shouldLoadPictureInteraction
         ? await admin.from("speaking_question_interactions")
             .select("interaction_type,prompt_text,answer_text,accepted_full_responses")
             .eq("question_id", Number(data.id)).maybeSingle()
         : { data: null, error: null };
     if (pictureError) throw pictureError;
+    const interactionType = resolveQuestionInteractionType(questionSetInteractionType, pictureInteraction);
+    const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
     if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
         throw Object.assign(new Error("這題的圖片口說內容尚未完成核准"), { status: 409, code: "picture_interaction_missing" });
     }

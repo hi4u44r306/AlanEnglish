@@ -8,6 +8,8 @@ import {
     pictureGapAnswerMatchesPrompt,
     pictureQaResponseHasQuestionAndAnswer,
     readFoundationInteractionType,
+    readQuestionSetInteractionType,
+    resolveQuestionInteractionType,
     spokenLetterSequence,
     usesUnscriptedFoundationAssessment,
     visibleSentenceWords
@@ -22,6 +24,9 @@ import {
 
 assert.equal(readFoundationInteractionType({ interaction_type: "alphabet_round" }), "alphabet_round");
 assert.equal(readFoundationInteractionType({ interaction_type: "unknown" }), "");
+assert.equal(readQuestionSetInteractionType({ interaction_type: "mixed" }), "mixed");
+assert.equal(resolveQuestionInteractionType("mixed", { interaction_type: "picture_gap_sentence" }), "picture_gap_sentence");
+assert.equal(resolveQuestionInteractionType("mixed", null), "");
 assert.equal(usesUnscriptedFoundationAssessment("picture_qa"), true);
 assert.equal(usesUnscriptedFoundationAssessment("picture_gap_sentence"), true);
 assert.equal(usesUnscriptedFoundationAssessment("letter_spelling"), false);
@@ -197,5 +202,9 @@ assert.match(challengeSource, /correct_assessment_required/);
 assert.match(challengeSource, /\.select\("answer_match,created_at"\)/);
 assert.match(challengeSource, /attempt\.answer_match !== true/);
 assert.doesNotMatch(challengeSource, /body\?\.answer_match/);
+assert.match(challengeSource, /readQuestionSetInteractionType/);
+assert.match(challengeSource, /resolveQuestionInteractionType/);
+assert.match(coachSource, /readQuestionSetInteractionType/);
+assert.match(coachSource, /resolveQuestionInteractionType/);
 
 console.log("Workbook 1 foundation answer and template contract passed");

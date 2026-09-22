@@ -112,6 +112,7 @@ test("P21 學生輸出只保留核准圖片，不含問句、答案、accepted r
             sentence_pattern: null
         },
         sort_order: 2,
+        interaction_type: "picture_qa",
         progress_status: "opened",
         question_audio_status: "hidden",
         question_audio_url: null,
@@ -158,6 +159,34 @@ test("P22 只保留挖空句型、核准圖片與停頓整句短效網址", asyn
         JSON.stringify(result),
         /SECRET|The apple is in the tree|accepted_full_responses|private_object_key|private\/secret-p22/
     );
+});
+
+test("逐頁 mixed 題庫仍依每題核准 interaction 顯示看圖補句", async () => {
+    const signer = createOpaqueSigner();
+    const result = await buildPublicSpeakingQuestion({
+        question: { ...secretQuestion, id: 3701 },
+        interactionType: "mixed",
+        pictureInteraction: {
+            interaction_type: "picture_gap_sentence",
+            prompt_text: "It is ____.",
+            answer_text: "It is an eye."
+        },
+        visualAsset: {
+            status: "ready",
+            private_object_key: "private/p4-eye.webp",
+            alt_zh: "眼睛"
+        },
+        promptAsset: { status: "ready", private_object_key: "private/p4-eye-sentence.wav" },
+        signPrivateObject: signer.sign
+    });
+
+    assert.equal(result.interaction_type, "picture_gap_sentence");
+    assert.equal(result.picture_interaction.type, "picture_gap_sentence");
+    assert.equal(result.picture_interaction.sentence_pattern, "It is ____.");
+    assert.equal(result.visual_aid.image_url, "https://signed.test/1");
+    assert.equal(result.picture_interaction.sentence_audio_url, "https://signed.test/2");
+    assert.equal(result.question_audio_status, "hidden");
+    assert.deepEqual(signer.keys, ["private/p4-eye.webp", "private/p4-eye-sentence.wav"]);
 });
 
 test("P21 圖片未 ready 與 P22 整句音檔未完成時拒絕輸出", async () => {

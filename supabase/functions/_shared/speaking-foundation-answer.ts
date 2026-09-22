@@ -43,6 +43,19 @@ export const readFoundationInteractionType = (metadata: unknown) => {
     return FOUNDATION_INTERACTION_TYPES.has(type) ? type : "";
 };
 
+// A page-based draft can contain standard and picture questions together. The
+// set-level `mixed` marker is deliberately not a foundation answer mode: the
+// actual answer policy must be derived from each question's approved row.
+export const readQuestionSetInteractionType = (metadata: unknown) => {
+    const type = String((metadata as any)?.interaction_type || "").trim();
+    return type === "mixed" ? type : readFoundationInteractionType(metadata);
+};
+
+export const resolveQuestionInteractionType = (questionSetInteractionType: unknown, pictureInteraction: unknown) => {
+    if (questionSetInteractionType !== "mixed") return String(questionSetInteractionType || "");
+    return readFoundationInteractionType(pictureInteraction);
+};
+
 export const usesUnscriptedFoundationAssessment = (interactionType: unknown) => (
     interactionType === "picture_qa" || interactionType === "picture_gap_sentence"
 );
