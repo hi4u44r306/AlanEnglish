@@ -2,11 +2,12 @@
 
 最後更新：2026-09-22
 
-本次逐頁混合題型語音發布修復（2026-09-22，正式 Function 已重新部署）：
+本次逐頁混合題型發布第二階段修復（2026-09-22，修正完成、待正式部署）：
 
-- Workbook 3 P4 題庫 ID `37` 已完成內容審核，10 題與私人圖片皆完整，但正式 `speaking-tts-manager` 仍停在舊版 v27，只接受整組 `picture_gap_sentence`，因此新版 `admin_page_builder` 的 `mixed` 單頁草稿會在產生語音前被拒絕，無法進入正式發布。
-- 已從最新 `main` commit `a4b994a` 重新部署 `speaking-tts-manager` v28；新版會依每題 interaction 篩選看圖補句並產生必要的 `question_prompt`，不需重新 OCR、重新審核或變更資料庫。
-- 驗證：完整 Edge Function 語法與口說語音契約、Production build、`git diff --check` 均通過；正式 Function 為 ACTIVE v28，確認包含 `admin_page_builder`／mixed 相容邏輯，OPTIONS 回應 200、未登入 POST 回應 401。未代替管理員產生付費 TTS 或發布題庫，P4 仍由管理員按「準備語音並發布」完成最後操作。
+- Workbook 3 P4 題庫 ID `37` 已完成內容審核，10 題與私人圖片皆完整。前一版 Function 雖已能處理 mixed 題組，管理頁發布按鈕仍把整組送到一般完整句語音；後端篩除 10 題看圖補句後又把「0 題完成」誤回報成功，直到真正發布時才因缺少 `question_prompt` 音檔被拒絕。
+- 管理頁現在依每題 interaction 決定語音工作：混合題組會分別準備一般完整句與看圖補句停頓語音；沒有一般完整句時不再誤呼叫一般語音。後端若收到零題的一般語音工作會明確回傳錯誤，不再假成功。
+- 看圖補句題面中的中文括號提示只供學生閱讀；送交英文 TTS 前只移除含中文／注音的括號片段，保留純英文括號，避免中文提示被誤念。
+- 驗證：管理頁 targeted 15/15、語音契約 8/8、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過。完整口說契約 29/30；唯一失敗仍是既有手機播放器 CSS selector 斷言，與本批發布／TTS 修正無關。本批不需重新 OCR、重新審核或變更資料庫，也未代替管理員產生付費 TTS 或發布 P4。
 
 本次單頁 AI 草稿 30 題資料庫限制修正（2026-09-22，正式資料庫與 Function 已部署）：
 

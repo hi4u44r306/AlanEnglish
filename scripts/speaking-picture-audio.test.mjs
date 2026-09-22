@@ -66,6 +66,9 @@ test("整句只使用可見句型並在唯一空格切成前後兩段", () => {
         after: "."
     });
     assert.equal(ttsTextWithoutTerminalFullStops("."), "");
+    assert.equal(ttsTextWithoutTerminalFullStops(".（一隻）"), "");
+    assert.equal(ttsTextWithoutTerminalFullStops("are her（她的）"), "are her");
+    assert.equal(ttsTextWithoutTerminalFullStops("is (plural)"), "is (plural)");
     assert.throws(() => pictureGapSentenceParts("The horse is in the race."), /只有一個空格/);
     assert.throws(() => pictureGapSentenceParts("____"), /空格前/);
 });

@@ -1085,6 +1085,9 @@ Deno.serve(async (req: Request) => {
             if (interactionError) throw interactionError;
             const pictureQuestionIds = new Set((interactions || []).map((row: any) => Number(row.question_id)));
             const standardQuestions = questions.filter((question: any) => !pictureQuestionIds.has(Number(question.id)));
+            if (!standardQuestions.length) {
+                return json(409, { error: "這份逐頁草稿沒有一般完整句，請改用看圖補句停頓語音" });
+            }
             const results = [];
             for (const question of standardQuestions) {
                 try { results.push(await generateQuestionAudio(admin, question)); }

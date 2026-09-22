@@ -12,6 +12,7 @@ import {
     createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
+    generateSpeakingVisibleWordAudio,
     getPictureGapTheAudioCandidates,
     getSpeakingContentBootstrap,
     getSpeakingQuestionAudioPreview,
@@ -67,6 +68,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         generateSpeakingQuestionSet.mockResolvedValue({ success: true, question_set_id: 88 });
         generateSpeakingQuestionSetAudio.mockResolvedValue({ success: true, generated: 3, reused: 0, failed: 0, pending: 0 });
+        generateSpeakingVisibleWordAudio.mockResolvedValue({ success: true, generated: 3, reused: 0, failed: 0, pending: 0 });
         publishSpeakingQuestionSet.mockResolvedValue({ success: true });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Leda", voice_gender: "female", audio_url: "https://audio.example/leda.wav" });
         getPictureGapTheAudioCandidates.mockResolvedValue({
@@ -317,6 +319,39 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 82));
         expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(mockFirebaseUser, 82);
         expect(generateSpeakingQuestionSetAudio.mock.invocationCallOrder[0]).toBeLessThan(publishSpeakingQuestionSet.mock.invocationCallOrder[0]);
+    });
+
+    it("prepares gap audio for a mixed page containing only picture gap questions", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        const pictureGapQuestion = (id, sortOrder, prompt, answer) => ({
+            id, sort_order: sortOrder, question_text: prompt, model_answer: answer,
+            speaking_question_interactions: [{ interaction_type: "picture_gap_sentence", prompt_text: prompt, answer_text: answer, accepted_full_responses: [] }],
+            speaking_question_visual_assets: [{ asset_id: `asset-${id}`, speaking_visual_assets: [{ alt_zh: "教材圖片", status: "ready", source_page_label: "P4" }] }]
+        });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 90, book_id: 3, title: "Workbook 3", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 91, document_id: 90, topic: "身體部位", unit_label: "P4", page_from_label: "P4", page_to_label: "P4", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [{
+                id: 92, source_section_id: 91, book_id: 3, title: "P4 看圖補句", status: "draft", version: 1,
+                generation_metadata: { source: "admin_page_builder", manual_builder_version: 2, source_pages: [4], interaction_type: "mixed", content_reviewed_at: "2026-09-22T00:00:00Z" },
+                speaking_questions: [
+                    pictureGapQuestion(93, 0, "It is ____.( 一隻 )", "It is an eye."),
+                    pictureGapQuestion(94, 1, "____ are ____.( 她的 )", "They are her eyes."),
+                    pictureGapQuestion(95, 2, "It is ____.( 我的 )", "It is my nose.")
+                ]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /3 待發布/ }));
+        fireEvent.click(await screen.findByRole("button", { name: /P4 看圖補句/ }));
+        fireEvent.click(screen.getByRole("button", { name: "準備語音並發布" }));
+
+        await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 92));
+        expect(generateSpeakingVisibleWordAudio).toHaveBeenCalledWith(mockFirebaseUser, 92);
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+        expect(generateSpeakingVisibleWordAudio.mock.invocationCallOrder[0]).toBeLessThan(publishSpeakingQuestionSet.mock.invocationCallOrder[0]);
     });
 
     it("deletes any selected unpublished draft without affecting the published version", async () => {
