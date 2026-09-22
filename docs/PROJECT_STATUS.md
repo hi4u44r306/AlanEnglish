@@ -2,6 +2,14 @@
 
 最後更新：2026-09-22
 
+本次單頁 AI 草稿 30 題資料庫限制修正（2026-09-22，正式資料庫與 Function 已部署）：
+
+- 正式 `speaking-content-manager` 記錄顯示，建立 AI 草稿在 2026-09-22 08:57:43 寫入生成工作時被 PostgreSQL `23514` 拒絕；原因是 Function 已允許單頁自動判斷 1～30 題，但 `speaking_generation_jobs_count_check` 仍限制 1～20。
+- 新增 additive migration，將工作題數限制調整為 1～30；既有生成工作、草稿、正式題庫與學生紀錄不做更新或刪除。Function 同時把同類型 schema 未同步錯誤轉成可讀提示。
+- 回復方式：先回復 Function；資料庫限制可維持較寬的 1～30 而不影響舊流程。若一定要縮回 1～20，必須先確認沒有 `requested_count > 20` 的工作紀錄，再用新的 migration 調整，不能直接刪除正式紀錄。
+- Migration `20260922012056_allow_30_speaking_generation_questions.sql` 已精準套用並登記正式 history；查回 constraint 為 `requested_count >= 1 and <= 30` 且已驗證。正式 `speaking-content-manager` 已部署，未登入 POST 正確回應 401。
+- 驗證：隔離 PGlite migration 2/2、全部 Edge Function 語法、Production build 與 `git diff --check` 通過。完整口說契約 29/30；唯一失敗為既有手機播放器 CSS selector 斷言，與本批資料庫／Function 修改無關。尚未使用管理員按鈕建立付費 AI 草稿，因此登入後生成結果留待管理員實機重試。
+
 本次單頁 AI 草稿自動判斷題數（2026-09-22，正式部署完成）：
 
 - 「建立本頁 AI 草稿」不再要求管理員預先選 3、5、8、10 或 12 題；AI 會先依單一已核准教材頁辨識實際的編號、完整句型與明確問答組，排除頁碼、標題、格線、作業指令與重複文字後建立 1～30 題草稿。

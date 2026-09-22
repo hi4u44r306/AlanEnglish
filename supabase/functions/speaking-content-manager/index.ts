@@ -1447,6 +1447,12 @@ Deno.serve(async (req: Request) => {
                 source_section_id: sourceSectionId, requested_by: user.id, request_key: requestKey,
                 requested_count: questionCount, status: "processing", model: AI_MODEL, created_at: now
             }).select("id").single();
+            if (jobError?.code === "23514") {
+                return json(500, {
+                    error: "AI 草稿題數限制尚未同步，請聯絡管理員完成資料庫更新",
+                    code: "generation_count_constraint_mismatch"
+                });
+            }
             if (jobError) throw jobError;
             const openaiKey = Deno.env.get("OPENAI_API_KEY");
             if (!openaiKey) {
