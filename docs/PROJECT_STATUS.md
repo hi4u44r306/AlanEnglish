@@ -2,6 +2,12 @@
 
 最後更新：2026-09-22
 
+本次逐頁混合題型語音發布修復（2026-09-22，正式 Function 已重新部署）：
+
+- Workbook 3 P4 題庫 ID `37` 已完成內容審核，10 題與私人圖片皆完整，但正式 `speaking-tts-manager` 仍停在舊版 v27，只接受整組 `picture_gap_sentence`，因此新版 `admin_page_builder` 的 `mixed` 單頁草稿會在產生語音前被拒絕，無法進入正式發布。
+- 已從最新 `main` commit `a4b994a` 重新部署 `speaking-tts-manager` v28；新版會依每題 interaction 篩選看圖補句並產生必要的 `question_prompt`，不需重新 OCR、重新審核或變更資料庫。
+- 驗證：完整 Edge Function 語法與口說語音契約、Production build、`git diff --check` 均通過；正式 Function 為 ACTIVE v28，確認包含 `admin_page_builder`／mixed 相容邏輯，OPTIONS 回應 200、未登入 POST 回應 401。未代替管理員產生付費 TTS 或發布題庫，P4 仍由管理員按「準備語音並發布」完成最後操作。
+
 本次單頁 AI 草稿 30 題資料庫限制修正（2026-09-22，正式資料庫與 Function 已部署）：
 
 - 正式 `speaking-content-manager` 記錄顯示，建立 AI 草稿在 2026-09-22 08:57:43 寫入生成工作時被 PostgreSQL `23514` 拒絕；原因是 Function 已允許單頁自動判斷 1～30 題，但 `speaking_generation_jobs_count_check` 仍限制 1～20。
