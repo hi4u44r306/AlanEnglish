@@ -29,7 +29,7 @@ const catalogSection = item => {
 };
 
 const lessonTitle = item => String(item.title || "口說練習")
-    .replace(/^\s*(?:P\s*)?\d{1,4}\s*/i, "")
+    .replace(/^\s*(?:P[.\s]*)?\d{1,4}\s*/i, "")
     .trim();
 
 const compressPageNumbers = pages => {
@@ -46,7 +46,7 @@ const compressPageNumbers = pages => {
 
 const pageReference = item => {
     const pages = compressPageNumbers(item.source_pages || item.generation_metadata?.source_pages);
-    return pages ? `配合第 ${pages} 頁` : "";
+    return pages ? `P.${pages}` : "";
 };
 
 const challengeBookCatalogPath = challenge => {
@@ -119,9 +119,12 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     const completed = item.is_completed === true;
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
     const pages = pageReference(item);
+    const challengeLabel = lessonTitle(item);
+    const topicOrType = item.topic || item.intro_zh || sectionCopy.label;
+    const level = item.difficulty ? ` · ${item.difficulty}` : "";
     return <button className={`speaking-challenge-lesson is-${section} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
-    <span className="speaking-challenge-lesson__number">{sectionCopy.badge}</span>
-    <span className="speaking-challenge-lesson__copy"><strong>{lessonTitle(item)}{pages && <em>{pages}</em>}</strong><small>{item.intro_zh || `${item.topic} · ${item.difficulty}`}</small></span>
+    <span className="speaking-challenge-lesson__number">{pages || sectionCopy.badge}</span>
+    <span className="speaking-challenge-lesson__copy"><strong>{challengeLabel}</strong><small>{topicOrType}{level}</small></span>
     <span className="speaking-challenge-lesson__meta">{locked ? <><FiLock aria-hidden="true" /><small id={`speaking-challenge-lock-${item.id}`}>先完成前一關</small></> : completed ? <><FiCheck aria-hidden="true" /><small>已通關</small></> : <><b>{item.completed_count}/{item.question_count}</b><small>{staffPreview ? "預覽" : "開始挑戰"}</small></>}</span>
     </button>;
 };
