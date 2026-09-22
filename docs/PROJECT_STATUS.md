@@ -9,6 +9,7 @@
 - 回復方式：先回復 Function；資料庫限制可維持較寬的 1～30 而不影響舊流程。若一定要縮回 1～20，必須先確認沒有 `requested_count > 20` 的工作紀錄，再用新的 migration 調整，不能直接刪除正式紀錄。
 - Migration `20260922012056_allow_30_speaking_generation_questions.sql` 已精準套用並登記正式 history；查回 constraint 為 `requested_count >= 1 and <= 30` 且已驗證。正式 `speaking-content-manager` 已部署，未登入 POST 正確回應 401。
 - 驗證：隔離 PGlite migration 2/2、全部 Edge Function 語法、Production build 與 `git diff --check` 通過。完整口說契約 29/30；唯一失敗為既有手機播放器 CSS selector 斷言，與本批資料庫／Function 修改無關。尚未使用管理員按鈕建立付費 AI 草稿，因此登入後生成結果留待管理員實機重試。
+- PR #238 已合併至 `main` commit `103a464`；Cloudflare production build `c4632679-9afa-47ad-9d4d-a787c7bbcac6` 成功，正式首頁與 `/admin/speaking-content` 均回應 HTTP 200。
 
 本次單頁 AI 草稿自動判斷題數（2026-09-22，正式部署完成）：
 
