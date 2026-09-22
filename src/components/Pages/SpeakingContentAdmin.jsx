@@ -75,7 +75,7 @@ const draftReadiness = (questionSet, section) => {
     const interactionType = String(metadata.interaction_type || "");
     const questions = [...(questionSet.speaking_questions || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
     const issues = [];
-    const manualSinglePage = (["admin_manual_builder", "ai_page_auto"].includes(metadata.source)
+    const manualSinglePage = (["admin_manual_builder", "admin_page_builder", "ai_page_auto"].includes(metadata.source)
         || (["ocr_page_candidate", "ai_page_auto"].includes(metadata.source) && metadata.auto_question_count === true))
         && Array.isArray(metadata.source_pages) && metadata.source_pages.length === 1;
     if (!manualSinglePage && questions.length < 3) issues.push({ message: `目前只有 ${questions.length} 題，發布至少需要 3 題。` });
@@ -86,13 +86,14 @@ const draftReadiness = (questionSet, section) => {
     questions.forEach((question, index) => {
         const label = `第 ${index + 1} 題`;
         const interaction = asOne(question.speaking_question_interactions);
+        const questionInteractionType = String(interaction?.interaction_type || interactionType || "standard_sentence");
         const visualLink = asOne(question.speaking_question_visual_assets);
         const visual = asOne(visualLink?.speaking_visual_assets);
-        if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
+        if (["picture_qa", "picture_gap_sentence"].includes(questionInteractionType)) {
             if (!String(interaction?.prompt_text || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少學生看到的題目。` });
             if (!String(interaction?.answer_text || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少完整答案。` });
-            if (interactionType === "picture_qa" && !String(interaction?.prompt_text || "").trim().endsWith("?")) issues.push({ questionId: question.id, message: `${label}的完整問句必須以 ? 結尾。` });
-            if (interactionType === "picture_gap_sentence" && !/_{2,}/.test(String(interaction?.prompt_text || ""))) issues.push({ questionId: question.id, message: `${label}至少需要一個挖空。` });
+            if (questionInteractionType === "picture_qa" && !String(interaction?.prompt_text || "").trim().endsWith("?")) issues.push({ questionId: question.id, message: `${label}的完整問句必須以 ? 結尾。` });
+            if (questionInteractionType === "picture_gap_sentence" && !/_{2,}/.test(String(interaction?.prompt_text || ""))) issues.push({ questionId: question.id, message: `${label}至少需要一個挖空。` });
             if (visual?.status !== "ready") issues.push({ questionId: question.id, message: `${label}尚未完成私人圖片上傳。` });
             if (!String(visual?.alt_zh || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少圖片替代文字。` });
         } else if (!String(question.model_answer || "").trim()) {
@@ -668,7 +669,17 @@ export default function SpeakingContentAdmin() {
         setWorking(`publish-${questionSet.id}`);
         let published = false;
         try {
-            if (interactionType === "picture_gap_sentence") {
+            if (interactionType === "mixed") {
+                const questions = questionSet.speaking_questions || [];
+                const hasStandard = questions.some(question => !asOne(question.speaking_question_interactions)?.interaction_type);
+                const hasGap = questions.some(question => asOne(question.speaking_question_interactions)?.interaction_type === "picture_gap_sentence");
+                const [standardAudio, gapAudio] = await Promise.all([
+                    hasStandard ? generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id) : Promise.resolve({ success: true }),
+                    hasGap ? generateSpeakingVisibleWordAudio(firebaseUser, questionSet.id) : Promise.resolve({ success: true })
+                ]);
+                if (standardAudio.success !== true || Number(standardAudio.failed || 0) + Number(standardAudio.pending || 0) > 0) throw new Error("完整句示範語音尚未全部完成，草稿沒有發布");
+                if (gapAudio.success !== true || Number(gapAudio.failed || 0) + Number(gapAudio.pending || 0) > 0) throw new Error("看圖補句停頓語音尚未全部完成，草稿沒有發布");
+            } else if (interactionType === "picture_gap_sentence") {
                 const audio = await generateSpeakingVisibleWordAudio(firebaseUser, questionSet.id);
                 if (audio.success !== true || Number(audio.failed || 0) + Number(audio.pending || 0) > 0) throw new Error("停頓整句語音尚未全部完成，草稿沒有發布");
             } else if (!["picture_qa", "alphabet_round", "letter_spelling"].includes(interactionType)) {

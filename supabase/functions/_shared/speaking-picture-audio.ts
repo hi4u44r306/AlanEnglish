@@ -21,6 +21,8 @@ const xmlEscape = (value: string) => value
 
 export const ttsTextWithoutTerminalFullStops = (value: unknown) => String(value || "")
     .trim()
+    .replace(/\s*[（(][^（）()]*[\u3100-\u312f\u3400-\u9fff][^（）()]*[）)]\s*/gu, " ")
+    .trim()
     .replace(/[.\u3002\uff0e\u2026]+$/u, "")
     .trim();
 
