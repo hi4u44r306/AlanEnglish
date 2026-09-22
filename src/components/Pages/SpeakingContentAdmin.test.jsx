@@ -129,6 +129,28 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(2, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P5" }));
     });
 
+    it("lets AI determine the actual question count for one reviewed page", async () => {
+        generateSpeakingQuestionSet.mockResolvedValueOnce({ success: true, question_set_id: 89, question_count: 7 });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 33, title: "Workbook 3", book_id: 3 }],
+            chunks: [],
+            sections: [{ id: 34, document_id: 33, unit_label: "Unit 1", page_from_label: "P4", page_to_label: "P4", topic: "所有格", language_level: "國小中年級", status: "reviewed", source_text: "1. It is an eye.\n2. They are her eyes.\n3. It is my nose." }],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        expect(await screen.findByText(/AI 會依每頁實際可出題內容自動判斷題數/)).toBeInTheDocument();
+        expect(screen.queryByText("每頁題數")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "建立本頁 AI 草稿" }));
+
+        await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({
+            source_section_id: 34,
+            auto_question_count: true
+        })));
+    });
+
     it("only batch-approves OCR candidates the administrator explicitly selected as reviewed", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
         getSpeakingContentBootstrap.mockResolvedValue({

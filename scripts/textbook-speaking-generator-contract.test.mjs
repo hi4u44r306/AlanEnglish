@@ -55,10 +55,22 @@ test("2. 新資料表不允許前端直接存取，只能由驗證後端處理",
 test("3. AI 只能使用人工核准教材來源且永遠先產生草稿", () => {
     assert.match(manager, /body\?\.confirmed !== true/);
     assert.match(manager, /section\.status !== "reviewed"/);
-    assert.match(manager, /只能根據下方老師已核准的教材文字/);
+    assert.match(manager, /只能根據下方老師已核准的單頁教材文字/);
     assert.match(manager, /status: "draft"/);
     assert.match(manager, /publish_question_set/);
     assert.match(manager, /只有草稿題庫可以修改/);
+});
+
+test("3b. 單頁 AI 草稿由教材內容判斷 1 至 30 題並保留人工核准閘門", () => {
+    assert.match(manager, /const autoQuestionCount = body\?\.auto_question_count === true/);
+    assert.match(manager, /questions 可包含 1 至 30 題，題數必須反映這一頁的實際內容/);
+    assert.match(manager, /source: "ai_page_auto"/);
+    assert.match(manager, /detected_question_count: questions\.length/);
+    assert.match(manager, /\["ocr_page_candidate", "ai_page_auto"\]\.includes\(metadata\?\.source\)/);
+    assert.match(manager, /單頁手動或 AI 自動題庫至少 1 題才能發布/);
+    assert.match(adminPage, /auto_question_count: true/);
+    assert.match(adminPage, /AI 會依每頁實際可出題內容自動判斷題數/);
+    assert.doesNotMatch(adminPage, /setQuestionCount/);
 });
 
 test("3a. 逐頁 OCR 候選會排除同一教材現有的完整句，並保留來源供人工審核", () => {
