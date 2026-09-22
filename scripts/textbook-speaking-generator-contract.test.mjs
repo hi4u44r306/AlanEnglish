@@ -7,6 +7,7 @@ const migration = read("supabase/migrations/20260903152751_textbook_speaking_que
 const ocrMigration = read("supabase/migrations/20260904005001_textbook_speaking_ocr_pipeline.sql");
 const batchMigration = read("supabase/migrations/20260904021540_speaking_whole_book_ocr_batches.sql");
 const wholeBookSizeMigration = read("supabase/migrations/20260921110000_allow_500mb_whole_book_source.sql");
+const generationCountMigration = read("supabase/migrations/20260922012056_allow_30_speaking_generation_questions.sql");
 const manager = read("supabase/functions/speaking-content-manager/index.ts");
 const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const challenge = read("supabase/functions/speaking-challenge/index.ts");
@@ -71,6 +72,8 @@ test("3b. 單頁 AI 草稿由教材內容判斷 1 至 30 題並保留人工核�
     assert.match(adminPage, /auto_question_count: true/);
     assert.match(adminPage, /AI 會依每頁實際可出題內容自動判斷題數/);
     assert.doesNotMatch(adminPage, /setQuestionCount/);
+    assert.match(generationCountMigration, /requested_count between 1 and 30/);
+    assert.match(manager, /generation_count_constraint_mismatch/);
 });
 
 test("3a. 逐頁 OCR 候選會排除同一教材現有的完整句，並保留來源供人工審核", () => {
