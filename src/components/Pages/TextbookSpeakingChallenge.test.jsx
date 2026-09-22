@@ -286,7 +286,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
     });
 
-    it("學生依入門、課本與主題分區，將頁碼放在每張教材小關卡最前面", async () => {
+    it("學生將課本頁碼放在最前面，主題練習則保留主題標記", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [
                 { id: 7, title: "00 A–Z 大小寫挑戰", topic: "字母", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { interaction_type: "alphabet_round" }, source_pages: [], question_count: 26, completed_count: 26, sequence_order: 0, is_unlocked: true, is_completed: true },
@@ -307,10 +307,12 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("P.18～20");
         expect(screen.getByRole("button", { name: /看圖問答/ })).toBeDisabled();
         expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveTextContent("先完成前一關");
-        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("P.35～36、60、99～100");
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).not.toHaveTextContent("P.35～36、60、99～100");
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toBeEnabled();
         expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toBeDisabled();
-        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("P.100");
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("主題");
+        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("主題");
+        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).not.toHaveTextContent("P.100");
         expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("先完成前一關");
         expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
