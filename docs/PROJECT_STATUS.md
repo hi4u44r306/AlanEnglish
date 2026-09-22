@@ -2,6 +2,12 @@
 
 最後更新：2026-09-22
 
+本次 Workbook 3 P4 學生關卡圖片部署修復（2026-09-22，正式部署完成）：
+
+- 正式資料唯讀核對確認題庫 ID `37` 的 10 題均有 `picture_gap_sentence` interaction、圖片連結、ready 私人 R2 物件及替代文字；圖片未遺失，也不需重新上傳或重新建立草稿。
+- 問題是正式 `speaking-challenge` v33 部署時間早於 `admin_page_builder` mixed 單頁圖片支援，因此學生 API 未查詢這批 visual assets。已從最新 `main` 重新部署 `speaking-challenge` v34，不修改題庫、圖片、學生進度或資料庫。
+- 驗證：Function 語法通過；學生關卡、圖片題與圖片元件 targeted 31/31 通過；正式 Function 為 ACTIVE v34，OPTIONS 200、未登入 POST 401。登入後 P4 十題的私人簽名圖片顯示仍由管理員重新整理正式頁面做最終視覺驗收。
+
 本次逐頁混合題型發布第二階段修復（2026-09-22，正式部署完成）：
 
 - Workbook 3 P4 題庫 ID `37` 已完成內容審核，10 題與私人圖片皆完整。前一版 Function 雖已能處理 mixed 題組，管理頁發布按鈕仍把整組送到一般完整句語音；後端篩除 10 題看圖補句後又把「0 題完成」誤回報成功，直到真正發布時才因缺少 `question_prompt` 音檔被拒絕。
