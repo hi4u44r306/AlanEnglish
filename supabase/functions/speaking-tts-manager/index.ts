@@ -79,7 +79,7 @@ const pictureGapDraftLabel = (questionSet: any) => {
         && metadata.interaction_type === "picture_gap_sentence" && manualPages.length > 0 && manualPages.length <= 50) {
         return manualPages.length === 1 ? `P${manualPages[0]}` : `P${manualPages[0]}～P${manualPages[manualPages.length - 1]}`;
     }
-    if (questionSet?.status === "draft" && metadata.source === "admin_page_builder"
+    if (questionSet?.status === "draft" && ["admin_page_builder", "ai_pdf_visual"].includes(metadata.source)
         && metadata.manual_builder_version === 2 && metadata.interaction_type === "mixed" && manualPages.length === 1) {
         return `P${manualPages[0]}`;
     }
@@ -914,7 +914,7 @@ Deno.serve(async (req: Request) => {
             && questionSet?.generation_metadata?.source === "admin_manual_builder"
             && interactionType === "standard_sentence";
         const manualPageDraft = setStatus === "draft"
-            && questionSet?.generation_metadata?.source === "admin_page_builder"
+            && ["admin_page_builder", "ai_pdf_visual"].includes(questionSet?.generation_metadata?.source)
             && questionSet?.generation_metadata?.manual_builder_version === 2
             && interactionType === "mixed";
         const mayPrepareManualStandardDraft = manualStandardDraft

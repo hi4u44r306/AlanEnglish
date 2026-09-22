@@ -12,7 +12,7 @@ import "./css/TextbookSpeakingChallenge.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },
-    textbook: { label: "課本練習", eyebrow: "依教材頁序完成", badge: "課本" },
+    textbook: { label: "依頁碼練習", eyebrow: "一頁就是一個口說關卡", badge: "課本" },
     topic: { label: "主題練習", eyebrow: "跨頁情境加強", badge: "主題" }
 };
 const TOPIC_TEMPLATE_KEYS = new Set([
@@ -47,6 +47,32 @@ const compressPageNumbers = pages => {
 const pageReference = item => {
     const pages = compressPageNumbers(item.source_pages || item.generation_metadata?.source_pages);
     return pages ? `配合第 ${pages} 頁` : "";
+};
+
+const pageNumbersFor = item => [...new Set(
+    (item.source_pages || item.generation_metadata?.source_pages || [])
+        .map(Number)
+        .filter(page => Number.isInteger(page) && page > 0)
+)].sort((left, right) => left - right);
+
+const textbookLessonCopy = item => {
+    const pageNumbers = pageNumbersFor(item);
+    if (pageNumbers.length !== 1) {
+        return {
+            badge: "舊版",
+            title: lessonTitle(item),
+            type: pageReference(item),
+            detail: `${item.topic} · ${item.difficulty}`
+        };
+    }
+    const page = pageNumbers[0];
+    const type = lessonTitle(item);
+    return {
+        badge: `P.${page}`,
+        title: `第 ${page} 頁`,
+        type: type === `第 ${page} 頁` ? String(item.topic || "口說練習") : type,
+        detail: `${item.topic || "口說練習"} · ${item.difficulty}`
+    };
 };
 
 const challengeBookCatalogPath = challenge => {
@@ -119,9 +145,10 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     const completed = item.is_completed === true;
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
     const pages = pageReference(item);
+    const textbookCopy = section === "textbook" ? textbookLessonCopy(item) : null;
     return <button className={`speaking-challenge-lesson is-${section} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
-    <span className="speaking-challenge-lesson__number">{sectionCopy.badge}</span>
-    <span className="speaking-challenge-lesson__copy"><strong>{lessonTitle(item)}{pages && <em>{pages}</em>}</strong><small>{item.intro_zh || `${item.topic} · ${item.difficulty}`}</small></span>
+    <span className="speaking-challenge-lesson__number">{textbookCopy?.badge || sectionCopy.badge}</span>
+    <span className="speaking-challenge-lesson__copy"><strong>{textbookCopy?.title || lessonTitle(item)}{textbookCopy?.type ? <em>{textbookCopy.type}</em> : pages && <em>{pages}</em>}</strong><small>{item.intro_zh || textbookCopy?.detail || `${item.topic} · ${item.difficulty}`}</small></span>
     <span className="speaking-challenge-lesson__meta">{locked ? <><FiLock aria-hidden="true" /><small id={`speaking-challenge-lock-${item.id}`}>先完成前一關</small></> : completed ? <><FiCheck aria-hidden="true" /><small>已通關</small></> : <><b>{item.completed_count}/{item.question_count}</b><small>{staffPreview ? "預覽" : "開始挑戰"}</small></>}</span>
     </button>;
 };

@@ -301,9 +301,11 @@ describe("TextbookSpeakingChallenge model audio", () => {
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         expect(await screen.findByRole("heading", { name: "入門準備" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "課本練習" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "依頁碼練習" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "主題練習" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("配合第 14 頁");
+        expect(screen.getByRole("button", { name: /第 14 頁/ })).toHaveTextContent("P.14");
+        expect(screen.getByRole("button", { name: /第 14 頁/ })).toHaveTextContent("看字拼讀");
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("舊版");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("配合第 18～20 頁");
         expect(screen.getByRole("button", { name: /看圖問答/ })).toBeDisabled();
         expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveTextContent("先完成前一關");
