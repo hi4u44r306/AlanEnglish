@@ -2,6 +2,12 @@
 
 最後更新：2026-09-23
 
+本次手機暱稱讀取與 7 天改名倒數修正（2026-09-23，本機完成、尚未部署）：
+
+- `dev.alanenglish.com.tw` 原本不在 `student-social` Edge Function 的允許來源清單；手機從開發站讀取暱稱時會在 CORS 階段被瀏覽器攔截，iPhone Chrome／WebKit 因而顯示原始 `Load failed`，而 localhost 或正式站不會重現。已將開發網域加入明確允許清單，並將網路層錯誤改為可理解的中文重試提示。
+- `nickname_settings` 現在回傳由伺服器依真實更名紀錄計算的 `nickname_change_available_at`。第一次設定暱稱不啟動冷卻；只有 `previous_nickname` 非空的實際改名才開始 7 天。冷卻中會停用輸入欄與按鈕，顯示台灣時間解鎖日期及天／時／分／秒即時倒數，時間到自動解鎖；後端 429 仍是最終限制並同步回傳解鎖時間。
+- 不需 migration，不修改任何學生暱稱或歷史資料。`StudentSettings` 12/12、學生社交契約 7/7、`student-social` TypeScript 語法、Production build 與 `git diff --check` 皆通過；尚未推送或部署。既有使用者自行移除設定頁 Hero 說明文字的未提交變更已原樣保留，不納入本批功能範圍。
+
 本次待發布草稿可變答案語音驗證修正（2026-09-23，正式部署完成；登入發布待驗收）：
 
 - 唯讀核對正式 Workbook 3 新草稿：#77 P5、#78 P7、#79 P9 均已正確建立 7 題；#77 已人工核准，7 題示範語音也全部為 `ready`。草稿仍無法發布的根因是發布檢查拿含 `[你的名字]` 等欄位的答案模板，與 TTS 實際保存的自然範例文字（例如 `My name is Amy.`）逐字比較，因而誤判語音不完整。

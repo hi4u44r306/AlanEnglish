@@ -4,6 +4,7 @@ import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 const ALLOWED_ORIGINS = new Set([
     "https://alanenglish.com.tw",
     "https://www.alanenglish.com.tw",
+    "https://dev.alanenglish.com.tw",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000"
@@ -243,7 +244,13 @@ Deno.serve(async (req: Request) => {
                 nicknameHistory(admin, caller.id)
             ]);
             if (profileError) throw profileError;
-            return json(req, 200, { success: true, profile: profile || null, nickname_history: history });
+            const availableAt = nicknameChangeCooldown(history);
+            return json(req, 200, {
+                success: true,
+                profile: profile || null,
+                nickname_history: history,
+                nickname_change_available_at: availableAt ? new Date(availableAt).toISOString() : null
+            });
         }
 
         if (action === "update_nickname") {
@@ -262,7 +269,9 @@ Deno.serve(async (req: Request) => {
             if (availableAt) {
                 return json(req, 429, {
                     success: false,
-                    error: `公開暱稱每 7 天只能修改一次，可於 ${formatNicknameChangeAvailableAt(availableAt)} 後再試`
+                    error: `公開暱稱每 7 天只能修改一次，可於 ${formatNicknameChangeAvailableAt(availableAt)} 後再試`,
+                    code: "NICKNAME_CHANGE_COOLDOWN",
+                    details: { nickname_change_available_at: new Date(availableAt).toISOString() }
                 });
             }
             const saved = await saveSocialProfile(
@@ -275,10 +284,13 @@ Deno.serve(async (req: Request) => {
             );
             if (saved.conflict) return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
             await writeAudit(admin, caller.id, "nickname_update", caller.id, { source: "student_settings" });
+            const updatedHistory = await nicknameHistory(admin, caller.id);
+            const nextAvailableAt = nicknameChangeCooldown(updatedHistory);
             return json(req, 200, {
                 success: true,
                 profile: saved.profile,
-                nickname_history: await nicknameHistory(admin, caller.id)
+                nickname_history: updatedHistory,
+                nickname_change_available_at: nextAvailableAt ? new Date(nextAvailableAt).toISOString() : null
             });
         }
 
