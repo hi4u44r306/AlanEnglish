@@ -88,6 +88,16 @@ test("requires opposite consistent alternatives only when a text question does n
         accepted_intents: []
     }), false);
     assert.equal(textQaQuestionContentValid({
+        question_text: "How old is your dad?",
+        model_answer: "He is forty years old.",
+        accepted_intents: []
+    }), true);
+    assert.equal(textQaQuestionContentValid({
+        question_text: "What's your mother's name?",
+        model_answer: "His name is Sam.",
+        accepted_intents: []
+    }), false);
+    assert.equal(textQaQuestionContentValid({
         question_text: "Whose eyes are these?",
         model_answer: "They are his eyes.",
         accepted_intents: ["They are her eyes."]

@@ -75,7 +75,7 @@ const manualAuthoringReasonLabel = reason => ({
 const pageGenerationStatusLabel = row => ({
     pending: "等待處理",
     processing: "AI 分析、重複檢查與儲存中…",
-    created: `AI 草稿 ${row.questionCount} 題`,
+    created: `AI 草稿 ${row.questionCount} 題${row.rejectedQuestionCount > 0 ? ` · 安全略過 ${row.rejectedQuestionCount} 題不完整候選` : ""}`,
     manual: manualAuthoringReasonLabel(row.reason),
     failed: `未建立：${row.message}`
 }[row.status] || "等待處理");
@@ -633,7 +633,9 @@ export default function SpeakingContentAdmin() {
                     created.push(result);
                     progressRows = progressRows.map(row => row.page === page ? {
                         page, status: result.requires_manual_authoring ? "manual" : "created",
-                        questionCount: Number(result.question_count || 0), reason: result.manual_authoring_reason || null
+                        questionCount: Number(result.question_count || 0),
+                        rejectedQuestionCount: Number(result.rejected_ai_question_count || 0),
+                        reason: result.manual_authoring_reason || null
                     } : row);
                 } catch (error) {
                     skipped.push(`${page}：${error.message || "建立失敗"}`);

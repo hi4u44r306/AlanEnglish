@@ -105,6 +105,9 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /RED_ANSWER/);
     assert.match(manager, /red_answer_hint_count/);
     assert.match(manager, /accepted_intents: alternatives, visual_aid: null/);
+    assert.match(manager, /sourceHasQuestion && sourceHasAnswer\s*\? TEXT_QA_INTERACTION_TYPE/);
+    assert.doesNotMatch(manager, /questions\.length !== rows\.length/);
+    assert.match(manager, /rejected_ai_question_count/);
     assert.match(manager, /textQaQuestionContentValid/);
     assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
     assert.match(foundationAnswers, /"text_qa"/);

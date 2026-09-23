@@ -2,8 +2,14 @@ const clean = (value: unknown, maximum = 2000) => String(value || "").replace(/\
 
 export const textQaGenderSignal = (value: unknown) => {
     const tokens = String(value || "").toLowerCase().match(/[a-z]+/g) || [];
-    const male = tokens.some(token => ["he", "his", "him", "himself", "boy", "man"].includes(token));
-    const female = tokens.some(token => ["she", "her", "hers", "herself", "girl", "woman"].includes(token));
+    const male = tokens.some(token => [
+        "he", "his", "him", "himself", "boy", "man", "father", "dad", "daddy",
+        "grandfather", "grandpa", "brother", "son", "husband", "uncle", "nephew"
+    ].includes(token));
+    const female = tokens.some(token => [
+        "she", "her", "hers", "herself", "girl", "woman", "mother", "mom", "mommy", "mum",
+        "grandmother", "grandma", "sister", "daughter", "wife", "aunt", "niece"
+    ].includes(token));
     return male && female ? "mixed" : male ? "male" : female ? "female" : "neutral";
 };
 
@@ -17,7 +23,7 @@ export const textQaGenderIsConsistent = (questionText: unknown, answerText: unkn
 };
 
 export const textQaGenderSkeleton = (value: unknown) => String(value || "").toLowerCase()
-    .replace(/\b(?:he|she|his|her|him|hers|himself|herself|boy|girl|man|woman)\b/g, "{gender}")
+    .replace(/\b(?:he|she|his|her|him|hers|himself|herself|boy|girl|man|woman|father|mother|dad|mom|daddy|mommy|mum|grandfather|grandmother|grandpa|grandma|brother|sister|son|daughter|husband|wife|uncle|aunt|nephew|niece)\b/g, "{gender}")
     .replace(/[^a-z{}]+/g, " ")
     .trim();
 
