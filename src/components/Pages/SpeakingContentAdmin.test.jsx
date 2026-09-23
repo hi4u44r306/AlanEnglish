@@ -416,6 +416,12 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(screen.getByRole("button", { name: /3 待發布/ }));
         fireEvent.click(await screen.findByRole("button", { name: /P4 身體部位/ }));
         expect(screen.getByText("內容檢查完成")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "先產生並試聽示範語音" }));
+        await waitFor(() => expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(mockFirebaseUser, 82));
+        fireEvent.click(screen.getByText("預覽學生畫面"));
+        fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題女聲示範" }));
+        await waitFor(() => expect(getSpeakingQuestionAudioPreview).toHaveBeenCalledWith(mockFirebaseUser, 82, 83));
+        generateSpeakingQuestionSetAudio.mockClear();
         fireEvent.click(screen.getByRole("button", { name: "準備語音並發布" }));
 
         await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 82));
