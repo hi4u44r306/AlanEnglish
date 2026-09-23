@@ -69,7 +69,9 @@ export const speakingAnswerPrompt = (template: unknown) => String(template || ""
 
 // Structured voice answers keep the textbook sentence pattern while letting the
 // learner supply personal words (for example a name) entirely through speech.
-// Every placeholder must contain at least one and at most five recognized words.
+// Every placeholder must contain at least one and at most twelve recognized
+// words. The wider ceiling covers a child spelling a longer name aloud while
+// the fixed sentence parts still prevent an unrelated response from matching.
 export const matchesSpeakingAnswerTemplate = (template: unknown, recognizedText: unknown) => {
     const source = String(template || "");
     const spoken = normalizedAnswer(recognizedText);
@@ -81,7 +83,7 @@ export const matchesSpeakingAnswerTemplate = (template: unknown, recognizedText:
     for (const match of source.matchAll(pattern)) {
         const fixed = normalizedAnswer(source.slice(cursor, match.index));
         if (fixed) pieces.push(escapeRegExp(fixed).replace(/ /g, "\\s+"));
-        pieces.push("[a-z0-9']+(?:\\s+[a-z0-9']+){0,4}");
+        pieces.push("[a-z0-9']+(?:\\s+[a-z0-9']+){0,11}");
         cursor = Number(match.index || 0) + match[0].length;
     }
     const remaining = normalizedAnswer(source.slice(cursor));

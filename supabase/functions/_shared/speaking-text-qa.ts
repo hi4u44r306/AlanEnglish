@@ -38,7 +38,7 @@ export const textQaQuestionContentValid = (question: any) => {
         .filter(answer => answer !== modelAnswer);
     const answers = [modelAnswer, ...alternatives].filter(Boolean);
     if (!questionText.endsWith("?") || answers.length < 1
-        || answers.some(answer => answer.endsWith("?") || !textQaGenderIsConsistent(questionText, answer))) return false;
+        || answers.some(answer => !textQaGenderIsConsistent(questionText, answer))) return false;
     const questionGender = textQaGenderSignal(questionText);
     const modelGender = textQaGenderSignal(modelAnswer);
     if (questionGender !== "neutral" || !["male", "female"].includes(modelGender)) return true;

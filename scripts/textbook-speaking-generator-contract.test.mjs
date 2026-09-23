@@ -110,13 +110,17 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /rejected_ai_question_count/);
     assert.match(manager, /reviewed_numbered_text_qa_v1/);
     assert.match(manager, /generation_strategy: useDeterministicTextQa/);
+    assert.match(manager, /numbered_question_count: useDeterministicTextQa/);
     assert.match(manager, /extractNumberedTextQaPairs/);
     assert.match(manager, /textQaQuestionContentValid/);
     assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
+    assert.match(manager, /reviewed_full_response_with_variable_slots/);
+    assert.match(manager, /ignoredSourcePageLabel/);
     assert.match(foundationAnswers, /"text_qa"/);
     assert.match(adminPage, /文字問答（無圖片）/);
     assert.match(adminPage, /其他可接受的完整答案/);
-    assert.match(adminPage, /編號式文字問答直接依同一題號內的核准問句與完整回答配對/);
+    assert.match(adminPage, /已維持一個編號一題/);
+    assert.match(adminPage, /底線改為姓名、年齡或拼字等可變口說欄位/);
 });
 
 test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示", () => {
@@ -461,7 +465,8 @@ test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則�
 test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
     assert.match(foundationAnswers, /picture_qa/);
     assert.match(foundationAnswers, /picture_gap_sentence/);
-    assert.match(foundationAnswers, /accepted\.includes\(spoken\)/);
+    assert.match(foundationAnswers, /accepted\.some\(answer => hasSpeakingAnswerSlots\(answer\)/);
+    assert.match(foundationAnswers, /matchesSpeakingAnswerTemplate\(answer, recognizedText\)/);
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /matchesFoundationAnswer\(question\.interactionType, question\.answerTemplate, recognizedText, question\.acceptedAnswers\)/);
     assert.match(coach, /pictureInteraction\.prompt_text/);

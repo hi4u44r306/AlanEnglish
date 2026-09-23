@@ -1,4 +1,5 @@
 import { readAzureWordAssessment } from "./azure-pronunciation.ts";
+import { hasSpeakingAnswerSlots, matchesSpeakingAnswerTemplate } from "./speaking-pronunciation-reference.ts";
 
 export const FOUNDATION_INTERACTION_TYPES = new Set([
     "alphabet_round",
@@ -167,9 +168,11 @@ export const matchesFoundationAnswer = (
     if (type === "text_qa" || type === "picture_qa" || type === "picture_gap_sentence") {
         const spoken = normalizedSpokenSentence(recognizedText);
         const accepted = [expectedAnswer, ...(Array.isArray(acceptedAnswers) ? acceptedAnswers : [])]
-            .map(normalizedSpokenSentence)
+            .map(value => String(value || "").trim())
             .filter(Boolean);
-        return Boolean(spoken) && accepted.includes(spoken);
+        return Boolean(spoken) && accepted.some(answer => hasSpeakingAnswerSlots(answer)
+            ? matchesSpeakingAnswerTemplate(answer, recognizedText)
+            : normalizedSpokenSentence(answer) === spoken);
     }
     const expected = expectedLetterSequence(expectedAnswer);
     const spoken = spokenLetterSequence(recognizedText);

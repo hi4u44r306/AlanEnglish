@@ -90,6 +90,10 @@ assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "He is my fr
 assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "She is my friend.", ["She is my friend."]), true);
 assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "She is my friend."), false);
 assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "He is her friend.", ["She is my friend."]), false);
+assert.equal(matchesFoundationAnswer("text_qa", "My name is [你的名字].", "My name is Victor."), true);
+assert.equal(matchesFoundationAnswer("text_qa", "My name is [你的名字].", "Victor."), false);
+assert.equal(matchesFoundationAnswer("text_qa", "No, I do not.", "He is forty years old. How about yours?", ["He is [爸爸的年齡] years old. How about yours?"]), true);
+assert.equal(matchesFoundationAnswer("text_qa", "No, I do not.", "She is forty years old. How about yours?", ["He is [爸爸的年齡] years old. How about yours?"]), false);
 assert.deepEqual(visibleSentenceWords("The ____ is in the tree."), [
     { text: "The", tokenIndex: 0 },
     { text: "is", tokenIndex: 2 },
