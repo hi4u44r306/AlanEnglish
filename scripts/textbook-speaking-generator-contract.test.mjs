@@ -104,15 +104,19 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /學生只要說其中一個，不必把兩種都說出來/);
     assert.match(manager, /RED_ANSWER/);
     assert.match(manager, /red_answer_hint_count/);
-    assert.match(manager, /accepted_intents: alternatives, visual_aid: null/);
+    assert.match(manager, /accepted_intents: alternatives, visual_aid: \{\}/);
     assert.match(manager, /sourceHasQuestion && sourceHasAnswer\s*\? TEXT_QA_INTERACTION_TYPE/);
     assert.doesNotMatch(manager, /questions\.length !== rows\.length/);
     assert.match(manager, /rejected_ai_question_count/);
+    assert.match(manager, /reviewed_numbered_text_qa_v1/);
+    assert.match(manager, /generation_strategy: useDeterministicTextQa/);
+    assert.match(manager, /extractNumberedTextQaPairs/);
     assert.match(manager, /textQaQuestionContentValid/);
     assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
     assert.match(foundationAnswers, /"text_qa"/);
     assert.match(adminPage, /文字問答（無圖片）/);
     assert.match(adminPage, /其他可接受的完整答案/);
+    assert.match(adminPage, /編號式文字問答直接依同一題號內的核准問句與完整回答配對/);
 });
 
 test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示", () => {

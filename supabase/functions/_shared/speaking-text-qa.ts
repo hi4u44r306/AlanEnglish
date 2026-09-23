@@ -16,7 +16,10 @@ export const textQaGenderSignal = (value: unknown) => {
 export const textQaGenderIsConsistent = (questionText: unknown, answerText: unknown) => {
     const questionGender = textQaGenderSignal(questionText);
     const answerGender = textQaGenderSignal(answerText);
-    if (answerGender === "mixed") return false;
+    const answer = String(answerText || "").toLowerCase();
+    const mixedPronouns = (/\bhe\b/.test(answer) && /\b(?:her|hers)\b/.test(answer))
+        || (/\bshe\b/.test(answer) && /\b(?:his|him)\b/.test(answer));
+    if (mixedPronouns) return false;
     if (questionGender === "male" && answerGender !== "male") return false;
     if (questionGender === "female" && answerGender !== "female") return false;
     return true;
