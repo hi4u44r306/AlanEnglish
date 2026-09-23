@@ -36,6 +36,7 @@ import {
     textQaGenderIsConsistent,
     textQaQuestionContentValid
 } from "../_shared/speaking-text-qa.ts";
+import { speakingAudioSourceMatchesModelAnswer } from "../_shared/speaking-tts-text.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -2739,7 +2740,7 @@ Deno.serve(async (req: Request) => {
                         const link: any = linkByQuestion.get(Number(question.id));
                         const asset: any = assetById.get(String(link?.asset_id || ""));
                         return asset?.status !== "ready" || !asset?.private_object_key
-                            || String(asset?.source_text || "").trim() !== String(question?.model_answer || "").trim();
+                            || !speakingAudioSourceMatchesModelAnswer(asset?.source_text, question?.model_answer);
                     });
                 if (incomplete) return json(409, { error: "本頁口說題的示範語音尚未全部完成，請先產生並試聽" });
             }

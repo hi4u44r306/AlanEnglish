@@ -13,6 +13,7 @@ const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const challenge = read("supabase/functions/speaking-challenge/index.ts");
 const challengeView = read("supabase/functions/_shared/speaking-challenge-view.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
+const ttsText = read("supabase/functions/_shared/speaking-tts-text.ts");
 const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
 const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
 const pronunciationFlow = read("supabase/functions/_shared/speaking-pronunciation-flow.ts");
@@ -248,6 +249,9 @@ test("13. 示範語音固定 Leda 女聲並可由管理員安全預覽", () => {
     assert.match(ttsManager, /createR2PresignedUrl\(asset\.private_object_key, "GET", 15 \* 60\)/);
     assert.match(service, /getSpeakingQuestionAudioPreview/);
     assert.match(adminPage, /女聲 · Leda/);
+    assert.match(adminPage, /先產生並試聽示範語音/);
+    assert.match(ttsText, /speakingAudioSourceMatchesModelAnswer/);
+    assert.match(manager, /speakingAudioSourceMatchesModelAnswer\(asset\?\.source_text, question\?\.model_answer\)/);
 });
 
 test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {

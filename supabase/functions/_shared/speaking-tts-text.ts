@@ -27,3 +27,6 @@ export const spokenExampleText = (value: unknown) => {
         .trim();
     return text.slice(0, 2000);
 };
+
+export const speakingAudioSourceMatchesModelAnswer = (sourceText: unknown, modelAnswer: unknown) =>
+    String(sourceText || "").trim() === spokenExampleText(modelAnswer);
