@@ -2,12 +2,14 @@
 
 最後更新：2026-09-23
 
-本次 Workbook 3 無圖片文字問答與性別答案規則（2026-09-23，尚未部署）：
+本次 Workbook 3 無圖片文字問答與性別答案規則（2026-09-23，正式部署完成）：
 
 - OCR 逐頁產題新增 `text_qa`「文字問答（無圖片）」方向：同頁含完整問句與設計師回答句時，學生題面顯示問句並要求說出一個完整回答，不再把紅色答案文字拆成逐句朗讀題。新 OCR 會把清楚可見的紅字另存為 `[[RED_ANSWER: ...]]` 核對提示，但產題仍只能選用核准的完整英文句，不能把 `his/her` 等片段直接當答案。管理頁會標示題型，並分開顯示示範回答與「其他可接受的完整答案」。
 - 性別判定只使用題目文字，不依姓名、聲音或不存在的圖片猜測。明確 `he／his／him` 只接受男性一致答案，明確 `she／her／hers` 只接受女性一致答案；沒有性別線索且教材提供 `he/she`、`his/her` 時，OCR 候選會展開並保留兩個完整、文法位置正確且性別一致的答案，學生答其中一種即可。
 - `pronunciation-coach` 對 `text_qa` 使用示範回答加人工核對替代答案做精確比對；未在核准清單中的相反性別或 `He…her…`／`She…his…` 混搭不算答對。逐頁候選仍需人工核准，修改後會撤銷核准；已核准草稿才可產生示範語音及發布。
-- 不需 migration，未修改既有草稿、已發布題庫或學生紀錄。OCR／性別規則、口說答案判定、管理頁與學生口說 React、Edge Function 語法皆通過；完整口說契約仍有一項既有手機導覽 CSS selector 斷言，與本批文字問答無關。Production build、Push、PR、Function 與 Cloudflare 部署尚待完成。
+- 不需 migration，未修改既有草稿、已發布題庫或學生紀錄。OCR／性別規則 5/5、口說答案判定、管理頁與學生口說 React 45/45、Edge Function 語法、Production build 與 `git diff --check` 皆通過；完整口說契約 31/32，唯一失敗是既有手機導覽 CSS selector 斷言，與本批文字問答無關。
+- PR #255 已合併至 `main` commit `e894e6c`；Cloudflare production build `5864dcb1-fce8-4350-8fc7-455147f37cd3` 成功，正式站載入 `main.0057c64b.js` 並回應 200。正式 `speaking-content-manager` v42、`pronunciation-coach` v22、`speaking-challenge` v36、`speaking-tts-manager` v30 均為 ACTIVE；四個 OPTIONS 回應 200，未登入 `speaking-content-manager` POST 回應 401。
+- 既有 Workbook 3 草稿不會自動改寫；要套用新題型必須由管理員刪除舊的未發布草稿後重新建立，再逐題核對。新 OCR 才會產生紅字提示；既有核准 OCR 若保留 `he/she`、`his/her`，仍會由安全展開規則產生兩個一致的完整答案。
 
 本次 OCR 逐頁建立草稿進度顯示（2026-09-23，正式部署完成）：
 
