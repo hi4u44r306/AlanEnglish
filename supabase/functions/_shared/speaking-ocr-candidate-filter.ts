@@ -1,9 +1,16 @@
+import {
+    textQaGenderIsConsistent,
+    textQaGenderSignal,
+    textQaQuestionContentValid
+} from "./speaking-text-qa.ts";
+
 const INSTRUCTION_PREFIX = /^(?:listen|look|read|repeat|say|write|match|circle|choose|complete|fill|color|draw|ask|answer|practice|play|sing|check|tick|trace|find|point|number)\b/i;
 const NON_CONTENT = /(?:https?:\/\/|www\.|@|©|®|™|\bISBN\b)/i;
 
 const englishWords = (value: string) => value.match(/[A-Za-z]+(?:['’][A-Za-z]+)?/g) || [];
 
 const CONTROLLED_GENDER_PAIR = /\b(he|she|his|her|him|hers|boy|girl|man|woman)\s*\/\s*(he|she|his|her|him|hers|boy|girl|man|woman)\b/gi;
+const HAS_CONTROLLED_GENDER_PAIR = /\b(?:he|she|his|her|him|hers|boy|girl|man|woman)\s*\/\s*(?:he|she|his|her|him|hers|boy|girl|man|woman)\b/i;
 const genderSide = (value: string) => {
     const normalized = value.toLowerCase();
     if (["he", "his", "him", "boy", "man"].includes(normalized)) return "male";
@@ -79,4 +86,71 @@ export const filterOcrPageSpeakingCandidates = (sourceText: unknown) => {
     }
 
     return { sourceText: sentences.join("\n"), sentences, discardedSegments, redAnswerHints };
+};
+
+const sentenceSegments = (value: string) => value.match(/[^.!?]+[.!?]+(?:[”"')\]]+)?/g) || [];
+
+// Reviewed personal-question pages use one numbered block per prompt and its
+// teacher-designed response. Pair only complete source sentences inside the
+// same block. Blocks whose answer still contains blanks are not guessed.
+export const extractNumberedTextQaPairs = (sourceText: unknown) => {
+    const blocks: Array<{ prompt: string; answers: string[] }> = [];
+    let current: { prompt: string; answers: string[] } | null = null;
+    for (const rawLine of String(sourceText || "").replace(/\r/g, "").split("\n")) {
+        const line = rawLine.trim();
+        const numbered = line.match(/^\d{1,3}[.)、]\s*(.+)$/);
+        if (numbered) {
+            if (current) blocks.push(current);
+            current = { prompt: numbered[1].trim(), answers: [] };
+        } else if (current && line && !/^\[\[PAGE\b/i.test(line)) {
+            current.answers.push(line);
+        }
+    }
+    if (current) blocks.push(current);
+
+    return blocks.flatMap(block => {
+        const promptHasGenderChoice = HAS_CONTROLLED_GENDER_PAIR.test(block.prompt);
+        const promptVariants = [block.prompt]
+            .flatMap(sentenceSegments)
+            .map(normalizeSentence)
+            .filter(sentence => sentence.endsWith("?") && (
+                isSpeakableSentence(sentence)
+                || (promptHasGenderChoice && sentence.replace(/[A-Za-z0-9\s.,!?'’"()\-–—:;/]/g, "") === "")
+            ));
+        const questions = promptVariants.slice(0, 1);
+        if (!questions.length) return [];
+
+        const answers = Array.from(new Set(block.answers.flatMap(answerLine => {
+            const genderVariants = expandControlledGenderChoices(answerLine);
+            return genderVariants.flatMap(variant => {
+                const alternatives = HAS_CONTROLLED_GENDER_PAIR.test(answerLine) ? [variant] : variant.split(/\s*\/\s*/);
+                return alternatives.flatMap(alternative => {
+                    if (alternative.includes("_")) return [];
+                    return sentenceSegments(alternative)
+                        .map(normalizeSentence)
+                        .filter(sentence => !sentence.endsWith("?") && isSpeakableSentence(sentence));
+                });
+            });
+        })));
+        if (!answers.length) return [];
+
+        return questions.flatMap(question => {
+            const questionGender = textQaGenderSignal(question);
+            const compatibleAnswers = answers.filter(answer => {
+                const answerGender = textQaGenderSignal(answer);
+                if (questionGender === "male" || questionGender === "female") {
+                    return answerGender === questionGender && textQaGenderIsConsistent(question, answer);
+                }
+                return textQaGenderIsConsistent(question, answer);
+            });
+            if (!compatibleAnswers.length) return [];
+            const modelAnswer = compatibleAnswers[0];
+            const acceptedAnswers = compatibleAnswers.slice(1);
+            return textQaQuestionContentValid({
+                question_text: question,
+                model_answer: modelAnswer,
+                accepted_intents: acceptedAnswers
+            }) ? [{ question_text: question, model_answer: modelAnswer, accepted_answers: acceptedAnswers }] : [];
+        });
+    });
 };

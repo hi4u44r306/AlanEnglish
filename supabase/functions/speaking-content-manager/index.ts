@@ -26,7 +26,10 @@ import {
     alphabetCandidateSequenceAllowed
 } from "../_shared/alphabet-master-voice.ts";
 import { workbookOnePictureReviewCandidates } from "../_shared/workbook-one-picture-review-candidates.ts";
-import { filterOcrPageSpeakingCandidates } from "../_shared/speaking-ocr-candidate-filter.ts";
+import {
+    extractNumberedTextQaPairs,
+    filterOcrPageSpeakingCandidates
+} from "../_shared/speaking-ocr-candidate-filter.ts";
 import {
     textQaGenderSignal,
     textQaGenderSkeleton,
@@ -521,11 +524,13 @@ const normalizePageCandidateGeneration = (
     generated: any,
     sourceSentences: string[],
     maximumQuestions: number,
-    minimumQuestions: number
+    minimumQuestions: number,
+    additionalAllowedSentences: string[] = []
 ) => {
     const pageType = cleanText(generated?.interaction_type, 40);
     const rows = Array.isArray(generated?.questions) ? generated.questions : [];
-    const allowed = new Set(sourceSentences.map(sentence => cleanText(sentence, 800)));
+    const allowed = new Set([...sourceSentences, ...additionalAllowedSentences]
+        .map(sentence => cleanText(sentence, 800)));
     const sourceHasQuestion = sourceSentences.some(sentence => sentence.endsWith("?"));
     const sourceHasAnswer = sourceSentences.some(sentence => !sentence.endsWith("?"));
     const interactionType = sourceHasQuestion && sourceHasAnswer
@@ -563,7 +568,7 @@ const normalizePageCandidateGeneration = (
                 && textQaGenderSkeleton(source) === textQaGenderSkeleton(normalized.model_answer))
             : [];
         const alternatives = [...new Set([...acceptedAnswers, ...requiredNeutralAlternatives])];
-        const candidate = { ...normalized, accepted_intents: alternatives, visual_aid: null };
+        const candidate = { ...normalized, accepted_intents: alternatives, visual_aid: {} };
         return textQaQuestionContentValid(candidate) ? candidate : null;
     }).filter(Boolean);
     if (questions.length < minimumQuestions || questions.length > maximumQuestions) return null;
@@ -1517,6 +1522,8 @@ Deno.serve(async (req: Request) => {
                 }
             }
             const pageCandidateSource = pageCandidate ? filterOcrPageSpeakingCandidates(sourceText) : null;
+            const deterministicTextQaPairs = pageCandidate ? extractNumberedTextQaPairs(sourceText) : [];
+            const useDeterministicTextQa = pageCandidate && autoQuestionCount && deterministicTextQaPairs.length > 0;
             if (pageCandidateSource?.redAnswerHints.length) {
                 pageCandidateSource.sourceText += `\n\n教材紅字答案提示（只用來辨認問答方向，不是可直接輸出的完整答案）：\n${JSON.stringify(pageCandidateSource.redAnswerHints)}`;
             }
@@ -1549,11 +1556,13 @@ Deno.serve(async (req: Request) => {
                 }
                 return json(409, { error: `${requestedPageLabel} 沒有可直接朗讀的完整英文句；已略過格線、頁碼、填空、標題與作業指令。請改用逐頁手動建立。` });
             }
-            if (pageCandidate && autoQuestionCount) questionCount = Math.min(30, pageCandidateSource!.sentences.length);
+            if (pageCandidate && autoQuestionCount) questionCount = useDeterministicTextQa
+                ? deterministicTextQaPairs.length : Math.min(30, pageCandidateSource!.sentences.length);
             const now = new Date().toISOString();
+            const generationModel = useDeterministicTextQa ? "reviewed_numbered_text_qa_v1" : AI_MODEL;
             const { data: job, error: jobError } = await admin.from("speaking_generation_jobs").insert({
                 source_section_id: sourceSectionId, requested_by: user.id, request_key: requestKey,
-                requested_count: questionCount, status: "processing", model: AI_MODEL, created_at: now
+                requested_count: questionCount, status: "processing", model: generationModel, created_at: now
             }).select("id").single();
             if (jobError?.code === "23514") {
                 return json(500, {
@@ -1562,43 +1571,70 @@ Deno.serve(async (req: Request) => {
                 });
             }
             if (jobError) throw jobError;
-            const openaiKey = Deno.env.get("OPENAI_API_KEY");
-            if (!openaiKey) {
-                await admin.from("speaking_generation_jobs").update({ status: "failed", error_code: "service_not_configured", completed_at: now }).eq("id", job.id);
-                return json(503, { error: "AI 題庫服務尚未設定", code: "service_not_configured" });
-            }
             const prompt = pageCandidate
-                ? `你是 Alan English 的兒童英語口說教材編輯。只能使用下方「核准的完整英文句」，為沒有圖片的教材頁建立逐頁候選草稿；不得依姓名、聲音或想像猜性別。\n\n教材主題：${section.topic}\n程度：${section.language_level}\n頁碼：${requestedPageLabel}\n\n核准的完整英文句：\n${pageCandidateSource!.sourceText}\n\n先選整頁題型：\n- standard_sentence：頁面是單句朗讀練習。question_text、simple_answer、model_answer 必須是同一句。\n- text_qa：頁面有純文字問句與設計師提供的回答句。question_text 顯示問句；simple_answer、model_answer 是學生要說的完整回答；accepted_answers 是其他同樣正確的完整回答。學生只要說其中一個，不必把兩種都說出來。\n\n性別與所有格規則：\n1. 問句明確出現 he、his、him、boy、man 時，只能接受相符的男性回答；明確出現 she、her、hers、girl、woman 時，只能接受相符的女性回答。\n2. 問句沒有性別線索，而來源同時提供 he/she、his/her 等兩種設計答案時，model_answer 放其中一個，accepted_answers 必須列出另一個完整句。\n3. 同一回答內的主詞與所有格必須一致，例如 He ... his ... 或 She ... her ...；禁止 He ... her ...、She ... his ...。\n4. he/she 是主詞，his/her 是所有格，不可交換文法位置。不得由名字推測男生或女生。\n\n共同規則：\n1. question_text、simple_answer、model_answer、accepted_answers 的每個英文句都必須逐字等於上方其中一行；不得改寫、合併、補字、補標點、猜圖片或加入教材外內容。\n2. 一個明確問答組只建立一題；朗讀型每個句子各一題。最多 ${questionCount} 題，不可湊題或重複。\n3. text_qa 的 hint_zh 要說明「請用完整句回答」；若兩種性別皆可，再加上「男生或女生皆可，請選一種完整回答」。\n4. 內容適合台灣國小學生。keywords 為 1 至 5 個句中英文關鍵字；pronunciation_notes_zh 使用繁體中文。\n5. 這批是純文字題，image_suggestions 必須是空陣列。\n6. 只輸出 JSON，不要 markdown。\nJSON：{"title":"${requestedPageLabel} 口說練習","interaction_type":"standard_sentence 或 text_qa","image_suggestions":[],"questions":[{"question_text":"","hint_zh":"","keywords":[""],"simple_answer":"","model_answer":"","accepted_answers":["其他可接受的完整回答"],"follow_up_question":"","pronunciation_notes_zh":""}]}`
+                ? `你是 Alan English 的兒童英語口說教材編輯。只能使用下方「核准的完整英文句」，為沒有圖片的教材頁建立逐頁候選草稿；不得依姓名、聲音或想像猜性別。\n\n教材主題：${section.topic}\n程度：${section.language_level}\n頁碼：${requestedPageLabel}\n\n核准的完整英文句：\n${pageCandidateSource!.sourceText}\n\n先選整頁題型：\n- standard_sentence：頁面是單句朗讀練習。question_text、simple_answer、model_answer 必須是同一句。\n- text_qa：頁面有純文字問句與設計師提供的回答句。question_text 顯示問句；simple_answer、model_answer 是學生要說的完整回答；accepted_answers 是其他同樣正確的完整回答。學生只要說其中一個，不必把兩種都說出來。\n\n性別與所有格規則：\n1. 問句明確出現 he、his、him、boy、man、father、dad、grandfather、brother 時，只能接受相符的男性回答；明確出現 she、her、hers、girl、woman、mother、mom、grandmother、sister 時，只能接受相符的女性回答。\n2. 問句沒有性別線索，而來源同時提供 he/she、his/her 等兩種設計答案時，model_answer 放其中一個，accepted_answers 必須列出另一個完整句。\n3. 同一回答內的主詞與所有格必須一致，例如 He ... his ... 或 She ... her ...；禁止 He ... her ...、She ... his ...。同時提到 brother and sister 是正確內容，不算性別混用。\n4. he/she 是主詞，his/her 是所有格，不可交換文法位置。不得由名字推測男生或女生。\n\n共同規則：\n1. question_text、simple_answer、model_answer、accepted_answers 的每個英文句都必須逐字等於上方其中一行；不得改寫、合併、補字、補標點、猜圖片或加入教材外內容。\n2. 一個明確問答組只建立一題；朗讀型每個句子各一題。最多 ${questionCount} 題，不可湊題或重複。\n3. text_qa 的 hint_zh 要說明「請用完整句回答」；若兩種性別皆可，再加上「男生或女生皆可，請選一種完整回答」。\n4. 內容適合台灣國小學生。keywords 為 1 至 5 個句中英文關鍵字；pronunciation_notes_zh 使用繁體中文。\n5. 這批是純文字題，image_suggestions 必須是空陣列。\n6. 只輸出 JSON，不要 markdown。\nJSON：{"title":"${requestedPageLabel} 口說練習","interaction_type":"standard_sentence 或 text_qa","image_suggestions":[],"questions":[{"question_text":"","hint_zh":"","keywords":[""],"simple_answer":"","model_answer":"","accepted_answers":["其他可接受的完整回答"],"follow_up_question":"","pronunciation_notes_zh":""}]}`
                 : `你是 Alan English 的兒童英語口說教材編輯。只能根據下方老師已核准的單頁教材文字，${autoQuestionCount ? "先判斷該頁實際包含幾個獨立可練習題目，再將所有明確題目建立成草稿（最多 30 題）" : `產生 ${questionCount} 題口說練習草稿`}。\n\n教材主題：${section.topic}\n程度：${section.language_level}\n單元：${section.unit_label || "未標示"}\n頁碼：${section.page_from_label || "未標示"}\n\n核准教材文字：\n${sourceText}\n\n規則：\n1. ${autoQuestionCount ? "過濾頁碼、標題、格線、作業指令與重複文字；一個編號、一個完整句型或一個明確問答組只建立一題。不得為了湊題數拆題、重複或自行新增教材外內容" : "問題必須能從教材主題、句型或情境合理延伸，不得補充教材沒有根據的專有知識"}。\n2. 內容適合台灣國小學生，不包含個資、成人、危險或不適齡主題。\n3. 每題提供繁體中文提示、1 個簡易回答、1 個完整自然回答、1 個延伸問題。\n4. keywords 為 1 至 5 個英文關鍵字；accepted_intents 為可接受的回答意思摘要，不是逐字答案。\n5. pronunciation_notes_zh 用繁體中文標示重要重音、尾音或連音，無特別需要可為空字串。\n6. ${autoQuestionCount ? "questions 可包含 1 至 30 題，題數必須反映這一頁的實際內容" : `questions 必須剛好包含 ${questionCount} 題`}。\n7. 只輸出 JSON，不要 markdown。\nJSON：{"title":"題庫名稱","questions":[{"question_text":"","hint_zh":"","keywords":[""],"simple_answer":"","model_answer":"","follow_up_question":"","pronunciation_notes_zh":"","accepted_intents":[""]}]}`;
-            let aiResponse: Response;
-            try {
-                aiResponse = await fetch("https://api.openai.com/v1/responses", {
-                    method: "POST",
-                    headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: AI_MODEL, input: prompt, max_output_tokens: autoQuestionCount ? 10000 : 5000 })
-                });
-            } catch {
-                await admin.from("speaking_generation_jobs").update({ status: "failed", error_code: "network_error", completed_at: new Date().toISOString() }).eq("id", job.id);
-                return json(502, { error: "AI 連線暫時失敗，請稍後再試" });
-            }
-            const aiData = await aiResponse.json().catch(() => ({}));
-            const usage = aiData?.usage || {};
-            if (!aiResponse.ok) {
-                await admin.from("speaking_generation_jobs").update({ status: "failed", error_code: cleanText(aiData?.error?.code, 120) || `http_${aiResponse.status}`, input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0), total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString() }).eq("id", job.id);
-                return json(502, { error: "AI 目前無法產生題庫，請稍後再試" });
-            }
+            let aiData: any = {};
+            let usage: any = {};
             let generated: any = null;
-            try {
-                generated = JSON.parse(extractOutputText(aiData).replace(/^```json\s*|\s*```$/g, ""));
-            } catch {
-                generated = null;
+            if (useDeterministicTextQa) {
+                generated = {
+                    title: `${requestedPageLabel} 口說練習`, interaction_type: TEXT_QA_INTERACTION_TYPE,
+                    image_suggestions: [], questions: deterministicTextQaPairs.map(pair => {
+                        const acceptedAnswers = pair.accepted_answers || [];
+                        const genderChoices = new Set([pair.model_answer, ...acceptedAnswers]
+                            .map(textQaGenderSignal).filter(gender => gender === "male" || gender === "female"));
+                        const keywords = Array.from(new Set(pair.model_answer.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g) || []))
+                            .filter(word => !["i", "am", "a", "an", "the", "is", "are"].includes(word)).slice(0, 5);
+                        return {
+                            question_text: pair.question_text,
+                            hint_zh: genderChoices.size > 1
+                                ? "請選擇男生或女生其中一種，用完整句回答。" : "請用完整句回答。",
+                            keywords: keywords.length ? keywords : ["answer"],
+                            simple_answer: pair.model_answer, model_answer: pair.model_answer,
+                            accepted_answers: acceptedAnswers, follow_up_question: "",
+                            pronunciation_notes_zh: "完整說出回答句，不必同時說出其他版本。"
+                        };
+                    })
+                };
+            } else {
+                const openaiKey = Deno.env.get("OPENAI_API_KEY");
+                if (!openaiKey) {
+                    await admin.from("speaking_generation_jobs").update({ status: "failed", error_code: "service_not_configured", completed_at: now }).eq("id", job.id);
+                    return json(503, { error: "AI 題庫服務尚未設定", code: "service_not_configured" });
+                }
+                let aiResponse: Response;
+                try {
+                    aiResponse = await fetch("https://api.openai.com/v1/responses", {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ model: AI_MODEL, input: prompt, max_output_tokens: autoQuestionCount ? 10000 : 5000 })
+                    });
+                } catch {
+                    await admin.from("speaking_generation_jobs").update({ status: "failed", error_code: "network_error", completed_at: new Date().toISOString() }).eq("id", job.id);
+                    return json(502, { error: "AI 連線暫時失敗，請稍後再試" });
+                }
+                aiData = await aiResponse.json().catch(() => ({}));
+                usage = aiData?.usage || {};
+                if (!aiResponse.ok) {
+                    await admin.from("speaking_generation_jobs").update({ status: "failed", error_code: cleanText(aiData?.error?.code, 120) || `http_${aiResponse.status}`, input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0), total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString() }).eq("id", job.id);
+                    return json(502, { error: "AI 目前無法產生題庫，請稍後再試" });
+                }
+                try {
+                    generated = JSON.parse(extractOutputText(aiData).replace(/^```json\s*|\s*```$/g, ""));
+                } catch {
+                    generated = null;
+                }
             }
             const pageCandidateGeneration = pageCandidate
                 ? normalizePageCandidateGeneration(
                     generated,
                     pageCandidateSource!.sentences,
                     Math.min(questionCount, pageCandidateSource!.sentences.length),
-                    autoQuestionCount ? 1 : 3
+                    autoQuestionCount ? 1 : 3,
+                    useDeterministicTextQa ? deterministicTextQaPairs.flatMap(pair => [
+                        pair.question_text, pair.model_answer, ...(pair.accepted_answers || [])
+                    ]) : []
                 )
                 : null;
             const generatedQuestions = pageCandidate
@@ -1642,12 +1678,12 @@ Deno.serve(async (req: Request) => {
                 topic: section.topic, difficulty: section.language_level, status: "draft",
                 version: versionContext.version, previous_set_id: versionContext.previousSetId,
                 generation_metadata: {
-                    model: String(aiData?.model || AI_MODEL), source_characters: pageCandidate ? pageCandidateSource!.sourceText.length : sourceText.length, request_key: requestKey,
+                    model: String(aiData?.model || generationModel), source_characters: pageCandidate ? pageCandidateSource!.sourceText.length : sourceText.length, request_key: requestKey,
                     ...(pageCandidate ? {
                         source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
                         source_page_label: requestedPageLabel, interaction_type: generatedInteractionType,
                         auto_question_count: autoQuestionCount,
-                        candidate_filter: { version: "v4", eligible_sentence_count: pageCandidateSource!.sentences.length, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType },
+                        candidate_filter: { version: "v5", eligible_sentence_count: pageCandidateSource!.sentences.length, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType, generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source" },
                         answer_policy: generatedInteractionType === TEXT_QA_INTERACTION_TYPE ? "exact_full_response_with_reviewed_alternatives" : "read_aloud",
                         image_suggestions: generatedInteractionType === TEXT_QA_INTERACTION_TYPE
                             ? [] : normalizeImageSuggestions(generated?.image_suggestions),
@@ -1693,6 +1729,7 @@ Deno.serve(async (req: Request) => {
             return json(201, {
                 success: true, question_set_id: questionSet.id, question_count: questions.length,
                 rejected_ai_question_count: pageCandidate ? pageCandidateGeneration!.rejectedQuestionCount : 0,
+                generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source",
                 excluded_duplicate_count: duplicateMatches.length, source_page_label: requestedPageLabel || null,
                 requires_manual_authoring: Boolean(manualAuthoringReason), manual_authoring_reason: manualAuthoringReason
             });
