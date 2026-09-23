@@ -1,7 +1,7 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import StudentNotifications from "./StudentNotifications";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
@@ -66,5 +66,37 @@ describe("StudentNotifications", () => {
         await waitFor(() => expect(markAllStudentNotificationsRead).toHaveBeenCalledWith({ uid: "student-1" }));
         expect(readEvents).toContain("all");
         window.removeEventListener("ae:notifications-read", listener);
+    });
+
+    it("opens the related friends page when a social notification is clicked", async () => {
+        getStudentNotifications.mockReset();
+        getStudentNotifications.mockResolvedValue({
+            notifications: [{
+                id: 12,
+                notification_type: "social",
+                title: "新的好友邀請",
+                body: "Amy 想加你為好友",
+                metadata: { friendship_id: 5 },
+                created_at: "2026-09-23T03:00:00.000Z",
+                read_at: null
+            }],
+            has_more: false,
+            next_before: null
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/student/notifications"]}>
+                <Routes>
+                    <Route path="/student/notifications" element={<StudentNotifications />} />
+                    <Route path="/student/friends" element={<h1>好友與戰績</h1>} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        const notificationLink = await screen.findByRole("link", { name: /新的好友邀請/ });
+        fireEvent.click(notificationLink);
+
+        expect(await screen.findByRole("heading", { name: "好友與戰績" })).toBeInTheDocument();
+        await waitFor(() => expect(markStudentNotificationRead).toHaveBeenCalledWith({ uid: "student-1" }, 12));
     });
 });

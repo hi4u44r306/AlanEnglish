@@ -29,6 +29,9 @@
 .student-notifications-empty { display: flex; align-items: center; gap: 10px; min-height: 108px; margin: 0; padding: 24px; border: 1px solid #e2e8f2; border-radius: 21px; color: #667590; background: #fff; line-height: 1.6; box-shadow: 0 11px 27px rgba(31, 52, 91, .06); }
 .student-notifications-empty svg { flex: 0 0 auto; color: #4266bc; font-size: 22px; }
 .student-notification-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 17px; border: 1px solid #d9e5fe; border-radius: 20px; background: #f8faff; box-shadow: 0 9px 23px rgba(31, 52, 91, .05); }
+.student-notification-card.is-actionable { cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.student-notification-card.is-actionable:hover { border-color: #9bb3e5; box-shadow: 0 13px 29px rgba(31, 52, 91, .1); transform: translateY(-1px); }
+.student-notification-card.is-actionable:focus-visible { outline: 3px solid rgba(65, 103, 196, .32); outline-offset: 3px; }
 .student-notification-card.is-read { border-color: #e8edf3; background: #fff; opacity: .82; }
 .student-notification-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px; color: #fff; background: #4167c4; }
 .student-notification-card.is-read .student-notification-icon { color: #718099; background: #eef2f7; }
@@ -38,6 +41,7 @@
 .student-notification-card header span { padding: 3px 7px; border-radius: 999px; color: #2755aa; background: #e4edff; font-size: 11px; font-weight: 900; }
 .student-notification-card p { margin: 5px 0; overflow-wrap: anywhere; color: #5f6f8b; line-height: 1.55; }
 .student-notification-card time { display: inline-flex; align-items: center; gap: 5px; color: #8490a3; font-size: 12px; }
+.student-notification-destination { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: #3158a7; font-size: 12px; font-weight: 900; }
 .student-notification-card button,
 .student-notifications-more { min-height: 40px; padding: 0 13px; border: 1px solid #c9d7f2; border-radius: 11px; color: #284b8f; background: #fff; font-weight: 850; cursor: pointer; white-space: nowrap; }
 .student-notification-card button:hover,

@@ -36,7 +36,7 @@ async function recordEvent(admin: any, event: DueEvent) {
     }
     const { error: inboxError } = await admin.from("student_notifications").upsert({
         student_id: event.studentId, notification_type: "membership", event_key: event.key,
-        title: event.title, body: event.body, metadata: { event_type: event.type, effective_at: event.effectiveAt }
+        title: event.title, body: event.body, metadata: { event_type: event.type, effective_at: event.effectiveAt, target_path: "/student/membership" }
     }, { onConflict: "student_id,event_key", ignoreDuplicates: true });
     if (inboxError) throw inboxError;
     const guardian = await admin.from("guardian_contacts").select("email,notification_enabled").eq("student_id", event.studentId).maybeSingle();

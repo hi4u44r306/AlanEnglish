@@ -29,15 +29,15 @@
 
 .student-settings-profile-card {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: 20px;
     margin-bottom: 22px;
     padding: 22px;
 }
 
-.student-settings-avatar-wrap { position: relative; width: 94px; height: 94px; }
-.student-settings-avatar { width: 94px; height: 94px; display: grid; place-items: center; border: 4px solid #fff; border-radius: 28px; object-fit: cover; box-shadow: 0 10px 25px rgba(31, 50, 94, .18); }
+.student-settings-avatar-wrap { position: relative; width: 200px; height: 200px; }
+.student-settings-avatar { width: 200px; height: 200px; display: grid; place-items: center; border: 4px solid #fff; border-radius: 38px; object-fit: cover; box-shadow: 0 10px 25px rgba(31, 50, 94, .18); }
 .student-settings-avatar.fallback { background: linear-gradient(145deg, #ffdb76, #ffaf4f); color: #503303; font-size: 31px; font-weight: 950; }
 .student-settings-avatar-button { position: absolute; right: -7px; bottom: -7px; width: 36px; height: 36px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; color: #fff; background: #1d3771; box-shadow: 0 5px 13px rgba(16, 30, 64, .23); cursor: pointer; }
 .student-settings-avatar-button:disabled { cursor: wait; opacity: .65; }
@@ -89,14 +89,14 @@
 .student-settings-profile-copy { min-width: 0; }
 .student-settings-profile-copy > span,
 .student-settings-panel header span { color: #72809a; font-size: 11px; font-weight: 900; letter-spacing: .1em; }
+.student-settings-profile-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; min-width: 0; }
 .student-settings-profile-copy h2 { margin: 5px 0; font-size: clamp(23px, 3vw, 30px); font-weight: 950; }
 .student-settings-profile-copy p { margin: 0 0 7px; color: #52627d; font-weight: 750; }
 .student-settings-profile-copy small { display: flex; align-items: flex-start; gap: 6px; color: #7b879a; font-size: 12px; line-height: 1.5; }
 
-.student-settings-premium { display: grid; min-width: 180px; gap: 4px; padding: 15px 17px; border: 1px solid #e5e8ef; border-radius: 17px; color: #5f6e83; background: #fafbfc; }
-.student-settings-premium > svg { color: #a3adbd; }
-.student-settings-premium strong { font-size: 14px; }
-.student-settings-premium span { font-size: 12px; }
+.student-settings-premium { display: inline-flex; align-items: center; width: fit-content; max-width: 100%; gap: 5px; padding: 6px 9px; border: 1px solid #e5e8ef; border-radius: 999px; color: #5f6e83; background: #fafbfc; line-height: 1.2; }
+.student-settings-premium > svg { flex: 0 0 auto; color: #a3adbd; }
+.student-settings-premium strong { overflow-wrap: anywhere; font-size: 11px; }
 .student-settings-premium.active { border-color: rgba(224, 171, 40, .7); color: #443766; background: linear-gradient(135deg, #fff7d8, #f5edff); }
 .student-settings-premium.active > svg { color: #db9d1e; }
 
@@ -160,7 +160,9 @@
 @media (max-width: 720px) {
     .student-settings-page { width: min(100% - 20px, 1080px); padding-top: 22px; }
     .student-settings-profile-card { grid-template-columns: auto minmax(0, 1fr); padding: 19px; }
-    .student-settings-premium { grid-column: 1 / -1; min-width: 0; }
+    .student-settings-avatar-wrap,
+    .student-settings-avatar { width: 150px; height: 150px; }
+    .student-settings-avatar { border-radius: 32px; }
     .student-settings-avatar-preset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .student-settings-grid { grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
     .student-settings-stats strong { font-size: 16px; }
