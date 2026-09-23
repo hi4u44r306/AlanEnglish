@@ -72,6 +72,13 @@ const manualAuthoringReasonLabel = reason => ({
     no_speakable_sentence: "本頁只有填空、中文單字或不完整句，已建立空白單頁草稿，請人工新增題目。",
     all_questions_duplicate: "本頁可辨識句子都已存在其他關卡，已建立空白單頁草稿供人工確認。"
 }[reason] || "本頁需要人工補充題目後才能核准。");
+const pageGenerationStatusLabel = row => ({
+    pending: "等待處理",
+    processing: "AI 分析、重複檢查與儲存中…",
+    created: `AI 草稿 ${row.questionCount} 題`,
+    manual: manualAuthoringReasonLabel(row.reason),
+    failed: `未建立：${row.message}`
+}[row.status] || "等待處理");
 
 const draftReadiness = (questionSet, section) => {
     if (questionSet?.status !== "draft") return { ready: false, issues: [] };
@@ -333,6 +340,7 @@ export default function SpeakingContentAdmin() {
     const [bookFilter, setBookFilter] = useState("all");
     const [selectedPageCandidateIds, setSelectedPageCandidateIds] = useState([]);
     const [pageGenerationReport, setPageGenerationReport] = useState(null);
+    const [pageGenerationProgress, setPageGenerationProgress] = useState(null);
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
@@ -589,10 +597,21 @@ export default function SpeakingContentAdmin() {
         }
         if (!window.confirm(`將從 ${pages.join("、")} 分別分析每頁的已核對文字，由 AI 依該頁實際內容自動判斷題數。\n\n系統會略過格線、頁碼、標題與作業指令，單頁安全上限為 30 題。只會建立未發布草稿；每頁仍須逐題審核，圖片只會列為裁切建議，不會自動上傳或猜圖。`)) return;
         setWorking(`page-candidates-${section.id}`);
+        setPageGenerationReport(null);
+        let progressRows = pages.map(page => ({ page, status: "pending" }));
+        setPageGenerationProgress({
+            sectionId: Number(section.id), total: pages.length, completed: 0,
+            currentPage: pages[0], rows: progressRows
+        });
         const created = [];
         const skipped = [];
         try {
-            for (const page of pages) {
+            for (const [pageIndex, page] of pages.entries()) {
+                progressRows = progressRows.map(row => row.page === page ? { ...row, status: "processing" } : row);
+                setPageGenerationProgress({
+                    sectionId: Number(section.id), total: pages.length, completed: pageIndex,
+                    currentPage: page, rows: progressRows
+                });
                 try {
                     const result = await generateSpeakingQuestionSet(firebaseUser, {
                         source_section_id: section.id,
@@ -601,9 +620,20 @@ export default function SpeakingContentAdmin() {
                         request_key: createRequestKey()
                     });
                     created.push(result);
+                    progressRows = progressRows.map(row => row.page === page ? {
+                        page, status: result.requires_manual_authoring ? "manual" : "created",
+                        questionCount: Number(result.question_count || 0), reason: result.manual_authoring_reason || null
+                    } : row);
                 } catch (error) {
                     skipped.push(`${page}：${error.message || "建立失敗"}`);
+                    progressRows = progressRows.map(row => row.page === page ? {
+                        page, status: "failed", message: error.message || "建立失敗"
+                    } : row);
                 }
+                setPageGenerationProgress({
+                    sectionId: Number(section.id), total: pages.length, completed: pageIndex + 1,
+                    currentPage: pages[pageIndex + 1] || null, rows: progressRows
+                });
             }
             if (created.length) {
                 setQuestionSetFilter("draft");
@@ -615,16 +645,13 @@ export default function SpeakingContentAdmin() {
             if (skipped.length) toast.warning(`未建立 ${skipped.length} 頁：${skipped.join("；")}`);
             setPageGenerationReport({
                 sectionId: Number(section.id),
-                rows: pages.map(page => {
-                    const result = created.find(item => item.source_page_label === page);
-                    const error = skipped.find(item => item.startsWith(`${page}：`));
-                    return result
-                        ? { page, status: result.requires_manual_authoring ? "manual" : "created", questionCount: Number(result.question_count || 0), reason: result.manual_authoring_reason || null }
-                        : { page, status: "failed", message: error?.slice(page.length + 1) || "建立失敗" };
-                })
+                rows: progressRows
             });
             await load();
-        } finally { setWorking(""); }
+        } finally {
+            setPageGenerationProgress(null);
+            setWorking("");
+        }
     };
     const confirmPageCandidate = async questionSet => {
         const pageLabel = questionSet.generation_metadata?.source_page_label || "這一頁";
@@ -962,9 +989,17 @@ export default function SpeakingContentAdmin() {
                 const canGenerateByPage = pageLabels.length > 1 && pageLabels.length <= 10
                     && pageLabels.every(pageLabel => hasMarkedPageSource(section, pageLabel));
                 const generationReport = Number(pageGenerationReport?.sectionId) === Number(section.id) ? pageGenerationReport : null;
+                const generationProgress = Number(pageGenerationProgress?.sectionId) === Number(section.id) ? pageGenerationProgress : null;
+                const progressPercent = generationProgress ? Math.round((generationProgress.completed / generationProgress.total) * 100) : 0;
                 return <article className="speaking-source-card" key={`source-${section.id}`}>
-                    <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{canGenerateByPage && <button type="button" className="platform-primary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{working === `page-candidates-${section.id}` ? "逐頁建立中…" : "依每頁建立候選草稿"}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">跨頁來源必須先保留每頁的 <code>[[PAGE P頁碼]]</code> 標記，才能逐頁建立關卡。</span>}</div></header>
-                    {generationReport && <div className="speaking-page-generation-report" role="status"><strong>本次逐頁建立結果</strong><ul>{generationReport.rows.map(row => <li className={`is-${row.status}`} key={row.page}><span>{row.page}</span><small>{row.status === "created" ? `AI 草稿 ${row.questionCount} 題` : row.status === "manual" ? manualAuthoringReasonLabel(row.reason) : `未建立：${row.message}`}</small></li>)}</ul></div>}
+                    <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{canGenerateByPage && <button type="button" className="platform-primary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{generationProgress ? `逐頁建立 ${generationProgress.completed}/${generationProgress.total}` : "依每頁建立候選草稿"}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">跨頁來源必須先保留每頁的 <code>[[PAGE P頁碼]]</code> 標記，才能逐頁建立關卡。</span>}</div></header>
+                    {generationProgress && <div className="speaking-page-generation-progress" role="status" aria-live="polite">
+                        <header><strong>正在逐頁建立草稿</strong><span>{generationProgress.completed}/{generationProgress.total} · {progressPercent}%</span></header>
+                        <p>{generationProgress.currentPage ? `正在處理 ${generationProgress.currentPage}：AI 分析、重複檢查與草稿儲存。` : "所有頁面已處理，正在重新整理草稿清單。"}</p>
+                        <div className="speaking-page-generation-progress__track" role="progressbar" aria-label="逐頁草稿建立進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercent}><span style={{ width: `${progressPercent}%` }} /></div>
+                        <ul>{generationProgress.rows.map(row => <li className={`is-${row.status}`} key={row.page}><span>{row.page}</span><small>{pageGenerationStatusLabel(row)}</small></li>)}</ul>
+                    </div>}
+                    {generationReport && <div className="speaking-page-generation-report" role="status"><strong>本次逐頁建立結果</strong><ul>{generationReport.rows.map(row => <li className={`is-${row.status}`} key={row.page}><span>{row.page}</span><small>{pageGenerationStatusLabel(row)}</small></li>)}</ul></div>}
                 </article>;
             })}</div>
         </section>

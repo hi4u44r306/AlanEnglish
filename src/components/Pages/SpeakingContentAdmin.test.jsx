@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
 import {
     activatePictureGapTheAudioCandidate,
@@ -152,13 +152,15 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
     it("creates page-specific candidate drafts only from OCR text that is marked by page", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
-        generateSpeakingQuestionSet.mockImplementation((firebaseUser, payload) => Promise.resolve({
+        let resolveSecondPage;
+        const secondPageResult = new Promise(resolve => { resolveSecondPage = resolve; });
+        generateSpeakingQuestionSet.mockImplementation((firebaseUser, payload) => payload.source_page_label === "P5" ? secondPageResult : Promise.resolve({
             success: true,
-            question_set_id: payload.source_page_label === "P4" ? 88 : 89,
+            question_set_id: 88,
             source_page_label: payload.source_page_label,
-            question_count: payload.source_page_label === "P4" ? 3 : 0,
-            requires_manual_authoring: payload.source_page_label === "P5",
-            manual_authoring_reason: payload.source_page_label === "P5" ? "no_speakable_sentence" : null
+            question_count: 3,
+            requires_manual_authoring: false,
+            manual_authoring_reason: null
         }));
         getSpeakingContentBootstrap.mockResolvedValue({
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }], documents: [{ id: 31, title: "Workbook 1", book_id: 1 }], chunks: [],
@@ -172,8 +174,15 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(candidateButton);
 
         await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
+        expect(screen.getByRole("progressbar", { name: "逐頁草稿建立進度" })).toHaveAttribute("aria-valuenow", "50");
+        expect(screen.getByText("正在處理 P5：AI 分析、重複檢查與草稿儲存。")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "逐頁建立 1/2" })).toBeDisabled();
         expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(1, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P4" }));
         expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(2, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P5" }));
+        await act(async () => resolveSecondPage({
+            success: true, question_set_id: 89, source_page_label: "P5", question_count: 0,
+            requires_manual_authoring: true, manual_authoring_reason: "no_speakable_sentence"
+        }));
         expect(await screen.findByText("本次逐頁建立結果")).toBeInTheDocument();
         expect(screen.getByText("AI 草稿 3 題")).toBeInTheDocument();
         expect(screen.getByText(/本頁只有填空、中文單字或不完整句/)).toBeInTheDocument();
