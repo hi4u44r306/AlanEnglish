@@ -225,7 +225,8 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(await screen.findByText("1 題文字問答（無圖片）候選")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: /P5 文字問答/ }));
         expect(screen.getByText(/男女兩種完整答案都要保留/)).toBeInTheDocument();
-        expect(screen.getByText(/編號式文字問答直接依同一題號內的核准問句與完整回答配對/)).toBeInTheDocument();
+        expect(screen.getByText(/已維持一個編號一題/)).toBeInTheDocument();
+        expect(screen.getByText(/底線改為姓名、年齡或拼字等可變口說欄位/)).toBeInTheDocument();
         expect(screen.getByText("其他可接受的完整答案（每行一項）")).toBeInTheDocument();
     });
 

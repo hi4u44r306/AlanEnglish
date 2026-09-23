@@ -117,7 +117,7 @@ test("requires opposite consistent alternatives only when a text question does n
     }), true);
 });
 
-test("pairs reviewed Workbook 3 numbered text questions without guessing blank answers", () => {
+test("keeps every reviewed Workbook 3 numbered question and turns blanks into speaking slots", () => {
     const page5 = extractNumberedTextQaPairs(`Personal questions
 1. Who are you?
 I am ________, your _________.
@@ -125,14 +125,22 @@ I am ________, your _________.
 My name is _________.
 3. Are you happy with your name? You like it or hate it?
 Yes, I like it. Why do you ask?
+4. How many letters are in your name? How do you spell your name?
+_____ letters. _ - _ - _ - _ - _
+5. What's your last name? Your family name?
+My surname is _________.
 6. Do you have a nickname?
 ________ / Sweet potato / No, I don't have a nickname.
 7. Do you want to change your name? What would it be?
 No, I like my name. / Yes, I like the name "_________."`);
     assert.deepEqual(page5, [
-        { question_text: "Are you happy with your name?", model_answer: "Yes, I like it.", accepted_answers: [] },
-        { question_text: "Do you have a nickname?", model_answer: "No, I don't have a nickname.", accepted_answers: [] },
-        { question_text: "Do you want to change your name?", model_answer: "No, I like my name.", accepted_answers: [] }
+        { question_text: "Who are you?", model_answer: "I am [你的名字], your [你的身分].", accepted_answers: [] },
+        { question_text: "What is your name?", model_answer: "My name is [你的名字].", accepted_answers: [] },
+        { question_text: "Are you happy with your name? You like it or hate it?", model_answer: "Yes, I like it. Why do you ask?", accepted_answers: [] },
+        { question_text: "How many letters are in your name? How do you spell your name?", model_answer: "[字母數] letters. [名字拼字]", accepted_answers: [] },
+        { question_text: "What's your last name? Your family name?", model_answer: "My surname is [你的姓氏].", accepted_answers: [] },
+        { question_text: "Do you have a nickname?", model_answer: "[你的暱稱]", accepted_answers: ["Sweet potato", "No, I don't have a nickname."] },
+        { question_text: "Do you want to change your name? What would it be?", model_answer: "No, I like my name.", accepted_answers: ["Yes, I like the name \"[你想換的新名字].\""] }
     ]);
 
     const page7 = extractNumberedTextQaPairs(`Personal questions
@@ -151,10 +159,13 @@ Yes, I do. For sure.
 14. How old are you? What age are you?
 I am _____ years old. How about you?`);
     assert.deepEqual(page7, [
-        { question_text: "Are you a boy/girl?", model_answer: "Of course, I am a boy.", accepted_answers: ["Of course, I am a girl."] },
+        { question_text: "Are you a boy/girl?", model_answer: "Can't you tell? Of course, I am a boy.", accepted_answers: ["Can't you tell? Of course, I am a girl."] },
         { question_text: "Are you a fool?", model_answer: "No, I am a genius.", accepted_answers: [] },
         { question_text: "Hey, are you with me?", model_answer: "Yes, I am listening.", accepted_answers: [] },
-        { question_text: "Do you love them?", model_answer: "Yes, I do.", accepted_answers: ["For sure."] }
+        { question_text: "What's your father's name?", model_answer: "He is [爸爸的名字]", accepted_answers: ["His name is [爸爸的名字]."] },
+        { question_text: "What's your mother's name?", model_answer: "She is [媽媽的名字]", accepted_answers: ["Her name is [媽媽的名字]."] },
+        { question_text: "Do you love them?", model_answer: "Yes, I do. For sure.", accepted_answers: [] },
+        { question_text: "How old are you? What age are you?", model_answer: "I am [你的年齡] years old. How about you?", accepted_answers: [] }
     ]);
 
     const page9 = extractNumberedTextQaPairs(`Personal questions
@@ -172,9 +183,13 @@ No, I'm the only child. / Yes, I have a brother and a sister.
 His name is _____. I don't love him, sometimes.
 21. What's your sister's name? Do you love her?
 Her name is _____. I love her, sometimes.`);
-    assert.deepEqual(page9, [{
-        question_text: "Do you have brothers or sisters?",
-        model_answer: "No, I'm the only child.",
-        accepted_answers: ["Yes, I have a brother and a sister."]
-    }]);
+    assert.deepEqual(page9, [
+        { question_text: "How old is your dad?", model_answer: "He is [爸爸的年齡] years old. How about yours?", accepted_answers: [] },
+        { question_text: "How old is your mom?", model_answer: "She is [媽媽的年齡] years old. How about yours?", accepted_answers: [] },
+        { question_text: "What's your grandfather's name? And what age? Do you like him?", model_answer: "He's [爺爺的名字]. [爺爺的年齡] years old. I always love him.", accepted_answers: [] },
+        { question_text: "What's your grandmother's name? And what age? Do you like her?", model_answer: "She's [奶奶的名字]. [奶奶的年齡] years old. I always love her.", accepted_answers: [] },
+        { question_text: "Do you have brothers or sisters?", model_answer: "No, I'm the only child.", accepted_answers: ["Yes, I have a brother and a sister."] },
+        { question_text: "What's your brother's name? Do you love him?", model_answer: "His name is [兄弟的名字]. I don't love him, sometimes.", accepted_answers: [] },
+        { question_text: "What's your sister's name? Do you love her?", model_answer: "Her name is [姊妹的名字]. I love her, sometimes.", accepted_answers: [] }
+    ]);
 });

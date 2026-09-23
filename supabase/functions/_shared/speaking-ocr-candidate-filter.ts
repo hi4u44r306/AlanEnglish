@@ -90,9 +90,39 @@ export const filterOcrPageSpeakingCandidates = (sourceText: unknown) => {
 
 const sentenceSegments = (value: string) => value.match(/[^.!?]+[.!?]+(?:[”"')\]]+)?/g) || [];
 
+const answerSlotLabels = (question: string) => {
+    const normalized = question.toLowerCase();
+    if (/who are you/.test(normalized)) return ["你的名字", "你的身分"];
+    if (/how many letters|spell your name/.test(normalized)) return ["字母數", "名字拼字"];
+    if (/last name|family name|surname/.test(normalized)) return ["你的姓氏"];
+    if (/nickname/.test(normalized)) return ["你的暱稱"];
+    if (/change your name/.test(normalized)) return ["你想換的新名字"];
+    if (/grandfather's name/.test(normalized)) return ["爺爺的名字", "爺爺的年齡"];
+    if (/grandmother's name/.test(normalized)) return ["奶奶的名字", "奶奶的年齡"];
+    if (/father's name/.test(normalized)) return ["爸爸的名字"];
+    if (/mother's name/.test(normalized)) return ["媽媽的名字"];
+    if (/brother's name/.test(normalized)) return ["兄弟的名字"];
+    if (/sister's name/.test(normalized)) return ["姊妹的名字"];
+    if (/how old is your dad/.test(normalized)) return ["爸爸的年齡"];
+    if (/how old is your mom/.test(normalized)) return ["媽媽的年齡"];
+    if (/how old are you|what age are you/.test(normalized)) return ["你的年齡"];
+    if (/what is your name|what's your name/.test(normalized)) return ["你的名字"];
+    return ["你的回答"];
+};
+
+const reviewedAnswerTemplate = (value: string, question: string) => {
+    const labels = answerSlotLabels(question);
+    let slotIndex = 0;
+    return normalizeSentence(value).replace(
+        /(?:[_＿]+\s*(?:-\s*[_＿]+\s*)+)|[_＿]{2,}/g,
+        () => `[${labels[Math.min(slotIndex++, labels.length - 1)]}]`
+    );
+};
+
 // Reviewed personal-question pages use one numbered block per prompt and its
-// teacher-designed response. Pair only complete source sentences inside the
-// same block. Blocks whose answer still contains blanks are not guessed.
+// teacher-designed response. Every numbered block remains one question. OCR
+// blanks become named speaking slots so personal names and ages stay variable
+// instead of causing the whole source question to be discarded.
 export const extractNumberedTextQaPairs = (sourceText: unknown) => {
     const blocks: Array<{ prompt: string; answers: string[] }> = [];
     let current: { prompt: string; answers: string[] } | null = null;
@@ -110,26 +140,21 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
 
     return blocks.flatMap(block => {
         const promptHasGenderChoice = HAS_CONTROLLED_GENDER_PAIR.test(block.prompt);
-        const promptVariants = [block.prompt]
-            .flatMap(sentenceSegments)
-            .map(normalizeSentence)
-            .filter(sentence => sentence.endsWith("?") && (
-                isSpeakableSentence(sentence)
-                || (promptHasGenderChoice && sentence.replace(/[A-Za-z0-9\s.,!?'’"()\-–—:;/]/g, "") === "")
-            ));
-        const questions = promptVariants.slice(0, 1);
+        const prompt = normalizeSentence(block.prompt);
+        const questions = prompt.endsWith("?") && (
+            englishWords(prompt).length >= 2
+            && (promptHasGenderChoice || prompt.replace(/[A-Za-z0-9\s.,!?'’"()\-–—:;/]/g, "") === "")
+        ) ? [prompt] : [];
         if (!questions.length) return [];
 
         const answers = Array.from(new Set(block.answers.flatMap(answerLine => {
             const genderVariants = expandControlledGenderChoices(answerLine);
             return genderVariants.flatMap(variant => {
                 const alternatives = HAS_CONTROLLED_GENDER_PAIR.test(answerLine) ? [variant] : variant.split(/\s*\/\s*/);
-                return alternatives.flatMap(alternative => {
-                    if (alternative.includes("_")) return [];
-                    return sentenceSegments(alternative)
-                        .map(normalizeSentence)
-                        .filter(sentence => !sentence.endsWith("?") && isSpeakableSentence(sentence));
-                });
+                return alternatives
+                    .map(alternative => reviewedAnswerTemplate(alternative, prompt))
+                    .filter(answer => (englishWords(answer).length >= 1 || /\[[^\]]+\]/.test(answer))
+                        && !answer.includes("_"));
             });
         })));
         if (!answers.length) return [];

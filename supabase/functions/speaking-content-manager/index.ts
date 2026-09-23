@@ -553,10 +553,10 @@ const normalizePageCandidateGeneration = (
             return allowed.has(normalized.question_text) ? normalized : null;
         }
         if (!allowed.has(normalized.question_text) || !normalized.question_text.endsWith("?")
-            || !allowed.has(normalized.model_answer) || normalized.model_answer.endsWith("?")
+            || !allowed.has(normalized.model_answer)
             || !textQaGenderIsConsistent(normalized.question_text, normalized.model_answer)) return null;
         const acceptedAnswers = cleanArray(row?.accepted_answers, 12, 500)
-            .filter(answer => answer !== normalized.model_answer && allowed.has(answer) && !answer.endsWith("?")
+            .filter(answer => answer !== normalized.model_answer && allowed.has(answer)
                 && textQaGenderIsConsistent(normalized.question_text, answer));
         const modelGender = textQaGenderSignal(normalized.model_answer);
         const requiredNeutralAlternatives = textQaGenderSignal(normalized.question_text) === "neutral"
@@ -590,9 +590,11 @@ const questionSetSourcePageLabel = (metadata: any) => {
     return Number.isInteger(page) && page > 0 ? `P${page}` : null;
 };
 
-const findExistingSentenceMatches = (questionSets: any[], questions: any[]) => {
+const findExistingSentenceMatches = (questionSets: any[], questions: any[], ignoredSourcePageLabel: string | null = null) => {
     const existingByFingerprint = new Map<string, any>();
     for (const questionSet of questionSets || []) {
+        if (ignoredSourcePageLabel
+            && questionSetSourcePageLabel(questionSet.generation_metadata) === ignoredSourcePageLabel) continue;
         const reference = {
             question_set_id: Number(questionSet.id),
             title: cleanText(questionSet.title, 200) || "未命名關卡",
@@ -1654,7 +1656,9 @@ Deno.serve(async (req: Request) => {
                     .select("id,title,status,generation_metadata,speaking_questions(question_text,simple_answer,model_answer)")
                     .eq("book_id", bookId).neq("status", "archived");
                 if (duplicateLookupError) throw duplicateLookupError;
-                const deduplicated = findExistingSentenceMatches(existingQuestionSets || [], generatedQuestions);
+                const deduplicated = findExistingSentenceMatches(
+                    existingQuestionSets || [], generatedQuestions, requestedPageLabel
+                );
                 questions = deduplicated.kept;
                 duplicateMatches = deduplicated.matches;
                 if (questions.length < (autoQuestionCount ? 1 : 3)) {
@@ -1683,8 +1687,13 @@ Deno.serve(async (req: Request) => {
                         source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
                         source_page_label: requestedPageLabel, interaction_type: generatedInteractionType,
                         auto_question_count: autoQuestionCount,
-                        candidate_filter: { version: "v5", eligible_sentence_count: pageCandidateSource!.sentences.length, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType, generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source" },
-                        answer_policy: generatedInteractionType === TEXT_QA_INTERACTION_TYPE ? "exact_full_response_with_reviewed_alternatives" : "read_aloud",
+                        candidate_filter: { version: "v6", eligible_sentence_count: pageCandidateSource!.sentences.length, numbered_question_count: useDeterministicTextQa ? deterministicTextQaPairs.length : null, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType, generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source" },
+                        answer_policy: generatedInteractionType === TEXT_QA_INTERACTION_TYPE
+                            ? questions.some(question => [question.model_answer, ...(question.accepted_intents || [])]
+                                .some(answer => /\[[^\]]+\]/.test(String(answer))))
+                                ? "reviewed_full_response_with_variable_slots"
+                                : "exact_full_response_with_reviewed_alternatives"
+                            : "read_aloud",
                         image_suggestions: generatedInteractionType === TEXT_QA_INTERACTION_TYPE
                             ? [] : normalizeImageSuggestions(generated?.image_suggestions),
                         duplicate_review: duplicateMatches.length ? { excluded_count: duplicateMatches.length, matches: duplicateMatches } : null,
