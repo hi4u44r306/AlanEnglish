@@ -2,12 +2,12 @@
 
 最後更新：2026-09-23
 
-本次 Workbook 3 P5／P7／P9 編號式文字問答深層修正（2026-09-23，本機完成、尚未部署）：
+本次 Workbook 3 P5／P7／P9 編號式文字問答深層修正（2026-09-23，正式部署完成；登入重跑待驗收）：
 
 - 管理員於正式 v43 重新按兩輪後，遠端生成工作 #48～#53 顯示 P5／P9 已不再卡在 AI 格式驗證，卻以 `question_insert_failed` 結束；根因是 `text_qa` 候選寫入 `visual_aid: null`，但資料庫欄位要求非空 JSON 物件。P7 另有一輪仍為 `invalid_output`，因 AI 會改寫或合併同一編號內的問句、追問與回答，無法逐字通過核准來源檢查。失敗時後端已刪除剛建立的空題庫，未留下 0 題半成品草稿。
 - 本機改為辨認核准 OCR 中「編號問句＋同題號回答」的純文字頁，直接依同一編號內的完整來源句建立 `text_qa`，不再呼叫 AI 猜問答配對，因此速度更快且不會產生教材外內容。含 `_____` 的姓名、年齡或個人資料答案整組安全略過，不拿後方無關完整句代替；候選 `visual_aid` 固定使用空 JSON 物件。
 - 已核對本機預期草稿：P5 為 3 題（喜歡名字、暱稱、是否改名）；P7 為 4 題，其中 `Are you a boy/girl?` 保持單一題並接受完整 boy／girl 回答二選一，另有 fool、with me、love them；P9 為 1 題，兄弟姊妹問題接受獨生子女或同時有 brother and sister。`brother and sister` 是正確並列內容，不再誤判為 `He…her…` 類型的代名詞混搭。
-- OCR／性別／Workbook 3 實例規則 6/6、管理頁 18/18、Edge Function 語法、Production build 與 `git diff --check` 通過；完整口說契約 31/32，唯一失敗仍是既有手機導覽 CSS selector 斷言，與本批無關。Windows 瀏覽器操作核心因缺少 kernel 資產無法啟動；localhost 前端目前仍呼叫正式 v43 Function，因此遵照使用者「只在本機、不推送不部署」指示，尚不能以按鈕執行新版後端或建立新遠端草稿。
+- OCR／性別／Workbook 3 實例規則 6/6、管理頁 18/18、Edge Function 語法、Production build、release deploy preflight 與 `git diff --check` 通過；完整口說契約 31/32，唯一失敗仍是既有手機導覽 CSS selector 斷言，與本批無關。PR #259 已合併至 `main` commit `287ba25`；正式 `speaking-content-manager` 為 ACTIVE v44，OPTIONS 回應 200、未登入 POST 回應 401。Cloudflare production build `386236e2-413b-4f84-a783-05252bb085d4` 成功，正式管理頁回應 200 並載入 `main.8f352662.js`，bundle 已確認包含 `reviewed_numbered_text_qa`。Windows 瀏覽器操作核心重設後仍因缺少 kernel 資產無法啟動，因此未繞過管理員登入；P5／P7／P9 的實際新草稿 ID、題數與逐題內容仍待登入後重跑再唯讀核對，本批沒有自動核准或發布題庫。
 
 本次 Workbook 3 P5／P7／P9 逐頁候選 `invalid_output` 修正（2026-09-23，正式部署完成；登入重跑待驗收）：
 
