@@ -170,7 +170,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
-        const candidateButton = await screen.findByRole("button", { name: "依每頁建立候選草稿" });
+        const candidateButton = await screen.findByRole("button", { name: "依逐字稿建立 2 頁草稿" });
         fireEvent.click(candidateButton);
 
         await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
@@ -186,6 +186,41 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(await screen.findByText("本次逐頁建立結果")).toBeInTheDocument();
         expect(screen.getByText("AI 草稿 3 題")).toBeInTheDocument();
         expect(screen.getByText(/本頁只有填空、中文單字或不完整句/)).toBeInTheDocument();
+    });
+
+    it("only creates drafts for page markers retained in the approved transcript", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 35, title: "Workbook 3", book_id: 3 }],
+            chunks: [],
+            sections: [{
+                id: 36,
+                document_id: 35,
+                unit_label: "Unit 1",
+                page_from_label: "P1",
+                page_to_label: "P4",
+                topic: "所有格",
+                language_level: "國小中年級",
+                status: "reviewed",
+                source_text: "[[PAGE P1]]\nThis is my book.\n[[PAGE P3]]\nIt is her pencil."
+            }],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+
+        expect(await screen.findByText(/逐字稿保留 P1、P3/)).toBeInTheDocument();
+        fireEvent.click(screen.getByText("查看已保留的核准逐字稿"));
+        expect(screen.getByText(/This is my book/)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "依逐字稿建立 2 頁草稿" }));
+
+        await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
+        expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(1, mockFirebaseUser, expect.objectContaining({ source_section_id: 36, source_page_label: "P1" }));
+        expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(2, mockFirebaseUser, expect.objectContaining({ source_section_id: 36, source_page_label: "P3" }));
+        expect(generateSpeakingQuestionSet).not.toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({ source_page_label: "P2" }));
+        expect(generateSpeakingQuestionSet).not.toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({ source_page_label: "P4" }));
     });
 
     it("shows OCR page candidates as one page per challenge instead of the source batch range", async () => {
@@ -486,6 +521,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("草稿內的 2 題會一併刪除"));
         expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("已發布版本與學生進度不受影響"));
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("已核准 OCR 逐字稿會保留"));
         await waitFor(() => expect(archiveSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 62));
     });
 

@@ -183,6 +183,10 @@
 .speaking-page-review-queue__item small { color: #65758c; font-size: 12px; line-height: 1.45; }
 .speaking-source-card__page-note { max-width: 440px; display: block; padding: 10px 12px; border-radius: 10px; color: #73571e; background: #fff7df; font-size: 13px; line-height: 1.5; }
 .speaking-source-card__page-note code { font-weight: 850; }
+.speaking-source-transcript { margin-top: 10px; padding: 10px 12px; border: 1px solid #d7e3f3; border-radius: 10px; background: #f7faff; }
+.speaking-source-transcript > summary { min-height: 36px; display: flex; align-items: center; color: #244f88; font-size: 13px; font-weight: 850; cursor: pointer; }
+.speaking-source-transcript pre { max-height: 320px; margin: 8px 0; padding: 12px; overflow: auto; border-radius: 9px; color: #263750; background: #fff; font-family: inherit; font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.speaking-source-transcript small { display: block; color: #65758c; line-height: 1.5; }
 .speaking-page-review-queue__item button { white-space: nowrap; }
 .speaking-current-set { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px 14px; padding: 14px 16px; border: 2px solid #3f70bb; border-radius: 14px; color: #173f80; background: #eef5ff; }
 .speaking-current-set > span { padding: 5px 9px; border-radius: 999px; color: #fff; background: #315fa9; font-size: 12px; font-weight: 900; }
