@@ -7,7 +7,7 @@ import { APP_ROUTER_FUTURE } from "../../app/routerFuture";
 import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
-import { getStudentNotifications } from "../../services/membershipService";
+import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { prefetchReviewDashboard } from "../../services/reviewService";
 import { sendSocialHeartbeat } from "../../services/studentSocialService";
 
@@ -70,6 +70,7 @@ describe("MainNavbar student navigation", () => {
             balance: { total_xp: 180, level: 2, next_level_xp: 250, progress_percent: 53 }
         });
         getStudentNotifications.mockResolvedValue({ notifications: [] });
+        markStudentNotificationRead.mockResolvedValue({ success: true });
         sendSocialHeartbeat.mockResolvedValue({ success: true });
     });
 
@@ -407,6 +408,31 @@ describe("MainNavbar student navigation", () => {
 
         act(() => window.dispatchEvent(new CustomEvent("ae:notifications-read", { detail: { notificationIds: { unreadIds: [9] } } })));
         await waitFor(() => expect(screen.getByRole("link", { name: "查看通知，目前有 1 則未讀" })).toBeInTheDocument());
+    });
+
+    it("opens a social notification from the desktop dropdown on the friends page", async () => {
+        getStudentNotifications.mockResolvedValue({ notifications: [{
+            id: 10,
+            notification_type: "social",
+            title: "新的好友邀請",
+            body: "Amy 想加你為好友",
+            read_at: null
+        }] });
+
+        render(
+            <MemoryRouter initialEntries={["/student/dashboard"]}>
+                <Routes>
+                    <Route path="*" element={<><MainNavbar /><LocationProbe /></>} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(document.querySelector(".ae-notification-dropdown .dropdown-toggle")).toBeInTheDocument());
+        fireEvent.click(document.querySelector(".ae-notification-dropdown .dropdown-toggle"));
+        fireEvent.click(await screen.findByRole("link", { name: /新的好友邀請/ }));
+
+        await waitFor(() => expect(screen.getByLabelText("目前路徑")).toHaveTextContent("/student/friends"));
+        expect(markStudentNotificationRead).toHaveBeenCalledWith({ uid: "student-test" }, 10);
     });
 
     it("highlights the active student route in the full menu", () => {

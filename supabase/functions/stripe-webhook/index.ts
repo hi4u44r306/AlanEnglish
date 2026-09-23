@@ -145,7 +145,7 @@ const recordPaymentFailure = async (admin: any, failedStudentId: number, eventId
     const inbox = await admin.from("student_notifications").upsert({
         student_id: failedStudentId, notification_type: "membership", event_key: eventKey,
         title: "方案付款失敗", body: "請由家長至付款管理頁更新付款方式，避免方案在寬限期後到期。",
-        metadata: { event_type: "payment_failed", effective_at: effectiveAt }
+        metadata: { event_type: "payment_failed", effective_at: effectiveAt, target_path: "/student/membership" }
     }, { onConflict: "student_id,event_key", ignoreDuplicates: true });
     if (inbox.error) throw inbox.error;
     const guardian = await admin.from("guardian_contacts").select("email,notification_enabled").eq("student_id", failedStudentId).maybeSingle();

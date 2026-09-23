@@ -501,7 +501,6 @@ function StudentSettings() {
             <section className="student-settings-hero">
                 <span><FiUser /> MY SETTINGS</span>
                 <h1>我的設定</h1>
-                <p>在這裡確認學生基本資料、學習榮譽與帳號方案。班級、等級與點數由系統安全計算，不能自行修改。</p>
             </section>
 
             <section className="student-settings-profile-card">
@@ -514,7 +513,17 @@ function StudentSettings() {
                 </div>
                 <div className="student-settings-profile-copy">
                     <span>學生基本資料</span>
-                    <h2>{publicDisplayName}</h2>
+                    <div className="student-settings-profile-heading">
+                        <h2>{publicDisplayName}</h2>
+                        <span
+                            className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}
+                            aria-label={hasAiPremium ? "AI Premium 已啟用" : "AI Premium 未啟用"}
+                            title={hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}
+                        >
+                            <FiZap />
+                            <strong>{hasAiPremium ? "AI Premium" : "AI Premium 未啟用"}</strong>
+                        </span>
+                    </div>
                     <p>{profile.english_name || "尚未設定英文姓名"}　·　{profile.class ? `${profile.class} 班` : "尚未分班"}</p>
                     <small><FiImage /> {uploading ? "正在處理頭像…" : "支援 JPG、PNG、WebP；超過 5MB 的照片會先在裝置上壓縮。"}</small>
                     <form className={`student-settings-nickname-form student-settings-profile-nickname-form ${nicknameCooldownActive ? "is-locked" : ""}`} onSubmit={requestNicknameSave}>
@@ -547,11 +556,6 @@ function StudentSettings() {
                             ))}
                         </small>
                     </form>
-                </div>
-                <div className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}>
-                    <FiZap />
-                    <strong>{hasAiPremium ? "AI Premium" : "AI 教材與發音練習未加購"}</strong>
-                    <span>{hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}</span>
                 </div>
                 <div className="student-settings-avatar-presets">
                     <div><strong>選擇預設頭像</strong><span>不想使用自己的照片時，可以隨時換回下列角色。</span></div>

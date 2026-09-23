@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { FiBell, FiCheck, FiChevronLeft, FiClock, FiLoader } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { FiArrowRight, FiBell, FiCheck, FiChevronLeft, FiClock, FiLoader } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
 import { notifyNotificationsRead } from "../../constants/notificationEvents";
+import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
 import "./css/StudentNotifications.scss";
 
 const PAGE_SIZE = 30;
@@ -12,6 +13,7 @@ const formatDateTime = value => value ? new Intl.DateTimeFormat("zh-TW", { dateS
 
 function StudentNotifications() {
     const { firebaseUser } = useAuth();
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -55,6 +57,19 @@ function StudentNotifications() {
         }
     };
 
+    const openNotification = notification => {
+        const destination = getStudentNotificationDestination(notification);
+        if (!destination) return;
+        void markRead(notification);
+        navigate(destination);
+    };
+
+    const handleNotificationKeyDown = (event, notification) => {
+        if (event.target !== event.currentTarget || !["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        openNotification(notification);
+    };
+
     const unreadCount = notifications.filter(notification => !notification.read_at).length;
     const markAllRead = async () => {
         if (!firebaseUser || unreadCount === 0) return;
@@ -78,17 +93,28 @@ function StudentNotifications() {
             </section>
 
             <section className="student-notifications-list" aria-live="polite">
-                {loading ? <p className="student-notifications-empty"><FiLoader />通知載入中…</p> : notifications.length === 0 ? <p className="student-notifications-empty"><FiBell />目前沒有通知；新的作業、獎勵與生日活動會在這裡告訴你。</p> : notifications.map(notification => (
-                    <article className={`student-notification-card ${notification.read_at ? "is-read" : "is-unread"}`} key={notification.id}>
+                {loading ? <p className="student-notifications-empty"><FiLoader />通知載入中…</p> : notifications.length === 0 ? <p className="student-notifications-empty"><FiBell />目前沒有通知；新的作業、獎勵與生日活動會在這裡告訴你。</p> : notifications.map(notification => {
+                    const destination = getStudentNotificationDestination(notification);
+                    return (
+                    <article
+                        className={`student-notification-card ${notification.read_at ? "is-read" : "is-unread"} ${destination ? "is-actionable" : ""}`}
+                        key={notification.id}
+                        role={destination ? "link" : undefined}
+                        tabIndex={destination ? 0 : undefined}
+                        onClick={destination ? () => openNotification(notification) : undefined}
+                        onKeyDown={destination ? event => handleNotificationKeyDown(event, notification) : undefined}
+                    >
                         <span className="student-notification-icon">{notification.read_at ? <FiCheck /> : <FiBell />}</span>
                         <div>
                             <header><strong>{notification.title}</strong>{!notification.read_at && <span>未讀</span>}</header>
                             <p>{notification.body}</p>
                             <time><FiClock />{formatDateTime(notification.created_at)}</time>
+                            {destination && <span className="student-notification-destination">查看相關頁面 <FiArrowRight /></span>}
                         </div>
-                        {!notification.read_at && <button type="button" onClick={() => markRead(notification)}>標示已讀</button>}
+                        {!notification.read_at && <button type="button" onClick={event => { event.stopPropagation(); void markRead(notification); }}>標示已讀</button>}
                     </article>
-                ))}
+                    );
+                })}
                 {hasMore && <button type="button" className="student-notifications-more" onClick={() => loadNotifications({ append: true, before: nextBefore })} disabled={loadingMore}>{loadingMore ? "載入中…" : "載入更早的通知"}</button>}
             </section>
         </main>

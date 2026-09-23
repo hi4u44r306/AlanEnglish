@@ -269,7 +269,8 @@ describe("StudentSettings", () => {
         render(<StudentSettings />);
 
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
-        expect(screen.getByText("AI 教材與發音練習可使用")).toBeInTheDocument();
+        expect(screen.getByLabelText("AI Premium 已啟用"))
+            .toHaveAttribute("title", "AI 教材與發音練習可使用");
     });
 
     it("shows the latest departure and excludes historical academy access from paid plans", async () => {
@@ -351,11 +352,13 @@ describe("StudentSettings", () => {
         expect(screen.queryByText("已結束（2026-08-30）")).not.toBeInTheDocument();
     });
 
-    it("requires final confirmation before applying one of five preset avatars", async () => {
+    it("requires final confirmation before applying one of twenty-five preset avatars", async () => {
         render(<StudentSettings />);
         await screen.findByRole("heading", { name: "我的設定" });
 
-        expect(screen.getAllByRole("button", { name: /使用.+頭像/ })).toHaveLength(5);
+        expect(screen.getAllByRole("button", { name: /使用.+頭像/ })).toHaveLength(25);
+        expect(screen.getByRole("button", { name: "使用好奇科學家頭像" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "使用藍光機器人頭像" })).toBeInTheDocument();
         selectStudentAvatarPreset.mockResolvedValue({
             path: "/default-avatars/alan-owl.png",
             image_url: "/default-avatars/alan-owl.png"
