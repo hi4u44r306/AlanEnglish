@@ -3,6 +3,7 @@ import { readAzureWordAssessment } from "./azure-pronunciation.ts";
 export const FOUNDATION_INTERACTION_TYPES = new Set([
     "alphabet_round",
     "letter_spelling",
+    "text_qa",
     "picture_qa",
     "picture_gap_sentence"
 ]);
@@ -57,7 +58,7 @@ export const resolveQuestionInteractionType = (questionSetInteractionType: unkno
 };
 
 export const usesUnscriptedFoundationAssessment = (interactionType: unknown) => (
-    interactionType === "picture_qa" || interactionType === "picture_gap_sentence"
+    interactionType === "text_qa" || interactionType === "picture_qa" || interactionType === "picture_gap_sentence"
 );
 
 const normalizedTokens = (value: unknown) => String(value || "")
@@ -163,7 +164,7 @@ export const matchesFoundationAnswer = (
 ) => {
     const type = String(interactionType || "");
     if (!FOUNDATION_INTERACTION_TYPES.has(type)) return false;
-    if (type === "picture_qa" || type === "picture_gap_sentence") {
+    if (type === "text_qa" || type === "picture_qa" || type === "picture_gap_sentence") {
         const spoken = normalizedSpokenSentence(recognizedText);
         const accepted = [expectedAnswer, ...(Array.isArray(acceptedAnswers) ? acceptedAnswers : [])]
             .map(normalizedSpokenSentence)
@@ -236,6 +237,8 @@ export const evaluateLetterSpellingAssessment = (
 export const foundationRetryFeedback = (interactionType: unknown) => (
     interactionType === "alphabet_round"
         ? "再看清楚這個字母，聽完提示音後重新唸一次。"
+        : interactionType === "text_qa"
+            ? "請依題目線索，用其中一個可接受的完整英文句子回答；不要把 he／she 或 his／her 混在同一句。"
         : interactionType === "picture_qa"
             ? "請看圖片，把完整問句和完整回答一起說出來。"
             : interactionType === "picture_gap_sentence"

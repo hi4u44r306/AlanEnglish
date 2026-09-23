@@ -29,6 +29,7 @@ assert.equal(resolveQuestionInteractionType("mixed", { interaction_type: "pictur
 assert.equal(resolveQuestionInteractionType("mixed", null), "");
 assert.equal(usesUnscriptedFoundationAssessment("picture_qa"), true);
 assert.equal(usesUnscriptedFoundationAssessment("picture_gap_sentence"), true);
+assert.equal(usesUnscriptedFoundationAssessment("text_qa"), true);
 assert.equal(usesUnscriptedFoundationAssessment("letter_spelling"), false);
 
 assert.deepEqual(spokenLetterSequence("A, P, P, L, E"), ["A", "P", "P", "L", "E"]);
@@ -85,6 +86,10 @@ assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple
 assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple.", "What's that? It's an apple.", ["What's that? It's an apple."]), true);
 assert.equal(matchesFoundationAnswer("picture_gap_sentence", "The apple is in the tree.", "The apple is in the tree."), true);
 assert.equal(matchesFoundationAnswer("picture_gap_sentence", "The apple is in the tree.", "Apple"), false);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "He is my friend."), true);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "She is my friend.", ["She is my friend."]), true);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "She is my friend."), false);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "He is her friend.", ["She is my friend."]), false);
 assert.deepEqual(visibleSentenceWords("The ____ is in the tree."), [
     { text: "The", tokenIndex: 0 },
     { text: "is", tokenIndex: 2 },

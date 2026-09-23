@@ -209,6 +209,25 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByText("P2 單頁關卡 · 國小中年級")).toBeInTheDocument();
     });
 
+    it("labels no-image text questions and exposes reviewed alternative full answers", async () => {
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 35, title: "Workbook 3", book_id: 3 }], chunks: [],
+            sections: [{ id: 36, document_id: 35, unit_label: "Unit 1", page_from_label: "P5", page_to_label: "P5", topic: "所有格", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [{
+                id: 39, source_section_id: 36, book_id: 3, title: "P5 文字問答", topic: "所有格", difficulty: "國小中年級", status: "draft", version: 1,
+                generation_metadata: { source: "ocr_page_candidate", source_pages: [5], source_page_label: "P5", interaction_type: "text_qa", requires_content_review: true },
+                speaking_questions: [{ id: 391, sort_order: 0, question_text: "Who is your friend?", hint_zh: "男生或女生皆可，請選一種完整回答。", keywords: ["friend"], simple_answer: "He is my friend.", model_answer: "He is my friend.", accepted_intents: ["She is my friend."] }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        expect(await screen.findByText("1 題文字問答（無圖片）候選")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /P5 文字問答/ }));
+        expect(screen.getByText(/男女兩種完整答案都要保留/)).toBeInTheDocument();
+        expect(screen.getByText("其他可接受的完整答案（每行一項）")).toBeInTheDocument();
+    });
+
     it("lets AI determine the actual question count for one reviewed page", async () => {
         generateSpeakingQuestionSet.mockResolvedValueOnce({ success: true, question_set_id: 89, question_count: 7 });
         getSpeakingContentBootstrap.mockResolvedValue({

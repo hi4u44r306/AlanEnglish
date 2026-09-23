@@ -98,6 +98,20 @@ test("3b. 同一 OCR 批次的逐頁草稿使用全來源遞增版號，並為�
     assert.match(adminPage, /打開補題/);
 });
 
+test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留兩種完整答案", () => {
+    assert.match(manager, /TEXT_QA_INTERACTION_TYPE = "text_qa"/);
+    assert.match(manager, /不得依姓名、聲音或想像猜性別/);
+    assert.match(manager, /學生只要說其中一個，不必把兩種都說出來/);
+    assert.match(manager, /RED_ANSWER/);
+    assert.match(manager, /red_answer_hint_count/);
+    assert.match(manager, /accepted_intents: alternatives, visual_aid: null/);
+    assert.match(manager, /textQaQuestionContentValid/);
+    assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
+    assert.match(foundationAnswers, /"text_qa"/);
+    assert.match(adminPage, /文字問答（無圖片）/);
+    assert.match(adminPage, /其他可接受的完整答案/);
+});
+
 test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示", () => {
     for (const field of ["question_text", "hint_zh", "keywords", "simple_answer", "model_answer", "follow_up_question", "pronunciation_notes_zh", "accepted_intents"]) {
         assert.match(migration, new RegExp(`${field}`));
@@ -456,7 +470,7 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
     assert.match(bookEntitlement, /book_entitlement_required/);
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /assertBookEntitled/);
-    assert.ok(coach.indexOf("await assertBookEntitled") < coach.indexOf('.select("model_answer,pronunciation_notes_zh")'));
+    assert.ok(coach.indexOf("await assertBookEntitled") < coach.indexOf('.select("model_answer,pronunciation_notes_zh,accepted_intents")'));
     assert.match(coach, /reserve_speaking_pronunciation_request/);
     assert.match(coach, /finishProviderRequest/);
     assert.match(coach, /\.select\("id"\)\.maybeSingle\(\)/);

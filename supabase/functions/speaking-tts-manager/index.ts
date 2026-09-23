@@ -913,11 +913,15 @@ Deno.serve(async (req: Request) => {
         const manualStandardDraft = setStatus === "draft"
             && questionSet?.generation_metadata?.source === "admin_manual_builder"
             && interactionType === "standard_sentence";
+        const reviewedPageCandidateDraft = setStatus === "draft"
+            && ["ocr_page_candidate", "ai_page_auto"].includes(String(questionSet?.generation_metadata?.source || ""))
+            && ["standard_sentence", "text_qa"].includes(interactionType)
+            && Boolean(questionSet?.generation_metadata?.content_reviewed_at);
         const manualPageDraft = setStatus === "draft"
             && questionSet?.generation_metadata?.source === "admin_page_builder"
             && questionSet?.generation_metadata?.manual_builder_version === 2
             && interactionType === "mixed";
-        const mayPrepareManualStandardDraft = manualStandardDraft
+        const mayPrepareManualStandardDraft = (manualStandardDraft || reviewedPageCandidateDraft)
             && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action);
         const mayPrepareManualPageDraft = manualPageDraft
             && ["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio"].includes(action);
