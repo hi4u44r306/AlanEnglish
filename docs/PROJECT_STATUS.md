@@ -2,12 +2,13 @@
 
 最後更新：2026-09-23
 
-本次 Workbook 3 原檔編號題數與可變答案修正（2026-09-23，本機完成、尚未部署）：
+本次 Workbook 3 原檔編號題數與可變答案修正（2026-09-23，正式部署完成；登入重跑待驗收）：
 
 - 正式草稿 #74／#75／#76 與工作 #54～#56 已唯讀核對：新版固定配對正常執行且無 AI 錯誤，但 P5／P7／P9 只建立 3／4／1 題。核准原文實際各有 7 個編號題組；少題根因是前版把含姓名、年齡、拼字等底線的回答整題排除，錯把「不得猜答案」實作成「刪除題目」。
 - 編號式文字問答改為一個原檔編號固定建立一題，因此 P5／P7／P9 預期皆為 7 題。底線轉成具名稱的可變口說欄位，例如 `My name is [你的名字].`、`He is [爸爸的年齡] years old.`；評分固定教材句型，但接受學生實際姓名、年齡與逐字拼名，不用 AI 猜內容。
 - 同一頁重新建立新版時不再拿該頁舊草稿做跨關卡去重，避免新版只剩舊版缺少的題目；其他頁與已發布關卡仍維持去重。現有 #74～#76 保持未發布且不自動修改、刪除、核准或發布。
 - 不需 migration；涉及 `speaking-content-manager`、`pronunciation-coach`、`speaking-tts-manager` 與管理頁。OCR 原檔實例規則 6/6、可變答案與示範語音、管理頁 18/18、Edge Function 語法、Production build 與 `git diff --check` 皆通過；完整口說契約 31/32，唯一失敗仍是既有手機導覽 CSS selector 斷言，與本批無關。
+- PR #261 已合併至 `main` commit `742fe3e`。正式 `speaking-content-manager` v45、`pronunciation-coach` v23、`speaking-challenge` v37、`speaking-tts-manager` v31 均為 ACTIVE；四個 OPTIONS 回應 200，管理 Function 未登入 POST 正確回應 401。Cloudflare production build `dfa180a2-99f4-4739-bd26-8d35ea9f841a` 成功，正式管理頁回應 200 並載入 `main.be370014.js`，source map 已確認包含原檔編號題數及可變口說欄位新版介面。既有 #74～#76 仍保持未發布且未被修改；P5／P7／P9 的新 7 題草稿 ID 與逐題內容，待管理員登入後重新建立再唯讀核對。
 
 本次 Workbook 3 P5／P7／P9 編號式文字問答深層修正（2026-09-23，正式部署完成；登入重跑待驗收）：
 
