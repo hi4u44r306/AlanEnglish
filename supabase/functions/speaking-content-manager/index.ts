@@ -623,6 +623,24 @@ const markedPageSourceText = (sourceText: unknown, pageLabel: unknown) => {
     return afterMarker.split(/\[\[PAGE\s+P[1-9][0-9]{0,3}\]\]/i)[0].trim().slice(0, 18000);
 };
 
+const questionSetVersionContext = async (admin: any, sourceSectionId: number, pageLabel?: string) => {
+    const latestVersionResult = await admin.from("speaking_question_sets")
+        .select("id,version").eq("source_section_id", sourceSectionId)
+        .order("version", { ascending: false }).limit(1).maybeSingle();
+    if (latestVersionResult.error) throw latestVersionResult.error;
+    const previousPageResult = pageLabel
+        ? await admin.from("speaking_question_sets").select("id,version")
+            .eq("source_section_id", sourceSectionId)
+            .contains("generation_metadata", { source: "ocr_page_candidate", source_page_label: pageLabel })
+            .order("version", { ascending: false }).limit(1).maybeSingle()
+        : latestVersionResult;
+    if (previousPageResult.error) throw previousPageResult.error;
+    return {
+        version: Number(latestVersionResult.data?.version || 0) + 1,
+        previousSetId: previousPageResult.data?.id || null
+    };
+};
+
 const normalizeImageSuggestions = (value: unknown) => cleanArray(value, 5, 180);
 
 const normalizeManualPageQuestions = (value: unknown) => {
@@ -1427,11 +1445,6 @@ Deno.serve(async (req: Request) => {
             if (sourceText.length < 20) {
                 return json(400, { error: `找不到 ${requestedPageLabel} 的逐頁 OCR 文字；請使用含 [[PAGE P頁碼]] 標記的新 OCR 結果，或改用逐頁手動建立。` });
             }
-            const pageCandidateSource = pageCandidate ? filterOcrPageSpeakingCandidates(sourceText) : null;
-            if (pageCandidate && pageCandidateSource!.sentences.length < (autoQuestionCount ? 1 : 3)) {
-                return json(409, { error: `${requestedPageLabel} 沒有可直接朗讀的完整英文句；已略過格線、頁碼、填空、標題與作業指令。請改用逐頁手動建立。` });
-            }
-            if (pageCandidate && autoQuestionCount) questionCount = Math.min(30, pageCandidateSource!.sentences.length);
             if (pageCandidate) {
                 const { data: existingCandidate, error: candidateError } = await admin.from("speaking_question_sets")
                     .select("id,status").eq("source_section_id", sourceSectionId)
@@ -1442,6 +1455,37 @@ Deno.serve(async (req: Request) => {
                     return json(409, { error: `${requestedPageLabel} 已有${existingCandidate.status === "draft" ? "候選草稿" : "已發布"}；請先處理現有版本` });
                 }
             }
+            const pageCandidateSource = pageCandidate ? filterOcrPageSpeakingCandidates(sourceText) : null;
+            if (pageCandidate && pageCandidateSource!.sentences.length < (autoQuestionCount ? 1 : 3)) {
+                if (autoQuestionCount) {
+                    const now = new Date().toISOString();
+                    const versionContext = await questionSetVersionContext(admin, sourceSectionId, requestedPageLabel);
+                    const { data: placeholder, error: placeholderError } = await admin.from("speaking_question_sets").insert({
+                        source_section_id: sourceSectionId, book_id: bookId,
+                        title: `${requestedPageLabel} ${section.topic}（待人工補題）`,
+                        topic: section.topic, difficulty: section.language_level, status: "draft",
+                        version: versionContext.version, previous_set_id: versionContext.previousSetId,
+                        generation_metadata: {
+                            source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
+                            source_page_label: requestedPageLabel, interaction_type: "standard_sentence",
+                            auto_question_count: true, source_characters: sourceText.length,
+                            candidate_filter: { version: "v1", eligible_sentence_count: 0, discarded_segment_count: pageCandidateSource!.discardedSegments },
+                            image_suggestions: [], duplicate_review: null,
+                            requires_manual_authoring: true, manual_authoring_reason: "no_speakable_sentence",
+                            requires_content_review: true, content_reviewed_at: null, content_reviewed_by: null
+                        },
+                        created_by: user.id, created_at: now, updated_at: now
+                    }).select("id").single();
+                    if (placeholderError) throw placeholderError;
+                    return json(201, {
+                        success: true, question_set_id: placeholder.id, question_count: 0,
+                        source_page_label: requestedPageLabel, requires_manual_authoring: true,
+                        manual_authoring_reason: "no_speakable_sentence"
+                    });
+                }
+                return json(409, { error: `${requestedPageLabel} 沒有可直接朗讀的完整英文句；已略過格線、頁碼、填空、標題與作業指令。請改用逐頁手動建立。` });
+            }
+            if (pageCandidate && autoQuestionCount) questionCount = Math.min(30, pageCandidateSource!.sentences.length);
             const now = new Date().toISOString();
             const { data: job, error: jobError } = await admin.from("speaking_generation_jobs").insert({
                 source_section_id: sourceSectionId, requested_by: user.id, request_key: requestKey,
@@ -1494,6 +1538,7 @@ Deno.serve(async (req: Request) => {
             }
             let questions = generatedQuestions;
             let duplicateMatches: any[] = [];
+            let manualAuthoringReason: string | null = null;
             if (pageCandidate) {
                 const allowedSentences = new Set(pageCandidateSource!.sentences);
                 const sourceMatchedQuestions = generatedQuestions.filter(question => (
@@ -1517,24 +1562,25 @@ Deno.serve(async (req: Request) => {
                 questions = deduplicated.kept;
                 duplicateMatches = deduplicated.matches;
                 if (questions.length < (autoQuestionCount ? 1 : 3)) {
-                    await admin.from("speaking_generation_jobs").update({
-                        status: "failed", error_code: "all_questions_duplicate",
-                        input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0),
-                        total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString()
-                    }).eq("id", job.id);
-                    return json(409, { error: autoQuestionCount
-                        ? `${requestedPageLabel} 可辨識的題目都已存在於其他草稿或已發布關卡；系統未重複建立。`
-                        : `${requestedPageLabel} 去除既有重複題後不足 3 題可朗讀句子；請改用逐頁手動建立。` });
+                    if (autoQuestionCount) {
+                        manualAuthoringReason = "all_questions_duplicate";
+                    } else {
+                        await admin.from("speaking_generation_jobs").update({
+                            status: "failed", error_code: "all_questions_duplicate",
+                            input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0),
+                            total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString()
+                        }).eq("id", job.id);
+                        return json(409, { error: `${requestedPageLabel} 去除既有重複題後不足 3 題可朗讀句子；請改用逐頁手動建立。` });
+                    }
                 }
             }
-            const latestQuery = admin.from("speaking_question_sets").select("id,version").eq("source_section_id", sourceSectionId);
-            if (pageCandidate) latestQuery.contains("generation_metadata", { source: "ocr_page_candidate", source_page_label: requestedPageLabel });
-            const { data: latest } = await latestQuery.order("version", { ascending: false }).limit(1).maybeSingle();
+            const versionContext = await questionSetVersionContext(admin, sourceSectionId, pageCandidate ? requestedPageLabel : undefined);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
                 source_section_id: sourceSectionId, book_id: bookId,
-                title: cleanText(generated?.title, 200) || `${pageCandidate ? `${requestedPageLabel} ` : ""}${section.topic} 口說練習`,
+                title: manualAuthoringReason ? `${requestedPageLabel} ${section.topic}（待人工補題）`
+                    : cleanText(generated?.title, 200) || `${pageCandidate ? `${requestedPageLabel} ` : ""}${section.topic} 口說練習`,
                 topic: section.topic, difficulty: section.language_level, status: "draft",
-                version: Number(latest?.version || 0) + 1, previous_set_id: latest?.id || null,
+                version: versionContext.version, previous_set_id: versionContext.previousSetId,
                 generation_metadata: {
                     model: String(aiData?.model || AI_MODEL), source_characters: pageCandidate ? pageCandidateSource!.sourceText.length : sourceText.length, request_key: requestKey,
                     ...(pageCandidate ? {
@@ -1544,6 +1590,7 @@ Deno.serve(async (req: Request) => {
                         candidate_filter: { version: "v1", eligible_sentence_count: pageCandidateSource!.sentences.length, discarded_segment_count: pageCandidateSource!.discardedSegments },
                         image_suggestions: normalizeImageSuggestions(generated?.image_suggestions),
                         duplicate_review: duplicateMatches.length ? { excluded_count: duplicateMatches.length, matches: duplicateMatches } : null,
+                        requires_manual_authoring: Boolean(manualAuthoringReason), manual_authoring_reason: manualAuthoringReason,
                         requires_content_review: true, content_reviewed_at: null, content_reviewed_by: null
                     } : autoQuestionCount ? {
                         source: "ai_page_auto",
@@ -1564,9 +1611,11 @@ Deno.serve(async (req: Request) => {
                 }).eq("id", job.id);
                 throw setError;
             }
-            const { error: questionError } = await admin.from("speaking_questions").insert(questions.map((question, index) => ({
-                question_set_id: questionSet.id, ...question, sort_order: index, created_at: now, updated_at: now
-            })));
+            const { error: questionError } = questions.length > 0
+                ? await admin.from("speaking_questions").insert(questions.map((question, index) => ({
+                    question_set_id: questionSet.id, ...question, sort_order: index, created_at: now, updated_at: now
+                })))
+                : { error: null };
             if (questionError) {
                 await admin.from("speaking_question_sets").delete().eq("id", questionSet.id);
                 await admin.from("speaking_generation_jobs").update({
@@ -1579,7 +1628,11 @@ Deno.serve(async (req: Request) => {
                 input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0),
                 total_tokens: Number(usage.total_tokens || 0), completed_at: new Date().toISOString()
             }).eq("id", job.id);
-            return json(201, { success: true, question_set_id: questionSet.id, question_count: questions.length, excluded_duplicate_count: duplicateMatches.length, source_page_label: requestedPageLabel || null });
+            return json(201, {
+                success: true, question_set_id: questionSet.id, question_count: questions.length,
+                excluded_duplicate_count: duplicateMatches.length, source_page_label: requestedPageLabel || null,
+                requires_manual_authoring: Boolean(manualAuthoringReason), manual_authoring_reason: manualAuthoringReason
+            });
         }
 
         if (action === "confirm_page_candidate_draft") {
@@ -2457,7 +2510,9 @@ Deno.serve(async (req: Request) => {
             const metadata = questionSet?.generation_metadata || {};
             const manualPagePolicy = manualPageDraftPolicyForMetadata(metadata);
             const autoPagePolicy = autoPageDraftPolicyForMetadata(metadata);
-            if (!questionSet || questionSet.status !== "draft" || ((questionSet.speaking_questions || []).length < 3 && !manualPagePolicy && !autoPagePolicy)) {
+            if (!questionSet || questionSet.status !== "draft"
+                || ((questionSet.speaking_questions || []).length < 3 && !manualPagePolicy && !autoPagePolicy)
+                || ((manualPagePolicy || autoPagePolicy) && (questionSet.speaking_questions || []).length < 1)) {
                 return json(409, { error: "題庫必須是草稿；一般題庫至少 3 題，單頁手動或 AI 自動題庫至少 1 題才能發布" });
             }
             if (sourceSection?.status !== "reviewed") {

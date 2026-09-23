@@ -151,6 +151,11 @@
 .speaking-ocr-review { margin-top: 18px; padding: 18px; border: 1px solid #f1cb75; border-radius: 16px; background: #fffaf0; }
 .speaking-ocr-review__notice { display: grid; gap: 4px; margin-bottom: 15px; color: #73571e; }
 .speaking-ocr-review__notice span { font-size: 14px; line-height: 1.6; }
+.speaking-ocr-source-card > summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 4px; cursor: pointer; list-style: none; }
+.speaking-ocr-source-card > summary::-webkit-details-marker { display: none; }
+.speaking-ocr-source-card > summary > div > span { color: #315fa9; font-size: 12px; font-weight: 850; }
+.speaking-ocr-source-card > summary > strong { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 12px; color: #173f80; background: #eaf2ff; white-space: nowrap; }
+.speaking-ocr-source-card[open] > summary > strong { color: #73571e; background: #fff1c9; }
 .speaking-count { display: flex; align-items: center; gap: 9px; color: #526079; font-weight: 750; }
 .speaking-count select { min-height: 42px; padding: 0 34px 0 12px; border: 1px solid #d9dde7; border-radius: 11px; background: #fff; }
 .speaking-bank-workspace { display: grid; gap: 9px; }
@@ -194,6 +199,14 @@
 .speaking-source-card__empty { padding: 18px 0 0; }
 .speaking-source-card__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .speaking-source-card__actions button { white-space: nowrap; }
+.speaking-page-generation-report { margin-top: 12px; padding: 12px; border: 1px solid #c9d8ee; border-radius: 10px; background: #f7faff; }
+.speaking-page-generation-report > strong { color: #173f80; font-size: 14px; }
+.speaking-page-generation-report ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 7px; margin: 9px 0 0; padding: 0; list-style: none; }
+.speaking-page-generation-report li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid #d8e2f0; border-radius: 8px; background: #fff; }
+.speaking-page-generation-report li > span { color: #17233f; font-weight: 900; }
+.speaking-page-generation-report li > small { color: #607089; line-height: 1.45; }
+.speaking-page-generation-report li.is-manual { border-color: #e5bd62; background: #fffaf0; }
+.speaking-page-generation-report li.is-failed { border-color: #e7b5b5; background: #fff7f7; }
 .speaking-page-candidate__images { margin: 8px 0 0; padding-left: 20px; color: #566983; font-size: 13px; }
 .speaking-page-candidate__duplicates { margin-top: 12px; padding: 11px 13px; border: 1px solid #e5bd62; border-radius: 10px; background: #fffdf7; color: #73571e; }
 .speaking-page-candidate__duplicates ul { margin: 7px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.55; }
@@ -299,6 +312,8 @@
     .speaking-source-card__actions { display: grid; grid-template-columns: 1fr; }
     .speaking-question-editor { grid-template-columns: 1fr; padding: 14px; }
     .speaking-ocr-review { padding: 14px; }
+    .speaking-ocr-source-card > summary { align-items: stretch; flex-direction: column; }
+    .speaking-ocr-source-card > summary > strong { justify-content: center; width: 100%; }
     .speaking-book-job { padding: 14px; }
     .speaking-book-job > header { align-items: stretch; flex-direction: column; gap: 6px; }
     .speaking-book-job__chunks { grid-template-columns: repeat(2, minmax(0, 1fr)); }

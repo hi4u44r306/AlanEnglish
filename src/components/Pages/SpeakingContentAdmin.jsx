@@ -68,6 +68,10 @@ const questionSetOrigin = questionSet => ({
     ai_page_auto: "AI 逐頁自動判斷",
     ai_generated: "AI 產生"
 }[questionSet?.generation_metadata?.source] || (questionSet?.generation_metadata?.template_key ? "系統範本" : "既有題庫"));
+const manualAuthoringReasonLabel = reason => ({
+    no_speakable_sentence: "本頁只有填空、中文單字或不完整句，已建立空白單頁草稿，請人工新增題目。",
+    all_questions_duplicate: "本頁可辨識句子都已存在其他關卡，已建立空白單頁草稿供人工確認。"
+}[reason] || "本頁需要人工補充題目後才能核准。");
 
 const draftReadiness = (questionSet, section) => {
     if (questionSet?.status !== "draft") return { ready: false, issues: [] };
@@ -79,6 +83,7 @@ const draftReadiness = (questionSet, section) => {
         || (["ocr_page_candidate", "ai_page_auto"].includes(metadata.source) && metadata.auto_question_count === true))
         && Array.isArray(metadata.source_pages) && metadata.source_pages.length === 1;
     if (!manualSinglePage && questions.length < 3) issues.push({ message: `目前只有 ${questions.length} 題，發布至少需要 3 題。` });
+    if (manualSinglePage && questions.length < 1) issues.push({ message: "本頁目前沒有題目，請先人工新增至少一題。" });
     if (section?.status !== "reviewed") issues.push({ message: "教材來源尚未完成人工核對。" });
     if (metadata.requires_content_review === true && !metadata.content_reviewed_at) {
         issues.push({ message: "這份候選草稿尚未完成逐題人工核准。" });
@@ -327,6 +332,7 @@ export default function SpeakingContentAdmin() {
     const [questionSetSearch, setQuestionSetSearch] = useState("");
     const [bookFilter, setBookFilter] = useState("all");
     const [selectedPageCandidateIds, setSelectedPageCandidateIds] = useState([]);
+    const [pageGenerationReport, setPageGenerationReport] = useState(null);
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
@@ -381,10 +387,15 @@ export default function SpeakingContentAdmin() {
             const rightPage = Number(String(right.generation_metadata?.source_page_label || "").replace(/\D/g, ""));
             return leftPage - rightPage || Number(left.id) - Number(right.id);
         }), [data.question_sets]);
+    const pendingOcrSourceRows = useMemo(() => sourceRows.filter(section => (
+        section.status === "draft"
+        && section.questionSets.length === 0
+        && section.document?.source_kind !== "pasted_text"
+    )), [sourceRows]);
     const reviewQueueCount = useMemo(() => (
-        data.sections.filter(section => section.status === "draft").length
-        + data.chunks.filter(chunk => ["review_required", "failed"].includes(chunk.status)).length
-    ), [data.chunks, data.sections]);
+        pendingOcrSourceRows.length
+        + data.chunks.filter(chunk => chunk.status === "failed").length
+    ), [data.chunks, pendingOcrSourceRows]);
     const visibleSourceRows = useMemo(() => {
         const query = questionSetSearch.trim().toLowerCase();
         return sourceRows.map(section => ({
@@ -397,6 +408,39 @@ export default function SpeakingContentAdmin() {
             ))
         })).filter(section => section.questionSets.length > 0);
     }, [bookFilter, questionSetFilter, questionSetSearch, questionSetWorkflowStatus, sourceRows]);
+    const visibleQuestionSetRows = useMemo(() => visibleSourceRows.flatMap(section => {
+        const pageCandidateSets = [];
+        const sourceGroupedSets = [];
+        section.questionSets.forEach(questionSet => {
+            const pageLabels = questionSetPageLabels(questionSet, section);
+            if (["ocr_page_candidate", "ai_page_auto"].includes(questionSet.generation_metadata?.source) && pageLabels.length === 1) {
+                pageCandidateSets.push({ questionSet, pageLabel: pageLabels[0] });
+            } else {
+                sourceGroupedSets.push(questionSet);
+            }
+        });
+        return [
+            ...pageCandidateSets.map(({ questionSet, pageLabel }) => ({
+                ...section,
+                displayKey: `page-candidate-${questionSet.id}`,
+                page_from_label: pageLabel,
+                page_to_label: pageLabel,
+                topic: questionSet.topic || section.topic,
+                unit_label: `${pageLabel} 單頁關卡`,
+                language_level: questionSet.difficulty || section.language_level,
+                questionSets: [questionSet],
+                isPageCandidateRow: true
+            })),
+            ...(sourceGroupedSets.length > 0 ? [{
+                ...section,
+                displayKey: `source-${section.id}`,
+                questionSets: sourceGroupedSets,
+                isPageCandidateRow: false
+            }] : [])
+        ];
+    }).sort((left, right) => String(left.book?.name || "").localeCompare(String(right.book?.name || ""), "zh-Hant")
+        || pageNumber(left.page_from_label) - pageNumber(right.page_from_label)
+        || Number(left.questionSets[0]?.id || left.id) - Number(right.questionSets[0]?.id || right.id)), [visibleSourceRows]);
     const selectedQuestionSet = useMemo(() => data.question_sets.find(questionSet => Number(questionSet.id) === Number(selectedQuestionSetId)) || null, [data.question_sets, selectedQuestionSetId]);
 
     useEffect(() => {
@@ -563,10 +607,22 @@ export default function SpeakingContentAdmin() {
             }
             if (created.length) {
                 setQuestionSetFilter("draft");
-                setSelectedQuestionSetId(created[0].question_set_id);
-                toast.success(`已建立 ${created.length}/${pages.length} 個逐頁候選草稿（${created.map(result => `${result.source_page_label} ${result.question_count} 題`).join("、")}）；請逐題審核後再發布`);
+                const firstReviewable = created.find(result => Number(result.question_count) > 0) || created[0];
+                setSelectedQuestionSetId(firstReviewable.question_set_id);
+                const manualCount = created.filter(result => result.requires_manual_authoring).length;
+                toast.success(`已建立 ${created.length}/${pages.length} 個單頁草稿：${created.length - manualCount} 頁由 AI 產生題目、${manualCount} 頁待人工補題。`);
             }
             if (skipped.length) toast.warning(`未建立 ${skipped.length} 頁：${skipped.join("；")}`);
+            setPageGenerationReport({
+                sectionId: Number(section.id),
+                rows: pages.map(page => {
+                    const result = created.find(item => item.source_page_label === page);
+                    const error = skipped.find(item => item.startsWith(`${page}：`));
+                    return result
+                        ? { page, status: result.requires_manual_authoring ? "manual" : "created", questionCount: Number(result.question_count || 0), reason: result.manual_authoring_reason || null }
+                        : { page, status: "failed", message: error?.slice(page.length + 1) || "建立失敗" };
+                })
+            });
             await load();
         } finally { setWorking(""); }
     };
@@ -868,6 +924,17 @@ export default function SpeakingContentAdmin() {
             {wholeBookProgress?.phase === "ocr" && <div className="speaking-ocr-floating-progress" role="status"><LoaderCircle className="speaking-spin" /><span>批次 OCR：{wholeBookProgress.completed}/{wholeBookProgress.total}</span></div>}
         </section>
 
+        {pendingOcrSourceRows.length > 0 && <section className="platform-card speaking-admin-block--source" aria-labelledby="speaking-ocr-review-title">
+            <div className="platform-section-title"><div><span className="platform-eyebrow">OCR REVIEW</span><h2 id="speaking-ocr-review-title">待核對 OCR 批次</h2><p>逐批展開並對照原教材，保留每頁的 <code>[[PAGE P頁碼]]</code> 標記；核准後即可依頁建立候選草稿。</p></div><strong>{pendingOcrSourceRows.length} 批</strong></div>
+            <div className="speaking-source-list">{pendingOcrSourceRows.map(section => <details className="speaking-source-card speaking-ocr-source-card" key={`ocr-review-${section.id}`}>
+                <summary>
+                    <div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 待人工核准</p></div>
+                    <strong>展開核對</strong>
+                </summary>
+                <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />
+            </details>)}</div>
+        </section>}
+
         <section className="platform-card speaking-admin-block--source">
             <div className="platform-section-title"><div><span className="platform-eyebrow">SINGLE SOURCE</span><h2>單一範圍或貼入文字</h2><p>適合單張課本圖片、單一 Unit 或已人工整理的教材文字。</p></div></div>
             <form className="platform-form" onSubmit={saveSource}>
@@ -894,8 +961,10 @@ export default function SpeakingContentAdmin() {
                 const isSinglePage = pageLabels.length === 1;
                 const canGenerateByPage = pageLabels.length > 1 && pageLabels.length <= 10
                     && pageLabels.every(pageLabel => hasMarkedPageSource(section, pageLabel));
+                const generationReport = Number(pageGenerationReport?.sectionId) === Number(section.id) ? pageGenerationReport : null;
                 return <article className="speaking-source-card" key={`source-${section.id}`}>
                     <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{canGenerateByPage && <button type="button" className="platform-primary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{working === `page-candidates-${section.id}` ? "逐頁建立中…" : "依每頁建立候選草稿"}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">跨頁來源必須先保留每頁的 <code>[[PAGE P頁碼]]</code> 標記，才能逐頁建立關卡。</span>}</div></header>
+                    {generationReport && <div className="speaking-page-generation-report" role="status"><strong>本次逐頁建立結果</strong><ul>{generationReport.rows.map(row => <li className={`is-${row.status}`} key={row.page}><span>{row.page}</span><small>{row.status === "created" ? `AI 草稿 ${row.questionCount} 題` : row.status === "manual" ? manualAuthoringReasonLabel(row.reason) : `未建立：${row.message}`}</small></li>)}</ul></div>}
                 </article>;
             })}</div>
         </section>
@@ -909,21 +978,22 @@ export default function SpeakingContentAdmin() {
                 <label><span className="sr-only">依教材篩選</span><select value={bookFilter} onChange={event => setBookFilter(event.target.value)}><option value="all">全部教材</option>{data.books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
             </div>
             {activeWorkspace === "drafts" && pageCandidateReviewQueue.length > 0 && <section className="speaking-page-review-queue" aria-labelledby="speaking-page-review-queue-title">
-                <header><div><span>OCR REVIEW QUEUE</span><h3 id="speaking-page-review-queue-title">逐頁候選待審核</h3><p>先在下方逐份展開檢查原教材，再勾選已核對的草稿。批次核准不會發布學生版本。</p></div><div className="speaking-page-review-queue__actions"><button type="button" className="platform-secondary" onClick={() => setSelectedPageCandidateIds(pageCandidateReviewQueue.map(questionSet => questionSet.id))}>選取全部已核對</button><button type="button" className="platform-primary" disabled={working === "approve-page-candidates" || selectedPageCandidateIds.length === 0} onClick={approveSelectedPageCandidates}>{working === "approve-page-candidates" ? "批次核准中…" : `批次核准 ${selectedPageCandidateIds.length} 份草稿`}</button></div></header>
+                <header><div><span>OCR REVIEW QUEUE</span><h3 id="speaking-page-review-queue-title">逐頁候選待審核</h3><p>先在下方逐份展開檢查原教材，再勾選已核對的草稿。批次核准不會發布學生版本。</p></div><div className="speaking-page-review-queue__actions"><button type="button" className="platform-secondary" onClick={() => setSelectedPageCandidateIds(pageCandidateReviewQueue.filter(questionSet => (questionSet.speaking_questions || []).length > 0).map(questionSet => questionSet.id))}>選取全部已核對</button><button type="button" className="platform-primary" disabled={working === "approve-page-candidates" || selectedPageCandidateIds.length === 0} onClick={approveSelectedPageCandidates}>{working === "approve-page-candidates" ? "批次核准中…" : `批次核准 ${selectedPageCandidateIds.length} 份草稿`}</button></div></header>
                 <div className="speaking-page-review-queue__items">{pageCandidateReviewQueue.map(questionSet => {
                     const metadata = questionSet.generation_metadata || {};
                     const pageLabel = metadata.source_page_label || questionSet.title;
                     const duplicateCount = Number(metadata.duplicate_review?.excluded_count || 0);
                     const imageSuggestionCount = Array.isArray(metadata.image_suggestions) ? metadata.image_suggestions.length : 0;
+                    const questionCount = (questionSet.speaking_questions || []).length;
                     return <div className="speaking-page-review-queue__item" key={questionSet.id}>
-                        <label><input type="checkbox" checked={selectedPageCandidateIds.includes(questionSet.id)} onChange={() => togglePageCandidate(questionSet.id)} aria-label={`已逐題核對 ${pageLabel} 候選草稿`} />
-                            <span><strong>{pageLabel}</strong><small>{(questionSet.speaking_questions || []).length} 題完整句朗讀候選{duplicateCount > 0 ? ` · 已排除 ${duplicateCount} 題重複句` : ""}{imageSuggestionCount > 0 ? ` · ${imageSuggestionCount} 項圖片裁切提醒` : ""}</small></span>
-                        </label><button type="button" className="platform-secondary" onClick={() => { setQuestionSetFilter("draft"); setSelectedQuestionSetId(questionSet.id); }}>打開檢查</button>
+                        <label><input type="checkbox" disabled={questionCount === 0} checked={selectedPageCandidateIds.includes(questionSet.id)} onChange={() => togglePageCandidate(questionSet.id)} aria-label={`已逐題核對 ${pageLabel} 候選草稿`} />
+                            <span><strong>{pageLabel}</strong><small>{questionCount > 0 ? `${questionCount} 題完整句朗讀候選` : manualAuthoringReasonLabel(metadata.manual_authoring_reason)}{duplicateCount > 0 ? ` · 已排除 ${duplicateCount} 題重複句` : ""}{imageSuggestionCount > 0 ? ` · ${imageSuggestionCount} 項圖片裁切提醒` : ""}</small></span>
+                        </label><button type="button" className="platform-secondary" onClick={() => { setQuestionSetFilter("draft"); setSelectedQuestionSetId(questionSet.id); }}>{questionCount > 0 ? "打開檢查" : "打開補題"}</button>
                     </div>;
                 })}</div>
             </section>}
-            {loading ? <div className="platform-loading">題庫載入中…</div> : sourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>尚未建立教材來源</strong><p>請先到「教材來源」加入教材。</p></div> : visibleSourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>這個區域目前沒有關卡</strong><p>{activeWorkspace === "ready" ? "完成草稿缺漏後，關卡會自動移到這裡。" : activeWorkspace === "published" ? "目前沒有符合篩選條件的正式關卡。" : "所有草稿都已完成內容檢查。"}</p></div> : <div className="speaking-source-list">{visibleSourceRows.map(section => <article className="speaking-source-card" key={section.id}>
-                <header><div><span>{section.book?.name || "教材"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}（舊版跨頁）` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · {section.language_level}</p></div></header>
+            {loading ? <div className="platform-loading">題庫載入中…</div> : sourceRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>尚未建立教材來源</strong><p>請先到「教材來源」加入教材。</p></div> : visibleQuestionSetRows.length === 0 ? <div className="platform-empty"><BookOpen /><strong>這個區域目前沒有關卡</strong><p>{activeWorkspace === "ready" ? "完成草稿缺漏後，關卡會自動移到這裡。" : activeWorkspace === "published" ? "目前沒有符合篩選條件的正式關卡。" : "所有草稿都已完成內容檢查。"}</p></div> : <div className="speaking-source-list">{visibleQuestionSetRows.map(section => <article className="speaking-source-card" key={section.displayKey}>
+                <header><div><span>{section.book?.name || "教材"}</span><h3>{section.page_from_label || "未標示頁碼"}{!section.isPageCandidateRow && section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}（舊版跨頁）` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · {section.language_level}</p></div></header>
                 {section.status === "draft" && section.questionSets.some(questionSet => questionSet.generation_metadata?.requires_content_review)
                     ? <div className="speaking-ocr-review__notice"><strong>精選草稿尚未核准</strong><span>請先逐題對照 Workbook 1 原頁面，再使用上方對應關卡的「已對照原頁，核准內容」。</span></div>
                     : section.status === "draft" && <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />}
@@ -934,6 +1004,7 @@ export default function SpeakingContentAdmin() {
                     const isManualStandard = interactionType === "standard_sentence"
                         && ["admin_manual_builder", "ocr_page_candidate", "ai_page_auto"].includes(questionSet.generation_metadata?.source);
                     const candidateReviewed = Boolean(questionSet.generation_metadata?.content_reviewed_at);
+                    const manualAuthoringReason = questionSet.generation_metadata?.manual_authoring_reason;
                     const duplicateReview = questionSet.generation_metadata?.duplicate_review;
                     const candidateFilter = questionSet.generation_metadata?.candidate_filter;
                     const isSelected = Number(selectedQuestionSetId) === Number(questionSet.id);
@@ -944,6 +1015,7 @@ export default function SpeakingContentAdmin() {
                     return <section className={`speaking-set ${questionSet.status} ${isSelected ? "is-current" : ""}`} key={questionSet.id}>
                         <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : readiness.ready ? "待發布" : "製作中"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{pageLabels.join("、") || "未標示頁碼"} · {questionSetOrigin(questionSet)} · {(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && isPageCandidate && !candidateReviewed && <button type="button" className="platform-secondary" disabled={working === `confirm-page-${questionSet.id}`} onClick={() => confirmPageCandidate(questionSet)}>{working === `confirm-page-${questionSet.id}` ? "核准中…" : "已逐題對照原頁，核准內容"}</button>}{questionSet.status === "draft" && readiness.ready && <button type="button" className="platform-primary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "準備語音並發布中…" : "準備語音並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && !isLockedTemplate && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && isLockedTemplate && <span className="speaking-set__locked">固定教材模板請從來源重建</span>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}<button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button></div>}</div>
                         {isSelected && questionSet.status === "draft" && <DraftReadinessPanel readiness={readiness} interactionType={interactionType} />}
+                        {isSelected && manualAuthoringReason && <div className="speaking-ocr-review__notice"><strong>本頁已建立單頁草稿，等待人工補題</strong><span>{manualAuthoringReasonLabel(manualAuthoringReason)}</span></div>}
                         {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : "AI 逐頁候選草稿尚未核准"}</strong><span>{candidateReviewed ? "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
                         {isSelected && (isPictureSet

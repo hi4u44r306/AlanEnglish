@@ -87,6 +87,17 @@ test("3a. 逐頁 OCR 候選會排除同一教材現有的完整句，並保留�
     assert.match(adminPage, /match\.source_page_label \|\| match\.title/);
 });
 
+test("3b. 同一 OCR 批次的逐頁草稿使用全來源遞增版號，並為無法自動出題頁保留人工補題草稿", () => {
+    assert.match(manager, /const questionSetVersionContext = async/);
+    assert.match(manager, /version: Number\(latestVersionResult\.data\?\.version \|\| 0\) \+ 1/);
+    assert.match(manager, /previousSetId: previousPageResult\.data\?\.id \|\| null/);
+    assert.match(manager, /manual_authoring_reason: "no_speakable_sentence"/);
+    assert.match(manager, /manualAuthoringReason = "all_questions_duplicate"/);
+    assert.match(manager, /questions\.length > 0/);
+    assert.match(adminPage, /本次逐頁建立結果/);
+    assert.match(adminPage, /打開補題/);
+});
+
 test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示", () => {
     for (const field of ["question_text", "hint_zh", "keywords", "simple_answer", "model_answer", "follow_up_question", "pronunciation_notes_zh", "accepted_intents"]) {
         assert.match(migration, new RegExp(`${field}`));
