@@ -524,46 +524,50 @@ const normalizePageCandidateGeneration = (
     minimumQuestions: number
 ) => {
     const pageType = cleanText(generated?.interaction_type, 40);
-    const interactionType = pageType === TEXT_QA_INTERACTION_TYPE ? pageType : "standard_sentence";
     const rows = Array.isArray(generated?.questions) ? generated.questions : [];
     const allowed = new Set(sourceSentences.map(sentence => cleanText(sentence, 800)));
     const sourceHasQuestion = sourceSentences.some(sentence => sentence.endsWith("?"));
     const sourceHasAnswer = sourceSentences.some(sentence => !sentence.endsWith("?"));
-    if (sourceHasQuestion && sourceHasAnswer && interactionType !== TEXT_QA_INTERACTION_TYPE) return null;
+    const interactionType = sourceHasQuestion && sourceHasAnswer
+        ? TEXT_QA_INTERACTION_TYPE
+        : pageType === TEXT_QA_INTERACTION_TYPE ? pageType : "standard_sentence";
     if (interactionType === TEXT_QA_INTERACTION_TYPE && (!sourceHasQuestion || !sourceHasAnswer)) return null;
-    const questions = rows.map((row: any) => {
-        const acceptedAnswers = cleanArray(row?.accepted_answers, 12, 500);
+    const questions = rows.slice(0, maximumQuestions).map((row: any) => {
+        const questionText = cleanText(row?.question_text, 800);
+        const modelAnswer = interactionType === TEXT_QA_INTERACTION_TYPE
+            ? cleanText(row?.model_answer, 2000) : questionText;
         const normalized = normalizeQuestions([{
             ...row,
-            accepted_intents: interactionType === TEXT_QA_INTERACTION_TYPE ? acceptedAnswers : ["朗讀指定句子"]
+            question_text: questionText,
+            simple_answer: modelAnswer,
+            model_answer: modelAnswer,
+            accepted_intents: interactionType === TEXT_QA_INTERACTION_TYPE ? [] : ["朗讀指定句子"]
         }], 1, 1)?.[0];
         if (!normalized) return null;
         if (interactionType === "standard_sentence") {
-            return allowed.has(normalized.question_text)
-                && normalized.question_text === normalized.simple_answer
-                && normalized.question_text === normalized.model_answer
-                ? normalized : null;
+            return allowed.has(normalized.question_text) ? normalized : null;
         }
-        const alternatives = acceptedAnswers.filter(answer => answer !== normalized.model_answer);
-        const allAnswers = [normalized.model_answer, ...alternatives];
+        if (!allowed.has(normalized.question_text) || !normalized.question_text.endsWith("?")
+            || !allowed.has(normalized.model_answer) || normalized.model_answer.endsWith("?")
+            || !textQaGenderIsConsistent(normalized.question_text, normalized.model_answer)) return null;
+        const acceptedAnswers = cleanArray(row?.accepted_answers, 12, 500)
+            .filter(answer => answer !== normalized.model_answer && allowed.has(answer) && !answer.endsWith("?")
+                && textQaGenderIsConsistent(normalized.question_text, answer));
         const modelGender = textQaGenderSignal(normalized.model_answer);
         const requiredNeutralAlternatives = textQaGenderSignal(normalized.question_text) === "neutral"
             && ["male", "female"].includes(modelGender)
             ? sourceSentences.filter(source => source !== normalized.model_answer
                 && textQaGenderSignal(source) !== modelGender
+                && ["male", "female"].includes(textQaGenderSignal(source))
+                && !source.endsWith("?")
                 && textQaGenderSkeleton(source) === textQaGenderSkeleton(normalized.model_answer))
             : [];
-        if (!textQaQuestionContentValid({ ...normalized, accepted_intents: alternatives })
-            || !allowed.has(normalized.question_text)
-            || !allowed.has(normalized.simple_answer)
-            || normalized.simple_answer !== normalized.model_answer
-            || allAnswers.some(answer => !allowed.has(answer) || answer.endsWith("?")
-                || !textQaGenderIsConsistent(normalized.question_text, answer))
-            || requiredNeutralAlternatives.some(answer => !allAnswers.includes(answer))) return null;
-        return { ...normalized, accepted_intents: alternatives, visual_aid: null };
+        const alternatives = [...new Set([...acceptedAnswers, ...requiredNeutralAlternatives])];
+        const candidate = { ...normalized, accepted_intents: alternatives, visual_aid: null };
+        return textQaQuestionContentValid(candidate) ? candidate : null;
     }).filter(Boolean);
-    if (questions.length < minimumQuestions || questions.length > maximumQuestions || questions.length !== rows.length) return null;
-    return { interactionType, questions };
+    if (questions.length < minimumQuestions || questions.length > maximumQuestions) return null;
+    return { interactionType, questions, rejectedQuestionCount: Math.max(0, rows.length - questions.length) };
 };
 
 const sentenceFingerprint = (value: unknown) => String(value || "")
@@ -1643,7 +1647,7 @@ Deno.serve(async (req: Request) => {
                         source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
                         source_page_label: requestedPageLabel, interaction_type: generatedInteractionType,
                         auto_question_count: autoQuestionCount,
-                        candidate_filter: { version: "v3", eligible_sentence_count: pageCandidateSource!.sentences.length, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, detected_interaction_type: generatedInteractionType },
+                        candidate_filter: { version: "v4", eligible_sentence_count: pageCandidateSource!.sentences.length, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType },
                         answer_policy: generatedInteractionType === TEXT_QA_INTERACTION_TYPE ? "exact_full_response_with_reviewed_alternatives" : "read_aloud",
                         image_suggestions: generatedInteractionType === TEXT_QA_INTERACTION_TYPE
                             ? [] : normalizeImageSuggestions(generated?.image_suggestions),
@@ -1688,6 +1692,7 @@ Deno.serve(async (req: Request) => {
             }).eq("id", job.id);
             return json(201, {
                 success: true, question_set_id: questionSet.id, question_count: questions.length,
+                rejected_ai_question_count: pageCandidate ? pageCandidateGeneration!.rejectedQuestionCount : 0,
                 excluded_duplicate_count: duplicateMatches.length, source_page_label: requestedPageLabel || null,
                 requires_manual_authoring: Boolean(manualAuthoringReason), manual_authoring_reason: manualAuthoringReason
             });
