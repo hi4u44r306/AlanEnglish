@@ -2,11 +2,12 @@
 
 最後更新：2026-09-24
 
-本次 OCR 核准逐字稿選頁建稿與來源保留（2026-09-24，本機完成、尚未部署）：
+本次 OCR 核准逐字稿選頁建稿與來源保留（2026-09-24，正式部署完成）：
 
 - 多頁 OCR 批次不再要求原始範圍內每一頁都保留 `[[PAGE P頁碼]]`。管理員核對時可將不需要關卡的整頁標記與內容刪除；核准後，前端與 `speaking-content-manager` 都只接受逐字稿中實際保留且位於該批範圍內的頁碼，依保留順序逐頁建立草稿。
 - 已核准來源卡會顯示保留頁碼、實際要建立的頁數及完整核准逐字稿。待核對來源仍保留可編輯 OCR 文字；AI 草稿與 `speaking_source_sections.source_text` 分離，刪除未發布草稿只刪題庫，後端明確回傳 `source_preserved: true`，之後可用同一份來源重新建立。
 - 單頁來源維持可直接建立本頁草稿；多頁來源至少保留一個有效頁碼標記即可。不需 migration，不修改、刪除、核准或發布任何既有 OCR 來源與題庫資料。管理頁 targeted 19/19、新增來源保留契約 1/1、Edge Function 語法、Production build 與 `git diff --check` 均通過；完整既有口說契約 32/33，唯一失敗仍是既有手機操作列 CSS selector 斷言，與本批 OCR 選頁無關。
+- PR #267 已合併至 `main` commit `9afec32`。正式 `speaking-content-manager` v47 為 ACTIVE，OPTIONS 回應 200、未登入 POST 正確回應 401。Cloudflare production build `300c1ec4-c035-4f3f-97e7-a46cab8382df` 成功，正式管理頁回應 200 並載入 `main.a6a88e55.js`／`main.69d89026.css`；production bundle 已確認包含保留頁碼、依逐字稿建稿、查看核准逐字稿及刪除草稿保留 OCR 的新版介面。未代替管理員建立、刪除、核准或發布任何題庫。
 
 本次手機暱稱讀取與 7 天改名倒數修正（2026-09-23，正式部署完成）：
 
