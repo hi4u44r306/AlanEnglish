@@ -79,6 +79,12 @@ const pageGenerationStatusLabel = row => ({
     manual: manualAuthoringReasonLabel(row.reason),
     failed: `未建立：${row.message}`
 }[row.status] || "等待處理");
+const interactionTypeLabel = interactionType => ({
+    standard_sentence: "完整句朗讀",
+    text_qa: "文字問答（無圖片）",
+    picture_qa: "看圖問答",
+    picture_gap_sentence: "看圖補句"
+}[interactionType] || "口說練習");
 
 const draftReadiness = (questionSet, section) => {
     if (questionSet?.status !== "draft") return { ready: false, issues: [] };
@@ -108,15 +114,18 @@ const draftReadiness = (questionSet, section) => {
             if (questionInteractionType === "picture_gap_sentence" && !/_{2,}/.test(String(interaction?.prompt_text || ""))) issues.push({ questionId: question.id, message: `${label}至少需要一個挖空。` });
             if (visual?.status !== "ready") issues.push({ questionId: question.id, message: `${label}尚未完成私人圖片上傳。` });
             if (!String(visual?.alt_zh || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少圖片替代文字。` });
-        } else if (!String(question.model_answer || "").trim()) {
-            issues.push({ questionId: question.id, message: `${label}缺少完整示範回答。` });
+        } else {
+            if (!String(question.model_answer || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少完整示範回答。` });
+            if (questionInteractionType === "text_qa" && !String(question.question_text || "").trim().endsWith("?")) {
+                issues.push({ questionId: question.id, message: `${label}的文字問答必須是完整問句並以 ? 結尾。` });
+            }
         }
     });
     return { ready: issues.length === 0, issues };
 };
 
 const DraftReadinessPanel = ({ readiness, interactionType }) => readiness.ready
-    ? <div className="speaking-readiness is-ready"><CheckCircle2 /><div><strong>內容檢查完成</strong><span>{interactionType === "picture_gap_sentence" ? "發布時會自動產生或更新停頓整句語音。" : interactionType === "standard_sentence" ? "發布時會自動產生或更新全部示範語音。" : "可以預覽學生畫面並發布。"}</span></div></div>
+    ? <div className="speaking-readiness is-ready"><CheckCircle2 /><div><strong>內容檢查完成</strong><span>{interactionType === "picture_gap_sentence" ? "發布時會自動產生或更新停頓整句語音。" : ["standard_sentence", "text_qa"].includes(interactionType) ? "發布時會自動產生或更新全部示範語音。" : "可以預覽學生畫面並發布。"}</span></div></div>
     : <div className="speaking-readiness has-issues" role="alert"><AlertCircle /><div><strong>還有 {readiness.issues.length} 項需要處理</strong><ul>{readiness.issues.map((issue, index) => <li key={`${issue.questionId || "set"}-${index}`}>{issue.message}</li>)}</ul></div></div>;
 
 const sourcePageLabels = section => {
@@ -258,7 +267,9 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
         ? "學生只會看到圖片，並在同一次錄音說出完整問句與回答。"
         : isPictureGap
             ? "學生會看到圖片與挖空句型，可點聽已顯示的單字，再說出完整句子。"
-            : "學生會先聽問題，自行回答；需要時才展開提示與示範句。";
+            : interactionType === "text_qa"
+                ? "學生會看到純文字問題，說出一個可接受的完整答案；不需要圖片。"
+                : "學生會先聽問題，自行回答；需要時才展開提示與示範句。";
     return <details className="speaking-student-preview">
         <summary><Eye size={17} />預覽學生畫面</summary>
         <div className="speaking-student-preview__screen">
@@ -279,7 +290,7 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
     </details>;
 };
 
-const QuestionEditor = ({ question, disabled, onSave }) => {
+const QuestionEditor = ({ question, interactionType, disabled, onSave }) => {
     const [form, setForm] = useState({
         question_text: question.question_text || "", hint_zh: question.hint_zh || "",
         keywords: (question.keywords || []).join("、"), simple_answer: question.simple_answer || "",
@@ -303,10 +314,10 @@ const QuestionEditor = ({ question, disabled, onSave }) => {
             <label><span>完整示範回答</span><textarea rows="3" value={form.model_answer} onChange={event => update("model_answer", event.target.value)} disabled={disabled} /></label>
             <div className="platform-form-grid">
                 <label><span>發音／重音提示</span><textarea rows="3" value={form.pronunciation_notes_zh} onChange={event => update("pronunciation_notes_zh", event.target.value)} disabled={disabled} /></label>
-                <label><span>可接受回答意思（每行一項）</span><textarea rows="3" value={form.accepted_intents} onChange={event => update("accepted_intents", event.target.value)} disabled={disabled} /></label>
+                <label><span>{interactionType === "text_qa" ? "其他可接受的完整答案（每行一項）" : "可接受回答意思（每行一項）"}</span><textarea rows="3" value={form.accepted_intents} onChange={event => update("accepted_intents", event.target.value)} disabled={disabled} />{interactionType === "text_qa" && <small>問句未指定性別時，請列出另一種完整答案；例如示範為 He…his…，此處填 She…her…。</small>}</label>
             </div>
             <div className="platform-form-grid">
-                <label><span>輔助圖類型</span><select value={form.visual_kind} onChange={event => update("visual_kind", event.target.value)} disabled={disabled}><option value="">不需要圖片</option><option value="flag">國旗</option><option value="color-object">顏色與物品</option><option value="clock">時鐘</option><option value="routine">日常情境</option></select></label>
+                <label><span>輔助圖類型</span><select value={interactionType === "text_qa" ? "" : form.visual_kind} onChange={event => update("visual_kind", event.target.value)} disabled={disabled || interactionType === "text_qa"}><option value="">不需要圖片</option><option value="flag">國旗</option><option value="color-object">顏色與物品</option><option value="clock">時鐘</option><option value="routine">日常情境</option></select>{interactionType === "text_qa" && <small>文字問答固定不使用圖片，只依題目文字與核准答案判定。</small>}</label>
                 <label><span>圖卡代號</span><input value={form.visual_value} onChange={event => update("visual_value", event.target.value)} disabled={disabled} placeholder="例如 taiwan、banana、7" /></label>
             </div>
             {form.visual_kind && <label><span>圖片替代文字（繁體中文）</span><input value={form.visual_alt_zh} onChange={event => update("visual_alt_zh", event.target.value)} disabled={disabled} placeholder="例如：時鐘顯示七點整" /></label>}
@@ -1022,7 +1033,7 @@ export default function SpeakingContentAdmin() {
                     const questionCount = (questionSet.speaking_questions || []).length;
                     return <div className="speaking-page-review-queue__item" key={questionSet.id}>
                         <label><input type="checkbox" disabled={questionCount === 0} checked={selectedPageCandidateIds.includes(questionSet.id)} onChange={() => togglePageCandidate(questionSet.id)} aria-label={`已逐題核對 ${pageLabel} 候選草稿`} />
-                            <span><strong>{pageLabel}</strong><small>{questionCount > 0 ? `${questionCount} 題完整句朗讀候選` : manualAuthoringReasonLabel(metadata.manual_authoring_reason)}{duplicateCount > 0 ? ` · 已排除 ${duplicateCount} 題重複句` : ""}{imageSuggestionCount > 0 ? ` · ${imageSuggestionCount} 項圖片裁切提醒` : ""}</small></span>
+                            <span><strong>{pageLabel}</strong><small>{questionCount > 0 ? `${questionCount} 題${interactionTypeLabel(metadata.interaction_type)}候選` : manualAuthoringReasonLabel(metadata.manual_authoring_reason)}{duplicateCount > 0 ? ` · 已排除 ${duplicateCount} 題重複句` : ""}{imageSuggestionCount > 0 ? ` · ${imageSuggestionCount} 項圖片裁切提醒` : ""}</small></span>
                         </label><button type="button" className="platform-secondary" onClick={() => { setQuestionSetFilter("draft"); setSelectedQuestionSetId(questionSet.id); }}>{questionCount > 0 ? "打開檢查" : "打開補題"}</button>
                     </div>;
                 })}</div>
@@ -1051,7 +1062,7 @@ export default function SpeakingContentAdmin() {
                         <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : readiness.ready ? "待發布" : "製作中"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{pageLabels.join("、") || "未標示頁碼"} · {questionSetOrigin(questionSet)} · {(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && isPageCandidate && !candidateReviewed && <button type="button" className="platform-secondary" disabled={working === `confirm-page-${questionSet.id}`} onClick={() => confirmPageCandidate(questionSet)}>{working === `confirm-page-${questionSet.id}` ? "核准中…" : "已逐題對照原頁，核准內容"}</button>}{questionSet.status === "draft" && readiness.ready && <button type="button" className="platform-primary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "準備語音並發布中…" : "準備語音並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && !isLockedTemplate && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && isLockedTemplate && <span className="speaking-set__locked">固定教材模板請從來源重建</span>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}<button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button></div>}</div>
                         {isSelected && questionSet.status === "draft" && <DraftReadinessPanel readiness={readiness} interactionType={interactionType} />}
                         {isSelected && manualAuthoringReason && <div className="speaking-ocr-review__notice"><strong>本頁已建立單頁草稿，等待人工補題</strong><span>{manualAuthoringReasonLabel(manualAuthoringReason)}</span></div>}
-                        {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : "AI 逐頁候選草稿尚未核准"}</strong><span>{candidateReviewed ? "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
+                        {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : `AI 逐頁候選草稿尚未核准 · ${interactionTypeLabel(interactionType)}`}</strong><span>{candidateReviewed ? "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : interactionType === "text_qa" ? "請核對畫面問句、示範回答與其他可接受的完整答案。題目指定 he／his 或 she／her 時只能收相符答案；未指定性別時，男女兩種完整答案都要保留，學生只需回答其中一種。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
                         {isSelected && (isPictureSet
                             ? questionSet.status === "draft"
@@ -1059,7 +1070,7 @@ export default function SpeakingContentAdmin() {
                                 : <div className="speaking-ocr-review__notice"><strong>正式版本保持唯讀</strong><span>按「建立新版草稿」即可修改文字、圖片與順序；新版核准前，學生仍使用目前版本。</span></div>
                             : isManualStandard && questionSet.status === "draft"
                                 ? <SpeakingManualStandardEditor firebaseUser={firebaseUser} questionSet={questionSet} onChanged={reloadQuestionSet} />
-                                : <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>)}
+                                : <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} interactionType={interactionType} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>)}
                     </section>;
                 })}
             </article>)}</div>}
