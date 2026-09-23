@@ -125,10 +125,15 @@
 .student-settings-nickname-form input { min-width: 0; min-height: 44px; padding: 0 13px; border: 1px solid #d8dfeb; border-radius: 12px; color: #21324e; background: #fff; font-weight: 800; outline: none; }
 .student-settings-nickname-form input:focus { border-color: #3655ad; box-shadow: 0 0 0 3px rgba(54, 85, 173, .12); }
 .student-settings-nickname-form input[aria-invalid="true"] { border-color: #c24d4d; }
+.student-settings-nickname-form input:disabled { border-color: #d8dfeb; color: #65728a; background: #eef2f8; cursor: not-allowed; opacity: 1; }
 .student-settings-nickname-form button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; color: #fff; background: #23447f; font-weight: 900; cursor: pointer; }
 .student-settings-nickname-form button:disabled { cursor: wait; opacity: .6; }
+.student-settings-nickname-form.is-locked button:disabled { cursor: not-allowed; }
 .student-settings-nickname-form small { color: #748199; font-size: 11px; line-height: 1.55; }
 .student-settings-nickname-form small.is-error { color: #a72e2e; font-weight: 750; }
+.student-settings-nickname-countdown { display: inline-block; padding: 9px 11px; border: 1px solid #d8e0ef; border-radius: 10px; color: #485a78; background: #f3f6fb; font-weight: 700; }
+.student-settings-nickname-countdown svg { margin-right: 5px; vertical-align: -2px; }
+.student-settings-nickname-countdown strong { color: #23447f; }
 .student-settings-profile-nickname-form { width: min(100%, 520px); margin-top: 13px; }
 .student-settings-nickname-history { margin-top: 20px; padding-top: 16px; border-top: 1px solid #edf0f4; }
 .student-settings-nickname-panel .student-settings-nickname-history { margin-top: 14px; }
