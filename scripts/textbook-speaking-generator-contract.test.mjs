@@ -88,6 +88,17 @@ test("3a. 逐頁 OCR 候選會排除同一教材現有的完整句，並保留�
     assert.match(adminPage, /match\.source_page_label \|\| match\.title/);
 });
 
+test("3aa. 逐頁草稿只使用核准逐字稿中保留的頁碼，刪除草稿不刪 OCR 來源", () => {
+    assert.match(manager, /const markedSourcePageLabels =/);
+    assert.match(manager, /const eligiblePageCandidates = sectionPages\.length === 1 \? sectionPages : retainedMarkedPages/);
+    assert.match(manager, /逐頁候選草稿只能使用核准逐字稿中實際保留的頁碼/);
+    assert.match(manager, /source_preserved: true/);
+    assert.match(adminPage, /const pages = markedSourcePageLabels\(section\)/);
+    assert.match(adminPage, /依逐字稿建立 \$\{retainedPageLabels\.length\} 頁草稿/);
+    assert.match(adminPage, /查看已保留的核准逐字稿/);
+    assert.match(adminPage, /OCR 逐字稿仍保留，可重新建立/);
+});
+
 test("3b. 同一 OCR 批次的逐頁草稿使用全來源遞增版號，並為無法自動出題頁保留人工補題草稿", () => {
     assert.match(manager, /const questionSetVersionContext = async/);
     assert.match(manager, /version: Number\(latestVersionResult\.data\?\.version \|\| 0\) \+ 1/);

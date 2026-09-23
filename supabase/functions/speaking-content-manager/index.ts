@@ -682,6 +682,14 @@ const sourcePageLabels = (section: any) => {
     return Array.from({ length: to - from + 1 }, (_, index) => `P${from + index}`);
 };
 
+const markedSourcePageLabels = (sourceText: unknown, allowedPages: string[] = []) => {
+    const allowed = new Set(allowedPages);
+    const labels = [...String(sourceText || "").matchAll(/\[\[PAGE\s+P([1-9][0-9]{0,3})\]\]/gi)]
+        .map(match => `P${Number(match[1])}`)
+        .filter(label => allowed.size === 0 || allowed.has(label));
+    return [...new Set(labels)];
+};
+
 const markedPageSourceText = (sourceText: unknown, pageLabel: unknown) => {
     const normalizedPage = normalizePageLabel(pageLabel);
     if (!normalizedPage) return "";
@@ -1500,19 +1508,21 @@ Deno.serve(async (req: Request) => {
             const bookId = Number(document?.book_id);
             if (!bookId) return json(400, { error: "教材來源缺少書籍關聯" });
             const sectionPages = sourcePageLabels(section);
+            const retainedMarkedPages = markedSourcePageLabels(section.source_text, sectionPages);
+            const eligiblePageCandidates = sectionPages.length === 1 ? sectionPages : retainedMarkedPages;
             const pageCandidate = Boolean(requestedPageLabel);
             if (autoQuestionCount && !pageCandidate && sectionPages.length !== 1) {
                 return json(400, { error: "AI 自動判斷題數只能用於單一教材頁" });
             }
-            if (pageCandidate && (!sectionPages.includes(requestedPageLabel) || (!autoQuestionCount && questionCount > 6))) {
-                return json(400, { error: autoQuestionCount ? "逐頁候選草稿必須選擇來源範圍內的單一頁" : "逐頁候選草稿必須選擇來源範圍內的單一頁，且手動指定時每頁最多 6 題" });
+            if (pageCandidate && (!eligiblePageCandidates.includes(requestedPageLabel) || (!autoQuestionCount && questionCount > 6))) {
+                return json(400, { error: autoQuestionCount ? "逐頁候選草稿只能使用核准逐字稿中實際保留的頁碼" : "逐頁候選草稿只能使用核准逐字稿中實際保留的頁碼，且手動指定時每頁最多 6 題" });
             }
             const sourceText = pageCandidate
                 ? (sectionPages.length === 1 ? String(section.source_text || "").trim().slice(0, 18000)
                     : markedPageSourceText(section.source_text, requestedPageLabel))
                 : String(section.source_text || "").slice(0, 18000);
             if (sourceText.length < 20) {
-                return json(400, { error: `找不到 ${requestedPageLabel} 的逐頁 OCR 文字；請使用含 [[PAGE P頁碼]] 標記的新 OCR 結果，或改用逐頁手動建立。` });
+                return json(400, { error: `找不到 ${requestedPageLabel} 的核准逐字稿；請確認該頁的 [[PAGE P頁碼]] 與內容仍保留。` });
             }
             if (pageCandidate) {
                 const { data: existingCandidate, error: candidateError } = await admin.from("speaking_question_sets")
@@ -2136,7 +2146,7 @@ Deno.serve(async (req: Request) => {
             const setId = Number(body?.question_set_id);
             if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "找不到指定題庫" });
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,previous_set_id,generation_metadata").eq("id", setId).maybeSingle();
+                .select("id,status,previous_set_id,source_section_id,generation_metadata").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             if (!questionSet) return json(404, { error: "找不到指定題庫" });
             if (questionSet.status === "draft") {
@@ -2160,7 +2170,7 @@ Deno.serve(async (req: Request) => {
                     .eq("id", setId).eq("status", "draft").select("id").maybeSingle();
                 if (error) throw error;
                 if (!deletedDraft) return json(409, { error: "草稿狀態已變更，請重新整理後再試" });
-                return json(200, { success: true, deleted: true });
+                return json(200, { success: true, deleted: true, source_preserved: true, source_section_id: questionSet.source_section_id });
             }
             if (questionSet.status !== "published") return json(409, { error: "這個關卡已經下架" });
             const { data: revisionDraft, error: revisionDraftError } = await admin.from("speaking_question_sets")

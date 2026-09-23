@@ -137,7 +137,13 @@ const sourcePageLabels = section => {
     return Array.from({ length: toNumber - fromNumber + 1 }, (_, index) => `P${fromNumber + index}`);
 };
 
-const hasMarkedPageSource = (section, pageLabel) => new RegExp(`\\[\\[PAGE\\s+${pageLabel}\\]\\]`, "i").test(String(section?.source_text || ""));
+const markedSourcePageLabels = section => {
+    const allowedPages = new Set(sourcePageLabels(section));
+    const labels = [...String(section?.source_text || "").matchAll(/\[\[PAGE\s+P([1-9][0-9]{0,3})\]\]/gi)]
+        .map(match => `P${Number(match[1])}`)
+        .filter(label => allowedPages.size === 0 || allowedPages.has(label));
+    return [...new Set(labels)];
+};
 const createRequestKey = () => ((typeof window !== "undefined" && window.crypto?.randomUUID?.()) || [
     Math.random().toString(16).slice(2, 10), Math.random().toString(16).slice(2, 6), "4" + Math.random().toString(16).slice(2, 5),
     "8" + Math.random().toString(16).slice(2, 5), Math.random().toString(16).slice(2, 14)
@@ -181,7 +187,7 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
     });
     const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
     return <div className="speaking-ocr-review">
-        <div className="speaking-ocr-review__notice"><strong>AI 已完成文字辨識，尚未核准</strong><span>請對照原課本校正錯字、頁碼與題目順序；確認前不能交給 AI 出題。</span></div>
+        <div className="speaking-ocr-review__notice"><strong>AI 已完成文字辨識，尚未核准</strong><span>請對照原課本校正錯字、頁碼與題目順序。不需要建立關卡的頁面，請連同該頁的 <code>[[PAGE P頁碼]]</code> 與內容一起刪除；系統只處理逐字稿中實際留下的頁碼。</span></div>
         <div className="platform-form">
             <div className="platform-form-grid">
                 <label><span>Unit／單元</span><input value={form.unit_label} onChange={event => update("unit_label", event.target.value)} disabled={disabled} /></label>
@@ -191,7 +197,7 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
                 <label><span>程度</span><select value={form.language_level} onChange={event => update("language_level", event.target.value)} disabled={disabled}><option>國小低年級</option><option>國小中年級</option><option>國小高年級</option></select></label>
             </div>
             <label><span>OCR 辨識文字</span><textarea rows="14" minLength="20" value={form.source_text} onChange={event => update("source_text", event.target.value)} disabled={disabled} /></label>
-            <label className="speaking-confirm"><input type="checkbox" checked={form.confirmed} onChange={event => update("confirmed", event.target.checked)} disabled={disabled} /><span>我已逐頁對照原教材，確認文字、Unit、頁碼與主題正確。</span></label>
+            <label className="speaking-confirm"><input type="checkbox" checked={form.confirmed} onChange={event => update("confirmed", event.target.checked)} disabled={disabled} /><span>我已逐頁對照原教材，並確認逐字稿中留下的頁碼就是之後要建立關卡的頁面。</span></label>
             <button type="button" className="platform-primary" disabled={disabled || !form.confirmed || form.source_text.trim().length < 20 || !form.topic.trim()} onClick={() => onReview(section.id, form)}>核准 OCR 教材文字</button>
         </div>
     </div>;
@@ -607,11 +613,11 @@ export default function SpeakingContentAdmin() {
         finally { setWorking(""); }
     };
     const generatePageCandidates = async section => {
-        const pages = sourcePageLabels(section);
-        if (pages.length < 2 || pages.length > 10 || !pages.every(page => hasMarkedPageSource(section, page))) {
-            return toast.error("逐頁候選需要每頁都有 [[PAGE P頁碼]] 的已核對 OCR 文字；請重新 OCR 或改用逐頁手動建立");
+        const pages = markedSourcePageLabels(section);
+        if (pages.length < 1 || pages.length > 10) {
+            return toast.error("核准逐字稿中沒有可建立的 [[PAGE P頁碼]] 標記；請保留需要建立關卡的頁碼與內容");
         }
-        if (!window.confirm(`將從 ${pages.join("、")} 分別分析每頁的已核對文字，由 AI 依該頁實際內容自動判斷題數。\n\n系統會略過格線、頁碼、標題與作業指令，單頁安全上限為 30 題。只會建立未發布草稿；每頁仍須逐題審核，圖片只會列為裁切建議，不會自動上傳或猜圖。`)) return;
+        if (!window.confirm(`核准逐字稿目前保留 ${pages.length} 頁：${pages.join("、")}。系統只會分析這些頁面，已從逐字稿刪除的頁面不會建立關卡。\n\nAI 會依每頁實際內容自動判斷題數，並略過格線、頁碼、標題與作業指令；單頁安全上限為 30 題。只會建立未發布草稿，OCR 逐字稿會繼續保留，之後刪除草稿仍可重新建立。`)) return;
         setWorking(`page-candidates-${section.id}`);
         setPageGenerationReport(null);
         let progressRows = pages.map(page => ({ page, status: "pending" }));
@@ -736,14 +742,14 @@ export default function SpeakingContentAdmin() {
         const isDraft = questionSet.status === "draft";
         const questionCount = (questionSet.speaking_questions || []).length;
         const confirmation = isDraft
-            ? `確定刪除未發布草稿「${questionSet.title}」第 ${questionSet.version} 版嗎？\n\n草稿內的 ${questionCount} 題會一併刪除；已發布版本與學生進度不受影響。此動作無法復原。`
+            ? `確定刪除未發布草稿「${questionSet.title}」第 ${questionSet.version} 版嗎？\n\n草稿內的 ${questionCount} 題會一併刪除；已發布版本與學生進度不受影響。已核准 OCR 逐字稿會保留，可用來重新建立 AI 草稿。草稿刪除本身無法復原。`
             : `確定要下架正式關卡「${questionSet.title}」嗎？學生學習紀錄會保留。`;
         if (!window.confirm(confirmation)) return;
         setWorking(`archive-${questionSet.id}`);
         try {
             await archiveSpeakingQuestionSet(firebaseUser, questionSet.id);
             setSelectedQuestionSetId(null);
-            toast.success(questionSet.status === "draft" ? "草稿已刪除" : "正式關卡已下架，歷史紀錄仍保留");
+            toast.success(questionSet.status === "draft" ? "草稿已刪除；OCR 逐字稿仍保留，可重新建立" : "正式關卡已下架，歷史紀錄仍保留");
             await load();
         } catch (error) { toast.error(error.message || "關卡處理失敗"); }
         finally { setWorking(""); }
@@ -972,7 +978,7 @@ export default function SpeakingContentAdmin() {
         </section>
 
         {pendingOcrSourceRows.length > 0 && <section className="platform-card speaking-admin-block--source" aria-labelledby="speaking-ocr-review-title">
-            <div className="platform-section-title"><div><span className="platform-eyebrow">OCR REVIEW</span><h2 id="speaking-ocr-review-title">待核對 OCR 批次</h2><p>逐批展開並對照原教材，保留每頁的 <code>[[PAGE P頁碼]]</code> 標記；核准後即可依頁建立候選草稿。</p></div><strong>{pendingOcrSourceRows.length} 批</strong></div>
+            <div className="platform-section-title"><div><span className="platform-eyebrow">OCR REVIEW</span><h2 id="speaking-ocr-review-title">待核對 OCR 批次</h2><p>逐批展開並對照原教材；只保留需要建立關卡頁面的 <code>[[PAGE P頁碼]]</code> 與內容。刪除整頁代表略過該頁，不要求原始範圍每頁都有標記。</p></div><strong>{pendingOcrSourceRows.length} 批</strong></div>
             <div className="speaking-source-list">{pendingOcrSourceRows.map(section => <details className="speaking-source-card speaking-ocr-source-card" key={`ocr-review-${section.id}`}>
                 <summary>
                     <div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 待人工核准</p></div>
@@ -1006,13 +1012,14 @@ export default function SpeakingContentAdmin() {
             <div className="speaking-source-list">{sourceRows.filter(section => section.status === "reviewed").map(section => {
                 const pageLabels = sourcePageLabels(section);
                 const isSinglePage = pageLabels.length === 1;
-                const canGenerateByPage = pageLabels.length > 1 && pageLabels.length <= 10
-                    && pageLabels.every(pageLabel => hasMarkedPageSource(section, pageLabel));
+                const retainedPageLabels = markedSourcePageLabels(section);
+                const canGenerateByPage = !isSinglePage && retainedPageLabels.length > 0 && retainedPageLabels.length <= 10;
                 const generationReport = Number(pageGenerationReport?.sectionId) === Number(section.id) ? pageGenerationReport : null;
                 const generationProgress = Number(pageGenerationProgress?.sectionId) === Number(section.id) ? pageGenerationProgress : null;
                 const progressPercent = generationProgress ? Math.round((generationProgress.completed / generationProgress.total) * 100) : 0;
                 return <article className="speaking-source-card" key={`source-${section.id}`}>
-                    <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{canGenerateByPage && <button type="button" className="platform-primary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{generationProgress ? `逐頁建立 ${generationProgress.completed}/${generationProgress.total}` : "依每頁建立候選草稿"}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">跨頁來源必須先保留每頁的 <code>[[PAGE P頁碼]]</code> 標記，才能逐頁建立關卡。</span>}</div></header>
+                    <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准{retainedPageLabels.length > 0 ? ` · 逐字稿保留 ${retainedPageLabels.join("、")}` : ""}</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{canGenerateByPage && <button type="button" className="platform-primary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{generationProgress ? `逐頁建立 ${generationProgress.completed}/${generationProgress.total}` : `依逐字稿建立 ${retainedPageLabels.length} 頁草稿`}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">核准逐字稿中沒有可用的 <code>[[PAGE P頁碼]]</code>；請保留至少一個要建立關卡的頁碼與內容。</span>}</div></header>
+                    <details className="speaking-source-transcript"><summary>查看已保留的核准逐字稿</summary><pre>{section.source_text}</pre><small>這份來源不會因建立、刪除或重新建立 AI 草稿而刪除。</small></details>
                     {generationProgress && <div className="speaking-page-generation-progress" role="status" aria-live="polite">
                         <header><strong>正在逐頁建立草稿</strong><span>{generationProgress.completed}/{generationProgress.total} · {progressPercent}%</span></header>
                         <p>{generationProgress.currentPage ? `正在處理 ${generationProgress.currentPage}：AI 分析、重複檢查與草稿儲存。` : "所有頁面已處理，正在重新整理草稿清單。"}</p>
