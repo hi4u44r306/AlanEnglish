@@ -25,4 +25,3 @@ export const getStudentNotificationDestination = notification => {
     const notificationType = String(notification?.notification_type || "").trim().toLowerCase();
     return DESTINATION_BY_TYPE[notificationType] || null;
 };
-

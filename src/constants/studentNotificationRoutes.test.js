@@ -17,4 +17,3 @@ describe("student notification routes", () => {
             .toBeNull();
     });
 });
-
