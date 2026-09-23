@@ -1,20 +1,21 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-22
+最後更新：2026-09-23
 
-本次 Workbook 3 逐頁草稿只建立 P1 修正（2026-09-22，本機完成、尚未部署）：
+本次 Workbook 3 逐頁草稿只建立 P1 修正（2026-09-23，正式部署完成）：
 
 - 唯讀查核遠端 Workbook 3 P1～P10 生成工作後確認：P1 成功；P2、P5、P7、P8、P9 已由 AI 找到 1／14／13／1／18 題，但 `speaking_question_sets_unique_version (source_section_id, version)` 要求同一十頁來源的版本號不可重複，而舊邏輯卻讓每個新頁面都使用第 1 版，因此全數以 `question_set_insert_failed` 失敗。P4 的 10 題皆與既有題庫重複；P3、P6、P10 僅有填空或中文詞彙，沒有可安全直接朗讀的完整英文句。
 - `speaking-content-manager` 現在以整個來源 section 的最新版本計算下一個唯一版本號，但 `previous_set_id` 仍只連到同一頁的上一版。正常頁建立 AI 題目；無完整句或全部重複的頁面仍建立 0 題「待人工補題」單頁草稿，保留原因與重複來源，且至少人工新增一題前不得核准或發布。
-- 管理頁在已核准來源卡下永久顯示 P1～P10 每頁結果；0 題頁面的批次核准勾選停用並改顯示「打開補題」。未修改 schema、migration、RLS、既有題庫、發布狀態或學生資料；Function 尚未部署，因此 localhost 目前只能驗證前端與程式契約，不能以遠端 Function 實際重建十頁草稿。
+- 管理頁在已核准來源卡下永久顯示 P1～P10 每頁結果；0 題頁面的批次核准勾選停用並改顯示「打開補題」。未修改 schema、migration、RLS、既有題庫、發布狀態或學生資料。
 - 驗證：管理頁 targeted 17/17、逐頁 OCR／版本號契約 3/3、Edge Function TypeScript 語法、Production build 與 `git diff --check` 均通過。完整口說契約另有一項既有手機導覽 CSS selector 斷言失敗，與本批逐頁建立修正無關。
+- PR #251 已合併至 `main` commit `42529a2`；Cloudflare production build `fb5dad1c-5666-4caf-a157-3d62e4e140a4` 成功。正式 `speaking-content-manager` 為 ACTIVE v41，未登入 POST 實測回應 401。未代替管理員重新產生、核准或發布 Workbook 3 草稿。
 
-本次 OCR 候選草稿單頁卡片修正（2026-09-22，本機完成、尚未部署）：
+本次 OCR 候選草稿單頁卡片修正（2026-09-23，正式部署完成）：
 
 - 修正「依每頁建立候選草稿」已正確產生 `source_page_label = P1` 等單頁題庫，但「製作中草稿」仍用原始十頁 OCR section 顯示 `P1–P10（舊版跨頁）` 的誤導問題。逐頁 OCR／AI 候選現在依題庫的單一來源頁拆成獨立卡片，例如 P1、P2 各自是一個關卡；只有真正仍以跨頁來源建立的舊題庫才保留「舊版跨頁」。
 - 此修正只改管理頁的列表投影與顯示，不修改既有題庫、來源 section、Supabase Function、schema、RLS、學生進度或發布狀態。管理頁 targeted 17/17、Production build 與 `git diff --check` 通過；localhost 已以現有 Workbook 3 草稿驗收，外層顯示「P1 · 所有格／P1 單頁關卡」，內層顯示「P1 口說練習」，不再誤標 `P1–P10（舊版跨頁）`。未替管理員核准或發布草稿。
 
-本次整本 OCR 核對入口修正（2026-09-22，本機完成、尚未部署）：
+本次整本 OCR 核對入口修正（2026-09-23，正式部署完成）：
 
 - 「1 教材來源」新增「待核對 OCR 批次」，會直接列出尚未建立題庫的 `draft` 教材來源；管理員可逐批展開、校正 Unit／主題／頁碼與 OCR 文字、保留 `[[PAGE P頁碼]]` 標記並核准，不再因題庫尚未存在而被「製作中草稿」列表排除。
 - 核准後沿用既有 `review_ocr_source` 流程移至「已核准教材頁面」；單頁可建立本頁 AI 草稿，含完整頁碼標記的十頁批次可按「依每頁建立候選草稿」。未修改資料庫、RLS、Edge Function、既有 OCR 文字、題庫或學生資料。
