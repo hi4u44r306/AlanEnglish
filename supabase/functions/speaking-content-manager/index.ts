@@ -28,7 +28,8 @@ import {
 import { workbookOnePictureReviewCandidates } from "../_shared/workbook-one-picture-review-candidates.ts";
 import {
     extractNumberedTextQaPairs,
-    filterOcrPageSpeakingCandidates
+    filterOcrPageSpeakingCandidates,
+    reviewedTextQaPromptIsComplete
 } from "../_shared/speaking-ocr-candidate-filter.ts";
 import {
     textQaGenderSignal,
@@ -553,7 +554,8 @@ const normalizePageCandidateGeneration = (
         if (interactionType === "standard_sentence") {
             return allowed.has(normalized.question_text) ? normalized : null;
         }
-        if (!allowed.has(normalized.question_text) || !normalized.question_text.endsWith("?")
+        if (!allowed.has(normalized.question_text)
+            || !reviewedTextQaPromptIsComplete(normalized.question_text)
             || !allowed.has(normalized.model_answer)
             || !textQaGenderIsConsistent(normalized.question_text, normalized.model_answer)) return null;
         const acceptedAnswers = cleanArray(row?.accepted_answers, 12, 500)
