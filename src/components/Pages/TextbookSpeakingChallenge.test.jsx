@@ -318,6 +318,23 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
     });
 
+    it("地圖節點先開摘要，再由進入挑戰前往題目", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [{ id: 21, title: "P21 看圖問答", topic: "看圖問答", intro_zh: "用圖片練習完整問答", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [21], question_count: 9, completed_count: 0, sequence_order: 10021, is_unlocked: true }]
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><LocationProbe /><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /><Route path="/student/speaking-challenges/:questionSetId" element={<div>正式挑戰頁</div>} /></Routes></MemoryRouter>);
+
+        const node = await screen.findByRole("button", { name: /看圖問答/ });
+        expect(node.closest(".speaking-adventure-map")).toBeInTheDocument();
+        expect(node.querySelector(".speaking-challenge-lesson__number")).toHaveTextContent("P.21");
+        fireEvent.click(node);
+        expect(screen.getByRole("dialog", { name: "看圖問答" })).toHaveTextContent("用圖片練習完整問答");
+        expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/");
+        fireEvent.click(screen.getByRole("button", { name: /進入挑戰/ }));
+        expect(screen.getByText("正式挑戰頁")).toBeInTheDocument();
+    });
+
     it("學生列表預設收合遊戲規則，點擊後可展開及再次收起，老師預覽不重複顯示", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [],

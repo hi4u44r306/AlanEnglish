@@ -9,6 +9,7 @@ import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import "./css/TextbookSpeakingChallenge.scss";
+import "./css/SpeakingAdventureMap.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },
@@ -49,6 +50,19 @@ const pageReference = item => {
     return pages ? `P.${pages}` : "";
 };
 
+const mapRoutePath = count => {
+    const height = count * 156 + 96;
+    let route = `M 260 ${height - 100}`;
+    for (let index = 1; index < count; index += 1) {
+        const startX = index % 2 ? 260 : 740;
+        const endX = index % 2 ? 740 : 260;
+        const startY = height - 100 - (index - 1) * 156;
+        const endY = height - 100 - index * 156;
+        route += ` C ${startX} ${startY - 88}, ${endX} ${endY + 88}, ${endX} ${endY}`;
+    }
+    return { height, route };
+};
+
 const challengeBookCatalogPath = challenge => {
     const book = challenge?.book || challenge?.books || {};
     const bookIdentity = book.id || book.code || book.name;
@@ -81,14 +95,10 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
         aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關${rewardLabel}`}
     >
         <span className="speaking-book-card__art" aria-hidden="true">
-            <span className="speaking-book-card__spark is-one">✦</span>
-            <span className="speaking-book-card__spark is-two">★</span>
-            <span className="speaking-book-card__speech"><FiMic /> LET'S SPEAK!</span>
-            <span className="speaking-book-card__mascot">
-                <FiBookOpen />
-                <b>Aa</b>
-                <span className="speaking-book-card__face"><i /><i /><em /></span>
+            <span className="speaking-book-card__route">
+                <i /><i /><i /><i />
             </span>
+            <span className="speaking-book-card__route-caption">一路向上挑戰</span>
         </span>
         <span className="speaking-book-card__content">
             <small className="speaking-book-card__eyebrow">BOOK {index + 1} · SPEAKING ADVENTURE</small>
@@ -114,7 +124,7 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
     </button>;
 };
 
-const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
+const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapIndex }) => {
     const locked = !staffPreview && item.is_unlocked === false;
     const completed = item.is_completed === true;
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
@@ -123,11 +133,31 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     const challengeLabel = lessonTitle(item);
     const topicOrType = item.topic || item.intro_zh || sectionCopy.label;
     const level = item.difficulty ? ` · ${item.difficulty}` : "";
-    return <button className={`speaking-challenge-lesson is-${section} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
+    return <button className={`speaking-challenge-lesson is-${section} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-order": mapIndex, "--map-side": mapIndex % 2 ? "74%" : "26%", "--map-scale": Math.max(0.86, 1 - mapIndex * 0.025) }} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
     <span className="speaking-challenge-lesson__number">{showPageReference ? pages : sectionCopy.badge}</span>
     <span className="speaking-challenge-lesson__copy"><strong>{challengeLabel}</strong><small>{topicOrType}{level}</small></span>
     <span className="speaking-challenge-lesson__meta">{locked ? <><FiLock aria-hidden="true" /><small id={`speaking-challenge-lock-${item.id}`}>先完成前一關</small></> : completed ? <><FiCheck aria-hidden="true" /><small>已通關</small></> : <><b>{item.completed_count}/{item.question_count}</b><small>{staffPreview ? "預覽" : "開始挑戰"}</small></>}</span>
     </button>;
+};
+
+const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef }) => {
+    const pages = pageReference(item);
+    const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
+    return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+        <section className="speaking-level-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
+            <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
+            <span className="speaking-level-dialog__eyebrow">{sectionCopy.label} · {pages || sectionCopy.badge}</span>
+            <h2 id="speaking-level-title">{lessonTitle(item)}</h2>
+            <p id="speaking-level-description">{item.intro_zh || item.learning_goal_zh || item.topic || "準備好開口說英文了嗎？"}</p>
+            <div className="speaking-level-dialog__facts">
+                <span><small>教材頁碼</small><strong>{pages || "入門／主題關卡"}</strong></span>
+                <span><small>本關題數</small><strong>{item.question_count} 題</strong></span>
+                <span><small>目前進度</small><strong>{item.is_completed ? "已通關" : `${item.completed_count || 0}/${item.question_count} 題`}</strong></span>
+            </div>
+            {item.learning_goal_zh && item.intro_zh && <p className="speaking-level-dialog__goal">目標：{item.learning_goal_zh}</p>}
+            <div className="speaking-level-dialog__actions"><button type="button" onClick={onClose}>再看看地圖</button><button type="button" className="primary" onClick={onEnter}>進入挑戰 <FiChevronRight aria-hidden="true" /></button></div>
+        </section>
+    </div>;
 };
 
 const ChallengeRules = ({ policy }) => {
@@ -171,8 +201,11 @@ export default function TextbookSpeakingChallenge() {
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [completionNotice, setCompletionNotice] = useState(null);
     const [challengeSessionId, setChallengeSessionId] = useState("");
+    const [selectedLesson, setSelectedLesson] = useState(null);
     const audioRef = useRef(null);
     const questionHeadingRef = useRef(null);
+    const levelDialogRef = useRef(null);
+    const selectedNodeRef = useRef(null);
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const questions = challenge?.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
@@ -246,6 +279,40 @@ export default function TextbookSpeakingChallenge() {
             window.scrollTo({ top: 0, behavior: "auto" });
         }
     }, [bookKey, questionSetId]);
+
+    useEffect(() => {
+        setSelectedLesson(null);
+    }, [bookKey]);
+
+    useEffect(() => {
+        if (!bookKey || !catalog.length || process.env.NODE_ENV === "test") return;
+        const node = document.querySelector(".speaking-catalog-section.is-textbook .speaking-challenge-lesson.is-current")
+            || document.querySelector(".speaking-challenge-lesson.is-current");
+        node?.scrollIntoView?.({ block: "center", behavior: "auto" });
+    }, [bookKey, catalog]);
+
+    useEffect(() => {
+        if (!selectedLesson) return undefined;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        levelDialogRef.current?.querySelector(".speaking-level-dialog__actions .primary")?.focus();
+        const onKeyDown = event => {
+            if (event.key === "Escape") setSelectedLesson(null);
+            if (event.key !== "Tab") return;
+            const buttons = [...(levelDialogRef.current?.querySelectorAll("button") || [])];
+            if (!buttons.length) return;
+            const first = buttons[0];
+            const last = buttons[buttons.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener("keydown", onKeyDown);
+            selectedNodeRef.current?.focus();
+        };
+    }, [selectedLesson]);
 
     useEffect(() => {
         if (!firebaseUser) return;
@@ -346,11 +413,16 @@ export default function TextbookSpeakingChallenge() {
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
-                {!catalogLoading && selectedBook && <section className="speaking-catalog-group">
-                    {selectedBook.sections.map(section => <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h2>{section.label}</h2></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons">{section.items.map(item => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}
+                {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-map" aria-label={`${selectedBook.label} 冒險地圖`}>
+                    {selectedBook.sections.map(section => {
+                        const currentIndex = section.items.findIndex(item => item.is_unlocked !== false && item.is_completed !== true);
+                        const { height, route } = mapRoutePath(section.items.length);
+                        return <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h2>{section.label}</h2></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons" style={{ "--map-height": `${height}px` }}><svg className="speaking-map-route" viewBox={`0 0 1000 ${height}`} preserveAspectRatio="none" aria-hidden="true"><path className="speaking-map-route__edge" d={route} /><path className="speaking-map-route__center" d={route} /></svg>{section.items.map((item, itemIndex) => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} current={itemIndex === currentIndex} mapIndex={itemIndex} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section: section.id }); }} />)}</div></section>;
+                    })}
                 </section>}
                 {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
+            {selectedLesson && <ChallengePreviewDialog item={selectedLesson.item} section={selectedLesson.section} dialogRef={levelDialogRef} onClose={() => setSelectedLesson(null)} onEnter={() => navigate(`/student/speaking-challenges/${selectedLesson.item.id}`)} />}
         </main>;
     }
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
