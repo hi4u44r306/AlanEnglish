@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
     extractNumberedTextQaPairs,
-    filterOcrPageSpeakingCandidates
+    filterOcrPageSpeakingCandidates,
+    reviewedTextQaPromptIsComplete
 } from "../supabase/functions/_shared/speaking-ocr-candidate-filter.ts";
 import { textQaQuestionContentValid } from "../supabase/functions/_shared/speaking-text-qa.ts";
 
@@ -281,11 +282,10 @@ I am going to hit the books.
 I am a bookworm. I like to read a lot.
 No, I am the teacher's pet. I am a model student.`);
 
-    assert.equal(page17.length, 7);
-    assert.equal(page17[0].question_text, "Your father is nice to you.");
-    assert.equal(page17[0].model_answer, "Yes! I am the apple of his eye.");
-    assert.equal(page17[4].question_text, "Please be quiet! I am going to...");
-    assert.equal(page17[4].model_answer, "I am going to hit the books.");
+    assert.equal(page17.length, 2);
+    assert.equal(page17[0].question_text, "Why are you always studying hard?");
+    assert.equal(page17[0].model_answer, "I am a bookworm. I like to read a lot.");
+    assert.equal(page17[1].question_text, "Have you ever skipped class?");
 
     const page20 = extractNumberedTextQaPairs(`[[PAGE P20]]
 43. Are you hungry?
@@ -306,4 +306,39 @@ I eat ______ once a week/ twice a month/ 3 times a year.`);
     assert.equal(page20.length, 6);
     assert.equal(page20[0].model_answer, "Yes, I'm starving. I can eat a cow.");
     assert.equal(page20[5].question_text, "What is your favorite food/dessert/fruit?");
+});
+
+test("accepts complete P15 conversation cues without turning P17 idiom stems into questions", () => {
+    assert.equal(reviewedTextQaPromptIsComplete("Nice to meet you!"), true);
+    assert.equal(reviewedTextQaPromptIsComplete("Are you sure? You look like a 6-year-old boy/girl."), true);
+    assert.equal(reviewedTextQaPromptIsComplete("Your father is nice to you."), false);
+    assert.equal(reviewedTextQaPromptIsComplete("Please be quiet! I am going to..."), false);
+    assert.equal(reviewedTextQaPromptIsComplete("How often do you eat bread/eat out/in a rest..."), false);
+
+    const reviewedPage15 = extractNumberedTextQaPairs(`[[PAGE P15]]
+29. How are you? How are you doing? (很好)
+Great.
+[[RED_ANSWER: Great.]]
+30. Nice to meet you!
+Nice to meet you, too. / Me too.
+[[RED_ANSWER: Nice to meet you, too. / Me too.]]
+31. Are you a student?
+Yes, I am. Am I not like a student?
+[[RED_ANSWER: Yes, I am. Am I not like a student?]]
+32. How old are you? (8)
+I am eight.
+[[RED_ANSWER: I am eight.]]
+33. Are you sure? You look like a 6-year-old boy/girl.
+Really? I have good genes.
+[[RED_ANSWER: Really? I have good genes.]]
+34. Are you in Grade 1 or 2?
+I'm in grade 2. I'm in the second grade.
+[[RED_ANSWER: I'm in grade 2. I'm in the second grade.]]
+35. What class are you in? (五班)
+I'm in class 5. I'm in the fifth class.
+[[RED_ANSWER: I'm in class 5. I'm in the fifth class.]]`);
+
+    assert.equal(reviewedPage15.length, 7);
+    assert.equal(reviewedPage15[1].question_text, "Nice to meet you!");
+    assert.equal(reviewedPage15[4].question_text, "Are you sure? You look like a 6-year-old boy/girl.");
 });

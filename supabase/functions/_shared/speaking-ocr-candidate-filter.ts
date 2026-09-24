@@ -120,17 +120,18 @@ const reviewedAnswerTemplate = (value: string, question: string) => {
     );
 };
 
-const REVIEWED_QUESTION_LEAD = /^(?:who|what|where|when|why|how|do|does|did|are|is|am|was|were|have|has|had|can|could|will|would|should|may|might)\b/i;
+const REVIEWED_DIALOGUE_CUE = /^(?:nice to meet you|hello|hi|good morning|good afternoon|good evening|good night|thank you|thanks|goodbye|bye)[!.]?$/i;
 
-const reviewedPromptIsComplete = (prompt: string, promptHasGenderChoice: boolean) => {
+export const reviewedTextQaPromptIsComplete = (prompt: string) => {
+    const promptHasGenderChoice = HAS_CONTROLLED_GENDER_PAIR.test(prompt);
     if (englishWords(prompt).length < 2
         || (!promptHasGenderChoice && prompt.replace(/[A-Za-z0-9\s.,!?'’"()\-–—:;/]/g, "") !== "")
         || !/[.!?](?:["')\]]+)?$/.test(prompt)) return false;
     if (prompt.includes("?")) return true;
-    // A truncated OCR question such as "How often ... in a rest..." must not
-    // become a draft. Reviewed cue statements and exclamations are valid text
-    // prompts because the learner answers them with the paired designed line.
-    return !REVIEWED_QUESTION_LEAD.test(prompt);
+    // A small set of complete social cues are valid conversational prompts.
+    // Other statements and sentence fragments (for example Workbook 3 P17
+    // idiom stems) are source context, not questions for the learner.
+    return REVIEWED_DIALOGUE_CUE.test(prompt);
 };
 
 const likelyGroupedAnswerLine = (value: string) => englishWords(value).length >= 1
@@ -175,9 +176,8 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
     }
 
     return blocks.flatMap(block => {
-        const promptHasGenderChoice = HAS_CONTROLLED_GENDER_PAIR.test(block.prompt);
         const prompt = normalizeSentence(block.prompt);
-        const questions = reviewedPromptIsComplete(prompt, promptHasGenderChoice) ? [prompt] : [];
+        const questions = reviewedTextQaPromptIsComplete(prompt) ? [prompt] : [];
         if (!questions.length) return [];
 
         const answers = Array.from(new Set(block.answers.flatMap(answerLine => {
