@@ -16,12 +16,16 @@ export const textQaGenderSignal = (value: unknown) => {
 export const textQaGenderIsConsistent = (questionText: unknown, answerText: unknown) => {
     const questionGender = textQaGenderSignal(questionText);
     const answerGender = textQaGenderSignal(answerText);
+    const question = String(questionText || "").toLowerCase();
     const answer = String(answerText || "").toLowerCase();
     const mixedPronouns = (/\bhe\b/.test(answer) && /\b(?:her|hers)\b/.test(answer))
         || (/\bshe\b/.test(answer) && /\b(?:his|him)\b/.test(answer));
     if (mixedPronouns) return false;
-    if (questionGender === "male" && answerGender !== "male") return false;
-    if (questionGender === "female" && answerGender !== "female") return false;
+    const neutralPluralFamilyAnswer = answerGender === "neutral"
+        && /\b(?:brothers|sisters)\b/.test(question)
+        && /\b(?:they|them|their)\b/.test(answer);
+    if (questionGender === "male" && answerGender !== "male" && !neutralPluralFamilyAnswer) return false;
+    if (questionGender === "female" && answerGender !== "female" && !neutralPluralFamilyAnswer) return false;
     return true;
 };
 
@@ -37,7 +41,7 @@ export const textQaQuestionContentValid = (question: any) => {
         .map((answer: unknown) => clean(answer, 500)).filter(Boolean))]
         .filter(answer => answer !== modelAnswer);
     const answers = [modelAnswer, ...alternatives].filter(Boolean);
-    if (!questionText.endsWith("?") || answers.length < 1
+    if (!/[.!?](?:["')\]]+)?$/.test(questionText) || answers.length < 1
         || answers.some(answer => !textQaGenderIsConsistent(questionText, answer))) return false;
     const questionGender = textQaGenderSignal(questionText);
     const modelGender = textQaGenderSignal(modelAnswer);

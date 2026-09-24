@@ -49,6 +49,9 @@ export const reorderDraftSpeakingQuestions = (firebaseUser, questionSetId, quest
 export const archiveSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "archive_question_set", {
     question_set_id: questionSetId
 });
+export const archiveSpeakingSourceSection = (firebaseUser, sourceSectionId) => callSpeakingContent(firebaseUser, "archive_source_section", {
+    source_section_id: sourceSectionId
+});
 export const publishSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "publish_question_set", { question_set_id: questionSetId });
 export const generateSpeakingQuestionSetAudio = (firebaseUser, questionSetId) => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_set_audio", question_set_id: questionSetId })
@@ -131,7 +134,10 @@ const uploadPrivatePdf = async (upload, body) => {
             body
         });
     } catch (error) {
-        throw new Error("無法連線到私人教材儲存空間。請確認 R2 CORS 已允許目前網站與 PUT 上傳後再重試。", { cause: error });
+        const currentOrigin = typeof window !== "undefined" && window.location?.origin
+            ? `（${window.location.origin}）`
+            : "";
+        throw new Error(`無法連線到私人教材儲存空間。請在 R2 CORS AllowedOrigins 加入目前來源${currentOrigin}，並允許 PUT 與 Content-Type 後再重試。`, { cause: error });
     }
     if (!response.ok) throw new Error(`私人教材上傳失敗（HTTP ${response.status}）`);
 };

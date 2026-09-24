@@ -43,8 +43,9 @@ export const expandControlledGenderChoices = (value: unknown) => {
 const normalizeSentence = (value: string) => value
     .replace(/^\s*(?:\d{1,3}|[A-Za-z])\s*[.)、]\s*/, "")
     .replace(/^\s*(?:[A-Za-z][A-Za-z ]{0,20})\s*[:：]\s*/, "")
-    .replace(/\s*[（(][^A-Za-z()]*[）)]\s*$/u, "")
+    .replace(/\s*[（(][^A-Za-z()]*[）)]/gu, "")
     .replace(/\s+/g, " ")
+    .replace(/\s+([,.;!?])/g, "$1")
     .trim();
 
 const isSpeakableSentence = (value: string) => {
@@ -119,12 +120,30 @@ const reviewedAnswerTemplate = (value: string, question: string) => {
     );
 };
 
-// Reviewed personal-question pages use one numbered block per prompt and its
-// teacher-designed response. Every numbered block remains one question. OCR
-// blanks become named speaking slots so personal names and ages stay variable
-// instead of causing the whole source question to be discarded.
+const REVIEWED_QUESTION_LEAD = /^(?:who|what|where|when|why|how|do|does|did|are|is|am|was|were|have|has|had|can|could|will|would|should|may|might)\b/i;
+
+const reviewedPromptIsComplete = (prompt: string, promptHasGenderChoice: boolean) => {
+    if (englishWords(prompt).length < 2
+        || (!promptHasGenderChoice && prompt.replace(/[A-Za-z0-9\s.,!?'’"()\-–—:;/]/g, "") !== "")
+        || !/[.!?](?:["')\]]+)?$/.test(prompt)) return false;
+    if (prompt.includes("?")) return true;
+    // A truncated OCR question such as "How often ... in a rest..." must not
+    // become a draft. Reviewed cue statements and exclamations are valid text
+    // prompts because the learner answers them with the paired designed line.
+    return !REVIEWED_QUESTION_LEAD.test(prompt);
+};
+
+const likelyGroupedAnswerLine = (value: string) => englishWords(value).length >= 1
+    && (/[.!?](?:["')\]]+)?$/.test(value) || /[_＿]{2,}/.test(value));
+
+// Reviewed personal-question pages use either an interleaved prompt/answer
+// layout or a grouped layout where every numbered prompt is followed by the
+// same number of teacher-designed response lines. Every numbered block remains
+// one question. OCR blanks become named speaking slots so personal names and
+// ages stay variable instead of causing the whole source question to be
+// discarded.
 export const extractNumberedTextQaPairs = (sourceText: unknown) => {
-    const blocks: Array<{ prompt: string; answers: string[] }> = [];
+    let blocks: Array<{ prompt: string; answers: string[] }> = [];
     let current: { prompt: string; answers: string[] } | null = null;
     for (const rawLine of String(sourceText || "").replace(/\r/g, "").split("\n")) {
         const line = rawLine.trim();
@@ -138,13 +157,27 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
     }
     if (current) blocks.push(current);
 
+    const groupedLayout = blocks.length > 1
+        && blocks.slice(0, -1).every(block => block.answers.length === 0)
+        && blocks[blocks.length - 1].answers.length >= blocks.length;
+    if (groupedLayout) {
+        const groupedAnswers = [...blocks[blocks.length - 1].answers];
+        while (groupedAnswers.length > blocks.length && !likelyGroupedAnswerLine(groupedAnswers[0])) {
+            groupedAnswers.shift();
+        }
+        while (groupedAnswers.length > blocks.length
+            && !likelyGroupedAnswerLine(groupedAnswers[groupedAnswers.length - 1])) {
+            groupedAnswers.pop();
+        }
+        if (groupedAnswers.length === blocks.length) {
+            blocks = blocks.map((block, index) => ({ ...block, answers: [groupedAnswers[index]] }));
+        }
+    }
+
     return blocks.flatMap(block => {
         const promptHasGenderChoice = HAS_CONTROLLED_GENDER_PAIR.test(block.prompt);
         const prompt = normalizeSentence(block.prompt);
-        const questions = prompt.endsWith("?") && (
-            englishWords(prompt).length >= 2
-            && (promptHasGenderChoice || prompt.replace(/[A-Za-z0-9\s.,!?'’"()\-–—:;/]/g, "") === "")
-        ) ? [prompt] : [];
+        const questions = reviewedPromptIsComplete(prompt, promptHasGenderChoice) ? [prompt] : [];
         if (!questions.length) return [];
 
         const answers = Array.from(new Set(block.answers.flatMap(answerLine => {

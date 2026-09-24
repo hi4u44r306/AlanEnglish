@@ -115,6 +115,16 @@ test("requires opposite consistent alternatives only when a text question does n
         model_answer: "No, I'm the only child.",
         accepted_intents: ["Yes, I have a brother and a sister."]
     }), true);
+    assert.equal(textQaQuestionContentValid({
+        question_text: "Your father is nice to you.",
+        model_answer: "Yes! I am the apple of his eye.",
+        accepted_intents: []
+    }), true);
+    assert.equal(textQaQuestionContentValid({
+        question_text: "What are your brothers' names? Do you love them?",
+        model_answer: "They are Sean and Kenny. No, they're naughty.",
+        accepted_intents: []
+    }), true);
 });
 
 test("keeps every reviewed Workbook 3 numbered question and turns blanks into speaking slots", () => {
@@ -192,4 +202,108 @@ Her name is _____. I love her, sometimes.`);
         { question_text: "What's your brother's name? Do you love him?", model_answer: "His name is [兄弟的名字]. I don't love him, sometimes.", accepted_answers: [] },
         { question_text: "What's your sister's name? Do you love her?", model_answer: "Her name is [姊妹的名字]. I love her, sometimes.", accepted_answers: [] }
     ]);
+});
+
+test("pairs grouped Workbook 3 prompts with the matching reviewed answers", () => {
+    const page11 = extractNumberedTextQaPairs(`[[PAGE P11]]
+22. What are your brothers' names?( 尚恩 , 肯尼 ) Do you love them?( 不 , 調皮 )
+23. What are your sisters' names?( 貝蒂 , 露易莎 ) Do you love them?( 是 , 可愛 )
+24. How many people are there in your family?
+25. Do you live with your parents?
+26. Do you live with your grandparents?
+27. Who do you live with?( 雙親 )
+28. Who do you sleep with?( 單獨 , 我覺得孤單 )
+They are Sean and Kenny. No, they're naughty.
+They are Betty and Louisa. Yes, they're cute.
+There are _____ people in my family.
+Yes, they are kind. They're generous and witty.
+Yes, I live with them./Yes, they just moved in./No, they live alone.
+I live with my parents.
+I sleep alone in my room. I feel lonely.`);
+
+    assert.equal(page11.length, 7);
+    assert.deepEqual(page11[0], {
+        question_text: "What are your brothers' names? Do you love them?",
+        model_answer: "They are Sean and Kenny. No, they're naughty.",
+        accepted_answers: []
+    });
+    assert.deepEqual(page11[4], {
+        question_text: "Do you live with your grandparents?",
+        model_answer: "Yes, I live with them.",
+        accepted_answers: ["Yes, they just moved in.", "No, they live alone."]
+    });
+    assert.equal(page11[6].question_text, "Who do you sleep with?");
+    assert.equal(page11[6].model_answer, "I sleep alone in my room. I feel lonely.");
+
+    const page15 = extractNumberedTextQaPairs(`[[PAGE P15]]
+29. How are you? How are you doing? ( 很好 )
+30. Nice to meet you !
+31. Are you a student?
+32. How old are you? (8)
+33. Are you sure? You look like a 6-year-old boy/girl.
+34. Are you in Grade 1 or 2 ?
+35. What class are you in? ( 五班 )
+Greetings
+Great.
+Nice to meet you, too. / Me too.
+Yes, I am. Am I not like a student?
+I am eight.
+Really? I have good genes.
+I'm in grade 2. I'm in the second grade.
+I'm in class 5. I'm in the fifth class.`);
+
+    assert.equal(page15.length, 7);
+    assert.deepEqual(page15[0], {
+        question_text: "How are you? How are you doing?",
+        model_answer: "Great.",
+        accepted_answers: []
+    });
+    assert.deepEqual(page15[1], {
+        question_text: "Nice to meet you!",
+        model_answer: "Nice to meet you, too.",
+        accepted_answers: ["Me too."]
+    });
+    assert.equal(page15[6].model_answer, "I'm in class 5. I'm in the fifth class.");
+
+    const page17 = extractNumberedTextQaPairs(`[[PAGE P17]]
+36. Your father is nice to you. ( 掌上明珠 )
+37. My father works hard and ...( 顧家好男人 )
+38. He has to work hard. Anyway,...( 出生不是含著金湯匙 )
+39. He often cheats on the test. ( 是的 , 抄襲者 )
+40. Please be quiet! I am going to...( 用功讀書 )
+41. Why are you always studying hard? ( 書蟲 )
+42. Have you ever skipped class? ( 不 , 老師的模範生 )
+Yes! I am the apple of his eye.
+He is also a family man.
+He was not born with a silver spoon.
+Yes, he is a copycat.
+I am going to hit the books.
+I am a bookworm. I like to read a lot.
+No, I am the teacher's pet. I am a model student.`);
+
+    assert.equal(page17.length, 7);
+    assert.equal(page17[0].question_text, "Your father is nice to you.");
+    assert.equal(page17[0].model_answer, "Yes! I am the apple of his eye.");
+    assert.equal(page17[4].question_text, "Please be quiet! I am going to...");
+    assert.equal(page17[4].model_answer, "I am going to hit the books.");
+
+    const page20 = extractNumberedTextQaPairs(`[[PAGE P20]]
+43. Are you hungry?
+44. What do you want for breakfast?
+45. What would you like for lunch?
+46. Do you want to eat some desserts after dinner?
+47. Do you prefer fish or meat?
+48. What is your favorite food/dessert/fruit?
+49. How often do you eat bread/eat out/at a fast food restaurant/in a rest...
+Yes, I'm starving. I can eat a cow.
+What do you have? I want a hamburger and milk.
+Fried rice or noodles. Either is fine.
+A piece of chocolate cake and coffee, please.
+Fish is my favorite.
+I like fried chicken./ chocolate cake./ bananas.
+I eat ______ once a week/ twice a month/ 3 times a year.`);
+
+    assert.equal(page20.length, 6);
+    assert.equal(page20[0].model_answer, "Yes, I'm starving. I can eat a cow.");
+    assert.equal(page20[5].question_text, "What is your favorite food/dessert/fruit?");
 });

@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import {
     activateSpeakingAlphabetAudioCandidate,
     archiveSpeakingQuestionSet,
+    archiveSpeakingSourceSection,
     confirmWorkbookOneFoundationSource,
     confirmPageCandidateSpeakingDraft,
     createSpeakingQuestionSetRevision,
@@ -61,6 +62,16 @@ const questionSetPageLabels = (questionSet, section) => {
         ? metadata.source_pages.map(page => `P${Number(page)}`).filter(label => /^P\d+$/.test(label))
         : metadata.source_page_label ? [String(metadata.source_page_label).toUpperCase()] : sourcePageLabels(section);
     return [...new Set(labels)];
+};
+const questionSetSingleSourcePage = questionSet => {
+    const metadata = questionSet?.generation_metadata || {};
+    const explicitLabel = String(metadata.source_page_label || "").trim().toUpperCase();
+    if (/^P[1-9][0-9]{0,3}$/.test(explicitLabel)) return explicitLabel;
+    if (Array.isArray(metadata.source_pages) && metadata.source_pages.length === 1) {
+        const page = Number(metadata.source_pages[0]);
+        if (Number.isInteger(page) && page > 0) return `P${page}`;
+    }
+    return null;
 };
 const questionSetOrigin = questionSet => ({
     admin_manual_builder: "手動建立",
@@ -358,9 +369,11 @@ export default function SpeakingContentAdmin() {
     const [questionSetFilter, setQuestionSetFilter] = useState("draft");
     const [selectedQuestionSetId, setSelectedQuestionSetId] = useState(null);
     const [activeWorkspace, setActiveWorkspace] = useState("drafts");
+    const [activeSourceTab, setActiveSourceTab] = useState("whole-book");
     const [questionSetSearch, setQuestionSetSearch] = useState("");
     const [bookFilter, setBookFilter] = useState("all");
     const [selectedPageCandidateIds, setSelectedPageCandidateIds] = useState([]);
+    const [selectedSourcePages, setSelectedSourcePages] = useState({});
     const [pageGenerationReport, setPageGenerationReport] = useState(null);
     const [pageGenerationProgress, setPageGenerationProgress] = useState(null);
 
@@ -381,10 +394,29 @@ export default function SpeakingContentAdmin() {
     })).sort((left, right) => String(left.book?.name || "").localeCompare(String(right.book?.name || ""), "zh-Hant")
         || pageNumber(left.page_from_label) - pageNumber(right.page_from_label)
         || Number(left.id) - Number(right.id)), [data]);
-    const wholeBookRows = useMemo(() => data.documents.filter(document => Number(document.chunk_count) > 0).map(document => ({
-        document,
-        chunks: data.chunks.filter(chunk => chunk.document_id === document.id).sort((a, b) => a.chunk_index - b.chunk_index)
-    })), [data.documents, data.chunks]);
+    const wholeBookState = useMemo(() => {
+        const documents = data.documents.filter(document => Number(document.chunk_count) > 0).sort((left, right) => {
+            const updatedDifference = Date.parse(right.created_at || right.updated_at || 0) - Date.parse(left.created_at || left.updated_at || 0);
+            return updatedDifference || Number(right.id) - Number(left.id);
+        });
+        const currentByBook = new Map();
+        const supersededDocumentIds = new Set();
+        documents.forEach(document => {
+            const bookKey = document.book_id == null ? `document-${document.id}` : `book-${document.book_id}`;
+            if (currentByBook.has(bookKey)) supersededDocumentIds.add(String(document.id));
+            else currentByBook.set(bookKey, document);
+        });
+        const rows = Array.from(currentByBook.values()).map(document => ({
+            document,
+            chunks: data.chunks.filter(chunk => String(chunk.document_id) === String(document.id)).sort((a, b) => a.chunk_index - b.chunk_index)
+        }));
+        return {
+            rows,
+            activeDocumentIds: new Set(rows.map(row => String(row.document.id))),
+            supersededDocumentIds
+        };
+    }, [data.documents, data.chunks]);
+    const wholeBookRows = wholeBookState.rows;
     const workbookOne = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook1"), [data.books]);
     const workbookTwo = useMemo(() => data.books.find(book => String(book.code || book.name || "").toLowerCase().replace(/[^a-z0-9]/g, "") === "workbook2"), [data.books]);
     const workbookOneStarter = useMemo(() => data.question_sets.find(questionSet => questionSet.generation_metadata?.template_key === "workbook_1_name_intro_v1"), [data.question_sets]);
@@ -417,15 +449,47 @@ export default function SpeakingContentAdmin() {
             const rightPage = Number(String(right.generation_metadata?.source_page_label || "").replace(/\D/g, ""));
             return leftPage - rightPage || Number(left.id) - Number(right.id);
         }), [data.question_sets]);
-    const pendingOcrSourceRows = useMemo(() => sourceRows.filter(section => (
+    const allPendingOcrSourceRows = useMemo(() => sourceRows.filter(section => (
         section.status === "draft"
         && section.questionSets.length === 0
         && section.document?.source_kind !== "pasted_text"
     )), [sourceRows]);
+    const pendingOcrSourceRows = useMemo(() => allPendingOcrSourceRows.filter(section => (
+        Number(section.document?.chunk_count) <= 0
+        || wholeBookState.activeDocumentIds.has(String(section.document_id))
+    )), [allPendingOcrSourceRows, wholeBookState.activeDocumentIds]);
+    const pendingOcrGroups = useMemo(() => {
+        const groups = new Map();
+        pendingOcrSourceRows.forEach(section => {
+            const key = section.book?.id == null ? `document-${section.document_id}` : `book-${section.book.id}`;
+            if (!groups.has(key)) groups.set(key, {
+                key,
+                name: section.book?.name || section.document?.title || "未分類教材",
+                sections: []
+            });
+            groups.get(key).sections.push(section);
+        });
+        return Array.from(groups.values()).sort((left, right) => left.name.localeCompare(right.name, "zh-Hant"));
+    }, [pendingOcrSourceRows]);
+    const hiddenPendingOcrCount = allPendingOcrSourceRows.length - pendingOcrSourceRows.length;
+    const reviewedSourceRows = useMemo(() => sourceRows.filter(section => section.status === "reviewed"), [sourceRows]);
+    const reviewedSourceGroups = useMemo(() => {
+        const groups = new Map();
+        reviewedSourceRows.forEach(section => {
+            const key = section.book?.id == null ? `document-${section.document_id}` : `book-${section.book.id}`;
+            if (!groups.has(key)) groups.set(key, {
+                key,
+                name: section.book?.name || section.document?.title || "未分類教材",
+                sections: []
+            });
+            groups.get(key).sections.push(section);
+        });
+        return Array.from(groups.values()).sort((left, right) => left.name.localeCompare(right.name, "zh-Hant"));
+    }, [reviewedSourceRows]);
     const reviewQueueCount = useMemo(() => (
         pendingOcrSourceRows.length
-        + data.chunks.filter(chunk => chunk.status === "failed").length
-    ), [data.chunks, pendingOcrSourceRows]);
+        + data.chunks.filter(chunk => chunk.status === "failed" && wholeBookState.activeDocumentIds.has(String(chunk.document_id))).length
+    ), [data.chunks, pendingOcrSourceRows, wholeBookState.activeDocumentIds]);
     const visibleSourceRows = useMemo(() => {
         const query = questionSetSearch.trim().toLowerCase();
         return sourceRows.map(section => ({
@@ -556,6 +620,19 @@ export default function SpeakingContentAdmin() {
         } catch (error) { toast.error(error.message); }
         finally { setWorking(""); }
     };
+    const archiveSourceSection = async section => {
+        if (section.questionSets.length > 0) {
+            return toast.error("這份來源仍有草稿或已發布關卡，請先到對應區域處理關卡");
+        }
+        if (!window.confirm(`要封存「${section.book?.name || section.document?.title || "教材來源"} ${section.page_from_label || "未標示頁碼"}${section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · ${section.topic}」嗎？\n\n封存後會從教材來源清單隱藏，但不會刪除私人原檔、已封存關卡或學生歷史。`)) return;
+        setWorking(`archive-source-${section.id}`);
+        try {
+            await archiveSpeakingSourceSection(firebaseUser, section.id);
+            toast.success("舊教材來源已封存並從清單移除");
+            await load();
+        } catch (error) { toast.error(error.message || "教材來源封存失敗"); }
+        finally { setWorking(""); }
+    };
     const createWorkbookOneStarter = async () => {
         if (!workbookOne) return toast.error("目前教材清單找不到 Workbook 1");
         setWorking("workbook-1-starter");
@@ -612,12 +689,25 @@ export default function SpeakingContentAdmin() {
         } catch (error) { toast.error(error.message); }
         finally { setWorking(""); }
     };
-    const generatePageCandidates = async section => {
-        const pages = markedSourcePageLabels(section);
+    const generatePageCandidates = async (section, requestedPages = markedSourcePageLabels(section)) => {
+        const retainedPages = markedSourcePageLabels(section);
+        const retainedPageSet = new Set(retainedPages);
+        const pages = [...new Set(requestedPages)].filter(page => retainedPageSet.has(page));
         if (pages.length < 1 || pages.length > 10) {
-            return toast.error("核准逐字稿中沒有可建立的 [[PAGE P頁碼]] 標記；請保留需要建立關卡的頁碼與內容");
+            return toast.error("請先勾選 1 至 10 個要建立或重新產生草稿的頁面");
         }
-        if (!window.confirm(`核准逐字稿目前保留 ${pages.length} 頁：${pages.join("、")}。系統只會分析這些頁面，已從逐字稿刪除的頁面不會建立關卡。\n\nAI 會依每頁實際內容自動判斷題數，並略過格線、頁碼、標題與作業指令；單頁安全上限為 30 題。只會建立未發布草稿，OCR 逐字稿會繼續保留，之後刪除草稿仍可重新建立。`)) return;
+        const existingByPage = new Map(section.questionSets
+            .map(questionSet => [questionSetSingleSourcePage(questionSet), questionSet])
+            .filter(([page]) => page));
+        const publishedPages = pages.filter(page => existingByPage.get(page)?.status === "published");
+        if (publishedPages.length > 0) {
+            return toast.error(`${publishedPages.join("、")} 已發布，不能由此直接覆蓋；請先到已發布關卡建立新版草稿`);
+        }
+        const replacedPages = pages.filter(page => existingByPage.get(page)?.status === "draft");
+        const replacementNotice = replacedPages.length
+            ? `\n\n${replacedPages.join("、")} 已有未發布草稿。新草稿完整建立成功後才會取代舊草稿；若產生失敗，舊草稿會保留。`
+            : "";
+        if (!window.confirm(`本次只處理 ${pages.length} 頁：${pages.join("、")}。未勾選的頁面不會變更。\n\nAI 會依每頁實際內容自動判斷題數，單頁最多 30 題；OCR 逐字稿會繼續保留。${replacementNotice}`)) return;
         setWorking(`page-candidates-${section.id}`);
         setPageGenerationReport(null);
         let progressRows = pages.map(page => ({ page, status: "pending" }));
@@ -638,6 +728,7 @@ export default function SpeakingContentAdmin() {
                     const result = await generateSpeakingQuestionSet(firebaseUser, {
                         source_section_id: section.id,
                         source_page_label: page,
+                        replace_question_set_id: existingByPage.get(page)?.status === "draft" ? existingByPage.get(page).id : undefined,
                         auto_question_count: true,
                         request_key: createRequestKey()
                     });
@@ -672,6 +763,7 @@ export default function SpeakingContentAdmin() {
                 sectionId: Number(section.id),
                 rows: progressRows
             });
+            setSelectedSourcePages(current => ({ ...current, [section.id]: [] }));
             await load();
         } finally {
             setPageGenerationProgress(null);
@@ -958,7 +1050,14 @@ export default function SpeakingContentAdmin() {
         </>}
 
         {activeWorkspace === "sources" && <>
-        <section className="platform-card speaking-whole-book speaking-admin-block--source" id="speaking-source-tools">
+        <nav className="platform-card speaking-source-tabs" aria-label="教材來源分類">
+            <button type="button" className={activeSourceTab === "whole-book" ? "is-active" : ""} aria-current={activeSourceTab === "whole-book" ? "page" : undefined} onClick={() => setActiveSourceTab("whole-book")}><BookOpen size={19} /><span><strong>整本教材辨識</strong><small>{wholeBookRows.length} 本進行中</small></span></button>
+            <button type="button" className={activeSourceTab === "ocr-review" ? "is-active" : ""} aria-current={activeSourceTab === "ocr-review" ? "page" : undefined} onClick={() => setActiveSourceTab("ocr-review")}><CheckCircle2 size={19} /><span><strong>核對 OCR 批次</strong><small>{pendingOcrSourceRows.length} 批待核對</small></span></button>
+            <button type="button" className={activeSourceTab === "single-source" ? "is-active" : ""} aria-current={activeSourceTab === "single-source" ? "page" : undefined} onClick={() => setActiveSourceTab("single-source")}><Plus size={19} /><span><strong>單一範圍或貼入文字</strong><small>新增單一來源</small></span></button>
+            <button type="button" className={activeSourceTab === "reviewed" ? "is-active" : ""} aria-current={activeSourceTab === "reviewed" ? "page" : undefined} onClick={() => setActiveSourceTab("reviewed")}><FileText size={19} /><span><strong>已核准教材頁面</strong><small>{reviewedSourceRows.length} 份可使用</small></span></button>
+        </nav>
+
+        {activeSourceTab === "whole-book" && <section className="platform-card speaking-whole-book speaking-admin-block--source" id="speaking-source-tools">
             <div className="platform-section-title"><div><span className="platform-eyebrow">WHOLE BOOK OCR</span><h2>整本教材分批辨識</h2><p>一次選擇完整 PDF；瀏覽器會在本機切成每 10 頁一批，私人上傳後可分批辨識、保留進度與單獨重試。</p></div></div>
             <form className="platform-form" onSubmit={uploadWholeBook}>
                 <div className="platform-form-grid">
@@ -974,21 +1073,26 @@ export default function SpeakingContentAdmin() {
                 disabled={working === `book-${document.id}` || working.startsWith("chunk-")}
                 onProcess={processBookChunks} onRetry={retryBookChunk}
             />)}</div>}
+            {wholeBookState.supersededDocumentIds.size > 0 && <p className="speaking-source-retention-note"><Archive size={16} />已隱藏 {wholeBookState.supersededDocumentIds.size} 份同一本書的較舊整本 OCR 紀錄；來源資料與既有核准內容仍保留。</p>}
             {wholeBookProgress?.phase === "ocr" && <div className="speaking-ocr-floating-progress" role="status"><LoaderCircle className="speaking-spin" /><span>批次 OCR：{wholeBookProgress.completed}/{wholeBookProgress.total}</span></div>}
-        </section>
-
-        {pendingOcrSourceRows.length > 0 && <section className="platform-card speaking-admin-block--source" aria-labelledby="speaking-ocr-review-title">
-            <div className="platform-section-title"><div><span className="platform-eyebrow">OCR REVIEW</span><h2 id="speaking-ocr-review-title">待核對 OCR 批次</h2><p>逐批展開並對照原教材；只保留需要建立關卡頁面的 <code>[[PAGE P頁碼]]</code> 與內容。刪除整頁代表略過該頁，不要求原始範圍每頁都有標記。</p></div><strong>{pendingOcrSourceRows.length} 批</strong></div>
-            <div className="speaking-source-list">{pendingOcrSourceRows.map(section => <details className="speaking-source-card speaking-ocr-source-card" key={`ocr-review-${section.id}`}>
-                <summary>
-                    <div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 待人工核准</p></div>
-                    <strong>展開核對</strong>
-                </summary>
-                <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />
-            </details>)}</div>
         </section>}
 
-        <section className="platform-card speaking-admin-block--source">
+        {activeSourceTab === "ocr-review" && <section className="platform-card speaking-admin-block--source" aria-labelledby="speaking-ocr-review-title">
+            <div className="platform-section-title"><div><span className="platform-eyebrow">OCR REVIEW</span><h2 id="speaking-ocr-review-title">待核對 OCR 批次</h2><p>逐批展開並對照原教材；只保留需要建立關卡頁面的 <code>[[PAGE P頁碼]]</code> 與內容。刪除整頁代表略過該頁，不要求原始範圍每頁都有標記。</p></div><strong>{pendingOcrSourceRows.length} 批</strong></div>
+            {hiddenPendingOcrCount > 0 && <p className="speaking-source-retention-note"><Archive size={16} />已排除 {hiddenPendingOcrCount} 批較舊整本 OCR 的重複待核對項目；舊資料沒有刪除。</p>}
+            {pendingOcrGroups.length === 0 ? <div className="platform-empty"><CheckCircle2 /><strong>目前沒有待核對 OCR 批次</strong><p>完成整本教材辨識後，批次會依書本名稱出現在這裡。</p></div> : <div className="speaking-ocr-book-groups">{pendingOcrGroups.map(group => <details className="speaking-ocr-book-group" key={group.key}>
+                <summary><div><BookOpen size={20} /><span><strong>{group.name}</strong><small>{group.sections.length} 批待核對</small></span></div><ChevronDown size={20} /></summary>
+                <div className="speaking-source-list">{group.sections.map(section => <details className="speaking-source-card speaking-ocr-source-card" key={`ocr-review-${section.id}`}>
+                    <summary>
+                        <div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 待人工核准</p></div>
+                        <strong>展開核對</strong>
+                    </summary>
+                    <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />
+                </details>)}</div>
+            </details>)}</div>}
+        </section>}
+
+        {activeSourceTab === "single-source" && <section className="platform-card speaking-admin-block--source">
             <div className="platform-section-title"><div><span className="platform-eyebrow">SINGLE SOURCE</span><h2>單一範圍或貼入文字</h2><p>適合單張課本圖片、單一 Unit 或已人工整理的教材文字。</p></div></div>
             <form className="platform-form" onSubmit={saveSource}>
                 <div className="platform-form-grid">
@@ -1006,19 +1110,36 @@ export default function SpeakingContentAdmin() {
                 {!sourceFile && <label className="speaking-confirm"><input type="checkbox" checked={source.confirmed} onChange={event => updateSource("confirmed", event.target.checked)} /><span>我已確認這段文字、教材、Unit 與頁碼正確，允許 AI 以此為唯一出題來源。</span></label>}
                 <button className="platform-primary" disabled={working === "source"}>{working === "source" ? (sourceFile ? "上傳並辨識中…" : "儲存中…") : (pendingDocumentId ? "重試 OCR" : sourceFile ? "上傳並開始 OCR" : "儲存核准來源")}</button>
             </form>
-        </section>
-        <section className="platform-card speaking-admin-block--source">
+        </section>}
+        {activeSourceTab === "reviewed" && <section className="platform-card speaking-admin-block--source">
             <div className="platform-section-title"><div><span className="platform-eyebrow">REVIEWED PAGE SOURCES</span><h2>已核准教材頁面</h2><p>AI 會依每頁實際可出題內容自動判斷題數（單頁最多 30 題）；草稿建立後會移到「製作中草稿」等待人工核准。</p></div></div>
-            <div className="speaking-source-list">{sourceRows.filter(section => section.status === "reviewed").map(section => {
+            {reviewedSourceRows.length === 0 ? <div className="platform-empty"><FileText /><strong>目前沒有已核准教材頁面</strong><p>請先到「核對 OCR 批次」完成校對，或新增已人工核對的文字來源。</p></div> : <div className="speaking-reviewed-book-groups">{reviewedSourceGroups.map(group => <details className="speaking-ocr-book-group speaking-reviewed-book-group" key={group.key}>
+                <summary><div><BookOpen size={20} /><span><strong>{group.name}</strong><small>{group.sections.length} 份已核准來源</small></span></div><ChevronDown size={20} /></summary>
+                <div className="speaking-source-list">{group.sections.map(section => {
                 const pageLabels = sourcePageLabels(section);
                 const isSinglePage = pageLabels.length === 1;
                 const retainedPageLabels = markedSourcePageLabels(section);
                 const canGenerateByPage = !isSinglePage && retainedPageLabels.length > 0 && retainedPageLabels.length <= 10;
+                const selectedPages = selectedSourcePages[section.id] || [];
+                const questionSetByPage = new Map(section.questionSets
+                    .map(questionSet => [questionSetSingleSourcePage(questionSet), questionSet])
+                    .filter(([page]) => page));
+                const selectablePages = retainedPageLabels.filter(page => questionSetByPage.get(page)?.status !== "published");
                 const generationReport = Number(pageGenerationReport?.sectionId) === Number(section.id) ? pageGenerationReport : null;
                 const generationProgress = Number(pageGenerationProgress?.sectionId) === Number(section.id) ? pageGenerationProgress : null;
                 const progressPercent = generationProgress ? Math.round((generationProgress.completed / generationProgress.total) * 100) : 0;
                 return <article className="speaking-source-card" key={`source-${section.id}`}>
-                    <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准{retainedPageLabels.length > 0 ? ` · 逐字稿保留 ${retainedPageLabels.join("、")}` : ""}</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{canGenerateByPage && <button type="button" className="platform-primary" disabled={working === `page-candidates-${section.id}`} onClick={() => generatePageCandidates(section)}><Sparkles size={17} />{generationProgress ? `逐頁建立 ${generationProgress.completed}/${generationProgress.total}` : `依逐字稿建立 ${retainedPageLabels.length} 頁草稿`}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">核准逐字稿中沒有可用的 <code>[[PAGE P頁碼]]</code>；請保留至少一個要建立關卡的頁碼與內容。</span>}</div></header>
+                    <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准{retainedPageLabels.length > 0 ? ` · 逐字稿保留 ${retainedPageLabels.join("、")}` : ""}</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">核准逐字稿中沒有可用的 <code>[[PAGE P頁碼]]</code>；請保留至少一個要建立關卡的頁碼與內容。</span>}{section.questionSets.length === 0 ? <button type="button" className="platform-danger" disabled={working === `archive-source-${section.id}`} onClick={() => archiveSourceSection(section)}><Archive size={16} />{working === `archive-source-${section.id}` ? "封存中…" : "封存舊來源"}</button> : <span className="speaking-source-card__linked-note">已有 {section.questionSets.length} 個關卡，須先處理關卡才能封存來源。</span>}</div></header>
+                    {canGenerateByPage && <section className="speaking-source-page-picker" aria-label={`${section.page_from_label} 到 ${section.page_to_label} 選擇要產生草稿的頁面`}>
+                        <header><div><strong>選擇要建立或重新產生的頁面</strong><small>已有未發布草稿的頁面可直接重建；已發布頁面不會被覆蓋。</small></div><div><button type="button" className="platform-secondary" disabled={Boolean(generationProgress)} onClick={() => setSelectedSourcePages(current => ({ ...current, [section.id]: selectablePages }))}>選取可處理頁面</button><button type="button" className="platform-secondary" disabled={Boolean(generationProgress) || selectedPages.length === 0} onClick={() => setSelectedSourcePages(current => ({ ...current, [section.id]: [] }))}>清除</button></div></header>
+                        <div className="speaking-source-page-picker__pages">{retainedPageLabels.map(page => {
+                            const existing = questionSetByPage.get(page);
+                            const published = existing?.status === "published";
+                            const checked = selectedPages.includes(page);
+                            return <label className={published ? "is-published" : existing?.status === "draft" ? "has-draft" : "is-new"} key={page}><input type="checkbox" aria-label={`選擇 ${page}${published ? "（已發布）" : existing?.status === "draft" ? "（已有草稿，重新產生）" : "（建立新草稿）"}`} checked={checked} disabled={published || Boolean(generationProgress)} onChange={() => setSelectedSourcePages(current => ({ ...current, [section.id]: checked ? selectedPages.filter(value => value !== page) : [...selectedPages, page] }))} /><span><strong>{page}</strong><small>{published ? "已發布，不直接覆蓋" : existing?.status === "draft" ? `已有 ${existing.speaking_questions?.length || 0} 題草稿，可重建` : "尚未建立"}</small></span></label>;
+                        })}</div>
+                        <button type="button" className="platform-primary speaking-source-page-picker__generate" disabled={Boolean(generationProgress) || selectedPages.length === 0} onClick={() => generatePageCandidates(section, selectedPages)}><Sparkles size={17} />{generationProgress ? `處理中 ${generationProgress.completed}/${generationProgress.total}` : selectedPages.length > 0 ? `建立／重新產生 ${selectedPages.length} 頁草稿` : "請先選擇頁面"}</button>
+                    </section>}
                     <details className="speaking-source-transcript"><summary>查看已保留的核准逐字稿</summary><pre>{section.source_text}</pre><small>這份來源不會因建立、刪除或重新建立 AI 草稿而刪除。</small></details>
                     {generationProgress && <div className="speaking-page-generation-progress" role="status" aria-live="polite">
                         <header><strong>正在逐頁建立草稿</strong><span>{generationProgress.completed}/{generationProgress.total} · {progressPercent}%</span></header>
@@ -1029,7 +1150,8 @@ export default function SpeakingContentAdmin() {
                     {generationReport && <div className="speaking-page-generation-report" role="status"><strong>本次逐頁建立結果</strong><ul>{generationReport.rows.map(row => <li className={`is-${row.status}`} key={row.page}><span>{row.page}</span><small>{pageGenerationStatusLabel(row)}</small></li>)}</ul></div>}
                 </article>;
             })}</div>
-        </section>
+            </details>)}</div>}
+        </section>}
         </>}
 
         {["drafts", "ready", "published"].includes(activeWorkspace) &&

@@ -2,6 +2,37 @@
 
 最後更新：2026-09-24
 
+本次指定頁碼重新產生 AI 草稿（2026-09-24，本機完成；尚未部署）：
+
+- 「已核准教材頁面」的多頁來源新增逐頁勾選器，可只選 P15、P17、P20 等指定頁面建立或重新產生，不再被迫整批重跑；未勾選頁面完全不變。
+- 頁面會標示「尚未建立」、「已有 N 題草稿，可重建」或「已發布，不直接覆蓋」。已發布頁面停用選取，必須從正式關卡建立新版草稿，避免誤蓋學生版本。
+- 重建未發布草稿時，後端先完整建立新題目，再刪除舊草稿；生成或舊稿刪除失敗時會保留舊草稿並清理新半成品。已有學生進度或評分紀錄的草稿仍拒絕重建，核准 OCR 來源不會被刪除。
+- 不需 migration，不修改任何現有題庫或 OCR 資料。管理頁 targeted 22/22、Edge Function 語法、新增重建契約、Production build 與 `git diff --check` 均通過；完整口說契約 34/35，唯一失敗為既有手機播放器 CSS selector 斷言，與本批無關。已在 localhost 實際確認 Workbook 3 的 P11／P15／P17／P20 選頁介面、頁面狀態與選取數按鈕正常，測試後已清除選取且未送出建稿。前端與新版 `speaking-content-manager` 均未推送或部署，因此 localhost 目前若連正式 Function，選頁畫面可見但安全替換要等 Function 部署後才可實際使用。
+
+本次教材來源四分頁、OCR 批次整理與舊來源封存（2026-09-24，必要 Supabase Function 已部署；前端仍在本機）：
+
+- 「1 教材來源」改為四個小分頁：「整本教材辨識」、「核對 OCR 批次」、「單一範圍或貼入文字」、「已核准教材頁面」，一次只顯示目前工作區，縮短管理頁長度；桌面四欄、手機兩欄。
+- 「核對 OCR 批次」依教材名稱收合，每本書先顯示一個可展開群組，再展開個別十頁批次，避免 Workbook 1、2、3 混在同一長清單。
+- 同一 `book_id` 有多次整本 OCR 時，以 `created_at／updated_at／id` 判斷最新工作；整本進度與待核對清單只顯示最新文件，舊文件及其重複待核對項目只從畫面安全隱藏。舊私人來源、已核准逐字稿、既有草稿與學生資料都不刪除，已核准來源仍可重新建立草稿。
+- 「已核准教材頁面」同樣依教材名稱收合；沒有任何未封存題庫的來源可按「封存舊來源」。後端會再次檢查 `speaking_question_sets`，仍有草稿或正式關卡時拒絕封存；最後一份可見 section 封存時一併封存 document，但不刪 R2 原檔、學生紀錄或歷史關卡。
+- 不需 migration；`speaking-content-manager` 新增 `archive_source_section`，正式 Function v49 已部署並為 ACTIVE。localhost 新版前端可呼叫遠端 Function 執行安全封存；正式站前端尚未推送或部署，因此正式站目前還不會顯示新版按鈕。
+- React 管理頁與 service targeted 測試 25/25、完整 Edge Function 語法檢查、Production build 與 `git diff --check` 通過；口說契約新增來源封存保護並通過，本套件其餘 33/34 通過，唯一失敗為既有手機播放器 CSS selector 斷言，與本批管理頁／來源封存無關。
+- `speaking-content-manager` 正式部署回報成功，遠端清單確認 v49 為 ACTIVE；未登入 POST 正確回應 401「請先登入 Alan English」。本次沒有執行 migration、沒有封存任何來源，也沒有推送 GitHub 或部署前端。
+
+本次 Workbook 3 重新 OCR 的 R2 CORS 阻擋修正（2026-09-24，本機完成；Cloudflare CORS 已套用並完成實際 OCR）：
+
+- 已在 localhost 實際重試 144.1MB Workbook 3 PDF；瀏覽器於本機切到第 4/11 批後，在第一個私人 R2 `PUT` 前被阻擋並自動清理暫存工作，因此沒有開始 OCR、沒有產生 AI 費用，也沒有覆蓋既有 Workbook 3 OCR／核准內容。
+- 已唯讀確認實際 `alanenglish-audio` bucket 維持私人、Public Development URL 關閉；既有 CORS Policy 只允許正式站、Firebase 舊站與固定測試站，缺少 `http://localhost:3000`，這是 localhost 上傳 `Failed to fetch` 的直接原因。
+- 已在使用者確認後更新 Cloudflare CORS：新增 `https://dev.alanenglish.com.tw` 與 `http://localhost:3000`，並保留正式站、Firebase 舊站及固定 Netlify 測試站；方法仍只有 `GET／HEAD／PUT`，標頭只有 `Content-Type／Range`，未啟用公開 bucket 或萬用字元。
+- 本機 CORS 範本同步保留全部既有來源；錯誤訊息現在會顯示目前 origin。不需 migration 或 Supabase Function 部署。已從 localhost 成功上傳同一份 144.1MB、106 頁 PDF，並完成 11/11 批重新 OCR；P1–P10 到 P101–P106 全部進入待人工核准，沒有失敗批次。舊 Workbook3 OCR 與原本 2 批已核准內容仍完整保留；前端尚未推送或部署。
+
+本次 Workbook 3 分組式問答配對修正（2026-09-24，必要 Supabase Function 已部署；前端未發布）：
+
+- 已確認 P11／P15／P17 的核准逐字稿採用「先連續列出所有編號題目，再依相同順序列出所有答案」；舊解析器只支援題目後立刻接答案，導致前面題目沒有答案、整頁答案全部掛到最後一題，因此三頁都只建立 1 題且答案錯配。
+- 編號式文字問答現在同時支援逐題交錯與整批分組兩種版型。分組版會依編號順序一對一配對答案，略過 P15 的 `Greetings` 章節標題；P17 的教材提示敘述句與驚嘆句可成為文字問答提示，但像 P20 第 49 題 `in a rest...` 這種被截斷的疑問句仍會安全排除。
+- P11／P15／P17 本機解析結果各為 7 題，P20 為 6 題。兄弟／姊妹題可接受來源中的 `they／them` 複數回答，但仍拒絕與題目明確相反的 he／she、his／her 回答。不需 migration；不修改、刪除、核准或發布既有草稿與 OCR 來源。
+- OCR 解析回歸測試 7/7、文字問答整合契約 1/1、Edge Function 語法與 Production build 均通過；完整既有口說契約 32/33，唯一失敗仍是既有手機操作列 CSS selector 斷言，與本批 OCR 配對無關。依使用者授權只部署必要的 `speaking-content-manager` v48，狀態為 ACTIVE；localhost OPTIONS 回應 200、未登入 POST 正確回應 401。前端未推送、未發布，程式修正保留於本機分支 `codex/fix-grouped-ocr-question-answers`。
+
 本次學生設定、排行榜、通知導頁與新預設頭像（2026-09-24，正式部署完成）：
 
 - 「我的設定」主要頭貼調整為桌面 `200 × 200px`、手機 `150 × 150px`；AI Premium 改為姓名旁可換行的小型狀態徽章，不再獨立占用一張大卡片。

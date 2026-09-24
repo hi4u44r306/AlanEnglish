@@ -93,10 +93,21 @@ test("3aa. 逐頁草稿只使用核准逐字稿中保留的頁碼，刪除草稿
     assert.match(manager, /const eligiblePageCandidates = sectionPages\.length === 1 \? sectionPages : retainedMarkedPages/);
     assert.match(manager, /逐頁候選草稿只能使用核准逐字稿中實際保留的頁碼/);
     assert.match(manager, /source_preserved: true/);
-    assert.match(adminPage, /const pages = markedSourcePageLabels\(section\)/);
-    assert.match(adminPage, /依逐字稿建立 \$\{retainedPageLabels\.length\} 頁草稿/);
+    assert.match(adminPage, /const retainedPages = markedSourcePageLabels\(section\)/);
+    assert.match(adminPage, /建立／重新產生 \$\{selectedPages\.length\} 頁草稿/);
     assert.match(adminPage, /查看已保留的核准逐字稿/);
     assert.match(adminPage, /OCR 逐字稿仍保留，可重新建立/);
+});
+
+test("3ab. 可指定頁碼重建未發布草稿，且新草稿成功前保留舊草稿", () => {
+    assert.match(adminPage, /replace_question_set_id: existingByPage\.get\(page\)\?\.status === "draft"/);
+    assert.match(adminPage, /已發布，不能由此直接覆蓋/);
+    assert.match(adminPage, /新草稿完整建立成功後才會取代舊草稿/);
+    assert.match(manager, /const replaceQuestionSetId =/);
+    assert.match(manager, /linkedStudentRows\.some\(Boolean\)/);
+    assert.match(manager, /filter\(questionSet => Number\(questionSet\.id\) !== replaceQuestionSetId\)/);
+    assert.match(manager, /await removeReplacedDraft\(Number\(questionSet\.id\)\)/);
+    assert.match(manager, /delete\(\)\.eq\("id", newQuestionSetId\)\.eq\("status", "draft"\)/);
 });
 
 test("3b. 同一 OCR 批次的逐頁草稿使用全來源遞增版號，並為無法自動出題頁保留人工補題草稿", () => {
@@ -120,7 +131,7 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /sourceHasQuestion && sourceHasAnswer\s*\? TEXT_QA_INTERACTION_TYPE/);
     assert.doesNotMatch(manager, /questions\.length !== rows\.length/);
     assert.match(manager, /rejected_ai_question_count/);
-    assert.match(manager, /reviewed_numbered_text_qa_v1/);
+    assert.match(manager, /reviewed_numbered_text_qa_v2/);
     assert.match(manager, /generation_strategy: useDeterministicTextQa/);
     assert.match(manager, /numbered_question_count: useDeterministicTextQa/);
     assert.match(manager, /extractNumberedTextQaPairs/);
@@ -459,6 +470,21 @@ test("25. 管理員可刪除未發布草稿並安全下架任何正式關卡", (
     assert.match(archiveBlock, /questionSet\.status !== "published"/);
     assert.match(archiveBlock, /\.eq\("previous_set_id", setId\)\.eq\("status", "draft"\)/);
     assert.doesNotMatch(archiveBlock, /目前只支援封存管理員建立的口說關卡/);
+});
+
+test("25.1 管理員只能封存沒有使用中關卡的教材來源", () => {
+    const archiveSourceBlock = manager.slice(
+        manager.indexOf('if (action === "archive_source_section")'),
+        manager.indexOf('if (action === "create_manual_page_speaking_draft")')
+    );
+    assert.match(archiveSourceBlock, /speaking_source_sections/);
+    assert.match(archiveSourceBlock, /speaking_question_sets/);
+    assert.match(archiveSourceBlock, /\.neq\("status", "archived"\)/);
+    assert.match(archiveSourceBlock, /仍有.*已發布關卡.*未發布草稿/s);
+    assert.match(archiveSourceBlock, /status: "archived"/);
+    assert.match(archiveSourceBlock, /speaking_source_documents/);
+    assert.match(service, /archiveSpeakingSourceSection/);
+    assert.match(adminPage, /封存舊來源/);
 });
 
 test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則產生停頓語音", () => {
