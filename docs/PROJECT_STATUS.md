@@ -2,22 +2,23 @@
 
 最後更新：2026-09-24
 
-本次指定頁碼重新產生 AI 草稿（2026-09-24，本機完成；尚未部署）：
+本次指定頁碼重新產生 AI 草稿（2026-09-24，正式部署完成）：
 
 - 「已核准教材頁面」的多頁來源新增逐頁勾選器，可只選 P15、P17、P20 等指定頁面建立或重新產生，不再被迫整批重跑；未勾選頁面完全不變。
 - 頁面會標示「尚未建立」、「已有 N 題草稿，可重建」或「已發布，不直接覆蓋」。已發布頁面停用選取，必須從正式關卡建立新版草稿，避免誤蓋學生版本。
 - 重建未發布草稿時，後端先完整建立新題目，再刪除舊草稿；生成或舊稿刪除失敗時會保留舊草稿並清理新半成品。已有學生進度或評分紀錄的草稿仍拒絕重建，核准 OCR 來源不會被刪除。
-- 不需 migration，不修改任何現有題庫或 OCR 資料。管理頁 targeted 22/22、Edge Function 語法、新增重建契約、Production build 與 `git diff --check` 均通過；完整口說契約 34/35，唯一失敗為既有手機播放器 CSS selector 斷言，與本批無關。已在 localhost 實際確認 Workbook 3 的 P11／P15／P17／P20 選頁介面、頁面狀態與選取數按鈕正常，測試後已清除選取且未送出建稿。前端與新版 `speaking-content-manager` 均未推送或部署，因此 localhost 目前若連正式 Function，選頁畫面可見但安全替換要等 Function 部署後才可實際使用。
+- 不需 migration，不修改任何現有題庫或 OCR 資料。管理頁與 service targeted 26/26、Edge Function 語法、新增重建契約、Production build 與 `git diff --check` 均通過；完整口說契約 34/35，唯一失敗為既有手機播放器 CSS selector 斷言，與本批無關。已在 localhost 實際確認 Workbook 3 的 P11／P15／P17／P20 選頁介面、頁面狀態與選取數按鈕正常，測試後已清除選取且未送出建稿。
+- PR #271 已合併至 `main` commit `4378097`。正式 `speaking-content-manager` v50 為 ACTIVE，OPTIONS 回應 200、未登入 POST 正確回應 401。Cloudflare production build `dbb278f1-de9a-4651-8325-891b8330cd40` 成功，正式管理頁回應 200 並載入 `main.eae15e72.js`；正式 bundle SHA-256 與本機已驗證 build 完全一致。本次沒有建立、刪除、核准或發布任何教材草稿。
 
-本次教材來源四分頁、OCR 批次整理與舊來源封存（2026-09-24，必要 Supabase Function 已部署；前端仍在本機）：
+本次教材來源四分頁、OCR 批次整理與舊來源封存（2026-09-24，正式部署完成）：
 
 - 「1 教材來源」改為四個小分頁：「整本教材辨識」、「核對 OCR 批次」、「單一範圍或貼入文字」、「已核准教材頁面」，一次只顯示目前工作區，縮短管理頁長度；桌面四欄、手機兩欄。
 - 「核對 OCR 批次」依教材名稱收合，每本書先顯示一個可展開群組，再展開個別十頁批次，避免 Workbook 1、2、3 混在同一長清單。
 - 同一 `book_id` 有多次整本 OCR 時，以 `created_at／updated_at／id` 判斷最新工作；整本進度與待核對清單只顯示最新文件，舊文件及其重複待核對項目只從畫面安全隱藏。舊私人來源、已核准逐字稿、既有草稿與學生資料都不刪除，已核准來源仍可重新建立草稿。
 - 「已核准教材頁面」同樣依教材名稱收合；沒有任何未封存題庫的來源可按「封存舊來源」。後端會再次檢查 `speaking_question_sets`，仍有草稿或正式關卡時拒絕封存；最後一份可見 section 封存時一併封存 document，但不刪 R2 原檔、學生紀錄或歷史關卡。
-- 不需 migration；`speaking-content-manager` 新增 `archive_source_section`，正式 Function v49 已部署並為 ACTIVE。localhost 新版前端可呼叫遠端 Function 執行安全封存；正式站前端尚未推送或部署，因此正式站目前還不會顯示新版按鈕。
+- 不需 migration；`speaking-content-manager` 新增 `archive_source_section`，已隨正式 Function v50 部署並為 ACTIVE。正式管理頁已顯示四分頁、依書本收合與安全封存按鈕。
 - React 管理頁與 service targeted 測試 25/25、完整 Edge Function 語法檢查、Production build 與 `git diff --check` 通過；口說契約新增來源封存保護並通過，本套件其餘 33/34 通過，唯一失敗為既有手機播放器 CSS selector 斷言，與本批管理頁／來源封存無關。
-- `speaking-content-manager` 正式部署回報成功，遠端清單確認 v49 為 ACTIVE；未登入 POST 正確回應 401「請先登入 Alan English」。本次沒有執行 migration、沒有封存任何來源，也沒有推送 GitHub 或部署前端。
+- 本批已隨 PR #271、`main` commit `4378097`、正式 `speaking-content-manager` v50 與 Cloudflare production build `dbb278f1-de9a-4651-8325-891b8330cd40` 完成發布。未登入 POST 正確回應 401「請先登入 Alan English」；本次沒有執行 migration，也沒有代替管理員封存任何來源。
 
 本次 Workbook 3 重新 OCR 的 R2 CORS 阻擋修正（2026-09-24，本機完成；Cloudflare CORS 已套用並完成實際 OCR）：
 
