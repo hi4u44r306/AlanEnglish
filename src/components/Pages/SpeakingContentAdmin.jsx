@@ -175,7 +175,7 @@ const WholeBookCard = ({ document, chunks, disabled, onProcess, onRetry }) => {
     const actionable = chunks.filter(chunk => ["uploaded", "failed"].includes(chunk.status) || isStaleChunk(chunk));
     const percent = chunks.length ? Math.round((finished / chunks.length) * 100) : 0;
     return <article className="speaking-book-job">
-        <header><div><span>整本教材 · {document.page_count} 頁</span><h3>{document.title}</h3><p>{finished}/{chunks.length} 批已辨識 · {reviewed}/{chunks.length} 批已核准</p></div><strong>{percent}%</strong></header>
+        <header><div><span>整本教材 · {document.page_count} 頁</span><h3>{document.title}</h3>{document.original_filename && <p>原始檔案：{document.original_filename}</p>}<p>{finished}/{chunks.length} 批已辨識 · {reviewed}/{chunks.length} 批已核准</p></div><strong>{percent}%</strong></header>
         <div className="speaking-book-job__bar" aria-label={`OCR 完成 ${percent}%`}><span style={{ width: `${percent}%` }} /></div>
         <div className="speaking-book-job__chunks">{chunks.map(chunk => <div className={`speaking-book-chunk ${chunk.status}`} key={chunk.id}>
             <span>P{chunk.page_from}–P{chunk.page_to}</span><small>{isStaleChunk(chunk) ? "處理中斷，可重試" : chunkStatusLabel(chunk.status)}</small>
@@ -197,8 +197,13 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
         language_level: section.language_level || "國小中年級", source_text: section.source_text || "", confirmed: false
     });
     const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    const isMultiPage = sourcePageLabels(form).length > 1;
+    const retainedPages = markedSourcePageLabels(form);
+    const missingPageMarkers = isMultiPage && retainedPages.length === 0;
     return <div className="speaking-ocr-review">
         <div className="speaking-ocr-review__notice"><strong>AI 已完成文字辨識，尚未核准</strong><span>請對照原課本校正錯字、頁碼與題目順序。不需要建立關卡的頁面，請連同該頁的 <code>[[PAGE P頁碼]]</code> 與內容一起刪除；系統只處理逐字稿中實際留下的頁碼。</span></div>
+        {missingPageMarkers && <div className="speaking-ocr-review__notice" role="alert"><strong>這批尚無可建立關卡的頁碼</strong><span>目前逐字稿沒有符合本批頁碼的 <code>[[PAGE P頁碼]]</code> 標記。請對照原始 PDF，為要保留的每頁加上獨立標記，再核准；只有文字 OCR 無法判定圖片與空格的配對，圖片題仍需逐題核對並提供圖片。</span></div>}
+        {isMultiPage && !missingPageMarkers && <p>目前保留 {retainedPages.length} 頁：{retainedPages.join("、")}</p>}
         <div className="platform-form">
             <div className="platform-form-grid">
                 <label><span>Unit／單元</span><input value={form.unit_label} onChange={event => update("unit_label", event.target.value)} disabled={disabled} /></label>
@@ -209,7 +214,7 @@ const OcrReviewEditor = ({ section, disabled, onReview }) => {
             </div>
             <label><span>OCR 辨識文字</span><textarea rows="14" minLength="20" value={form.source_text} onChange={event => update("source_text", event.target.value)} disabled={disabled} /></label>
             <label className="speaking-confirm"><input type="checkbox" checked={form.confirmed} onChange={event => update("confirmed", event.target.checked)} disabled={disabled} /><span>我已逐頁對照原教材，並確認逐字稿中留下的頁碼就是之後要建立關卡的頁面。</span></label>
-            <button type="button" className="platform-primary" disabled={disabled || !form.confirmed || form.source_text.trim().length < 20 || !form.topic.trim()} onClick={() => onReview(section.id, form)}>核准 OCR 教材文字</button>
+            <button type="button" className="platform-primary" disabled={disabled || missingPageMarkers || !form.confirmed || form.source_text.trim().length < 20 || !form.topic.trim()} onClick={() => onReview(section.id, form)}>核准 OCR 教材文字</button>
         </div>
     </div>;
 };

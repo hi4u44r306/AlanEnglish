@@ -26,6 +26,7 @@ import {
     alphabetCandidateSequenceAllowed
 } from "../_shared/alphabet-master-voice.ts";
 import { workbookOnePictureReviewCandidates } from "../_shared/workbook-one-picture-review-candidates.ts";
+import { wholeBookOcrPageMarkersMatch } from "../_shared/speaking-ocr-page-markers.ts";
 import {
     extractNumberedTextQaPairs,
     filterOcrPageSpeakingCandidates,
@@ -70,7 +71,7 @@ const MAX_OCR_SOURCE_TEXT_CHARS = 60_000;
 const ALLOWED_SOURCE_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_PICTURE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_PICTURE_BYTES = 10 * 1024 * 1024;
-const OCR_CONTENT_SCOPE = "只轉錄有教材意義的文字：英文句子、對話、明確題目、選項文字、句型、標題及理解題目必要的中文提示。英文完整句中若有清楚可見、供學生作答的紅色文字，仍須先完整轉錄整句，並在該句下一行另寫 [[RED_ANSWER: 紅字原文]]；紅字有斜線選項時須完整保留，例如 [[RED_ANSWER: he/she]] 或 [[RED_ANSWER: his/her]]。不要用紅字片段取代完整句，也不得猜測看不清楚的顏色或文字。不要轉錄頁碼、頁首／頁尾、版權、網址、ISBN、表格邊框、空白格線、勾選框、裝飾圖示、重複的版面標籤或只有符號的內容。歌曲或韻文頁只保留歌曲名稱、相關單字與教學標題；不可逐行轉錄完整歌詞，請以 [歌曲歌詞略] 代表歌詞正文。";
+const OCR_CONTENT_SCOPE = "只轉錄有教材意義的文字：英文句子、對話、明確題目、選項文字、句型、標題及理解題目必要的中文提示。保留原本的題號、題目順序及句中供學生作答的空格，以 ____ 表示；同一題的問句、空格、選項和可見答案必須保持相鄰，不要把不同題的文字合併。若題目依賴圖片、時鐘、箭頭、顏色或勾叉才能回答，在該題文字後加一行 [[IMAGE_REQUIRED: 題號或位置]]；這只是待人工配圖提醒，不是圖片內容或答案，不能猜測看不清楚的物件。英文完整句中若有清楚可見、供學生作答的紅色文字，仍須先完整轉錄整句，並在該句下一行另寫 [[RED_ANSWER: 紅字原文]]；紅字有斜線選項時須完整保留，例如 [[RED_ANSWER: he/she]] 或 [[RED_ANSWER: his/her]]。不要用紅字片段取代完整句，也不得猜測看不清楚的顏色或文字。不要轉錄頁碼、頁首／頁尾、版權、網址、ISBN、表格邊框、純空白格線、裝飾圖示、重複的版面標籤或只有符號的內容。歌曲或韻文頁只保留歌曲名稱、相關單字與教學標題；不可逐行轉錄完整歌詞，請以 [歌曲歌詞略] 代表歌詞正文。";
 const WORKBOOK_ONE_PICTURE_CONFIGS: Record<string, {
     pageLabel: string;
     interactionType: "picture_qa" | "picture_gap_sentence";
@@ -1220,6 +1221,9 @@ Deno.serve(async (req: Request) => {
                 }
                 const extracted = parseOcrOutput(aiData);
                 if (!extracted) throw Object.assign(new Error("invalid_ocr_output"), { code: ocrOutputFailureCode(aiData) });
+                if (!wholeBookOcrPageMarkersMatch(extracted.sourceText, Number(chunk.page_from), Number(chunk.page_to))) {
+                    throw Object.assign(new Error("OCR 遺漏或重複了本批頁碼標記，請重試這一批"), { code: "ocr_page_markers_mismatch" });
+                }
                 const now = new Date().toISOString();
                 const { data: section, error: sectionError } = await admin.from("speaking_source_sections").insert({
                     document_id: document.id, unit_label: extracted.suggestedUnit,
@@ -1409,12 +1413,19 @@ Deno.serve(async (req: Request) => {
             if (sectionError) throw sectionError;
             const document = Array.isArray(section?.speaking_source_documents) ? section?.speaking_source_documents[0] : section?.speaking_source_documents;
             const { data: sourceChunk, error: chunkLookupError } = await admin.from("speaking_source_chunks")
-                .select("id,document_id,status").eq("source_section_id", sectionId).maybeSingle();
+                .select("id,document_id,status,page_from,page_to").eq("source_section_id", sectionId).maybeSingle();
             if (chunkLookupError) throw chunkLookupError;
             const isChunkReview = sourceChunk?.status === "review_required";
             if (!section || section.status !== "draft" || document?.source_kind === "pasted_text"
                 || (!isChunkReview && document?.ocr_status !== "review_required")) {
                 return json(409, { error: "只有待人工核對的 OCR 教材文字可以確認" });
+            }
+            if (isChunkReview) {
+                const chunkPages = Array.from({ length: Number(sourceChunk.page_to) - Number(sourceChunk.page_from) + 1 },
+                    (_, index) => `P${Number(sourceChunk.page_from) + index}`);
+                if (!markedSourcePageLabels(sourceText, chunkPages).length) {
+                    return json(400, { error: "本批逐字稿沒有保留任何有效的 [[PAGE P頁碼]]；請核對原始 PDF 後再核准" });
+                }
             }
             const now = new Date().toISOString();
             const { data: reviewedSection, error: updateError } = await admin.from("speaking_source_sections").update({
@@ -1572,6 +1583,10 @@ Deno.serve(async (req: Request) => {
                 }
             };
             const pageCandidateSource = pageCandidate ? filterOcrPageSpeakingCandidates(sourceText) : null;
+            const requiresPictureReview = pageCandidate && /\[\[IMAGE_REQUIRED\s*:/i.test(sourceText);
+            if (requiresPictureReview) {
+                return json(409, { error: `${requestedPageLabel} 的題目依賴圖片；請使用逐頁圖片草稿建立器，人工選擇看圖問答或看圖補句並逐題配圖，不能當純文字題自動生成。` });
+            }
             const deterministicTextQaPairs = pageCandidate ? extractNumberedTextQaPairs(sourceText) : [];
             const useDeterministicTextQa = pageCandidate && autoQuestionCount && deterministicTextQaPairs.length > 0;
             if (pageCandidateSource?.redAnswerHints.length) {
@@ -1590,7 +1605,7 @@ Deno.serve(async (req: Request) => {
                             source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
                             source_page_label: requestedPageLabel, interaction_type: "standard_sentence",
                             auto_question_count: true, source_characters: sourceText.length,
-                            candidate_filter: { version: "v1", eligible_sentence_count: 0, discarded_segment_count: pageCandidateSource!.discardedSegments },
+                            candidate_filter: { version: "v1", eligible_sentence_count: pageCandidateSource!.sentences.length, discarded_segment_count: pageCandidateSource!.discardedSegments },
                             image_suggestions: [], duplicate_review: null,
                             requires_manual_authoring: true, manual_authoring_reason: "no_speakable_sentence",
                             requires_content_review: true, content_reviewed_at: null, content_reviewed_by: null
