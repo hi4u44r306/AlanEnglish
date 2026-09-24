@@ -1,6 +1,12 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-24
+最後更新：2026-09-25
+
+本次口說大挑戰可插關的前端地圖原型（2026-09-25，功能分支進行中；尚未部署）：
+
+- `codex/speaking-adventure-map` 的同一本 Workbook 改成由上往下單一路線：依目前已發布關卡清單生成節點與彎曲道路，座標以書本及關卡 ID 固定，中間插關會推移後續節點，末端追加會延長地圖；地景由草原、高地漸入火山，沒有角色人物。這只處理前端排列，不改正式題庫排序、分類解鎖或舊進度資料。
+- 手機進入 Workbook 地圖及小關卡會收起主 Header／底部導覽，保留返回操作；回到全部教材時恢復。學生的一般口說題移除上一題／下一題，完成後顯示「繼續挑戰」；老師／管理員預覽一般口說、A–Z／拼讀及圖片題時保留逐題切換，老師唯讀。
+- 相關檔案：`src/utils/speakingAdventureMap.js`、`src/components/Pages/TextbookSpeakingChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`css/SpeakingAdventureRoute.scss`、`assets/speaking-map/` 及對應測試。無 migration、Edge Function 或正式資料操作。已通過 4 suites／59 tests、Production build；編譯 CSS 靜態樣張在 320／390／430／1280px 無水平溢位。仍需在隔離預覽驗收登入後學生、老師、管理員、真實錄音、手機 safe area；`S-19`、`S-20` 素材待更新。
 
 本次口說大挑戰無人物地圖與關內版型（2026-09-24，功能分支完成；尚未部署）：
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiChevronLeft, FiRefreshCw, FiVolume2 } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiRefreshCw, FiVolume2 } from "react-icons/fi";
 import { createPictureChallengeRound, tokenizeSpeakingSentence } from "../../utils/speakingPictureChallenge";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
@@ -22,7 +22,7 @@ const copyByType = {
     }
 };
 
-export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, onComplete, onExit }) {
+export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, onComplete, onExit, staffPreview = false, adminScoringPreview = false }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
@@ -55,7 +55,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
 
     const startRound = () => {
         stopAudio();
-        setRound(createPictureChallengeRound(sourceQuestions));
+        setRound(staffPreview ? sourceQuestions : createPictureChallengeRound(sourceQuestions));
         setActiveIndex(0);
         setAudioError("");
         setChallengeSessionId(createSpeakingChallengeSessionId());
@@ -111,7 +111,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
 
     if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page">
         <header className="speaking-lesson-header"><button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />全部大挑戰</button><div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div></header>
-        <section className="speaking-foundation-intro"><FiVolume2 aria-hidden="true" /><h2>{copy.title}</h2><p>{copy.instruction}</p><button type="button" className="primary" onClick={startRound}>開始挑戰</button></section>
+        <section className="speaking-foundation-intro"><FiVolume2 aria-hidden="true" /><h2>{copy.title}</h2><p>{copy.instruction}</p><button type="button" className="primary" onClick={startRound}>{staffPreview ? "預覽題目" : "開始挑戰"}</button></section>
     </main>;
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page">
@@ -145,7 +145,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
                         : <span key={token.tokenIndex} className="punctuation" aria-hidden="true">{token.text}</span>)}
             </div>}
             {audioError && <p className="speaking-foundation-warning" role="alert">{audioError}</p>}
-            <SpeakingPracticeSteps
+            {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps
                 key={activeQuestion.id}
                 firebaseUser={firebaseUser}
                 question={activeQuestion}
@@ -155,7 +155,8 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
                 promptTitle={copy.promptTitle}
                 promptDetail={copy.promptDetail}
                 onCompleted={handleCorrect}
-            />
+            />}
         </article></section>
+        {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => { stopAudio(); setActiveIndex(index => index + 1); }} disabled={activeIndex >= round.length - 1}>下一題<FiChevronRight /></button></nav>}
     </main>;
 }
