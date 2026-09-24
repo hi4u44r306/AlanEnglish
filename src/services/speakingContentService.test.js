@@ -15,6 +15,7 @@ import {
     deleteDraftSpeakingQuestion,
     reorderDraftSpeakingQuestions,
     archiveSpeakingQuestionSet,
+    archiveSpeakingSourceSection,
     confirmPageCandidateSpeakingDraft,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
@@ -73,6 +74,7 @@ describe("speakingContentService", () => {
         await deleteDraftSpeakingQuestion(firebaseUser, 22, 23);
         await reorderDraftSpeakingQuestions(firebaseUser, 22, [24, 23]);
         await archiveSpeakingQuestionSet(firebaseUser, 22);
+        await archiveSpeakingSourceSection(firebaseUser, 32);
         await publishSpeakingQuestionSet(firebaseUser, 4);
         await generateSpeakingQuestionSetAudio(firebaseUser, 4);
         await prepareSpeakingAlphabetAudioCandidate(firebaseUser, 7);
@@ -110,6 +112,7 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "delete_draft_question"],
             ["speaking-content-manager", "reorder_draft_questions"],
             ["speaking-content-manager", "archive_question_set"],
+            ["speaking-content-manager", "archive_source_section"],
             ["speaking-content-manager", "publish_question_set"],
             ["speaking-tts-manager", "generate_set_audio"],
             ["speaking-tts-manager", "prepare_alphabet_audio_candidate"],

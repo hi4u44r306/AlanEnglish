@@ -49,6 +49,9 @@ export const reorderDraftSpeakingQuestions = (firebaseUser, questionSetId, quest
 export const archiveSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "archive_question_set", {
     question_set_id: questionSetId
 });
+export const archiveSpeakingSourceSection = (firebaseUser, sourceSectionId) => callSpeakingContent(firebaseUser, "archive_source_section", {
+    source_section_id: sourceSectionId
+});
 export const publishSpeakingQuestionSet = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "publish_question_set", { question_set_id: questionSetId });
 export const generateSpeakingQuestionSetAudio = (firebaseUser, questionSetId) => (
     callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_set_audio", question_set_id: questionSetId })

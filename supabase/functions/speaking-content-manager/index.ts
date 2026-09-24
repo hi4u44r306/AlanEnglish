@@ -1489,8 +1489,13 @@ Deno.serve(async (req: Request) => {
             let questionCount = autoQuestionCount ? 30 : Math.min(12, Math.max(3, Number(body?.question_count) || 5));
             const requestKey = cleanText(body?.request_key, 80);
             const requestedPageLabel = normalizePageLabel(body?.source_page_label);
+            const replaceQuestionSetId = body?.replace_question_set_id == null
+                ? null : Number(body.replace_question_set_id);
             if (!Number.isInteger(sourceSectionId) || sourceSectionId <= 0 || !/^[0-9a-f-]{36}$/i.test(requestKey)) {
                 return json(400, { error: "題庫生成資料不完整" });
+            }
+            if (replaceQuestionSetId !== null && (!Number.isInteger(replaceQuestionSetId) || replaceQuestionSetId <= 0 || !requestedPageLabel)) {
+                return json(400, { error: "重新產生草稿的頁碼或舊草稿資料不完整" });
             }
             const { data: existingJob, error: existingError } = await admin.from("speaking_generation_jobs")
                 .select("status,question_set_id").eq("request_key", requestKey).maybeSingle();
@@ -1531,9 +1536,39 @@ Deno.serve(async (req: Request) => {
                     .neq("status", "archived").limit(1).maybeSingle();
                 if (candidateError) throw candidateError;
                 if (existingCandidate) {
-                    return json(409, { error: `${requestedPageLabel} 已有${existingCandidate.status === "draft" ? "候選草稿" : "已發布"}；請先處理現有版本` });
+                    if (existingCandidate.status !== "draft" || Number(existingCandidate.id) !== replaceQuestionSetId) {
+                        return json(409, { error: `${requestedPageLabel} 已有${existingCandidate.status === "draft" ? "候選草稿" : "已發布"}；請重新整理後再選擇正確版本` });
+                    }
+                    const protectedStudentTables = [
+                        "speaking_challenge_question_progress",
+                        "speaking_pronunciation_attempts",
+                        "speaking_pronunciation_requests",
+                        "speaking_foundation_rounds",
+                        "speaking_alphabet_intro_listens"
+                    ];
+                    const linkedStudentRows = await Promise.all(protectedStudentTables.map(async table => {
+                        const { data, error } = await admin.from(table).select("question_set_id")
+                            .eq("question_set_id", replaceQuestionSetId).limit(1).maybeSingle();
+                        if (error) throw error;
+                        return data;
+                    }));
+                    if (linkedStudentRows.some(Boolean)) {
+                        return json(409, { error: `${requestedPageLabel} 的草稿已有學生進度或評分紀錄，不能直接重建` });
+                    }
+                } else if (replaceQuestionSetId !== null) {
+                    return json(409, { error: `${requestedPageLabel} 的舊草稿已變更，請重新整理後再試` });
                 }
             }
+            const removeReplacedDraft = async (newQuestionSetId: number) => {
+                if (replaceQuestionSetId === null) return;
+                const { data: deletedDraft, error } = await admin.from("speaking_question_sets").delete()
+                    .eq("id", replaceQuestionSetId).eq("status", "draft").select("id").maybeSingle();
+                if (error || !deletedDraft) {
+                    await admin.from("speaking_question_sets").delete().eq("id", newQuestionSetId).eq("status", "draft");
+                    if (error) throw error;
+                    throw new Error(`${requestedPageLabel} 的舊草稿狀態已變更，未完成替換`);
+                }
+            };
             const pageCandidateSource = pageCandidate ? filterOcrPageSpeakingCandidates(sourceText) : null;
             const deterministicTextQaPairs = pageCandidate ? extractNumberedTextQaPairs(sourceText) : [];
             const useDeterministicTextQa = pageCandidate && autoQuestionCount && deterministicTextQaPairs.length > 0;
@@ -1561,10 +1596,12 @@ Deno.serve(async (req: Request) => {
                         created_by: user.id, created_at: now, updated_at: now
                     }).select("id").single();
                     if (placeholderError) throw placeholderError;
+                    await removeReplacedDraft(Number(placeholder.id));
                     return json(201, {
                         success: true, question_set_id: placeholder.id, question_count: 0,
                         source_page_label: requestedPageLabel, requires_manual_authoring: true,
-                        manual_authoring_reason: "no_speakable_sentence"
+                        manual_authoring_reason: "no_speakable_sentence",
+                        replaced_question_set_id: replaceQuestionSetId
                     });
                 }
                 return json(409, { error: `${requestedPageLabel} 沒有可直接朗讀的完整英文句；已略過格線、頁碼、填空、標題與作業指令。請改用逐頁手動建立。` });
@@ -1668,7 +1705,8 @@ Deno.serve(async (req: Request) => {
                     .eq("book_id", bookId).neq("status", "archived");
                 if (duplicateLookupError) throw duplicateLookupError;
                 const deduplicated = findExistingSentenceMatches(
-                    existingQuestionSets || [], generatedQuestions, requestedPageLabel
+                    (existingQuestionSets || []).filter(questionSet => Number(questionSet.id) !== replaceQuestionSetId),
+                    generatedQuestions, requestedPageLabel
                 );
                 questions = deduplicated.kept;
                 duplicateMatches = deduplicated.matches;
@@ -1741,6 +1779,7 @@ Deno.serve(async (req: Request) => {
                 }).eq("id", job.id);
                 throw questionError;
             }
+            await removeReplacedDraft(Number(questionSet.id));
             await admin.from("speaking_generation_jobs").update({
                 status: "completed", question_set_id: questionSet.id,
                 input_tokens: Number(usage.input_tokens || 0), output_tokens: Number(usage.output_tokens || 0),
@@ -1751,7 +1790,8 @@ Deno.serve(async (req: Request) => {
                 rejected_ai_question_count: pageCandidate ? pageCandidateGeneration!.rejectedQuestionCount : 0,
                 generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source",
                 excluded_duplicate_count: duplicateMatches.length, source_page_label: requestedPageLabel || null,
-                requires_manual_authoring: Boolean(manualAuthoringReason), manual_authoring_reason: manualAuthoringReason
+                requires_manual_authoring: Boolean(manualAuthoringReason), manual_authoring_reason: manualAuthoringReason,
+                replaced_question_set_id: replaceQuestionSetId
             });
         }
 
@@ -2184,6 +2224,42 @@ Deno.serve(async (req: Request) => {
             }).eq("id", setId).eq("status", "published");
             if (error) throw error;
             return json(200, { success: true, archived: true });
+        }
+
+        if (action === "archive_source_section") {
+            const sectionId = Number(body?.source_section_id);
+            if (!Number.isInteger(sectionId) || sectionId <= 0) return json(400, { error: "找不到指定教材來源" });
+            const { data: section, error: sectionError } = await admin.from("speaking_source_sections")
+                .select("id,document_id,status").eq("id", sectionId).maybeSingle();
+            if (sectionError) throw sectionError;
+            if (!section) return json(404, { error: "找不到指定教材來源" });
+            if (section.status === "archived") return json(409, { error: "這份教材來源已經封存" });
+
+            const { data: activeQuestionSet, error: questionSetError } = await admin.from("speaking_question_sets")
+                .select("id,title,status").eq("source_section_id", sectionId).neq("status", "archived").limit(1).maybeSingle();
+            if (questionSetError) throw questionSetError;
+            if (activeQuestionSet) {
+                return json(409, {
+                    error: `這份來源仍有${activeQuestionSet.status === "published" ? "已發布關卡" : "未發布草稿"}「${activeQuestionSet.title}」；請先到對應區域處理關卡，再封存來源`
+                });
+            }
+
+            const now = new Date().toISOString();
+            const { data: archivedSection, error: archiveError } = await admin.from("speaking_source_sections")
+                .update({ status: "archived", updated_at: now }).eq("id", sectionId)
+                .neq("status", "archived").select("id").maybeSingle();
+            if (archiveError) throw archiveError;
+            if (!archivedSection) return json(409, { error: "教材來源狀態已變更，請重新整理後再試" });
+
+            const { data: remainingSection, error: remainingError } = await admin.from("speaking_source_sections")
+                .select("id").eq("document_id", section.document_id).neq("status", "archived").limit(1).maybeSingle();
+            if (remainingError) throw remainingError;
+            if (!remainingSection) {
+                const { error: documentError } = await admin.from("speaking_source_documents")
+                    .update({ status: "archived", updated_at: now }).eq("id", section.document_id);
+                if (documentError) throw documentError;
+            }
+            return json(200, { success: true, archived: true, source_section_id: sectionId });
         }
 
         if (action === "create_manual_page_speaking_draft") {
