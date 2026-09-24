@@ -116,6 +116,28 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByRole("button", { name: "開始批次 OCR" })).toBeInTheDocument();
     });
 
+    it("shows the original PDF filename and blocks approval when a multi-page OCR has no retained page marker", async () => {
+        reviewSpeakingOcrSource.mockResolvedValue({ success: true });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 50, book_id: 1, title: "習作本1口說挑戰", original_filename: "Alan's workbook 1 student(新版).pdf", source_kind: "pdf", page_count: 119, chunk_count: 12 }],
+            chunks: [{ id: 51, document_id: 50, source_section_id: 52, chunk_index: 2, page_from: 21, page_to: 30, status: "review_required" }],
+            sections: [{ id: 52, document_id: 50, page_from_label: "P21", page_to_label: "P30", topic: "看圖補句", status: "draft", source_text: "22\n1. The is in the tree.\n2. The is on the floor." }],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        expect(screen.getByText("原始檔案：Alan's workbook 1 student(新版).pdf")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /核對 OCR 批次/ }));
+        fireEvent.click(screen.getByText("Workbook 1", { selector: ".speaking-ocr-book-group > summary strong" }));
+        fireEvent.click(screen.getByText("P21–P30 · 看圖補句"));
+        expect(screen.getByRole("alert")).toHaveTextContent("這批尚無可建立關卡的頁碼");
+        fireEvent.click(screen.getByRole("checkbox", { name: /我已逐頁對照原教材/ }));
+        expect(screen.getByRole("button", { name: "核准 OCR 教材文字" })).toBeDisabled();
+        expect(reviewSpeakingOcrSource).not.toHaveBeenCalled();
+    });
+
     it("shows four source tabs and hides superseded whole-book OCR duplicates", async () => {
         getSpeakingContentBootstrap.mockResolvedValue({
             books: [

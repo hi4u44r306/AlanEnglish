@@ -32,6 +32,7 @@ const alphabetSequence = read("supabase/functions/_shared/alphabet-audio-sequenc
 const alphabetMasterVoice = read("supabase/functions/_shared/alphabet-master-voice.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
+const ocrPageMarkers = read("supabase/functions/_shared/speaking-ocr-page-markers.ts");
 const app = read("src/app/App.jsx");
 const challengeStyles = read("src/components/Pages/css/TextbookSpeakingChallenge.scss");
 const foundationChallenge = read("src/components/Pages/WorkbookOneFoundationChallenge.jsx");
@@ -222,6 +223,16 @@ test("9a. OCR 會要求結構化 JSON、保留舊回覆的安全 JSON 擷取，�
     assert.match(manager, /WHOLE_BOOK_OCR_MAX_OUTPUT_TOKENS = 16_000/);
     assert.match(manager, /MAX_OCR_SOURCE_TEXT_CHARS = 60_000/);
     assert.match(manager, /ocr_output_truncated/);
+});
+
+test("9b. 整本 OCR 保留題目空格與圖片待核對標記，缺頁不會假裝辨識成功", () => {
+    assert.match(manager, /\[\[IMAGE_REQUIRED: 題號或位置\]\]/);
+    assert.match(manager, /wholeBookOcrPageMarkersMatch\(extracted\.sourceText/);
+    assert.match(manager, /ocr_page_markers_mismatch/);
+    assert.match(manager, /markedSourcePageLabels\(sourceText, chunkPages\)/);
+    assert.match(manager, /if \(requiresPictureReview\) \{/);
+    assert.match(manager, /請使用逐頁圖片草稿建立器/);
+    assert.match(ocrPageMarkers, /markers\.every\(\(page, index\) => page === pageFrom \+ index\)/);
 });
 
 test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 500MB", () => {
