@@ -192,7 +192,7 @@ describe("speakingContentService", () => {
         global.fetch = jest.fn().mockRejectedValue(new TypeError("Failed to fetch"));
 
         await expect(uploadWholeBookSource(firebaseUser, file, { book_id: 2, document_title: "Workbook 2" }))
-            .rejects.toThrow("R2 CORS 已允許目前網站與 PUT 上傳");
+            .rejects.toThrow("R2 CORS AllowedOrigins 加入目前來源");
         expect(callEdgeFunction.mock.calls.map(call => call[2].action)).toEqual([
             "create_book_upload",
             "discard_document_upload"

@@ -2,6 +2,13 @@
 
 最後更新：2026-09-24
 
+本次 Workbook 3 重新 OCR 的 R2 CORS 阻擋修正（2026-09-24，本機完成；Cloudflare CORS 已套用並完成實際 OCR）：
+
+- 已在 localhost 實際重試 144.1MB Workbook 3 PDF；瀏覽器於本機切到第 4/11 批後，在第一個私人 R2 `PUT` 前被阻擋並自動清理暫存工作，因此沒有開始 OCR、沒有產生 AI 費用，也沒有覆蓋既有 Workbook 3 OCR／核准內容。
+- 已唯讀確認實際 `alanenglish-audio` bucket 維持私人、Public Development URL 關閉；既有 CORS Policy 只允許正式站、Firebase 舊站與固定測試站，缺少 `http://localhost:3000`，這是 localhost 上傳 `Failed to fetch` 的直接原因。
+- 已在使用者確認後更新 Cloudflare CORS：新增 `https://dev.alanenglish.com.tw` 與 `http://localhost:3000`，並保留正式站、Firebase 舊站及固定 Netlify 測試站；方法仍只有 `GET／HEAD／PUT`，標頭只有 `Content-Type／Range`，未啟用公開 bucket 或萬用字元。
+- 本機 CORS 範本同步保留全部既有來源；錯誤訊息現在會顯示目前 origin。不需 migration 或 Supabase Function 部署。已從 localhost 成功上傳同一份 144.1MB、106 頁 PDF，並完成 11/11 批重新 OCR；P1–P10 到 P101–P106 全部進入待人工核准，沒有失敗批次。舊 Workbook3 OCR 與原本 2 批已核准內容仍完整保留；前端尚未推送或部署。
+
 本次 Workbook 3 分組式問答配對修正（2026-09-24，必要 Supabase Function 已部署；前端未發布）：
 
 - 已確認 P11／P15／P17 的核准逐字稿採用「先連續列出所有編號題目，再依相同順序列出所有答案」；舊解析器只支援題目後立刻接答案，導致前面題目沒有答案、整頁答案全部掛到最後一題，因此三頁都只建立 1 題且答案錯配。
