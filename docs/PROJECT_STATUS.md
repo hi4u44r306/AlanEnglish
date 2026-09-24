@@ -6,7 +6,7 @@
 
 - `codex/speaking-adventure-map` 將 Workbook 的三類關卡改成由下往上的路線地圖：圓形節點顯示教材頁碼、通關／目前／鎖定狀態，沒有虛擬人物。可玩節點先開關卡摘要，再由「進入挑戰」前往題目；老師／管理員預覽沿用同一地圖。
 - 一般口說、Workbook 1 A–Z／拼讀與圖片題共用新的關內視覺：深藍進度區、集中題目卡與錄音主操作；各題型原有錄音、送評、解鎖、每日五輪及 XP／AE Points 規則不變。不新增 migration、Edge Function、星數結算、道具或 PK。
-- React 相關測試 3 suites／52 tests、Production build 與 `git diff --check` 通過；以編譯後 CSS 的靜態畫面在 412px／1280px 檢查地圖與關內版型，無水平溢位。靜態畫面不是登入後實際錄音驗收；正式發布前仍須在隔離預覽檢查學生、老師、管理員、真實麥克風及 iPhone safe area。`S-19`、`S-20` 教學素材待更新。
+- React 相關測試 3 suites／52 tests、Production build 與 `git diff --check` 通過；以編譯後 CSS 的靜態畫面在 412px／1280px 檢查地圖與關內版型，無水平溢位。commit `16052f2` 已推送，草稿 PR #277 已建立。靜態畫面不是登入後實際錄音驗收；正式發布前仍須在隔離預覽檢查學生、老師、管理員、真實麥克風及 iPhone safe area。`S-19`、`S-20` 教學素材待更新。
 
 本次 Workbook 1 新版學生版 OCR 核對防錯（2026-09-24，正式部署完成）：
 
