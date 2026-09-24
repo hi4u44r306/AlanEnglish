@@ -1572,7 +1572,7 @@ Deno.serve(async (req: Request) => {
             if (pageCandidate && autoQuestionCount) questionCount = useDeterministicTextQa
                 ? deterministicTextQaPairs.length : Math.min(30, pageCandidateSource!.sentences.length);
             const now = new Date().toISOString();
-            const generationModel = useDeterministicTextQa ? "reviewed_numbered_text_qa_v1" : AI_MODEL;
+            const generationModel = useDeterministicTextQa ? "reviewed_numbered_text_qa_v2" : AI_MODEL;
             const { data: job, error: jobError } = await admin.from("speaking_generation_jobs").insert({
                 source_section_id: sourceSectionId, requested_by: user.id, request_key: requestKey,
                 requested_count: questionCount, status: "processing", model: generationModel, created_at: now
@@ -1698,7 +1698,7 @@ Deno.serve(async (req: Request) => {
                         source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
                         source_page_label: requestedPageLabel, interaction_type: generatedInteractionType,
                         auto_question_count: autoQuestionCount,
-                        candidate_filter: { version: "v6", eligible_sentence_count: pageCandidateSource!.sentences.length, numbered_question_count: useDeterministicTextQa ? deterministicTextQaPairs.length : null, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType, generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source" },
+                        candidate_filter: { version: "v7", eligible_sentence_count: pageCandidateSource!.sentences.length, numbered_question_count: useDeterministicTextQa ? deterministicTextQaPairs.length : null, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType, generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source" },
                         answer_policy: generatedInteractionType === TEXT_QA_INTERACTION_TYPE
                             ? questions.some(question => [question.model_answer, ...(question.accepted_intents || [])]
                                 .some(answer => /\[[^\]]+\]/.test(String(answer))))

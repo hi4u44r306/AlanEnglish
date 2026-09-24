@@ -120,7 +120,7 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /sourceHasQuestion && sourceHasAnswer\s*\? TEXT_QA_INTERACTION_TYPE/);
     assert.doesNotMatch(manager, /questions\.length !== rows\.length/);
     assert.match(manager, /rejected_ai_question_count/);
-    assert.match(manager, /reviewed_numbered_text_qa_v1/);
+    assert.match(manager, /reviewed_numbered_text_qa_v2/);
     assert.match(manager, /generation_strategy: useDeterministicTextQa/);
     assert.match(manager, /numbered_question_count: useDeterministicTextQa/);
     assert.match(manager, /extractNumberedTextQaPairs/);
