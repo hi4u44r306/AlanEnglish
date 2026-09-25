@@ -1,12 +1,12 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-25
+最後更新：2026-09-26
 
-本次手機／平板學生導覽與 Web Push 規劃（2026-09-25，本機完成、尚未部署）：
+本次手機／平板學生導覽與 Web Push 規劃（2026-09-26，導覽已正式部署）：
 
 - 學生底部導覽在 1100px 以下改為距安全區底緣 12px；平板導覽最大寬度 560px 並置中，文字增至 12px，保留既有至少 54px 觸控高度。播放器、作業捷徑、口說操作列與頁面底部留白沿用共同偏移量。
 - `docs/WEB_PUSH_PLAN.md` 已整理 iOS／Android Web Push 使用者流程、Firebase 身分綁定、訂閱與佇列設計、兒童通知頻率及隔離驗證閘門。只規劃，未新增 Service Worker、migration、Secret 或發送 Function。
-- 相關檔案：`StudentNavbar.scss`、`TextbookSpeakingChallenge.scss`、口說 CSS 契約、`WEB_PUSH_PLAN.md`、`網站使用手冊.md`。Navbar React 15/15、口說操作列契約 1/1、Production build、`git diff --check` 通過；Edge 模擬 320／412／768／1032px 及 34px 安全區未見水平溢出，播放器與導覽保留 8px。Web Push 仍只有規劃。checkpoint `30083bb6` 已推送；正式發布與實機驗收待完成。
+- 相關檔案：`StudentNavbar.scss`、`TextbookSpeakingChallenge.scss`、口說 CSS 契約、`WEB_PUSH_PLAN.md`、`網站使用手冊.md`。Navbar／口說 React 44/44、完整口說契約 37/37、Production build、`git diff --check` 通過；Edge 模擬 320／412／768／1032px 及 34px 安全區未見水平溢出，播放器與導覽保留 8px。PR #286 已合併至 `main` `c464052d`；由此 commit 建置並部署 Cloudflare Worker `61848c3d-af5e-44f8-a817-720f41cded65`（100% 流量）。`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 均回應 200 並載入 `main.4bb67dda.css`，正式 CSS 含安全區偏移規則。尚未在登入學生的 iPhone／Android／平板實機驗證操作與視覺舒適度；Web Push 仍只有規劃，未上線。
 
 本次口說大挑戰可插關的前端地圖（2026-09-25，已正式部署）：
 
