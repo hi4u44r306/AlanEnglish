@@ -920,7 +920,7 @@ Deno.serve(async (req: Request) => {
         const manualPageDraft = setStatus === "draft"
             && questionSet?.generation_metadata?.source === "admin_page_builder"
             && questionSet?.generation_metadata?.manual_builder_version === 2
-            && interactionType === "mixed";
+            && ["mixed", "text_qa"].includes(interactionType);
         const mayPrepareManualStandardDraft = (manualStandardDraft || reviewedPageCandidateDraft)
             && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action);
         const mayPrepareManualPageDraft = manualPageDraft
