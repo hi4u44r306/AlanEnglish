@@ -71,7 +71,7 @@ describe("ManualSpeakingDraftAdmin", () => {
         expect(screen.queryByRole("button", { name: "從 PDF 高解析擷取圖片" })).not.toBeInTheDocument();
     });
 
-    it("creates a no-image text question draft with answer audio", async () => {
+    it("creates a no-image text question draft without answer audio", async () => {
         renderBuilder();
         fillPage();
         fireEvent.change(screen.getByLabelText("題型"), { target: { value: "text_qa" } });
@@ -85,7 +85,7 @@ describe("ManualSpeakingDraftAdmin", () => {
             confirmed: true,
             questions: [expect.objectContaining({ interaction_type: "text_qa", prompt_text: "What is seven minus two?", answer_text: "Seven minus two is five." })]
         })));
-        await waitFor(() => expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(firebaseUser, 81));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
         expect(uploadSpeakingQuestionPicture).not.toHaveBeenCalled();
     });
 

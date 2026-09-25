@@ -2739,7 +2739,7 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
+                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id,question_text,simple_answer,model_answer)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
@@ -2837,7 +2837,7 @@ Deno.serve(async (req: Request) => {
                 }
             }
             const requiresAnswerExampleAudio = (metadata?.source === "admin_manual_builder" && metadata?.interaction_type === "standard_sentence")
-                || (Boolean(autoPagePolicy) && ["standard_sentence", TEXT_QA_INTERACTION_TYPE].includes(String(metadata?.interaction_type || "")));
+                || (Boolean(autoPagePolicy) && String(metadata?.interaction_type || "") === "standard_sentence");
             if (requiresAnswerExampleAudio) {
                 const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
                 const [{ data: sentenceQuestions, error: sentenceQuestionError }, { data: audioLinks, error: audioLinkError }] = await Promise.all([
@@ -2882,6 +2882,11 @@ Deno.serve(async (req: Request) => {
                 const invalidQuestion = (questionSet.speaking_questions || []).find((question: any) => {
                     const interaction: any = interactionByQuestion.get(Number(question.id));
                     if (!interaction) {
+                        if (String(metadata?.interaction_type || "") === TEXT_QA_INTERACTION_TYPE) {
+                            return !String(question.question_text || "").trim().endsWith("?")
+                                || !String(question.simple_answer || "").trim()
+                                || !String(question.model_answer || "").trim();
+                        }
                         const audio: any = audioByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
                         return audio?.status !== "ready" || !audio?.private_object_key || String(audio?.source_text || "").trim() !== String(question.model_answer || "").trim();
                     }
@@ -2899,7 +2904,7 @@ Deno.serve(async (req: Request) => {
                     }
                     return false;
                 });
-                if (invalidQuestion) return json(409, { error: "逐頁草稿尚未完成：完整句需要示範語音；看圖題需要完整問答、私人圖片與替代文字；補句還需要停頓整句語音" });
+                if (invalidQuestion) return json(409, { error: "逐頁草稿尚未完成：純文字問答需要完整問句、簡易回答與示範回答但不需要音檔；完整句需要示範語音；看圖題需要完整問答、私人圖片與替代文字；補句還需要停頓整句語音" });
             }
             const pictureMode = metadata?.interaction_type === "picture_qa"
                 || metadata?.interaction_type === "picture_gap_sentence";

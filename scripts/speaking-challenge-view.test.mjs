@@ -262,7 +262,7 @@ test("字母、拼讀與一般口說維持原本答案及音檔顯示邊界", as
     assert.deepEqual(regularSigner.keys, ["private/prompt.mp3", "private/model.mp3"]);
 });
 
-test("無圖片文字問答以文字問句呈現，不要求圖片互動資料", async () => {
+test("無圖片文字問答以文字問句呈現且隱藏既有答案音檔", async () => {
     const signer = createOpaqueSigner();
     const result = await buildPublicSpeakingQuestion({
         question: {
@@ -282,6 +282,9 @@ test("無圖片文字問答以文字問句呈現，不要求圖片互動資料",
     assert.equal(result.question_text, "What is seven minus two?");
     assert.equal(result.picture_interaction, undefined);
     assert.equal(result.visual_aid, undefined);
-    assert.equal(result.model_audio_status, "ready");
-    assert.deepEqual(signer.keys, ["private/math-answer.wav"]);
+    assert.equal(result.question_audio_status, "hidden");
+    assert.equal(result.question_audio_url, null);
+    assert.equal(result.model_audio_status, "hidden");
+    assert.equal(result.model_audio_url, null);
+    assert.deepEqual(signer.keys, []);
 });
