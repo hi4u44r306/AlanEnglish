@@ -619,6 +619,33 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(generateSpeakingQuestionSetAudio.mock.invocationCallOrder[0]).toBeLessThan(publishSpeakingQuestionSet.mock.invocationCallOrder[0]);
     });
 
+    it("publishes a complete no-image text question page without generating or previewing audio", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 420, book_id: 1, title: "Workbook 1", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 421, document_id: 420, topic: "數字加減法", unit_label: "P42", page_from_label: "P42", page_to_label: "P42", language_level: "國小低年級", status: "reviewed" }],
+            question_sets: [{
+                id: 422, source_section_id: 421, book_id: 1, title: "P42 數字加減法", status: "draft", version: 1,
+                generation_metadata: { source: "admin_page_builder", manual_builder_version: 2, source_pages: [42], source_page_label: "P42", interaction_type: "text_qa", content_reviewed_at: "2026-09-25T00:00:00Z" },
+                speaking_questions: [{ id: 423, sort_order: 0, question_text: "What is seven minus two?", hint_zh: "請用完整句回答。", simple_answer: "Seven minus two is five.", model_answer: "Seven minus two is five." }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /3 待發布/ }));
+        fireEvent.click(await screen.findByRole("button", { name: /P42 數字加減法/ }));
+        expect(screen.getByText("可以直接以純文字問答發布，不會產生示範語音。")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /先產生並試聽示範語音/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByText("預覽學生畫面"));
+        expect(screen.queryByRole("button", { name: /示範/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "發布純文字關卡" }));
+
+        await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 422));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+        expect(generateSpeakingVisibleWordAudio).not.toHaveBeenCalled();
+    });
+
     it("prepares gap audio for a mixed page containing only picture gap questions", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
         const pictureGapQuestion = (id, sortOrder, prompt, answer) => ({

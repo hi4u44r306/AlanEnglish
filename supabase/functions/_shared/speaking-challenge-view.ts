@@ -33,7 +33,8 @@ export const buildPublicSpeakingQuestion = async ({
         ? String(pictureInteraction?.interaction_type || "standard_sentence")
         : interactionType;
     const pictureMode = effectiveInteractionType === "picture_qa" || effectiveInteractionType === "picture_gap_sentence";
-    const hideChallengeAnswerAudio = interactionType === "alphabet_round"
+    const hideChallengeAnswerAudio = effectiveInteractionType === "text_qa"
+        || interactionType === "alphabet_round"
         || interactionType === "letter_spelling" || pictureMode;
     const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
     const promptReady = promptAsset?.status === "ready" && promptAsset?.private_object_key;

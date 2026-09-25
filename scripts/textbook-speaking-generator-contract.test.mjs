@@ -39,6 +39,14 @@ const foundationChallenge = read("src/components/Pages/WorkbookOneFoundationChal
 const pronunciationRecorder = read("src/components/Pages/SpeakingPronunciationRecorder.jsx");
 const pronunciationRecorderStyles = read("src/components/Pages/css/SpeakingPronunciationRecorder.scss");
 
+test("0. 無圖片文字問答建稿與發布不要求或產生音檔", () => {
+    assert.match(manager, /String\(metadata\?\.interaction_type \|\| ""\) === "standard_sentence"/);
+    assert.match(manager, /純文字問答需要完整問句、簡易回答與示範回答但不需要音檔/);
+    assert.match(ttsManager, /code: "text_qa_audio_disabled"/);
+    assert.match(challengeView, /effectiveInteractionType === "text_qa"/);
+    assert.match(adminPage, /發布純文字關卡/);
+});
+
 test("1. 教材來源、版本題庫、題目與生成工作都有 additive schema", () => {
     for (const table of ["speaking_source_documents", "speaking_source_sections", "speaking_question_sets", "speaking_questions", "speaking_generation_jobs"]) {
         assert.match(migration, new RegExp(`create table if not exists public\\.${table}`));
