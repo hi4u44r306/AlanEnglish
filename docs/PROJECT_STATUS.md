@@ -2,12 +2,13 @@
 
 最後更新：2026-09-25
 
-本次 Workbook 2 P1–P10 OCR 與七題問答（2026-09-25，部分遠端資料恢復／程式尚未部署）：
+本次 Workbook 2 P1–P10 OCR 與七題問答（2026-09-25，程式已正式部署／OCR 待管理員核對）：
 
 - 管理員指定的 Workbook 2 來源 section 63 已由封存恢復為待核對，對應 OCR 批次 117 改回 `review_required`，原逐字稿及文件 39 均保留；沒有核准、建稿或發布。需管理員再次核對並核准。
 - 本機修正 P4／P6／P8／P10 的「先列七個問句，答案庫另排且可能倒序」版型：AI 用中文物品線索一對一配對原答案；配對缺漏、重複或引用非答案庫句子時整頁拒絕建稿，避免只剩 1 題。相同英文問句但答案不同不再誤去重；學生題面顯示中文線索。
-- P4 原 OCR `It a bag.` 疑似缺字，新草稿會暫改 `It's a bag.` 並顯示原句與修正提醒，仍由管理員逐題核對。這類 OCR 文字問答在內容核准後可生成與試聽示範語音，發布時須七題音檔齊全；其他純文字問答維持免音檔規則。無 migration、無 Git push、無 Function 或前端部署；`A-12` 教學素材待更新。
-- OCR／學生輸出測試 18/18、口說契約 37/37、管理／學生 React 測試 52/52、Edge 語法、Production build、`git diff --check` 通過。尚未做部署後的管理員端到端 AI 實際配對、音檔與發布測試；必須先經本批 Supabase Function 部署授權。
+- P4 原 OCR `It a bag.` 疑似缺字，新草稿會暫改 `It's a bag.` 並顯示原句與修正提醒，仍由管理員逐題核對。這類 OCR 文字問答在內容核准後可生成與試聽示範語音，發布時須七題音檔齊全；其他純文字問答維持免音檔規則。無 migration；`A-12` 教學素材待更新。
+- PR #281 已由隔離分支合併至 `main` `4475c9a`，未包含未驗收的口說地圖變更。`speaking-content-manager` v55、`speaking-challenge` v39、`speaking-tts-manager` v35 均 ACTIVE；Cloudflare Worker 版本 `ee41ef83-000d-469c-bd9d-160e4425554d` 已發布。正式首頁及管理路由 HTTP 200 且回傳新版 JS，三函式無登入 POST 均為 401。
+- OCR／學生輸出與口說契約測試 55/55、管理／學生 React 測試 47/47、Edge 語法、Production build、`git diff --check` 通過。GitHub 舊 Netlify deploy-preview 狀態失敗，未作為 Cloudflare 發布依據。仍待管理員核准 OCR 後實測 AI 實際配對、音檔與發布；未自動建稿或發布。`release:deploy-preflight` 腳本目前禁止 `main`，與本文件及 AGENTS.md 的正式部署必須由最新 `main` 執行規範相衝突，待另案修正。
 
 本次純文字問答免音檔與 Workbook 1 P42（2026-09-25，本機實作中）：
 
