@@ -261,3 +261,27 @@ test("字母、拼讀與一般口說維持原本答案及音檔顯示邊界", as
     assert.equal(regular.model_audio_url, "https://signed.test/2");
     assert.deepEqual(regularSigner.keys, ["private/prompt.mp3", "private/model.mp3"]);
 });
+
+test("無圖片文字問答以文字問句呈現，不要求圖片互動資料", async () => {
+    const signer = createOpaqueSigner();
+    const result = await buildPublicSpeakingQuestion({
+        question: {
+            id: 4201, sort_order: 0, question_text: "What is seven minus two?",
+            hint_zh: "請用完整句回答。", simple_answer: "Seven minus two is five.",
+            model_answer: "Seven minus two is five."
+        },
+        interactionType: "text_qa",
+        progressStatus: "opened",
+        modelAsset: { status: "ready", private_object_key: "private/math-answer.wav" },
+        promptAsset: null,
+        pictureInteraction: null,
+        visualAsset: null,
+        signPrivateObject: signer.sign
+    });
+    assert.equal(result.interaction_type, "text_qa");
+    assert.equal(result.question_text, "What is seven minus two?");
+    assert.equal(result.picture_interaction, undefined);
+    assert.equal(result.visual_aid, undefined);
+    assert.equal(result.model_audio_status, "ready");
+    assert.deepEqual(signer.keys, ["private/math-answer.wav"]);
+});

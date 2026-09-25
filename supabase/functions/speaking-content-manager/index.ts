@@ -97,7 +97,7 @@ const workbookOnePictureConfigForMetadata = (metadata: any) => {
     return config && config.templateKey === metadata?.template_key ? config : null;
 };
 const MANUAL_INTERACTION_TYPES = new Set(["standard_sentence", "picture_qa", "picture_gap_sentence"]);
-const MANUAL_PAGE_INTERACTION_TYPES = new Set(["standard_sentence", "picture_qa", "picture_gap_sentence"]);
+const MANUAL_PAGE_INTERACTION_TYPES = new Set(["standard_sentence", "picture_qa", "picture_gap_sentence", "text_qa"]);
 const TEXT_QA_INTERACTION_TYPE = "text_qa";
 const normalizePageLabel = (value: unknown) => {
     const match = cleanText(value, 40).toUpperCase().match(/^P?([1-9][0-9]{0,3})$/);
@@ -133,7 +133,7 @@ const manualPageDraftPolicyForMetadata = (metadata: any) => {
     const rawPages = Array.isArray(metadata?.source_pages) ? metadata.source_pages : [];
     const page = Number(rawPages[0]);
     if (metadata?.source !== "admin_page_builder" || metadata?.manual_builder_version !== 2
-        || metadata?.interaction_type !== "mixed" || rawPages.length !== 1
+        || !["mixed", TEXT_QA_INTERACTION_TYPE].includes(metadata?.interaction_type) || rawPages.length !== 1
         || !Number.isInteger(page) || page < 1 || page > 9999) return null;
     return { sourcePages: [page], pageLabels: [`P${page}`], pageLabel: `P${page}`, expectedCount: null };
 };
@@ -725,9 +725,22 @@ const normalizeImageSuggestions = (value: unknown) => cleanArray(value, 5, 180);
 
 const normalizeManualPageQuestions = (value: unknown) => {
     if (!Array.isArray(value) || value.length < 1 || value.length > 50) return null;
+    const types = value.map((raw: any) => cleanText(raw?.interaction_type, 40));
+    if (types.includes(TEXT_QA_INTERACTION_TYPE) && types.some((type: string) => type !== TEXT_QA_INTERACTION_TYPE)) return null;
     const rows = value.map((raw: any) => {
         const interactionType = cleanText(raw?.interaction_type, 40);
         if (!MANUAL_PAGE_INTERACTION_TYPES.has(interactionType)) return null;
+        if (interactionType === TEXT_QA_INTERACTION_TYPE) {
+            const questionText = cleanText(raw?.prompt_text, 500);
+            const answerText = cleanText(raw?.answer_text, 500);
+            const acceptedFullResponses = cleanArray(raw?.accepted_full_responses, 12, 500);
+            if (!questionText.endsWith("?") || !answerText) return null;
+            return {
+                interactionType, questionText, promptText: questionText,
+                answerText, expectedFullAnswer: answerText, acceptedFullResponses,
+                pronunciationNotes: cleanText(raw?.pronunciation_notes_zh, 1200) || null
+            };
+        }
         if (interactionType === "standard_sentence") {
             const standard = normalizeManualStandardQuestions([raw])?.[0];
             return standard ? {
@@ -2321,7 +2334,8 @@ Deno.serve(async (req: Request) => {
                 const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
                     source_section_id: section.id, book_id: bookId, title, topic, difficulty, status: "draft", version: 1,
                     generation_metadata: {
-                        source: "admin_page_builder", template_key: templateKey, source_pages: [pageNumber], interaction_type: "mixed",
+                        source: "admin_page_builder", template_key: templateKey, source_pages: [pageNumber],
+                        interaction_type: questions.every((row: any) => row.interactionType === TEXT_QA_INTERACTION_TYPE) ? TEXT_QA_INTERACTION_TYPE : "mixed",
                         shuffle: false, requires_content_review: false, manual_builder_version: 2,
                         content_reviewed_at: now, content_reviewed_by: Number(user.id)
                     },
@@ -2334,17 +2348,19 @@ Deno.serve(async (req: Request) => {
                         question_set_id: questionSet.id,
                         question_text: row.interactionType === "standard_sentence" ? row.answerText : row.promptText,
                         hint_zh: row.interactionType === "standard_sentence" ? "請清楚朗讀完整句子。"
+                            : row.interactionType === TEXT_QA_INTERACTION_TYPE ? "請閱讀文字問題，用完整英文句子回答。"
                             : row.interactionType === "picture_qa" ? "看圖片，先說完整問句，再接著說完整回答。"
                                 : "看圖片，把空格答案補進去並說完整句子。",
                         keywords: [], simple_answer: row.expectedFullAnswer, model_answer: row.expectedFullAnswer,
-                        pronunciation_notes_zh: row.pronunciationNotes, accepted_intents: [], sort_order: index,
+                        pronunciation_notes_zh: row.pronunciationNotes,
+                        accepted_intents: row.interactionType === TEXT_QA_INTERACTION_TYPE ? row.acceptedFullResponses : [], sort_order: index,
                         created_at: now, updated_at: now
                     })))
                     .select("id,sort_order");
                 if (questionError) throw questionError;
                 const pictureRows = (createdQuestions || []).flatMap((question: any) => {
                     const row: any = questions[Number(question.sort_order)];
-                    return row?.interactionType === "standard_sentence" ? [] : [{
+                    return ["standard_sentence", TEXT_QA_INTERACTION_TYPE].includes(row?.interactionType) ? [] : [{
                         question_id: question.id, interaction_type: row.interactionType,
                         prompt_text: row.promptText, answer_text: row.answerText,
                         accepted_full_responses: row.acceptedFullResponses, created_at: now, updated_at: now
@@ -2354,7 +2370,7 @@ Deno.serve(async (req: Request) => {
                     const { error: interactionError } = await admin.from("speaking_question_interactions").insert(pictureRows);
                     if (interactionError) throw interactionError;
                 }
-                return json(201, { success: true, question_set_id: questionSet.id, questions: createdQuestions || [], page_labels: [pageLabel], interaction_type: "mixed" });
+                return json(201, { success: true, question_set_id: questionSet.id, questions: createdQuestions || [], page_labels: [pageLabel], interaction_type: questions[0].interactionType === TEXT_QA_INTERACTION_TYPE ? TEXT_QA_INTERACTION_TYPE : "mixed" });
             } catch (error) {
                 if (createdQuestionSetId) await admin.from("speaking_question_sets").delete().eq("id", createdQuestionSetId);
                 await admin.from("speaking_source_documents").delete().eq("id", document.id);
