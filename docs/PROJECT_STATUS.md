@@ -2,11 +2,12 @@
 
 最後更新：2026-09-25
 
-本次口說大挑戰可插關的前端地圖原型（2026-09-25，功能分支進行中；尚未部署）：
+本次口說大挑戰可插關的前端地圖（2026-09-25，已正式部署）：
 
 - `codex/speaking-adventure-map` 的同一本 Workbook 改成由上往下單一路線：依目前已發布關卡清單生成節點與彎曲道路，座標以書本及關卡 ID 固定，中間插關會推移後續節點，末端追加會延長地圖；地景由草原、高地漸入火山，沒有角色人物。這只處理前端排列，不改正式題庫排序、分類解鎖或舊進度資料。
 - 手機進入 Workbook 地圖及小關卡會收起主 Header／底部導覽，保留返回操作；回到全部教材時恢復。學生的一般口說題移除上一題／下一題，完成後顯示「繼續挑戰」；老師／管理員預覽一般口說、A–Z／拼讀及圖片題時保留逐題切換，老師唯讀。
-- 相關檔案：`src/utils/speakingAdventureMap.js`、`src/components/Pages/TextbookSpeakingChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`css/SpeakingAdventureRoute.scss`、`assets/speaking-map/` 及對應測試。無 migration、Edge Function 或正式資料操作。與 `main` 合併時保留學生非 A–Z 語音限制及老師／管理員試聽，相關 React 測試 4 suites／61 tests、學生輸出契約 9/9、完整口說契約 37/37 與 Production build 通過；合併前編譯 CSS 靜態樣張在 320／390／430／1280px 無水平溢位。仍需在隔離預覽驗收登入後學生、老師、管理員、真實錄音、手機 safe area；`S-19`、`S-20` 素材待更新。
+- 相關檔案：`src/utils/speakingAdventureMap.js`、`src/components/Pages/TextbookSpeakingChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`css/SpeakingAdventureRoute.scss`、`assets/speaking-map/` 及對應測試。無 migration、Edge Function 或正式資料操作。與 `main` 合併時保留學生非 A–Z 語音限制及老師／管理員試聽，相關 React 測試 4 suites／61 tests、學生輸出契約 9/9、完整口說契約 37/37 與 Production build 通過；編譯 CSS 靜態樣張在 320／390／430／1280px 無水平溢位。
+- PR #277 已合併至 `main` `0681db5`；由此乾淨 commit 建置後以 Wrangler 發布 Cloudflare Worker 版本 `d7bb5208-84d4-4295-8ba0-02c39b856646`。`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 的口說路由均回應 200 並載入 `main.a82a47fb.js`，主網域線上 JS SHA-256 與已測試的本機 build 一致。尚未以登入學生、老師、管理員實測真實錄音、返回導覽及 iPhone safe area；`S-19`、`S-20` 素材待更新。
 
 本次口說大挑戰語音提示暫停（2026-09-25，正式部署完成）：
 
