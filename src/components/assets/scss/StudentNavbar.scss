@@ -445,6 +445,10 @@
 // navigation at that width leaves too little room for the account controls,
 // so tablets use the same clear header and bottom navigation as phones.
 @media (max-width: 1100px) {
+  body:has(.ae-student-bottom-nav) {
+    --student-bottom-nav-offset: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
   .ae-student-navbar,
   .ae-student-navbar .ae-navbar-container {
     min-height: 66px;
@@ -498,11 +502,11 @@
 
   .ae-student-bottom-nav {
     position: fixed;
-    right: 8px;
-    bottom: max(8px, env(safe-area-inset-bottom));
-    left: 8px;
+    bottom: var(--student-bottom-nav-offset);
+    left: 50%;
     z-index: 1032;
     display: flex;
+    width: min(560px, calc(100% - 24px));
     min-height: 66px;
     align-items: stretch;
     justify-content: space-around;
@@ -513,6 +517,7 @@
     background: rgba(255, 255, 255, 0.97);
     box-shadow: 0 14px 38px rgba(22, 47, 82, 0.2);
     backdrop-filter: blur(16px);
+    transform: translateX(-50%);
   }
 
   .ae-student-bottom-nav > a,
@@ -531,7 +536,7 @@
     color: #6b7890;
     background: transparent;
     font: inherit;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 900;
     text-decoration: none;
   }
@@ -554,16 +559,16 @@
   .ae-student-bottom-nav > a.active,
   .ae-student-bottom-nav > button.active { color: #2454c3; background: #eaf2ff; }
 
-  body:has(.ae-student-bottom-nav) .app-content { padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
-  body:has(.ae-student-bottom-nav) .app-content.has-player { padding-bottom: calc(176px + env(safe-area-inset-bottom, 0px)); }
-  body:has(.ae-student-bottom-nav) .app-content.has-mini-player { padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px)); }
+  body:has(.ae-student-bottom-nav) .app-content { padding-bottom: calc(94px + var(--student-bottom-nav-offset)); }
+  body:has(.ae-student-bottom-nav) .app-content.has-player { padding-bottom: calc(176px + var(--student-bottom-nav-offset)); }
+  body:has(.ae-student-bottom-nav) .app-content.has-mini-player { padding-bottom: calc(190px + var(--student-bottom-nav-offset)); }
   body:has(.ae-student-bottom-nav) .app-player,
   body:has(.ae-student-bottom-nav) .app-player.mini {
-    bottom: calc(66px + max(8px, env(safe-area-inset-bottom, 0px)));
+    bottom: calc(76px + var(--student-bottom-nav-offset));
   }
-  body:has(.ae-student-bottom-nav) .assignment-shortcut { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
-  body:has(.ae-student-bottom-nav) .assignment-shortcut.with-player:not(.with-compact-player) { bottom: calc(var(--app-player-space, 100px) + 126px + env(safe-area-inset-bottom, 0px)); }
-  body:has(.ae-student-bottom-nav) .assignment-shortcut.with-compact-player { bottom: calc(180px + env(safe-area-inset-bottom, 0px)); }
+  body:has(.ae-student-bottom-nav) .assignment-shortcut { bottom: calc(90px + var(--student-bottom-nav-offset)); }
+  body:has(.ae-student-bottom-nav) .assignment-shortcut.with-player:not(.with-compact-player) { bottom: calc(var(--app-player-space, 100px) + 126px + var(--student-bottom-nav-offset)); }
+  body:has(.ae-student-bottom-nav) .assignment-shortcut.with-compact-player { bottom: calc(180px + var(--student-bottom-nav-offset)); }
 
   .ae-student-more-grid { grid-template-columns: 1fr; gap: 10px; }
   .ae-student-drawer-section > a,
@@ -582,7 +587,7 @@
 @media (max-width: 380px) {
   .ae-student-bottom-nav > a,
   .ae-student-bottom-nav > button { min-width: 0; padding-inline: 4px; }
-  .ae-student-bottom-nav { right: 5px; left: 5px; }
+  .ae-student-bottom-nav { width: calc(100% - 10px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

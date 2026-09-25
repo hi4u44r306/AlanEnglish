@@ -2,6 +2,12 @@
 
 最後更新：2026-09-25
 
+本次手機／平板學生導覽與 Web Push 規劃（2026-09-25，本機完成、尚未部署）：
+
+- 學生底部導覽在 1100px 以下改為距安全區底緣 12px；平板導覽最大寬度 560px 並置中，文字增至 12px，保留既有至少 54px 觸控高度。播放器、作業捷徑、口說操作列與頁面底部留白沿用共同偏移量。
+- `docs/WEB_PUSH_PLAN.md` 已整理 iOS／Android Web Push 使用者流程、Firebase 身分綁定、訂閱與佇列設計、兒童通知頻率及隔離驗證閘門。只規劃，未新增 Service Worker、migration、Secret 或發送 Function。
+- 相關檔案：`StudentNavbar.scss`、`TextbookSpeakingChallenge.scss`、口說 CSS 契約、`WEB_PUSH_PLAN.md`、`網站使用手冊.md`。Navbar React 15/15、口說操作列契約 1/1、Production build、`git diff --check` 通過；Edge 模擬 320／412／768／1032px 及 34px 安全區未見水平溢出，播放器與導覽保留 8px。Web Push 仍只有規劃。checkpoint `30083bb6` 已推送；正式發布與實機驗收待完成。
+
 本次口說大挑戰可插關的前端地圖（2026-09-25，已正式部署）：
 
 - `codex/speaking-adventure-map` 的同一本 Workbook 改成由上往下單一路線：依目前已發布關卡清單生成節點與彎曲道路，座標以書本及關卡 ID 固定，中間插關會推移後續節點，末端追加會延長地圖；地景由草原、高地漸入火山，沒有角色人物。這只處理前端排列，不改正式題庫排序、分類解鎖或舊進度資料。
