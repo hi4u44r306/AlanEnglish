@@ -22,6 +22,7 @@ export const authorizeSpeakingChallenge = async (
 export const buildPublicSpeakingQuestion = async ({
     question,
     interactionType,
+    answerAudioEnabled = false,
     progressStatus,
     modelAsset,
     promptAsset,
@@ -33,7 +34,7 @@ export const buildPublicSpeakingQuestion = async ({
         ? String(pictureInteraction?.interaction_type || "standard_sentence")
         : interactionType;
     const pictureMode = effectiveInteractionType === "picture_qa" || effectiveInteractionType === "picture_gap_sentence";
-    const hideChallengeAnswerAudio = effectiveInteractionType === "text_qa"
+    const hideChallengeAnswerAudio = (effectiveInteractionType === "text_qa" && !answerAudioEnabled)
         || interactionType === "alphabet_round"
         || interactionType === "letter_spelling" || pictureMode;
     const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
