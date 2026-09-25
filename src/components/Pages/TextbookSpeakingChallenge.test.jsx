@@ -157,7 +157,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         unmount();
     });
 
-    it("plays the stored private model audio instead of browser speech synthesis", async () => {
+    it("hides the stored private model audio from student challenges", async () => {
         const play = jest.fn().mockResolvedValue(undefined);
         global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));
         getSpeakingChallengeSet.mockResolvedValue({
@@ -173,8 +173,23 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
-        fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
+        expect(screen.queryByRole("button", { name: "聽回答範例" })).not.toBeInTheDocument();
+        expect(global.Audio).not.toHaveBeenCalled();
+        expect(play).not.toHaveBeenCalled();
+    });
 
+    it("keeps the existing model audio audition for staff preview", async () => {
+        mockRole = "admin";
+        const play = jest.fn().mockResolvedValue(undefined);
+        global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));
+        getSpeakingChallengeSet.mockResolvedValue({ challenge: {
+            id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
+            speaking_questions: [{ id: 9, sort_order: 0, question_text: "What's your name?", model_answer: "My name is Alan.", model_audio_url: "https://r2.example/signed.mp3", progress_status: "opened" }]
+        } });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
+        fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
         expect(global.Audio).toHaveBeenCalledWith("https://r2.example/signed.mp3");
         expect(play).toHaveBeenCalled();
     });
@@ -190,7 +205,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
-        expect(screen.getByRole("button", { name: "語音準備中" })).toBeDisabled();
+        expect(screen.queryByRole("button", { name: "語音準備中" })).not.toBeInTheDocument();
     });
 
     it("一次只顯示一個小關卡，完成後才能前往下一題", async () => {

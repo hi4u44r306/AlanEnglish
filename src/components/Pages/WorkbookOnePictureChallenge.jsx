@@ -18,11 +18,11 @@ const copyByType = {
         title: "看圖片，說完整句子",
         instruction: "先看圖片和句型。每個空格都要補上答案，再把整句英文說出來。",
         promptTitle: "輪到你說完整句子",
-        promptDetail: "可以先聽整句；整句會在每個挖空處停 2 秒，不會播放答案。"
+        promptDetail: "看圖片與句型補上空格，再說出完整英文句子。"
     }
 };
 
-export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, onComplete, onExit }) {
+export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onExit }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
@@ -130,7 +130,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, o
         <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
             <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
-            {gapMode && <button
+            {staffAudioPreview && gapMode && <button
                 type="button"
                 className="speaking-gap-sentence-audio"
                 onClick={playSentence}
