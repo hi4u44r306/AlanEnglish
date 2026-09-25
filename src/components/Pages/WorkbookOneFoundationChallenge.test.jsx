@@ -103,6 +103,28 @@ describe("WorkbookOneFoundationChallenge", () => {
         jest.useRealTimers();
     });
 
+    it("老師可唯讀逐題預覽 A–Z，不建立正式回合或啟用麥克風", async () => {
+        render(<WorkbookOneFoundationChallenge
+            challenge={alphabetChallenge}
+            firebaseUser={{ uid: "teacher" }}
+            staffPreview
+            onComplete={jest.fn()}
+            onStartRound={startAlphabetRound}
+            onExit={jest.fn()}
+        />);
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: "預覽題目" }));
+            await Promise.resolve();
+        });
+        expect(screen.getByText("老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。")).toBeInTheDocument();
+        expect(screen.queryByText("麥克風已開啟")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "上一題" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "下一題" }));
+        expect(screen.getByText("預覽第 2 / 26 題")).toBeInTheDocument();
+        expect(startAlphabetRound).not.toHaveBeenCalled();
+    });
+
     it("字母關必須先聽完 A–Z，挑戰中自動收音且答錯整輪歸零", async () => {
         const onComplete = jest.fn().mockResolvedValue(true);
         render(<WorkbookOneFoundationChallenge

@@ -98,7 +98,7 @@ export default function SpeakingPracticeSteps({
             onRoundInvalid={onRoundInvalid}
         />
 
-        {lastResult?.answer_match !== false && lastResult && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成，可以前往下一題或再練一次。</p>}
+        {lastResult?.answer_match !== false && lastResult && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
         {lastResult?.answer_match === false && (
           <p className="speaking-practice-retry">
             <FiHelpCircle aria-hidden="true" />{" "}

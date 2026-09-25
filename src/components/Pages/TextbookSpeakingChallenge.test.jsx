@@ -157,6 +157,35 @@ describe("TextbookSpeakingChallenge model audio", () => {
         unmount();
     });
 
+    it("進入 Workbook 地圖後才進入手機專注模式，返回教材總覽會恢復", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [{ id: 21, title: "P21 看圖問答", book: { name: "Workbook 1" }, source_pages: [21], question_count: 1, completed_count: 0, is_unlocked: true }]
+        });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByRole("button", { name: /看圖問答/ })).toBeInTheDocument();
+        expect(document.body).toHaveClass("speaking-challenge-active");
+        fireEvent.click(screen.getByRole("button", { name: /全部教材/ }));
+        await waitFor(() => expect(document.body).not.toHaveClass("speaking-challenge-active"));
+    });
+
+    it("同一本教材的入門、課本與主題關卡共用一條向下延伸的路線", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [
+                { id: 1, title: "A–Z", book: { name: "Workbook 1" }, catalog_section: "preparation", question_count: 1, completed_count: 1, is_unlocked: true, is_completed: true },
+                { id: 2, title: "P21 看圖問答", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [21], question_count: 1, completed_count: 0, is_unlocked: true },
+                { id: 3, title: "顏色練習", book: { name: "Workbook 1" }, catalog_section: "topic", question_count: 1, completed_count: 0, is_unlocked: true }
+            ]
+        });
+        const { container } = render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByRole("button", { name: /看圖問答/ })).toBeInTheDocument();
+        expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
+        const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
+        expect(nodes).toHaveLength(3);
+        expect(nodes.map(node => Number(node.style.getPropertyValue("--map-y").replace("px", "")))).toEqual([115, 299, 483]);
+    });
+
     it("hides the stored private model audio from student challenges", async () => {
         const play = jest.fn().mockResolvedValue(undefined);
         global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));
@@ -208,7 +237,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("button", { name: "語音準備中" })).not.toBeInTheDocument();
     });
 
-    it("一次只顯示一個小關卡，完成後才能前往下一題", async () => {
+    it("學生回到關卡時直接接續第一道未完成題，不能手動跳題", async () => {
         getSpeakingChallengeSet.mockResolvedValue({
             challenge: {
                 id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
@@ -221,14 +250,11 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByText("What's your name?")).toBeInTheDocument();
-        expect(screen.queryByText("How old are you?")).not.toBeInTheDocument();
-        expect(screen.getByRole("progressbar", { name: "大挑戰完成進度" })).toHaveAttribute("aria-valuenow", "50");
-        fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
-        expect(screen.getByText("How old are you?")).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "How old are you?" })).toHaveFocus();
+        expect(await screen.findByText("How old are you?")).toBeInTheDocument();
         expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /完成大挑戰/ })).toBeDisabled();
+        expect(screen.getByRole("progressbar", { name: "大挑戰完成進度" })).toHaveAttribute("aria-valuenow", "50");
+        expect(screen.getByRole("heading", { name: "How old are you?" })).toHaveFocus();
+        expect(screen.queryByRole("button", { name: /上一題|下一題|繼續挑戰/ })).not.toBeInTheDocument();
     });
 
     it("教材第一層顯示彩色冒險卡、完成進度並可進入指定 Workbook", async () => {
@@ -315,9 +341,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByRole("heading", { name: "入門準備" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "課本練習" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "主題練習" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "冒險旅程" })).toBeInTheDocument();
+        expect(document.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("P.18～20");
         expect(screen.getByRole("button", { name: /看圖問答/ })).toBeDisabled();
@@ -331,6 +356,69 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("先完成前一關");
         expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
+    });
+
+    it("老師的一般口說預覽可以前後切題，且不顯示錄音操作", async () => {
+        mockRole = "teacher";
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
+                speaking_questions: [
+                    { id: 9, question_text: "What's your name?", progress_status: "opened" },
+                    { id: 10, question_text: "How old are you?", progress_status: "opened" }
+                ]
+            }
+        });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+
+        expect(await screen.findByText("What's your name?")).toBeInTheDocument();
+        expect(screen.getByText("老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "不知道怎麼說？" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "上一題" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "下一題" }));
+        expect(screen.getByText("How old are you?")).toBeInTheDocument();
+        expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
+    });
+
+    it("地圖節點先開摘要，再由進入挑戰前往題目", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({
+            challenges: [{ id: 21, title: "P21 看圖問答", topic: "看圖問答", intro_zh: "用圖片練習完整問答", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [21], question_count: 9, completed_count: 0, sequence_order: 10021, is_unlocked: true }]
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><LocationProbe /><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /><Route path="/student/speaking-challenges/:questionSetId" element={<div>正式挑戰頁</div>} /></Routes></MemoryRouter>);
+
+        const node = await screen.findByRole("button", { name: /看圖問答/ });
+        expect(node.closest(".speaking-adventure-route")).toBeInTheDocument();
+        expect(node.querySelector(".speaking-challenge-lesson__number")).toHaveTextContent("P.21");
+        fireEvent.click(node);
+        expect(screen.getByRole("dialog", { name: "看圖問答" })).toHaveTextContent("用圖片練習完整問答");
+        expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/");
+        fireEvent.click(screen.getByRole("button", { name: /進入挑戰/ }));
+        expect(screen.getByText("正式挑戰頁")).toBeInTheDocument();
+    });
+
+    it("學生只看到完成後的繼續挑戰，老師預覽才有上一題與下一題", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
+                speaking_questions: [
+                    { id: 71, question_text: "What's your name?", progress_status: "completed" },
+                    { id: 72, question_text: "How are you?", progress_status: "completed" }
+                ]
+            }
+        });
+        const student = render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByText("What's your name?")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "上一題" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "下一題" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /繼續挑戰/ }));
+        expect(screen.getByText("How are you?")).toBeInTheDocument();
+        student.unmount();
+
+        mockRole = "teacher";
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByRole("button", { name: /下一題/ })).toBeEnabled();
+        expect(screen.getByRole("button", { name: /上一題/ })).toBeDisabled();
     });
 
     it("學生列表預設收合遊戲規則，點擊後可展開及再次收起，老師預覽不重複顯示", async () => {

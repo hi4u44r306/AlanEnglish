@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiChevronLeft, FiHeadphones, FiPause, FiPlay, FiRefreshCw, FiVolume2 } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiHeadphones, FiPause, FiPlay, FiRefreshCw, FiVolume2 } from "react-icons/fi";
 import { createFoundationRound } from "../../utils/speakingChallengeRound";
 import AlphabetAutomaticRecorder from "./AlphabetAutomaticRecorder";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
@@ -18,7 +18,7 @@ const interactionCopy = {
     }
 };
 
-export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, adminScoringPreview = false }) {
+export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, staffPreview = false, adminScoringPreview = false }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
@@ -263,7 +263,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         try {
             let nextRound;
             let nextRoundId = "";
-            if (alphabetMode && adminScoringPreview) {
+            if (alphabetMode && staffPreview) {
                 nextRound = sourceQuestions.map(question => ({
                     ...question,
                     display_text: String(question.question_text || "").toUpperCase()
@@ -285,7 +285,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                     throw new Error("A–Z 挑戰回合尚未準備完成");
                 }
             } else {
-                nextRound = createFoundationRound(sourceQuestions, interactionType);
+                nextRound = staffPreview ? sourceQuestions : createFoundationRound(sourceQuestions, interactionType);
             }
             if (requestId !== startRequestRef.current) return;
             setRound(nextRound);
@@ -303,7 +303,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 setStartingRound(false);
             }
         }
-    }, [adminScoringPreview, alphabetMode, interactionType, onStartRound, sourceQuestions, stopAudio]);
+    }, [alphabetMode, interactionType, onStartRound, sourceQuestions, staffPreview, stopAudio]);
 
     useEffect(() => {
         if (["challenge", "failed", "result"].includes(phase)) {
@@ -387,14 +387,14 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             <div className="speaking-foundation-actions">
                 <button type="button" onClick={() => playIntroFrom(introComplete ? 0 : introIndex)} disabled={!allAlphabetAudioReady || introPlaying}><FiPlay />{introComplete ? "重新聽 A–Z" : introIndex > 0 ? "繼續聽" : "開始聽 A–Z"}</button>
                 {introPlaying && <button type="button" className="secondary" onClick={stopAudio}><FiPause />暫停</button>}
-                <button type="button" className="primary" onClick={startRound} disabled={!introComplete || startingRound}>{startingRound ? "正在準備…" : "開始挑戰"}</button>
+                <button type="button" className="primary" onClick={startRound} disabled={(!staffPreview && !introComplete) || startingRound}>{startingRound ? "正在準備…" : staffPreview ? "預覽題目" : "開始挑戰"}</button>
             </div>
         </section>
     </main>;
 
     if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
         {renderLessonHeader()}
-        <section className="speaking-foundation-intro"><FiVolume2 aria-hidden="true" /><h2>看到單字，就把字母唸出來</h2><p>每個字母分開唸，題目順序每次都不一樣。</p>{statusAlert}<button type="button" className="primary" onClick={startRound} disabled={startingRound}>{startingRound ? "正在準備…" : "開始拼讀"}</button></section>
+        <section className="speaking-foundation-intro"><FiVolume2 aria-hidden="true" /><h2>看到單字，就把字母唸出來</h2><p>每個字母分開唸，題目順序每次都不一樣。</p>{statusAlert}<button type="button" className="primary" onClick={startRound} disabled={startingRound}>{startingRound ? "正在準備…" : staffPreview ? "預覽題目" : "開始拼讀"}</button></section>
     </main>;
 
     if (phase === "failed") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
@@ -422,7 +422,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             {adminScoringPreview && <p className="speaking-staff-preview-banner" role="status"><strong>管理員評分示範</strong>結果不會寫入學生進度、獎勵或每日挑戰額度。</p>}
             <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
             <div ref={phaseFocusRef} tabIndex="-1" className={alphabetMode ? "speaking-foundation-letter" : "speaking-foundation-word"} aria-label={alphabetMode ? `字母 ${activeQuestion.display_text}` : `單字 ${activeQuestion.question_text}`}>{alphabetMode ? activeQuestion.display_text : activeQuestion.question_text}</div>
-            {alphabetMode ? <AlphabetAutomaticRecorder
+            {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : alphabetMode ? <AlphabetAutomaticRecorder
                 firebaseUser={firebaseUser}
                 question={activeQuestion}
                 foundationRoundId={roundId}
@@ -449,6 +449,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></aside>}
             {statusAlert}
         </article></section>
+        {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => { stopAudio(); setActiveIndex(index => index + 1); }} disabled={activeIndex >= round.length - 1}>下一題<FiChevronRight /></button></nav>}
         {exitDialog}
     </main>;
 }

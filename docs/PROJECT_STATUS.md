@@ -2,6 +2,12 @@
 
 最後更新：2026-09-25
 
+本次口說大挑戰可插關的前端地圖原型（2026-09-25，功能分支進行中；尚未部署）：
+
+- `codex/speaking-adventure-map` 的同一本 Workbook 改成由上往下單一路線：依目前已發布關卡清單生成節點與彎曲道路，座標以書本及關卡 ID 固定，中間插關會推移後續節點，末端追加會延長地圖；地景由草原、高地漸入火山，沒有角色人物。這只處理前端排列，不改正式題庫排序、分類解鎖或舊進度資料。
+- 手機進入 Workbook 地圖及小關卡會收起主 Header／底部導覽，保留返回操作；回到全部教材時恢復。學生的一般口說題移除上一題／下一題，完成後顯示「繼續挑戰」；老師／管理員預覽一般口說、A–Z／拼讀及圖片題時保留逐題切換，老師唯讀。
+- 相關檔案：`src/utils/speakingAdventureMap.js`、`src/components/Pages/TextbookSpeakingChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`css/SpeakingAdventureRoute.scss`、`assets/speaking-map/` 及對應測試。無 migration、Edge Function 或正式資料操作。與 `main` 合併時保留學生非 A–Z 語音限制及老師／管理員試聽，相關 React 測試 4 suites／61 tests、學生輸出契約 9/9、完整口說契約 37/37 與 Production build 通過；合併前編譯 CSS 靜態樣張在 320／390／430／1280px 無水平溢位。仍需在隔離預覽驗收登入後學生、老師、管理員、真實錄音、手機 safe area；`S-19`、`S-20` 素材待更新。
+
 本次口說大挑戰語音提示暫停（2026-09-25，正式部署完成）：
 
 - 學生端除 A–Z 導聽外，非 A–Z 題目的答案範例與看圖補句整句播放入口先隱藏；一般題目音檔網址與看圖補句音檔網址不再對學生簽發。已保存的私有 R2 音檔不刪除，工作人員預覽仍可試聽。
@@ -26,7 +32,6 @@
 
 - 「建立新關卡」新增無圖片文字問答；同頁可加入多道文字問答，輸入學生可見問句、完整示範回答及其他可接受完整說法，不要求圖片。為沿用既有 `text_qa` 學生作答與評分規則，文字問答須獨立成一關，不與看圖或朗讀題混用。
 - `speaking-content-manager` 將全文字問答頁標示為 `text_qa` 並保留單頁來源、題序與私有草稿；`speaking-tts-manager` 支援該草稿的示範語音。沒有 migration、沒有修改已發布題庫或學生資料；P42 尚未建立遠端草稿。管理頁 React 6/6、學生題面契約 7/7、發音流程契約 7/7、兩支 Function 語法、Production build 與 `git diff --check` 均通過。PR #278 已合併至 `main` commit `c4c7dee`；正式 `speaking-content-manager` v53、`speaking-tts-manager` v32 均為 ACTIVE。Cloudflare Workers 正式版本 `7d7cfa8d-832a-40d7-8a51-4129f6500107` 已發布，`alanenglish.com.tw`、`app.alanenglish.com.tw` 與 Workers 網址均回應 200 並載入 `main.64e53846.js`；正式 bundle SHA-256 與本機已驗證 build 完全一致。尚未做管理員登入後的草稿建立端到端測試。
-
 本次 Workbook 1 新版學生版 OCR 核對防錯（2026-09-24，正式部署完成）：
 
 - localhost 確認 Workbook 1 已有 119 頁、12/12 批辨識結果，但 0/12 批核准；P21–P30 舊 OCR 把頁碼當普通文字、缺少 `[[PAGE P頁碼]]`，且看圖補句只留下殘缺文字，不能可靠配對圖片或自動出題。本批未核准、刪除或覆蓋任何既有來源／題庫。
