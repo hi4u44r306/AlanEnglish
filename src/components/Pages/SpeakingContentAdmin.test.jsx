@@ -456,8 +456,8 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
             documents: [{ id: 33, title: "Workbook 3", book_id: 3, original_upload_status: "uploaded" }],
             chunks: [],
             sections: [{
-                id: 34, document_id: 33, unit_label: "Unit 1", page_from_label: "P4", page_to_label: "P4",
-                topic: "所有格", language_level: "國小中年級", status: "reviewed", source_text: "OCR text",
+                id: 34, document_id: 33, unit_label: "Unit 1", page_from_label: "P4", page_to_label: "P5",
+                topic: "所有格", language_level: "國小中年級", status: "reviewed", source_text: "[[PAGE P4]]\nOCR text",
                 document: { id: 33, original_upload_status: "uploaded" }
             }],
             question_sets: []
