@@ -137,6 +137,53 @@ export const reviewedTextQaPromptIsComplete = (prompt: string) => {
 const likelyGroupedAnswerLine = (value: string) => englishWords(value).length >= 1
     && (/[.!?](?:["')\]]+)?$/.test(value) || /[_＿]{2,}/.test(value));
 
+// Some reviewed pages print all numbered prompts first, then a separately
+// ordered answer bank. Never pair these by position: the teacher's answers may
+// run backwards or be shuffled. Keep the numbered clue for AI matching while
+// retaining the original OCR text for human review.
+export const extractGroupedNumberedTextQaForAi = (sourceText: unknown) => {
+    const lines = String(sourceText || "").replace(/\r/g, "").split("\n").map(line => line.trim());
+    const numbered = lines.flatMap((line, index) => {
+        const match = line.match(/^(\d{1,3})[.)、]\s*(.+)$/);
+        if (!match) return [];
+        const question = normalizeSentence(match[2]);
+        if (!reviewedTextQaPromptIsComplete(question)) return [];
+        const clue = match[2].match(/[（(]\s*([^()（）A-Za-z]+?)\s*[）)]\s*$/u)?.[1]?.trim() || "";
+        return [{ number: Number(match[1]), question, clue, index }];
+    });
+    if (numbered.length < 2 || numbered.length > 30 || !numbered.every(item => item.clue)
+        || new Set(numbered.map(item => item.question)).size === numbered.length) return null;
+    const lastPromptIndex = numbered[numbered.length - 1].index;
+    if (numbered.some((item, index) => index && item.index !== numbered[index - 1].index + 1)) return null;
+    const answers = lines.slice(lastPromptIndex + 1)
+        .filter(line => line && !/^\[\[(?:RED_ANSWER|PAGE)\b/i.test(line))
+        .map(line => normalizeSentence(line))
+        .filter(isSpeakableSentence);
+    if (answers.length !== numbered.length || new Set(answers).size !== answers.length) return null;
+    return {
+        prompts: numbered.map(({ number, question, clue }) => ({ number, question, clue })),
+        answers
+    };
+};
+
+export const validateGroupedNumberedTextQaMatch = (source: ReturnType<typeof extractGroupedNumberedTextQaForAi>, rows: unknown) => {
+    if (!source || !Array.isArray(rows) || rows.length !== source.prompts.length) return null;
+    const answerByNumber = new Map<number, string>();
+    const usedAnswers = new Set<string>();
+    for (const row of rows) {
+        const number = Number(row?.number);
+        const answer = String(row?.answer || "").trim();
+        if (!source.prompts.some(prompt => prompt.number === number)
+            || !source.answers.includes(answer) || answerByNumber.has(number) || usedAnswers.has(answer)) return null;
+        answerByNumber.set(number, answer);
+        usedAnswers.add(answer);
+    }
+    return source.prompts.map(prompt => ({
+        ...prompt,
+        source_answer: answerByNumber.get(prompt.number) as string
+    }));
+};
+
 // Reviewed personal-question pages use either an interleaved prompt/answer
 // layout or a grouped layout where every numbered prompt is followed by the
 // same number of teacher-designed response lines. Every numbered block remains
@@ -162,7 +209,8 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
         && blocks.slice(0, -1).every(block => block.answers.length === 0)
         && blocks[blocks.length - 1].answers.length >= blocks.length;
     if (groupedLayout) {
-        const groupedAnswers = [...blocks[blocks.length - 1].answers];
+        const groupedAnswers = blocks[blocks.length - 1].answers
+            .filter(line => !/^\[\[RED_ANSWER\s*:/i.test(line));
         while (groupedAnswers.length > blocks.length && !likelyGroupedAnswerLine(groupedAnswers[0])) {
             groupedAnswers.shift();
         }

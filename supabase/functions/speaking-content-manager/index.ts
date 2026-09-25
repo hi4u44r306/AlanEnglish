@@ -28,9 +28,11 @@ import {
 import { workbookOnePictureReviewCandidates } from "../_shared/workbook-one-picture-review-candidates.ts";
 import { wholeBookOcrPageMarkersMatch } from "../_shared/speaking-ocr-page-markers.ts";
 import {
+    extractGroupedNumberedTextQaForAi,
     extractNumberedTextQaPairs,
     filterOcrPageSpeakingCandidates,
-    reviewedTextQaPromptIsComplete
+    reviewedTextQaPromptIsComplete,
+    validateGroupedNumberedTextQaMatch
 } from "../_shared/speaking-ocr-candidate-filter.ts";
 import {
     textQaGenderSignal,
@@ -97,7 +99,7 @@ const workbookOnePictureConfigForMetadata = (metadata: any) => {
     return config && config.templateKey === metadata?.template_key ? config : null;
 };
 const MANUAL_INTERACTION_TYPES = new Set(["standard_sentence", "picture_qa", "picture_gap_sentence"]);
-const MANUAL_PAGE_INTERACTION_TYPES = new Set(["standard_sentence", "picture_qa", "picture_gap_sentence"]);
+const MANUAL_PAGE_INTERACTION_TYPES = new Set(["standard_sentence", "picture_qa", "picture_gap_sentence", "text_qa"]);
 const TEXT_QA_INTERACTION_TYPE = "text_qa";
 const normalizePageLabel = (value: unknown) => {
     const match = cleanText(value, 40).toUpperCase().match(/^P?([1-9][0-9]{0,3})$/);
@@ -133,7 +135,7 @@ const manualPageDraftPolicyForMetadata = (metadata: any) => {
     const rawPages = Array.isArray(metadata?.source_pages) ? metadata.source_pages : [];
     const page = Number(rawPages[0]);
     if (metadata?.source !== "admin_page_builder" || metadata?.manual_builder_version !== 2
-        || metadata?.interaction_type !== "mixed" || rawPages.length !== 1
+        || !["mixed", TEXT_QA_INTERACTION_TYPE].includes(metadata?.interaction_type) || rawPages.length !== 1
         || !Number.isInteger(page) || page < 1 || page > 9999) return null;
     return { sourcePages: [page], pageLabels: [`P${page}`], pageLabel: `P${page}`, expectedCount: null };
 };
@@ -606,6 +608,11 @@ const findExistingSentenceMatches = (questionSets: any[], questions: any[], igno
             source_page_label: questionSetSourcePageLabel(questionSet.generation_metadata)
         };
         for (const question of questionSet.speaking_questions || []) {
+            if (questionSet.generation_metadata?.interaction_type === TEXT_QA_INTERACTION_TYPE) {
+                const pairFingerprint = `${sentenceFingerprint(question?.question_text)}|${sentenceFingerprint(question?.model_answer)}`;
+                if (!existingByFingerprint.has(pairFingerprint)) existingByFingerprint.set(pairFingerprint, reference);
+                continue;
+            }
             for (const value of [question?.question_text, question?.simple_answer, question?.model_answer]) {
                 const fingerprint = sentenceFingerprint(value);
                 if (fingerprint && !existingByFingerprint.has(fingerprint)) existingByFingerprint.set(fingerprint, reference);
@@ -616,7 +623,9 @@ const findExistingSentenceMatches = (questionSets: any[], questions: any[], igno
     const kept: any[] = [];
     const matches: any[] = [];
     for (const question of questions) {
-        const fingerprint = sentenceFingerprint(question.question_text);
+        const fingerprint = question.model_answer && question.question_text !== question.model_answer
+            ? `${sentenceFingerprint(question.question_text)}|${sentenceFingerprint(question.model_answer)}`
+            : sentenceFingerprint(question.question_text);
         const existing = existingByFingerprint.get(fingerprint);
         if (existing || generatedFingerprints.has(fingerprint)) {
             matches.push({
@@ -725,9 +734,22 @@ const normalizeImageSuggestions = (value: unknown) => cleanArray(value, 5, 180);
 
 const normalizeManualPageQuestions = (value: unknown) => {
     if (!Array.isArray(value) || value.length < 1 || value.length > 50) return null;
+    const types = value.map((raw: any) => cleanText(raw?.interaction_type, 40));
+    if (types.includes(TEXT_QA_INTERACTION_TYPE) && types.some((type: string) => type !== TEXT_QA_INTERACTION_TYPE)) return null;
     const rows = value.map((raw: any) => {
         const interactionType = cleanText(raw?.interaction_type, 40);
         if (!MANUAL_PAGE_INTERACTION_TYPES.has(interactionType)) return null;
+        if (interactionType === TEXT_QA_INTERACTION_TYPE) {
+            const questionText = cleanText(raw?.prompt_text, 500);
+            const answerText = cleanText(raw?.answer_text, 500);
+            const acceptedFullResponses = cleanArray(raw?.accepted_full_responses, 12, 500);
+            if (!questionText.endsWith("?") || !answerText) return null;
+            return {
+                interactionType, questionText, promptText: questionText,
+                answerText, expectedFullAnswer: answerText, acceptedFullResponses,
+                pronunciationNotes: cleanText(raw?.pronunciation_notes_zh, 1200) || null
+            };
+        }
         if (interactionType === "standard_sentence") {
             const standard = normalizeManualStandardQuestions([raw])?.[0];
             return standard ? {
@@ -1587,7 +1609,9 @@ Deno.serve(async (req: Request) => {
             if (requiresPictureReview) {
                 return json(409, { error: `${requestedPageLabel} 的題目依賴圖片；請使用逐頁圖片草稿建立器，人工選擇看圖問答或看圖補句並逐題配圖，不能當純文字題自動生成。` });
             }
-            const deterministicTextQaPairs = pageCandidate ? extractNumberedTextQaPairs(sourceText) : [];
+            const groupedTextQaForAi = pageCandidate && autoQuestionCount
+                ? extractGroupedNumberedTextQaForAi(sourceText) : null;
+            const deterministicTextQaPairs = pageCandidate && !groupedTextQaForAi ? extractNumberedTextQaPairs(sourceText) : [];
             const useDeterministicTextQa = pageCandidate && autoQuestionCount && deterministicTextQaPairs.length > 0;
             if (pageCandidateSource?.redAnswerHints.length) {
                 pageCandidateSource.sourceText += `\n\n教材紅字答案提示（只用來辨認問答方向，不是可直接輸出的完整答案）：\n${JSON.stringify(pageCandidateSource.redAnswerHints)}`;
@@ -1623,8 +1647,9 @@ Deno.serve(async (req: Request) => {
                 }
                 return json(409, { error: `${requestedPageLabel} 沒有可直接朗讀的完整英文句；已略過格線、頁碼、填空、標題與作業指令。請改用逐頁手動建立。` });
             }
-            if (pageCandidate && autoQuestionCount) questionCount = useDeterministicTextQa
-                ? deterministicTextQaPairs.length : Math.min(30, pageCandidateSource!.sentences.length);
+            if (pageCandidate && autoQuestionCount) questionCount = groupedTextQaForAi
+                ? groupedTextQaForAi.prompts.length : useDeterministicTextQa
+                    ? deterministicTextQaPairs.length : Math.min(30, pageCandidateSource!.sentences.length);
             const now = new Date().toISOString();
             const generationModel = useDeterministicTextQa ? "reviewed_numbered_text_qa_v2" : AI_MODEL;
             const { data: job, error: jobError } = await admin.from("speaking_generation_jobs").insert({
@@ -1638,7 +1663,9 @@ Deno.serve(async (req: Request) => {
                 });
             }
             if (jobError) throw jobError;
-            const prompt = pageCandidate
+            const prompt = groupedTextQaForAi
+                ? `你是英文教材編輯。依每題中文物品線索，把編號問句與下列教師版答案庫做一對一配對。答案庫順序可能顛倒或打亂。只能輸出答案庫原句，不得改寫、猜測、合併或重複使用答案。每個編號都要配對；不確定時回傳空陣列，讓管理員核對。\n題目：${JSON.stringify(groupedTextQaForAi.prompts)}\n答案庫：${JSON.stringify(groupedTextQaForAi.answers)}\n只輸出 JSON：{"pairs":[{"number":1,"answer":"答案庫原句"}]}`
+                : pageCandidate
                 ? `你是 Alan English 的兒童英語口說教材編輯。只能使用下方「核准的完整英文句」，為沒有圖片的教材頁建立逐頁候選草稿；不得依姓名、聲音或想像猜性別。\n\n教材主題：${section.topic}\n程度：${section.language_level}\n頁碼：${requestedPageLabel}\n\n核准的完整英文句：\n${pageCandidateSource!.sourceText}\n\n先選整頁題型：\n- standard_sentence：頁面是單句朗讀練習。question_text、simple_answer、model_answer 必須是同一句。\n- text_qa：頁面有純文字問句與設計師提供的回答句。question_text 顯示問句；simple_answer、model_answer 是學生要說的完整回答；accepted_answers 是其他同樣正確的完整回答。學生只要說其中一個，不必把兩種都說出來。\n\n性別與所有格規則：\n1. 問句明確出現 he、his、him、boy、man、father、dad、grandfather、brother 時，只能接受相符的男性回答；明確出現 she、her、hers、girl、woman、mother、mom、grandmother、sister 時，只能接受相符的女性回答。\n2. 問句沒有性別線索，而來源同時提供 he/she、his/her 等兩種設計答案時，model_answer 放其中一個，accepted_answers 必須列出另一個完整句。\n3. 同一回答內的主詞與所有格必須一致，例如 He ... his ... 或 She ... her ...；禁止 He ... her ...、She ... his ...。同時提到 brother and sister 是正確內容，不算性別混用。\n4. he/she 是主詞，his/her 是所有格，不可交換文法位置。不得由名字推測男生或女生。\n\n共同規則：\n1. question_text、simple_answer、model_answer、accepted_answers 的每個英文句都必須逐字等於上方其中一行；不得改寫、合併、補字、補標點、猜圖片或加入教材外內容。\n2. 一個明確問答組只建立一題；朗讀型每個句子各一題。最多 ${questionCount} 題，不可湊題或重複。\n3. text_qa 的 hint_zh 要說明「請用完整句回答」；若兩種性別皆可，再加上「男生或女生皆可，請選一種完整回答」。\n4. 內容適合台灣國小學生。keywords 為 1 至 5 個句中英文關鍵字；pronunciation_notes_zh 使用繁體中文。\n5. 這批是純文字題，image_suggestions 必須是空陣列。\n6. 只輸出 JSON，不要 markdown。\nJSON：{"title":"${requestedPageLabel} 口說練習","interaction_type":"standard_sentence 或 text_qa","image_suggestions":[],"questions":[{"question_text":"","hint_zh":"","keywords":[""],"simple_answer":"","model_answer":"","accepted_answers":["其他可接受的完整回答"],"follow_up_question":"","pronunciation_notes_zh":""}]}`
                 : `你是 Alan English 的兒童英語口說教材編輯。只能根據下方老師已核准的單頁教材文字，${autoQuestionCount ? "先判斷該頁實際包含幾個獨立可練習題目，再將所有明確題目建立成草稿（最多 30 題）" : `產生 ${questionCount} 題口說練習草稿`}。\n\n教材主題：${section.topic}\n程度：${section.language_level}\n單元：${section.unit_label || "未標示"}\n頁碼：${section.page_from_label || "未標示"}\n\n核准教材文字：\n${sourceText}\n\n規則：\n1. ${autoQuestionCount ? "過濾頁碼、標題、格線、作業指令與重複文字；一個編號、一個完整句型或一個明確問答組只建立一題。不得為了湊題數拆題、重複或自行新增教材外內容" : "問題必須能從教材主題、句型或情境合理延伸，不得補充教材沒有根據的專有知識"}。\n2. 內容適合台灣國小學生，不包含個資、成人、危險或不適齡主題。\n3. 每題提供繁體中文提示、1 個簡易回答、1 個完整自然回答、1 個延伸問題。\n4. keywords 為 1 至 5 個英文關鍵字；accepted_intents 為可接受的回答意思摘要，不是逐字答案。\n5. pronunciation_notes_zh 用繁體中文標示重要重音、尾音或連音，無特別需要可為空字串。\n6. ${autoQuestionCount ? "questions 可包含 1 至 30 題，題數必須反映這一頁的實際內容" : `questions 必須剛好包含 ${questionCount} 題`}。\n7. 只輸出 JSON，不要 markdown。\nJSON：{"title":"題庫名稱","questions":[{"question_text":"","hint_zh":"","keywords":[""],"simple_answer":"","model_answer":"","follow_up_question":"","pronunciation_notes_zh":"","accepted_intents":[""]}]}`;
             let aiData: any = {};
@@ -1693,13 +1720,37 @@ Deno.serve(async (req: Request) => {
                     generated = null;
                 }
             }
+            const groupedMatches = groupedTextQaForAi
+                ? validateGroupedNumberedTextQaMatch(groupedTextQaForAi, generated?.pairs) : null;
+            const sourceCorrections: Array<{ number: number; original: string; corrected: string }> = [];
+            if (groupedMatches) {
+                generated = {
+                    title: `${requestedPageLabel} 口說練習`, interaction_type: TEXT_QA_INTERACTION_TYPE,
+                    image_suggestions: [], questions: groupedMatches.map(pair => {
+                        // A known OCR/teacher typo pattern is surfaced for review,
+                        // never silently published as a malformed model answer.
+                        const answer = pair.source_answer.replace(/^It a ([A-Za-z][A-Za-z' -]*)\.$/, "It's a $1.");
+                        if (answer !== pair.source_answer) sourceCorrections.push({
+                            number: pair.number, original: pair.source_answer, corrected: answer
+                        });
+                        const keywords = (answer.match(/[A-Za-z]+/g) || []).filter(word => !["it", "is", "a", "an", "they", "are"].includes(word.toLowerCase())).slice(0, 5);
+                        return {
+                            question_text: pair.question, hint_zh: `題目線索：${pair.clue}。請用完整句回答。`,
+                            keywords: keywords.length ? keywords : ["answer"], simple_answer: answer,
+                            model_answer: answer, accepted_answers: [], follow_up_question: "",
+                            pronunciation_notes_zh: "請先看題目線索，再說出完整英文回答。"
+                        };
+                    })
+                };
+            }
             const pageCandidateGeneration = pageCandidate
                 ? normalizePageCandidateGeneration(
                     generated,
                     pageCandidateSource!.sentences,
-                    Math.min(questionCount, pageCandidateSource!.sentences.length),
-                    autoQuestionCount ? 1 : 3,
-                    useDeterministicTextQa ? deterministicTextQaPairs.flatMap(pair => [
+                    groupedTextQaForAi ? questionCount : Math.min(questionCount, pageCandidateSource!.sentences.length),
+                    groupedTextQaForAi ? questionCount : autoQuestionCount ? 1 : 3,
+                    groupedTextQaForAi ? groupedMatches?.map(pair => pair.source_answer.replace(/^It a ([A-Za-z][A-Za-z' -]*)\.$/, "It's a $1.")) || []
+                        : useDeterministicTextQa ? deterministicTextQaPairs.flatMap(pair => [
                         pair.question_text, pair.model_answer, ...(pair.accepted_answers || [])
                     ]) : []
                 )
@@ -1753,7 +1804,8 @@ Deno.serve(async (req: Request) => {
                         source: "ocr_page_candidate", source_pages: [Number(requestedPageLabel.slice(1))],
                         source_page_label: requestedPageLabel, interaction_type: generatedInteractionType,
                         auto_question_count: autoQuestionCount,
-                        candidate_filter: { version: "v7", eligible_sentence_count: pageCandidateSource!.sentences.length, numbered_question_count: useDeterministicTextQa ? deterministicTextQaPairs.length : null, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType, generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source" },
+                        candidate_filter: { version: "v8", eligible_sentence_count: pageCandidateSource!.sentences.length, numbered_question_count: groupedTextQaForAi ? groupedTextQaForAi.prompts.length : useDeterministicTextQa ? deterministicTextQaPairs.length : null, discarded_segment_count: pageCandidateSource!.discardedSegments, red_answer_hint_count: pageCandidateSource!.redAnswerHints.length, rejected_ai_question_count: pageCandidateGeneration!.rejectedQuestionCount, detected_interaction_type: generatedInteractionType, generation_strategy: groupedTextQaForAi ? "ai_grouped_numbered_text_qa" : useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source", source_corrections: sourceCorrections },
+                        requires_answer_audio: Boolean(groupedTextQaForAi),
                         answer_policy: generatedInteractionType === TEXT_QA_INTERACTION_TYPE
                             ? questions.some(question => [question.model_answer, ...(question.accepted_intents || [])]
                                 .some(answer => /\[[^\]]+\]/.test(String(answer))))
@@ -1805,7 +1857,8 @@ Deno.serve(async (req: Request) => {
             return json(201, {
                 success: true, question_set_id: questionSet.id, question_count: questions.length,
                 rejected_ai_question_count: pageCandidate ? pageCandidateGeneration!.rejectedQuestionCount : 0,
-                generation_strategy: useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source",
+                generation_strategy: groupedTextQaForAi ? "ai_grouped_numbered_text_qa"
+                    : useDeterministicTextQa ? "reviewed_numbered_text_qa" : "ai_reviewed_source",
                 excluded_duplicate_count: duplicateMatches.length, source_page_label: requestedPageLabel || null,
                 requires_manual_authoring: Boolean(manualAuthoringReason), manual_authoring_reason: manualAuthoringReason,
                 replaced_question_set_id: replaceQuestionSetId
@@ -2321,7 +2374,8 @@ Deno.serve(async (req: Request) => {
                 const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
                     source_section_id: section.id, book_id: bookId, title, topic, difficulty, status: "draft", version: 1,
                     generation_metadata: {
-                        source: "admin_page_builder", template_key: templateKey, source_pages: [pageNumber], interaction_type: "mixed",
+                        source: "admin_page_builder", template_key: templateKey, source_pages: [pageNumber],
+                        interaction_type: questions.every((row: any) => row.interactionType === TEXT_QA_INTERACTION_TYPE) ? TEXT_QA_INTERACTION_TYPE : "mixed",
                         shuffle: false, requires_content_review: false, manual_builder_version: 2,
                         content_reviewed_at: now, content_reviewed_by: Number(user.id)
                     },
@@ -2334,17 +2388,19 @@ Deno.serve(async (req: Request) => {
                         question_set_id: questionSet.id,
                         question_text: row.interactionType === "standard_sentence" ? row.answerText : row.promptText,
                         hint_zh: row.interactionType === "standard_sentence" ? "請清楚朗讀完整句子。"
+                            : row.interactionType === TEXT_QA_INTERACTION_TYPE ? "請閱讀文字問題，用完整英文句子回答。"
                             : row.interactionType === "picture_qa" ? "看圖片，先說完整問句，再接著說完整回答。"
                                 : "看圖片，把空格答案補進去並說完整句子。",
                         keywords: [], simple_answer: row.expectedFullAnswer, model_answer: row.expectedFullAnswer,
-                        pronunciation_notes_zh: row.pronunciationNotes, accepted_intents: [], sort_order: index,
+                        pronunciation_notes_zh: row.pronunciationNotes,
+                        accepted_intents: row.interactionType === TEXT_QA_INTERACTION_TYPE ? row.acceptedFullResponses : [], sort_order: index,
                         created_at: now, updated_at: now
                     })))
                     .select("id,sort_order");
                 if (questionError) throw questionError;
                 const pictureRows = (createdQuestions || []).flatMap((question: any) => {
                     const row: any = questions[Number(question.sort_order)];
-                    return row?.interactionType === "standard_sentence" ? [] : [{
+                    return ["standard_sentence", TEXT_QA_INTERACTION_TYPE].includes(row?.interactionType) ? [] : [{
                         question_id: question.id, interaction_type: row.interactionType,
                         prompt_text: row.promptText, answer_text: row.answerText,
                         accepted_full_responses: row.acceptedFullResponses, created_at: now, updated_at: now
@@ -2354,7 +2410,7 @@ Deno.serve(async (req: Request) => {
                     const { error: interactionError } = await admin.from("speaking_question_interactions").insert(pictureRows);
                     if (interactionError) throw interactionError;
                 }
-                return json(201, { success: true, question_set_id: questionSet.id, questions: createdQuestions || [], page_labels: [pageLabel], interaction_type: "mixed" });
+                return json(201, { success: true, question_set_id: questionSet.id, questions: createdQuestions || [], page_labels: [pageLabel], interaction_type: questions[0].interactionType === TEXT_QA_INTERACTION_TYPE ? TEXT_QA_INTERACTION_TYPE : "mixed" });
             } catch (error) {
                 if (createdQuestionSetId) await admin.from("speaking_question_sets").delete().eq("id", createdQuestionSetId);
                 await admin.from("speaking_source_documents").delete().eq("id", document.id);
@@ -2723,7 +2779,7 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id)").eq("id", setId).maybeSingle();
+                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id,question_text,simple_answer,model_answer)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
@@ -2821,7 +2877,9 @@ Deno.serve(async (req: Request) => {
                 }
             }
             const requiresAnswerExampleAudio = (metadata?.source === "admin_manual_builder" && metadata?.interaction_type === "standard_sentence")
-                || (Boolean(autoPagePolicy) && ["standard_sentence", TEXT_QA_INTERACTION_TYPE].includes(String(metadata?.interaction_type || "")));
+                || (Boolean(autoPagePolicy) && String(metadata?.interaction_type || "") === "standard_sentence")
+                || (metadata?.source === "ocr_page_candidate" && metadata?.interaction_type === TEXT_QA_INTERACTION_TYPE
+                    && metadata?.requires_answer_audio === true);
             if (requiresAnswerExampleAudio) {
                 const questionIds = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
                 const [{ data: sentenceQuestions, error: sentenceQuestionError }, { data: audioLinks, error: audioLinkError }] = await Promise.all([
@@ -2866,6 +2924,11 @@ Deno.serve(async (req: Request) => {
                 const invalidQuestion = (questionSet.speaking_questions || []).find((question: any) => {
                     const interaction: any = interactionByQuestion.get(Number(question.id));
                     if (!interaction) {
+                        if (String(metadata?.interaction_type || "") === TEXT_QA_INTERACTION_TYPE) {
+                            return !String(question.question_text || "").trim().endsWith("?")
+                                || !String(question.simple_answer || "").trim()
+                                || !String(question.model_answer || "").trim();
+                        }
                         const audio: any = audioByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
                         return audio?.status !== "ready" || !audio?.private_object_key || String(audio?.source_text || "").trim() !== String(question.model_answer || "").trim();
                     }
@@ -2883,7 +2946,7 @@ Deno.serve(async (req: Request) => {
                     }
                     return false;
                 });
-                if (invalidQuestion) return json(409, { error: "逐頁草稿尚未完成：完整句需要示範語音；看圖題需要完整問答、私人圖片與替代文字；補句還需要停頓整句語音" });
+                if (invalidQuestion) return json(409, { error: "逐頁草稿尚未完成：純文字問答需要完整問句、簡易回答與示範回答但不需要音檔；完整句需要示範語音；看圖題需要完整問答、私人圖片與替代文字；補句還需要停頓整句語音" });
             }
             const pictureMode = metadata?.interaction_type === "picture_qa"
                 || metadata?.interaction_type === "picture_gap_sentence";

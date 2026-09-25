@@ -135,8 +135,8 @@ const draftReadiness = (questionSet, section) => {
     return { ready: issues.length === 0, issues };
 };
 
-const DraftReadinessPanel = ({ readiness, interactionType }) => readiness.ready
-    ? <div className="speaking-readiness is-ready"><CheckCircle2 /><div><strong>內容檢查完成</strong><span>{interactionType === "picture_gap_sentence" ? "發布時會自動產生或更新停頓整句語音。" : ["standard_sentence", "text_qa"].includes(interactionType) ? "發布時會自動產生或更新全部示範語音。" : "可以預覽學生畫面並發布。"}</span></div></div>
+const DraftReadinessPanel = ({ readiness, interactionType, answerAudioEnabled = false }) => readiness.ready
+    ? <div className="speaking-readiness is-ready"><CheckCircle2 /><div><strong>內容檢查完成</strong><span>{interactionType === "picture_gap_sentence" ? "發布時會自動產生或更新停頓整句語音。" : interactionType === "standard_sentence" || answerAudioEnabled ? "發布時會自動產生或更新全部示範語音。" : interactionType === "text_qa" ? "可以直接以純文字問答發布，不會產生示範語音。" : "可以預覽學生畫面並發布。"}</span></div></div>
     : <div className="speaking-readiness has-issues" role="alert"><AlertCircle /><div><strong>還有 {readiness.issues.length} 項需要處理</strong><ul>{readiness.issues.map((issue, index) => <li key={`${issue.questionId || "set"}-${index}`}>{issue.message}</li>)}</ul></div></div>;
 
 const sourcePageLabels = section => {
@@ -287,6 +287,8 @@ const QuestionPicturePreview = ({ firebaseUser, question }) => {
 const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
     const questions = [...(questionSet.speaking_questions || [])].sort((a, b) => a.sort_order - b.sort_order);
     const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
+    const groupedTextQa = questionSet.generation_metadata?.candidate_filter?.generation_strategy === "ai_grouped_numbered_text_qa";
+    const answerAudioEnabled = interactionType === "text_qa" && questionSet.generation_metadata?.requires_answer_audio === true;
     const isPictureQa = interactionType === "picture_qa";
     const isPictureGap = interactionType === "picture_gap_sentence";
     const isPictureSet = isPictureQa || isPictureGap;
@@ -303,16 +305,17 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
             <header><span>口說大挑戰預覽</span><h5>{questionSet.title}</h5><p>{previewDescription}</p></header>
             <div className="speaking-student-preview__questions">{questions.map((question, index) => <article key={question.id}>
                 <span>第 {index + 1} 題</span>{!isPictureQa && <strong>{question.question_text}</strong>}
+                {groupedTextQa && <p>題目線索：{String(question.hint_zh || "").match(/^題目線索：([^。]+)。/)?.[1] || "請核對原頁"}</p>}
                 {isPictureSet
                     ? <QuestionPicturePreview firebaseUser={firebaseUser} question={question} />
                     : <SpeakingVisualAid variant="thumbnail" aid={question.visual_aid} />}
                 {isPictureSet
                     ? <details><summary>查看管理員核對資料（學生不會看到）</summary><p>{question.question_text}</p><em>{question.model_answer}</em></details>
                     : <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>}
-                {!isPictureSet && <QuestionAudioPreview firebaseUser={firebaseUser} questionSet={questionSet} question={question} />}
+                {!isPictureSet && (interactionType !== "text_qa" || answerAudioEnabled) && <QuestionAudioPreview firebaseUser={firebaseUser} questionSet={questionSet} question={question} />}
                 {!isPictureSet && <small>{question.pronunciation_notes_zh || "完成錄音後顯示發音回饋。"}</small>}
             </article>)}</div>
-            <p className="speaking-student-preview__note">這是管理員內容預覽；發布後學生可使用示範語音、錄音回聽與逐字發音回饋。</p>
+            <p className="speaking-student-preview__note">{interactionType === "text_qa" && !answerAudioEnabled ? "這是管理員內容預覽；發布後學生閱讀題目、直接口說回答，可使用錄音回聽與逐字發音回饋，不播放示範音檔。" : "這是管理員內容預覽；發布後學生可使用示範語音、錄音回聽與逐字發音回饋。"}</p>
         </div>
     </details>;
 };
@@ -869,8 +872,12 @@ export default function SpeakingContentAdmin() {
             return;
         }
         const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
+        const answerAudioEnabled = interactionType === "text_qa" && questionSet.generation_metadata?.requires_answer_audio === true;
         const pageLabels = questionSetPageLabels(questionSet, section);
-        if (!window.confirm(`即將發布：\n${section?.book?.name || "教材"} · ${pageLabels.join("、") || "未標示頁碼"}\n${questionSet.title} · ${(questionSet.speaking_questions || []).length} 題\n\n系統會先完成必要語音；發布後學生會立即看到此版本。之後修改請建立新版草稿。`)) return;
+        const publishPreparation = interactionType === "text_qa" && !answerAudioEnabled
+            ? "這是純文字問答，不會產生或播放示範音檔"
+            : "系統會先完成必要語音";
+        if (!window.confirm(`即將發布：\n${section?.book?.name || "教材"} · ${pageLabels.join("、") || "未標示頁碼"}\n${questionSet.title} · ${(questionSet.speaking_questions || []).length} 題\n\n${publishPreparation}；發布後學生會立即看到此版本。之後修改請建立新版草稿。`)) return;
         setWorking(`publish-${questionSet.id}`);
         let published = false;
         try {
@@ -887,18 +894,19 @@ export default function SpeakingContentAdmin() {
             } else if (interactionType === "picture_gap_sentence") {
                 const audio = await generateSpeakingVisibleWordAudio(firebaseUser, questionSet.id);
                 if (audio.success !== true || Number(audio.failed || 0) + Number(audio.pending || 0) > 0) throw new Error("停頓整句語音尚未全部完成，草稿沒有發布");
-            } else if (!["picture_qa", "alphabet_round", "letter_spelling"].includes(interactionType)) {
+            } else if (answerAudioEnabled || !["picture_qa", "text_qa", "alphabet_round", "letter_spelling"].includes(interactionType)) {
                 const audio = await generateSpeakingQuestionSetAudio(firebaseUser, questionSet.id);
                 if (audio.success !== true || Number(audio.failed || 0) + Number(audio.pending || 0) > 0) throw new Error("示範語音尚未全部完成，草稿沒有發布");
             }
             await publishSpeakingQuestionSet(firebaseUser, questionSet.id);
             published = true;
-            if (["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence"].includes(interactionType)) {
+            if (["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence", "text_qa"].includes(interactionType)) {
                 const successMessage = {
                     alphabet_round: "A–Z 題庫已發布；單一慢速主音檔與 26 個播放區段已確認完成",
                     letter_spelling: "拼讀題庫已發布；學生端不播放答案音檔",
                     picture_qa: "P21 圖片問答已發布；完整答案只由後端核對",
-                    picture_gap_sentence: "看圖補句已發布；逐字與空格停 2 秒的整句女聲發音已確認完成"
+                    picture_gap_sentence: "看圖補句已發布；逐字與空格停 2 秒的整句女聲發音已確認完成",
+                    text_qa: answerAudioEnabled ? "文字問答與示範語音已發布" : "純文字問答已發布；不會產生或播放示範音檔"
                 }[interactionType];
                 toast.success(successMessage);
                 await load();
@@ -1188,6 +1196,7 @@ export default function SpeakingContentAdmin() {
                     : section.status === "draft" && <OcrReviewEditor section={section} disabled={working === `review-${section.id}`} onReview={reviewOcr} />}
                 {section.questionSets.length === 0 ? <p className="speaking-source-card__empty">尚未產生題庫。</p> : section.questionSets.map(questionSet => {
                     const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
+                    const answerAudioEnabled = interactionType === "text_qa" && questionSet.generation_metadata?.requires_answer_audio === true;
                     const isPictureSet = ["picture_qa", "picture_gap_sentence"].includes(interactionType);
                     const isPageCandidate = ["ocr_page_candidate", "ai_page_auto"].includes(questionSet.generation_metadata?.source);
                     const isManualStandard = interactionType === "standard_sentence"
@@ -1202,10 +1211,10 @@ export default function SpeakingContentAdmin() {
                     const isLockedTemplate = interactionType === "alphabet_round"
                         || Boolean(questionSet.generation_metadata?.approved_source_page_label);
                     return <section className={`speaking-set ${questionSet.status} ${isSelected ? "is-current" : ""}`} key={questionSet.id}>
-                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : readiness.ready ? "待發布" : "製作中"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{pageLabels.join("、") || "未標示頁碼"} · {questionSetOrigin(questionSet)} · {(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && isPageCandidate && !candidateReviewed && <button type="button" className="platform-secondary" disabled={working === `confirm-page-${questionSet.id}`} onClick={() => confirmPageCandidate(questionSet)}>{working === `confirm-page-${questionSet.id}` ? "核准中…" : "已逐題對照原頁，核准內容"}</button>}{questionSet.status === "draft" && readiness.ready && ["standard_sentence", "text_qa", "picture_gap_sentence"].includes(interactionType) && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "產生語音中…" : interactionType === "picture_gap_sentence" ? "先產生並試聽停頓語音" : "先產生並試聽示範語音"}</button>}{questionSet.status === "draft" && readiness.ready && <button type="button" className="platform-primary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? "準備語音並發布中…" : "準備語音並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && !isLockedTemplate && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && isLockedTemplate && <span className="speaking-set__locked">固定教材模板請從來源重建</span>}{questionSet.status === "published" && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}<button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button></div>}</div>
-                        {isSelected && questionSet.status === "draft" && <DraftReadinessPanel readiness={readiness} interactionType={interactionType} />}
+                        <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : readiness.ready ? "待發布" : "製作中"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{pageLabels.join("、") || "未標示頁碼"} · {questionSetOrigin(questionSet)} · {(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && isPageCandidate && !candidateReviewed && <button type="button" className="platform-secondary" disabled={working === `confirm-page-${questionSet.id}`} onClick={() => confirmPageCandidate(questionSet)}>{working === `confirm-page-${questionSet.id}` ? "核准中…" : "已逐題對照原頁，核准內容"}</button>}{questionSet.status === "draft" && readiness.ready && (["standard_sentence", "picture_gap_sentence"].includes(interactionType) || answerAudioEnabled) && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "產生語音中…" : interactionType === "picture_gap_sentence" ? "先產生並試聽停頓語音" : "先產生並試聽示範語音"}</button>}{questionSet.status === "draft" && readiness.ready && <button type="button" className="platform-primary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? interactionType === "text_qa" && !answerAudioEnabled ? "正在發布純文字關卡…" : "準備語音並發布中…" : interactionType === "text_qa" && !answerAudioEnabled ? "發布純文字關卡" : "準備語音並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && !isLockedTemplate && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && isLockedTemplate && <span className="speaking-set__locked">固定教材模板請從來源重建</span>}{questionSet.status === "published" && (interactionType !== "text_qa" || answerAudioEnabled) && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}<button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button></div>}</div>
+                        {isSelected && questionSet.status === "draft" && <DraftReadinessPanel readiness={readiness} interactionType={interactionType} answerAudioEnabled={answerAudioEnabled} />}
                         {isSelected && manualAuthoringReason && <div className="speaking-ocr-review__notice"><strong>本頁已建立單頁草稿，等待人工補題</strong><span>{manualAuthoringReasonLabel(manualAuthoringReason)}</span></div>}
-                        {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : `${candidateFilter?.generation_strategy === "reviewed_numbered_text_qa" ? "核准文字逐頁候選" : "AI 逐頁候選"}草稿尚未核准 · ${interactionTypeLabel(interactionType)}`}</strong><span>{candidateReviewed ? "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : interactionType === "text_qa" ? "請核對畫面問句、示範回答與其他可接受的完整答案。題目指定 he／his 或 she／her 時只能收相符答案；未指定性別時，男女兩種完整答案都要保留，學生只需回答其中一種。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && (candidateFilter.generation_strategy === "reviewed_numbered_text_qa" ? <p>原檔共有 {candidateFilter.numbered_question_count ?? (questionSet.speaking_questions || []).length} 個編號題組，已維持一個編號一題；底線改為姓名、年齡或拼字等可變口說欄位，不會因此刪除整題，也不呼叫 AI 猜答案。</p> : <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>)}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
+                        {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : `${candidateFilter?.generation_strategy === "reviewed_numbered_text_qa" ? "核准文字逐頁候選" : "AI 逐頁候選"}草稿尚未核准 · ${interactionTypeLabel(interactionType)}`}</strong><span>{candidateReviewed ? interactionType === "text_qa" ? "可直接發布純文字問答，不會產生示範語音；若修改題目，會要求重新核准。" : "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : interactionType === "text_qa" ? "請核對畫面問句、示範回答與其他可接受的完整答案。題目指定 he／his 或 she／her 時只能收相符答案；未指定性別時，男女兩種完整答案都要保留，學生只需回答其中一種。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && (candidateFilter.generation_strategy === "reviewed_numbered_text_qa" ? <p>原檔共有 {candidateFilter.numbered_question_count ?? (questionSet.speaking_questions || []).length} 個編號題組，已維持一個編號一題；底線改為姓名、年齡或拼字等可變口說欄位，不會因此刪除整題，也不呼叫 AI 猜答案。</p> : <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>)}{candidateFilter?.generation_strategy === "ai_grouped_numbered_text_qa" && <p>已依教材題號與物品線索配對 {candidateFilter.numbered_question_count} 題；請逐題核對 AI 配對與完整答案。</p>}{(candidateFilter?.source_corrections || []).map(correction => <p key={correction.number} role="alert">第 {correction.number} 題：原文「{correction.original}」疑有文法錯字，草稿暫改「{correction.corrected}」；核准前請與原頁確認。</p>)}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
                         {isSelected && (isPictureSet
                             ? questionSet.status === "draft"

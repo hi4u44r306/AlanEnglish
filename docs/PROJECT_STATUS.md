@@ -6,14 +6,32 @@
 
 - `codex/speaking-adventure-map` 的同一本 Workbook 改成由上往下單一路線：依目前已發布關卡清單生成節點與彎曲道路，座標以書本及關卡 ID 固定，中間插關會推移後續節點，末端追加會延長地圖；地景由草原、高地漸入火山，沒有角色人物。這只處理前端排列，不改正式題庫排序、分類解鎖或舊進度資料。
 - 手機進入 Workbook 地圖及小關卡會收起主 Header／底部導覽，保留返回操作；回到全部教材時恢復。學生的一般口說題移除上一題／下一題，完成後顯示「繼續挑戰」；老師／管理員預覽一般口說、A–Z／拼讀及圖片題時保留逐題切換，老師唯讀。
-- 相關檔案：`src/utils/speakingAdventureMap.js`、`src/components/Pages/TextbookSpeakingChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`css/SpeakingAdventureRoute.scss`、`assets/speaking-map/` 及對應測試。無 migration、Edge Function 或正式資料操作。已通過 4 suites／59 tests、Production build；編譯 CSS 靜態樣張在 320／390／430／1280px 無水平溢位。仍需在隔離預覽驗收登入後學生、老師、管理員、真實錄音、手機 safe area；`S-19`、`S-20` 素材待更新。
+- 相關檔案：`src/utils/speakingAdventureMap.js`、`src/components/Pages/TextbookSpeakingChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`css/SpeakingAdventureRoute.scss`、`assets/speaking-map/` 及對應測試。無 migration、Edge Function 或正式資料操作。與 `main` 合併時保留學生非 A–Z 語音限制及老師／管理員試聽，相關 React 測試 4 suites／61 tests、學生輸出契約 9/9、完整口說契約 37/37 與 Production build 通過；合併前編譯 CSS 靜態樣張在 320／390／430／1280px 無水平溢位。仍需在隔離預覽驗收登入後學生、老師、管理員、真實錄音、手機 safe area；`S-19`、`S-20` 素材待更新。
 
-本次口說大挑戰無人物地圖與關內版型（2026-09-24，功能分支完成；尚未部署）：
+本次口說大挑戰語音提示暫停（2026-09-25，正式部署完成）：
 
-- `codex/speaking-adventure-map` 將 Workbook 的三類關卡改成由下往上的路線地圖：圓形節點顯示教材頁碼、通關／目前／鎖定狀態，沒有虛擬人物。可玩節點先開關卡摘要，再由「進入挑戰」前往題目；老師／管理員預覽沿用同一地圖。
-- 一般口說、Workbook 1 A–Z／拼讀與圖片題共用新的關內視覺：深藍進度區、集中題目卡與錄音主操作；各題型原有錄音、送評、解鎖、每日五輪及 XP／AE Points 規則不變。不新增 migration、Edge Function、星數結算、道具或 PK。
-- React 相關測試 3 suites／52 tests、Production build 與 `git diff --check` 通過；以編譯後 CSS 的靜態畫面在 412px／1280px 檢查地圖與關內版型，無水平溢位。commit `16052f2` 已推送，草稿 PR #277 已建立。靜態畫面不是登入後實際錄音驗收；正式發布前仍須在隔離預覽檢查學生、老師、管理員、真實麥克風及 iPhone safe area。`S-19`、`S-20` 教學素材待更新。
+- 學生端除 A–Z 導聽外，非 A–Z 題目的答案範例與看圖補句整句播放入口先隱藏；一般題目音檔網址與看圖補句音檔網址不再對學生簽發。已保存的私有 R2 音檔不刪除，工作人員預覽仍可試聽。
+- 未實作購買、持有或消耗提示道具；未來須由後端驗證並在使用道具後才短效簽發音檔網址，不可只靠前端顯示控制。
+- PR #283 已合併至 `main` `2398a7d`。正式 `speaking-challenge` v40 ACTIVE，OPTIONS 200、未登入 POST 401；Cloudflare Worker 版本 `678e2f70-8a46-4856-bd0a-91ac1abd2ccc` 已發布，正式兩網域與 Workers 網址均回應 200 並載入 `main.55f8bc8f.js`。學生題目輸出契約 9/9、React 57/57（含 A–Z）、Edge 語法、Production build、`git diff --check` 通過。完整口說契約仍有 1 項既有手機播放器 CSS selector 斷言失敗，與本次語音限制無關。尚未做登入學生、老師及管理員的線上端到端驗收；`S-20` 教學素材待更新。
 
+本次 Workbook 2 P1–P10 OCR 與七題問答（2026-09-25，程式已正式部署／OCR 待管理員核對）：
+
+- 管理員指定的 Workbook 2 來源 section 63 已由封存恢復為待核對，對應 OCR 批次 117 改回 `review_required`，原逐字稿及文件 39 均保留；沒有核准、建稿或發布。需管理員再次核對並核准。
+- 本機修正 P4／P6／P8／P10 的「先列七個問句，答案庫另排且可能倒序」版型：AI 用中文物品線索一對一配對原答案；配對缺漏、重複或引用非答案庫句子時整頁拒絕建稿，避免只剩 1 題。相同英文問句但答案不同不再誤去重；學生題面顯示中文線索。
+- P4 原 OCR `It a bag.` 疑似缺字，新草稿會暫改 `It's a bag.` 並顯示原句與修正提醒，仍由管理員逐題核對。這類 OCR 文字問答在內容核准後可生成與試聽示範語音，發布時須七題音檔齊全；其他純文字問答維持免音檔規則。無 migration；`A-12` 教學素材待更新。
+- PR #281 已由隔離分支合併至 `main` `4475c9a`，未包含未驗收的口說地圖變更。`speaking-content-manager` v55、`speaking-challenge` v39、`speaking-tts-manager` v35 均 ACTIVE；Cloudflare Worker 版本 `ee41ef83-000d-469c-bd9d-160e4425554d` 已發布。正式首頁及管理路由 HTTP 200 且回傳新版 JS，三函式無登入 POST 均為 401。
+- OCR／學生輸出與口說契約測試 55/55、管理／學生 React 測試 47/47、Edge 語法、Production build、`git diff --check` 通過。GitHub 舊 Netlify deploy-preview 狀態失敗，未作為 Cloudflare 發布依據。仍待管理員核准 OCR 後實測 AI 實際配對、音檔與發布；未自動建稿或發布。`release:deploy-preflight` 腳本目前禁止 `main`，與本文件及 AGENTS.md 的正式部署必須由最新 `main` 執行規範相衝突，待另案修正。
+
+本次純文字問答免音檔與 Workbook 1 P42（2026-09-25，本機實作中）：
+
+- 「無圖片文字問答」在逐頁建稿時不再呼叫 TTS；待發布草稿可直接按「發布純文字關卡」，後端不要求音檔，學生題面也不簽發或播放既有答案音檔。標準完整句與看圖補句仍維持原本必要語音規則。
+- TTS Function 會拒絕對 `text_qa` 產生、重試或預覽語音，避免舊畫面或直接 API 誤產生付費音檔；不需 migration，不修改既有音檔或其他題型。
+- 尚待完成測試、PR／正式部署，以及透過正式管理頁建立並發布 Workbook 1 P42 的 9 題數字加減法純文字關卡。
+
+本次逐頁無圖片文字問答（2026-09-25，正式部署完成）：
+
+- 「建立新關卡」新增無圖片文字問答；同頁可加入多道文字問答，輸入學生可見問句、完整示範回答及其他可接受完整說法，不要求圖片。為沿用既有 `text_qa` 學生作答與評分規則，文字問答須獨立成一關，不與看圖或朗讀題混用。
+- `speaking-content-manager` 將全文字問答頁標示為 `text_qa` 並保留單頁來源、題序與私有草稿；`speaking-tts-manager` 支援該草稿的示範語音。沒有 migration、沒有修改已發布題庫或學生資料；P42 尚未建立遠端草稿。管理頁 React 6/6、學生題面契約 7/7、發音流程契約 7/7、兩支 Function 語法、Production build 與 `git diff --check` 均通過。PR #278 已合併至 `main` commit `c4c7dee`；正式 `speaking-content-manager` v53、`speaking-tts-manager` v32 均為 ACTIVE。Cloudflare Workers 正式版本 `7d7cfa8d-832a-40d7-8a51-4129f6500107` 已發布，`alanenglish.com.tw`、`app.alanenglish.com.tw` 與 Workers 網址均回應 200 並載入 `main.64e53846.js`；正式 bundle SHA-256 與本機已驗證 build 完全一致。尚未做管理員登入後的草稿建立端到端測試。
 本次 Workbook 1 新版學生版 OCR 核對防錯（2026-09-24，正式部署完成）：
 
 - localhost 確認 Workbook 1 已有 119 頁、12/12 批辨識結果，但 0/12 批核准；P21–P30 舊 OCR 把頁碼當普通文字、缺少 `[[PAGE P頁碼]]`，且看圖補句只留下殘缺文字，不能可靠配對圖片或自動出題。本批未核准、刪除或覆蓋任何既有來源／題庫。

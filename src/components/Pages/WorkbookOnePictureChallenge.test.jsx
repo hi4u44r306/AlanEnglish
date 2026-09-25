@@ -182,7 +182,25 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.getByRole("img")).not.toHaveAttribute("src", firstImageUrl);
     });
 
-    it("P22 只提供停頓整句播放，句型單字不可點選且完整句才完成", async () => {
+    it("P22 學生看圖補句即使舊回應含網址也不顯示播放入口", () => {
+        render(<WorkbookOnePictureChallenge
+            challenge={{
+                id: 22, title: "P22 看圖補句", generation_metadata: { interaction_type: "picture_gap_sentence" },
+                speaking_questions: [{ id: 2201, sort_order: 0, visual_aid: privateVisual, picture_interaction: {
+                    type: "picture_gap_sentence", sentence_pattern: "The ____ is in the tree.",
+                    sentence_audio_url: "https://r2.example/sentence.wav"
+                } }]
+            }}
+            firebaseUser={{ uid: "student" }}
+            onComplete={jest.fn()}
+            onExit={jest.fn()}
+        />);
+        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        expect(screen.getByText("The")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /播放整句發音/ })).not.toBeInTheDocument();
+    });
+
+    it("P22 工作人員預覽保留停頓整句播放，句型單字不可點選且完整句才完成", async () => {
         const audioInstances = [];
         global.Audio = jest.fn().mockImplementation(() => {
             const audio = { play: jest.fn().mockResolvedValue(undefined), pause: jest.fn(), onended: null, onerror: null };
@@ -207,6 +225,7 @@ describe("WorkbookOnePictureChallenge", () => {
                 }]
             }}
             firebaseUser={{ uid: "student" }}
+            staffAudioPreview
             onComplete={onComplete}
             onExit={jest.fn()}
         />);
@@ -261,6 +280,7 @@ describe("WorkbookOnePictureChallenge", () => {
                 }]
             }}
             firebaseUser={{ uid: "student" }}
+            staffAudioPreview
             onComplete={jest.fn().mockResolvedValue(true)}
             onExit={jest.fn()}
         />);
@@ -301,6 +321,7 @@ describe("WorkbookOnePictureChallenge", () => {
                 }]
             }}
             firebaseUser={{ uid: "student" }}
+            staffAudioPreview
             onComplete={jest.fn().mockResolvedValue(true)}
             onExit={jest.fn()}
         />);

@@ -304,6 +304,9 @@ Deno.serve(async (req: Request) => {
                 questions.push(await buildPublicSpeakingQuestion({
                     question,
                     interactionType,
+                    answerAudioEnabled: questionSet.generation_metadata?.source === "ocr_page_candidate"
+                        && questionSet.generation_metadata?.requires_answer_audio === true,
+                    staffAudioPreview: demoMode,
                     progressStatus: statusByQuestion.get(Number(question.id)),
                     modelAsset,
                     promptAsset,

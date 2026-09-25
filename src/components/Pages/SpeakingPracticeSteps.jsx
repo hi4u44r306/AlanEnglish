@@ -46,6 +46,7 @@ export default function SpeakingPracticeSteps({
     challengeSessionId = "",
     disabledReason = "",
     hideHelp = false,
+    allowModelAudio = true,
     promptTitle = "直接開口回答",
     promptDetail = "不用打字，按下麥克風後用完整英文句子回答。"
 }) {
@@ -78,12 +79,12 @@ export default function SpeakingPracticeSteps({
         {!hideHelp && showHelp && <div className="speaking-help-panel">
             {question.hint_zh && <p>{question.hint_zh}</p>}
             <div><small>可以這樣說</small><strong>{answerPattern}</strong></div>
-            <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
+            {allowModelAudio && <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
-            </button>
+            </button>}
             {example && <small>示範：{example}</small>}
             {question.pronunciation_notes_zh && <small>發音提醒：{question.pronunciation_notes_zh}</small>}
-            <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" />聽不到聲音時，請用裝置音量鍵調整媒體音量。</small>
+            {allowModelAudio && <small className="speaking-audio-volume-hint"><FiVolume2 aria-hidden="true" />聽不到聲音時，請用裝置音量鍵調整媒體音量。</small>}
         </div>}
 
         <SpeakingPronunciationRecorder

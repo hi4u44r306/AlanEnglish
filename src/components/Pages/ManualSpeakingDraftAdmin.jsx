@@ -16,7 +16,8 @@ const PICTURE_TYPES = new Set(["picture_qa", "picture_gap_sentence"]);
 const TYPE_LABELS = {
     standard_sentence: "完整句朗讀",
     picture_gap_sentence: "看圖補完整句",
-    picture_qa: "看圖說完整問答"
+    picture_qa: "看圖說完整問答",
+    text_qa: "無圖片文字問答"
 };
 let rowSequence = 0;
 
@@ -87,6 +88,9 @@ const validateDraft = (form, rows) => {
     else if (form.title.trim().length > 200) formErrors.title = "關卡名稱不可超過 200 字";
     if (!form.topic.trim()) formErrors.topic = "請輸入主題";
     else if (form.topic.trim().length > 200) formErrors.topic = "主題不可超過 200 字";
+    if (rows.some(row => row.interaction_type === "text_qa") && rows.some(row => row.interaction_type !== "text_qa")) {
+        formErrors.question_types = "無圖片文字問答目前須獨立成一頁關卡，不能與其他題型混用";
+    }
     const rowErrors = rows.map(row => {
         const errors = {};
         const accepted = acceptedResponses(row.accepted_full_responses);
@@ -96,6 +100,12 @@ const validateDraft = (form, rows) => {
         if (row.interaction_type === "standard_sentence") {
             if (!row.full_sentence.trim()) errors.full_sentence = "請輸入完整朗讀句子";
             else if (row.full_sentence.trim().length > 500) errors.full_sentence = "完整句子不可超過 500 字";
+        } else if (row.interaction_type === "text_qa") {
+            if (!row.prompt_text.trim()) errors.prompt_text = "請輸入學生看到的完整問句";
+            else if (row.prompt_text.trim().length > 500) errors.prompt_text = "完整問句不可超過 500 字";
+            else if (!row.prompt_text.trim().endsWith("?")) errors.prompt_text = "問句最後必須是半形問號 ?";
+            if (!row.answer_text.trim()) errors.answer_text = "請輸入不會預先顯示的完整示範回答";
+            else if (row.answer_text.trim().length > 500) errors.answer_text = "完整示範回答不可超過 500 字";
         } else if (row.interaction_type === "picture_qa") {
             if (!row.prompt_text.trim()) errors.prompt_text = "請輸入完整問句";
             else if (!row.prompt_text.trim().endsWith("?")) errors.prompt_text = "完整問句最後必須是半形問號 ?";
@@ -171,7 +181,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
         } finally { setWorking(false); }
     };
     return <section className="platform-card speaking-picture-authoring speaking-admin-block--curated">
-        <div className="platform-section-title"><div><span className="platform-eyebrow">PAGE CHALLENGE BUILDER</span><h2>逐頁建立口說草稿</h2><p>一頁就是一個小關卡；同頁可混用題型。建立後僅為草稿，學生完全看不到。</p></div></div>
+        <div className="platform-section-title"><div><span className="platform-eyebrow">PAGE CHALLENGE BUILDER</span><h2>逐頁建立口說草稿</h2><p>一頁就是一個小關卡；圖片題與朗讀題可混用，無圖片文字問答需獨立成關。建立後僅為草稿，學生完全看不到。</p></div></div>
         <form className="platform-form" onSubmit={submit} noValidate>
             <div className="platform-form-grid">
                 <label className={validationRequested && validation.formErrors.book_id ? "speaking-draft-field--invalid" : ""}><span>教材</span><select value={form.book_id} onChange={event => updateForm("book_id", event.target.value)} disabled={working} aria-invalid={Boolean(validationRequested && validation.formErrors.book_id)}><option value="">請選擇教材</option>{books.filter(book => book.enabled !== false).map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select><FieldError id="manual-book-error" message={validation.formErrors.book_id} visible={validationRequested} /></label>
@@ -182,11 +192,12 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
             </div>
             {validationRequested && !validation.valid && <div className="speaking-draft-validation-summary" role="alert"><strong><AlertCircle size={18} />目前無法建立草稿，請修正以下項目：</strong><ul>{validation.summary.map((error, index) => <li key={`${error.rowIndex ?? "form"}-${error.field}-${index}`}>{error.message}</li>)}</ul></div>}
             {form.book_id && <p className="speaking-picture-authoring__catalog-note">發布這本教材的第一頁關卡後，學生端會自動出現「{selectedBook?.name || "此教材"}」口說大挑戰；之後所有小關卡依學生版頁碼排序。</p>}
-            <div className="speaking-picture-authoring__notice"><Volume2 size={18} /><span>每題可自行選擇題型。看圖題必須上傳私人圖片；完整句會產生示範語音，看圖補句會產生每個挖空停頓 2 秒的整句語音。</span></div>
+            <div className="speaking-picture-authoring__notice"><Volume2 size={18} /><span>看圖題必須上傳私人圖片；無圖片文字問答須單獨成關，學生只會看到問題並直接口說回答，不產生音檔。完整句會產生示範語音，看圖補句會產生每個挖空停頓 2 秒的整句語音。</span></div>
             <div className="speaking-picture-authoring__rows">{rows.map((row, index) => {
                 const errors = validation.rowErrors[index] || {}; const invalid = field => validationRequested && errors[field]; const id = field => `manual-row-${index}-${field}-error`;
                 return <article key={row.key} className={validationRequested && Object.keys(errors).length ? "speaking-draft-row--invalid" : ""}><header><strong>第 {index + 1} 題</strong><button type="button" className="platform-danger" disabled={working || rows.length <= 1} onClick={() => removeRow(row.key)}><Trash2 size={16} />刪除</button></header><div className="platform-form">
-                    <label><span>題型</span><select value={row.interaction_type} onChange={event => updateRow(row.key, "interaction_type", event.target.value)} disabled={working}><option value="picture_gap_sentence">看圖補完整句</option><option value="picture_qa">看圖說完整問答</option><option value="standard_sentence">完整句朗讀</option></select></label>
+                    <label><span>題型</span><select value={row.interaction_type} onChange={event => updateRow(row.key, "interaction_type", event.target.value)} disabled={working}><option value="picture_gap_sentence">看圖補完整句</option><option value="picture_qa">看圖說完整問答</option><option value="text_qa">無圖片文字問答（適用算式）</option><option value="standard_sentence">完整句朗讀</option></select></label>
+                    {row.interaction_type === "text_qa" && <><label className={invalid("prompt_text") ? "speaking-draft-field--invalid" : ""}><span>學生看到的完整問句</span><input value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder="What is seven minus two?" disabled={working} aria-invalid={Boolean(invalid("prompt_text"))} /><FieldError id={id("prompt_text")} message={errors.prompt_text} visible={validationRequested} /></label><label className={invalid("answer_text") ? "speaking-draft-field--invalid" : ""}><span>完整示範回答（學生作答前不顯示）</span><input value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder="Seven minus two is five." disabled={working} aria-invalid={Boolean(invalid("answer_text"))} /><FieldError id={id("answer_text")} message={errors.answer_text} visible={validationRequested} /></label></>}
                     {row.interaction_type === "picture_gap_sentence" && <><label className={invalid("prompt_text") ? "speaking-draft-field--invalid" : ""}><span>學生看到的題目（用 ____ 標示挖空）</span><input value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder="They ____ her ____." disabled={working} aria-invalid={Boolean(invalid("prompt_text"))} /><FieldError id={id("prompt_text")} message={errors.prompt_text} visible={validationRequested} /></label><label className={invalid("answer_text") ? "speaking-draft-field--invalid" : ""}><span>補好答案的完整句子</span><input value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder="They are her eyes." disabled={working} aria-invalid={Boolean(invalid("answer_text"))} /><FieldError id={id("answer_text")} message={errors.answer_text} visible={validationRequested} /></label><p className="speaking-picture-authoring__preview"><strong>學生看到：</strong>{row.prompt_text.trim() || "請輸入含有 ____ 的題目"}</p></>}
                     {row.interaction_type === "picture_qa" && <><label className={invalid("prompt_text") ? "speaking-draft-field--invalid" : ""}><span>完整問句</span><input value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder="What is that?" disabled={working} aria-invalid={Boolean(invalid("prompt_text"))} /><FieldError id={id("prompt_text")} message={errors.prompt_text} visible={validationRequested} /></label><label className={invalid("answer_text") ? "speaking-draft-field--invalid" : ""}><span>完整回答</span><input value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder="It is a pencil." disabled={working} aria-invalid={Boolean(invalid("answer_text"))} /><FieldError id={id("answer_text")} message={errors.answer_text} visible={validationRequested} /></label></>}
                     {row.interaction_type === "standard_sentence" && <label className={invalid("full_sentence") ? "speaking-draft-field--invalid" : ""}><span>完整朗讀句子</span><input value={row.full_sentence} onChange={event => updateRow(row.key, "full_sentence", event.target.value)} placeholder="This is a pencil." disabled={working} aria-invalid={Boolean(invalid("full_sentence"))} /><FieldError id={id("full_sentence")} message={errors.full_sentence} visible={validationRequested} /></label>}
@@ -196,7 +207,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
                 </div></article>;
             })}</div>
             <button type="button" className="platform-secondary" disabled={working || rows.length >= 50} onClick={addRow}><Plus size={17} />新增一題</button>
-            <button className="platform-primary" disabled={working}>{working ? "正在建立草稿與語音…" : "建立未發布草稿"}</button>
+            <button className="platform-primary" disabled={working}>{working ? "正在建立未發布草稿…" : "建立未發布草稿"}</button>
         </form>
         {confirmOpen && <div className="speaking-draft-confirmation-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setConfirmOpen(false); }}><section ref={confirmationRef} className="speaking-draft-confirmation" role="dialog" aria-modal="true" aria-labelledby="speaking-draft-confirmation-title"><header><div><span className="platform-eyebrow">FINAL CHECK</span><h3 id="speaking-draft-confirmation-title">確認建立未發布草稿</h3></div><button type="button" aria-label="關閉確認視窗" onClick={() => setConfirmOpen(false)}><X size={20} /></button></header><p className="speaking-draft-confirmation__notice"><AlertCircle size={18} />這一步只會建立未發布草稿，學生不會看到；請在題庫管理逐題核對後才發布。</p><dl className="speaking-draft-confirmation__meta"><div><dt>教材</dt><dd>{selectedBook?.name || "未選擇"}</dd></div><div><dt>頁碼</dt><dd>{normalizedPage(form.page_label)}</dd></div><div><dt>關卡</dt><dd>{form.title.trim()}</dd></div><div><dt>主題</dt><dd>{form.topic.trim()}</dd></div><div><dt>程度／題數</dt><dd>{form.difficulty}／{rows.length} 題</dd></div></dl><div className="speaking-draft-confirmation__outline"><strong>即將建立的草稿大綱</strong>{rows.map((row, index) => <article key={row.key}><span>第 {index + 1} 題・{TYPE_LABELS[row.interaction_type]}</span><b>{row.interaction_type === "standard_sentence" ? row.full_sentence.trim() : normalizeGapPrompt(row.prompt_text).trim()}</b>{row.interaction_type !== "standard_sentence" && <small>{row.interaction_type === "picture_qa" ? "回答" : "完整句"}：{row.answer_text.trim()}</small>}{isPictureType(row.interaction_type) && <small>圖片：{row.file?.name}</small>}</article>)}</div><footer><button type="button" className="platform-secondary" onClick={() => setConfirmOpen(false)}>返回修改</button><button type="button" className="platform-primary" onClick={createDraft}>確認建立未發布草稿</button></footer></section></div>}
     </section>;

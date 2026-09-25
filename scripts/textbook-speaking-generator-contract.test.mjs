@@ -35,9 +35,18 @@ const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const ocrPageMarkers = read("supabase/functions/_shared/speaking-ocr-page-markers.ts");
 const app = read("src/app/App.jsx");
 const challengeStyles = read("src/components/Pages/css/TextbookSpeakingChallenge.scss");
+const adventureRouteStyles = read("src/components/Pages/css/SpeakingAdventureRoute.scss");
 const foundationChallenge = read("src/components/Pages/WorkbookOneFoundationChallenge.jsx");
 const pronunciationRecorder = read("src/components/Pages/SpeakingPronunciationRecorder.jsx");
 const pronunciationRecorderStyles = read("src/components/Pages/css/SpeakingPronunciationRecorder.scss");
+
+test("0. 無圖片文字問答建稿與發布不要求或產生音檔", () => {
+    assert.match(manager, /String\(metadata\?\.interaction_type \|\| ""\) === "standard_sentence"/);
+    assert.match(manager, /純文字問答需要完整問句、簡易回答與示範回答但不需要音檔/);
+    assert.match(ttsManager, /code: "text_qa_audio_disabled"/);
+    assert.match(challengeView, /effectiveInteractionType === "text_qa"/);
+    assert.match(adminPage, /發布純文字關卡/);
+});
 
 test("1. 教材來源、版本題庫、題目與生成工作都有 additive schema", () => {
     for (const table of ["speaking_source_documents", "speaking_source_sections", "speaking_question_sets", "speaking_questions", "speaking_generation_jobs"]) {
@@ -133,8 +142,11 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.doesNotMatch(manager, /questions\.length !== rows\.length/);
     assert.match(manager, /rejected_ai_question_count/);
     assert.match(manager, /reviewed_numbered_text_qa_v2/);
-    assert.match(manager, /generation_strategy: useDeterministicTextQa/);
-    assert.match(manager, /numbered_question_count: useDeterministicTextQa/);
+    assert.match(manager, /generation_strategy: groupedTextQaForAi .*ai_grouped_numbered_text_qa/);
+    assert.match(manager, /numbered_question_count: groupedTextQaForAi/);
+    assert.match(manager, /validateGroupedNumberedTextQaMatch/);
+    assert.match(manager, /sentenceFingerprint\(question\.question_text\)\}\|\$\{sentenceFingerprint\(question\.model_answer\)/);
+    assert.match(manager, /requires_answer_audio: Boolean\(groupedTextQaForAi\)/);
     assert.match(manager, /extractNumberedTextQaPairs/);
     assert.match(manager, /reviewedTextQaPromptIsComplete\(normalized\.question_text\)/);
     assert.match(manager, /textQaQuestionContentValid/);
@@ -561,10 +573,10 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
     assert.match(pronunciationLedgerMigration, /Raw microphone audio is never stored/);
 });
 
-test("20. 手機口說操作列避開 Bottom Nav 與播放器，階段切換可由輔助科技得知", () => {
-    assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.speaking-question-navigation/);
-    assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.app-content\.has-player \.speaking-question-navigation/);
-    assert.match(challengeStyles, /var\(--app-player-space, 110px\) \+ 74px/);
+test("20. 手機口說專注模式收起 Bottom Nav 並保留安全邊距，階段切換可由輔助科技得知", () => {
+    assert.match(adventureRouteStyles, /body\.speaking-challenge-active \.ae-student-bottom-nav \{ display: none; \}/);
+    assert.match(adventureRouteStyles, /body\.speaking-challenge-active:has\(\.ae-student-bottom-nav\) \.app-content\.has-player \{ padding-bottom: 0; \}/);
+    assert.match(adventureRouteStyles, /\.speaking-question-navigation \{ bottom: max\(8px, env\(safe-area-inset-bottom\)\); \}/);
     assert.match(challengeStyles, /\.speaking-sr-only/);
     assert.match(challengeStyles, /\.speaking-back:focus-visible/);
     assert.match(foundationChallenge, /ref=\{phaseFocusRef\} tabIndex="-1"/);
