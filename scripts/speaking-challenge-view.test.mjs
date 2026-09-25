@@ -288,3 +288,16 @@ test("無圖片文字問答以文字問句呈現且隱藏既有答案音檔", as
     assert.equal(result.model_audio_url, null);
     assert.deepEqual(signer.keys, []);
 });
+
+test("已核對的 Workbook 2 文字問答可選擇提供完整答案示範語音", async () => {
+    const signer = createOpaqueSigner();
+    const result = await buildPublicSpeakingQuestion({
+        question: { id: 4202, sort_order: 0, question_text: "What is this?", hint_zh: "題目線索：汽車。請用完整句回答。", model_answer: "It is a car." },
+        interactionType: "text_qa", answerAudioEnabled: true, progressStatus: "opened",
+        modelAsset: { status: "ready", private_object_key: "private/car-answer.wav" },
+        promptAsset: null, pictureInteraction: null, visualAsset: null, signPrivateObject: signer.sign
+    });
+    assert.equal(result.model_audio_status, "ready");
+    assert.equal(result.model_audio_url, "https://signed.test/1");
+    assert.deepEqual(signer.keys, ["private/car-answer.wav"]);
+});

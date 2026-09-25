@@ -141,8 +141,11 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.doesNotMatch(manager, /questions\.length !== rows\.length/);
     assert.match(manager, /rejected_ai_question_count/);
     assert.match(manager, /reviewed_numbered_text_qa_v2/);
-    assert.match(manager, /generation_strategy: useDeterministicTextQa/);
-    assert.match(manager, /numbered_question_count: useDeterministicTextQa/);
+    assert.match(manager, /generation_strategy: groupedTextQaForAi .*ai_grouped_numbered_text_qa/);
+    assert.match(manager, /numbered_question_count: groupedTextQaForAi/);
+    assert.match(manager, /validateGroupedNumberedTextQaMatch/);
+    assert.match(manager, /sentenceFingerprint\(question\.question_text\)\}\|\$\{sentenceFingerprint\(question\.model_answer\)/);
+    assert.match(manager, /requires_answer_audio: Boolean\(groupedTextQaForAi\)/);
     assert.match(manager, /extractNumberedTextQaPairs/);
     assert.match(manager, /reviewedTextQaPromptIsComplete\(normalized\.question_text\)/);
     assert.match(manager, /textQaQuestionContentValid/);

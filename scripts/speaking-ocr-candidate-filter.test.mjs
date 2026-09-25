@@ -1,10 +1,111 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+    extractGroupedNumberedTextQaForAi,
     extractNumberedTextQaPairs,
     filterOcrPageSpeakingCandidates,
-    reviewedTextQaPromptIsComplete
+    reviewedTextQaPromptIsComplete,
+    validateGroupedNumberedTextQaMatch
 } from "../supabase/functions/_shared/speaking-ocr-candidate-filter.ts";
+
+test("Workbook 2 grouped questions keep all numbered clues and match shuffled answer bank by AI output", () => {
+    const source = extractGroupedNumberedTextQaForAi(`[[PAGE P4]]
+1. What is this? ( 汽車 )
+2. What is this? ( 袋子 )
+3. What is this? ( 蘋果 )
+4. What is this? ( 帽子 )
+5. What is this? ( 貓 )
+6. What is this? ( 蛋 )
+7. What is this? ( 橡皮擦 )
+What 疑問句回答
+It's an eraser.
+[[RED_ANSWER: It's an eraser.]]
+It's an egg.
+[[RED_ANSWER: It's an egg.]]
+It's a cat.
+[[RED_ANSWER: It's a cat.]]
+It's a hat.
+[[RED_ANSWER: It's a hat.]]
+It's an apple.
+[[RED_ANSWER: It's an apple.]]
+It a bag.
+[[RED_ANSWER: It a bag.]]
+It is a car.
+[[RED_ANSWER: It is a car.]]`);
+    assert.equal(source?.prompts.length, 7);
+    assert.deepEqual(source?.prompts.map(row => row.clue), ["汽車", "袋子", "蘋果", "帽子", "貓", "蛋", "橡皮擦"]);
+    assert.deepEqual(source?.answers, ["It's an eraser.", "It's an egg.", "It's a cat.", "It's a hat.", "It's an apple.", "It a bag.", "It is a car."]);
+    const matched = validateGroupedNumberedTextQaMatch(source, [
+        { number: 1, answer: "It is a car." },
+        { number: 2, answer: "It a bag." },
+        { number: 3, answer: "It's an apple." },
+        { number: 4, answer: "It's a hat." },
+        { number: 5, answer: "It's a cat." },
+        { number: 6, answer: "It's an egg." },
+        { number: 7, answer: "It's an eraser." }
+    ]);
+    assert.deepEqual(matched?.map(row => row.source_answer), ["It is a car.", "It a bag.", "It's an apple.", "It's a hat.", "It's a cat.", "It's an egg.", "It's an eraser."]);
+    assert.equal(validateGroupedNumberedTextQaMatch(source, [
+        { number: 1, answer: "It is a car." },
+        { number: 2, answer: "It is a car." },
+        { number: 3, answer: "It's an apple." }
+    ]), null);
+});
+
+test("Workbook 2 P6, P8 and P10 each expose seven numbered text questions", () => {
+    const pages = [
+        `8. What is that? ( 鳥 )
+9. What is that? ( 椅子 )
+10. What is that? ( 襯衫 )
+11. What is that? ( 狗 )
+12. What is that? ( 香蕉 )
+13. What is that? ( 魚 )
+14. What is that? ( 盒子 )
+It is a bird.
+[[RED_ANSWER: It is a bird.]]
+It is a chair.
+It is a shirt.
+It is a dog.
+It is a banana.
+It is a fish.
+It is a box.`,
+        `15. What animal is it? ( 雞 )
+16. What animal is that? ( 馬 )
+17. What animal is this? ( 母牛 )
+18. What animal is it? ( 鴨 )
+19. What animal is that? ( 青蛙 )
+20. What animal is this? ( 綿羊 )
+21. What animal is it? ( 大象 )
+What ＋Ｎ 疑問句回答
+It is a chicken.
+It is a horse.
+It is a cow.
+It's a duck.
+It's a frog.
+It's a sheep.
+It's an elephant.`,
+        `22. What are these? ( 鞋子 )
+23. What are these? ( 襪子 )
+24. What are these? ( 豆子 )
+25. What are these? ( 紅蘿蔔 )
+26. What are these? ( 盒子 )
+27. What are these? ( 時鐘 )
+28. What are these? ( 書 )
+What ... these 複數
+They are books.
+They are carrots.
+They are clocks.
+They are beans.
+They are boxes.
+They are socks.
+They are shoes.`
+    ];
+    for (const [index, page] of pages.entries()) {
+        const grouped = extractGroupedNumberedTextQaForAi(page);
+        assert.equal(grouped?.prompts.length, 7, `P${[6, 8, 10][index]} prompts`);
+        assert.equal(grouped?.answers.length, 7, `P${[6, 8, 10][index]} answers`);
+    }
+});
 import { textQaQuestionContentValid } from "../supabase/functions/_shared/speaking-text-qa.ts";
 
 test("keeps only complete, speakable English sentences for automatic OCR candidates", () => {
