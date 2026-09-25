@@ -1,8 +1,10 @@
 import { readAzureWordAssessment } from "./azure-pronunciation.ts";
+import { hasSpeakingAnswerSlots, matchesSpeakingAnswerTemplate } from "./speaking-pronunciation-reference.ts";
 
 export const FOUNDATION_INTERACTION_TYPES = new Set([
     "alphabet_round",
     "letter_spelling",
+    "text_qa",
     "picture_qa",
     "picture_gap_sentence"
 ]);
@@ -43,8 +45,21 @@ export const readFoundationInteractionType = (metadata: unknown) => {
     return FOUNDATION_INTERACTION_TYPES.has(type) ? type : "";
 };
 
+// A page-based draft can contain standard and picture questions together. The
+// set-level `mixed` marker is deliberately not a foundation answer mode: the
+// actual answer policy must be derived from each question's approved row.
+export const readQuestionSetInteractionType = (metadata: unknown) => {
+    const type = String((metadata as any)?.interaction_type || "").trim();
+    return type === "mixed" ? type : readFoundationInteractionType(metadata);
+};
+
+export const resolveQuestionInteractionType = (questionSetInteractionType: unknown, pictureInteraction: unknown) => {
+    if (questionSetInteractionType !== "mixed") return String(questionSetInteractionType || "");
+    return readFoundationInteractionType(pictureInteraction);
+};
+
 export const usesUnscriptedFoundationAssessment = (interactionType: unknown) => (
-    interactionType === "picture_qa" || interactionType === "picture_gap_sentence"
+    interactionType === "text_qa" || interactionType === "picture_qa" || interactionType === "picture_gap_sentence"
 );
 
 const normalizedTokens = (value: unknown) => String(value || "")
@@ -150,12 +165,14 @@ export const matchesFoundationAnswer = (
 ) => {
     const type = String(interactionType || "");
     if (!FOUNDATION_INTERACTION_TYPES.has(type)) return false;
-    if (type === "picture_qa" || type === "picture_gap_sentence") {
+    if (type === "text_qa" || type === "picture_qa" || type === "picture_gap_sentence") {
         const spoken = normalizedSpokenSentence(recognizedText);
         const accepted = [expectedAnswer, ...(Array.isArray(acceptedAnswers) ? acceptedAnswers : [])]
-            .map(normalizedSpokenSentence)
+            .map(value => String(value || "").trim())
             .filter(Boolean);
-        return Boolean(spoken) && accepted.includes(spoken);
+        return Boolean(spoken) && accepted.some(answer => hasSpeakingAnswerSlots(answer)
+            ? matchesSpeakingAnswerTemplate(answer, recognizedText)
+            : normalizedSpokenSentence(answer) === spoken);
     }
     const expected = expectedLetterSequence(expectedAnswer);
     const spoken = spokenLetterSequence(recognizedText);
@@ -223,6 +240,8 @@ export const evaluateLetterSpellingAssessment = (
 export const foundationRetryFeedback = (interactionType: unknown) => (
     interactionType === "alphabet_round"
         ? "再看清楚這個字母，聽完提示音後重新唸一次。"
+        : interactionType === "text_qa"
+            ? "請依題目線索，用其中一個可接受的完整英文句子回答；不要把 he／she 或 his／her 混在同一句。"
         : interactionType === "picture_qa"
             ? "請看圖片，把完整問句和完整回答一起說出來。"
             : interactionType === "picture_gap_sentence"

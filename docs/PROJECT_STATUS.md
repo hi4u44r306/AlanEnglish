@@ -1,6 +1,193 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-22
+最後更新：2026-09-25
+
+本次原始 PDF 視覺建稿 PR #240 衝突整合（2026-09-25，功能分支；尚未部署）：
+
+- 以目前 `main` 的人工逐頁建稿、純文字問答、圖片核對與學生音檔限制為基準，保留管理員從已核准來源的私人原始 PDF 分析並建立未發布草稿的入口。OCR 逐頁選頁、封存舊來源及純文字發布流程繼續可用；學生目錄維持現行頁碼顯示。
+- 不新增 migration、不自動核准、發布或修改正式題庫。管理頁 React 25/25、完整口說契約 37/37、學生輸出契約 9/9、Edge Function 語法與 Production build 通過；真實私人 PDF、AI 回覆、R2 裁圖及登入後管理員流程仍須在隔離環境驗收，正式 Function 與前端尚未部署。
+
+本次口說大挑戰語音提示暫停（2026-09-25，正式部署完成）：
+
+- 學生端除 A–Z 導聽外，非 A–Z 題目的答案範例與看圖補句整句播放入口先隱藏；一般題目音檔網址與看圖補句音檔網址不再對學生簽發。已保存的私有 R2 音檔不刪除，工作人員預覽仍可試聽。
+- 未實作購買、持有或消耗提示道具；未來須由後端驗證並在使用道具後才短效簽發音檔網址，不可只靠前端顯示控制。
+- PR #283 已合併至 `main` `2398a7d`。正式 `speaking-challenge` v40 ACTIVE，OPTIONS 200、未登入 POST 401；Cloudflare Worker 版本 `678e2f70-8a46-4856-bd0a-91ac1abd2ccc` 已發布，正式兩網域與 Workers 網址均回應 200 並載入 `main.55f8bc8f.js`。學生題目輸出契約 9/9、React 57/57（含 A–Z）、Edge 語法、Production build、`git diff --check` 通過。完整口說契約仍有 1 項既有手機播放器 CSS selector 斷言失敗，與本次語音限制無關。尚未做登入學生、老師及管理員的線上端到端驗收；`S-20` 教學素材待更新。
+
+本次 Workbook 2 P1–P10 OCR 與七題問答（2026-09-25，程式已正式部署／OCR 待管理員核對）：
+
+- 管理員指定的 Workbook 2 來源 section 63 已由封存恢復為待核對，對應 OCR 批次 117 改回 `review_required`，原逐字稿及文件 39 均保留；沒有核准、建稿或發布。需管理員再次核對並核准。
+- 本機修正 P4／P6／P8／P10 的「先列七個問句，答案庫另排且可能倒序」版型：AI 用中文物品線索一對一配對原答案；配對缺漏、重複或引用非答案庫句子時整頁拒絕建稿，避免只剩 1 題。相同英文問句但答案不同不再誤去重；學生題面顯示中文線索。
+- P4 原 OCR `It a bag.` 疑似缺字，新草稿會暫改 `It's a bag.` 並顯示原句與修正提醒，仍由管理員逐題核對。這類 OCR 文字問答在內容核准後可生成與試聽示範語音，發布時須七題音檔齊全；其他純文字問答維持免音檔規則。無 migration；`A-12` 教學素材待更新。
+- PR #281 已由隔離分支合併至 `main` `4475c9a`，未包含未驗收的口說地圖變更。`speaking-content-manager` v55、`speaking-challenge` v39、`speaking-tts-manager` v35 均 ACTIVE；Cloudflare Worker 版本 `ee41ef83-000d-469c-bd9d-160e4425554d` 已發布。正式首頁及管理路由 HTTP 200 且回傳新版 JS，三函式無登入 POST 均為 401。
+- OCR／學生輸出與口說契約測試 55/55、管理／學生 React 測試 47/47、Edge 語法、Production build、`git diff --check` 通過。GitHub 舊 Netlify deploy-preview 狀態失敗，未作為 Cloudflare 發布依據。仍待管理員核准 OCR 後實測 AI 實際配對、音檔與發布；未自動建稿或發布。`release:deploy-preflight` 腳本目前禁止 `main`，與本文件及 AGENTS.md 的正式部署必須由最新 `main` 執行規範相衝突，待另案修正。
+
+本次純文字問答免音檔與 Workbook 1 P42（2026-09-25，本機實作中）：
+
+- 「無圖片文字問答」在逐頁建稿時不再呼叫 TTS；待發布草稿可直接按「發布純文字關卡」，後端不要求音檔，學生題面也不簽發或播放既有答案音檔。標準完整句與看圖補句仍維持原本必要語音規則。
+- TTS Function 會拒絕對 `text_qa` 產生、重試或預覽語音，避免舊畫面或直接 API 誤產生付費音檔；不需 migration，不修改既有音檔或其他題型。
+- 尚待完成測試、PR／正式部署，以及透過正式管理頁建立並發布 Workbook 1 P42 的 9 題數字加減法純文字關卡。
+
+本次逐頁無圖片文字問答（2026-09-25，正式部署完成）：
+
+- 「建立新關卡」新增無圖片文字問答；同頁可加入多道文字問答，輸入學生可見問句、完整示範回答及其他可接受完整說法，不要求圖片。為沿用既有 `text_qa` 學生作答與評分規則，文字問答須獨立成一關，不與看圖或朗讀題混用。
+- `speaking-content-manager` 將全文字問答頁標示為 `text_qa` 並保留單頁來源、題序與私有草稿；`speaking-tts-manager` 支援該草稿的示範語音。沒有 migration、沒有修改已發布題庫或學生資料；P42 尚未建立遠端草稿。管理頁 React 6/6、學生題面契約 7/7、發音流程契約 7/7、兩支 Function 語法、Production build 與 `git diff --check` 均通過。PR #278 已合併至 `main` commit `c4c7dee`；正式 `speaking-content-manager` v53、`speaking-tts-manager` v32 均為 ACTIVE。Cloudflare Workers 正式版本 `7d7cfa8d-832a-40d7-8a51-4129f6500107` 已發布，`alanenglish.com.tw`、`app.alanenglish.com.tw` 與 Workers 網址均回應 200 並載入 `main.64e53846.js`；正式 bundle SHA-256 與本機已驗證 build 完全一致。尚未做管理員登入後的草稿建立端到端測試。
+
+本次 Workbook 1 新版學生版 OCR 核對防錯（2026-09-24，正式部署完成）：
+
+- localhost 確認 Workbook 1 已有 119 頁、12/12 批辨識結果，但 0/12 批核准；P21–P30 舊 OCR 把頁碼當普通文字、缺少 `[[PAGE P頁碼]]`，且看圖補句只留下殘缺文字，不能可靠配對圖片或自動出題。本批未核准、刪除或覆蓋任何既有來源／題庫。
+- 整本 OCR 卡片新增原始 PDF 檔名；多頁核對若完全沒有有效頁碼標記，畫面會警告並停用核准。後端也以該批原始頁碼範圍拒絕零個有效標記。後續新辨識保留題號、答案空格及 `[[IMAGE_REQUIRED: 題號或位置]]` 待人工配圖提示；若整批頁碼標記缺漏、重複或錯序則標為失敗供重試，不再顯示假性完成。含圖片標記的頁面不再走純文字 AI 草稿，須由管理員使用逐頁圖片草稿建立器選題型並配圖。
+- 管理頁 React 23/23、新頁碼檢查 2/2、Production build 通過；新增 OCR 契約 1/1，完整口說契約 35/36，仍只失敗於既有手機播放器 CSS selector 斷言。使用者同意直接部署後，正式 `speaking-content-manager` v52 已為 ACTIVE；OPTIONS 200、未登入 POST 401，未進行 migration。Supabase 目前方案拒絕建立隔離分支（Branching 需 Pro），故採使用者授權的正式環境逐批驗證。使用者在 Chrome 手動選取新版學生 PDF 後，localhost 安全上傳並辨識整本：新文件 ID 43、119 頁、12/12 批均為 `review_required`、0 批核准，頁碼標記逐批為 10 × 11 加 9，共 119 個。P22／P23／P24 分別保留 9／9／8 個看圖補句題與待配圖標記；P21 只有一組看圖問答句型及總體圖片提示，9 張圖仍須人工逐題配對，不能視為已產生 9 題。舊文件 ID 8 仍保留 119 頁與原 12 批待核對 OCR，未刪除來源或草稿。最後管理頁跳至登入頁，未完成登入後視覺複驗；後端資料已唯讀核對。教師版僅供教學意圖核對；仍須人工核對文字、圖片與答案，不自動核准、建稿或發布。
+- PR #275 已合併至 `main` commit `033fac5`；Cloudflare production build `cce32c13-8192-42bd-8ade-d8969f302220` 顯示 100% 正式流量。`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 管理頁均回應 200 並載入新版 `main.c22be080.js`。Netlify 舊預覽站檢查顯示 skipped/error，不影響 Cloudflare 正式部署；未登入後台仍無法執行登入後操作驗收。
+
+本次 Workbook 3 P15／P17／P20 題數與管理頁導覽分色（2026-09-24，正式部署完成）：
+
+- 已逐頁核對教師版 PDF 與核准逐字稿：P15 應建立 7 題、P17 只建立第 41／42 題共 2 題、P20 因第 49 題原文截斷而安全建立前 6 題。
+- P15 原先只有 5 題，是後端第二層驗證只接受以 `?` 結尾的提示，錯誤排除第 30 題完整問候句 `Nice to meet you!`，以及第 33 題「句中已有問號、後接提示敘述」的完整對話。現在兩者可保留；一般敘述與 `...` 未完成片語仍不會成為題目，所以 P17 不會誤增為 7 題。
+- 「關卡製作流程」改為暖橘色系，下一列「教材來源分類」維持品牌藍色系；localhost 桌面／窄版畫面已確認兩層導覽可清楚區分。
+- 不需 migration；尚未修改、刪除、重新建立、核准或發布任何正式草稿。OCR 規則 8/8、管理頁與 service 26/26、Edge Function 語法、Production build 與 `git diff --check` 通過；完整口說契約 34/35，唯一失敗仍為既有手機播放器 CSS selector 斷言，與本批無關。
+- PR #273 已合併至 `main` commit `36d8463`。正式 `speaking-content-manager` v51 為 ACTIVE，OPTIONS 回應 200、未登入 POST 正確回應 401。Cloudflare production build `e35958db-3842-41d3-9e76-dde03a792448` 成功；正式管理頁回應 200 並載入 `main.eae15e72.js`／`main.2c86d9c7.css`。本批沒有代替管理員重建草稿，P15／P17／P20 的實際新草稿題數仍由管理員登入後重新產生並核對。
+
+本次指定頁碼重新產生 AI 草稿（2026-09-24，正式部署完成）：
+
+- 「已核准教材頁面」的多頁來源新增逐頁勾選器，可只選 P15、P17、P20 等指定頁面建立或重新產生，不再被迫整批重跑；未勾選頁面完全不變。
+- 頁面會標示「尚未建立」、「已有 N 題草稿，可重建」或「已發布，不直接覆蓋」。已發布頁面停用選取，必須從正式關卡建立新版草稿，避免誤蓋學生版本。
+- 重建未發布草稿時，後端先完整建立新題目，再刪除舊草稿；生成或舊稿刪除失敗時會保留舊草稿並清理新半成品。已有學生進度或評分紀錄的草稿仍拒絕重建，核准 OCR 來源不會被刪除。
+- 不需 migration，不修改任何現有題庫或 OCR 資料。管理頁與 service targeted 26/26、Edge Function 語法、新增重建契約、Production build 與 `git diff --check` 均通過；完整口說契約 34/35，唯一失敗為既有手機播放器 CSS selector 斷言，與本批無關。已在 localhost 實際確認 Workbook 3 的 P11／P15／P17／P20 選頁介面、頁面狀態與選取數按鈕正常，測試後已清除選取且未送出建稿。
+- PR #271 已合併至 `main` commit `4378097`。正式 `speaking-content-manager` v50 為 ACTIVE，OPTIONS 回應 200、未登入 POST 正確回應 401。Cloudflare production build `dbb278f1-de9a-4651-8325-891b8330cd40` 成功，正式管理頁回應 200 並載入 `main.eae15e72.js`；正式 bundle SHA-256 與本機已驗證 build 完全一致。本次沒有建立、刪除、核准或發布任何教材草稿。
+
+本次教材來源四分頁、OCR 批次整理與舊來源封存（2026-09-24，正式部署完成）：
+
+- 「1 教材來源」改為四個小分頁：「整本教材辨識」、「核對 OCR 批次」、「單一範圍或貼入文字」、「已核准教材頁面」，一次只顯示目前工作區，縮短管理頁長度；桌面四欄、手機兩欄。
+- 「核對 OCR 批次」依教材名稱收合，每本書先顯示一個可展開群組，再展開個別十頁批次，避免 Workbook 1、2、3 混在同一長清單。
+- 同一 `book_id` 有多次整本 OCR 時，以 `created_at／updated_at／id` 判斷最新工作；整本進度與待核對清單只顯示最新文件，舊文件及其重複待核對項目只從畫面安全隱藏。舊私人來源、已核准逐字稿、既有草稿與學生資料都不刪除，已核准來源仍可重新建立草稿。
+- 「已核准教材頁面」同樣依教材名稱收合；沒有任何未封存題庫的來源可按「封存舊來源」。後端會再次檢查 `speaking_question_sets`，仍有草稿或正式關卡時拒絕封存；最後一份可見 section 封存時一併封存 document，但不刪 R2 原檔、學生紀錄或歷史關卡。
+- 不需 migration；`speaking-content-manager` 新增 `archive_source_section`，已隨正式 Function v50 部署並為 ACTIVE。正式管理頁已顯示四分頁、依書本收合與安全封存按鈕。
+- React 管理頁與 service targeted 測試 25/25、完整 Edge Function 語法檢查、Production build 與 `git diff --check` 通過；口說契約新增來源封存保護並通過，本套件其餘 33/34 通過，唯一失敗為既有手機播放器 CSS selector 斷言，與本批管理頁／來源封存無關。
+- 本批已隨 PR #271、`main` commit `4378097`、正式 `speaking-content-manager` v50 與 Cloudflare production build `dbb278f1-de9a-4651-8325-891b8330cd40` 完成發布。未登入 POST 正確回應 401「請先登入 Alan English」；本次沒有執行 migration，也沒有代替管理員封存任何來源。
+
+本次 Workbook 3 重新 OCR 的 R2 CORS 阻擋修正（2026-09-24，本機完成；Cloudflare CORS 已套用並完成實際 OCR）：
+
+- 已在 localhost 實際重試 144.1MB Workbook 3 PDF；瀏覽器於本機切到第 4/11 批後，在第一個私人 R2 `PUT` 前被阻擋並自動清理暫存工作，因此沒有開始 OCR、沒有產生 AI 費用，也沒有覆蓋既有 Workbook 3 OCR／核准內容。
+- 已唯讀確認實際 `alanenglish-audio` bucket 維持私人、Public Development URL 關閉；既有 CORS Policy 只允許正式站、Firebase 舊站與固定測試站，缺少 `http://localhost:3000`，這是 localhost 上傳 `Failed to fetch` 的直接原因。
+- 已在使用者確認後更新 Cloudflare CORS：新增 `https://dev.alanenglish.com.tw` 與 `http://localhost:3000`，並保留正式站、Firebase 舊站及固定 Netlify 測試站；方法仍只有 `GET／HEAD／PUT`，標頭只有 `Content-Type／Range`，未啟用公開 bucket 或萬用字元。
+- 本機 CORS 範本同步保留全部既有來源；錯誤訊息現在會顯示目前 origin。不需 migration 或 Supabase Function 部署。已從 localhost 成功上傳同一份 144.1MB、106 頁 PDF，並完成 11/11 批重新 OCR；P1–P10 到 P101–P106 全部進入待人工核准，沒有失敗批次。舊 Workbook3 OCR 與原本 2 批已核准內容仍完整保留；前端尚未推送或部署。
+
+本次 Workbook 3 分組式問答配對修正（2026-09-24，必要 Supabase Function 已部署；前端未發布）：
+
+- 已確認 P11／P15／P17 的核准逐字稿採用「先連續列出所有編號題目，再依相同順序列出所有答案」；舊解析器只支援題目後立刻接答案，導致前面題目沒有答案、整頁答案全部掛到最後一題，因此三頁都只建立 1 題且答案錯配。
+- 編號式文字問答現在同時支援逐題交錯與整批分組兩種版型。分組版會依編號順序一對一配對答案，略過 P15 的 `Greetings` 章節標題；完整社交問候與句中已有問號的對話可成為題目，P17 的一般敘述／未完成片語及 P20 第 49 題 `in a rest...` 這種被截斷的疑問句則會安全排除。
+- 目前核對結果為 P11／P15 各 7 題、P17 為 2 題、P20 為 6 題。兄弟／姊妹題可接受來源中的 `they／them` 複數回答，但仍拒絕與題目明確相反的 he／she、his／her 回答。不需 migration；不修改、刪除、核准或發布既有草稿與 OCR 來源。
+- OCR 解析回歸測試 7/7、文字問答整合契約 1/1、Edge Function 語法與 Production build 均通過；完整既有口說契約 32/33，唯一失敗仍是既有手機操作列 CSS selector 斷言，與本批 OCR 配對無關。依使用者授權只部署必要的 `speaking-content-manager` v48，狀態為 ACTIVE；localhost OPTIONS 回應 200、未登入 POST 正確回應 401。前端未推送、未發布，程式修正保留於本機分支 `codex/fix-grouped-ocr-question-answers`。
+
+本次學生設定、排行榜、通知導頁與新預設頭像（2026-09-24，正式部署完成）：
+
+- 「我的設定」主要頭貼調整為桌面 `200 × 200px`、手機 `150 × 150px`；AI Premium 改為姓名旁可換行的小型狀態徽章，不再獨立占用一張大卡片。
+- 排行榜的「我的學習角色」、統計與排行列在窄螢幕會重新分行；姓名、原名與班級文字可安全換行，避免 320px 手機寬度互相擠壓或溢出。
+- 通知頁與桌面 Navbar 的通知項目會依後端 `target_path` 或安全類型對照直接前往相關學生頁；好友邀請／接受通知指向「好友與戰績」，方案與付款失敗通知指向「方案與功能」。只接受既定學生站內路徑，外部網址或未知值不會被拿來導頁。
+- 保留原有 5 個動物頭像，新增 20 個人物、職業與幻想形象，服裝包含探險、科學、藝術、足球、太空、音樂、廚師、園藝、舞蹈、發明、騎士、飛行與航海等，不再全部使用帽 T。前端、`gamification` 與 `student-social` 白名單同步為 25 個；新圖片皆為本機打包資產。女生太空人頭像已重新製作，頭部、髮髻與所有頭髮都完整位於透明面罩內。
+- 不需 migration，未修改正式學生資料。相關 React 測試 32/32、頭像／RWD 契約 4/4、學生社交契約 7/7、Edge syntax、Production build 與 `git diff --check` 均已通過；路由也已逐一核對現有 `App.jsx` 學生頁。
+- PR #269 已合併至 `main` commit `8caa808`。正式 `gamification` v17、`notification-manager` v12、`stripe-webhook` v28、`student-social` v17 均為 ACTIVE；登入型端點 OPTIONS 回應 200、未登入 POST 正確回應 401，Stripe webhook 無簽章 POST 正確回應 400。Cloudflare production build `93c58f79-09ee-4a9b-bc1b-b9aa9e546c8b` 成功，正式設定頁回應 200 並載入 `main.0eaf3871.js`／`main.23946778.css`；production bundle 已確認包含新增頭像、通知導頁及新版設定／排行榜樣式。尚未使用正式學生帳號進行登入後互動驗收，避免變更學生頭像或通知已讀狀態。
+
+本次 OCR 核准逐字稿選頁建稿與來源保留（2026-09-24，正式部署完成）：
+
+- 多頁 OCR 批次不再要求原始範圍內每一頁都保留 `[[PAGE P頁碼]]`。管理員核對時可將不需要關卡的整頁標記與內容刪除；核准後，前端與 `speaking-content-manager` 都只接受逐字稿中實際保留且位於該批範圍內的頁碼，依保留順序逐頁建立草稿。
+- 已核准來源卡會顯示保留頁碼、實際要建立的頁數及完整核准逐字稿。待核對來源仍保留可編輯 OCR 文字；AI 草稿與 `speaking_source_sections.source_text` 分離，刪除未發布草稿只刪題庫，後端明確回傳 `source_preserved: true`，之後可用同一份來源重新建立。
+- 單頁來源維持可直接建立本頁草稿；多頁來源至少保留一個有效頁碼標記即可。不需 migration，不修改、刪除、核准或發布任何既有 OCR 來源與題庫資料。管理頁 targeted 19/19、新增來源保留契約 1/1、Edge Function 語法、Production build 與 `git diff --check` 均通過；完整既有口說契約 32/33，唯一失敗仍是既有手機操作列 CSS selector 斷言，與本批 OCR 選頁無關。
+- PR #267 已合併至 `main` commit `9afec32`。正式 `speaking-content-manager` v47 為 ACTIVE，OPTIONS 回應 200、未登入 POST 正確回應 401。Cloudflare production build `300c1ec4-c035-4f3f-97e7-a46cab8382df` 成功，正式管理頁回應 200 並載入 `main.a6a88e55.js`／`main.69d89026.css`；production bundle 已確認包含保留頁碼、依逐字稿建稿、查看核准逐字稿及刪除草稿保留 OCR 的新版介面。未代替管理員建立、刪除、核准或發布任何題庫。
+
+本次手機暱稱讀取與 7 天改名倒數修正（2026-09-23，正式部署完成）：
+
+- `dev.alanenglish.com.tw` 原本不在 `student-social` Edge Function 的允許來源清單；手機從開發站讀取暱稱時會在 CORS 階段被瀏覽器攔截，iPhone Chrome／WebKit 因而顯示原始 `Load failed`，而 localhost 或正式站不會重現。已將開發網域加入明確允許清單，並將網路層錯誤改為可理解的中文重試提示。
+- `nickname_settings` 現在回傳由伺服器依真實更名紀錄計算的 `nickname_change_available_at`。第一次設定暱稱不啟動冷卻；只有 `previous_nickname` 非空的實際改名才開始 7 天。冷卻中會停用輸入欄與按鈕，顯示台灣時間解鎖日期及天／時／分／秒即時倒數，時間到自動解鎖；後端 429 仍是最終限制並同步回傳解鎖時間。
+- 不需 migration，不修改任何學生暱稱或歷史資料。`StudentSettings` 12/12、學生社交契約 7/7、`student-social` TypeScript 語法、Production build 與 `git diff --check` 皆通過。PR #265 已合併至 `main` commit `d998798`；正式 `student-social` v16 為 ACTIVE，dev 網域 OPTIONS 回應 200 並回傳正確允許來源，未登入 POST 正確回應 401。Cloudflare production build `5d7831ea-098f-4a63-9436-66e74da30665` 成功，正式設定頁回應 200 並載入 `main.afac771e.js`。尚未使用學生帳號觸發真實改名，避免變更正式帳號或啟動 7 天冷卻。
+
+本次待發布草稿可變答案語音驗證修正（2026-09-23，正式部署完成；登入發布待驗收）：
+
+- 唯讀核對正式 Workbook 3 新草稿：#77 P5、#78 P7、#79 P9 均已正確建立 7 題；#77 已人工核准，7 題示範語音也全部為 `ready`。草稿仍無法發布的根因是發布檢查拿含 `[你的名字]` 等欄位的答案模板，與 TTS 實際保存的自然範例文字（例如 `My name is Amy.`）逐字比較，因而誤判語音不完整。
+- 發布驗證改為使用與 TTS 生成相同的 `spokenExampleText` 規則比較，不會重複產生已存在的語音；固定答案仍維持精確比對。待發布草稿新增「先產生並試聽示範語音」，人工核准後即可在發布前逐題試聽；若個別題目失敗，提示會顯示第一個實際錯誤原因。
+- 不需 migration，不修改、核准或發布任何現有草稿。TTS 規則、管理頁 18/18、Edge syntax、Production build 與 `git diff --check` 皆通過；完整口說契約 31/32，唯一失敗仍是既有手機導覽 CSS selector 斷言，與本批無關。PR #263 已合併至 `main` commit `e40a561`；正式 `speaking-content-manager` v46 為 ACTIVE，OPTIONS 回應 200、未登入 POST 正確回應 401。Cloudflare production build `f6a54ec6-47d6-42e3-841d-2a1f045497cc` 成功，正式管理頁回應 200 並載入 `main.0cc61aab.js`，source map 已確認包含新版試聽操作與錯誤提示。未以管理員登入執行發布，#77 仍應由管理員逐題試聽後自行發布，#78／#79 須先完成人工核准。
+
+本次 Workbook 3 原檔編號題數與可變答案修正（2026-09-23，正式部署完成；登入重跑待驗收）：
+
+- 正式草稿 #74／#75／#76 與工作 #54～#56 已唯讀核對：新版固定配對正常執行且無 AI 錯誤，但 P5／P7／P9 只建立 3／4／1 題。核准原文實際各有 7 個編號題組；少題根因是前版把含姓名、年齡、拼字等底線的回答整題排除，錯把「不得猜答案」實作成「刪除題目」。
+- 編號式文字問答改為一個原檔編號固定建立一題，因此 P5／P7／P9 預期皆為 7 題。底線轉成具名稱的可變口說欄位，例如 `My name is [你的名字].`、`He is [爸爸的年齡] years old.`；評分固定教材句型，但接受學生實際姓名、年齡與逐字拼名，不用 AI 猜內容。
+- 同一頁重新建立新版時不再拿該頁舊草稿做跨關卡去重，避免新版只剩舊版缺少的題目；其他頁與已發布關卡仍維持去重。現有 #74～#76 保持未發布且不自動修改、刪除、核准或發布。
+- 不需 migration；涉及 `speaking-content-manager`、`pronunciation-coach`、`speaking-tts-manager` 與管理頁。OCR 原檔實例規則 6/6、可變答案與示範語音、管理頁 18/18、Edge Function 語法、Production build 與 `git diff --check` 皆通過；完整口說契約 31/32，唯一失敗仍是既有手機導覽 CSS selector 斷言，與本批無關。
+- PR #261 已合併至 `main` commit `742fe3e`。正式 `speaking-content-manager` v45、`pronunciation-coach` v23、`speaking-challenge` v37、`speaking-tts-manager` v31 均為 ACTIVE；四個 OPTIONS 回應 200，管理 Function 未登入 POST 正確回應 401。Cloudflare production build `dfa180a2-99f4-4739-bd26-8d35ea9f841a` 成功，正式管理頁回應 200 並載入 `main.be370014.js`，source map 已確認包含原檔編號題數及可變口說欄位新版介面。既有 #74～#76 仍保持未發布且未被修改；P5／P7／P9 的新 7 題草稿 ID 與逐題內容，待管理員登入後重新建立再唯讀核對。
+
+本次 Workbook 3 P5／P7／P9 編號式文字問答深層修正（2026-09-23，正式部署完成；登入重跑待驗收）：
+
+- 管理員於正式 v43 重新按兩輪後，遠端生成工作 #48～#53 顯示 P5／P9 已不再卡在 AI 格式驗證，卻以 `question_insert_failed` 結束；根因是 `text_qa` 候選寫入 `visual_aid: null`，但資料庫欄位要求非空 JSON 物件。P7 另有一輪仍為 `invalid_output`，因 AI 會改寫或合併同一編號內的問句、追問與回答，無法逐字通過核准來源檢查。失敗時後端已刪除剛建立的空題庫，未留下 0 題半成品草稿。
+- 本機改為辨認核准 OCR 中「編號問句＋同題號回答」的純文字頁，直接依同一編號內的完整來源句建立 `text_qa`，不再呼叫 AI 猜問答配對，因此速度更快且不會產生教材外內容。含 `_____` 的姓名、年齡或個人資料答案整組安全略過，不拿後方無關完整句代替；候選 `visual_aid` 固定使用空 JSON 物件。
+- 已核對本機預期草稿：P5 為 3 題（喜歡名字、暱稱、是否改名）；P7 為 4 題，其中 `Are you a boy/girl?` 保持單一題並接受完整 boy／girl 回答二選一，另有 fool、with me、love them；P9 為 1 題，兄弟姊妹問題接受獨生子女或同時有 brother and sister。`brother and sister` 是正確並列內容，不再誤判為 `He…her…` 類型的代名詞混搭。
+- OCR／性別／Workbook 3 實例規則 6/6、管理頁 18/18、Edge Function 語法、Production build、release deploy preflight 與 `git diff --check` 通過；完整口說契約 31/32，唯一失敗仍是既有手機導覽 CSS selector 斷言，與本批無關。PR #259 已合併至 `main` commit `287ba25`；正式 `speaking-content-manager` 為 ACTIVE v44，OPTIONS 回應 200、未登入 POST 回應 401。Cloudflare production build `386236e2-413b-4f84-a783-05252bb085d4` 成功，正式管理頁回應 200 並載入 `main.8f352662.js`，bundle 已確認包含 `reviewed_numbered_text_qa`。Windows 瀏覽器操作核心重設後仍因缺少 kernel 資產無法啟動，因此未繞過管理員登入；P5／P7／P9 的實際新草稿 ID、題數與逐題內容仍待登入後重跑再唯讀核對，本批沒有自動核准或發布題庫。
+
+本次 Workbook 3 P5／P7／P9 逐頁候選 `invalid_output` 修正（2026-09-23，正式部署完成；登入重跑待驗收）：
+
+- 唯讀查核正式資料確認，P5、P7、P9 最近三次生成工作皆已完成 AI 呼叫並取得 14／17／18 個候選及 token 用量，但後端只要其中一題格式、來源句或性別規則不合格，就以 `invalid_output` 拒絕整頁，因此沒有建立單頁草稿；不是上傳、登入、額度或資料庫寫入失敗。
+- 逐頁候選改為由同頁已核准文字決定題型：同時有完整問句與回答時固定使用「文字問答（無圖片）」。每題仍須通過來源原句、問答方向與性別一致檢查，但單一不完整候選只會被安全略過，不再讓其他有效題目一起失敗；進度結果會顯示建立題數與略過題數。
+- 性別判定新增 father／dad／grandfather／brother 與 mother／mom／grandmother／sister 等家庭稱謂；有明確家庭性別的問句只接受相符完整答案，無性別線索時才可保留教材中成對且文法骨架一致的男性／女性答案。仍不猜測姓名、聲音或圖片，也不會自動核准或發布。
+- 不需 migration，不修改或覆蓋既有草稿、已發布題庫及學生紀錄。OCR／性別規則 5/5、口說答案判定、管理頁 18/18、Edge Function 語法、Production build 與 `git diff --check` 已通過；完整口說契約 31/32，唯一失敗仍是既有手機導覽 CSS selector 斷言，與本批逐頁候選無關。
+- PR #257 已合併至 `main` commit `3de995d`；Cloudflare production 已載入 `main.09bb3388.js` 並回應 200，正式 `speaking-content-manager` 為 ACTIVE v43，OPTIONS 回應 200、未登入 POST 回應 401。Windows 瀏覽器自動操作元件因本機缺少執行資產而無法使用既有登入狀態，因此未繞過管理員驗證；P5／P7／P9 的實際重新建立、草稿 ID 與題數仍待管理員重按一次後唯讀核對，不影響已完成的程式與部署驗證。
+
+本次 Workbook 3 無圖片文字問答與性別答案規則（2026-09-23，正式部署完成）：
+
+- OCR 逐頁產題新增 `text_qa`「文字問答（無圖片）」方向：同頁含完整問句與設計師回答句時，學生題面顯示問句並要求說出一個完整回答，不再把紅色答案文字拆成逐句朗讀題。新 OCR 會把清楚可見的紅字另存為 `[[RED_ANSWER: ...]]` 核對提示，但產題仍只能選用核准的完整英文句，不能把 `his/her` 等片段直接當答案。管理頁會標示題型，並分開顯示示範回答與「其他可接受的完整答案」。
+- 性別判定只使用題目文字，不依姓名、聲音或不存在的圖片猜測。明確 `he／his／him` 只接受男性一致答案，明確 `she／her／hers` 只接受女性一致答案；沒有性別線索且教材提供 `he/she`、`his/her` 時，OCR 候選會展開並保留兩個完整、文法位置正確且性別一致的答案，學生答其中一種即可。
+- `pronunciation-coach` 對 `text_qa` 使用示範回答加人工核對替代答案做精確比對；未在核准清單中的相反性別或 `He…her…`／`She…his…` 混搭不算答對。逐頁候選仍需人工核准，修改後會撤銷核准；已核准草稿才可產生示範語音及發布。
+- 不需 migration，未修改既有草稿、已發布題庫或學生紀錄。OCR／性別規則 5/5、口說答案判定、管理頁與學生口說 React 45/45、Edge Function 語法、Production build 與 `git diff --check` 皆通過；完整口說契約 31/32，唯一失敗是既有手機導覽 CSS selector 斷言，與本批文字問答無關。
+- PR #255 已合併至 `main` commit `e894e6c`；Cloudflare production build `5864dcb1-fce8-4350-8fc7-455147f37cd3` 成功，正式站載入 `main.0057c64b.js` 並回應 200。正式 `speaking-content-manager` v42、`pronunciation-coach` v22、`speaking-challenge` v36、`speaking-tts-manager` v30 均為 ACTIVE；四個 OPTIONS 回應 200，未登入 `speaking-content-manager` POST 回應 401。
+- 既有 Workbook 3 草稿不會自動改寫；要套用新題型必須由管理員刪除舊的未發布草稿後重新建立，再逐題核對。新 OCR 才會產生紅字提示；既有核准 OCR 若保留 `he/she`、`his/her`，仍會由安全展開規則產生兩個一致的完整答案。
+
+本次 OCR 逐頁建立草稿進度顯示（2026-09-23，正式部署完成）：
+
+- 「依每頁建立候選草稿」執行期間會在來源卡即時顯示目前頁碼、已完成頁數／總頁數、百分比進度條，以及每頁的等待、處理中、AI 草稿、待人工補題或失敗狀態；按鈕也同步顯示例如 `逐頁建立 3/10`，不再只有無法判斷進度的「逐頁建立中」。
+- 十頁仍採逐頁循序建立：每頁各自完成 Firebase 管理員驗證、OCR 頁面擷取、AI 出題、跨題庫重複句比對與草稿寫入。未改成平行請求，避免同一來源 section 的唯一版本號再次競爭碰撞；未修改資料庫、Function、既有草稿或學生資料。
+- 驗證：管理頁 targeted 17/17、Production build 與 `git diff --check` 通過。PR #253 已合併至 `main` commit `21752cb`，Cloudflare production build `a2a3db3d-c694-435f-9262-0a116185843e` 成功；本批不需重新部署 Supabase Function。
+
+本次 Workbook 3 逐頁草稿只建立 P1 修正（2026-09-23，正式部署完成）：
+
+- 唯讀查核遠端 Workbook 3 P1～P10 生成工作後確認：P1 成功；P2、P5、P7、P8、P9 已由 AI 找到 1／14／13／1／18 題，但 `speaking_question_sets_unique_version (source_section_id, version)` 要求同一十頁來源的版本號不可重複，而舊邏輯卻讓每個新頁面都使用第 1 版，因此全數以 `question_set_insert_failed` 失敗。P4 的 10 題皆與既有題庫重複；P3、P6、P10 僅有填空或中文詞彙，沒有可安全直接朗讀的完整英文句。
+- `speaking-content-manager` 現在以整個來源 section 的最新版本計算下一個唯一版本號，但 `previous_set_id` 仍只連到同一頁的上一版。正常頁建立 AI 題目；無完整句或全部重複的頁面仍建立 0 題「待人工補題」單頁草稿，保留原因與重複來源，且至少人工新增一題前不得核准或發布。
+- 管理頁在已核准來源卡下永久顯示 P1～P10 每頁結果；0 題頁面的批次核准勾選停用並改顯示「打開補題」。未修改 schema、migration、RLS、既有題庫、發布狀態或學生資料。
+- 驗證：管理頁 targeted 17/17、逐頁 OCR／版本號契約 3/3、Edge Function TypeScript 語法、Production build 與 `git diff --check` 均通過。完整口說契約另有一項既有手機導覽 CSS selector 斷言失敗，與本批逐頁建立修正無關。
+- PR #251 已合併至 `main` commit `42529a2`；Cloudflare production build `fb5dad1c-5666-4caf-a157-3d62e4e140a4` 成功。正式 `speaking-content-manager` 為 ACTIVE v41，未登入 POST 實測回應 401。未代替管理員重新產生、核准或發布 Workbook 3 草稿。
+
+本次 OCR 候選草稿單頁卡片修正（2026-09-23，正式部署完成）：
+
+- 修正「依每頁建立候選草稿」已正確產生 `source_page_label = P1` 等單頁題庫，但「製作中草稿」仍用原始十頁 OCR section 顯示 `P1–P10（舊版跨頁）` 的誤導問題。逐頁 OCR／AI 候選現在依題庫的單一來源頁拆成獨立卡片，例如 P1、P2 各自是一個關卡；只有真正仍以跨頁來源建立的舊題庫才保留「舊版跨頁」。
+- 此修正只改管理頁的列表投影與顯示，不修改既有題庫、來源 section、Supabase Function、schema、RLS、學生進度或發布狀態。管理頁 targeted 17/17、Production build 與 `git diff --check` 通過；localhost 已以現有 Workbook 3 草稿驗收，外層顯示「P1 · 所有格／P1 單頁關卡」，內層顯示「P1 口說練習」，不再誤標 `P1–P10（舊版跨頁）`。未替管理員核准或發布草稿。
+
+本次整本 OCR 核對入口修正（2026-09-23，正式部署完成）：
+
+- 「1 教材來源」新增「待核對 OCR 批次」，會直接列出尚未建立題庫的 `draft` 教材來源；管理員可逐批展開、校正 Unit／主題／頁碼與 OCR 文字、保留 `[[PAGE P頁碼]]` 標記並核准，不再因題庫尚未存在而被「製作中草稿」列表排除。
+- 核准後沿用既有 `review_ocr_source` 流程移至「已核准教材頁面」；單頁可建立本頁 AI 草稿，含完整頁碼標記的十頁批次可按「依每頁建立候選草稿」。未修改資料庫、RLS、Edge Function、既有 OCR 文字、題庫或學生資料。
+- 頂部「教材來源」待核對數量改以實際待核對來源加辨識失敗批次計算，避免同一 OCR 批次同時被 section 與 chunk 重複計數。管理頁 targeted 16/16、Production build 與 `git diff --check` 通過；localhost 管理員頁實際顯示 23 批真正 OCR 來源，其中 Workbook 3 的 P1–P106 共 11 批皆可展開，P1–P10 文字確認含 `[[PAGE P1]]` 至 `[[PAGE P10]]`，未勾核對聲明前核准按鈕維持停用。人工貼入的 Workbook 1 P26～P27 不會混入 OCR 清單。
+
+本次學生口說小關卡頁碼優先顯示（2026-09-22，正式部署完成）：
+
+- 學生 Workbook 關卡卡片不再在最前面顯示「課本／主題」與把頁碼縮成標題後方小標籤；有來源頁碼的關卡現在將 `P.4`、`P.14`、`P.100` 放在最左側第一個醒目區塊，主題／題型與程度維持為次要文字。
+- 舊跨頁資料不被改寫；卡片會顯示實際來源範圍，例如 `P.18～20`、`P.35～36、60、99～100`。頁碼區改為可隨內容加寬，三位數頁碼不會被裁切；沒有來源頁碼的既有入門關則保留其分類標記。
+- 驗證：學生關卡 React targeted 23/23、Production build 與 `git diff --check` 通過。PR #247 已合併至 `main` commit `17f7688`；Cloudflare production 版本 `d5e3e8d9` 已切換為 100%。以登入管理員的正式網址重新載入 Workbook 3 關卡列表，實際顯示 `P.4` 在卡片最左側，右側為「看圖補句」與「身體部位・國小中年級」。
+
+本次主題小關卡不顯示頁碼（2026-09-22，正式部署完成）：
+
+- 上一版把所有帶有 `source_pages` 的關卡都套用頁碼優先，連「主題練習」也顯示 `P.頁數`，不符合已確認的分類規則。現在只有「課本練習」使用頁碼前綴；「主題練習」在卡片最左側固定顯示「主題」，並保留名稱、主題／題型與程度作為其餘資訊。
+- 驗證：學生關卡 React targeted 23/23、Production build 與 `git diff --check` 通過。PR #249 已合併至 `main` commit `c2523b9`，Cloudflare Workers build 已通過；正式網址 `/student/speaking-challenges/book/book-1?release=c2523b9` 回應 HTTP 200。此項僅改變學生卡片顯示，不改寫既有題庫、來源頁碼或學生進度。
+
+本次 Workbook 3 P4 學生關卡圖片部署修復（2026-09-22，正式部署完成）：
+
+- 正式資料唯讀核對確認題庫 ID `37` 的 10 題均有 `picture_gap_sentence` interaction、圖片連結、ready 私人 R2 物件及替代文字；圖片未遺失，也不需重新上傳或重新建立草稿。
+- 前次判斷「只需重部署」不完整：v34 已包含 mixed 題面的輸出邏輯，但共用的關卡類型白名單把 metadata 的 `mixed` 轉為空字串，使學生 API 根本不查每題 interaction／私人圖片；同一漏判也讓這批題目的發音評分誤走一般句流程。
+- 已將「關卡是 mixed」與「單題實際題型」分開處理：讀取時依每題已核准 interaction 取回短效私人圖片與補句音檔；評分與完成時也以該單題類型比對答案。題庫、R2 圖片、學生進度與資料庫均未修改。
+- PR #245 已合併至 `main` commit `10f561c`；正式 `speaking-challenge` 為 ACTIVE v35、`pronunciation-coach` 為 ACTIVE v21。兩者 OPTIONS 均為 200、未登入 POST 均為 401。登入管理員的 P4 預覽頁重新整理後，第一題已實際顯示「一隻眼睛」私人圖片與「聽整句（每個挖空停 2 秒）」按鈕。
+
+本次逐頁混合題型發布第二階段修復（2026-09-22，正式部署完成）：
+
+- Workbook 3 P4 題庫 ID `37` 已完成內容審核，10 題與私人圖片皆完整。前一版 Function 雖已能處理 mixed 題組，管理頁發布按鈕仍把整組送到一般完整句語音；後端篩除 10 題看圖補句後又把「0 題完成」誤回報成功，直到真正發布時才因缺少 `question_prompt` 音檔被拒絕。
+- 管理頁現在依每題 interaction 決定語音工作：混合題組會分別準備一般完整句與看圖補句停頓語音；沒有一般完整句時不再誤呼叫一般語音。後端若收到零題的一般語音工作會明確回傳錯誤，不再假成功。
+- 看圖補句題面中的中文括號提示只供學生閱讀；送交英文 TTS 前只移除含中文／注音的括號片段，保留純英文括號，避免中文提示被誤念。
+- 驗證：管理頁 targeted 15/15、語音契約 8/8、全部 Edge Function 語法、Production build 與 `git diff --check` 均通過。完整口說契約 29/30；唯一失敗仍是既有手機播放器 CSS selector 斷言，與本批發布／TTS 修正無關。PR #242 已合併至 `main` commit `49706f6`，Cloudflare production build `e280c243-42ca-4ce4-b48e-55aa9b6bb1cf` 成功，正式 `speaking-tts-manager` 為 ACTIVE v29；正式管理頁回應 200、Function OPTIONS 200、未登入 POST 401。本批不需重新 OCR、重新審核或變更資料庫，也未代替管理員產生付費 TTS 或發布 P4。
 
 本次原始 PDF 視覺逐頁口說草稿（2026-09-22，本機完成、尚未部署）：
 
@@ -8,7 +195,7 @@
 - AI 可在同一頁混合建立完整句朗讀、看圖完整問答與看圖補完整句，並回傳每張教材圖片在原始頁面的標準化裁切範圍。每頁個別建立未發布草稿；其中一頁失敗不會中止或回復同批其他已完成頁面，也不會自動核准、發布或建立學生紀錄。
 - 瀏覽器使用短效私人原始 PDF 網址，以 PDF.js 高倍率渲染來源頁；高／中信心圖片會自動裁切、移除過量近白留白、保留安全邊界並輸出最長邊 2400px、品質 0.94 的 JPG。低信心範圍不會猜測上傳，會留給管理員使用原始 PDF 重新框選。原始 PDF、裁切圖及學生圖片仍維持私人 R2。
 - 新版混合草稿可修改名稱、主題與逐題內容，新增、刪除、上下排序、替換或重新裁切圖片。任何修改都撤銷內容核准；重新分析會建立新版本，不覆寫人工調整。人工核准時若 AI 偵測題數與目前草稿題數不同，確認視窗會明確列出差異，核准後以管理員確認的實際題數為準。
-- 學生口說目錄同步改為頁碼優先：單頁關卡主標題顯示「第 N 頁」，頁碼徽章顯示 `P.N`（可容納三位數），中型字顯示題型、次要列顯示主題；移除重複的「配合第 N 頁」，舊跨頁題庫維持「舊版」標示，區塊名稱改為「依頁碼練習」。
+- 原分支曾試做學生口說目錄的頁碼標題；2026-09-25 與 `main` 整合時以現行學生目錄為準，這批只處理管理員視覺建稿入口。口說地圖另由 PR #277 處理。
 - 成本控制：只有管理員主動執行視覺分析時才呼叫既有正式 OpenAI 設定；同一十頁批次一次分析並保存結果，學生瀏覽、重新整理與草稿編輯不會再次呼叫。每次模型與 token 用量會寫入生成 metadata，供既有成本中心追蹤；本機測試未執行付費呼叫。
 - 驗證：管理員、學生目錄與服務 targeted 3 suites／42 tests、教材口說契約 30/30、完整 Edge Function 語法與口說音訊契約、Production build 及 `git diff --check` 均通過。既有 React Router v7 future flag 與 Node module-type／deprecation 訊息屬警告，沒有編譯或測試失敗。
 - 本批不新增 migration、不修改 RLS、Secret、既有正式題庫或學生進度；需部署 `speaking-content-manager`、`speaking-tts-manager` 與 Cloudflare 前端後才會生效。登入後的真實私人 PDF、視覺模型回覆、R2 Range／CORS 與自動裁圖仍待正式部署前後各抽驗一次。

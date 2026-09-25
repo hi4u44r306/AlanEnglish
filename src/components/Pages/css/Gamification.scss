@@ -190,6 +190,7 @@
 
 .gamification-me-card__identity {
     display: grid;
+    min-width: 0;
     gap: 2px;
 
     span,
@@ -199,6 +200,7 @@
     }
 
     strong {
+        overflow-wrap: anywhere;
         font-size: 18px;
         font-weight: 900;
     }
@@ -302,6 +304,7 @@
 .gamification-scoring-note {
     display: inline-flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 6px;
     color: #6f7683;
     font-size: 12px;
@@ -341,15 +344,17 @@
 
 .gamification-student-copy {
     display: grid;
+    min-width: 0;
     gap: 3px;
 
-    strong { font-size: 15px; font-weight: 900; }
-    span { color: #8b919d; font-size: 12px; }
+    strong { overflow-wrap: anywhere; font-size: 15px; font-weight: 900; }
+    span { overflow-wrap: anywhere; color: #8b919d; font-size: 12px; }
     .gamification-student-original { color: #596273; font-weight: 800; }
 }
 
 .gamification-xp {
     display: grid;
+    min-width: 0;
     gap: 3px;
     text-align: right;
 
@@ -792,4 +797,66 @@
     .gamification-admin-actions { grid-column: 1 / -1; justify-content: flex-start; }
     .gamification-orders .gamification-order-list article { grid-template-columns: 1fr; }
     .gamification-order-actions { grid-column: auto; }
+}
+
+@media (max-width: 520px) {
+    .gamification-me-card {
+        grid-template-columns: 64px minmax(0, 1fr);
+        align-items: start;
+        gap: 12px;
+        padding: 15px;
+    }
+    .gamification-avatar--large { width: 64px; height: 64px; border-radius: 18px; }
+    .gamification-me-card__identity { align-self: center; }
+    .gamification-me-card__identity strong { font-size: 17px; line-height: 1.25; }
+    .gamification-level-badge {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 0;
+        gap: 10px;
+        padding: 9px 12px;
+        text-align: left;
+    }
+    .gamification-level-badge strong { font-size: 17px; }
+    .gamification-me-card__stats { grid-column: 1 / -1; width: 100%; }
+    .gamification-ranking-card > header { gap: 10px; padding: 18px 16px; }
+    .gamification-ranking-list { padding: 7px 8px 14px; }
+    .gamification-ranking-row {
+        grid-template-columns: 32px 44px minmax(0, 1fr);
+        gap: 8px;
+        min-height: 0;
+        padding: 12px 6px;
+    }
+    .gamification-ranking-row .gamification-avatar,
+    .gamification-ranking-row.is-top-1 .gamification-avatar { width: 44px; height: 44px; border-radius: 13px; }
+    .gamification-rank { font-size: 20px; }
+    .gamification-xp {
+        grid-column: 2 / -1;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 3px 10px;
+        width: 100%;
+        padding: 7px 0 3px;
+        border-top: 1px solid #f0ede7;
+        text-align: left;
+    }
+    .gamification-xp strong { font-size: 15px; }
+}
+
+@media (max-width: 360px) {
+    .gamification-page { width: min(100% - 14px, 1180px); }
+    .gamification-me-card { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; padding: 13px; }
+    .gamification-avatar--large { width: 56px; height: 56px; border-radius: 16px; }
+    .gamification-me-card__identity strong { font-size: 16px; }
+    .gamification-me-card__identity a { line-height: 1.35; }
+    .gamification-me-card__stats .gamification-stat { padding: 10px 9px; }
+    .gamification-me-card__stats .gamification-stat strong { font-size: 15px; }
+    .gamification-ranking-row { grid-template-columns: 28px 42px minmax(0, 1fr); gap: 6px; padding-inline: 3px; }
+    .gamification-ranking-row .gamification-avatar,
+    .gamification-ranking-row.is-top-1 .gamification-avatar { width: 42px; height: 42px; }
+    .gamification-student-copy strong { font-size: 14px; }
 }

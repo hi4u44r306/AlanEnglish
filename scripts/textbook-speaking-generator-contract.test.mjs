@@ -13,6 +13,7 @@ const ttsManager = read("supabase/functions/speaking-tts-manager/index.ts");
 const challenge = read("supabase/functions/speaking-challenge/index.ts");
 const challengeView = read("supabase/functions/_shared/speaking-challenge-view.ts");
 const voiceAssignment = read("supabase/functions/_shared/speaking-voice-assignment.ts");
+const ttsText = read("supabase/functions/_shared/speaking-tts-text.ts");
 const foundationTemplates = read("supabase/functions/_shared/workbook-one-foundations.ts");
 const foundationAnswers = read("supabase/functions/_shared/speaking-foundation-answer.ts");
 const pronunciationFlow = read("supabase/functions/_shared/speaking-pronunciation-flow.ts");
@@ -31,11 +32,20 @@ const alphabetSequence = read("supabase/functions/_shared/alphabet-audio-sequenc
 const alphabetMasterVoice = read("supabase/functions/_shared/alphabet-master-voice.ts");
 const service = read("src/services/speakingContentService.js");
 const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
+const ocrPageMarkers = read("supabase/functions/_shared/speaking-ocr-page-markers.ts");
 const app = read("src/app/App.jsx");
 const challengeStyles = read("src/components/Pages/css/TextbookSpeakingChallenge.scss");
 const foundationChallenge = read("src/components/Pages/WorkbookOneFoundationChallenge.jsx");
 const pronunciationRecorder = read("src/components/Pages/SpeakingPronunciationRecorder.jsx");
 const pronunciationRecorderStyles = read("src/components/Pages/css/SpeakingPronunciationRecorder.scss");
+
+test("0. 無圖片文字問答建稿與發布不要求或產生音檔", () => {
+    assert.match(manager, /String\(metadata\?\.interaction_type \|\| ""\) === "standard_sentence"/);
+    assert.match(manager, /純文字問答需要完整問句、簡易回答與示範回答但不需要音檔/);
+    assert.match(ttsManager, /code: "text_qa_audio_disabled"/);
+    assert.match(challengeView, /effectiveInteractionType === "text_qa"/);
+    assert.match(adminPage, /發布純文字關卡/);
+});
 
 test("1. 教材來源、版本題庫、題目與生成工作都有 additive schema", () => {
     for (const table of ["speaking_source_documents", "speaking_source_sections", "speaking_question_sets", "speaking_questions", "speaking_generation_jobs"]) {
@@ -85,6 +95,68 @@ test("3a. 逐頁 OCR 候選會排除同一教材現有的完整句，並保留�
     assert.match(manager, /excluded_duplicate_count: duplicateMatches\.length/);
     assert.match(adminPage, /已略過 \{duplicateReview\.excluded_count\} 題重複完整句/);
     assert.match(adminPage, /match\.source_page_label \|\| match\.title/);
+});
+
+test("3aa. 逐頁草稿只使用核准逐字稿中保留的頁碼，刪除草稿不刪 OCR 來源", () => {
+    assert.match(manager, /const markedSourcePageLabels =/);
+    assert.match(manager, /const eligiblePageCandidates = sectionPages\.length === 1 \? sectionPages : retainedMarkedPages/);
+    assert.match(manager, /逐頁候選草稿只能使用核准逐字稿中實際保留的頁碼/);
+    assert.match(manager, /source_preserved: true/);
+    assert.match(adminPage, /const retainedPages = markedSourcePageLabels\(section\)/);
+    assert.match(adminPage, /建立／重新產生 \$\{selectedPages\.length\} 頁草稿/);
+    assert.match(adminPage, /查看已保留的核准逐字稿/);
+    assert.match(adminPage, /OCR 逐字稿仍保留，可重新建立/);
+});
+
+test("3ab. 可指定頁碼重建未發布草稿，且新草稿成功前保留舊草稿", () => {
+    assert.match(adminPage, /replace_question_set_id: existingByPage\.get\(page\)\?\.status === "draft"/);
+    assert.match(adminPage, /已發布，不能由此直接覆蓋/);
+    assert.match(adminPage, /新草稿完整建立成功後才會取代舊草稿/);
+    assert.match(manager, /const replaceQuestionSetId =/);
+    assert.match(manager, /linkedStudentRows\.some\(Boolean\)/);
+    assert.match(manager, /filter\(questionSet => Number\(questionSet\.id\) !== replaceQuestionSetId\)/);
+    assert.match(manager, /await removeReplacedDraft\(Number\(questionSet\.id\)\)/);
+    assert.match(manager, /delete\(\)\.eq\("id", newQuestionSetId\)\.eq\("status", "draft"\)/);
+});
+
+test("3b. 同一 OCR 批次的逐頁草稿使用全來源遞增版號，並為無法自動出題頁保留人工補題草稿", () => {
+    assert.match(manager, /const questionSetVersionContext = async/);
+    assert.match(manager, /version: Number\(latestVersionResult\.data\?\.version \|\| 0\) \+ 1/);
+    assert.match(manager, /previousSetId: previousPageResult\.data\?\.id \|\| null/);
+    assert.match(manager, /manual_authoring_reason: "no_speakable_sentence"/);
+    assert.match(manager, /manualAuthoringReason = "all_questions_duplicate"/);
+    assert.match(manager, /questions\.length > 0/);
+    assert.match(adminPage, /本次逐頁建立結果/);
+    assert.match(adminPage, /打開補題/);
+});
+
+test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留兩種完整答案", () => {
+    assert.match(manager, /TEXT_QA_INTERACTION_TYPE = "text_qa"/);
+    assert.match(manager, /不得依姓名、聲音或想像猜性別/);
+    assert.match(manager, /學生只要說其中一個，不必把兩種都說出來/);
+    assert.match(manager, /RED_ANSWER/);
+    assert.match(manager, /red_answer_hint_count/);
+    assert.match(manager, /accepted_intents: alternatives, visual_aid: \{\}/);
+    assert.match(manager, /sourceHasQuestion && sourceHasAnswer\s*\? TEXT_QA_INTERACTION_TYPE/);
+    assert.doesNotMatch(manager, /questions\.length !== rows\.length/);
+    assert.match(manager, /rejected_ai_question_count/);
+    assert.match(manager, /reviewed_numbered_text_qa_v2/);
+    assert.match(manager, /generation_strategy: groupedTextQaForAi .*ai_grouped_numbered_text_qa/);
+    assert.match(manager, /numbered_question_count: groupedTextQaForAi/);
+    assert.match(manager, /validateGroupedNumberedTextQaMatch/);
+    assert.match(manager, /sentenceFingerprint\(question\.question_text\)\}\|\$\{sentenceFingerprint\(question\.model_answer\)/);
+    assert.match(manager, /requires_answer_audio: Boolean\(groupedTextQaForAi\)/);
+    assert.match(manager, /extractNumberedTextQaPairs/);
+    assert.match(manager, /reviewedTextQaPromptIsComplete\(normalized\.question_text\)/);
+    assert.match(manager, /textQaQuestionContentValid/);
+    assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
+    assert.match(manager, /reviewed_full_response_with_variable_slots/);
+    assert.match(manager, /ignoredSourcePageLabel/);
+    assert.match(foundationAnswers, /"text_qa"/);
+    assert.match(adminPage, /文字問答（無圖片）/);
+    assert.match(adminPage, /其他可接受的完整答案/);
+    assert.match(adminPage, /已維持一個編號一題/);
+    assert.match(adminPage, /底線改為姓名、年齡或拼字等可變口說欄位/);
 });
 
 test("4. 題庫包含問題、提示、關鍵字、兩種回答與發音提示", () => {
@@ -164,6 +236,16 @@ test("9a. OCR 會要求結構化 JSON、保留舊回覆的安全 JSON 擷取，�
     assert.match(manager, /ocr_output_truncated/);
 });
 
+test("9b. 整本 OCR 保留題目空格與圖片待核對標記，缺頁不會假裝辨識成功", () => {
+    assert.match(manager, /\[\[IMAGE_REQUIRED: 題號或位置\]\]/);
+    assert.match(manager, /wholeBookOcrPageMarkersMatch\(extracted\.sourceText/);
+    assert.match(manager, /ocr_page_markers_mismatch/);
+    assert.match(manager, /markedSourcePageLabels\(sourceText, chunkPages\)/);
+    assert.match(manager, /if \(requiresPictureReview\) \{/);
+    assert.match(manager, /請使用逐頁圖片草稿建立器/);
+    assert.match(ocrPageMarkers, /markers\.every\(\(page, index\) => page === pageFrom \+ index\)/);
+});
+
 test("10. 單一來源維持 20MB，只有整本分批原檔可放寬到 500MB", () => {
     assert.match(wholeBookSizeMigration, /when chunk_count is null then 20971520/);
     assert.match(wholeBookSizeMigration, /else 524288000/);
@@ -212,6 +294,9 @@ test("13. 示範語音固定 Leda 女聲並可由管理員安全預覽", () => {
     assert.match(ttsManager, /createR2PresignedUrl\(asset\.private_object_key, "GET", 15 \* 60\)/);
     assert.match(service, /getSpeakingQuestionAudioPreview/);
     assert.match(adminPage, /女聲 · Leda/);
+    assert.match(adminPage, /先產生並試聽示範語音/);
+    assert.match(ttsText, /speakingAudioSourceMatchesModelAnswer/);
+    assert.match(manager, /speakingAudioSourceMatchesModelAnswer\(asset\?\.source_text, question\?\.model_answer\)/);
 });
 
 test("14. 學生題目回傳視覺提示且保留正式口說流程", () => {
@@ -416,6 +501,21 @@ test("25. 管理員可刪除未發布草稿並安全下架任何正式關卡", (
     assert.doesNotMatch(archiveBlock, /目前只支援封存管理員建立的口說關卡/);
 });
 
+test("25.1 管理員只能封存沒有使用中關卡的教材來源", () => {
+    const archiveSourceBlock = manager.slice(
+        manager.indexOf('if (action === "archive_source_section")'),
+        manager.indexOf('if (action === "create_manual_page_speaking_draft")')
+    );
+    assert.match(archiveSourceBlock, /speaking_source_sections/);
+    assert.match(archiveSourceBlock, /speaking_question_sets/);
+    assert.match(archiveSourceBlock, /\.neq\("status", "archived"\)/);
+    assert.match(archiveSourceBlock, /仍有.*已發布關卡.*未發布草稿/s);
+    assert.match(archiveSourceBlock, /status: "archived"/);
+    assert.match(archiveSourceBlock, /speaking_source_documents/);
+    assert.match(service, /archiveSpeakingSourceSection/);
+    assert.match(adminPage, /封存舊來源/);
+});
+
 test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則產生停頓語音", () => {
     assert.match(manager, /create_manual_speaking_draft/);
     assert.match(manager, /admin_manual_builder/);
@@ -435,7 +535,8 @@ test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則�
 test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
     assert.match(foundationAnswers, /picture_qa/);
     assert.match(foundationAnswers, /picture_gap_sentence/);
-    assert.match(foundationAnswers, /accepted\.includes\(spoken\)/);
+    assert.match(foundationAnswers, /accepted\.some\(answer => hasSpeakingAnswerSlots\(answer\)/);
+    assert.match(foundationAnswers, /matchesSpeakingAnswerTemplate\(answer, recognizedText\)/);
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /matchesFoundationAnswer\(question\.interactionType, question\.answerTemplate, recognizedText, question\.acceptedAnswers\)/);
     assert.match(coach, /pictureInteraction\.prompt_text/);
@@ -451,7 +552,7 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
     assert.match(bookEntitlement, /book_entitlement_required/);
     const coach = read("supabase/functions/pronunciation-coach/index.ts");
     assert.match(coach, /assertBookEntitled/);
-    assert.ok(coach.indexOf("await assertBookEntitled") < coach.indexOf('.select("model_answer,pronunciation_notes_zh")'));
+    assert.ok(coach.indexOf("await assertBookEntitled") < coach.indexOf('.select("model_answer,pronunciation_notes_zh,accepted_intents")'));
     assert.match(coach, /reserve_speaking_pronunciation_request/);
     assert.match(coach, /finishProviderRequest/);
     assert.match(coach, /\.select\("id"\)\.maybeSingle\(\)/);

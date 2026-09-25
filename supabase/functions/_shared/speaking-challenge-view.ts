@@ -22,6 +22,8 @@ export const authorizeSpeakingChallenge = async (
 export const buildPublicSpeakingQuestion = async ({
     question,
     interactionType,
+    answerAudioEnabled = false,
+    staffAudioPreview = false,
     progressStatus,
     modelAsset,
     promptAsset,
@@ -33,7 +35,8 @@ export const buildPublicSpeakingQuestion = async ({
         ? String(pictureInteraction?.interaction_type || "standard_sentence")
         : interactionType;
     const pictureMode = effectiveInteractionType === "picture_qa" || effectiveInteractionType === "picture_gap_sentence";
-    const hideChallengeAnswerAudio = interactionType === "alphabet_round"
+    const hideChallengeAnswerAudio = !staffAudioPreview || (effectiveInteractionType === "text_qa" && !answerAudioEnabled)
+        || interactionType === "alphabet_round"
         || interactionType === "letter_spelling" || pictureMode;
     const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
     const promptReady = promptAsset?.status === "ready" && promptAsset?.private_object_key;
@@ -75,8 +78,8 @@ export const buildPublicSpeakingQuestion = async ({
             type: effectiveInteractionType,
             sentence_pattern: effectiveInteractionType === "picture_gap_sentence" ? pictureInteraction.prompt_text : null,
             ...(effectiveInteractionType === "picture_gap_sentence" ? {
-                sentence_audio_status: "ready",
-                sentence_audio_url: await signPrivateObject(promptAsset.private_object_key)
+                sentence_audio_status: staffAudioPreview ? "ready" : "hidden",
+                sentence_audio_url: staffAudioPreview ? await signPrivateObject(promptAsset.private_object_key) : null
             } : {})
         },
         sort_order: question.sort_order

@@ -4,7 +4,11 @@ import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl } from "../_shared/r2.ts";
 import { toPublicErrorResponse } from "../_shared/public-error.ts";
-import { readFoundationInteractionType } from "../_shared/speaking-foundation-answer.ts";
+import {
+    readFoundationInteractionType,
+    readQuestionSetInteractionType,
+    resolveQuestionInteractionType
+} from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
@@ -191,7 +195,7 @@ Deno.serve(async (req: Request) => {
 
         if (action === "question_set") {
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
-            const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
+            const interactionType = readQuestionSetInteractionType(questionSet.generation_metadata);
             const alphabetMode = interactionType === "alphabet_round";
             const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
             const manualPageMode = questionSet?.generation_metadata?.source === "admin_page_builder"
@@ -300,6 +304,9 @@ Deno.serve(async (req: Request) => {
                 questions.push(await buildPublicSpeakingQuestion({
                     question,
                     interactionType,
+                    answerAudioEnabled: questionSet.generation_metadata?.source === "ocr_page_candidate"
+                        && questionSet.generation_metadata?.requires_answer_audio === true,
+                    staffAudioPreview: demoMode,
                     progressStatus: statusByQuestion.get(Number(question.id)),
                     modelAsset,
                     promptAsset,
@@ -441,18 +448,21 @@ Deno.serve(async (req: Request) => {
             const questionId = Number(body?.question_id);
             const question = (questionSet.speaking_questions || []).find((item: any) => Number(item.id) === questionId);
             if (!question) return json(403, { error: "這題不屬於指定的小關卡" });
-            const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
+            const questionSetInteractionType = readQuestionSetInteractionType(questionSet.generation_metadata);
+            const shouldLoadPictureInteraction = questionSetInteractionType === "mixed"
+                || questionSetInteractionType === "picture_qa"
+                || questionSetInteractionType === "picture_gap_sentence";
+            const { data: pictureInteraction, error: pictureError } = shouldLoadPictureInteraction
+                ? await admin.from("speaking_question_interactions")
+                    .select("interaction_type").eq("question_id", questionId).maybeSingle()
+                : { data: null, error: null };
+            if (pictureError) throw pictureError;
+            const interactionType = resolveQuestionInteractionType(questionSetInteractionType, pictureInteraction);
             if (interactionType === "alphabet_round") {
                 return json(409, { error: "A–Z 必須完成同一個連續挑戰回合", code: "foundation_round_required" });
             }
             if (interactionType) {
                 const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
-                const { data: pictureInteraction, error: pictureError } = pictureMode
-                    ? await admin.from("speaking_question_interactions")
-                        .select("interaction_type,prompt_text,answer_text,accepted_full_responses")
-                        .eq("question_id", questionId).maybeSingle()
-                    : { data: null, error: null };
-                if (pictureError) throw pictureError;
                 if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
                     return json(409, { error: "這題的圖片口說內容尚未完成核准", code: "picture_interaction_missing" });
                 }

@@ -4,6 +4,7 @@ import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 const ALLOWED_ORIGINS = new Set([
     "https://alanenglish.com.tw",
     "https://www.alanenglish.com.tw",
+    "https://dev.alanenglish.com.tw",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000"
@@ -18,7 +19,27 @@ const DEFAULT_AVATAR_PATHS = new Set([
     "/default-avatars/alan-fox.png",
     "/default-avatars/alan-rabbit.png",
     "/default-avatars/alan-bear.png",
-    "/default-avatars/alan-owl.png"
+    "/default-avatars/alan-owl.png",
+    "/default-avatars/alan-explorer.jpg",
+    "/default-avatars/alan-scientist.jpg",
+    "/default-avatars/alan-artist.jpg",
+    "/default-avatars/alan-footballer.jpg",
+    "/default-avatars/alan-astronaut.jpg",
+    "/default-avatars/alan-musician.jpg",
+    "/default-avatars/alan-chef.jpg",
+    "/default-avatars/alan-gardener.jpg",
+    "/default-avatars/alan-dancer.jpg",
+    "/default-avatars/alan-inventor.jpg",
+    "/default-avatars/alan-robot.jpg",
+    "/default-avatars/alan-dragon.jpg",
+    "/default-avatars/alan-star-hero.jpg",
+    "/default-avatars/alan-space-friend.jpg",
+    "/default-avatars/alan-knight.jpg",
+    "/default-avatars/alan-wizard.jpg",
+    "/default-avatars/alan-pilot.jpg",
+    "/default-avatars/alan-detective.jpg",
+    "/default-avatars/alan-mountaineer.jpg",
+    "/default-avatars/alan-sailor.jpg"
 ]);
 const DISALLOWED_NICKNAME_TERMS = [
     "色情", "性愛", "性交", "裸照", "裸體", "成人片", "援交", "約炮", "性奴", "強姦",
@@ -243,7 +264,13 @@ Deno.serve(async (req: Request) => {
                 nicknameHistory(admin, caller.id)
             ]);
             if (profileError) throw profileError;
-            return json(req, 200, { success: true, profile: profile || null, nickname_history: history });
+            const availableAt = nicknameChangeCooldown(history);
+            return json(req, 200, {
+                success: true,
+                profile: profile || null,
+                nickname_history: history,
+                nickname_change_available_at: availableAt ? new Date(availableAt).toISOString() : null
+            });
         }
 
         if (action === "update_nickname") {
@@ -262,7 +289,9 @@ Deno.serve(async (req: Request) => {
             if (availableAt) {
                 return json(req, 429, {
                     success: false,
-                    error: `公開暱稱每 7 天只能修改一次，可於 ${formatNicknameChangeAvailableAt(availableAt)} 後再試`
+                    error: `公開暱稱每 7 天只能修改一次，可於 ${formatNicknameChangeAvailableAt(availableAt)} 後再試`,
+                    code: "NICKNAME_CHANGE_COOLDOWN",
+                    details: { nickname_change_available_at: new Date(availableAt).toISOString() }
                 });
             }
             const saved = await saveSocialProfile(
@@ -275,10 +304,13 @@ Deno.serve(async (req: Request) => {
             );
             if (saved.conflict) return json(req, 409, { success: false, error: "這個暱稱已被使用，請換一個" });
             await writeAudit(admin, caller.id, "nickname_update", caller.id, { source: "student_settings" });
+            const updatedHistory = await nicknameHistory(admin, caller.id);
+            const nextAvailableAt = nicknameChangeCooldown(updatedHistory);
             return json(req, 200, {
                 success: true,
                 profile: saved.profile,
-                nickname_history: await nicknameHistory(admin, caller.id)
+                nickname_history: updatedHistory,
+                nickname_change_available_at: nextAvailableAt ? new Date(nextAvailableAt).toISOString() : null
             });
         }
 
@@ -381,7 +413,7 @@ Deno.serve(async (req: Request) => {
             const { data: callerProfile } = await admin.from("student_social_profiles").select("nickname").eq("student_id", caller.id).maybeSingle();
             await Promise.all([
                 writeAudit(admin, caller.id, "friend_request", targetId),
-                admin.from("student_notifications").insert({ student_id: targetId, notification_type: "social", title: "新的好友邀請", body: `${callerProfile?.nickname || "一位同學"} 想加你為好友`, metadata: { friendship_id: data.id } })
+                admin.from("student_notifications").insert({ student_id: targetId, notification_type: "social", title: "新的好友邀請", body: `${callerProfile?.nickname || "一位同學"} 想加你為好友`, metadata: { friendship_id: data.id, target_path: "/student/friends" } })
             ]);
             return json(req, 200, { success: true, request: data });
         }
@@ -398,7 +430,7 @@ Deno.serve(async (req: Request) => {
             await writeAudit(admin, caller.id, `friend_request_${status}`, Number(relation.requester_id));
             if (status === "accepted") {
                 const { data: callerProfile } = await admin.from("student_social_profiles").select("nickname").eq("student_id", caller.id).maybeSingle();
-                await admin.from("student_notifications").insert({ student_id: relation.requester_id, notification_type: "social", title: "好友邀請已接受", body: `${callerProfile?.nickname || "一位同學"} 已接受你的好友邀請`, metadata: { friendship_id: requestId } });
+                await admin.from("student_notifications").insert({ student_id: relation.requester_id, notification_type: "social", title: "好友邀請已接受", body: `${callerProfile?.nickname || "一位同學"} 已接受你的好友邀請`, metadata: { friendship_id: requestId, target_path: "/student/friends" } });
             }
             return json(req, 200, { success: true, status });
         }

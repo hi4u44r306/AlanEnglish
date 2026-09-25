@@ -23,7 +23,27 @@ const DEFAULT_AVATAR_PATHS = new Set([
     "/default-avatars/alan-fox.png",
     "/default-avatars/alan-rabbit.png",
     "/default-avatars/alan-bear.png",
-    "/default-avatars/alan-owl.png"
+    "/default-avatars/alan-owl.png",
+    "/default-avatars/alan-explorer.jpg",
+    "/default-avatars/alan-scientist.jpg",
+    "/default-avatars/alan-artist.jpg",
+    "/default-avatars/alan-footballer.jpg",
+    "/default-avatars/alan-astronaut.jpg",
+    "/default-avatars/alan-musician.jpg",
+    "/default-avatars/alan-chef.jpg",
+    "/default-avatars/alan-gardener.jpg",
+    "/default-avatars/alan-dancer.jpg",
+    "/default-avatars/alan-inventor.jpg",
+    "/default-avatars/alan-robot.jpg",
+    "/default-avatars/alan-dragon.jpg",
+    "/default-avatars/alan-star-hero.jpg",
+    "/default-avatars/alan-space-friend.jpg",
+    "/default-avatars/alan-knight.jpg",
+    "/default-avatars/alan-wizard.jpg",
+    "/default-avatars/alan-pilot.jpg",
+    "/default-avatars/alan-detective.jpg",
+    "/default-avatars/alan-mountaineer.jpg",
+    "/default-avatars/alan-sailor.jpg"
 ]);
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const IMAGE_TYPES = new Map([

@@ -907,17 +907,32 @@ Deno.serve(async (req: Request) => {
             ? questions[0].speaking_question_sets[0] : questions[0]?.speaking_question_sets;
         const setStatus = questionSet?.status;
         const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+        const reviewedTextQaAudio = interactionType === "text_qa"
+            && questionSet?.generation_metadata?.source === "ocr_page_candidate"
+            && questionSet?.generation_metadata?.requires_answer_audio === true;
+        if (interactionType === "text_qa"
+            && !reviewedTextQaAudio
+            && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action)) {
+            return json(409, {
+                error: "純文字問答不使用示範音檔，可直接核准並發布",
+                code: "text_qa_audio_disabled"
+            });
+        }
         const mayPrepareAlphabetDraft = setStatus === "draft" && interactionType === "alphabet_round";
         const pictureGapPage = pictureGapDraftLabel(questionSet);
         const mayPreparePictureGapDraft = Boolean(pictureGapPage) && action === "generate_visible_word_audio";
         const manualStandardDraft = setStatus === "draft"
             && questionSet?.generation_metadata?.source === "admin_manual_builder"
             && interactionType === "standard_sentence";
+        const reviewedPageCandidateDraft = setStatus === "draft"
+            && ["ocr_page_candidate", "ai_page_auto"].includes(String(questionSet?.generation_metadata?.source || ""))
+            && (interactionType === "standard_sentence" || reviewedTextQaAudio)
+            && Boolean(questionSet?.generation_metadata?.content_reviewed_at);
         const manualPageDraft = setStatus === "draft"
             && ["admin_page_builder", "ai_pdf_visual"].includes(questionSet?.generation_metadata?.source)
             && questionSet?.generation_metadata?.manual_builder_version === 2
-            && interactionType === "mixed";
-        const mayPrepareManualStandardDraft = manualStandardDraft
+            && ["mixed", "text_qa"].includes(interactionType);
+        const mayPrepareManualStandardDraft = (manualStandardDraft || reviewedPageCandidateDraft)
             && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action);
         const mayPrepareManualPageDraft = manualPageDraft
             && ["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio"].includes(action);
@@ -1085,6 +1100,9 @@ Deno.serve(async (req: Request) => {
             if (interactionError) throw interactionError;
             const pictureQuestionIds = new Set((interactions || []).map((row: any) => Number(row.question_id)));
             const standardQuestions = questions.filter((question: any) => !pictureQuestionIds.has(Number(question.id)));
+            if (!standardQuestions.length) {
+                return json(409, { error: "這份逐頁草稿沒有一般完整句，請改用看圖補句停頓語音" });
+            }
             const results = [];
             for (const question of standardQuestions) {
                 try { results.push(await generateQuestionAudio(admin, question)); }

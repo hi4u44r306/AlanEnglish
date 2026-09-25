@@ -14,6 +14,8 @@ import {
     evaluateLetterSpellingAssessment,
     matchesFoundationAnswer,
     readFoundationInteractionType,
+    readQuestionSetInteractionType,
+    resolveQuestionInteractionType,
     usesUnscriptedFoundationAssessment
 } from "../_shared/speaking-foundation-answer.ts";
 import { runSpeakingPronunciationFlow } from "../_shared/speaking-pronunciation-flow.ts";
@@ -140,17 +142,21 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
     const book = relationOne(questionSet?.books);
     await assertBookEntitled(admin, user, effectiveAccess, book);
     const { data: answerData, error: answerError } = await admin.from("speaking_questions")
-        .select("model_answer,pronunciation_notes_zh").eq("id", questionId).maybeSingle();
+        .select("model_answer,pronunciation_notes_zh,accepted_intents").eq("id", questionId).maybeSingle();
     if (answerError) throw answerError;
     if (!answerData) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
-    const interactionType = readFoundationInteractionType(questionSet?.generation_metadata);
-    const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
-    const { data: pictureInteraction, error: pictureError } = pictureMode
+    const questionSetInteractionType = readQuestionSetInteractionType(questionSet?.generation_metadata);
+    const shouldLoadPictureInteraction = questionSetInteractionType === "mixed"
+        || questionSetInteractionType === "picture_qa"
+        || questionSetInteractionType === "picture_gap_sentence";
+    const { data: pictureInteraction, error: pictureError } = shouldLoadPictureInteraction
         ? await admin.from("speaking_question_interactions")
             .select("interaction_type,prompt_text,answer_text,accepted_full_responses")
             .eq("question_id", Number(data.id)).maybeSingle()
         : { data: null, error: null };
     if (pictureError) throw pictureError;
+    const interactionType = resolveQuestionInteractionType(questionSetInteractionType, pictureInteraction);
+    const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
     if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
         throw Object.assign(new Error("這題的圖片口說內容尚未完成核准"), { status: 409, code: "picture_interaction_missing" });
     }
@@ -161,7 +167,9 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
         : answerData.model_answer || "").replace(/\s+/g, " ").trim();
     const acceptedAnswers = pictureMode && Array.isArray(pictureInteraction?.accepted_full_responses)
         ? pictureInteraction.accepted_full_responses.map((value: unknown) => String(value || "").trim()).filter(Boolean).slice(0, 12)
-        : [];
+        : interactionType === "text_qa" && Array.isArray(answerData.accepted_intents)
+            ? answerData.accepted_intents.map((value: unknown) => String(value || "").trim()).filter(Boolean).slice(0, 12)
+            : [];
     const isStructuredAnswer = usesUnscriptedFoundationAssessment(interactionType)
         || hasSpeakingAnswerSlots(answerTemplate);
     const referenceText = isStructuredAnswer ? "" : buildSpeakingReferenceText(answerTemplate, {});

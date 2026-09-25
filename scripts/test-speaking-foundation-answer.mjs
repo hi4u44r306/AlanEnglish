@@ -8,6 +8,8 @@ import {
     pictureGapAnswerMatchesPrompt,
     pictureQaResponseHasQuestionAndAnswer,
     readFoundationInteractionType,
+    readQuestionSetInteractionType,
+    resolveQuestionInteractionType,
     spokenLetterSequence,
     usesUnscriptedFoundationAssessment,
     visibleSentenceWords
@@ -22,8 +24,12 @@ import {
 
 assert.equal(readFoundationInteractionType({ interaction_type: "alphabet_round" }), "alphabet_round");
 assert.equal(readFoundationInteractionType({ interaction_type: "unknown" }), "");
+assert.equal(readQuestionSetInteractionType({ interaction_type: "mixed" }), "mixed");
+assert.equal(resolveQuestionInteractionType("mixed", { interaction_type: "picture_gap_sentence" }), "picture_gap_sentence");
+assert.equal(resolveQuestionInteractionType("mixed", null), "");
 assert.equal(usesUnscriptedFoundationAssessment("picture_qa"), true);
 assert.equal(usesUnscriptedFoundationAssessment("picture_gap_sentence"), true);
+assert.equal(usesUnscriptedFoundationAssessment("text_qa"), true);
 assert.equal(usesUnscriptedFoundationAssessment("letter_spelling"), false);
 
 assert.deepEqual(spokenLetterSequence("A, P, P, L, E"), ["A", "P", "P", "L", "E"]);
@@ -80,6 +86,14 @@ assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple
 assert.equal(matchesFoundationAnswer("picture_qa", "What is that? It is an apple.", "What's that? It's an apple.", ["What's that? It's an apple."]), true);
 assert.equal(matchesFoundationAnswer("picture_gap_sentence", "The apple is in the tree.", "The apple is in the tree."), true);
 assert.equal(matchesFoundationAnswer("picture_gap_sentence", "The apple is in the tree.", "Apple"), false);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "He is my friend."), true);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "She is my friend.", ["She is my friend."]), true);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "She is my friend."), false);
+assert.equal(matchesFoundationAnswer("text_qa", "He is my friend.", "He is her friend.", ["She is my friend."]), false);
+assert.equal(matchesFoundationAnswer("text_qa", "My name is [你的名字].", "My name is Victor."), true);
+assert.equal(matchesFoundationAnswer("text_qa", "My name is [你的名字].", "Victor."), false);
+assert.equal(matchesFoundationAnswer("text_qa", "No, I do not.", "He is forty years old. How about yours?", ["He is [爸爸的年齡] years old. How about yours?"]), true);
+assert.equal(matchesFoundationAnswer("text_qa", "No, I do not.", "She is forty years old. How about yours?", ["He is [爸爸的年齡] years old. How about yours?"]), false);
 assert.deepEqual(visibleSentenceWords("The ____ is in the tree."), [
     { text: "The", tokenIndex: 0 },
     { text: "is", tokenIndex: 2 },
@@ -197,5 +211,9 @@ assert.match(challengeSource, /correct_assessment_required/);
 assert.match(challengeSource, /\.select\("answer_match,created_at"\)/);
 assert.match(challengeSource, /attempt\.answer_match !== true/);
 assert.doesNotMatch(challengeSource, /body\?\.answer_match/);
+assert.match(challengeSource, /readQuestionSetInteractionType/);
+assert.match(challengeSource, /resolveQuestionInteractionType/);
+assert.match(coachSource, /readQuestionSetInteractionType/);
+assert.match(coachSource, /resolveQuestionInteractionType/);
 
 console.log("Workbook 1 foundation answer and template contract passed");

@@ -26,12 +26,18 @@ test("nickname changes are atomic, private, and visible only through verified ro
     assert.match(edge, /NICKNAME_CHANGE_COOLDOWN_MS = 7 \* 24 \* 60 \* 60 \* 1000/);
     assert.match(edge, /nicknameChangeCooldown\(history\)/);
     assert.match(edge, /history\.find\(\(item\) => item\.previous_nickname\)/);
+    assert.match(edge, /nickname_change_available_at: availableAt \? new Date\(availableAt\)\.toISOString\(\) : null/);
+    assert.match(edge, /code: "NICKNAME_CHANGE_COOLDOWN"/);
     assert.match(edge, /每 7 天只能修改一次/);
     assert.match(edge, /nicknameHistory\(admin, caller\.id\)/);
     assert.match(membershipEdge, /action === "nickname_history"/);
     assert.match(membershipEdge, /caller\.role !== "admin"/);
     assert.match(edge, /暱稱只能由 update_nickname 修改，避免繞過 7 天限制/);
     assert.match(edge, /saveSocialProfile\(admin, caller\.id, existing\.nickname, statsVisibility, presenceVisibility, "friends_privacy"\)/);
+});
+
+test("the development site is an explicit allowed browser origin", () => {
+    assert.match(edge, /"https:\/\/dev\.alanenglish\.com\.tw"/);
 });
 
 test("friendship pairs and public nicknames cannot be duplicated", () => {

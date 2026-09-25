@@ -29,7 +29,7 @@ const catalogSection = item => {
 };
 
 const lessonTitle = item => String(item.title || "口說練習")
-    .replace(/^\s*(?:P\s*)?\d{1,4}\s*/i, "")
+    .replace(/^\s*(?:P[.\s]*)?\d{1,4}\s*/i, "")
     .trim();
 
 const compressPageNumbers = pages => {
@@ -46,33 +46,7 @@ const compressPageNumbers = pages => {
 
 const pageReference = item => {
     const pages = compressPageNumbers(item.source_pages || item.generation_metadata?.source_pages);
-    return pages ? `配合第 ${pages} 頁` : "";
-};
-
-const pageNumbersFor = item => [...new Set(
-    (item.source_pages || item.generation_metadata?.source_pages || [])
-        .map(Number)
-        .filter(page => Number.isInteger(page) && page > 0)
-)].sort((left, right) => left - right);
-
-const textbookLessonCopy = item => {
-    const pageNumbers = pageNumbersFor(item);
-    if (pageNumbers.length !== 1) {
-        return {
-            badge: "舊版",
-            title: lessonTitle(item),
-            type: pageReference(item),
-            detail: `${item.topic} · ${item.difficulty}`
-        };
-    }
-    const page = pageNumbers[0];
-    const type = lessonTitle(item);
-    return {
-        badge: `P.${page}`,
-        title: `第 ${page} 頁`,
-        type: type === `第 ${page} 頁` ? String(item.topic || "口說練習") : type,
-        detail: `${item.topic || "口說練習"} · ${item.difficulty}`
-    };
+    return pages ? `P.${pages}` : "";
 };
 
 const challengeBookCatalogPath = challenge => {
@@ -145,10 +119,13 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     const completed = item.is_completed === true;
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
     const pages = pageReference(item);
-    const textbookCopy = section === "textbook" ? textbookLessonCopy(item) : null;
+    const showPageReference = section === "textbook" && Boolean(pages);
+    const challengeLabel = lessonTitle(item);
+    const topicOrType = item.topic || item.intro_zh || sectionCopy.label;
+    const level = item.difficulty ? ` · ${item.difficulty}` : "";
     return <button className={`speaking-challenge-lesson is-${section} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
-    <span className="speaking-challenge-lesson__number">{textbookCopy?.badge || sectionCopy.badge}</span>
-    <span className="speaking-challenge-lesson__copy"><strong>{textbookCopy?.title || lessonTitle(item)}{textbookCopy?.type ? <em>{textbookCopy.type}</em> : pages && <em>{pages}</em>}</strong><small>{item.intro_zh || textbookCopy?.detail || `${item.topic} · ${item.difficulty}`}</small></span>
+    <span className="speaking-challenge-lesson__number">{showPageReference ? pages : sectionCopy.badge}</span>
+    <span className="speaking-challenge-lesson__copy"><strong>{challengeLabel}</strong><small>{topicOrType}{level}</small></span>
     <span className="speaking-challenge-lesson__meta">{locked ? <><FiLock aria-hidden="true" /><small id={`speaking-challenge-lock-${item.id}`}>先完成前一關</small></> : completed ? <><FiCheck aria-hidden="true" /><small>已通關</small></> : <><b>{item.completed_count}/{item.question_count}</b><small>{staffPreview ? "預覽" : "開始挑戰"}</small></>}</span>
     </button>;
 };
@@ -392,6 +369,7 @@ export default function TextbookSpeakingChallenge() {
     if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return <WorkbookOnePictureChallenge
         challenge={challenge}
         firebaseUser={firebaseUser}
+        staffAudioPreview={staffPreview}
         onComplete={markScored}
         onExit={returnToBookCatalog}
     />;
@@ -403,6 +381,10 @@ export default function TextbookSpeakingChallenge() {
     const isCompleted = staffPreview || activeQuestion.progress_status === "completed";
     const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
     const activePictureMode = ["picture_qa", "picture_gap_sentence"].includes(activeInteractionType);
+    const activeTextQa = activeInteractionType === "text_qa";
+    const groupedTextQaClue = activeTextQa
+        && challenge?.generation_metadata?.candidate_filter?.generation_strategy === "ai_grouped_numbered_text_qa"
+        ? String(activeQuestion.hint_zh || "").match(/^題目線索：([^。]+)。/)?.[1] : null;
     const activePrompt = activeInteractionType === "picture_gap_sentence"
         ? activeQuestion.picture_interaction?.sentence_pattern || "看圖片補完整句"
         : activeInteractionType === "picture_qa" ? "看圖片，說出完整問句與回答" : activeQuestion.question_text;
@@ -433,11 +415,11 @@ export default function TextbookSpeakingChallenge() {
             <article key={activeQuestion.id} className={`speaking-focus-card ${isCompleted ? "done" : ""}`}>
                 <header className="speaking-question-heading">
                     <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
-                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2><p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : "聽懂問題後，按下麥克風直接回答。"}</p></div>
+                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
                 </header>
                 <SpeakingVisualAid aid={activeQuestion.visual_aid} />
-                {activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} />
+                {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
+                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />
                 <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。"}</small>
             </article>
         </section>

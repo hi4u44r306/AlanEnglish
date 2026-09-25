@@ -1,11 +1,12 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingContentAdmin from "./SpeakingContentAdmin";
 import {
     activatePictureGapTheAudioCandidate,
     activateSpeakingAlphabetAudioCandidate,
     analyzeSpeakingBookChunkVisualPages,
     archiveSpeakingQuestionSet,
+    archiveSpeakingSourceSection,
     confirmPageCandidateSpeakingDraft,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
@@ -13,12 +14,14 @@ import {
     createWorkbookTwoStarterQuestionSet,
     generateSpeakingQuestionSet,
     generateSpeakingQuestionSetAudio,
+    generateSpeakingVisibleWordAudio,
     getPictureGapTheAudioCandidates,
     getSpeakingContentBootstrap,
     getSpeakingQuestionAudioPreview,
     getSpeakingQuestionPicturePreview,
     publishSpeakingQuestionSet,
-    prepareSpeakingAlphabetAudioCandidate
+    prepareSpeakingAlphabetAudioCandidate,
+    reviewSpeakingOcrSource
 } from "../../services/speakingContentService";
 
 const mockFirebaseUser = { uid: "admin" };
@@ -47,7 +50,7 @@ jest.mock("../../services/speakingContentService", () => ({
     updatePictureDraftQuestion: jest.fn(), addPictureDraftQuestion: jest.fn(),
     deleteDraftSpeakingQuestion: jest.fn(), reorderDraftSpeakingQuestions: jest.fn(),
     restorePictureGapStandardAudio: jest.fn(),
-    archiveSpeakingQuestionSet: jest.fn()
+    archiveSpeakingQuestionSet: jest.fn(), archiveSpeakingSourceSection: jest.fn()
 }));
 
 describe("SpeakingContentAdmin whole-book OCR", () => {
@@ -57,6 +60,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         createWorkbookOneFoundationQuestionSet.mockResolvedValue({ success: true, reused: false });
         confirmWorkbookOneFoundationSource.mockResolvedValue({ success: true });
         confirmPageCandidateSpeakingDraft.mockResolvedValue({ success: true });
+        archiveSpeakingSourceSection.mockResolvedValue({ success: true, archived: true });
         prepareSpeakingAlphabetAudioCandidate.mockResolvedValue({
             success: true, reused: false, candidates: [
                 { status: "ready", candidate_id: "11111111-1111-4111-8111-111111111111", voice_label: "Leda", audio_url: "https://audio.example/leda.wav", segments: [] },
@@ -69,6 +73,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         createWorkbookTwoStarterQuestionSet.mockResolvedValue({ success: true, reused: false });
         generateSpeakingQuestionSet.mockResolvedValue({ success: true, question_set_id: 88 });
         generateSpeakingQuestionSetAudio.mockResolvedValue({ success: true, generated: 3, reused: 0, failed: 0, pending: 0 });
+        generateSpeakingVisibleWordAudio.mockResolvedValue({ success: true, generated: 3, reused: 0, failed: 0, pending: 0 });
         publishSpeakingQuestionSet.mockResolvedValue({ success: true });
         getSpeakingQuestionAudioPreview.mockResolvedValue({ success: true, voice_id: "en-US-Chirp3-HD-Leda", voice_gender: "female", audio_url: "https://audio.example/leda.wav" });
         getPictureGapTheAudioCandidates.mockResolvedValue({
@@ -113,8 +118,156 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByRole("button", { name: "開始批次 OCR" })).toBeInTheDocument();
     });
 
+    it("shows the original PDF filename and blocks approval when a multi-page OCR has no retained page marker", async () => {
+        reviewSpeakingOcrSource.mockResolvedValue({ success: true });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 50, book_id: 1, title: "習作本1口說挑戰", original_filename: "Alan's workbook 1 student(新版).pdf", source_kind: "pdf", page_count: 119, chunk_count: 12 }],
+            chunks: [{ id: 51, document_id: 50, source_section_id: 52, chunk_index: 2, page_from: 21, page_to: 30, status: "review_required" }],
+            sections: [{ id: 52, document_id: 50, page_from_label: "P21", page_to_label: "P30", topic: "看圖補句", status: "draft", source_text: "22\n1. The is in the tree.\n2. The is on the floor." }],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        expect(screen.getByText("原始檔案：Alan's workbook 1 student(新版).pdf")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /核對 OCR 批次/ }));
+        fireEvent.click(screen.getByText("Workbook 1", { selector: ".speaking-ocr-book-group > summary strong" }));
+        fireEvent.click(screen.getByText("P21–P30 · 看圖補句"));
+        expect(screen.getByRole("alert")).toHaveTextContent("這批尚無可建立關卡的頁碼");
+        fireEvent.click(screen.getByRole("checkbox", { name: /我已逐頁對照原教材/ }));
+        expect(screen.getByRole("button", { name: "核准 OCR 教材文字" })).toBeDisabled();
+        expect(reviewSpeakingOcrSource).not.toHaveBeenCalled();
+    });
+
+    it("shows four source tabs and hides superseded whole-book OCR duplicates", async () => {
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [
+                { id: 1, name: "Workbook 1", code: "Workbook_1" },
+                { id: 3, name: "Workbook 3", code: "Workbook_3" }
+            ],
+            documents: [
+                { id: 30, book_id: 3, title: "Workbook 3 舊版", source_kind: "pdf", page_count: 106, chunk_count: 11, updated_at: "2026-09-20T00:00:00Z" },
+                { id: 40, book_id: 3, title: "Workbook 3 新版", source_kind: "pdf", page_count: 106, chunk_count: 11, updated_at: "2026-09-24T00:00:00Z" },
+                { id: 50, book_id: 1, title: "Workbook 1", source_kind: "pdf", page_count: 20, chunk_count: 2, updated_at: "2026-09-23T00:00:00Z" }
+            ],
+            chunks: [
+                { id: 31, document_id: 30, source_section_id: 32, chunk_index: 0, page_from: 1, page_to: 10, status: "review_required" },
+                { id: 41, document_id: 40, source_section_id: 42, chunk_index: 0, page_from: 1, page_to: 10, status: "review_required" },
+                { id: 51, document_id: 50, source_section_id: 52, chunk_index: 0, page_from: 1, page_to: 10, status: "review_required" }
+            ],
+            sections: [
+                { id: 32, document_id: 30, page_from_label: "P1", page_to_label: "P10", topic: "舊版內容", status: "draft", source_text: "Old text that should remain stored." },
+                { id: 42, document_id: 40, page_from_label: "P1", page_to_label: "P10", topic: "新版內容", status: "draft", source_text: "New text that should be reviewed." },
+                { id: 52, document_id: 50, page_from_label: "P1", page_to_label: "P10", topic: "Workbook 1 內容", status: "draft", source_text: "Workbook one pending text." }
+            ],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+
+        expect(screen.getByRole("navigation", { name: "教材來源分類" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /整本教材辨識/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /核對 OCR 批次/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /單一範圍或貼入文字/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /已核准教材頁面/ })).toBeInTheDocument();
+        expect(screen.getByText("Workbook 3 新版")).toBeInTheDocument();
+        expect(screen.queryByText("Workbook 3 舊版")).not.toBeInTheDocument();
+        expect(screen.getByText(/已隱藏 1 份同一本書的較舊整本 OCR 紀錄/)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /核對 OCR 批次/ }));
+        expect(await screen.findByRole("heading", { name: "待核對 OCR 批次" })).toBeInTheDocument();
+        expect(screen.getByText(/已排除 1 批較舊整本 OCR 的重複待核對項目/)).toBeInTheDocument();
+        expect(screen.getByText("Workbook 1", { selector: ".speaking-ocr-book-group > summary strong" })).toBeInTheDocument();
+        expect(screen.getByText("Workbook 3", { selector: ".speaking-ocr-book-group > summary strong" })).toBeInTheDocument();
+        expect(screen.queryByText("P1–P10 · 舊版內容")).not.toBeInTheDocument();
+    });
+
+    it("groups reviewed sources by book and safely archives an unused old source", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [
+                { id: 1, name: "Workbook 1", code: "Workbook_1" },
+                { id: 3, name: "Workbook 3", code: "Workbook_3" }
+            ],
+            documents: [
+                { id: 61, book_id: 1, title: "Workbook 1 舊來源", source_kind: "pasted_text", chunk_count: 0 },
+                { id: 63, book_id: 3, title: "Workbook 3 使用中來源", source_kind: "pasted_text", chunk_count: 0 }
+            ],
+            chunks: [],
+            sections: [
+                { id: 62, document_id: 61, page_from_label: "P28", page_to_label: "P28", topic: "舊顏色題", status: "reviewed", source_text: "This is an old reviewed source text." },
+                { id: 64, document_id: 63, page_from_label: "P4", page_to_label: "P4", topic: "使用中題目", status: "reviewed", source_text: "This source is still used by a draft." }
+            ],
+            question_sets: [
+                { id: 65, source_section_id: 64, book_id: 3, title: "P4 使用中草稿", topic: "使用中題目", difficulty: "國小中年級", status: "draft", version: 1, generation_metadata: {}, speaking_questions: [] }
+            ]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        fireEvent.click(screen.getByRole("button", { name: /已核准教材頁面/ }));
+
+        expect(screen.getByText("Workbook 1", { selector: ".speaking-reviewed-book-group > summary strong" })).toBeInTheDocument();
+        expect(screen.getByText("Workbook 3", { selector: ".speaking-reviewed-book-group > summary strong" })).toBeInTheDocument();
+        expect(screen.getByText(/已有 1 個關卡，須先處理關卡才能封存來源/)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "封存舊來源" }));
+
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("P28 · 舊顏色題"));
+        await waitFor(() => expect(archiveSpeakingSourceSection).toHaveBeenCalledWith(mockFirebaseUser, 62));
+    });
+
+    it("shows an OCR review editor in sources before a question set exists", async () => {
+        reviewSpeakingOcrSource.mockResolvedValue({ success: true });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [
+                { id: 30, book_id: 3, title: "Workbook 3", source_kind: "pdf", page_count: 70, chunk_count: 7 },
+                { id: 40, book_id: 3, title: "Workbook 3 人工內容", source_kind: "pasted_text", chunk_count: 0 }
+            ],
+            chunks: [{ id: 31, document_id: 30, source_section_id: 32, chunk_index: 0, page_from: 1, page_to: 10, status: "review_required" }],
+            sections: [
+                { id: 32, document_id: 30, unit_label: "Unit 1", page_from_label: "P1", page_to_label: "P10", topic: "身體部位", language_level: "國小中年級", status: "draft", source_text: "[[PAGE P1]]\nIt is an eye.\n[[PAGE P2]]\nIt is a nose." },
+                { id: 41, document_id: 40, unit_label: "人工草稿", page_from_label: "P26", page_to_label: "P27", topic: "完整句", language_level: "國小中年級", status: "draft", source_text: "Manual source" }
+            ],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        fireEvent.click(screen.getByRole("button", { name: /核對 OCR 批次/ }));
+
+        expect(await screen.findByRole("heading", { name: "待核對 OCR 批次" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /1 教材來源 1 個項目待核對/ })).toBeInTheDocument();
+        expect(screen.queryByText("P26–P27 · 完整句")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByText("Workbook 3", { selector: ".speaking-ocr-book-group > summary strong" }));
+        fireEvent.click(screen.getByText("P1–P10 · 身體部位"));
+        expect(screen.getByDisplayValue(/\[\[PAGE P1\]\]/)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /我已逐頁對照原教材/ }));
+        fireEvent.click(screen.getByRole("button", { name: "核准 OCR 教材文字" }));
+
+        await waitFor(() => expect(reviewSpeakingOcrSource).toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({
+            source_section_id: 32,
+            page_from_label: "P1",
+            page_to_label: "P10",
+            confirmed: true
+        })));
+    });
+
     it("creates page-specific candidate drafts only from OCR text that is marked by page", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
+        let resolveSecondPage;
+        const secondPageResult = new Promise(resolve => { resolveSecondPage = resolve; });
+        generateSpeakingQuestionSet.mockImplementation((firebaseUser, payload) => payload.source_page_label === "P5" ? secondPageResult : Promise.resolve({
+            success: true,
+            question_set_id: 88,
+            source_page_label: payload.source_page_label,
+            question_count: 3,
+            requires_manual_authoring: false,
+            manual_authoring_reason: null
+        }));
         getSpeakingContentBootstrap.mockResolvedValue({
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }], documents: [{ id: 31, title: "Workbook 1", book_id: 1 }], chunks: [],
             sections: [{ id: 32, document_id: 31, unit_label: "Unit 1", page_from_label: "P4", page_to_label: "P5", topic: "身體部位", language_level: "國小低年級", status: "reviewed", source_text: "[[PAGE P4]]\\nIt is an eye.\\n[[PAGE P5]]\\nThey are her eyes." }],
@@ -123,12 +276,149 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
-        const candidateButton = await screen.findByRole("button", { name: "只用 OCR 文字逐頁建立" });
-        fireEvent.click(candidateButton);
+        fireEvent.click(screen.getByRole("button", { name: /已核准教材頁面/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "選取可處理頁面" }));
+        fireEvent.click(screen.getByRole("button", { name: "建立／重新產生 2 頁草稿" }));
 
         await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
+        expect(screen.getByRole("progressbar", { name: "逐頁草稿建立進度" })).toHaveAttribute("aria-valuenow", "50");
+        expect(screen.getByText("正在處理 P5：AI 分析、重複檢查與草稿儲存。")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "處理中 1/2" })).toBeDisabled();
         expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(1, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P4" }));
         expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(2, mockFirebaseUser, expect.objectContaining({ source_section_id: 32, source_page_label: "P5" }));
+        await act(async () => resolveSecondPage({
+            success: true, question_set_id: 89, source_page_label: "P5", question_count: 0,
+            requires_manual_authoring: true, manual_authoring_reason: "no_speakable_sentence"
+        }));
+        expect(await screen.findByText("本次逐頁建立結果")).toBeInTheDocument();
+        expect(screen.getByText("AI 草稿 3 題")).toBeInTheDocument();
+        expect(screen.getByText(/本頁只有填空、中文單字或不完整句/)).toBeInTheDocument();
+    });
+
+    it("only creates drafts for page markers retained in the approved transcript", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 35, title: "Workbook 3", book_id: 3 }],
+            chunks: [],
+            sections: [{
+                id: 36,
+                document_id: 35,
+                unit_label: "Unit 1",
+                page_from_label: "P1",
+                page_to_label: "P4",
+                topic: "所有格",
+                language_level: "國小中年級",
+                status: "reviewed",
+                source_text: "[[PAGE P1]]\nThis is my book.\n[[PAGE P3]]\nIt is her pencil."
+            }],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        fireEvent.click(screen.getByRole("button", { name: /已核准教材頁面/ }));
+
+        expect(await screen.findByText(/逐字稿保留 P1、P3/)).toBeInTheDocument();
+        fireEvent.click(screen.getByText("查看已保留的核准逐字稿"));
+        expect(screen.getByText(/This is my book/)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("checkbox", { name: "選擇 P1（建立新草稿）" }));
+        fireEvent.click(screen.getByRole("checkbox", { name: "選擇 P3（建立新草稿）" }));
+        fireEvent.click(screen.getByRole("button", { name: "建立／重新產生 2 頁草稿" }));
+
+        await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
+        expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(1, mockFirebaseUser, expect.objectContaining({ source_section_id: 36, source_page_label: "P1" }));
+        expect(generateSpeakingQuestionSet).toHaveBeenNthCalledWith(2, mockFirebaseUser, expect.objectContaining({ source_section_id: 36, source_page_label: "P3" }));
+        expect(generateSpeakingQuestionSet).not.toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({ source_page_label: "P2" }));
+        expect(generateSpeakingQuestionSet).not.toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({ source_page_label: "P4" }));
+    });
+
+    it("regenerates only selected draft pages and prevents overwriting published pages", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        generateSpeakingQuestionSet.mockImplementation((firebaseUser, payload) => Promise.resolve({
+            success: true,
+            question_set_id: payload.source_page_label === "P15" ? 115 : 120,
+            source_page_label: payload.source_page_label,
+            question_count: payload.source_page_label === "P15" ? 5 : 6
+        }));
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 35, title: "Workbook 3", book_id: 3 }], chunks: [],
+            sections: [{
+                id: 36, document_id: 35, unit_label: "Family & Daily Life", page_from_label: "P11", page_to_label: "P20",
+                topic: "家庭與日常生活", language_level: "國小中年級", status: "reviewed",
+                source_text: "[[PAGE P15]]\n15. What do you eat?\nRice.\n[[PAGE P17]]\n17. What do you drink?\nMilk.\n[[PAGE P20]]\n20. What would you like?\nNoodles."
+            }],
+            question_sets: [
+                { id: 51, source_section_id: 36, status: "draft", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P15", source_pages: [15] }, speaking_questions: [{ id: 511 }] },
+                { id: 52, source_section_id: 36, status: "published", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P17", source_pages: [17] }, speaking_questions: [{ id: 521 }, { id: 522 }] }
+            ]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        fireEvent.click(screen.getByRole("button", { name: /已核准教材頁面/ }));
+
+        const publishedPage = await screen.findByRole("checkbox", { name: "選擇 P17（已發布）" });
+        expect(publishedPage).toBeDisabled();
+        fireEvent.click(screen.getByRole("checkbox", { name: "選擇 P15（已有草稿，重新產生）" }));
+        fireEvent.click(screen.getByRole("checkbox", { name: "選擇 P20（建立新草稿）" }));
+        fireEvent.click(screen.getByRole("button", { name: "建立／重新產生 2 頁草稿" }));
+
+        await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledTimes(2));
+        expect(generateSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({
+            source_section_id: 36,
+            source_page_label: "P15",
+            replace_question_set_id: 51
+        }));
+        expect(generateSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({
+            source_section_id: 36,
+            source_page_label: "P20",
+            replace_question_set_id: undefined
+        }));
+        expect(generateSpeakingQuestionSet).not.toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({ source_page_label: "P17" }));
+    });
+
+    it("shows OCR page candidates as one page per challenge instead of the source batch range", async () => {
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 35, title: "Workbook 3", book_id: 3 }],
+            chunks: [],
+            sections: [{ id: 36, document_id: 35, unit_label: "Unit 1", page_from_label: "P1", page_to_label: "P10", topic: "所有格", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [
+                { id: 37, source_section_id: 36, book_id: 3, title: "P1 口說練習", topic: "所有格", difficulty: "國小中年級", status: "draft", version: 1, generation_metadata: { source: "ocr_page_candidate", source_pages: [1], source_page_label: "P1", interaction_type: "standard_sentence", requires_content_review: true }, speaking_questions: [{ id: 371, sort_order: 0, question_text: "It is my book.", model_answer: "It is my book." }] },
+                { id: 38, source_section_id: 36, book_id: 3, title: "P2 口說練習", topic: "身體部位", difficulty: "國小中年級", status: "draft", version: 1, generation_metadata: { source: "ocr_page_candidate", source_pages: [2], source_page_label: "P2", interaction_type: "standard_sentence", requires_content_review: true }, speaking_questions: [{ id: 381, sort_order: 0, question_text: "This is my nose.", model_answer: "This is my nose." }] }
+            ]
+        });
+
+        render(<SpeakingContentAdmin />);
+
+        expect(await screen.findByRole("heading", { name: "P1 · 所有格" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "P2 · 身體部位" })).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: /P1–P10（舊版跨頁）/ })).not.toBeInTheDocument();
+        expect(screen.getByText("P1 單頁關卡 · 國小中年級")).toBeInTheDocument();
+        expect(screen.getByText("P2 單頁關卡 · 國小中年級")).toBeInTheDocument();
+    });
+
+    it("labels no-image text questions and exposes reviewed alternative full answers", async () => {
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 35, title: "Workbook 3", book_id: 3 }], chunks: [],
+            sections: [{ id: 36, document_id: 35, unit_label: "Unit 1", page_from_label: "P5", page_to_label: "P5", topic: "所有格", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [{
+                id: 39, source_section_id: 36, book_id: 3, title: "P5 文字問答", topic: "所有格", difficulty: "國小中年級", status: "draft", version: 1,
+                generation_metadata: { source: "ocr_page_candidate", source_pages: [5], source_page_label: "P5", interaction_type: "text_qa", requires_content_review: true, candidate_filter: { generation_strategy: "reviewed_numbered_text_qa", eligible_sentence_count: 4, discarded_segment_count: 2 } },
+                speaking_questions: [{ id: 391, sort_order: 0, question_text: "Who is your friend?", hint_zh: "男生或女生皆可，請選一種完整回答。", keywords: ["friend"], simple_answer: "He is my friend.", model_answer: "He is my friend.", accepted_intents: ["She is my friend."] }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        expect(await screen.findByText("1 題文字問答（無圖片）候選")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: /P5 文字問答/ }));
+        expect(screen.getByText(/男女兩種完整答案都要保留/)).toBeInTheDocument();
+        expect(screen.getByText(/已維持一個編號一題/)).toBeInTheDocument();
+        expect(screen.getByText(/底線改為姓名、年齡或拼字等可變口說欄位/)).toBeInTheDocument();
+        expect(screen.getByText("其他可接受的完整答案（每行一項）")).toBeInTheDocument();
     });
 
     it("lets AI determine the actual question count for one reviewed page", async () => {
@@ -143,9 +433,10 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        fireEvent.click(screen.getByRole("button", { name: /已核准教材頁面/ }));
         expect(await screen.findByText(/AI 會依每頁實際可出題內容自動判斷題數/)).toBeInTheDocument();
         expect(screen.queryByText("每頁題數")).not.toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "只用 OCR 文字建立草稿" }));
+        fireEvent.click(screen.getByRole("button", { name: "建立本頁 AI 草稿" }));
 
         await waitFor(() => expect(generateSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, expect.objectContaining({
             source_section_id: 34,
@@ -174,6 +465,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        fireEvent.click(screen.getByRole("button", { name: /已核准教材頁面/ }));
         fireEvent.click(await screen.findByRole("button", { name: "從原始 PDF 分析 1 頁" }));
 
         await waitFor(() => expect(analyzeSpeakingBookChunkVisualPages).toHaveBeenCalledWith(
@@ -190,13 +482,16 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
             books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }], documents: [], chunks: [], sections: [],
             question_sets: [
                 { id: 41, title: "P4 口說練習", status: "draft", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P4", requires_content_review: true, image_suggestions: ["眼睛插圖"] }, speaking_questions: [{ id: 1 }, { id: 2 }, { id: 3 }] },
-                { id: 42, title: "P5 口說練習", status: "draft", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P5", requires_content_review: true, duplicate_review: { excluded_count: 1 } }, speaking_questions: [{ id: 4 }, { id: 5 }, { id: 6 }] }
+                { id: 42, title: "P5 口說練習", status: "draft", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P5", requires_content_review: true, duplicate_review: { excluded_count: 1 } }, speaking_questions: [{ id: 4 }, { id: 5 }, { id: 6 }] },
+                { id: 43, title: "P6 所有格（待人工補題）", status: "draft", generation_metadata: { source: "ocr_page_candidate", source_page_label: "P6", requires_content_review: true, requires_manual_authoring: true, manual_authoring_reason: "no_speakable_sentence" }, speaking_questions: [] }
             ]
         });
 
         render(<SpeakingContentAdmin />);
         expect(await screen.findByRole("heading", { name: "逐頁候選待審核" })).toBeInTheDocument();
         expect(screen.getByLabelText("已逐題核對 P4 候選草稿")).not.toBeChecked();
+        expect(screen.getByLabelText("已逐題核對 P6 候選草稿")).toBeDisabled();
+        expect(screen.getByRole("button", { name: "打開補題" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "選取全部已核對" }));
         fireEvent.click(screen.getByRole("button", { name: "批次核准 2 份草稿" }));
 
@@ -345,11 +640,77 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         fireEvent.click(screen.getByRole("button", { name: /3 待發布/ }));
         fireEvent.click(await screen.findByRole("button", { name: /P4 身體部位/ }));
         expect(screen.getByText("內容檢查完成")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "先產生並試聽示範語音" }));
+        await waitFor(() => expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(mockFirebaseUser, 82));
+        fireEvent.click(screen.getByText("預覽學生畫面"));
+        fireEvent.click(screen.getByRole("button", { name: "試聽第 1 題女聲示範" }));
+        await waitFor(() => expect(getSpeakingQuestionAudioPreview).toHaveBeenCalledWith(mockFirebaseUser, 82, 83));
+        generateSpeakingQuestionSetAudio.mockClear();
         fireEvent.click(screen.getByRole("button", { name: "準備語音並發布" }));
 
         await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 82));
         expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(mockFirebaseUser, 82);
         expect(generateSpeakingQuestionSetAudio.mock.invocationCallOrder[0]).toBeLessThan(publishSpeakingQuestionSet.mock.invocationCallOrder[0]);
+    });
+
+    it("publishes a complete no-image text question page without generating or previewing audio", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 1, name: "Workbook 1", code: "Workbook_1" }],
+            documents: [{ id: 420, book_id: 1, title: "Workbook 1", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 421, document_id: 420, topic: "數字加減法", unit_label: "P42", page_from_label: "P42", page_to_label: "P42", language_level: "國小低年級", status: "reviewed" }],
+            question_sets: [{
+                id: 422, source_section_id: 421, book_id: 1, title: "P42 數字加減法", status: "draft", version: 1,
+                generation_metadata: { source: "admin_page_builder", manual_builder_version: 2, source_pages: [42], source_page_label: "P42", interaction_type: "text_qa", content_reviewed_at: "2026-09-25T00:00:00Z" },
+                speaking_questions: [{ id: 423, sort_order: 0, question_text: "What is seven minus two?", hint_zh: "請用完整句回答。", simple_answer: "Seven minus two is five.", model_answer: "Seven minus two is five." }]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /3 待發布/ }));
+        fireEvent.click(await screen.findByRole("button", { name: /P42 數字加減法/ }));
+        expect(screen.getByText("可以直接以純文字問答發布，不會產生示範語音。")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /先產生並試聽示範語音/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByText("預覽學生畫面"));
+        expect(screen.queryByRole("button", { name: /示範/ })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "發布純文字關卡" }));
+
+        await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 422));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+        expect(generateSpeakingVisibleWordAudio).not.toHaveBeenCalled();
+    });
+
+    it("prepares gap audio for a mixed page containing only picture gap questions", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        const pictureGapQuestion = (id, sortOrder, prompt, answer) => ({
+            id, sort_order: sortOrder, question_text: prompt, model_answer: answer,
+            speaking_question_interactions: [{ interaction_type: "picture_gap_sentence", prompt_text: prompt, answer_text: answer, accepted_full_responses: [] }],
+            speaking_question_visual_assets: [{ asset_id: `asset-${id}`, speaking_visual_assets: [{ alt_zh: "教材圖片", status: "ready", source_page_label: "P4" }] }]
+        });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 90, book_id: 3, title: "Workbook 3", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 91, document_id: 90, topic: "身體部位", unit_label: "P4", page_from_label: "P4", page_to_label: "P4", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [{
+                id: 92, source_section_id: 91, book_id: 3, title: "P4 看圖補句", status: "draft", version: 1,
+                generation_metadata: { source: "admin_page_builder", manual_builder_version: 2, source_pages: [4], interaction_type: "mixed", content_reviewed_at: "2026-09-22T00:00:00Z" },
+                speaking_questions: [
+                    pictureGapQuestion(93, 0, "It is ____.( 一隻 )", "It is an eye."),
+                    pictureGapQuestion(94, 1, "____ are ____.( 她的 )", "They are her eyes."),
+                    pictureGapQuestion(95, 2, "It is ____.( 我的 )", "It is my nose.")
+                ]
+            }]
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /3 待發布/ }));
+        fireEvent.click(await screen.findByRole("button", { name: /P4 看圖補句/ }));
+        fireEvent.click(screen.getByRole("button", { name: "準備語音並發布" }));
+
+        await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 92));
+        expect(generateSpeakingVisibleWordAudio).toHaveBeenCalledWith(mockFirebaseUser, 92);
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+        expect(generateSpeakingVisibleWordAudio.mock.invocationCallOrder[0]).toBeLessThan(publishSpeakingQuestionSet.mock.invocationCallOrder[0]);
     });
 
     it("deletes any selected unpublished draft without affecting the published version", async () => {
@@ -376,6 +737,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("草稿內的 2 題會一併刪除"));
         expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("已發布版本與學生進度不受影響"));
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("已核准 OCR 逐字稿會保留"));
         await waitFor(() => expect(archiveSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 62));
     });
 

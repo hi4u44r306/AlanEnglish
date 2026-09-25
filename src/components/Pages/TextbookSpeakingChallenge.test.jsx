@@ -157,7 +157,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         unmount();
     });
 
-    it("plays the stored private model audio instead of browser speech synthesis", async () => {
+    it("hides the stored private model audio from student challenges", async () => {
         const play = jest.fn().mockResolvedValue(undefined);
         global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));
         getSpeakingChallengeSet.mockResolvedValue({
@@ -173,8 +173,23 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
-        fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
+        expect(screen.queryByRole("button", { name: "聽回答範例" })).not.toBeInTheDocument();
+        expect(global.Audio).not.toHaveBeenCalled();
+        expect(play).not.toHaveBeenCalled();
+    });
 
+    it("keeps the existing model audio audition for staff preview", async () => {
+        mockRole = "admin";
+        const play = jest.fn().mockResolvedValue(undefined);
+        global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), addEventListener: jest.fn() }));
+        getSpeakingChallengeSet.mockResolvedValue({ challenge: {
+            id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
+            speaking_questions: [{ id: 9, sort_order: 0, question_text: "What's your name?", model_answer: "My name is Alan.", model_audio_url: "https://r2.example/signed.mp3", progress_status: "opened" }]
+        } });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
+        fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
         expect(global.Audio).toHaveBeenCalledWith("https://r2.example/signed.mp3");
         expect(play).toHaveBeenCalled();
     });
@@ -190,7 +205,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
-        expect(screen.getByRole("button", { name: "語音準備中" })).toBeDisabled();
+        expect(screen.queryByRole("button", { name: "語音準備中" })).not.toBeInTheDocument();
     });
 
     it("一次只顯示一個小關卡，完成後才能前往下一題", async () => {
@@ -286,7 +301,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
     });
 
-    it("學生依入門、課本與主題分區，名稱旁顯示精確配合頁碼", async () => {
+    it("學生將課本頁碼放在最前面，主題練習則保留主題標記", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [
                 { id: 7, title: "00 A–Z 大小寫挑戰", topic: "字母", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { interaction_type: "alphabet_round" }, source_pages: [], question_count: 26, completed_count: 26, sequence_order: 0, is_unlocked: true, is_completed: true },
@@ -294,7 +309,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
                 { id: 1, title: "01 我的名字與自我介紹", topic: "名字", difficulty: "E1", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [18, 19, 20], question_count: 4, completed_count: 4, sequence_order: 10018, is_unlocked: false, is_completed: true },
                 { id: 21, title: "P21 看圖問答", topic: "看圖問答", difficulty: "E1", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [21], question_count: 9, completed_count: 0, sequence_order: 10021, is_unlocked: true },
                 { id: 3, title: "02 打招呼與禮貌對話", topic: "問候", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { template_key: "workbook_1_greetings_polite_v1" }, source_pages: [35, 36, 60, 99, 100], question_count: 8, completed_count: 0, sequence_order: 20035, is_unlocked: false },
-                { id: 4, title: "03 顏色與生活物品", topic: "顏色", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { template_key: "workbook_1_colors_objects_v1" }, source_pages: [84], question_count: 6, completed_count: 0, sequence_order: 20084, is_unlocked: true }
+                { id: 4, title: "P100 顏色與生活物品", topic: "顏色", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { template_key: "workbook_1_colors_objects_v1" }, source_pages: [100], question_count: 6, completed_count: 0, sequence_order: 20100, is_unlocked: true }
             ]
         });
 
@@ -303,15 +318,16 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByRole("heading", { name: "入門準備" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "依頁碼練習" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "主題練習" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: /第 14 頁/ })).toHaveTextContent("P.14");
-        expect(screen.getByRole("button", { name: /第 14 頁/ })).toHaveTextContent("看字拼讀");
-        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("舊版");
-        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("配合第 18～20 頁");
+        expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("P.18～20");
         expect(screen.getByRole("button", { name: /看圖問答/ })).toBeDisabled();
         expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveTextContent("先完成前一關");
-        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("配合第 35～36、60、99～100 頁");
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).not.toHaveTextContent("P.35～36、60、99～100");
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toBeEnabled();
         expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toBeDisabled();
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("主題");
+        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("主題");
+        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).not.toHaveTextContent("P.100");
         expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("先完成前一關");
         expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();

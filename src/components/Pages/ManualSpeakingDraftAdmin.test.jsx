@@ -71,6 +71,38 @@ describe("ManualSpeakingDraftAdmin", () => {
         expect(screen.queryByRole("button", { name: "從 PDF 高解析擷取圖片" })).not.toBeInTheDocument();
     });
 
+    it("creates a no-image text question draft without answer audio", async () => {
+        renderBuilder();
+        fillPage();
+        fireEvent.change(screen.getByLabelText("題型"), { target: { value: "text_qa" } });
+        expect(screen.queryByText("題目圖片")).not.toBeInTheDocument();
+        fireEvent.change(screen.getByLabelText("學生看到的完整問句"), { target: { value: "What is seven minus two?" } });
+        fireEvent.change(screen.getByLabelText("完整示範回答（學生作答前不顯示）"), { target: { value: "Seven minus two is five." } });
+        fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
+        expect(screen.getByRole("dialog", { name: "確認建立未發布草稿" })).toHaveTextContent("無圖片文字問答");
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
+        await waitFor(() => expect(createManualPageSpeakingDraft).toHaveBeenCalledWith(firebaseUser, expect.objectContaining({
+            confirmed: true,
+            questions: [expect.objectContaining({ interaction_type: "text_qa", prompt_text: "What is seven minus two?", answer_text: "Seven minus two is five." })]
+        })));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+        expect(uploadSpeakingQuestionPicture).not.toHaveBeenCalled();
+    });
+
+    it("rejects mixing no-image text questions with other types", () => {
+        renderBuilder();
+        fillPage();
+        fireEvent.change(screen.getByLabelText("題型"), { target: { value: "text_qa" } });
+        fireEvent.change(screen.getByLabelText("學生看到的完整問句"), { target: { value: "What is seven minus two?" } });
+        fireEvent.change(screen.getByLabelText("完整示範回答（學生作答前不顯示）"), { target: { value: "Seven minus two is five." } });
+        fireEvent.click(screen.getByRole("button", { name: "新增一題" }));
+        fireEvent.change(screen.getAllByLabelText("題型")[1], { target: { value: "standard_sentence" } });
+        fireEvent.change(screen.getByLabelText("完整朗讀句子"), { target: { value: "Five." } });
+        fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
+        expect(screen.getByRole("alert")).toHaveTextContent("不能與其他題型混用");
+        expect(createManualPageSpeakingDraft).not.toHaveBeenCalled();
+    });
+
     it("creates only a draft, uploads the matching private image, and keeps it when audio needs retry", async () => {
         generateSpeakingVisibleWordAudio.mockResolvedValue({ success: false });
         renderBuilder();

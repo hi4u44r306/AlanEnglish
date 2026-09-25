@@ -22,7 +22,39 @@ import "./css/StudentSettings.scss";
 const number = value => Number(value || 0).toLocaleString("zh-TW");
 const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
 const AVATAR_CROP_SIZE = 280;
+const NICKNAME_CHANGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
+const nicknameChangeAvailableAt = settings => {
+    const serverTimestamp = Date.parse(settings?.nickname_change_available_at || "");
+    if (Number.isFinite(serverTimestamp)) return serverTimestamp;
+
+    const latestActualChange = settings?.nickname_history?.find(item => item.previous_nickname);
+    const latestChangeAt = Date.parse(latestActualChange?.changed_at || "");
+    return Number.isFinite(latestChangeAt) ? latestChangeAt + NICKNAME_CHANGE_COOLDOWN_MS : 0;
+};
+const formatNicknameCountdown = milliseconds => {
+    const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${days} 天 ${hours} 小時 ${minutes} 分 ${seconds} 秒`;
+};
+const formatNicknameAvailableAt = timestamp => new Intl.DateTimeFormat("zh-TW", {
+    timeZone: "Asia/Taipei",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+}).format(new Date(timestamp));
+const friendlyNicknameError = error => {
+    const message = error?.message || "";
+    if (error instanceof TypeError || /load failed|failed to fetch|networkerror/i.test(message)) {
+        return "暱稱服務暫時無法連線，請確認網路後重新整理再試";
+    }
+    return message || "暱稱資料讀取失敗";
+};
 
 const planDisplayPriority = plan => {
     if (plan?.status === "active" || plan?.cancel_at_period_end) return 2;
@@ -62,6 +94,7 @@ function StudentSettings() {
     const [nicknameError, setNicknameError] = useState("");
     const [nicknameConfirmation, setNicknameConfirmation] = useState(null);
     const [savingNickname, setSavingNickname] = useState(false);
+    const [nicknameClock, setNicknameClock] = useState(() => Date.now());
     const [uploading, setUploading] = useState(false);
     const [savingBirthday, setSavingBirthday] = useState(false);
     const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
@@ -71,6 +104,11 @@ function StudentSettings() {
     const [avatarDraft, setAvatarDraft] = useState(null);
     const [avatarConfirmation, setAvatarConfirmation] = useState(null);
     const avatarDragRef = useRef(null);
+    const nicknameAvailableAt = nicknameChangeAvailableAt(nicknameSettings);
+    const nicknameCooldownActive = nicknameAvailableAt > nicknameClock;
+    const nicknameCountdown = nicknameCooldownActive
+        ? formatNicknameCountdown(nicknameAvailableAt - nicknameClock)
+        : "";
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
@@ -95,7 +133,7 @@ function StudentSettings() {
                 setNicknameDraft(nextSettings.profile?.nickname || studentProfile?.nickname || "");
                 setNicknameError("");
             } else {
-                setNicknameError(nicknameResult.reason?.message || "暱稱資料讀取失敗");
+                setNicknameError(friendlyNicknameError(nicknameResult.reason));
             }
             if (summaryResult.status === "rejected" && commerceResult.status === "rejected" && nicknameResult.status === "rejected") throw summaryResult.reason;
         } catch (error) {
@@ -106,6 +144,11 @@ function StudentSettings() {
     useEffect(() => { load(); }, [load]);
     useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
     useEffect(() => { setGuardianEmail(commerce?.guardian?.email || studentProfile?.guardian?.email || ""); }, [commerce?.guardian?.email, studentProfile?.guardian?.email]);
+    useEffect(() => {
+        if (!nicknameCooldownActive) return undefined;
+        const timer = window.setInterval(() => setNicknameClock(Date.now()), 1000);
+        return () => window.clearInterval(timer);
+    }, [nicknameAvailableAt, nicknameCooldownActive]);
     useEffect(() => () => {
         if (avatarConfirmation?.revokePreview && avatarConfirmation.previewUrl) {
             URL.revokeObjectURL(avatarConfirmation.previewUrl);
@@ -306,6 +349,10 @@ function StudentSettings() {
     const requestNicknameSave = event => {
         event.preventDefault();
         if (!firebaseUser) return;
+        if (nicknameCooldownActive) {
+            toast.info(`距離下次修改還有 ${nicknameCountdown}`);
+            return;
+        }
         const validationError = validatePublicNickname(nicknameDraft);
         if (validationError) {
             setNicknameError(validationError);
@@ -335,13 +382,22 @@ function StudentSettings() {
             setNicknameDraft(savedNickname);
             setNicknameSettings({
                 profile: result?.profile || { nickname: savedNickname },
-                nickname_history: result?.nickname_history || []
+                nickname_history: result?.nickname_history || [],
+                nickname_change_available_at: result?.nickname_change_available_at || null
             });
+            setNicknameClock(Date.now());
             setStudentProfile(current => current ? { ...current, nickname: savedNickname } : current);
             setNicknameConfirmation(null);
             toast.success("公開暱稱已更新");
         } catch (error) {
-            const message = error?.message || "暱稱更新失敗";
+            if (error?.code === "NICKNAME_CHANGE_COOLDOWN" && error?.details?.nickname_change_available_at) {
+                setNicknameSettings(current => ({
+                    ...current,
+                    nickname_change_available_at: error.details.nickname_change_available_at
+                }));
+                setNicknameClock(Date.now());
+            }
+            const message = friendlyNicknameError(error);
             setNicknameError(message);
             toast.error(message);
         } finally {
@@ -445,7 +501,6 @@ function StudentSettings() {
             <section className="student-settings-hero">
                 <span><FiUser /> MY SETTINGS</span>
                 <h1>我的設定</h1>
-                <p>在這裡確認學生基本資料、學習榮譽與帳號方案。班級、等級與點數由系統安全計算，不能自行修改。</p>
             </section>
 
             <section className="student-settings-profile-card">
@@ -458,10 +513,20 @@ function StudentSettings() {
                 </div>
                 <div className="student-settings-profile-copy">
                     <span>學生基本資料</span>
-                    <h2>{publicDisplayName}</h2>
+                    <div className="student-settings-profile-heading">
+                        <h2>{publicDisplayName}</h2>
+                        <span
+                            className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}
+                            aria-label={hasAiPremium ? "AI Premium 已啟用" : "AI Premium 未啟用"}
+                            title={hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}
+                        >
+                            <FiZap />
+                            <strong>{hasAiPremium ? "AI Premium" : "AI Premium 未啟用"}</strong>
+                        </span>
+                    </div>
                     <p>{profile.english_name || "尚未設定英文姓名"}　·　{profile.class ? `${profile.class} 班` : "尚未分班"}</p>
                     <small><FiImage /> {uploading ? "正在處理頭像…" : "支援 JPG、PNG、WebP；超過 5MB 的照片會先在裝置上壓縮。"}</small>
-                    <form className="student-settings-nickname-form student-settings-profile-nickname-form" onSubmit={requestNicknameSave}>
+                    <form className={`student-settings-nickname-form student-settings-profile-nickname-form ${nicknameCooldownActive ? "is-locked" : ""}`} onSubmit={requestNicknameSave}>
                         <label htmlFor="student-settings-nickname">公開暱稱</label>
                         <div>
                             <input
@@ -472,24 +537,25 @@ function StudentSettings() {
                                 placeholder="例如 Alan Fox"
                                 aria-invalid={Boolean(nicknameError)}
                                 aria-describedby="student-settings-nickname-help"
+                                disabled={savingNickname || nicknameCooldownActive}
                                 required
                             />
-                            <button type="submit" disabled={savingNickname}>{savingNickname ? "儲存中…" : "儲存暱稱"}</button>
+                            <button type="submit" disabled={savingNickname || nicknameCooldownActive}>{savingNickname ? "儲存中…" : nicknameCooldownActive ? "暫時無法改名" : "儲存暱稱"}</button>
                         </div>
                         <small id="student-settings-nickname-help" className={nicknameError ? "is-error" : ""}>
-                            {nicknameError || (
+                            {nicknameError || (nicknameCooldownActive ? (
+                                <span className="student-settings-nickname-countdown" role="status">
+                                    <FiLock />距離下次修改還有 <strong>{nicknameCountdown}</strong><br />
+                                    可於台灣時間 {formatNicknameAvailableAt(nicknameAvailableAt)} 後再次修改。
+                                </span>
+                            ) : (
                                 <>
                                     2～20 字；會顯示在排行榜、好友與學生首頁。每
                                     <strong>『 7 天 』只能修改一次</strong>。
                                 </>
-                            )}
+                            ))}
                         </small>
                     </form>
-                </div>
-                <div className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}>
-                    <FiZap />
-                    <strong>{hasAiPremium ? "AI Premium" : "AI 教材與發音練習未加購"}</strong>
-                    <span>{hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}</span>
                 </div>
                 <div className="student-settings-avatar-presets">
                     <div><strong>選擇預設頭像</strong><span>不想使用自己的照片時，可以隨時換回下列角色。</span></div>

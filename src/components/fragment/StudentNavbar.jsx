@@ -27,6 +27,7 @@ import {
 import Brand from "./Brand";
 import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
+import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import { prefetchReviewDashboard } from "../../services/reviewService";
 import "../assets/scss/StudentNavbar.scss";
@@ -221,11 +222,14 @@ const StudentNavbar = ({
             <div className="ae-notification-heading"><strong>通知</strong><span>{unreadCount > 0 ? `${unreadCount} 則未讀` : "沒有新通知"}</span></div>
             {notifications.length === 0
                 ? <div className="ae-notification-empty">目前沒有新通知</div>
-                : notifications.slice(0, 4).map(notification => (
-                    <NavDropdown.Item as="button" type="button" key={notification.id} onClick={() => onNotificationRead(notification)} className={`ae-notification-item ${notification.read_at ? "is-read" : ""}`}>
-                        <FiBell /><span><strong>{notification.title}</strong><small>{notification.body}</small></span>
-                    </NavDropdown.Item>
-                ))}
+                : notifications.slice(0, 4).map(notification => {
+                    const destination = getStudentNotificationDestination(notification);
+                    return (
+                        <NavDropdown.Item as={destination ? Link : "button"} to={destination || undefined} type={destination ? undefined : "button"} key={notification.id} onClick={() => onNotificationRead(notification)} className={`ae-notification-item ${notification.read_at ? "is-read" : ""}`}>
+                            <FiBell /><span><strong>{notification.title}</strong><small>{notification.body}</small></span>
+                        </NavDropdown.Item>
+                    );
+                })}
             <NavDropdown.Divider />
             <NavDropdown.Item as={Link} to="/student/notifications" className="ae-dropdown-item"><FiBell />查看全部通知</NavDropdown.Item>
         </NavDropdown>
