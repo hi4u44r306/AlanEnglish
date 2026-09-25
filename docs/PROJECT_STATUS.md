@@ -2,10 +2,10 @@
 
 最後更新：2026-09-25
 
-本次逐頁無圖片文字問答（2026-09-25，本機修改、尚未部署）：
+本次逐頁無圖片文字問答（2026-09-25，正式部署完成）：
 
 - 「建立新關卡」新增無圖片文字問答；同頁可加入多道文字問答，輸入學生可見問句、完整示範回答及其他可接受完整說法，不要求圖片。為沿用既有 `text_qa` 學生作答與評分規則，文字問答須獨立成一關，不與看圖或朗讀題混用。
-- `speaking-content-manager` 將全文字問答頁標示為 `text_qa` 並保留單頁來源、題序與私有草稿；`speaking-tts-manager` 支援該草稿的示範語音。沒有 migration、沒有修改已發布題庫或學生資料；P42 尚未建立遠端草稿。管理頁 React 6/6、學生題面契約 7/7、發音流程契約 7/7、兩支 Function 語法、Production build 與 `git diff --check` 均通過；尚未做登入後端對端測試。仍需另行授權部署兩支 Function 與前端，才能在網站使用。
+- `speaking-content-manager` 將全文字問答頁標示為 `text_qa` 並保留單頁來源、題序與私有草稿；`speaking-tts-manager` 支援該草稿的示範語音。沒有 migration、沒有修改已發布題庫或學生資料；P42 尚未建立遠端草稿。管理頁 React 6/6、學生題面契約 7/7、發音流程契約 7/7、兩支 Function 語法、Production build 與 `git diff --check` 均通過。PR #278 已合併至 `main` commit `c4c7dee`；正式 `speaking-content-manager` v53、`speaking-tts-manager` v32 均為 ACTIVE。Cloudflare Workers 正式版本 `7d7cfa8d-832a-40d7-8a51-4129f6500107` 已發布，`alanenglish.com.tw`、`app.alanenglish.com.tw` 與 Workers 網址均回應 200 並載入 `main.64e53846.js`；正式 bundle SHA-256 與本機已驗證 build 完全一致。尚未做管理員登入後的草稿建立端到端測試。
 
 本次 Workbook 1 新版學生版 OCR 核對防錯（2026-09-24，正式部署完成）：
 
