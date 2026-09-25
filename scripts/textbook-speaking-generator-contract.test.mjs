@@ -417,6 +417,12 @@ test("17. P21～P24 圖片、完整答案與停頓整句語音只由驗證後端
     assert.match(manager, /createdQuestionSetId/);
     assert.match(manager, /create_picture_upload/);
     assert.match(manager, /confirm_picture_upload/);
+    assert.match(manager, /analyze_book_chunk_visual_pages/);
+    assert.match(manager, /source: "ai_pdf_visual"/);
+    assert.match(manager, /private_original_pdf_high_resolution_crop_v1/);
+    assert.match(manager, /numbered_item_count/);
+    assert.match(manager, /本頁草稿建立失敗；其他頁面已繼續處理/);
+    assert.doesNotMatch(manager, /type: "input_file", file_id: openaiFileId, detail:/);
     assert.match(manager, /discard_workbook_1_picture_draft/);
     assert.match(manager, /manual_picture_manifest/);
     assert.match(manager, /source_document_id: Number\(sourceSection\.document_id\)/);

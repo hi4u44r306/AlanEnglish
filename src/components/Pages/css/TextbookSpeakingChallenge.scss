@@ -2151,9 +2151,7 @@
   body:has(.ae-student-bottom-nav) .speaking-question-navigation {
     bottom: calc(74px + max(8px, env(safe-area-inset-bottom, 0px)));
   }
-  body:has(.ae-student-bottom-nav)
-    .app-content.has-player
-    .speaking-question-navigation {
+  body:has(.ae-student-bottom-nav) .app-content.has-player .speaking-question-navigation {
     bottom: calc(
       var(--app-player-space, 110px) + 74px +
         max(8px, env(safe-area-inset-bottom, 0px))

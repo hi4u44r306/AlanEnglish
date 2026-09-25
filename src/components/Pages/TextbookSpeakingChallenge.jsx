@@ -15,7 +15,7 @@ import "./css/SpeakingAdventureRoute.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },
-    textbook: { label: "課本練習", eyebrow: "依教材頁序完成", badge: "課本" },
+    textbook: { label: "依頁碼練習", eyebrow: "一頁就是一個口說關卡", badge: "課本" },
     topic: { label: "主題練習", eyebrow: "跨頁情境加強", badge: "主題" }
 };
 const TOPIC_TEMPLATE_KEYS = new Set([

@@ -98,15 +98,21 @@ export const generateSpeakingVisibleWordAudio = (firebaseUser, questionSetId) =>
     callEdgeFunction("speaking-tts-manager", firebaseUser, { action: "generate_visible_word_audio", question_set_id: questionSetId })
 );
 export const extractSpeakingBookChunk = (firebaseUser, chunkId) => callSpeakingContent(firebaseUser, "extract_book_chunk", { chunk_id: chunkId });
+export const analyzeSpeakingBookChunkVisualPages = (firebaseUser, sourceSectionId, requestKey) => callSpeakingContent(firebaseUser, "analyze_book_chunk_visual_pages", {
+    source_section_id: sourceSectionId,
+    request_key: requestKey
+});
 export const discardSpeakingSourceUpload = (firebaseUser, documentId) => callSpeakingContent(firebaseUser, "discard_document_upload", { document_id: documentId });
 
-export const uploadSpeakingQuestionPicture = async (firebaseUser, questionId, pageLabel, altZh, file) => {
+export const uploadSpeakingQuestionPicture = async (firebaseUser, questionId, pageLabel, altZh, file, metadata = {}) => {
     const prepared = await callSpeakingContent(firebaseUser, "create_picture_upload", {
         question_id: questionId,
         source_page_label: pageLabel,
         alt_zh: altZh,
         mime_type: file.type,
-        byte_size: file.size
+        byte_size: file.size,
+        width: metadata.width,
+        height: metadata.height
     });
     try {
         const response = await fetch(prepared.upload.url, {
@@ -117,7 +123,8 @@ export const uploadSpeakingQuestionPicture = async (firebaseUser, questionId, pa
         if (!response.ok) throw new Error(`私人圖片上傳失敗（HTTP ${response.status}）`);
         return await callSpeakingContent(firebaseUser, "confirm_picture_upload", {
             question_id: questionId,
-            asset_id: prepared.asset_id
+            asset_id: prepared.asset_id,
+            crop_metadata: metadata.cropMetadata
         });
     } catch (error) {
         await callSpeakingContent(firebaseUser, "discard_picture_upload", { asset_id: prepared.asset_id }).catch(() => null);

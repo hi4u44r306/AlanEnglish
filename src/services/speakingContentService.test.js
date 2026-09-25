@@ -1,6 +1,7 @@
 import {
     activatePictureGapTheAudioCandidate,
     activateSpeakingAlphabetAudioCandidate,
+    analyzeSpeakingBookChunkVisualPages,
     confirmWorkbookOneFoundationSource,
     createWorkbookOneFoundationQuestionSet,
     createWorkbookOneStarterQuestionSet,
@@ -53,6 +54,7 @@ describe("speakingContentService", () => {
         await prepareSpeakingSourceUpload(firebaseUser, { book_id: 1 });
         await extractSpeakingSourceDocument(firebaseUser, { document_id: 1 });
         await extractSpeakingBookChunk(firebaseUser, 11);
+        await analyzeSpeakingBookChunkVisualPages(firebaseUser, 13, "11111111-1111-4111-8111-111111111111");
         await discardSpeakingSourceUpload(firebaseUser, 12);
         await reviewSpeakingOcrSource(firebaseUser, { source_section_id: 1 });
         await saveReviewedSpeakingSource(firebaseUser, { book_id: 1 });
@@ -91,6 +93,7 @@ describe("speakingContentService", () => {
             ["speaking-content-manager", "create_document_upload"],
             ["speaking-content-manager", "extract_document"],
             ["speaking-content-manager", "extract_book_chunk"],
+            ["speaking-content-manager", "analyze_book_chunk_visual_pages"],
             ["speaking-content-manager", "discard_document_upload"],
             ["speaking-content-manager", "review_ocr_source"],
             ["speaking-content-manager", "save_reviewed_source"],

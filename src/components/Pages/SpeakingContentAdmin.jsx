@@ -4,6 +4,7 @@ import { AlertCircle, AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDow
 import { useAuth } from "../../auth/AuthContext";
 import {
     activateSpeakingAlphabetAudioCandidate,
+    analyzeSpeakingBookChunkVisualPages,
     archiveSpeakingQuestionSet,
     archiveSpeakingSourceSection,
     confirmWorkbookOneFoundationSource,
@@ -25,14 +26,17 @@ import {
     reviewSpeakingOcrSource,
     saveReviewedSpeakingSource,
     uploadAndExtractSpeakingSource,
+    uploadSpeakingQuestionPicture,
     uploadWholeBookSource,
     updateDraftSpeakingQuestion
 } from "../../services/speakingContentService";
+import { cropOriginalPdfVisuals } from "../../services/speakingPdfVisualCrop";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingPictureQuestionSetEditor from "./SpeakingPictureQuestionSetEditor";
 import WorkbookOnePictureContentAdmin from "./WorkbookOnePictureContentAdmin";
 import ManualSpeakingDraftAdmin from "./ManualSpeakingDraftAdmin";
 import SpeakingManualStandardEditor from "./SpeakingManualStandardEditor";
+import SpeakingMixedPageQuestionSetEditor from "./SpeakingMixedPageQuestionSetEditor";
 import "./css/Platform.scss";
 import "./css/SpeakingContentAdmin.scss";
 
@@ -77,6 +81,7 @@ const questionSetOrigin = questionSet => ({
     admin_manual_builder: "手動建立",
     ocr_page_candidate: "OCR 候選",
     ai_page_auto: "AI 逐頁自動判斷",
+    ai_pdf_visual: "PDF 視覺分析",
     ai_generated: "AI 產生"
 }[questionSet?.generation_metadata?.source] || (questionSet?.generation_metadata?.template_key ? "系統範本" : "既有題庫"));
 const manualAuthoringReasonLabel = reason => ({
@@ -103,11 +108,16 @@ const draftReadiness = (questionSet, section) => {
     const interactionType = String(metadata.interaction_type || "");
     const questions = [...(questionSet.speaking_questions || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
     const issues = [];
-    const manualSinglePage = (["admin_manual_builder", "admin_page_builder", "ai_page_auto"].includes(metadata.source)
+    const manualSinglePage = (["admin_manual_builder", "admin_page_builder", "ai_page_auto", "ai_pdf_visual"].includes(metadata.source)
         || (["ocr_page_candidate", "ai_page_auto"].includes(metadata.source) && metadata.auto_question_count === true))
         && Array.isArray(metadata.source_pages) && metadata.source_pages.length === 1;
     if (!manualSinglePage && questions.length < 3) issues.push({ message: `目前只有 ${questions.length} 題，發布至少需要 3 題。` });
     if (manualSinglePage && questions.length < 1) issues.push({ message: "本頁目前沒有題目，請先人工新增至少一題。" });
+    const visuallyDetectedCount = Number(metadata.numbered_item_count || metadata.detected_question_count || 0);
+    if (metadata.source === "ai_pdf_visual" && !metadata.content_reviewed_at
+        && visuallyDetectedCount > 0 && questions.length !== visuallyDetectedCount) {
+        issues.push({ message: `原始 PDF 判斷本頁有 ${visuallyDetectedCount} 題，目前草稿有 ${questions.length} 題；請補齊或刪除多餘題目。` });
+    }
     if (section?.status !== "reviewed") issues.push({ message: "教材來源尚未完成人工核對。" });
     if (metadata.requires_content_review === true && !metadata.content_reviewed_at) {
         issues.push({ message: "這份候選草稿尚未完成逐題人工核准。" });
@@ -449,7 +459,7 @@ export default function SpeakingContentAdmin() {
     }), [data.question_sets, questionSetWorkflowStatus]);
     const pageCandidateReviewQueue = useMemo(() => data.question_sets
         .filter(questionSet => questionSet.status === "draft"
-            && ["ocr_page_candidate", "ai_page_auto"].includes(questionSet.generation_metadata?.source)
+            && ["ocr_page_candidate", "ai_page_auto", "ai_pdf_visual"].includes(questionSet.generation_metadata?.source)
             && questionSet.generation_metadata?.requires_content_review === true
             && !questionSet.generation_metadata?.content_reviewed_at)
         .sort((left, right) => {
@@ -778,10 +788,65 @@ export default function SpeakingContentAdmin() {
             setWorking("");
         }
     };
+    const analyzeVisualPages = async section => {
+        const pages = markedSourcePageLabels(section);
+        if (pages.length < 1 || pages.length > 10 || section.document?.original_upload_status !== "uploaded") {
+            return toast.error("這個來源沒有可追溯的原始私人 PDF，不能執行高解析視覺出題");
+        }
+        if (!window.confirm(`將以高解析方式分析 ${pages.join("、")}，由 AI 判斷每頁是否適合口說、實際題數、題型與圖片範圍。\n\n一次分析整個 ${pages.length} 頁批次並快取結果；只建立未發布草稿。圖片只會從原始私人 PDF 裁切，低信心圖片會保留給你手動修正。`)) return;
+        setWorking(`visual-pages-${section.id}`);
+        try {
+            const result = await analyzeSpeakingBookChunkVisualPages(firebaseUser, section.id, createRequestKey());
+            const createdPages = (result.pages || []).filter(page => page.suitable && page.question_set_id);
+            const cropPages = createdPages.map(page => ({
+                ...page,
+                crop_hints: (page.crop_hints || []).filter(hint => ["high", "medium"].includes(hint.confidence))
+            }));
+            const lowConfidenceCount = createdPages.reduce((total, page) => total
+                + (page.crop_hints || []).filter(hint => !["high", "medium"].includes(hint.confidence)).length, 0);
+            const uploadFailures = [];
+            if (result.original_pdf?.url && cropPages.some(page => page.crop_hints.length)) {
+                const crops = await cropOriginalPdfVisuals(result.original_pdf.url, cropPages);
+                for (const crop of crops) {
+                    try {
+                        await uploadSpeakingQuestionPicture(
+                            firebaseUser,
+                            crop.question_id,
+                            `P${crop.pageNumber}`,
+                            crop.alt_zh,
+                            crop.file,
+                            { width: crop.width, height: crop.height, cropMetadata: crop.cropMetadata }
+                        );
+                    } catch (error) {
+                        uploadFailures.push(`P${crop.pageNumber} 第 ${crop.source_number || "?"} 題：${error.message || "圖片上傳失敗"}`);
+                    }
+                }
+            }
+            setActiveWorkspace("drafts");
+            setQuestionSetFilter("draft");
+            if (createdPages[0]?.question_set_id) setSelectedQuestionSetId(createdPages[0].question_set_id);
+            const skipped = (result.pages || []).filter(page => !page.suitable).length;
+            const failedPages = (result.pages || []).filter(page => page.failed).map(page => `P${page.page_number}`);
+            toast.success(`已建立 ${createdPages.length} 個逐頁草稿${skipped ? `，略過 ${skipped} 個不適合頁面` : ""}；請逐頁核對後再發布`);
+            if (failedPages.length) toast.warning(`${failedPages.join("、")} 草稿建立失敗；其他頁面已保留，可稍後只重試失敗頁面`);
+            if (lowConfidenceCount) toast.warning(`${lowConfidenceCount} 張圖片的框選信心不足，已保留為待手動裁切，不會自動猜圖`);
+            if (uploadFailures.length) toast.warning(`有 ${uploadFailures.length} 張原始 PDF 圖片未完成：${uploadFailures.join("；")}`);
+            await load();
+        } catch (error) {
+            toast.error(error.message || "PDF 視覺分析失敗");
+        } finally {
+            setWorking("");
+        }
+    };
     const confirmPageCandidate = async questionSet => {
         const pageLabel = questionSet.generation_metadata?.source_page_label || "這一頁";
         const questionTotal = (questionSet.speaking_questions || []).length;
-        if (!window.confirm(`確認已逐題對照 ${pageLabel} 原教材、核對 ${questionTotal} 題的拼字、句型與圖片需求嗎？\n\n核准後才可發布；之後若修改題目，必須重新核准。`)) return;
+        const detectedTotal = Number(questionSet.generation_metadata?.numbered_item_count
+            || questionSet.generation_metadata?.detected_question_count || 0);
+        const countNotice = detectedTotal > 0 && detectedTotal !== questionTotal
+            ? `\n\nAI 原先辨識 ${detectedTotal} 題，目前你調整後是 ${questionTotal} 題。核准代表以目前 ${questionTotal} 題為準。`
+            : "";
+        if (!window.confirm(`確認已逐題對照 ${pageLabel} 原教材、核對 ${questionTotal} 題的拼字、句型與圖片需求嗎？${countNotice}\n\n核准後才可發布；之後若修改題目，必須重新核准。`)) return;
         setWorking(`confirm-page-${questionSet.id}`);
         try {
             await confirmPageCandidateSpeakingDraft(firebaseUser, questionSet.id);
@@ -814,7 +879,7 @@ export default function SpeakingContentAdmin() {
             }
             if (approvedIds.length) {
                 setSelectedPageCandidateIds(current => current.filter(id => !approvedIds.includes(id)));
-                toast.success(`已核准 ${approvedIds.length} 份 OCR 候選草稿；仍需由你逐份按「核准並發布」才會提供給學生`);
+                toast.success(`已核准 ${approvedIds.length} 份逐頁候選草稿；仍需由你逐份按「核准並發布」才會提供給學生`);
             }
             if (failed.length) toast.warning(`有 ${failed.length} 份未核准：${failed.join("；")}`);
             await load();
@@ -1143,6 +1208,7 @@ export default function SpeakingContentAdmin() {
                 const progressPercent = generationProgress ? Math.round((generationProgress.completed / generationProgress.total) * 100) : 0;
                 return <article className="speaking-source-card" key={`source-${section.id}`}>
                     <header><div><span>{section.book?.name || section.document?.title || "教材來源"}</span><h3>{section.page_from_label || "未標示頁碼"}{section.page_to_label && section.page_to_label !== section.page_from_label ? `–${section.page_to_label}` : ""} · {section.topic}</h3><p>{section.unit_label || "未標示單元"} · 已人工核准{retainedPageLabels.length > 0 ? ` · 逐字稿保留 ${retainedPageLabels.join("、")}` : ""}</p></div><div className="speaking-source-card__actions">{isSinglePage && <button type="button" className="platform-primary" disabled={working === `generate-${section.id}`} onClick={() => generate(section)}><Sparkles size={17} />{working === `generate-${section.id}` ? "AI 產生中…" : "建立本頁 AI 草稿"}</button>}{!isSinglePage && !canGenerateByPage && <span className="speaking-source-card__page-note">核准逐字稿中沒有可用的 <code>[[PAGE P頁碼]]</code>；請保留至少一個要建立關卡的頁碼與內容。</span>}{section.questionSets.length === 0 ? <button type="button" className="platform-danger" disabled={working === `archive-source-${section.id}`} onClick={() => archiveSourceSection(section)}><Archive size={16} />{working === `archive-source-${section.id}` ? "封存中…" : "封存舊來源"}</button> : <span className="speaking-source-card__linked-note">已有 {section.questionSets.length} 個關卡，須先處理關卡才能封存來源。</span>}</div></header>
+                    {section.document?.original_upload_status === "uploaded" && retainedPageLabels.length > 0 && <div className="speaking-source-card__actions"><button type="button" className="platform-secondary" disabled={working === `visual-pages-${section.id}`} onClick={() => analyzeVisualPages(section)}><Sparkles size={17} />{working === `visual-pages-${section.id}` ? "高解析分析與裁圖中…" : `從原始 PDF 分析 ${retainedPageLabels.length} 頁`}</button></div>}
                     {canGenerateByPage && <section className="speaking-source-page-picker" aria-label={`${section.page_from_label} 到 ${section.page_to_label} 選擇要產生草稿的頁面`}>
                         <header><div><strong>選擇要建立或重新產生的頁面</strong><small>已有未發布草稿的頁面可直接重建；已發布頁面不會被覆蓋。</small></div><div><button type="button" className="platform-secondary" disabled={Boolean(generationProgress)} onClick={() => setSelectedSourcePages(current => ({ ...current, [section.id]: selectablePages }))}>選取可處理頁面</button><button type="button" className="platform-secondary" disabled={Boolean(generationProgress) || selectedPages.length === 0} onClick={() => setSelectedSourcePages(current => ({ ...current, [section.id]: [] }))}>清除</button></div></header>
                         <div className="speaking-source-page-picker__pages">{retainedPageLabels.map(page => {
@@ -1198,7 +1264,9 @@ export default function SpeakingContentAdmin() {
                     const interactionType = String(questionSet.generation_metadata?.interaction_type || "");
                     const answerAudioEnabled = interactionType === "text_qa" && questionSet.generation_metadata?.requires_answer_audio === true;
                     const isPictureSet = ["picture_qa", "picture_gap_sentence"].includes(interactionType);
-                    const isPageCandidate = ["ocr_page_candidate", "ai_page_auto"].includes(questionSet.generation_metadata?.source);
+                    const isPageCandidate = ["ocr_page_candidate", "ai_page_auto", "ai_pdf_visual"].includes(questionSet.generation_metadata?.source);
+                    const isMixedPageSet = interactionType === "mixed"
+                        && ["admin_page_builder", "ai_pdf_visual"].includes(questionSet.generation_metadata?.source);
                     const isManualStandard = interactionType === "standard_sentence"
                         && ["admin_manual_builder", "ocr_page_candidate", "ai_page_auto"].includes(questionSet.generation_metadata?.source);
                     const candidateReviewed = Boolean(questionSet.generation_metadata?.content_reviewed_at);
@@ -1214,9 +1282,11 @@ export default function SpeakingContentAdmin() {
                         <div className="speaking-set__heading"><button type="button" className="speaking-set__selector" aria-expanded={isSelected} onClick={() => setSelectedQuestionSetId(current => Number(current) === Number(questionSet.id) ? null : questionSet.id)}><span>{questionSet.status === "published" ? "已發布" : readiness.ready ? "待發布" : "製作中"} · 第 {questionSet.version} 版</span><h4>{questionSet.title}</h4><small>{pageLabels.join("、") || "未標示頁碼"} · {questionSetOrigin(questionSet)} · {(questionSet.speaking_questions || []).length} 題 · {isSelected ? "點擊收合" : "點擊展開"}</small><ChevronDown className="speaking-set__chevron" size={18} /></button>{isSelected && <div className="speaking-set__actions">{questionSet.status === "draft" && isPageCandidate && !candidateReviewed && <button type="button" className="platform-secondary" disabled={working === `confirm-page-${questionSet.id}`} onClick={() => confirmPageCandidate(questionSet)}>{working === `confirm-page-${questionSet.id}` ? "核准中…" : "已逐題對照原頁，核准內容"}</button>}{questionSet.status === "draft" && readiness.ready && (["standard_sentence", "picture_gap_sentence"].includes(interactionType) || answerAudioEnabled) && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "產生語音中…" : interactionType === "picture_gap_sentence" ? "先產生並試聽停頓語音" : "先產生並試聽示範語音"}</button>}{questionSet.status === "draft" && readiness.ready && <button type="button" className="platform-primary" disabled={working === `publish-${questionSet.id}`} onClick={() => publish(questionSet)}>{working === `publish-${questionSet.id}` ? interactionType === "text_qa" && !answerAudioEnabled ? "正在發布純文字關卡…" : "準備語音並發布中…" : interactionType === "text_qa" && !answerAudioEnabled ? "發布純文字關卡" : "準備語音並發布"}</button>}{questionSet.status === "published" && <a className="platform-secondary" href={`/student/speaking-challenges/${questionSet.id}`} target="_blank" rel="noreferrer"><Eye size={16} />學生版預覽</a>}{questionSet.status === "published" && !isLockedTemplate && <button type="button" className="platform-secondary" disabled={working === `revision-${questionSet.id}`} onClick={() => createRevision(questionSet)}><Pencil size={16} />{working === `revision-${questionSet.id}` ? "建立中…" : "建立新版草稿"}</button>}{questionSet.status === "published" && isLockedTemplate && <span className="speaking-set__locked">固定教材模板請從來源重建</span>}{questionSet.status === "published" && (interactionType !== "text_qa" || answerAudioEnabled) && <button type="button" className="platform-secondary" disabled={working === `audio-${questionSet.id}`} onClick={() => generateAudio(questionSet)}>{working === `audio-${questionSet.id}` ? "檢查語音中…" : interactionType === "picture_gap_sentence" ? "補產生停頓整句發音" : "補產生示範語音"}</button>}<button type="button" className="platform-danger" disabled={working === `archive-${questionSet.id}`} onClick={() => archiveSet(questionSet)}><Archive size={16} />{questionSet.status === "draft" ? "刪除草稿" : "下架"}</button></div>}</div>
                         {isSelected && questionSet.status === "draft" && <DraftReadinessPanel readiness={readiness} interactionType={interactionType} answerAudioEnabled={answerAudioEnabled} />}
                         {isSelected && manualAuthoringReason && <div className="speaking-ocr-review__notice"><strong>本頁已建立單頁草稿，等待人工補題</strong><span>{manualAuthoringReasonLabel(manualAuthoringReason)}</span></div>}
-                        {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : `${candidateFilter?.generation_strategy === "reviewed_numbered_text_qa" ? "核准文字逐頁候選" : "AI 逐頁候選"}草稿尚未核准 · ${interactionTypeLabel(interactionType)}`}</strong><span>{candidateReviewed ? interactionType === "text_qa" ? "可直接發布純文字問答，不會產生示範語音；若修改題目，會要求重新核准。" : "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : interactionType === "text_qa" ? "請核對畫面問句、示範回答與其他可接受的完整答案。題目指定 he／his 或 she／her 時只能收相符答案；未指定性別時，男女兩種完整答案都要保留，學生只需回答其中一種。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && (candidateFilter.generation_strategy === "reviewed_numbered_text_qa" ? <p>原檔共有 {candidateFilter.numbered_question_count ?? (questionSet.speaking_questions || []).length} 個編號題組，已維持一個編號一題；底線改為姓名、年齡或拼字等可變口說欄位，不會因此刪除整題，也不呼叫 AI 猜答案。</p> : <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>)}{candidateFilter?.generation_strategy === "ai_grouped_numbered_text_qa" && <p>已依教材題號與物品線索配對 {candidateFilter.numbered_question_count} 題；請逐題核對 AI 配對與完整答案。</p>}{(candidateFilter?.source_corrections || []).map(correction => <p key={correction.number} role="alert">第 {correction.number} 題：原文「{correction.original}」疑有文法錯字，草稿暫改「{correction.corrected}」；核准前請與原頁確認。</p>)}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
+                        {isSelected && isPageCandidate && <div className="speaking-ocr-review__notice"><strong>{candidateReviewed ? "已完成逐題人工核准" : `${candidateFilter?.generation_strategy === "reviewed_numbered_text_qa" ? "核准文字逐頁候選" : "AI 逐頁候選"}草稿尚未核准 · ${interactionTypeLabel(interactionType)}`}</strong><span>{candidateReviewed ? interactionType === "text_qa" ? "可直接發布純文字問答，不會產生示範語音；若修改題目，會要求重新核准。" : "可繼續補產生示範語音或發布；若修改題目，會要求重新核准。" : interactionType === "text_qa" ? "請核對畫面問句、示範回答與其他可接受的完整答案。題目指定 he／his 或 she／her 時只能收相符答案；未指定性別時，男女兩種完整答案都要保留，學生只需回答其中一種。" : questionSet.generation_metadata?.source === "ai_pdf_visual" ? "請逐題對照原教材與裁切圖片；高／中信心圖片由私人原始 PDF 裁切，低信心或上傳失敗的圖片須人工修正。核對後再按「已逐題對照原頁，核准內容」。" : "請逐題對照原教材，再按「已逐題對照原頁，核准內容」。圖片只會提供裁切建議，仍須使用 PDF 擷取器自行選取並上傳。"}</span>{candidateFilter && (candidateFilter.generation_strategy === "reviewed_numbered_text_qa" ? <p>原檔共有 {candidateFilter.numbered_question_count ?? (questionSet.speaking_questions || []).length} 個編號題組，已維持一個編號一題；底線改為姓名、年齡或拼字等可變口說欄位，不會因此刪除整題，也不呼叫 AI 猜答案。</p> : <p>自動出題只採用 {candidateFilter.eligible_sentence_count} 句完整英文句，略過 {candidateFilter.discarded_segment_count} 段格線、頁碼、填空、標題或作業指令；原始 OCR 文字仍保留在教材來源卡供核對。</p>)}{candidateFilter?.generation_strategy === "ai_grouped_numbered_text_qa" && <p>已依教材題號與物品線索配對 {candidateFilter.numbered_question_count} 題；請逐題核對 AI 配對與完整答案。</p>}{(candidateFilter?.source_corrections || []).map(correction => <p key={correction.number} role="alert">第 {correction.number} 題：原文「{correction.original}」疑有文法錯字，草稿暫改「{correction.corrected}」；核准前請與原頁確認。</p>)}{Number(duplicateReview?.excluded_count || 0) > 0 && <div className="speaking-page-candidate__duplicates"><strong>已略過 {duplicateReview.excluded_count} 題重複完整句</strong><ul>{(duplicateReview.matches || []).map((match, index) => <li key={`${match.question_set_id || "generated"}-${index}`}>{match.sentence} → {match.source_page_label || match.title}（{match.status === "published" ? "已發布" : "草稿"}）</li>)}</ul></div>}{Array.isArray(questionSet.generation_metadata?.image_suggestions) && questionSet.generation_metadata.image_suggestions.length > 0 && <ul className="speaking-page-candidate__images">{questionSet.generation_metadata.image_suggestions.map((suggestion, index) => <li key={`${suggestion}-${index}`}>建議裁切：{suggestion}</li>)}</ul>}</div>}
                         {isSelected && <StudentQuestionSetPreview questionSet={questionSet} firebaseUser={firebaseUser} />}
-                        {isSelected && (isPictureSet
+                        {isSelected && (isMixedPageSet && questionSet.status === "draft"
+                            ? <SpeakingMixedPageQuestionSetEditor firebaseUser={firebaseUser} questionSet={questionSet} onChanged={reloadQuestionSet} />
+                            : isPictureSet
                             ? questionSet.status === "draft"
                                 ? <SpeakingPictureQuestionSetEditor firebaseUser={firebaseUser} questionSet={questionSet} onChanged={reloadQuestionSet} />
                                 : <div className="speaking-ocr-review__notice"><strong>正式版本保持唯讀</strong><span>按「建立新版草稿」即可修改文字、圖片與順序；新版核准前，學生仍使用目前版本。</span></div>

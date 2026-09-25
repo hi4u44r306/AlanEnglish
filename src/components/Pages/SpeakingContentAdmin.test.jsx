@@ -4,6 +4,7 @@ import SpeakingContentAdmin from "./SpeakingContentAdmin";
 import {
     activatePictureGapTheAudioCandidate,
     activateSpeakingAlphabetAudioCandidate,
+    analyzeSpeakingBookChunkVisualPages,
     archiveSpeakingQuestionSet,
     archiveSpeakingSourceSection,
     confirmPageCandidateSpeakingDraft,
@@ -28,6 +29,7 @@ jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: moc
 jest.mock("../../services/speakingContentService", () => ({
     activatePictureGapTheAudioCandidate: jest.fn(),
     activateSpeakingAlphabetAudioCandidate: jest.fn(),
+    analyzeSpeakingBookChunkVisualPages: jest.fn(),
     confirmWorkbookOneFoundationSource: jest.fn(),
     confirmPageCandidateSpeakingDraft: jest.fn(),
     createWorkbookOneFoundationQuestionSet: jest.fn(),
@@ -440,6 +442,38 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
             source_section_id: 34,
             auto_question_count: true
         })));
+    });
+
+    it("uses the original private PDF for visual page analysis without imposing a five-question limit", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        analyzeSpeakingBookChunkVisualPages.mockResolvedValue({
+            success: true,
+            pages: [{ page_number: 4, suitable: true, question_set_id: 90, question_count: 10, crop_hints: [] }],
+            original_pdf: { url: "https://r2.example/workbook-3.pdf" }
+        });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 3, name: "Workbook 3", code: "Workbook_3" }],
+            documents: [{ id: 33, title: "Workbook 3", book_id: 3, original_upload_status: "uploaded" }],
+            chunks: [],
+            sections: [{
+                id: 34, document_id: 33, unit_label: "Unit 1", page_from_label: "P4", page_to_label: "P5",
+                topic: "所有格", language_level: "國小中年級", status: "reviewed", source_text: "[[PAGE P4]]\nOCR text",
+                document: { id: 33, original_upload_status: "uploaded" }
+            }],
+            question_sets: []
+        });
+
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /1 教材來源/ }));
+        fireEvent.click(screen.getByRole("button", { name: /已核准教材頁面/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "從原始 PDF 分析 1 頁" }));
+
+        await waitFor(() => expect(analyzeSpeakingBookChunkVisualPages).toHaveBeenCalledWith(
+            mockFirebaseUser,
+            34,
+            expect.stringMatching(/^[0-9a-f-]{36}$/i)
+        ));
+        expect(generateSpeakingQuestionSet).not.toHaveBeenCalled();
     });
 
     it("only batch-approves OCR candidates the administrator explicitly selected as reviewed", async () => {
