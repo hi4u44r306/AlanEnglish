@@ -2,6 +2,12 @@
 
 最後更新：2026-09-25
 
+本次手機／平板學生導覽與 Web Push 規劃（2026-09-25，本機完成、尚未部署）：
+
+- 學生底部導覽在 1100px 以下改為距安全區底緣 12px；平板導覽最大寬度 560px 並置中，文字增至 12px，保留既有至少 54px 觸控高度。播放器、作業捷徑、口說操作列與頁面底部留白沿用共同偏移量。
+- `docs/WEB_PUSH_PLAN.md` 已整理 iOS／Android Web Push 使用者流程、Firebase 身分綁定、訂閱與佇列設計、兒童通知頻率及隔離驗證閘門。只規劃，未新增 Service Worker、migration、Secret 或發送 Function。
+- 相關檔案：`StudentNavbar.scss`、`TextbookSpeakingChallenge.scss`、口說 CSS 契約、`WEB_PUSH_PLAN.md`、`網站使用手冊.md`。Navbar React 15/15、口說操作列契約 1/1、Production build、`git diff --check` 通過；Edge 模擬 320／412／768／1032px 及 34px 安全區未見水平溢出，播放器與導覽保留 8px。完整口說契約 36/37，唯一失敗為本工作目錄另一批進行中的「無圖片文字問答性別線索」3c 測試。尚未做登入學生與 iPhone Safari 實機驗收，未提交、推送或部署。
+
 本次口說大挑戰語音提示暫停（2026-09-25，正式部署完成）：
 
 - 學生端除 A–Z 導聽外，非 A–Z 題目的答案範例與看圖補句整句播放入口先隱藏；一般題目音檔網址與看圖補句音檔網址不再對學生簽發。已保存的私有 R2 音檔不刪除，工作人員預覽仍可試聽。

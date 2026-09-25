@@ -575,7 +575,8 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
 test("20. 手機口說操作列避開 Bottom Nav 與播放器，階段切換可由輔助科技得知", () => {
     assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.speaking-question-navigation/);
     assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.app-content\.has-player \.speaking-question-navigation/);
-    assert.match(challengeStyles, /var\(--app-player-space, 110px\) \+ 74px/);
+    assert.match(challengeStyles, /var\(--app-player-space, 110px\) \+ 76px/);
+    assert.match(challengeStyles, /var\(--student-bottom-nav-offset\)/);
     assert.match(challengeStyles, /\.speaking-sr-only/);
     assert.match(challengeStyles, /\.speaking-back:focus-visible/);
     assert.match(foundationChallenge, /ref=\{phaseFocusRef\} tabIndex="-1"/);
