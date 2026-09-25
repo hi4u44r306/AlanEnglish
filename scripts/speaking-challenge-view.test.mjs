@@ -126,7 +126,7 @@ test("P21 學生輸出只保留核准圖片，不含問句、答案、accepted r
     );
 });
 
-test("P22 只保留挖空句型、核准圖片與停頓整句短效網址", async () => {
+test("P22 學生只取得挖空句型與核准圖片，不簽發停頓整句音檔", async () => {
     const signer = createOpaqueSigner();
     const result = await buildPublicSpeakingQuestion({
         question: { ...secretQuestion, id: 2201 },
@@ -149,12 +149,13 @@ test("P22 只保留挖空句型、核准圖片與停頓整句短效網址", asyn
 
     assert.equal(result.picture_interaction.sentence_pattern, "The ____ is in the tree.");
     assert.equal("word_audio" in result.picture_interaction, false);
-    assert.equal(result.picture_interaction.sentence_audio_status, "ready");
-    assert.equal(result.picture_interaction.sentence_audio_url, "https://signed.test/2");
+    assert.equal(result.picture_interaction.sentence_audio_status, "hidden");
+    assert.equal(result.picture_interaction.sentence_audio_url, null);
     assert.equal(result.visual_aid.image_url, "https://signed.test/1");
     assert.equal(result.progress_status, "completed");
     assert.equal(result.model_answer, "");
     assert.equal(result.simple_answer, "");
+    assert.deepEqual(signer.keys, ["private/secret-p22.webp"]);
     assert.doesNotMatch(
         JSON.stringify(result),
         /SECRET|The apple is in the tree|accepted_full_responses|private_object_key|private\/secret-p22/
@@ -184,9 +185,9 @@ test("逐頁 mixed 題庫仍依每題核准 interaction 顯示看圖補句", asy
     assert.equal(result.picture_interaction.type, "picture_gap_sentence");
     assert.equal(result.picture_interaction.sentence_pattern, "It is ____.");
     assert.equal(result.visual_aid.image_url, "https://signed.test/1");
-    assert.equal(result.picture_interaction.sentence_audio_url, "https://signed.test/2");
+    assert.equal(result.picture_interaction.sentence_audio_url, null);
     assert.equal(result.question_audio_status, "hidden");
-    assert.deepEqual(signer.keys, ["private/p4-eye.webp", "private/p4-eye-sentence.wav"]);
+    assert.deepEqual(signer.keys, ["private/p4-eye.webp"]);
 });
 
 test("P21 圖片未 ready 與 P22 整句音檔未完成時拒絕輸出", async () => {
@@ -216,7 +217,7 @@ test("P21 圖片未 ready 與 P22 整句音檔未完成時拒絕輸出", async (
     );
 });
 
-test("字母、拼讀與一般口說維持原本答案及音檔顯示邊界", async () => {
+test("字母、拼讀與一般口說的學生題目音檔都不簽發", async () => {
     const hiddenSigner = createOpaqueSigner();
     const alphabet = await buildPublicSpeakingQuestion({
         question: { ...secretQuestion, question_text: "A", model_answer: "A" },
@@ -257,9 +258,11 @@ test("字母、拼讀與一般口說維持原本答案及音檔顯示邊界", as
         signPrivateObject: regularSigner.sign
     });
     assert.equal(regular.model_answer, "SECRET MODEL ANSWER");
-    assert.equal(regular.question_audio_url, "https://signed.test/1");
-    assert.equal(regular.model_audio_url, "https://signed.test/2");
-    assert.deepEqual(regularSigner.keys, ["private/prompt.mp3", "private/model.mp3"]);
+    assert.equal(regular.question_audio_url, null);
+    assert.equal(regular.model_audio_url, null);
+    assert.equal(regular.question_audio_status, "hidden");
+    assert.equal(regular.model_audio_status, "hidden");
+    assert.deepEqual(regularSigner.keys, []);
 });
 
 test("無圖片文字問答以文字問句呈現且隱藏既有答案音檔", async () => {
@@ -289,7 +292,7 @@ test("無圖片文字問答以文字問句呈現且隱藏既有答案音檔", as
     assert.deepEqual(signer.keys, []);
 });
 
-test("已核對的 Workbook 2 文字問答可選擇提供完整答案示範語音", async () => {
+test("即使已核對的 Workbook 2 文字問答有示範語音，學生仍不能取得網址", async () => {
     const signer = createOpaqueSigner();
     const result = await buildPublicSpeakingQuestion({
         question: { id: 4202, sort_order: 0, question_text: "What is this?", hint_zh: "題目線索：汽車。請用完整句回答。", model_answer: "It is a car." },
@@ -297,7 +300,29 @@ test("已核對的 Workbook 2 文字問答可選擇提供完整答案示範語�
         modelAsset: { status: "ready", private_object_key: "private/car-answer.wav" },
         promptAsset: null, pictureInteraction: null, visualAsset: null, signPrivateObject: signer.sign
     });
-    assert.equal(result.model_audio_status, "ready");
-    assert.equal(result.model_audio_url, "https://signed.test/1");
-    assert.deepEqual(signer.keys, ["private/car-answer.wav"]);
+    assert.equal(result.model_audio_status, "hidden");
+    assert.equal(result.model_audio_url, null);
+    assert.deepEqual(signer.keys, []);
+});
+
+test("工作人員預覽仍能取得既有一般題與看圖補句音檔", async () => {
+    const signer = createOpaqueSigner();
+    const regular = await buildPublicSpeakingQuestion({
+        question: secretQuestion, interactionType: "standard_sentence", staffAudioPreview: true,
+        modelAsset: { status: "ready", private_object_key: "private/model.mp3" },
+        promptAsset: { status: "ready", private_object_key: "private/prompt.mp3" },
+        signPrivateObject: signer.sign
+    });
+    assert.equal(regular.question_audio_url, "https://signed.test/1");
+    assert.equal(regular.model_audio_url, "https://signed.test/2");
+
+    const picture = await buildPublicSpeakingQuestion({
+        question: secretQuestion, interactionType: "picture_gap_sentence", staffAudioPreview: true,
+        pictureInteraction: { interaction_type: "picture_gap_sentence", prompt_text: "The ____ is in the tree." },
+        visualAsset: { status: "ready", private_object_key: "private/picture.webp" },
+        promptAsset: { status: "ready", private_object_key: "private/sentence.wav" },
+        signPrivateObject: signer.sign
+    });
+    assert.equal(picture.picture_interaction.sentence_audio_url, "https://signed.test/4");
+    assert.deepEqual(signer.keys, ["private/prompt.mp3", "private/model.mp3", "private/picture.webp", "private/sentence.wav"]);
 });
