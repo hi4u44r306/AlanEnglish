@@ -6,7 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
 import { notifyNotificationsRead } from "../../constants/notificationEvents";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
-import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
+import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig, sendWebPushTest } from "../../services/webPushService";
 import "./css/StudentNotifications.scss";
 
 const PAGE_SIZE = 30;
@@ -82,6 +82,20 @@ function StudentNotifications() {
         }
     };
 
+    const sendTestPush = async () => {
+        if (!firebaseUser || pushBusy || !pushStatus?.active) return;
+        setPushBusy(true);
+        try {
+            await sendWebPushTest(firebaseUser);
+            toast.success("推播服務已接收測試通知，請查看此裝置通知。");
+            await loadNotifications();
+        } catch (error) {
+            toast.error(error.message || "推播測試失敗");
+        } finally {
+            setPushBusy(false);
+        }
+    };
+
     const markRead = async notification => {
         if (!notification || notification.read_at || !firebaseUser) return;
         const readAt = new Date().toISOString();
@@ -137,10 +151,15 @@ function StudentNotifications() {
                     <p>開啟後，此裝置可收到新班級作業與教材使用期限提醒。鎖定畫面只顯示簡短提示；完整內容請登入查看。晚上 9 點至早上 8 點不發送，每日最多三則。</p>
                     <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務尚未開放；網站內通知仍可正常使用。" : pushStatus?.active ? "此裝置已開啟" : "此裝置尚未開啟")}</small>
                 </div>
-                <button type="button" onClick={togglePush}
-                    disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
-                    {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
-                </button>
+                <div className="student-notifications-push-actions">
+                    <button type="button" onClick={togglePush}
+                        disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
+                        {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
+                    </button>
+                    {pushStatus?.active && <button type="button" className="is-test" onClick={sendTestPush} disabled={pushBusy}>
+                        傳送測試通知
+                    </button>}
+                </div>
             </section>
 
             <section className="student-notifications-list" aria-live="polite">

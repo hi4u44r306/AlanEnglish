@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import StudentNotifications from "./StudentNotifications";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
-import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
+import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig, sendWebPushTest } from "../../services/webPushService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({
@@ -15,7 +15,7 @@ jest.mock("../../services/membershipService", () => ({
 }));
 jest.mock("../../services/webPushService", () => ({
     disableWebPush: jest.fn(), enableWebPush: jest.fn(),
-    getCurrentWebPushStatus: jest.fn(), getWebPushAvailability: jest.fn(), getWebPushConfig: jest.fn()
+    getCurrentWebPushStatus: jest.fn(), getWebPushAvailability: jest.fn(), getWebPushConfig: jest.fn(), sendWebPushTest: jest.fn()
 }));
 
 describe("StudentNotifications", () => {
@@ -43,6 +43,7 @@ describe("StudentNotifications", () => {
         getCurrentWebPushStatus.mockResolvedValue({ supported: false, active: false });
         enableWebPush.mockResolvedValue();
         disableWebPush.mockResolvedValue();
+        sendWebPushTest.mockResolvedValue({ accepted: true });
     });
 
     it("shows all loaded notifications, marks one read, and loads earlier notifications", async () => {
@@ -121,9 +122,13 @@ describe("StudentNotifications", () => {
         const enable = await screen.findByRole("button", { name: "開啟此裝置推播" });
         await waitFor(() => expect(enable).toBeEnabled());
         expect(enableWebPush).not.toHaveBeenCalled();
+        expect(screen.queryByRole("button", { name: "傳送測試通知" })).not.toBeInTheDocument();
         fireEvent.click(enable);
         await waitFor(() => expect(enableWebPush).toHaveBeenCalledWith({ uid: "student-1" }, "public-key"));
+        fireEvent.click(await screen.findByRole("button", { name: "傳送測試通知" }));
+        await waitFor(() => expect(sendWebPushTest).toHaveBeenCalledWith({ uid: "student-1" }));
         const disable = await screen.findByRole("button", { name: "關閉此裝置推播" });
+        await waitFor(() => expect(disable).toBeEnabled());
         fireEvent.click(disable);
         await waitFor(() => expect(disableWebPush).toHaveBeenCalledWith({ uid: "student-1" }));
     });

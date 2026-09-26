@@ -29,7 +29,9 @@
 .student-notifications-push h2 { margin: 0 0 8px; font-size: 20px; color: #193a75; }
 .student-notifications-push p { margin: 0 0 9px; line-height: 1.6; color: #50617f; }
 .student-notifications-push small { color: #3158a7; font-weight: 800; line-height: 1.5; }
+.student-notifications-push-actions { display: grid; gap: 8px; flex: 0 0 auto; }
 .student-notifications-push button { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; color: #fff; background: #3158a7; font-weight: 850; cursor: pointer; }
+.student-notifications-push button.is-test { border: 1px solid #b8c8e7; color: #284b8f; background: #f4f7ff; }
 .student-notifications-push button:disabled { opacity: .5; cursor: not-allowed; }
 
 .student-notifications-list { display: grid; gap: 11px; }
@@ -59,6 +61,7 @@
 @media (max-width: 600px) {
     .student-notifications-page { width: min(100% - 20px, 900px); padding-top: 18px; }
     .student-notifications-push { flex-direction: column; align-items: stretch; padding: 18px; }
+    .student-notifications-push-actions { width: 100%; }
     .student-notifications-push button { width: 100%; }
     .student-notification-card { grid-template-columns: auto minmax(0, 1fr); align-items: start; padding: 15px; }
     .student-notification-card > button { grid-column: 2; justify-self: start; }

@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { buildPushPayload } from "npm:@block65/webcrypto-web-push@2.0.0";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
-import { getWebPushMessage, isAllowedPushEndpoint, isValidPushKey, isWebPushQuietHour } from "../_shared/web-push-policy.ts";
+import { getWebPushMessage, getWebPushTestMessage, isAllowedPushEndpoint, isValidPushKey, isWebPushQuietHour } from "../_shared/web-push-policy.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -111,6 +111,59 @@ async function processQueue(admin: any) {
     return { configured: true, claimed: (jobs || []).length, sent };
 }
 
+async function sendTestPush(admin: any, studentId: number, endpoint: string) {
+    if (isWebPushQuietHour()) return json(429, { error: "晚上 9 點至早上 8 點暫停推播測試" });
+    const { data: device, error: deviceError } = await admin.from("student_push_subscriptions")
+        .select("id,endpoint,p256dh,auth_secret").eq("student_id", studentId)
+        .eq("endpoint", endpoint).eq("active", true).maybeSingle();
+    if (deviceError) throw deviceError;
+    if (!device) return json(404, { error: "此裝置尚未開啟推播，請重新訂閱" });
+
+    const [start, end] = dayBounds();
+    const daily = await admin.from("student_push_delivery_queue").select("id", { count: "exact", head: true })
+        .eq("subscription_id", device.id).eq("status", "sent").gte("sent_at", start).lt("sent_at", end);
+    if (daily.error) throw daily.error;
+    if ((daily.count || 0) >= 3) return json(429, { error: "此裝置今日已達三則推播上限" });
+
+    const minute = new Date().toISOString().slice(0, 16);
+    const eventKey = `web_push_test:${device.id}:${minute}`;
+    const { data: notice, error: noticeError } = await admin.from("student_notifications").insert({
+        student_id: studentId, notification_type: "system", event_key: eventKey,
+        title: "推播測試", body: "這是一則此裝置的推播測試通知。",
+        metadata: { event_type: "web_push_test" }
+    }).select("id").single();
+    if (noticeError?.code === "23505") return json(429, { error: "請稍後再傳送測試通知" });
+    if (noticeError) throw noticeError;
+    const { data: job, error: jobError } = await admin.from("student_push_delivery_queue").insert({
+        student_notification_id: notice.id, subscription_id: device.id,
+        status: "sending", attempt_count: 1, claimed_at: new Date().toISOString()
+    }).select("id").single();
+    if (jobError) throw jobError;
+
+    try {
+        const payload = await buildPushPayload({ data: JSON.stringify(getWebPushTestMessage(notice.id)), options: { ttl: 3600 } }, {
+            endpoint: device.endpoint, expirationTime: null,
+            keys: { p256dh: device.p256dh, auth: device.auth_secret }
+        }, vapid());
+        const response = await fetch(device.endpoint, {
+            ...payload, redirect: "error", signal: AbortSignal.timeout(8000)
+        });
+        if (response.ok) {
+            await queueUpdate(admin, job.id, { status: "sent", sent_at: new Date().toISOString(), last_http_status: response.status });
+            return json(200, { success: true, accepted: true });
+        }
+        await queueUpdate(admin, job.id, { status: "skipped", last_http_status: response.status });
+        if (response.status === 404 || response.status === 410) {
+            await admin.from("student_push_subscriptions").update({ active: false, disabled_at: new Date().toISOString() }).eq("id", device.id);
+            await skipPendingForSubscription(admin, device.id);
+        }
+        return json(502, { error: "推播服務未接受測試通知，請稍後再試" });
+    } catch {
+        await queueUpdate(admin, job.id, { status: "skipped" });
+        return json(502, { error: "推播測試暫時失敗，請稍後再試" });
+    }
+}
+
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -137,6 +190,10 @@ Deno.serve(async (req: Request) => {
         if (action === "config") return json(200, { public_key: publicKey, enabled });
         const endpoint = body.endpoint;
         if (!isAllowedPushEndpoint(endpoint)) return json(400, { error: "推播裝置資訊無效" });
+        if (action === "send_test") {
+            if (!enabled) return json(503, { error: "推播服務尚未開放" });
+            return await sendTestPush(admin, caller.id, endpoint);
+        }
         if (action === "status") {
             const result = await admin.from("student_push_subscriptions").select("id,active")
                 .eq("endpoint", endpoint).eq("student_id", caller.id).maybeSingle();

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-    getWebPushMessage, isAllowedPushEndpoint, isValidPushKey, isWebPushQuietHour
+    getWebPushMessage, getWebPushTestMessage, isAllowedPushEndpoint, isValidPushKey, isWebPushQuietHour
 } from "../supabase/functions/_shared/web-push-policy.ts";
 
 test("subscription endpoints cannot target arbitrary hosts or local services", () => {
@@ -28,6 +28,15 @@ test("only low-sensitivity assignment and material-expiry events can reach lock 
     assert.equal(message.path, "/student/assignments");
     assert.equal(message.body.includes("學生"), false);
     assert.equal(getWebPushMessage({ id: 4, notification_type: "membership", metadata: { event_type: "material_access_expiring" } }).path, "/student/membership");
+});
+
+test("device self-test uses a generic same-origin notification", () => {
+    assert.deepEqual(getWebPushTestMessage(12), {
+        title: "Alan English 推播測試",
+        body: "這部裝置已收到測試通知。",
+        path: "/student/notifications",
+        notification_id: 12
+    });
 });
 
 test("quiet hours follow Taipei local time", () => {
