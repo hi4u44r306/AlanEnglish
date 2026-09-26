@@ -1,8 +1,9 @@
-// Markers follow the painted trail, while the complete illustration scales with the catalog.
+// Markers follow the three painted biomes. The map grows with the catalog so
+// Workbook 1's 25 levels keep game-like breathing room on every viewport.
 const TRAIL_LANDMARKS = [
-    [0, 360], [0.13, 450], [0.21, 565], [0.3, 470], [0.39, 340],
-    [0.48, 490], [0.55, 590], [0.63, 410], [0.71, 330],
-    [0.78, 430], [0.85, 555], [0.93, 600], [1, 650]
+    [0, 190], [0.07, 390], [0.14, 610], [0.22, 330], [0.29, 720],
+    [0.34, 770], [0.4, 220], [0.47, 650], [0.54, 760], [0.61, 280],
+    [0.67, 210], [0.73, 690], [0.8, 360], [0.87, 720], [0.94, 420], [1, 580]
 ];
 
 const trailX = progress => {
@@ -14,9 +15,9 @@ const trailX = progress => {
 };
 
 export const buildSpeakingAdventureRoute = (_bookKey, items) => {
-    const height = Math.max(1200, items.length * 88);
-    const top = 155;
-    const bottom = height - 150;
+    const height = Math.max(1800, items.length * 128 + 520);
+    const top = 340;
+    const bottom = height - 220;
     const interval = items.length > 1 ? (bottom - top) / (items.length - 1) : 0;
     const nodes = items.map((item, index) => ({
         id: item.id,
