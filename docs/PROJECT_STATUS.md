@@ -2,9 +2,9 @@
 
 最後更新：2026-09-26
 
-本次 iPhone Web Push 裝置自測（2026-09-26，正式站已部署，實機收件待驗）：
+本次 iPhone Web Push 裝置自測（2026-09-26，前景收件與點擊已驗收）：
 
-- 正式站出現 1 筆近期建立的啟用中 Apple Push 訂閱，與使用者回報 iPhone 17 Pro Max 已開啟的時間相符。`codex/web-push-self-test` 已由 PR #292 合併至 `main` `b89b9a4a`；`web-push-manager` v3 ACTIVE、Cloudflare Worker `3cb5046a-34c3-4a59-af12-85a6c2b37f39` 已發布，兩個正式網域通知頁 HTTP 200 並載入 `main.42f170ff.js`，未登入測試呼叫回應 401。手動測試按鈕僅向已驗證學生本人在此裝置的訂閱送出低敏感度測試訊息，並寫入站內系統通知與推播佇列紀錄；與正式提醒共用安靜時段及每日三則上限，同分鐘防重複。測試不建立假作業，也不向班級群發。使用者尚未回報按鈕結果；實機顯示與點擊待驗。
+- 正式站出現 1 筆近期建立的啟用中 Apple Push 訂閱，與使用者回報 iPhone 17 Pro Max 已開啟的時間相符。`codex/web-push-self-test` 已由 PR #292 合併至 `main` `b89b9a4a`；`web-push-manager` v3 ACTIVE、Cloudflare Worker `3cb5046a-34c3-4a59-af12-85a6c2b37f39` 已發布，兩個正式網域通知頁 HTTP 200 並載入 `main.42f170ff.js`，未登入測試呼叫回應 401。手動測試按鈕僅向已驗證學生本人在此裝置的訂閱送出低敏感度測試訊息，並寫入站內系統通知與推播佇列紀錄；與正式提醒共用安靜時段及每日三則上限，同分鐘防重複。測試不建立假作業，也不向班級群發。後端記錄兩次測試推送均由 Apple Push 回應 201；使用者確認 iPhone 17 Pro Max 在網站開著時收到通知，點擊後進入 Alan English 通知頁。背景／鎖定狀態與 Android 實機收件尚未驗證。
 
 本次 iOS／Android Web Push（2026-09-26，正式站已部署，實機收件待驗）：
 
