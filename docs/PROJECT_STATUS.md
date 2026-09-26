@@ -1,12 +1,12 @@
 # Alan English 專案狀態
 
-最後更新：2026-09-26
+最後更新：2026-09-27
 
-本次 Workbook 全寬長地圖與單屏關卡（2026-09-26，本機完成、尚未部署）：
+本次 Workbook 全寬長地圖與單屏關卡（2026-09-27，已正式部署）：
 
 - 分支 `codex/speaking-world-map-v2` 將 Workbook 地圖拆成草原天空、瀑布高地與火山終點三段全寬場景，依實際關卡數延長高度；Workbook 1 的 25 關以不規則左右轉折及至少約 100px 的垂直間距排列。頂部只保留固定浮動的返回鍵與完成數，第一關附近新增教材路牌；桌面與手機進入地圖或關卡後皆隱藏網站 Header、底部導覽、播放器及發布作業捷徑。
 - 主題節點顯示「主題1、主題2…」；跨頁頁碼使用膠囊節點，鎖定時仍保留頁碼並以小鎖標示。關卡摘要新增星星與道具區，但目前只顯示既有資料或「尚未開放」，不建立獎勵規則、不扣除 AE Points。一般題卡背景以 50% 地圖色層呈現，圖片縮至原版約一半，工作人員的「聽整句」寬度縮至 70%，手機初始題目、錄音鍵與核心操作可在單一視窗看到。
-- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`ImmersiveSpeaking.scss`、三張 `adventure-*-v2.webp` 地圖素材、相關測試及 `網站使用手冊.md`。三張 WebP 合計約 1.31MB；React 4 suites／63 tests、口說契約 37/37、Production build 與 `git diff --check` 已通過；390px 地圖無水平溢位，捲動 1200px 後浮動工具列位置不變；445×796 題目樣張沒有頁面捲動，網站 Header 與底部導覽確實隱藏。尚待 PR、Cloudflare 正式部署與登入學生實機驗收。
+- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`ImmersiveSpeaking.scss`、三張 `adventure-*-v2.webp` 地圖素材、相關測試及 `網站使用手冊.md`。三張 WebP 合計約 1.31MB；React 4 suites／63 tests、口說契約 37/37、Production build 與 `git diff --check` 已通過；390px 地圖無水平溢位，捲動 1200px 後浮動工具列位置不變；445×796 題目樣張沒有頁面捲動，網站 Header 與底部導覽確實隱藏。PR #301 已合併至 `main` `973b69d3`，Cloudflare 正式建置 `21cf286b-9bff-4613-8651-40ffd6bd8f05` 成功；`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 的口說路由均回應 200 並載入與本機 build 相同的 `main.a2c2200b.js`，新版 CSS 與三張 WebP 地圖皆回應 200。登入學生的 iPhone／Android／平板實機操作手感仍待驗收。
 
 本次參考圖風格口說地圖與題卡（2026-09-26，已正式部署）：
 
