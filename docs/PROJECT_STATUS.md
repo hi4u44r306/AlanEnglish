@@ -2,11 +2,11 @@
 
 最後更新：2026-09-26
 
-本次 iOS／Android Web Push（2026-09-26，功能分支本機實作中，尚未部署）：
+本次 iOS／Android Web Push（2026-09-26，正式站已部署，實機收件待驗）：
 
 - `codex/web-push-ios-android` 新增 Service Worker、通知頁裝置訂閱開關、登出解除訂閱、Firebase 驗證的 `web-push-manager`、推播訂閱／佇列 additive migration，並使新發布班級作業產生站內通知。推播僅限新作業及教材附贈網站權限到期提醒；保留站內通知作為主紀錄。
-- 使用現有每小時家長排程驅動推播佇列，台北時間 21:00～08:00 停發、每裝置每天最多三則、每批至多 20 筆。VAPID Secret、migration、Function、Cloudflare 前端均未發布；需隔離環境驗證與本批正式操作授權。實機 iOS／Android 推播尚未驗證。
-- 相關檔案：`public/web-push-sw.js`、`public/manifest.json`、`src/services/webPushService.js`、`StudentNotifications.jsx`／SCSS、`AuthContext.jsx`、`supabase/functions/web-push-manager/index.ts`、`assignment-manager`、`notification-manager`、`supabase/migrations/20260926090000_student_web_push.sql`、`docs/WEB_PUSH_PLAN.md`。通知頁／登出 React 測試 6/6、推播安全規則／Service Worker 測試 6/6、Edge 語法及 Production build 通過；暫存 PGlite 隔離資料庫已驗證 migration 語法、入列去重、預約作業及 anon／authenticated 拒絕存取，固定版 Web Push 函式庫已離線產生 AES128GCM／VAPID 封包。Supabase 開發分支建立遭方案限制拒絕（需 Pro，未建立亦未計費）；實際 Supabase Edge 執行、iOS／Android 實機尚待驗證。額外執行的既有全域契約中，`academy-assignment-v2` 有 1 項未改動的發音權限文字斷言失敗，`material-commerce-contracts` 有 1 項未改動的家長 Email 文字斷言失敗，需另案釐清。
+- 使用現有每小時第 5 分鐘的家長排程驅動推播佇列，台北時間 21:00～08:00 停發、每裝置每天最多三則、每批至多 20 筆。使用者指定本批直接在正式站測試；PR #290 已合併至 `main` `e69ead82`。正式 additive migration 版本 `20260926071713_student_web_push` 已套用，VAPID Secret 已安全設定且 `WEB_PUSH_ENABLED=true`；`web-push-manager` v1、`notification-manager` v14、`assignment-manager` v33 均 ACTIVE。Cloudflare Worker 版本 `e2769ea1-1ab6-48b2-839d-2bf950cf7c4f` 已發布，兩個正式網域的通知路由、manifest 與 Service Worker 回應 200 並載入 `main.3bf6b1f3.js`。發布後兩張推播表均啟用 RLS，`anon`／`authenticated` 無 SELECT 權限；未登入 Function 請求回應 401／403。驗收時訂閱與待送佇列均為 0；iOS／Android 實機授權、訂閱、背景收件及點擊仍待驗證。回復可先設 `WEB_PUSH_ENABLED=false`，再回復前端與三支 Function；保留 additive 資料表及紀錄。
+- 相關檔案：`public/web-push-sw.js`、`public/manifest.json`、`src/services/webPushService.js`、`StudentNotifications.jsx`／SCSS、`AuthContext.jsx`、`supabase/functions/web-push-manager/index.ts`、`assignment-manager`、`notification-manager`、`supabase/migrations/20260926071713_student_web_push.sql`、`docs/WEB_PUSH_PLAN.md`。通知頁／登出 React 測試 6/6、推播安全規則／Service Worker 測試 6/6、Edge 語法及 Production build 通過；暫存 PGlite 隔離資料庫已驗證 migration 語法、入列去重、預約作業及 anon／authenticated 拒絕存取，固定版 Web Push 函式庫已離線產生 AES128GCM／VAPID 封包。Supabase 開發分支建立遭方案限制拒絕（需 Pro，未建立亦未計費）；額外執行的既有全域契約中，`academy-assignment-v2` 有 1 項未改動的發音權限文字斷言失敗，`material-commerce-contracts` 有 1 項未改動的家長 Email 文字斷言失敗，需另案釐清。
 
 本次手機／平板學生導覽與 Web Push 規劃（2026-09-26，導覽已正式部署）：
 
