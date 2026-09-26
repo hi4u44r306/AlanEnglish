@@ -2,10 +2,10 @@
 
 最後更新：2026-09-26
 
-本次參考圖風格口說地圖與題卡（2026-09-26，尚未部署）：
+本次參考圖風格口說地圖與題卡（2026-09-26，已正式部署）：
 
 - 分支 `codex/speaking-reference-visuals` 從最新 `main` 建立，依使用者提供的兩張圖，將 Workbook 地圖換成草地／瀑布／火山的單張明亮插畫，關卡圓點仍由題庫資料定位並保持解鎖與摘要可點擊；頂端返回鍵與進度改為浮動白色圓鈕及木牌。一般口說與看圖題改為木牌進度、奶油白題卡、較小題字與 82px 手機錄音鍵。Workbook 1–6 選書卡與 A–Z 不變，沒有後端、資料庫或權限修改。
-- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`ImmersiveSpeaking.scss`、新地圖插畫、相關測試及 `網站使用手冊.md`。相關 React 4 suites／63 tests、Production build 通過；390px 題卡視覺樣張無水平溢位且實測題字 18px、錄音鍵 82px，768px 樣張亦無水平溢位。尚待最終 diff、發布與正式網址驗收；iPhone 主畫面及 Android 實機手感需使用者驗收。
+- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`ImmersiveSpeaking.scss`、新地圖插畫、相關測試及 `網站使用手冊.md`。相關 React 4 suites／63 tests、Production build 通過；390px 題卡視覺樣張無水平溢位且實測題字 18px、錄音鍵 82px，768px 樣張亦無水平溢位。PR #299 已合併至 `main` `432ca925`，Cloudflare 正式建置 `cad65ced-c1b8-4eb4-83e6-102ceccfaf50` 成功；`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 口說路由均回應 200 並載入與本機 build 相同的 `main.c863f034.js`，新版地圖圖片與口說 CSS 均回應 200。舊 Netlify 預覽為 `skipped=true`。iPhone 主畫面及 Android 實機觸控與錄音手感需使用者驗收。
 
 本次沉浸式口說地圖與主畫面導覽（2026-09-26，已正式部署）：
 
