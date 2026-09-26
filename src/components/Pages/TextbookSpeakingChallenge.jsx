@@ -121,8 +121,8 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode
     const challengeLabel = lessonTitle(item);
     const special = item.generation_metadata?.map_level_kind === "special";
     return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}px`, "--map-side": `${mapNode.x / 10}%` }} type="button" onClick={onOpen} aria-label={`${pages || `第 ${levelNumber} 關`}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
-    <span className="speaking-challenge-lesson__number">{pages || String(levelNumber).padStart(2, "0")}</span>
-    <span className="speaking-challenge-lesson__state" aria-hidden="true">{locked ? <FiLock /> : completed ? <FiCheck /> : current ? "★" : null}</span>
+    <span className="speaking-challenge-lesson__number">{locked ? <FiLock aria-hidden="true" /> : pages || String(levelNumber).padStart(2, "0")}</span>
+    <span className="speaking-challenge-lesson__state" aria-hidden="true">{completed ? <FiCheck /> : null}</span>
     </button>;
 };
 
@@ -413,7 +413,7 @@ export default function TextbookSpeakingChallenge() {
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
-                    <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-height": `${mapRoute.height}px` }}><svg className="speaking-map-route" viewBox={`0 0 1000 ${mapRoute.height}`} preserveAspectRatio="none" aria-hidden="true"><path className="speaking-map-route__glow" d={mapRoute.path} /><path className="speaking-map-route__line" d={mapRoute.path} /></svg>{mapLessons.map(({ item, section, current }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}</div></section>
+                    <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-height": `${mapRoute.height}px` }}>{mapLessons.map(({ item, section, current }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}</div></section>
                 </section>}
                 {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
@@ -488,11 +488,13 @@ export default function TextbookSpeakingChallenge() {
 
         <section className="speaking-question-stage">
             <article key={activeQuestion.id} className={`speaking-focus-card ${isCompleted ? "done" : ""}`}>
-                <header className="speaking-question-heading">
-                    <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
-                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
-                </header>
-                <SpeakingVisualAid aid={activeQuestion.visual_aid} />
+                <div className="speaking-game-question-card">
+                    <SpeakingVisualAid aid={activeQuestion.visual_aid} />
+                    <header className="speaking-question-heading">
+                        <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
+                        <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
+                    </header>
+                </div>
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
                 {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
                 <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。"}</small>

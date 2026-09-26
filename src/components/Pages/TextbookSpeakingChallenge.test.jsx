@@ -203,7 +203,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(nodes).toHaveLength(3);
         expect(nodes.map(node => Number(node.style.getPropertyValue("--map-y").replace("px", "")))).toEqual([155, 603, 1050]);
         expect(container.querySelectorAll(".speaking-map-landscape")).toHaveLength(0);
-        expect(container.querySelectorAll(".speaking-map-route__line")).toHaveLength(1);
+        expect(container.querySelectorAll(".speaking-map-route__line")).toHaveLength(0);
     });
 
     it("hides the stored private model audio from student challenges", async () => {
@@ -366,11 +366,12 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
         expect(document.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
-        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("P.18～20");
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveAccessibleName(/P.18～20/);
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).not.toHaveTextContent("P.18～20");
         expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveAccessibleName(/尚未解鎖/);
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("P.35～36、60、99～100");
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toBeEnabled();
-        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("P.100");
+        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveAccessibleName(/P.100/);
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).not.toHaveTextContent("打招呼與禮貌對話");
         expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
