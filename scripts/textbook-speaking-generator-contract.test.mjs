@@ -35,6 +35,7 @@ const adminPage = read("src/components/Pages/SpeakingContentAdmin.jsx");
 const ocrPageMarkers = read("supabase/functions/_shared/speaking-ocr-page-markers.ts");
 const app = read("src/app/App.jsx");
 const challengeStyles = read("src/components/Pages/css/TextbookSpeakingChallenge.scss");
+const adventureRouteStyles = read("src/components/Pages/css/SpeakingAdventureRoute.scss");
 const foundationChallenge = read("src/components/Pages/WorkbookOneFoundationChallenge.jsx");
 const pronunciationRecorder = read("src/components/Pages/SpeakingPronunciationRecorder.jsx");
 const pronunciationRecorderStyles = read("src/components/Pages/css/SpeakingPronunciationRecorder.scss");
@@ -572,11 +573,14 @@ test("19. 學生只能讀取及評分已取得教材，付費 Speech 請求先�
     assert.match(pronunciationLedgerMigration, /Raw microphone audio is never stored/);
 });
 
-test("20. 手機口說操作列避開 Bottom Nav 與播放器，階段切換可由輔助科技得知", () => {
+test("20. 手機口說專注模式與一般 Bottom Nav 避讓，階段切換可由輔助科技得知", () => {
     assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.speaking-question-navigation/);
     assert.match(challengeStyles, /body:has\(\.ae-student-bottom-nav\) \.app-content\.has-player \.speaking-question-navigation/);
     assert.match(challengeStyles, /var\(--app-player-space, 110px\) \+ 76px/);
     assert.match(challengeStyles, /var\(--student-bottom-nav-offset\)/);
+    assert.match(adventureRouteStyles, /body\.speaking-challenge-active \.ae-student-bottom-nav \{ display: none; \}/);
+    assert.match(adventureRouteStyles, /body\.speaking-challenge-active:has\(\.ae-student-bottom-nav\) \.app-content\.has-player \{ padding-bottom: 0; \}/);
+    assert.match(adventureRouteStyles, /\.speaking-question-navigation \{ bottom: max\(8px, env\(safe-area-inset-bottom\)\); \}/);
     assert.match(challengeStyles, /\.speaking-sr-only/);
     assert.match(challengeStyles, /\.speaking-back:focus-visible/);
     assert.match(foundationChallenge, /ref=\{phaseFocusRef\} tabIndex="-1"/);

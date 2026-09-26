@@ -7,8 +7,11 @@ import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
+import { buildSpeakingAdventureRoute } from "../../utils/speakingAdventureMap";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import "./css/TextbookSpeakingChallenge.scss";
+import "./css/SpeakingAdventureMap.scss";
+import "./css/SpeakingAdventureRoute.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },
@@ -81,14 +84,10 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
         aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關${rewardLabel}`}
     >
         <span className="speaking-book-card__art" aria-hidden="true">
-            <span className="speaking-book-card__spark is-one">✦</span>
-            <span className="speaking-book-card__spark is-two">★</span>
-            <span className="speaking-book-card__speech"><FiMic /> LET'S SPEAK!</span>
-            <span className="speaking-book-card__mascot">
-                <FiBookOpen />
-                <b>Aa</b>
-                <span className="speaking-book-card__face"><i /><i /><em /></span>
+            <span className="speaking-book-card__route">
+                <i /><i /><i /><i />
             </span>
+            <span className="speaking-book-card__route-caption">一路闖關冒險</span>
         </span>
         <span className="speaking-book-card__content">
             <small className="speaking-book-card__eyebrow">BOOK {index + 1} · SPEAKING ADVENTURE</small>
@@ -114,7 +113,7 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
     </button>;
 };
 
-const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
+const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode }) => {
     const locked = !staffPreview && item.is_unlocked === false;
     const completed = item.is_completed === true;
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
@@ -123,11 +122,32 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section }) => {
     const challengeLabel = lessonTitle(item);
     const topicOrType = item.topic || item.intro_zh || sectionCopy.label;
     const level = item.difficulty ? ` · ${item.difficulty}` : "";
-    return <button className={`speaking-challenge-lesson is-${section} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""}`} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
-    <span className="speaking-challenge-lesson__number">{showPageReference ? pages : sectionCopy.badge}</span>
+    const special = item.generation_metadata?.map_level_kind === "special";
+    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}px`, "--map-side": `${mapNode.x / 10}%` }} type="button" onClick={onOpen} disabled={locked} aria-describedby={locked ? `speaking-challenge-lock-${item.id}` : undefined}>
+    <span className="speaking-challenge-lesson__number">{showPageReference ? pages : special ? "特別" : sectionCopy.badge}</span>
     <span className="speaking-challenge-lesson__copy"><strong>{challengeLabel}</strong><small>{topicOrType}{level}</small></span>
     <span className="speaking-challenge-lesson__meta">{locked ? <><FiLock aria-hidden="true" /><small id={`speaking-challenge-lock-${item.id}`}>先完成前一關</small></> : completed ? <><FiCheck aria-hidden="true" /><small>已通關</small></> : <><b>{item.completed_count}/{item.question_count}</b><small>{staffPreview ? "預覽" : "開始挑戰"}</small></>}</span>
     </button>;
+};
+
+const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef }) => {
+    const pages = pageReference(item);
+    const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
+    return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+        <section className="speaking-level-dialog" ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
+            <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
+            <span className="speaking-level-dialog__eyebrow">{sectionCopy.label} · {pages || sectionCopy.badge}</span>
+            <h2 id="speaking-level-title">{lessonTitle(item)}</h2>
+            <p id="speaking-level-description">{item.intro_zh || item.learning_goal_zh || item.topic || "準備好開口說英文了嗎？"}</p>
+            <div className="speaking-level-dialog__facts">
+                <span><small>教材頁碼</small><strong>{pages || "入門／主題關卡"}</strong></span>
+                <span><small>本關題數</small><strong>{item.question_count} 題</strong></span>
+                <span><small>目前進度</small><strong>{item.is_completed ? "已通關" : `${item.completed_count || 0}/${item.question_count} 題`}</strong></span>
+            </div>
+            {item.learning_goal_zh && item.intro_zh && <p className="speaking-level-dialog__goal">目標：{item.learning_goal_zh}</p>}
+            <div className="speaking-level-dialog__actions"><button type="button" onClick={onClose}>再看看地圖</button><button type="button" className="primary" onClick={onEnter}>進入挑戰 <FiChevronRight aria-hidden="true" /></button></div>
+        </section>
+    </div>;
 };
 
 const ChallengeRules = ({ policy }) => {
@@ -171,8 +191,11 @@ export default function TextbookSpeakingChallenge() {
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [completionNotice, setCompletionNotice] = useState(null);
     const [challengeSessionId, setChallengeSessionId] = useState("");
+    const [selectedLesson, setSelectedLesson] = useState(null);
     const audioRef = useRef(null);
     const questionHeadingRef = useRef(null);
+    const levelDialogRef = useRef(null);
+    const selectedNodeRef = useRef(null);
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const questions = challenge?.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
@@ -223,16 +246,15 @@ export default function TextbookSpeakingChallenge() {
     }, []);
 
     useEffect(() => {
-        // 只有實際進入小關卡時才啟用手機的專注模式。教材總覽與
-        // Workbook 關卡列表仍須保留 Navbar，避免學生失去導覽入口。
-        if (!questionSetId) {
+        // Workbook 地圖與小關卡共用手機專注模式；教材總覽保留導覽。
+        if (!bookKey && !questionSetId) {
             document.body.classList.remove("speaking-challenge-active");
             return undefined;
         }
 
         document.body.classList.add("speaking-challenge-active");
         return () => document.body.classList.remove("speaking-challenge-active");
-    }, [questionSetId]);
+    }, [bookKey, questionSetId]);
     useEffect(() => {
         if (questionSetId && activeQuestion?.id && !["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence", "mixed"].includes(interactionType)) {
             questionHeadingRef.current?.focus({ preventScroll: true });
@@ -246,6 +268,40 @@ export default function TextbookSpeakingChallenge() {
             window.scrollTo({ top: 0, behavior: "auto" });
         }
     }, [bookKey, questionSetId]);
+
+    useEffect(() => {
+        setSelectedLesson(null);
+    }, [bookKey]);
+
+    useEffect(() => {
+        if (!bookKey || !catalog.length || process.env.NODE_ENV === "test") return;
+        const node = document.querySelector(".speaking-map-chapter.is-textbook .speaking-challenge-lesson.is-current")
+            || document.querySelector(".speaking-challenge-lesson.is-current");
+        node?.scrollIntoView?.({ block: "center", behavior: "auto" });
+    }, [bookKey, catalog]);
+
+    useEffect(() => {
+        if (!selectedLesson) return undefined;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        levelDialogRef.current?.querySelector(".speaking-level-dialog__actions .primary")?.focus();
+        const onKeyDown = event => {
+            if (event.key === "Escape") setSelectedLesson(null);
+            if (event.key !== "Tab") return;
+            const buttons = [...(levelDialogRef.current?.querySelectorAll("button") || [])];
+            if (!buttons.length) return;
+            const first = buttons[0];
+            const last = buttons[buttons.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener("keydown", onKeyDown);
+            selectedNodeRef.current?.focus();
+        };
+    }, [selectedLesson]);
 
     useEffect(() => {
         if (!firebaseUser) return;
@@ -262,6 +318,11 @@ export default function TextbookSpeakingChallenge() {
                     const challengeResponse = await getSpeakingChallengeSet(firebaseUser, Number(questionSetId));
                     if (!cancelled) {
                         setChallenge(challengeResponse.challenge);
+                        if (!staffPreview) {
+                            const nextIndex = (challengeResponse.challenge?.speaking_questions || [])
+                                .findIndex(question => question.progress_status !== "completed");
+                            setActiveQuestionIndex(Math.max(0, nextIndex));
+                        }
                         setChallengePolicy(challengeResponse.challenge_policy || null);
                     }
                 }
@@ -284,7 +345,7 @@ export default function TextbookSpeakingChallenge() {
         };
         load();
         return () => { cancelled = true; };
-    }, [firebaseUser, questionSetId]);
+    }, [firebaseUser, questionSetId, staffPreview]);
 
     const markComplete = async question => {
         if (staffPreview) return { success: true, demo_mode: true };
@@ -319,9 +380,14 @@ export default function TextbookSpeakingChallenge() {
         const selectedBookCompleted = selectedBook?.sections
             .flatMap(section => section.items)
             .filter(item => item.is_completed).length || 0;
+        const mapLessons = selectedBook?.sections.flatMap(section => {
+            const currentIndex = section.items.findIndex(item => item.is_unlocked !== false && item.is_completed !== true);
+            return section.items.map((item, index) => ({ item, section: section.id, current: index === currentIndex }));
+        }) || [];
+        const mapRoute = selectedBook ? buildSpeakingAdventureRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
         return <main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
-                <button type="button" className="speaking-back" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft />全部教材</button>
+                <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
                 <div className="speaking-book-toolbar__title">
                     <FiBookOpen aria-hidden="true" />
                     <div><h1>{selectedBook.label}</h1><p>{staffPreview ? "所有已發布關卡皆可預覽" : "依順序完成，解鎖下一關"}</p></div>
@@ -346,11 +412,12 @@ export default function TextbookSpeakingChallenge() {
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
-                {!catalogLoading && selectedBook && <section className="speaking-catalog-group">
-                    {selectedBook.sections.map(section => <section className={`speaking-catalog-section is-${section.id}`} key={section.id}><header><div><small>{section.eyebrow}</small><h2>{section.label}</h2></div><span>{section.items.length} 關</span></header><div className="speaking-catalog-lessons">{section.items.map(item => <ChallengeLesson key={item.id} item={item} section={section.id} staffPreview={staffPreview} onOpen={() => navigate(`/student/speaking-challenges/${item.id}`)} />)}</div></section>)}
+                {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
+                    <section className="speaking-map-chapter is-book"><header><div><small>從草原走向火山</small><h2>冒險旅程</h2></div><span>{mapLessons.length} 關</span></header><div className="speaking-map-canvas" style={{ "--map-height": `${mapRoute.height}px` }}><span className="speaking-map-landscape is-grassland" aria-hidden="true" /><span className="speaking-map-landscape is-highland" aria-hidden="true" /><span className="speaking-map-landscape is-volcano" aria-hidden="true" /><svg className="speaking-map-route" viewBox={`0 0 1000 ${mapRoute.height}`} preserveAspectRatio="none" aria-hidden="true"><path className="speaking-map-route__edge" d={mapRoute.path} /><path className="speaking-map-route__center" d={mapRoute.path} /></svg>{mapLessons.map(({ item, section, current }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}</div></section>
                 </section>}
                 {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
+            {selectedLesson && <ChallengePreviewDialog item={selectedLesson.item} section={selectedLesson.section} dialogRef={levelDialogRef} onClose={() => setSelectedLesson(null)} onEnter={() => navigate(`/student/speaking-challenges/${selectedLesson.item.id}`)} />}
         </main>;
     }
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
@@ -360,6 +427,7 @@ export default function TextbookSpeakingChallenge() {
         challenge={challenge}
         firebaseUser={firebaseUser}
         onComplete={markScored}
+        staffPreview={staffPreview}
         adminScoringPreview={adminScoringPreview}
         onStartRound={() => startSpeakingFoundationRound(firebaseUser, challenge.id)}
         onStartAlphabetIntro={() => startAlphabetIntroListen(firebaseUser, challenge.id)}
@@ -371,6 +439,8 @@ export default function TextbookSpeakingChallenge() {
         firebaseUser={firebaseUser}
         staffAudioPreview={staffPreview}
         onComplete={markScored}
+        staffPreview={staffPreview}
+        adminScoringPreview={adminScoringPreview}
         onExit={returnToBookCatalog}
     />;
     const completedCount = questions.filter(question => question.progress_status === "completed").length;
@@ -424,16 +494,16 @@ export default function TextbookSpeakingChallenge() {
                 </header>
                 <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />
+                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
                 <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。"}</small>
             </article>
         </section>
 
-        <nav className="speaking-question-navigation" aria-label="小關卡切換">
+        {staffPreview ? <nav className="speaking-question-navigation" aria-label="小關卡切換">
             <button type="button" onClick={() => setActiveQuestionIndex(current => current - 1)} disabled={activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
-            <span>{staffPreview ? `預覽第 ${activeQuestionIndex + 1} / ${questions.length} 題` : `${completedCount} / ${questions.length} 題已完成`}</span>
+            <span>預覽第 {activeQuestionIndex + 1} / {questions.length} 題</span>
             <button type="button" className="primary" onClick={goForward} disabled={!isCompleted}>{isLastQuestion ? "完成大挑戰" : "下一題"}<FiChevronRight /></button>
-        </nav>
+        </nav> : isCompleted && !completionNotice && <button type="button" className="speaking-continue-button" onClick={goForward}>{isLastQuestion ? "回到冒險地圖" : "繼續挑戰"}<FiChevronRight aria-hidden="true" /></button>}
         {completionNotice && <div className="speaking-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="speaking-reward-title">
             <section>
                 <span className="speaking-reward-dialog__stars" aria-hidden="true">✦ ✨ ✦</span>

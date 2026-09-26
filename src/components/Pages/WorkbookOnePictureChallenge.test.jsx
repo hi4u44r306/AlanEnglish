@@ -24,6 +24,35 @@ describe("WorkbookOnePictureChallenge", () => {
         jest.restoreAllMocks();
     });
 
+    it("老師按來源順序唯讀預覽看圖題並可切換，不啟用錄音", () => {
+        const onComplete = jest.fn();
+        render(<WorkbookOnePictureChallenge
+            challenge={{
+                id: 21,
+                title: "P21 看圖問答",
+                generation_metadata: { interaction_type: "picture_qa" },
+                speaking_questions: [1, 2].map(id => ({
+                    id,
+                    sort_order: id,
+                    visual_aid: { ...privateVisual, alt_zh: `圖片 ${id}` },
+                    picture_interaction: { type: "picture_qa" }
+                }))
+            }}
+            firebaseUser={{ uid: "teacher" }}
+            staffPreview
+            onComplete={onComplete}
+            onExit={jest.fn()}
+        />);
+
+        fireEvent.click(screen.getByRole("button", { name: "預覽題目" }));
+        expect(screen.getByRole("img", { name: "圖片 1" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "模擬完整回答" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "上一題" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "下一題" }));
+        expect(screen.getByRole("img", { name: "圖片 2" })).toBeInTheDocument();
+        expect(onComplete).not.toHaveBeenCalled();
+    });
+
     it("P21 只顯示經審核圖片，不洩漏問句或回答", async () => {
         const onComplete = jest.fn().mockResolvedValue(true);
         render(<WorkbookOnePictureChallenge
