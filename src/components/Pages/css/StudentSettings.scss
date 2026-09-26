@@ -19,6 +19,30 @@
     p { max-width: 680px; margin: 0; color: #d9e3ff; line-height: 1.75; }
 }
 
+.student-settings-push-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+    padding: 22px;
+    border: 1px solid #d7e4f8;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 14px 38px rgba(31, 52, 91, .07);
+
+    h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #193a75; font-size: 20px; }
+    p { margin: 0 0 9px; color: #50617f; line-height: 1.6; }
+    small { color: #3158a7; font-weight: 800; line-height: 1.5; }
+    button { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; color: #fff; background: #3158a7; font-weight: 850; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+@media (max-width: 600px) {
+    .student-settings-push-panel { flex-direction: column; align-items: stretch; padding: 18px; }
+    .student-settings-push-panel button { width: 100%; }
+}
+
 .student-settings-profile-card,
 .student-settings-panel {
     border: 1px solid #e5eaf2;

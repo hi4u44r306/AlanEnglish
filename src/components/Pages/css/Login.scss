@@ -480,6 +480,23 @@
     }
 }
 
+.login-push-choice {
+  display: grid;
+  gap: 8px;
+  margin: 15px 0 18px;
+  padding: 14px;
+  border: 1px solid #d9e4f4;
+  border-radius: 14px;
+  color: #253957;
+  background: #f7faff;
+
+  legend { padding: 0 4px; font-size: 14px; font-weight: 900; }
+  p { margin: 0 0 2px; font-size: 12px; line-height: 1.55; }
+  label { display: flex; align-items: center; min-height: 44px; gap: 9px; font-size: 13px; font-weight: 800; cursor: pointer; }
+  input { width: 18px; height: 18px; accent-color: #3158a7; }
+  small { color: #5f6f8b; font-size: 11px; line-height: 1.5; }
+}
+
 .login-copyright {
   margin-top: 21px;
   color: #66758c;

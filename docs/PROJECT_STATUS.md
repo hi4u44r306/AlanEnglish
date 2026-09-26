@@ -2,6 +2,11 @@
 
 最後更新：2026-09-26
 
+本次學生登入通知選擇與設定頁開關（2026-09-26，開發中、尚未部署）：
+
+- `codex/login-push-choice-settings` 在共用登入頁加入「登入後設定／稍後再說」，預設稍後再說；只有學生選擇設定時，登入及必要的首次引導完成後才進入通知頁，由本人再次按鈕要求系統權限。老師／管理員不導向學生頁。選擇稍後再說不影響登入，學生可在「我的設定」直接開啟／關閉此裝置推播；iPhone 非主畫面安裝與系統權限拒絕時顯示原有指引。未修改 Supabase migration、Function、Secret 或推播頻率規則。
+- 相關檔案：`Login.jsx`／SCSS、`StudentNotifications.jsx`／SCSS、`StudentSettings.jsx`／SCSS、三頁相關 React 測試、`PROJECT_LOGIC.md`、`WEB_PUSH_PLAN.md`、`網站使用手冊.md`。三頁測試 22/22、Production build、`git diff --check` 通過；登入頁在 Edge 模擬 320／412／768px 未見水平溢位。正式站發布與登入學生的 iPhone／Android 實機流程仍待驗。
+
 本次 iPhone Web Push 裝置自測（2026-09-26，前景收件與點擊已驗收）：
 
 - 正式站出現 1 筆近期建立的啟用中 Apple Push 訂閱，與使用者回報 iPhone 17 Pro Max 已開啟的時間相符。`codex/web-push-self-test` 已由 PR #292 合併至 `main` `b89b9a4a`；`web-push-manager` v3 ACTIVE、Cloudflare Worker `3cb5046a-34c3-4a59-af12-85a6c2b37f39` 已發布，兩個正式網域通知頁 HTTP 200 並載入 `main.42f170ff.js`，未登入測試呼叫回應 401。手動測試按鈕僅向已驗證學生本人在此裝置的訂閱送出低敏感度測試訊息，並寫入站內系統通知與推播佇列紀錄；與正式提醒共用安靜時段及每日三則上限，同分鐘防重複。測試不建立假作業，也不向班級群發。後端記錄兩次測試推送均由 Apple Push 回應 201；使用者確認 iPhone 17 Pro Max 在網站開著時收到通知，點擊後進入 Alan English 通知頁。背景／鎖定狀態與 Android 實機收件尚未驗證。

@@ -11,6 +11,7 @@ import {
 } from "../../services/membershipService";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
 import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
+import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({
@@ -32,6 +33,10 @@ jest.mock("../../services/studentSocialService", () => ({
     getNicknameSettings: jest.fn(),
     updateNickname: jest.fn()
 }));
+jest.mock("../../services/webPushService", () => ({
+    disableWebPush: jest.fn(), enableWebPush: jest.fn(),
+    getCurrentWebPushStatus: jest.fn(), getWebPushAvailability: jest.fn(), getWebPushConfig: jest.fn()
+}));
 
 describe("StudentSettings", () => {
     const setStudentProfile = jest.fn();
@@ -39,6 +44,11 @@ describe("StudentSettings", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        getWebPushAvailability.mockReturnValue({ supported: false, reason: "此裝置不支援推播" });
+        getWebPushConfig.mockResolvedValue({ enabled: false });
+        getCurrentWebPushStatus.mockResolvedValue({ supported: false, active: false });
+        enableWebPush.mockResolvedValue();
+        disableWebPush.mockResolvedValue();
         Object.defineProperty(window, "PointerEvent", { configurable: true, writable: true, value: MouseEvent });
         Object.defineProperty(URL, "createObjectURL", { writable: true, value: jest.fn(() => "blob:avatar-preview") });
         Object.defineProperty(URL, "revokeObjectURL", { writable: true, value: jest.fn() });
@@ -435,5 +445,25 @@ describe("StudentSettings", () => {
         fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
         fireEvent.click(screen.getByRole("button", { name: "關閉頭像調整視窗" }));
         expect(screen.queryByRole("dialog", { name: "調整正方形頭像" })).not.toBeInTheDocument();
+    });
+
+    it("lets a student enable and disable device push later from settings", async () => {
+        getWebPushAvailability.mockReturnValue({ supported: true, reason: "" });
+        getWebPushConfig.mockResolvedValue({ enabled: true, public_key: "public-key" });
+        getCurrentWebPushStatus
+            .mockResolvedValueOnce({ supported: true, active: false })
+            .mockResolvedValueOnce({ supported: true, active: true })
+            .mockResolvedValueOnce({ supported: true, active: false });
+        render(<StudentSettings />);
+
+        const enable = await screen.findByRole("button", { name: "開啟此裝置推播" });
+        await waitFor(() => expect(enable).toBeEnabled());
+        expect(enableWebPush).not.toHaveBeenCalled();
+        fireEvent.click(enable);
+        await waitFor(() => expect(enableWebPush).toHaveBeenCalledWith({ uid: "student-1" }, "public-key"));
+
+        const disable = await screen.findByRole("button", { name: "關閉此裝置推播" });
+        fireEvent.click(disable);
+        await waitFor(() => expect(disableWebPush).toHaveBeenCalledWith({ uid: "student-1" }));
     });
 });

@@ -15,6 +15,7 @@ function Login() {
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [pushChoice, setPushChoice] = useState("later");
     const loginAttemptRef = useRef(false);
     const accountActivated = new URLSearchParams(location.search).get("activated") === "1";
     const requestedLocation = location.state?.from;
@@ -78,10 +79,17 @@ function Login() {
             showSuccess(student.name || "同學");
             window.scrollTo(0, 0);
             loginAttemptRef.current = false;
-            navigate(
-                student?.onboarding?.required === true ? "/student/onboarding" : destination,
-                { replace: true }
-            );
+            const wantsPushSetup = student?.role === "student" && pushChoice === "setup";
+            if (student?.onboarding?.required === true) {
+                navigate("/student/onboarding", {
+                    replace: true,
+                    state: wantsPushSetup ? { from: { pathname: "/student/notifications" } } : undefined
+                });
+            } else if (wantsPushSetup) {
+                navigate("/student/notifications", { replace: true, state: { pushSetup: true, returnTo: destination } });
+            } else {
+                navigate(destination, { replace: true });
+            }
         } catch (error) {
             loginAttemptRef.current = false;
             console.error("Login error:", error);
@@ -256,6 +264,14 @@ function Login() {
                                 </button>
                             </div>
                         </div>
+
+                        <fieldset className="login-push-choice">
+                            <legend>學生帳號登入後要設定手機通知嗎？</legend>
+                            <p>學生可收到新作業與教材期限提醒。登入後仍需親自按「開啟此裝置推播」，才會向手機請求通知權限。</p>
+                            <label><input type="radio" name="pushChoice" value="setup" checked={pushChoice === "setup"} onChange={() => setPushChoice("setup")} disabled={isLoading} /> 登入後設定</label>
+                            <label><input type="radio" name="pushChoice" value="later" checked={pushChoice === "later"} onChange={() => setPushChoice("later")} disabled={isLoading} /> 稍後再說</label>
+                            <small>稍後可在「我的設定」開啟；iPhone／iPad 須先將網站加入主畫面。</small>
+                        </fieldset>
 
                         <button className="login-button" type="submit" disabled={isLoading}>
                             {isLoading ? (
