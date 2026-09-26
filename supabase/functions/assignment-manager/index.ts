@@ -127,6 +127,15 @@ const getActiveStudentClass = async (admin: any, studentId: number) => {
         : null;
 };
 
+const notifyPublishedAssignment = async (admin: any, assignmentId: number) => {
+    const { data, error } = await admin.rpc("create_assignment_student_notifications", { p_assignment_id: assignmentId });
+    if (error) {
+        console.error("Assignment notification creation failed", { assignmentId, code: error.code });
+        return null;
+    }
+    return Number(data || 0);
+};
+
 const sanitizeQuestionSnapshot = (snapshot: any) => ({
     title: cleanText(snapshot?.title, 200) || "老師指定的選擇題",
     questions: (Array.isArray(snapshot?.questions) ? snapshot.questions : []).map((question: any) => ({
@@ -808,7 +817,8 @@ Deno.serve(async (req: Request) => {
                 await admin.from("assignments").delete().eq("id", assignment.id);
                 throw error;
             }
-            return json(200, { success: true, assignment, preview });
+            const notifiedStudents = await notifyPublishedAssignment(admin, assignment.id);
+            return json(200, { success: true, assignment, preview, notified_students: notifiedStudents });
         }
 
         if (action === "create_assignment") {
@@ -947,9 +957,11 @@ Deno.serve(async (req: Request) => {
                 }
             }
 
+            const notifiedStudents = await notifyPublishedAssignment(admin, assignment.id);
             return json(200, {
                 success: true,
                 assignment,
+                notified_students: notifiedStudents,
                 track_count: trackIds.length,
                 total_tasks: Number(hasAiTask(sourceType)) + Number(hasListeningTask(sourceType))
             });

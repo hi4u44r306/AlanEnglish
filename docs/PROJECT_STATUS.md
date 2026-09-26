@@ -2,6 +2,12 @@
 
 最後更新：2026-09-26
 
+本次 iOS／Android Web Push（2026-09-26，功能分支本機實作中，尚未部署）：
+
+- `codex/web-push-ios-android` 新增 Service Worker、通知頁裝置訂閱開關、登出解除訂閱、Firebase 驗證的 `web-push-manager`、推播訂閱／佇列 additive migration，並使新發布班級作業產生站內通知。推播僅限新作業及教材附贈網站權限到期提醒；保留站內通知作為主紀錄。
+- 使用現有每小時家長排程驅動推播佇列，台北時間 21:00～08:00 停發、每裝置每天最多三則、每批至多 20 筆。VAPID Secret、migration、Function、Cloudflare 前端均未發布；需隔離環境驗證與本批正式操作授權。實機 iOS／Android 推播尚未驗證。
+- 相關檔案：`public/web-push-sw.js`、`public/manifest.json`、`src/services/webPushService.js`、`StudentNotifications.jsx`／SCSS、`AuthContext.jsx`、`supabase/functions/web-push-manager/index.ts`、`assignment-manager`、`notification-manager`、`supabase/migrations/20260926090000_student_web_push.sql`、`docs/WEB_PUSH_PLAN.md`。通知頁／登出 React 測試 5/5、推播安全規則／Service Worker 測試 6/6、Edge 語法及 Production build 通過；SQL 隔離環境與實機尚待驗證。額外執行的既有全域契約中，`academy-assignment-v2` 有 1 項未改動的發音權限文字斷言失敗，`material-commerce-contracts` 有 1 項未改動的家長 Email 文字斷言失敗，需另案釐清。
+
 本次手機／平板學生導覽與 Web Push 規劃（2026-09-26，導覽已正式部署）：
 
 - 學生底部導覽在 1100px 以下改為距安全區底緣 12px；平板導覽最大寬度 560px 並置中，文字增至 12px，保留既有至少 54px 觸控高度。播放器、作業捷徑、口說操作列與頁面底部留白沿用共同偏移量。

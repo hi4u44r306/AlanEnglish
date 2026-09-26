@@ -466,6 +466,9 @@ verify_jwt = false
 [functions.notification-manager]
 verify_jwt = false
 
+[functions.web-push-manager]
+verify_jwt = false
+
 [functions.guardian-email]
 verify_jwt = false
 

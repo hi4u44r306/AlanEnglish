@@ -1,6 +1,14 @@
 # Alan English Web Push 規劃
 
-日期：2026-09-25。狀態：規劃完成，尚未實作或部署。
+日期：2026-09-26。狀態：功能分支已實作，尚未套用 migration、設定 Secret、部署或完成實機驗收。
+
+## 2026-09-26 實作進度與發布條件
+
+- `codex/web-push-ios-android` 已加入獨立 Service Worker、通知頁裝置開關、登出解除訂閱、Firebase 驗證的 `web-push-manager`、訂閱與發送佇列 migration。新班級作業發布完成後會產生站內通知；既有教材附贈使用權到期提醒也會入推播佇列。社交、獎勵、付款失敗及訂閱扣款不推播。
+- 正式入口建議使用 `https://alanenglish.com.tw` 加入主畫面；`app.alanenglish.com.tw` 是不同來源，若從該站安裝，會有獨立的瀏覽器訂閱。兩者不會共用通知權限。VAPID 公私鑰必須為同一組，`WEB_PUSH_VAPID_PUBLIC_KEY`、`WEB_PUSH_VAPID_PRIVATE_KEY`、`WEB_PUSH_VAPID_SUBJECT` 與 `WEB_PUSH_ENABLED=true` 只設定於 Edge Function Secret；不得寫入 Git。Public key 由已驗證的 Function 回傳。
+- 現有家長排程每小時第 5 分鐘執行一次，`notification-manager` 的 `run_due` 會呼叫 `web-push-manager` 處理最多 20 筆。晚上 21:00～08:00（台北時間）不發送，每裝置每天最多三則；佇列可能要等到下一次排程，通知不保證即時。新作業若超過 20 位訂閱者，後續批次會逐小時處理。
+- 正式啟用順序：先在隔離資料庫套用 migration 並測試 RLS、帳號切換、佇列與寄送；設定隔離環境 VAPID；部署測試 Function 與前端並在 iOS／Android 實機驗收；再經本批正式操作授權，套用正式 migration、設定正式 Secret、部署 `web-push-manager`／`notification-manager`／`assignment-manager` 與 Cloudflare 前端。先對測試帳號啟用，驗證後才擴大。
+- 回復方式：設 `WEB_PUSH_ENABLED=false` 立即停止新訂閱與發送，再回復前端及三個 Function 版本；保留訂閱與佇列表供稽核，不刪除站內通知。既有家長 Email 排程不依賴推播成功。
 
 ## 現況與目標
 

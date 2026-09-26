@@ -25,6 +25,13 @@
 .student-notifications-hero strong { width: fit-content; margin-top: 4px; padding: 8px 11px; border-radius: 11px; color: #fff5cd; background: rgba(255, 255, 255, .13); font-size: 13px; }
 .student-notifications-mark-all { width: fit-content; min-height: 44px; padding: 0 15px; border: 1px solid rgba(255,255,255,.35); border-radius: 12px; color: #102852; background: #ffdc73; font-weight: 900; cursor: pointer; }
 
+.student-notifications-push { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 20px; padding: 22px; border: 1px solid #d7e4f8; border-radius: 20px; background: #fff; box-shadow: 0 9px 23px rgba(31, 52, 91, .05); }
+.student-notifications-push h2 { margin: 0 0 8px; font-size: 20px; color: #193a75; }
+.student-notifications-push p { margin: 0 0 9px; line-height: 1.6; color: #50617f; }
+.student-notifications-push small { color: #3158a7; font-weight: 800; line-height: 1.5; }
+.student-notifications-push button { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; color: #fff; background: #3158a7; font-weight: 850; cursor: pointer; }
+.student-notifications-push button:disabled { opacity: .5; cursor: not-allowed; }
+
 .student-notifications-list { display: grid; gap: 11px; }
 .student-notifications-empty { display: flex; align-items: center; gap: 10px; min-height: 108px; margin: 0; padding: 24px; border: 1px solid #e2e8f2; border-radius: 21px; color: #667590; background: #fff; line-height: 1.6; box-shadow: 0 11px 27px rgba(31, 52, 91, .06); }
 .student-notifications-empty svg { flex: 0 0 auto; color: #4266bc; font-size: 22px; }
@@ -51,6 +58,8 @@
 
 @media (max-width: 600px) {
     .student-notifications-page { width: min(100% - 20px, 900px); padding-top: 18px; }
+    .student-notifications-push { flex-direction: column; align-items: stretch; padding: 18px; }
+    .student-notifications-push button { width: 100%; }
     .student-notification-card { grid-template-columns: auto minmax(0, 1fr); align-items: start; padding: 15px; }
     .student-notification-card > button { grid-column: 2; justify-self: start; }
 }
