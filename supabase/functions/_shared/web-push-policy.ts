@@ -36,3 +36,10 @@ export const getWebPushMessage = (notice: {
         notification_id: notice.id
     };
 };
+
+export const getWebPushTestMessage = (notificationId: number) => ({
+    title: "Alan English 推播測試",
+    body: "這部裝置已收到測試通知。",
+    path: "/student/notifications",
+    notification_id: notificationId
+});

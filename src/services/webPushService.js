@@ -79,6 +79,13 @@ export const disableWebPush = async firebaseUser => {
     }
 };
 
+export const sendWebPushTest = async firebaseUser => {
+    const registration = await navigator.serviceWorker.getRegistration(workerPath);
+    const subscription = await registration?.pushManager.getSubscription();
+    if (!subscription) throw new Error("此裝置尚未訂閱推播，請重新開啟");
+    return callEdgeFunction(MANAGER, firebaseUser, { action: "send_test", endpoint: subscription.endpoint });
+};
+
 export const unsubscribeBrowserPush = async () => {
     if (!("serviceWorker" in navigator)) return;
     const registration = await navigator.serviceWorker.getRegistration(workerPath);
