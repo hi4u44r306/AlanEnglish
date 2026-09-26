@@ -158,6 +158,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         await screen.findByText("What's your name?");
         expect(document.body).toHaveClass("speaking-challenge-active");
+        expect(document.body).toHaveClass("speaking-game-world-active");
         unmount();
         expect(document.body).not.toHaveClass("speaking-challenge-active");
     });
@@ -201,7 +202,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
         expect(nodes).toHaveLength(3);
-        expect(nodes.map(node => Number(node.style.getPropertyValue("--map-y").replace("px", "")))).toEqual([155, 603, 1050]);
+        expect(nodes.map(node => Number(node.style.getPropertyValue("--map-y").replace("px", "")))).toEqual([340, 960, 1580]);
+        expect(container.querySelectorAll(".speaking-map-biomes > span")).toHaveLength(3);
+        expect(screen.getByLabelText("Workbook 1 口說大挑戰")).toBeInTheDocument();
         expect(container.querySelectorAll(".speaking-map-landscape")).toHaveLength(0);
         expect(container.querySelectorAll(".speaking-map-route__line")).toHaveLength(0);
     });
@@ -367,11 +370,12 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(document.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveAccessibleName(/P.18～20/);
-        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).not.toHaveTextContent("P.18～20");
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("P.18～20");
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveClass("is-wide-label");
         expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveAccessibleName(/尚未解鎖/);
-        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("P.35～36、60、99～100");
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("主題1");
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toBeEnabled();
-        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveAccessibleName(/P.100/);
+        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveAccessibleName(/主題2/);
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).not.toHaveTextContent("打招呼與禮貌對話");
         expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();

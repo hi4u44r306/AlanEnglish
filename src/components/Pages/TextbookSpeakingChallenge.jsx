@@ -114,15 +114,17 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
     </button>;
 };
 
-const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode, levelNumber }) => {
+const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode, levelNumber, topicNumber }) => {
     const locked = !staffPreview && item.is_unlocked === false;
     const completed = item.is_completed === true;
     const pages = pageReference(item);
     const challengeLabel = lessonTitle(item);
     const special = item.generation_metadata?.map_level_kind === "special";
-    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}px`, "--map-side": `${mapNode.x / 10}%` }} type="button" onClick={onOpen} aria-label={`${pages || `第 ${levelNumber} 關`}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
-    <span className="speaking-challenge-lesson__number">{locked ? <FiLock aria-hidden="true" /> : pages || String(levelNumber).padStart(2, "0")}</span>
-    <span className="speaking-challenge-lesson__state" aria-hidden="true">{completed ? <FiCheck /> : null}</span>
+    const levelLabel = section === "topic" ? `主題${topicNumber}` : pages || String(levelNumber).padStart(2, "0");
+    const wideLabel = levelLabel.length >= 7;
+    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${wideLabel ? "is-wide-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}px`, "--map-side": `${mapNode.x / 10}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
+    <span className="speaking-challenge-lesson__number">{levelLabel}</span>
+    <span className="speaking-challenge-lesson__state" aria-hidden="true">{completed ? <FiCheck /> : locked ? <FiLock /> : null}</span>
     </button>;
 };
 
@@ -130,6 +132,9 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
     const pages = pageReference(item);
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
     const locked = !staffPreview && item.is_unlocked === false;
+    const storedStars = Number(item.stars_earned);
+    const starCount = Number.isFinite(storedStars) ? Math.min(3, Math.max(0, storedStars)) : null;
+    const availableItems = Array.isArray(item.available_powerups) ? item.available_powerups : [];
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
         <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
             <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
@@ -142,6 +147,10 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
                 <span><small>教材頁碼</small><strong>{pages || "入門／主題關卡"}</strong></span>
                 <span><small>本關題數</small><strong>{item.question_count} 題</strong></span>
                 <span><small>目前進度</small><strong>{item.is_completed ? "已通關" : `${item.completed_count || 0}/${item.question_count} 題`}</strong></span>
+            </div>
+            <div className="speaking-level-dialog__game-panel">
+                <span><small>通關星星</small><b className="speaking-level-dialog__stars" aria-label={starCount === null ? "尚未建立星星紀錄" : `已獲得 ${starCount} 顆星`}>{[0, 1, 2].map(index => <i key={index} className={starCount !== null && index < starCount ? "is-earned" : ""}>★</i>)}</b><em>{starCount === null ? "星星規則確認後啟用" : `${starCount} / 3`}</em></span>
+                <span><small>本關道具</small><b>{availableItems.length ? availableItems.join("、") : "尚未開放"}</b><em>不會自動扣除 AE Points</em></span>
             </div>
             {item.learning_goal_zh && item.intro_zh && <p className="speaking-level-dialog__goal">目標：{item.learning_goal_zh}</p>}
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
@@ -248,12 +257,12 @@ export default function TextbookSpeakingChallenge() {
     useEffect(() => {
         // Workbook 地圖與小關卡共用手機專注模式；教材總覽保留導覽。
         if (!bookKey && !questionSetId) {
-            document.body.classList.remove("speaking-challenge-active");
+            document.body.classList.remove("speaking-challenge-active", "speaking-game-world-active");
             return undefined;
         }
 
-        document.body.classList.add("speaking-challenge-active");
-        return () => document.body.classList.remove("speaking-challenge-active");
+        document.body.classList.add("speaking-challenge-active", "speaking-game-world-active");
+        return () => document.body.classList.remove("speaking-challenge-active", "speaking-game-world-active");
     }, [bookKey, questionSetId]);
     useEffect(() => {
         if (questionSetId && activeQuestion?.id && !["alphabet_round", "letter_spelling", "picture_qa", "picture_gap_sentence", "mixed"].includes(interactionType)) {
@@ -380,9 +389,10 @@ export default function TextbookSpeakingChallenge() {
         const selectedBookCompleted = selectedBook?.sections
             .flatMap(section => section.items)
             .filter(item => item.is_completed).length || 0;
+        let topicNumber = 0;
         const mapLessons = selectedBook?.sections.flatMap(section => {
             const currentIndex = section.items.findIndex(item => item.is_unlocked !== false && item.is_completed !== true);
-            return section.items.map((item, index) => ({ item, section: section.id, current: index === currentIndex }));
+            return section.items.map((item, index) => ({ item, section: section.id, current: index === currentIndex, topicNumber: section.id === "topic" ? ++topicNumber : null }));
         }) || [];
         const mapRoute = selectedBook ? buildSpeakingAdventureRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
         return <main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
@@ -413,7 +423,11 @@ export default function TextbookSpeakingChallenge() {
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
-                    <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-height": `${mapRoute.height}px` }}>{mapLessons.map(({ item, section, current }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}</div></section>
+                    <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-height": `${mapRoute.height}px` }}>
+                        <div className="speaking-map-biomes" aria-hidden="true"><span className="is-grass" /><span className="is-highland" /><span className="is-volcano" /></div>
+                        <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}><FiBookOpen aria-hidden="true" /><span><strong>{selectedBook.label}</strong><small>口說大挑戰</small></span></div>
+                        {mapLessons.map(({ item, section, current, topicNumber: lessonTopicNumber }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} topicNumber={lessonTopicNumber} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}
+                    </div></section>
                 </section>}
                 {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
