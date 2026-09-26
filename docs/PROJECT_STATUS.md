@@ -2,11 +2,11 @@
 
 最後更新：2026-09-26
 
-本次沉浸式口說地圖與主畫面導覽（2026-09-26，本機完成、尚未部署）：
+本次沉浸式口說地圖與主畫面導覽（2026-09-26，已正式部署）：
 
 - `codex/immersive-speaking-map-nav` 將 Workbook 地圖改為一張草原至火山場景，只用細線連接頁碼／序號圓點；主題與進度移到可開啟的摘要，鎖定關卡只開摘要、不能進入挑戰。地圖教材名稱及返回鍵固定浮在地圖上方。Workbook 1–6 第一層卡片與 A–Z 題目維持原外觀。
 - 一般口說與看圖題使用深藍／金色的遊戲式畫面，保留題序、錄音、評分與角色權限。主畫面模式的手機／平板底部導覽改為白色不透底、直角、貼齊螢幕底部，圖示避開 Home Indicator。
-- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`ImmersiveSpeaking.scss`、`SpeakingAdventureRoute.scss`、`StudentNavbar.scss`、單張地圖素材、對應測試及 `網站使用手冊.md`。React 4 suites／63 tests、口說契約 37/37、Production build、`git diff --check` 通過；390px 地圖靜態樣張無水平溢位。尚未完成登入學生 iPhone 實機視覺驗收、GitHub PR 與正式站發布。
+- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`ImmersiveSpeaking.scss`、`SpeakingAdventureRoute.scss`、`StudentNavbar.scss`、單張地圖素材、對應測試及 `網站使用手冊.md`。React 4 suites／63 tests、口說契約 37/37、Production build、`git diff --check` 通過；390px 地圖與 390／768px 練習畫面靜態樣張無水平溢位。PR #297 已合併至 `main` `1d6c16f1`，Cloudflare Git 正式建置成功；`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 口說路由均回應 200，載入與本機 main 相同的 `main.6bde4299.js`，新版 CSS 與單張地圖圖片均回應 200。舊 Netlify 預覽 `skipped=true`，不作為這次 Cloudflare 發布判定。登入學生的 iPhone 主畫面、Android 與平板實機操作及視覺舒適度仍待驗收。
 
 本次學生登入通知選擇與設定頁開關（2026-09-26，已正式部署）：
 
