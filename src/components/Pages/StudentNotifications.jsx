@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
 import { notifyNotificationsRead } from "../../constants/notificationEvents";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
+import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
 import "./css/StudentNotifications.scss";
 
 const PAGE_SIZE = 30;
@@ -19,6 +20,9 @@ function StudentNotifications() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [nextBefore, setNextBefore] = useState(null);
+    const [pushConfig, setPushConfig] = useState(null);
+    const [pushStatus, setPushStatus] = useState(null);
+    const [pushBusy, setPushBusy] = useState(false);
 
     const loadNotifications = useCallback(async ({ append = false, before = null } = {}) => {
         if (!firebaseUser) return;
@@ -42,6 +46,41 @@ function StudentNotifications() {
     }, [firebaseUser]);
 
     useEffect(() => { loadNotifications(); }, [loadNotifications]);
+
+    useEffect(() => {
+        if (!firebaseUser) return undefined;
+        let cancelled = false;
+        const availability = getWebPushAvailability();
+        setPushStatus({ ...availability, active: false });
+        getWebPushConfig(firebaseUser).then(async config => {
+            if (cancelled) return;
+            setPushConfig(config);
+            if (availability.supported && config.enabled) {
+                const status = await getCurrentWebPushStatus(firebaseUser);
+                if (!cancelled) setPushStatus(status);
+            }
+        }).catch(() => {
+            if (!cancelled) setPushConfig({ enabled: false });
+        });
+        return () => { cancelled = true; };
+    }, [firebaseUser]);
+
+    const togglePush = async () => {
+        if (!firebaseUser || pushBusy || !pushConfig?.enabled) return;
+        setPushBusy(true);
+        try {
+            if (pushStatus?.active) await disableWebPush(firebaseUser);
+            else await enableWebPush(firebaseUser, pushConfig.public_key);
+            const status = await getCurrentWebPushStatus(firebaseUser);
+            setPushStatus(status);
+            toast.success(status.active ? "此裝置已開啟推播" : "此裝置已關閉推播");
+        } catch (error) {
+            setPushStatus(getWebPushAvailability());
+            toast.error(error.message || "推播設定失敗");
+        } finally {
+            setPushBusy(false);
+        }
+    };
 
     const markRead = async notification => {
         if (!notification || notification.read_at || !firebaseUser) return;
@@ -90,6 +129,18 @@ function StudentNotifications() {
                 <p>作業提醒、學習獎勵、會員訊息與未來生日點數都會保留在這裡。</p>
                 <strong>{unreadCount > 0 ? `本頁有 ${unreadCount} 則未讀通知` : "目前沒有未讀通知"}</strong>
                 {unreadCount > 0 && <button type="button" className="student-notifications-mark-all" onClick={markAllRead}>全部標示已讀</button>}
+            </section>
+
+            <section className="student-notifications-push" aria-labelledby="student-push-heading">
+                <div>
+                    <h2 id="student-push-heading">手機推播</h2>
+                    <p>開啟後，此裝置可收到新班級作業與教材使用期限提醒。鎖定畫面只顯示簡短提示；完整內容請登入查看。晚上 9 點至早上 8 點不發送，每日最多三則。</p>
+                    <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務尚未開放；網站內通知仍可正常使用。" : pushStatus?.active ? "此裝置已開啟" : "此裝置尚未開啟")}</small>
+                </div>
+                <button type="button" onClick={togglePush}
+                    disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
+                    {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
+                </button>
             </section>
 
             <section className="student-notifications-list" aria-live="polite">

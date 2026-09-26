@@ -1,13 +1,15 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
     clearStudentSession,
     getCachedStudentProfile,
-    loadStudentProfile
+    loadStudentProfile,
+    logoutCurrentUser
 } from "./authService";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { disconnectWebPushOnLogout, unsubscribeBrowserPush } from "../services/webPushService";
 
 jest.mock("firebase/auth", () => ({
     onAuthStateChanged: jest.fn(),
@@ -21,10 +23,14 @@ jest.mock("./authService", () => ({
     logoutCurrentUser: jest.fn()
 }));
 jest.mock("../services/learningActivityService", () => ({ recordHeartbeat: jest.fn() }));
+jest.mock("../services/webPushService", () => ({
+    disconnectWebPushOnLogout: jest.fn(),
+    unsubscribeBrowserPush: jest.fn()
+}));
 
 const SessionState = () => {
-    const { isAuthenticated, studentProfile } = useAuth();
-    return <div>{isAuthenticated ? studentProfile.email : "signed-out"}</div>;
+    const { isAuthenticated, studentProfile, logout } = useAuth();
+    return <div>{isAuthenticated ? studentProfile.email : "signed-out"}<button onClick={logout}>登出</button></div>;
 };
 
 describe("AuthProvider", () => {
@@ -33,6 +39,9 @@ describe("AuthProvider", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+        disconnectWebPushOnLogout.mockResolvedValue();
+        unsubscribeBrowserPush.mockResolvedValue();
+        logoutCurrentUser.mockResolvedValue();
     });
 
     afterEach(() => consoleErrorSpy.mockRestore());
@@ -56,5 +65,23 @@ describe("AuthProvider", () => {
         await waitFor(() => expect(loadStudentProfile).toHaveBeenCalledTimes(1));
         expect(clearStudentSession).not.toHaveBeenCalled();
         expect(signOut).not.toHaveBeenCalled();
+    });
+
+    it("disconnects this device's push before signing out", async () => {
+        const firebaseUser = { uid: "student-1", email: "student@gmail.com" };
+        const profile = { id: 67, role: "student", email: firebaseUser.email };
+        getCachedStudentProfile.mockReturnValue(profile);
+        loadStudentProfile.mockResolvedValue(profile);
+        onAuthStateChanged.mockImplementation((_authentication, callback) => {
+            callback(firebaseUser);
+            return jest.fn();
+        });
+        render(<AuthProvider><SessionState /></AuthProvider>);
+        await screen.findByText(firebaseUser.email);
+        fireEvent.click(screen.getByRole("button", { name: "登出" }));
+        await waitFor(() => expect(logoutCurrentUser).toHaveBeenCalledTimes(1));
+        expect(disconnectWebPushOnLogout).toHaveBeenCalledWith(firebaseUser);
+        expect(disconnectWebPushOnLogout.mock.invocationCallOrder[0])
+            .toBeLessThan(logoutCurrentUser.mock.invocationCallOrder[0]);
     });
 });

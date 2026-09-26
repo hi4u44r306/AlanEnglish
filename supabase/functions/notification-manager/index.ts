@@ -109,6 +109,24 @@ async function processQueue(admin: any) {
     return { provider_configured: true, sent, pending: (rows || []).length - sent };
 }
 
+async function processWebPushQueue(headerSecret: string) {
+    const url = Deno.env.get("SUPABASE_URL");
+    if (!url || !headerSecret) return { attempted: false };
+    try {
+        const response = await fetch(`${url}/functions/v1/web-push-manager`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-cron-secret": headerSecret },
+            body: JSON.stringify({ action: "process_queue" }),
+            signal: AbortSignal.timeout(15000)
+        });
+        if (!response.ok) return { attempted: true, success: false, status: response.status };
+        const result = await response.json().catch(() => ({}));
+        return { attempted: true, success: true, queue: result.queue || null };
+    } catch {
+        return { attempted: true, success: false };
+    }
+}
+
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -135,7 +153,14 @@ Deno.serve(async (req: Request) => {
             return json(200, { success: true });
         }
         if (!cronAuthorized && caller?.role !== "admin") return json(403, { error: "只有管理員或排程服務可以執行通知工作" });
-        if (action === "run_due") return json(200, { success: true, events_processed: await createDueEvents(admin), email: await processQueue(admin) });
+        if (action === "run_due") {
+            const assignmentResult = await admin.rpc("create_due_assignment_student_notifications");
+            if (assignmentResult.error) console.error("Scheduled assignment notification creation failed", assignmentResult.error.code);
+            const eventsProcessed = await createDueEvents(admin);
+            const email = await processQueue(admin);
+            const push = cronAuthorized ? await processWebPushQueue(headerSecret) : { attempted: false };
+            return json(200, { success: true, events_processed: eventsProcessed, assignments_notified: Number(assignmentResult.data || 0), email, push });
+        }
         if (action === "process_email_queue") return json(200, { success: true, email: await processQueue(admin) });
         return json(400, { error: "不支援的通知操作" });
     } catch (error) {

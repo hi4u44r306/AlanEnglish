@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { authentication } from "../components/Pages/firebase-config";
 import {
@@ -8,6 +8,7 @@ import {
     logoutCurrentUser
 } from "./authService";
 import { recordHeartbeat } from "../services/learningActivityService";
+import { disconnectWebPushOnLogout, unsubscribeBrowserPush } from "../services/webPushService";
 
 const AuthContext = createContext(null);
 
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }) => {
     const [studentProfile, setStudentProfile] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [profileRefreshing, setProfileRefreshing] = useState(false);
+    const lastFirebaseUid = useRef(null);
 
     useEffect(() => {
         let disposed = false;
@@ -24,6 +26,8 @@ export const AuthProvider = ({ children }) => {
             if (disposed) return;
 
             if (!user) {
+                lastFirebaseUid.current = null;
+                await unsubscribeBrowserPush().catch(() => {});
                 clearStudentSession();
                 setFirebaseUser(null);
                 setStudentProfile(null);
@@ -31,6 +35,11 @@ export const AuthProvider = ({ children }) => {
                 setAuthLoading(false);
                 return;
             }
+
+            if (lastFirebaseUid.current && lastFirebaseUid.current !== user.uid) {
+                await unsubscribeBrowserPush().catch(() => {});
+            }
+            lastFirebaseUid.current = user.uid;
 
             setFirebaseUser(user);
             const cachedProfile = getCachedStudentProfile(user.uid);
@@ -157,10 +166,11 @@ export const AuthProvider = ({ children }) => {
         }
     }, [firebaseUser]);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         setAuthLoading(true);
 
         try {
+            if (firebaseUser) await disconnectWebPushOnLogout(firebaseUser);
             await logoutCurrentUser();
         } finally {
             setFirebaseUser(null);
@@ -168,7 +178,7 @@ export const AuthProvider = ({ children }) => {
             setProfileRefreshing(false);
             setAuthLoading(false);
         }
-    };
+    }, [firebaseUser]);
 
     const value = useMemo(() => ({
         firebaseUser,
@@ -180,7 +190,7 @@ export const AuthProvider = ({ children }) => {
         setStudentProfile,
         refreshStudentProfile,
         logout
-    }), [firebaseUser, studentProfile, authLoading, profileRefreshing, refreshStudentProfile]);
+    }), [firebaseUser, studentProfile, authLoading, profileRefreshing, refreshStudentProfile, logout]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

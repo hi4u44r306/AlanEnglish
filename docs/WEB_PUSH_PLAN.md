@@ -1,6 +1,15 @@
 # Alan English Web Push 規劃
 
-日期：2026-09-25。狀態：規劃完成，尚未實作或部署。
+日期：2026-09-26。狀態：功能分支已實作，尚未套用 migration、設定 Secret、部署或完成實機驗收。
+
+## 2026-09-26 實作進度與發布條件
+
+- `codex/web-push-ios-android` 已加入獨立 Service Worker、通知頁裝置開關、登出解除訂閱、Firebase 驗證的 `web-push-manager`、訂閱與發送佇列 migration。新班級作業發布完成後會產生站內通知；既有教材附贈使用權到期提醒也會入推播佇列。社交、獎勵、付款失敗及訂閱扣款不推播。
+- 正式入口建議使用 `https://alanenglish.com.tw` 加入主畫面；`app.alanenglish.com.tw` 是不同來源，若從該站安裝，會有獨立的瀏覽器訂閱。兩者不會共用通知權限。VAPID 公私鑰必須為同一組，`WEB_PUSH_VAPID_PUBLIC_KEY`、`WEB_PUSH_VAPID_PRIVATE_KEY`、`WEB_PUSH_VAPID_SUBJECT` 與 `WEB_PUSH_ENABLED=true` 只設定於 Edge Function Secret；不得寫入 Git。Public key 由已驗證的 Function 回傳。
+- 現有家長排程每小時第 5 分鐘執行一次，`notification-manager` 的 `run_due` 會呼叫 `web-push-manager` 處理最多 20 筆。晚上 21:00～08:00（台北時間）不發送，每裝置每天最多三則；佇列可能要等到下一次排程，通知不保證即時。新作業若超過 20 位訂閱者，後續批次會逐小時處理。
+- 2026-09-26 使用者指定這批改在正式站測試。先完成本機 migration、權限、加密封包、相關測試與 Production build；再從已測試的最新 `main` 套用正式 migration、設定 VAPID Secret、部署三支 Function 與 Cloudflare 前端。先以測試帳號主動訂閱，確認實機通知後再邀請其他學生開啟。
+- 回復方式：設 `WEB_PUSH_ENABLED=false` 立即停止新訂閱與發送，再回復前端及三個 Function 版本；保留訂閱與佇列表供稽核，不刪除站內通知。既有家長 Email 排程不依賴推播成功。
+- 2026-09-26：嘗試建立 Supabase 開發分支時被目前方案拒絕（需 Pro），沒有建立分支或產生該分支費用。暫存 PGlite 已完成 migration 與權限的本機隔離驗證。依使用者本批指示，真實 Supabase Edge 與裝置驗收改在正式站進行；未收到實機通知前不得宣稱推播已完成驗收。
 
 ## 現況與目標
 
@@ -40,7 +49,7 @@
 
 ## 驗收與發布閘門
 
-- 先在隔離測試環境驗證 migration、Firebase 身分綁定、跨帳號共用裝置登出、RLS／Function 403、重複事件、失效 endpoint 與重試。這批涉及正式資料與通知權限，執行正式 migration／Secret／Function 前需另行取得該批授權。
+- 先在本機隔離資料庫驗證 migration、RLS 與事件去重；正式站上檢查 Firebase 身分綁定、跨帳號共用裝置登出、Function 403、失效 endpoint 與重試。使用者已針對本批指定直接在正式站測試；正式操作前仍須完成本機測試、影響及回復方式檢查。
 - Android Chrome、iOS 16.4+ Safari 加入主畫面，皆實測授權、背景／鎖定狀態收件、點擊安全導頁、拒絕後指引、解除訂閱、重新登入與多裝置。實機測試包含 iPhone safe area 與 412px／平板寬度。
 - 首批以測試帳號及測試事件驗證，不直接對正式學生群發；確認發送頻率與內容後，再分階段開啟正式通知類型。
 
