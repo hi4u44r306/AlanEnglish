@@ -9,6 +9,7 @@
 - 現有家長排程每小時第 5 分鐘執行一次，`notification-manager` 的 `run_due` 會呼叫 `web-push-manager` 處理最多 20 筆。晚上 21:00～08:00（台北時間）不發送，每裝置每天最多三則；佇列可能要等到下一次排程，通知不保證即時。新作業若超過 20 位訂閱者，後續批次會逐小時處理。
 - 正式啟用順序：先在隔離資料庫套用 migration 並測試 RLS、帳號切換、佇列與寄送；設定隔離環境 VAPID；部署測試 Function 與前端並在 iOS／Android 實機驗收；再經本批正式操作授權，套用正式 migration、設定正式 Secret、部署 `web-push-manager`／`notification-manager`／`assignment-manager` 與 Cloudflare 前端。先對測試帳號啟用，驗證後才擴大。
 - 回復方式：設 `WEB_PUSH_ENABLED=false` 立即停止新訂閱與發送，再回復前端及三個 Function 版本；保留訂閱與佇列表供稽核，不刪除站內通知。既有家長 Email 排程不依賴推播成功。
+- 2026-09-26：嘗試建立 Supabase 開發分支時被目前方案拒絕（需 Pro），沒有建立分支或產生該分支費用。暫存 PGlite 已完成 migration 與權限的本機隔離驗證，但無法代替實際 Supabase Edge 執行與真實裝置驗收。正式發布仍維持前述閘門。
 
 ## 現況與目標
 
