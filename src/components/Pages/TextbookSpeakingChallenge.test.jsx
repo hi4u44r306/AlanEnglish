@@ -187,7 +187,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         await waitFor(() => expect(document.body).not.toHaveClass("speaking-challenge-active"));
     });
 
-    it("同一本教材的入門、課本與主題關卡共用一條向下延伸的路線", async () => {
+    it("同一本教材的入門、課本與主題關卡共用一張完整地圖", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [
                 { id: 1, title: "A–Z", book: { name: "Workbook 1" }, catalog_section: "preparation", question_count: 1, completed_count: 1, is_unlocked: true, is_completed: true },
@@ -201,7 +201,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
         expect(nodes).toHaveLength(3);
-        expect(nodes.map(node => Number(node.style.getPropertyValue("--map-y").replace("px", "")))).toEqual([115, 299, 483]);
+        expect(nodes.map(node => Number(node.style.getPropertyValue("--map-y").replace("px", "")))).toEqual([155, 603, 1050]);
+        expect(container.querySelectorAll(".speaking-map-landscape")).toHaveLength(0);
+        expect(container.querySelectorAll(".speaking-map-route__line")).toHaveLength(1);
     });
 
     it("hides the stored private model audio from student challenges", async () => {
@@ -324,8 +326,10 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(compactToolbar).toHaveTextContent("依順序完成，解鎖下一關");
         expect(compactToolbar).toHaveTextContent("0/2");
         expect(firstLesson).toBeEnabled();
-        expect(secondLesson).toBeDisabled();
-        expect(secondLesson).toHaveTextContent("先完成前一關");
+        expect(secondLesson).toHaveAccessibleName(/尚未解鎖/);
+        fireEvent.click(secondLesson);
+        expect(screen.getByRole("dialog").querySelector("button.primary")).toBeDisabled();
+        expect(screen.getByText("先完成前一關，就能解鎖這個挑戰。")).toBeInTheDocument();
         expect(firstLesson.compareDocumentPosition(secondLesson) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
@@ -345,7 +349,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
     });
 
-    it("學生將課本頁碼放在最前面，主題練習則保留主題標記", async () => {
+    it("地圖圓點只顯示頁碼或關卡序號，主題留在摘要", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [
                 { id: 7, title: "00 A–Z 大小寫挑戰", topic: "字母", difficulty: "E1", book: { name: "Workbook 1" }, generation_metadata: { interaction_type: "alphabet_round" }, source_pages: [], question_count: 26, completed_count: 26, sequence_order: 0, is_unlocked: true, is_completed: true },
@@ -359,19 +363,15 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByRole("heading", { name: "冒險旅程" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
         expect(document.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("P.18～20");
-        expect(screen.getByRole("button", { name: /看圖問答/ })).toBeDisabled();
-        expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveTextContent("先完成前一關");
-        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).not.toHaveTextContent("P.35～36、60、99～100");
+        expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveAccessibleName(/尚未解鎖/);
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("P.35～36、60、99～100");
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toBeEnabled();
-        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toBeDisabled();
-        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("主題");
-        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("主題");
-        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).not.toHaveTextContent("P.100");
-        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("先完成前一關");
+        expect(screen.getByRole("button", { name: /顏色與生活物品/ })).toHaveTextContent("P.100");
+        expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).not.toHaveTextContent("打招呼與禮貌對話");
         expect(screen.queryByText("P14 看字拼讀")).not.toBeInTheDocument();
         expect(screen.queryByText("02 打招呼與禮貌對話")).not.toBeInTheDocument();
     });
@@ -398,7 +398,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
     });
 
-    it("地圖節點先開摘要，再由進入挑戰前往題目", async () => {
+    it("地圖節點先開摘要，再由開始挑戰前往題目", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             challenges: [{ id: 21, title: "P21 看圖問答", topic: "看圖問答", intro_zh: "用圖片練習完整問答", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [21], question_count: 9, completed_count: 0, sequence_order: 10021, is_unlocked: true }]
         });
@@ -411,7 +411,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         fireEvent.click(node);
         expect(screen.getByRole("dialog", { name: "看圖問答" })).toHaveTextContent("用圖片練習完整問答");
         expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/");
-        fireEvent.click(screen.getByRole("button", { name: /進入挑戰/ }));
+        fireEvent.click(screen.getByRole("button", { name: /開始挑戰/ }));
         expect(screen.getByText("正式挑戰頁")).toBeInTheDocument();
     });
 

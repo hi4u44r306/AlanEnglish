@@ -2,6 +2,12 @@
 
 最後更新：2026-09-26
 
+本次沉浸式口說地圖與主畫面導覽（2026-09-26，本機完成、尚未部署）：
+
+- `codex/immersive-speaking-map-nav` 將 Workbook 地圖改為一張草原至火山場景，只用細線連接頁碼／序號圓點；主題與進度移到可開啟的摘要，鎖定關卡只開摘要、不能進入挑戰。地圖教材名稱及返回鍵固定浮在地圖上方。Workbook 1–6 第一層卡片與 A–Z 題目維持原外觀。
+- 一般口說與看圖題使用深藍／金色的遊戲式畫面，保留題序、錄音、評分與角色權限。主畫面模式的手機／平板底部導覽改為白色不透底、直角、貼齊螢幕底部，圖示避開 Home Indicator。
+- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`ImmersiveSpeaking.scss`、`SpeakingAdventureRoute.scss`、`StudentNavbar.scss`、單張地圖素材、對應測試及 `網站使用手冊.md`。React 4 suites／63 tests、口說契約 37/37、Production build、`git diff --check` 通過；390px 地圖靜態樣張無水平溢位。尚未完成登入學生 iPhone 實機視覺驗收、GitHub PR 與正式站發布。
+
 本次學生登入通知選擇與設定頁開關（2026-09-26，已正式部署）：
 
 - `codex/login-push-choice-settings` 在共用登入頁加入「登入後設定／稍後再說」，預設稍後再說；只有學生選擇設定時，登入及必要的首次引導完成後才進入通知頁，由本人再次按鈕要求系統權限。老師／管理員不導向學生頁。選擇稍後再說不影響登入，學生可在「我的設定」直接開啟／關閉此裝置推播；iPhone 非主畫面安裝與系統權限拒絕時顯示原有指引。未修改 Supabase migration、Function、Secret 或推播頻率規則。PR #295 已合併至 `main` `6b55d6bc`，Cloudflare Worker `df4caaf1-7c5f-437d-adc0-f0819498509a` 已正式發布。

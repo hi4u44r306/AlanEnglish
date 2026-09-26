@@ -109,19 +109,19 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         else setActiveIndex(index => index + 1);
     };
 
-    if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page">
+    if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
         <header className="speaking-lesson-header"><button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />全部大挑戰</button><div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div></header>
         <section className="speaking-foundation-intro"><FiVolume2 aria-hidden="true" /><h2>{copy.title}</h2><p>{copy.instruction}</p><button type="button" className="primary" onClick={startRound}>{staffPreview ? "預覽題目" : "開始挑戰"}</button></section>
     </main>;
 
-    if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page">
+    if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
         <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">太棒了，全部完成！</h1><p>你已完成這一組看圖口說挑戰。</p><div className="speaking-foundation-actions"><button type="button" className="primary" onClick={startRound}><FiRefreshCw />再玩一次</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
     </main>;
 
     if (!activeQuestion) return null;
     const progress = Math.round((activeIndex / Math.max(round.length, 1)) * 100);
 
-    return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page">
+    return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
         <header className="speaking-lesson-header">
             <button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />退出本輪</button>
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div>
