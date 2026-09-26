@@ -1,14 +1,18 @@
 import { buildSpeakingAdventureRoute } from "./speakingAdventureMap";
 
-it("中間插關與尾端加關會延長地圖，既有節點位置不會重新隨機", () => {
-    const original = buildSpeakingAdventureRoute("book-1", [{ id: 14 }, { id: 21 }, { id: 22 }]);
-    const inserted = buildSpeakingAdventureRoute("book-1", [{ id: 14 }, { id: 20 }, { id: 21 }, { id: 22 }]);
-    const appended = buildSpeakingAdventureRoute("book-1", [{ id: 14 }, { id: 20 }, { id: 21 }, { id: 22 }, { id: 99 }]);
+it("uses one landscape with ordered markers and simple connections", () => {
+    const items = [{ id: 14 }, { id: 20 }, { id: 21 }, { id: 22 }];
+    const route = buildSpeakingAdventureRoute("book-1", items);
+    expect(route.nodes.map(node => node.id)).toEqual(items.map(item => item.id));
+    expect(route.nodes.map(node => node.y)).toEqual([...route.nodes.map(node => node.y)].sort((a, b) => a - b));
+    expect(route.path).toMatch(/^M \d+ \d+( L \d+ \d+){3}$/);
+    expect(route.height).toBe(1200);
+    expect(buildSpeakingAdventureRoute("book-1", items)).toEqual(route);
+});
 
-    expect(inserted.nodes.map(node => node.id)).toEqual([14, 20, 21, 22]);
-    expect(inserted.nodes[2].x).toBe(original.nodes[1].x);
-    expect(inserted.nodes[2].y - original.nodes[1].y).toBe(184);
-    expect(inserted.height - original.height).toBe(184);
-    expect(appended.height - inserted.height).toBe(184);
-    expect(buildSpeakingAdventureRoute("book-1", [{ id: 14 }, { id: 20 }, { id: 21 }, { id: 22 }])).toEqual(inserted);
+it("scales the same complete map when many levels are published", () => {
+    const route = buildSpeakingAdventureRoute("book-1", Array.from({ length: 20 }, (_, id) => ({ id })));
+    expect(route.height).toBe(1760);
+    expect(route.nodes[0].zone).toBe("grassland");
+    expect(route.nodes.at(-1).zone).toBe("volcano");
 });

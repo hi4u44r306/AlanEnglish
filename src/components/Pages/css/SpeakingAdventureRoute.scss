@@ -45,44 +45,6 @@
   isolation: isolate;
   background: #96d6b5;
 }
-.speaking-map-landscape {
-  position: absolute;
-  right: 0;
-  left: 0;
-  z-index: 0;
-  background-repeat: repeat-y;
-  background-size: 100% auto;
-  pointer-events: none;
-}
-.speaking-map-landscape.is-grassland {
-  top: 0;
-  height: 58%;
-  background-image: url("../assets/speaking-map/grassland.webp");
-  background-color: #a5dc81;
-}
-.speaking-map-landscape.is-highland {
-  top: 28%;
-  height: 58%;
-  background-image: url("../assets/speaking-map/highland.webp");
-  background-color: #e7ad5e;
-  -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 76%, transparent);
-  mask-image: linear-gradient(transparent, #000 30%, #000 76%, transparent);
-}
-.speaking-map-landscape.is-volcano {
-  top: 61%;
-  height: 39%;
-  background-image: url("../assets/speaking-map/volcano.webp");
-  background-color: #b86d54;
-  -webkit-mask-image: linear-gradient(transparent, #000 36%);
-  mask-image: linear-gradient(transparent, #000 36%);
-}
-.speaking-map-chapter.is-preparation .speaking-map-landscape.is-grassland,
-.speaking-map-chapter.is-topic .speaking-map-landscape.is-grassland { height: 100%; }
-.speaking-map-chapter.is-preparation .speaking-map-landscape.is-highland,
-.speaking-map-chapter.is-preparation .speaking-map-landscape.is-volcano,
-.speaking-map-chapter.is-topic .speaking-map-landscape.is-highland,
-.speaking-map-chapter.is-topic .speaking-map-landscape.is-volcano { display: none; }
-
 .speaking-adventure-route .speaking-map-route {
   z-index: 1;
   inset: 0;
@@ -92,9 +54,6 @@
   pointer-events: none;
 }
 .speaking-adventure-route .speaking-map-route path { fill: none; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.speaking-adventure-route .speaking-map-route__edge { stroke: #8b6443; stroke-width: 65px; }
-.speaking-adventure-route .speaking-map-route__center { stroke: #f7d58f; stroke-width: 53px; stroke-dasharray: 1 0; }
-
 .speaking-adventure-route .speaking-challenge-lesson {
   position: absolute;
   top: calc(var(--map-y) - 48px);
