@@ -203,3 +203,176 @@
 @media (prefers-reduced-motion: reduce) {
   .speaking-adventure-route .speaking-challenge-lesson__number { transition: none; }
 }
+
+// Reference artwork: the scenery and trail are one canvas; live levels stay in the DOM.
+.speaking-challenge-page.is-book-open { padding-top: 0; background: #a8daf7; }
+.speaking-challenge-page.is-book-open .speaking-book-toolbar {
+  top: max(8px, env(safe-area-inset-top, 0px));
+  width: min(550px, 100%);
+  box-sizing: border-box;
+  min-height: 86px;
+  margin-bottom: -86px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  grid-template-columns: 58px 1fr auto;
+}
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__title { display: none; }
+.speaking-challenge-page.is-book-open .speaking-book-toolbar .speaking-back {
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  min-height: 56px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #e5f2fc;
+  border-radius: 50%;
+  background: #fff;
+  color: #10316a;
+  font-size: 0;
+  box-shadow: 0 5px 15px rgba(24, 75, 127, .22);
+}
+.speaking-challenge-page.is-book-open .speaking-book-toolbar .speaking-back svg { width: 30px; height: 30px; }
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__progress {
+  display: grid;
+  grid-column: 3;
+  min-width: 84px;
+  padding: 8px 12px;
+  border: 3px solid #eab77f;
+  border-radius: 10px;
+  background: linear-gradient(155deg, #ad6940, #71401f);
+  color: #fff;
+  box-shadow: inset 0 2px rgba(255, 235, 182, .4), 0 5px 0 #663918, 0 12px 20px rgba(55, 36, 25, .25);
+}
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__progress strong { font-size: 20px; }
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__progress span { color: #ffe9c7; }
+.speaking-challenge-page.is-book-open .speaking-challenge-grid { width: min(550px, 100%); padding-top: 0; }
+.speaking-challenge-page.is-book-open .speaking-adventure-route { padding: 0; gap: 0; }
+.speaking-adventure-route .speaking-map-chapter { border: 0; border-radius: 0; background: #a8daf7; box-shadow: none; }
+.speaking-adventure-route .speaking-map-canvas { background: #8dc7ec url("../assets/speaking-map/adventure-islands.png") center / 100% 100% no-repeat; }
+.speaking-adventure-route .speaking-map-canvas::after { display: none; }
+.speaking-adventure-route .speaking-challenge-lesson { top: calc(var(--map-y) - 38px); width: 76px; min-height: 76px; }
+.speaking-adventure-route .speaking-challenge-lesson__number {
+  width: 74px;
+  height: 74px;
+  min-width: 74px;
+  border: 5px solid #e3f5ff;
+  background: radial-gradient(circle at 36% 26%, #b5e7ff, #54a7e5 78%);
+  color: #153672;
+  font-size: 15px;
+  box-shadow: inset 0 -4px rgba(20, 75, 139, .2), 0 6px 0 #4181bd, 0 12px 20px rgba(19, 49, 82, .27);
+}
+.speaking-adventure-route .speaking-challenge-lesson__number svg { width: 28px; height: 28px; }
+.speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number { border-color: #fff8b5; background: radial-gradient(circle at 35% 26%, #fff69d, #ffce32 78%); color: #203761; box-shadow: inset 0 -4px #e9a02c, 0 6px 0 #a9631a, 0 0 0 7px rgba(255, 236, 106, .45); }
+.speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number { border-color: #d9ffe6; background: radial-gradient(circle at 35% 26%, #9df4ac, #39aa67 78%); color: #fff; box-shadow: inset 0 -4px #2c8554, 0 6px 0 #24714e; }
+.speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number { border-color: #dbe6f2; background: radial-gradient(circle at 35% 26%, #a9bcd4, #5d7390 78%); color: #e6f1fc; box-shadow: inset 0 -4px #53637b, 0 6px 0 #465772; }
+.speaking-adventure-route .speaking-challenge-lesson__state { border: 3px solid #fff; background: #32ad63; }
+.speaking-adventure-route .speaking-challenge-lesson:focus-visible { outline-color: #113b7e; }
+
+// A light level sheet lets children read the full title before entering the round.
+.speaking-level-overlay { background: rgba(14, 39, 72, .65); }
+.speaking-level-dialog { border: 4px solid #e7bd7f; background: linear-gradient(#fffef5, #fff4dc); color: #253653; box-shadow: 0 8px 0 #a5703d, 0 28px 65px rgba(14, 33, 57, .35); }
+.speaking-level-dialog h2 { color: #17346c; }
+.speaking-level-dialog__eyebrow { color: #885123; }
+.speaking-level-dialog__topic { color: #276a9b; }
+.speaking-level-dialog p { color: #41526a; }
+.speaking-level-dialog__facts > span { border-color: #e9d7b7; background: #fff; }
+.speaking-level-dialog__facts small { color: #60728a; }
+.speaking-level-dialog__goal { border-color: #f1d490; background: #fff6db; }
+.speaking-level-dialog__locked { color: #9a4d25; }
+.speaking-level-dialog__close { background: #ecf5fc; color: #17346c; }
+.speaking-level-dialog__actions button { border-color: #bcd4e8; background: #e8f4fd; color: #17346c; }
+
+// The question stays on a cream game card; the smaller microphone sits below it.
+.speaking-immersive-play { background: linear-gradient(rgba(169, 221, 255, .08), rgba(167, 213, 232, .12)), url("../assets/speaking-map/adventure-islands.png") center / cover no-repeat, #82c8f4; color: #163364; }
+.speaking-immersive-play .speaking-lesson-header {
+  position: sticky;
+  top: max(6px, env(safe-area-inset-top, 0px));
+  z-index: 20;
+  grid-template-columns: 56px minmax(0, 1fr) minmax(115px, 190px);
+  gap: 9px;
+  max-width: 850px;
+  padding: 9px 13px;
+  border: 4px solid #e9b979;
+  border-radius: 22px;
+  background: linear-gradient(155deg, #b77b49, #8d4f29 58%, #a76639);
+  box-shadow: inset 0 3px rgba(255, 233, 181, .4), 0 6px 0 #70401f, 0 17px 28px rgba(48, 42, 33, .28);
+}
+.speaking-immersive-play .speaking-lesson-header .speaking-back { justify-content: center; width: 52px; height: 52px; min-height: 52px; padding: 0; border: 2px solid #e8f4ff; border-radius: 50%; background: #fff; color: #113476; font-size: 0; box-shadow: 0 4px 9px rgba(34, 45, 61, .22); }
+.speaking-immersive-play .speaking-lesson-header .speaking-back svg { width: 29px; height: 29px; }
+.speaking-immersive-play .speaking-lesson-heading > span,
+.speaking-immersive-play .speaking-lesson-heading h1,
+.speaking-immersive-play .speaking-lesson-heading p,
+.speaking-immersive-play .speaking-lesson-progress > div:first-child,
+.speaking-immersive-play .speaking-lesson-progress strong { color: #fff; text-shadow: 0 2px 2px rgba(54, 27, 13, .45); }
+.speaking-immersive-play .speaking-lesson-heading h1 { font-size: clamp(16px, 2.5vw, 22px); }
+.speaking-immersive-play .speaking-progress-track { background: #e7bc8d; }
+.speaking-immersive-play .speaking-progress-track span { background: linear-gradient(90deg, #ffea7d, #ffbc2a); }
+.speaking-immersive-play .speaking-lesson-reward { display: none; }
+.speaking-immersive-play .speaking-question-stage { max-width: 790px; }
+.speaking-immersive-play .speaking-focus-card { gap: 16px; padding: 10px 12px 24px; border: 0; background: transparent; box-shadow: none; }
+.speaking-immersive-play .speaking-focus-card::before,
+.speaking-immersive-play .speaking-picture-card::before { display: none; }
+.speaking-immersive-play .speaking-game-question-card,
+.speaking-immersive-play .speaking-foundation-intro,
+.speaking-immersive-play .speaking-foundation-result { display: grid; justify-items: center; gap: 14px; width: 100%; padding: clamp(18px, 4vw, 36px); border: 5px solid #f9e9ca; border-radius: 38px; background: linear-gradient(#fffef8, #fff9ed); color: #132e63; box-shadow: inset 0 0 0 2px #fff, 0 9px 0 #d8b584, 0 21px 36px rgba(50, 63, 66, .24); }
+.speaking-immersive-play .speaking-game-question-card .speaking-visual-aid { width: min(100%, 520px); margin-inline: auto; }
+.speaking-immersive-play .speaking-game-question-card .speaking-visual-aid img { object-fit: contain; }
+.speaking-immersive-play .speaking-game-question-card .speaking-question-heading { width: 100%; grid-template-columns: 1fr; gap: 2px; padding: 0; border: 0; background: transparent; box-shadow: none; text-align: center; }
+.speaking-immersive-play .speaking-game-question-card .speaking-question-number,
+.speaking-immersive-play .speaking-game-question-card .speaking-question-heading small { display: none; }
+.speaking-immersive-play .speaking-game-question-card .speaking-question-heading h2 { margin: 0; color: #10275e; font-size: clamp(18px, 3vw, 26px); line-height: 1.38; overflow-wrap: anywhere; }
+.speaking-immersive-play .speaking-game-question-card .speaking-question-heading p { margin-top: 8px; color: #667492; font-size: 13px; line-height: 1.5; }
+.speaking-immersive-play .speaking-foundation-intro h2,
+.speaking-immersive-play .speaking-foundation-result h1 { color: #18376b; }
+.speaking-immersive-play .speaking-foundation-intro p,
+.speaking-immersive-play .speaking-foundation-result p { color: #536780; }
+.speaking-immersive-play .speaking-foundation-count { background: #f9df8d; color: #563e13; }
+.speaking-immersive-play .speaking-picture-card .speaking-gap-sentence { font-size: clamp(17px, 3vw, 23px); }
+.speaking-immersive-play .speaking-direct-prompt { border: 2px solid #e7f4ff; background: rgba(255, 255, 255, .94); color: #203b69; }
+.speaking-immersive-play .speaking-direct-prompt strong,
+.speaking-immersive-play .speaking-direct-prompt p,
+.speaking-immersive-play .speaking-direct-prompt span { color: #203b69; }
+.speaking-immersive-play .speaking-help-toggle { border: 2px solid #b7d7ec; background: #fff; color: #204e7d; }
+.speaking-immersive-play .speaking-pronunciation { gap: 9px; border: 0; background: transparent; color: #1b3868; box-shadow: none; }
+.speaking-immersive-play .speaking-pronunciation.is-recording { background: #fff2ec; }
+.speaking-immersive-play .speaking-recording-heading strong,
+.speaking-immersive-play .speaking-pronunciation-result > header strong { color: #183b73; }
+.speaking-immersive-play .speaking-recording-heading span,
+.speaking-immersive-play .speaking-recording-privacy,
+.speaking-immersive-play .speaking-pronunciation-result > header span { color: #4f6382; }
+.speaking-immersive-play .speaking-recording-heading,
+.speaking-immersive-play .speaking-recording-privacy { padding: 4px 10px; border-radius: 12px; background: rgba(255, 253, 245, .86); }
+.speaking-immersive-play .speaking-pronunciation .speaking-pronunciation-mic { display: flex; flex-direction: column; gap: 2px; justify-content: center; width: 98px; min-width: 98px; min-height: 98px; padding: 8px; border: 6px solid #ffe268; border-radius: 50%; background: linear-gradient(#2d9bff, #0751c8); color: #fff; box-shadow: inset 0 -4px #114aac, 0 6px 0 #e39e24, 0 14px 22px rgba(33, 64, 117, .3); }
+.speaking-immersive-play .speaking-pronunciation.is-recording .speaking-pronunciation-mic { background: #e96354; }
+.speaking-immersive-play .speaking-pronunciation.is-recording.has-voice .speaking-pronunciation-mic { background: #25a86f; }
+.speaking-immersive-play .speaking-pronunciation-mic svg { font-size: 27px; }
+.speaking-immersive-play .speaking-pronunciation-mic span { font-size: 10px; line-height: 1.2; }
+.speaking-immersive-play .speaking-no-reward { color: #173967; background: rgba(255, 255, 255, .85); padding: 5px 10px; border-radius: 9px; }
+
+@media (max-width: 760px) {
+  .speaking-challenge-page.is-book-open { padding: 0 0 24px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar { width: 100%; grid-template-columns: 56px 1fr auto; margin-bottom: -86px; padding: 12px 14px; border-radius: 0; }
+  .speaking-challenge-page.is-book-open .speaking-challenge-grid { width: 100%; margin-top: 0; padding-top: 0; }
+  .speaking-adventure-route .speaking-challenge-lesson { top: calc(var(--map-y) - 35px); width: 70px; min-height: 70px; }
+  .speaking-adventure-route .speaking-challenge-lesson__number { width: 68px; height: 68px; min-width: 68px; font-size: 13px; }
+  .speaking-immersive-play { padding: 8px 10px calc(32px + env(safe-area-inset-bottom)); }
+  .speaking-immersive-play .speaking-lesson-header { top: max(6px, env(safe-area-inset-top, 0px)); grid-template-columns: 46px minmax(0, 1fr) 86px; min-height: 68px; padding: 6px 8px; border-width: 3px; border-radius: 16px; }
+  .speaking-immersive-play .speaking-lesson-header .speaking-back { width: 44px; height: 44px; min-height: 44px; }
+  .speaking-immersive-play .speaking-lesson-header .speaking-back svg { width: 26px; height: 26px; }
+  .speaking-immersive-play .speaking-lesson-heading h1 { font-size: 14px; }
+  .speaking-immersive-play .speaking-lesson-progress { grid-column: auto; width: 86px; }
+  .speaking-immersive-play .speaking-lesson-progress > div:first-child { gap: 2px; font-size: 10px; }
+  .speaking-immersive-play .speaking-lesson-progress strong { display: none; }
+  .speaking-immersive-play .speaking-focus-card { padding: 8px 0 18px; }
+  .speaking-immersive-play .speaking-game-question-card { gap: 10px; padding: 18px 16px 20px; border-width: 4px; border-radius: 30px; }
+  .speaking-immersive-play .speaking-game-question-card .speaking-visual-aid { width: min(100%, 320px); }
+  .speaking-immersive-play .speaking-game-question-card .speaking-question-heading h2 { font-size: 18px; line-height: 1.35; }
+  .speaking-immersive-play .speaking-game-question-card .speaking-question-heading p { font-size: 12px; }
+  .speaking-immersive-play .speaking-pronunciation .speaking-pronunciation-mic { width: 82px; min-width: 82px; min-height: 82px; padding: 6px; }
+  .speaking-immersive-play .speaking-pronunciation-mic svg { font-size: 23px; }
+  .speaking-immersive-play .speaking-pronunciation-mic span { font-size: 9px; }
+}

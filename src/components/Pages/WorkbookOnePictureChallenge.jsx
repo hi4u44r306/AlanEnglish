@@ -128,23 +128,25 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
             <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{progress}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div></div>
         </header>
         <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
-            <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
-            <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
-            {staffAudioPreview && gapMode && <button
+            <div className="speaking-game-question-card">
+                <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
+                <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
+                {staffAudioPreview && gapMode && <button
                 type="button"
                 className="speaking-gap-sentence-audio"
                 onClick={playSentence}
                 disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioToken !== null}
                 aria-label="播放整句發音；每個挖空處停留 2 秒"
             ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-            {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>
+                {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>
                     : token.kind === "blank"
                         ? <span key={token.tokenIndex} className="answer-blank" aria-label="請依圖片補上的答案">____</span>
                         : <span key={token.tokenIndex} className="punctuation" aria-hidden="true">{token.text}</span>)}
             </div>}
-            {audioError && <p className="speaking-foundation-warning" role="alert">{audioError}</p>}
+                {audioError && <p className="speaking-foundation-warning" role="alert">{audioError}</p>}
+            </div>
             {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps
                 key={activeQuestion.id}
                 firebaseUser={firebaseUser}
