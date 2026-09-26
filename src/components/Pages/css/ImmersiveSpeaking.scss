@@ -113,7 +113,7 @@
 
 .speaking-immersive-play {
   min-height: 100svh;
-  background: radial-gradient(circle at 50% -8%, #47778d, transparent 40%), linear-gradient(#173455, #0c1b32 80%);
+  background: linear-gradient(180deg, rgba(9, 31, 54, .62), rgba(7, 18, 37, .9) 76%), url("../assets/speaking-map/adventure-world.png") center 44% / cover no-repeat, #10233e;
   color: #fff;
 }
 .speaking-immersive-play .speaking-lesson-header {
