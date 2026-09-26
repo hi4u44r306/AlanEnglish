@@ -34,6 +34,24 @@ describe("TextbookSpeakingChallenge model audio", () => {
     beforeEach(() => { jest.clearAllMocks(); mockRole = "student"; });
     afterEach(() => { global.Audio = originalAudio; });
 
+    it("shows the existing Workbook 2 object clue inline without duplicating a manually edited clue", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 121, book_id: 2, title: "P10 口說練習", topic: "物品", difficulty: "國小中年級",
+                books: { id: 2, name: "Workbook 2" },
+                generation_metadata: { interaction_type: "text_qa", candidate_filter: { generation_strategy: "ai_grouped_numbered_text_qa" } },
+                speaking_questions: [
+                    { id: 551, interaction_type: "text_qa", question_text: "What are these?", hint_zh: "題目線索：鞋子。請用完整句回答。", model_answer: "They are shoes.", progress_status: "opened" },
+                    { id: 552, interaction_type: "text_qa", question_text: "What are（襪子） these?", hint_zh: "題目線索：襪子。請用完整句回答。", model_answer: "They are socks.", progress_status: "opened" }
+                ]
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/121"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "What are these?（鞋子）" })).toBeInTheDocument();
+        expect(screen.queryByText("題目線索：鞋子")).not.toBeInTheDocument();
+    });
+
     it.each([
         ["alphabet_round", "foundation-challenge"],
         ["letter_spelling", "foundation-challenge"],

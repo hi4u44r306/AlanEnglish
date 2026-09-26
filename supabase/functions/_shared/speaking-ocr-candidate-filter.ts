@@ -1,6 +1,5 @@
 import {
     textQaGenderIsConsistent,
-    textQaGenderSignal,
     textQaQuestionContentValid
 } from "./speaking-text-qa.ts";
 
@@ -47,6 +46,24 @@ const normalizeSentence = (value: string) => value
     .replace(/\s+/g, " ")
     .replace(/\s+([,.;!?])/g, "$1")
     .trim();
+
+const normalizeLearnerClue = (value: unknown) => String(value || "")
+    .replace(/\s*;\s*/g, "；")
+    .replace(/\s*[,，]\s*/g, "，")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const trailingLearnerClue = (value: string) => normalizeLearnerClue(value
+    .match(/[（(]\s*([^()（）A-Za-z]+?)\s*[）)]\s*$/u)?.[1]
+    || "");
+
+export const textQaPromptWithLearnerClue = (question: string, clue: string) => {
+    const normalizedQuestion = normalizeSentence(question);
+    const normalizedClue = normalizeLearnerClue(clue);
+    return normalizedQuestion && normalizedClue
+        ? `${normalizedQuestion}（${normalizedClue}）`
+        : normalizedQuestion;
+};
 
 const isSpeakableSentence = (value: string) => {
     if (value.length < 4 || value.length > 240 || value.includes("_") || value.includes("[無法辨識]") || NON_CONTENT.test(value)) return false;
@@ -148,7 +165,7 @@ export const extractGroupedNumberedTextQaForAi = (sourceText: unknown) => {
         if (!match) return [];
         const question = normalizeSentence(match[2]);
         if (!reviewedTextQaPromptIsComplete(question)) return [];
-        const clue = match[2].match(/[（(]\s*([^()（）A-Za-z]+?)\s*[）)]\s*$/u)?.[1]?.trim() || "";
+        const clue = trailingLearnerClue(match[2]);
         return [{ number: Number(match[1]), question, clue, index }];
     });
     if (numbered.length < 2 || numbered.length > 30 || !numbered.every(item => item.clue)
@@ -199,7 +216,7 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
         if (numbered) {
             if (current) blocks.push(current);
             current = { prompt: numbered[1].trim(), answers: [] };
-        } else if (current && line && !/^\[\[PAGE\b/i.test(line)) {
+        } else if (current && line && !/^\[\[(?:PAGE|RED_ANSWER)\b/i.test(line)) {
             current.answers.push(line);
         }
     }
@@ -225,7 +242,9 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
 
     return blocks.flatMap(block => {
         const prompt = normalizeSentence(block.prompt);
-        const questions = reviewedTextQaPromptIsComplete(prompt) ? [prompt] : [];
+        const clue = trailingLearnerClue(block.prompt);
+        const questions = reviewedTextQaPromptIsComplete(prompt)
+            ? [textQaPromptWithLearnerClue(prompt, clue)] : [];
         if (!questions.length) return [];
 
         const answers = Array.from(new Set(block.answers.flatMap(answerLine => {
@@ -241,19 +260,16 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
         if (!answers.length) return [];
 
         return questions.flatMap(question => {
-            const questionGender = textQaGenderSignal(question);
-            const compatibleAnswers = answers.filter(answer => {
-                const answerGender = textQaGenderSignal(answer);
-                if (questionGender === "male" || questionGender === "female") {
-                    return answerGender === questionGender && textQaGenderIsConsistent(question, answer);
-                }
-                return textQaGenderIsConsistent(question, answer);
-            });
+            // The learner clue is display-only metadata. Validate gender and
+            // spoken prompt completeness against the English source prompt so
+            // numeric clues such as （8） cannot invalidate an otherwise
+            // complete question.
+            const compatibleAnswers = answers.filter(answer => textQaGenderIsConsistent(prompt, answer));
             if (!compatibleAnswers.length) return [];
             const modelAnswer = compatibleAnswers[0];
             const acceptedAnswers = compatibleAnswers.slice(1);
             return textQaQuestionContentValid({
-                question_text: question,
+                question_text: prompt,
                 model_answer: modelAnswer,
                 accepted_intents: acceptedAnswers
             }) ? [{ question_text: question, model_answer: modelAnswer, accepted_answers: acceptedAnswers }] : [];

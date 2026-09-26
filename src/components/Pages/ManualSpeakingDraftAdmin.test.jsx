@@ -76,14 +76,14 @@ describe("ManualSpeakingDraftAdmin", () => {
         fillPage();
         fireEvent.change(screen.getByLabelText("題型"), { target: { value: "text_qa" } });
         expect(screen.queryByText("題目圖片")).not.toBeInTheDocument();
-        fireEvent.change(screen.getByLabelText("學生看到的完整問句"), { target: { value: "What is seven minus two?" } });
+        fireEvent.change(screen.getByLabelText("學生看到的完整問句（可加入中文提示）"), { target: { value: "What is seven minus two?（七減二）" } });
         fireEvent.change(screen.getByLabelText("完整示範回答（學生作答前不顯示）"), { target: { value: "Seven minus two is five." } });
         fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
         expect(screen.getByRole("dialog", { name: "確認建立未發布草稿" })).toHaveTextContent("無圖片文字問答");
         fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
         await waitFor(() => expect(createManualPageSpeakingDraft).toHaveBeenCalledWith(firebaseUser, expect.objectContaining({
             confirmed: true,
-            questions: [expect.objectContaining({ interaction_type: "text_qa", prompt_text: "What is seven minus two?", answer_text: "Seven minus two is five." })]
+            questions: [expect.objectContaining({ interaction_type: "text_qa", prompt_text: "What is seven minus two?（七減二）", answer_text: "Seven minus two is five." })]
         })));
         expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
         expect(uploadSpeakingQuestionPicture).not.toHaveBeenCalled();
@@ -93,7 +93,7 @@ describe("ManualSpeakingDraftAdmin", () => {
         renderBuilder();
         fillPage();
         fireEvent.change(screen.getByLabelText("題型"), { target: { value: "text_qa" } });
-        fireEvent.change(screen.getByLabelText("學生看到的完整問句"), { target: { value: "What is seven minus two?" } });
+        fireEvent.change(screen.getByLabelText("學生看到的完整問句（可加入中文提示）"), { target: { value: "What is seven minus two?" } });
         fireEvent.change(screen.getByLabelText("完整示範回答（學生作答前不顯示）"), { target: { value: "Seven minus two is five." } });
         fireEvent.click(screen.getByRole("button", { name: "新增一題" }));
         fireEvent.change(screen.getAllByLabelText("題型")[1], { target: { value: "standard_sentence" } });

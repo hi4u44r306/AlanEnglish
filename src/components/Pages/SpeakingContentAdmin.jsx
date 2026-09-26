@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { AlertCircle, AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, Eye, FileText, LoaderCircle, Pencil, Plus, RefreshCcw, Search, Sparkles, UploadCloud, Volume2, Wrench } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
+import { textQaPromptIsComplete } from "../../utils/textQaPrompt";
 import {
     activateSpeakingAlphabetAudioCandidate,
     archiveSpeakingQuestionSet,
@@ -127,8 +128,8 @@ const draftReadiness = (questionSet, section) => {
             if (!String(visual?.alt_zh || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少圖片替代文字。` });
         } else {
             if (!String(question.model_answer || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少完整示範回答。` });
-            if (questionInteractionType === "text_qa" && !String(question.question_text || "").trim().endsWith("?")) {
-                issues.push({ questionId: question.id, message: `${label}的文字問答必須是完整問句並以 ? 結尾。` });
+            if (questionInteractionType === "text_qa" && !textQaPromptIsComplete(question.question_text)) {
+                issues.push({ questionId: question.id, message: `${label}需包含完整英文問句；中文提示可放在句首、句中或句尾。` });
             }
         }
     });
@@ -334,7 +335,7 @@ const QuestionEditor = ({ question, interactionType, disabled, onSave }) => {
     return <article className="speaking-question-editor">
         <div className="speaking-question-editor__number">Q{Number(question.sort_order || 0) + 1}</div>
         <div className="platform-form">
-            <label><span>AI 要問學生的問題</span><input value={form.question_text} onChange={event => update("question_text", event.target.value)} disabled={disabled} /></label>
+            <label><span>{interactionType === "text_qa" ? "學生看到的完整問句（可加入中文提示）" : "AI 要問學生的問題"}</span><input value={form.question_text} onChange={event => update("question_text", event.target.value)} disabled={disabled} />{interactionType === "text_qa" && <small>例如「（尺）What are those?」、「What are（尺） those?」或「What are those?（尺）」；學生會照此看到題面，回答仍須說完整英文句。</small>}</label>
             <label><span>中文提示</span><input value={form.hint_zh} onChange={event => update("hint_zh", event.target.value)} disabled={disabled} /></label>
             <div className="platform-form-grid">
                 <label><span>關鍵字（用、分隔）</span><input value={form.keywords} onChange={event => update("keywords", event.target.value)} disabled={disabled} /></label>

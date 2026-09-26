@@ -385,9 +385,14 @@ export default function TextbookSpeakingChallenge() {
     const groupedTextQaClue = activeTextQa
         && challenge?.generation_metadata?.candidate_filter?.generation_strategy === "ai_grouped_numbered_text_qa"
         ? String(activeQuestion.hint_zh || "").match(/^題目線索：([^。]+)。/)?.[1] : null;
+    // Older published Workbook 2 questions kept the object clue only in the
+    // hint. Show it next to the question without mutating published content.
+    const inlineLegacyClue = Number(challenge?.book_id) === 2 && groupedTextQaClue
+        && !/[\u3400-\u9fff]/.test(String(activeQuestion.question_text || ""));
     const activePrompt = activeInteractionType === "picture_gap_sentence"
         ? activeQuestion.picture_interaction?.sentence_pattern || "看圖片補完整句"
-        : activeInteractionType === "picture_qa" ? "看圖片，說出完整問句與回答" : activeQuestion.question_text;
+        : activeInteractionType === "picture_qa" ? "看圖片，說出完整問句與回答"
+            : inlineLegacyClue ? `${activeQuestion.question_text}（${groupedTextQaClue}）` : activeQuestion.question_text;
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
     const goForward = () => {
         if (!isCompleted) return;
@@ -415,7 +420,7 @@ export default function TextbookSpeakingChallenge() {
             <article key={activeQuestion.id} className={`speaking-focus-card ${isCompleted ? "done" : ""}`}>
                 <header className="speaking-question-heading">
                     <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
-                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
+                    <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
                 </header>
                 <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
