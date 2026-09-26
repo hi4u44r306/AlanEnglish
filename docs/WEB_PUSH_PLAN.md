@@ -11,6 +11,7 @@
 - 回復方式：設 `WEB_PUSH_ENABLED=false` 立即停止新訂閱與發送，再回復前端及三個 Function 版本；保留訂閱與佇列表供稽核，不刪除站內通知。既有家長 Email 排程不依賴推播成功。
 - 2026-09-26：嘗試建立 Supabase 開發分支時被目前方案拒絕（需 Pro），沒有建立分支或產生該分支費用。暫存 PGlite 已完成 migration 與權限的本機隔離驗證。依使用者本批指示，正式 migration 版本 `20260926071713_student_web_push`、VAPID Secret、三支 Function 與 Cloudflare Worker `e2769ea1-1ab6-48b2-839d-2bf950cf7c4f` 已發布；兩個正式網域 HTTP 200，未登入 Function 401／403，推播表 RLS 拒絕匿名與一般認證角色直接讀取。當時 0 筆訂閱與待送工作；未收到實機通知前不得宣稱推播已完成驗收。
 - iPhone 實機自測：正式站已有 1 筆啟用中的 Apple Push 訂閱。為避免發布假班級作業，已部署由學生本人手動按下的裝置自測操作；後端再次確認 Firebase 身分與該裝置的有效訂閱，建立明確標為測試的站內通知及稽核工作，推播僅送此裝置。夜間停發，同分鐘防重複，並計入每日三則上限。`web-push-manager` v3 與 Cloudflare Worker `3cb5046a-34c3-4a59-af12-85a6c2b37f39` 已發布；Apple Push 兩次回應 201，使用者確認 iPhone 17 Pro Max 在網站開著時收到通知並可點擊進入通知頁。背景／鎖定狀態與 Android 實機收件仍待驗證。
+- 登入與稍後開啟流程：PR #295 已合併至 `main` `6b55d6bc`，Cloudflare Worker `df4caaf1-7c5f-437d-adc0-f0819498509a` 已發布。登入頁可選擇登入後設定或稍後再說，學生可於「我的設定」直接開關此裝置推播；系統權限僅在本人按開啟時請求。三頁測試 22/22、Production build、正式站 412px 公開登入頁與線上 JS 雜湊驗收通過。登入後 iPhone／Android 實機設定流程仍待驗。
 
 ## 現況與目標
 

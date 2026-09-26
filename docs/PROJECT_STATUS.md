@@ -2,10 +2,10 @@
 
 最後更新：2026-09-26
 
-本次學生登入通知選擇與設定頁開關（2026-09-26，開發中、尚未部署）：
+本次學生登入通知選擇與設定頁開關（2026-09-26，已正式部署）：
 
-- `codex/login-push-choice-settings` 在共用登入頁加入「登入後設定／稍後再說」，預設稍後再說；只有學生選擇設定時，登入及必要的首次引導完成後才進入通知頁，由本人再次按鈕要求系統權限。老師／管理員不導向學生頁。選擇稍後再說不影響登入，學生可在「我的設定」直接開啟／關閉此裝置推播；iPhone 非主畫面安裝與系統權限拒絕時顯示原有指引。未修改 Supabase migration、Function、Secret 或推播頻率規則。
-- 相關檔案：`Login.jsx`／SCSS、`StudentNotifications.jsx`／SCSS、`StudentSettings.jsx`／SCSS、三頁相關 React 測試、`PROJECT_LOGIC.md`、`WEB_PUSH_PLAN.md`、`網站使用手冊.md`。三頁測試 22/22、Production build、`git diff --check` 通過；登入頁在 Edge 模擬 320／412／768px 未見水平溢位。正式站發布與登入學生的 iPhone／Android 實機流程仍待驗。
+- `codex/login-push-choice-settings` 在共用登入頁加入「登入後設定／稍後再說」，預設稍後再說；只有學生選擇設定時，登入及必要的首次引導完成後才進入通知頁，由本人再次按鈕要求系統權限。老師／管理員不導向學生頁。選擇稍後再說不影響登入，學生可在「我的設定」直接開啟／關閉此裝置推播；iPhone 非主畫面安裝與系統權限拒絕時顯示原有指引。未修改 Supabase migration、Function、Secret 或推播頻率規則。PR #295 已合併至 `main` `6b55d6bc`，Cloudflare Worker `df4caaf1-7c5f-437d-adc0-f0819498509a` 已正式發布。
+- 相關檔案：`Login.jsx`／SCSS、`StudentNotifications.jsx`／SCSS、`StudentSettings.jsx`／SCSS、三頁相關 React 測試、`PROJECT_LOGIC.md`、`WEB_PUSH_PLAN.md`、`網站使用手冊.md`。三頁測試 22/22、Production build、`git diff --check` 通過；登入頁在 Edge 模擬 320／412／768px 未見水平溢位。兩個正式網域的登入頁及主網域設定／通知路由 HTTP 200 並載入 `main.c28d7f7a.js`；線上 JS 與本機 main build SHA-256 相同，412px 正式登入頁顯示新選項、預設稍後再說且無水平溢位。Netlify 舊預覽狀態為失敗且 `skipped=true`，PR #292／#294 亦同；不是本次 Cloudflare 建置結果。登入學生的 iPhone／Android 實機設定流程仍待驗。
 
 本次 iPhone Web Push 裝置自測（2026-09-26，前景收件與點擊已驗收）：
 
