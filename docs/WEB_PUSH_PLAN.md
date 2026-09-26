@@ -1,6 +1,6 @@
 # Alan English Web Push 規劃
 
-日期：2026-09-26。狀態：功能分支已實作，尚未套用 migration、設定 Secret、部署或完成實機驗收。
+日期：2026-09-26。狀態：正式 migration、Secret、三支 Function 與 Cloudflare 前端已部署；iOS／Android 實機推播待驗收。
 
 ## 2026-09-26 實作進度與發布條件
 
@@ -9,12 +9,12 @@
 - 現有家長排程每小時第 5 分鐘執行一次，`notification-manager` 的 `run_due` 會呼叫 `web-push-manager` 處理最多 20 筆。晚上 21:00～08:00（台北時間）不發送，每裝置每天最多三則；佇列可能要等到下一次排程，通知不保證即時。新作業若超過 20 位訂閱者，後續批次會逐小時處理。
 - 2026-09-26 使用者指定這批改在正式站測試。先完成本機 migration、權限、加密封包、相關測試與 Production build；再從已測試的最新 `main` 套用正式 migration、設定 VAPID Secret、部署三支 Function 與 Cloudflare 前端。先以測試帳號主動訂閱，確認實機通知後再邀請其他學生開啟。
 - 回復方式：設 `WEB_PUSH_ENABLED=false` 立即停止新訂閱與發送，再回復前端及三個 Function 版本；保留訂閱與佇列表供稽核，不刪除站內通知。既有家長 Email 排程不依賴推播成功。
-- 2026-09-26：嘗試建立 Supabase 開發分支時被目前方案拒絕（需 Pro），沒有建立分支或產生該分支費用。暫存 PGlite 已完成 migration 與權限的本機隔離驗證。依使用者本批指示，真實 Supabase Edge 與裝置驗收改在正式站進行；未收到實機通知前不得宣稱推播已完成驗收。
+- 2026-09-26：嘗試建立 Supabase 開發分支時被目前方案拒絕（需 Pro），沒有建立分支或產生該分支費用。暫存 PGlite 已完成 migration 與權限的本機隔離驗證。依使用者本批指示，正式 migration 版本 `20260926071713_student_web_push`、VAPID Secret、三支 Function 與 Cloudflare Worker `e2769ea1-1ab6-48b2-839d-2bf950cf7c4f` 已發布；兩個正式網域 HTTP 200，未登入 Function 401／403，推播表 RLS 拒絕匿名與一般認證角色直接讀取。當時 0 筆訂閱與待送工作；未收到實機通知前不得宣稱推播已完成驗收。
 
 ## 現況與目標
 
 - 學生已有 `student_notifications` 站內收件匣、未讀數、已讀操作及安全導頁；`notification_events` 為部分商務提醒保留去重事件，家長 Email 有獨立佇列。
-- `public/manifest.json` 已採 `display: standalone`，但尚無 Web Push 授權、訂閱、Service Worker 或發送佇列。
+- `public/manifest.json` 已採 `display: standalone` 並有穩定 `id`；Service Worker 與訂閱／發送佇列已上線，仍須由使用者在各裝置主動同意通知權限。
 - 目標是讓使用者明確同意後，iOS 主畫面 Web App 與 Android Chrome Web App 在網站未開啟時，也能收到同一筆站內通知的系統提醒。站內收件匣仍是完整且可追溯的訊息來源。
 
 ## 使用者流程
