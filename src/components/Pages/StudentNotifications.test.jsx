@@ -132,4 +132,15 @@ describe("StudentNotifications", () => {
         fireEvent.click(disable);
         await waitFor(() => expect(disableWebPush).toHaveBeenCalledWith({ uid: "student-1" }));
     });
+
+    it("explains the extra tap after login and preserves a way to continue learning", async () => {
+        render(
+            <MemoryRouter initialEntries={[{ pathname: "/student/notifications", state: { pushSetup: true, returnTo: "/student/dashboard" } }]}>
+                <StudentNotifications />
+            </MemoryRouter>
+        );
+        expect(await screen.findByText("登入成功，接著設定此裝置推播")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "先繼續學習" })).toHaveAttribute("href", "/student/dashboard");
+        expect(enableWebPush).not.toHaveBeenCalled();
+    });
 });

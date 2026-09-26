@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { FiBell, FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { cacheStudentAvatarDisplayUrl, updateStudentAvatarCache } from "../../constants/studentAvatarCache";
@@ -13,6 +13,7 @@ import {
 } from "../../services/membershipService";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
 import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
+import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { validatePublicNickname } from "../../utils/nicknameValidation";
 import BirthdaySelect from "../fragment/BirthdaySelect";
@@ -101,6 +102,9 @@ function StudentSettings() {
     const [guardianEmail, setGuardianEmail] = useState("");
     const [savingGuardian, setSavingGuardian] = useState(false);
     const [guardianVerification, setGuardianVerification] = useState({ requestId: null, maskedEmail: "", code: "" });
+    const [pushConfig, setPushConfig] = useState(null);
+    const [pushStatus, setPushStatus] = useState(null);
+    const [pushBusy, setPushBusy] = useState(false);
     const [avatarDraft, setAvatarDraft] = useState(null);
     const [avatarConfirmation, setAvatarConfirmation] = useState(null);
     const avatarDragRef = useRef(null);
@@ -142,6 +146,42 @@ function StudentSettings() {
     }, [firebaseUser, studentProfile?.nickname, studentProfile?.user_image, studentProfile?.userimage]);
 
     useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        if (!firebaseUser) return undefined;
+        let cancelled = false;
+        const availability = getWebPushAvailability();
+        setPushStatus({ ...availability, active: false });
+        if (availability.supported) {
+            getWebPushConfig(firebaseUser).then(async config => {
+                if (cancelled) return;
+                setPushConfig(config);
+                if (config.enabled) {
+                    const status = await getCurrentWebPushStatus(firebaseUser);
+                    if (!cancelled) setPushStatus(status);
+                }
+            }).catch(() => {
+                if (!cancelled) setPushConfig({ enabled: false });
+            });
+        }
+        return () => { cancelled = true; };
+    }, [firebaseUser]);
+
+    const togglePush = async () => {
+        if (!firebaseUser || pushBusy || !pushConfig?.enabled) return;
+        setPushBusy(true);
+        try {
+            if (pushStatus?.active) await disableWebPush(firebaseUser);
+            else await enableWebPush(firebaseUser, pushConfig.public_key);
+            const status = await getCurrentWebPushStatus(firebaseUser);
+            setPushStatus(status);
+            toast.success(status.active ? "此裝置已開啟推播" : "此裝置已關閉推播");
+        } catch (error) {
+            setPushStatus(getWebPushAvailability());
+            toast.error(error.message || "推播設定失敗");
+        } finally {
+            setPushBusy(false);
+        }
+    };
     useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
     useEffect(() => { setGuardianEmail(commerce?.guardian?.email || studentProfile?.guardian?.email || ""); }, [commerce?.guardian?.email, studentProfile?.guardian?.email]);
     useEffect(() => {
@@ -501,6 +541,17 @@ function StudentSettings() {
             <section className="student-settings-hero">
                 <span><FiUser /> MY SETTINGS</span>
                 <h1>我的設定</h1>
+            </section>
+
+            <section className="student-settings-push-panel" aria-labelledby="student-settings-push-heading">
+                <div>
+                    <h2 id="student-settings-push-heading"><FiBell /> 手機推播通知</h2>
+                    <p>登入時選擇「稍後再說」也能在這裡開啟。新班級作業與教材期限提醒會送到此裝置；晚上 9 點至早上 8 點不發送，每裝置每日最多三則。</p>
+                    <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟推播" : "此裝置尚未開啟推播")}</small>
+                </div>
+                <button type="button" onClick={togglePush} disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
+                    {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
+                </button>
             </section>
 
             <section className="student-settings-profile-card">

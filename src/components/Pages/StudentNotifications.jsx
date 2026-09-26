@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FiArrowRight, FiBell, FiCheck, FiChevronLeft, FiClock, FiLoader } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
@@ -15,6 +15,10 @@ const formatDateTime = value => value ? new Intl.DateTimeFormat("zh-TW", { dateS
 function StudentNotifications() {
     const { firebaseUser } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const pushSetupRequested = location.state?.pushSetup === true;
+    const returnTo = typeof location.state?.returnTo === "string" && /^\/(?!\/)/.test(location.state.returnTo)
+        ? location.state.returnTo : "/userinfo";
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -137,6 +141,11 @@ function StudentNotifications() {
     return (
         <main className="student-notifications-page">
             <Link to="/student/dashboard" className="student-notifications-back"><FiChevronLeft />回到我的首頁</Link>
+            {pushSetupRequested && <div className="student-notifications-setup-intro" role="status">
+                <strong>登入成功，接著設定此裝置推播</strong>
+                <p>請在下方按「開啟此裝置推播」。你也可以先繼續學習，之後到「我的設定」開啟。</p>
+                <Link to={returnTo}>先繼續學習</Link>
+            </div>}
             <section className="student-notifications-hero">
                 <span><FiBell /> NOTIFICATIONS</span>
                 <h1>所有通知</h1>
