@@ -15,6 +15,13 @@
 - 相關檔案：`src/utils/speakingAdventureMap.js`、`src/components/Pages/TextbookSpeakingChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`css/SpeakingAdventureRoute.scss`、`assets/speaking-map/` 及對應測試。無 migration、Edge Function 或正式資料操作。與 `main` 合併時保留學生非 A–Z 語音限制及老師／管理員試聽，相關 React 測試 4 suites／61 tests、學生輸出契約 9/9、完整口說契約 37/37 與 Production build 通過；編譯 CSS 靜態樣張在 320／390／430／1280px 無水平溢位。
 - PR #277 已合併至 `main` `0681db5`；由此乾淨 commit 建置後以 Wrangler 發布 Cloudflare Worker 版本 `d7bb5208-84d4-4295-8ba0-02c39b856646`。`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 的口說路由均回應 200 並載入 `main.a82a47fb.js`，主網域線上 JS SHA-256 與已測試的本機 build 一致。尚未以登入學生、老師、管理員實測真實錄音、返回導覽及 iPhone safe area；`S-19`、`S-20` 素材待更新。
 
+本次無圖片文字問答括號提示保留（2026-09-26，已驗證待發布）：
+
+- 已唯讀核對 Workbook 2 P14 的核准來源：7 題逐字稿皆有完整問句、括號中文線索與設計師英文答案；既有草稿 #127 的 7 題答案正確，但產生流程曾把 `（餐桌）` 等線索從 `question_text` 移除。
+- 編號式文字問答及答案庫配對流程現在會把括號線索放回學生可見問句，例如 `What are those?（餐桌）`；`（原子筆；鋼筆）` 會統一標點。線索不會進入示範答案、替代答案或英文發音判定，數字線索如 `（8）` 也不會讓完整問句被排除。
+- 既有未發布草稿不會被直接改寫；規則部署後由管理員在「已核准教材頁面」重新產生 P14，即可取得含提示的新版 7 題草稿。未修改、刪除、核准或發布任何正式資料。
+- 與最新 `main` 合併後，OCR／文字問答規則 12/12、管理／學生相關 React 60/60、完整口說契約 37/37、全部 Edge Function 語法、Production build 與 `git diff --check` 通過；正式部署與線上驗收待完成。
+
 本次口說大挑戰語音提示暫停（2026-09-25，正式部署完成）：
 
 - 學生端除 A–Z 導聽外，非 A–Z 題目的答案範例與看圖補句整句播放入口先隱藏；一般題目音檔網址與看圖補句音檔網址不再對學生簽發。已保存的私有 R2 音檔不刪除，工作人員預覽仍可試聽。

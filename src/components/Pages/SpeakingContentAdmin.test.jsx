@@ -628,7 +628,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
             question_sets: [{
                 id: 422, source_section_id: 421, book_id: 1, title: "P42 數字加減法", status: "draft", version: 1,
                 generation_metadata: { source: "admin_page_builder", manual_builder_version: 2, source_pages: [42], source_page_label: "P42", interaction_type: "text_qa", content_reviewed_at: "2026-09-25T00:00:00Z" },
-                speaking_questions: [{ id: 423, sort_order: 0, question_text: "What is seven minus two?", hint_zh: "請用完整句回答。", simple_answer: "Seven minus two is five.", model_answer: "Seven minus two is five." }]
+                speaking_questions: [{ id: 423, sort_order: 0, question_text: "（算式）What is seven minus two?", hint_zh: "請用完整句回答。", simple_answer: "Seven minus two is five.", model_answer: "Seven minus two is five." }]
             }]
         });
 

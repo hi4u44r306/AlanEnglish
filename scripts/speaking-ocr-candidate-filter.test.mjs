@@ -5,6 +5,7 @@ import {
     extractNumberedTextQaPairs,
     filterOcrPageSpeakingCandidates,
     reviewedTextQaPromptIsComplete,
+    textQaPromptWithLearnerClue,
     validateGroupedNumberedTextQaMatch
 } from "../supabase/functions/_shared/speaking-ocr-candidate-filter.ts";
 
@@ -107,6 +108,61 @@ They are shoes.`
     }
 });
 import { textQaQuestionContentValid } from "../supabase/functions/_shared/speaking-text-qa.ts";
+
+test("accepts Chinese learner clues before, inside, and after a complete English question", () => {
+    for (const question_text of [
+        "（尺）What are those?",
+        "What are（尺） those?",
+        "What are those?（尺）",
+        "請回答：What are those?",
+        "What are those？（尺）"
+    ]) {
+        assert.equal(textQaQuestionContentValid({
+            question_text, model_answer: "They are rulers.", accepted_intents: []
+        }), true, question_text);
+    }
+    for (const question_text of ["（尺）", "What are those（尺）", "What are those? extra English"] ) {
+        assert.equal(textQaQuestionContentValid({
+            question_text, model_answer: "They are rulers.", accepted_intents: []
+        }), false, question_text);
+    }
+});
+
+test("Workbook 2 learner clues stay inside generated question text", () => {
+    assert.equal(textQaPromptWithLearnerClue("What are those?", "餐桌"), "What are those?（餐桌）");
+    assert.equal(textQaPromptWithLearnerClue("What are those?", "原子筆 ; 鋼筆"), "What are those?（原子筆；鋼筆）");
+
+    const pairs = extractNumberedTextQaPairs(`29. What are those? (餐桌)
+They are tables.
+[[RED_ANSWER: They are tables.]]
+30. What are those? (杯子)
+They are cups.
+[[RED_ANSWER: They are cups.]]
+31. What are those? (電腦)
+They are computers.
+[[RED_ANSWER: They are computers.]]
+32. What are those? (尺)
+They are rulers.
+[[RED_ANSWER: They are rulers.]]
+33. What are those? (橡皮擦)
+They are erasers.
+[[RED_ANSWER: They are erasers.]]
+34. What are those? (鉛筆)
+They are pencils.
+[[RED_ANSWER: They are pencils.]]
+35. What are those? (原子筆 ; 鋼筆)
+They are pens.
+[[RED_ANSWER: They are pens.]]`);
+    assert.equal(pairs.length, 7);
+    assert.equal(pairs[0].question_text, "What are those?（餐桌）");
+    assert.equal(pairs[1].question_text, "What are those?（杯子）");
+    assert.equal(pairs[6].question_text, "What are those?（原子筆；鋼筆）");
+    assert.deepEqual(pairs.map(pair => pair.model_answer), [
+        "They are tables.", "They are cups.", "They are computers.", "They are rulers.",
+        "They are erasers.", "They are pencils.", "They are pens."
+    ]);
+    assert.equal(pairs.every(pair => pair.accepted_answers.length === 0), true);
+});
 
 test("keeps only complete, speakable English sentences for automatic OCR candidates", () => {
     const result = filterOcrPageSpeakingCandidates(`Workbook 3
@@ -325,7 +381,7 @@ I sleep alone in my room. I feel lonely.`);
 
     assert.equal(page11.length, 7);
     assert.deepEqual(page11[0], {
-        question_text: "What are your brothers' names? Do you love them?",
+        question_text: "What are your brothers' names? Do you love them?（不，調皮）",
         model_answer: "They are Sean and Kenny. No, they're naughty.",
         accepted_answers: []
     });
@@ -334,7 +390,7 @@ I sleep alone in my room. I feel lonely.`);
         model_answer: "Yes, I live with them.",
         accepted_answers: ["Yes, they just moved in.", "No, they live alone."]
     });
-    assert.equal(page11[6].question_text, "Who do you sleep with?");
+    assert.equal(page11[6].question_text, "Who do you sleep with?（單獨，我覺得孤單）");
     assert.equal(page11[6].model_answer, "I sleep alone in my room. I feel lonely.");
 
     const page15 = extractNumberedTextQaPairs(`[[PAGE P15]]
@@ -356,7 +412,7 @@ I'm in class 5. I'm in the fifth class.`);
 
     assert.equal(page15.length, 7);
     assert.deepEqual(page15[0], {
-        question_text: "How are you? How are you doing?",
+        question_text: "How are you? How are you doing?（很好）",
         model_answer: "Great.",
         accepted_answers: []
     });
@@ -384,9 +440,9 @@ I am a bookworm. I like to read a lot.
 No, I am the teacher's pet. I am a model student.`);
 
     assert.equal(page17.length, 2);
-    assert.equal(page17[0].question_text, "Why are you always studying hard?");
+    assert.equal(page17[0].question_text, "Why are you always studying hard?（書蟲）");
     assert.equal(page17[0].model_answer, "I am a bookworm. I like to read a lot.");
-    assert.equal(page17[1].question_text, "Have you ever skipped class?");
+    assert.equal(page17[1].question_text, "Have you ever skipped class?（不，老師的模範生）");
 
     const page20 = extractNumberedTextQaPairs(`[[PAGE P20]]
 43. Are you hungry?
@@ -442,4 +498,7 @@ I'm in class 5. I'm in the fifth class.
     assert.equal(reviewedPage15.length, 7);
     assert.equal(reviewedPage15[1].question_text, "Nice to meet you!");
     assert.equal(reviewedPage15[4].question_text, "Are you sure? You look like a 6-year-old boy/girl.");
+    assert.equal(reviewedPage15[0].question_text, "How are you? How are you doing?（很好）");
+    assert.equal(reviewedPage15[3].question_text, "How old are you?（8）");
+    assert.equal(reviewedPage15[1].accepted_answers.includes("Me too.]]"), false);
 });

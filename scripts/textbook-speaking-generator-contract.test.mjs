@@ -148,7 +148,7 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /sentenceFingerprint\(question\.question_text\)\}\|\$\{sentenceFingerprint\(question\.model_answer\)/);
     assert.match(manager, /requires_answer_audio: Boolean\(groupedTextQaForAi\)/);
     assert.match(manager, /extractNumberedTextQaPairs/);
-    assert.match(manager, /reviewedTextQaPromptIsComplete\(normalized\.question_text\)/);
+    assert.match(manager, /textQaPromptIsComplete\(normalized\.question_text\)/);
     assert.match(manager, /textQaQuestionContentValid/);
     assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
     assert.match(manager, /reviewed_full_response_with_variable_slots/);

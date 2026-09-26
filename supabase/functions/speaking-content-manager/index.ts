@@ -32,12 +32,14 @@ import {
     extractNumberedTextQaPairs,
     filterOcrPageSpeakingCandidates,
     reviewedTextQaPromptIsComplete,
+    textQaPromptWithLearnerClue,
     validateGroupedNumberedTextQaMatch
 } from "../_shared/speaking-ocr-candidate-filter.ts";
 import {
     textQaGenderSignal,
     textQaGenderSkeleton,
     textQaGenderIsConsistent,
+    textQaPromptIsComplete,
     textQaQuestionContentValid
 } from "../_shared/speaking-text-qa.ts";
 import { speakingAudioSourceMatchesModelAnswer } from "../_shared/speaking-tts-text.ts";
@@ -558,7 +560,7 @@ const normalizePageCandidateGeneration = (
             return allowed.has(normalized.question_text) ? normalized : null;
         }
         if (!allowed.has(normalized.question_text)
-            || !reviewedTextQaPromptIsComplete(normalized.question_text)
+            || !textQaPromptIsComplete(normalized.question_text)
             || !allowed.has(normalized.model_answer)
             || !textQaGenderIsConsistent(normalized.question_text, normalized.model_answer)) return null;
         const acceptedAnswers = cleanArray(row?.accepted_answers, 12, 500)
@@ -743,7 +745,7 @@ const normalizeManualPageQuestions = (value: unknown) => {
             const questionText = cleanText(raw?.prompt_text, 500);
             const answerText = cleanText(raw?.answer_text, 500);
             const acceptedFullResponses = cleanArray(raw?.accepted_full_responses, 12, 500);
-            if (!questionText.endsWith("?") || !answerText) return null;
+            if (!textQaPromptIsComplete(questionText) || !answerText) return null;
             return {
                 interactionType, questionText, promptText: questionText,
                 answerText, expectedFullAnswer: answerText, acceptedFullResponses,
@@ -1735,7 +1737,8 @@ Deno.serve(async (req: Request) => {
                         });
                         const keywords = (answer.match(/[A-Za-z]+/g) || []).filter(word => !["it", "is", "a", "an", "they", "are"].includes(word.toLowerCase())).slice(0, 5);
                         return {
-                            question_text: pair.question, hint_zh: `題目線索：${pair.clue}。請用完整句回答。`,
+                            question_text: textQaPromptWithLearnerClue(pair.question, pair.clue),
+                            hint_zh: "請用完整句回答。",
                             keywords: keywords.length ? keywords : ["answer"], simple_answer: answer,
                             model_answer: answer, accepted_answers: [], follow_up_question: "",
                             pronunciation_notes_zh: "請先看題目線索，再說出完整英文回答。"
@@ -1749,7 +1752,10 @@ Deno.serve(async (req: Request) => {
                     pageCandidateSource!.sentences,
                     groupedTextQaForAi ? questionCount : Math.min(questionCount, pageCandidateSource!.sentences.length),
                     groupedTextQaForAi ? questionCount : autoQuestionCount ? 1 : 3,
-                    groupedTextQaForAi ? groupedMatches?.map(pair => pair.source_answer.replace(/^It a ([A-Za-z][A-Za-z' -]*)\.$/, "It's a $1.")) || []
+                    groupedTextQaForAi ? groupedMatches?.flatMap(pair => [
+                        textQaPromptWithLearnerClue(pair.question, pair.clue),
+                        pair.source_answer.replace(/^It a ([A-Za-z][A-Za-z' -]*)\.$/, "It's a $1.")
+                    ]) || []
                         : useDeterministicTextQa ? deterministicTextQaPairs.flatMap(pair => [
                         pair.question_text, pair.model_answer, ...(pair.accepted_answers || [])
                     ]) : []
@@ -1914,7 +1920,7 @@ Deno.serve(async (req: Request) => {
             const normalized = normalizeQuestions([body?.question], 1)?.[0];
             if (!normalized) return json(400, { error: "問題、提示、關鍵字與兩種示範回答都必須完整" });
             if (interactionType === TEXT_QA_INTERACTION_TYPE && !textQaQuestionContentValid(normalized)) {
-                return json(400, { error: "文字問答必須使用完整問句與完整回答；未指定性別時，請同時填入一致的男女兩種完整答案" });
+                return json(400, { error: "文字問答需包含完整英文問句（中文提示可放句首、句中或句尾）與完整回答；未指定性別時，請同時填入一致的男女兩種完整答案" });
             }
             const now = new Date().toISOString();
             const metadata = questionSet?.generation_metadata || {};
@@ -2925,7 +2931,7 @@ Deno.serve(async (req: Request) => {
                     const interaction: any = interactionByQuestion.get(Number(question.id));
                     if (!interaction) {
                         if (String(metadata?.interaction_type || "") === TEXT_QA_INTERACTION_TYPE) {
-                            return !String(question.question_text || "").trim().endsWith("?")
+                            return !textQaPromptIsComplete(question.question_text)
                                 || !String(question.simple_answer || "").trim()
                                 || !String(question.model_answer || "").trim();
                         }

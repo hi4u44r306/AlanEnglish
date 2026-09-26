@@ -1,5 +1,14 @@
 const clean = (value: unknown, maximum = 2000) => String(value || "").replace(/\s+/g, " ").trim().slice(0, maximum);
 
+// Chinese teaching clues may be placed before, inside, or after the English
+// prompt. Check the speakable English rather than the last visible character.
+export const textQaPromptIsComplete = (value: unknown) => {
+    const spoken = clean(value, 800).replace(/？/g, "?")
+        .replace(/[^\x20-\x7E]/g, " ")
+        .replace(/[()[\]{}]/g, " ").replace(/\s+/g, " ").trim();
+    return /[A-Za-z]/.test(spoken) && /[.!?]["']?$/.test(spoken);
+};
+
 export const textQaGenderSignal = (value: unknown) => {
     const tokens = String(value || "").toLowerCase().match(/[a-z]+/g) || [];
     const male = tokens.some(token => [
@@ -41,7 +50,7 @@ export const textQaQuestionContentValid = (question: any) => {
         .map((answer: unknown) => clean(answer, 500)).filter(Boolean))]
         .filter(answer => answer !== modelAnswer);
     const answers = [modelAnswer, ...alternatives].filter(Boolean);
-    if (!/[.!?](?:["')\]]+)?$/.test(questionText) || answers.length < 1
+    if (!textQaPromptIsComplete(questionText) || answers.length < 1
         || answers.some(answer => !textQaGenderIsConsistent(questionText, answer))) return false;
     const questionGender = textQaGenderSignal(questionText);
     const modelGender = textQaGenderSignal(modelAnswer);
