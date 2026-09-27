@@ -16,3 +16,17 @@ export const zhToEnPromptIsComplete = value => {
 
 export const zhToEnAnswerIsComplete = value => textQaPromptIsComplete(value)
     && !/[\u3400-\u9fff]/.test(String(value || ""));
+
+export const grammarCuePromptIsComplete = value => {
+    const prompt = String(value || "").replace(/[_＿﹍﹎]{2,}/g, " ").replace(/\s+/g, " ").trim();
+    return prompt.length >= 3 && /[A-Za-z\u3400-\u9fff]/u.test(prompt);
+};
+
+export const questionPromptMode = (metadata, questionOrSortOrder) => {
+    const sortOrder = typeof questionOrSortOrder === "object"
+        ? Number(questionOrSortOrder?.sort_order) : Number(questionOrSortOrder);
+    const modes = Array.isArray(metadata?.prompt_modes_by_sort_order)
+        ? metadata.prompt_modes_by_sort_order : [];
+    const mode = modes[sortOrder] || metadata?.prompt_mode || "english_qa";
+    return ["english_qa", "zh_to_en", "grammar_cue"].includes(mode) ? mode : "english_qa";
+};

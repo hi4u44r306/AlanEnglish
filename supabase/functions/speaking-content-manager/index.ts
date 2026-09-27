@@ -36,6 +36,8 @@ import {
     validateGroupedNumberedTextQaMatch
 } from "../_shared/speaking-ocr-candidate-filter.ts";
 import {
+    grammarCuePromptIsComplete,
+    questionPromptMode,
     textQaGenderSignal,
     textQaGenderSkeleton,
     textQaGenderIsConsistent,
@@ -139,7 +141,7 @@ const manualDraftPolicyForMetadata = (metadata: any) => {
 const manualPageDraftPolicyForMetadata = (metadata: any) => {
     const rawPages = Array.isArray(metadata?.source_pages) ? metadata.source_pages : [];
     const page = Number(rawPages[0]);
-    if (metadata?.source !== "admin_page_builder" || metadata?.manual_builder_version !== 2
+    if (metadata?.source !== "admin_page_builder" || ![2, 3].includes(metadata?.manual_builder_version)
         || !["mixed", TEXT_QA_INTERACTION_TYPE].includes(metadata?.interaction_type) || rawPages.length !== 1
         || !Number.isInteger(page) || page < 1 || page > 9999) return null;
     return { sourcePages: [page], pageLabels: [`P${page}`], pageLabel: `P${page}`, expectedCount: null };
@@ -742,8 +744,6 @@ const normalizeManualPageQuestions = (value: unknown) => {
     if (!Array.isArray(value) || value.length < 1 || value.length > 50) return null;
     const types = value.map((raw: any) => cleanText(raw?.interaction_type, 40));
     if (types.includes(TEXT_QA_INTERACTION_TYPE) && types.some((type: string) => type !== TEXT_QA_INTERACTION_TYPE)) return null;
-    const promptModes = value.map((raw: any) => cleanText(raw?.prompt_mode, 40) || "english_qa");
-    if (types.includes(TEXT_QA_INTERACTION_TYPE) && new Set(promptModes).size !== 1) return null;
     const rows = value.map((raw: any) => {
         const interactionType = cleanText(raw?.interaction_type, 40);
         if (!MANUAL_PAGE_INTERACTION_TYPES.has(interactionType)) return null;
@@ -752,11 +752,12 @@ const normalizeManualPageQuestions = (value: unknown) => {
             const questionText = cleanText(raw?.prompt_text, 500);
             const answerText = cleanText(raw?.answer_text, 500);
             const acceptedFullResponses = cleanArray(raw?.accepted_full_responses, 12, 500);
-            if (!["english_qa", "zh_to_en"].includes(promptMode)
-                || (promptMode === "zh_to_en"
-                    ? !zhToEnPromptIsComplete(questionText) || !zhToEnAnswerIsComplete(answerText)
-                        || acceptedFullResponses.some(answer => !zhToEnAnswerIsComplete(answer))
-                    : !textQaPromptIsComplete(questionText) || !answerText)) return null;
+            if (!["english_qa", "zh_to_en", "grammar_cue"].includes(promptMode)) return null;
+            const completeEnglishAnswers = zhToEnAnswerIsComplete(answerText)
+                && acceptedFullResponses.every(answer => zhToEnAnswerIsComplete(answer));
+            if ((promptMode === "zh_to_en" && (!zhToEnPromptIsComplete(questionText) || !completeEnglishAnswers))
+                || (promptMode === "grammar_cue" && (!grammarCuePromptIsComplete(questionText) || !completeEnglishAnswers))
+                || (promptMode === "english_qa" && (!textQaPromptIsComplete(questionText) || !answerText))) return null;
             return {
                 interactionType, promptMode, questionText, promptText: questionText,
                 answerText, expectedFullAnswer: answerText, acceptedFullResponses,
@@ -1927,7 +1928,7 @@ Deno.serve(async (req: Request) => {
         if (action === "update_draft_question") {
             const questionId = Number(body?.question_id);
             const { data: question, error: questionError } = await admin.from("speaking_questions")
-                .select("id,question_set_id,speaking_question_sets(status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
+                .select("id,question_set_id,sort_order,speaking_question_sets(status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
@@ -1948,16 +1949,21 @@ Deno.serve(async (req: Request) => {
                 interactionType === TEXT_QA_INTERACTION_TYPE ? 500 : 300)?.[0];
             if (!normalized) return json(400, { error: "問題、提示、關鍵字與兩種示範回答都必須完整" });
             const metadata = questionSet?.generation_metadata || {};
-            const translationMode = metadata?.source === "admin_page_builder" && metadata?.prompt_mode === "zh_to_en";
-            if (interactionType === TEXT_QA_INTERACTION_TYPE && (translationMode
-                ? !zhToEnPromptIsComplete(normalized.question_text)
-                    || normalized.model_answer.length > 500
-                    || !zhToEnAnswerIsComplete(normalized.model_answer)
-                    || (normalized.accepted_intents || []).some((answer: string) => !zhToEnAnswerIsComplete(answer))
-                : !textQaQuestionContentValid(normalized))) {
-                return json(400, { error: translationMode
+            const promptMode = metadata?.source === "admin_page_builder"
+                ? questionPromptMode(metadata, question.sort_order) : "english_qa";
+            const completeEnglishAnswers = zhToEnAnswerIsComplete(normalized.model_answer)
+                && (normalized.accepted_intents || []).every((answer: string) => zhToEnAnswerIsComplete(answer));
+            const textContentInvalid = promptMode === "zh_to_en"
+                ? !zhToEnPromptIsComplete(normalized.question_text) || !completeEnglishAnswers
+                : promptMode === "grammar_cue"
+                    ? !grammarCuePromptIsComplete(normalized.question_text) || !completeEnglishAnswers
+                    : !textQaQuestionContentValid(normalized);
+            if (interactionType === TEXT_QA_INTERACTION_TYPE && textContentInvalid) {
+                return json(400, { error: promptMode === "zh_to_en"
                     ? "中翻英需要中文題目、完整英文翻譯與完整英文替代答案"
-                    : "文字問答需包含完整英文問句（中文提示可放句首、句中或句尾）與完整回答；未指定性別時，請同時填入一致的男女兩種完整答案" });
+                    : promptMode === "grammar_cue"
+                        ? "文法提示題需要有效提示、完整英文答案與完整英文替代答案"
+                        : "文字問答需包含完整英文問句（中文提示可放句首、句中或句尾）與完整回答；未指定性別時，請同時填入一致的男女兩種完整答案" });
             }
             const now = new Date().toISOString();
             if (metadata?.requires_content_review === true) {
@@ -2413,13 +2419,20 @@ Deno.serve(async (req: Request) => {
                     created_by: user.id, reviewed_by: user.id, reviewed_at: now, created_at: now, updated_at: now
                 }).select("id").single();
                 if (sectionError) throw sectionError;
+                const textPromptModes = questions.every((row: any) => row.interactionType === TEXT_QA_INTERACTION_TYPE)
+                    ? questions.map((row: any) => row.promptMode) : [];
+                const commonPromptMode = textPromptModes.length && new Set(textPromptModes).size === 1
+                    ? textPromptModes[0] : "mixed";
                 const { data: questionSet, error: setError } = await admin.from("speaking_question_sets").insert({
                     source_section_id: section.id, book_id: bookId, title, topic, difficulty, status: "draft", version: 1,
                     generation_metadata: {
                         source: "admin_page_builder", template_key: templateKey, source_pages: [pageNumber],
                         interaction_type: questions.every((row: any) => row.interactionType === TEXT_QA_INTERACTION_TYPE) ? TEXT_QA_INTERACTION_TYPE : "mixed",
-                        ...(questions[0].interactionType === TEXT_QA_INTERACTION_TYPE ? { prompt_mode: questions[0].promptMode } : {}),
-                        shuffle: false, requires_content_review: false, manual_builder_version: 2,
+                        ...(textPromptModes.length ? {
+                            prompt_mode: commonPromptMode,
+                            prompt_modes_by_sort_order: textPromptModes
+                        } : {}),
+                        shuffle: false, requires_content_review: false, manual_builder_version: 3,
                         content_reviewed_at: now, content_reviewed_by: Number(user.id)
                     },
                     created_by: user.id, created_at: now, updated_at: now
@@ -2432,7 +2445,8 @@ Deno.serve(async (req: Request) => {
                         question_text: row.interactionType === "standard_sentence" ? row.answerText : row.promptText,
                         hint_zh: row.interactionType === "standard_sentence" ? "請清楚朗讀完整句子。"
                             : row.interactionType === TEXT_QA_INTERACTION_TYPE ? row.promptMode === "zh_to_en"
-                                ? "請把中文翻成完整英文句子。" : "請閱讀文字問題，用完整英文句子回答。"
+                                ? "請把中文翻成完整英文句子。" : row.promptMode === "grammar_cue"
+                                    ? "請依題目提示，說出完整英文句子。" : "請閱讀文字問題，用完整英文句子回答。"
                             : row.interactionType === "picture_qa" ? "看圖片，先說完整問句，再接著說完整回答。"
                                 : "看圖片，把空格答案補進去並說完整句子。",
                         keywords: [], simple_answer: row.expectedFullAnswer, model_answer: row.expectedFullAnswer,
@@ -2969,9 +2983,13 @@ Deno.serve(async (req: Request) => {
                     const interaction: any = interactionByQuestion.get(Number(question.id));
                     if (!interaction) {
                         if (String(metadata?.interaction_type || "") === TEXT_QA_INTERACTION_TYPE) {
-                            return !(metadata?.prompt_mode === "zh_to_en"
+                            const promptMode = questionPromptMode(metadata, question.sort_order);
+                            const promptValid = promptMode === "zh_to_en"
                                 ? zhToEnPromptIsComplete(question.question_text) && zhToEnAnswerIsComplete(question.model_answer)
-                                : textQaPromptIsComplete(question.question_text))
+                                : promptMode === "grammar_cue"
+                                    ? grammarCuePromptIsComplete(question.question_text) && zhToEnAnswerIsComplete(question.model_answer)
+                                    : textQaPromptIsComplete(question.question_text);
+                            return !promptValid
                                 || !String(question.simple_answer || "").trim()
                                 || !String(question.model_answer || "").trim();
                         }

@@ -68,6 +68,24 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByText("Do you do any exercise every day? It is good for your health.")).not.toBeInTheDocument();
     });
 
+    it("uses the per-question grammar cue mode in a mixed text challenge", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 123, book_id: 4, title: "P89 綜合練習", topic: "日期", difficulty: "國小",
+                books: { id: 4, name: "Workbook 4" },
+                generation_metadata: { interaction_type: "text_qa", prompt_mode: "mixed", prompt_modes_by_sort_order: ["english_qa", "grammar_cue"] },
+                speaking_questions: [
+                    { id: 554, sort_order: 0, interaction_type: "text_qa", question_text: "What day is tomorrow?", model_answer: "It is Saturday.", progress_status: "completed" },
+                    { id: 555, sort_order: 1, interaction_type: "text_qa", question_text: "is, am ______", model_answer: "It was Thursday.", progress_status: "opened" }
+                ]
+            }
+        });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/123"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "is, am ______" })).toBeInTheDocument();
+        expect(screen.getByText("依照題目提供的文法提示，說出完整英文句子。")).toBeInTheDocument();
+        expect(screen.queryByText("It was Thursday.")).not.toBeInTheDocument();
+    });
+
     it.each([
         ["alphabet_round", "foundation-challenge"],
         ["letter_spelling", "foundation-challenge"],
