@@ -551,3 +551,43 @@ I'm in class 5. I'm in the fifth class.
     assert.equal(reviewedPage15[3].question_text, "How old are you?（8）");
     assert.equal(reviewedPage15[1].accepted_answers.includes("Me too.]]"), false);
 });
+
+test("keeps all seven Workbook 2 reviewed pairs across annotations, correction drills and OCR typos", () => {
+    const page56 = extractNumberedTextQaPairs(`113. Where are you from? (台灣) 我是台灣人
+I am from Taiwan.
+114. Where are you coming from? (我家)
+I am from my home.
+115. Where is he from? (日本) 他是日本人
+He is from Japan.
+116. Where is she from? (法國) 她是法國人
+She is from France.
+117. Where is your father from? (德國) 他是德國人
+He is from Germany.
+118. Where is your mother from? (美國) 她是美國人
+She is from America.
+119. Where is your friend from? (宜蘭)
+He is from Yilan.`);
+    assert.equal(page56.length, 7);
+    assert.equal(page56[0].question_text, "Where are you from?（台灣）");
+
+    const page62 = extractNumberedTextQaPairs(`134. Where are you in the photo? (在中間)
+I am in the center.
+140. I would like to take a look at the watch. It's... (在左下角)
+It's in the bottom left corner.`);
+    assert.equal(page62.length, 2);
+    assert.equal(page62[1].question_text, "I would like to take a look at the watch. It's...（在左下角）");
+
+    const page78 = extractNumberedTextQaPairs(`165. Who do you with? (父母和祖父母)
+I live with my parents and my grandparents.`);
+    assert.equal(page78[0].question_text, "Who do you live with?（父母和祖父母）");
+
+    const page94 = extractNumberedTextQaPairs(`198. Is that girl their daughter? (兒子)
+No, he is their son.`);
+    assert.equal(page94.length, 1);
+    assert.equal(page94[0].model_answer, "No, he is their son.");
+
+    const page96 = extractNumberedTextQaPairs(`210. Is this your father's bicycle? (是)
+Yes, it is. It is his bicyle.`);
+    assert.equal(page96.length, 1);
+    assert.equal(page96[0].model_answer, "Yes, it is. It is his bicycle.");
+});
