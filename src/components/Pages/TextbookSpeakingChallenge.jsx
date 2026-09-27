@@ -132,13 +132,11 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
     const pages = pageReference(item);
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
     const locked = !staffPreview && item.is_unlocked === false;
-    const storedStars = Number(item.stars_earned);
-    const starCount = Number.isFinite(storedStars) ? Math.min(3, Math.max(0, storedStars)) : null;
     const availableItems = Array.isArray(item.available_powerups) ? item.available_powerups : [];
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
         <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
             <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
-            <div className="speaking-level-dialog__crest" aria-hidden="true">{locked ? <FiLock /> : "★"}</div>
+            <div className="speaking-level-dialog__crest" aria-hidden="true">{locked ? <FiLock /> : <FiBookOpen />}</div>
             <span className="speaking-level-dialog__eyebrow">{sectionCopy.label} · {pages || sectionCopy.badge}</span>
             <h2 id="speaking-level-title">{lessonTitle(item)}</h2>
             <span className="speaking-level-dialog__topic">{item.topic || sectionCopy.label}</span>
@@ -148,8 +146,7 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
                 <span><small>本關題數</small><strong>{item.question_count} 題</strong></span>
                 <span><small>目前進度</small><strong>{item.is_completed ? "已通關" : `${item.completed_count || 0}/${item.question_count} 題`}</strong></span>
             </div>
-            <div className="speaking-level-dialog__game-panel">
-                <span><small>通關星星</small><b className="speaking-level-dialog__stars" aria-label={starCount === null ? "尚未建立星星紀錄" : `已獲得 ${starCount} 顆星`}>{[0, 1, 2].map(index => <i key={index} className={starCount !== null && index < starCount ? "is-earned" : ""}>★</i>)}</b><em>{starCount === null ? "星星規則確認後啟用" : `${starCount} / 3`}</em></span>
+            <div className="speaking-level-dialog__game-panel is-single">
                 <span><small>本關道具</small><b>{availableItems.length ? availableItems.join("、") : "尚未開放"}</b><em>不會自動扣除 AE Points</em></span>
             </div>
             {item.learning_goal_zh && item.intro_zh && <p className="speaking-level-dialog__goal">目標：{item.learning_goal_zh}</p>}
@@ -398,10 +395,6 @@ export default function TextbookSpeakingChallenge() {
         return <main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
                 <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
-                <div className="speaking-book-toolbar__title" aria-label={`${selectedBook.label} 口說大挑戰`}>
-                    <FiBookOpen aria-hidden="true" />
-                    <div><h1>{selectedBook.label}</h1><p>{staffPreview ? "所有已發布關卡皆可預覽" : "依順序完成，解鎖下一關"}</p></div>
-                </div>
                 <div className="speaking-book-toolbar__progress" aria-label={`已完成 ${selectedBookCompleted} / ${selectedBook.itemCount} 關`}>
                     <strong>{selectedBookCompleted}/{selectedBook.itemCount}</strong><span>已完成</span>
                 </div>
@@ -424,6 +417,10 @@ export default function TextbookSpeakingChallenge() {
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
                     <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-aspect-ratio": mapRoute.aspectRatio }}>
+                        <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}>
+                            <strong>{selectedBook.label}</strong>
+                            <span>{staffPreview ? "關卡預覽" : "口說大挑戰"}</span>
+                        </div>
                         {mapLessons.map(({ item, section, current, topicNumber: lessonTopicNumber }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} topicNumber={lessonTopicNumber} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}
                     </div></section>
                 </section>}
