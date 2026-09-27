@@ -2,6 +2,12 @@
 
 最後更新：2026-09-27
 
+本次無圖片文字題單題儲存修正（2026-09-27，已正式部署）：
+
+- 修正管理員在 Workbook 草稿按「儲存這一題」時，文字問答被寫入 `visual_aid = null`、違反資料表非空 JSON 物件限制而回傳伺服器錯誤的問題；文字問答現在固定寫入空物件，不改圖片題、權限、題目驗證或發布狀態。
+- Workbook 3 P15 Q2 已由正式管理頁重新儲存並重新載入驗證；簡易回答 `Nice to meet you, too.` 已保存在未發布草稿，完整示範回答仍為 `Nice to meet you, too. / Me too.`，沒有發布學生版本。
+- PR #319 已合併至 `main` `94f652c0`；正式 `speaking-content-manager` v64 為 ACTIVE。教材口說契約 38/38、全部 Edge Function 語法、Production build 與 `git diff --check` 通過；本批沒有 migration 或正式題庫發布。
+
 本次 Workbook 3～6 教師版逐頁口說草稿（2026-09-27，程式與後端已正式部署，遠端草稿已建立）：
 
 - 已依 Workbook 3～6 教師版 PDF 逐頁核對使用者指定的 125 頁，共整理 863 題無圖片口說題；Workbook 3 為 31 頁／211 題、Workbook 4 為 26 頁／180 題、Workbook 5 為 35 頁／241 題、Workbook 6 為 33 頁／231 題。已排除頁首、頁尾、主題、諺語、摘要、教學說明與非指定題號；Workbook 4 P80 只保留第 154～158 題，Workbook 5 P87 只保留第 155～157 題。
