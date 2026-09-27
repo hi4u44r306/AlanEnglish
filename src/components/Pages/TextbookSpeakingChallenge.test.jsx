@@ -52,6 +52,22 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByText("題目線索：鞋子")).not.toBeInTheDocument();
     });
 
+    it("shows Chinese translation prompts without an English answer before recording", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({
+            challenge: {
+                id: 122, book_id: 4, title: "P26 中翻英", topic: "運動", difficulty: "國小中年級",
+                books: { id: 4, name: "Workbook 4" },
+                generation_metadata: { interaction_type: "text_qa", prompt_mode: "zh_to_en" },
+                speaking_questions: [{ id: 553, interaction_type: "text_qa", question_text: "你每天有做任何運動嗎？它對你的健康有益", hint_zh: "請說出完整英文翻譯。", model_answer: "Do you do any exercise every day? It is good for your health.", progress_status: "opened" }]
+            }
+        });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/122"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "你每天有做任何運動嗎？它對你的健康有益" })).toBeInTheDocument();
+        expect(screen.getByText("看中文句子，按下麥克風說出完整英文翻譯。")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "不知道怎麼說？" })).not.toBeInTheDocument();
+        expect(screen.queryByText("Do you do any exercise every day? It is good for your health.")).not.toBeInTheDocument();
+    });
+
     it.each([
         ["alphabet_round", "foundation-challenge"],
         ["letter_spelling", "foundation-challenge"],

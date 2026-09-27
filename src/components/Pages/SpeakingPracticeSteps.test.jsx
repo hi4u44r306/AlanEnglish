@@ -46,6 +46,15 @@ describe("SpeakingPracticeSteps", () => {
         expect(onPlayAudio).toHaveBeenCalledTimes(1);
     });
 
+    it("中翻英在第一次回答前不顯示英文答案提示", () => {
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={{ ...question, model_answer: "Do you exercise every day?" }} deferAnswerHelp />);
+        expect(screen.queryByRole("button", { name: "不知道怎麼說？" })).not.toBeInTheDocument();
+        expect(screen.queryByText("Do you exercise every day?")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
+        fireEvent.click(screen.getByRole("button", { name: "不知道怎麼說？" }));
+        expect(screen.getByText("Do you exercise every day?")).toBeInTheDocument();
+    });
+
     it("只有完整句型回答才完成小關卡", () => {
         const onCompleted = jest.fn();
         render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onCompleted={onCompleted} />);
@@ -56,7 +65,7 @@ describe("SpeakingPracticeSteps", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(onCompleted).toHaveBeenCalledTimes(1);
-        expect(screen.getByText("本題已完成，可以前往下一題或再練一次。")).toBeInTheDocument();
+        expect(screen.getByText("本題已完成！你可以繼續挑戰或再練一次。")).toBeInTheDocument();
     });
 
     it("基礎拼讀模式隱藏答案提示並把錯誤交回關卡流程", () => {

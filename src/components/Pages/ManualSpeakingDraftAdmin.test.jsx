@@ -89,6 +89,54 @@ describe("ManualSpeakingDraftAdmin", () => {
         expect(uploadSpeakingQuestionPicture).not.toHaveBeenCalled();
     });
 
+    it("creates a Chinese-to-English draft with a Chinese-only visible prompt", async () => {
+        renderBuilder();
+        fillPage();
+        fireEvent.change(screen.getByLabelText("題型"), { target: { value: "zh_to_en" } });
+        fireEvent.change(screen.getByLabelText("學生看到的中文句子"), { target: { value: "你每天有做任何運動嗎？它對你的健康有益（中翻英）" } });
+        fireEvent.change(screen.getByLabelText("完整英文翻譯（第一次作答前不顯示）"), { target: { value: "Do you do any exercise every day? It is good for your health." } });
+        fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
+        expect(screen.getByRole("dialog", { name: "確認建立未發布草稿" })).toHaveTextContent("中翻英");
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
+        await waitFor(() => expect(createManualPageSpeakingDraft).toHaveBeenCalledWith(firebaseUser, expect.objectContaining({
+            questions: [expect.objectContaining({ interaction_type: "text_qa", prompt_mode: "zh_to_en", prompt_text: "你每天有做任何運動嗎？它對你的健康有益（中翻英）" })]
+        })));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+    });
+
+    it("keeps Chinese-to-English separate from English text questions", () => {
+        renderBuilder();
+        fillPage();
+        fireEvent.change(screen.getByLabelText("題型"), { target: { value: "zh_to_en" } });
+        fireEvent.change(screen.getByLabelText("學生看到的中文句子"), { target: { value: "你每天運動嗎？" } });
+        fireEvent.change(screen.getByLabelText("完整英文翻譯（第一次作答前不顯示）"), { target: { value: "Do you exercise every day?" } });
+        fireEvent.click(screen.getByRole("button", { name: "新增一題" }));
+        fireEvent.change(screen.getAllByLabelText("題型")[1], { target: { value: "text_qa" } });
+        fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
+        expect(screen.getByRole("alert")).toHaveTextContent("不能與其他題型混用");
+        expect(createManualPageSpeakingDraft).not.toHaveBeenCalled();
+    });
+
+    it("creates a Chinese-to-English draft with a hidden complete English answer", async () => {
+        renderBuilder();
+        fillPage();
+        fireEvent.change(screen.getByLabelText("題型"), { target: { value: "zh_to_en" } });
+        fireEvent.change(screen.getByLabelText("學生看到的中文句子"), { target: { value: "閱讀與心靈的關係，就像食物與身體的關係" } });
+        fireEvent.change(screen.getByLabelText("完整英文翻譯（第一次作答前不顯示）"), { target: { value: "Reading is to the mind what food is to the body." } });
+        fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
+        expect(screen.getByRole("dialog", { name: "確認建立未發布草稿" })).toHaveTextContent("中翻英（看中文說英文）");
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
+        await waitFor(() => expect(createManualPageSpeakingDraft).toHaveBeenCalledWith(firebaseUser, expect.objectContaining({
+            confirmed: true,
+            questions: [expect.objectContaining({
+                interaction_type: "text_qa", prompt_mode: "zh_to_en",
+                prompt_text: "閱讀與心靈的關係，就像食物與身體的關係",
+                answer_text: "Reading is to the mind what food is to the body."
+            })]
+        })));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
+    });
+
     it("rejects mixing no-image text questions with other types", () => {
         renderBuilder();
         fillPage();

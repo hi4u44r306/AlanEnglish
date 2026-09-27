@@ -164,6 +164,40 @@ They are pens.
     assert.equal(pairs.every(pair => pair.accepted_answers.length === 0), true);
 });
 
+test("Workbook 2 P48 keeps all seven reviewed question and answer pairs", () => {
+    const pairs = extractNumberedTextQaPairs(`99. Where is Jenny? ( 在威廉後面 )
+She is behind William.
+[[RED_ANSWER: She is behind William.]]
+100. Where is Jack? ( 在樹後面 )
+He is behind the tree.
+[[RED_ANSWER: He is behind the tree.]]
+101. Where is the garden? ( 在房子後面 )
+It is behind the house.
+[[RED_ANSWER: It is behind the house.]]
+102. Where is the hat? ( 在門後面 )
+It is behind the door.
+[[RED_ANSWER: It is behind the door.]]
+103. Who is standing behind John? (Peter)
+Peter is standing behind John.
+[[RED_ANSWER: Peter is standing behind John.]]
+104. Who is sitting behind you? (Mary)
+Mary is sitting behind me.
+[[RED_ANSWER: Mary is sitting behind me.]]
+105. Will you stay with me? ( 我不會棄你不顧 )
+I won't leave you behind.
+[[RED_ANSWER: I won't leave you behind.]]`);
+
+    assert.equal(pairs.length, 7);
+    assert.equal(pairs[0].question_text, "Where is Jenny?（在威廉後面）");
+    assert.equal(pairs[4].question_text, "Who is standing behind John?（Peter）");
+    assert.equal(pairs[5].question_text, "Who is sitting behind you?（Mary）");
+    assert.deepEqual(pairs.map(pair => pair.model_answer), [
+        "She is behind William.", "He is behind the tree.", "It is behind the house.",
+        "It is behind the door.", "Peter is standing behind John.",
+        "Mary is sitting behind me.", "I won't leave you behind."
+    ]);
+});
+
 test("keeps only complete, speakable English sentences for automatic OCR candidates", () => {
     const result = filterOcrPageSpeakingCandidates(`Workbook 3
 Page 4
@@ -233,6 +267,21 @@ test("requires opposite consistent alternatives only when a text question does n
         model_answer: "He is my friend.",
         accepted_intents: []
     }), false);
+    assert.equal(textQaQuestionContentValid({
+        question_text: "Where is Jenny?（在威廉後面）",
+        model_answer: "She is behind William.",
+        accepted_intents: []
+    }), true);
+    assert.equal(textQaQuestionContentValid({
+        question_text: "Where is Jack?（在樹後面）",
+        model_answer: "He is behind the tree.",
+        accepted_intents: []
+    }), true);
+    assert.equal(textQaQuestionContentValid({
+        question_text: "Who is standing behind John?（Peter）",
+        model_answer: "Peter is standing behind John.",
+        accepted_intents: []
+    }), true);
     assert.equal(textQaQuestionContentValid({
         question_text: "Who is he?",
         model_answer: "He is my friend.",
