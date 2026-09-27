@@ -122,7 +122,7 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode
     const special = item.generation_metadata?.map_level_kind === "special";
     const levelLabel = section === "topic" ? `主題${topicNumber}` : pages || String(levelNumber).padStart(2, "0");
     const wideLabel = levelLabel.length >= 7;
-    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${wideLabel ? "is-wide-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}px`, "--map-side": `${mapNode.x / 10}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
+    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${wideLabel ? "is-wide-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
     <span className="speaking-challenge-lesson__number">{levelLabel}</span>
     <span className="speaking-challenge-lesson__state" aria-hidden="true">{completed ? <FiCheck /> : locked ? <FiLock /> : null}</span>
     </button>;
@@ -423,8 +423,7 @@ export default function TextbookSpeakingChallenge() {
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
-                    <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-height": `${mapRoute.height}px` }}>
-                        <div className="speaking-map-biomes" aria-hidden="true"><span className="is-grass" /><span className="is-highland" /><span className="is-volcano" /></div>
+                    <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-aspect-ratio": mapRoute.aspectRatio }}>
                         <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}><FiBookOpen aria-hidden="true" /><span><strong>{selectedBook.label}</strong><small>口說大挑戰</small></span></div>
                         {mapLessons.map(({ item, section, current, topicNumber: lessonTopicNumber }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} topicNumber={lessonTopicNumber} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}
                     </div></section>
