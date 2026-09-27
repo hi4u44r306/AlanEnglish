@@ -150,6 +150,8 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /extractNumberedTextQaPairs/);
     assert.match(manager, /textQaPromptIsComplete\(normalized\.question_text\)/);
     assert.match(manager, /textQaQuestionContentValid/);
+    assert.match(manager, /questionUpdate = interactionType === TEXT_QA_INTERACTION_TYPE\s*\? \{ \.\.\.normalized, visual_aid: \{\} \}/);
+    assert.doesNotMatch(manager, /questionUpdate = interactionType === TEXT_QA_INTERACTION_TYPE\s*\? \{ \.\.\.normalized, visual_aid: null \}/);
     assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
     assert.match(manager, /reviewed_full_response_with_variable_slots/);
     assert.match(manager, /ignoredSourcePageLabel/);
