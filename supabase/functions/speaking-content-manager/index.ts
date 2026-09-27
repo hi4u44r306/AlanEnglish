@@ -42,6 +42,7 @@ import {
     textQaPromptIsComplete,
     zhToEnAnswerIsComplete,
     zhToEnPromptIsComplete,
+    reviewedTextQaQuestionsMatchPairs,
     textQaQuestionContentValid
 } from "../_shared/speaking-text-qa.ts";
 import { speakingAudioSourceMatchesModelAnswer } from "../_shared/speaking-tts-text.ts";
@@ -1888,13 +1889,26 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "請確認已逐題對照教材原頁" });
             }
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id,question_text,model_answer,accepted_intents)")
+                .select("id,status,generation_metadata,speaking_source_sections!inner(status,source_text,page_from_label,page_to_label),speaking_questions(id,sort_order,question_text,simple_answer,model_answer,accepted_intents)")
                 .eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
             const metadata = questionSet?.generation_metadata || {};
+            const sourcePageLabel = normalizePageLabel(metadata?.source_page_label);
+            const reviewedSourceText = sourcePageLabel && sourceSection
+                ? (sourcePageLabels(sourceSection).length === 1
+                    ? String(sourceSection?.source_text || "").trim().slice(0, 18000)
+                    : markedPageSourceText(sourceSection?.source_text, sourcePageLabel))
+                : "";
+            const reviewedPairs = metadata?.candidate_filter?.generation_strategy === "reviewed_numbered_text_qa"
+                ? extractNumberedTextQaPairs(reviewedSourceText) : [];
+            const matchesTrustedReviewedPairs = reviewedTextQaQuestionsMatchPairs(
+                questionSet?.speaking_questions,
+                reviewedPairs
+            );
             const textQaContentInvalid = metadata?.interaction_type === TEXT_QA_INTERACTION_TYPE
+                && !matchesTrustedReviewedPairs
                 && (questionSet?.speaking_questions || []).some((question: any) => !textQaQuestionContentValid(question));
             if (!questionSet || questionSet.status !== "draft" || sourceSection?.status !== "reviewed"
                 || !["ocr_page_candidate", "ai_page_auto"].includes(metadata?.source) || metadata?.requires_content_review !== true

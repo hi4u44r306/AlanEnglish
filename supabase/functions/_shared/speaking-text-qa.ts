@@ -56,6 +56,29 @@ export const textQaGenderSkeleton = (value: unknown) => String(value || "").toLo
     .replace(/[^a-z{}]+/g, " ")
     .trim();
 
+export const reviewedTextQaQuestionsMatchPairs = (questions: any, pairs: any) => {
+    const normalizedQuestions = (Array.isArray(questions) ? questions : [])
+        .slice()
+        .sort((left: any, right: any) => Number(left?.sort_order || 0) - Number(right?.sort_order || 0));
+    const normalizedPairs = Array.isArray(pairs) ? pairs : [];
+    if (normalizedQuestions.length < 1 || normalizedQuestions.length !== normalizedPairs.length) return false;
+    return normalizedQuestions.every((question: any, index: number) => {
+        const pair = normalizedPairs[index] || {};
+        const modelAnswer = clean(pair?.model_answer);
+        const expectedAlternatives = [...new Set((Array.isArray(pair?.accepted_answers) ? pair.accepted_answers : [])
+            .map((answer: unknown) => clean(answer, 500)).filter(Boolean))]
+            .filter(answer => answer !== modelAnswer);
+        const actualAlternatives = [...new Set((Array.isArray(question?.accepted_intents) ? question.accepted_intents : [])
+            .map((answer: unknown) => clean(answer, 500)).filter(Boolean))]
+            .filter(answer => answer !== modelAnswer);
+        return clean(question?.question_text, 800) === clean(pair?.question_text, 800)
+            && clean(question?.simple_answer) === modelAnswer
+            && clean(question?.model_answer) === modelAnswer
+            && actualAlternatives.length === expectedAlternatives.length
+            && actualAlternatives.every((answer, answerIndex) => answer === expectedAlternatives[answerIndex]);
+    });
+};
+
 export const textQaQuestionContentValid = (question: any) => {
     const questionText = clean(question?.question_text, 800);
     const modelAnswer = clean(question?.model_answer);

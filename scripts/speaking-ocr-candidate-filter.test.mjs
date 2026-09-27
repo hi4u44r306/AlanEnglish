@@ -107,7 +107,10 @@ They are shoes.`
         assert.equal(grouped?.answers.length, 7, `P${[6, 8, 10][index]} answers`);
     }
 });
-import { textQaQuestionContentValid } from "../supabase/functions/_shared/speaking-text-qa.ts";
+import {
+    reviewedTextQaQuestionsMatchPairs,
+    textQaQuestionContentValid
+} from "../supabase/functions/_shared/speaking-text-qa.ts";
 
 test("accepts Chinese learner clues before, inside, and after a complete English question", () => {
     for (const question_text of [
@@ -590,4 +593,23 @@ No, he is their son.`);
 Yes, it is. It is his bicyle.`);
     assert.equal(page96.length, 1);
     assert.equal(page96[0].model_answer, "Yes, it is. It is his bicycle.");
+});
+
+test("approves reviewed numbered drafts only while every saved question still matches the approved pair", () => {
+    const pairs = [
+        { question_text: "Where is your friend from?（宜蘭）", model_answer: "He is from Yilan.", accepted_answers: [] },
+        { question_text: "Is that girl their daughter?（兒子）", model_answer: "No, he is their son.", accepted_answers: [] }
+    ];
+    const exactQuestions = pairs.map((pair, sort_order) => ({
+        sort_order,
+        question_text: pair.question_text,
+        simple_answer: pair.model_answer,
+        model_answer: pair.model_answer,
+        accepted_intents: pair.accepted_answers
+    }));
+    assert.equal(reviewedTextQaQuestionsMatchPairs(exactQuestions, pairs), true);
+    assert.equal(reviewedTextQaQuestionsMatchPairs([
+        exactQuestions[0],
+        { ...exactQuestions[1], model_answer: "No, she is their daughter." }
+    ], pairs), false);
 });
