@@ -46,6 +46,7 @@ export default function SpeakingPracticeSteps({
     challengeSessionId = "",
     disabledReason = "",
     hideHelp = false,
+    deferAnswerHelp = false,
     allowModelAudio = true,
     promptTitle = "直接開口回答",
     promptDetail = "不用打字，按下麥克風後用完整英文句子回答。"
@@ -72,7 +73,7 @@ export default function SpeakingPracticeSteps({
             <div><strong>{promptTitle}</strong><span>{promptDetail}</span></div>
         </div>
 
-        {!hideHelp && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={() => setShowHelp(current => !current)}>
+        {!hideHelp && (!deferAnswerHelp || lastResult) && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={() => setShowHelp(current => !current)}>
             <FiHelpCircle aria-hidden="true" />{showHelp ? "收起回答提示" : "不知道怎麼說？"}
         </button>}
 

@@ -1,6 +1,5 @@
 import {
-    textQaGenderIsConsistent,
-    textQaQuestionContentValid
+    textQaGenderIsConsistent
 } from "./speaking-text-qa.ts";
 
 const INSTRUCTION_PREFIX = /^(?:listen|look|read|repeat|say|write|match|circle|choose|complete|fill|color|draw|ask|answer|practice|play|sing|check|tick|trace|find|point|number)\b/i;
@@ -54,8 +53,12 @@ const normalizeLearnerClue = (value: unknown) => String(value || "")
     .trim();
 
 const trailingLearnerClue = (value: string) => normalizeLearnerClue(value
-    .match(/[（(]\s*([^()（）A-Za-z]+?)\s*[）)]\s*$/u)?.[1]
+    .match(/[（(]\s*([^()（）]+?)\s*[）)]\s*$/u)?.[1]
     || "");
+
+const withoutTrailingLearnerClue = (value: string) => value
+    .replace(/\s*[（(]\s*[^()（）]+?\s*[）)]\s*$/u, "")
+    .trim();
 
 export const textQaPromptWithLearnerClue = (question: string, clue: string) => {
     const normalizedQuestion = normalizeSentence(question);
@@ -241,8 +244,8 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
     }
 
     return blocks.flatMap(block => {
-        const prompt = normalizeSentence(block.prompt);
         const clue = trailingLearnerClue(block.prompt);
+        const prompt = normalizeSentence(clue ? withoutTrailingLearnerClue(block.prompt) : block.prompt);
         const questions = reviewedTextQaPromptIsComplete(prompt)
             ? [textQaPromptWithLearnerClue(prompt, clue)] : [];
         if (!questions.length) return [];
@@ -268,11 +271,10 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
             if (!compatibleAnswers.length) return [];
             const modelAnswer = compatibleAnswers[0];
             const acceptedAnswers = compatibleAnswers.slice(1);
-            return textQaQuestionContentValid({
-                question_text: prompt,
-                model_answer: modelAnswer,
-                accepted_intents: acceptedAnswers
-            }) ? [{ question_text: question, model_answer: modelAnswer, accepted_answers: acceptedAnswers }] : [];
+            // The answer is the exact reviewed teacher response printed under
+            // this numbered prompt, so it does not need an invented opposite-
+            // gender alternative when the prompt names a specific person.
+            return [{ question_text: question, model_answer: modelAnswer, accepted_answers: acceptedAnswers }];
         });
     });
 };

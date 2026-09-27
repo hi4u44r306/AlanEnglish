@@ -3,10 +3,23 @@ const clean = (value: unknown, maximum = 2000) => String(value || "").replace(/\
 // Chinese teaching clues may be placed before, inside, or after the English
 // prompt. Check the speakable English rather than the last visible character.
 export const textQaPromptIsComplete = (value: unknown) => {
-    const spoken = clean(value, 800).replace(/？/g, "?")
+    const spoken = clean(value, 800)
+        .replace(/\s*[（(]\s*[^()（）]+?\s*[）)]\s*$/u, "")
+        .replace(/？/g, "?")
         .replace(/[^\x20-\x7E]/g, " ")
         .replace(/[()[\]{}]/g, " ").replace(/\s+/g, " ").trim();
     return /[A-Za-z]/.test(spoken) && /[.!?]["']?$/.test(spoken);
+};
+
+export const zhToEnPromptIsComplete = (value: unknown) => {
+    const prompt = clean(value, 800);
+    return (prompt.match(/[\u3400-\u9fff]/g) || []).length >= 2;
+};
+
+export const zhToEnAnswerIsComplete = (value: unknown) => {
+    const answer = clean(value, 500);
+    return /[A-Za-z]/.test(answer) && /[.!?]["']?$/.test(answer)
+        && !/[\u3400-\u9fff]/.test(answer);
 };
 
 export const textQaGenderSignal = (value: unknown) => {
@@ -55,6 +68,11 @@ export const textQaQuestionContentValid = (question: any) => {
     const questionGender = textQaGenderSignal(questionText);
     const modelGender = textQaGenderSignal(modelAnswer);
     if (questionGender !== "neutral" || !["male", "female"].includes(modelGender)) return true;
+    const namedPerson = (questionText.match(/\b[A-Z][a-z]{1,}\b/g) || []).some(token => ![
+        "Who", "What", "Where", "When", "Why", "How", "Is", "Are", "Do", "Does", "Did",
+        "Can", "Could", "Will", "Would", "Should", "Please", "The", "This", "That"
+    ].includes(token));
+    if (namedPerson) return true;
     return alternatives.some(answer => textQaGenderSignal(answer) !== modelGender
         && ["male", "female"].includes(textQaGenderSignal(answer))
         && textQaGenderSkeleton(answer) === textQaGenderSkeleton(modelAnswer));

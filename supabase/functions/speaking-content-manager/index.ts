@@ -40,6 +40,8 @@ import {
     textQaGenderSkeleton,
     textQaGenderIsConsistent,
     textQaPromptIsComplete,
+    zhToEnAnswerIsComplete,
+    zhToEnPromptIsComplete,
     textQaQuestionContentValid
 } from "../_shared/speaking-text-qa.ts";
 import { speakingAudioSourceMatchesModelAnswer } from "../_shared/speaking-tts-text.ts";
@@ -505,7 +507,7 @@ const normalizeVisualAid = (value: unknown) => {
     return { kind, value: visualValue, alt_zh: altZh };
 };
 
-const normalizeQuestions = (value: unknown, expectedCount: number, minimumCount = expectedCount) => {
+const normalizeQuestions = (value: unknown, expectedCount: number, minimumCount = expectedCount, requireKeywords = true, acceptedLimit = 8, acceptedLength = 300) => {
     const rows = Array.isArray(value) ? value : [];
     const questions = rows.map((row: any) => ({
         question_text: cleanText(row?.question_text, 800),
@@ -515,14 +517,14 @@ const normalizeQuestions = (value: unknown, expectedCount: number, minimumCount 
         model_answer: cleanText(row?.model_answer, 2000),
         follow_up_question: cleanText(row?.follow_up_question, 800) || null,
         pronunciation_notes_zh: cleanText(row?.pronunciation_notes_zh, 1200) || null,
-        accepted_intents: cleanArray(row?.accepted_intents, 8, 300),
+        accepted_intents: cleanArray(row?.accepted_intents, acceptedLimit, acceptedLength),
         visual_aid: normalizeVisualAid(row?.visual_aid)
     })).filter(row => (
         row.question_text
         && row.hint_zh
         && row.simple_answer
         && row.model_answer
-        && row.keywords.length > 0
+        && (!requireKeywords || row.keywords.length > 0)
     ));
     return questions.length >= minimumCount && questions.length <= expectedCount ? questions : null;
 };
@@ -738,16 +740,23 @@ const normalizeManualPageQuestions = (value: unknown) => {
     if (!Array.isArray(value) || value.length < 1 || value.length > 50) return null;
     const types = value.map((raw: any) => cleanText(raw?.interaction_type, 40));
     if (types.includes(TEXT_QA_INTERACTION_TYPE) && types.some((type: string) => type !== TEXT_QA_INTERACTION_TYPE)) return null;
+    const promptModes = value.map((raw: any) => cleanText(raw?.prompt_mode, 40) || "english_qa");
+    if (types.includes(TEXT_QA_INTERACTION_TYPE) && new Set(promptModes).size !== 1) return null;
     const rows = value.map((raw: any) => {
         const interactionType = cleanText(raw?.interaction_type, 40);
         if (!MANUAL_PAGE_INTERACTION_TYPES.has(interactionType)) return null;
         if (interactionType === TEXT_QA_INTERACTION_TYPE) {
+            const promptMode = cleanText(raw?.prompt_mode, 40) || "english_qa";
             const questionText = cleanText(raw?.prompt_text, 500);
             const answerText = cleanText(raw?.answer_text, 500);
             const acceptedFullResponses = cleanArray(raw?.accepted_full_responses, 12, 500);
-            if (!textQaPromptIsComplete(questionText) || !answerText) return null;
+            if (!["english_qa", "zh_to_en"].includes(promptMode)
+                || (promptMode === "zh_to_en"
+                    ? !zhToEnPromptIsComplete(questionText) || !zhToEnAnswerIsComplete(answerText)
+                        || acceptedFullResponses.some(answer => !zhToEnAnswerIsComplete(answer))
+                    : !textQaPromptIsComplete(questionText) || !answerText)) return null;
             return {
-                interactionType, questionText, promptText: questionText,
+                interactionType, promptMode, questionText, promptText: questionText,
                 answerText, expectedFullAnswer: answerText, acceptedFullResponses,
                 pronunciationNotes: cleanText(raw?.pronunciation_notes_zh, 1200) || null
             };
@@ -1917,13 +1926,24 @@ Deno.serve(async (req: Request) => {
             if (questionSet?.generation_metadata?.approved_source_page_label) {
                 return json(409, { error: "P14～P17 題庫由正式核准來源鎖定；如需更改，請先更新來源版本並重建題庫" });
             }
-            const normalized = normalizeQuestions([body?.question], 1)?.[0];
+            const normalized = normalizeQuestions([body?.question], 1, 1,
+                interactionType !== TEXT_QA_INTERACTION_TYPE,
+                interactionType === TEXT_QA_INTERACTION_TYPE ? 12 : 8,
+                interactionType === TEXT_QA_INTERACTION_TYPE ? 500 : 300)?.[0];
             if (!normalized) return json(400, { error: "問題、提示、關鍵字與兩種示範回答都必須完整" });
-            if (interactionType === TEXT_QA_INTERACTION_TYPE && !textQaQuestionContentValid(normalized)) {
-                return json(400, { error: "文字問答需包含完整英文問句（中文提示可放句首、句中或句尾）與完整回答；未指定性別時，請同時填入一致的男女兩種完整答案" });
+            const metadata = questionSet?.generation_metadata || {};
+            const translationMode = metadata?.source === "admin_page_builder" && metadata?.prompt_mode === "zh_to_en";
+            if (interactionType === TEXT_QA_INTERACTION_TYPE && (translationMode
+                ? !zhToEnPromptIsComplete(normalized.question_text)
+                    || normalized.model_answer.length > 500
+                    || !zhToEnAnswerIsComplete(normalized.model_answer)
+                    || (normalized.accepted_intents || []).some((answer: string) => !zhToEnAnswerIsComplete(answer))
+                : !textQaQuestionContentValid(normalized))) {
+                return json(400, { error: translationMode
+                    ? "中翻英需要中文題目、完整英文翻譯與完整英文替代答案"
+                    : "文字問答需包含完整英文問句（中文提示可放句首、句中或句尾）與完整回答；未指定性別時，請同時填入一致的男女兩種完整答案" });
             }
             const now = new Date().toISOString();
-            const metadata = questionSet?.generation_metadata || {};
             if (metadata?.requires_content_review === true) {
                 const { error: resetSetError } = await admin.from("speaking_question_sets").update({
                     generation_metadata: {
@@ -2382,6 +2402,7 @@ Deno.serve(async (req: Request) => {
                     generation_metadata: {
                         source: "admin_page_builder", template_key: templateKey, source_pages: [pageNumber],
                         interaction_type: questions.every((row: any) => row.interactionType === TEXT_QA_INTERACTION_TYPE) ? TEXT_QA_INTERACTION_TYPE : "mixed",
+                        ...(questions[0].interactionType === TEXT_QA_INTERACTION_TYPE ? { prompt_mode: questions[0].promptMode } : {}),
                         shuffle: false, requires_content_review: false, manual_builder_version: 2,
                         content_reviewed_at: now, content_reviewed_by: Number(user.id)
                     },
@@ -2394,7 +2415,8 @@ Deno.serve(async (req: Request) => {
                         question_set_id: questionSet.id,
                         question_text: row.interactionType === "standard_sentence" ? row.answerText : row.promptText,
                         hint_zh: row.interactionType === "standard_sentence" ? "請清楚朗讀完整句子。"
-                            : row.interactionType === TEXT_QA_INTERACTION_TYPE ? "請閱讀文字問題，用完整英文句子回答。"
+                            : row.interactionType === TEXT_QA_INTERACTION_TYPE ? row.promptMode === "zh_to_en"
+                                ? "請把中文翻成完整英文句子。" : "請閱讀文字問題，用完整英文句子回答。"
                             : row.interactionType === "picture_qa" ? "看圖片，先說完整問句，再接著說完整回答。"
                                 : "看圖片，把空格答案補進去並說完整句子。",
                         keywords: [], simple_answer: row.expectedFullAnswer, model_answer: row.expectedFullAnswer,
@@ -2931,7 +2953,9 @@ Deno.serve(async (req: Request) => {
                     const interaction: any = interactionByQuestion.get(Number(question.id));
                     if (!interaction) {
                         if (String(metadata?.interaction_type || "") === TEXT_QA_INTERACTION_TYPE) {
-                            return !textQaPromptIsComplete(question.question_text)
+                            return !(metadata?.prompt_mode === "zh_to_en"
+                                ? zhToEnPromptIsComplete(question.question_text) && zhToEnAnswerIsComplete(question.model_answer)
+                                : textQaPromptIsComplete(question.question_text))
                                 || !String(question.simple_answer || "").trim()
                                 || !String(question.model_answer || "").trim();
                         }

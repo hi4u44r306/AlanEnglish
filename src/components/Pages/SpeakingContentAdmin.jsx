@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { AlertCircle, AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, Eye, FileText, LoaderCircle, Pencil, Plus, RefreshCcw, Search, Sparkles, UploadCloud, Volume2, Wrench } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
-import { textQaPromptIsComplete } from "../../utils/textQaPrompt";
+import { textQaPromptIsComplete, zhToEnAnswerIsComplete, zhToEnPromptIsComplete } from "../../utils/textQaPrompt";
 import {
     activateSpeakingAlphabetAudioCandidate,
     archiveSpeakingQuestionSet,
@@ -128,7 +128,10 @@ const draftReadiness = (questionSet, section) => {
             if (!String(visual?.alt_zh || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少圖片替代文字。` });
         } else {
             if (!String(question.model_answer || "").trim()) issues.push({ questionId: question.id, message: `${label}缺少完整示範回答。` });
-            if (questionInteractionType === "text_qa" && !textQaPromptIsComplete(question.question_text)) {
+            if (questionInteractionType === "text_qa" && metadata.prompt_mode === "zh_to_en"
+                && (!zhToEnPromptIsComplete(question.question_text) || !zhToEnAnswerIsComplete(question.model_answer))) {
+                issues.push({ questionId: question.id, message: `${label}需包含中文題目與完整英文翻譯。` });
+            } else if (questionInteractionType === "text_qa" && !textQaPromptIsComplete(question.question_text) && metadata.prompt_mode !== "zh_to_en") {
                 issues.push({ questionId: question.id, message: `${label}需包含完整英文問句；中文提示可放在句首、句中或句尾。` });
             }
         }
@@ -293,7 +296,9 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
     const isPictureQa = interactionType === "picture_qa";
     const isPictureGap = interactionType === "picture_gap_sentence";
     const isPictureSet = isPictureQa || isPictureGap;
-    const previewDescription = isPictureQa
+    const previewDescription = questionSet.generation_metadata?.prompt_mode === "zh_to_en"
+        ? "學生會看到中文題目，並直接說出完整英文翻譯。"
+        : isPictureQa
         ? "學生只會看到圖片，並在同一次錄音說出完整問句與回答。"
         : isPictureGap
             ? "學生會看到圖片與挖空句型，可點聽已顯示的單字，再說出完整句子。"
@@ -312,7 +317,7 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
                     : <SpeakingVisualAid variant="thumbnail" aid={question.visual_aid} />}
                 {isPictureSet
                     ? <details><summary>查看管理員核對資料（學生不會看到）</summary><p>{question.question_text}</p><em>{question.model_answer}</em></details>
-                    : <details><summary>學生需要提示時顯示</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>}
+                    : <details><summary>{questionSet.generation_metadata?.prompt_mode === "zh_to_en" ? "第一次作答後顯示的提示" : "學生需要提示時顯示"}</summary><p>{question.hint_zh}</p><em>{question.simple_answer}</em></details>}
                 {!isPictureSet && (interactionType !== "text_qa" || answerAudioEnabled) && <QuestionAudioPreview firebaseUser={firebaseUser} questionSet={questionSet} question={question} />}
                 {!isPictureSet && <small>{question.pronunciation_notes_zh || "完成錄音後顯示發音回饋。"}</small>}
             </article>)}</div>
@@ -321,7 +326,7 @@ const StudentQuestionSetPreview = ({ questionSet, firebaseUser }) => {
     </details>;
 };
 
-const QuestionEditor = ({ question, interactionType, disabled, onSave }) => {
+const QuestionEditor = ({ question, interactionType, promptMode, disabled, onSave }) => {
     const [form, setForm] = useState({
         question_text: question.question_text || "", hint_zh: question.hint_zh || "",
         keywords: (question.keywords || []).join("、"), simple_answer: question.simple_answer || "",
@@ -335,7 +340,7 @@ const QuestionEditor = ({ question, interactionType, disabled, onSave }) => {
     return <article className="speaking-question-editor">
         <div className="speaking-question-editor__number">Q{Number(question.sort_order || 0) + 1}</div>
         <div className="platform-form">
-            <label><span>{interactionType === "text_qa" ? "學生看到的完整問句（可加入中文提示）" : "AI 要問學生的問題"}</span><input value={form.question_text} onChange={event => update("question_text", event.target.value)} disabled={disabled} />{interactionType === "text_qa" && <small>例如「（尺）What are those?」、「What are（尺） those?」或「What are those?（尺）」；學生會照此看到題面，回答仍須說完整英文句。</small>}</label>
+            <label><span>{promptMode === "zh_to_en" ? "學生看到的中文題目" : interactionType === "text_qa" ? "學生看到的完整問句（可加入中文提示）" : "AI 要問學生的問題"}</span><input value={form.question_text} onChange={event => update("question_text", event.target.value)} disabled={disabled} />{interactionType === "text_qa" && <small>{promptMode === "zh_to_en" ? "學生先看中文，第一次作答後才可展開英文提示。" : "例如「（尺）What are those?」、「What are（尺） those?」或「What are those?（尺）」；學生會照此看到題面，回答仍須說完整英文句。"}</small>}</label>
             <label><span>中文提示</span><input value={form.hint_zh} onChange={event => update("hint_zh", event.target.value)} disabled={disabled} /></label>
             <div className="platform-form-grid">
                 <label><span>關鍵字（用、分隔）</span><input value={form.keywords} onChange={event => update("keywords", event.target.value)} disabled={disabled} /></label>
@@ -1223,7 +1228,7 @@ export default function SpeakingContentAdmin() {
                                 : <div className="speaking-ocr-review__notice"><strong>正式版本保持唯讀</strong><span>按「建立新版草稿」即可修改文字、圖片與順序；新版核准前，學生仍使用目前版本。</span></div>
                             : isManualStandard && questionSet.status === "draft"
                                 ? <SpeakingManualStandardEditor firebaseUser={firebaseUser} questionSet={questionSet} onChanged={reloadQuestionSet} />
-                                : <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} interactionType={interactionType} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>)}
+                                : <div className="speaking-question-list">{(questionSet.speaking_questions || []).sort((a, b) => a.sort_order - b.sort_order).map(question => <QuestionEditor key={question.id} question={question} interactionType={interactionType} promptMode={questionSet.generation_metadata?.prompt_mode} disabled={questionSet.status !== "draft" || working === `question-${question.id}`} onSave={saveQuestion} />)}</div>)}
                     </section>;
                 })}
             </article>)}</div>}

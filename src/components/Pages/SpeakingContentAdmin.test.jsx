@@ -646,6 +646,26 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(generateSpeakingVisibleWordAudio).not.toHaveBeenCalled();
     });
 
+    it("accepts a Chinese-to-English draft for the no-audio publishing path", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 4, name: "Workbook 4", code: "Workbook_4" }],
+            documents: [{ id: 426, book_id: 4, title: "Workbook 4", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 427, document_id: 426, topic: "運動", unit_label: "P26", page_from_label: "P26", page_to_label: "P26", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [{
+                id: 428, source_section_id: 427, book_id: 4, title: "P26 中翻英", status: "draft", version: 1,
+                generation_metadata: { source: "admin_page_builder", manual_builder_version: 2, source_pages: [26], interaction_type: "text_qa", prompt_mode: "zh_to_en", content_reviewed_at: "2026-09-27T00:00:00Z" },
+                speaking_questions: [{ id: 429, sort_order: 0, question_text: "你每天有做任何運動嗎？它對你的健康有益", hint_zh: "請把中文翻成完整英文句子。", simple_answer: "Do you do any exercise every day? It is good for your health.", model_answer: "Do you do any exercise every day? It is good for your health." }]
+            }]
+        });
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /3 待發布/ }));
+        fireEvent.click(await screen.findByRole("button", { name: /P26 中翻英/ }));
+        expect(screen.getByText("可以直接以純文字問答發布，不會產生示範語音。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "發布純文字關卡" }));
+        await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 428));
+    });
+
     it("prepares gap audio for a mixed page containing only picture gap questions", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
         const pictureGapQuestion = (id, sortOrder, prompt, answer) => ({
