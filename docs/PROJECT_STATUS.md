@@ -2,12 +2,13 @@
 
 最後更新：2026-09-27
 
-本次 Workbook 3～6 教師版逐頁口說草稿（2026-09-27，程式已完成、尚未部署）：
+本次 Workbook 3～6 教師版逐頁口說草稿（2026-09-27，程式與後端已正式部署，遠端草稿已建立）：
 
 - 已依 Workbook 3～6 教師版 PDF 逐頁核對使用者指定的 125 頁，共整理 863 題無圖片口說題；Workbook 3 為 31 頁／211 題、Workbook 4 為 26 頁／180 題、Workbook 5 為 35 頁／241 題、Workbook 6 為 33 頁／231 題。已排除頁首、頁尾、主題、諺語、摘要、教學說明與非指定題號；Workbook 4 P80 只保留第 154～158 題，Workbook 5 P87 只保留第 155～157 題。
 - 逐頁文字草稿現在可在同一關逐題保存英文問答、中翻英與文法提示模式；學生與管理員預覽依每題模式顯示正確指引，文法提示與中翻英在第一次作答前不顯示答案。既有第 2 版逐頁草稿保持相容。
 - 管理員頁新增本機已核對 JSON 批次匯入，先完整驗證教材、頁碼、題型、題面與答案，再逐頁呼叫既有草稿建立 API；只建立未發布草稿，不核准、不發布，也不修改既有 Workbook 2 草稿。
-- 驗證：管理頁／逐頁建立器／學生關卡 React targeted 4 suites／67 tests、教材口說契約 38/38、全部 Edge Function 語法、Production build 與來源 manifest 125 頁／863 題核對均通過。尚待合併、部署 `speaking-content-manager` 與 Cloudflare 前端，再由登入管理員匯入並核對遠端 125 份草稿。
+- 驗證：管理頁／逐頁建立器／學生關卡 React targeted 4 suites／67 tests、教材口說契約 38/38、全部 Edge Function 語法、Production build 與來源 manifest 125 頁／863 題核對均通過。PR #317 已合併至 `main` `d2788e18`；正式 `speaking-content-manager` v63 為 ACTIVE，未登入 POST 回應 401。Cloudflare production build `319b0e7f-82e5-434f-9019-a745f391f100` 成功，正式站載入與本機 Production build 相同的 `main.b139b5c2.js`，管理員與學生口說路由均回應 200。
+- 管理員後台已建立題庫 ID 203～327，共 125 份／863 題；Workbook 3 為 31 份／211 題、Workbook 4 為 26 份／180 題、Workbook 5 為 35 份／241 題、Workbook 6 為 33 份／231 題。125 份全數位於「待發布」，「製作中草稿」為 0；待發布總數由 16 增為 141，已發布總數維持 53，因此 Workbook 2 原草稿與既有學生版本均未被修改。逐頁 ID、頁碼、題數與狀態記錄於 `docs/speaking-content/WORKBOOK_3_6_DRAFT_AUDIT.md`。尚待管理員依教學節奏分批預覽並發布學生版本；本批沒有自動發布。
 
 本次 Workbook 2 OCR 題數修正與中翻英關卡（2026-09-27，程式已正式部署）：
 
