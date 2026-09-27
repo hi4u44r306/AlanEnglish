@@ -2,11 +2,11 @@
 
 最後更新：2026-09-27
 
-本次 Workbook 道路融合關卡節點（2026-09-27，本機完成、待正式部署）：
+本次 Workbook 道路融合關卡節點（2026-09-27，已正式部署）：
 
 - 分支 `codex/speaking-map-integrated-nodes` 將地圖背景改為沒有預畫空格、按鈕或空白路牌的單張 1584×3972 WebP；Workbook 1 的 25 筆已發布關卡才會各自產生一個可操作節點，因此畫面只會有 25 格，不再出現與題庫無關的空位。
 - 關卡節點改為貼在道路上的糖果遊戲式立體圓章，加入道路色底座、亮面、陰影與三顆星座；目前關卡以粉紅高亮、完成關卡為綠色、鎖定關卡為灰色。桌面沿既有道路座標排列，手機裁切座標限制在 9%～91% 安全範圍，避免寬頁碼膠囊或左右兩端節點破出畫面。
-- 相關檔案：`ImmersiveSpeaking.scss`、`speakingAdventureMap.js`、`speakingAdventureMap.test.js`、`workbook-adventure-world-v4.webp`、`網站使用手冊.md`。相關 React 測試 32/32、Production build、`git diff --check`、完整地圖疊點檢查及 390px 裁切預覽通過；待完成 PR、Cloudflare 正式部署及正式網址驗收，`S-19` 地圖素材待重拍。
+- 相關檔案：`ImmersiveSpeaking.scss`、`speakingAdventureMap.js`、`speakingAdventureMap.test.js`、`workbook-adventure-world-v4.webp`、`網站使用手冊.md`。相關 React 測試 32/32、Production build、`git diff --check`、完整地圖疊點檢查及 390px 裁切預覽通過。PR #305 已合併至 `main` `1f725439`，Cloudflare 正式建置 `19aa9db0-87c0-4417-80ed-dbd838c2eaac` 成功；`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 的 Workbook 1 地圖路由皆回應 200，正式 CSS 與 v4 地圖 SHA-256 和本機 build 相同。`S-19` 地圖素材及登入學生 iPhone／Android 實機手感待更新／驗收。
 
 本次 Workbook 單張連續長地圖（2026-09-27，已正式部署）：
 
