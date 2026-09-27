@@ -534,7 +534,8 @@ const normalizePageCandidateGeneration = (
     sourceSentences: string[],
     maximumQuestions: number,
     minimumQuestions: number,
-    additionalAllowedSentences: string[] = []
+    additionalAllowedSentences: string[] = [],
+    trustedReviewedPairs = false
 ) => {
     const pageType = cleanText(generated?.interaction_type, 40);
     const rows = Array.isArray(generated?.questions) ? generated.questions : [];
@@ -564,12 +565,12 @@ const normalizePageCandidateGeneration = (
         if (!allowed.has(normalized.question_text)
             || !textQaPromptIsComplete(normalized.question_text)
             || !allowed.has(normalized.model_answer)
-            || !textQaGenderIsConsistent(normalized.question_text, normalized.model_answer)) return null;
+            || (!trustedReviewedPairs && !textQaGenderIsConsistent(normalized.question_text, normalized.model_answer))) return null;
         const acceptedAnswers = cleanArray(row?.accepted_answers, 12, 500)
             .filter(answer => answer !== normalized.model_answer && allowed.has(answer)
-                && textQaGenderIsConsistent(normalized.question_text, answer));
+                && (trustedReviewedPairs || textQaGenderIsConsistent(normalized.question_text, answer)));
         const modelGender = textQaGenderSignal(normalized.model_answer);
-        const requiredNeutralAlternatives = textQaGenderSignal(normalized.question_text) === "neutral"
+        const requiredNeutralAlternatives = !trustedReviewedPairs && textQaGenderSignal(normalized.question_text) === "neutral"
             && ["male", "female"].includes(modelGender)
             ? sourceSentences.filter(source => source !== normalized.model_answer
                 && textQaGenderSignal(source) !== modelGender
@@ -579,7 +580,7 @@ const normalizePageCandidateGeneration = (
             : [];
         const alternatives = [...new Set([...acceptedAnswers, ...requiredNeutralAlternatives])];
         const candidate = { ...normalized, accepted_intents: alternatives, visual_aid: {} };
-        return textQaQuestionContentValid(candidate) ? candidate : null;
+        return trustedReviewedPairs || textQaQuestionContentValid(candidate) ? candidate : null;
     }).filter(Boolean);
     if (questions.length < minimumQuestions || questions.length > maximumQuestions) return null;
     return { interactionType, questions, rejectedQuestionCount: Math.max(0, rows.length - questions.length) };
@@ -1767,7 +1768,8 @@ Deno.serve(async (req: Request) => {
                     ]) || []
                         : useDeterministicTextQa ? deterministicTextQaPairs.flatMap(pair => [
                         pair.question_text, pair.model_answer, ...(pair.accepted_answers || [])
-                    ]) : []
+                    ]) : [],
+                    useDeterministicTextQa
                 )
                 : null;
             const generatedQuestions = pageCandidate
