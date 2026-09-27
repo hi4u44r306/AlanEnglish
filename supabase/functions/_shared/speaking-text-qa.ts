@@ -22,6 +22,20 @@ export const zhToEnAnswerIsComplete = (value: unknown) => {
         && !/[\u3400-\u9fff]/.test(answer);
 };
 
+export const grammarCuePromptIsComplete = (value: unknown) => {
+    const prompt = clean(value, 800).replace(/[_＿﹍﹎]{2,}/g, " ").replace(/\s+/g, " ").trim();
+    return prompt.length >= 3 && /[A-Za-z\u3400-\u9fff]/u.test(prompt);
+};
+
+export const questionPromptMode = (metadata: any, questionOrSortOrder: any) => {
+    const sortOrder = typeof questionOrSortOrder === "object"
+        ? Number(questionOrSortOrder?.sort_order) : Number(questionOrSortOrder);
+    const modes = Array.isArray(metadata?.prompt_modes_by_sort_order)
+        ? metadata.prompt_modes_by_sort_order : [];
+    const mode = modes[sortOrder] || metadata?.prompt_mode || "english_qa";
+    return ["english_qa", "zh_to_en", "grammar_cue"].includes(mode) ? mode : "english_qa";
+};
+
 export const textQaGenderSignal = (value: unknown) => {
     const tokens = String(value || "").toLowerCase().match(/[a-z]+/g) || [];
     const male = tokens.some(token => [

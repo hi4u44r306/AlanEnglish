@@ -9,6 +9,7 @@ import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
 import { buildSpeakingAdventureRoute } from "../../utils/speakingAdventureMap";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
+import { questionPromptMode } from "../../utils/textQaPrompt";
 import "./css/TextbookSpeakingChallenge.scss";
 import "./css/SpeakingAdventureMap.scss";
 import "./css/SpeakingAdventureRoute.scss";
@@ -461,7 +462,9 @@ export default function TextbookSpeakingChallenge() {
     const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
     const activePictureMode = ["picture_qa", "picture_gap_sentence"].includes(activeInteractionType);
     const activeTextQa = activeInteractionType === "text_qa";
-    const activeZhToEn = activeTextQa && challenge?.generation_metadata?.prompt_mode === "zh_to_en";
+    const activePromptMode = questionPromptMode(challenge?.generation_metadata, activeQuestion);
+    const activeZhToEn = activeTextQa && activePromptMode === "zh_to_en";
+    const activeGrammarCue = activeTextQa && activePromptMode === "grammar_cue";
     const groupedTextQaClue = activeTextQa
         && challenge?.generation_metadata?.candidate_filter?.generation_strategy === "ai_grouped_numbered_text_qa"
         ? String(activeQuestion.hint_zh || "").match(/^題目線索：([^。]+)。/)?.[1] : null;
@@ -502,11 +505,11 @@ export default function TextbookSpeakingChallenge() {
                     <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                     <header className="speaking-question-heading">
                         <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
-                        <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeZhToEn ? "看中文句子，按下麥克風說出完整英文翻譯。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
+                        <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeZhToEn ? "看中文句子，按下麥克風說出完整英文翻譯。" : activeGrammarCue ? "依照題目提供的文法提示，說出完整英文句子。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
                     </header>
                 </div>
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} deferAnswerHelp={activeZhToEn} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeZhToEn ? "看中文，說英文" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
+                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
                 <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。"}</small>
             </article>
         </section>

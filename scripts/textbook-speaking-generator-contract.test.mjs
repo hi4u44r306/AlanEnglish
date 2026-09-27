@@ -527,6 +527,16 @@ test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則�
     assert.match(adminPage, /ManualSpeakingDraftAdmin/);
 });
 
+test("26.1 同一頁文字草稿可逐題保留英文問答、中翻英與文法提示模式", () => {
+    assert.match(manager, /prompt_modes_by_sort_order: textPromptModes/);
+    assert.match(manager, /manual_builder_version: 3/);
+    assert.match(manager, /questionPromptMode\(metadata, question\.sort_order\)/);
+    assert.match(manager, /promptMode === "grammar_cue"/);
+    assert.match(manager, /grammarCuePromptIsComplete/);
+    assert.doesNotMatch(manager, /new Set\(promptModes\)\.size !== 1/);
+    assert.match(adminPage, /BatchSpeakingDraftAdmin/);
+});
+
 test("18. P21 必須說完整問答，P22 必須說含圖片答案的完整句子", () => {
     assert.match(foundationAnswers, /picture_qa/);
     assert.match(foundationAnswers, /picture_gap_sentence/);

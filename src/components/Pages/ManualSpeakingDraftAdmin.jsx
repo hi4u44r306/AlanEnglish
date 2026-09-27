@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ImagePlus, Plus, Trash2, Volume2, X } from "lucide-react";
 import { toast } from "react-toastify";
-import { textQaPromptIsComplete, zhToEnAnswerIsComplete, zhToEnPromptIsComplete } from "../../utils/textQaPrompt";
+import { grammarCuePromptIsComplete, textQaPromptIsComplete, zhToEnAnswerIsComplete, zhToEnPromptIsComplete } from "../../utils/textQaPrompt";
 import {
     createManualPageSpeakingDraft,
     generateSpeakingQuestionSetAudio,
@@ -19,7 +19,8 @@ const TYPE_LABELS = {
     picture_gap_sentence: "看圖補完整句",
     picture_qa: "看圖說完整問答",
     text_qa: "無圖片文字問答",
-    zh_to_en: "中翻英（看中文說英文）"
+    zh_to_en: "中翻英（看中文說英文）",
+    grammar_cue: "文法提示說完整句"
 };
 let rowSequence = 0;
 
@@ -30,7 +31,7 @@ const newRow = () => ({
     accepted_full_responses: "", pronunciation_notes_zh: "", alt_zh: "", file: null
 });
 const isPictureType = type => PICTURE_TYPES.has(type);
-const isTextQaType = type => type === "text_qa" || type === "zh_to_en";
+const isTextQaType = type => ["text_qa", "zh_to_en", "grammar_cue"].includes(type);
 const normalizedPage = value => {
     const match = String(value || "").trim().toUpperCase().match(/^P?([1-9][0-9]{0,3})$/);
     return match ? `P${Number(match[1])}` : "";
@@ -92,8 +93,8 @@ const validateDraft = (form, rows) => {
     if (!form.topic.trim()) formErrors.topic = "請輸入主題";
     else if (form.topic.trim().length > 200) formErrors.topic = "主題不可超過 200 字";
     if (rows.some(row => isTextQaType(row.interaction_type))
-        && rows.some(row => row.interaction_type !== rows[0].interaction_type)) {
-        formErrors.question_types = "文字問答與中翻英須各自獨立成一頁關卡，不能與其他題型混用";
+        && rows.some(row => !isTextQaType(row.interaction_type))) {
+        formErrors.question_types = "無圖片文字題不能與圖片題或完整句朗讀混用";
     }
     const rowErrors = rows.map(row => {
         const errors = {};
@@ -108,10 +109,13 @@ const validateDraft = (form, rows) => {
             if (!row.prompt_text.trim()) errors.prompt_text = "請輸入學生看到的完整題目";
             else if (row.prompt_text.trim().length > 500) errors.prompt_text = "題目不可超過 500 字";
             else if (row.interaction_type === "zh_to_en" && !zhToEnPromptIsComplete(row.prompt_text)) errors.prompt_text = "請輸入學生要翻譯的中文題目";
+            else if (row.interaction_type === "grammar_cue" && !grammarCuePromptIsComplete(row.prompt_text)) errors.prompt_text = "請輸入可辨識的文法提示";
             else if (row.interaction_type === "text_qa" && !textQaPromptIsComplete(row.prompt_text)) errors.prompt_text = "需包含完整英文問句；中文提示可放句首、句中或句尾";
             if (!row.answer_text.trim()) errors.answer_text = "請輸入不會預先顯示的完整示範回答";
             else if (row.answer_text.trim().length > 500) errors.answer_text = "完整示範回答不可超過 500 字";
-            else if (row.interaction_type === "zh_to_en" && !zhToEnAnswerIsComplete(row.answer_text)) errors.answer_text = "請輸入以英文標點結尾、沒有中文的完整英文翻譯";
+            else if (["zh_to_en", "grammar_cue"].includes(row.interaction_type) && !zhToEnAnswerIsComplete(row.answer_text)) errors.answer_text = "請輸入以英文標點結尾、沒有中文的完整英文句子";
+            if (!errors.accepted_full_responses && ["zh_to_en", "grammar_cue"].includes(row.interaction_type)
+                && accepted.some(value => !zhToEnAnswerIsComplete(value))) errors.accepted_full_responses = "每項可接受說法都必須是以英文標點結尾的完整英文句子";
         } else if (row.interaction_type === "picture_qa") {
             if (!row.prompt_text.trim()) errors.prompt_text = "請輸入完整問句";
             else if (!row.prompt_text.trim().endsWith("?")) errors.prompt_text = "完整問句最後必須是半形問號 ?";
@@ -171,7 +175,7 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
         setConfirmOpen(false); setWorking(true);
         let draftId = null;
         try {
-            const questions = rows.map(row => ({ interaction_type: isTextQaType(row.interaction_type) ? "text_qa" : row.interaction_type, ...(isTextQaType(row.interaction_type) ? { prompt_mode: row.interaction_type === "zh_to_en" ? "zh_to_en" : "english_qa" } : {}), ...(row.interaction_type === "standard_sentence" ? { full_sentence: row.full_sentence } : { prompt_text: row.interaction_type === "picture_gap_sentence" ? normalizeGapPrompt(row.prompt_text) : row.prompt_text, answer_text: row.answer_text }), accepted_full_responses: acceptedResponses(row.accepted_full_responses), pronunciation_notes_zh: row.pronunciation_notes_zh }));
+            const questions = rows.map(row => ({ interaction_type: isTextQaType(row.interaction_type) ? "text_qa" : row.interaction_type, ...(isTextQaType(row.interaction_type) ? { prompt_mode: row.interaction_type === "text_qa" ? "english_qa" : row.interaction_type } : {}), ...(row.interaction_type === "standard_sentence" ? { full_sentence: row.full_sentence } : { prompt_text: row.interaction_type === "picture_gap_sentence" ? normalizeGapPrompt(row.prompt_text) : row.prompt_text, answer_text: row.answer_text }), accepted_full_responses: acceptedResponses(row.accepted_full_responses), pronunciation_notes_zh: row.pronunciation_notes_zh }));
             const draft = await createManualPageSpeakingDraft(firebaseUser, { ...form, book_id: Number(form.book_id), page_label: normalizedPage(form.page_label), confirmed: true, questions });
             draftId = Number(draft.question_set_id);
             const createdQuestions = [...(draft.questions || [])].sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
@@ -202,8 +206,8 @@ export default function ManualSpeakingDraftAdmin({ firebaseUser, books, onCreate
             <div className="speaking-picture-authoring__rows">{rows.map((row, index) => {
                 const errors = validation.rowErrors[index] || {}; const invalid = field => validationRequested && errors[field]; const id = field => `manual-row-${index}-${field}-error`;
                 return <article key={row.key} className={validationRequested && Object.keys(errors).length ? "speaking-draft-row--invalid" : ""}><header><strong>第 {index + 1} 題</strong><button type="button" className="platform-danger" disabled={working || rows.length <= 1} onClick={() => removeRow(row.key)}><Trash2 size={16} />刪除</button></header><div className="platform-form">
-                    <label><span>題型</span><select value={row.interaction_type} onChange={event => updateRow(row.key, "interaction_type", event.target.value)} disabled={working}><option value="picture_gap_sentence">看圖補完整句</option><option value="picture_qa">看圖說完整問答</option><option value="text_qa">無圖片文字問答（適用算式）</option><option value="zh_to_en">中翻英（看中文說英文）</option><option value="standard_sentence">完整句朗讀</option></select></label>
-                    {isTextQaType(row.interaction_type) && <><label className={invalid("prompt_text") ? "speaking-draft-field--invalid" : ""}><span>{row.interaction_type === "zh_to_en" ? "學生看到的中文句子" : "學生看到的完整問句（可加入中文提示）"}</span><input value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder={row.interaction_type === "zh_to_en" ? "你每天有做任何運動嗎？它對你的健康有益。" : "What are those?（尺）"} disabled={working} aria-invalid={Boolean(invalid("prompt_text"))} /><FieldError id={id("prompt_text")} message={errors.prompt_text} visible={validationRequested} /></label><label className={invalid("answer_text") ? "speaking-draft-field--invalid" : ""}><span>{row.interaction_type === "zh_to_en" ? "完整英文翻譯（第一次作答前不顯示）" : "完整示範回答（學生作答前不顯示）"}</span><input value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder={row.interaction_type === "zh_to_en" ? "Do you do any exercise every day? It is good for your health." : "Seven minus two is five."} disabled={working} aria-invalid={Boolean(invalid("answer_text"))} /><FieldError id={id("answer_text")} message={errors.answer_text} visible={validationRequested} /></label></>}
+                    <label><span>題型</span><select value={row.interaction_type} onChange={event => updateRow(row.key, "interaction_type", event.target.value)} disabled={working}><option value="picture_gap_sentence">看圖補完整句</option><option value="picture_qa">看圖說完整問答</option><option value="text_qa">無圖片文字問答（適用算式）</option><option value="zh_to_en">中翻英（看中文說英文）</option><option value="grammar_cue">文法提示說完整句</option><option value="standard_sentence">完整句朗讀</option></select></label>
+                    {isTextQaType(row.interaction_type) && <><label className={invalid("prompt_text") ? "speaking-draft-field--invalid" : ""}><span>{row.interaction_type === "zh_to_en" ? "學生看到的中文句子" : row.interaction_type === "grammar_cue" ? "學生看到的文法提示" : "學生看到的完整問句（可加入中文提示）"}</span><input value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder={row.interaction_type === "zh_to_en" ? "你每天有做任何運動嗎？它對你的健康有益。" : row.interaction_type === "grammar_cue" ? "is, am ______" : "What are those?（尺）"} disabled={working} aria-invalid={Boolean(invalid("prompt_text"))} /><FieldError id={id("prompt_text")} message={errors.prompt_text} visible={validationRequested} /></label><label className={invalid("answer_text") ? "speaking-draft-field--invalid" : ""}><span>{row.interaction_type === "zh_to_en" ? "完整英文翻譯（第一次作答前不顯示）" : row.interaction_type === "grammar_cue" ? "完整英文答案（第一次作答前不顯示）" : "完整示範回答（學生作答前不顯示）"}</span><input value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder={row.interaction_type === "zh_to_en" ? "Do you do any exercise every day? It is good for your health." : row.interaction_type === "grammar_cue" ? "It was Thursday." : "Seven minus two is five."} disabled={working} aria-invalid={Boolean(invalid("answer_text"))} /><FieldError id={id("answer_text")} message={errors.answer_text} visible={validationRequested} /></label></>}
                     {row.interaction_type === "picture_gap_sentence" && <><label className={invalid("prompt_text") ? "speaking-draft-field--invalid" : ""}><span>學生看到的題目（用 ____ 標示挖空）</span><input value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder="They ____ her ____." disabled={working} aria-invalid={Boolean(invalid("prompt_text"))} /><FieldError id={id("prompt_text")} message={errors.prompt_text} visible={validationRequested} /></label><label className={invalid("answer_text") ? "speaking-draft-field--invalid" : ""}><span>補好答案的完整句子</span><input value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder="They are her eyes." disabled={working} aria-invalid={Boolean(invalid("answer_text"))} /><FieldError id={id("answer_text")} message={errors.answer_text} visible={validationRequested} /></label><p className="speaking-picture-authoring__preview"><strong>學生看到：</strong>{row.prompt_text.trim() || "請輸入含有 ____ 的題目"}</p></>}
                     {row.interaction_type === "picture_qa" && <><label className={invalid("prompt_text") ? "speaking-draft-field--invalid" : ""}><span>完整問句</span><input value={row.prompt_text} onChange={event => updateRow(row.key, "prompt_text", event.target.value)} placeholder="What is that?" disabled={working} aria-invalid={Boolean(invalid("prompt_text"))} /><FieldError id={id("prompt_text")} message={errors.prompt_text} visible={validationRequested} /></label><label className={invalid("answer_text") ? "speaking-draft-field--invalid" : ""}><span>完整回答</span><input value={row.answer_text} onChange={event => updateRow(row.key, "answer_text", event.target.value)} placeholder="It is a pencil." disabled={working} aria-invalid={Boolean(invalid("answer_text"))} /><FieldError id={id("answer_text")} message={errors.answer_text} visible={validationRequested} /></label></>}
                     {row.interaction_type === "standard_sentence" && <label className={invalid("full_sentence") ? "speaking-draft-field--invalid" : ""}><span>完整朗讀句子</span><input value={row.full_sentence} onChange={event => updateRow(row.key, "full_sentence", event.target.value)} placeholder="This is a pencil." disabled={working} aria-invalid={Boolean(invalid("full_sentence"))} /><FieldError id={id("full_sentence")} message={errors.full_sentence} visible={validationRequested} /></label>}
