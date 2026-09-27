@@ -2,6 +2,12 @@
 
 最後更新：2026-09-27
 
+本次 Workbook 道路融合關卡節點（2026-09-27，本機完成、待正式部署）：
+
+- 分支 `codex/speaking-map-integrated-nodes` 將地圖背景改為沒有預畫空格、按鈕或空白路牌的單張 1584×3972 WebP；Workbook 1 的 25 筆已發布關卡才會各自產生一個可操作節點，因此畫面只會有 25 格，不再出現與題庫無關的空位。
+- 關卡節點改為貼在道路上的糖果遊戲式立體圓章，加入道路色底座、亮面、陰影與三顆星座；目前關卡以粉紅高亮、完成關卡為綠色、鎖定關卡為灰色。桌面沿既有道路座標排列，手機裁切座標限制在 9%～91% 安全範圍，避免寬頁碼膠囊或左右兩端節點破出畫面。
+- 相關檔案：`ImmersiveSpeaking.scss`、`speakingAdventureMap.js`、`speakingAdventureMap.test.js`、`workbook-adventure-world-v4.webp`、`網站使用手冊.md`。相關 React 測試 32/32、Production build、`git diff --check`、完整地圖疊點檢查及 390px 裁切預覽通過；待完成 PR、Cloudflare 正式部署及正式網址驗收，`S-19` 地圖素材待重拍。
+
 本次 Workbook 單張連續長地圖（2026-09-27，已正式部署）：
 
 - 分支 `codex/speaking-single-map-v3` 撤換上一版三張地圖拼接，改用一張 1584×3972 WebP 高解析連續場景，從草原、瀑布、高地、秋季岩地自然延伸到火山終點；不再因桌面全寬拉伸而改變圖片比例或出現接縫。25 個節點改用依圖片道路平台校準的百分比座標，桌面與手機使用同一組地圖座標。

@@ -1,6 +1,6 @@
-// These percentages are calibrated to the painted landing pads in the single
-// Workbook world illustration. The same coordinate system scales with the
-// image, so markers remain on the trail at desktop and mobile widths.
+// These percentages are calibrated to the winding road in the single Workbook
+// world illustration. The same coordinate system scales with the image, so
+// the 25 live markers remain on the road at desktop and mobile widths.
 const TRAIL_LANDMARKS = [
     [18.8, 7.05], [42.2, 10.62], [32.8, 13.09], [32.6, 16.97], [61.9, 20.14],
     [55.8, 22.86], [19.4, 26.28], [23.0, 30.11], [44.9, 34.29], [31.7, 37.16],
@@ -30,7 +30,7 @@ export const buildSpeakingAdventureRoute = (_bookKey, items) => {
         return {
             id: item.id,
             ...point,
-            xMobile: Number((((point.x * 7.92) - 120) / 4.8).toFixed(2)),
+            xMobile: Number(Math.min(91, Math.max(9, ((point.x * 7.92) - 120) / 4.8)).toFixed(2)),
             zone: progress >= 0.72 ? "volcano" : progress >= 0.43 ? "highland" : "grassland"
         };
     });
