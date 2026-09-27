@@ -1984,7 +1984,7 @@ Deno.serve(async (req: Request) => {
                 }
             }
             const questionUpdate = interactionType === TEXT_QA_INTERACTION_TYPE
-                ? { ...normalized, visual_aid: null } : normalized;
+                ? { ...normalized, visual_aid: {} } : normalized;
             const { error } = await admin.from("speaking_questions").update({ ...questionUpdate, updated_at: now }).eq("id", questionId);
             if (error) throw error;
             return json(200, { success: true });
