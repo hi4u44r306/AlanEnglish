@@ -1,7 +1,3 @@
-import {
-    textQaGenderIsConsistent
-} from "./speaking-text-qa.ts";
-
 const INSTRUCTION_PREFIX = /^(?:listen|look|read|repeat|say|write|match|circle|choose|complete|fill|color|draw|ask|answer|practice|play|sing|check|tick|trace|find|point|number)\b/i;
 const NON_CONTENT = /(?:https?:\/\/|www\.|@|©|®|™|\bISBN\b)/i;
 
@@ -59,6 +55,29 @@ const trailingLearnerClue = (value: string) => normalizeLearnerClue(value
 const withoutTrailingLearnerClue = (value: string) => value
     .replace(/\s*[（(]\s*[^()（）]+?\s*[）)]\s*$/u, "")
     .trim();
+
+const reviewedPromptAndClue = (value: string) => {
+    const source = String(value || "").trim();
+    const lastQuestionMark = Math.max(source.lastIndexOf("?"), source.lastIndexOf("？"));
+    if (lastQuestionMark >= 0) {
+        const remainder = source.slice(lastQuestionMark + 1);
+        const trailingMatch = remainder.match(/^\s*[（(]\s*([^()（）]+?)\s*[）)]/u);
+        if (trailingMatch) return {
+            prompt: source.slice(0, lastQuestionMark + 1).trim()
+                .replace(/^Who do you with\?/i, "Who do you live with?"),
+            clue: normalizeLearnerClue(trailingMatch[1])
+        };
+    }
+    const clue = trailingLearnerClue(source);
+    return {
+        prompt: (clue ? withoutTrailingLearnerClue(source) : source)
+            .replace(/^Who do you with\?/i, "Who do you live with?"),
+        clue
+    };
+};
+
+const reviewedAnswerCorrections = (value: string) => normalizeSentence(value)
+    .replace(/\bhis bicyle\./i, "his bicycle.");
 
 export const textQaPromptWithLearnerClue = (question: string, clue: string) => {
     const normalizedQuestion = normalizeSentence(question);
@@ -148,6 +167,7 @@ export const reviewedTextQaPromptIsComplete = (prompt: string) => {
         || (!promptHasGenderChoice && prompt.replace(/[A-Za-z0-9\s.,!?'’"()\-–—:;/]/g, "") !== "")
         || !/[.!?](?:["')\]]+)?$/.test(prompt)) return false;
     if (prompt.includes("?")) return true;
+    if (/\b(?:it's|it is)\.{3}$/i.test(prompt)) return true;
     // A small set of complete social cues are valid conversational prompts.
     // Other statements and sentence fragments (for example Workbook 3 P17
     // idiom stems) are source context, not questions for the learner.
@@ -244,8 +264,9 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
     }
 
     return blocks.flatMap(block => {
-        const clue = trailingLearnerClue(block.prompt);
-        const prompt = normalizeSentence(clue ? withoutTrailingLearnerClue(block.prompt) : block.prompt);
+        const parsedPrompt = reviewedPromptAndClue(block.prompt);
+        const clue = parsedPrompt.clue;
+        const prompt = normalizeSentence(parsedPrompt.prompt);
         const questions = reviewedTextQaPromptIsComplete(prompt)
             ? [textQaPromptWithLearnerClue(prompt, clue)] : [];
         if (!questions.length) return [];
@@ -255,7 +276,7 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
             return genderVariants.flatMap(variant => {
                 const alternatives = HAS_CONTROLLED_GENDER_PAIR.test(answerLine) ? [variant] : variant.split(/\s*\/\s*/);
                 return alternatives
-                    .map(alternative => reviewedAnswerTemplate(alternative, prompt))
+                    .map(alternative => reviewedAnswerCorrections(reviewedAnswerTemplate(alternative, prompt)))
                     .filter(answer => (englishWords(answer).length >= 1 || /\[[^\]]+\]/.test(answer))
                         && !answer.includes("_"));
             });
@@ -263,17 +284,12 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
         if (!answers.length) return [];
 
         return questions.flatMap(question => {
-            // The learner clue is display-only metadata. Validate gender and
-            // spoken prompt completeness against the English source prompt so
-            // numeric clues such as （8） cannot invalidate an otherwise
-            // complete question.
-            const compatibleAnswers = answers.filter(answer => textQaGenderIsConsistent(prompt, answer));
-            if (!compatibleAnswers.length) return [];
-            const modelAnswer = compatibleAnswers[0];
-            const acceptedAnswers = compatibleAnswers.slice(1);
-            // The answer is the exact reviewed teacher response printed under
-            // this numbered prompt, so it does not need an invented opposite-
-            // gender alternative when the prompt names a specific person.
+            // Each answer is the exact teacher response printed under this
+            // numbered prompt. Negative correction drills may intentionally
+            // change girl to son or brother to sister, so generic gender
+            // heuristics must not discard a reviewed pair.
+            const modelAnswer = answers[0];
+            const acceptedAnswers = answers.slice(1);
             return [{ question_text: question, model_answer: modelAnswer, accepted_answers: acceptedAnswers }];
         });
     });
