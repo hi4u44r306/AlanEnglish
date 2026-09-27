@@ -40,7 +40,8 @@
 
 .speaking-map-canvas {
   position: relative;
-  height: var(--map-height);
+  height: auto;
+  aspect-ratio: var(--map-aspect-ratio, 792 / 1986);
   overflow: hidden;
   isolation: isolate;
   background: #96d6b5;
@@ -56,7 +57,7 @@
 .speaking-adventure-route .speaking-map-route path { fill: none; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .speaking-adventure-route .speaking-challenge-lesson {
   position: absolute;
-  top: calc(var(--map-y) - 48px);
+  top: var(--map-y);
   left: var(--map-side);
   z-index: 2;
   display: flex;

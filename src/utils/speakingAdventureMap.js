@@ -1,30 +1,38 @@
-// Markers follow the three painted biomes. The map grows with the catalog so
-// Workbook 1's 25 levels keep game-like breathing room on every viewport.
+// These percentages are calibrated to the painted landing pads in the single
+// Workbook world illustration. The same coordinate system scales with the
+// image, so markers remain on the trail at desktop and mobile widths.
 const TRAIL_LANDMARKS = [
-    [0, 190], [0.07, 390], [0.14, 610], [0.22, 330], [0.29, 720],
-    [0.34, 770], [0.4, 220], [0.47, 650], [0.54, 760], [0.61, 280],
-    [0.67, 210], [0.73, 690], [0.8, 360], [0.87, 720], [0.94, 420], [1, 580]
+    [18.8, 7.05], [42.2, 10.62], [32.8, 13.09], [32.6, 16.97], [61.9, 20.14],
+    [55.8, 22.86], [19.4, 26.28], [23.0, 30.11], [44.9, 34.29], [31.7, 37.16],
+    [22.3, 39.53], [49.2, 43.35], [63.0, 45.47], [49.9, 50.30], [35.1, 52.22],
+    [19.4, 54.63], [42.7, 58.91], [53.8, 61.68], [66.0, 64.60], [42.0, 69.34],
+    [28.4, 71.75], [38.4, 74.52], [65.9, 79.86], [72.6, 87.51], [58.8, 91.19]
 ];
 
-const trailX = progress => {
-    const nextIndex = TRAIL_LANDMARKS.findIndex(([position]) => position >= progress);
-    if (nextIndex <= 0) return TRAIL_LANDMARKS[0][1];
-    const [start, startX] = TRAIL_LANDMARKS[nextIndex - 1];
-    const [end, endX] = TRAIL_LANDMARKS[nextIndex];
-    return Math.round(startX + (endX - startX) * (progress - start) / (end - start));
+const landmarkAt = progress => {
+    const position = progress * (TRAIL_LANDMARKS.length - 1);
+    const startIndex = Math.floor(position);
+    const endIndex = Math.min(TRAIL_LANDMARKS.length - 1, Math.ceil(position));
+    const ratio = position - startIndex;
+    const [startX, startY] = TRAIL_LANDMARKS[startIndex];
+    const [endX, endY] = TRAIL_LANDMARKS[endIndex];
+    return {
+        x: Number((startX + (endX - startX) * ratio).toFixed(2)),
+        y: Number((startY + (endY - startY) * ratio).toFixed(2))
+    };
 };
 
 export const buildSpeakingAdventureRoute = (_bookKey, items) => {
-    const height = Math.max(1800, items.length * 128 + 520);
-    const top = 340;
-    const bottom = height - 220;
-    const interval = items.length > 1 ? (bottom - top) / (items.length - 1) : 0;
-    const nodes = items.map((item, index) => ({
-        id: item.id,
-        x: trailX((top + index * interval) / height),
-        y: Math.round(top + index * interval),
-        zone: index >= Math.ceil(items.length * 0.72) ? "volcano"
-            : index >= Math.ceil(items.length * 0.43) ? "highland" : "grassland"
-    }));
-    return { nodes, height };
+    const interval = items.length > 1 ? 1 / (items.length - 1) : 0;
+    const nodes = items.map((item, index) => {
+        const progress = index * interval;
+        const point = landmarkAt(progress);
+        return {
+            id: item.id,
+            ...point,
+            xMobile: Number((((point.x * 7.92) - 120) / 4.8).toFixed(2)),
+            zone: progress >= 0.72 ? "volcano" : progress >= 0.43 ? "highland" : "grassland"
+        };
+    });
+    return { nodes, aspectRatio: "792 / 1986" };
 };
