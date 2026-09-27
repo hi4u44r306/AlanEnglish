@@ -2,11 +2,11 @@
 
 最後更新：2026-09-27
 
-本次 Workbook 單張連續長地圖（2026-09-27，準備發布）：
+本次 Workbook 單張連續長地圖（2026-09-27，已正式部署）：
 
 - 分支 `codex/speaking-single-map-v3` 撤換上一版三張地圖拼接，改用一張 1584×3972 WebP 高解析連續場景，從草原、瀑布、高地、秋季岩地自然延伸到火山終點；不再因桌面全寬拉伸而改變圖片比例或出現接縫。25 個節點改用依圖片道路平台校準的百分比座標，桌面與手機使用同一組地圖座標。
 - 桌面主地圖固定最大 792px 並置中，兩側以同張圖柔焦延伸填滿；手機在 520px 以下使用 480 單位寬的路線視窗，保留圖片比例並顯示約兩個螢幕高的連續地圖，節點使用對應裁切座標，避免縮成一個螢幕或橫向拉扁。平板維持完整地圖比例。舊三張分段 WebP 已移除；Workbook 選書、A–Z、解鎖、摘要與小關卡規則不變。
-- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`ImmersiveSpeaking.scss`、`SpeakingAdventureRoute.scss`、`workbook-adventure-world-v3.webp`、相關測試及 `網站使用手冊.md`。React 相關測試與 Production build 完成後發布；390×844 及 1365×768 靜態視覺驗收已確認地圖無接縫、沒有水平溢位，節點沿道路平台排列。尚未部署正式站。
+- 相關檔案：`speakingAdventureMap.js`、`TextbookSpeakingChallenge.jsx`、`ImmersiveSpeaking.scss`、`SpeakingAdventureRoute.scss`、`workbook-adventure-world-v3.webp`、相關測試及 `網站使用手冊.md`。React 相關測試 32/32、Production build 與 `git diff --check` 通過；390×844 及 1365×768 靜態視覺驗收已確認地圖無接縫、沒有水平溢位，節點沿道路平台排列。PR #303 已合併至 `main` `9e607d81`，Cloudflare 正式建置 `5767ee35-b498-40ea-8743-9366263eb490` 成功；`alanenglish.com.tw` 與 `app.alanenglish.com.tw` 口說路由、新版 CSS 及單張 WebP 均回應 200，正式 CSS／地圖 SHA-256 與本機 build 相同。登入學生的 iPhone／Android／平板實機操作手感仍待驗收。
 
 本次 Workbook 全寬長地圖與單屏關卡（2026-09-27，已正式部署）：
 
