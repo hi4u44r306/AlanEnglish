@@ -2,6 +2,12 @@
 
 最後更新：2026-09-27
 
+本次 Workbook 高畫質地圖與扁平關卡控制（2026-09-27，本機完成、待正式部署）：
+
+- 分支 `codex/speaking-map-flat-controls-hd` 將 Workbook 長地圖換成細節、道路邊緣與岩石／樹木紋理更清楚的 1584×3972 WebP；保留單張連續草原至火山場景與原有 25 個道路座標。
+- 關卡節點放大為手機 58px、桌面最高 80px 的扁平純色按鈕，移除立體底座、漸層高光、發光及陰影；關卡文字同步放大，三顆星在手機增至 14px。跨頁膠囊加寬，手機節點安全範圍改為 12%～88%，避免寬標籤被裁切。
+- 移除地圖內第二塊 Workbook 木牌，`Workbook 1／口說大挑戰` 改與返回鍵及完成數置於同一個固定浮動工具列。相關檔案為 `TextbookSpeakingChallenge.jsx`、`ImmersiveSpeaking.scss`、`speakingAdventureMap.js`、相關測試、`workbook-adventure-world-v5.webp` 及 `網站使用手冊.md`。相關 React 測試 32/32、Production build、`git diff --check`、完整 25 點疊圖與 localhost 手機視覺驗收通過；待完成 PR、Cloudflare 正式部署與正式網址驗收。
+
 本次 Workbook 道路融合關卡節點（2026-09-27，已正式部署）：
 
 - 分支 `codex/speaking-map-integrated-nodes` 將地圖背景改為沒有預畫空格、按鈕或空白路牌的單張 1584×3972 WebP；Workbook 1 的 25 筆已發布關卡才會各自產生一個可操作節點，因此畫面只會有 25 格，不再出現與題庫無關的空位。

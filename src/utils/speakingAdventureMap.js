@@ -30,7 +30,7 @@ export const buildSpeakingAdventureRoute = (_bookKey, items) => {
         return {
             id: item.id,
             ...point,
-            xMobile: Number(Math.min(91, Math.max(9, ((point.x * 7.92) - 120) / 4.8)).toFixed(2)),
+            xMobile: Number(Math.min(88, Math.max(12, ((point.x * 7.92) - 120) / 4.8)).toFixed(2)),
             zone: progress >= 0.72 ? "volcano" : progress >= 0.43 ? "highland" : "grassland"
         };
     });
