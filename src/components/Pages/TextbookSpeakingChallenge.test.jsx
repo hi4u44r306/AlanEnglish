@@ -202,7 +202,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
         expect(nodes).toHaveLength(3);
-        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["7.05%", "45.47%", "91.19%"]);
+        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["9.5%", "49.1%", "89%"]);
         expect(container.querySelectorAll(".speaking-map-biomes")).toHaveLength(0);
         expect(screen.getByLabelText("Workbook 1 口說大挑戰")).toBeInTheDocument();
         expect(container.querySelectorAll(".speaking-map-landscape")).toHaveLength(0);
@@ -325,13 +325,15 @@ describe("TextbookSpeakingChallenge model audio", () => {
         const firstLesson = screen.getByRole("button", { name: /我的名字與自我介紹/ });
         const secondLesson = screen.getByRole("button", { name: /顏色與生活物品/ });
         const compactToolbar = screen.getByRole("button", { name: /全部教材/ }).closest(".speaking-book-toolbar");
-        expect(compactToolbar).toContainElement(screen.getByRole("heading", { name: "Workbook 1" }));
-        expect(compactToolbar).toHaveTextContent("依順序完成，解鎖下一關");
+        const mapSign = screen.getByLabelText("Workbook 1 口說大挑戰");
+        expect(compactToolbar).not.toContainElement(mapSign);
+        expect(mapSign).toHaveTextContent("Workbook 1口說大挑戰");
         expect(compactToolbar).toHaveTextContent("0/2");
         expect(firstLesson).toBeEnabled();
         expect(secondLesson).toHaveAccessibleName(/尚未解鎖/);
         fireEvent.click(secondLesson);
         expect(screen.getByRole("dialog").querySelector("button.primary")).toBeDisabled();
+        expect(screen.queryByText("通關星星")).not.toBeInTheDocument();
         expect(screen.getByText("先完成前一關，就能解鎖這個挑戰。")).toBeInTheDocument();
         expect(firstLesson.compareDocumentPosition(secondLesson) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
@@ -366,7 +368,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
+        expect(await screen.findByLabelText("Workbook 1 口說大挑戰")).toHaveTextContent("Workbook 1口說大挑戰");
         expect(document.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveAccessibleName(/P.18～20/);
