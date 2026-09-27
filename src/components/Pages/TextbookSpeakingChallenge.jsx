@@ -398,7 +398,7 @@ export default function TextbookSpeakingChallenge() {
         return <main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
                 <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
-                <div className="speaking-book-toolbar__title">
+                <div className="speaking-book-toolbar__title" aria-label={`${selectedBook.label} 口說大挑戰`}>
                     <FiBookOpen aria-hidden="true" />
                     <div><h1>{selectedBook.label}</h1><p>{staffPreview ? "所有已發布關卡皆可預覽" : "依順序完成，解鎖下一關"}</p></div>
                 </div>
@@ -424,7 +424,6 @@ export default function TextbookSpeakingChallenge() {
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
                     <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-aspect-ratio": mapRoute.aspectRatio }}>
-                        <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}><FiBookOpen aria-hidden="true" /><span><strong>{selectedBook.label}</strong><small>口說大挑戰</small></span></div>
                         {mapLessons.map(({ item, section, current, topicNumber: lessonTopicNumber }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} topicNumber={lessonTopicNumber} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}
                     </div></section>
                 </section>}

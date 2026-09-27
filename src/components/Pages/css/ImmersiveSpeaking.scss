@@ -30,7 +30,7 @@
 .speaking-adventure-route .speaking-map-canvas {
   position: relative;
   z-index: 1;
-  background: #2b604e url("../assets/speaking-map/workbook-adventure-world-v4.webp") center / 100% 100% no-repeat;
+  background: #2b604e url("../assets/speaking-map/workbook-adventure-world-v5.webp") center / 100% 100% no-repeat;
 }
 .speaking-adventure-route .speaking-map-canvas::after {
   content: "";
@@ -392,17 +392,62 @@ body.speaking-game-world-active .app-content.has-mini-player { padding-bottom: 0
 body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 100%; padding: 0; background: transparent; }
 .speaking-challenge-page.is-book-open .speaking-book-toolbar {
   position: fixed;
-  inset: max(10px, env(safe-area-inset-top, 0px)) 0 auto;
+  inset: max(10px, env(safe-area-inset-top, 0px)) 50% auto auto;
   z-index: 60;
-  width: 100%;
-  max-width: none;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 92px;
+  gap: 10px;
+  align-items: center;
+  width: min(100% - 24px, 760px);
+  max-width: 760px;
   min-height: 62px;
   margin: 0;
-  padding: 0 clamp(14px, 3vw, 40px);
+  padding: 0;
+  transform: translateX(50%);
   pointer-events: none;
 }
 .speaking-challenge-page.is-book-open .speaking-book-toolbar .speaking-back,
 .speaking-challenge-page.is-book-open .speaking-book-toolbar__progress { pointer-events: auto; }
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__title {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  justify-self: center;
+  min-width: 0;
+  padding: 7px 14px;
+  border: 2px solid rgba(255,255,255,.88);
+  border-radius: 16px;
+  background: rgba(20, 49, 85, .9);
+  box-shadow: 0 4px 12px rgba(16, 37, 61, .18);
+  backdrop-filter: blur(8px);
+}
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__title > svg {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: #ffd75e;
+  background: transparent;
+}
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__title > div { min-width: 0; }
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__title h1 {
+  overflow: hidden;
+  margin: 0;
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.speaking-challenge-page.is-book-open .speaking-book-toolbar__title p {
+  display: block;
+  margin: 3px 0 0;
+  color: #dcecff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
 .speaking-challenge-page.is-book-open .speaking-challenge-grid { width: 100%; max-width: none; margin: 0; }
 .speaking-challenge-page.is-book-open .speaking-catalog-group { width: 100%; max-width: none; margin: 0; }
 .speaking-adventure-route .speaking-map-chapter { width: 100%; overflow: hidden; border: 0; border-radius: 0; box-shadow: none; }
@@ -416,7 +461,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   content: "";
   position: absolute;
   inset: -28px;
-  background: url("../assets/speaking-map/workbook-adventure-world-v4.webp") center / 100% 100% no-repeat;
+  background: url("../assets/speaking-map/workbook-adventure-world-v5.webp") center / 100% 100% no-repeat;
   filter: blur(24px) saturate(.82) brightness(.68);
   transform: scale(1.05);
 }
@@ -424,113 +469,75 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: min(792px, 100%);
   height: auto;
   aspect-ratio: var(--map-aspect-ratio, 792 / 1986);
-  background: #80c8ef url("../assets/speaking-map/workbook-adventure-world-v4.webp") center / 100% 100% no-repeat;
+  background: #80c8ef url("../assets/speaking-map/workbook-adventure-world-v5.webp") center / 100% 100% no-repeat;
   box-shadow: 0 0 34px rgba(7, 23, 38, .58);
 }
-.speaking-map-book-sign {
-  position: absolute;
-  top: 2.8%;
-  right: 6.5%;
-  z-index: 3;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  width: clamp(116px, 23%, 180px);
-  min-width: 0;
-  padding: clamp(7px, 1.3vw, 12px) clamp(9px, 1.7vw, 17px);
-  border: 4px solid #e0a66c;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #aa673d, #71411f);
-  color: #fff;
-  box-shadow: inset 0 2px rgba(255,255,255,.25), 0 6px 0 #623616, 0 13px 25px rgba(45,30,20,.28);
-  transform: rotate(1.5deg);
-}
-.speaking-map-book-sign > svg { flex: 0 0 auto; width: 30px; height: 30px; color: #ffe16b; }
-.speaking-map-book-sign > span { display: grid; line-height: 1.1; }
-.speaking-map-book-sign strong { color: #fff; font-size: clamp(16px, 2vw, 22px); }
-.speaking-map-book-sign small { margin-top: 4px; color: #ffe9c8; font-size: 11px; font-weight: 850; letter-spacing: .08em; }
 .speaking-adventure-route .speaking-challenge-lesson {
   z-index: 4;
   top: var(--map-y);
-  width: clamp(48px, 8.5vw, 76px);
-  min-height: clamp(48px, 8.5vw, 76px);
+  width: clamp(68px, 10vw, 88px);
+  min-height: clamp(68px, 10vw, 88px);
   transform: translate(-50%, -50%);
-  filter: drop-shadow(0 8px 8px rgba(69, 42, 16, .26));
+  filter: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson::before {
-  content: "";
-  position: absolute;
-  top: 61%;
-  left: 50%;
-  z-index: -1;
-  width: calc(100% + 12px);
-  height: clamp(20px, 3vw, 28px);
-  transform: translate(-50%, -50%);
-  border: clamp(2px, .35vw, 3px) solid #fff0b1;
-  border-radius: 50%;
-  background: linear-gradient(180deg, #f7d989 0 44%, #ce8b34 45% 74%, #9b5a22 75%);
-  box-shadow: inset 0 2px rgba(255,255,255,.65), 0 4px 0 rgba(104,56,22,.72), 0 7px 12px rgba(53,34,17,.24);
+  content: none;
+  display: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson__number {
   position: relative;
   z-index: 1;
-  width: clamp(42px, 7.6vw, 66px);
-  height: clamp(42px, 7.6vw, 66px);
-  min-width: clamp(42px, 7.6vw, 66px);
-  padding: 4px;
-  border: clamp(3px, .55vw, 5px) solid #fff7d1;
-  background:
-    radial-gradient(circle at 32% 20%, rgba(255,255,255,.95) 0 8%, rgba(255,255,255,.28) 9% 22%, transparent 23%),
-    radial-gradient(circle at 45% 28%, #ffc969, #ee842f 62%, #bd4f21 100%);
+  width: clamp(60px, 9vw, 80px);
+  height: clamp(60px, 9vw, 80px);
+  min-width: clamp(60px, 9vw, 80px);
+  padding: 5px;
+  border: 4px solid rgba(255,255,255,.96);
+  background: #2f78c7;
   color: #fff;
-  font-size: clamp(9px, 1.55vw, 13px);
+  font-size: clamp(13px, 1.9vw, 17px);
+  font-weight: 900;
   line-height: 1.05;
   white-space: normal;
-  text-shadow: 0 2px 1px rgba(94,42,20,.72);
-  box-shadow: inset 0 -6px #b94e21, inset 0 3px rgba(255,255,255,.66), 0 3px 0 #873b1c, 0 8px 12px rgba(76,39,16,.28);
+  text-shadow: none;
+  box-shadow: none;
+  transition: border-color .15s ease, background-color .15s ease;
 }
+.speaking-adventure-route .speaking-challenge-lesson:hover .speaking-challenge-lesson__number { transform: none; filter: none; }
 .speaking-adventure-route .speaking-challenge-lesson::after {
   content: "★ ★ ★";
   position: absolute;
-  top: calc(50% + clamp(23px, 4vw, 36px));
+  top: calc(50% + clamp(34px, 5vw, 46px));
   left: 50%;
   z-index: 2;
   width: max-content;
   transform: translateX(-50%);
-  color: #fff4b2;
-  font-size: clamp(7px, 1.2vw, 10px);
+  color: #ffd43b;
+  font-size: clamp(12px, 1.8vw, 16px);
   line-height: 1;
-  letter-spacing: -2px;
-  text-shadow: 0 1px #9d5b20, 0 2px #6f3d19;
+  letter-spacing: 1px;
+  text-shadow: none;
   pointer-events: none;
 }
-.speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: clamp(62px, 11vw, 94px); }
-.speaking-adventure-route .speaking-challenge-lesson.is-wide-label::before { width: calc(100% + 10px); }
-.speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { width: 100%; min-width: 100%; border-radius: 999px; font-size: clamp(8px, 1.4vw, 12px); }
+.speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: clamp(86px, 13vw, 116px); }
+.speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { width: 100%; min-width: 100%; border-radius: 999px; font-size: clamp(11px, 1.6vw, 14px); }
 .speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
-  border-color: #fff6b2;
-  background:
-    radial-gradient(circle at 32% 20%, rgba(255,255,255,.98) 0 8%, rgba(255,255,255,.3) 9% 22%, transparent 23%),
-    radial-gradient(circle at 45% 28%, #ff9bd1, #f34a98 62%, #b31e64 100%);
-  color: #fff;
-  box-shadow: inset 0 -6px #aa1d62, inset 0 3px rgba(255,255,255,.68), 0 3px 0 #761442, 0 0 0 6px rgba(255,224,103,.52), 0 10px 18px rgba(101,22,65,.35);
+  border-color: #173b70;
+  background: #ffd34f;
+  color: #17345e;
+  box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
-  border-color: #e9ffcf;
-  background:
-    radial-gradient(circle at 32% 20%, rgba(255,255,255,.95) 0 8%, rgba(255,255,255,.28) 9% 22%, transparent 23%),
-    radial-gradient(circle at 45% 28%, #9bed7f, #36ad66 64%, #187649 100%);
-  box-shadow: inset 0 -6px #1f7b4d, inset 0 3px rgba(255,255,255,.64), 0 3px 0 #145d3a, 0 8px 12px rgba(20,86,54,.3);
+  border-color: #fff;
+  background: #31a566;
+  box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
-  border-color: #edf2f7;
-  background:
-    radial-gradient(circle at 32% 20%, rgba(255,255,255,.8) 0 8%, rgba(255,255,255,.2) 9% 22%, transparent 23%),
-    radial-gradient(circle at 45% 28%, #b9c5d4, #75869e 64%, #4a5b73 100%);
+  border-color: #fff;
+  background: #6f7e93;
   color: #f7fbff;
-  box-shadow: inset 0 -6px #53657d, inset 0 3px rgba(255,255,255,.5), 0 3px 0 #3d4d63, 0 8px 12px rgba(35,49,67,.3);
+  box-shadow: none;
 }
-.speaking-adventure-route .speaking-challenge-lesson__state { top: -4px; right: -4px; bottom: auto; z-index: 3; }
+.speaking-adventure-route .speaking-challenge-lesson__state { top: -2px; right: -2px; bottom: auto; z-index: 3; box-shadow: none; }
 
 .speaking-level-dialog__game-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; width: 100%; }
 .speaking-level-dialog__game-panel > span { display: grid; gap: 5px; min-height: 90px; padding: 11px; border: 1px solid #ead8b9; border-radius: 15px; background: rgba(255,255,255,.86); }
@@ -553,7 +560,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-sizing: border-box;
   padding: max(8px, env(safe-area-inset-top, 0px)) clamp(10px, 2vw, 24px) max(8px, env(safe-area-inset-bottom, 0px));
   overflow: hidden;
-  background: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v4.webp") center 35% / cover no-repeat, #72b9e2;
+  background: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v5.webp") center 35% / cover no-repeat, #72b9e2;
 }
 .speaking-immersive-play::before {
   display: none;
@@ -606,17 +613,17 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 .speaking-immersive-play .speaking-question-navigation { flex: 0 0 auto; width: min(760px, 100%); min-height: 52px; margin: 5px auto 0; }
 
 @media (max-width: 760px) {
-  .speaking-challenge-page.is-book-open .speaking-book-toolbar { position: fixed; inset: max(8px, env(safe-area-inset-top, 0px)) 0 auto; margin: 0; padding: 0 12px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar { position: fixed; inset: max(8px, env(safe-area-inset-top, 0px)) 50% auto auto; grid-template-columns: 50px minmax(0, 1fr) 82px; width: calc(100% - 16px); margin: 0; padding: 0; transform: translateX(50%); }
   .speaking-challenge-page.is-book-open .speaking-book-toolbar__progress { min-width: 82px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar__title { display: flex; padding: 7px 10px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar__title > svg { width: 20px; height: 20px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar__title h1 { font-size: 15px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar__title p { display: block; font-size: 9px; }
   .speaking-adventure-route .speaking-map-chapter::before { display: none; }
-  .speaking-map-book-sign { top: 2.8%; right: 6.5%; width: clamp(116px, 23%, 180px); min-width: 0; padding: 7px 9px; }
-  .speaking-map-book-sign > svg { width: 20px; height: 20px; }
-  .speaking-map-book-sign strong { font-size: 12px; }
-  .speaking-map-book-sign small { font-size: 8px; }
-  .speaking-adventure-route .speaking-challenge-lesson { top: var(--map-y); width: clamp(48px, 8.5vw, 76px); min-height: clamp(48px, 8.5vw, 76px); }
-  .speaking-adventure-route .speaking-challenge-lesson__number { width: clamp(42px, 7.6vw, 66px); height: clamp(42px, 7.6vw, 66px); min-width: clamp(42px, 7.6vw, 66px); font-size: clamp(9px, 1.55vw, 13px); }
-  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: clamp(62px, 11vw, 94px); }
-  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { width: 100%; min-width: 100%; font-size: clamp(8px, 1.4vw, 12px); }
+  .speaking-adventure-route .speaking-challenge-lesson { top: var(--map-y); width: clamp(64px, 11vw, 78px); min-height: clamp(64px, 11vw, 78px); }
+  .speaking-adventure-route .speaking-challenge-lesson__number { width: clamp(58px, 10vw, 72px); height: clamp(58px, 10vw, 72px); min-width: clamp(58px, 10vw, 72px); font-size: clamp(12px, 2.3vw, 15px); }
+  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: clamp(82px, 15vw, 104px); }
+  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { width: 100%; min-width: 100%; font-size: clamp(10px, 1.9vw, 13px); }
   .speaking-level-dialog__game-panel { grid-template-columns: 1fr 1fr; }
   .speaking-challenge-page.speaking-challenge-detail.speaking-immersive-play { padding: max(4px, env(safe-area-inset-top, 0px)) 8px max(4px, env(safe-area-inset-bottom, 0px)); }
   .speaking-immersive-play .speaking-lesson-header { grid-template-columns: 46px 1fr 94px; min-height: 48px; margin-bottom: 4px; padding: 0; }
@@ -643,11 +650,15 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
     background-size: auto 100%;
     background-position: 38.46% center;
   }
-  .speaking-map-book-sign { right: 8%; left: auto; width: 116px; }
-  .speaking-adventure-route .speaking-challenge-lesson { left: var(--map-mobile-side); width: 48px; min-height: 48px; }
-  .speaking-adventure-route .speaking-challenge-lesson__number { width: 42px; height: 42px; min-width: 42px; font-size: 9px; }
-  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: 62px; }
-  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { font-size: 8px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar { grid-template-columns: 48px minmax(0, 1fr) 78px; gap: 6px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar__title { gap: 6px; padding: 6px 8px; border-radius: 14px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar__title h1 { font-size: 14px; }
+  .speaking-challenge-page.is-book-open .speaking-book-toolbar__title p { display: none; }
+  .speaking-adventure-route .speaking-challenge-lesson { left: var(--map-mobile-side); width: 64px; min-height: 64px; }
+  .speaking-adventure-route .speaking-challenge-lesson__number { width: 58px; height: 58px; min-width: 58px; font-size: 12px; }
+  .speaking-adventure-route .speaking-challenge-lesson::after { top: calc(50% + 36px); font-size: 14px; }
+  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: 82px; }
+  .speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { font-size: 10px; }
 }
 
 @media (max-width: 760px) and (max-height: 720px) {

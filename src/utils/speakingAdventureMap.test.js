@@ -6,7 +6,7 @@ it("positions ordered markers on one painted adventure trail", () => {
     expect(route.nodes.map(node => node.id)).toEqual(items.map(item => item.id));
     expect(route.nodes.map(node => node.y)).toEqual([...route.nodes.map(node => node.y)].sort((a, b) => a - b));
     expect(route.nodes.every(node => node.x >= 18 && node.x <= 73)).toBe(true);
-    expect(route.nodes.every(node => node.xMobile >= 9 && node.xMobile <= 91)).toBe(true);
+    expect(route.nodes.every(node => node.xMobile >= 12 && node.xMobile <= 88)).toBe(true);
     expect(route.nodes.every(node => node.y >= 7 && node.y <= 92)).toBe(true);
     expect(route).not.toHaveProperty("path");
     expect(route.aspectRatio).toBe("792 / 1986");
@@ -18,7 +18,7 @@ it("scales the same complete map when all 25 levels are published", () => {
     expect(route.nodes[0].zone).toBe("grassland");
     expect(route.nodes.at(-1).zone).toBe("volcano");
     expect(route.nodes).toHaveLength(25);
-    expect(route.nodes[0]).toMatchObject({ x: 18.8, xMobile: 9, y: 7.05 });
+    expect(route.nodes[0]).toMatchObject({ x: 18.8, xMobile: 12, y: 7.05 });
     expect(route.nodes.at(-1)).toMatchObject({ x: 58.8, xMobile: 72.02, y: 91.19 });
     expect(route.nodes.slice(1).every((node, index) => node.y > route.nodes[index].y)).toBe(true);
 });
