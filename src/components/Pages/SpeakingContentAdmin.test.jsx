@@ -699,6 +699,46 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(generateSpeakingVisibleWordAudio.mock.invocationCallOrder[0]).toBeLessThan(publishSpeakingQuestionSet.mock.invocationCallOrder[0]);
     });
 
+    it("publishes five interleaved question types with audio only for reading and gap questions", async () => {
+        jest.spyOn(window, "confirm").mockReturnValue(true);
+        const picture = (id, sortOrder, type, prompt, answer) => ({
+            id, sort_order: sortOrder, question_text: prompt, model_answer: answer,
+            speaking_question_interactions: [{ interaction_type: type, prompt_text: prompt, answer_text: answer, accepted_full_responses: [] }],
+            speaking_question_visual_assets: [{ speaking_visual_assets: [{ status: "ready", alt_zh: "教材圖片", source_page_label: "P26" }] }]
+        });
+        getSpeakingContentBootstrap.mockResolvedValue({
+            books: [{ id: 4, name: "Workbook 4", code: "Workbook_4" }],
+            documents: [{ id: 430, book_id: 4, title: "Workbook 4", chunk_count: 0 }], chunks: [],
+            sections: [{ id: 431, document_id: 430, topic: "混合練習", unit_label: "P26", page_from_label: "P26", page_to_label: "P26", language_level: "國小中年級", status: "reviewed" }],
+            question_sets: [{
+                id: 432, source_section_id: 431, book_id: 4, title: "P26 五種混合題", status: "draft", version: 1,
+                generation_metadata: { source: "admin_page_builder", manual_builder_version: 2, source_pages: [26], interaction_type: "mixed", question_modes: [
+                    { sort_order: 0, interaction_type: "text_qa", prompt_mode: "zh_to_en" },
+                    { sort_order: 1, interaction_type: "standard_sentence" },
+                    { sort_order: 2, interaction_type: "picture_qa" },
+                    { sort_order: 3, interaction_type: "text_qa", prompt_mode: "english_qa" },
+                    { sort_order: 4, interaction_type: "picture_gap_sentence" }
+                ], content_reviewed_at: "2026-09-27T00:00:00Z" },
+                speaking_questions: [
+                    { id: 433, sort_order: 0, question_text: "你每天做運動嗎？", model_answer: "Do you exercise every day?", simple_answer: "Do you exercise every day?" },
+                    { id: 434, sort_order: 1, question_text: "I exercise every day.", model_answer: "I exercise every day.", simple_answer: "I exercise every day." },
+                    picture(435, 2, "picture_qa", "What is that?", "It is a ball."),
+                    { id: 436, sort_order: 3, question_text: "Do you need help?", model_answer: "Yes, I need help.", simple_answer: "Yes, I need help." },
+                    picture(437, 4, "picture_gap_sentence", "It is a ____.", "It is a book.")
+                ]
+            }]
+        });
+        render(<SpeakingContentAdmin />);
+        fireEvent.click(await screen.findByRole("button", { name: /3 待發布/ }));
+        fireEvent.click(await screen.findByRole("button", { name: /P26 五種混合題/ }));
+        expect(screen.getByRole("button", { name: "準備語音並發布" })).toBeInTheDocument();
+        expect(screen.getByText("看圖說完整問答")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "準備語音並發布" }));
+        await waitFor(() => expect(publishSpeakingQuestionSet).toHaveBeenCalledWith(mockFirebaseUser, 432));
+        expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledTimes(1);
+        expect(generateSpeakingVisibleWordAudio).toHaveBeenCalledTimes(1);
+    });
+
     it("deletes any selected unpublished draft without affecting the published version", async () => {
         jest.spyOn(window, "confirm").mockReturnValue(true);
         archiveSpeakingQuestionSet.mockResolvedValue({ success: true, deleted: true });

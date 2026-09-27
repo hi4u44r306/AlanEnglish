@@ -10,6 +10,7 @@ import {
     resolveQuestionInteractionType
 } from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
+import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
     ALPHABET_SEQUENCE_GAP_MS,
@@ -301,9 +302,12 @@ Deno.serve(async (req: Request) => {
                 const promptAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:question_prompt`);
                 const pictureInteraction: any = pictureInteractionByQuestion.get(Number(question.id));
                 const visualAsset: any = visualByQuestion.get(Number(question.id));
+                const questionMode = pageQuestionMode(questionSet.generation_metadata, question, pictureInteraction);
                 questions.push(await buildPublicSpeakingQuestion({
                     question,
                     interactionType,
+                    questionInteractionType: questionMode.interactionType,
+                    promptMode: questionMode.promptMode,
                     answerAudioEnabled: questionSet.generation_metadata?.source === "ocr_page_candidate"
                         && questionSet.generation_metadata?.requires_answer_audio === true,
                     staffAudioPreview: demoMode,

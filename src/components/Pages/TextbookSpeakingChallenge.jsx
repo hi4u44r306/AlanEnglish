@@ -461,7 +461,7 @@ export default function TextbookSpeakingChallenge() {
     const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
     const activePictureMode = ["picture_qa", "picture_gap_sentence"].includes(activeInteractionType);
     const activeTextQa = activeInteractionType === "text_qa";
-    const activeZhToEn = activeTextQa && challenge?.generation_metadata?.prompt_mode === "zh_to_en";
+    const activeZhToEn = activeTextQa && (activeQuestion.prompt_mode || challenge?.generation_metadata?.prompt_mode) === "zh_to_en";
     const groupedTextQaClue = activeTextQa
         && challenge?.generation_metadata?.candidate_filter?.generation_strategy === "ai_grouped_numbered_text_qa"
         ? String(activeQuestion.hint_zh || "").match(/^題目線索：([^。]+)。/)?.[1] : null;

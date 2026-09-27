@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { createR2PresignedUrl, fetchR2, normalizeObjectKey } from "../_shared/r2.ts";
 import { spokenExampleText } from "../_shared/speaking-tts-text.ts";
+import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
 import {
     alphabetRoundContentMatches,
     workbookOneFoundationTemplateByKey
@@ -928,14 +929,21 @@ Deno.serve(async (req: Request) => {
             && ["ocr_page_candidate", "ai_page_auto"].includes(String(questionSet?.generation_metadata?.source || ""))
             && (interactionType === "standard_sentence" || reviewedTextQaAudio)
             && Boolean(questionSet?.generation_metadata?.content_reviewed_at);
-        const manualPageDraft = setStatus === "draft"
-            && questionSet?.generation_metadata?.source === "admin_page_builder"
+        const manualPageSet = questionSet?.generation_metadata?.source === "admin_page_builder"
             && questionSet?.generation_metadata?.manual_builder_version === 2
             && ["mixed", "text_qa"].includes(interactionType);
+        const manualPageDraft = setStatus === "draft" && manualPageSet;
         const mayPrepareManualStandardDraft = (manualStandardDraft || reviewedPageCandidateDraft)
             && ["generate_set_audio", "retry_question_audio", "preview_question_audio"].includes(action);
         const mayPrepareManualPageDraft = manualPageDraft
             && ["generate_set_audio", "generate_visible_word_audio", "retry_question_audio", "preview_question_audio"].includes(action);
+        if (manualPageSet && ["retry_question_audio", "preview_question_audio"].includes(action)) {
+            const questionType = pageQuestionMode(questionSet.generation_metadata, questions[0]).interactionType;
+            if (questionType === "text_qa" || questionType === "picture_qa"
+                || (action === "retry_question_audio" && questionType === "picture_gap_sentence")) {
+                return json(409, { error: "這題不使用一般示範音檔；看圖補句請使用停頓整句語音" });
+            }
+        }
         const mayPreviewPictureGapDraft = Boolean(pictureGapPage)
             && ["preview_question_audio", "preview_picture_gap_the_candidates", "activate_picture_gap_the_candidate", "restore_picture_gap_standard_audio"].includes(action);
         if (setStatus !== "published" && !mayPrepareAlphabetDraft && !mayPreparePictureGapDraft
@@ -1028,20 +1036,20 @@ Deno.serve(async (req: Request) => {
             });
         }
         if (action === "generate_visible_word_audio") {
-            if (interactionType !== "picture_gap_sentence" && !manualPageDraft) return json(409, { error: "只有看圖補句關卡可產生整句發音" });
+            if (interactionType !== "picture_gap_sentence" && !manualPageSet) return json(409, { error: "只有看圖補句關卡可產生整句發音" });
             const questionIds = questions.map((question: any) => Number(question.id));
             const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
                 .select("question_id,interaction_type,prompt_text").in("question_id", questionIds);
             if (interactionError) throw interactionError;
             const interactionByQuestion = new Map((interactions || []).map((row: any) => [Number(row.question_id), row]));
-            const gapQuestions = manualPageDraft
-                ? questions.filter((question: any) => interactionByQuestion.get(Number(question.id))?.interaction_type === "picture_gap_sentence")
+            const gapQuestions = manualPageSet
+                ? questions.filter((question: any) => pageQuestionMode(questionSet.generation_metadata, question).interactionType === "picture_gap_sentence")
                 : questions;
             const invalidInteraction = gapQuestions.some((question: any) => {
                 const interaction: any = interactionByQuestion.get(Number(question.id));
                 return interaction?.interaction_type !== "picture_gap_sentence" || !String(interaction?.prompt_text || "").trim();
             });
-            if (!gapQuestions.length || invalidInteraction || (!manualPageDraft && interactions?.length !== questions.length)) {
+            if (!gapQuestions.length || invalidInteraction || (!manualPageSet && interactions?.length !== questions.length)) {
                 return json(409, { error: `${pictureGapPage || "看圖補句"} 整句資料不完整` });
             }
             const results = [];
@@ -1071,9 +1079,11 @@ Deno.serve(async (req: Request) => {
         }
         if (action === "preview_question_audio") {
             const question = questions[0];
+            const questionType = manualPageSet
+                ? pageQuestionMode(questionSet.generation_metadata, question).interactionType : interactionType;
             const { data: link, error: linkError } = await admin.from("speaking_question_audio")
                 .select("asset_id,purpose").eq("question_id", question.id)
-                .eq("purpose", interactionType === "picture_gap_sentence" ? "question_prompt" : "model_answer")
+                .eq("purpose", questionType === "picture_gap_sentence" ? "question_prompt" : "model_answer")
                 .maybeSingle();
             if (linkError) throw linkError;
             if (!link?.asset_id) return json(404, { error: "這一題尚未產生示範語音" });
@@ -1093,13 +1103,14 @@ Deno.serve(async (req: Request) => {
                 audio_url: await createR2PresignedUrl(asset.private_object_key, "GET", 15 * 60)
             });
         }
-        if (manualPageDraft && action === "generate_set_audio") {
+        if (manualPageSet && action === "generate_set_audio") {
             const questionIds = questions.map((question: any) => Number(question.id));
             const { data: interactions, error: interactionError } = await admin.from("speaking_question_interactions")
                 .select("question_id").in("question_id", questionIds);
             if (interactionError) throw interactionError;
             const pictureQuestionIds = new Set((interactions || []).map((row: any) => Number(row.question_id)));
-            const standardQuestions = questions.filter((question: any) => !pictureQuestionIds.has(Number(question.id)));
+            const standardQuestions = questions.filter((question: any) => !pictureQuestionIds.has(Number(question.id))
+                && pageQuestionMode(questionSet.generation_metadata, question).interactionType === "standard_sentence");
             if (!standardQuestions.length) {
                 return json(409, { error: "這份逐頁草稿沒有一般完整句，請改用看圖補句停頓語音" });
             }

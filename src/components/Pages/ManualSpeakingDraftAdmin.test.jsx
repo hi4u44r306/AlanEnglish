@@ -104,7 +104,8 @@ describe("ManualSpeakingDraftAdmin", () => {
         expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
     });
 
-    it("keeps Chinese-to-English separate from English text questions", () => {
+    it("keeps Chinese translation and English questions in one ordered draft without audio", async () => {
+        createManualPageSpeakingDraft.mockResolvedValue({ question_set_id: 81, questions: [{ id: 811, sort_order: 0 }, { id: 812, sort_order: 1 }] });
         renderBuilder();
         fillPage();
         fireEvent.change(screen.getByLabelText("題型"), { target: { value: "zh_to_en" } });
@@ -112,9 +113,15 @@ describe("ManualSpeakingDraftAdmin", () => {
         fireEvent.change(screen.getByLabelText("完整英文翻譯（第一次作答前不顯示）"), { target: { value: "Do you exercise every day?" } });
         fireEvent.click(screen.getByRole("button", { name: "新增一題" }));
         fireEvent.change(screen.getAllByLabelText("題型")[1], { target: { value: "text_qa" } });
+        fireEvent.change(screen.getByLabelText("學生看到的完整問句（可加入中文提示）"), { target: { value: "What is seven minus two?" } });
+        fireEvent.change(screen.getByLabelText("完整示範回答（學生作答前不顯示）"), { target: { value: "Seven minus two is five." } });
         fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
-        expect(screen.getByRole("alert")).toHaveTextContent("不能與其他題型混用");
-        expect(createManualPageSpeakingDraft).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
+        await waitFor(() => expect(createManualPageSpeakingDraft).toHaveBeenCalledWith(firebaseUser, expect.objectContaining({ questions: [
+            expect.objectContaining({ interaction_type: "text_qa", prompt_mode: "zh_to_en" }),
+            expect.objectContaining({ interaction_type: "text_qa", prompt_mode: "english_qa" })
+        ] })));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
     });
 
     it("creates a Chinese-to-English draft with a hidden complete English answer", async () => {
@@ -137,7 +144,8 @@ describe("ManualSpeakingDraftAdmin", () => {
         expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
     });
 
-    it("rejects mixing no-image text questions with other types", () => {
+    it("prepares audio only for the complete sentence beside a text question", async () => {
+        createManualPageSpeakingDraft.mockResolvedValue({ question_set_id: 81, questions: [{ id: 811, sort_order: 0 }, { id: 812, sort_order: 1 }] });
         renderBuilder();
         fillPage();
         fireEvent.change(screen.getByLabelText("題型"), { target: { value: "text_qa" } });
@@ -147,8 +155,12 @@ describe("ManualSpeakingDraftAdmin", () => {
         fireEvent.change(screen.getAllByLabelText("題型")[1], { target: { value: "standard_sentence" } });
         fireEvent.change(screen.getByLabelText("完整朗讀句子"), { target: { value: "Five." } });
         fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
-        expect(screen.getByRole("alert")).toHaveTextContent("不能與其他題型混用");
-        expect(createManualPageSpeakingDraft).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
+        await waitFor(() => expect(createManualPageSpeakingDraft).toHaveBeenCalledWith(firebaseUser, expect.objectContaining({ questions: [
+            expect.objectContaining({ interaction_type: "text_qa" }),
+            expect.objectContaining({ interaction_type: "standard_sentence", full_sentence: "Five." })
+        ] })));
+        expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(firebaseUser, 81);
     });
 
     it("creates only a draft, uploads the matching private image, and keeps it when audio needs retry", async () => {

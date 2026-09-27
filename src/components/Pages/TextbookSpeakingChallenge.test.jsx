@@ -68,6 +68,19 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByText("Do you do any exercise every day? It is good for your health.")).not.toBeInTheDocument();
     });
 
+    it("uses the current question's translation mode inside a mixed page", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({ challenge: {
+            id: 123, book_id: 4, title: "P26 混合口說", topic: "運動", difficulty: "國小中年級",
+            books: { id: 4, name: "Workbook 4" }, generation_metadata: { interaction_type: "mixed" },
+            speaking_questions: [{ id: 554, interaction_type: "text_qa", prompt_mode: "zh_to_en",
+                question_text: "你每天做運動嗎？", hint_zh: "請翻譯成英文。", model_answer: "Do you exercise every day?", progress_status: "opened" }]
+        } });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/123"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "你每天做運動嗎？" })).toBeInTheDocument();
+        expect(screen.getByText("看中文句子，按下麥克風說出完整英文翻譯。")).toBeInTheDocument();
+        expect(screen.queryByText("Do you exercise every day?")).not.toBeInTheDocument();
+    });
+
     it.each([
         ["alphabet_round", "foundation-challenge"],
         ["letter_spelling", "foundation-challenge"],

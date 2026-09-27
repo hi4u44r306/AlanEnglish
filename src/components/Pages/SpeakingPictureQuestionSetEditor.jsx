@@ -17,6 +17,7 @@ import {
 } from "../../services/speakingContentService";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingSelectedImagePreview from "./SpeakingSelectedImagePreview";
+import { pageQuestionMode } from "../../utils/speakingPageQuestionMode";
 
 const EXPECTED_COUNTS = {
     workbook_1_p21_picture_qa_v1: 9,
@@ -52,8 +53,11 @@ const emptyQuestion = pageLabel => ({
 });
 
 export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questionSet, onChanged }) {
+    const isMixedPage = questionSet?.generation_metadata?.source === "admin_page_builder";
     const questions = useMemo(() => [...(questionSet?.speaking_questions || [])]
-        .sort((a, b) => Number(a.sort_order) - Number(b.sort_order)), [questionSet]);
+        .filter(question => !isMixedPage || ["picture_qa", "picture_gap_sentence"].includes(
+            pageQuestionMode(questionSet.generation_metadata, question).interactionType))
+        .sort((a, b) => Number(a.sort_order) - Number(b.sort_order)), [questionSet, isMixedPage]);
     const [selectedId, setSelectedId] = useState(questions[0]?.id || null);
     const [form, setForm] = useState(() => readQuestion(questions[0]));
     const [setFormState, setSetFormState] = useState({ title: questionSet?.title || "", topic: questionSet?.topic || "" });
@@ -65,13 +69,13 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
     const [activeTheCandidateId, setActiveTheCandidateId] = useState(null);
     const [heardTheCandidateIds, setHeardTheCandidateIds] = useState([]);
     const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
-    const isGap = interactionType === "picture_gap_sentence";
+    const selectedQuestion = questions.find(question => Number(question.id) === Number(selectedId)) || questions[0];
+    const isGap = (isMixedPage ? pageQuestionMode(questionSet.generation_metadata, selectedQuestion).interactionType : interactionType) === "picture_gap_sentence";
     const templateKey = String(questionSet?.generation_metadata?.template_key || "");
     const expectedCount = EXPECTED_COUNTS[templateKey] || null;
     const pageLabel = pageLabelFor(questionSet);
     const pageLabels = pageLabelsFor(questionSet);
     const selectedIndex = questions.findIndex(question => Number(question.id) === Number(selectedId));
-    const selectedQuestion = selectedIndex >= 0 ? questions[selectedIndex] : questions[0];
 
     useEffect(() => {
         const next = questions.find(question => Number(question.id) === Number(selectedId)) || questions[0];
@@ -251,10 +255,10 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
                 <div>{questions.map((question, index) => <button type="button" key={question.id} className={!adding && Number(question.id) === Number(selectedQuestion?.id) ? "active" : ""} onClick={() => { setAdding(false); setSelectedId(question.id); setForm(readQuestion(question)); setPreview(null); setTheAudioCandidates([]); setActiveTheCandidateId(null); setHeardTheCandidateIds([]); }}>
                     <strong>{index + 1}</strong><span>{asOne(question.speaking_question_interactions)?.prompt_text || question.question_text}</span>
                 </button>)}</div>
-                <button type="button" className="speaking-picture-editor__add" disabled={expectedCount ? questions.length >= expectedCount : questions.length >= 50} onClick={startAdd}><Plus size={17} />新增一題</button>
+                {!isMixedPage && <button type="button" className="speaking-picture-editor__add" disabled={expectedCount ? questions.length >= expectedCount : questions.length >= 50} onClick={startAdd}><Plus size={17} />新增一題</button>}
             </aside>
             <section className="speaking-picture-editor__detail">
-                <header><div><span>{adding ? "新增題目" : `第 ${selectedIndex + 1} 題`}</span><h5>{isGap ? "看圖補完整句" : "看圖說完整問答"}</h5></div>{!adding && <div className="speaking-picture-editor__order"><button type="button" disabled={selectedIndex <= 0 || working === "order"} onClick={() => move(-1)} aria-label="題目往前移"><ArrowUp /></button><button type="button" disabled={selectedIndex >= questions.length - 1 || working === "order"} onClick={() => move(1)} aria-label="題目往後移"><ArrowDown /></button></div>}</header>
+                <header><div><span>{adding ? "新增題目" : `第 ${isMixedPage ? Number(selectedQuestion?.sort_order) + 1 : selectedIndex + 1} 題`}</span><h5>{isGap ? "看圖補完整句" : "看圖說完整問答"}</h5></div>{!adding && !isMixedPage && <div className="speaking-picture-editor__order"><button type="button" disabled={selectedIndex <= 0 || working === "order"} onClick={() => move(-1)} aria-label="題目往前移"><ArrowUp /></button><button type="button" disabled={selectedIndex >= questions.length - 1 || working === "order"} onClick={() => move(1)} aria-label="題目往後移"><ArrowDown /></button></div>}</header>
                 <div className="platform-form">
                     <label><span>{isGap ? "學生看到的題目（用 ____ 標示 1～8 個挖空）" : "完整問句（結尾需有 ?）"}</span><input value={form.prompt_text} onChange={event => update("prompt_text", event.target.value)} placeholder={isGap ? "They ____ her ____." : "What is that?"} /></label>
                     <label><span>{isGap ? "補好答案的完整句子" : "完整回答"}</span><input value={form.answer_text} onChange={event => update("answer_text", event.target.value)} placeholder={isGap ? "The horse is in the race." : "It is a horse."} /></label>
@@ -269,7 +273,7 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
                     {!form.file && preview?.image_url && <SpeakingVisualAid variant="admin" aid={{ kind: "private-image", image_url: preview.image_url, alt_zh: preview.alt_zh }} />}
                     {!adding && isGap && <button type="button" className="platform-secondary" disabled={working === "audio-preview"} onClick={previewAudio}><Volume2 size={17} />試聽空格停 2 秒的整句</button>}
                     {audioUrl && <audio controls autoPlay src={audioUrl}>瀏覽器不支援音訊播放。</audio>}
-                    {!adding && isGap
+                    {!isMixedPage && !adding && isGap
                         && /^The\s+_+/i.test(asOne(selectedQuestion?.speaking_question_interactions)?.prompt_text || "")
                         && ((asOne(selectedQuestion?.speaking_question_interactions)?.prompt_text || "").match(/_{2,}/g) || []).length === 1
                         && <section className="speaking-picture-editor__voice-candidates" aria-label="The 弱讀候選">
@@ -287,7 +291,7 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
                     </section>}
                     <div className="speaking-picture-editor__actions">
                         <button type="button" className="platform-primary" disabled={working === "question" || !form.prompt_text.trim() || !form.answer_text.trim() || !form.alt_zh.trim() || !fileValid} onClick={saveQuestion}><Save size={17} />{working === "question" ? "儲存中…" : adding ? "新增並上傳圖片" : "儲存這一題"}</button>
-                        {!adding && <button type="button" className="platform-danger" disabled={working === "delete" || questions.length <= 1} onClick={remove}><Trash2 size={17} />刪除這一題</button>}
+                        {!adding && !isMixedPage && <button type="button" className="platform-danger" disabled={working === "delete" || questions.length <= 1} onClick={remove}><Trash2 size={17} />刪除這一題</button>}
                         {adding && <button type="button" className="platform-secondary" onClick={() => { setAdding(false); setSelectedId(questions[0]?.id || null); setForm(readQuestion(questions[0])); }}>取消新增</button>}
                     </div>
                 </div>
@@ -295,6 +299,6 @@ export default function SpeakingPictureQuestionSetEditor({ firebaseUser, questio
         </div>
         {isGap && <button type="button" className="platform-secondary speaking-picture-editor__audio" disabled={working === "audio" || (expectedCount ? questions.length !== expectedCount : questions.length < 1)} onClick={prepareAudio}><Volume2 size={17} />{working === "audio" ? "準備女聲中…" : "更新停頓整句女聲"}</button>}
         {expectedCount && questions.length !== expectedCount && <p className="speaking-picture-editor__warning">發布前必須補齊 {expectedCount} 題；目前有 {questions.length} 題。</p>}
-        {!expectedCount && questions.length < 3 && <p className="speaking-picture-editor__warning">發布前至少需要 3 題；目前有 {questions.length} 題。</p>}
+        {!isMixedPage && !expectedCount && questions.length < 3 && <p className="speaking-picture-editor__warning">發布前至少需要 3 題；目前有 {questions.length} 題。</p>}
     </div>;
 }
