@@ -491,10 +491,16 @@ I am going to hit the books.
 I am a bookworm. I like to read a lot.
 No, I am the teacher's pet. I am a model student.`);
 
-    assert.equal(page17.length, 2);
-    assert.equal(page17[0].question_text, "Why are you always studying hard?（書蟲）");
-    assert.equal(page17[0].model_answer, "I am a bookworm. I like to read a lot.");
-    assert.equal(page17[1].question_text, "Have you ever skipped class?（不，老師的模範生）");
+    assert.equal(page17.length, 7);
+    assert.deepEqual(page17[0], {
+        question_text: "Your father is nice to you.（掌上明珠）",
+        model_answer: "Yes! I am the apple of his eye.",
+        accepted_answers: []
+    });
+    assert.equal(page17[4].question_text, "Please be quiet! I am going to...（用功讀書）");
+    assert.equal(page17[4].model_answer, "I am going to hit the books.");
+    assert.equal(page17[5].question_text, "Why are you always studying hard?（書蟲）");
+    assert.equal(page17[6].question_text, "Have you ever skipped class?（不，老師的模範生）");
 
     const page20 = extractNumberedTextQaPairs(`[[PAGE P20]]
 43. Are you hungry?
@@ -512,12 +518,20 @@ Fish is my favorite.
 I like fried chicken./ chocolate cake./ bananas.
 I eat ______ once a week/ twice a month/ 3 times a year.`);
 
-    assert.equal(page20.length, 6);
+    assert.equal(page20.length, 7);
     assert.equal(page20[0].model_answer, "Yes, I'm starving. I can eat a cow.");
     assert.equal(page20[5].question_text, "What is your favorite food/dessert/fruit?");
+    assert.equal(page20[5].model_answer, "I like fried chicken.");
+    assert.deepEqual(page20[5].accepted_answers, ["I like chocolate cake.", "I like bananas."]);
+    assert.equal(page20[6].question_text, "How often do you eat bread/eat out/at a fast food restaurant/in a restaurant?");
+    assert.equal(page20[6].model_answer, "I eat [你的回答] once a week.");
+    assert.deepEqual(page20[6].accepted_answers, [
+        "I eat [你的回答] twice a month.",
+        "I eat [你的回答] 3 times a year."
+    ]);
 });
 
-test("accepts complete P15 conversation cues without turning P17 idiom stems into questions", () => {
+test("keeps strict raw prompt completeness while reviewed numbered pairs retain teacher cues", () => {
     assert.equal(reviewedTextQaPromptIsComplete("Nice to meet you!"), true);
     assert.equal(reviewedTextQaPromptIsComplete("Are you sure? You look like a 6-year-old boy/girl."), true);
     assert.equal(reviewedTextQaPromptIsComplete("Your father is nice to you."), false);

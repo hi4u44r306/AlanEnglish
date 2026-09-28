@@ -56,6 +56,10 @@ const withoutTrailingLearnerClue = (value: string) => value
     .replace(/\s*[（(]\s*[^()（）]+?\s*[）)]\s*$/u, "")
     .trim();
 
+const reviewedPromptCorrections = (value: string) => String(value || "")
+    .replace(/^Who do you with\?/i, "Who do you live with?")
+    .replace(/\/in a rest\.{3}$/i, "/in a restaurant?");
+
 const reviewedPromptAndClue = (value: string) => {
     const source = String(value || "").trim();
     const lastQuestionMark = Math.max(source.lastIndexOf("?"), source.lastIndexOf("？"));
@@ -63,21 +67,36 @@ const reviewedPromptAndClue = (value: string) => {
         const remainder = source.slice(lastQuestionMark + 1);
         const trailingMatch = remainder.match(/^\s*[（(]\s*([^()（）]+?)\s*[）)]/u);
         if (trailingMatch) return {
-            prompt: source.slice(0, lastQuestionMark + 1).trim()
-                .replace(/^Who do you with\?/i, "Who do you live with?"),
+            prompt: reviewedPromptCorrections(source.slice(0, lastQuestionMark + 1).trim()),
             clue: normalizeLearnerClue(trailingMatch[1])
         };
     }
     const clue = trailingLearnerClue(source);
     return {
-        prompt: (clue ? withoutTrailingLearnerClue(source) : source)
-            .replace(/^Who do you with\?/i, "Who do you live with?"),
+        prompt: reviewedPromptCorrections(clue ? withoutTrailingLearnerClue(source) : source),
         clue
     };
 };
 
 const reviewedAnswerCorrections = (value: string) => normalizeSentence(value)
     .replace(/\bhis bicyle\./i, "his bicycle.");
+
+const withSentenceEnding = (value: string) => /[.!?]$/.test(value.trim())
+    ? value.trim() : `${value.trim()}.`;
+
+const expandReviewedSlashAlternatives = (value: string) => {
+    const parts = String(value || "").split(/\s*\/\s*/).map(part => part.trim()).filter(Boolean);
+    if (parts.length < 2) return parts;
+    const sharedSlotPrefix = parts[0].match(/^(.*?[_＿]{2,}\s+)(?:once|twice|\d+\s+times)\b/i)?.[1];
+    if (sharedSlotPrefix && parts.slice(1).every(part => /^(?:once|twice|\d+\s+times)\b/i.test(part))) {
+        return [withSentenceEnding(parts[0]), ...parts.slice(1).map(part => withSentenceEnding(`${sharedSlotPrefix}${part}`))];
+    }
+    const sharedVerbPrefix = parts[0].match(/^(I\s+(?:like|want|have)\s+)/i)?.[1];
+    if (sharedVerbPrefix && parts.slice(1).every(part => !/^(?:I|you|he|she|it|we|they)\b/i.test(part))) {
+        return [parts[0], ...parts.slice(1).map(part => `${sharedVerbPrefix}${part}`)];
+    }
+    return parts;
+};
 
 export const textQaPromptWithLearnerClue = (question: string, clue: string) => {
     const normalizedQuestion = normalizeSentence(question);
@@ -267,14 +286,10 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
         const parsedPrompt = reviewedPromptAndClue(block.prompt);
         const clue = parsedPrompt.clue;
         const prompt = normalizeSentence(parsedPrompt.prompt);
-        const questions = reviewedTextQaPromptIsComplete(prompt)
-            ? [textQaPromptWithLearnerClue(prompt, clue)] : [];
-        if (!questions.length) return [];
-
         const answers = Array.from(new Set(block.answers.flatMap(answerLine => {
             const genderVariants = expandControlledGenderChoices(answerLine);
             return genderVariants.flatMap(variant => {
-                const alternatives = HAS_CONTROLLED_GENDER_PAIR.test(answerLine) ? [variant] : variant.split(/\s*\/\s*/);
+                const alternatives = HAS_CONTROLLED_GENDER_PAIR.test(answerLine) ? [variant] : expandReviewedSlashAlternatives(variant);
                 return alternatives
                     .map(alternative => reviewedAnswerCorrections(reviewedAnswerTemplate(alternative, prompt)))
                     .filter(answer => (englishWords(answer).length >= 1 || /\[[^\]]+\]/.test(answer))
@@ -282,6 +297,14 @@ export const extractNumberedTextQaPairs = (sourceText: unknown) => {
             });
         })));
         if (!answers.length) return [];
+
+        // This extractor only runs after staff have reviewed the numbered
+        // prompt/answer pairs. Keep a complete teacher response paired with
+        // its printed prompt even when that prompt is an idiom cue or ends in
+        // an ellipsis (for example Workbook 3 P17 and P20). The broader OCR
+        // candidate path still uses reviewedTextQaPromptIsComplete so raw
+        // headings and fragments are not promoted automatically.
+        const questions = [textQaPromptWithLearnerClue(prompt, clue)];
 
         return questions.flatMap(question => {
             // Each answer is the exact teacher response printed under this
