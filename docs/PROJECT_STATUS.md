@@ -2,11 +2,11 @@
 
 最後更新：2026-09-28
 
-本次公開 Links 教材入口緊湊化（2026-09-28，本機完成，尚未部署）：
+本次公開 Links 教材入口緊湊化（2026-09-28，已正式部署）：
 
 - `/links` 公開頁不再顯示 Special 與 Discovery 分組，只保留習作本、聽力本及 Speed Phonics；沒有刪除後台資料或修改管理員分類，現有連結仍可保留供後續整理。
 - 教材按鈕改為依完整名稱自動決定最小寬度，不再以四欄等寬卡片拉滿或用刪節號截字；手機版字級縮為 12.5px、按鈕仍保留 44px 觸控高度，次要分類說明在手機隱藏。
-- `Links.test.jsx` 1/1、SEO foundation 4/4、Production build 與 `git diff --check` 通過；localhost 412×915 與 1440×900 驗收均無水平溢位，兩種尺寸只顯示三個指定系列。分支為 `fix/compact-links-page`，尚未 commit、Push、建立 PR 或部署。
+- `Links.test.jsx` 1/1、SEO foundation 4/4、Production build 與 `git diff --check` 通過；PR #332 已合併至 `main` `64a872ed`，Cloudflare production build `5aa8aae9-1f7a-448b-be4d-76f1f049df5a` 成功。正式站 412×915 與 1440×900 驗收均無水平溢位，兩種尺寸只顯示三個指定系列，Console 無錯誤。
 - 後續建議另做不需登入的公開「教材播放清單」頁，由 Links 的教材按鈕進入同一教材的全部音軌；在實作公開 MP3 前須先決定公開音檔來源與存取規則，不直接放寬現有私人 R2 正式教材音檔。
 
 本次 Workbook 1～5 最新影片音軌轉換與現行音檔比對（2026-09-28，本機稽核完成，未部署）：
