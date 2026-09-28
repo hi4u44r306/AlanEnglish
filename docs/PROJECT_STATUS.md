@@ -2,6 +2,12 @@
 
 最後更新：2026-09-28
 
+本次 iOS／Android 主畫面圖示白框修正（2026-09-28，已正式部署）：
+
+- 原 `apple-touch-icon.png` 與 Android 圖示四角含約 12% 完全透明像素，iOS 加入主畫面後會在透明區顯示白底，形成白框；新版以品牌深藍 `#073763` 補滿整張圖示，保留既有 AE 標誌並交由作業系統套用圓角遮罩。
+- Apple Touch Icon、Android 192／512 圖示改用 `-v2` 檔名，Manifest 同時標記 `any maskable`，Web Push 圖示也改用新版 192px 資產，避免 Safari／Chrome 沿用舊檔快取。已加入主畫面的裝置須移除舊圖示後重新加入，帳號與學習資料不受影響。
+- PR #325 已合併至 `main` `d631daba`；Cloudflare production build `6b3fff72-397d-4c78-b244-7e05a159c922` 成功。正式首頁已引用 `apple-touch-icon-v2.png`，正式 Manifest 已引用兩個 Android v2 圖示，三個正式圖示的 SHA-256 均與本機完全相同。SEO foundation 4/4、Service Worker 語法、Production build、圖示尺寸／不透明像素檢查與 `git diff --check` 通過；iPhone 主畫面重新加入後的實機截圖待使用者驗收。
+
 本次 Workbook 3～6 純文字關卡發布（2026-09-28，正式題庫已發布）：
 
 - 管理員先前在 `speaking-content-manager` v65 發布第 3 步的混合題型純文字草稿時，後端會以 409 拒絕；PR #316 已部署的 v66 已加入第 3 版 `prompt_modes_by_sort_order` 相容處理。正式日誌確認 v65 曾有 43 次 409，v66 本次操作期間沒有 409。
