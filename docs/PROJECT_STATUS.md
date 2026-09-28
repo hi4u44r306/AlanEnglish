@@ -2,12 +2,13 @@
 
 最後更新：2026-09-28
 
-本次公開首頁、學生遊戲入口與口說容錯調整（2026-09-28，進行中）：
+本次公開首頁、學生遊戲入口與口說容錯調整（2026-09-28，已正式部署）：
 
 - 公開首頁依正式現況重整為教材音檔、班級作業、AI 個人化教材、智慧複習／週報、排行榜／獎勵及準備中的口說遊戲；方案顯示基本會員 NT$299、AI 教材與發音練習現行 NT$499、一般會員合計 NT$798、英文班月費 NT$2,800，並保留公開付款暫停說明。
 - 學生 Navbar 的「口說練習」改為可展開的「遊戲」，口說教練與口說大挑戰以 disabled 卡片顯示準備中；學生舊網址與 Edge Function 請求一併拒絕，老師／管理員預覽維持可用。會員中心與每週報告移除學生可直接進入口說的連結。
 - 文字／看圖完整回答由逐字完全相同比對改為兒童容錯：核心答案與 yes／no 肯定否定必須相符，容許少量冠詞、助動詞與縮寫辨識差異；單字題與 A–Z 順序仍維持嚴格。
 - 正式 `music_tracks` 與 `D:\彬的檔案\React.js\Alan_English_Music_File` 完成唯讀比對：14 套教材的檔數、總位元組及逐檔大小集合完全相同；Workbook 1 的 45 個正式檔名與大小也全部匹配，本機另有 24 個未掛載短句檔。六個本機教材資料夾尚未掛到正式音軌，Workbook 6／Listening 4～6 亦為 0 音軌。完整明細見 `docs/audio-catalog-audit-2026-09-28.md`；資料庫未保存內容雜湊，因此尚未做 R2 原檔逐位元比對。
+- PR #327 已合併至 `main` `5025c333`；Cloudflare production build `e73d7bca-76a2-4674-83aa-ff95a314da11` 成功，正式站載入的 `main.2b9900e3.js` SHA-256 與本機 Production build 完全相同。正式 `pronunciation-coach` v27、`speaking-challenge` v44 為 ACTIVE，兩個 Function 的 OPTIONS 均為 200、未登入 POST 均為 401。React targeted 5 suites／31 tests、口說判定與學生鎖定契約、全部 Edge Function 語法、Production build、`git diff --check`、localhost 桌面／手機 Showcase 及正式首頁文案驗收通過；登入學生直接網址與真實錄音仍待實機驗收。
 
 本次 iOS／Android 主畫面圖示白框修正（2026-09-28，已正式部署）：
 
