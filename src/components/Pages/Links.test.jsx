@@ -24,12 +24,14 @@ describe("public links page", () => {
         ]);
 
         render(
-            <MemoryRouter>
+            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <Links />
             </MemoryRouter>
         );
 
         expect(await screen.findByRole("link", { name: /習作本 F1～F3 完整練習/ })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /Basic Reading 400～1200/ })).toHaveAttribute("href", "/basic-reading");
+        expect(screen.getByRole("heading", { name: "Basic Reading" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "習作本" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "聽力本" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Speed Phonics" })).toBeInTheDocument();

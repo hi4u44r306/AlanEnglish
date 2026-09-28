@@ -14,9 +14,20 @@ import { getPublicLinks } from "../../services/linkService";
 import "./css/Links.scss";
 
 const CATEGORY_CONFIG = [
+    { key: "basicreading", label: "Basic Reading", description: "400～1200 分級閱讀音檔一次聽完", icon: BiHeadphone },
     { key: "exercise", label: "習作本", description: "依課本與習作快速找到對應音檔", icon: BiBookOpen },
     { key: "listening", label: "聽力本", description: "集中練習聽力教材與課堂音檔", icon: BiHeadphone },
     { key: "speedphonics", label: "Speed Phonics", description: "自然發音與基礎拼讀練習", icon: BiPlayCircle }
+];
+
+const STATIC_LINKS = [
+    {
+        id: "basic-reading",
+        title: "Basic Reading 400～1200",
+        url: "/basic-reading",
+        category: "basicreading",
+        internal: true
+    }
 ];
 
 const PUBLIC_CATEGORY_KEYS = new Set(CATEGORY_CONFIG.map(category => category.key));
@@ -54,18 +65,19 @@ function Links() {
     }, []);
 
     const normalizedQuery = query.trim().toLowerCase();
+    const allItems = useMemo(() => [...STATIC_LINKS, ...items], [items]);
 
     const visibleGroups = useMemo(() => CATEGORY_CONFIG.map(category => ({
         ...category,
-        items: items.filter(item => {
+        items: allItems.filter(item => {
             if (item.category !== category.key) return false;
             if (!normalizedQuery) return true;
             return String(item.title || "").toLowerCase().includes(normalizedQuery);
         })
-    })).filter(category => category.items.length > 0), [items, normalizedQuery]);
+    })).filter(category => category.items.length > 0), [allItems, normalizedQuery]);
 
     const visibleCount = visibleGroups.reduce((total, category) => total + category.items.length, 0);
-    const hasPublicLinks = items.some(item => PUBLIC_CATEGORY_KEYS.has(item.category));
+    const hasPublicLinks = allItems.some(item => PUBLIC_CATEGORY_KEYS.has(item.category));
 
     return (
         <div className="links-page">
@@ -123,7 +135,7 @@ function Links() {
                             </div>
                         )}
 
-                        {!loading && error && (
+                        {!loading && error && visibleGroups.length === 0 && (
                             <div className="links-page__state links-page__state--error">
                                 <strong>目前無法取得連結</strong>
                                 <p>{error}</p>
@@ -145,7 +157,7 @@ function Links() {
                             </div>
                         )}
 
-                        {!loading && !error && visibleGroups.length > 0 && (
+                        {visibleGroups.length > 0 && (
                             <div className="links-page__groups">
                                 {visibleGroups.map(group => {
                                     const Icon = group.icon;
@@ -162,20 +174,32 @@ function Links() {
                                                 </div>
                                             </div>
                                             <div className="links-page__grid">
-                                                {group.items.map(item => (
-                                                    <a
-                                                        className="links-page__card"
-                                                        href={item.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        key={item.id}
-                                                    >
-                                                        <span className="links-page__card-copy">
-                                                            <strong>{item.title}</strong>
-                                                        </span>
-                                                        <span className="links-page__card-arrow" aria-hidden="true">↗</span>
-                                                    </a>
-                                                ))}
+                                                {group.items.map(item => {
+                                                    const content = (
+                                                        <>
+                                                            <span className="links-page__card-copy">
+                                                                <strong>{item.title}</strong>
+                                                            </span>
+                                                            <span className="links-page__card-arrow" aria-hidden="true">{item.internal ? "→" : "↗"}</span>
+                                                        </>
+                                                    );
+
+                                                    return item.internal ? (
+                                                        <Link className="links-page__card" to={item.url} key={item.id}>
+                                                            {content}
+                                                        </Link>
+                                                    ) : (
+                                                        <a
+                                                            className="links-page__card"
+                                                            href={item.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            key={item.id}
+                                                        >
+                                                            {content}
+                                                        </a>
+                                                    );
+                                                })}
                                             </div>
                                         </section>
                                     );
