@@ -6,8 +6,7 @@ import {
     BiHomeAlt2,
     BiLogIn,
     BiPlayCircle,
-    BiSearch,
-    BiStar
+    BiSearch
 } from "react-icons/bi";
 import Brand from "../fragment/Brand";
 import SeoHead from "../fragment/SeoHead";
@@ -15,12 +14,12 @@ import { getPublicLinks } from "../../services/linkService";
 import "./css/Links.scss";
 
 const CATEGORY_CONFIG = [
-    { key: "special", label: "Special", description: "其他精選教材與補充資源", icon: BiStar },
     { key: "exercise", label: "習作本", description: "依課本與習作快速找到對應音檔", icon: BiBookOpen },
     { key: "listening", label: "聽力本", description: "集中練習聽力教材與課堂音檔", icon: BiHeadphone },
-    { key: "discovery", label: "Discovery", description: "Discovery 系列教材快捷入口", icon: BiBookOpen },
     { key: "speedphonics", label: "Speed Phonics", description: "自然發音與基礎拼讀練習", icon: BiPlayCircle }
 ];
+
+const PUBLIC_CATEGORY_KEYS = new Set(CATEGORY_CONFIG.map(category => category.key));
 
 function Links() {
     const [items, setItems] = useState([]);
@@ -66,6 +65,7 @@ function Links() {
     })).filter(category => category.items.length > 0), [items, normalizedQuery]);
 
     const visibleCount = visibleGroups.reduce((total, category) => total + category.items.length, 0);
+    const hasPublicLinks = items.some(item => PUBLIC_CATEGORY_KEYS.has(item.category));
 
     return (
         <div className="links-page">
@@ -90,22 +90,6 @@ function Links() {
             </header>
 
             <main>
-                <section className="links-page__hero">
-                    <div className="links-page__shell links-page__hero-inner">
-                        <div>
-                            <span className="links-page__eyebrow">ALAN ENGLISH AUDIO LIBRARY</span>
-                            <h1>教材音檔，<span>一點就能開始。</span></h1>
-                            <p>
-                                不用再翻找訊息或舊連結。選擇你的教材，直接開啟對應的影音與聽力資源。
-                            </p>
-                        </div>
-                        <div className="links-page__summary" aria-label="目前教材連結數量">
-                            <span>目前收錄</span>
-                            <strong>{loading ? "—" : items.length}</strong>
-                            <small>個教材連結</small>
-                        </div>
-                    </div>
-                </section>
 
                 <section className="links-page__content">
                     <div className="links-page__shell">
@@ -146,14 +130,14 @@ function Links() {
                             </div>
                         )}
 
-                        {!loading && !error && items.length === 0 && (
+                        {!loading && !error && !hasPublicLinks && (
                             <div className="links-page__state">
                                 <strong>目前還沒有教材連結</strong>
                                 <p>教材連結正在整理中，請稍後再回來查看。</p>
                             </div>
                         )}
 
-                        {!loading && !error && items.length > 0 && visibleCount === 0 && (
+                        {!loading && !error && hasPublicLinks && visibleCount === 0 && (
                             <div className="links-page__state">
                                 <strong>找不到「{query}」</strong>
                                 <p>換一個教材名稱或清除搜尋條件再試一次。</p>
@@ -187,7 +171,6 @@ function Links() {
                                                         key={item.id}
                                                     >
                                                         <span className="links-page__card-copy">
-                                                            <small>OPEN MATERIAL</small>
                                                             <strong>{item.title}</strong>
                                                         </span>
                                                         <span className="links-page__card-arrow" aria-hidden="true">↗</span>
