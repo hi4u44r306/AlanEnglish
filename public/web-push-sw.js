@@ -11,7 +11,7 @@ self.addEventListener("push", event => {
         ? payload.body : "請登入查看通知。";
     event.waitUntil(self.registration.showNotification(title, {
         body,
-        icon: "/android-chrome-192x192.png",
+        icon: "/android-chrome-192x192-v2.png",
         badge: "/favicon-32x32.png",
         tag: Number.isSafeInteger(payload.notification_id) ? `ae-${payload.notification_id}` : undefined,
         data: { path }
