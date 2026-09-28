@@ -20,6 +20,7 @@ import {
 } from "../_shared/speaking-foundation-answer.ts";
 import { runSpeakingPronunciationFlow } from "../_shared/speaking-pronunciation-flow.ts";
 import { authorizeSpeakingPronunciation } from "../_shared/speaking-pronunciation-access.ts";
+import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -133,7 +134,7 @@ const buildAzureSpeechEndpoint = (region: string) => {
 
 const assertPublishedQuestionAccess = async (admin: any, questionId: number, user: any, effectiveAccess: any) => {
     const { data, error } = await admin.from("speaking_questions")
-        .select("id,question_set_id,speaking_question_sets!inner(id,book_id,status,version,generation_metadata,books(id,name,code,content_scope,enabled,archived_at))")
+        .select("id,sort_order,question_set_id,speaking_question_sets!inner(id,book_id,status,version,generation_metadata,books(id,name,code,content_scope,enabled,archived_at))")
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });
@@ -155,7 +156,9 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
             .eq("question_id", Number(data.id)).maybeSingle()
         : { data: null, error: null };
     if (pictureError) throw pictureError;
-    const interactionType = resolveQuestionInteractionType(questionSetInteractionType, pictureInteraction);
+    const interactionType = Array.isArray(questionSet?.generation_metadata?.question_modes)
+        ? pageQuestionMode(questionSet.generation_metadata, data, pictureInteraction).interactionType
+        : resolveQuestionInteractionType(questionSetInteractionType, pictureInteraction);
     const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
     if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
         throw Object.assign(new Error("這題的圖片口說內容尚未完成核准"), { status: 409, code: "picture_interaction_missing" });

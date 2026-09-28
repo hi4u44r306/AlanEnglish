@@ -127,6 +127,7 @@ describe("ManualSpeakingDraftAdmin", () => {
                 expect.objectContaining({ prompt_mode: "grammar_cue" })
             ]
         })));
+        expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
     });
 
     it("creates a Chinese-to-English draft with a hidden complete English answer", async () => {
@@ -149,7 +150,8 @@ describe("ManualSpeakingDraftAdmin", () => {
         expect(generateSpeakingQuestionSetAudio).not.toHaveBeenCalled();
     });
 
-    it("rejects mixing no-image text questions with other types", () => {
+    it("prepares audio only for the complete sentence beside a text question", async () => {
+        createManualPageSpeakingDraft.mockResolvedValue({ question_set_id: 81, questions: [{ id: 811, sort_order: 0 }, { id: 812, sort_order: 1 }] });
         renderBuilder();
         fillPage();
         fireEvent.change(screen.getByLabelText("題型"), { target: { value: "text_qa" } });
@@ -159,8 +161,12 @@ describe("ManualSpeakingDraftAdmin", () => {
         fireEvent.change(screen.getAllByLabelText("題型")[1], { target: { value: "standard_sentence" } });
         fireEvent.change(screen.getByLabelText("完整朗讀句子"), { target: { value: "Five." } });
         fireEvent.click(screen.getByRole("button", { name: "建立未發布草稿" }));
-        expect(screen.getByRole("alert")).toHaveTextContent("不能與圖片題或完整句朗讀混用");
-        expect(createManualPageSpeakingDraft).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "確認建立未發布草稿" }));
+        await waitFor(() => expect(createManualPageSpeakingDraft).toHaveBeenCalledWith(firebaseUser, expect.objectContaining({ questions: [
+            expect.objectContaining({ interaction_type: "text_qa" }),
+            expect.objectContaining({ interaction_type: "standard_sentence", full_sentence: "Five." })
+        ] })));
+        expect(generateSpeakingQuestionSetAudio).toHaveBeenCalledWith(firebaseUser, 81);
     });
 
     it("creates only a draft, uploads the matching private image, and keeps it when audio needs retry", async () => {

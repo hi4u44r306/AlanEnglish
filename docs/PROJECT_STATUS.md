@@ -23,6 +23,11 @@
 - 驗證：管理頁／逐頁建立器／學生關卡 React targeted 4 suites／67 tests、教材口說契約 38/38、全部 Edge Function 語法、Production build 與來源 manifest 核對均通過。PR #317 已合併至 `main` `d2788e18`；正式 `speaking-content-manager` v63 為 ACTIVE，未登入 POST 回應 401。Cloudflare production build `319b0e7f-82e5-434f-9019-a745f391f100` 成功，正式站載入與本機 Production build 相同的 `main.b139b5c2.js`，管理員與學生口說路由均回應 200。P17／P20 題數已於 2026-09-28 依教師版更正，最新總數如下。
 - 管理員後台已建立題庫 ID 203～327，共 125 份／869 題；Workbook 3 為 31 份／217 題、Workbook 4 為 26 份／180 題、Workbook 5 為 35 份／241 題、Workbook 6 為 33 份／231 題。125 份全數位於「待發布」，「製作中草稿」為 0；待發布總數由 16 增為 141，已發布總數維持 53，因此 Workbook 2 原草稿與既有學生版本均未被修改。逐頁 ID、頁碼、題數與狀態記錄於 `docs/speaking-content/WORKBOOK_3_6_DRAFT_AUDIT.md`。尚待管理員依教學節奏分批預覽並發布學生版本；本批沒有自動發布。
 
+本次逐頁口說六種題型混用（2026-09-28，已整合最新 `main`／尚未部署）：
+
+- 單頁草稿可依題序混合完整句朗讀、看圖補句、看圖問答、無圖片文字問答、中翻英與文法提示；題庫 metadata 以 `question_modes` 逐題保存互動題型，並同時相容第 3 版 `prompt_modes_by_sort_order`。完整句與看圖補句逐題準備既有示範語音；文字問答、中翻英及文法提示維持免音檔，不新增 migration，也不改寫既有題庫。
+- PR #316 已在本機整合最新 `main` `cd2d538b`，保留已正式上線的文法提示、已核對 JSON 批次匯入、完整問答配對與無圖片文字題儲存修正。React 5 套件 73/73、逐頁題型 1/1、教材生成契約 38/38、全部 Edge Function 語法與 Production build 通過；圖片題可在混合關卡逐題上傳，草稿發布時逐題核對題型及所需音檔。尚未建立或發布遠端草稿，也未部署 Function 或前端；登入管理員／學生的隔離環境驗證仍待執行。
+
 本次 Workbook 2 OCR 題數修正與中翻英關卡（2026-09-27，程式已正式部署）：
 
 - 已逐頁核對教師版 PDF 的 P48、P56、P58、P62、P72、P76、P78、P80、P82、P84、P86、P94、P96、P100、P104、P106、P108；17 頁皆為 7 個編號題組。P104 正式題庫目前已是 7 題且逐字內容與教師版一致，不需重建。P96 第 210 題來源為 `bicycle`，發布前須避免沿用 OCR 的 `bicyle`。

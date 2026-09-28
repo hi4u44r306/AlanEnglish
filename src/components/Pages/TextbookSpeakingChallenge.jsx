@@ -462,7 +462,7 @@ export default function TextbookSpeakingChallenge() {
     const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
     const activePictureMode = ["picture_qa", "picture_gap_sentence"].includes(activeInteractionType);
     const activeTextQa = activeInteractionType === "text_qa";
-    const activePromptMode = questionPromptMode(challenge?.generation_metadata, activeQuestion);
+    const activePromptMode = activeQuestion.prompt_mode || questionPromptMode(challenge?.generation_metadata, activeQuestion);
     const activeZhToEn = activeTextQa && activePromptMode === "zh_to_en";
     const activeGrammarCue = activeTextQa && activePromptMode === "grammar_cue";
     const groupedTextQaClue = activeTextQa
