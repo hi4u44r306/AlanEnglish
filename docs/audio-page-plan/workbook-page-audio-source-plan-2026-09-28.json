@@ -1,0 +1,44 @@
+{
+  "source_count": 203,
+  "by_workbook": {
+    "1": 52,
+    "2": 55,
+    "3": 40,
+    "4": 31,
+    "5": 25
+  },
+  "by_mapping_status": {
+    "needs_manual_mapping": 16,
+    "page_candidate": 187
+  },
+  "page_comparison": {
+    "1": {
+      "current_only": 13,
+      "latest_only": 11,
+      "overlap": 32
+    },
+    "2": {
+      "current_only": 17,
+      "latest_only": 1,
+      "overlap": 47
+    },
+    "3": {
+      "current_only": 15,
+      "latest_only": 4,
+      "overlap": 36
+    },
+    "4": {
+      "current_only": 5,
+      "overlap": 31
+    },
+    "5": {
+      "current_only": 10,
+      "overlap": 25
+    }
+  },
+  "rules": {
+    "production_unit": "one textbook page per main audio file",
+    "source_assets_are_not_production_ready": true,
+    "production_mutation_performed": false
+  }
+}
