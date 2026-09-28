@@ -86,7 +86,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
-        expect(screen.getAllByRole("button", { name: "口說練習" })).toHaveLength(2);
+        expect(screen.getAllByRole("button", { name: "遊戲" })).toHaveLength(2);
         expect(screen.getByRole("button", { name: "學習功能" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "前往帳號" })).toHaveAttribute("href", "/student/settings");
@@ -311,7 +311,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });
 
-    it("shows AI Premium and pronunciation to an active academy student without an add-on", async () => {
+    it("shows the game entry but keeps both speaking games disabled for students", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "academy-all-access" },
             role: "student",
@@ -332,9 +332,11 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        fireEvent.click(screen.getAllByRole("button", { name: "口說練習" })[0]);
-        expect(screen.getByRole("link", { name: /發音教練/ })).toHaveAttribute("href", "/student/pronunciation");
-        expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
+        fireEvent.click(screen.getAllByRole("button", { name: "遊戲" })[0]);
+        expect(screen.getByRole("button", { name: "口說教練，準備中" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "口說大挑戰，準備中" })).toBeDisabled();
+        expect(screen.queryByRole("link", { name: /口說教練/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /口說大挑戰/ })).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
     });

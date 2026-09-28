@@ -380,6 +380,23 @@
   font-size: 26px;
 }
 
+.showcase-feature-status {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 16px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #fff0bd;
+  color: #6b4a08;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.showcase-feature-status + h3 {
+  margin-top: 10px;
+}
+
 .showcase-product-section {
   background: var(--ae-soft);
 }

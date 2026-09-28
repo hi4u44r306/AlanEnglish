@@ -109,6 +109,9 @@
 .membership-feature-row strong { font-size: 15px; }
 .membership-feature-row small { overflow: hidden; color: var(--ae-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .membership-feature-row > svg { color: #12a160; font-size: 19px; }
+.membership-feature-row.is-temporarily-disabled { background: #f5f7fb; color: #65728a; }
+.membership-feature-row.is-temporarily-disabled > span { color: #65728a; background: #e7ebf2; }
+.membership-feature-row.is-temporarily-disabled > svg { color: #7c889d; }
 .membership-feature-empty { display: flex; align-items: center; gap: 12px; min-height: 92px; padding: 16px; color: #667085; }
 .membership-feature-empty > svg { font-size: 24px; }
 .membership-feature-empty span { display: grid; gap: 3px; }
@@ -152,7 +155,9 @@
 .membership-active-addon > div > small { color: #cbd7f1; font-size: 11px; }
 .membership-active-addon-actions { display: flex !important; align-items: center; gap: 7px !important; }
 .membership-active-addon-actions a,
-.membership-active-addon-actions button { min-height: 36px; padding: 8px 11px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; color: #fff; background: rgba(255,255,255,.09); font: inherit; font-size: 11px; font-weight: 850; text-decoration: none; }
+.membership-active-addon-actions button,
+.membership-active-addon-actions > span { min-height: 36px; padding: 8px 11px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; color: #fff; background: rgba(255,255,255,.09); font: inherit; font-size: 11px; font-weight: 850; text-decoration: none; }
+.membership-active-addon-actions > span { display: inline-flex; align-items: center; opacity: .78; }
 .membership-active-addon-actions button { cursor: pointer; }
 .membership-compact-card { padding-top: 20px; padding-bottom: 20px; }
 .membership-compact-card .platform-section-title { margin-bottom: 13px; }
