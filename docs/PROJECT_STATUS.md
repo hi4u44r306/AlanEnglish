@@ -7,6 +7,7 @@
 - 重新核對 Workbook 3 教師版實體 P17、P20：P17 的第 36～42 題為七組提示與完整回答；P20 的第 43～49 題為七組問答。第 49 題印刷文字 `in a rest...` 在學生題面補全為 `in a restaurant?`，回答保留教材的每週一次、每月兩次、每年三次三種完整句型。
 - 正式題庫 #204（P17）由 2 題補為 7 題，#205（P20）由 6 題補為 7 題；兩份維持 `draft`／待發布，題序皆為 0～6，沒有自動發布或修改學生版本。Workbook 3～6 的 125 份草稿總題數由 863 更新為 869，Workbook 3 為 31 份／217 題。
 - 核准編號式來源解析改為：只要管理員已逐題核對且題目有相符的完整教師回答，就保留片語提示與省略號提示；未核准 OCR 的一般自動候選仍沿用嚴格完整問句檢查，避免頁首、標題或殘句混入。
+- PR #321 已合併至 `main` `aaee0fa4`；正式 `speaking-content-manager` v65 為 ACTIVE，OPTIONS 回應 200、未登入 POST 正確回應 401。OCR／教材口說契約 53/53、Edge Function 語法、Production build 與 `git diff --check` 通過；Cloudflare production build `46e98c41-f722-4d4a-beea-bf79686e8f9c` 成功，正式管理頁回應 200 並載入 `main.b139b5c2.js`。
 
 本次無圖片文字題單題儲存修正（2026-09-27，已正式部署）：
 
