@@ -1,3 +1,5 @@
+const studentSpeakingGamesEnabled = () => false;
+
 export const authorizeSpeakingChallenge = async (
     user: any,
     loadAccess: (studentId: number) => Promise<any>
@@ -7,6 +9,12 @@ export const authorizeSpeakingChallenge = async (
     }
     if (user?.role !== "student") {
         throw Object.assign(new Error("目前帳號不能開啟口說大挑戰"), { status: 403 });
+    }
+    if (!studentSpeakingGamesEnabled()) {
+        throw Object.assign(new Error("口說遊戲正在調整中，完成測試後會重新開放"), {
+            status: 423,
+            code: "student_speaking_games_paused"
+        });
     }
 
     const effectiveAccess = await loadAccess(Number(user.id));

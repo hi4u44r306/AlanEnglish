@@ -161,7 +161,8 @@
   gap: 9px;
 }
 
-.ae-student-choice-list > a {
+.ae-student-choice-list > a,
+.ae-student-choice-list > button {
   min-height: 76px;
   display: flex;
   align-items: center;
@@ -172,6 +173,8 @@
   color: #233756;
   background: #fff;
   text-decoration: none;
+  width: 100%;
+  text-align: left;
 }
 
 .ae-student-choice-list > a:hover,
@@ -183,7 +186,26 @@
   outline: none;
 }
 
-.ae-student-choice-list > a > span:first-child {
+.ae-student-choice-list > button:disabled {
+  position: relative;
+  color: #526078;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.ae-student-choice-list > button:disabled > b {
+  margin-left: auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #e9eef6;
+  color: #5c6b82;
+  font-size: 11px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.ae-student-choice-list > a > span:first-child,
+.ae-student-choice-list > button > span:first-child {
   width: 48px;
   height: 48px;
   display: grid;
@@ -196,7 +218,8 @@
 .ae-student-choice-list .is-blue { background: linear-gradient(145deg, #4b8dff, #2d65d6); }
 .ae-student-choice-list .is-orange { background: linear-gradient(145deg, #ffb43e, #f0782d); }
 .ae-student-choice-list svg { width: 23px; height: 23px; }
-.ae-student-choice-list > a > span:last-child { display: grid; gap: 3px; }
+.ae-student-choice-list > a > span:last-child,
+.ae-student-choice-list > button > span:nth-child(2) { display: grid; gap: 3px; }
 .ae-student-choice-list strong { font-size: 16px; font-weight: 950; }
 .ae-student-choice-list small { color: #738199; font-size: 12px; font-weight: 750; }
 

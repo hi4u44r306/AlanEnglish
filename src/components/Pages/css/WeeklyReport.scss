@@ -701,6 +701,12 @@
   }
 }
 
+.weekly-report-challenge-link.is-disabled {
+  color: #69758a;
+  background: #edf1f6;
+  cursor: default;
+}
+
 .weekly-report-insights {
   display: grid;
   grid-template-columns: 1fr 1fr;

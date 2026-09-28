@@ -49,7 +49,6 @@ const StudentNavbar = ({
     gamificationLevel,
     hasAiAccess,
     hasAiPremium,
-    hasPronunciationAccess,
     hasRewardsAccess,
     loading,
     loggingOut,
@@ -82,7 +81,7 @@ const StudentNavbar = ({
     const hasReviewAccess = hasActiveLearningAccess && features.review === true;
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
-    const speakingActive = isPathActive("/student/pronunciation") || isPathActive("/student/speaking-challenges");
+    const speakingActive = drawerOpen && drawer === "speaking";
     const learningActive = [
         "/student/assignments",
         "/student/review",
@@ -178,14 +177,16 @@ const StudentNavbar = ({
 
     const speakingLinks = (
         <div className="ae-student-choice-list">
-            <InstantDrawerLink to="/student/pronunciation" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/pronunciation") ? "active" : ""}>
+            <button type="button" disabled aria-label="口說教練，準備中">
                 <span className="is-blue"><FiMic /></span>
-                <span><strong>發音教練</strong><small>跟著句子練清楚發音</small></span>
-            </InstantDrawerLink>
-            <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/speaking-challenges") ? "active" : ""}>
+                <span><strong>口說教練</strong><small>準備中，完成測試後開放</small></span>
+                <b>準備中</b>
+            </button>
+            <button type="button" disabled aria-label="口說大挑戰，準備中">
                 <span className="is-orange"><FiStar /></span>
-                <span><strong>口說大挑戰</strong><small>聽問題，用完整英文回答</small></span>
-            </InstantDrawerLink>
+                <span><strong>口說大挑戰</strong><small>準備中，完成測試後開放</small></span>
+                <b>準備中</b>
+            </button>
         </div>
     );
 
@@ -239,7 +240,7 @@ const StudentNavbar = ({
         <nav className="ae-student-bottom-nav" aria-label="學生主要導覽">
             <Link to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>排行榜</span></Link>
             {shouldShowMaterials && <button type="button" onClick={() => openDrawer("materials")} className={isPathActive("/student/books") ? "active" : ""}><FiBookOpen /><span>教材</span></button>}
-            {hasPronunciationAccess && <button type="button" onClick={() => openDrawer("speaking")} className={speakingActive ? "active" : ""}><FiMic /><span>口說練習</span></button>}
+            <button type="button" onClick={() => openDrawer("speaking")} className={speakingActive ? "active" : ""}><FiStar /><span>遊戲</span></button>
             <Link to="/student/settings" className={`ae-student-bottom-profile ${isPathActive("/student/settings") ? "active" : ""}`} aria-label="帳號">
                 <span className="ae-student-bottom-avatar">{profileAvatar}</span>
                 <span>帳號</span>
@@ -260,12 +261,10 @@ const StudentNavbar = ({
                                 {renderMaterials("desktop")}
                             </NavDropdown>
                         )}
-                        {hasPronunciationAccess && (
-                            <NavDropdown id="student-speaking" title={<span><FiMic />口說練習</span>} className={speakingActive ? "active" : ""}>
-                                <div className="ae-student-dropdown-heading"><strong>今天想怎麼練？</strong><small>選一種練習</small></div>
+                        <NavDropdown id="student-speaking" title={<span><FiStar />遊戲</span>} className={speakingActive ? "active" : ""}>
+                                <div className="ae-student-dropdown-heading"><strong>遊戲世界</strong><small>新關卡準備中</small></div>
                                 {speakingLinks}
-                            </NavDropdown>
-                        )}
+                        </NavDropdown>
                         <NavDropdown id="student-more" title={<span><FiZap />學習功能</span>} className={learningActive ? "active" : ""}>
                             <div className="ae-student-more-grid is-learning-only">{learningLinks}</div>
                         </NavDropdown>
@@ -290,7 +289,7 @@ const StudentNavbar = ({
 
             <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "menu" ? "end" : "bottom"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說練習" : "功能選單"}</strong><small>{drawer === "materials" ? "選一本想練習的教材" : drawer === "speaking" ? "選擇一種口說練習" : "學習、帳號與幫助"}</small></div>
+                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "遊戲" : "功能選單"}</strong><small>{drawer === "materials" ? "選一本想練習的教材" : drawer === "speaking" ? "新關卡正在準備中" : "學習、帳號與幫助"}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     {drawer === "materials" && renderMaterials("mobile")}

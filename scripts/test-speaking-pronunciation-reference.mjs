@@ -7,6 +7,9 @@ import {
     readSpeakingSlotValues,
     speakingAnswerPrompt
 } from "../supabase/functions/_shared/speaking-pronunciation-reference.ts";
+import { matchesChildFriendlySentence } from "../supabase/functions/_shared/speaking-foundation-answer.ts";
+import { authorizeSpeakingPronunciation } from "../supabase/functions/_shared/speaking-pronunciation-access.ts";
+import { authorizeSpeakingChallenge } from "../supabase/functions/_shared/speaking-challenge-view.ts";
 
 assert.equal(buildSpeakingReferenceText("My name is Alan.", {}), "My name is Alan.");
 assert.equal(
@@ -29,6 +32,25 @@ assert.equal(matchesSpeakingAnswerTemplate("My name is [你的名字].", "My nam
 assert.equal(matchesSpeakingAnswerTemplate("My name is [你的名字].", "My name is Amy Lee."), true);
 assert.equal(matchesSpeakingAnswerTemplate("My name is [你的名字].", "Amy."), false);
 assert.equal(matchesSpeakingAnswerTemplate("My name is [你的名字].", "My name is."), false);
+
+assert.equal(matchesChildFriendlySentence("It is an eraser.", "It's an eraser."), true);
+assert.equal(matchesChildFriendlySentence("It is an eraser.", "It is eraser."), true);
+assert.equal(matchesChildFriendlySentence("It is an eraser.", "It is a pencil."), false);
+assert.equal(matchesChildFriendlySentence("No, it isn't mine.", "Yes, it is mine."), false);
+assert.equal(matchesChildFriendlySentence("These are the books on the table.", "These are books on the table."), true);
+assert.equal(matchesChildFriendlySentence("red", "read"), false);
+
+const unusedAccessLoader = async () => { throw new Error("student lock must run before entitlement lookup"); };
+assert.deepEqual(await authorizeSpeakingPronunciation({ role: "admin" }, unusedAccessLoader), { adminDemo: true, effectiveAccess: null });
+assert.deepEqual(await authorizeSpeakingChallenge({ role: "teacher" }, unusedAccessLoader), { demoMode: true, effectiveAccess: null });
+await assert.rejects(
+    authorizeSpeakingPronunciation({ role: "student", id: 1 }, unusedAccessLoader),
+    error => error.status === 423 && error.code === "student_speaking_games_paused"
+);
+await assert.rejects(
+    authorizeSpeakingChallenge({ role: "student", id: 1 }, unusedAccessLoader),
+    error => error.status === 423 && error.code === "student_speaking_games_paused"
+);
 
 const coachSource = readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8");
 assert.match(coachSource, /isStructuredAnswer \? "structured_voice" : "scripted_voice"/);

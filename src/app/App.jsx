@@ -178,10 +178,10 @@ const App = () => {
                         <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><LearningLeaderboard /></ProtectedRoute>} />
                         <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Rewards /></ProtectedRoute>} />
                         <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><ConversationPractice /></ProtectedRoute>} />
-                        <Route path="/student/pronunciation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><PronunciationCoach /></ProtectedRoute>} />
-                        <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
-                        <Route path="/student/speaking-challenges/book/:bookKey" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
-                        <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
+                        <Route path="/student/pronunciation" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><PronunciationCoach /></ProtectedRoute>} />
+                        <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TextbookSpeakingChallenge /></ProtectedRoute>} />
+                        <Route path="/student/speaking-challenges/book/:bookKey" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TextbookSpeakingChallenge /></ProtectedRoute>} />
+                        <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TextbookSpeakingChallenge /></ProtectedRoute>} />
                         <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><AIMaterialGenerator /></ProtectedRoute>} />
                         <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Playlist /></ProtectedRoute>} />
                         <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><BillingResult /></ProtectedRoute>} />

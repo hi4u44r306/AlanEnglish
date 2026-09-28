@@ -110,6 +110,77 @@ export const normalizedSpokenSentence = (value: unknown) => String(value || "")
     .replace(/\s+/g, " ")
     .trim();
 
+const OPTIONAL_GRAMMAR_WORDS = new Set([
+    "a", "an", "the", "am", "are", "is", "was", "were", "do", "does", "did",
+    "to", "of", "in", "on", "at", "for", "and", "please"
+]);
+const POLARITY_WORDS = new Set(["yes", "no", "not"]);
+
+const canonicalSentenceTokens = (value: unknown) => normalizedSpokenSentence(value)
+    .replace(/\b(i'm)\b/g, "i am")
+    .replace(/\b(you're|we're|they're)\b/g, match => ({ "you're": "you are", "we're": "we are", "they're": "they are" }[match] || match))
+    .replace(/\b(it's|he's|she's|that's|what's|where's|who's)\b/g, match => ({
+        "it's": "it is", "he's": "he is", "she's": "she is", "that's": "that is",
+        "what's": "what is", "where's": "where is", "who's": "who is"
+    }[match] || match))
+    .replace(/\b(isn't|aren't|wasn't|weren't|don't|doesn't|didn't|can't|cannot|won't)\b/g, match => ({
+        "isn't": "is not", "aren't": "are not", "wasn't": "was not", "weren't": "were not",
+        "don't": "do not", "doesn't": "does not", "didn't": "did not", "can't": "can not",
+        "cannot": "can not", "won't": "will not"
+    }[match] || match))
+    .split(" ")
+    .filter(Boolean);
+
+const tokenEditDistance = (expected: string[], spoken: string[]) => {
+    let previous = spoken.map((_, index) => index + 1);
+    previous.unshift(0);
+    expected.forEach((expectedToken, expectedIndex) => {
+        const current = [expectedIndex + 1];
+        spoken.forEach((spokenToken, spokenIndex) => {
+            current.push(Math.min(
+                current[spokenIndex] + 1,
+                previous[spokenIndex + 1] + 1,
+                previous[spokenIndex] + (expectedToken === spokenToken ? 0 : 1)
+            ));
+        });
+        previous = current;
+    });
+    return previous[spoken.length];
+};
+
+// Young learners should not fail because the speech recognizer drops one short
+// grammar word.  Core answer words and yes/no polarity still have to match, and
+// longer answers may differ by at most 20 percent of their tokens.
+export const matchesChildFriendlySentence = (expectedAnswer: unknown, recognizedText: unknown) => {
+    const expected = canonicalSentenceTokens(expectedAnswer);
+    const spoken = canonicalSentenceTokens(recognizedText);
+    if (!expected.length || !spoken.length) return false;
+    if (expected.join(" ") === spoken.join(" ")) return true;
+    if (expected.length < 3) return false;
+
+    const expectedPolarity = expected.filter(token => POLARITY_WORDS.has(token));
+    const spokenPolarity = spoken.filter(token => POLARITY_WORDS.has(token));
+    if (expectedPolarity.join(" ") !== spokenPolarity.join(" ")) return false;
+
+    const expectedCore = expected.filter(token => !OPTIONAL_GRAMMAR_WORDS.has(token) && !POLARITY_WORDS.has(token));
+    const spokenCore = spoken.filter(token => !OPTIONAL_GRAMMAR_WORDS.has(token) && !POLARITY_WORDS.has(token));
+    const remainingCore = [...spokenCore];
+    const matchedCoreCount = expectedCore.reduce((count, token) => {
+        const index = remainingCore.indexOf(token);
+        if (index < 0) return count;
+        remainingCore.splice(index, 1);
+        return count + 1;
+    }, 0);
+    const requiredCoreMatches = expectedCore.length <= 1
+        ? expectedCore.length
+        : Math.ceil(expectedCore.length * 0.8);
+    if (matchedCoreCount < requiredCoreMatches) return false;
+
+    const distance = tokenEditDistance(expected, spoken);
+    const allowedDistance = Math.max(1, Math.floor(expected.length * 0.2));
+    return distance <= allowedDistance;
+};
+
 // Chinese IMEs can produce full-width low lines even when the author intends
 // to type ____. Canonicalize both forms before validation and persistence.
 export const normalizePictureGapPrompt = (value: unknown) => String(value || "")
@@ -172,7 +243,7 @@ export const matchesFoundationAnswer = (
             .filter(Boolean);
         return Boolean(spoken) && accepted.some(answer => hasSpeakingAnswerSlots(answer)
             ? matchesSpeakingAnswerTemplate(answer, recognizedText)
-            : normalizedSpokenSentence(answer) === spoken);
+            : matchesChildFriendlySentence(answer, recognizedText));
     }
     const expected = expectedLetterSequence(expectedAnswer);
     const spoken = spokenLetterSequence(recognizedText);

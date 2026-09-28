@@ -17,41 +17,42 @@ import "./css/Showcase.scss";
 const features = [
     {
         icon: <BiHeadphone />,
-        title: "分級聽力教材",
-        text: "依程度整理教材與音檔，孩子打開網站就知道今天要聽什麼。"
+        title: "教材音檔與有效聆聽",
+        text: "依教材整理音檔與頁次，完成真正聽過的內容後才累積學習紀錄。"
     },
     {
         icon: <BiBookOpen />,
-        title: "AI 選擇題練習",
-        text: "依主題產生適合程度的短文與選擇題，答題後立即查看結果。"
+        title: "老師發布的班級作業",
+        text: "英文班學生接收自己班級的作業，老師可以掌握完成狀態與學習進度。"
     },
     {
         icon: <BiPlayCircle />,
-        title: "情境英文會話",
-        text: "從問路、家庭到校園生活，練習孩子真正可能遇到的英文對話。"
+        title: "AI 個人化教材",
+        text: "依孩子的程度產生短文與選擇題，作答後立即回饋並保留練習結果。"
     },
     {
         icon: <BiBarChartAlt2 />,
-        title: "看得見的進度",
-        text: "播放次數、教材完成率與學習紀錄自動保存，不再只憑感覺判斷。"
+        title: "智慧複習與每週報告",
+        text: "從需要加強的內容繼續練習，並用每週紀錄看見孩子真正完成了什麼。"
     },
     {
         icon: <BiTrendingUp />,
-        title: "智慧複習",
-        text: "從已學內容回到需要加強的地方，讓每一次練習都更有方向。"
+        title: "排行榜、XP 與學習獎勵",
+        text: "把穩定學習轉成看得懂的等級與成果，鼓勵孩子持續完成每天的小目標。"
     },
     {
         icon: <BiShieldQuarter />,
-        title: "班級作業分流",
-        text: "英文班學生接收老師安排的作業；網購會員則按照自己的速度學習。"
+        title: "口說遊戲",
+        text: "口說教練與教材闖關正在進行最後調整；老師與管理員可先預覽，學生完成測試後開放。",
+        status: "準備中"
     }
 ];
 
 const learningSteps = [
-    { number: "01", title: "免費體驗", text: "先用 7 天體驗聽力、AI 教材與自主學習流程。" },
-    { number: "02", title: "選擇學習方式", text: "公開付款開放後，可選擇每月 NT$299 的自主學習平台。" },
-    { number: "03", title: "需要時加購 AI", text: "AI 教材與發音練習為每月 NT$299 的獨立加購，不會自動包含在平台方案內。" },
-    { number: "04", title: "保留彈性", text: "目前不開放公開付款；先完成免費試用，日後可再決定是否續用。" }
+    { number: "01", title: "開始 7 天試用", text: "不需信用卡，先熟悉教材、聽力與 AI 練習流程。" },
+    { number: "02", title: "完成每天的小目標", text: "從教材音檔、老師作業或智慧複習開始，不必一次做很多。" },
+    { number: "03", title: "累積真實學習紀錄", text: "有效聆聽、答題與作業完成狀態會跟著帳號保存。" },
+    { number: "04", title: "看見下一步", text: "透過排行榜、每週報告與老師安排，知道接下來該加強什麼。" }
 ];
 
 const plans = [
@@ -61,7 +62,7 @@ const plans = [
         price: "免費",
         period: "使用 7 天",
         description: "適合第一次認識 Alan English 的學生與家長，不需要先購買教材。",
-        points: ["不需信用卡", "7 天內可生成 AI 教材共 7 次", "體驗聽力與自主學習功能"],
+        points: ["不需信用卡", "7 天內可生成 AI 教材共 7 次、每日最多 2 次", "使用獨立的引導式試用內容"],
         action: "立即免費試用",
         href: "/freetrial",
         badge: "",
@@ -73,7 +74,7 @@ const plans = [
         price: "NT$299",
         period: "／月",
         description: "適合希望固定安排聽力與自主練習的家庭；目前正在準備中，尚未開放公開付款。",
-        points: ["正式聽力教材與自主學習功能", "包含情境會話與智慧複習", "AI 教材與發音練習可另加購"],
+        points: ["全部已啟用的正式聽力教材", "包含情境會話與智慧複習", "AI 教材與發音練習可另加購"],
         action: "先免費體驗",
         href: "/freetrial",
         badge: "準備中",
@@ -82,10 +83,10 @@ const plans = [
     {
         label: "選擇性加購",
         name: "AI 教材與發音練習",
-        price: "NT$299",
+        price: "NT$499",
         period: "／月",
-        description: "搭配有效平台方案使用，提供 AI 教材與發音練習；目前尚未開放公開付款。",
-        points: ["AI 選擇題教材", "發音練習與回饋", "不包含英文班作業"],
+        description: "一般會員與離校生須搭配有效平台方案使用；目前尚未開放公開付款。",
+        points: ["AI 選擇題教材", "每日 5 次、每月 150 次", "學生口說遊戲調整完成後開放"],
         action: "先免費體驗",
         href: "/freetrial",
         badge: "",
@@ -94,10 +95,10 @@ const plans = [
     {
         label: "Alan English 英文班",
         name: "在校／離校方案",
-        price: "依英文班安排",
-        period: "",
-        description: "英文班學生由老師安排帳號、班級教材與班級作業；不提供公開線上購買。",
-        points: ["在校期間使用班級教材與作業", "老師安排班級與學習進度", "需要協助請聯絡英文班老師"],
+        price: "NT$2,800",
+        period: "／月",
+        description: "英文班在校生由老師安排帳號、班級教材與班級作業；不提供公開線上購買。",
+        points: ["在校期間使用全部學習功能", "老師安排班級與學習進度", "包含 AI 教材與發音練習權限"],
         action: "學生登入",
         href: "/login",
         badge: "英文班專屬",
@@ -110,15 +111,15 @@ const planComparison = [
         label: "費用",
         trial: "免費",
         textbook: "NT$299／月",
-        regular: "NT$299／月",
-        academy: "由英文班安排"
+        regular: "NT$499／月",
+        academy: "NT$2,800／月"
     },
     {
         label: "AI 教材與發音練習",
         trial: "7 天共 7 次",
         textbook: "不包含",
-        regular: "AI 加購 NT$299／月",
-        academy: "由英文班安排"
+        regular: "AI 加購 NT$499／月",
+        academy: "在校期間包含"
     },
     {
         label: "使用期限",
@@ -131,7 +132,7 @@ const planComparison = [
         label: "教材範圍",
         trial: "體驗內容",
         textbook: "正式聽力教材",
-        regular: "全部正式聽力教材",
+        regular: "搭配基本會員使用",
         academy: "全部正式聽力教材"
     },
     {
@@ -165,7 +166,7 @@ const faqs = [
     },
     {
         question: "平台方案與 AI 加購的價格是多少？",
-        answer: "公開方案規劃為平台每月 NT$299，AI 教材與發音練習另加購每月 NT$299。目前兩者都尚未開放公開付款，也不會自動扣款。"
+        answer: "基本會員每月 NT$299；AI 教材與發音練習目前每月 NT$499，一般會員與離校生須同時具備基本會員，合計 NT$798／月。目前公開付款暫停，不會自動建立新訂閱。"
     },
     {
         question: "英文班學生也需要在網站購買會員嗎？",
@@ -208,8 +209,8 @@ const Showcase = () => {
                                 也更有自信說出來。
                             </h1>
                             <p className="showcase-hero-description">
-                                結合教材音檔、AI 選擇題、情境會話與學習進度，
-                                讓孩子每天知道要學什麼，也讓家長看見持續累積的成果。
+                                把教材音檔、班級作業、AI 練習、智慧複習與學習成果放在同一個平台，
+                                讓孩子每天知道下一步，也讓家長與老師看見真正完成的內容。
                             </p>
                             <div className="showcase-hero-actions">
                                 <Link className="showcase-primary-btn" to="/freetrial">
@@ -290,7 +291,7 @@ const Showcase = () => {
 
                 <section className="showcase-value-strip" aria-label="Alan English 核心特色">
                     <div className="showcase-shell">
-                        <span>系統化教材</span><i /><span>聽力導向</span><i /><span>口語情境</span><i /><span>成果可追蹤</span>
+                        <span>教材音檔</span><i /><span>班級作業</span><i /><span>智慧複習</span><i /><span>成果可追蹤</span>
                     </div>
                 </section>
 
@@ -305,6 +306,7 @@ const Showcase = () => {
                             {features.map((feature, index) => (
                                 <article className={"showcase-feature-card tone-" + ((index % 3) + 1)} key={feature.title}>
                                     <div className="showcase-feature-icon">{feature.icon}</div>
+                                    {feature.status && <span className="showcase-feature-status">{feature.status}</span>}
                                     <h3>{feature.title}</h3>
                                     <p>{feature.text}</p>
                                 </article>
@@ -358,7 +360,7 @@ const Showcase = () => {
                                 <div className="showcase-path-label">ALAN ENGLISH CLASS</div>
                                 <div className="showcase-path-icon"><BiShieldQuarter /></div>
                                 <h3>英文班學生</h3>
-                                <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生或家長自行設定密碼與驗證 Email。</p>
+                                <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生完成帳號啟用後即可使用班級教材與作業。</p>
                                 <ul>
                                     <li><span>✓</span> 由英文班老師安排帳號與教材</li>
                                     <li><span>✓</span> 接收老師發布的班級作業</li>
@@ -370,9 +372,10 @@ const Showcase = () => {
                                 <div className="showcase-path-label">SELF-PACED LEARNING</div>
                                 <div className="showcase-path-icon"><BiBookOpen /></div>
                                 <h3>自主學習</h3>
-                                <p>先免費體驗，再依孩子的時間安排聽力與練習；公開付款開放前不需要購買教材。</p>
+                                <p>先免費體驗，再依孩子的時間安排聽力與練習；公開付款目前暫停，現階段不會建立新訂閱。</p>
                                 <ul>
-                                    <li><span>✓</span> 平台月費與 AI 加購皆為 NT$299／月</li>
+                                    <li><span>✓</span> 基本會員 NT$299／月</li>
+                                    <li><span>✓</span> AI 教材與發音練習 NT$499／月</li>
                                     <li><span>✓</span> 目前公開付款與教材包販售暫停</li>
                                     <li><span>✓</span> 自主學習，不會收到英文班作業</li>
                                 </ul>
@@ -422,7 +425,7 @@ const Showcase = () => {
                         <div className="showcase-section-heading showcase-section-heading-center">
                             <span className="showcase-kicker">CHOOSE YOUR PLAN</span>
                             <h2>先免費體驗，再決定適合孩子的學習方式。</h2>
-                            <p>公開方案規劃為每月 NT$299 的自主學習平台，AI 教材與發音練習另加購每月 NT$299。目前教材包與公開付款正在準備中，尚未開放結帳。</p>
+                            <p>基本會員每月 NT$299；AI 教材與發音練習目前每月 NT$499，一般會員與離校生合計 NT$798／月。目前教材包與公開付款暫停，尚未開放結帳。</p>
                         </div>
                         <div className="showcase-trial-banner">
                             <div className="showcase-trial-copy">

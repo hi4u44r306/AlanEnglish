@@ -424,9 +424,9 @@ const WeeklyReport = () => {
                                 <small>{speakingChallenge.current_challenge.title}</small>
                             </div>
                         )}
-                        <Link className="weekly-report-challenge-link" to="/student/speaking-challenges">
-                            <FiMic /> {speakingChallenge.current_challenge?.completed_at ? "再次挑戰" : "繼續挑戰"}
-                        </Link>
+                        <span className="weekly-report-challenge-link is-disabled" aria-label="口說遊戲準備中">
+                            <FiMic /> 口說遊戲準備中
+                        </span>
                     </article>
                 </section>
 
