@@ -22,6 +22,8 @@ export const authorizeSpeakingChallenge = async (
 export const buildPublicSpeakingQuestion = async ({
     question,
     interactionType,
+    questionInteractionType,
+    promptMode,
     answerAudioEnabled = false,
     staffAudioPreview = false,
     progressStatus,
@@ -32,7 +34,7 @@ export const buildPublicSpeakingQuestion = async ({
     signPrivateObject
 }: any) => {
     const effectiveInteractionType = interactionType === "mixed"
-        ? String(pictureInteraction?.interaction_type || "standard_sentence")
+        ? String(questionInteractionType || pictureInteraction?.interaction_type || "standard_sentence")
         : interactionType;
     const pictureMode = effectiveInteractionType === "picture_qa" || effectiveInteractionType === "picture_gap_sentence";
     const hideChallengeAnswerAudio = !staffAudioPreview || (effectiveInteractionType === "text_qa" && !answerAudioEnabled)
@@ -94,6 +96,7 @@ export const buildPublicSpeakingQuestion = async ({
     return {
         ...safeQuestion,
         interaction_type: effectiveInteractionType,
+        ...(effectiveInteractionType === "text_qa" ? { prompt_mode: promptMode || "english_qa" } : {}),
         progress_status: progressStatus || "opened",
         question_audio_status: hideChallengeAnswerAudio ? "hidden" : (promptReady ? "ready" : (promptAsset?.status || "missing")),
         question_audio_url: !hideChallengeAnswerAudio && promptReady

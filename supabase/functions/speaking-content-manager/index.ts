@@ -37,7 +37,6 @@ import {
 } from "../_shared/speaking-ocr-candidate-filter.ts";
 import {
     grammarCuePromptIsComplete,
-    questionPromptMode,
     textQaGenderSignal,
     textQaGenderSkeleton,
     textQaGenderIsConsistent,
@@ -48,6 +47,7 @@ import {
     textQaQuestionContentValid
 } from "../_shared/speaking-text-qa.ts";
 import { speakingAudioSourceMatchesModelAnswer } from "../_shared/speaking-tts-text.ts";
+import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -742,8 +742,6 @@ const normalizeImageSuggestions = (value: unknown) => cleanArray(value, 5, 180);
 
 const normalizeManualPageQuestions = (value: unknown) => {
     if (!Array.isArray(value) || value.length < 1 || value.length > 50) return null;
-    const types = value.map((raw: any) => cleanText(raw?.interaction_type, 40));
-    if (types.includes(TEXT_QA_INTERACTION_TYPE) && types.some((type: string) => type !== TEXT_QA_INTERACTION_TYPE)) return null;
     const rows = value.map((raw: any) => {
         const interactionType = cleanText(raw?.interaction_type, 40);
         if (!MANUAL_PAGE_INTERACTION_TYPES.has(interactionType)) return null;
@@ -1934,23 +1932,23 @@ Deno.serve(async (req: Request) => {
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
             if (!question || questionSet?.status !== "draft") return json(409, { error: "只有草稿題庫可以修改" });
             const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+            const metadata = questionSet?.generation_metadata || {};
+            const questionMode = pageQuestionMode(metadata, question);
             if (interactionType === "alphabet_round") {
                 return json(409, { error: "A–Z 題庫由固定 26 個字母模板鎖定，不能使用通用題目編輯器修改" });
             }
-            if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) {
+            if (["picture_qa", "picture_gap_sentence"].includes(questionMode.interactionType)) {
                 return json(409, { error: "P21～P24 圖片題庫的顯示內容與後端完整答案必須同步，不能使用通用題目編輯器修改" });
             }
             if (questionSet?.generation_metadata?.approved_source_page_label) {
                 return json(409, { error: "P14～P17 題庫由正式核准來源鎖定；如需更改，請先更新來源版本並重建題庫" });
             }
             const normalized = normalizeQuestions([body?.question], 1, 1,
-                interactionType !== TEXT_QA_INTERACTION_TYPE,
-                interactionType === TEXT_QA_INTERACTION_TYPE ? 12 : 8,
-                interactionType === TEXT_QA_INTERACTION_TYPE ? 500 : 300)?.[0];
+                questionMode.interactionType !== TEXT_QA_INTERACTION_TYPE,
+                questionMode.interactionType === TEXT_QA_INTERACTION_TYPE ? 12 : 8,
+                questionMode.interactionType === TEXT_QA_INTERACTION_TYPE ? 500 : 300)?.[0];
             if (!normalized) return json(400, { error: "問題、提示、關鍵字與兩種示範回答都必須完整" });
-            const metadata = questionSet?.generation_metadata || {};
-            const promptMode = metadata?.source === "admin_page_builder"
-                ? questionPromptMode(metadata, question.sort_order) : "english_qa";
+            const promptMode = questionMode.promptMode || "english_qa";
             const completeEnglishAnswers = zhToEnAnswerIsComplete(normalized.model_answer)
                 && (normalized.accepted_intents || []).every((answer: string) => zhToEnAnswerIsComplete(answer));
             const textContentInvalid = promptMode === "zh_to_en"
@@ -1958,7 +1956,7 @@ Deno.serve(async (req: Request) => {
                 : promptMode === "grammar_cue"
                     ? !grammarCuePromptIsComplete(normalized.question_text) || !completeEnglishAnswers
                     : !textQaQuestionContentValid(normalized);
-            if (interactionType === TEXT_QA_INTERACTION_TYPE && textContentInvalid) {
+            if (questionMode.interactionType === TEXT_QA_INTERACTION_TYPE && textContentInvalid) {
                 return json(400, { error: promptMode === "zh_to_en"
                     ? "中翻英需要中文題目、完整英文翻譯與完整英文替代答案"
                     : promptMode === "grammar_cue"
@@ -1983,7 +1981,7 @@ Deno.serve(async (req: Request) => {
                     if (resetSectionError) throw resetSectionError;
                 }
             }
-            const questionUpdate = interactionType === TEXT_QA_INTERACTION_TYPE
+            const questionUpdate = questionMode.interactionType === TEXT_QA_INTERACTION_TYPE
                 ? { ...normalized, visual_aid: {} } : normalized;
             const { error } = await admin.from("speaking_questions").update({ ...questionUpdate, updated_at: now }).eq("id", questionId);
             if (error) throw error;
@@ -2174,18 +2172,23 @@ Deno.serve(async (req: Request) => {
             const lookupId = action === "update_picture_draft_question" ? questionId : setId;
             if (!Number.isInteger(lookupId) || lookupId <= 0) return json(400, { error: "題庫或題目編號不正確" });
             const setQuery = action === "update_picture_draft_question"
-                ? admin.from("speaking_questions").select("id,question_set_id,speaking_question_sets!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
+                ? admin.from("speaking_questions").select("id,sort_order,question_set_id,speaking_question_sets!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
                 : admin.from("speaking_question_sets").select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
             const { data: record, error: recordError } = await setQuery;
             if (recordError) throw recordError;
             const questionSet: any = action === "update_picture_draft_question"
                 ? (Array.isArray((record as any)?.speaking_question_sets) ? (record as any).speaking_question_sets[0] : (record as any)?.speaking_question_sets)
                 : record;
-            const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
+            const interactionType = action === "update_picture_draft_question"
+                ? pageQuestionMode(questionSet?.generation_metadata, record).interactionType
+                : String(questionSet?.generation_metadata?.interaction_type || "");
             const picturePolicy = pictureDraftPolicyForMetadata(questionSet?.generation_metadata);
             const normalized = normalizePictureDraftQuestion(body?.question, interactionType);
             if (!questionSet || questionSet.status !== "draft" || !picturePolicy || !normalized) {
                 return json(409, { error: "只有完整且格式正確的圖片草稿題目可以編輯" });
+            }
+            if (action === "add_picture_draft_question" && manualPageDraftPolicyForMetadata(questionSet.generation_metadata)) {
+                return json(409, { error: "逐頁混合關卡須依教材順序重新建立，不能在草稿末尾新增圖片題" });
             }
             const now = new Date().toISOString();
             if (action === "add_picture_draft_question") {
@@ -2256,6 +2259,9 @@ Deno.serve(async (req: Request) => {
                 || pageCandidateDraftPolicyForMetadata(questionSet?.generation_metadata);
             if (!questionSet || questionSet.status !== "draft" || !editablePolicy) {
                 return json(409, { error: "只有管理員建立的草稿題目可以刪除或排序" });
+            }
+            if (manualPageDraftPolicyForMetadata(questionSet.generation_metadata)) {
+                return json(409, { error: "逐頁混合關卡須依教材順序重新建立，不能刪除或排序題目" });
             }
             const questions = [...(questionSet.speaking_questions || [])]
                 .sort((a: any, b: any) => Number(a.sort_order) - Number(b.sort_order));
@@ -2432,6 +2438,11 @@ Deno.serve(async (req: Request) => {
                             prompt_mode: commonPromptMode,
                             prompt_modes_by_sort_order: textPromptModes
                         } : {}),
+                        question_modes: questions.map((row: any, sortOrder: number) => ({
+                            sort_order: sortOrder,
+                            interaction_type: row.interactionType,
+                            ...(row.interactionType === TEXT_QA_INTERACTION_TYPE ? { prompt_mode: row.promptMode } : {})
+                        })),
                         shuffle: false, requires_content_review: false, manual_builder_version: 3,
                         content_reviewed_at: now, content_reviewed_by: Number(user.id)
                     },
@@ -2468,7 +2479,7 @@ Deno.serve(async (req: Request) => {
                     const { error: interactionError } = await admin.from("speaking_question_interactions").insert(pictureRows);
                     if (interactionError) throw interactionError;
                 }
-                return json(201, { success: true, question_set_id: questionSet.id, questions: createdQuestions || [], page_labels: [pageLabel], interaction_type: questions[0].interactionType === TEXT_QA_INTERACTION_TYPE ? TEXT_QA_INTERACTION_TYPE : "mixed" });
+                return json(201, { success: true, question_set_id: questionSet.id, questions: createdQuestions || [], page_labels: [pageLabel], interaction_type: questions.every((row: any) => row.interactionType === TEXT_QA_INTERACTION_TYPE && row.promptMode === questions[0].promptMode) ? TEXT_QA_INTERACTION_TYPE : "mixed" });
             } catch (error) {
                 if (createdQuestionSetId) await admin.from("speaking_question_sets").delete().eq("id", createdQuestionSetId);
                 await admin.from("speaking_source_documents").delete().eq("id", document.id);
@@ -2837,7 +2848,7 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id,question_text,simple_answer,model_answer)").eq("id", setId).maybeSingle();
+                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id,sort_order,question_text,simple_answer,model_answer)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;
@@ -2981,24 +2992,30 @@ Deno.serve(async (req: Request) => {
                 ]));
                 const invalidQuestion = (questionSet.speaking_questions || []).find((question: any) => {
                     const interaction: any = interactionByQuestion.get(Number(question.id));
-                    if (!interaction) {
-                        if (String(metadata?.interaction_type || "") === TEXT_QA_INTERACTION_TYPE) {
-                            const promptMode = questionPromptMode(metadata, question.sort_order);
-                            const promptValid = promptMode === "zh_to_en"
-                                ? zhToEnPromptIsComplete(question.question_text) && zhToEnAnswerIsComplete(question.model_answer)
-                                : promptMode === "grammar_cue"
-                                    ? grammarCuePromptIsComplete(question.question_text) && zhToEnAnswerIsComplete(question.model_answer)
-                                    : textQaPromptIsComplete(question.question_text);
-                            return !promptValid
-                                || !String(question.simple_answer || "").trim()
-                                || !String(question.model_answer || "").trim();
-                        }
+                    const questionMode = pageQuestionMode(metadata, question, interaction);
+                    if (questionMode.interactionType === TEXT_QA_INTERACTION_TYPE) {
+                        const promptValid = questionMode.promptMode === "zh_to_en"
+                            ? zhToEnPromptIsComplete(question.question_text) && zhToEnAnswerIsComplete(question.model_answer)
+                            : questionMode.promptMode === "grammar_cue"
+                                ? grammarCuePromptIsComplete(question.question_text) && zhToEnAnswerIsComplete(question.model_answer)
+                                : textQaPromptIsComplete(question.question_text);
+                        return Boolean(interaction)
+                            || !promptValid
+                            || !String(question.simple_answer || "").trim()
+                            || !String(question.model_answer || "").trim();
+                    }
+                    if (questionMode.interactionType === "standard_sentence") {
                         const audio: any = audioByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
-                        return audio?.status !== "ready" || !audio?.private_object_key || String(audio?.source_text || "").trim() !== String(question.model_answer || "").trim();
+                        return Boolean(interaction) || audio?.status !== "ready" || !audio?.private_object_key
+                            || String(audio?.source_text || "").trim() !== String(question.model_answer || "").trim();
+                    }
+                    if (!interaction) {
+                        return true;
                     }
                     const visual: any = visualByQuestion.get(Number(question.id));
                     const accepted = Array.isArray(interaction.accepted_full_responses) ? interaction.accepted_full_responses : [];
-                    if (!["picture_qa", "picture_gap_sentence"].includes(String(interaction.interaction_type || ""))
+                    if (interaction.interaction_type !== questionMode.interactionType
+                        || !["picture_qa", "picture_gap_sentence"].includes(String(interaction.interaction_type || ""))
                         || !String(interaction.prompt_text || "").trim() || !String(interaction.answer_text || "").trim()
                         || accepted.some((value: unknown) => !String(value || "").trim())
                         || visual?.status !== "ready" || Number(visual?.book_id) !== Number(questionSet.book_id)
@@ -3010,7 +3027,7 @@ Deno.serve(async (req: Request) => {
                     }
                     return false;
                 });
-                if (invalidQuestion) return json(409, { error: "逐頁草稿尚未完成：純文字問答需要完整問句、簡易回答與示範回答但不需要音檔；完整句需要示範語音；看圖題需要完整問答、私人圖片與替代文字；補句還需要停頓整句語音" });
+                if (invalidQuestion) return json(409, { error: "逐頁草稿尚未完成：純文字問答需要完整問句、簡易回答與示範回答但不需要音檔；中翻英需要中文題目與完整英文翻譯；完整句需要示範語音；看圖題需要完整問答、私人圖片與替代文字；補句還需要停頓整句語音" });
             }
             const pictureMode = metadata?.interaction_type === "picture_qa"
                 || metadata?.interaction_type === "picture_gap_sentence";

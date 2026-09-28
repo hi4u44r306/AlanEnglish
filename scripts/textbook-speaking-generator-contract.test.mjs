@@ -150,8 +150,8 @@ test("3c. 無圖片文字問答依題目線索限制性別，未指定時保留�
     assert.match(manager, /extractNumberedTextQaPairs/);
     assert.match(manager, /textQaPromptIsComplete\(normalized\.question_text\)/);
     assert.match(manager, /textQaQuestionContentValid/);
-    assert.match(manager, /questionUpdate = interactionType === TEXT_QA_INTERACTION_TYPE\s*\? \{ \.\.\.normalized, visual_aid: \{\} \}/);
-    assert.doesNotMatch(manager, /questionUpdate = interactionType === TEXT_QA_INTERACTION_TYPE\s*\? \{ \.\.\.normalized, visual_aid: null \}/);
+    assert.match(manager, /questionUpdate = questionMode\.interactionType === TEXT_QA_INTERACTION_TYPE\s*\? \{ \.\.\.normalized, visual_aid: \{\} \}/);
+    assert.doesNotMatch(manager, /questionUpdate = questionMode\.interactionType === TEXT_QA_INTERACTION_TYPE\s*\? \{ \.\.\.normalized, visual_aid: null \}/);
     assert.match(manager, /exact_full_response_with_reviewed_alternatives/);
     assert.match(manager, /reviewed_full_response_with_variable_slots/);
     assert.match(manager, /ignoredSourcePageLabel/);
@@ -529,12 +529,14 @@ test("26. 管理員可用任意教材頁碼建立人工草稿並由空格規則�
     assert.match(adminPage, /ManualSpeakingDraftAdmin/);
 });
 
-test("26.1 同一頁文字草稿可逐題保留英文問答、中翻英與文法提示模式", () => {
+test("26.1 同一頁草稿可逐題保留混合題型、英文問答、中翻英與文法提示模式", () => {
     assert.match(manager, /prompt_modes_by_sort_order: textPromptModes/);
+    assert.match(manager, /question_modes: questions\.map/);
     assert.match(manager, /manual_builder_version: 3/);
-    assert.match(manager, /questionPromptMode\(metadata, question\.sort_order\)/);
+    assert.match(manager, /pageQuestionMode\(metadata, question(?:, interaction)?\)/);
     assert.match(manager, /promptMode === "grammar_cue"/);
     assert.match(manager, /grammarCuePromptIsComplete/);
+    assert.match(ttsManager, /\[2, 3\]\.includes\(questionSet\?\.generation_metadata\?\.manual_builder_version\)/);
     assert.doesNotMatch(manager, /new Set\(promptModes\)\.size !== 1/);
     assert.match(adminPage, /BatchSpeakingDraftAdmin/);
 });
