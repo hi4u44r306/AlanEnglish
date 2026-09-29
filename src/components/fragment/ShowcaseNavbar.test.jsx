@@ -18,20 +18,22 @@ beforeEach(() => {
 });
 
 describe("ShowcaseNavbar navigation", () => {
-    it("links the public navigation to the physical-material store", () => {
+    it("keeps purchase and membership destinations out of the public navigation", () => {
         render(
             <MemoryRouter>
-                <ShowcaseNavbar nav1="#features" nav2="#learning" nav3="#plans" nav4="#faq" />
+                <ShowcaseNavbar nav1="#features" nav2="#learning" nav4="#faq" />
             </MemoryRouter>
         );
 
-        expect(screen.getByRole("link", { name: /教材商城/ })).toHaveAttribute("href", "/shop");
+        expect(screen.queryByRole("link", { name: /教材商城/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /會員方案/ })).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: /常見問題/ })).toHaveAttribute("href", "#faq");
     });
 
     it("keeps login directly available when the navigation collapses", () => {
         render(
             <MemoryRouter>
-                <ShowcaseNavbar nav1="#features" nav2="#learning" nav3="#plans" nav4="#faq" />
+                <ShowcaseNavbar nav1="#features" nav2="#learning" nav4="#faq" />
             </MemoryRouter>
         );
 
@@ -47,7 +49,7 @@ describe("ShowcaseNavbar navigation", () => {
                 <Routes>
                     <Route
                         path="/"
-                        element={<ShowcaseNavbar nav1="#features" nav2="#learning" nav3="#plans" nav4="#faq" />}
+                        element={<ShowcaseNavbar nav1="#features" nav2="#learning" nav4="#faq" />}
                     />
                     <Route path="/login" element={<p>登入頁</p>} />
                 </Routes>
