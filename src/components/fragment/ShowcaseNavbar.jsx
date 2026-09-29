@@ -28,8 +28,8 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
 
     const navItems = [
         { label: "功能特色", hint: "孩子每天會使用的核心功能", href: nav1 },
-        { label: "學習方式", hint: "從試用、教材到持續練習", href: nav2 },
-        { label: "常見問題", hint: "試用與裝置使用說明", href: nav4 }
+        { label: "學習方式", hint: "英文班與課後自主練習", href: nav2 },
+        { label: "常見問題", hint: "年齡與裝置使用說明", href: nav4 }
     ];
 
     const closeMobileMenu = () => setMobileOpen(false);
@@ -96,9 +96,9 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
 
                     <Offcanvas.Body onClickCapture={handleMobileNavigation}>
                         <div className="showcase-mobile-intro">
-                            <span>7-DAY GUIDED TRIAL</span>
-                            <strong>先讓孩子找到每天願意持續的學習節奏。</strong>
-                            <p>不需信用卡，也不會自動扣款。</p>
+                            <span>LEARNING THAT CONTINUES</span>
+                            <strong>讓孩子把每天的小練習，累積成真正的英文能力。</strong>
+                            <p>教材、作業、AI 練習與學習紀錄集中在同一個平台。</p>
                         </div>
 
                         <Nav className="showcase-navbar-links ms-auto">
@@ -123,10 +123,6 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
                             <Link className="showcase-navbar-login" to="/login" onClick={closeMobileMenu}>
                                 <BiLogIn />
                                 登入
-                            </Link>
-                            <Link className="showcase-navbar-trial" to="/freetrial" onClick={closeMobileMenu}>
-                                免費試用 7 天
-                                <BiChevronRight />
                             </Link>
                         </div>
                     </Offcanvas.Body>

@@ -278,7 +278,6 @@ function Login() {
                             <nav aria-label="登入協助">
                                 <Link to="/academy/student-setup">掃描登入卡啟用</Link>
                                 <Link to="/academy/recover">使用登入卡復原碼</Link>
-                                <Link to="/freetrial">註冊／輸入教材兌換碼</Link>
                                 <Link to="/support">聯絡客服</Link>
                             </nav>
                         </details>

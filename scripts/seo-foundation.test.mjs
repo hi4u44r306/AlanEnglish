@@ -35,8 +35,11 @@ test("舊首頁路由使用 301，SPA fallback 保持最後一條", async () => 
 
     assert.ok(parsedRules.some(rule => rule[0] === "/home" && rule[1] === "/" && rule[2] === "301"));
     assert.ok(parsedRules.some(rule => rule[0] === "/showcase" && rule[1] === "/" && rule[2] === "301"));
-    for (const route of ["links", "shop", "materials"]) {
+    for (const route of ["links"]) {
         assert.ok(parsedRules.some(rule => rule[0] === `/${route}` && rule[1] === `/seo-${route}.html` && rule[2] === "200"));
+    }
+    for (const route of ["freetrial", "shop", "materials"]) {
+        assert.ok(parsedRules.some(rule => rule[0] === `/${route}` && rule[1] === "/" && rule[2] === "302"));
     }
     assert.deepEqual(parsedRules.at(-1), ["/*", "/noindex.html", "200"]);
 });
@@ -49,7 +52,7 @@ test("登入、付款、會員後台與未知路由共用靜態 noindex HTML", a
     assert.equal((html.match(/rel="canonical"/g) || []).length, 0);
 });
 
-test("sitemap 只列出目前四個可索引公開頁", async () => {
+test("sitemap 只列出目前可索引的介紹與教材連結頁", async () => {
     const sitemap = await readFile(path.join(projectRoot, "public", "sitemap.xml"), "utf8");
     const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
 

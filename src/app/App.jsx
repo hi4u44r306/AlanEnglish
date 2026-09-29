@@ -18,7 +18,6 @@ import AddMusic from "../components/Pages/AddMusicV3";
 import NotFound from "../components/Pages/NotFound";
 import AccountManagement from "../components/Pages/AccountManagement";
 import AcademyStudentCsvImport from "../components/Pages/AcademyStudentCsvImport";
-import FreeTrialSignup from "../components/Pages/FreeTrialSignup";
 import BillingResult from "../components/Pages/BillingResult";
 import LearningLeaderboard from "../components/Pages/LearningLeaderboard";
 import RewardsAdmin from "../components/Pages/RewardsAdmin";
@@ -33,9 +32,7 @@ import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
 import StudentOnboarding from "../components/Pages/StudentOnboarding";
 import StudentNotifications from "../components/Pages/StudentNotifications";
-import MaterialCatalog from "../components/Pages/MaterialCatalog";
 import StudentFriends from "../components/Pages/StudentFriends";
-import StoreCatalog from "../components/Pages/StoreCatalog";
 import StoreSalesPaused from "../components/Pages/StoreSalesPaused";
 import { PUBLIC_MATERIAL_SALES_ENABLED } from "../constants/commerceAvailability";
 import StoreAuthPage from "../components/Pages/StoreAuthPage";
@@ -153,9 +150,9 @@ const App = () => {
                     <Route path="/academy/recover" element={<AcademyStudentSetup recoveryOnly />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/" replace />} />
-                    <Route path="/freetrial" element={<FreeTrialSignup />} />
-                    <Route path="/materials" element={<MaterialCatalog />} />
-                    <Route path="/shop" element={<StoreCatalog />} />
+                    <Route path="/freetrial" element={<Navigate to="/" replace />} />
+                    <Route path="/materials" element={<Navigate to="/" replace />} />
+                    <Route path="/shop" element={<Navigate to="/" replace />} />
                     <Route path="/shop/cart" element={PUBLIC_MATERIAL_SALES_ENABLED ? <StoreCart /> : <StoreSalesPaused />} />
                     <Route path="/shop/login" element={<StoreAuthPage />} />
                     <Route path="/shop/register" element={<StoreAuthPage register />} />

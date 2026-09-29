@@ -22,10 +22,11 @@ test("商城與聽力平台使用互不覆蓋的登入 session", () => {
     assert.match(store, /X-Alan-Firebase-Token/);
 });
 
-test("商品公開瀏覽，結帳與訂單路由使用商城登入", () => {
-    assert.match(routes, /path="\/shop" element=\{<StoreCatalog \/>\}/);
-    assert.match(routes, /path="\/materials" element=\{<MaterialCatalog \/>\}/);
-    assert.match(routes, /path="\/shop\/checkout" element=\{<StoreCheckout \/>\}/);
+test("公開商城入口暫停，既有結帳與訂單路由維持", () => {
+    assert.match(routes, /path="\/shop" element=\{<Navigate to="\/" replace \/>\}/);
+    assert.match(routes, /path="\/materials" element=\{<Navigate to="\/" replace \/>\}/);
+    assert.match(routes, /path="\/freetrial" element=\{<Navigate to="\/" replace \/>\}/);
+    assert.match(routes, /path="\/shop\/checkout" element=\{PUBLIC_MATERIAL_SALES_ENABLED \? <StoreCheckout \/> : <StoreSalesPaused \/>\}/);
     assert.match(routes, /path="\/shop\/orders\/:orderNumber" element=\{<StoreOrders \/>\}/);
     assert.match(routes, /path="\/admin\/store-orders".*allowedRoles=\{\["admin"\]\}/);
     assert.doesNotMatch(catalog, /useAuth|firebaseUser/);

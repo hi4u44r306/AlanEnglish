@@ -27,6 +27,7 @@ describe("ShowcaseNavbar navigation", () => {
 
         expect(screen.queryByRole("link", { name: /教材商城/ })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: /會員方案/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /免費試用/ })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: /常見問題/ })).toHaveAttribute("href", "#faq");
     });
 
