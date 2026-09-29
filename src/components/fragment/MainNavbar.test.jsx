@@ -17,13 +17,11 @@ jest.mock("../../services/gamificationService", () => ({ getGamificationSummary:
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
 jest.mock("../../services/reviewService", () => ({ prefetchReviewDashboard: jest.fn() }));
 const mockOffcanvasRender = jest.fn();
-let mockOffcanvasExited;
 jest.mock("../../services/studentSocialService", () => ({ sendSocialHeartbeat: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
-    const Offcanvas = ({ show, children, id, onExited, placement }) => {
+    const Offcanvas = ({ show, children, id, placement }) => {
         mockOffcanvasRender({ show, placement });
-        mockOffcanvasExited = onExited;
         return show ? ReactModule.createElement("aside", { id, "data-placement": placement }, children) : null;
     };
     Offcanvas.Header = ({ children }) => ReactModule.createElement("header", null, children);
@@ -49,7 +47,6 @@ const PersistentTestLayout = () => (
 describe("MainNavbar student navigation", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockOffcanvasExited = undefined;
         localStorage.clear();
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-test" },
@@ -330,10 +327,10 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(within(mobileDrawer).getByLabelText("切換課本，1 本教材"));
         fireEvent.click(within(mobileDrawer).getByRole("link", { name: "Basic Reading 聽力檔案" }));
 
-        await waitFor(() => expect(screen.queryByRole("complementary")).not.toBeInTheDocument());
-        act(() => mockOffcanvasExited());
-
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/basic-reading");
+        await waitFor(() => {
+            expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+            expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/basic-reading");
+        });
     });
 
     it("shows the AI Premium title only for an active AI add-on", async () => {
