@@ -48,8 +48,8 @@ const features = [
 ];
 
 const learningSteps = [
-    { number: "01", title: "開始 7 天試用", text: "不需信用卡，先熟悉教材、聽力與 AI 練習流程。" },
-    { number: "02", title: "完成每天的小目標", text: "從教材音檔、老師作業或智慧複習開始，不必一次做很多。" },
+    { number: "01", title: "找到今天的教材", text: "從老師安排的教材、班級作業或個人練習開始。" },
+    { number: "02", title: "完成每天的小目標", text: "聆聽、作答與口說練習都能分成短時間完成。" },
     { number: "03", title: "累積真實學習紀錄", text: "有效聆聽、答題與作業完成狀態會跟著帳號保存。" },
     { number: "04", title: "看見下一步", text: "透過排行榜、每週報告與老師安排，知道接下來該加強什麼。" }
 ];
@@ -57,11 +57,7 @@ const learningSteps = [
 const faqs = [
     {
         question: "Alan English 適合什麼年齡？",
-        answer: "平台主要為國小學生設計，教材依 E1、E3、E5、E7 不同英文程度安排。家長可以先使用 7 天免費試用，再決定是否適合孩子。"
-    },
-    {
-        question: "免費試用需要先付款或綁信用卡嗎？",
-        answer: "不需要。完成 Email 驗證後即可開始 7 天免費試用，可生成 AI 教材共 7 次、每天最多 2 次；試用結束後也不會自動扣款。"
+        answer: "平台主要為國小學生設計，教材依 E1、E3、E5、E7 不同英文程度安排，老師也會依學生實際程度調整班級與學習內容。"
     },
     {
         question: "手機和平板可以使用嗎？",
@@ -99,16 +95,13 @@ const Showcase = () => {
                                 每一次有效聆聽、答題與通關都留下紀錄，讓孩子知道下一步，也讓家長與老師看見真正完成的內容。
                             </p>
                             <div className="showcase-hero-actions">
-                                <Link className="showcase-primary-btn" to="/freetrial">
-                                    免費試用 7 天
+                                <a className="showcase-primary-btn" href="#features">
+                                    看看平台特色
                                     <BiChevronRight />
-                                </Link>
-                                <a className="showcase-secondary-btn" href="#product-preview">
-                                    看看如何學習
                                 </a>
                             </div>
                             <div className="showcase-trust-row">
-                                <span><BiShieldQuarter /> 不需信用卡</span>
+                                <span><BiShieldQuarter /> 教材與練習集中管理</span>
                                 <span><BiTimeFive /> 每天短時間練習</span>
                                 <span><BiTrendingUp /> 進度自動保存</span>
                             </div>
@@ -258,15 +251,15 @@ const Showcase = () => {
                             <article className="showcase-path-card self-study">
                                 <div className="showcase-path-label">SELF-PACED LEARNING</div>
                                 <div className="showcase-path-icon"><BiBookOpen /></div>
-                                <h3>自主學習</h3>
-                                <p>先使用 7 天免費試用，依孩子的時間安排短時間聽力與 AI 練習，找到每天願意持續的節奏。</p>
+                                <h3>課後自主複習</h3>
+                                <p>依孩子的時間安排短時間聽力、答題與口說練習，把課堂內容延伸成每天都能持續的小目標。</p>
                                 <ul>
-                                    <li><span>✓</span> 7 天引導式試用內容</li>
+                                    <li><span>✓</span> 教材音檔與練習集中管理</li>
                                     <li><span>✓</span> 每天短時間自主練習</li>
                                     <li><span>✓</span> 進度與練習紀錄自動保存</li>
-                                    <li><span>✓</span> 自主學習，不會收到英文班作業</li>
+                                    <li><span>✓</span> 依學習結果回到需要加強的內容</li>
                                 </ul>
-                                <Link to="/freetrial">先免費體驗 <BiChevronRight /></Link>
+                                <a href="#product-preview">了解學習功能 <BiChevronRight /></a>
                             </article>
                         </div>
                     </div>
@@ -311,7 +304,7 @@ const Showcase = () => {
                         <div className="showcase-section-heading">
                             <span className="showcase-kicker">QUESTIONS & ANSWERS</span>
                             <h2>家長最常問的問題。</h2>
-                            <p>如果還有其他問題，可以先免費試用，再決定是否適合孩子。</p>
+                            <p>了解適用年齡、學習方式與支援的裝置。</p>
                             <Link className="showcase-secondary-btn" to="/login">已有帳號，前往登入</Link>
                         </div>
                         <div className="showcase-faq-list">
@@ -329,12 +322,11 @@ const Showcase = () => {
                     <div className="showcase-shell showcase-cta-card">
                         <div>
                             <span className="showcase-kicker">START TODAY</span>
-                            <h2>今天，就從第一段英文聽力開始。</h2>
-                            <p>先免費體驗 7 天，陪孩子找到每天願意持續的英文學習節奏。</p>
+                            <h2>每天一小步，累積真正看得見的英文進步。</h2>
+                            <p>已有帳號的學生，可以回到學習平台繼續今天的教材、作業與複習。</p>
                         </div>
                         <div className="showcase-cta-actions">
-                            <Link className="showcase-primary-btn" to="/freetrial">免費試用 7 天 <BiChevronRight /></Link>
-                            <Link className="showcase-secondary-btn" to="/login">學生登入</Link>
+                            <Link className="showcase-primary-btn" to="/login">學生登入 <BiChevronRight /></Link>
                         </div>
                     </div>
                 </section>
@@ -343,7 +335,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
+                    <div className="showcase-footer-links"><Link to="/login">登入</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>

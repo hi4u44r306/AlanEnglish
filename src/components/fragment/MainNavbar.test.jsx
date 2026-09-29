@@ -110,6 +110,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "帳號" })).toBeInTheDocument();
+        expect(within(mobileMenu).queryByRole("link", { name: "實體教材商城" })).not.toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
     });

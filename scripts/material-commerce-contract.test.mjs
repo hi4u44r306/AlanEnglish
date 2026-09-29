@@ -149,8 +149,8 @@ test("18. 逐字稿依教材權限限制且預設關閉", () => {
     assert.match(player, /hasTranscript && transcriptMode !== "none"/);
 });
 
-test("19. 學生、老師、管理員直接路由存取均正確", () => {
-    assert.match(routes, /path="\/materials"/);
+test("19. 公開教材入口暫停，老師與管理員路由仍可直接存取", () => {
+    assert.match(routes, /path="\/materials" element=\{<Navigate to="\/" replace \/>\}/);
     assert.match(routes, /path="\/teacher\/class-materials".*allowedRoles=\{\["teacher", "admin"\]\}/);
     assert.match(routes, /path="\/admin\/material-packages".*allowedRoles=\{\["admin"\]\}/);
     assert.match(routes, /path="\/admin\/student-lifecycle".*allowedRoles=\{\["admin"\]\}/);

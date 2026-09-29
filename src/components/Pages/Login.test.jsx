@@ -49,7 +49,7 @@ describe("Login", () => {
         fireEvent.click(screen.getByText("第一次使用或需要協助？"));
         expect(screen.getByRole("link", { name: "掃描登入卡啟用" })).toBeVisible();
         expect(screen.getByRole("link", { name: "使用登入卡復原碼" })).toBeVisible();
-        expect(screen.getByRole("link", { name: "註冊／輸入教材兌換碼" })).toBeVisible();
+        expect(screen.queryByRole("link", { name: "註冊／輸入教材兌換碼" })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: "聯絡客服" })).toBeVisible();
     });
 

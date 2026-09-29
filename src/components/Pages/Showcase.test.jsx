@@ -17,7 +17,7 @@ describe("Showcase", () => {
         expect(screen.getByText("10×")).toBeInTheDocument();
     });
 
-    it("does not advertise plans, add-ons, pricing, or the material store", () => {
+    it("presents a product introduction without trial, plan, add-on, or store promotion", () => {
         render(<MemoryRouter><Showcase /></MemoryRouter>);
 
         expect(screen.queryByText("CHOOSE YOUR PLAN")).not.toBeInTheDocument();
@@ -26,7 +26,9 @@ describe("Showcase", () => {
         expect(screen.queryByRole("link", { name: "教材商城" })).not.toBeInTheDocument();
         expect(screen.queryByText("現在可以購買實體教材嗎？")).not.toBeInTheDocument();
         expect(screen.queryByText("平台方案與 AI 加購的價格是多少？")).not.toBeInTheDocument();
+        expect(screen.queryByText(/免費試用|7 天試用|7 天免費試用/)).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /免費試用|免費體驗/ })).not.toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "AI 口說大挑戰" })).toBeInTheDocument();
-        expect(screen.getAllByRole("link", { name: /免費試用 7 天/ }).length).toBeGreaterThan(0);
+        expect(screen.getByRole("link", { name: /學生登入/ })).toHaveAttribute("href", "/login");
     });
 });
