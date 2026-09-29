@@ -2,6 +2,17 @@
 
 最後更新：2026-09-28
 
+本次公開 Basic Reading 400～1200 播放清單（2026-09-29，正式資產已上傳，程式尚未部署）：
+
+- 分支 `codex/public-basic-reading` 新增公開 `/basic-reading` 路由，規劃由 `/links` 的固定「Basic Reading 400～1200」站內按鈕進入；不改動既有 Special／Discovery 後台資料或學生登入教材權限。
+- 已唯讀盤點 `D:\彬的檔案\AlanEnglish 檔案\Basic Reading 400~1200`：共 9 冊、399 支 MP3、470,711,107 bytes；`br400_1～3` 各 51 軌、`br800_1～3` 各 49 軌、`br1200_1～3` 各 33 軌，皆為連續 Track 編號且無缺號／重號。部分來源使用 `Track01.mp3`、部分使用 `Track1.mp3`；上傳時統一為不補零的 R2 key。另有 1 個 6,148 bytes 的 `_DS_Store` 不屬於音檔且不會上傳；原始檔未搬動、覆蓋或刪除。
+- 公開頁可切換 400／800／1200 與第 1～3 冊，以內容寬度顯示 Track 按鈕並保留 44px 觸控高度；底部播放器支援上一首、下一首、播放完自動前進、手機 safe area 與不登入使用。此公開播放不寫入學生聆聽次數、XP、AE Points 或作業進度。
+- Cloudflare Worker 僅接受固定 9 冊與冊內合法 Track 編號，以 60 分鐘 HMAC 權杖讀取私人 R2 `basic-reading/` 前綴，GET／HEAD 保留 Range、ETag 與 `206 Partial Content`；其他網站路由仍交由既有靜態資產處理。60 分鐘效期由專案擁有者於 2026-09-29 核准，避免學生暫停、鎖屏或稍後續播時因新 Range 請求中斷；權杖仍只對單一冊別有效。Worker 單元測試增為 6/6。
+- 本機驗證完成：React 2 suites／3 tests、Production build、`git diff --check` 與 Wrangler dry-run 均成功；1440×900 與 412×915 實測皆無水平溢位，Track 按鈕及 Links 入口保留至少 44px 觸控高度，播放器未超出視窗。
+- 功能 commit `2062411e` 已推送並建立 PR #335；PR 可合併但尚未合併。GitHub 顯示的舊 Netlify deploy-preview 為 `skipped=true`，沒有執行 Netlify build，與目前 Cloudflare 正式發布流程及本次成功的本機 Production build 無關。
+- 專案擁有者已於 2026-09-29 授權本批正式環境操作。上傳前確認私人 R2 `basic-reading/` 前綴為 0 個物件；399 支 MP3 已使用「目標不得存在」原子條件上傳，遠端讀回確認 399 個 key、470,711,107 bytes、399 筆 SHA-256 metadata 全部吻合。原始桌面檔案與 `_DS_Store` 未修改或刪除。
+- Cloudflare 已建立未部署版本 `50756459-6b5e-454a-8632-b54fae431103`，只新增 `BASIC_READING_SIGNING_KEY` Secret；操作前後 production deployment 均維持 `526ade86-3057-4007-b5a9-b6e1b166012f`／100% version `4891de89-435d-4e3f-bc1e-64185247955f`，沒有提前發布功能分支。尚未完成：合併 PR #335、從最新 `main` 部署正式站及正式網址真實播放／Range Request 驗收。
+
 本次公開 Links 教材入口緊湊化（2026-09-28，已正式部署）：
 
 - `/links` 公開頁不再顯示 Special 與 Discovery 分組，只保留習作本、聽力本及 Speed Phonics；沒有刪除後台資料或修改管理員分類，現有連結仍可保留供後續整理。
