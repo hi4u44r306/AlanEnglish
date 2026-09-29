@@ -1,4 +1,4 @@
-const TOKEN_TTL_SECONDS = 15 * 60;
+const TOKEN_TTL_SECONDS = 60 * 60;
 const TOKEN_FUTURE_TOLERANCE_SECONDS = 30;
 const R2_PREFIX = "basic-reading";
 

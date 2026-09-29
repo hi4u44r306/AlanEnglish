@@ -43,6 +43,15 @@ test("catalog exposes exactly 9 books and 399 tracks", async () => {
     assert.equal(BASIC_READING_COLLECTIONS.reduce((sum, item) => sum + item.trackCount, 0), 399);
 });
 
+test("collection access tokens last one hour", async () => {
+    const before = Math.floor(Date.now() / 1000);
+    const access = await issueToken(createEnv());
+    const after = Math.floor(Date.now() / 1000);
+
+    assert.ok(access.expires >= before + 3600);
+    assert.ok(access.expires <= after + 3600);
+});
+
 test("valid short-lived access serves an R2 byte range", async () => {
     const env = createEnv();
     const access = await issueToken(env);

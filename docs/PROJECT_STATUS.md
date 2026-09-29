@@ -7,7 +7,7 @@
 - 分支 `codex/public-basic-reading` 新增公開 `/basic-reading` 路由，規劃由 `/links` 的固定「Basic Reading 400～1200」站內按鈕進入；不改動既有 Special／Discovery 後台資料或學生登入教材權限。
 - 已唯讀盤點 `D:\彬的檔案\AlanEnglish 檔案\Basic Reading 400~1200`：共 9 冊、399 支 MP3、470,717,255 bytes；`br400_1～3` 各 51 軌、`br800_1～3` 各 49 軌、`br1200_1～3` 各 33 軌，皆為連續 `Track1.mp3` 起始且無缺號／重號，原始檔未搬動、覆蓋或刪除。
 - 公開頁可切換 400／800／1200 與第 1～3 冊，以內容寬度顯示 Track 按鈕並保留 44px 觸控高度；底部播放器支援上一首、下一首、播放完自動前進、手機 safe area 與不登入使用。此公開播放不寫入學生聆聽次數、XP、AE Points 或作業進度。
-- Cloudflare Worker 僅接受固定 9 冊與冊內合法 Track 編號，以 15 分鐘 HMAC 權杖讀取私人 R2 `basic-reading/` 前綴，GET／HEAD 保留 Range、ETag 與 `206 Partial Content`；其他網站路由仍交由既有靜態資產處理。Worker 單元測試 5/5 通過。
+- Cloudflare Worker 僅接受固定 9 冊與冊內合法 Track 編號，以 60 分鐘 HMAC 權杖讀取私人 R2 `basic-reading/` 前綴，GET／HEAD 保留 Range、ETag 與 `206 Partial Content`；其他網站路由仍交由既有靜態資產處理。60 分鐘效期由專案擁有者於 2026-09-29 核准，避免學生暫停、鎖屏或稍後續播時因新 Range 請求中斷；權杖仍只對單一冊別有效。Worker 單元測試增為 6/6。
 - 本機驗證完成：React 2 suites／3 tests、Production build、`git diff --check` 與 Wrangler dry-run 均成功；1440×900 與 412×915 實測皆無水平溢位，Track 按鈕及 Links 入口保留至少 44px 觸控高度，播放器未超出視窗。
 - 功能 commit `2062411e` 已推送並建立 PR #335；PR 可合併但尚未合併。GitHub 顯示的舊 Netlify deploy-preview 為 `skipped=true`，沒有執行 Netlify build，與目前 Cloudflare 正式發布流程及本次成功的本機 Production build 無關。
 - 尚未完成：Cloudflare R2 Secret、399 支音檔上傳、正式部署及正式網址的真實播放／Range Request 驗收。R2 binding 已在設定檔與 dry-run 正確辨識，但正式 Cloudflare Secret、上傳及 Worker 發布須取得本批明確授權後才執行。
