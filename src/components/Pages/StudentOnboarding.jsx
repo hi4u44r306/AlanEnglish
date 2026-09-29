@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
-import { FiCheck, FiLock, FiMail, FiShield } from "react-icons/fi";
+import { FiBell, FiCheck, FiLock, FiMail, FiShield } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
 import {
     confirmGuardianEmailVerification,
@@ -9,6 +9,12 @@ import {
     updateStudentProfile
 } from "../../services/membershipService";
 import { markAcademyPasswordChanged } from "../../services/academyStudentService";
+import {
+    enableWebPush,
+    getCurrentWebPushStatus,
+    getWebPushAvailability,
+    getWebPushConfig
+} from "../../services/webPushService";
 import BirthdaySelect from "../fragment/BirthdaySelect";
 import "./css/StudentOnboarding.scss";
 
@@ -43,6 +49,15 @@ function StudentOnboarding() {
     const [verification, setVerification] = useState({ requestId: null, maskedEmail: "", code: "" });
     const [working, setWorking] = useState("");
     const [message, setMessage] = useState({ type: "", text: "" });
+    const [shouldOfferPush] = useState(() => (
+        location.state?.firstLogin === true || studentProfile?.onboarding?.required === true
+    ));
+    const [pushConfig, setPushConfig] = useState(null);
+    const [pushStatus, setPushStatus] = useState(() => ({
+        ...getWebPushAvailability(),
+        active: false
+    }));
+    const [pushDecisionMade, setPushDecisionMade] = useState(false);
 
     const completedCount = [
         steps.password_complete,
@@ -56,13 +71,61 @@ function StudentOnboarding() {
     }, [studentProfile?.date_of_birth, studentProfile?.guardian?.email]);
 
     useEffect(() => {
-        if (studentProfile?.onboarding?.required !== false || completedCount < 3) return;
+        if (!shouldOfferPush || !firebaseUser) return undefined;
+        let cancelled = false;
+        const availability = getWebPushAvailability();
+        setPushStatus({ ...availability, active: false });
+        getWebPushConfig(firebaseUser).then(async config => {
+            if (cancelled) return;
+            setPushConfig(config);
+            if (availability.supported && config?.enabled) {
+                const status = await getCurrentWebPushStatus(firebaseUser);
+                if (!cancelled) {
+                    setPushStatus(status);
+                    if (status.active) setPushDecisionMade(true);
+                }
+            }
+        }).catch(() => {
+            if (!cancelled) setPushConfig({ enabled: false });
+        });
+        return () => { cancelled = true; };
+    }, [firebaseUser, shouldOfferPush]);
+
+    useEffect(() => {
+        if (
+            studentProfile?.onboarding?.required !== false
+            || completedCount < 3
+            || (shouldOfferPush && !pushDecisionMade)
+        ) return;
         const requested = location.state?.from;
         const destination = requested?.pathname?.startsWith("/student/")
             ? `${requested.pathname}${requested.search || ""}`
             : "/student/leaderboard";
         navigate(destination, { replace: true });
-    }, [completedCount, location.state, navigate, studentProfile?.onboarding?.required]);
+    }, [completedCount, location.state, navigate, pushDecisionMade, shouldOfferPush, studentProfile?.onboarding?.required]);
+
+    const enableNotifications = async () => {
+        if (!firebaseUser || working || !pushConfig?.enabled) return;
+        setWorking("push");
+        setMessage({ type: "", text: "" });
+        try {
+            await enableWebPush(firebaseUser, pushConfig.public_key);
+            const status = await getCurrentWebPushStatus(firebaseUser);
+            setPushStatus(status);
+            setPushDecisionMade(true);
+            setMessage({ type: "success", text: "此裝置已開啟通知。完成必要資料後就會進入學生首頁。" });
+        } catch (error) {
+            setPushStatus(getWebPushAvailability());
+            setMessage({ type: "error", text: error?.message || "目前無法開啟通知，你可以稍後再設定。" });
+        } finally {
+            setWorking("");
+        }
+    };
+
+    const skipNotifications = () => {
+        setPushDecisionMade(true);
+        setMessage({ type: "success", text: "已略過裝置通知。之後可隨時到「我的設定」開啟。" });
+    };
 
     const changePassword = async event => {
         event.preventDefault();
@@ -228,6 +291,36 @@ function StudentOnboarding() {
                         </form>
                     )}
                 </article>
+
+                {shouldOfferPush && (
+                    <article className={`student-onboarding-card student-onboarding-push ${pushStatus?.active ? "complete" : ""}`}>
+                        <header>
+                            <div><FiBell /><span>可選設定</span><h2>開啟網頁通知</h2></div>
+                            <span className={`student-onboarding-status ${pushStatus?.active ? "complete" : ""}`}>
+                                {pushStatus?.active ? <><FiCheck />已開啟</> : "可稍後設定"}
+                            </span>
+                        </header>
+                        <p>開啟後，此裝置可收到新作業與教材期限提醒。這不是必填資料，不開啟也能正常使用網站。</p>
+                        <small>{pushStatus?.reason || (pushConfig?.enabled === false
+                            ? "推播服務目前未開放；網站內通知仍可正常使用。"
+                            : "iPhone／iPad 需先用 Safari 將網站加入主畫面，再從主畫面圖示開啟。")}</small>
+                        {!pushStatus?.active && !pushDecisionMade && (
+                            <div className="student-onboarding-push-actions">
+                                <button
+                                    type="button"
+                                    onClick={enableNotifications}
+                                    disabled={working === "push" || !pushConfig?.enabled || !pushStatus?.supported}
+                                >
+                                    {working === "push" ? "設定中…" : "開啟此裝置通知"}
+                                </button>
+                                <button type="button" className="secondary" onClick={skipNotifications} disabled={Boolean(working)}>
+                                    稍後再說
+                                </button>
+                            </div>
+                        )}
+                        {pushDecisionMade && !pushStatus?.active && <p className="student-onboarding-push-skipped">已略過；之後可在「我的設定」開啟。</p>}
+                    </article>
+                )}
 
                 <button type="button" className="student-onboarding-logout" onClick={logout}>先登出，稍後再完成</button>
             </section>
