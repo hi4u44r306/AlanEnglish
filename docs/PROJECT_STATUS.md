@@ -78,6 +78,7 @@
 - 13 支檔案重新計算 SHA-256 均與核准 manifest 相符，合計 53,299,653 bytes；上傳至私人 R2 的版本化新 key 後全數讀回，13/13 的位元組大小與 SHA-256 完全一致。原始本機檔、原正式 R2 路徑與舊物件均保留，沒有刪除或覆蓋。
 - 正式 `music_tracks` 已在單一交易內切換：10 筆沿用既有 track ID，Workbook 1 P26／P84／P99 新增 track ID 992／993／994；P8、P9 的 Question／Answer 分拆音軌維持不變。交易前 dry run 曾因 `duration_seconds` 只保存兩位小數而安全回滾，修正精度後 dry run 與正式交易均通過 13/13 守門驗證。
 - 本批 migration 為 `20260929170000_publish_reviewed_workbook_audio.sql`，完整路徑、雜湊、舊值及回復方式見 `docs/workbook-audio-release-2026-09-29.md`。這次發布不代表其餘 175 支候選已完成人工內容核准；其他正式音檔未切換。
+- 正式資料發布後以 Chrome 已登入測試學生頁面連接正式 Supabase／私人 R2，逐支點播上述 13 支音檔；13/13 實際 `currentSrc` 均為 `releases/2026-09-29` 的核准雜湊路徑，`readyState=4`、時長與核准檔一致、`MediaError=null`，播放後可暫停且 Console 無 error。正式網域當時沒有登入 Session，因此登入介面驗收使用 localhost 前端；第一次 Workbook 1 P26 完整播放在 `test2` 留下 1 次有效聆聽，其他測試均低於 80% 完成門檻。
 
 本次公開 Basic Reading 400～1200 播放清單（2026-09-29，已正式部署並完成線上驗收）：
 
