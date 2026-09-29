@@ -249,7 +249,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
         expect(nodes).toHaveLength(3);
-        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["9.5%", "49.1%", "89%"]);
+        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["9.5%", "49.25%", "89%"]);
         expect(container.querySelectorAll(".speaking-map-biomes")).toHaveLength(0);
         expect(screen.getByLabelText("Workbook 1 口說大挑戰")).toBeInTheDocument();
         expect(container.querySelectorAll(".speaking-map-landscape")).toHaveLength(0);
@@ -327,7 +327,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("button", { name: /上一題|下一題|繼續挑戰/ })).not.toBeInTheDocument();
     });
 
-    it("教材第一層顯示彩色冒險卡、完成進度並可進入指定 Workbook", async () => {
+    it("教材第一層顯示精簡的冊別卡、完成進度並可進入指定 Workbook", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
             reward_policy: { xp: 30, ae_points: 3, basis: "first_completion_per_challenge", ae_points_eligible_students_only: true },
             challenges: [
@@ -350,8 +350,10 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(workbookOne).toHaveTextContent("繼續冒險");
         expect(workbookTwo).toHaveTextContent("開始冒險");
         expect(workbookThree).toHaveTextContent("開始冒險");
-        expect(workbookOne).toHaveTextContent("每關首次通關30 XP最多 3 AE Points");
-        expect(workbookTwo).toHaveTextContent("每關首次通關30 XP最多 3 AE Points");
+        expect(workbookOne).toHaveTextContent("共 2 關 · 已完成 1 關");
+        expect(workbookOne.querySelector(".speaking-book-card__chapter")).toHaveTextContent("01");
+        expect(workbookOne.querySelector(".speaking-book-card__art")).toBeNull();
+        expect(workbookOne.querySelector(".speaking-book-card__reward")).toBeNull();
 
         fireEvent.click(workbookTwo);
         expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-2");
@@ -397,7 +399,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByText("這是唯讀預覽，所有已發布關卡都可直接開啟。")).toBeInTheDocument();
+        expect(await screen.findByText("選擇 Workbook 預覽已發布關卡。")).toBeInTheDocument();
         expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
     });
 
@@ -519,7 +521,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         mockRole = "teacher";
         render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        expect(await screen.findByText("這是唯讀預覽，所有已發布關卡都可直接開啟。")).toBeInTheDocument();
+        expect(await screen.findByText("選擇 Workbook 預覽已發布關卡。")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /遊戲規則/ })).not.toBeInTheDocument();
     });
 

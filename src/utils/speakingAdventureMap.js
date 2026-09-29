@@ -1,24 +1,22 @@
-// These percentages are calibrated to the winding road in the single Workbook
-// world illustration. The same coordinate system scales with the image, so
-// the 25 live markers remain on the road at desktop and mobile widths.
-const TRAIL_LANDMARKS = [
-    [43.0, 9.50], [34.0, 12.80], [39.0, 16.10], [52.0, 19.40], [55.0, 22.70],
-    [60.0, 26.00], [43.0, 29.30], [45.0, 32.60], [55.0, 35.90], [57.0, 39.20],
-    [52.0, 42.50], [43.0, 45.80], [36.0, 49.10], [47.0, 52.40], [47.0, 55.70],
-    [51.0, 59.00], [49.0, 62.30], [43.0, 65.60], [46.0, 68.90], [48.0, 72.20],
-    [43.0, 75.50], [46.0, 78.80], [49.0, 82.10], [45.0, 85.40], [51.0, 89.00]
-];
+// The painted road is one continuous curve in both versions of the same map.
+// Record its centre in full-image percentages, then sample it at evenly spaced
+// heights. Keeping a single coordinate source prevents mobile markers drifting
+// away from the road when its centre crop changes with the screen width.
+const ROAD_CENTERLINE = [
+    44, 36, 41, 55, 62, 59, 39, 43, 68, 64,
+    39, 40, 39, 47, 39, 51, 52, 46, 50, 44,
+    43, 39, 53, 52, 39
+].map((x, index) => [x, 9.5 + index * 79.5 / 24]);
 
-const landmarkAt = progress => {
-    const position = progress * (TRAIL_LANDMARKS.length - 1);
-    const startIndex = Math.floor(position);
-    const endIndex = Math.min(TRAIL_LANDMARKS.length - 1, Math.ceil(position));
-    const ratio = position - startIndex;
-    const [startX, startY] = TRAIL_LANDMARKS[startIndex];
-    const [endX, endY] = TRAIL_LANDMARKS[endIndex];
+const roadPointAt = progress => {
+    const y = 9.5 + progress * 79.5;
+    const endIndex = ROAD_CENTERLINE.findIndex(([, roadY]) => roadY >= y);
+    const [startX, startY] = ROAD_CENTERLINE[Math.max(0, endIndex - 1)];
+    const [endX, endY] = ROAD_CENTERLINE[endIndex < 0 ? ROAD_CENTERLINE.length - 1 : endIndex];
+    const ratio = endY === startY ? 0 : (y - startY) / (endY - startY);
     return {
         x: Number((startX + (endX - startX) * ratio).toFixed(2)),
-        y: Number((startY + (endY - startY) * ratio).toFixed(2))
+        y: Number(y.toFixed(2))
     };
 };
 
@@ -26,7 +24,7 @@ export const buildSpeakingAdventureRoute = (_bookKey, items) => {
     const interval = items.length > 1 ? 1 / (items.length - 1) : 0;
     const nodes = items.map((item, index) => {
         const progress = index * interval;
-        const point = landmarkAt(progress);
+        const point = roadPointAt(progress);
         return {
             id: item.id,
             ...point,

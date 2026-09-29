@@ -85,22 +85,12 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
         onClick={onOpen}
         aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關${rewardLabel}`}
     >
-        <span className="speaking-book-card__art" aria-hidden="true">
-            <span className="speaking-book-card__route">
-                <i /><i /><i /><i />
-            </span>
-            <span className="speaking-book-card__route-caption">一路闖關冒險</span>
-        </span>
+        <span className="speaking-book-card__chapter" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <span className="speaking-book-card__content">
-            <small className="speaking-book-card__eyebrow">BOOK {index + 1} · SPEAKING ADVENTURE</small>
+            <small className="speaking-book-card__eyebrow">口說冒險 · 第 {index + 1} 冊</small>
             <strong>{group.label}</strong>
-            <span className="speaking-book-card__count"><FiMic aria-hidden="true" /> {group.itemCount} 個小關卡</span>
-            {hasRewardPolicy && <span className="speaking-book-card__reward">
-                <FiAward aria-hidden="true" />
-                <span><small>每關首次通關</small><strong>{rewardXp} XP</strong><b>最多 {rewardPoints} AE Points</b></span>
-            </span>}
+            <span className="speaking-book-card__count">共 {group.itemCount} 關 · 已完成 {completedCount} 關</span>
             <span className="speaking-book-card__progress">
-                <span><b>冒險進度</b><small>{completedCount} / {group.itemCount} 已完成</small></span>
                 <span
                     className="speaking-book-card__track"
                     role="progressbar"
@@ -110,8 +100,8 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
                     aria-valuenow={progressPercent}
                 ><span style={{ width: `${progressPercent}%` }} /></span>
             </span>
-            <span className="speaking-book-card__action">{actionLabel}<FiChevronRight aria-hidden="true" /></span>
         </span>
+        <span className="speaking-book-card__action">{actionLabel}<FiChevronRight aria-hidden="true" /></span>
     </button>;
 };
 
@@ -125,7 +115,7 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode
     const wideLabel = levelLabel.length >= 7;
     return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${wideLabel ? "is-wide-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
     <span className="speaking-challenge-lesson__number">{levelLabel}</span>
-    <span className="speaking-challenge-lesson__state" aria-hidden="true">{completed ? <FiCheck /> : locked ? <FiLock /> : null}</span>
+    <span className="speaking-challenge-lesson__state" aria-hidden="true">{completed ? <FiCheck /> : locked ? <span className="speaking-challenge-lesson__padlock" /> : null}</span>
     </button>;
 };
 
@@ -403,13 +393,7 @@ export default function TextbookSpeakingChallenge() {
                 <span className="speaking-challenge-hero__copy">
                     <span>{staffPreview ? "STAFF PREVIEW" : "SPEAKING ADVENTURE"}</span>
                     <h1>口說大挑戰</h1>
-                    <p>{staffPreview ? "這是唯讀預覽，所有已發布關卡都可直接開啟。" : "選一本教材，勇敢開口說英文！"}</p>
-                    <small>{staffPreview ? "選擇 Workbook 查看關卡內容" : "每完成一關，就離口說小達人更近一步。"}</small>
-                </span>
-                <span className="speaking-challenge-hero__art" aria-hidden="true">
-                    <span className="speaking-challenge-hero__bubble"><FiMic /> READY?</span>
-                    <span className="speaking-challenge-hero__book"><FiBookOpen /><b>ABC</b></span>
-                    <i>★</i><i>✦</i><i>●</i>
+                    <p>{staffPreview ? "選擇 Workbook 預覽已發布關卡。" : "選一本 Workbook，沿著地圖開始冒險。"}</p>
                 </span>
             </header>}
             {!staffPreview && !selectedBook && <ChallengeRules policy={challengePolicy} />}
