@@ -2,6 +2,14 @@
 
 最後更新：2026-09-29
 
+本次登入後 Basic Reading 分層教材與正式播放器接軌（2026-09-29，本機完成，尚未部署）：
+
+- 學生「我的教材」第一層直接顯示 Basic Reading；點入後以向左切換的三層流程依序選 400／800／1200、再選第 1～3 冊，最後進入 `/student/books/BasicReading_<level>_<book>` 的登入後 Playlist。手機教材抽屜改為全螢幕並保留 iPhone safe area，桌面使用較大的下拉面板；返回操作支援反向切換與 reduced-motion。
+- 學生端完全移除「聽力本」分類，既有 Listening 資料、R2 音檔、歷史播放與老師／管理員功能均未刪除或停用；舊課本入口也不再顯示。習作本維持原有正式 Playlist。
+- 新 additive migration 準備在既有 `textbook` 分類建立 9 本正式 Basic Reading 教材及 399 筆 `music_tracks`，路徑直接引用已驗證的私人 R2 `basic-reading/br<level>_<book>/Track<n>.mp3`。因此沿用現有登入驗證、60 分鐘預簽網址、Range、MusicPlayer、80% 有效聆聽、播放次數與獎勵流程，不另做簡易播放器或重複上傳音檔。
+- 正式資料唯讀前檢查確認 Basic Reading 目前為 0 本／0 軌，`book_categories` 仍有 `textbook`，九冊代碼不衝突；migration 具備 9 本／399 軌交易內驗證，失敗會整批 rollback。回復方式是不刪紀錄，只將九冊停用／封存並回復前端。
+- `MainNavbar` React 17/17、Basic Reading migration 契約 1/1、Production build 與 `git diff --check` 已通過。尚未執行正式 migration、PR／合併／Cloudflare 部署，也尚未以登入學生完成正式音檔播放、次數與獎勵驗收。
+
 本次登入後「我的教材」課本入口精簡（2026-09-29，已正式部署）：
 
 - 學生導覽的「我的教材」保留習作本與聽力本原有內容；「課本」分類不再列出 Super Easy Reading、Reading Table、Steam Reading 或 ReadingLamp 等 10 個舊入口，改為唯一的「Basic Reading 聽力檔案」，直接進入公開 `/basic-reading` 的 9 冊／399 軌播放清單。
