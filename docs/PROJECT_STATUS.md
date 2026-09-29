@@ -2,11 +2,11 @@
 
 最後更新：2026-09-29
 
-本次登入後「我的教材」課本入口精簡（2026-09-29，本機實作完成，尚未部署）：
+本次登入後「我的教材」課本入口精簡（2026-09-29，已正式部署）：
 
 - 學生導覽的「我的教材」保留習作本與聽力本原有內容；「課本」分類不再列出 Super Easy Reading、Reading Table、Steam Reading 或 ReadingLamp 等 10 個舊入口，改為唯一的「Basic Reading 聽力檔案」，直接進入公開 `/basic-reading` 的 9 冊／399 軌播放清單。
 - 本批只調整學生前端導覽呈現，不修改 `content-access`、教材 entitlement、資料庫目錄、管理員／老師教材導覽或既有聽力播放統計。桌面下拉選單與手機底部「教材」抽屜使用相同規則。
-- `MainNavbar` 與 `BasicReading` targeted tests 共 18 項通過，Production build 與 `git diff --check` 通過；登入後桌面／手機正式瀏覽器驗收待部署後完成，正式站目前仍顯示課本 10 本舊入口。
+- PR #340 完成課本入口精簡；正式手機驗收另發現抽屜動畫退出回呼不可靠，PR #341、#342 已改為由 React Router 連結直接導頁並補上手機回歸測試。`MainNavbar` 與 `BasicReading` targeted tests 共 19 項、Production build、`git diff --check` 與 Cloudflare main build `03f0a7a1-9ca7-4426-b1cd-41d457744585` 全部通過。登入後手機正式站已確認課本只有 1 本、鍵盤啟用「Basic Reading 聽力檔案」可到 `/basic-reading`，9 冊／399 軌皆顯示且 console 無 error；桌面流程由自動測試覆蓋。
 
 本次 Workbook 1～5 單頁音檔特效聲稽核（2026-09-29，本機候選完成，未部署）：
 
