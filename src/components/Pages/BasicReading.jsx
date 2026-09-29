@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Link } from "react-router-dom";
 import { BiChevronLeft, BiChevronRight, BiHeadphone, BiHomeAlt2, BiPlayCircle } from "react-icons/bi";
 import Brand from "../fragment/Brand";
@@ -86,15 +87,17 @@ function BasicReading() {
             token: access.token
         });
         const nextAudioSrc = `${path}?${params.toString()}`;
-        setActiveTrackNumber(trackNumber);
-        setAudioSrc(nextAudioSrc);
+        const updateTrack = () => {
+            setActiveTrackNumber(trackNumber);
+            setAudioSrc(nextAudioSrc);
+        };
+        if (autoplay) flushSync(updateTrack);
+        else updateTrack();
         retryRef.current = false;
 
         const audio = audioRef.current;
-        if (!audio) return;
-        audio.src = nextAudioSrc;
+        if (!audio || !autoplay) return;
         audio.load();
-        if (!autoplay) return;
         const playback = audio.play();
         if (playback?.catch) void playback.catch(() => undefined);
     }, [selectedCollection]);
