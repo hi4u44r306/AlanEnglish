@@ -46,6 +46,18 @@ const staysInAuthenticatedShell = destination => [
     "/billing"
 ].some(prefix => destination === prefix || destination.startsWith(`${prefix}/`));
 
+const BASIC_READING_MATERIAL = Object.freeze({
+    id: "basic-reading-listening",
+    code: "basic-reading",
+    name: "Basic Reading 聽力檔案",
+    path: "/basic-reading"
+});
+
+const isTextbookCategory = category => (
+    String(category?.code || "").trim().toLowerCase() === "textbook"
+    || String(category?.name || "").trim() === "課本"
+);
+
 function MainNavbar() {
     const [scrolled, setScrolled] = useState(false);
     const [categories, setCategories] = useState([]);
@@ -82,7 +94,12 @@ function MainNavbar() {
         && studentProfile?.learner_type === "academy_student"
         && effectiveAccess?.plan_codes?.includes("academy_internal") === true;
     const accessibleStudentCategories = useMemo(() => categories
-        .map(category => ({ ...category, books: (category.books || []).filter(book => !book.locked) }))
+        .map(category => ({
+            ...category,
+            books: isTextbookCategory(category)
+                ? [BASIC_READING_MATERIAL]
+                : (category.books || []).filter(book => !book.locked)
+        }))
         .filter(category => category.books.length > 0), [categories]);
     const hasAccessibleStudentMaterials = isStudent && accessibleStudentCategories.length > 0;
     const homePath = isAuthenticated ? getRoleHome(role) : "/";

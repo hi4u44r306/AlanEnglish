@@ -234,6 +234,14 @@ describe("MainNavbar student navigation", () => {
                 id: "listening",
                 name: "聽力本",
                 books: [{ id: "listen-1", code: "Listening_1", name: "聽力本 1", locked: false }]
+            }, {
+                id: "textbook",
+                code: "textbook",
+                name: "課本",
+                books: [
+                    { id: "reader-1", code: "SER_1", name: "Super Easy Reading 1", locked: false },
+                    { id: "reader-2", code: "ReadingTable_1", name: "Reading Table 1", locked: false }
+                ]
             }]
         });
 
@@ -242,7 +250,7 @@ describe("MainNavbar student navigation", () => {
         const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
         fireEvent.click(materialsMenu);
         const desktopMaterials = materialsMenu.closest(".dropdown");
-        expect(within(desktopMaterials).getByText("2 本可使用")).toBeInTheDocument();
+        expect(within(desktopMaterials).getByText("3 本可使用")).toBeInTheDocument();
         const desktopWorkbookToggle = within(desktopMaterials).getByLabelText("切換習作本，1 本教材");
         expect(desktopWorkbookToggle.closest("details")).not.toHaveAttribute("open");
         fireEvent.click(desktopWorkbookToggle);
@@ -252,6 +260,10 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(within(desktopMaterials).getByLabelText("切換聽力本，1 本教材"));
         expect(within(desktopMaterials).getByRole("link", { name: "聽力本 1" })).toHaveAttribute("href", "/student/books/Listening_1");
         expect(within(desktopMaterials).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
+        fireEvent.click(within(desktopMaterials).getByLabelText("切換課本，1 本教材"));
+        expect(within(desktopMaterials).getByRole("link", { name: "Basic Reading 聽力檔案" })).toHaveAttribute("href", "/basic-reading");
+        expect(within(desktopMaterials).queryByRole("link", { name: "Super Easy Reading 1" })).not.toBeInTheDocument();
+        expect(within(desktopMaterials).queryByRole("link", { name: "Reading Table 1" })).not.toBeInTheDocument();
 
         fireEvent.click(materialsMenu);
         fireEvent.click(screen.getByRole("button", { name: "教材" }));
@@ -264,6 +276,35 @@ describe("MainNavbar student navigation", () => {
         const mobileWorkbookLink = within(mobileDrawer).getByRole("link", { name: "Workbook 1" });
         expect(mobileWorkbookLink).toHaveAttribute("href", "/student/books/Workbook_1");
         expect(within(mobileDrawer).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
+        fireEvent.click(within(mobileDrawer).getByLabelText("切換課本，1 本教材"));
+        expect(within(mobileDrawer).getByRole("link", { name: "Basic Reading 聽力檔案" })).toHaveAttribute("href", "/basic-reading");
+        expect(within(mobileDrawer).queryByRole("link", { name: "Super Easy Reading 1" })).not.toBeInTheDocument();
+    });
+
+    it("opens the public Basic Reading listening page from the desktop materials menu", async () => {
+        getAccessibleCatalog.mockResolvedValue({
+            categories: [{
+                id: "textbook",
+                code: "textbook",
+                name: "課本",
+                books: [{ id: "reader-1", code: "SER_1", name: "Super Easy Reading 1", locked: false }]
+            }]
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/student/dashboard"]} future={APP_ROUTER_FUTURE}>
+                <MainNavbar />
+                <LocationProbe />
+            </MemoryRouter>
+        );
+
+        const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
+        fireEvent.click(materialsMenu);
+        const desktopMaterials = materialsMenu.closest(".dropdown");
+        fireEvent.click(within(desktopMaterials).getByLabelText("切換課本，1 本教材"));
+        fireEvent.click(within(desktopMaterials).getByRole("link", { name: "Basic Reading 聽力檔案" }));
+
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/basic-reading");
     });
 
     it("shows the AI Premium title only for an active AI add-on", async () => {

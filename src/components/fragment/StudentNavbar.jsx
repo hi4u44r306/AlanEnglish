@@ -43,6 +43,8 @@ const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
     return <Link {...props} to={to} onClick={handleClick} />;
 };
 
+const studentMaterialPath = book => book.path || `/student/books/${book.code}`;
+
 const StudentNavbar = ({
     categories,
     firebaseUser,
@@ -118,7 +120,7 @@ const StudentNavbar = ({
     const closeDrawerThenNavigate = (destination, event) => {
         const staysInShell = ["/student", "/teacher", "/admin", "/account", "/billing"]
             .some(prefix => destination === prefix || destination.startsWith(`${prefix}/`));
-        if (!staysInShell) {
+        if (!staysInShell && drawerOpen) {
             event.preventDefault();
             pendingNavigationRef.current = destination;
         }
@@ -160,16 +162,19 @@ const StudentNavbar = ({
                     <span>{category.books.length} 本</span>
                 </summary>
                 <div>
-                    {category.books.map(book => (
-                        <InstantDrawerLink
-                            key={book.id || book.code}
-                            to={`/student/books/${book.code}`}
-                            onNavigate={closeDrawerThenNavigate}
-                            className={isPathActive(`/student/books/${book.code}`) ? "active" : ""}
-                        >
-                            {book.name}
-                        </InstantDrawerLink>
-                    ))}
+                    {category.books.map(book => {
+                        const destination = studentMaterialPath(book);
+                        return (
+                            <InstantDrawerLink
+                                key={book.id || book.code}
+                                to={destination}
+                                onNavigate={closeDrawerThenNavigate}
+                                className={isPathActive(destination) ? "active" : ""}
+                            >
+                                {book.name}
+                            </InstantDrawerLink>
+                        );
+                    })}
                 </div>
             </details>
         ));
