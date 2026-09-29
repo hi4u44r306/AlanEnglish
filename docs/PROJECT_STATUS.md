@@ -9,18 +9,19 @@
 - 靜音型波形驗證 11/11 檔、42/42 片段通過：最低衰減 25.22dB、最大時長偏差 0 秒、未修改區段最低相關係數 0.99995594。P9 音樂分數由 0.719927 降至 0.131896、語音分數由 0.652442 升至 0.663210，修正前後逐字皆完整；未處理區段相關係數 0.99994564。完整 187 列候選 manifest 缺檔 0，結果位於本機 `Workbook 1-5 無特效MP3候選 (2026-09-28)`；稽核方法見 `docs/workbook-audio-sfx-audit-2026-09-28.md`。
 - 本批只建立本機候選與可重跑稽核工具，沒有上傳 R2、修改資料庫、替換正式 track ID 或部署網站。正式替換前需抽聽 12 支修正版，特別確認 P9 分離後的自然度，之後才可依 manifest 建立可回復的 R2 批次更新。
 
-本次公開 Basic Reading 400～1200 播放清單（2026-09-29，正式資產已上傳，程式尚未部署）：
+本次公開 Basic Reading 400～1200 播放清單（2026-09-29，已正式部署並完成線上驗收）：
 
-- 分支 `codex/public-basic-reading` 新增公開 `/basic-reading` 路由，規劃由 `/links` 的固定「Basic Reading 400～1200」站內按鈕進入；不改動既有 Special／Discovery 後台資料或學生登入教材權限。
+- 公開 `/basic-reading` 路由已由 `/links` 的固定「Basic Reading 400～1200」站內按鈕進入；不改動既有 Special／Discovery 後台資料或學生登入教材權限。
 - 已唯讀盤點 `D:\彬的檔案\AlanEnglish 檔案\Basic Reading 400~1200`：共 9 冊、399 支 MP3、470,711,107 bytes；`br400_1～3` 各 51 軌、`br800_1～3` 各 49 軌、`br1200_1～3` 各 33 軌，皆為連續 Track 編號且無缺號／重號。部分來源使用 `Track01.mp3`、部分使用 `Track1.mp3`；上傳時統一為不補零的 R2 key。另有 1 個 6,148 bytes 的 `_DS_Store` 不屬於音檔且不會上傳；原始檔未搬動、覆蓋或刪除。
 - 公開頁可切換 400／800／1200 與第 1～3 冊，以內容寬度顯示 Track 按鈕並保留 44px 觸控高度；底部播放器支援上一首、下一首、播放完自動前進、手機 safe area 與不登入使用。此公開播放不寫入學生聆聽次數、XP、AE Points 或作業進度。
 - Cloudflare Worker 僅接受固定 9 冊與冊內合法 Track 編號，以 60 分鐘 HMAC 權杖讀取私人 R2 `basic-reading/` 前綴，GET／HEAD 保留 Range、ETag 與 `206 Partial Content`；其他網站路由仍交由既有靜態資產處理。60 分鐘效期由專案擁有者於 2026-09-29 核准，避免學生暫停、鎖屏或稍後續播時因新 Range 請求中斷；權杖仍只對單一冊別有效。Worker 單元測試增為 6/6。
 - 本機驗證完成：React 2 suites／3 tests、Production build、`git diff --check` 與 Wrangler dry-run 均成功；1440×900 與 412×915 實測皆無水平溢位，Track 按鈕及 Links 入口保留至少 44px 觸控高度，播放器未超出視窗。
-- 功能 commit `2062411e` 已推送並建立 PR #335；PR 可合併但尚未合併。GitHub 顯示的舊 Netlify deploy-preview 為 `skipped=true`，沒有執行 Netlify build，與目前 Cloudflare 正式發布流程及本次成功的本機 Production build 無關。
+- 功能 commit `2062411e` 及 PR #335 已完成並合併；GitHub 顯示的舊 Netlify deploy-preview 為 `skipped=true`，沒有執行 Netlify build，與目前 Cloudflare 正式發布流程及本次成功的本機 Production build 無關。
 - 專案擁有者已於 2026-09-29 授權本批正式環境操作。上傳前確認私人 R2 `basic-reading/` 前綴為 0 個物件；399 支 MP3 已使用「目標不得存在」原子條件上傳，遠端讀回確認 399 個 key、470,711,107 bytes、399 筆 SHA-256 metadata 全部吻合。原始桌面檔案與 `_DS_Store` 未修改或刪除。
 - Cloudflare 曾先建立未部署版本 `50756459-6b5e-454a-8632-b54fae431103`，只新增 `BASIC_READING_SIGNING_KEY` Secret；操作前後 production deployment 均維持 `526ade86-3057-4007-b5a9-b6e1b166012f`／100% version `4891de89-435d-4e3f-bc1e-64185247955f`，證明功能分支沒有被提前發布。Secret 已由下方最新 `main` 正式版本正確繼承。
 - PR #335 已合併至 `main` `73a548bd`，Cloudflare production build `b1495884-b254-4ae2-85c0-8f4049a9244c` 已成功並以 deployment `da057bb8-7bb9-40ab-90d3-421b74a8e901`／version `fa417b39-0e26-4157-ba15-55b5ab526b13` 承接 100% 流量。正式目錄 9 冊／399 軌、60 分鐘權杖、無效權杖 403、399 次 HEAD 檔案大小／類型／Range 標頭及 18 次首末軌 `206 Partial Content` 均通過，0 mismatch。
-- 正式瀏覽器驗收發現 Track 按鈕可切換並載入音檔，但原本在 React effect 內呼叫 `play()`，離開使用者事件後會被瀏覽器自動播放政策阻擋。獨立 hotfix 分支 `codex/public-basic-reading-autoplay` 改為對已快取冊別權杖在同一個按鍵事件內設定音源並播放，尚待測試、PR、合併與再次正式驗收。
+- 正式瀏覽器第一次驗收發現 Track 按鈕可切換並載入音檔，但原本離開使用者事件後呼叫 `play()` 會被瀏覽器自動播放政策阻擋；PR #337 的第一次 hotfix 雖改為同一按鍵事件播放，React 在事件後重新同步 `src` 仍會把播放重設為暫停，因此未把該次部署視為通過。
+- 最終 PR #338 先同步提交新的 Track 與音源，再於同一按鍵事件呼叫播放器；已合併至 `main` `68a81c20`，Cloudflare production build `c90a7543-4212-4cb5-9ce1-c89314093cb3` 成功，deployment `c0b43c97-a125-4bdf-84ea-d10f15289b41`／version `039d88e5-56aa-47f0-97c7-f074c0675ffc` 承接 100% 流量。正式 bundle 為 `main.ebbc1b44.js`；實際點 Track 2 後顯示暫停、`paused=false`、播放時間前進至 6.026 秒且無媒體錯誤。412×915 驗收無水平溢位、51 個 Track 按鈕最低 44px、播放器完整留在視窗內；`/links` 的 Basic Reading 入口為 44px 且 Special／Discovery 未顯示，Console 無警告或錯誤。
 
 本次公開 Links 教材入口緊湊化（2026-09-28，已正式部署）：
 
