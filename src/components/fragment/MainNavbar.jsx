@@ -7,7 +7,6 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import '../assets/scss/Navigation.scss';
 import 'react-circular-progressbar/dist/styles.css';
-import BlueBook from '../assets/img/blue book.png';
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiAward, FiBarChart2, FiBell, FiBookOpen, FiCreditCard, FiGift, FiHelpCircle, FiHome, FiLink, FiLock, FiLogOut, FiMic, FiRefreshCw, FiSettings, FiShoppingBag, FiStar, FiTrendingUp, FiUpload, FiUsers, FiZap } from "react-icons/fi";
 import { HiOutlineBars3 } from "react-icons/hi2";
@@ -21,6 +20,7 @@ import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
 import { readAppShellCache, readAppShellCacheEntry, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
 import StudentNavbar from "./StudentNavbar";
+import MaterialsNavigator from "./MaterialsNavigator";
 import { sendSocialHeartbeat } from "../../services/studentSocialService";
 import { NOTIFICATIONS_READ_EVENT, notifyNotificationsRead } from "../../constants/notificationEvents";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
@@ -70,6 +70,7 @@ function MainNavbar() {
     const [loggingOut, setLoggingOut] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [desktopMaterialsOpen, setDesktopMaterialsOpen] = useState(false);
+    const [materialsResetToken, setMaterialsResetToken] = useState(0);
     const mobileBodyRef = useRef(null);
     const pendingMobileNavigationRef = useRef("");
     const [gamificationSummary, setGamificationSummary] = useState(null);
@@ -97,7 +98,7 @@ function MainNavbar() {
         && hasActiveStudentMembership
         && studentProfile?.learner_type === "academy_student"
         && effectiveAccess?.plan_codes?.includes("academy_internal") === true;
-    const accessibleStudentCategories = useMemo(() => {
+    const materialCategories = useMemo(() => {
         const regularCategories = [];
         const basicReadingBooks = [];
 
@@ -115,7 +116,6 @@ function MainNavbar() {
             ? [createBasicReadingCategory(basicReadingBooks), ...regularCategories]
             : regularCategories;
     }, [categories]);
-    const hasAccessibleStudentMaterials = isStudent && accessibleStudentCategories.length > 0;
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
     const reportPath = isAdmin ? "/admin/reports" : "/teacher/reports";
@@ -370,44 +370,10 @@ function MainNavbar() {
         }
     };
     const isPathActive = path => location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`));
-    const isMaterialCategoryActive = category => category.books?.some(book => isPathActive(`/student/books/${book.code}`));
-    const renderStudentMaterialCategory = (category, variant) => {
-        const categoryActive = isMaterialCategoryActive(category);
-        const categoryClass = variant === "desktop" ? "ae-desktop-material-category" : "ae-mobile-category";
-        const listClass = variant === "desktop" ? "ae-desktop-material-book-list" : "ae-mobile-book-list";
-        return (
-            <details className={`${categoryClass} ${categoryActive ? "is-active" : ""}`} key={`${variant}-${category.id}`} open={categoryActive || undefined}>
-                <summary aria-label={`切換${category.name}，${category.books.length} 本教材`}>
-                    <span><FiBookOpen />{category.name}</span>
-                    <span className="ae-material-category-meta"><b>{category.books.length} 本</b><span className="ae-mobile-chevron">⌄</span></span>
-                </summary>
-                <div className={listClass}>{category.books.map(book => {
-                    const bookPath = `/student/books/${book.code}`;
-                    return <Link key={book.id || book.code} to={bookPath} onClick={variant === "desktop" ? () => setDesktopMaterialsOpen(false) : closeMobileMenu} className={`ae-dropdown-item ${isPathActive(bookPath) ? "active" : ""}`} aria-current={isPathActive(bookPath) ? "page" : undefined}>{variant === "desktop" && <img src={BlueBook} alt="" />}<span>{book.name}</span></Link>;
-                })}</div>
-            </details>
-        );
-    };
-    const renderDesktopCategory = (category, index) => (
-        <NavDropdown id={`desktop-category-${category.id}`} key={category.id} title={<span className="ae-nav-inline"><FiBookOpen />{category.name}</span>} className="ae-desktop-dropdown" data-tour={index === 0 ? "materials" : undefined} align="end">
-            {category.books?.length > 0 ? category.books.map(book => <NavDropdown.Item key={book.id} as={Link} to={book.locked ? (book.acquisition || "/student/membership") : `/student/books/${book.code}`} className={`ae-dropdown-item ${book.locked ? "is-locked" : ""}`}><img src={BlueBook} alt="" /><span>{book.name}</span>{book.locked && <FiLock aria-label="尚未解鎖" />}</NavDropdown.Item>) : <NavDropdown.Item disabled>尚無教材</NavDropdown.Item>}
-        </NavDropdown>
-    );
-    const renderMobileCategories = () => {
-        if (loading) return <div className="ae-mobile-status">教材載入中...</div>;
-        if (navError) return <div className="ae-mobile-status error">{navError}</div>;
-        return categories.map((category, index) => (
-            <details className={`ae-mobile-category ${category.books?.some(book => !book.locked && isPathActive(`/student/books/${book.code}`)) ? "is-active" : ""}`} key={category.id} data-tour={index === 0 ? "materials" : undefined}>
-                <summary><span><FiBookOpen />{category.name}</span><span className="ae-mobile-chevron">⌄</span></summary>
-                <div className="ae-mobile-book-list">{category.books?.length > 0 ? category.books.map(book => <Link key={book.id} to={book.locked ? (book.acquisition || "/student/membership") : `/student/books/${book.code}`} onClick={closeMobileMenu} className={book.locked ? "is-locked" : ""}><span>{book.name}</span>{book.locked && <FiLock aria-label="尚未解鎖" />}</Link>) : <span className="ae-mobile-empty">尚無教材</span>}</div>
-            </details>
-        ));
-    };
-
     if (isStudent) {
         return (
             <StudentNavbar
-                categories={accessibleStudentCategories}
+                categories={materialCategories}
                 firebaseUser={firebaseUser}
                 gamificationLevel={gamificationLevel}
                 hasAiAccess={hasAiAccess}
@@ -437,12 +403,11 @@ function MainNavbar() {
                     <Navbar.Brand as={Link} to={homePath} className="ae-brand" data-tour="home"><Brand /></Navbar.Brand>
                     <Nav className={`ae-desktop-nav ${isStudent ? "is-student" : ""}`} onSelect={closeNavigation}>
                         {isAuthenticated && <Nav.Link as={Link} to={homePath} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><span className="ae-nav-inline"><FiHome />{isTeacher ? "管理首頁" : "我的首頁"}</span></Nav.Link>}
-                        {hasAccessibleStudentMaterials && <NavDropdown id="desktop-student-materials" title={<span className="ae-nav-inline"><FiBookOpen />我的教材</span>} className={`ae-desktop-dropdown ae-student-materials-dropdown ${accessibleStudentCategories.some(isMaterialCategoryActive) ? "is-active" : ""}`} align="end" data-tour="materials" show={desktopMaterialsOpen} onToggle={setDesktopMaterialsOpen} autoClose="outside"><div className="ae-materials-dropdown-heading"><strong>選擇教材分類</strong><span>共 {accessibleStudentCategories.reduce((total, category) => total + category.books.length, 0)} 本</span></div>{accessibleStudentCategories.map(category => renderStudentMaterialCategory(category, "desktop"))}</NavDropdown>}
+                        {isAuthenticated && <NavDropdown id="desktop-staff-materials" title={<span className="ae-nav-inline"><FiBookOpen />我的教材</span>} className={`ae-desktop-dropdown ae-student-materials-dropdown ${isPathActive("/student/books") ? "is-active" : ""}`} align="end" data-tour="materials" show={desktopMaterialsOpen} onToggle={nextOpen => { setDesktopMaterialsOpen(nextOpen); if (nextOpen) setMaterialsResetToken(current => current + 1); }} autoClose="outside"><div className="ae-materials-dropdown-heading"><strong>選一本教材</strong><span>{loading ? "教材載入中…" : `共 ${materialCategories.reduce((total, category) => total + category.books.length, 0)} 本`}</span></div><MaterialsNavigator categories={materialCategories} loading={loading} navError={navError} onNavigate={() => setDesktopMaterialsOpen(false)} resetToken={materialsResetToken} variant="staff-desktop" /></NavDropdown>}
                         {isAuthenticated && hasPronunciationAccess && <Nav.Link as={Link} to="/student/pronunciation" className={isPathActive("/student/pronunciation") ? "active" : ""}><span className="ae-nav-inline"><FiMic />{isTeacher ? "發音教練示範" : "發音教練"}</span></Nav.Link>}
                         {isAuthenticated && hasPronunciationAccess && <Nav.Link as={Link} to="/student/speaking-challenges" className={isPathActive("/student/speaking-challenges") ? "active" : ""}><span className="ae-nav-inline"><FiMic />{isStudent ? "口說大挑戰" : "口說大挑戰預覽"}</span></Nav.Link>}
                         {isAuthenticated && <Nav.Link as={Link} to="/student/ai-generator" className={isPathActive("/student/ai-generator") ? "active" : ""}><span className="ae-nav-inline"><FiStar />{hasAiAccess ? "AI 教材" : "AI 教材與發音方案"}</span></Nav.Link>}
                         {isStudent && <button type="button" className="ae-desktop-all-functions" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen} aria-controls="main-navigation-drawer"><HiOutlineBars3 aria-hidden="true" /><span>全部功能</span></button>}
-                        {!isStudent && (loading ? <Nav.Link disabled>教材載入中...</Nav.Link> : navError ? <Nav.Link disabled>教材載入失敗</Nav.Link> : categories.map(renderDesktopCategory))}
                         {isTeacher && <NavDropdown id="desktop-account-management" title={<span className="ae-nav-inline"><FiUsers />管理</span>} className="ae-desktop-dropdown" align="end" data-tour="accounts"><NavDropdown.Item as={Link} to={reportPath} className="ae-dropdown-item"><FiBarChart2 />每週學習報告</NavDropdown.Item><NavDropdown.Item as={Link} to={leaderboardPath} className="ae-dropdown-item"><FiTrendingUp />班級排行榜</NavDropdown.Item><NavDropdown.Item as={Link} to={accountManagementPath} className="ae-dropdown-item"><FiUsers />帳號管理</NavDropdown.Item><NavDropdown.Item as={Link} to="/teacher/accounts/create" className="ae-dropdown-item"><FiUsers />建立單一學生</NavDropdown.Item><NavDropdown.Item as={Link} to="/teacher/class-materials" className="ae-dropdown-item"><FiBookOpen />班級教材設定</NavDropdown.Item>{isAdmin && <NavDropdown.Item as={Link} to="/admin/accounts/import" className="ae-dropdown-item"><FiUpload />CSV 批次建立</NavDropdown.Item>}</NavDropdown>}
                         {isTeacher && <NavDropdown id="desktop-music-management" title={<span className="ae-nav-inline"><FiBookOpen />音檔</span>} className="ae-desktop-dropdown" align="end"><NavDropdown.Item as={Link} to="/teacher/music/manage" className="ae-dropdown-item"><FiSettings />音檔管理</NavDropdown.Item>{isAdmin && <NavDropdown.Item as={Link} to="/admin/links" className="ae-dropdown-item"><FiLink />新增連結</NavDropdown.Item>}</NavDropdown>}
                         {isAdmin && <NavDropdown id="desktop-system-tools" title={<span className="ae-nav-inline"><FiSettings />系統</span>} className="ae-desktop-dropdown" align="end"><NavDropdown.Item as={Link} to="/admin/rewards" className="ae-dropdown-item"><FiGift />獎品與兌換管理</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/membership" className="ae-dropdown-item"><FiCreditCard />會員與啟用碼</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/material-packages" className="ae-dropdown-item"><FiBookOpen />教材商品包</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/store-orders" className="ae-dropdown-item"><FiCreditCard />商城訂單與出貨</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/student-lifecycle" className="ae-dropdown-item"><FiUsers />在校／離校管理</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/speaking-content" className="ae-dropdown-item"><FiBookOpen />教材 AI 口說題庫</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/support" className="ae-dropdown-item"><FiHelpCircle />客服案件</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/api-usage" className="ae-dropdown-item"><FiBarChart2 />API 成本</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/levels" className="ae-dropdown-item"><FiAward />等級與晉級測驗</NavDropdown.Item><NavDropdown.Item as={Link} to="/admin/catalog" className="ae-dropdown-item"><FiBookOpen />教材導覽管理</NavDropdown.Item></NavDropdown>}
@@ -473,10 +438,9 @@ function MainNavbar() {
                     {isAuthenticated && <div className={`ae-mobile-profile ${hasAiPremium ? "has-ai-premium" : ""}`}><div className="ae-mobile-avatar">{displayName.slice(0, 1) || "A"}</div><div><strong>{displayName}</strong><span>{displayRole}{studentProfile?.class ? ` · ${studentProfile.class} 班` : ""}</span>{hasAiPremium && <span className="ae-ai-premium-badge"><FiZap aria-hidden="true" />AI Premium</span>}</div></div>}
                     {isStudent && <section className="ae-mobile-xp-card" aria-label="學習榮譽進度"><div className="ae-mobile-xp-heading"><span><FiZap aria-hidden="true" />學習榮譽</span><strong>Lv.{gamificationLevel}</strong></div><div className="ae-mobile-xp-track" role="progressbar" aria-label={`目前等級 Lv.${gamificationLevel} 的經驗值進度`} aria-valuemin="0" aria-valuemax="100" aria-valuenow={xpProgressPercent}><span style={{ width: `${xpProgressPercent}%` }} /></div><div className="ae-mobile-xp-meta"><span>目前等級 Lv.{gamificationLevel}</span><strong>{totalXp.toLocaleString("zh-TW")} XP</strong></div><p>距離 Lv.{gamificationLevel + 1} 還差 {xpToNextLevel.toLocaleString("zh-TW")} XP</p></section>}
                     <section className="ae-mobile-section"><span className="ae-mobile-section-title">{isStudent ? "開始學習" : "主要功能"}</span><Link to={homePath} onClick={closeMobileMenu} className={isPathActive(homePath) ? "active" : ""} data-tour="home"><FiHome /><span>{isTeacher ? "管理首頁" : "我的首頁"}</span></Link>{isAuthenticated && hasPronunciationAccess && <Link to="/student/pronunciation" onClick={closeMobileMenu} className={isPathActive("/student/pronunciation") ? "active" : ""}><FiMic /><span>{isTeacher ? "發音教練示範" : "發音教練"}</span></Link>}{isAuthenticated && hasPronunciationAccess && <Link to="/student/speaking-challenges" onClick={closeMobileMenu} className={isPathActive("/student/speaking-challenges") ? "active" : ""}><FiMic /><span>{isStudent ? "口說大挑戰" : "口說大挑戰預覽"}</span></Link>}{isAuthenticated && <Link to="/student/ai-generator" onClick={closeMobileMenu} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar /><span>{hasAiAccess ? "AI 教材" : "AI 教材與發音方案"}</span></Link>}</section>
-                    {hasAccessibleStudentMaterials && <section className="ae-mobile-section ae-mobile-materials"><span className="ae-mobile-section-title">我的教材 · 共 {accessibleStudentCategories.reduce((total, category) => total + category.books.length, 0)} 本</span>{accessibleStudentCategories.map(category => renderStudentMaterialCategory(category, "mobile"))}</section>}
                     {isStudent && <section className="ae-mobile-section"><span className="ae-mobile-section-title">學習成果</span><Link to="/student/review" onClick={closeMobileMenu} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw /><span>智慧複習</span></Link><Link to="/student/weekly-report" onClick={closeMobileMenu} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 /><span>每週報告</span></Link><Link to="/student/leaderboard" onClick={closeMobileMenu} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>學習排行榜</span></Link>{hasRewardsAccess && <Link to="/student/rewards" onClick={closeMobileMenu} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift /><span>獎品商城</span></Link>}</section>}
                     {isStudent && <section className="ae-mobile-section"><span className="ae-mobile-section-title">學習成果</span><Link to="/student/review" onClick={closeMobileMenu} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw /><span>智慧複習</span></Link><Link to="/student/weekly-report" onClick={closeMobileMenu} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 /><span>每週報告</span></Link><Link to="/student/leaderboard" onClick={closeMobileMenu} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>學習排行榜</span></Link>{hasRewardsAccess && <Link to="/student/rewards" onClick={closeMobileMenu} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift /><span>獎品商城</span></Link>}</section>}
-                    {!isStudent && <section className="ae-mobile-section"><span className="ae-mobile-section-title">教材</span>{renderMobileCategories()}</section>}
+                    {!isStudent && <section className="ae-mobile-section ae-mobile-materials ae-staff-materials" data-tour="materials"><span className="ae-mobile-section-title">我的教材 · {loading ? "載入中" : `共 ${materialCategories.reduce((total, category) => total + category.books.length, 0)} 本`}</span><MaterialsNavigator categories={materialCategories} loading={loading} navError={navError} onNavigate={closeMobileMenu} resetToken={`${mobileOpen}-${location.pathname}`} variant="staff-mobile" /></section>}
                     {isTeacher && <section className="ae-mobile-section" data-tour="accounts"><span className="ae-mobile-section-title">管理</span><Link to={reportPath} onClick={closeMobileMenu}><FiBarChart2 /><span>每週學習報告</span></Link><Link to={leaderboardPath} onClick={closeMobileMenu}><FiTrendingUp /><span>班級排行榜</span></Link><Link to={accountManagementPath} onClick={closeMobileMenu}><FiUsers /><span>帳號管理</span></Link><Link to="/teacher/accounts/create" onClick={closeMobileMenu}><FiUsers /><span>建立單一學生</span></Link><Link to="/teacher/class-materials" onClick={closeMobileMenu}><FiBookOpen /><span>班級教材設定</span></Link>{isAdmin && <Link to="/admin/accounts/import" onClick={closeMobileMenu}><FiUpload /><span>CSV 批次建立</span></Link>}</section>}
                     {isTeacher && <section className="ae-mobile-section"><span className="ae-mobile-section-title">音檔</span><Link to="/teacher/music/manage" onClick={closeMobileMenu}><FiSettings /><span>音檔管理</span></Link>{isAdmin && <Link to="/admin/links" onClick={closeMobileMenu}><FiLink /><span>新增連結</span></Link>}</section>}
                     {isAdmin && <section className="ae-mobile-section"><span className="ae-mobile-section-title">系統</span><Link to="/admin/rewards" onClick={closeMobileMenu}><FiGift /><span>獎品與兌換管理</span></Link><Link to="/admin/membership" onClick={closeMobileMenu}><FiCreditCard /><span>會員與啟用碼</span></Link><Link to="/admin/material-packages" onClick={closeMobileMenu}><FiBookOpen /><span>教材商品包</span></Link><Link to="/admin/store-orders" onClick={closeMobileMenu}><FiCreditCard /><span>商城訂單與出貨</span></Link><Link to="/admin/student-lifecycle" onClick={closeMobileMenu}><FiUsers /><span>在校／離校管理</span></Link><Link to="/admin/speaking-content" onClick={closeMobileMenu}><FiBookOpen /><span>教材 AI 口說題庫</span></Link><Link to="/admin/support" onClick={closeMobileMenu}><FiHelpCircle /><span>客服案件</span></Link><Link to="/admin/api-usage" onClick={closeMobileMenu}><FiBarChart2 /><span>API 成本</span></Link><Link to="/admin/levels" onClick={closeMobileMenu}><FiAward /><span>等級與晉級測驗</span></Link><Link to="/admin/catalog" onClick={closeMobileMenu}><FiBookOpen /><span>教材導覽管理</span></Link></section>}

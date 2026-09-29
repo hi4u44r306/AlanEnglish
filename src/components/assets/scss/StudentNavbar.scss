@@ -406,6 +406,7 @@
 }
 
 .ae-student-basic-reading-entry,
+.ae-student-material-entry,
 .ae-student-materials-choice-grid > button,
 .ae-student-materials-choice-grid > a {
   width: 100%;
@@ -426,6 +427,8 @@
 
 .ae-student-basic-reading-entry:hover,
 .ae-student-basic-reading-entry:focus-visible,
+.ae-student-material-entry:hover,
+.ae-student-material-entry:focus-visible,
 .ae-student-materials-choice-grid > button:hover,
 .ae-student-materials-choice-grid > button:focus-visible,
 .ae-student-materials-choice-grid > a:hover,
@@ -438,6 +441,7 @@
 }
 
 .ae-student-basic-reading-entry > span:nth-child(2),
+.ae-student-material-entry > span:nth-child(2),
 .ae-student-materials-choice-grid > button > span,
 .ae-student-materials-choice-grid > a > span {
   min-width: 0;
@@ -447,10 +451,13 @@
 }
 
 .ae-student-basic-reading-entry strong,
+.ae-student-material-entry strong,
 .ae-student-materials-choice-grid strong { font-size: 15px; font-weight: 950; }
 .ae-student-basic-reading-entry small,
+.ae-student-material-entry small,
 .ae-student-materials-choice-grid small { color: #74839b; font-size: 12px; font-weight: 750; }
 .ae-student-basic-reading-entry > svg,
+.ae-student-material-entry > svg,
 .ae-student-materials-choice-grid > button > svg,
 .ae-student-materials-choice-grid > a > svg { flex: 0 0 auto; width: 20px; height: 20px; }
 
@@ -466,6 +473,7 @@
 }
 
 .ae-student-basic-reading-icon svg { width: 22px; height: 22px; }
+.ae-student-materials-root-grid { display: grid; gap: 10px; }
 
 .ae-student-materials-back {
   min-height: 44px;
@@ -770,6 +778,10 @@
     box-shadow: 0 -8px 26px rgba(22, 47, 82, .12);
     backdrop-filter: none;
     transform: none;
+  }
+  body:has(.ae-student-bottom-nav) .app-player,
+  body:has(.ae-student-bottom-nav) .app-player.mini {
+    bottom: calc(61px + var(--student-bottom-nav-offset));
   }
 }
 

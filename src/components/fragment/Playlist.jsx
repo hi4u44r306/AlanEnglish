@@ -6,6 +6,7 @@ import "../assets/scss/Playlist.scss";
 import { useAuth } from "../../auth/AuthContext";
 import { getBookPlaybackProgress } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
+import { hasReachedListeningMastery } from "../../constants/listeningProgress";
 
 const PLAYLIST_CACHE_PREFIX = "ae-playlist-cache:";
 const PLAYLIST_CACHE_TTL = 45 * 60 * 1000;
@@ -94,7 +95,7 @@ function Playlist() {
                         (result?.progress || []).forEach(item => {
                             nextProgressMap[String(item.track_id)] = {
                                 playCount: Number(item.play_count) || 0,
-                                completed: Boolean(item.completed),
+                                completed: hasReachedListeningMastery(item),
                                 completedAt: item.completed_at || null,
                                 lastPlayedAt: item.last_played_at || null
                             };
@@ -128,7 +129,7 @@ function Playlist() {
                 [String(trackId)]: {
                     ...current[String(trackId)],
                     playCount: Number(progress.play_count) || 0,
-                    completed: Boolean(progress.completed),
+                    completed: hasReachedListeningMastery(progress),
                     dailyCount: Number(progress.daily_count) || 0,
                     monthlyCount: Number(progress.monthly_count) || 0,
                     totalCount: Number(progress.total_count) || 0

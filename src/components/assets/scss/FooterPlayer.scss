@@ -219,6 +219,50 @@
 .mobile-overlay-mastery { color: #173866; text-align: center; }
 .mobile-overlay-mastery p { margin: 6px 0; color: #526985; line-height: 1.5; }
 .level-up-celebration { overflow: hidden; background: radial-gradient(circle at 50% 35%, rgba(39, 98, 181, 0.9), rgba(3, 12, 27, 0.92)); }
+.listening-mastery-celebration {
+  position: fixed;
+  z-index: 20000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow: hidden;
+  background: rgba(5, 19, 42, .72);
+  backdrop-filter: blur(6px);
+}
+.listening-mastery-card {
+  position: relative;
+  width: min(370px, 100%);
+  padding: 26px 24px 22px;
+  border: 2px solid #ffe08a;
+  border-radius: 24px;
+  color: #17304f;
+  background: linear-gradient(155deg, #fffef8, #fff7d9);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .34);
+  text-align: center;
+  animation: level-card-enter 420ms cubic-bezier(.2,.9,.25,1.2) both;
+}
+.listening-mastery-medal { display: grid; width: 68px; height: 68px; margin: 0 auto 8px; place-items: center; border-radius: 22px; color: #fff; background: linear-gradient(145deg, #ffbf2f, #f08a18); font-size: 2.2rem; box-shadow: 0 12px 24px rgba(240, 138, 24, .28); }
+.listening-mastery-card > small { color: #bd7613; font-weight: 950; letter-spacing: .12em; }
+.listening-mastery-card h2 { margin: 7px 0 6px; font-size: 1.65rem; font-weight: 950; }
+.listening-mastery-card p { margin: 0; color: #5a6c82; }
+.listening-mastery-card > div { display: flex; justify-content: center; gap: 10px; margin-top: 17px; }
+.listening-mastery-card > div strong { padding: 9px 12px; border-radius: 12px; color: #173866; background: #fff; box-shadow: 0 5px 14px rgba(27, 64, 111, .09); }
+.listening-mastery-card button { width: 100%; min-height: 48px; margin-top: 20px; border: 0; border-radius: 14px; color: #fff; background: #286cc4; font-weight: 950; }
+.listening-mastery-confetti { position: absolute; inset: 0; pointer-events: none; }
+.listening-mastery-confetti i { position: absolute; top: -8%; width: 9px; height: 17px; border-radius: 3px; background: #ffd45a; animation: level-confetti 2.4s linear infinite; }
+.listening-mastery-confetti i:nth-child(3n) { background: #61d4ff; }
+.listening-mastery-confetti i:nth-child(3n + 1) { background: #ff7f8b; }
+.listening-mastery-confetti i:nth-child(1) { left: 7%; animation-delay: -.2s; }
+.listening-mastery-confetti i:nth-child(2) { left: 17%; animation-delay: -1.1s; }
+.listening-mastery-confetti i:nth-child(3) { left: 27%; animation-delay: -.6s; }
+.listening-mastery-confetti i:nth-child(4) { left: 37%; animation-delay: -1.7s; }
+.listening-mastery-confetti i:nth-child(5) { left: 47%; animation-delay: -.4s; }
+.listening-mastery-confetti i:nth-child(6) { left: 57%; animation-delay: -1.4s; }
+.listening-mastery-confetti i:nth-child(7) { left: 67%; animation-delay: -.8s; }
+.listening-mastery-confetti i:nth-child(8) { left: 77%; animation-delay: -1.9s; }
+.listening-mastery-confetti i:nth-child(9) { left: 87%; animation-delay: -.3s; }
+.listening-mastery-confetti i:nth-child(10) { left: 96%; animation-delay: -1.3s; }
 .level-up-card { animation: level-card-enter 520ms cubic-bezier(.2,.9,.25,1.25) both; }
 .level-up-eyebrow { color: #286cc4; font-size: 0.8rem; font-weight: 950; letter-spacing: 0.18em; }
 .level-up-number {
@@ -268,6 +312,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .listening-reward-feedback,
+  .listening-mastery-card,
+  .listening-mastery-confetti i,
   .level-up-card,
   .level-up-confetti i { animation: none; }
 }

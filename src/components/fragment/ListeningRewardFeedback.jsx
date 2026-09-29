@@ -7,6 +7,9 @@ const number = value => Number(value || 0).toLocaleString("zh-TW");
 function ListeningRewardFeedback({ reward, onDismiss }) {
     const levels = Array.isArray(reward?.levels_gained) ? reward.levels_gained : [];
     const hasLevelUp = levels.length > 0 || Number(reward?.level_after || 1) > Number(reward?.level_before || 1);
+    const hasNewMasteryReward = Number(reward?.listening_xp_added || 0) > 0
+        && reward?.reward_status?.source === "self_practice"
+        && reward?.reward_status?.mastery_rewarded === true;
 
     useEffect(() => {
         if (!reward || hasLevelUp) return undefined;
@@ -28,10 +31,32 @@ function ListeningRewardFeedback({ reward, onDismiss }) {
                     <h2>太棒了，你升等了！</h2>
                     <p>這次獲得 <b>{number(reward.total_xp_added)} XP</b></p>
                     <div className="level-up-points">
-                        <span>升等獎勵</span>
-                        <strong>+{number(reward.level_points_added)} AE Points</strong>
+                        <span>{hasNewMasteryReward ? "本次熟練與升等獎勵" : "升等獎勵"}</span>
+                        <strong>+{number(Number(reward.level_points_added || 0) + Number(reward.listening_points_added || 0))} AE Points</strong>
                     </div>
                     <button type="button" onClick={onDismiss}>繼續學習</button>
+                </section>
+            </div>,
+            document.body
+        );
+    }
+
+    if (hasNewMasteryReward) {
+        return createPortal(
+            <div className="listening-mastery-celebration" role="dialog" aria-modal="true" aria-label="音檔熟練通過">
+                <div className="listening-mastery-confetti" aria-hidden="true">
+                    {Array.from({ length: 10 }, (_, index) => <i key={index} />)}
+                </div>
+                <section className="listening-mastery-card">
+                    <span className="listening-mastery-medal" aria-hidden="true">★</span>
+                    <small>10 / 10 次</small>
+                    <h2>音檔熟練通過！</h2>
+                    <p>你完成了 10 次有效聆聽</p>
+                    <div>
+                        <strong>+{number(reward.listening_xp_added)} XP</strong>
+                        {Number(reward.listening_points_added || 0) > 0 && <strong>+{number(reward.listening_points_added)} AE Point</strong>}
+                    </div>
+                    <button type="button" onClick={onDismiss}>收下獎勵</button>
                 </section>
             </div>,
             document.body

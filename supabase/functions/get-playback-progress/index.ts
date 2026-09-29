@@ -92,7 +92,11 @@ Deno.serve(async (req: Request) => {
         .in("track_id", trackIds);
 
       if (progressError) return json(500, { error: "無法讀取播放進度" });
-      progress = progressData || [];
+      progress = (progressData || []).map(item => ({
+        ...item,
+        completed: Number(item.play_count || 0) >= 10,
+        completed_at: Number(item.play_count || 0) >= 10 ? item.completed_at : null
+      }));
     }
 
     const now = new Date();

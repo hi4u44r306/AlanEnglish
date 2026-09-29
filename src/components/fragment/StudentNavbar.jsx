@@ -10,8 +10,6 @@ import {
     FiBarChart2,
     FiBell,
     FiBookOpen,
-    FiChevronLeft,
-    FiChevronRight,
     FiCreditCard,
     FiGift,
     FiHelpCircle,
@@ -30,9 +28,9 @@ import Brand from "./Brand";
 import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
-import { BASIC_READING_LEVELS, getBasicReadingBookMeta } from "../../constants/basicReadingCatalog";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import { prefetchReviewDashboard } from "../../services/reviewService";
+import MaterialsNavigator from "./MaterialsNavigator";
 import "../assets/scss/StudentNavbar.scss";
 
 const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
@@ -45,8 +43,6 @@ const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
 
     return <Link {...props} to={to} onClick={handleClick} />;
 };
-
-const studentMaterialPath = book => book.path || `/student/books/${book.code}`;
 
 const StudentNavbar = ({
     categories,
@@ -72,9 +68,7 @@ const StudentNavbar = ({
     const [drawer, setDrawer] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [materialsOpen, setMaterialsOpen] = useState(false);
-    const [materialsView, setMaterialsView] = useState("root");
-    const [selectedBasicReadingLevel, setSelectedBasicReadingLevel] = useState(null);
-    const [materialsDirection, setMaterialsDirection] = useState("forward");
+    const [materialsResetToken, setMaterialsResetToken] = useState(0);
     const accessibleCategories = categories || [];
     const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
     const hasMaterials = materialCount > 0;
@@ -107,14 +101,8 @@ const StudentNavbar = ({
         ? <StudentAvatarImage src={avatarUrl} alt="" />
         : <span>{profileInitial}</span>;
 
-    const basicReadingCategory = accessibleCategories.find(category => category.navigationType === "basic-reading");
-    const regularMaterialCategories = accessibleCategories.filter(category => category.navigationType !== "basic-reading");
-    const availableBasicReadingLevels = BASIC_READING_LEVELS.filter(level => basicReadingCategory?.books.some(book => getBasicReadingBookMeta(book)?.level === level));
-
     const resetMaterialsView = useCallback(() => {
-        setMaterialsView("root");
-        setSelectedBasicReadingLevel(null);
-        setMaterialsDirection("forward");
+        setMaterialsResetToken(current => current + 1);
     }, []);
 
     const warmReviewExperience = useCallback(() => {
@@ -154,107 +142,8 @@ const StudentNavbar = ({
         setMaterialsOpen(false);
     }, [location.pathname]);
 
-    const showBasicReadingLevels = () => {
-        setMaterialsDirection("forward");
-        setMaterialsView("levels");
-    };
-
-    const showBasicReadingBooks = level => {
-        setSelectedBasicReadingLevel(level);
-        setMaterialsDirection("forward");
-        setMaterialsView("books");
-    };
-
-    const goBackInMaterials = () => {
-        setMaterialsDirection("back");
-        if (materialsView === "books") {
-            setMaterialsView("levels");
-            return;
-        }
-        setSelectedBasicReadingLevel(null);
-        setMaterialsView("root");
-    };
-
-    const renderRegularMaterialCategory = (category, variant) => (
-        <details className="ae-student-material-group" key={`${variant}-${category.id}`}>
-            <summary aria-label={`切換${category.name}，${category.books.length} 本教材`}>
-                <span><FiBookOpen />{category.name}</span>
-                <span>{category.books.length} 本</span>
-            </summary>
-            <div>
-                {category.books.map(book => {
-                    const destination = studentMaterialPath(book);
-                    return (
-                        <InstantDrawerLink
-                            key={book.id || book.code}
-                            to={destination}
-                            onNavigate={closeDrawerThenNavigate}
-                            className={isPathActive(destination) ? "active" : ""}
-                        >
-                            {book.name}
-                        </InstantDrawerLink>
-                    );
-                })}
-            </div>
-        </details>
-    );
-
     const renderMaterials = variant => {
-        if (loading) return <div className="ae-student-menu-status">教材載入中...</div>;
-        if (navError) return <div className="ae-student-menu-status error">教材暫時無法載入</div>;
-        if (!hasMaterials) return <div className="ae-student-menu-status">目前沒有可使用的教材</div>;
-
-        const animationClass = materialsDirection === "back" ? "is-back" : "is-forward";
-
-        if (materialsView === "levels" && basicReadingCategory) {
-            return (
-                <div className={`ae-student-materials-panel ${animationClass}`} key={`${variant}-basic-levels`}>
-                    <button type="button" className="ae-student-materials-back" onClick={goBackInMaterials}><FiChevronLeft />全部教材</button>
-                    <div className="ae-student-materials-heading"><strong>Basic Reading</strong><small>選擇程度</small></div>
-                    <div className="ae-student-materials-choice-grid" aria-label="選擇 Basic Reading 程度">
-                        {availableBasicReadingLevels.map(level => (
-                            <button type="button" key={level} onClick={() => showBasicReadingBooks(level)}>
-                                <span><strong>{level}</strong><small>3 冊聽力</small></span><FiChevronRight />
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            );
-        }
-
-        if (materialsView === "books" && basicReadingCategory) {
-            const levelBooks = basicReadingCategory.books.filter(book => getBasicReadingBookMeta(book)?.level === selectedBasicReadingLevel);
-            return (
-                <div className={`ae-student-materials-panel ${animationClass}`} key={`${variant}-basic-${selectedBasicReadingLevel}`}>
-                    <button type="button" className="ae-student-materials-back" onClick={goBackInMaterials}><FiChevronLeft />選擇程度</button>
-                    <div className="ae-student-materials-heading"><strong>Basic Reading {selectedBasicReadingLevel}</strong><small>選擇冊別</small></div>
-                    <div className="ae-student-materials-choice-grid" aria-label={`選擇 Basic Reading ${selectedBasicReadingLevel} 冊別`}>
-                        {levelBooks.map(book => {
-                            const meta = getBasicReadingBookMeta(book);
-                            const destination = studentMaterialPath(book);
-                            return (
-                                <InstantDrawerLink key={book.id || book.code} to={destination} onNavigate={closeDrawerThenNavigate}>
-                                    <span><strong>第 {meta.bookNumber} 冊</strong><small>開啟播放清單</small></span><FiChevronRight />
-                                </InstantDrawerLink>
-                            );
-                        })}
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className={`ae-student-materials-panel ${animationClass}`} key={`${variant}-materials-root`}>
-                {basicReadingCategory && (
-                    <button type="button" className="ae-student-basic-reading-entry" onClick={showBasicReadingLevels}>
-                        <span className="ae-student-basic-reading-icon"><FiBookOpen /></span>
-                        <span><strong>Basic Reading</strong><small>400 · 800 · 1200</small></span>
-                        <FiChevronRight />
-                    </button>
-                )}
-                {regularMaterialCategories.map(category => renderRegularMaterialCategory(category, variant))}
-            </div>
-        );
+        return <MaterialsNavigator categories={accessibleCategories} loading={loading} navError={navError} onNavigate={closeDrawerThenNavigate} resetToken={materialsResetToken} variant={variant} />;
     };
 
     const speakingLinks = (
