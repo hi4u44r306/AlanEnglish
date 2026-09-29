@@ -2,11 +2,11 @@
 
 最後更新：2026-09-29
 
-本次通知設定集中與公開首頁賣點補強（2026-09-29，本機完成、尚未部署）：
+本次通知設定集中與公開首頁賣點補強（2026-09-29，已正式部署並完成線上驗收）：
 
 - 學生通知收件匣改為只顯示通知、相關頁面導引與已讀操作；移除頁內手機推播開關、測試通知及舊的登入後設定提示。首次登入的可選通知卡保留，日後裝置推播統一由「我的設定」開啟或關閉。
 - 公開首頁明確列出英文班 Workbook／Basic Reading／課堂聽力、AI 個人化教材、AI 口說大挑戰、班級作業、智慧複習與每週報告；並說明有效聆聽、AI 答題、口說通關及作業完成狀態都會跟著帳號保存。首頁熟練目標同步由舊的 7 次改為目前正式規則 10 次。
-- 本批只修改 React 顯示、SEO 文案、局部測試與文件；不修改 Web Push 後端、Firebase、Supabase、R2、教材權限或學習紀錄寫入邏輯。React targeted 3 suites／18 tests、SEO foundation 4/4、Production build 與 `git diff --check` 已通過；localhost 412px 與 1280px 實測無水平溢位。待 Cloudflare 正式發布及線上驗收。
+- 本批只修改 React 顯示、SEO 文案、局部測試與文件；不修改 Web Push 後端、Firebase、Supabase、R2、教材權限或學習紀錄寫入邏輯。React targeted 3 suites／18 tests、SEO foundation 4/4、Production build 與 `git diff --check` 已通過；localhost 412px 與 1280px 實測無水平溢位。PR #360 已合併至 `main` `716b2e14`，Cloudflare production build `f84e7428-7cbe-4d71-9090-90d46b2f92fb` 成功；正式 412px 首頁載入 `main.d2b93e7d.js`，三項指定賣點與 10 次熟練目標均可見，頁面無水平溢位且正式站 Console 無錯誤。登入後通知頁未使用正式學生帳號改動已讀狀態，以 5 項通知頁回歸測試及正式 bundle 一致性驗證。
 
 本次登入／首次設定精簡、管理員暱稱紀錄修復與測試帳號清理（2026-09-29，已正式部署並完成）：
 
