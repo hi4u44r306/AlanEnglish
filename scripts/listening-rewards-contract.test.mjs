@@ -5,12 +5,14 @@ import { readFileSync } from "node:fs";
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = read("supabase/migrations/20260902021837_listening_rewards_and_level_up.sql");
 const masteryMigration = read("supabase/migrations/20260903003717_listening_mastery_reward_allocation.sql");
+const tenListenCompletion = read("supabase/migrations/20260929160000_require_ten_listens_for_track_completion.sql");
 const academyAccessMigration = read("supabase/migrations/20260903114141_academy_all_access_assignment_v2.sql");
 const recordPlay = read("supabase/functions/record-play/index.ts");
 const assignmentManager = read("supabase/functions/assignment-manager/index.ts");
 const gamification = read("supabase/functions/gamification/index.ts");
 const player = read("src/components/fragment/MusicPlayer.jsx");
 const footerPlayer = read("src/components/assets/scss/FooterPlayer.scss");
+const studentNavbarStyles = read("src/components/assets/scss/StudentNavbar.scss");
 const studentAssignments = read("src/components/Pages/StudentAssignments.jsx");
 const rewardFeedback = read("src/components/fragment/ListeningRewardFeedback.jsx");
 const rewardsPage = read("src/components/Pages/Rewards.jsx");
@@ -39,6 +41,12 @@ test("舊V2資料保留稽核；V3改為10次熟練、每檔終身一次、每�
     assert.match(masteryMigration, /v_count >= 10.*v_daily < 3/);
     assert.match(masteryMigration, /'listening_mastery', concat\('track:', p_track_id\)/);
     assert.match(recordPlay, /complete_listening_reward_session_v3/);
+    assert.match(tenListenCompletion, /greatest\(p_required_plays, 10\)/);
+    assert.match(tenListenCompletion, /progress\.play_count \+ 1 >= v_required_plays/);
+    assert.match(tenListenCompletion, /insert into public\.student_feature_rollouts as rollout/);
+    assert.match(tenListenCompletion, /ae_enable_listening_mastery_for_new_student/);
+    assert.match(tenListenCompletion, /private\.listening_completion_backup_20260929/);
+    assert.match(tenListenCompletion, /private\.listening_rollout_backup_20260929/);
 });
 
 test("升等點數依等級區間一次性發放", () => {
@@ -146,4 +154,10 @@ test("900px 以下使用平板精簡播放器且自訂樣式最後載入", () =>
     assert.match(footerPlayer, /Compact bottom player[\s\S]{0,100}@media only screen and \(max-width: 900px\)/);
     assert.match(footerPlayer, /@media only screen and \(min-width: 901px\) and \(max-width: 1080px\)/);
     assert.match(footerPlayer, /\.rhap_volume-controls \{[\s\S]{0,80}display: none !important/);
+});
+
+test("加入主畫面時播放器依導覽實際高度貼齊並保留安全區", () => {
+    assert.match(studentNavbarStyles, /@media \(display-mode: standalone\) and \(max-width: 1100px\)/);
+    assert.match(studentNavbarStyles, /--student-bottom-nav-offset: calc\(24px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+    assert.match(studentNavbarStyles, /\.app-player\.mini \{\s*bottom: calc\(61px \+ var\(--student-bottom-nav-offset\)\)/);
 });

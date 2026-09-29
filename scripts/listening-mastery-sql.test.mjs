@@ -11,6 +11,7 @@ const db = new PGlite();
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const v2 = read("supabase/migrations/20260902021837_listening_rewards_and_level_up.sql");
 const v3 = read("supabase/migrations/20260903003717_listening_mastery_reward_allocation.sql");
+const tenListenCompletion = read("supabase/migrations/20260929160000_require_ten_listens_for_track_completion.sql");
 const originalFunction = name => {
     const start = v2.indexOf(`create or replace function ${name}(`);
     assert.ok(start >= 0, name);
@@ -29,7 +30,9 @@ before(async () => {
             track_id bigint references music_tracks, duration_seconds numeric, started_at timestamptz default now(),
             completed_at timestamptz, count_recorded boolean default false, eligible_for_count boolean default true,
             covered_ranges jsonb, covered_seconds numeric, coverage_percent numeric, ineligibility_reason text, updated_at timestamptz);
-        create table student_feature_rollouts(student_id bigint references students, feature_key text, enabled boolean, primary key(student_id, feature_key));
+        create table student_feature_rollouts(student_id bigint references students, feature_key text, enabled boolean,
+            enabled_at timestamptz, disabled_at timestamptz, created_at timestamptz default now(), updated_at timestamptz default now(),
+            primary key(student_id, feature_key));
         create table student_gamification_balances(student_id bigint primary key references students, total_xp integer default 0,
             points_balance integer default 0, updated_at timestamptz);
         create table student_gamification_ledger(id bigint generated always as identity primary key, student_id bigint references students,
@@ -59,13 +62,15 @@ before(async () => {
         for each row execute function private.ae_gamification_track_progress_trigger();
         insert into students(id) select generate_series(1,20);
         insert into music_tracks(id) select generate_series(1,50);
-        insert into student_feature_rollouts select id, 'listening_rewards_v2', true from students;
+        insert into student_feature_rollouts(student_id, feature_key, enabled)
+            select id, 'listening_rewards_v2', true from students;
         insert into academy_classes values (1,'E3'),(2,'E5');
         insert into academy_enrollments(student_id,class_id,status,enrolled_at) select id,1,'active',current_date-100 from students;
         insert into student_track_progress values(1,1,99,true,now(),now(),now());
         insert into student_gamification_ledger(student_id,xp_delta,points_delta,source_type,source_key) values(1,5,1,'listening_daily','track:1:old');
     `);
     await db.exec(v3);
+    await db.exec(tenListenCompletion);
 });
 after(() => db.close());
 
@@ -96,6 +101,22 @@ test("舊次數／獎勵不回填；第9次無獎勵，第10次10XP+1點，第11
     // Changing the reward date cannot reset a lifetime source key.
     await db.exec("update student_gamification_ledger set created_at=now()-interval '1 day' where student_id=1");
     assert.equal((await listen(1, 1)).total_xp_added, 0);
+});
+
+test("音檔第9次仍未通過，第10次才同步標記完成", async () => {
+    let result;
+    for (let i = 0; i < 9; i++) result = await listen(19, 49);
+    assert.equal(result.play_count, 9);
+    assert.equal(result.completed, false);
+    result = await listen(19, 49);
+    assert.equal(result.play_count, 10);
+    assert.equal(result.completed, true);
+});
+
+test("10次熟練規則套用全部既有學生與之後新增的學生", async () => {
+    assert.equal((await scalar("select count(*)::int n from student_feature_rollouts where enabled is true")).n, 20);
+    await db.exec("insert into students(id) values(21)");
+    assert.equal((await scalar("select enabled from student_feature_rollouts where student_id=21 and feature_key='listening_rewards_v2'")).enabled, true);
 });
 
 test("每日3檔上限、第四檔保留10/10並於隔天再聽領取", async () => {

@@ -9,6 +9,7 @@ import {
     setNoInteractionCount,
     setPlayPauseStatus
 } from "../../actions/actions";
+import { hasReachedListeningMastery, LISTENING_MASTERY_REQUIRED_PLAYS } from "../../constants/listeningProgress";
 
 function MusicCard({
     music,
@@ -31,10 +32,7 @@ function MusicCard({
             0
         ) || 0;
 
-    const completed =
-        Boolean(
-            progress?.completed
-        );
+    const completed = hasReachedListeningMastery(progress);
 
     const currentPlaying =
         useSelector(
@@ -160,16 +158,16 @@ function MusicCard({
             <div className="music-card__status">
                 <div className="music-card__plays">
                     <FiHeadphones />
-                    <span><small>已聽</small><strong>{playCount} 次</strong></span>
+                    <span><small>熟練進度</small><strong>{Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / {LISTENING_MASTERY_REQUIRED_PLAYS}</strong></span>
                 </div>
 
                 {completed && (
                     <div
                         className="music-card__check"
-                        title="已完成"
+                        title="已通過"
                     >
                         <FiCheck />
-                        <span>完成</span>
+                        <span>通過</span>
                     </div>
                 )}
             </div>

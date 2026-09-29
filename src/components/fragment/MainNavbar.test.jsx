@@ -222,7 +222,7 @@ describe("MainNavbar student navigation", () => {
             });
         });
 
-        expect(await screen.findByLabelText("切換習作本，1 本教材")).toBeInTheDocument();
+        expect(await screen.findByRole("button", { name: "開啟習作本，1 本教材" })).toHaveClass("ae-student-material-entry");
     });
 
     it("removes Listening and opens Basic Reading as a three-level materials flow", async () => {
@@ -267,11 +267,10 @@ describe("MainNavbar student navigation", () => {
         expect(within(desktopMaterials).getByRole("link", { name: /第 3 冊/ })).toHaveAttribute("href", "/student/books/BasicReading_400_3");
         fireEvent.click(within(desktopMaterials).getByRole("button", { name: "選擇程度" }));
         fireEvent.click(within(desktopMaterials).getByRole("button", { name: "全部教材" }));
-        const desktopWorkbookToggle = within(desktopMaterials).getByLabelText("切換習作本，1 本教材");
-        expect(desktopWorkbookToggle.closest("details")).not.toHaveAttribute("open");
+        const desktopWorkbookToggle = within(desktopMaterials).getByRole("button", { name: "開啟習作本，1 本教材" });
+        expect(desktopWorkbookToggle).toHaveClass("ae-student-material-entry");
         fireEvent.click(desktopWorkbookToggle);
-        expect(desktopWorkbookToggle.closest("details")).toHaveAttribute("open");
-        const desktopWorkbookLink = within(desktopMaterials).getByRole("link", { name: "Workbook 1" });
+        const desktopWorkbookLink = within(desktopMaterials).getByRole("link", { name: /Workbook 1/ });
         expect(desktopWorkbookLink).toHaveAttribute("href", "/student/books/Workbook_1");
         expect(within(desktopMaterials).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
 
@@ -448,6 +447,32 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getAllByRole("link", { name: "新增連結" })).toHaveLength(2);
         expect(screen.getAllByRole("link", { name: "教材 AI 口說題庫" })).toHaveLength(2);
         expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
+    });
+
+    it.each(["admin", "teacher"])("uses the same hierarchical materials navigator for %s", async role => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: `${role}-materials-test` },
+            role,
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: { name: role === "admin" ? "管理員" : "老師" }
+        });
+        getAccessibleCatalog.mockResolvedValue({
+            categories: [{ id: "workbook", name: "習作本", books: [{ id: 1, code: "Workbook_1", name: "Workbook 1", locked: false }] }, {
+                id: "textbook", code: "textbook", name: "課本", books: basicReadingBooks
+            }, { id: "listening", name: "聽力本", books: [{ id: 99, code: "Listening_1", name: "聽力本 1", locked: false }] }]
+        });
+
+        render(<MemoryRouter initialEntries={[`/${role}/dashboard`]}><MainNavbar /></MemoryRouter>);
+
+        const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
+        fireEvent.click(materialsMenu);
+        const materialsDropdown = materialsMenu.closest(".dropdown");
+        expect(within(materialsDropdown).queryByText("聽力本")).not.toBeInTheDocument();
+        expect(within(materialsDropdown).getByRole("button", { name: "開啟Basic Reading，9 本教材" })).toHaveClass("ae-student-material-entry");
+        expect(within(materialsDropdown).getByRole("button", { name: "開啟習作本，1 本教材" })).toHaveClass("ae-student-material-entry");
+        fireEvent.click(within(materialsDropdown).getByRole("button", { name: "開啟習作本，1 本教材" }));
+        expect(within(materialsDropdown).getByRole("link", { name: /Workbook 1/ })).toHaveAttribute("href", "/student/books/Workbook_1");
     });
 
     it("does not show the links admin entry to teachers", async () => {

@@ -25,8 +25,11 @@ test("第10次自主熟練顯示10XP與1點", () => {
         reward_status: { policy_version: 3, source: "self_practice", mastery_count: 10, mastery_rewarded: true },
         daily_rewarded_tracks: 1, daily_track_limit: 3
     }} onDismiss={jest.fn()} />);
-    expect(screen.getByText("自主熟練達成 +10 XP")).toBeInTheDocument();
-    expect(screen.getByText("獲得 +1 AE Point，每檔熟練獎勵限領一次")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "音檔熟練通過" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "音檔熟練通過！" })).toBeInTheDocument();
+    expect(screen.getByText("+10 XP")).toBeInTheDocument();
+    expect(screen.getByText("+1 AE Point")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "收下獎勵" })).toBeInTheDocument();
 });
 
 test("有效聆聽會顯示 XP、點數進度與每日上限", () => {

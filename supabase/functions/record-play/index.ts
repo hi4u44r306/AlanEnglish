@@ -412,7 +412,7 @@ Deno.serve(async (req: Request) => {
         metadata: {
           track_id: trackId,
           play_count: Number(result?.play_count || 0),
-          completed: Boolean(result?.completed),
+          completed: Number(result?.play_count || 0) >= 10,
           duration_seconds: Number(storedSession.duration_seconds),
           coverage_percent: completion.coveragePercent,
           session_id: storedSession.id,
@@ -433,7 +433,7 @@ Deno.serve(async (req: Request) => {
       progress: {
         result_track_id: result?.result_track_id,
         play_count: Number(result?.play_count || 0),
-        completed: Boolean(result?.completed),
+        completed: Number(result?.play_count || 0) >= 10,
         daily_count: Number(result?.daily_count || 0),
         monthly_count: Number(result?.monthly_count || 0),
         total_count: Number(result?.total_count || 0)
