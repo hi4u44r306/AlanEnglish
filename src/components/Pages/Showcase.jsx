@@ -54,102 +54,6 @@ const learningSteps = [
     { number: "04", title: "看見下一步", text: "透過排行榜、每週報告與老師安排，知道接下來該加強什麼。" }
 ];
 
-const plans = [
-    {
-        label: "先體驗看看",
-        name: "7 天免費試用",
-        price: "免費",
-        period: "使用 7 天",
-        description: "適合第一次認識 Alan English 的學生與家長，不需要先購買教材。",
-        points: ["不需信用卡", "7 天內可生成 AI 教材共 7 次、每日最多 2 次", "使用獨立的引導式試用內容"],
-        action: "立即免費試用",
-        href: "/freetrial",
-        badge: "",
-        featured: false
-    },
-    {
-        label: "自主學習平台",
-        name: "平台月費方案",
-        price: "NT$299",
-        period: "／月",
-        description: "適合希望固定安排聽力與自主練習的家庭；目前正在準備中，尚未開放公開付款。",
-        points: ["全部已啟用的正式聽力教材", "包含情境會話與智慧複習", "AI 教材與發音練習可另加購"],
-        action: "先免費體驗",
-        href: "/freetrial",
-        badge: "準備中",
-        featured: true
-    },
-    {
-        label: "選擇性加購",
-        name: "AI 教材與發音練習",
-        price: "NT$499",
-        period: "／月",
-        description: "一般會員與離校生須搭配有效平台方案使用；目前尚未開放公開付款。",
-        points: ["AI 選擇題教材", "每日 5 次、每月 150 次", "AI 口說大挑戰與發音教練"],
-        action: "先免費體驗",
-        href: "/freetrial",
-        badge: "",
-        featured: false
-    },
-    {
-        label: "Alan English 英文班",
-        name: "在校／離校方案",
-        price: "NT$2,800",
-        period: "／月",
-        description: "英文班在校生由老師安排帳號、班級教材與班級作業；不提供公開線上購買。",
-        points: ["課堂教材與 Basic Reading 聽力音檔", "班級作業、AI 教材與口說大挑戰", "有效聆聽、答題與通關紀錄持續保存"],
-        action: "學生登入",
-        href: "/login",
-        badge: "英文班專屬",
-        featured: false
-    }
-];
-
-const planComparison = [
-    {
-        label: "費用",
-        trial: "免費",
-        textbook: "NT$299／月",
-        regular: "NT$499／月",
-        academy: "NT$2,800／月"
-    },
-    {
-        label: "AI 教材與發音練習",
-        trial: "7 天共 7 次",
-        textbook: "不包含",
-        regular: "AI 加購 NT$499／月",
-        academy: "在校期間包含"
-    },
-    {
-        label: "使用期限",
-        trial: "7 天",
-        textbook: "按月續用",
-        regular: "按月續訂",
-        academy: "依在校或訂閱狀態"
-    },
-    {
-        label: "教材範圍",
-        trial: "體驗內容",
-        textbook: "正式聽力教材",
-        regular: "搭配基本會員使用",
-        academy: "全部正式聽力教材"
-    },
-    {
-        label: "班級作業",
-        trial: "不包含",
-        textbook: "不包含",
-        regular: "不包含",
-        academy: "僅在校生包含"
-    },
-    {
-        label: "學習方式",
-        trial: "體驗",
-        textbook: "自主安排",
-        regular: "自主安排",
-        academy: "老師安排＋自主練習"
-    }
-];
-
 const faqs = [
     {
         question: "Alan English 適合什麼年齡？",
@@ -158,22 +62,6 @@ const faqs = [
     {
         question: "免費試用需要先付款或綁信用卡嗎？",
         answer: "不需要。完成 Email 驗證後即可開始 7 天免費試用，可生成 AI 教材共 7 次、每天最多 2 次；試用結束後也不會自動扣款。"
-    },
-    {
-        question: "現在可以購買實體教材嗎？",
-        answer: "目前教材包暫未公開販售，也不開放教材結帳。未來開放實體教材後，購買者會以同一個已驗證 Email 領取 90 天網站使用權；正式流程會在開放前公告。"
-    },
-    {
-        question: "平台方案與 AI 加購的價格是多少？",
-        answer: "基本會員每月 NT$299；AI 教材與發音練習目前每月 NT$499，一般會員與離校生須同時具備基本會員，合計 NT$798／月。目前公開付款暫停，不會自動建立新訂閱。"
-    },
-    {
-        question: "英文班學生也需要在網站購買會員嗎？",
-        answer: "不需要。英文班學生的帳號、教材與班級作業由老師依在學狀態安排；網站不提供英文班方案的公開購買。"
-    },
-    {
-        question: "英文班學生離校後還能繼續使用嗎？",
-        answer: "可以。離校後會保留原有學習紀錄，也不會再收到新的班級作業；後續可使用的方案會在公開付款開放時於會員中心顯示。"
     },
     {
         question: "手機和平板可以使用嗎？",
@@ -189,7 +77,6 @@ const Showcase = () => {
             <ShowcaseNavbar
                 nav1="#features"
                 nav2="#learning-paths"
-                nav3="#plans"
                 nav4="#faq"
             />
 
@@ -372,11 +259,11 @@ const Showcase = () => {
                                 <div className="showcase-path-label">SELF-PACED LEARNING</div>
                                 <div className="showcase-path-icon"><BiBookOpen /></div>
                                 <h3>自主學習</h3>
-                                <p>先免費體驗，再依孩子的時間安排聽力與練習；公開付款目前暫停，現階段不會建立新訂閱。</p>
+                                <p>先使用 7 天免費試用，依孩子的時間安排短時間聽力與 AI 練習，找到每天願意持續的節奏。</p>
                                 <ul>
-                                    <li><span>✓</span> 基本會員 NT$299／月</li>
-                                    <li><span>✓</span> AI 教材與發音練習 NT$499／月</li>
-                                    <li><span>✓</span> 目前公開付款與教材包販售暫停</li>
+                                    <li><span>✓</span> 7 天引導式試用內容</li>
+                                    <li><span>✓</span> 每天短時間自主練習</li>
+                                    <li><span>✓</span> 進度與練習紀錄自動保存</li>
                                     <li><span>✓</span> 自主學習，不會收到英文班作業</li>
                                 </ul>
                                 <Link to="/freetrial">先免費體驗 <BiChevronRight /></Link>
@@ -419,125 +306,6 @@ const Showcase = () => {
                     </div>
                 </section>
 
-                <section id="plans" className="showcase-section showcase-plans-section">
-                    <span id="pricing" className="showcase-pricing-anchor" aria-hidden="true" />
-                    <div className="showcase-shell">
-                        <div className="showcase-section-heading showcase-section-heading-center">
-                            <span className="showcase-kicker">CHOOSE YOUR PLAN</span>
-                            <h2>先免費體驗，再決定適合孩子的學習方式。</h2>
-                            <p>基本會員每月 NT$299；AI 教材與發音練習目前每月 NT$499，一般會員與離校生合計 NT$798／月。目前教材包與公開付款暫停，尚未開放結帳。</p>
-                        </div>
-                        <div className="showcase-trial-banner">
-                            <div className="showcase-trial-copy">
-                                <span className="showcase-trial-label">7-DAY GUIDED TRIAL</span>
-                                <h3>先讓孩子試學 7 天，再決定適合哪一套教材。</h3>
-                                <p>不需信用卡、不會自動扣款。試用期間會提供獨立引導內容，不需要先準備實體教材。</p>
-                            </div>
-
-                            <ul>
-                                {plans[0].points.map((point) => (
-                                    <li key={point}>
-                                        <span>✓</span>
-                                        {point}
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <Link
-                                className="showcase-primary-btn"
-                                to={plans[0].href}
-                            >
-                                {plans[0].action}
-                                <BiChevronRight />
-                            </Link>
-                        </div>
-
-                        <div className="showcase-plan-grid">
-                            {plans.slice(1).map((plan) => (
-                                <article
-                                    className={
-                                        "showcase-plan-card" +
-                                        (plan.featured ? " featured" : "")
-                                    }
-                                    key={plan.name}
-                                >
-                                    {plan.badge && (
-                                        <span className="showcase-plan-popular">
-                                            {plan.badge}
-                                        </span>
-                                    )}
-
-                                    <small>{plan.label}</small>
-
-                                    <h3>{plan.name}</h3>
-
-                                    <div className="showcase-plan-price">
-                                        <strong>{plan.price}</strong>
-                                        <span>{plan.period}</span>
-                                    </div>
-
-                                    <p>{plan.description}</p>
-
-                                    <ul>
-                                        {plan.points.map((point) => (
-                                            <li key={point}>
-                                                <span>✓</span>
-                                                {point}
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <Link
-                                        className={
-                                            plan.featured
-                                                ? "showcase-primary-btn"
-                                                : "showcase-secondary-btn"
-                                        }
-                                        to={plan.href}
-                                    >
-                                        {plan.action}
-                                        <BiChevronRight />
-                                    </Link>
-                                </article>
-                            ))}
-                        </div>
-
-                        <div className="showcase-plan-comparison" aria-label="Alan English 方案比較">
-                            <div className="showcase-plan-comparison-heading">
-                                <span className="showcase-kicker">PLAN COMPARISON</span>
-                                <h3>每一種身分，都有清楚的使用方式。</h3>
-                            </div>
-                            <p className="showcase-plan-scroll-hint" aria-hidden="true">← 左右滑動查看完整方案 →</p>
-                            <div className="showcase-plan-table-wrap" tabIndex={0} role="region" aria-label="方案比較表，可左右滑動查看完整內容">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>比較項目</th>
-                                            <th>7 天試用</th>
-                                            <th>平台方案</th>
-                                            <th>AI 加購</th>
-                                            <th>英文班學生</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {planComparison.map((row) => (
-                                            <tr key={row.label}>
-                                                <th scope="row">{row.label}</th>
-                                                <td>{row.trial}</td>
-                                                <td>{row.textbook}</td>
-                                                <td>{row.regular}</td>
-                                                <td>{row.academy}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <p className="showcase-plan-note">教材包、公開付款與實際開通流程仍在準備中；開放前會清楚公告適用內容、價格與使用期限。</p>
-                    </div>
-                </section>
-
                 <section id="faq" className="showcase-section showcase-faq-section">
                     <div className="showcase-shell showcase-faq-layout">
                         <div className="showcase-section-heading">
@@ -562,7 +330,7 @@ const Showcase = () => {
                         <div>
                             <span className="showcase-kicker">START TODAY</span>
                             <h2>今天，就從第一段英文聽力開始。</h2>
-                            <p>先免費體驗 7 天，確認孩子適應後再決定是否使用後續公開方案。</p>
+                            <p>先免費體驗 7 天，陪孩子找到每天願意持續的英文學習節奏。</p>
                         </div>
                         <div className="showcase-cta-actions">
                             <Link className="showcase-primary-btn" to="/freetrial">免費試用 7 天 <BiChevronRight /></Link>
@@ -575,7 +343,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/shop">教材商城</Link><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
+                    <div className="showcase-footer-links"><Link to="/login">登入</Link><Link to="/freetrial">免費試用</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>
