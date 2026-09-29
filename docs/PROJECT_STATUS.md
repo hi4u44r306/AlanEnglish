@@ -2,13 +2,14 @@
 
 最後更新：2026-09-29
 
-本次共用教材導覽、10 次通過與主畫面播放器貼齊（2026-09-29，本機完成，尚未部署）：
+本次共用教材導覽、10 次通過與主畫面播放器貼齊（2026-09-29，已正式部署並完成線上驗收）：
 
 - 學生「我的教材」內的習作本改用與 Basic Reading 相同的大卡片入口；第一層選分類、第二層選冊別。老師與管理員桌面 Navbar／手機選單也改用相同的「我的教材」分層導覽，並一致排除舊聽力本與非 Basic Reading 課本入口。
 - 一般教材音檔的「通過」改為 10 次伺服器驗證的有效聆聽；第 9 次仍顯示 9/10，第 10 次才顯示通過並依既有熟練規則發放 10 XP／1 AE Point。新增 10/10 熟練獎勵小視窗；既有 80% 不重複覆蓋、私人 R2、Range Request、學生角色限制、作業優先與每日 3 檔自主獎勵上限不變。
-- additive migration `20260929160000_require_ten_listens_for_track_completion.sql` 更正播放進度完成門檻、把既有 `play_count < 10` 的錯誤完成旗標改回未通過，並將已測試的 V3 十次熟練規則由測試帳號灰度改為全部既有及新學生使用；執行前會在 private schema 保存完成旗標與 rollout 的精確快照供回復，不回填舊熟練獎勵，也不刪除播放次數、熟練資料或獎勵 ledger。尚未執行正式 migration，`record-play` 與 `get-playback-progress` 也尚未部署。
+- additive migration `20260929160000_require_ten_listens_for_track_completion.sql` 已在正式 Supabase 執行並登記；既有 `play_count < 10` 的 3 筆錯誤完成旗標已改回未通過，14／14 個學生角色帳號均啟用 V3 十次熟練規則，新生 trigger 已建立。private schema 保留 3 筆完成狀態與 1 筆舊 rollout 精確快照供回復；沒有回填舊熟練獎勵，也沒有刪除播放次數、熟練資料或獎勵 ledger。正式驗證確認低於 10 次卻完成為 0、學生缺漏 rollout 為 0，RPC 強制 `greatest(p_required_plays, 10)`，且 public／anon／authenticated 無執行權、service role 可執行。
 - 加入主畫面的 standalone 模式會依底部導覽實際高度定位 MusicPlayer，使播放器下緣直接貼齊導覽上緣；一般 Safari／Chrome 頁籤仍保留原本浮動間距與 safe area。
-- React targeted 3 suites／30 tests、獎勵契約 15/15、全部 Edge Function 語法、Production build 與隔離 PGlite 11/11 已通過。412px／standalone 視覺驗收、正式 migration、Edge Function、PR／合併／正式部署及正式站驗收尚未完成。
+- React targeted 3 suites／30 tests、獎勵契約 15/15、全部 Edge Function 語法、Production build、`git diff --check` 與隔離 PGlite 11/11 已通過。PR #346 已合併至 `main` `ef483a14`；正式 `record-play` v36、`get-playback-progress` v24 均為 ACTIVE，Cloudflare production build `775e4c86-1426-400a-8005-a792667de942` 成功。登入學生正式站已確認手機全螢幕抽屜、兩種教材同款入口、Basic Reading 400 → 第 1～3 冊、習作本 6 冊、無聽力本，以及 `/student/books/BasicReading_400_1` 的 51 軌均顯示 0/10；未啟動播放，因此沒有改動正式次數或獎勵。老師／管理員真實登入與安裝到 iPhone／Android 主畫面的實機間距仍待另行驗收，對應 React 測試與 standalone CSS 規則已通過。
+- 正式前端發布與驗收只以 Cloudflare Workers／Pages 為準；Netlify 已停用，不再檢查或等待 Netlify deploy preview，也不把其 GitHub 狀態列入發布判定。
 
 本次登入後 Basic Reading 分層教材與正式播放器接軌（2026-09-29，已正式部署並完成線上驗收）：
 
