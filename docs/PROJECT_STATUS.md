@@ -2,13 +2,13 @@
 
 最後更新：2026-09-29
 
-本次登入後 Basic Reading 分層教材與正式播放器接軌（2026-09-29，本機完成，尚未部署）：
+本次登入後 Basic Reading 分層教材與正式播放器接軌（2026-09-29，已正式部署並完成線上驗收）：
 
 - 學生「我的教材」第一層直接顯示 Basic Reading；點入後以向左切換的三層流程依序選 400／800／1200、再選第 1～3 冊，最後進入 `/student/books/BasicReading_<level>_<book>` 的登入後 Playlist。手機教材抽屜改為全螢幕並保留 iPhone safe area，桌面使用較大的下拉面板；返回操作支援反向切換與 reduced-motion。
 - 學生端完全移除「聽力本」分類，既有 Listening 資料、R2 音檔、歷史播放與老師／管理員功能均未刪除或停用；舊課本入口也不再顯示。習作本維持原有正式 Playlist。
-- 新 additive migration 準備在既有 `textbook` 分類建立 9 本正式 Basic Reading 教材及 399 筆 `music_tracks`，路徑直接引用已驗證的私人 R2 `basic-reading/br<level>_<book>/Track<n>.mp3`。因此沿用現有登入驗證、60 分鐘預簽網址、Range、MusicPlayer、80% 有效聆聽、播放次數與獎勵流程，不另做簡易播放器或重複上傳音檔。
-- 正式資料唯讀前檢查確認 Basic Reading 目前為 0 本／0 軌，`book_categories` 仍有 `textbook`，九冊代碼不衝突；migration 具備 9 本／399 軌交易內驗證，失敗會整批 rollback。回復方式是不刪紀錄，只將九冊停用／封存並回復前端。
-- `MainNavbar` React 17/17、Basic Reading migration 契約 1/1、Production build 與 `git diff --check` 已通過。尚未執行正式 migration、PR／合併／Cloudflare 部署，也尚未以登入學生完成正式音檔播放、次數與獎勵驗收。
+- additive migration `20260929143000_add_basic_reading_listening_catalog.sql` 已在正式 Supabase 執行，於既有 `textbook` 分類建立 9 本正式 Basic Reading 教材及 399 筆 `music_tracks`；正式查詢確認 9 本皆啟用、399 組 `(book_id, track_key)` 唯一、399 條路徑皆為私人 R2 `basic-reading/br<level>_<book>/Track<n>.mp3`，無無效路徑。音檔沒有重新上傳或刪除。
+- PR #344 已合併至 `main` `194d14fe`，Cloudflare production build `a759f43c-3376-466a-986a-ded11ba849d2` 成功。正式登入學生在 412×892 視窗確認全螢幕抽屜、Basic Reading → 程度 → 冊別三層內容、學生端沒有聽力本；第 1 冊可導向 `/student/books/BasicReading_400_1`。正式播放清單顯示 51 軌，管理員短暫播放 Track 1／2 時成功取得私人 R2 音檔、`readyState=4` 且時間持續前進。
+- `MainNavbar` 與 `MusicPlayer.visibility` React 23/23、Basic Reading migration 契約 1/1、Production build 與 `git diff --check` 全部通過。正式播放刻意未達 80%，因此沒有改動學生播放次數或發放獎勵；80% 有效聆聽、播放次數與現行獎勵沿用既有已測試的 MusicPlayer／`record-play` 流程。
 
 本次登入後「我的教材」課本入口精簡（2026-09-29，已正式部署）：
 
