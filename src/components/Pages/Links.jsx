@@ -20,17 +20,11 @@ const CATEGORY_CONFIG = [
 ];
 
 const BASIC_READING_LEVELS = ["400", "800", "1200"];
-const BASIC_READING_BOOKS = [
-    { number: 1, label: "第一冊" },
-    { number: 2, label: "第二冊" },
-    { number: 3, label: "第三冊" }
-];
 
 const PUBLIC_CATEGORY_KEYS = new Set(CATEGORY_CONFIG.map(category => category.key));
 
 function Links() {
     const [items, setItems] = useState([]);
-    const [selectedBasicReadingLevel, setSelectedBasicReadingLevel] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -137,32 +131,17 @@ function Links() {
                                                 <div className="links-page__basic-reading">
                                                     <div className="links-page__basic-levels" aria-label="選擇 Basic Reading 程度">
                                                         {BASIC_READING_LEVELS.map(level => (
-                                                            <button
-                                                                type="button"
-                                                                className={selectedBasicReadingLevel === level ? "is-active" : ""}
-                                                                aria-pressed={selectedBasicReadingLevel === level}
-                                                                aria-controls="links-basic-reading-books"
-                                                                onClick={() => setSelectedBasicReadingLevel(level)}
+                                                            <Link
+                                                                className="links-page__card links-page__basic-level-link"
+                                                                to={`/basic-reading/${level}`}
+                                                                aria-label={`Basic Reading ${level}`}
                                                                 key={level}
                                                             >
-                                                                {level}
-                                                            </button>
+                                                                <span className="links-page__card-copy"><strong>{level}</strong></span>
+                                                                <span className="links-page__card-arrow" aria-hidden="true">→</span>
+                                                            </Link>
                                                         ))}
                                                     </div>
-                                                    {selectedBasicReadingLevel && (
-                                                        <div className="links-page__basic-books" id="links-basic-reading-books" aria-label={`選擇 Basic Reading ${selectedBasicReadingLevel} 冊別`}>
-                                                            {BASIC_READING_BOOKS.map(book => (
-                                                                <Link
-                                                                    to={`/basic-reading?collection=br${selectedBasicReadingLevel}_${book.number}`}
-                                                                    aria-label={`Basic Reading ${selectedBasicReadingLevel} ${book.label}`}
-                                                                    key={book.number}
-                                                                >
-                                                                    {book.label}
-                                                                    <span aria-hidden="true">→</span>
-                                                                </Link>
-                                                            ))}
-                                                        </div>
-                                                    )}
                                                 </div>
                                             ) : (
                                                 <div className="links-page__grid">

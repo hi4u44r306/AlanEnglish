@@ -142,6 +142,7 @@ const App = () => {
                     <Route path="/" element={<Showcase />} />
                     <Route path="/links" element={<Links />} />
                     <Route path="/basic-reading" element={<BasicReading />} />
+                    <Route path="/basic-reading/:level" element={<BasicReading />} />
                     <Route path="/home" element={<Navigate to="/" replace />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/solve" element={<Navigate to="/forgot-password" replace />} />

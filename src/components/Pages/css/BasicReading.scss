@@ -129,6 +129,10 @@
   gap: 14px;
 }
 
+.basic-reading-page__levels--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .basic-reading-page__level,
 .basic-reading-page__track-section {
   border: 1px solid var(--br-line);
@@ -173,12 +177,29 @@
       font-weight: 600;
     }
 
+    .basic-reading-page__book-arrow {
+      display: inline-grid;
+      width: 26px;
+      height: 26px;
+      place-items: center;
+      border-radius: 8px;
+      background: #e5ecff;
+      color: var(--br-blue);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
     &:hover,
     &:focus-visible,
     &.is-active {
       border-color: var(--br-blue);
       background: #edf2ff;
       color: var(--br-blue-dark);
+
+      .basic-reading-page__book-arrow {
+        background: var(--br-blue);
+        color: #fff;
+      }
     }
   }
 }
@@ -373,8 +394,14 @@
 
   .basic-reading-page__header {
     min-height: 62px;
+    gap: 8px;
     padding: 0 10px;
     border-radius: 16px;
+
+    nav {
+      flex: 0 0 auto;
+      gap: 4px;
+    }
 
     nav a {
       padding: 0 9px;
@@ -387,7 +414,15 @@
   }
 
   .basic-reading-page__brand {
-    max-width: 150px;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .basic-reading-page__brand .brand {
+    font-size: 20px !important;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
   }
 
   .basic-reading-page__intro {

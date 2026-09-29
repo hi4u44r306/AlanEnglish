@@ -1,7 +1,7 @@
 import React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import BasicReading from "./BasicReading";
 
 const jsonResponse = (body, status = 200) => Promise.resolve({
@@ -9,6 +9,15 @@ const jsonResponse = (body, status = 200) => Promise.resolve({
     status,
     json: async () => body
 });
+
+const renderBasicReading = initialEntry => render(
+    <MemoryRouter initialEntries={[initialEntry]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Routes>
+            <Route path="/basic-reading" element={<BasicReading />} />
+            <Route path="/basic-reading/:level" element={<BasicReading />} />
+        </Routes>
+    </MemoryRouter>
+);
 
 describe("public Basic Reading player", () => {
     beforeAll(() => {
@@ -33,7 +42,11 @@ describe("public Basic Reading player", () => {
                 return jsonResponse({
                     collections: [
                         { id: "br400_1", level: 400, book: 1, title: "Basic Reading 400 第 1 冊", trackCount: 3 },
-                        { id: "br800_1", level: 800, book: 1, title: "Basic Reading 800 第 1 冊", trackCount: 2 }
+                        { id: "br400_2", level: 400, book: 2, title: "Basic Reading 400 第 2 冊", trackCount: 2 },
+                        { id: "br400_3", level: 400, book: 3, title: "Basic Reading 400 第 3 冊", trackCount: 1 },
+                        { id: "br800_1", level: 800, book: 1, title: "Basic Reading 800 第 1 冊", trackCount: 2 },
+                        { id: "br800_2", level: 800, book: 2, title: "Basic Reading 800 第 2 冊", trackCount: 2 },
+                        { id: "br800_3", level: 800, book: 3, title: "Basic Reading 800 第 3 冊", trackCount: 2 }
                     ]
                 });
             }
@@ -44,16 +57,19 @@ describe("public Basic Reading player", () => {
         });
     });
 
-    it("shows compact level buttons and prepares a signed track URL", async () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <BasicReading />
-            </MemoryRouter>
-        );
+    it("shows only the selected level books, then reveals tracks after a book is chosen", async () => {
+        renderBasicReading("/basic-reading/400");
 
         expect(await screen.findByRole("heading", { name: "Basic Reading 400" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "Basic Reading 800" })).toBeInTheDocument();
-        expect(screen.getAllByRole("button", { name: "第 1 冊 3 軌" })).toHaveLength(1);
+        expect(screen.queryByRole("heading", { name: "Basic Reading 800" })).not.toBeInTheDocument();
+        expect(await screen.findByRole("button", { name: "第一冊 3 軌" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "第二冊 2 軌" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "第三冊 1 軌" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "播放 Track 1" })).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("Basic Reading 播放器")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "第一冊 3 軌" }));
+        expect(await screen.findByRole("heading", { name: "Basic Reading 400 第 1 冊" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "播放 Track 3" })).toBeInTheDocument();
 
         const trackTwoButton = screen.getByRole("button", { name: "播放 Track 2" });
@@ -75,30 +91,23 @@ describe("public Basic Reading player", () => {
         });
     });
 
-    it("switches collections without squeezing all tracks into one row", async () => {
-        render(
-            <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <BasicReading />
-            </MemoryRouter>
-        );
+    it("shows tracks for the chosen book only", async () => {
+        renderBasicReading("/basic-reading/400");
 
         await screen.findByRole("heading", { name: "Basic Reading 400" });
+        await screen.findByRole("button", { name: "第二冊 2 軌" });
         await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "第 1 冊 2 軌" }));
+            fireEvent.click(screen.getByRole("button", { name: "第二冊 2 軌" }));
             await Promise.resolve();
         });
 
-        expect(screen.getByRole("heading", { name: "Basic Reading 800 第 1 冊" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Basic Reading 400 第 2 冊" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "播放 Track 2" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "播放 Track 3" })).not.toBeInTheDocument();
     });
 
-    it("opens the collection selected from the Links page", async () => {
-        render(
-            <MemoryRouter initialEntries={["/basic-reading?collection=br800_1"]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                <BasicReading />
-            </MemoryRouter>
-        );
+    it("keeps old collection links working", async () => {
+        renderBasicReading("/basic-reading?collection=br800_1");
 
         expect(await screen.findByRole("heading", { name: "Basic Reading 800 第 1 冊" })).toBeInTheDocument();
         await waitFor(() => {
