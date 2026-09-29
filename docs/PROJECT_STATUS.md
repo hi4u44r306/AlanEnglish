@@ -2,6 +2,13 @@
 
 最後更新：2026-09-29
 
+本次公開 Basic Reading 分級頁面（2026-09-29，本機完成，尚未部署）：
+
+- `/links` 的 400／800／1200 改為與其他教材一致的帶箭頭按鈕，分別導向 `/basic-reading/400`、`/basic-reading/800`、`/basic-reading/1200`，不再於 Links 頁原地展開冊別。
+- 每個分級頁頂部只顯示對應的 `Basic Reading <級數>` 與第一冊／第二冊／第三冊三個按鈕；初次進入不顯示 Track 或播放器，選擇冊別後才在下方載入該冊音檔與播放器。
+- 舊 `/basic-reading?collection=br<級數>_<冊別>` 深連結維持可用；本批只改公開 React 路由與顯示流程，不修改 R2、Supabase、登入後教材、音檔權杖或學習統計。
+- `Links`／`BasicReading` targeted 2 suites／4 tests 已通過；Production build、412px 瀏覽器驗收、Cloudflare 發布與正式站驗收待完成。
+
 本次公開 `/links` Basic Reading 兩層選單（2026-09-29，已正式部署並完成線上驗收）：
 
 - `/links` 的 Basic Reading 區塊改為先顯示 400／800／1200 三個程度按鈕；選擇程度後才顯示第一冊／第二冊／第三冊，避免九冊入口同時擠在手機畫面。使用者已移除的搜尋欄與額外說明文字維持移除。

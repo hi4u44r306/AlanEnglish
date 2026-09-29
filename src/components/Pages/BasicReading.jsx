@@ -1,11 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { BiChevronLeft, BiChevronRight, BiHeadphone, BiHomeAlt2, BiPlayCircle } from "react-icons/bi";
 import Brand from "../fragment/Brand";
 import "./css/BasicReading.scss";
 
 const ACCESS_REFRESH_BUFFER_SECONDS = 30;
+const BASIC_READING_LEVELS = new Set(["400", "800", "1200"]);
+const BOOK_LABELS = {
+    1: "第一冊",
+    2: "第二冊",
+    3: "第三冊"
+};
 
 const fetchJson = async url => {
     const response = await fetch(url, { headers: { Accept: "application/json" } });
@@ -18,6 +24,8 @@ const trackLabel = trackNumber => `Track ${trackNumber}`;
 
 function BasicReading() {
     const location = useLocation();
+    const { level: routeLevel = "" } = useParams();
+    const selectedLevel = BASIC_READING_LEVELS.has(routeLevel) ? routeLevel : "";
     const audioRef = useRef(null);
     const accessCacheRef = useRef(new Map());
     const retryRef = useRef(false);
@@ -33,6 +41,9 @@ function BasicReading() {
         let cancelled = false;
 
         const loadCatalog = async () => {
+            setLoading(true);
+            setError("");
+            if (selectedLevel) setSelectedCollectionId("");
             try {
                 const result = await fetchJson("/api/basic-reading/catalog");
                 const nextCollections = Array.isArray(result?.collections) ? result.collections : [];
@@ -40,7 +51,9 @@ function BasicReading() {
                 const requestedCollectionId = new URLSearchParams(location.search).get("collection") || "";
                 const initialCollectionId = nextCollections.some(collection => collection.id === requestedCollectionId)
                     ? requestedCollectionId
-                    : nextCollections[0]?.id || "";
+                    : selectedLevel
+                        ? ""
+                        : nextCollections[0]?.id || "";
                 setCollections(nextCollections);
                 setSelectedCollectionId(initialCollectionId);
             } catch (catalogError) {
@@ -54,7 +67,7 @@ function BasicReading() {
         return () => {
             cancelled = true;
         };
-    }, [location.search]);
+    }, [location.search, selectedLevel]);
 
     const groupedCollections = useMemo(() => collections.reduce((groups, collection) => {
         const level = String(collection.level || "");
@@ -66,6 +79,13 @@ function BasicReading() {
     const selectedCollection = useMemo(
         () => collections.find(collection => collection.id === selectedCollectionId) || null,
         [collections, selectedCollectionId]
+    );
+
+    const levelCollections = useMemo(
+        () => selectedLevel
+            ? collections.filter(collection => String(collection.level) === selectedLevel)
+            : [],
+        [collections, selectedLevel]
     );
 
     const tracks = useMemo(() => Array.from(
@@ -173,8 +193,8 @@ function BasicReading() {
             <main className="basic-reading-page__main">
                 <section className="basic-reading-page__intro">
                     <span><BiHeadphone aria-hidden="true" /> PUBLIC LISTENING</span>
-                    <h1>Basic Reading 400～1200</h1>
-                    <p>先選級數與冊別，再直接點 Track 播放；不需要登入。</p>
+                    <h1>{selectedLevel ? `Basic Reading ${selectedLevel}` : "Basic Reading 400～1200"}</h1>
+                    <p>{selectedLevel ? "先選第一冊、第二冊或第三冊，再點 Track 播放；不需要登入。" : "先選級數與冊別，再直接點 Track 播放；不需要登入。"}</p>
                 </section>
 
                 {loading && <div className="basic-reading-page__state" aria-live="polite">正在整理音檔目錄…</div>}
@@ -186,10 +206,9 @@ function BasicReading() {
 
                 {collections.length > 0 && (
                     <>
-                        <section className="basic-reading-page__levels" aria-label="選擇 Basic Reading 冊別">
-                            {Object.entries(groupedCollections).map(([level, levelCollections]) => (
-                                <div className="basic-reading-page__level" key={level}>
-                                    <h2>Basic Reading {level}</h2>
+                        {selectedLevel ? (
+                            <section className="basic-reading-page__levels basic-reading-page__levels--single" aria-label={`選擇 Basic Reading ${selectedLevel} 冊別`}>
+                                <div className="basic-reading-page__level basic-reading-page__level--single">
                                     <div className="basic-reading-page__books">
                                         {levelCollections.map(collection => (
                                             <button
@@ -199,39 +218,64 @@ function BasicReading() {
                                                 aria-pressed={collection.id === selectedCollectionId}
                                                 key={collection.id}
                                             >
-                                                第 {collection.book} 冊
+                                                {BOOK_LABELS[collection.book] || `第 ${collection.book} 冊`}
                                                 <small>{collection.trackCount} 軌</small>
+                                                <span className="basic-reading-page__book-arrow" aria-hidden="true">→</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                            ))}
-                        </section>
-
-                        <section className="basic-reading-page__track-section">
-                            <div className="basic-reading-page__track-heading">
-                                <div>
-                                    <span>目前選擇</span>
-                                    <h2>{selectedCollection?.title}</h2>
-                                </div>
-                                <strong>{selectedCollection?.trackCount} Tracks</strong>
-                            </div>
-                            <div className="basic-reading-page__tracks" aria-label={`${selectedCollection?.title} 音軌`}>
-                                {tracks.map(trackNumber => (
-                                    <button
-                                        type="button"
-                                        className={trackNumber === activeTrackNumber ? "is-active" : ""}
-                                        onClick={() => void prepareTrack(trackNumber, true)}
-                                        disabled={preparing}
-                                        aria-label={`播放 ${trackLabel(trackNumber)}`}
-                                        key={trackNumber}
-                                    >
-                                        <BiPlayCircle aria-hidden="true" />
-                                        <span>{trackLabel(trackNumber)}</span>
-                                    </button>
+                            </section>
+                        ) : (
+                            <section className="basic-reading-page__levels" aria-label="選擇 Basic Reading 冊別">
+                                {Object.entries(groupedCollections).map(([level, groupedLevelCollections]) => (
+                                    <div className="basic-reading-page__level" key={level}>
+                                        <h2>Basic Reading {level}</h2>
+                                        <div className="basic-reading-page__books">
+                                            {groupedLevelCollections.map(collection => (
+                                                <button
+                                                    type="button"
+                                                    className={collection.id === selectedCollectionId ? "is-active" : ""}
+                                                    onClick={() => selectCollection(collection.id)}
+                                                    aria-pressed={collection.id === selectedCollectionId}
+                                                    key={collection.id}
+                                                >
+                                                    第 {collection.book} 冊
+                                                    <small>{collection.trackCount} 軌</small>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
-                            </div>
-                        </section>
+                            </section>
+                        )}
+
+                        {selectedCollection && (
+                            <section className="basic-reading-page__track-section">
+                                <div className="basic-reading-page__track-heading">
+                                    <div>
+                                        <span>目前選擇</span>
+                                        <h2>{selectedCollection.title}</h2>
+                                    </div>
+                                    <strong>{selectedCollection.trackCount} Tracks</strong>
+                                </div>
+                                <div className="basic-reading-page__tracks" aria-label={`${selectedCollection.title} 音軌`}>
+                                    {tracks.map(trackNumber => (
+                                        <button
+                                            type="button"
+                                            className={trackNumber === activeTrackNumber ? "is-active" : ""}
+                                            onClick={() => void prepareTrack(trackNumber, true)}
+                                            disabled={preparing}
+                                            aria-label={`播放 ${trackLabel(trackNumber)}`}
+                                            key={trackNumber}
+                                        >
+                                            <BiPlayCircle aria-hidden="true" />
+                                            <span>{trackLabel(trackNumber)}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                     </>
                 )}
             </main>
