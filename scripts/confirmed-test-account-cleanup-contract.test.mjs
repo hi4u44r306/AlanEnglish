@@ -16,6 +16,13 @@ const purchaseCleanupMigration = readFileSync(
   ),
   "utf8",
 );
+const learningCleanupMigration = readFileSync(
+  new URL(
+    "../supabase/migrations/20260929084151_fix_test_learning_record_account_cleanup.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 test("backfills only membership-backed Stripe grants from verified memberships", () => {
   assert.match(migration, /access_grant\.source = 'stripe'/);
@@ -67,4 +74,17 @@ test("keeps deletion functions service-role only", () => {
   assert.match(purchaseCleanupMigration, /revoke all on function public\.get_student_account_deletion_eligibility[\s\S]*from public, anon, authenticated/);
   assert.match(purchaseCleanupMigration, /revoke all on function public\.delete_unstarted_student_account[\s\S]*from public, anon, authenticated/);
   assert.match(purchaseCleanupMigration, /grant execute on function public\.delete_unstarted_student_account[\s\S]*to service_role/);
+});
+
+test("removes only the target student's restrictive speaking ledgers", () => {
+  assert.match(learningCleanupMigration, /delete from public\.speaking_pronunciation_requests\s+where student_id = p_target_student_id/);
+  assert.match(learningCleanupMigration, /delete from public\.speaking_challenge_sessions\s+where student_id = p_target_student_id/);
+  assert.doesNotMatch(learningCleanupMigration, /truncate/i);
+});
+
+test("keeps the final deletion RPC service-role only", () => {
+  assert.match(learningCleanupMigration, /security definer/);
+  assert.match(learningCleanupMigration, /set search_path = ''/);
+  assert.match(learningCleanupMigration, /revoke all on function public\.delete_unstarted_student_account[\s\S]*from public, anon, authenticated/);
+  assert.match(learningCleanupMigration, /grant execute on function public\.delete_unstarted_student_account[\s\S]*to service_role/);
 });
