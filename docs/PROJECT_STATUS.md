@@ -2,13 +2,14 @@
 
 最後更新：2026-09-29
 
-本次登入／首次設定精簡、管理員暱稱紀錄修復與測試帳號清理稽核（2026-09-29，開發完成、尚未部署）：
+本次登入／首次設定精簡、管理員暱稱紀錄修復與測試帳號清理稽核（2026-09-29，前三項已正式部署）：
 
 - 登入頁移除手機通知選擇，登入按鈕下方四組長文字入口改收進單一「第一次使用或需要協助？」展開區；密碼欄旁仍保留 Email 帳號的「忘記密碼？」。412×915 本機視覺檢查無水平溢位，收合時單頁高度 915px，展開後四個入口皆保留 44px 觸控高度。
 - 英文班學生的首次設定頁在密碼、生日及家長 Email 三個必填步驟之外新增「可選設定」通知卡。瀏覽器權限只在學生按「開啟此裝置通知」時請求；按「稍後再說」可直接完成首次流程，日後仍可由「我的設定」開啟。老師、管理員及已完成首次設定的正常登入不再經過通知問答。
 - 正式 `membership-manager` v45 與 Repository 逐行比對後，確認正式版本只缺少 23 行 `nickname_history` action；資料表、RLS、前端按鈕及管理員角色檢查均仍存在。修復只需重新部署目前 Repository 的 Function，不需 migration。
 - 正式帳號唯讀盤點：目前有 1 個 admin、唯一的 `test2` 與另外 13 個學生帳號。現有 server-side 刪除資格檢查判定其中 10 個可刪、3 個因付款／教材存取稽核紀錄被擋；至少 3 個候選含 Stripe test-mode 紀錄。尚未刪除任何 Supabase、Firebase 或 Stripe 資料；必須先確認受阻帳號的紀錄處理方式與不可回復影響，不能用直接 SQL 繞過保護。
 - 驗證：Login／StudentOnboarding／AccountManagement targeted 3 suites／16 tests、社交安全契約 7/7、`membership-manager` 語法、Production build 與 `git diff --check` 通過；只出現既有 React Router future warning 與 Node deprecation warning。依風險分級沒有執行完整 test suite，Production build 只在發布前執行一次。
+- PR #354 已合併至 `main` `4d8ebc63`，Cloudflare production build `2f953a8d-4173-45ab-95cc-a91251af708e` 成功。正式 412px 登入頁確認舊通知選擇已消失，協助區收合／展開皆無水平溢位，四個入口各 44px。正式 `membership-manager` v46 為 ACTIVE，下載後與 `main` 原始碼完全一致，未登入 `nickname_history` 請求回應 401；登入管理員實際開啟歷史視窗仍待帳號驗收。
 
 本次公開 Basic Reading 分級頁面（2026-09-29，已正式部署並完成線上驗收）：
 
