@@ -5,17 +5,12 @@ import {
     buildPublicSpeakingQuestion
 } from "../supabase/functions/_shared/speaking-challenge-view.ts";
 
-const activeAccess = {
-    is_active: true,
-    features: { pronunciation: true }
-};
-
-test("學生角色與發音資格在任何題目操作前 fail closed", async () => {
+test("工作人員可預覽，學生口說暫停時在查詢權限前拒絕", async () => {
     let loadCalls = 0;
     const loadAccess = async studentId => {
         loadCalls += 1;
         assert.equal(studentId, 7);
-        return activeAccess;
+        return { is_active: true, features: { pronunciation: true } };
     };
 
     assert.deepEqual(
@@ -34,22 +29,11 @@ test("學生角色與發音資格在任何題目操作前 fail closed", async ()
     );
     assert.equal(loadCalls, 0);
 
-    const inactive = async () => ({ is_active: false, features: { pronunciation: true } });
     await assert.rejects(
-        authorizeSpeakingChallenge({ id: 7, role: "student" }, inactive),
-        error => error.status === 403 && error.code === "pronunciation_access_required"
+        authorizeSpeakingChallenge({ id: 7, role: "student" }, loadAccess),
+        error => error.status === 423 && error.code === "student_speaking_games_paused"
     );
-    const noPronunciation = async () => ({ is_active: true, features: { pronunciation: false } });
-    await assert.rejects(
-        authorizeSpeakingChallenge({ id: 7, role: "student" }, noPronunciation),
-        error => error.status === 403 && error.code === "pronunciation_access_required"
-    );
-
-    assert.deepEqual(
-        await authorizeSpeakingChallenge({ id: 7, role: "student" }, loadAccess),
-        { demoMode: false, effectiveAccess: activeAccess }
-    );
-    assert.equal(loadCalls, 1);
+    assert.equal(loadCalls, 0);
 });
 
 const secretQuestion = {
@@ -124,6 +108,23 @@ test("P21 學生輸出只保留核准圖片，不含問句、答案、accepted r
         JSON.stringify(result),
         /SECRET|accepted_full_responses|private_object_key|private\/secret-p21/
     );
+});
+
+test("簡單模式的看圖題只補上已核准的答案欄位", async () => {
+    const signer = createOpaqueSigner();
+    const result = await buildPublicSpeakingQuestion({
+        question: secretQuestion,
+        interactionType: "picture_qa",
+        showEasyAnswer: true,
+        pictureInteraction: { interaction_type: "picture_qa", prompt_text: "PRIVATE PROMPT", answer_text: "PRIVATE ANSWER" },
+        visualAsset: { status: "ready", private_object_key: "private/p21.webp", alt_zh: "核准插圖" },
+        signPrivateObject: signer.sign
+    });
+    assert.equal(result.model_answer, "SECRET MODEL ANSWER");
+    assert.equal(result.simple_answer, "SECRET SIMPLE ANSWER");
+    assert.equal(result.question_text, "");
+    assert.equal(result.picture_interaction.sentence_pattern, null);
+    assert.doesNotMatch(JSON.stringify(result), /PRIVATE PROMPT|PRIVATE ANSWER|private_object_key/);
 });
 
 test("P22 學生只取得挖空句型與核准圖片，不簽發停頓整句音檔", async () => {

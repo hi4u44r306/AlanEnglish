@@ -22,7 +22,7 @@ const copyByType = {
     }
 };
 
-export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onExit, staffPreview = false, adminScoringPreview = false }) {
+export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onExit, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
@@ -34,6 +34,8 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     const [audioToken, setAudioToken] = useState(null);
     const [audioError, setAudioError] = useState("");
     const [challengeSessionId, setChallengeSessionId] = useState("");
+    const [canSkip, setCanSkip] = useState(false);
+    const [completedIds, setCompletedIds] = useState(() => new Set());
     const audioRef = useRef(null);
     const phaseFocusRef = useRef(null);
 
@@ -51,12 +53,17 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         setActiveIndex(0);
         setAudioError("");
         setChallengeSessionId("");
+        setCanSkip(false);
+        setCompletedIds(new Set());
     }, [challenge?.id, interactionType]);
 
     const startRound = () => {
         stopAudio();
-        setRound(staffPreview ? sourceQuestions : createPictureChallengeRound(sourceQuestions));
+        const remaining = staffPreview ? sourceQuestions : sourceQuestions.filter(question => question.progress_status !== "completed" && !completedIds.has(question.id));
+        const roundQuestions = remaining.length ? remaining : sourceQuestions;
+        setRound(staffPreview ? roundQuestions : createPictureChallengeRound(roundQuestions));
         setActiveIndex(0);
+        setCanSkip(false);
         setAudioError("");
         setChallengeSessionId(createSpeakingChallengeSessionId());
         setPhase("challenge");
@@ -103,11 +110,19 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
 
     const handleCorrect = async result => {
         const saved = await onComplete?.(activeQuestion, result);
-        if (saved === false) return;
+        if (saved === false) { setCanSkip(true); return; }
+        setCompletedIds(current => new Set([...current, activeQuestion.id]));
         stopAudio();
+        if (activeIndex >= round.length - 1) setPhase("result");
+        else { setCanSkip(false); setActiveIndex(index => index + 1); }
+    };
+    const skipQuestion = () => {
+        stopAudio();
+        setCanSkip(false);
         if (activeIndex >= round.length - 1) setPhase("result");
         else setActiveIndex(index => index + 1);
     };
+    const remainingCount = staffPreview ? 0 : sourceQuestions.filter(question => question.progress_status !== "completed" && !completedIds.has(question.id)).length;
 
     if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
         <header className="speaking-lesson-header"><button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />全部大挑戰</button><div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div></header>
@@ -115,7 +130,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     </main>;
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
-        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">太棒了，全部完成！</h1><p>你已完成這一組看圖口說挑戰。</p><div className="speaking-foundation-actions"><button type="button" className="primary" onClick={startRound}><FiRefreshCw />再玩一次</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
+        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">{remainingCount ? `還有 ${remainingCount} 題待完成` : "太棒了，全部完成！"}</h1><p>{remainingCount ? "已通過的題目會保留，重新開始只練未通過的題目。" : "你已完成這一組看圖口說挑戰。"}</p><div className="speaking-foundation-actions"><button type="button" className="primary" onClick={startRound}><FiRefreshCw />{remainingCount ? "只重試未過題" : "再玩一次"}</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
     </main>;
 
     if (!activeQuestion) return null;
@@ -153,12 +168,17 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 question={activeQuestion}
                 challengeSessionId={challengeSessionId}
                 interactionType={interactionType}
-                hideHelp
+                challengeMode={challengeMode}
+                showAnswerByDefault={!staffPreview && challengeMode === "easy"}
+                onRevealHint={onRevealHint}
+                hideHelp={staffPreview || challengeMode === "easy"}
                 promptTitle={copy.promptTitle}
                 promptDetail={copy.promptDetail}
                 onCompleted={handleCorrect}
+                onIncorrect={() => setCanSkip(true)}
             />}
         </article></section>
+        {!staffPreview && canSkip && <button type="button" className="speaking-continue-button" onClick={skipQuestion}>先看下一題 <FiChevronRight aria-hidden="true" /></button>}
         {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => { stopAudio(); setActiveIndex(index => index + 1); }} disabled={activeIndex >= round.length - 1}>下一題<FiChevronRight /></button></nav>}
     </main>;
 }

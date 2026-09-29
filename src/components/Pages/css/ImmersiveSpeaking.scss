@@ -699,3 +699,140 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   .speaking-immersive-play .speaking-direct-prompt { min-height: 38px; padding-block: 4px; }
   .speaking-immersive-play .speaking-pronunciation .speaking-pronunciation-mic { width: 62px; min-width: 62px; min-height: 62px; }
 }
+
+// Keep book choice clear before the player enters the illustrated map.
+.speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 136px;
+  padding: 23px 28px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(35, 67, 112, .09);
+}
+.speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero__copy h1 {
+  margin-block: 4px;
+  font-size: clamp(28px, 4vw, 36px);
+}
+.speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero__copy p {
+  max-width: none;
+  font-size: 15px;
+}
+.speaking-challenge-page:not(.is-book-open) .speaking-challenge-grid > .speaking-book-card {
+  grid-template-columns: 66px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 15px;
+  min-height: 138px;
+  padding: 17px 20px;
+  border: 1px solid color-mix(in srgb, var(--book-primary) 25%, #dbe5f2);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(35, 67, 112, .09);
+}
+.speaking-book-card__chapter {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 2px solid color-mix(in srgb, var(--book-primary) 35%, white);
+  border-radius: 18px;
+  color: var(--book-deep);
+  background: color-mix(in srgb, var(--book-primary) 10%, white);
+  font-size: 26px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+}
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content {
+  gap: 4px;
+  padding: 0;
+}
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content > .speaking-book-card__eyebrow {
+  font-size: 11px;
+  letter-spacing: .03em;
+}
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content > strong { font-size: clamp(21px, 2.3vw, 26px); }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content > .speaking-book-card__count { font-size: 12px; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__progress { margin-top: 7px; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__progress > .speaking-book-card__track { display: block; height: 6px; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__track > span { background: var(--book-primary); }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--book-deep);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__action svg { color: var(--book-deep); }
+@media (hover: hover) {
+  .speaking-challenge-page:not(.is-book-open) .speaking-book-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 11px 25px rgba(35, 67, 112, .13);
+  }
+}
+
+// Road-coloured rims let the markers sit in the painted trail.
+.speaking-adventure-route .speaking-challenge-lesson__number {
+  border-color: #f5dba0;
+  box-shadow: 0 2px 5px rgba(39, 32, 25, .2);
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
+  border-color: #fff0bd;
+  background: #f8ca45;
+  box-shadow: 0 2px 6px rgba(59, 38, 12, .24);
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
+  border-color: #d5f5da;
+  background: #289b5d;
+  box-shadow: 0 2px 6px rgba(23, 69, 40, .22);
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
+  border-color: #e8dfca;
+  background: #788697;
+  box-shadow: 0 2px 5px rgba(38, 47, 56, .18);
+}
+.speaking-adventure-route .speaking-challenge-lesson__state {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #fff;
+  background: #415571;
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__state { background: #23834b; }
+.speaking-challenge-lesson__padlock {
+  position: relative;
+  display: block;
+  width: 10px;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: #fff;
+}
+.speaking-challenge-lesson__padlock::before {
+  position: absolute;
+  bottom: 6px;
+  left: 2px;
+  width: 6px;
+  height: 7px;
+  border: 2px solid #fff;
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+  content: "";
+}
+
+@media (max-width: 760px) {
+  .speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero {
+    min-height: 112px;
+    padding: 18px;
+  }
+  .speaking-challenge-page:not(.is-book-open) .speaking-challenge-grid > .speaking-book-card {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 122px;
+    padding: 14px;
+  }
+  .speaking-book-card__chapter { width: 52px; height: 52px; border-radius: 14px; font-size: 22px; }
+  .speaking-challenge-page:not(.is-book-open) .speaking-book-card__action {
+    grid-column: 2;
+    justify-self: end;
+  }
+}

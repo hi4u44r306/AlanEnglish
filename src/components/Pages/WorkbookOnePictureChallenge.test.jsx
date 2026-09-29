@@ -182,6 +182,26 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.getByRole("img")).not.toHaveAttribute("src", firstImageUrl);
     });
 
+    it("重開看圖關卡時只重試沒有通過的題目", async () => {
+        jest.spyOn(Math, "random").mockReturnValue(0);
+        const questions = [1, 2].map(id => ({
+            id,
+            sort_order: id,
+            visual_aid: { ...privateVisual, alt_zh: `圖片 ${id}` },
+            picture_interaction: { type: "picture_qa" },
+            progress_status: "opened"
+        }));
+        render(<WorkbookOnePictureChallenge challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" }, speaking_questions: questions }}
+            firebaseUser={{ uid: "student" }} onComplete={jest.fn().mockResolvedValue(true)} onExit={jest.fn()} />);
+        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        await act(async () => { fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" })); await Promise.resolve(); });
+        fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
+        fireEvent.click(screen.getByRole("button", { name: "先看下一題" }));
+        expect(screen.getByRole("heading", { name: "還有 1 題待完成" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "只重試未過題" }));
+        expect(screen.getByRole("article", { name: "第 1 題，共 1 題" })).toBeInTheDocument();
+    });
+
     it("P22 學生看圖補句即使舊回應含網址也不顯示播放入口", () => {
         render(<WorkbookOnePictureChallenge
             challenge={{
