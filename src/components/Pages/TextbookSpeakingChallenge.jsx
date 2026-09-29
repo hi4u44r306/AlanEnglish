@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiLock, FiMic, FiVolume2 } from "react-icons/fi";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
+import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
@@ -135,14 +135,18 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
             <div className="speaking-level-dialog__facts">
                 <span><small>教材頁碼</small><strong>{pages || "入門／主題關卡"}</strong></span>
                 <span><small>本關題數</small><strong>{item.question_count} 題</strong></span>
-                <span><small>目前進度</small><strong>{item.is_completed ? "已通關" : `${item.completed_count || 0}/${item.question_count} 題`}</strong></span>
+                <span><small>{section === "preparation" ? "完成題數" : "簡單／挑戰"}</small><strong>{section === "preparation" ? `${item.completed_count || 0} 題` : `${item.completed_count || 0}／${item.challenge_completed_count || 0} 題`}</strong></span>
             </div>
             <div className="speaking-level-dialog__game-panel is-single">
                 <span><small>本關道具</small><b>{availableItems.length ? availableItems.join("、") : "尚未開放"}</b><em>不會自動扣除 AE Points</em></span>
             </div>
             {item.learning_goal_zh && item.intro_zh && <p className="speaking-level-dialog__goal">目標：{item.learning_goal_zh}</p>}
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
-            <div className="speaking-level-dialog__actions"><button type="button" onClick={onClose}>返回地圖</button><button type="button" className="primary" onClick={onEnter} disabled={locked}>{locked ? "尚未解鎖" : "開始挑戰"} <FiChevronRight aria-hidden="true" /></button></div>
+            <div className="speaking-level-dialog__actions">
+                <button type="button" onClick={onClose}>返回地圖</button>
+                <button type="button" className="primary" onClick={() => onEnter("easy")} disabled={locked}>{locked ? "尚未解鎖" : "簡單 · 看答案說"} <FiChevronRight aria-hidden="true" /></button>
+                {!staffPreview && section !== "preparation" && <button type="button" className="primary" onClick={() => onEnter("challenge")} disabled={locked}>挑戰 · 看題目回答 <FiChevronRight aria-hidden="true" /></button>}
+            </div>
         </section>
     </div>;
 };
@@ -168,6 +172,8 @@ const ChallengeRules = ({ policy }) => {
                 <li><b>重錄不多扣</b><span>同一輪裡重新錄音、重試題目或繼續下一題，都只算同一次。</span></li>
                 <li><b>每次 12 秒</b><span>每段錄音最長 12 秒，錄音時會顯示還剩幾秒。</span></li>
                 <li><b>依序闖關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
+                <li><b>兩種玩法</b><span>簡單模式看答案說，通關後解鎖下一頁；挑戰模式看問題回答，成就分開記錄。</span></li>
+                <li><b>挑戰提示</b><span>看過提示的題目本輪不計通關，結束後只要重試未通過的題目。</span></li>
             </ol>
             <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
         </div>}
@@ -177,6 +183,8 @@ const ChallengeRules = ({ policy }) => {
 export default function TextbookSpeakingChallenge() {
     const { firebaseUser, role } = useAuth();
     const { questionSetId, bookKey } = useParams();
+    const [searchParams] = useSearchParams();
+    const challengeMode = searchParams.get("mode") === "challenge" ? "challenge" : "easy";
     const navigate = useNavigate();
     const [catalog, setCatalog] = useState([]);
     const [catalogRewardPolicy, setCatalogRewardPolicy] = useState(null);
@@ -187,6 +195,7 @@ export default function TextbookSpeakingChallenge() {
     const [audioWorking, setAudioWorking] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [completionNotice, setCompletionNotice] = useState(null);
+    const [retryNotice, setRetryNotice] = useState(false);
     const [challengeSessionId, setChallengeSessionId] = useState("");
     const [selectedLesson, setSelectedLesson] = useState(null);
     const audioRef = useRef(null);
@@ -307,12 +316,13 @@ export default function TextbookSpeakingChallenge() {
         if (questionSetId) {
             setActiveQuestionIndex(0);
             setChallenge(null);
+            setRetryNotice(false);
             setChallengeSessionId(createSpeakingChallengeSessionId());
         }
         const load = async () => {
             try {
                 if (questionSetId) {
-                    const challengeResponse = await getSpeakingChallengeSet(firebaseUser, Number(questionSetId));
+                    const challengeResponse = await getSpeakingChallengeSet(firebaseUser, Number(questionSetId), challengeMode);
                     if (!cancelled) {
                         setChallenge(challengeResponse.challenge);
                         if (!staffPreview) {
@@ -342,16 +352,19 @@ export default function TextbookSpeakingChallenge() {
         };
         load();
         return () => { cancelled = true; };
-    }, [firebaseUser, questionSetId, staffPreview]);
+    }, [firebaseUser, questionSetId, staffPreview, challengeMode]);
 
     const markComplete = async question => {
         if (staffPreview) return { success: true, demo_mode: true };
         try {
-            const response = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id);
+            const response = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id, challengeMode, challengeSessionId);
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
             if (response?.challenge_completed || response?.completed_challenge) setCompletionNotice(response);
             return response || true;
-        } catch (saveError) { setError(saveError.message || "無法儲存練習紀錄"); return false; }
+        } catch (saveError) {
+            if (saveError.code === "challenge_hint_used") return false;
+            setError(saveError.message || "無法儲存練習紀錄"); return false;
+        }
     };
 
     const markScored = async question => {
@@ -411,7 +424,7 @@ export default function TextbookSpeakingChallenge() {
                 </section>}
                 {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
-            {selectedLesson && <ChallengePreviewDialog item={selectedLesson.item} section={selectedLesson.section} staffPreview={staffPreview} dialogRef={levelDialogRef} onClose={() => setSelectedLesson(null)} onEnter={() => navigate(`/student/speaking-challenges/${selectedLesson.item.id}`)} />}
+            {selectedLesson && <ChallengePreviewDialog item={selectedLesson.item} section={selectedLesson.section} staffPreview={staffPreview} dialogRef={levelDialogRef} onClose={() => setSelectedLesson(null)} onEnter={mode => navigate(`/student/speaking-challenges/${selectedLesson.item.id}?mode=${mode}`)} />}
         </main>;
     }
     if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
@@ -431,6 +444,8 @@ export default function TextbookSpeakingChallenge() {
     if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return <WorkbookOnePictureChallenge
         challenge={challenge}
         firebaseUser={firebaseUser}
+        challengeMode={challengeMode}
+        onRevealHint={(question, sessionId) => revealSpeakingChallengeHint(firebaseUser, challenge.id, question.id, sessionId)}
         staffAudioPreview={staffPreview}
         onComplete={markScored}
         staffPreview={staffPreview}
@@ -462,9 +477,15 @@ export default function TextbookSpeakingChallenge() {
             : inlineLegacyClue ? `${activeQuestion.question_text}（${groupedTextQaClue}）` : activeQuestion.question_text;
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
     const goForward = () => {
-        if (!isCompleted) return;
-        if (isLastQuestion) returnToBookCatalog();
-        else setActiveQuestionIndex(current => current + 1);
+        if (staffPreview || questions.every(question => question.progress_status === "completed")) {
+            if (isLastQuestion) returnToBookCatalog();
+            setActiveQuestionIndex(current => current + 1);
+            return;
+        }
+        const nextIndex = questions.findIndex((question, index) => index > activeQuestionIndex && question.progress_status !== "completed");
+        if (nextIndex >= 0) { setActiveQuestionIndex(nextIndex); return; }
+        if (questions.every(question => question.progress_status === "completed")) { returnToBookCatalog(); return; }
+        setRetryNotice(true);
     };
 
     return <main className="speaking-challenge-page speaking-challenge-detail speaking-immersive-play">
@@ -474,7 +495,7 @@ export default function TextbookSpeakingChallenge() {
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
-                <p>{challenge.topic} · {challenge.difficulty}</p>
+                <p>{challenge.topic} · {challengeMode === "challenge" ? "挑戰：看問題回答" : "簡單：看答案說"}</p>
             </div>
             <div className="speaking-lesson-progress">
                 <div><span>小關卡 {activeQuestionIndex + 1} / {questions.length}</span><strong>{progressPercent}%</strong></div>
@@ -493,8 +514,8 @@ export default function TextbookSpeakingChallenge() {
                     </header>
                 </div>
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} interactionType={activeInteractionType} hideHelp={activePictureMode} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
-                <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "完成整個大挑戰後，第一次通關可以獲得 XP 與 AE Points。"}</small>
+                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={!staffPreview && challengeMode === "easy"} onRevealHint={(question, sessionId) => revealSpeakingChallengeHint(firebaseUser, challenge.id, question.id, sessionId)} interactionType={activeInteractionType} hideHelp={activePictureMode && staffPreview} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
+                <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : challengeMode === "challenge" ? "挑戰成就會獨立記錄；簡單模式通關才會解鎖下一頁與領取首次獎勵。" : "簡單模式首次通關可獲得 XP 與 AE Points，並解鎖下一頁。"}</small>
             </article>
         </section>
 
@@ -502,13 +523,22 @@ export default function TextbookSpeakingChallenge() {
             <button type="button" onClick={() => setActiveQuestionIndex(current => current - 1)} disabled={activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
             <span>預覽第 {activeQuestionIndex + 1} / {questions.length} 題</span>
             <button type="button" className="primary" onClick={goForward} disabled={!isCompleted}>{isLastQuestion ? "完成大挑戰" : "下一題"}<FiChevronRight /></button>
-        </nav> : isCompleted && !completionNotice && <button type="button" className="speaking-continue-button" onClick={goForward}>{isLastQuestion ? "回到冒險地圖" : "繼續挑戰"}<FiChevronRight aria-hidden="true" /></button>}
+        </nav> : !completionNotice && !retryNotice && <button type="button" className="speaking-continue-button" onClick={goForward}>{isCompleted ? "繼續挑戰" : "先看下一題"}<FiChevronRight aria-hidden="true" /></button>}
+        {retryNotice && <div className="speaking-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="speaking-retry-title"><section>
+            <h2 id="speaking-retry-title">只剩 {questions.filter(question => question.progress_status !== "completed").length} 題要加油！</h2>
+            <p>已通過的題目會保留，不必重念。</p>
+            <div><button type="button" onClick={returnToBookCatalog}>回到關卡列表</button><button type="button" className="primary" onClick={() => {
+                setChallengeSessionId(createSpeakingChallengeSessionId());
+                setActiveQuestionIndex(questions.findIndex(question => question.progress_status !== "completed"));
+                setRetryNotice(false);
+            }}>只重試未過題</button></div>
+        </section></div>}
         {completionNotice && <div className="speaking-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="speaking-reward-title">
             <section>
                 <span className="speaking-reward-dialog__stars" aria-hidden="true">✦ ✨ ✦</span>
                 <FiAward aria-hidden="true" />
                 <h2 id="speaking-reward-title">太棒了，成功通關！</h2>
-                {Number.isFinite(Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)) ? <p><strong>🏆 獲得 {Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)} XP</strong></p> : <p>這一關已完成，下一關已開啟！</p>}
+                {challengeMode === "challenge" ? <p>挑戰成就已記錄！</p> : Number.isFinite(Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)) ? <p><strong>🏆 獲得 {Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)} XP</strong></p> : <p>這一關已完成，下一關已開啟！</p>}
                 <div><button type="button" onClick={returnToBookCatalog}>回到關卡列表</button><button type="button" className="primary" onClick={() => { setCompletionNotice(null); returnToBookCatalog(); }}>繼續挑戰</button></div>
             </section>
         </div>}

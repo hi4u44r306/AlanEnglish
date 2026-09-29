@@ -34,6 +34,7 @@ export const buildPublicSpeakingQuestion = async ({
     promptMode,
     answerAudioEnabled = false,
     staffAudioPreview = false,
+    showEasyAnswer = false,
     progressStatus,
     modelAsset,
     promptAsset,
@@ -73,10 +74,10 @@ export const buildPublicSpeakingQuestion = async ({
     const safeQuestion = pictureMode ? {
         id: question.id,
         question_text: "",
-        hint_zh: "",
+        hint_zh: showEasyAnswer ? question.hint_zh : "",
         keywords: [],
-        simple_answer: "",
-        model_answer: "",
+        simple_answer: showEasyAnswer ? question.simple_answer : "",
+        model_answer: showEasyAnswer ? question.model_answer : "",
         follow_up_question: null,
         pronunciation_notes_zh: "",
         visual_aid: {

@@ -9,6 +9,8 @@
 - 雙模式需要獨立的後端進度、提示使用紀錄及伺服器驗證，現有單一 `speaking_challenge_question_progress` 與評分紀錄不足以保證上述規則。Supabase 目前只查到 `alan-english` 正式專案及其 main 分支；尚無隔離測試專案，故沒有套用 migration、部署 Edge Function、修改正式資料或重新開放學生入口。第二階段須先完成本機實作與驗證，再確認隔離／正式測試路徑。
 - 第一階段修改範圍：`TextbookSpeakingChallenge.jsx`、`ImmersiveSpeaking.scss`、`speakingAdventureMap.js` 及對應 targeted tests、網站使用手冊。手機與桌面地圖視覺校準使用臨時預覽檔，檔案已移除。`S-19` 地圖及 `S-20` 題卡教學素材待更新。
 - 第一階段 targeted React 2 suites／35 tests 與 `git diff --check` 通過；依 Low Risk 規則未跑完整測試或本機 Production build。靜態地圖預覽已檢查手機道路上的 25 個節點；因學生入口暫停且目前沒有工作人員瀏覽器 session，登入後的實際桌面／手機頁面仍待驗收。
+- 第二階段本機程式已加入 `speaking_challenge_mode_progress` 獨立成就表、`speaking_challenge_hint_reveals` 回合提示紀錄，並為評分嘗試增加模式／回合欄位；Edge Function 以 Firebase 身分與服務端資料查驗、依模式儲存通關。前端選關摘要可選模式，簡單顯示答案，挑戰按提示時先寫入紀錄，題目結束只重試未通過題。A–Z 與學生暫停開關維持原樣。第二階段 targeted React 5 suites／58 tests、後端相關 Node 23 tests、兩支 Edge Function 及共用模組語法、Production build 與 `git diff --check` 已通過；資料庫 migration 因無本機 PostgreSQL／Docker 與隔離專案，仍缺真實資料庫整合驗證，登入後手機／桌面視覺驗收也待補。
+- 新 migration 尚未套用，Edge Function 尚未部署，正式站未發布雙模式。正式套用前需先完成資料庫 schema、兩支 Edge Function、前端的相容順序檢查；若失敗可回復前端與 Function 至舊版，新表保留而不刪除資料。新增的評分欄位有 `easy` 預設值，舊版 Function 可繼續寫入；正式資料庫結構的回退需另外審核，不能直接刪表。專案目前沒有隔離 Supabase 測試環境，正式資料庫尚未獲得本批明確操作授權。
 
 本次公開首頁純介紹與試用／商城入口暫停（2026-09-29，已正式部署並完成線上驗收）：
 

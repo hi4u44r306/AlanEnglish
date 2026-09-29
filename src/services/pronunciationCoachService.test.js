@@ -81,6 +81,7 @@ describe("submitPronunciationAttempt", () => {
         expect(body.get("reference_text")).toBeNull();
         expect(body.get("slot_values")).toBeNull();
         expect(body.get("foundation_round_id")).toBeNull();
+        expect(body.get("challenge_mode")).toBe("easy");
     });
 
     it("A–Z 評分只附上後端簽發的 round id，不傳成功狀態或題序", async () => {

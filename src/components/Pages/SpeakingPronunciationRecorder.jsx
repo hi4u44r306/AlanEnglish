@@ -27,6 +27,7 @@ export default function SpeakingPronunciationRecorder({
     question,
     foundationRoundId = "",
     challengeSessionId = "",
+    challengeMode = "easy",
     disabledReason = "",
     onScored,
     onRoundInvalid
@@ -126,7 +127,7 @@ export default function SpeakingPronunciationRecorder({
         prepareSpeakingFeedbackSound();
         setSubmitting(true); setError("");
         try {
-            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId });
+            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId, challengeMode });
             setResult(score);
             playSpeakingFeedbackSound(
                 score?.assessment_status === "uncertain"

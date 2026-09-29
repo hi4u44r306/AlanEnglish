@@ -376,12 +376,17 @@ Deno.serve(async (req: Request) => {
         const questionId = Number(form?.get("question_id"));
         const requestedRoundId = String(form?.get("foundation_round_id") || "").trim();
         const challengeSessionId = String(form?.get("challenge_session_id") || "").trim();
+        const challengeMode = String(form?.get("challenge_mode") || "easy").trim();
         const audio = form?.get("audio");
+        if (!["easy", "challenge"].includes(challengeMode)) return json(400, { error: "口說挑戰模式無效" });
         if (!Number.isInteger(questionId) || questionId <= 0) return json(400, { error: "找不到這個口說題目" });
         if (!adminDemo && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(challengeSessionId)) {
             return json(400, { error: "口說挑戰回合無效，請重新進入關卡", code: "challenge_session_required" });
         }
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
+        if (challengeMode === "challenge" && ["alphabet_round", "letter_spelling"].includes(question.interactionType)) {
+            return json(400, { error: "A–Z 不使用挑戰模式" });
+        }
         if (question.interactionType === "alphabet_round" && !adminDemo) {
             if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedRoundId)) {
                 return json(409, { error: "請重新開始這一輪 A–Z 挑戰", code: "foundation_round_required" });
@@ -434,6 +439,13 @@ Deno.serve(async (req: Request) => {
         const challengeUsage = adminDemo
             ? null
             : await reserveChallengeSession(admin, Number(user.id), question, challengeSessionId);
+        const { data: revealedHint, error: hintError } = challengeMode === "challenge" && !adminDemo
+            ? await admin.from("speaking_challenge_hint_reveals").select("question_id")
+                .eq("student_id", Number(user.id)).eq("question_id", question.questionId)
+                .eq("client_session_id", challengeSessionId).maybeSingle()
+            : { data: null, error: null };
+        if (hintError) throw hintError;
+        const hintUsed = Boolean(revealedHint);
         const assessmentConfig: Record<string, unknown> = {
             GradingSystem: "HundredMark",
             Granularity: "Phoneme",
@@ -530,7 +542,10 @@ Deno.serve(async (req: Request) => {
                     pronunciation_score: normalized.scores.pronunciation, accuracy_score: normalized.scores.accuracy,
                     fluency_score: normalized.scores.fluency, completeness_score: normalized.scores.completeness,
                     prosody_score: normalized.scores.prosody, recognized_text: normalized.recognized_text,
-                    word_results: normalized.words, answer_match: normalized.answer_match
+                    word_results: normalized.words, answer_match: normalized.answer_match,
+                    challenge_mode: challengeMode,
+                    client_session_id: challengeSessionId || null,
+                    hint_used: hintUsed
                 }).select("id").single();
                 if (saveError || !attempt?.id) throw saveError || new Error("發音評分紀錄無法建立");
                 return Number(attempt.id);
@@ -595,6 +610,8 @@ Deno.serve(async (req: Request) => {
             question_id: question.questionId,
             demo_mode: adminDemo,
             challenge_usage: challengeUsage,
+            challenge_mode: challengeMode,
+            hint_used: hintUsed,
             reference_text: question.interactionType ? null : (question.referenceText || null),
             foundation_round: flow.round,
             ...flow.value
