@@ -17,8 +17,8 @@ import "./css/Showcase.scss";
 const features = [
     {
         icon: <BiHeadphone />,
-        title: "教材音檔與有效聆聽",
-        text: "依教材整理音檔與頁次，完成真正聽過的內容後才累積學習紀錄。"
+        title: "英文班教材與聽力音檔",
+        text: "課堂使用的 Workbook、Basic Reading 與分級教材音檔集中在同一處，依教材與頁次快速找到。"
     },
     {
         icon: <BiBookOpen />,
@@ -31,20 +31,19 @@ const features = [
         text: "依孩子的程度產生短文與選擇題，作答後立即回饋並保留練習結果。"
     },
     {
+        icon: <BiPlayCircle />,
+        title: "AI 口說大挑戰",
+        text: "跟著教材關卡開口回答，從示範、收音到結果回饋，把課堂句型真正說出來。"
+    },
+    {
         icon: <BiBarChartAlt2 />,
         title: "智慧複習與每週報告",
         text: "從需要加強的內容繼續練習，並用每週紀錄看見孩子真正完成了什麼。"
     },
     {
         icon: <BiTrendingUp />,
-        title: "排行榜、XP 與學習獎勵",
-        text: "把穩定學習轉成看得懂的等級與成果，鼓勵孩子持續完成每天的小目標。"
-    },
-    {
-        icon: <BiShieldQuarter />,
-        title: "口說遊戲",
-        text: "口說教練與教材闖關正在進行最後調整；老師與管理員可先預覽，學生完成測試後開放。",
-        status: "準備中"
+        title: "完整學習歷程與獎勵",
+        text: "有效聆聽、答題、口說通關與作業完成狀態持續保存，並累積等級、XP 與學習獎勵。"
     }
 ];
 
@@ -86,7 +85,7 @@ const plans = [
         price: "NT$499",
         period: "／月",
         description: "一般會員與離校生須搭配有效平台方案使用；目前尚未開放公開付款。",
-        points: ["AI 選擇題教材", "每日 5 次、每月 150 次", "學生口說遊戲調整完成後開放"],
+        points: ["AI 選擇題教材", "每日 5 次、每月 150 次", "AI 口說大挑戰與發音教練"],
         action: "先免費體驗",
         href: "/freetrial",
         badge: "",
@@ -98,7 +97,7 @@ const plans = [
         price: "NT$2,800",
         period: "／月",
         description: "英文班在校生由老師安排帳號、班級教材與班級作業；不提供公開線上購買。",
-        points: ["在校期間使用全部學習功能", "老師安排班級與學習進度", "包含 AI 教材與發音練習權限"],
+        points: ["課堂教材與 Basic Reading 聽力音檔", "班級作業、AI 教材與口說大挑戰", "有效聆聽、答題與通關紀錄持續保存"],
         action: "學生登入",
         href: "/login",
         badge: "英文班專屬",
@@ -209,8 +208,8 @@ const Showcase = () => {
                                 也更有自信說出來。
                             </h1>
                             <p className="showcase-hero-description">
-                                把教材音檔、班級作業、AI 練習、智慧複習與學習成果放在同一個平台，
-                                讓孩子每天知道下一步，也讓家長與老師看見真正完成的內容。
+                                把英文班教材聽力、班級作業、AI 個人化教材、AI 口說大挑戰與智慧複習放在同一個平台，
+                                每一次有效聆聽、答題與通關都留下紀錄，讓孩子知道下一步，也讓家長與老師看見真正完成的內容。
                             </p>
                             <div className="showcase-hero-actions">
                                 <Link className="showcase-primary-btn" to="/freetrial">
@@ -291,7 +290,7 @@ const Showcase = () => {
 
                 <section className="showcase-value-strip" aria-label="Alan English 核心特色">
                     <div className="showcase-shell">
-                        <span>教材音檔</span><i /><span>班級作業</span><i /><span>智慧複習</span><i /><span>成果可追蹤</span>
+                        <span>英文班教材聽力</span><i /><span>AI 口說大挑戰</span><i /><span>班級作業</span><i /><span>學習歷程可追蹤</span>
                     </div>
                 </section>
 
@@ -342,7 +341,7 @@ const Showcase = () => {
                             </p>
                             <div className="showcase-product-points">
                                 <div><span><BiHeadphone /></span><div><strong>自然建立語感</strong><p>反覆聆聽單字、句型與完整內容。</p></div></div>
-                                <div><span><BiBookOpen /></span><div><strong>回答後才看答案</strong><p>透過實際答題確認孩子是否理解。</p></div></div>
+                                <div><span><BiPlayCircle /></span><div><strong>開口回答教材題目</strong><p>用 AI 口說大挑戰練習課堂句型與完整回答。</p></div></div>
                                 <div><span><BiBarChartAlt2 /></span><div><strong>學習結果自動保存</strong><p>進度、完成率與練習紀錄持續累積。</p></div></div>
                             </div>
                         </div>
@@ -360,11 +359,12 @@ const Showcase = () => {
                                 <div className="showcase-path-label">ALAN ENGLISH CLASS</div>
                                 <div className="showcase-path-icon"><BiShieldQuarter /></div>
                                 <h3>英文班學生</h3>
-                                <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生完成帳號啟用後即可使用班級教材與作業。</p>
+                                <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生完成帳號啟用後即可使用課堂教材聽力、班級作業與 AI 口說練習。</p>
                                 <ul>
-                                    <li><span>✓</span> 由英文班老師安排帳號與教材</li>
+                                    <li><span>✓</span> Workbook、Basic Reading 與課堂聽力集中使用</li>
                                     <li><span>✓</span> 接收老師發布的班級作業</li>
-                                    <li><span>✓</span> 老師可以追蹤完成狀態</li>
+                                    <li><span>✓</span> AI 口說大挑戰與發音練習</li>
+                                    <li><span>✓</span> 老師可以追蹤學習歷程與完成狀態</li>
                                 </ul>
                                 <Link to="/login">我是英文班學生 <BiChevronRight /></Link>
                             </article>
@@ -409,10 +409,10 @@ const Showcase = () => {
                         <div className="showcase-data-copy">
                             <span className="showcase-kicker showcase-kicker-light">LEARNING PROGRESS</span>
                             <h2>讓每一次練習，都留下看得見的成果。</h2>
-                            <p>播放次數、完成狀態與學習進度都會保存，幫助孩子建立成就感，也讓家長與老師更容易掌握狀況。</p>
+                            <p>有效聆聽次數、教材進度、AI 答題、口說通關與班級作業都會跟著帳號保存，幫助孩子建立成就感，也讓家長與老師更容易掌握學習過程。</p>
                         </div>
                         <div className="showcase-stat-grid">
-                            <div className="showcase-stat-card"><span>LISTENING</span><strong>7×</strong><p>重複練習目標</p></div>
+                            <div className="showcase-stat-card"><span>LISTENING</span><strong>10×</strong><p>有效聆聽熟練目標</p></div>
                             <div className="showcase-stat-card"><span>PROGRESS</span><strong>100%</strong><p>教材完成狀態</p></div>
                             <div className="showcase-stat-card"><span>HISTORY</span><strong>24/7</strong><p>隨時查看紀錄</p></div>
                         </div>
