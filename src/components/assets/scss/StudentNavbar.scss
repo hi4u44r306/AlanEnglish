@@ -69,6 +69,10 @@
   box-shadow: 0 22px 55px rgba(28, 54, 92, 0.16);
 }
 
+.ae-student-navbar #student-materials + .dropdown-menu {
+  width: min(420px, calc(100vw - 32px));
+}
+
 .ae-student-dropdown-heading {
   display: flex;
   align-items: baseline;
@@ -381,6 +385,119 @@
 
 .ae-student-menu-status.error { color: #b45309; }
 
+.ae-student-materials-panel {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ae-student-materials-panel.is-forward { animation: ae-materials-slide-forward 180ms ease-out both; }
+.ae-student-materials-panel.is-back { animation: ae-materials-slide-back 180ms ease-out both; }
+
+@keyframes ae-materials-slide-forward {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ae-materials-slide-back {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.ae-student-basic-reading-entry,
+.ae-student-materials-choice-grid > button,
+.ae-student-materials-choice-grid > a {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid #d9e4f3;
+  border-radius: 16px;
+  color: #263b60;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  box-shadow: 0 7px 20px rgba(35, 74, 133, 0.07);
+}
+
+.ae-student-basic-reading-entry:hover,
+.ae-student-basic-reading-entry:focus-visible,
+.ae-student-materials-choice-grid > button:hover,
+.ae-student-materials-choice-grid > button:focus-visible,
+.ae-student-materials-choice-grid > a:hover,
+.ae-student-materials-choice-grid > a:focus-visible {
+  border-color: #9fbbed;
+  color: #214fb5;
+  background: #f3f7ff;
+  outline: 3px solid rgba(244, 189, 55, 0.35);
+  outline-offset: 1px;
+}
+
+.ae-student-basic-reading-entry > span:nth-child(2),
+.ae-student-materials-choice-grid > button > span,
+.ae-student-materials-choice-grid > a > span {
+  min-width: 0;
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.ae-student-basic-reading-entry strong,
+.ae-student-materials-choice-grid strong { font-size: 15px; font-weight: 950; }
+.ae-student-basic-reading-entry small,
+.ae-student-materials-choice-grid small { color: #74839b; font-size: 12px; font-weight: 750; }
+.ae-student-basic-reading-entry > svg,
+.ae-student-materials-choice-grid > button > svg,
+.ae-student-materials-choice-grid > a > svg { flex: 0 0 auto; width: 20px; height: 20px; }
+
+.ae-student-basic-reading-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(145deg, #4b8dff, #2d65d6);
+}
+
+.ae-student-basic-reading-icon svg { width: 22px; height: 22px; }
+
+.ae-student-materials-back {
+  min-height: 44px;
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 12px;
+  color: #315fae;
+  background: #edf4ff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.ae-student-materials-back:focus-visible { outline: 3px solid #f4bd37; outline-offset: 2px; }
+.ae-student-materials-back svg { width: 18px; height: 18px; }
+
+.ae-student-materials-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 3px 4px;
+}
+
+.ae-student-materials-heading strong { color: #1c3154; font-size: 18px; font-weight: 950; }
+.ae-student-materials-heading small { color: #74839b; font-size: 12px; font-weight: 800; }
+.ae-student-materials-choice-grid { display: grid; gap: 10px; }
+
 .ae-student-drawer {
   height: auto !important;
   max-height: min(78vh, 660px);
@@ -393,6 +510,28 @@
   height: 100% !important;
   max-height: none;
   border-radius: 22px 0 0 22px;
+}
+
+.ae-student-drawer.is-materials {
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  background: #f7faff;
+}
+
+.ae-student-drawer.is-materials .offcanvas-header {
+  padding-top: max(15px, env(safe-area-inset-top));
+  background: #fff;
+}
+
+.ae-student-drawer.is-materials .offcanvas-body {
+  align-content: start;
+  width: min(100%, 620px);
+  margin: 0 auto;
+  padding: 20px 18px max(96px, calc(24px + env(safe-area-inset-bottom)));
 }
 
 .ae-student-drawer .offcanvas-header {
@@ -637,4 +776,5 @@
 @media (prefers-reduced-motion: reduce) {
   .ae-student-navbar *,
   .ae-student-bottom-nav * { scroll-behavior: auto; transition: none !important; }
+  .ae-student-materials-panel { animation: none !important; }
 }

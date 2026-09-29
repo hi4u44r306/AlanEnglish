@@ -20,14 +20,21 @@ const mockOffcanvasRender = jest.fn();
 jest.mock("../../services/studentSocialService", () => ({ sendSocialHeartbeat: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
-    const Offcanvas = ({ show, children, id, placement }) => {
+    const Offcanvas = ({ show, children, className, id, placement }) => {
         mockOffcanvasRender({ show, placement });
-        return show ? ReactModule.createElement("aside", { id, "data-placement": placement }, children) : null;
+        return show ? ReactModule.createElement("aside", { className, id, "data-placement": placement }, children) : null;
     };
     Offcanvas.Header = ({ children }) => ReactModule.createElement("header", null, children);
     Offcanvas.Body = ReactModule.forwardRef(({ children, ...props }, ref) => ReactModule.createElement("div", { ...props, ref }, children));
     return { __esModule: true, default: Offcanvas };
 });
+
+const basicReadingBooks = [400, 800, 1200].flatMap(level => [1, 2, 3].map(bookNumber => ({
+    id: `basic-${level}-${bookNumber}`,
+    code: `BasicReading_${level}_${bookNumber}`,
+    name: `Basic Reading ${level} 第 ${bookNumber} 冊`,
+    locked: false
+})));
 
 const LocationProbe = () => {
     const location = useLocation();
@@ -218,7 +225,7 @@ describe("MainNavbar student navigation", () => {
         expect(await screen.findByLabelText("切換習作本，1 本教材")).toBeInTheDocument();
     });
 
-    it("groups unlocked student materials into collapsible desktop and mobile categories", async () => {
+    it("removes Listening and opens Basic Reading as a three-level materials flow", async () => {
         getAccessibleCatalog.mockResolvedValue({
             categories: [{
                 id: "workbook",
@@ -237,7 +244,7 @@ describe("MainNavbar student navigation", () => {
                 name: "課本",
                 books: [
                     { id: "reader-1", code: "SER_1", name: "Super Easy Reading 1", locked: false },
-                    { id: "reader-2", code: "ReadingTable_1", name: "Reading Table 1", locked: false }
+                    ...basicReadingBooks
                 ]
             }]
         });
@@ -247,44 +254,45 @@ describe("MainNavbar student navigation", () => {
         const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
         fireEvent.click(materialsMenu);
         const desktopMaterials = materialsMenu.closest(".dropdown");
-        expect(within(desktopMaterials).getByText("3 本可使用")).toBeInTheDocument();
+        expect(within(desktopMaterials).getByText("10 本可使用")).toBeInTheDocument();
+        expect(within(desktopMaterials).queryByText("聽力本")).not.toBeInTheDocument();
+        expect(within(desktopMaterials).queryByText("Super Easy Reading 1")).not.toBeInTheDocument();
+        fireEvent.click(within(desktopMaterials).getByRole("button", { name: /Basic Reading/ }));
+        expect(within(desktopMaterials).getByRole("button", { name: /400/ })).toBeInTheDocument();
+        expect(within(desktopMaterials).getByRole("button", { name: /800/ })).toBeInTheDocument();
+        expect(within(desktopMaterials).getByRole("button", { name: /1200/ })).toBeInTheDocument();
+        fireEvent.click(within(desktopMaterials).getByRole("button", { name: /400/ }));
+        expect(within(desktopMaterials).getByRole("link", { name: /第 1 冊/ })).toHaveAttribute("href", "/student/books/BasicReading_400_1");
+        expect(within(desktopMaterials).getByRole("link", { name: /第 2 冊/ })).toHaveAttribute("href", "/student/books/BasicReading_400_2");
+        expect(within(desktopMaterials).getByRole("link", { name: /第 3 冊/ })).toHaveAttribute("href", "/student/books/BasicReading_400_3");
+        fireEvent.click(within(desktopMaterials).getByRole("button", { name: "選擇程度" }));
+        fireEvent.click(within(desktopMaterials).getByRole("button", { name: "全部教材" }));
         const desktopWorkbookToggle = within(desktopMaterials).getByLabelText("切換習作本，1 本教材");
         expect(desktopWorkbookToggle.closest("details")).not.toHaveAttribute("open");
         fireEvent.click(desktopWorkbookToggle);
         expect(desktopWorkbookToggle.closest("details")).toHaveAttribute("open");
         const desktopWorkbookLink = within(desktopMaterials).getByRole("link", { name: "Workbook 1" });
         expect(desktopWorkbookLink).toHaveAttribute("href", "/student/books/Workbook_1");
-        fireEvent.click(within(desktopMaterials).getByLabelText("切換聽力本，1 本教材"));
-        expect(within(desktopMaterials).getByRole("link", { name: "聽力本 1" })).toHaveAttribute("href", "/student/books/Listening_1");
         expect(within(desktopMaterials).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
-        fireEvent.click(within(desktopMaterials).getByLabelText("切換課本，1 本教材"));
-        expect(within(desktopMaterials).getByRole("link", { name: "Basic Reading 聽力檔案" })).toHaveAttribute("href", "/basic-reading");
-        expect(within(desktopMaterials).queryByRole("link", { name: "Super Easy Reading 1" })).not.toBeInTheDocument();
-        expect(within(desktopMaterials).queryByRole("link", { name: "Reading Table 1" })).not.toBeInTheDocument();
 
         fireEvent.click(materialsMenu);
         fireEvent.click(screen.getByRole("button", { name: "教材" }));
         const mobileDrawer = await screen.findByRole("complementary");
+        expect(mobileDrawer).toHaveClass("is-materials");
+        expect(mobileDrawer).toHaveAttribute("data-placement", "end");
         expect(within(mobileDrawer).getByText("我的教材")).toBeInTheDocument();
-        const mobileWorkbookToggle = within(mobileDrawer).getByLabelText("切換習作本，1 本教材");
-        expect(mobileWorkbookToggle.closest("details")).not.toHaveAttribute("open");
-        fireEvent.click(mobileWorkbookToggle);
-        expect(mobileWorkbookToggle.closest("details")).toHaveAttribute("open");
-        const mobileWorkbookLink = within(mobileDrawer).getByRole("link", { name: "Workbook 1" });
-        expect(mobileWorkbookLink).toHaveAttribute("href", "/student/books/Workbook_1");
-        expect(within(mobileDrawer).queryByRole("link", { name: "Workbook 2" })).not.toBeInTheDocument();
-        fireEvent.click(within(mobileDrawer).getByLabelText("切換課本，1 本教材"));
-        expect(within(mobileDrawer).getByRole("link", { name: "Basic Reading 聽力檔案" })).toHaveAttribute("href", "/basic-reading");
-        expect(within(mobileDrawer).queryByRole("link", { name: "Super Easy Reading 1" })).not.toBeInTheDocument();
+        fireEvent.click(within(mobileDrawer).getByRole("button", { name: /Basic Reading/ }));
+        fireEvent.click(within(mobileDrawer).getByRole("button", { name: /800/ }));
+        expect(within(mobileDrawer).getByRole("link", { name: /第 3 冊/ })).toHaveAttribute("href", "/student/books/BasicReading_800_3");
     });
 
-    it("opens the public Basic Reading listening page from the desktop materials menu", async () => {
+    it("opens the authenticated Basic Reading Playlist from the desktop materials menu", async () => {
         getAccessibleCatalog.mockResolvedValue({
             categories: [{
                 id: "textbook",
                 code: "textbook",
                 name: "課本",
-                books: [{ id: "reader-1", code: "SER_1", name: "Super Easy Reading 1", locked: false }]
+                books: basicReadingBooks
             }]
         });
 
@@ -298,19 +306,20 @@ describe("MainNavbar student navigation", () => {
         const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
         fireEvent.click(materialsMenu);
         const desktopMaterials = materialsMenu.closest(".dropdown");
-        fireEvent.click(within(desktopMaterials).getByLabelText("切換課本，1 本教材"));
-        fireEvent.click(within(desktopMaterials).getByRole("link", { name: "Basic Reading 聽力檔案" }));
+        fireEvent.click(within(desktopMaterials).getByRole("button", { name: /Basic Reading/ }));
+        fireEvent.click(within(desktopMaterials).getByRole("button", { name: /1200/ }));
+        fireEvent.click(within(desktopMaterials).getByRole("link", { name: /第 2 冊/ }));
 
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/basic-reading");
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/books/BasicReading_1200_2");
     });
 
-    it("opens the public Basic Reading listening page after the mobile drawer closes", async () => {
+    it("opens the authenticated Basic Reading Playlist after the full-screen mobile drawer closes", async () => {
         getAccessibleCatalog.mockResolvedValue({
             categories: [{
                 id: "textbook",
                 code: "textbook",
                 name: "課本",
-                books: [{ id: "reader-1", code: "SER_1", name: "Super Easy Reading 1", locked: false }]
+                books: basicReadingBooks
             }]
         });
 
@@ -324,12 +333,14 @@ describe("MainNavbar student navigation", () => {
         await screen.findByRole("button", { name: "我的教材" });
         fireEvent.click(screen.getByRole("button", { name: "教材" }));
         const mobileDrawer = await screen.findByRole("complementary");
-        fireEvent.click(within(mobileDrawer).getByLabelText("切換課本，1 本教材"));
-        fireEvent.click(within(mobileDrawer).getByRole("link", { name: "Basic Reading 聽力檔案" }));
+        expect(mobileDrawer).toHaveClass("is-materials");
+        fireEvent.click(within(mobileDrawer).getByRole("button", { name: /Basic Reading/ }));
+        fireEvent.click(within(mobileDrawer).getByRole("button", { name: /400/ }));
+        fireEvent.click(within(mobileDrawer).getByRole("link", { name: /第 1 冊/ }));
 
         await waitFor(() => {
             expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
-            expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/basic-reading");
+            expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/books/BasicReading_400_1");
         });
     });
 

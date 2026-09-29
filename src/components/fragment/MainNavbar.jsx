@@ -24,6 +24,7 @@ import StudentNavbar from "./StudentNavbar";
 import { sendSocialHeartbeat } from "../../services/studentSocialService";
 import { NOTIFICATIONS_READ_EVENT, notifyNotificationsRead } from "../../constants/notificationEvents";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
+import { createBasicReadingCategory, isBasicReadingBook } from "../../constants/basicReadingCatalog";
 
 const restoreDocumentScroll = () => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -46,16 +47,19 @@ const staysInAuthenticatedShell = destination => [
     "/billing"
 ].some(prefix => destination === prefix || destination.startsWith(`${prefix}/`));
 
-const BASIC_READING_MATERIAL = Object.freeze({
-    id: "basic-reading-listening",
-    code: "basic-reading",
-    name: "Basic Reading 聽力檔案",
-    path: "/basic-reading"
-});
-
 const isTextbookCategory = category => (
     String(category?.code || "").trim().toLowerCase() === "textbook"
     || String(category?.name || "").trim() === "課本"
+);
+
+const isBasicReadingCategory = category => (
+    String(category?.code || "").trim().toLowerCase() === "basic-reading"
+    || String(category?.navigationType || "") === "basic-reading"
+);
+
+const isListeningCategory = category => (
+    String(category?.code || "").trim().toLowerCase() === "listening"
+    || String(category?.name || "").trim() === "聽力本"
 );
 
 function MainNavbar() {
@@ -93,14 +97,24 @@ function MainNavbar() {
         && hasActiveStudentMembership
         && studentProfile?.learner_type === "academy_student"
         && effectiveAccess?.plan_codes?.includes("academy_internal") === true;
-    const accessibleStudentCategories = useMemo(() => categories
-        .map(category => ({
-            ...category,
-            books: isTextbookCategory(category)
-                ? [BASIC_READING_MATERIAL]
-                : (category.books || []).filter(book => !book.locked)
-        }))
-        .filter(category => category.books.length > 0), [categories]);
+    const accessibleStudentCategories = useMemo(() => {
+        const regularCategories = [];
+        const basicReadingBooks = [];
+
+        categories.forEach(category => {
+            if (isListeningCategory(category)) return;
+            const unlockedBooks = (category.books || []).filter(book => !book.locked);
+            if (isTextbookCategory(category) || isBasicReadingCategory(category)) {
+                basicReadingBooks.push(...unlockedBooks.filter(isBasicReadingBook));
+                return;
+            }
+            if (unlockedBooks.length > 0) regularCategories.push({ ...category, books: unlockedBooks });
+        });
+
+        return basicReadingBooks.length > 0
+            ? [createBasicReadingCategory(basicReadingBooks), ...regularCategories]
+            : regularCategories;
+    }, [categories]);
     const hasAccessibleStudentMaterials = isStudent && accessibleStudentCategories.length > 0;
     const homePath = isAuthenticated ? getRoleHome(role) : "/";
     const accountManagementPath = isAdmin ? "/admin/accounts" : "/teacher/accounts";
