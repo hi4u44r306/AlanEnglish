@@ -2,11 +2,12 @@
 
 最後更新：2026-09-29
 
-本次公開首頁暫停購買宣傳（2026-09-29，尚未部署）：
+本次公開首頁暫停購買宣傳（2026-09-29，已正式部署並完成線上驗收）：
 
 - 公開首頁移除 `CHOOSE YOUR PLAN`、`PLAN COMPARISON`、方案價格、AI 加購、教材商城入口及購買／離校方案相關 FAQ；頂部導覽、頁尾及自主學習卡也不再顯示購買或尚未開放付款的提示。
 - 免費試用、學生登入、英文班教材聽力、AI 個人化教材、AI 口說大挑戰、班級作業、智慧複習與學習歷程等核心賣點保留。
 - 本批只調整公開首頁顯示與對應測試；不修改既有會員權限、商城路由、訂單、Stripe、Firebase、Supabase、R2 或登入後管理功能。
+- Showcase／ShowcaseNavbar targeted 2 suites／5 tests 與 `git diff --check` 通過；依 Low Risk 規則未執行完整 test suite 或本機 Production build。PR #364 已合併至 `main` `a847fafe`，Cloudflare production build `197dbe0c-1d2b-44a4-8828-e2181e002338` 成功。正式桌面與 412×915 手機首頁載入 `main.dc06039f.js`，無方案、價格、商城或加購 FAQ，手機無水平溢位且正式網域 Console 無警告或錯誤；已停用的 Netlify 狀態維持忽略。
 
 本次 Cloudflare 推送與部署加速（2026-09-29，已完成並驗證）：
 
