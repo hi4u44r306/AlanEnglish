@@ -2,6 +2,14 @@
 
 最後更新：2026-09-29
 
+本次 Cloudflare 推送與部署加速（2026-09-29，正式設定已套用／Repository 規範待合併）：
+
+- Cloudflare `alanenglish` 已關閉非 production 分支自動建置；一般功能分支與 PR 不再先跑一次 Preview，程式合併至 `main` 後才執行唯一一次 production build。高風險修改仍須依 AGENTS.md 使用明確的隔離測試環境，不因本次加速而降低安全閘門。
+- Build Watch Paths 維持 include `*`，新增 exclude `docs/*` 與 `*.md`；純文件提交不再觸發 Worker build。提交若同時包含 React、Worker、設定或其他非排除檔案，仍會正常建置。
+- Cloudflare Build Cache 已確認原本就是啟用狀態並保持啟用；Build command 仍為 `npm run build`、Deploy command 仍為 `npx wrangler deploy`，沒有改變正式產物內容、Secret、R2 binding、網域或 production branch。
+- `AGENTS.md` 新增 Cloudflare 快速發布流程，並將測試改為 Low／Medium／High Risk 分級；純 UI 與文件修改不再重複執行完整測試或 Production build，行為與高風險修改仍執行相應 targeted／完整驗證。
+- 本批只改 Cloudflare CI/CD 觸發條件及開發規範，不修改網站程式、Firebase、Supabase、R2 存取或學生資料；Dashboard 已確認設定儲存。依新的 Low Risk 規則只執行 `git diff --check` 與設定畫面驗證，不執行 `npm test` 或 `npm run build`。
+
 本次通知設定集中與公開首頁賣點補強（2026-09-29，已正式部署並完成線上驗收）：
 
 - 學生通知收件匣改為只顯示通知、相關頁面導引與已讀操作；移除頁內手機推播開關、測試通知及舊的登入後設定提示。首次登入的可選通知卡保留，日後裝置推播統一由「我的設定」開啟或關閉。
