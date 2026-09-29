@@ -9,6 +9,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const purchaseCleanupMigration = readFileSync(
+  new URL(
+    "../supabase/migrations/20260929083436_fix_test_material_purchase_account_cleanup.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 test("backfills only membership-backed Stripe grants from verified memberships", () => {
   assert.match(migration, /access_grant\.source = 'stripe'/);
@@ -37,4 +44,27 @@ test("preserves order audit history while preventing future reclaim", () => {
   assert.match(migration, /payment_status = 'refunded'/);
   assert.match(migration, /fulfillment_status = 'cancelled'/);
   assert.match(migration, /claimed_by_student_id = null/);
+});
+
+test("blocks live or unknown material purchases before Firebase deletion", () => {
+  assert.match(purchaseCleanupMigration, /from public\.material_purchases/);
+  assert.match(purchaseCleanupMigration, /stripe_livemode is distinct from false/);
+  assert.match(purchaseCleanupMigration, /v_blockers := array_append\(v_blockers, 'payment_or_access_history'\)/);
+});
+
+test("removes only explicit test-mode material purchases and their entitlement links", () => {
+  assert.match(purchaseCleanupMigration, /target_purchase_entitlements as materialized/);
+  assert.match(purchaseCleanupMigration, /delete from public\.material_purchase_entitlements/);
+  assert.match(purchaseCleanupMigration, /delete from public\.student_book_entitlements/);
+  assert.match(purchaseCleanupMigration, /delete from public\.material_purchases/);
+  assert.match(purchaseCleanupMigration, /purchase\.stripe_livemode is false/);
+  assert.match(purchaseCleanupMigration, /and stripe_livemode is false/);
+});
+
+test("keeps deletion functions service-role only", () => {
+  assert.match(purchaseCleanupMigration, /security definer/g);
+  assert.match(purchaseCleanupMigration, /set search_path = ''/g);
+  assert.match(purchaseCleanupMigration, /revoke all on function public\.get_student_account_deletion_eligibility[\s\S]*from public, anon, authenticated/);
+  assert.match(purchaseCleanupMigration, /revoke all on function public\.delete_unstarted_student_account[\s\S]*from public, anon, authenticated/);
+  assert.match(purchaseCleanupMigration, /grant execute on function public\.delete_unstarted_student_account[\s\S]*to service_role/);
 });
