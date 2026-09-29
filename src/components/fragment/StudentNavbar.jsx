@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Offcanvas from "react-bootstrap/Offcanvas";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
     FiBarChart2,
     FiBell,
@@ -66,8 +66,6 @@ const StudentNavbar = ({
     xpToNextLevel
 }) => {
     const location = useLocation();
-    const navigate = useNavigate();
-    const pendingNavigationRef = useRef("");
     const [drawer, setDrawer] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [materialsOpen, setMaterialsOpen] = useState(false);
@@ -117,20 +115,9 @@ const StudentNavbar = ({
         setDrawerOpen(false);
         setMaterialsOpen(false);
     };
-    const closeDrawerThenNavigate = (destination, event) => {
-        const staysInShell = ["/student", "/teacher", "/admin", "/account", "/billing"]
-            .some(prefix => destination === prefix || destination.startsWith(`${prefix}/`));
-        if (!staysInShell && drawerOpen) {
-            event.preventDefault();
-            pendingNavigationRef.current = destination;
-        }
-        closeDrawer();
-    };
+    const closeDrawerThenNavigate = () => closeDrawer();
     const handleDrawerExited = () => {
         setDrawer("");
-        const destination = pendingNavigationRef.current;
-        pendingNavigationRef.current = "";
-        if (destination) navigate(destination);
     };
 
     useEffect(() => {
