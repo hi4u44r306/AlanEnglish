@@ -127,7 +127,6 @@ const StudentNavbar = ({
         closeDrawer();
     };
     const handleDrawerExited = () => {
-        if (drawerOpen) return;
         setDrawer("");
         const destination = pendingNavigationRef.current;
         pendingNavigationRef.current = "";

@@ -307,6 +307,35 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/basic-reading");
     });
 
+    it("opens the public Basic Reading listening page after the mobile drawer closes", async () => {
+        getAccessibleCatalog.mockResolvedValue({
+            categories: [{
+                id: "textbook",
+                code: "textbook",
+                name: "課本",
+                books: [{ id: "reader-1", code: "SER_1", name: "Super Easy Reading 1", locked: false }]
+            }]
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/student/dashboard"]} future={APP_ROUTER_FUTURE}>
+                <MainNavbar />
+                <LocationProbe />
+            </MemoryRouter>
+        );
+
+        await screen.findByRole("button", { name: "我的教材" });
+        fireEvent.click(screen.getByRole("button", { name: "教材" }));
+        const mobileDrawer = await screen.findByRole("complementary");
+        fireEvent.click(within(mobileDrawer).getByLabelText("切換課本，1 本教材"));
+        fireEvent.click(within(mobileDrawer).getByRole("link", { name: "Basic Reading 聽力檔案" }));
+
+        await waitFor(() => expect(screen.queryByRole("complementary")).not.toBeInTheDocument());
+        act(() => mockOffcanvasExited());
+
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/basic-reading");
+    });
+
     it("shows the AI Premium title only for an active AI add-on", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "ai-premium-student" },
