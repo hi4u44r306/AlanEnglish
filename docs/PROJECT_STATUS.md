@@ -2,12 +2,12 @@
 
 最後更新：2026-09-29
 
-本次公開 `/links` Basic Reading 兩層選單（2026-09-29，本機完成，尚未部署）：
+本次公開 `/links` Basic Reading 兩層選單（2026-09-29，已正式部署並完成線上驗收）：
 
 - `/links` 的 Basic Reading 區塊改為先顯示 400／800／1200 三個程度按鈕；選擇程度後才顯示第一冊／第二冊／第三冊，避免九冊入口同時擠在手機畫面。使用者已移除的搜尋欄與額外說明文字維持移除。
 - 冊別連結會帶入指定 collection，例如 400 第一冊前往 `/basic-reading?collection=br400_1`；公開播放頁會直接選中對應冊別，不必再從九冊中重新尋找。公開頁仍不登入、不寫入學生播放次數或獎勵。
 - 修改範圍只包含公開 Links 導覽、公開 Basic Reading collection 定位、元件測試與文件；不改動登入後教材、私人 R2、Supabase、MusicPlayer 或聆聽獎勵規則。
-- `Links`／`BasicReading` targeted 2 suites／4 tests 已通過；Production build、Cloudflare 發布與正式 412px 手機驗收待完成。
+- `Links`／`BasicReading` targeted 2 suites／4 tests、Production build、`git diff --check` 與 412×915 Chrome 驗收均通過；手機版無水平溢位，程度與冊別按鈕皆至少 44px 高。PR #349 已合併至 `main` `3218f8fb`，Cloudflare production build `52c37642-0635-43a0-aa1f-9e0455390071` 成功。正式站確認初始只顯示三個程度，點 1200 後才出現三冊；第一冊會前往 `/basic-reading?collection=br1200_1` 並正確選中 33 軌的 Basic Reading 1200 第 1 冊。
 
 本次共用教材導覽、10 次通過與主畫面播放器貼齊（2026-09-29，已正式部署並完成線上驗收）：
 
