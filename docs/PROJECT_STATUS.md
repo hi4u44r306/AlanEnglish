@@ -2,13 +2,15 @@
 
 最後更新：2026-09-29
 
-本次登入／首次設定精簡、管理員暱稱紀錄修復與測試帳號清理稽核（2026-09-29，前三項已正式部署）：
+本次登入／首次設定精簡、管理員暱稱紀錄修復與測試帳號清理（2026-09-29，已正式部署並完成）：
 
 - 登入頁移除手機通知選擇，登入按鈕下方四組長文字入口改收進單一「第一次使用或需要協助？」展開區；密碼欄旁仍保留 Email 帳號的「忘記密碼？」。412×915 本機視覺檢查無水平溢位，收合時單頁高度 915px，展開後四個入口皆保留 44px 觸控高度。
 - 英文班學生的首次設定頁在密碼、生日及家長 Email 三個必填步驟之外新增「可選設定」通知卡。瀏覽器權限只在學生按「開啟此裝置通知」時請求；按「稍後再說」可直接完成首次流程，日後仍可由「我的設定」開啟。老師、管理員及已完成首次設定的正常登入不再經過通知問答。
 - 正式 `membership-manager` v45 與 Repository 逐行比對後，確認正式版本只缺少 23 行 `nickname_history` action；資料表、RLS、前端按鈕及管理員角色檢查均仍存在。修復只需重新部署目前 Repository 的 Function，不需 migration。
-- 正式帳號唯讀盤點：目前有 1 個 admin、唯一的 `test2` 與另外 13 個學生帳號。現有 server-side 刪除資格檢查判定其中 10 個可刪、3 個因付款／教材存取稽核紀錄被擋；至少 3 個候選含 Stripe test-mode 紀錄。尚未刪除任何 Supabase、Firebase 或 Stripe 資料；必須先確認受阻帳號的紀錄處理方式與不可回復影響，不能用直接 SQL 繞過保護。
-- 驗證：Login／StudentOnboarding／AccountManagement targeted 3 suites／16 tests、社交安全契約 7/7、`membership-manager` 語法、Production build 與 `git diff --check` 通過；只出現既有 React Router future warning 與 Node deprecation warning。依風險分級沒有執行完整 test suite，Production build 只在發布前執行一次。
+- 專案擁有者明確確認永久刪除盤點出的 13 個測試學生帳號。正式 migration `20260929082327` 以帳號身分 digest、精確筆數及 `stripe_livemode=false` 守門，補正 2 筆 sandbox membership grant 的測試模式旗標，清除 1 個測試帳號的 2 筆網站存取 grant 與 4 筆教材 entitlement；2 筆 sandbox 實體教材訂單保留稽核紀錄，但已改為退款／取消並解除認領，避免日後相同 Email 誤領測試教材。
+- 第一個 sandbox 訂閱帳號刪除時暴露既有 RPC 未涵蓋 `material_purchases` 與兩個口說 RESTRICT ledger 的外鍵。Firebase 已刪除但 Supabase 交易安全回滾；PR #357／migration `20260929083436` 新增 live／unknown material purchase 的 preflight 阻擋，僅允許清理明確 `stripe_livemode=false` 的購買與 entitlement link。PR #358／migration `20260929084151` 只刪除目標學生自己的 `speaking_pronunciation_requests` 與 `speaking_challenge_sessions`，RPC 仍只授權 `service_role`。
+- 13 個目標帳號已透過既有管理員刪除流程逐筆完成 Firebase、Supabase 與 Stripe test-mode 清理；中途部分完成的帳號以既有 Firebase `USER_NOT_FOUND` 冪等處理重試成功。正式資料庫最終只剩 1 個 admin 與唯一 `test2`，13 個目標 ID、membership、grant、material purchase、payment transaction、發音請求及挑戰 session 殘留皆為 0；三個 migration 皆已登記，帳號管理「全部帳號狀態」顯示 2／2。
+- 驗證：Login／StudentOnboarding／AccountManagement targeted 3 suites／16 tests、社交安全契約 7/7、測試帳號清理契約 9/9、`membership-manager` 語法、刪除 RPC rollback dry run、完整 `students` 外鍵稽核、Production build 與 `git diff --check` 通過；只出現既有 React Router future warning 與 Node deprecation warning。依風險分級沒有執行完整 test suite，Production build 沒有因純 migration／文件 hotfix 重複執行。
 - PR #354 已合併至 `main` `4d8ebc63`，Cloudflare production build `2f953a8d-4173-45ab-95cc-a91251af708e` 成功。正式 412px 登入頁確認舊通知選擇已消失，協助區收合／展開皆無水平溢位，四個入口各 44px。正式 `membership-manager` v46 為 ACTIVE，下載後與 `main` 原始碼完全一致，未登入 `nickname_history` 請求回應 401；登入管理員實際開啟歷史視窗仍待帳號驗收。
 
 本次公開 Basic Reading 分級頁面（2026-09-29，已正式部署並完成線上驗收）：
