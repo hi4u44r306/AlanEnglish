@@ -57,11 +57,14 @@ describe("public Basic Reading player", () => {
         expect(screen.getByRole("button", { name: "播放 Track 3" })).toBeInTheDocument();
 
         const trackTwoButton = screen.getByRole("button", { name: "播放 Track 2" });
+        const player = screen.getByLabelText("Basic Reading 400 第 1 冊 Track 1");
         await waitFor(() => expect(trackTwoButton).toBeEnabled());
         window.HTMLMediaElement.prototype.play.mockClear();
         await act(async () => {
             fireEvent.click(trackTwoButton);
             expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
+            expect(window.HTMLMediaElement.prototype.play.mock.instances[0]).toBe(player);
+            expect(player).toHaveAttribute("src", expect.stringContaining("/api/basic-reading/audio/br400_1/Track2.mp3"));
             await Promise.resolve();
         });
 
