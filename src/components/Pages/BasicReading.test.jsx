@@ -58,8 +58,10 @@ describe("public Basic Reading player", () => {
 
         const trackTwoButton = screen.getByRole("button", { name: "播放 Track 2" });
         await waitFor(() => expect(trackTwoButton).toBeEnabled());
+        window.HTMLMediaElement.prototype.play.mockClear();
         await act(async () => {
             fireEvent.click(trackTwoButton);
+            expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
             await Promise.resolve();
         });
 

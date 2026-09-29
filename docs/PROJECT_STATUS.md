@@ -11,7 +11,9 @@
 - 本機驗證完成：React 2 suites／3 tests、Production build、`git diff --check` 與 Wrangler dry-run 均成功；1440×900 與 412×915 實測皆無水平溢位，Track 按鈕及 Links 入口保留至少 44px 觸控高度，播放器未超出視窗。
 - 功能 commit `2062411e` 已推送並建立 PR #335；PR 可合併但尚未合併。GitHub 顯示的舊 Netlify deploy-preview 為 `skipped=true`，沒有執行 Netlify build，與目前 Cloudflare 正式發布流程及本次成功的本機 Production build 無關。
 - 專案擁有者已於 2026-09-29 授權本批正式環境操作。上傳前確認私人 R2 `basic-reading/` 前綴為 0 個物件；399 支 MP3 已使用「目標不得存在」原子條件上傳，遠端讀回確認 399 個 key、470,711,107 bytes、399 筆 SHA-256 metadata 全部吻合。原始桌面檔案與 `_DS_Store` 未修改或刪除。
-- Cloudflare 已建立未部署版本 `50756459-6b5e-454a-8632-b54fae431103`，只新增 `BASIC_READING_SIGNING_KEY` Secret；操作前後 production deployment 均維持 `526ade86-3057-4007-b5a9-b6e1b166012f`／100% version `4891de89-435d-4e3f-bc1e-64185247955f`，沒有提前發布功能分支。尚未完成：合併 PR #335、從最新 `main` 部署正式站及正式網址真實播放／Range Request 驗收。
+- Cloudflare 曾先建立未部署版本 `50756459-6b5e-454a-8632-b54fae431103`，只新增 `BASIC_READING_SIGNING_KEY` Secret；操作前後 production deployment 均維持 `526ade86-3057-4007-b5a9-b6e1b166012f`／100% version `4891de89-435d-4e3f-bc1e-64185247955f`，證明功能分支沒有被提前發布。Secret 已由下方最新 `main` 正式版本正確繼承。
+- PR #335 已合併至 `main` `73a548bd`，Cloudflare production build `b1495884-b254-4ae2-85c0-8f4049a9244c` 已成功並以 deployment `da057bb8-7bb9-40ab-90d3-421b74a8e901`／version `fa417b39-0e26-4157-ba15-55b5ab526b13` 承接 100% 流量。正式目錄 9 冊／399 軌、60 分鐘權杖、無效權杖 403、399 次 HEAD 檔案大小／類型／Range 標頭及 18 次首末軌 `206 Partial Content` 均通過，0 mismatch。
+- 正式瀏覽器驗收發現 Track 按鈕可切換並載入音檔，但原本在 React effect 內呼叫 `play()`，離開使用者事件後會被瀏覽器自動播放政策阻擋。獨立 hotfix 分支 `codex/public-basic-reading-autoplay` 改為對已快取冊別權杖在同一個按鍵事件內設定音源並播放，尚待測試、PR、合併與再次正式驗收。
 
 本次公開 Links 教材入口緊湊化（2026-09-28，已正式部署）：
 
