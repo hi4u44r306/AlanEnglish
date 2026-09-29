@@ -20,7 +20,7 @@ const renderLogin = () => render(
     </MemoryRouter>
 );
 
-describe("Login push choice", () => {
+describe("Login", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         useAuth.mockReturnValue({ authLoading: false, isAuthenticated: false });
@@ -34,33 +34,35 @@ describe("Login push choice", () => {
         fireEvent.click(screen.getByRole("button", { name: "登入" }));
     };
 
-    it("keeps login optional when the student chooses later", async () => {
+    it("keeps the sign-in form focused and hides optional help by default", async () => {
         renderLogin();
-        expect(screen.getByLabelText("稍後再說")).toBeChecked();
+        expect(screen.queryByText("學生帳號登入後要設定手機通知嗎？")).not.toBeInTheDocument();
+        expect(screen.getByText("第一次使用或需要協助？")).toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "掃描登入卡啟用" })).not.toBeVisible();
         submit();
         expect(await screen.findByRole("heading", { name: "我的首頁" })).toBeInTheDocument();
         await waitFor(() => expect(loginWithIdentifier).toHaveBeenCalledWith("student1", "password123"));
     });
 
-    it("takes a student who opts in to the manual push setup page", async () => {
+    it("reveals the compact help links on demand", () => {
         renderLogin();
-        fireEvent.click(screen.getByLabelText("登入後設定"));
-        submit();
-        expect(await screen.findByRole("heading", { name: "通知設定" })).toBeInTheDocument();
+        fireEvent.click(screen.getByText("第一次使用或需要協助？"));
+        expect(screen.getByRole("link", { name: "掃描登入卡啟用" })).toBeVisible();
+        expect(screen.getByRole("link", { name: "使用登入卡復原碼" })).toBeVisible();
+        expect(screen.getByRole("link", { name: "註冊／輸入教材兌換碼" })).toBeVisible();
+        expect(screen.getByRole("link", { name: "聯絡客服" })).toBeVisible();
     });
 
-    it("does not route a teacher into student notification settings", async () => {
+    it("routes a teacher directly to the requested page", async () => {
         loginWithIdentifier.mockResolvedValue({ student: { role: "teacher", name: "老師" } });
         renderLogin();
-        fireEvent.click(screen.getByLabelText("登入後設定"));
         submit();
         expect(await screen.findByRole("heading", { name: "我的首頁" })).toBeInTheDocument();
     });
 
-    it("keeps required account onboarding before push setup", async () => {
+    it("routes required account setup to the onboarding page", async () => {
         loginWithIdentifier.mockResolvedValue({ student: { role: "student", name: "同學", onboarding: { required: true } } });
         renderLogin();
-        fireEvent.click(screen.getByLabelText("登入後設定"));
         submit();
         expect(await screen.findByRole("heading", { name: "首次帳號設定" })).toBeInTheDocument();
     });

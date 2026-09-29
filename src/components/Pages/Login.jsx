@@ -15,7 +15,6 @@ function Login() {
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [pushChoice, setPushChoice] = useState("later");
     const loginAttemptRef = useRef(false);
     const accountActivated = new URLSearchParams(location.search).get("activated") === "1";
     const requestedLocation = location.state?.from;
@@ -79,14 +78,14 @@ function Login() {
             showSuccess(student.name || "同學");
             window.scrollTo(0, 0);
             loginAttemptRef.current = false;
-            const wantsPushSetup = student?.role === "student" && pushChoice === "setup";
             if (student?.onboarding?.required === true) {
                 navigate("/student/onboarding", {
                     replace: true,
-                    state: wantsPushSetup ? { from: { pathname: "/student/notifications" } } : undefined
+                    state: {
+                        firstLogin: true,
+                        ...(requestedLocation ? { from: requestedLocation } : {})
+                    }
                 });
-            } else if (wantsPushSetup) {
-                navigate("/student/notifications", { replace: true, state: { pushSetup: true, returnTo: destination } });
             } else {
                 navigate(destination, { replace: true });
             }
@@ -265,14 +264,6 @@ function Login() {
                             </div>
                         </div>
 
-                        <fieldset className="login-push-choice">
-                            <legend>學生帳號登入後要設定手機通知嗎？</legend>
-                            <p>學生可收到新作業與教材期限提醒。登入後仍需親自按「開啟此裝置推播」，才會向手機請求通知權限。</p>
-                            <label><input type="radio" name="pushChoice" value="setup" checked={pushChoice === "setup"} onChange={() => setPushChoice("setup")} disabled={isLoading} /> 登入後設定</label>
-                            <label><input type="radio" name="pushChoice" value="later" checked={pushChoice === "later"} onChange={() => setPushChoice("later")} disabled={isLoading} /> 稍後再說</label>
-                            <small>稍後可在「我的設定」開啟；iPhone／iPad 須先將網站加入主畫面。</small>
-                        </fieldset>
-
                         <button className="login-button" type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <>
@@ -282,25 +273,15 @@ function Login() {
                             ) : "登入"}
                         </button>
 
-                        <div className="login-trial">
-                            <span>英文班第一次使用？</span>
-                            <Link to="/academy/student-setup">掃描登入卡啟用</Link>
-                        </div>
-
-                        <div className="login-trial">
-                            <span>英文班忘記密碼？</span>
-                            <Link to="/academy/recover">使用登入卡復原碼</Link>
-                        </div>
-
-                        <div className="login-trial">
-                            <span>還沒有帳號？</span>
-                            <Link to="/freetrial">自行註冊／輸入教材兌換碼</Link>
-                        </div>
-
-                        <div className="login-trial">
-                            <span>登入或付款遇到問題？</span>
-                            <Link to="/support">聯絡客服</Link>
-                        </div>
+                        <details className="login-help">
+                            <summary>第一次使用或需要協助？</summary>
+                            <nav aria-label="登入協助">
+                                <Link to="/academy/student-setup">掃描登入卡啟用</Link>
+                                <Link to="/academy/recover">使用登入卡復原碼</Link>
+                                <Link to="/freetrial">註冊／輸入教材兌換碼</Link>
+                                <Link to="/support">聯絡客服</Link>
+                            </nav>
+                        </details>
 
                         <div className="login-tip">
                             <span>🎧</span>
