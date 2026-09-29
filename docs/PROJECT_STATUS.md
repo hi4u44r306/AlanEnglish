@@ -32,12 +32,13 @@
 - 本批只調整學生前端導覽呈現，不修改 `content-access`、教材 entitlement、資料庫目錄、管理員／老師教材導覽或既有聽力播放統計。桌面下拉選單與手機底部「教材」抽屜使用相同規則。
 - PR #340 完成課本入口精簡；正式手機驗收另發現抽屜動畫退出回呼不可靠，PR #341、#342 已改為由 React Router 連結直接導頁並補上手機回歸測試。`MainNavbar` 與 `BasicReading` targeted tests 共 19 項、Production build、`git diff --check` 與 Cloudflare main build `03f0a7a1-9ca7-4426-b1cd-41d457744585` 全部通過。登入後手機正式站已確認課本只有 1 本、鍵盤啟用「Basic Reading 聽力檔案」可到 `/basic-reading`，9 冊／399 軌皆顯示且 console 無 error；桌面流程由自動測試覆蓋。
 
-本次 Workbook 1～5 單頁音檔特效聲稽核（2026-09-29，本機候選完成，未部署）：
+本次 Workbook 1～5 十三支核准音檔發布（2026-09-29，正式資料與私人 R2 已切換）：
 
 - 187 支單頁候選已完成全檔訊號掃描、AudioSet 聲音分類及模糊片段 Whisper 上下文複核；731 個候選中保留 629 個語音／無需處理片段，原本 61 個模糊片段再確認為 59 個教材語音、1 個停頓中的短提示音及 1 個與朗讀重疊的音樂。
-- 已為 Workbook 1 P26／P48／P84／P99／P104／P105／P106／P114、Workbook 2 P8／P10、Workbook 4 P9、Workbook 5 P27 共 12 頁建立無特效 MP3；42 段非語音特效採靜音與淡入淡出，P9 的 `They go hiking and swimming.` 以中央語音頻譜分離保留朗讀並壓低音樂。沒有覆蓋任何來源，Workbook 2 P4 仍指向使用者已確認的 `cat` 修正版。
-- 靜音型波形驗證 11/11 檔、42/42 片段通過：最低衰減 25.22dB、最大時長偏差 0 秒、未修改區段最低相關係數 0.99995594。P9 音樂分數由 0.719927 降至 0.131896、語音分數由 0.652442 升至 0.663210，修正前後逐字皆完整；未處理區段相關係數 0.99994564。完整 187 列候選 manifest 缺檔 0，結果位於本機 `Workbook 1-5 無特效MP3候選 (2026-09-28)`；稽核方法見 `docs/workbook-audio-sfx-audit-2026-09-28.md`。
-- 專案擁有者已於 2026-09-29 抽聽 12 支修正版並確認無誤，包含 P9 分離後的自然度。這項核准只涵蓋特效聲修正，未將其餘 175 支候選自動視為內容核准；正式替換仍需先確認頁面範圍與 track 對應，再依 manifest 建立新 R2 物件、保留舊物件作為回復來源。本批尚未上傳 R2、修改資料庫、替換正式 track ID 或部署音檔。
+- 專案擁有者已人工抽聽並核准 Workbook 1 P26／P48／P84／P99／P104／P105／P106／P114、Workbook 2 P8／P10、Workbook 4 P9、Workbook 5 P27 共 12 支無特效版本，以及 Workbook 2 P4 的 `cat` 口誤修正版。42 段非語音特效採靜音與淡入淡出，Workbook 4 P9 的 `They go hiking and swimming.` 以中央語音頻譜分離保留朗讀並壓低音樂。
+- 13 支檔案重新計算 SHA-256 均與核准 manifest 相符，合計 53,299,653 bytes；上傳至私人 R2 的版本化新 key 後全數讀回，13/13 的位元組大小與 SHA-256 完全一致。原始本機檔、原正式 R2 路徑與舊物件均保留，沒有刪除或覆蓋。
+- 正式 `music_tracks` 已在單一交易內切換：10 筆沿用既有 track ID，Workbook 1 P26／P84／P99 新增 track ID 992／993／994；P8、P9 的 Question／Answer 分拆音軌維持不變。交易前 dry run 曾因 `duration_seconds` 只保存兩位小數而安全回滾，修正精度後 dry run 與正式交易均通過 13/13 守門驗證。
+- 本批 migration 為 `20260929170000_publish_reviewed_workbook_audio.sql`，完整路徑、雜湊、舊值及回復方式見 `docs/workbook-audio-release-2026-09-29.md`。這次發布不代表其餘 175 支候選已完成人工內容核准；其他正式音檔未切換。
 
 本次公開 Basic Reading 400～1200 播放清單（2026-09-29，已正式部署並完成線上驗收）：
 
