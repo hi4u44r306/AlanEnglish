@@ -380,7 +380,7 @@ git status --short
 - 不得從功能分支部署正式站；正式部署必須使用已測試的最新 `main` 分支。
 - 不得從平行分支執行 Supabase 正式 migration 或部署 Edge Function。
 
-專案擁有者已提供一般發布流程的持續授權。低至中風險修改在完成相應本機測試、Production build 與 diff 檢查後，可以直接：
+專案擁有者已提供一般發布流程的持續授權。低至中風險修改在完成第 16 節所要求的相應驗證與 diff 檢查後，可以直接：
 
 - 在明確功能分支建立 commit 並 Push 到 GitHub。
 - 建立或更新 Pull Request。
@@ -389,6 +389,17 @@ git status --short
 - 完成正式網址線上驗收，並將結果寫入 `docs/PROJECT_STATUS.md`。
 
 固定測試站不再是每次發布的必要步驟。一般文案、局部 UI、導覽、RWD、可回復的前端錯誤修正及已有測試保護的低風險功能，可在本機驗證後直接由 Cloudflare 發布正式站。
+
+### 13.2 Cloudflare 快速發布流程
+
+- 正式前端只使用 Cloudflare Workers／Pages；不要重新啟用或等待 Netlify。
+- Cloudflare Git 自動建置只追蹤 `main`。一般功能分支與 Pull Request 不自動建立 Cloudflare Preview，避免同一份程式碼在分支與合併後各建置一次。
+- 高風險修改仍須依本節規則使用明確的隔離測試環境；需要 Preview 時採該批工作的明確測試部署，不得因追求速度略過安全閘門。
+- Cloudflare Build Watch Paths 排除 `docs/*` 與 `*.md`。純文件提交不應觸發 Worker build 或正式部署；若同一提交也包含應用程式檔案，仍會正常建置。
+- Cloudflare Build Cache 必須保持啟用。除非正在排查快取造成的明確問題，不要清除 Build Cache。
+- 優先把功能、測試與狀態文件批次完成後一起提交，避免功能合併後再以第二個文件 PR 觸發額外流程。
+- Pull Request 若因上述分支或路徑規則沒有 Cloudflare check，不代表失敗；先確認 changed files 符合規則，再依 GitHub 必要檢查與本機驗證決定是否合併。
+- 會影響正式執行內容的 commit 合併至 `main` 後，必須等待唯一一次 Cloudflare production build 完成並驗收正式網址。
 
 下列重大改動必須先使用隔離測試環境／測試站驗證，並在執行正式高影響操作前取得使用者針對該批工作的明確同意：
 
@@ -454,15 +465,53 @@ git clean -fd
 
 ## 16. 測試與驗收規則
 
-修改完成後至少執行：
+所有修改至少執行：
 
 ```bash
 git status --short
 git diff --check
-npm run build
 ```
 
-如果專案具有相關測試，也要執行與修改範圍相符的測試。
+其他驗證依修改風險分級，不再要求每一批修改固定執行完整測試或 Production build。
+
+### 16.1 Risk-based validation
+
+**Low Risk — UI-only or visual changes**
+
+Examples: CSS／SCSS、顏色、字體、間距、layout、responsive、icon、文案，以及不影響邏輯的 React JSX 結構調整。
+
+- Do not run the full test suite.
+- Do not repeatedly run `npm test` or a production build.
+- Batch all edits first; if needed, run targeted lint or typecheck once after all edits are complete.
+- Prefer focused visual checks, affected component tests, and responsive verification.
+- When the deployment platform will run the production build, do not duplicate that build locally unless there is a concrete reason.
+
+**Medium Risk — frontend behavior changes**
+
+Examples: event handlers、React state、Redux、navigation、form behavior、API wiring。
+
+- Run only targeted tests for the affected behavior.
+- Run lint or typecheck when relevant.
+- Do not run the full test suite unless the impact is broad or shared infrastructure changed.
+- Run a production build only when the changed files or deployment contract make it necessary.
+
+**High Risk — data, security, or core-flow changes**
+
+Examples: Firebase Authentication、Supabase RLS、database migrations、Edge Functions、Stripe／payment、permissions／roles、learning records、`record-play`、`noInteraction`、anti-cheat、session／idempotency、Cloudflare R2 access logic，以及其他會影響資料正確性、安全性或核心流程的修改。
+
+- Run relevant tests, typecheck, and a production build as appropriate.
+- Run the full test suite only when the affected surface is broad enough to justify it.
+- Follow the isolated-environment and explicit-authorization gates in Sections 13–14.
+
+**Rules for every risk level**
+
+- Finish related edits in a batch, then validate once; avoid edit → test → edit → test loops.
+- Before any expensive test or build, inspect the changed files and confirm that the command proves something relevant.
+- Do not rerun the full suite merely because a commit or push is about to happen.
+- If the same validation already passed and no relevant code changed afterward, do not rerun it.
+- Record skipped checks and the reason instead of running irrelevant commands for appearance.
+
+For UI-only tasks, prioritize speed. Do not run npm test or npm run build unless the change affects application logic or full validation is explicitly requested.
 
 需要依任務檢查：
 
@@ -485,7 +534,7 @@ npm run build
 
 不要把 LF 將轉成 CRLF、Browserslist 資料過期或 Node deprecation warning 直接當成 build 失敗，但仍必須確認沒有真正的編譯錯誤。
 
-### 16.1 正式站優先發布與重大改動測試閘門
+### 16.2 正式站優先發布與重大改動測試閘門
 
 一般修改在本機完成相應驗證後，直接進入正式站發布與驗收；只有第 13 節所列重大改動，或現有測試不足以控制風險時，才先使用固定測試站或其他隔離環境。
 
@@ -493,7 +542,7 @@ npm run build
 
 - 依序確認功能分支／commit、與最新 `main` 的差異、migration、Edge Function、Secret 名稱狀態、GitHub PR、Cloudflare production 及正式網址實測。
 - 一般低至中風險發布依第 13 節的持續授權直接執行；重大改動則先走隔離驗證與該批明確授權。
-- 不得把「直接正式站」解讀成略過本機測試、build、diff、安全檢查或正式站發布後驗收。
+- 不得把「直接正式站」解讀成略過依風險分級所需的驗證、diff、安全檢查或正式站發布後驗收。
 - 若正式部署失敗或線上驗收出現權限、付款、資料或主要流程問題，立即停止新功能，優先回復上一個安全版本或製作最小 hotfix。
 - 只有在正式站部署成功、線上驗收通過並更新 `docs/PROJECT_STATUS.md` 後，才能開始下一個新功能。
 - 重大改動是否使用測試站由風險分類與使用者指示共同決定；單純趕時間不得把重大改動降級為一般修改。
@@ -504,7 +553,7 @@ npm run build
 
 - 要求的功能已實作。
 - 沒有修改無關功能。
-- Build 成功。
+- 依風險分級所需的 build 已成功；不需要 build 時已記錄原因。
 - 相關測試成功。
 - 已檢查 Git diff。
 - 沒有提交 Secret。
