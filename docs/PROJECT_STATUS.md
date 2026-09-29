@@ -11,6 +11,7 @@
 - 第一階段 targeted React 2 suites／35 tests 與 `git diff --check` 通過；依 Low Risk 規則未跑完整測試或本機 Production build。靜態地圖預覽已檢查手機道路上的 25 個節點；因學生入口暫停且目前沒有工作人員瀏覽器 session，登入後的實際桌面／手機頁面仍待驗收。
 - 第二階段本機程式已加入 `speaking_challenge_mode_progress` 獨立成就表、`speaking_challenge_hint_reveals` 回合提示紀錄，並為評分嘗試增加模式／回合欄位；Edge Function 以 Firebase 身分與服務端資料查驗、依模式儲存通關。前端選關摘要可選模式，簡單顯示答案，挑戰按提示時先寫入紀錄，題目結束只重試未通過題。A–Z 與學生暫停開關維持原樣。第二階段 targeted React 5 suites／58 tests、後端相關 Node 23 tests、兩支 Edge Function 及共用模組語法、Production build 與 `git diff --check` 已通過；資料庫 migration 因無本機 PostgreSQL／Docker 與隔離專案，仍缺真實資料庫整合驗證，登入後手機／桌面視覺驗收也待補。
 - 新 migration 尚未套用，Edge Function 尚未部署，正式站未發布雙模式。正式套用前需先完成資料庫 schema、兩支 Edge Function、前端的相容順序檢查；若失敗可回復前端與 Function 至舊版，新表保留而不刪除資料。新增的評分欄位有 `easy` 預設值，舊版 Function 可繼續寫入；正式資料庫結構的回退需另外審核，不能直接刪表。專案目前沒有隔離 Supabase 測試環境，正式資料庫尚未獲得本批明確操作授權。
+- 本機 checkpoint `761e20be`、`e72ccd05` 已推送至功能分支，草稿 PR #369 已建立且無合併衝突；正式站並未發布。PR 顯示的舊 Netlify Preview／規則檢查失敗，依目前 Cloudflare 正式發布規則不作為功能驗證；這批仍須先完成真實資料庫與登入後端到端測試。
 
 本次公開首頁純介紹與試用／商城入口暫停（2026-09-29，已正式部署並完成線上驗收）：
 
