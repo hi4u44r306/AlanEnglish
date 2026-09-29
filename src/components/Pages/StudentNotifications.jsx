@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FiArrowRight, FiBell, FiCheck, FiChevronLeft, FiClock, FiLoader } from "react-icons/fi";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
 import { notifyNotificationsRead } from "../../constants/notificationEvents";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
-import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig, sendWebPushTest } from "../../services/webPushService";
 import "./css/StudentNotifications.scss";
 
 const PAGE_SIZE = 30;
@@ -15,18 +14,11 @@ const formatDateTime = value => value ? new Intl.DateTimeFormat("zh-TW", { dateS
 function StudentNotifications() {
     const { firebaseUser } = useAuth();
     const navigate = useNavigate();
-    const location = useLocation();
-    const pushSetupRequested = location.state?.pushSetup === true;
-    const returnTo = typeof location.state?.returnTo === "string" && /^\/(?!\/)/.test(location.state.returnTo)
-        ? location.state.returnTo : "/userinfo";
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [nextBefore, setNextBefore] = useState(null);
-    const [pushConfig, setPushConfig] = useState(null);
-    const [pushStatus, setPushStatus] = useState(null);
-    const [pushBusy, setPushBusy] = useState(false);
 
     const loadNotifications = useCallback(async ({ append = false, before = null } = {}) => {
         if (!firebaseUser) return;
@@ -50,55 +42,6 @@ function StudentNotifications() {
     }, [firebaseUser]);
 
     useEffect(() => { loadNotifications(); }, [loadNotifications]);
-
-    useEffect(() => {
-        if (!firebaseUser) return undefined;
-        let cancelled = false;
-        const availability = getWebPushAvailability();
-        setPushStatus({ ...availability, active: false });
-        getWebPushConfig(firebaseUser).then(async config => {
-            if (cancelled) return;
-            setPushConfig(config);
-            if (availability.supported && config.enabled) {
-                const status = await getCurrentWebPushStatus(firebaseUser);
-                if (!cancelled) setPushStatus(status);
-            }
-        }).catch(() => {
-            if (!cancelled) setPushConfig({ enabled: false });
-        });
-        return () => { cancelled = true; };
-    }, [firebaseUser]);
-
-    const togglePush = async () => {
-        if (!firebaseUser || pushBusy || !pushConfig?.enabled) return;
-        setPushBusy(true);
-        try {
-            if (pushStatus?.active) await disableWebPush(firebaseUser);
-            else await enableWebPush(firebaseUser, pushConfig.public_key);
-            const status = await getCurrentWebPushStatus(firebaseUser);
-            setPushStatus(status);
-            toast.success(status.active ? "此裝置已開啟推播" : "此裝置已關閉推播");
-        } catch (error) {
-            setPushStatus(getWebPushAvailability());
-            toast.error(error.message || "推播設定失敗");
-        } finally {
-            setPushBusy(false);
-        }
-    };
-
-    const sendTestPush = async () => {
-        if (!firebaseUser || pushBusy || !pushStatus?.active) return;
-        setPushBusy(true);
-        try {
-            await sendWebPushTest(firebaseUser);
-            toast.success("推播服務已接收測試通知，請查看此裝置通知。");
-            await loadNotifications();
-        } catch (error) {
-            toast.error(error.message || "推播測試失敗");
-        } finally {
-            setPushBusy(false);
-        }
-    };
 
     const markRead = async notification => {
         if (!notification || notification.read_at || !firebaseUser) return;
@@ -141,34 +84,12 @@ function StudentNotifications() {
     return (
         <main className="student-notifications-page">
             <Link to="/student/dashboard" className="student-notifications-back"><FiChevronLeft />回到我的首頁</Link>
-            {pushSetupRequested && <div className="student-notifications-setup-intro" role="status">
-                <strong>登入成功，接著設定此裝置推播</strong>
-                <p>請在下方按「開啟此裝置推播」。你也可以先繼續學習，之後到「我的設定」開啟。</p>
-                <Link to={returnTo}>先繼續學習</Link>
-            </div>}
             <section className="student-notifications-hero">
                 <span><FiBell /> NOTIFICATIONS</span>
                 <h1>所有通知</h1>
                 <p>作業提醒、學習獎勵、會員訊息與未來生日點數都會保留在這裡。</p>
                 <strong>{unreadCount > 0 ? `本頁有 ${unreadCount} 則未讀通知` : "目前沒有未讀通知"}</strong>
                 {unreadCount > 0 && <button type="button" className="student-notifications-mark-all" onClick={markAllRead}>全部標示已讀</button>}
-            </section>
-
-            <section className="student-notifications-push" aria-labelledby="student-push-heading">
-                <div>
-                    <h2 id="student-push-heading">手機推播</h2>
-                    <p>開啟後，此裝置可收到新班級作業與教材使用期限提醒。鎖定畫面只顯示簡短提示；完整內容請登入查看。晚上 9 點至早上 8 點不發送，每日最多三則。</p>
-                    <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務尚未開放；網站內通知仍可正常使用。" : pushStatus?.active ? "此裝置已開啟" : "此裝置尚未開啟")}</small>
-                </div>
-                <div className="student-notifications-push-actions">
-                    <button type="button" onClick={togglePush}
-                        disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
-                        {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
-                    </button>
-                    {pushStatus?.active && <button type="button" className="is-test" onClick={sendTestPush} disabled={pushBusy}>
-                        傳送測試通知
-                    </button>}
-                </div>
             </section>
 
             <section className="student-notifications-list" aria-live="polite">

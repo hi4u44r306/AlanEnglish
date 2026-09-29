@@ -5,7 +5,6 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import StudentNotifications from "./StudentNotifications";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentNotifications, markAllStudentNotificationsRead, markStudentNotificationRead } from "../../services/membershipService";
-import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig, sendWebPushTest } from "../../services/webPushService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({
@@ -13,11 +12,6 @@ jest.mock("../../services/membershipService", () => ({
     markAllStudentNotificationsRead: jest.fn(),
     markStudentNotificationRead: jest.fn()
 }));
-jest.mock("../../services/webPushService", () => ({
-    disableWebPush: jest.fn(), enableWebPush: jest.fn(),
-    getCurrentWebPushStatus: jest.fn(), getWebPushAvailability: jest.fn(), getWebPushConfig: jest.fn(), sendWebPushTest: jest.fn()
-}));
-
 describe("StudentNotifications", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -38,12 +32,6 @@ describe("StudentNotifications", () => {
             });
         markStudentNotificationRead.mockResolvedValue({ success: true });
         markAllStudentNotificationsRead.mockResolvedValue({ success: true });
-        getWebPushAvailability.mockReturnValue({ supported: false, reason: "此瀏覽器不支援" });
-        getWebPushConfig.mockResolvedValue({ enabled: false });
-        getCurrentWebPushStatus.mockResolvedValue({ supported: false, active: false });
-        enableWebPush.mockResolvedValue();
-        disableWebPush.mockResolvedValue();
-        sendWebPushTest.mockResolvedValue({ accepted: true });
     });
 
     it("shows all loaded notifications, marks one read, and loads earlier notifications", async () => {
@@ -111,36 +99,14 @@ describe("StudentNotifications", () => {
         await waitFor(() => expect(markStudentNotificationRead).toHaveBeenCalledWith({ uid: "student-1" }, 12));
     });
 
-    it("only enables device push after an explicit click and can turn it off", async () => {
-        getWebPushAvailability.mockReturnValue({ supported: true, reason: "" });
-        getWebPushConfig.mockResolvedValue({ enabled: true, public_key: "public-key" });
-        getCurrentWebPushStatus
-            .mockResolvedValueOnce({ supported: true, active: false })
-            .mockResolvedValueOnce({ supported: true, active: true })
-            .mockResolvedValueOnce({ supported: true, active: false });
-        render(<MemoryRouter><StudentNotifications /></MemoryRouter>);
-        const enable = await screen.findByRole("button", { name: "開啟此裝置推播" });
-        await waitFor(() => expect(enable).toBeEnabled());
-        expect(enableWebPush).not.toHaveBeenCalled();
-        expect(screen.queryByRole("button", { name: "傳送測試通知" })).not.toBeInTheDocument();
-        fireEvent.click(enable);
-        await waitFor(() => expect(enableWebPush).toHaveBeenCalledWith({ uid: "student-1" }, "public-key"));
-        fireEvent.click(await screen.findByRole("button", { name: "傳送測試通知" }));
-        await waitFor(() => expect(sendWebPushTest).toHaveBeenCalledWith({ uid: "student-1" }));
-        const disable = await screen.findByRole("button", { name: "關閉此裝置推播" });
-        await waitFor(() => expect(disable).toBeEnabled());
-        fireEvent.click(disable);
-        await waitFor(() => expect(disableWebPush).toHaveBeenCalledWith({ uid: "student-1" }));
-    });
-
-    it("explains the extra tap after login and preserves a way to continue learning", async () => {
+    it("keeps device notification settings out of the notification inbox", async () => {
         render(
             <MemoryRouter initialEntries={[{ pathname: "/student/notifications", state: { pushSetup: true, returnTo: "/student/dashboard" } }]}>
                 <StudentNotifications />
             </MemoryRouter>
         );
-        expect(await screen.findByText("登入成功，接著設定此裝置推播")).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "先繼續學習" })).toHaveAttribute("href", "/student/dashboard");
-        expect(enableWebPush).not.toHaveBeenCalled();
+        expect(await screen.findByRole("heading", { name: "所有通知" })).toBeInTheDocument();
+        expect(screen.queryByText("手機推播")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /開啟此裝置推播|關閉此裝置推播|傳送測試通知/ })).not.toBeInTheDocument();
     });
 });
