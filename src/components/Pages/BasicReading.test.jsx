@@ -92,4 +92,18 @@ describe("public Basic Reading player", () => {
         expect(screen.getByRole("button", { name: "播放 Track 2" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "播放 Track 3" })).not.toBeInTheDocument();
     });
+
+    it("opens the collection selected from the Links page", async () => {
+        render(
+            <MemoryRouter initialEntries={["/basic-reading?collection=br800_1"]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <BasicReading />
+            </MemoryRouter>
+        );
+
+        expect(await screen.findByRole("heading", { name: "Basic Reading 800 第 1 冊" })).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByLabelText("Basic Reading 800 第 1 冊 Track 1")).toHaveAttribute("src", expect.stringContaining("/api/basic-reading/audio/br800_1/Track1.mp3"));
+        });
+        expect(screen.queryByRole("button", { name: "播放 Track 3" })).not.toBeInTheDocument();
+    });
 });

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { BiChevronLeft, BiChevronRight, BiHeadphone, BiHomeAlt2, BiPlayCircle } from "react-icons/bi";
 import Brand from "../fragment/Brand";
 import "./css/BasicReading.scss";
@@ -17,6 +17,7 @@ const fetchJson = async url => {
 const trackLabel = trackNumber => `Track ${trackNumber}`;
 
 function BasicReading() {
+    const location = useLocation();
     const audioRef = useRef(null);
     const accessCacheRef = useRef(new Map());
     const retryRef = useRef(false);
@@ -36,8 +37,12 @@ function BasicReading() {
                 const result = await fetchJson("/api/basic-reading/catalog");
                 const nextCollections = Array.isArray(result?.collections) ? result.collections : [];
                 if (cancelled) return;
+                const requestedCollectionId = new URLSearchParams(location.search).get("collection") || "";
+                const initialCollectionId = nextCollections.some(collection => collection.id === requestedCollectionId)
+                    ? requestedCollectionId
+                    : nextCollections[0]?.id || "";
                 setCollections(nextCollections);
-                setSelectedCollectionId(nextCollections[0]?.id || "");
+                setSelectedCollectionId(initialCollectionId);
             } catch (catalogError) {
                 if (!cancelled) setError(catalogError?.message || "音檔目錄載入失敗");
             } finally {
@@ -49,7 +54,7 @@ function BasicReading() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [location.search]);
 
     const groupedCollections = useMemo(() => collections.reduce((groups, collection) => {
         const level = String(collection.level || "");

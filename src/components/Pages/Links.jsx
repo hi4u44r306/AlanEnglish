@@ -5,8 +5,7 @@ import {
     BiHeadphone,
     BiHomeAlt2,
     BiLogIn,
-    BiPlayCircle,
-    BiSearch
+    BiPlayCircle
 } from "react-icons/bi";
 import Brand from "../fragment/Brand";
 import SeoHead from "../fragment/SeoHead";
@@ -14,27 +13,24 @@ import { getPublicLinks } from "../../services/linkService";
 import "./css/Links.scss";
 
 const CATEGORY_CONFIG = [
-    { key: "basicreading", label: "Basic Reading", description: "400～1200 分級閱讀音檔一次聽完", icon: BiHeadphone },
+    { key: "basicreading", label: "Basic Reading", description: "", icon: BiHeadphone },
     { key: "exercise", label: "習作本", description: "依課本與習作快速找到對應音檔", icon: BiBookOpen },
     { key: "listening", label: "聽力本", description: "集中練習聽力教材與課堂音檔", icon: BiHeadphone },
     { key: "speedphonics", label: "Speed Phonics", description: "自然發音與基礎拼讀練習", icon: BiPlayCircle }
 ];
 
-const STATIC_LINKS = [
-    {
-        id: "basic-reading",
-        title: "Basic Reading 400～1200",
-        url: "/basic-reading",
-        category: "basicreading",
-        internal: true
-    }
+const BASIC_READING_LEVELS = ["400", "800", "1200"];
+const BASIC_READING_BOOKS = [
+    { number: 1, label: "第一冊" },
+    { number: 2, label: "第二冊" },
+    { number: 3, label: "第三冊" }
 ];
 
 const PUBLIC_CATEGORY_KEYS = new Set(CATEGORY_CONFIG.map(category => category.key));
 
 function Links() {
     const [items, setItems] = useState([]);
-    const [query, setQuery] = useState("");
+    const [selectedBasicReadingLevel, setSelectedBasicReadingLevel] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -64,20 +60,14 @@ function Links() {
         };
     }, []);
 
-    const normalizedQuery = query.trim().toLowerCase();
-    const allItems = useMemo(() => [...STATIC_LINKS, ...items], [items]);
-
     const visibleGroups = useMemo(() => CATEGORY_CONFIG.map(category => ({
         ...category,
-        items: allItems.filter(item => {
-            if (item.category !== category.key) return false;
-            if (!normalizedQuery) return true;
-            return String(item.title || "").toLowerCase().includes(normalizedQuery);
-        })
-    })).filter(category => category.items.length > 0), [allItems, normalizedQuery]);
+        items: category.key === "basicreading"
+            ? [{ id: "basic-reading-navigation" }]
+            : items.filter(item => item.category === category.key)
+    })).filter(category => category.items.length > 0), [items]);
 
-    const visibleCount = visibleGroups.reduce((total, category) => total + category.items.length, 0);
-    const hasPublicLinks = allItems.some(item => PUBLIC_CATEGORY_KEYS.has(item.category));
+    const hasPublicLinks = visibleGroups.some(group => PUBLIC_CATEGORY_KEYS.has(group.key));
 
     return (
         <div className="links-page">
@@ -105,28 +95,6 @@ function Links() {
 
                 <section className="links-page__content">
                     <div className="links-page__shell">
-                        <div className="links-page__toolbar">
-                            <div>
-                                <span className="links-page__section-kicker">QUICK ACCESS</span>
-                                <h2>選擇教材</h2>
-                            </div>
-                            <label className="links-page__search">
-                                <BiSearch aria-hidden="true" />
-                                <input
-                                    type="search"
-                                    value={query}
-                                    onChange={event => setQuery(event.target.value)}
-                                    placeholder="搜尋教材名稱"
-                                    aria-label="搜尋教材名稱"
-                                />
-                                {query && (
-                                    <button type="button" onClick={() => setQuery("")} aria-label="清除搜尋">
-                                        ×
-                                    </button>
-                                )}
-                            </label>
-                        </div>
-
                         {loading && (
                             <div className="links-page__state">
                                 <span className="links-page__loader" />
@@ -149,14 +117,6 @@ function Links() {
                             </div>
                         )}
 
-                        {!loading && !error && hasPublicLinks && visibleCount === 0 && (
-                            <div className="links-page__state">
-                                <strong>找不到「{query}」</strong>
-                                <p>換一個教材名稱或清除搜尋條件再試一次。</p>
-                                <button type="button" onClick={() => setQuery("")}>清除搜尋</button>
-                            </div>
-                        )}
-
                         {visibleGroups.length > 0 && (
                             <div className="links-page__groups">
                                 {visibleGroups.map(group => {
@@ -168,39 +128,72 @@ function Links() {
                                                 <div>
                                                     <div className="links-page__group-title-row">
                                                         <h3>{group.label}</h3>
-                                                        <span>{group.items.length}</span>
+                                                        {group.key !== "basicreading" && <span>{group.items.length}</span>}
                                                     </div>
-                                                    <p>{group.description}</p>
+                                                    {group.description && <p>{group.description}</p>}
                                                 </div>
                                             </div>
-                                            <div className="links-page__grid">
-                                                {group.items.map(item => {
-                                                    const content = (
-                                                        <>
-                                                            <span className="links-page__card-copy">
-                                                                <strong>{item.title}</strong>
-                                                            </span>
-                                                            <span className="links-page__card-arrow" aria-hidden="true">{item.internal ? "→" : "↗"}</span>
-                                                        </>
-                                                    );
+                                            {group.key === "basicreading" ? (
+                                                <div className="links-page__basic-reading">
+                                                    <div className="links-page__basic-levels" aria-label="選擇 Basic Reading 程度">
+                                                        {BASIC_READING_LEVELS.map(level => (
+                                                            <button
+                                                                type="button"
+                                                                className={selectedBasicReadingLevel === level ? "is-active" : ""}
+                                                                aria-pressed={selectedBasicReadingLevel === level}
+                                                                aria-controls="links-basic-reading-books"
+                                                                onClick={() => setSelectedBasicReadingLevel(level)}
+                                                                key={level}
+                                                            >
+                                                                {level}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    {selectedBasicReadingLevel && (
+                                                        <div className="links-page__basic-books" id="links-basic-reading-books" aria-label={`選擇 Basic Reading ${selectedBasicReadingLevel} 冊別`}>
+                                                            {BASIC_READING_BOOKS.map(book => (
+                                                                <Link
+                                                                    to={`/basic-reading?collection=br${selectedBasicReadingLevel}_${book.number}`}
+                                                                    aria-label={`Basic Reading ${selectedBasicReadingLevel} ${book.label}`}
+                                                                    key={book.number}
+                                                                >
+                                                                    {book.label}
+                                                                    <span aria-hidden="true">→</span>
+                                                                </Link>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="links-page__grid">
+                                                    {group.items.map(item => {
+                                                        const content = (
+                                                            <>
+                                                                <span className="links-page__card-copy">
+                                                                    <strong>{item.title}</strong>
+                                                                </span>
+                                                                <span className="links-page__card-arrow" aria-hidden="true">{item.internal ? "→" : "↗"}</span>
+                                                            </>
+                                                        );
 
-                                                    return item.internal ? (
-                                                        <Link className="links-page__card" to={item.url} key={item.id}>
-                                                            {content}
-                                                        </Link>
-                                                    ) : (
-                                                        <a
-                                                            className="links-page__card"
-                                                            href={item.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            key={item.id}
-                                                        >
-                                                            {content}
-                                                        </a>
-                                                    );
-                                                })}
-                                            </div>
+                                                        return item.internal ? (
+                                                            <Link className="links-page__card" to={item.url} key={item.id}>
+                                                                {content}
+                                                            </Link>
+                                                        ) : (
+                                                            <a
+                                                                className="links-page__card"
+                                                                href={item.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                key={item.id}
+                                                            >
+                                                                {content}
+                                                            </a>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </section>
                                     );
                                 })}

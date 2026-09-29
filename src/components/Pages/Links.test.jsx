@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import { getPublicLinks } from "../../services/linkService";
@@ -30,8 +30,21 @@ describe("public links page", () => {
         );
 
         expect(await screen.findByRole("link", { name: /習作本 F1～F3 完整練習/ })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: /Basic Reading 400～1200/ })).toHaveAttribute("href", "/basic-reading");
         expect(screen.getByRole("heading", { name: "Basic Reading" })).toBeInTheDocument();
+        expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "400" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "800" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "1200" })).toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "Basic Reading 400 第一冊" })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "400" }));
+        expect(screen.getByRole("link", { name: "Basic Reading 400 第一冊" })).toHaveAttribute("href", "/basic-reading?collection=br400_1");
+        expect(screen.getByRole("link", { name: "Basic Reading 400 第二冊" })).toHaveAttribute("href", "/basic-reading?collection=br400_2");
+        expect(screen.getByRole("link", { name: "Basic Reading 400 第三冊" })).toHaveAttribute("href", "/basic-reading?collection=br400_3");
+
+        fireEvent.click(screen.getByRole("button", { name: "800" }));
+        expect(screen.getByRole("link", { name: "Basic Reading 800 第一冊" })).toHaveAttribute("href", "/basic-reading?collection=br800_1");
+        expect(screen.queryByRole("link", { name: "Basic Reading 400 第一冊" })).not.toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "習作本" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "聽力本" })).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "Speed Phonics" })).toBeInTheDocument();
