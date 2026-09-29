@@ -23,7 +23,6 @@ function BasicReading() {
     const [selectedCollectionId, setSelectedCollectionId] = useState("");
     const [activeTrackNumber, setActiveTrackNumber] = useState(1);
     const [audioSrc, setAudioSrc] = useState("");
-    const [shouldAutoplay, setShouldAutoplay] = useState(false);
     const [loading, setLoading] = useState(true);
     const [preparing, setPreparing] = useState(false);
     const [error, setError] = useState("");
@@ -79,42 +78,52 @@ function BasicReading() {
         return access;
     }, []);
 
+    const activateTrack = useCallback((trackNumber, access, autoplay) => {
+        if (!selectedCollection) return;
+        const path = `/api/basic-reading/audio/${encodeURIComponent(selectedCollection.id)}/Track${trackNumber}.mp3`;
+        const params = new URLSearchParams({
+            expires: String(access.expires),
+            token: access.token
+        });
+        const nextAudioSrc = `${path}?${params.toString()}`;
+        setActiveTrackNumber(trackNumber);
+        setAudioSrc(nextAudioSrc);
+        retryRef.current = false;
+
+        const audio = audioRef.current;
+        if (!audio) return;
+        audio.src = nextAudioSrc;
+        audio.load();
+        if (!autoplay) return;
+        const playback = audio.play();
+        if (playback?.catch) void playback.catch(() => undefined);
+    }, [selectedCollection]);
+
     const prepareTrack = useCallback(async (trackNumber, autoplay = true, forceRefresh = false) => {
         if (!selectedCollection) return;
+        const cached = accessCacheRef.current.get(selectedCollection.id);
+        const now = Math.floor(Date.now() / 1000);
+        if (!forceRefresh && cached && Number(cached.expires) > now + ACCESS_REFRESH_BUFFER_SECONDS) {
+            setError("");
+            activateTrack(trackNumber, cached, autoplay);
+            return;
+        }
         try {
             setPreparing(true);
             setError("");
             const access = await ensureAccess(selectedCollection.id, forceRefresh);
-            const path = `/api/basic-reading/audio/${encodeURIComponent(selectedCollection.id)}/Track${trackNumber}.mp3`;
-            const params = new URLSearchParams({
-                expires: String(access.expires),
-                token: access.token
-            });
-            setActiveTrackNumber(trackNumber);
-            setAudioSrc(`${path}?${params.toString()}`);
-            setShouldAutoplay(autoplay);
-            retryRef.current = false;
+            activateTrack(trackNumber, access, autoplay);
         } catch (accessError) {
             setError(accessError?.message || "暫時無法取得播放網址");
         } finally {
             setPreparing(false);
         }
-    }, [ensureAccess, selectedCollection]);
+    }, [activateTrack, ensureAccess, selectedCollection]);
 
     useEffect(() => {
         if (!selectedCollection) return;
         void prepareTrack(1, false);
     }, [prepareTrack, selectedCollection]);
-
-    useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio || !audioSrc) return;
-        audio.load();
-        if (!shouldAutoplay) return;
-        const playback = audio.play();
-        if (playback?.catch) void playback.catch(() => undefined);
-        setShouldAutoplay(false);
-    }, [audioSrc, shouldAutoplay]);
 
     const selectCollection = collectionId => {
         audioRef.current?.pause();
