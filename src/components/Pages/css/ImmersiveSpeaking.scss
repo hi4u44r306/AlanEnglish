@@ -874,25 +874,58 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   }
 }
 
-// Road-coloured rims let the markers sit in the painted trail.
+// Wooden trail markers share one material system across every Workbook map.
+// The border is natural timber; the centre is flat painted wood so the marker
+// stays part of the illustrated world without introducing stone or 3D effects.
 .speaking-adventure-route .speaking-challenge-lesson__number {
-  border-color: #f5dba0;
-  box-shadow: 0 2px 5px rgba(39, 32, 25, .2);
+  --marker-paint-light: #aeb5b7;
+  --marker-paint-dark: #858e91;
+  box-sizing: border-box;
+  border-color: transparent;
+  color: #17345e;
+  background:
+    repeating-linear-gradient(3deg, rgba(255, 255, 255, .09) 0 2px, rgba(55, 45, 36, .035) 2px 4px) padding-box,
+    linear-gradient(112deg, var(--marker-paint-light), var(--marker-paint-dark)) padding-box,
+    repeating-linear-gradient(7deg, #c7813e 0 4px, #9b5b2d 4px 7px, #b96e34 7px 11px) border-box;
+  font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
-  border-color: #fff0bd;
-  background: #f8ca45;
-  box-shadow: 0 2px 6px rgba(59, 38, 12, .24);
+  --marker-paint-light: #ffe55d;
+  --marker-paint-dark: #f4bd32;
+  border-color: transparent;
+  color: #17345e;
+  background:
+    repeating-linear-gradient(3deg, rgba(255, 255, 255, .11) 0 2px, rgba(94, 65, 16, .035) 2px 4px) padding-box,
+    linear-gradient(112deg, var(--marker-paint-light), var(--marker-paint-dark)) padding-box,
+    repeating-linear-gradient(7deg, #d28a42 0 4px, #9d5b2c 4px 7px, #bd7135 7px 11px) border-box;
+  box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
-  border-color: #d5f5da;
-  background: #289b5d;
-  box-shadow: 0 2px 6px rgba(23, 69, 40, .22);
+  --marker-paint-light: #65e752;
+  --marker-paint-dark: #32bd3f;
+  border-color: transparent;
+  color: #fff;
+  background:
+    repeating-linear-gradient(3deg, rgba(255, 255, 255, .13) 0 2px, rgba(20, 76, 29, .04) 2px 4px) padding-box,
+    linear-gradient(112deg, var(--marker-paint-light), var(--marker-paint-dark)) padding-box,
+    repeating-linear-gradient(7deg, #ce8741 0 4px, #985729 4px 7px, #b86c33 7px 11px) border-box;
+  box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
-  border-color: #e8dfca;
-  background: #788697;
-  box-shadow: 0 2px 5px rgba(38, 47, 56, .18);
+  --marker-paint-light: #aeb5b7;
+  --marker-paint-dark: #858e91;
+  border-color: transparent;
+  color: #17345e;
+  background:
+    repeating-linear-gradient(3deg, rgba(255, 255, 255, .09) 0 2px, rgba(55, 45, 36, .035) 2px 4px) padding-box,
+    linear-gradient(112deg, var(--marker-paint-light), var(--marker-paint-dark)) padding-box,
+    repeating-linear-gradient(7deg, #c7813e 0 4px, #9b5b2d 4px 7px, #b96e34 7px 11px) border-box;
+  box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson__state {
   width: 22px;
@@ -947,4 +980,8 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number,
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
   box-shadow: none;
+}
+
+.speaking-adventure-route .speaking-challenge-lesson.is-multiline-label .speaking-challenge-lesson__number {
+  white-space: pre-line;
 }
