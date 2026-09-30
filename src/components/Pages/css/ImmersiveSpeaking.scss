@@ -30,7 +30,7 @@
 .speaking-adventure-route .speaking-map-canvas {
   position: relative;
   z-index: 1;
-  background: #2b604e url("../assets/speaking-map/workbook-adventure-world-v8-ultra-4k.webp") center / 100% 100% no-repeat;
+  background: #2b604e url("../assets/speaking-map/workbook-adventure-world-v9-final-4k.webp") center / 100% 100% no-repeat;
 }
 .speaking-adventure-route .speaking-map-canvas::after {
   content: "";
@@ -439,14 +439,18 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   background: rgba(20, 49, 85, .9);
   box-shadow: 0 4px 12px rgba(16, 37, 61, .18);
   backdrop-filter: blur(8px);
+  overflow: visible;
 }
 .speaking-challenge-page.is-book-open .speaking-book-toolbar__title > svg {
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  padding: 0;
+  box-sizing: content-box;
+  width: 22px;
+  height: 22px;
+  padding: 2px;
+  overflow: visible;
   color: #ffd75e;
   background: transparent;
+  stroke-width: 1.8;
 }
 .speaking-challenge-page.is-book-open .speaking-book-toolbar__title > div { min-width: 0; }
 .speaking-challenge-page.is-book-open .speaking-book-toolbar__title h1 {
@@ -480,7 +484,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   content: "";
   position: absolute;
   inset: -28px;
-  background: url("../assets/speaking-map/workbook-adventure-world-v8-ultra-mobile.webp") center / 100% 100% no-repeat;
+  background: url("../assets/speaking-map/workbook-adventure-world-v9-final-mobile.webp") center / 100% 100% no-repeat;
   filter: blur(24px) saturate(.82) brightness(.68);
   transform: scale(1.05);
 }
@@ -488,7 +492,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: min(900px, 100%);
   height: auto;
   aspect-ratio: var(--map-aspect-ratio, 793 / 1983);
-  background: #80c8ef url("../assets/speaking-map/workbook-adventure-world-v8-ultra-4k.webp") center / 100% 100% no-repeat;
+  background: #80c8ef url("../assets/speaking-map/workbook-adventure-world-v9-final-4k.webp") center / 100% 100% no-repeat;
   box-shadow: 0 0 34px rgba(7, 23, 38, .58);
 }
 .speaking-adventure-route .speaking-map-book-sign {
@@ -584,7 +588,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-sizing: border-box;
   padding: max(8px, env(safe-area-inset-top, 0px)) clamp(10px, 2vw, 24px) max(8px, env(safe-area-inset-bottom, 0px));
   overflow: hidden;
-  background: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v8-ultra-4k.webp") center 35% / cover no-repeat, #72b9e2;
+  background: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v9-final-4k.webp") center 35% / cover no-repeat, #72b9e2;
 }
 .speaking-immersive-play::before {
   display: none;
@@ -668,7 +672,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 @media (max-width: 520px) {
   .speaking-adventure-route .speaking-map-canvas {
     aspect-ratio: 440 / 1983;
-    background-image: url("../assets/speaking-map/workbook-adventure-world-v8-ultra-mobile.webp");
+    background-image: url("../assets/speaking-map/workbook-adventure-world-v9-final-mobile.webp");
     background-size: auto 100%;
     background-position: center;
   }
@@ -681,7 +685,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   .speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: 94px; }
   .speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { font-size: 11px; }
   .speaking-challenge-page.speaking-challenge-detail.speaking-immersive-play {
-    background-image: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v8-ultra-mobile.webp");
+    background-image: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v9-final-mobile.webp");
   }
 }
 
@@ -702,15 +706,15 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-shadow: 0 8px 22px rgba(35, 67, 112, .09);
 }
 
-// V8: one continuous seven-row serpentine map. Coordinates are measured from
+// V9: one continuous seven-row serpentine map. Coordinates are measured from
 // the artwork, so the road and level markers scale from the same container.
 .speaking-adventure-route .speaking-map-chapter::before {
-  background-image: url("../assets/speaking-map/workbook-adventure-world-v8-ultra-mobile.webp");
+  background-image: url("../assets/speaking-map/workbook-adventure-world-v9-final-mobile.webp");
 }
 .speaking-adventure-route .speaking-map-canvas {
   container-type: inline-size;
   aspect-ratio: 793 / 1983;
-  background-image: url("../assets/speaking-map/workbook-adventure-world-v8-ultra-4k.webp");
+  background-image: url("../assets/speaking-map/workbook-adventure-world-v9-final-4k.webp");
   background-position: center;
   background-size: 100% 100%;
   image-rendering: auto;
@@ -779,7 +783,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 @media (max-width: 520px) {
   .speaking-adventure-route .speaking-map-canvas {
     aspect-ratio: 793 / 1983;
-    background-image: url("../assets/speaking-map/workbook-adventure-world-v8-ultra-mobile.webp");
+    background-image: url("../assets/speaking-map/workbook-adventure-world-v9-final-mobile.webp");
     background-position: center;
     background-size: 100% 100%;
   }
@@ -876,21 +880,16 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   min-height: var(--map-marker-size);
 }
 .speaking-adventure-route .speaking-challenge-lesson__number {
-  --marker-paint-light: #aeb5b7;
-  --marker-paint-dark: #858e91;
-  --marker-grain-light: rgba(255, 255, 255, .13);
-  --marker-grain-dark: rgba(54, 43, 34, .055);
+  --marker-fill: #969fa4;
   box-sizing: border-box;
   width: var(--map-marker-size);
   height: var(--map-marker-size);
   min-width: var(--map-marker-size);
-  border: clamp(2px, .42cqw, 4px) solid transparent;
+  border: clamp(4px, .68cqw, 7px) solid transparent;
   color: #17345e;
   background:
-    linear-gradient(156deg, transparent 0 25%, rgba(255, 255, 255, .13) 29%, transparent 34%) padding-box,
-    repeating-linear-gradient(3deg, var(--marker-grain-light) 0 5%, var(--marker-grain-dark) 5% 10%) padding-box,
-    linear-gradient(112deg, var(--marker-paint-light), var(--marker-paint-dark)) padding-box,
-    linear-gradient(102deg, #d08a45 0%, #9a592d 34%, #c77a3a 68%, #905027 100%) border-box;
+    linear-gradient(var(--marker-fill), var(--marker-fill)) padding-box,
+    linear-gradient(102deg, #dda15a 0%, #8c4b25 31%, #c97b3b 63%, #75401f 100%) border-box;
   background-size: 100% 100%;
   font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
   font-weight: 700;
@@ -900,22 +899,17 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
-  --marker-paint-light: #ffe55d;
-  --marker-paint-dark: #f4bd32;
-  --marker-grain-dark: rgba(94, 65, 16, .06);
+  --marker-fill: #ffd94d;
   color: #17345e;
   box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
-  --marker-paint-light: #65e752;
-  --marker-paint-dark: #32bd3f;
-  --marker-grain-dark: rgba(20, 76, 29, .07);
+  --marker-fill: #52dc48;
   color: #fff;
   box-shadow: none;
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
-  --marker-paint-light: #aeb5b7;
-  --marker-paint-dark: #858e91;
+  --marker-fill: #969fa4;
   color: #17345e;
   box-shadow: none;
 }
@@ -965,7 +959,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   }
 }
 
-// Final cascade guard: v7 markers stay flat even though older map themes are
+// Final cascade guard: v9 markers stay flat even though older map themes are
 // retained above for the workbook selector and legacy previews.
 .speaking-adventure-route .speaking-challenge-lesson__number,
 .speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number,
@@ -973,10 +967,8 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
   border-color: transparent;
   background:
-    linear-gradient(156deg, transparent 0 25%, rgba(255, 255, 255, .13) 29%, transparent 34%) padding-box,
-    repeating-linear-gradient(3deg, var(--marker-grain-light) 0 5%, var(--marker-grain-dark) 5% 10%) padding-box,
-    linear-gradient(112deg, var(--marker-paint-light), var(--marker-paint-dark)) padding-box,
-    linear-gradient(102deg, #d08a45 0%, #9a592d 34%, #c77a3a 68%, #905027 100%) border-box;
+    linear-gradient(var(--marker-fill), var(--marker-fill)) padding-box,
+    linear-gradient(102deg, #dda15a 0%, #8c4b25 31%, #c97b3b 63%, #75401f 100%) border-box;
   background-size: 100% 100%;
   box-shadow: none;
 }

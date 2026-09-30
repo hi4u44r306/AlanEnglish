@@ -3,10 +3,11 @@ const MAP_HEIGHT = 1983;
 const MAX_ROWS = 7;
 const PREFERRED_LEVELS_PER_ROW = 4;
 
-// Measured from the centre of each horizontal road on the v7 map asset.
+// Measured from the centre of each horizontal road on the v9 map asset.
 const ROAD_ROW_Y = [10.8, 21.7, 34.1, 47.1, 59.6, 72.2, 84.8];
-const ROAD_START_X = 14;
-const ROAD_END_X = 86;
+// Keep a visible run-up before the first marker and road beyond the last one.
+const ROAD_START_X = 18;
+const ROAD_END_X = 82;
 
 const evenlySpacedExtraRows = (rowCount, extraCount) => {
     if (!extraCount) return new Set();
