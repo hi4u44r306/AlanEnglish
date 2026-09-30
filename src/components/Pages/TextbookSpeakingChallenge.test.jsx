@@ -459,7 +459,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
     it("地圖節點先開摘要，再由開始挑戰前往題目", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({
-            challenges: [{ id: 21, title: "P21 看圖問答", topic: "看圖問答", intro_zh: "用圖片練習完整問答", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [21], question_count: 9, completed_count: 0, sequence_order: 10021, is_unlocked: true }]
+            challenges: [{ id: 21, title: "P21 看圖問答", topic: "看圖問答", intro_zh: "用圖片練習完整問答", book: { name: "Workbook 1" }, catalog_section: "textbook", source_pages: [21], question_count: 9, completed_count: 0, sequence_order: 10021, is_unlocked: true, available_powerups: ["提示卡"] }]
         });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><LocationProbe /><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /><Route path="/student/speaking-challenges/:questionSetId" element={<div>正式挑戰頁</div>} /></Routes></MemoryRouter>);
@@ -468,7 +468,11 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(node.closest(".speaking-adventure-route")).toBeInTheDocument();
         expect(node.querySelector(".speaking-challenge-lesson__number")).toHaveTextContent("P.21");
         fireEvent.click(node);
-        expect(screen.getByRole("dialog", { name: "看圖問答" })).toHaveTextContent("用圖片練習完整問答");
+        expect(screen.getByRole("dialog", { name: "P.21" })).toHaveTextContent("看圖問答");
+        expect(screen.getByRole("dialog")).toHaveTextContent("簡單0 / 9");
+        expect(screen.getByRole("dialog")).toHaveTextContent("挑戰0 / 9");
+        expect(screen.queryByText("本關道具")).not.toBeInTheDocument();
+        expect(screen.queryByText("提示卡")).not.toBeInTheDocument();
         expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/");
         fireEvent.click(screen.getByRole("button", { name: /簡單 · 看答案說/ }));
         expect(screen.getByText("正式挑戰頁")).toBeInTheDocument();
