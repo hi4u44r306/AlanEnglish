@@ -71,16 +71,19 @@ export default function SpeakingPracticeSteps({
     }, [question.id, challengeSessionId]);
 
     const handleScored = async result => {
-        if (result?.answer_match !== false && !result?.hint_used) {
-            const saved = await onCompleted?.(result);
+        const scoredResult = challengeMode === "challenge" && revealedAnswer
+            ? { ...result, hint_used: true }
+            : result;
+        if (scoredResult?.answer_match !== false && !scoredResult?.hint_used) {
+            const saved = await onCompleted?.(scoredResult);
             if (saved === false) {
-                const failedResult = { ...result, save_failed: true };
+                const failedResult = { ...scoredResult, save_failed: true };
                 setLastResult(failedResult);
                 onIncorrect?.(failedResult);
                 return;
             }
-        } else onIncorrect?.(result);
-        setLastResult(result);
+        } else onIncorrect?.(scoredResult);
+        setLastResult(scoredResult);
     };
 
     const toggleHelp = async () => {
@@ -106,6 +109,9 @@ export default function SpeakingPracticeSteps({
 
         {showAnswerByDefault && answerPattern && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
             <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPattern}</strong>
+            {allowModelAudio && <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
+                <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
+            </button>}
         </div>}
 
         {!hideHelp && !showAnswerByDefault && (!deferAnswerHelp || lastResult || challengeMode === "challenge") && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={toggleHelp} disabled={helpLoading}>

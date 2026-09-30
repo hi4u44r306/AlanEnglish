@@ -169,9 +169,9 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 challengeSessionId={challengeSessionId}
                 interactionType={interactionType}
                 challengeMode={challengeMode}
-                showAnswerByDefault={!staffPreview && challengeMode === "easy"}
+                showAnswerByDefault={challengeMode === "easy"}
                 onRevealHint={onRevealHint}
-                hideHelp={staffPreview || challengeMode === "easy"}
+                hideHelp={(staffPreview && !adminScoringPreview) || challengeMode === "easy"}
                 promptTitle={copy.promptTitle}
                 promptDetail={copy.promptDetail}
                 onCompleted={handleCorrect}

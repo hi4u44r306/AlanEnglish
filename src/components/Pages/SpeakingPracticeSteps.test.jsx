@@ -111,4 +111,18 @@ describe("SpeakingPracticeSteps", () => {
             challengeMode="challenge" challengeSessionId="round-2" onRevealHint={onRevealHint} />);
         await waitFor(() => expect(screen.queryByText("My name is _____.")).not.toBeInTheDocument());
     });
+
+    it("挑戰模式看過提示後即使評分回傳正確，也不標記本輪通關", async () => {
+        const onCompleted = jest.fn();
+        const onIncorrect = jest.fn();
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} challengeMode="challenge"
+            challengeSessionId="demo-round" onRevealHint={jest.fn().mockResolvedValue({ model_answer: question.model_answer })}
+            onCompleted={onCompleted} onIncorrect={onIncorrect} />);
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        await screen.findByText("My name is _____.");
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        expect(onCompleted).not.toHaveBeenCalled();
+        expect(onIncorrect).toHaveBeenCalledWith(expect.objectContaining({ hint_used: true }));
+        expect(screen.getByText("你已看過提示，本輪這題不計通關；稍後只需重試這題。")).toBeInTheDocument();
+    });
 });

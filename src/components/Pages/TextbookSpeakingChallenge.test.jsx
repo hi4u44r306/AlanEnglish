@@ -287,8 +287,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         } });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        fireEvent.click(await screen.findByRole("button", { name: "不知道怎麼說？" }));
-        fireEvent.click(screen.getByRole("button", { name: "聽回答範例" }));
+        fireEvent.click(await screen.findByRole("button", { name: "聽回答範例" }));
         expect(global.Audio).toHaveBeenCalledWith("https://r2.example/signed.mp3");
         expect(play).toHaveBeenCalled();
     });
@@ -400,7 +399,11 @@ describe("TextbookSpeakingChallenge model audio", () => {
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
         expect(await screen.findByText("選擇 Workbook 預覽已發布關卡。")).toBeInTheDocument();
-        expect(await screen.findByRole("button", { name: /顏色與生活物品/ })).toBeEnabled();
+        const lesson = await screen.findByRole("button", { name: /顏色與生活物品/ });
+        expect(lesson).toBeEnabled();
+        fireEvent.click(lesson);
+        expect(screen.getByRole("button", { name: /簡單 · 看答案說/ })).toBeEnabled();
+        expect(screen.getByRole("button", { name: /挑戰 · 看題目回答/ })).toBeEnabled();
     });
 
     it("地圖圓點只顯示頁碼或關卡序號，主題留在摘要", async () => {
@@ -543,6 +546,17 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: /下一題/ })).toBeEnabled();
         fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
         expect(screen.getByText("ball")).toBeInTheDocument();
+        expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
+    });
+
+    it("管理員簡單模式示範會顯示參考答案", async () => {
+        mockRole = "admin";
+        getSpeakingChallengeSet.mockResolvedValue({ challenge: {
+            id: 15, title: "P15 對話", topic: "問答", books: { id: 1, name: "Workbook 1" },
+            speaking_questions: [{ id: 151, question_text: "What is this?", model_answer: "It is a cat.", progress_status: "opened" }]
+        } });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/15?mode=easy"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByLabelText("簡單模式參考答案")).toHaveTextContent("It is a cat.");
         expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
     });
 
