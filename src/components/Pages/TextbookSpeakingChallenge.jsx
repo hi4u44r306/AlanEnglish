@@ -54,6 +54,13 @@ const pageReference = item => {
     return pages ? `P.${pages}` : "";
 };
 
+const levelReference = item => {
+    const pages = pageReference(item);
+    if (pages) return pages;
+    const titlePage = String(item.title || "").match(/^\s*P[.\s]*(\d+(?:\s*[～~-]\s*\d+)?)/i);
+    return titlePage ? `P.${titlePage[1].replace(/\s+/g, "")}` : "";
+};
+
 const challengeBookCatalogPath = challenge => {
     const book = challenge?.book || challenge?.books || {};
     const bookIdentity = book.id || book.code || book.name;
@@ -120,32 +127,32 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode
 };
 
 const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, staffPreview }) => {
-    const pages = pageReference(item);
+    const pages = levelReference(item);
     const sectionCopy = CATALOG_SECTION_COPY[section] || CATALOG_SECTION_COPY.textbook;
     const locked = !staffPreview && item.is_unlocked === false;
-    const availableItems = Array.isArray(item.available_powerups) ? item.available_powerups : [];
+    const questionCount = Number(item.question_count) || 0;
+    const completedCount = Number(item.completed_count) || 0;
+    const challengeCompletedCount = Number(item.challenge_completed_count) || 0;
+    const topicLabel = String(item.topic || "").replace(/[.\s]/g, "").toLowerCase() === pages.replace(/[.\s]/g, "").toLowerCase()
+        ? sectionCopy.label
+        : item.topic || sectionCopy.label;
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
         <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
             <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
             <div className="speaking-level-dialog__crest" aria-hidden="true">{locked ? <FiLock /> : <FiBookOpen />}</div>
-            <span className="speaking-level-dialog__eyebrow">{sectionCopy.label} · {pages || sectionCopy.badge}</span>
-            <h2 id="speaking-level-title">{lessonTitle(item)}</h2>
-            <span className="speaking-level-dialog__topic">{item.topic || sectionCopy.label}</span>
-            <p id="speaking-level-description">{item.intro_zh || item.learning_goal_zh || item.topic || "準備好開口說英文了嗎？"}</p>
-            <div className="speaking-level-dialog__facts">
-                <span><small>教材頁碼</small><strong>{pages || "入門／主題關卡"}</strong></span>
-                <span><small>本關題數</small><strong>{item.question_count} 題</strong></span>
-                <span><small>{section === "preparation" ? "完成題數" : "簡單／挑戰"}</small><strong>{section === "preparation" ? `${item.completed_count || 0} 題` : `${item.completed_count || 0}／${item.challenge_completed_count || 0} 題`}</strong></span>
+            <span className="speaking-level-dialog__eyebrow">{sectionCopy.eyebrow}</span>
+            <h2 id="speaking-level-title">{pages || (section === "topic" ? lessonTitle(item) : sectionCopy.badge)}</h2>
+            <p id="speaking-level-description" className="speaking-level-dialog__topic">{topicLabel}</p>
+            <div className={`speaking-level-dialog__facts${section === "preparation" ? " is-compact" : ""}`}>
+                <span><small>本關題數</small><strong>{questionCount} 題</strong></span>
+                <span><small>{section === "preparation" ? "完成進度" : "簡單"}</small><strong>{completedCount} / {questionCount}</strong></span>
+                {section !== "preparation" && <span><small>挑戰</small><strong>{challengeCompletedCount} / {questionCount}</strong></span>}
             </div>
-            <div className="speaking-level-dialog__game-panel is-single">
-                <span><small>本關道具</small><b>{availableItems.length ? availableItems.join("、") : "尚未開放"}</b><em>不會自動扣除 AE Points</em></span>
-            </div>
-            {item.learning_goal_zh && item.intro_zh && <p className="speaking-level-dialog__goal">目標：{item.learning_goal_zh}</p>}
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
             <div className="speaking-level-dialog__actions">
-                <button type="button" onClick={onClose}>返回地圖</button>
-                <button type="button" className="primary" onClick={() => onEnter("easy")} disabled={locked}>{locked ? "尚未解鎖" : "簡單 · 看答案說"} <FiChevronRight aria-hidden="true" /></button>
-                {section !== "preparation" && <button type="button" className="primary" onClick={() => onEnter("challenge")} disabled={locked}>挑戰 · 看題目回答 <FiChevronRight aria-hidden="true" /></button>}
+                <button type="button" className="primary is-easy" aria-label={locked ? "簡單模式尚未解鎖" : "簡單 · 看答案說"} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : "簡單模式"}</strong><small>看答案說</small></span><FiChevronRight aria-hidden="true" /></button>
+                {section !== "preparation" && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : "挑戰 · 看題目回答"} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : "挑戰模式"}</strong><small>看題目回答</small></span><FiChevronRight aria-hidden="true" /></button>}
+                <button type="button" className="speaking-level-dialog__return" onClick={onClose}>返回地圖</button>
             </div>
         </section>
     </div>;
@@ -502,13 +509,14 @@ export default function TextbookSpeakingChallenge() {
         {staffPreview && <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>{adminScoringPreview ? "管理員評分示範" : "工作人員唯讀預覽"}</strong>{adminScoringPreview ? "可以送出評分；不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "所有已發布題目都可查看，不會寫入學生進度或發放獎勵。"}</span></aside>}
         <header className="speaking-lesson-header">
             <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
+            <strong className="speaking-lesson-page">{levelReference(challenge) || challenge.title}</strong>
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
                 <p>{challenge.topic} · {challengeMode === "challenge" ? "挑戰：看問題回答" : "簡單：看答案說"}</p>
             </div>
             <div className="speaking-lesson-progress">
-                <div><span>小關卡 {activeQuestionIndex + 1} / {questions.length}</span><strong>{progressPercent}%</strong></div>
+                <div><span>第 {activeQuestionIndex + 1} / {questions.length} 題</span><strong>{progressPercent}%</strong></div>
                 <div className="speaking-progress-track" role="progressbar" aria-label="大挑戰完成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercent}><span style={{ width: `${progressPercent}%` }} /></div>
             </div>
             {Number.isFinite(Number(challenge.reward_xp)) && <div className="speaking-lesson-reward"><FiAward aria-hidden="true" /><span>通關獎勵</span><strong>{Number(challenge.reward_xp)} XP</strong></div>}
@@ -519,7 +527,7 @@ export default function TextbookSpeakingChallenge() {
                 <div className="speaking-game-question-card">
                     <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                     <header className="speaking-question-heading">
-                        <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : activeQuestionIndex + 1}</span>
+                        <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : `第 ${activeQuestionIndex + 1} 題`}</span>
                         <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeZhToEn ? "看中文句子，按下麥克風說出完整英文翻譯。" : activeGrammarCue ? "依照題目提供的文法提示，說出完整英文句子。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
                     </header>
                 </div>

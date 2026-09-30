@@ -22,10 +22,21 @@ const copyByType = {
     }
 };
 
+const challengePageLabel = challenge => {
+    const pages = [...new Set((challenge?.source_pages || challenge?.generation_metadata?.source_pages || [])
+        .map(Number)
+        .filter(page => Number.isInteger(page) && page > 0))]
+        .sort((left, right) => left - right);
+    if (pages.length) return pages.length === 1 ? `P.${pages[0]}` : `P.${pages[0]}～${pages.at(-1)}`;
+    const titlePage = String(challenge?.title || "").match(/^\s*P[.\s]*(\d+(?:\s*[～~-]\s*\d+)?)/i);
+    return titlePage ? `P.${titlePage[1].replace(/\s+/g, "")}` : challenge?.title || "口說挑戰";
+};
+
 export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onExit, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
+    const pageLabel = challengePageLabel(challenge);
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
         .sort((a, b) => Number(a.sort_order) - Number(b.sort_order)), [challenge]);
     const [phase, setPhase] = useState("instructions");
@@ -125,7 +136,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     const remainingCount = staffPreview ? 0 : sourceQuestions.filter(question => question.progress_status !== "completed" && !completedIds.has(question.id)).length;
 
     if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
-        <header className="speaking-lesson-header"><button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />全部大挑戰</button><div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div></header>
+        <header className="speaking-lesson-header"><button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />全部大挑戰</button><strong className="speaking-lesson-page">{pageLabel}</strong><div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div></header>
         <section className="speaking-foundation-intro"><FiVolume2 aria-hidden="true" /><h2>{copy.title}</h2><p>{copy.instruction}</p><button type="button" className="primary" onClick={startRound}>{staffPreview ? "預覽題目" : "開始挑戰"}</button></section>
     </main>;
 
@@ -139,6 +150,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
         <header className="speaking-lesson-header">
             <button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />退出本輪</button>
+            <strong className="speaking-lesson-page">{pageLabel}</strong>
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div>
             <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{progress}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div></div>
         </header>
