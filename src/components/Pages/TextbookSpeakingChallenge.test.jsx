@@ -249,7 +249,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
         expect(nodes).toHaveLength(3);
-        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["9%", "51.15%", "94.5%"]);
+        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["10.8%", "47.1%", "84.8%"]);
         expect(container.querySelectorAll(".speaking-map-biomes")).toHaveLength(0);
         expect(screen.getByLabelText("Workbook 1 口說大挑戰")).toBeInTheDocument();
         expect(container.querySelectorAll(".speaking-map-landscape")).toHaveLength(0);
@@ -424,8 +424,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(document.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveAccessibleName(/P.18～20/);
-        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent("P.18～20");
-        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveClass("is-wide-label");
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveTextContent(/P\.18\s*～20/);
+        expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveClass("is-multiline-label");
         expect(screen.getByRole("button", { name: /看圖問答/ })).toHaveAccessibleName(/尚未解鎖/);
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toHaveTextContent("主題1");
         expect(screen.getByRole("button", { name: /打招呼與禮貌對話/ })).toBeEnabled();

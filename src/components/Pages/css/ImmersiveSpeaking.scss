@@ -30,7 +30,7 @@
 .speaking-adventure-route .speaking-map-canvas {
   position: relative;
   z-index: 1;
-  background: #2b604e url("../assets/speaking-map/workbook-adventure-world-v6-4k.webp") center / 100% 100% no-repeat;
+  background: #2b604e url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-4k.webp") center / 100% 100% no-repeat;
 }
 .speaking-adventure-route .speaking-map-canvas::after {
   content: "";
@@ -480,7 +480,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   content: "";
   position: absolute;
   inset: -28px;
-  background: url("../assets/speaking-map/workbook-adventure-world-v6-mobile.webp") center / 100% 100% no-repeat;
+  background: url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-mobile.webp") center / 100% 100% no-repeat;
   filter: blur(24px) saturate(.82) brightness(.68);
   transform: scale(1.05);
 }
@@ -488,7 +488,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: min(900px, 100%);
   height: auto;
   aspect-ratio: var(--map-aspect-ratio, 793 / 1983);
-  background: #80c8ef url("../assets/speaking-map/workbook-adventure-world-v6-4k.webp") center / 100% 100% no-repeat;
+  background: #80c8ef url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-4k.webp") center / 100% 100% no-repeat;
   box-shadow: 0 0 34px rgba(7, 23, 38, .58);
 }
 .speaking-adventure-route .speaking-map-book-sign {
@@ -591,7 +591,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-sizing: border-box;
   padding: max(8px, env(safe-area-inset-top, 0px)) clamp(10px, 2vw, 24px) max(8px, env(safe-area-inset-bottom, 0px));
   overflow: hidden;
-  background: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v6-4k.webp") center 35% / cover no-repeat, #72b9e2;
+  background: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-4k.webp") center 35% / cover no-repeat, #72b9e2;
 }
 .speaking-immersive-play::before {
   display: none;
@@ -676,7 +676,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 @media (max-width: 520px) {
   .speaking-adventure-route .speaking-map-canvas {
     aspect-ratio: 440 / 1983;
-    background-image: url("../assets/speaking-map/workbook-adventure-world-v6-mobile.webp");
+    background-image: url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-mobile.webp");
     background-size: auto 100%;
     background-position: center;
   }
@@ -689,7 +689,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   .speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: 94px; }
   .speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { font-size: 11px; }
   .speaking-challenge-page.speaking-challenge-detail.speaking-immersive-play {
-    background-image: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v6-mobile.webp");
+    background-image: linear-gradient(rgba(114, 185, 226, .5), rgba(114, 185, 226, .5)), url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-mobile.webp");
   }
 }
 
@@ -709,6 +709,109 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   background: #fff;
   box-shadow: 0 8px 22px rgba(35, 67, 112, .09);
 }
+
+// V7: one continuous seven-row serpentine map. Coordinates are measured from
+// the artwork, so the road and level markers scale from the same container.
+.speaking-adventure-route .speaking-map-chapter::before {
+  background-image: url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-mobile.webp");
+}
+.speaking-adventure-route .speaking-map-canvas {
+  container-type: inline-size;
+  aspect-ratio: 793 / 1983;
+  background-image: url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-4k.webp");
+  background-position: center;
+  background-size: 100% 100%;
+  image-rendering: auto;
+}
+.speaking-adventure-route .speaking-map-book-sign {
+  top: 6.25%;
+  left: 27%;
+  width: 19%;
+  transform: translate(-50%, -50%);
+}
+.speaking-adventure-route .speaking-map-book-sign strong {
+  font-size: clamp(11px, 2.55cqw, 23px);
+}
+.speaking-adventure-route .speaking-map-book-sign span {
+  font-size: clamp(7px, 1.25cqw, 11px);
+}
+.speaking-adventure-route .speaking-challenge-lesson {
+  left: var(--map-side);
+  width: max(44px, 8.5cqw);
+  min-height: max(44px, 8.5cqw);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.speaking-adventure-route .speaking-challenge-lesson__number {
+  width: 8.5cqw;
+  height: 8.5cqw;
+  min-width: 8.5cqw;
+  padding: 3px;
+  border: clamp(2px, .42cqw, 4px) solid rgba(255, 255, 255, .96);
+  border-radius: 50%;
+  background: #2f78c7;
+  color: #fff;
+  font-size: clamp(10px, 2cqw, 18px);
+  line-height: 1.05;
+  white-space: pre-line;
+  box-shadow: none;
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-multiline-label .speaking-challenge-lesson__number {
+  font-size: clamp(8px, 1.55cqw, 14px);
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
+  border-color: #fff8db;
+  background: #f4c840;
+  color: #17345e;
+  box-shadow: none;
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
+  border-color: #effff4;
+  background: #2f9d62;
+  color: #fff;
+  box-shadow: none;
+}
+.speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
+  border-color: #eef2f7;
+  background: #718096;
+  color: #fff;
+  box-shadow: none;
+}
+.speaking-adventure-route .speaking-challenge-lesson:focus-visible {
+  outline: 3px solid #122f63;
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .speaking-adventure-route .speaking-map-canvas {
+    aspect-ratio: 793 / 1983;
+    background-image: url("../assets/speaking-map/workbook-adventure-world-v7-serpentine-mobile.webp");
+    background-position: center;
+    background-size: 100% 100%;
+  }
+  .speaking-adventure-route .speaking-map-book-sign {
+    top: 6.25%;
+    left: 27%;
+    width: 19%;
+  }
+  .speaking-adventure-route .speaking-challenge-lesson {
+    left: var(--map-side);
+    width: max(44px, 8.5cqw);
+    min-height: max(44px, 8.5cqw);
+  }
+  .speaking-adventure-route .speaking-challenge-lesson__number {
+    width: 8.5cqw;
+    height: 8.5cqw;
+    min-width: 8.5cqw;
+    font-size: clamp(10px, 3.25cqw, 14px);
+  }
+  .speaking-adventure-route .speaking-challenge-lesson.is-multiline-label .speaking-challenge-lesson__number {
+    font-size: clamp(8px, 2.65cqw, 11px);
+  }
+}
+
 .speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero__copy h1 {
   margin-block: 4px;
   font-size: clamp(28px, 4vw, 36px);
@@ -835,4 +938,13 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
     grid-column: 2;
     justify-self: end;
   }
+}
+
+// Final cascade guard: v7 markers stay flat even though older map themes are
+// retained above for the workbook selector and legacy previews.
+.speaking-adventure-route .speaking-challenge-lesson__number,
+.speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number,
+.speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number,
+.speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
+  box-shadow: none;
 }
