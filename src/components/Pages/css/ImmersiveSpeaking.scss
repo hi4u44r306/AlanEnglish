@@ -881,6 +881,9 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   --marker-paint-light: #aeb5b7;
   --marker-paint-dark: #858e91;
   box-sizing: border-box;
+  width: max(44px, 8.5cqw);
+  height: max(44px, 8.5cqw);
+  min-width: max(44px, 8.5cqw);
   border-color: transparent;
   color: #17345e;
   background:
