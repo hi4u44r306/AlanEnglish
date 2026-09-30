@@ -112,10 +112,10 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode
     const challengeLabel = lessonTitle(item);
     const special = item.generation_metadata?.map_level_kind === "special";
     const levelLabel = section === "topic" ? `主題${topicNumber}` : pages || String(levelNumber).padStart(2, "0");
-    const wideLabel = levelLabel.length >= 7;
-    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${wideLabel ? "is-wide-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
-    <span className="speaking-challenge-lesson__number">{levelLabel}</span>
-    <span className="speaking-challenge-lesson__state" aria-hidden="true">{completed ? <FiCheck /> : locked ? <span className="speaking-challenge-lesson__padlock" /> : null}</span>
+    const multilineLabel = /[～、]/.test(levelLabel);
+    const visualLabel = levelLabel.replace("～", "\n～").replace("、", "\n");
+    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${multilineLabel ? "is-multiline-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
+    <span className="speaking-challenge-lesson__number" aria-hidden="true">{visualLabel}</span>
     </button>;
 };
 
@@ -408,6 +408,7 @@ export default function TextbookSpeakingChallenge() {
         return <main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
                 <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
+                <div className="speaking-book-toolbar__title"><FiBookOpen aria-hidden="true" /><div><h1>{selectedBook.label}</h1><p>口說大挑戰</p></div></div>
                 <div className="speaking-book-toolbar__progress" aria-label={`已完成 ${selectedBookCompleted} / ${selectedBook.itemCount} 關`}>
                     <strong>{selectedBookCompleted}/{selectedBook.itemCount}</strong><span>已完成</span>
                 </div>

@@ -1,27 +1,30 @@
-import { buildSpeakingAdventureRoute } from "./speakingAdventureMap";
+import { buildSpeakingAdventureRoute, distributeSpeakingLevels } from "./speakingAdventureMap";
 
-it("positions ordered markers along the measured painted-road centreline", () => {
-    const items = [{ id: 14 }, { id: 20 }, { id: 21 }, { id: 22 }];
+it("balances Workbook 1 across seven alternating road rows", () => {
+    const items = Array.from({ length: 25 }, (_, id) => ({ id }));
     const route = buildSpeakingAdventureRoute("book-1", items);
-    expect(route.nodes.map(node => node.id)).toEqual(items.map(item => item.id));
+
+    expect(route.rowCounts).toEqual([4, 3, 4, 3, 4, 3, 4]);
+    expect(route.nodes).toHaveLength(25);
+    expect(route.nodes.slice(0, 4).map(node => node.x)).toEqual([14, 38, 62, 86]);
+    expect(route.nodes.slice(4, 7).map(node => node.x)).toEqual([86, 50, 14]);
     expect(route.nodes.map(node => node.y)).toEqual([...route.nodes.map(node => node.y)].sort((a, b) => a - b));
-    expect(route.nodes.every(node => node.x >= 29 && node.x <= 63)).toBe(true);
-    expect(route.nodes.every(node => node.xMobile >= 12 && node.xMobile <= 88)).toBe(true);
-    expect(route.nodes.every(node => node.y >= 9 && node.y <= 95)).toBe(true);
-    expect(route).not.toHaveProperty("path");
+    expect(route.nodes.every(node => node.xMobile === node.x)).toBe(true);
+    expect(route.nodes[0]).toMatchObject({ x: 14, y: 10.8, row: 1, zone: "grassland" });
+    expect(route.nodes.at(-1)).toMatchObject({ x: 86, y: 84.8, row: 7, zone: "volcano" });
     expect(route.aspectRatio).toBe("793 / 1983");
-    expect(buildSpeakingAdventureRoute("book-1", items)).toEqual(route);
 });
 
-it("distributes all 25 levels across the complete road by travelled distance", () => {
-    const route = buildSpeakingAdventureRoute("book-1", Array.from({ length: 25 }, (_, id) => ({ id })));
-    expect(route.nodes[0].zone).toBe("grassland");
-    expect(route.nodes.at(-1).zone).toBe("volcano");
-    expect(route.nodes).toHaveLength(25);
-    expect(route.nodes[0]).toMatchObject({ x: 45, xMobile: 40.99, y: 9 });
-    expect(route.nodes[12]).toMatchObject({ x: 45.15, xMobile: 41.26, y: 51.15 });
-    expect(route.nodes.at(-1)).toMatchObject({ x: 51, xMobile: 51.8, y: 94.5 });
-    expect(route.nodes.slice(1).every((node, index) => node.y > route.nodes[index].y)).toBe(true);
-    expect(Math.max(...route.nodes.map(node => node.x)) - Math.min(...route.nodes.map(node => node.x))).toBeGreaterThan(25);
-    expect(route.nodes.every(node => Math.abs(node.xMobile - ((node.x * 7.93 - 176.5) / 4.4)) < .02)).toBe(true);
+it("balances other workbook totals without leaving a sparse last row", () => {
+    expect(distributeSpeakingLevels(30)).toEqual([5, 4, 4, 4, 4, 4, 5]);
+    expect(distributeSpeakingLevels(35)).toEqual([5, 5, 5, 5, 5, 5, 5]);
+    expect(distributeSpeakingLevels(36)).toEqual([5, 5, 5, 6, 5, 5, 5]);
+    expect(distributeSpeakingLevels(0)).toEqual([]);
+});
+
+it("keeps every marker inside the horizontal road safe area", () => {
+    const route = buildSpeakingAdventureRoute("book-3", Array.from({ length: 36 }, (_, id) => ({ id })));
+    expect(route.nodes.every(node => node.x >= 14 && node.x <= 86)).toBe(true);
+    expect(route.nodes.every(node => [10.8, 21.7, 34.1, 47.1, 59.6, 72.2, 84.8].includes(node.y))).toBe(true);
+    expect(route.nodes.every(node => node.row >= 1 && node.row <= 7)).toBe(true);
 });
