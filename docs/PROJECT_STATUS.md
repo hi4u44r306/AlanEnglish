@@ -2,15 +2,15 @@
 
 最後更新：2026-09-30
 
-本次口說冒險地圖與雙模式（2026-09-30，已正式部署；工作人員預覽修正驗收中）：
+本次口說冒險地圖與雙模式（2026-09-30，已正式部署並完成工作人員預覽驗收）：
 
 - 功能分支 `feature/speaking-levels-roadmap` 由 `main` 建立。第一階段精簡 Workbook 選書卡與頁面標題，保留各冊進度；地圖節點改按單一連續道路中心線分布，桌面與手機使用相同來源座標，已通關維持綠色並修正鎖頭圖示。
 - 已確認的雙模式規則：同一頁的「簡單」與「挑戰」各自記錄通關；簡單通關解鎖下一頁，挑戰通關另記成就。兩種都能重玩，重挑戰只需補過未通過的題目；挑戰模式使用提示後，該題本次不能通過。
-- 專案擁有者同意本批直接正式測試。正式 migration `20260929160325_speaking_challenge_modes` 已新增獨立成就與提示紀錄表及評分欄位，原有進度未刪除。`pronunciation-coach` v28、`speaking-challenge` v45 為 ACTIVE，未登入呼叫均回 401；學生口說入口與伺服器禁用開關維持暫停。
+- 專案擁有者同意本批直接正式測試。正式 migration `20260929160325_speaking_challenge_modes` 已新增獨立成就與提示紀錄表及評分欄位，原有進度未刪除。`pronunciation-coach` v28、`speaking-challenge` v46 為 ACTIVE；後者的遠端原始碼與本機提交一致，未登入 POST 回 401。學生口說入口與伺服器禁用開關維持暫停。
 - 第一階段修改範圍：`TextbookSpeakingChallenge.jsx`、`ImmersiveSpeaking.scss`、`speakingAdventureMap.js` 及對應 targeted tests、網站使用手冊。手機與桌面地圖視覺校準使用臨時預覽檔，檔案已移除。`S-19` 地圖及 `S-20` 題卡教學素材待更新。
 - 第一階段 targeted React 2 suites／35 tests 與 `git diff --check` 通過。靜態地圖預覽已檢查手機道路上的 25 個節點；正式站管理員已載入 Workbook 1 的 25 個地圖節點與關卡摘要。
-- 第二階段本機程式已加入 `speaking_challenge_mode_progress` 獨立成就表、`speaking_challenge_hint_reveals` 回合提示紀錄，並為評分嘗試增加模式／回合欄位；Edge Function 以 Firebase 身分與服務端資料查驗、依模式儲存通關。前端選關摘要可選模式，簡單顯示答案，挑戰按提示時先寫入紀錄，題目結束只重試未通過題。A–Z 與學生暫停開關維持原樣。第二階段 targeted React 5 suites／58 tests、後端相關 Node 23 tests、兩支 Edge Function 及共用模組語法、Production build 與 `git diff --check` 已通過；資料庫 migration 因無本機 PostgreSQL／Docker 與隔離專案，仍缺真實資料庫整合驗證，登入後手機／桌面視覺驗收也待補。
-- 功能 PR #369 已合併至 `main` `ecb604ee`；Cloudflare production build `2caa2688-59ec-48dc-9a0c-66e1a65ff30d` 成功，正式網域已載入新前端。管理員線上驗收發現簡單模式示範未顯示答案、摘要未提供挑戰模式，故以 `fix/speaking-staff-modes-preview` 修正：工作人員可選兩種模式、管理員簡單示範顯示答案、挑戰示範看提示後不會被前端誤判通關。修正的 React 2 suites／42 tests、Edge 語法、Production build 與 `git diff --check` 通過；正式熱修部署與線上複驗待完成。
+- 第二階段已加入 `speaking_challenge_mode_progress` 獨立成就表、`speaking_challenge_hint_reveals` 回合提示紀錄，並為評分嘗試增加模式／回合欄位；Edge Function 以 Firebase 身分與服務端資料查驗、依模式儲存通關。前端選關摘要可選模式，簡單顯示答案，挑戰按提示時先寫入紀錄，題目結束只重試未通過題。A–Z 與學生暫停開關維持原樣。第二階段 targeted React 5 suites／58 tests、後端相關 Node 23 tests、兩支 Edge Function 及共用模組語法、Production build 與 `git diff --check` 已通過；正式 migration 結構／權限已核對，學生真實寫入流程仍待驗證。
+- 功能 PR #369 已合併至 `main` `ecb604ee`，首次 Cloudflare production build `2caa2688-59ec-48dc-9a0c-66e1a65ff30d` 成功。工作人員預覽修正 PR #370 已合併至 `main` `41662a9b`；正式首頁已載入與本機 Production build 相同的 `main.20238685.js`。正式站管理員預覽 Workbook 1 共有 25 個節點，摘要同時提供簡單／挑戰；簡單題卡顯示答案、挑戰題卡按提示前隱藏答案且按後可展開。412×915 手機版摘要、錄音鍵與上下題操作可見，Console 無錯誤。修正的 React 2 suites／42 tests、Edge 語法、Production build 與 `git diff --check` 通過；Cloudflare Dashboard 本次需重新登入，故以正式網域新資產載入與頁面實測確認前端已發布，未取得本次 build ID。
 - 尚未驗證正式學生帳號的錄音、兩種模式實際通關寫入及 iPhone 主畫面體驗；學生入口暫停期間不會對學生開放。若驗收出錯，先回復前端與 Function，新增資料表／欄位保留以免移除已寫入資料。
 
 本次公開首頁純介紹與試用／商城入口暫停（2026-09-29，已正式部署並完成線上驗收）：
