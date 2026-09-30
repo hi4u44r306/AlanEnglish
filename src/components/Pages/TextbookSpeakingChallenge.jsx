@@ -145,7 +145,7 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
             <div className="speaking-level-dialog__actions">
                 <button type="button" onClick={onClose}>返回地圖</button>
                 <button type="button" className="primary" onClick={() => onEnter("easy")} disabled={locked}>{locked ? "尚未解鎖" : "簡單 · 看答案說"} <FiChevronRight aria-hidden="true" /></button>
-                {!staffPreview && section !== "preparation" && <button type="button" className="primary" onClick={() => onEnter("challenge")} disabled={locked}>挑戰 · 看題目回答 <FiChevronRight aria-hidden="true" /></button>}
+                {section !== "preparation" && <button type="button" className="primary" onClick={() => onEnter("challenge")} disabled={locked}>挑戰 · 看題目回答 <FiChevronRight aria-hidden="true" /></button>}
             </div>
         </section>
     </div>;
@@ -372,6 +372,15 @@ export default function TextbookSpeakingChallenge() {
         return true;
     };
 
+    const revealHint = (question, sessionId) => staffPreview
+        ? Promise.resolve({
+            hint_zh: question.hint_zh,
+            simple_answer: question.simple_answer,
+            model_answer: question.model_answer,
+            pronunciation_notes_zh: question.pronunciation_notes_zh
+        })
+        : revealSpeakingChallengeHint(firebaseUser, challenge.id, question.id, sessionId);
+
     const playModelAudio = question => {
         if (!question.model_audio_url) return;
         audioRef.current?.pause();
@@ -445,7 +454,7 @@ export default function TextbookSpeakingChallenge() {
         challenge={challenge}
         firebaseUser={firebaseUser}
         challengeMode={challengeMode}
-        onRevealHint={(question, sessionId) => revealSpeakingChallengeHint(firebaseUser, challenge.id, question.id, sessionId)}
+        onRevealHint={revealHint}
         staffAudioPreview={staffPreview}
         onComplete={markScored}
         staffPreview={staffPreview}
@@ -514,7 +523,7 @@ export default function TextbookSpeakingChallenge() {
                     </header>
                 </div>
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={!staffPreview && challengeMode === "easy"} onRevealHint={(question, sessionId) => revealSpeakingChallengeHint(firebaseUser, challenge.id, question.id, sessionId)} interactionType={activeInteractionType} hideHelp={activePictureMode && staffPreview} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
+                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={challengeMode === "easy"} onRevealHint={revealHint} interactionType={activeInteractionType} hideHelp={activePictureMode && staffPreview && !adminScoringPreview} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
                 <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : challengeMode === "challenge" ? "挑戰成就會獨立記錄；簡單模式通關才會解鎖下一頁與領取首次獎勵。" : "簡單模式首次通關可獲得 XP 與 AE Points，並解鎖下一頁。"}</small>
             </article>
         </section>

@@ -334,7 +334,7 @@ Deno.serve(async (req: Request) => {
                     answerAudioEnabled: questionSet.generation_metadata?.source === "ocr_page_candidate"
                         && questionSet.generation_metadata?.requires_answer_audio === true,
                     staffAudioPreview: demoMode,
-                    showEasyAnswer: !demoMode && challengeMode === "easy",
+                    showEasyAnswer: challengeMode === "easy",
                     progressStatus: statusByQuestion.get(Number(question.id)),
                     modelAsset,
                     promptAsset,
