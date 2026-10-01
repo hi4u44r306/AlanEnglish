@@ -2,12 +2,12 @@
 
 最後更新：2026-10-01
 
-本次輕量童話向量口說地圖（2026-10-01，本機已完成，尚未部署）：
+本次輕量童話向量口說地圖（2026-10-01，已正式部署）：
 
 - Workbook 冒險地圖改為單張 1000×6000 viewBox 的 SVG 向量世界，使用草原、森林、雪山與火山四區、少量動物／橋梁／營地／冰洞／城堡地標及一條連續米黃色道路。SVG 約 10 KB，取代地圖頁原本 5.5 MB 的桌面 WebP 與 1.5 MB 的手機 WebP 載入；舊圖仍暫留 Repository，且關卡練習頁既有背景不在本批修改範圍。
 - 道路中心線的 33 個座標同時存在 SVG 與 `speakingAdventureMap.js`；所有 Workbook 的實際關卡依完整路徑長度平均取樣，桌面與手機共用座標，因此新增關卡時不需要重新生成背景，也不會因響應式縮放離開道路。Workbook 1 仍只顯示 25 個已發布關卡。
 - 關卡標記依預覽改為簡化木色雙框、平面純色內層及 Fredoka 字體；已完成亮綠、目前關卡金黃、其他關卡暖灰，保留至少 44px 觸控範圍。未修改題庫、通關、解鎖、Supabase、Edge Function、權限或獎勵。
-- SVG XML 檢查與 `speakingAdventureMap` targeted 3／3 已通過；本機開發編譯成功。正式 Component targeted、412px／桌面實際路由驗收、PR、Cloudflare production 與正式網址驗收尚未完成。
+- SVG XML 檢查與 `speakingAdventureMap` targeted 3／3 已通過；本機開發編譯成功。`TextbookSpeakingChallenge` targeted 34／37 通過，其餘 3 項只受工作目錄既有且未提交的路牌註解修改影響，該檔案未包含於發布。PR #385 合併為 `main` `88471bb7`；正式驗收發現尾端舊 V9 SCSS 規則覆蓋新視覺後，以 PR #386／`main` `85d331cc` 修正，Cloudflare production build `24f5ec21-b3f6-4ebf-861a-11fe93aaee7a` 成功。正式桌面路由確認 25 個節點、SVG 背景、1000／6000 比例、木框金黃目前關卡且 Console 無錯誤；本機 412×915 確認 44px 關卡、無水平溢位與 Console 錯誤。正式網域的 CSS chunk `986.616ea996` 與 SVG `storybook-adventure-map.3fb7519dc96aafa0f840.svg` 均已驗證；正式 iPhone 主畫面實機仍待複驗。
 
 本次口說地圖 v9 構圖、標記與工具列修正（2026-09-30，已正式部署並完成工作人員預覽驗收）：
 
