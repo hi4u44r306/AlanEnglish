@@ -24,6 +24,19 @@ describe("WorkbookOnePictureChallenge", () => {
         jest.restoreAllMocks();
     });
 
+    it("only a fully completed page opens the shared celebration with actual rewards", async () => {
+        const reward = { challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 };
+        const onFinished = jest.fn();
+        render(<WorkbookOnePictureChallenge challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" },
+            speaking_questions: [{ id: 1, visual_aid: privateVisual, picture_interaction: { type: "picture_qa" } }] }}
+            firebaseUser={{ uid: "student" }} onComplete={jest.fn().mockResolvedValue(reward)} onFinished={onFinished} />);
+        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
+        expect(onFinished).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+        await waitFor(() => expect(onFinished).toHaveBeenCalledWith(reward));
+    });
+
     it("老師按來源順序唯讀預覽看圖題並可切換，不啟用錄音", () => {
         const onComplete = jest.fn();
         render(<WorkbookOnePictureChallenge

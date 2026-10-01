@@ -6,6 +6,7 @@ import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpea
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
+import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
 import { buildSpeakingAdventureRoute } from "../../utils/speakingAdventureMap";
@@ -64,7 +65,7 @@ const levelReference = item => {
 
 const challengeBookCatalogPath = challenge => {
     const book = challenge?.book || challenge?.books || {};
-    const bookIdentity = book.id || book.code || book.name;
+    const bookIdentity = book.id || challenge?.book_id || book.code || book.name;
     return bookIdentity
         ? `/student/speaking-challenges/book/${encodeURIComponent(`book-${bookIdentity}`)}`
         : "/student/speaking-challenges";
@@ -122,7 +123,7 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode
     const levelLabel = section === "topic" ? `主題${topicNumber}` : pages || String(levelNumber).padStart(2, "0");
     const multilineLabel = /[～、]/.test(levelLabel);
     const visualLabel = levelLabel.replace("～", "\n～").replace("、", "\n");
-    return <button className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${multilineLabel ? "is-multiline-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
+    return <button data-question-set-id={item.id} className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${multilineLabel ? "is-multiline-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
     <span className="speaking-challenge-lesson__number" aria-hidden="true">{visualLabel}</span>
     </button>;
 };
@@ -205,6 +206,8 @@ export default function TextbookSpeakingChallenge() {
     const [audioWorking, setAudioWorking] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [completionNotice, setCompletionNotice] = useState(null);
+    const [returnTransition, setReturnTransition] = useState(null);
+    const [completionCatalog, setCompletionCatalog] = useState([]);
     const [retryNotice, setRetryNotice] = useState(false);
     const [challengeSessionId, setChallengeSessionId] = useState("");
     const [selectedLesson, setSelectedLesson] = useState(null);
@@ -212,6 +215,9 @@ export default function TextbookSpeakingChallenge() {
     const questionHeadingRef = useRef(null);
     const levelDialogRef = useRef(null);
     const selectedNodeRef = useRef(null);
+    const leavingRef = useRef(false);
+    const activeRouteRef = useRef("");
+    activeRouteRef.current = `${questionSetId}:${challengeMode}`;
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const questions = challenge?.speaking_questions || [];
     const activeQuestion = questions[activeQuestionIndex];
@@ -256,6 +262,66 @@ export default function TextbookSpeakingChallenge() {
         });
     }, [catalog, staffPreview]);
 
+    useEffect(() => {
+        leavingRef.current = false;
+        setReturnTransition(null);
+        setCompletionNotice(null);
+        setCompletionCatalog([]);
+    }, [location.pathname, challengeMode]);
+
+    useEffect(() => {
+        if (!returnTransition) return undefined;
+        const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        const timer = window.setTimeout(() => navigate(returnTransition.path, {
+            state: { speakingReturn: { questionSetId: returnTransition.questionSetId } }
+        }), reduced ? 0 : 650);
+        return () => window.clearTimeout(timer);
+    }, [navigate, returnTransition]);
+
+    useEffect(() => {
+        if (!completionNotice) return undefined;
+        let cancelled = false;
+        getSpeakingChallengeCatalog(firebaseUser).then(response => {
+            if (!cancelled && !leavingRef.current) setCompletionCatalog(response?.challenges || []);
+        }).catch(() => { /* The result remains available; returning to the map can retry its request. */ });
+        return () => { cancelled = true; };
+    }, [completionNotice, firebaseUser]);
+
+    const requestReturn = path => {
+        if (leavingRef.current) return;
+        leavingRef.current = true;
+        audioRef.current?.pause();
+        audioRef.current = null;
+        setReturnTransition({ path, questionSetId: Number(questionSetId) || null });
+    };
+
+    const showCompletion = notice => {
+        audioRef.current?.pause();
+        setCompletionNotice(current => current || (notice && typeof notice === "object" ? notice : { xp_awarded: 0, ae_points_awarded: 0 }));
+    };
+
+    const renderScene = content => {
+        if (returnTransition) return <SpeakingChallengeReturn toCatalog={returnTransition.path === "/student/speaking-challenges"} />;
+        if (!completionNotice) return content;
+        const bookPath = challengeBookCatalogPath(challenge);
+        const items = (completionCatalog.length ? completionCatalog : staffPreview ? catalog : [])
+            .filter(item => challengeBookCatalogPath(item) === bookPath)
+            .sort((left, right) => ["preparation", "textbook", "topic"].indexOf(catalogSection(left)) - ["preparation", "textbook", "topic"].indexOf(catalogSection(right))
+                || Number(left.sequence_order || 0) - Number(right.sequence_order || 0)
+                || Number(left.source_pages?.at(-1) || 0) - Number(right.source_pages?.at(-1) || 0)
+                || Number(left.id) - Number(right.id));
+        const currentIndex = items.findIndex(item => Number(item.id) === Number(questionSetId));
+        const next = currentIndex >= 0 ? items[currentIndex + 1] : null;
+        const nextAvailable = next && (staffPreview || next.is_unlocked === true);
+        return <SpeakingChallengeCompletion notice={completionNotice} mode={challengeMode} staffPreview={staffPreview}
+            reference={[challenge?.books?.name || challenge?.book?.name, challenge ? levelReference(challenge) || challenge.title : ""].filter(Boolean).join(" · ")}
+            onReturn={() => requestReturn(bookPath)}
+            onNext={nextAvailable ? () => navigate(`/student/speaking-challenges/${next.id}?mode=${challengeMode}`, { state: { speakingEntry: {
+                questionSetId: next.id, bookLabel: next.book?.name || next.books?.name,
+                levelLabel: levelReference(next) || lessonTitle(next), bookCatalogPath: bookPath
+            } } }) : undefined} />;
+    };
+
     useEffect(() => () => {
         audioRef.current?.pause();
         audioRef.current = null;
@@ -291,10 +357,13 @@ export default function TextbookSpeakingChallenge() {
 
     useEffect(() => {
         if (!bookKey || !catalog.length || process.env.NODE_ENV === "test") return;
-        const node = document.querySelector(".speaking-map-chapter.is-textbook .speaking-challenge-lesson.is-current")
+        const returnedId = Number(location.state?.speakingReturn?.questionSetId);
+        const node = (returnedId && document.querySelector(`[data-question-set-id="${returnedId}"]`))
+            || document.querySelector(".speaking-map-chapter.is-textbook .speaking-challenge-lesson.is-current")
             || document.querySelector(".speaking-challenge-lesson.is-current");
         node?.scrollIntoView?.({ block: "center", behavior: "auto" });
-    }, [bookKey, catalog]);
+        if (returnedId) node?.focus?.({ preventScroll: true });
+    }, [bookKey, catalog, location.state]);
 
     useEffect(() => {
         if (!selectedLesson) return undefined;
@@ -333,7 +402,7 @@ export default function TextbookSpeakingChallenge() {
             try {
                 if (questionSetId) {
                     const challengeResponse = await getSpeakingChallengeSet(firebaseUser, Number(questionSetId), challengeMode);
-                    if (!cancelled) {
+                    if (!cancelled && !leavingRef.current) {
                         setChallenge(challengeResponse.challenge);
                         setLoadedChallengeKey(`${questionSetId}:${challengeMode}`);
                         if (!staffPreview) {
@@ -348,17 +417,17 @@ export default function TextbookSpeakingChallenge() {
                     setCatalogLoading(true);
                     const catalogResponse = await getSpeakingChallengeCatalog(firebaseUser);
                     const nextCatalog = catalogResponse.challenges || [];
-                    if (!cancelled) {
+                    if (!cancelled && !leavingRef.current) {
                         setCatalog(nextCatalog);
                         setCatalogRewardPolicy(catalogResponse.reward_policy || null);
                         setChallengePolicy(catalogResponse.challenge_policy || null);
                     }
                 }
             } catch (loadError) {
-                if (!cancelled) setError(loadError.message || "口說大挑戰載入失敗");
+                if (!cancelled && !leavingRef.current) setError(loadError.message || "口說大挑戰載入失敗");
             }
             finally {
-                if (!cancelled && !questionSetId) setCatalogLoading(false);
+                if (!cancelled && !leavingRef.current && !questionSetId) setCatalogLoading(false);
             }
         };
         load();
@@ -367,12 +436,15 @@ export default function TextbookSpeakingChallenge() {
 
     const markComplete = async question => {
         if (staffPreview) return { success: true, demo_mode: true };
+        const requestKey = activeRouteRef.current;
         try {
             const response = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id, challengeMode, challengeSessionId);
+            if (leavingRef.current || activeRouteRef.current !== requestKey) return response || true;
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
-            if (response?.challenge_completed || response?.completed_challenge) setCompletionNotice(response);
+            if (response?.challenge_completed || response?.completed_challenge || response?.challenge_complete) showCompletion(response);
             return response || true;
         } catch (saveError) {
+            if (leavingRef.current || activeRouteRef.current !== requestKey) return false;
             if (saveError.code === "challenge_hint_used") return false;
             setError(saveError.message || "無法儲存練習紀錄"); return false;
         }
@@ -416,9 +488,9 @@ export default function TextbookSpeakingChallenge() {
             return section.items.map((item, index) => ({ item, section: section.id, current: index === currentIndex, topicNumber: section.id === "topic" ? ++topicNumber : null }));
         }) || [];
         const mapRoute = selectedBook ? buildSpeakingAdventureRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
-        return <main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
+        return renderScene(<main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
-                <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => navigate("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
+                <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => requestReturn("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
                 <div className="speaking-book-toolbar__title"><FiBookOpen aria-hidden="true" /><div><h1>{selectedBook.label}</h1><p>口說大挑戰</p></div></div>
                 <div className="speaking-book-toolbar__progress" aria-label={`已完成 ${selectedBookCompleted} / ${selectedBook.itemCount} 關`}>
                     <strong>{selectedBookCompleted}/{selectedBook.itemCount}</strong><span>已完成</span>
@@ -451,21 +523,21 @@ export default function TextbookSpeakingChallenge() {
                 levelLabel: levelReference(selectedLesson.item) || lessonTitle(selectedLesson.item),
                 bookCatalogPath: location.pathname
             } } })} />}
-        </main>;
+        </main>);
     }
     if (!challenge || Number(challenge.id) !== Number(questionSetId) || loadedChallengeKey !== `${questionSetId}:${challengeMode}`) {
         const entry = Number(location.state?.speakingEntry?.questionSetId) === Number(questionSetId)
             ? location.state.speakingEntry : null;
         const catalogItem = catalog.find(item => Number(item.id) === Number(questionSetId));
         const returnPath = entry?.bookCatalogPath || challengeBookCatalogPath(catalogItem);
-        return <SpeakingChallengeLoading mode={challengeMode}
+        return renderScene(<SpeakingChallengeLoading mode={challengeMode}
             bookLabel={entry?.bookLabel || catalogItem?.book?.name || catalogItem?.books?.name}
             levelLabel={entry?.levelLabel || (catalogItem ? levelReference(catalogItem) || lessonTitle(catalogItem) : "")}
-            onReturn={() => navigate(returnPath)} />;
+            onReturn={() => requestReturn(returnPath)} />);
     }
     const bookCatalogPath = challengeBookCatalogPath(challenge);
-    const returnToBookCatalog = () => navigate(bookCatalogPath);
-    if (["alphabet_round", "letter_spelling"].includes(interactionType)) return <WorkbookOneFoundationChallenge
+    const returnToBookCatalog = () => requestReturn(bookCatalogPath);
+    if (["alphabet_round", "letter_spelling"].includes(interactionType)) return renderScene(<WorkbookOneFoundationChallenge
         challenge={challenge}
         firebaseUser={firebaseUser}
         onComplete={markScored}
@@ -475,8 +547,9 @@ export default function TextbookSpeakingChallenge() {
         onStartAlphabetIntro={() => startAlphabetIntroListen(firebaseUser, challenge.id)}
         onCompleteAlphabetIntro={listenSessionId => completeAlphabetIntroListen(firebaseUser, challenge.id, listenSessionId)}
         onExit={returnToBookCatalog}
-    />;
-    if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return <WorkbookOnePictureChallenge
+        onFinished={showCompletion}
+    />);
+    if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return renderScene(<WorkbookOnePictureChallenge
         challenge={challenge}
         firebaseUser={firebaseUser}
         challengeMode={challengeMode}
@@ -486,11 +559,12 @@ export default function TextbookSpeakingChallenge() {
         staffPreview={staffPreview}
         adminScoringPreview={adminScoringPreview}
         onExit={returnToBookCatalog}
-    />;
+        onFinished={showCompletion}
+    />);
     const completedCount = questions.filter(question => question.progress_status === "completed").length;
     const progressPercent = questions.length ? Math.round((completedCount / questions.length) * 100) : 0;
 
-    if (!activeQuestion) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button></section></main>;
+    if (!activeQuestion) return renderScene(<main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button></section></main>);
 
     const isCompleted = staffPreview || activeQuestion.progress_status === "completed";
     const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
@@ -513,17 +587,17 @@ export default function TextbookSpeakingChallenge() {
     const isLastQuestion = activeQuestionIndex === questions.length - 1;
     const goForward = () => {
         if (staffPreview || questions.every(question => question.progress_status === "completed")) {
-            if (isLastQuestion) returnToBookCatalog();
+            if (isLastQuestion) { showCompletion({ demo_mode: staffPreview }); return; }
             setActiveQuestionIndex(current => current + 1);
             return;
         }
         const nextIndex = questions.findIndex((question, index) => index > activeQuestionIndex && question.progress_status !== "completed");
         if (nextIndex >= 0) { setActiveQuestionIndex(nextIndex); return; }
-        if (questions.every(question => question.progress_status === "completed")) { returnToBookCatalog(); return; }
+        if (questions.every(question => question.progress_status === "completed")) { showCompletion(); return; }
         setRetryNotice(true);
     };
 
-    return <main className="speaking-challenge-page speaking-challenge-detail speaking-immersive-play">
+    return renderScene(<main className="speaking-challenge-page speaking-challenge-detail speaking-immersive-play">
         {staffPreview && <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>{adminScoringPreview ? "管理員評分示範" : "工作人員唯讀預覽"}</strong>{adminScoringPreview ? "可以送出評分；不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "所有已發布題目都可查看，不會寫入學生進度或發放獎勵。"}</span></aside>}
         <header className="speaking-lesson-header">
             <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
@@ -569,14 +643,5 @@ export default function TextbookSpeakingChallenge() {
                 setRetryNotice(false);
             }}>只重試未過題</button></div>
         </section></div>}
-        {completionNotice && <div className="speaking-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="speaking-reward-title">
-            <section>
-                <span className="speaking-reward-dialog__stars" aria-hidden="true">✦ ✨ ✦</span>
-                <FiAward aria-hidden="true" />
-                <h2 id="speaking-reward-title">太棒了，成功通關！</h2>
-                {challengeMode === "challenge" ? <p>挑戰成就已記錄！</p> : Number.isFinite(Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)) ? <p><strong>🏆 獲得 {Number(completionNotice.xp_awarded ?? completionNotice.reward_xp)} XP</strong></p> : <p>這一關已完成，下一關已開啟！</p>}
-                <div><button type="button" onClick={returnToBookCatalog}>回到關卡列表</button><button type="button" className="primary" onClick={() => { setCompletionNotice(null); returnToBookCatalog(); }}>繼續挑戰</button></div>
-            </section>
-        </div>}
-    </main>;
+    </main>);
 }

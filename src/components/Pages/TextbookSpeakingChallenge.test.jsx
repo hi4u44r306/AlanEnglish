@@ -190,7 +190,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         fireEvent.click(await screen.findByRole("button", { name: "返回教材關卡列表" }));
 
-        expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-Workbook%201");
+        await waitFor(() => expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-Workbook%201"));
         expect(screen.getByText("Workbook 關卡列表")).toBeInTheDocument();
     });
 
@@ -617,7 +617,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
             <Route path="/student/speaking-challenges/book/:bookKey" element={<h1>Workbook 1 地圖</h1>} />
         </Routes><LocationProbe /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "返回地圖" }));
-        expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-1");
+        await waitFor(() => expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-1"));
         await act(async () => resolveChallenge({ challenge: { id: 7, speaking_questions: [{ id: 9, question_text: "Late question" }] } }));
         expect(screen.getByRole("heading", { name: "Workbook 1 地圖" })).toBeInTheDocument();
         expect(screen.queryByText("Late question")).not.toBeInTheDocument();

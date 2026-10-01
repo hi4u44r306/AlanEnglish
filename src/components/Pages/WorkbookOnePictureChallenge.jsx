@@ -32,7 +32,7 @@ const challengePageLabel = challenge => {
     return titlePage ? `P.${titlePage[1].replace(/\s+/g, "")}` : challenge?.title || "口說挑戰";
 };
 
-export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onExit, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
+export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
@@ -124,7 +124,11 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         if (saved === false) { setCanSkip(true); return; }
         setCompletedIds(current => new Set([...current, activeQuestion.id]));
         stopAudio();
-        if (activeIndex >= round.length - 1) setPhase("result");
+        if (activeIndex >= round.length - 1) {
+            setPhase("result");
+            const allCompleted = staffPreview || sourceQuestions.every(question => question.progress_status === "completed" || completedIds.has(question.id) || question.id === activeQuestion.id);
+            if (allCompleted) onFinished?.(saved);
+        }
         else { setCanSkip(false); setActiveIndex(index => index + 1); }
     };
     const skipQuestion = () => {
@@ -191,6 +195,10 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
             />}
         </article></section>
         {!staffPreview && canSkip && <button type="button" className="speaking-continue-button" onClick={skipQuestion}>先看下一題 <FiChevronRight aria-hidden="true" /></button>}
-        {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => { stopAudio(); setActiveIndex(index => index + 1); }} disabled={activeIndex >= round.length - 1}>下一題<FiChevronRight /></button></nav>}
+        {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => {
+            stopAudio();
+            if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.({ demo_mode: true }); }
+            else setActiveIndex(index => index + 1);
+        }}>{activeIndex >= round.length - 1 ? "完成大挑戰" : "下一題"}<FiChevronRight /></button></nav>}
     </main>;
 }

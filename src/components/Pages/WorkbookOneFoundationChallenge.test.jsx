@@ -79,6 +79,16 @@ const alphabetRoundResponse = {
 const startAlphabetRound = jest.fn();
 
 describe("WorkbookOneFoundationChallenge", () => {
+    it("spelling forwards the actual completion reward to the shared celebration", async () => {
+        const reward = { challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 };
+        const onFinished = jest.fn();
+        render(<WorkbookOneFoundationChallenge challenge={{ id: 14, title: "P14", generation_metadata: { interaction_type: "letter_spelling" },
+            speaking_questions: [{ id: 1, question_text: "apple", model_answer: "A P P L E" }] }}
+            firebaseUser={{ uid: "student" }} onComplete={jest.fn().mockResolvedValue(reward)} onFinished={onFinished} />);
+        await act(async () => fireEvent.click(screen.getByRole("button", { name: "開始拼讀" })));
+        await act(async () => fireEvent.click(screen.getByRole("button", { name: "模擬答對" })));
+        expect(onFinished).toHaveBeenCalledWith(reward);
+    });
     const originalAudio = global.Audio;
     beforeEach(() => {
         jest.useFakeTimers();

@@ -2,6 +2,15 @@
 
 最後更新：2026-10-01
 
+本機審核：口說返回與通關動畫（2026-10-01，尚未部署）：
+
+- 分支 `codex/speaking-road-centerline-review`，接續 `ece8db1b`；依使用者指示只修改本機，未 Push／PR／部署。
+- 新增共用 `SpeakingChallengeAnimation.jsx` 與 SCSS：返回時顯示約 650ms 木框過場並卸載題目／停止關卡音訊；回地圖後定位及聚焦剛離開的關卡。遲到的請求成功／失敗不會打斷返回。
+- 一般題、圖片題、拼讀與 A–Z 完成時共用木框通關畫面，三顆星依序亮起、少量彩紙、實際 XP／AE Points 數字跳動。三顆星只是整頁通關慶祝，不新增星等評分或資料紀錄；獎勵以後端回傳為準，缺少資料／重玩／挑戰不自行補發，老師／管理員預覽均為 0。
+- 通關後讀取最新關卡列表；學生僅能前往後端已解鎖的下一關，保留簡單／挑戰模式，末關則返回地圖。支援鍵盤焦點圈限、Escape、safe area 與 reduced motion。題目、評分、提示及錯題重試規則不變。
+- 相關 5 組 targeted tests 合計 90 項通過；3 項既有路牌測試因保留使用者註解而略過。最後修正的流程測試 13／13 通過；受影響 JSX ESLint 與 diff 檢查通過。Chrome 桌面與 412×915 管理員預覽確認通關、下一關及返回定位；手機卡片 370×535px，無橫向溢出。未執行全套測試或 production build，因只影響局部前端狀態／動畫；學生真實獎勵寫入與 iPhone Safari 實機未驗，學生入口仍暫停。
+- 同步手冊 v3.14 草稿；使用者既有路牌註解及排版修改保留且不納入本批 checkpoint。相關檔案：`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、新動畫元件／SCSS 與相關測試。
+
 本機審核：口說關卡模式讀取畫面（2026-10-01，尚未部署）：
 
 - 沿用本機分支 `codex/speaking-road-centerline-review`，接續地圖 checkpoint `7d29fa85`；使用者明確要求本地修改，未 Push／PR／部署。

@@ -18,7 +18,7 @@ const interactionCopy = {
     }
 };
 
-export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, staffPreview = false, adminScoringPreview = false }) {
+export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
@@ -322,13 +322,14 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     };
 
     const handleCorrect = async result => {
+        let completionReward;
         if (alphabetMode) {
             if (adminScoringPreview) {
                 if (result?.answer_match === false) {
                     setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
                     return;
                 }
-                if (activeIndex >= round.length - 1) setPhase("result");
+                if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.({ demo_mode: true }); }
                 else setActiveIndex(index => index + 1);
                 return;
             }
@@ -344,8 +345,9 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         } else {
             const saved = await onComplete?.(activeQuestion, result);
             if (saved === false) return;
+            completionReward = saved;
         }
-        if (activeIndex >= round.length - 1) setPhase("result");
+        if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.(alphabetMode ? result.foundation_round : completionReward); }
         else setActiveIndex(index => index + 1);
     };
     const statusAlert = statusError
@@ -449,7 +451,11 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></aside>}
             {statusAlert}
         </article></section>
-        {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => { stopAudio(); setActiveIndex(index => index + 1); }} disabled={activeIndex >= round.length - 1}>下一題<FiChevronRight /></button></nav>}
+        {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => {
+            stopAudio();
+            if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.({ demo_mode: true }); }
+            else setActiveIndex(index => index + 1);
+        }}>{activeIndex >= round.length - 1 ? "完成大挑戰" : "下一題"}<FiChevronRight /></button></nav>}
         {exitDialog}
     </main>;
 }
