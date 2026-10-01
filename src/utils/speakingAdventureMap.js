@@ -3,20 +3,51 @@ const MAP_HEIGHT = 1672;
 const MAX_ROWS = 7;
 const PREFERRED_LEVELS_PER_ROW = 4;
 
-// Measured from the illustrated v2 road, starting beside the flag at the
-// bottom and ending at the castle. Sampling this same centreline keeps every
-// HTML level control on the painted road while students climb upward.
+// Approved 2026-10-01 centreline preview: trace the road and wooden bridge,
+// starting at the bottom flag and stopping on the road before the castle.
 const ROAD_POINTS = [
-    [135, 1575], [240, 1550], [360, 1505], [500, 1440], [620, 1370], [690, 1285],
-    [675, 1210], [560, 1150], [440, 1105], [410, 1050], [450, 1000], [570, 955],
-    [700, 910], [765, 860], [740, 805], [620, 770], [500, 735], [425, 690],
-    [420, 640], [470, 590], [580, 540], [700, 490], [780, 435], [770, 385],
-    [650, 345], [500, 315], [340, 300], [225, 280], [245, 245], [360, 220],
-    [510, 205], [650, 175], [760, 130], [825, 85]
+    [135, 1587], [240, 1568], [360, 1519], [500, 1473], [620, 1431],
+    [669, 1400], [690, 1380], [703, 1360], [708, 1340], [706, 1320], [698, 1300], [683, 1280],
+    [650, 1255], [605, 1230], [548, 1205], [498, 1182],
+    [455, 1160], [424, 1140], [407, 1120], [405, 1100], [415, 1080], [438, 1060], [477, 1040],
+    [570, 1012], [700, 976], [744, 950], [764, 930], [772, 910], [771, 890], [762, 870], [742, 850],
+    [700, 832], [620, 799], [500, 760], [447, 730], [427, 710], [421, 690], [426, 670], [443, 650], [470, 630],
+    [580, 582], [700, 546], [735, 530], [773, 510], [791, 490], [787, 470], [768, 453], [723, 430],
+    [650, 418], [500, 367], [340, 336], [284, 330], [241, 310], [223, 290], [243, 270], [289, 250],
+    [360, 236], [510, 214], [650, 181], [700, 155], [735, 128], [760, 115]
 ];
 
-const ROAD_SEGMENTS = ROAD_POINTS.slice(1).map((point, index) => {
-    const previous = ROAD_POINTS[index];
+const ROAD_CURVES = ROAD_POINTS.slice(0, -1).map((point, index) => {
+    const previous = ROAD_POINTS[Math.max(0, index - 1)];
+    const next = ROAD_POINTS[index + 1];
+    const after = ROAD_POINTS[Math.min(ROAD_POINTS.length - 1, index + 2)];
+    return [
+        point,
+        [point[0] + (next[0] - previous[0]) / 6, point[1] + (next[1] - previous[1]) / 6],
+        [next[0] - (after[0] - point[0]) / 6, next[1] - (after[1] - point[1]) / 6],
+        next
+    ];
+});
+
+const formatPoint = point => point.map(value => Number(value.toFixed(3))).join(" ");
+export const SPEAKING_ADVENTURE_ROAD_PATH = `M ${formatPoint(ROAD_POINTS[0])} ${ROAD_CURVES.map(curve =>
+    `C ${curve.slice(1).map(formatPoint).join(" ")}`
+).join(" ")}`;
+
+// Use the same cubic curves and arc-length sampling as the approved SVG.
+// Build the table once, so responsive placement never depends on DOM size.
+const ROAD_SAMPLES = ROAD_CURVES.flatMap(curve => Array.from({ length: 40 }, (_, index) => {
+    const t = index / 40;
+    const u = 1 - t;
+    return [0, 1].map(axis =>
+        u ** 3 * curve[0][axis] + 3 * u ** 2 * t * curve[1][axis]
+        + 3 * u * t ** 2 * curve[2][axis] + t ** 3 * curve[3][axis]
+    );
+}));
+ROAD_SAMPLES.push(ROAD_POINTS[ROAD_POINTS.length - 1]);
+
+const ROAD_SEGMENTS = ROAD_SAMPLES.slice(1).map((point, index) => {
+    const previous = ROAD_SAMPLES[index];
     return {
         from: previous,
         to: point,
@@ -71,7 +102,8 @@ export const buildSpeakingAdventureRoute = (_bookKey, items) => {
     const rowCounts = distributeSpeakingLevels(items.length);
     const nodes = items.map((item, index) => {
         const progress = items.length > 1 ? index / (items.length - 1) : 0;
-        const point = sampleRoad(progress);
+        // Keep the first marker on the road, but clear the painted start flag.
+        const point = sampleRoad(index === 0 ? 32 / ROAD_LENGTH : progress);
         return {
             id: item.id,
             x: point.x,

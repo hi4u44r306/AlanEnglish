@@ -380,7 +380,7 @@
 
 // Game world v2: three responsive biomes provide enough room for Workbook 1's
 // full route while the real level buttons remain accessible HTML controls.
-body.speaking-game-world-active .app-shell { padding-top: 0; background: #7fc6ef; }
+body.speaking-game-world-active .app-shell { padding-top: 0; background: #234b45; }
 body.speaking-game-world-active .app-header,
 body.speaking-game-world-active .ae-student-bottom-nav,
 body.speaking-game-world-active .assignment-shortcut,
@@ -477,8 +477,14 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 .speaking-adventure-route .speaking-map-chapter {
   position: relative;
   display: grid;
+  // Keep scrollIntoView on the document instead of scrolling this clipped scene.
+  overflow: clip;
   justify-items: center;
-  background: #294f61;
+  align-content: start;
+  min-height: 100dvh;
+  padding-top: calc(96px + env(safe-area-inset-top, 0px));
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(#342746, #234b45);
 }
 .speaking-adventure-route .speaking-map-chapter::before {
   content: "";
@@ -650,7 +656,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   .speaking-challenge-page.is-book-open .speaking-book-toolbar__progress { min-width: 82px; }
   .speaking-challenge-page.is-book-open .speaking-book-toolbar .speaking-back { width: 56px; height: 56px; min-height: 56px; }
   .speaking-challenge-page.is-book-open .speaking-book-toolbar .speaking-back svg { width: 32px; height: 32px; }
-  .speaking-adventure-route .speaking-map-chapter::before { display: none; }
+  .speaking-adventure-route .speaking-map-chapter::before { display: block; }
   .speaking-adventure-route .speaking-challenge-lesson { top: var(--map-y); width: 60px; min-height: 60px; }
   .speaking-adventure-route .speaking-challenge-lesson__number { width: 52px; height: 52px; min-width: 52px; border-width: 5px; font-size: 13px; }
   .speaking-adventure-route .speaking-challenge-lesson.is-wide-label { width: clamp(90px, 23vw, 104px); }
