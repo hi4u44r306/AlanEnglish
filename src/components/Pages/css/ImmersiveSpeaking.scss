@@ -711,74 +711,34 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-shadow: 0 8px 22px rgba(35, 67, 112, .09);
 }
 
-// V9: one continuous seven-row serpentine map. Coordinates are measured from
-// the artwork, so the road and level markers scale from the same container.
-.speaking-adventure-route .speaking-map-chapter::before {
-  background-image: url("../assets/speaking-map/workbook-adventure-world-v9-final-mobile.webp");
-}
+// The SVG road and HTML markers use one responsive coordinate system.
 .speaking-adventure-route .speaking-map-canvas {
   container-type: inline-size;
-  aspect-ratio: 793 / 1983;
-  background-image: url("../assets/speaking-map/workbook-adventure-world-v9-final-4k.webp");
+  aspect-ratio: 1000 / 6000;
+  background-image: url("../assets/speaking-map/storybook-adventure-map.svg");
   background-position: center;
   background-size: 100% 100%;
-  image-rendering: auto;
 }
 .speaking-adventure-route .speaking-map-book-sign {
-  top: 6.25%;
-  left: 27%;
-  width: 19%;
-  transform: translate(-50%, -50%);
+  top: 5.8%;
+  left: 42.8%;
+  width: 18%;
 }
 .speaking-adventure-route .speaking-map-book-sign strong {
-  font-size: clamp(11px, 2.55cqw, 23px);
+  font-size: clamp(17px, 2.5cqw, 23px);
 }
 .speaking-adventure-route .speaking-map-book-sign span {
-  font-size: clamp(7px, 1.25cqw, 11px);
+  font-size: clamp(9px, 1.2cqw, 12px);
 }
 .speaking-adventure-route .speaking-challenge-lesson {
   left: var(--map-side);
-  width: max(44px, 8.5cqw);
-  min-height: max(44px, 8.5cqw);
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: transparent;
 }
-.speaking-adventure-route .speaking-challenge-lesson__number {
-  width: 8.5cqw;
-  height: 8.5cqw;
-  min-width: 8.5cqw;
-  padding: 3px;
-  border: clamp(2px, .42cqw, 4px) solid rgba(255, 255, 255, .96);
-  border-radius: 50%;
-  background: #2f78c7;
-  color: #fff;
-  font-size: clamp(10px, 2cqw, 18px);
-  line-height: 1.05;
-  white-space: pre-line;
-  box-shadow: none;
-}
 .speaking-adventure-route .speaking-challenge-lesson.is-multiline-label .speaking-challenge-lesson__number {
-  font-size: clamp(8px, 1.55cqw, 14px);
-}
-.speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
-  border-color: #fff8db;
-  background: #f4c840;
-  color: #17345e;
-  box-shadow: none;
-}
-.speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
-  border-color: #effff4;
-  background: #2f9d62;
-  color: #fff;
-  box-shadow: none;
-}
-.speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
-  border-color: #eef2f7;
-  background: #718096;
-  color: #fff;
-  box-shadow: none;
+  font-size: clamp(9px, 1.55cqw, 13px);
 }
 .speaking-adventure-route .speaking-challenge-lesson:focus-visible {
   outline: 3px solid #122f63;
@@ -787,29 +747,21 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 
 @media (max-width: 520px) {
   .speaking-adventure-route .speaking-map-canvas {
-    aspect-ratio: 793 / 1983;
-    background-image: url("../assets/speaking-map/workbook-adventure-world-v9-final-mobile.webp");
+    aspect-ratio: 1000 / 6000;
+    background-image: url("../assets/speaking-map/storybook-adventure-map.svg");
     background-position: center;
     background-size: 100% 100%;
   }
   .speaking-adventure-route .speaking-map-book-sign {
-    top: 6.25%;
-    left: 27%;
-    width: 19%;
+    top: 5.8%;
+    left: 35.5%;
+    width: 36%;
   }
   .speaking-adventure-route .speaking-challenge-lesson {
-    left: var(--map-side);
-    width: max(44px, 8.5cqw);
-    min-height: max(44px, 8.5cqw);
-  }
-  .speaking-adventure-route .speaking-challenge-lesson__number {
-    width: 8.5cqw;
-    height: 8.5cqw;
-    min-width: 8.5cqw;
-    font-size: clamp(10px, 3.25cqw, 14px);
+    left: var(--map-mobile-side);
   }
   .speaking-adventure-route .speaking-challenge-lesson.is-multiline-label .speaking-challenge-lesson__number {
-    font-size: clamp(8px, 2.65cqw, 11px);
+    font-size: 10px;
   }
 }
 
@@ -875,12 +827,10 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   }
 }
 
-// Wooden trail markers share one material system across every Workbook map.
-// The border is natural timber; the centre is flat painted wood so the marker
-// stays part of the illustrated world without introducing stone or 3D effects.
+// Wooden trail markers match the approved preview: a warm timber ring around
+// a flat painted centre, with enough contrast for page labels on every device.
 .speaking-adventure-route .speaking-challenge-lesson {
-  --map-marker-size: clamp(44px, 8.5vw, 76px);
-  --map-marker-size: clamp(44px, 8.5cqw, 76px);
+  --map-marker-size: clamp(44px, 8.5cqw, 68px);
   width: var(--map-marker-size);
   min-height: var(--map-marker-size);
 }
@@ -890,33 +840,32 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: var(--map-marker-size);
   height: var(--map-marker-size);
   min-width: var(--map-marker-size);
-  border: clamp(4px, .68cqw, 7px) solid transparent;
+  border: clamp(5px, .68cqw, 6px) solid #a76435;
+  outline: 2px solid #f2c47f;
+  outline-offset: -1px;
   color: #17345e;
-  background:
-    linear-gradient(var(--marker-fill), var(--marker-fill)) padding-box,
-    linear-gradient(102deg, #dda15a 0%, #8c4b25 31%, #c97b3b 63%, #75401f 100%) border-box;
-  background-size: 100% 100%;
+  background: var(--marker-fill);
   font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -.02em;
   white-space: nowrap;
-  box-shadow: none;
+  box-shadow: 0 4px 0 #704326, 0 7px 12px rgba(38, 42, 45, .2);
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
   --marker-fill: #ffd94d;
   color: #17345e;
-  box-shadow: none;
+  box-shadow: 0 4px 0 #704326, 0 7px 12px rgba(38, 42, 45, .2);
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
   --marker-fill: #52dc48;
   color: #fff;
-  box-shadow: none;
+  box-shadow: 0 4px 0 #704326, 0 7px 12px rgba(38, 42, 45, .2);
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
   --marker-fill: #969fa4;
   color: #17345e;
-  box-shadow: none;
+  box-shadow: 0 4px 0 #704326, 0 7px 12px rgba(38, 42, 45, .2);
 }
 .speaking-adventure-route .speaking-challenge-lesson__state {
   width: 22px;
@@ -964,18 +913,14 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   }
 }
 
-// Final cascade guard: v9 markers stay flat even though older map themes are
-// retained above for the workbook selector and legacy previews.
+// Final cascade guard keeps the approved marker material above legacy themes.
 .speaking-adventure-route .speaking-challenge-lesson__number,
 .speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number,
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number,
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number {
-  border-color: transparent;
-  background:
-    linear-gradient(var(--marker-fill), var(--marker-fill)) padding-box,
-    linear-gradient(102deg, #dda15a 0%, #8c4b25 31%, #c97b3b 63%, #75401f 100%) border-box;
-  background-size: 100% 100%;
-  box-shadow: none;
+  border-color: #a76435;
+  background: var(--marker-fill);
+  box-shadow: 0 4px 0 #704326, 0 7px 12px rgba(38, 42, 45, .2);
 }
 
 .speaking-adventure-route .speaking-challenge-lesson.is-multiline-label .speaking-challenge-lesson__number {
