@@ -1,13 +1,45 @@
-const MAP_WIDTH = 793;
-const MAP_HEIGHT = 1983;
+const MAP_WIDTH = 1000;
+const MAP_HEIGHT = 6000;
 const MAX_ROWS = 7;
 const PREFERRED_LEVELS_PER_ROW = 4;
 
-// Measured from the centre of each horizontal road on the v9 map asset.
-const ROAD_ROW_Y = [10.8, 21.7, 34.1, 47.1, 59.6, 72.2, 84.8];
-// Keep a visible run-up before the first marker and road beyond the last one.
-const ROAD_START_X = 18;
-const ROAD_END_X = 82;
+// This centreline is shared with storybook-adventure-map.svg. Sampling the same
+// geometry keeps every HTML level control centred on the painted SVG road at
+// any responsive width without baking labels into the artwork.
+const ROAD_POINTS = [
+    [140, 470], [250, 520], [390, 600], [550, 720], [690, 860], [820, 1040],
+    [860, 1260], [740, 1460], [590, 1600], [440, 1740], [310, 1910], [220, 2110],
+    [270, 2330], [410, 2520], [570, 2660], [720, 2840], [800, 3040], [750, 3260],
+    [620, 3440], [470, 3620], [330, 3810], [220, 4010], [260, 4230], [390, 4400],
+    [550, 4520], [700, 4690], [820, 4880], [840, 5100], [730, 5300], [580, 5440],
+    [430, 5570], [280, 5680], [180, 5760]
+];
+
+const ROAD_SEGMENTS = ROAD_POINTS.slice(1).map((point, index) => {
+    const previous = ROAD_POINTS[index];
+    return {
+        from: previous,
+        to: point,
+        length: Math.hypot(point[0] - previous[0], point[1] - previous[1])
+    };
+});
+const ROAD_LENGTH = ROAD_SEGMENTS.reduce((sum, segment) => sum + segment.length, 0);
+
+const sampleRoad = progress => {
+    let remaining = Math.min(1, Math.max(0, progress)) * ROAD_LENGTH;
+    const segment = ROAD_SEGMENTS.find(current => {
+        if (remaining <= current.length) return true;
+        remaining -= current.length;
+        return false;
+    }) || ROAD_SEGMENTS[ROAD_SEGMENTS.length - 1];
+    const ratio = segment.length ? remaining / segment.length : 0;
+    const x = segment.from[0] + (segment.to[0] - segment.from[0]) * ratio;
+    const y = segment.from[1] + (segment.to[1] - segment.from[1]) * ratio;
+    return {
+        x: Number((x / MAP_WIDTH * 100).toFixed(2)),
+        y: Number((y / MAP_HEIGHT * 100).toFixed(2))
+    };
+};
 
 const evenlySpacedExtraRows = (rowCount, extraCount) => {
     if (!extraCount) return new Set();
@@ -27,35 +59,19 @@ export const distributeSpeakingLevels = total => {
     return Array.from({ length: rowCount }, (_, rowIndex) => baseCount + (extraRows.has(rowIndex) ? 1 : 0));
 };
 
-const rowXPositions = count => {
-    if (count <= 1) return [(ROAD_START_X + ROAD_END_X) / 2];
-    return Array.from({ length: count }, (_, index) =>
-        Number((ROAD_START_X + index * (ROAD_END_X - ROAD_START_X) / (count - 1)).toFixed(2))
-    );
-};
-
 export const buildSpeakingAdventureRoute = (_bookKey, items) => {
     const rowCounts = distributeSpeakingLevels(items.length);
-    const rowIndexes = rowCounts.length === 1
-        ? [0]
-        : rowCounts.map((_, index) => Math.round(index * (MAX_ROWS - 1) / (rowCounts.length - 1)));
-    let itemIndex = 0;
-    const nodes = rowCounts.flatMap((count, rowIndex) => {
-        const positions = rowXPositions(count);
-        const orderedPositions = rowIndex % 2 === 0 ? positions : [...positions].reverse();
-        return orderedPositions.map(x => {
-            const item = items[itemIndex++];
-            const mapRow = rowIndexes[rowIndex];
-            const progress = items.length > 1 ? (itemIndex - 1) / (items.length - 1) : 0;
-            return {
-                id: item.id,
-                x,
-                xMobile: x,
-                y: ROAD_ROW_Y[mapRow],
-                row: mapRow + 1,
-                zone: progress >= 0.72 ? "volcano" : progress >= 0.43 ? "highland" : "grassland"
-            };
-        });
+    const nodes = items.map((item, index) => {
+        const progress = items.length > 1 ? index / (items.length - 1) : 0;
+        const point = sampleRoad(progress);
+        return {
+            id: item.id,
+            x: point.x,
+            xMobile: point.x,
+            y: point.y,
+            row: Math.min(MAX_ROWS, Math.floor(progress * MAX_ROWS) + 1),
+            zone: progress >= 0.72 ? "volcano" : progress >= 0.43 ? "highland" : "grassland"
+        };
     });
 
     return {
