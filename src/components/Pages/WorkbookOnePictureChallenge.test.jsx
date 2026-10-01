@@ -210,8 +210,9 @@ describe("WorkbookOnePictureChallenge", () => {
         await act(async () => { fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" })); await Promise.resolve(); });
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
         fireEvent.click(screen.getByRole("button", { name: "先看下一題" }));
-        expect(screen.getByRole("heading", { name: "還有 1 題待完成" })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "只重試未過題" }));
+        expect(screen.getByText("已完成 1／2 題")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "只剩 1 題，再試一次！" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "再挑戰這 1 題" }));
         expect(screen.getByRole("article", { name: "第 1 題，共 1 題" })).toBeInTheDocument();
     });
 

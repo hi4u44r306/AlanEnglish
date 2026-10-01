@@ -934,6 +934,21 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 }
 
 // Compact level sheet and white lesson stage approved for the speaking game.
+.speaking-hint-practice-notice {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid #efd89e;
+  border-radius: 12px;
+  background: #fff8e5;
+  color: #765521;
+  font-size: 13px;
+  line-height: 1.5;
+  strong { font-weight: 800; }
+  span { font-size: 12px; }
+}
+
 // These selectors stay at the end so older visual themes cannot reintroduce
 // the large illustrated panel or map background inside a lesson.
 .speaking-level-overlay {

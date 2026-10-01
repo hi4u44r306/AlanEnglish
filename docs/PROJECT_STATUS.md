@@ -2,6 +2,15 @@
 
 最後更新：2026-10-01
 
+本機審核：口說錯題重試與提示提醒（2026-10-01，尚未部署）：
+
+- 分支 `codex/speaking-road-centerline-review`，接續 `3f00d7ba`；使用者核准改善第 2、3 項，僅本機修改，未 Push／PR／部署。
+- 一般題與圖片題結束時顯示整頁「已完成 N／總題數」、「只剩 N 題，再試一次！」及「再挑戰這 N 題」。沿用既有已通過紀錄與只重試未過題的回合，不修改 A–Z 規則、評分、解鎖或獎勵。
+- 挑戰提示成功開啟後立即顯示「這題先練習，稍後不用提示再試一次」與本輪不計通關說明；收起提示仍保留，重新挑戰的新回合清除。提示失敗不顯示成功提醒，舊回合的遲到提示回應不會打開新題／新回合答案。
+- `SpeakingPracticeSteps`、`WorkbookOnePictureChallenge`、`SpeakingChallengeFlow` 共 36／36 targeted tests 通過；受影響 JSX ESLint、diff 檢查通過。未執行全套測試或 production build，因只修改局部前端提示／重試呈現。學生入口仍暫停，真實學生錄音重試與 iPhone Safari 尚待驗證。
+- 相關檔案：`SpeakingPracticeSteps.jsx`、`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`ImmersiveSpeaking.scss`、對應測試及手冊 v3.15 草稿。使用者既有路牌註解／排版維持原樣。
+- Chrome 本機管理員預覽已確認提示成功開啟即顯示提醒、收起後仍保留；412×915 無橫向溢出，Console 無 error，`S-20-R` 提醒截圖已產生。學生未過題結算／重新錄音由 targeted tests 驗證，尚未做學生實機驗收。
+
 本機審核：口說返回與通關動畫（2026-10-01，尚未部署）：
 
 - 後續審核：通關三顆星統一為 64px、同一水平線，保留依序亮起動畫。本批只調整 SCSS，未改解鎖／獎勵規則；本機視覺與 diff 檢查，免重跑測試及 build。

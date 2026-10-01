@@ -145,7 +145,14 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     </main>;
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
-        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">{remainingCount ? `還有 ${remainingCount} 題待完成` : "太棒了，全部完成！"}</h1><p>{remainingCount ? "已通過的題目會保留，重新開始只練未通過的題目。" : "你已完成這一組看圖口說挑戰。"}</p><div className="speaking-foundation-actions"><button type="button" className="primary" onClick={startRound}><FiRefreshCw />{remainingCount ? "只重試未過題" : "再玩一次"}</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
+        <section className="speaking-foundation-result">
+            <span aria-hidden="true">★</span>
+            <p>已完成 {sourceQuestions.length - remainingCount}／{sourceQuestions.length} 題</p>
+            <h1 ref={phaseFocusRef} tabIndex="-1">{remainingCount ? `只剩 ${remainingCount} 題，再試一次！` : "太棒了，全部完成！"}</h1>
+            <p>{remainingCount ? "已通過的題目會保留，不必重念。" : "你已完成這一組看圖口說挑戰。"}</p>
+            {remainingCount > 0 && challengeMode === "challenge" && <p>看過提示的題目，這次試著不用提示回答。</p>}
+            <div className="speaking-foundation-actions"><button type="button" className="primary" onClick={startRound}><FiRefreshCw />{remainingCount ? `再挑戰這 ${remainingCount} 題` : "再玩一次"}</button><button type="button" className="secondary" onClick={onExit}>返回地圖</button></div>
+        </section>
     </main>;
 
     if (!activeQuestion) return null;

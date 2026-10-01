@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingPracticeSteps, { answerPatternForLearner, extractAnswerSlots } from "./SpeakingPracticeSteps";
 
 jest.mock("./SpeakingPronunciationRecorder", () => function Recorder({ onScored }) {
@@ -123,6 +123,44 @@ describe("SpeakingPracticeSteps", () => {
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(onCompleted).not.toHaveBeenCalled();
         expect(onIncorrect).toHaveBeenCalledWith(expect.objectContaining({ hint_used: true }));
-        expect(screen.getByText("你已看過提示，本輪這題不計通關；稍後只需重試這題。")).toBeInTheDocument();
+        expect(screen.getByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+    });
+    it("提示成功開啟後立即提醒，收起也保留，新回合清除提醒且能通關", async () => {
+        const onCompleted = jest.fn().mockResolvedValue(true);
+        const onRevealHint = jest.fn().mockResolvedValue({ model_answer: question.model_answer });
+        const props = { question, challengeMode: "challenge", onCompleted, onRevealHint };
+        const { rerender } = render(<SpeakingPracticeSteps {...props} challengeSessionId="round-1" />);
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        expect(await screen.findByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "收起回答提示" }));
+        expect(screen.getByRole("status")).toHaveTextContent("本輪這題不計通關");
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        expect(onCompleted).not.toHaveBeenCalled();
+        rerender(<SpeakingPracticeSteps {...props} challengeSessionId="round-2" />);
+        expect(screen.queryByText("這題先練習，稍後不用提示再試一次。")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        expect(await screen.findByText("本題已完成！你可以繼續挑戰或再練一次。")).toBeInTheDocument();
+        expect(onCompleted).toHaveBeenCalledTimes(1);
+    });
+    it("提示載入失敗不顯示已使用提示，仍可重試", async () => {
+        const onRevealHint = jest.fn().mockRejectedValueOnce(new Error("提示載入失敗")).mockResolvedValue({ model_answer: question.model_answer });
+        render(<SpeakingPracticeSteps question={question} challengeMode="challenge" onRevealHint={onRevealHint} />);
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("提示載入失敗");
+        expect(screen.queryByText("這題先練習，稍後不用提示再試一次。")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        expect(await screen.findByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+    });
+    it("舊回合遲到的提示不能重新打開新回合答案", async () => {
+        let resolve;
+        const onRevealHint = jest.fn(() => new Promise(done => { resolve = done; }));
+        const props = { question, challengeMode: "challenge", onRevealHint };
+        const { rerender } = render(<SpeakingPracticeSteps {...props} challengeSessionId="round-1" />);
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        rerender(<SpeakingPracticeSteps {...props} challengeSessionId="round-2" />);
+        await act(async () => resolve({ model_answer: question.model_answer }));
+        expect(screen.queryByText("My name is _____.")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" })).toBeEnabled();
     });
 });

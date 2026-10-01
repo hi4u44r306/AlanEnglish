@@ -562,6 +562,7 @@ export default function TextbookSpeakingChallenge() {
         onFinished={showCompletion}
     />);
     const completedCount = questions.filter(question => question.progress_status === "completed").length;
+    const remainingCount = questions.length - completedCount;
     const progressPercent = questions.length ? Math.round((completedCount / questions.length) * 100) : 0;
 
     if (!activeQuestion) return renderScene(<main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button></section></main>);
@@ -635,13 +636,15 @@ export default function TextbookSpeakingChallenge() {
             <button type="button" className="primary" onClick={goForward} disabled={!isCompleted}>{isLastQuestion ? "完成大挑戰" : "下一題"}<FiChevronRight /></button>
         </nav> : !completionNotice && !retryNotice && <button type="button" className="speaking-continue-button" onClick={goForward}>{isCompleted ? "繼續挑戰" : "先看下一題"}<FiChevronRight aria-hidden="true" /></button>}
         {retryNotice && <div className="speaking-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="speaking-retry-title"><section>
-            <h2 id="speaking-retry-title">只剩 {questions.filter(question => question.progress_status !== "completed").length} 題要加油！</h2>
+            <p>已完成 {completedCount}／{questions.length} 題</p>
+            <h2 id="speaking-retry-title">只剩 {remainingCount} 題，再試一次！</h2>
             <p>已通過的題目會保留，不必重念。</p>
+            {challengeMode === "challenge" && <p>看過提示的題目，這次試著不用提示回答。</p>}
             <div><button type="button" onClick={returnToBookCatalog}>回到關卡列表</button><button type="button" className="primary" onClick={() => {
                 setChallengeSessionId(createSpeakingChallengeSessionId());
                 setActiveQuestionIndex(questions.findIndex(question => question.progress_status !== "completed"));
                 setRetryNotice(false);
-            }}>只重試未過題</button></div>
+            }}>{`再挑戰這 ${remainingCount} 題`}</button></div>
         </section></div>}
     </main>);
 }

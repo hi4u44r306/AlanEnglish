@@ -9,7 +9,7 @@ const mockUser = { uid: "student" };
 let mockRole = "student";
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockUser, role: mockRole }) }));
 jest.mock("../../services/speakingChallengeService", () => ({ completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn() }));
-jest.mock("./SpeakingPracticeSteps", () => function Practice({ onCompleted }) { return <button onClick={onCompleted}>通過本題</button>; });
+jest.mock("./SpeakingPracticeSteps", () => function Practice({ onCompleted, challengeSessionId }) { return <button data-session={challengeSessionId} onClick={onCompleted}>通過本題</button>; });
 jest.mock("./WorkbookOnePictureChallenge", () => function Picture({ onFinished }) { return <button onClick={() => onFinished({ xp_awarded: 0, ae_points_awarded: 0 })}>完成圖片頁</button>; });
 jest.mock("./WorkbookOneFoundationChallenge", () => function Foundation({ onFinished }) { return <button onClick={() => onFinished({ xp_awarded: 30, ae_points_awarded: 3 })}>完成字母頁</button>; });
 const Probe = () => { const location = useLocation(); return <output data-testid="route">{location.pathname}|{location.search}|{location.state?.speakingReturn?.questionSetId}</output>; };
@@ -25,6 +25,27 @@ describe("speaking return and completion flow", () => {
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [] });
     });
     afterEach(() => { window.matchMedia = originalMatchMedia; });
+    it.each(["easy", "challenge"])("%s 重試顯示整頁進度與剩餘題數，保留通關並建立新回合", async mode => {
+        getSpeakingChallengeSet.mockResolvedValue({ challenge: { ...fixture, speaking_questions: [
+            { id: 1, question_text: "Passed one", progress_status: "completed" },
+            { id: 2, question_text: "Passed two", progress_status: "completed" },
+            { id: 9, question_text: "Try this one", progress_status: "opened" }
+        ] } });
+        completeSpeakingChallengeQuestion.mockResolvedValue({ challenge_completed: true, xp_awarded: 0 });
+        mount(mode);
+        const oldSession = (await screen.findByRole("button", { name: "通過本題" })).getAttribute("data-session");
+        fireEvent.click(screen.getByRole("button", { name: "先看下一題" }));
+        expect(screen.getByText("已完成 2／3 題")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "只剩 1 題，再試一次！" })).toBeInTheDocument();
+        if (mode === "challenge") expect(screen.getByText("看過提示的題目，這次試著不用提示回答。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "再挑戰這 1 題" }));
+        const practice = screen.getByRole("button", { name: "通過本題" });
+        expect(practice.getAttribute("data-session")).not.toBe(oldSession);
+        fireEvent.click(practice);
+        await screen.findByRole("dialog", { name: "闖關成功！" });
+        expect(completeSpeakingChallengeQuestion).toHaveBeenCalledTimes(1);
+        expect(completeSpeakingChallengeQuestion.mock.calls[0][2]).toBe(9);
+    });
     it("return has a short animation, unmounts recording content, and preserves the map location", async () => {
         mount(); await screen.findByRole("button", { name: "通過本題" });
         fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));

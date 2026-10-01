@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 
@@ -59,16 +59,20 @@ export default function SpeakingPracticeSteps({
     const [helpError, setHelpError] = useState("");
     const [helpLoading, setHelpLoading] = useState(false);
     const [lastResult, setLastResult] = useState(null);
+    const hintRequestRef = useRef(0);
     const answerQuestion = revealedAnswer ? { ...question, ...revealedAnswer } : question;
     const answerPattern = answerPatternForLearner(answerQuestion.model_answer);
     const example = naturalExample(answerQuestion);
 
     useEffect(() => {
+        hintRequestRef.current += 1;
         setShowHelp(false);
         setRevealedAnswer(null);
         setHelpError("");
+        setHelpLoading(false);
         setLastResult(null);
-    }, [question.id, challengeSessionId]);
+        return () => { hintRequestRef.current += 1; };
+    }, [question.id, challengeSessionId, challengeMode]);
 
     const handleScored = async result => {
         const scoredResult = challengeMode === "challenge" && revealedAnswer
@@ -89,14 +93,18 @@ export default function SpeakingPracticeSteps({
     const toggleHelp = async () => {
         if (showHelp) { setShowHelp(false); return; }
         if (challengeMode === "challenge" && onRevealHint && !revealedAnswer) {
+            const request = hintRequestRef.current;
             setHelpLoading(true);
             setHelpError("");
             try {
-                setRevealedAnswer(await onRevealHint(question, challengeSessionId));
+                const answer = await onRevealHint(question, challengeSessionId);
+                if (request !== hintRequestRef.current) return;
+                setRevealedAnswer(answer);
             } catch (cause) {
+                if (request !== hintRequestRef.current) return;
                 setHelpError(cause?.message || "暫時無法顯示提示，請再試一次");
                 return;
-            } finally { setHelpLoading(false); }
+            } finally { if (request === hintRequestRef.current) setHelpLoading(false); }
         }
         setShowHelp(true);
     };
@@ -119,6 +127,10 @@ export default function SpeakingPracticeSteps({
         </button>}
 
         {helpError && <p className="speaking-practice-retry" role="alert">{helpError}</p>}
+        {challengeMode === "challenge" && revealedAnswer && <p className="speaking-hint-practice-notice" role="status">
+            <strong>這題先練習，稍後不用提示再試一次。</strong>
+            <span>本輪這題不計通關；已通過的題目會保留。</span>
+        </p>}
 
         {!hideHelp && showHelp && <div className="speaking-help-panel">
             {answerQuestion.hint_zh && <p>{answerQuestion.hint_zh}</p>}
@@ -145,7 +157,7 @@ export default function SpeakingPracticeSteps({
 
         {lastResult?.answer_match !== false && lastResult && !lastResult.hint_used && !lastResult.save_failed && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
         {lastResult?.save_failed && <p className="speaking-practice-retry" role="alert">這次回答尚未記錄為通關，請重新錄音再試一次。</p>}
-        {lastResult?.hint_used && <p className="speaking-practice-retry">你已看過提示，本輪這題不計通關；稍後只需重試這題。</p>}
+        {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不用提示再試一次。本輪這題不計通關。</p>}
         {lastResult?.answer_match === false && (
           <p className="speaking-practice-retry">
             <FiHelpCircle aria-hidden="true" />{" "}
