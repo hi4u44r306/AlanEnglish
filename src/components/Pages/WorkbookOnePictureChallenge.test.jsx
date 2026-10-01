@@ -24,6 +24,19 @@ describe("WorkbookOnePictureChallenge", () => {
         jest.restoreAllMocks();
     });
 
+    it("only a fully completed page opens the shared celebration with actual rewards", async () => {
+        const reward = { challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 };
+        const onFinished = jest.fn();
+        render(<WorkbookOnePictureChallenge challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" },
+            speaking_questions: [{ id: 1, visual_aid: privateVisual, picture_interaction: { type: "picture_qa" } }] }}
+            firebaseUser={{ uid: "student" }} onComplete={jest.fn().mockResolvedValue(reward)} onFinished={onFinished} />);
+        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
+        expect(onFinished).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+        await waitFor(() => expect(onFinished).toHaveBeenCalledWith(reward));
+    });
+
     it("老師按來源順序唯讀預覽看圖題並可切換，不啟用錄音", () => {
         const onComplete = jest.fn();
         render(<WorkbookOnePictureChallenge
@@ -172,9 +185,11 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(onComplete).toHaveBeenCalledTimes(1);
         expect(screen.getByRole("article", { name: "第 1 題，共 2 題" })).toBeInTheDocument();
         expect(screen.getByRole("img")).toHaveAttribute("src", firstImageUrl);
+        expect(screen.getByRole("button", { name: "重試儲存" })).toBeInTheDocument();
+        expect(screen.queryByText(/本題已完成！/)).not.toBeInTheDocument();
 
         await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+            fireEvent.click(screen.getByRole("button", { name: "重試儲存" }));
             await Promise.resolve();
         });
         expect(onComplete).toHaveBeenCalledTimes(2);
@@ -197,8 +212,9 @@ describe("WorkbookOnePictureChallenge", () => {
         await act(async () => { fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" })); await Promise.resolve(); });
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
         fireEvent.click(screen.getByRole("button", { name: "先看下一題" }));
-        expect(screen.getByRole("heading", { name: "還有 1 題待完成" })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "只重試未過題" }));
+        expect(screen.getByText("已完成 1／2 題")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "只剩 1 題，再試一次！" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "再挑戰這 1 題" }));
         expect(screen.getByRole("article", { name: "第 1 題，共 1 題" })).toBeInTheDocument();
     });
 

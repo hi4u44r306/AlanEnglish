@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import SpeakingPracticeSteps, { answerPatternForLearner, extractAnswerSlots } from "./SpeakingPracticeSteps";
 
 jest.mock("./SpeakingPronunciationRecorder", () => function Recorder({ onScored }) {
@@ -24,6 +24,26 @@ const question = {
 };
 
 describe("SpeakingPracticeSteps", () => {
+    it("儲存失敗可以保存同一評分結果重試，不回報答錯", async () => {
+        const onCompleted = jest.fn().mockRejectedValueOnce(new Error("network")).mockResolvedValue(true);
+        const onIncorrect = jest.fn();
+        render(<SpeakingPracticeSteps question={question} onCompleted={onCompleted} onIncorrect={onIncorrect} />);
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        fireEvent.click(await screen.findByRole("button", { name: "重試儲存" }));
+        expect(await screen.findByText(/本題已完成/)).toBeInTheDocument();
+        expect(onCompleted).toHaveBeenCalledTimes(2);
+        expect(onCompleted.mock.calls[1][0].recognized_text).toBe("My name is Amy.");
+        expect(onIncorrect).not.toHaveBeenCalled();
+    });
+    it("照念類提供現有示範發音，沒有音檔時不顯示無作用按鈕", () => {
+        const play = jest.fn();
+        const { rerender } = render(<SpeakingPracticeSteps question={question} readAloud hideHelp onPlayAudio={play} />);
+        fireEvent.click(screen.getByRole("button", { name: "聽示範發音" }));
+        expect(play).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole("button", { name: /提示/ })).not.toBeInTheDocument();
+        rerender(<SpeakingPracticeSteps question={{ ...question, model_audio_url: null }} readAloud hideHelp />);
+        expect(screen.queryByRole("button", { name: "聽示範發音" })).not.toBeInTheDocument();
+    });
     it("把個人答案欄位顯示成句型空格，不要求學生打字", () => {
         expect(extractAnswerSlots("My name is [你的名字]. [你的名字]!")).toEqual(["你的名字"]);
         expect(answerPatternForLearner(question.model_answer)).toBe("My name is _____.");
@@ -72,9 +92,9 @@ describe("SpeakingPracticeSteps", () => {
         const onIncorrect = jest.fn();
         render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onCompleted={jest.fn().mockResolvedValue(false)} onIncorrect={onIncorrect} />);
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
-        expect(await screen.findByText("這次回答尚未記錄為通關，請重新錄音再試一次。")).toBeInTheDocument();
+        expect(await screen.findByText("回答已評分，通關紀錄尚未儲存。")).toBeInTheDocument();
         expect(screen.queryByText("本題已完成！你可以繼續挑戰或再練一次。")).not.toBeInTheDocument();
-        expect(onIncorrect).toHaveBeenCalledWith(expect.objectContaining({ save_failed: true }));
+        expect(onIncorrect).not.toHaveBeenCalled();
     });
 
     it("基礎拼讀模式隱藏答案提示並把錯誤交回關卡流程", () => {
@@ -123,6 +143,44 @@ describe("SpeakingPracticeSteps", () => {
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(onCompleted).not.toHaveBeenCalled();
         expect(onIncorrect).toHaveBeenCalledWith(expect.objectContaining({ hint_used: true }));
-        expect(screen.getByText("你已看過提示，本輪這題不計通關；稍後只需重試這題。")).toBeInTheDocument();
+        expect(screen.getByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+    });
+    it("提示成功開啟後立即提醒，收起也保留，新回合清除提醒且能通關", async () => {
+        const onCompleted = jest.fn().mockResolvedValue(true);
+        const onRevealHint = jest.fn().mockResolvedValue({ model_answer: question.model_answer });
+        const props = { question, challengeMode: "challenge", onCompleted, onRevealHint };
+        const { rerender } = render(<SpeakingPracticeSteps {...props} challengeSessionId="round-1" />);
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        expect(await screen.findByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "收起回答提示" }));
+        expect(screen.getByRole("status")).toHaveTextContent("本輪這題不計通關");
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        expect(onCompleted).not.toHaveBeenCalled();
+        rerender(<SpeakingPracticeSteps {...props} challengeSessionId="round-2" />);
+        expect(screen.queryByText("這題先練習，稍後不用提示再試一次。")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        expect(await screen.findByText("本題已完成！你可以繼續挑戰或再練一次。")).toBeInTheDocument();
+        expect(onCompleted).toHaveBeenCalledTimes(1);
+    });
+    it("提示載入失敗不顯示已使用提示，仍可重試", async () => {
+        const onRevealHint = jest.fn().mockRejectedValueOnce(new Error("提示載入失敗")).mockResolvedValue({ model_answer: question.model_answer });
+        render(<SpeakingPracticeSteps question={question} challengeMode="challenge" onRevealHint={onRevealHint} />);
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("提示載入失敗");
+        expect(screen.queryByText("這題先練習，稍後不用提示再試一次。")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        expect(await screen.findByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+    });
+    it("舊回合遲到的提示不能重新打開新回合答案", async () => {
+        let resolve;
+        const onRevealHint = jest.fn(() => new Promise(done => { resolve = done; }));
+        const props = { question, challengeMode: "challenge", onRevealHint };
+        const { rerender } = render(<SpeakingPracticeSteps {...props} challengeSessionId="round-1" />);
+        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        rerender(<SpeakingPracticeSteps {...props} challengeSessionId="round-2" />);
+        await act(async () => resolve({ model_answer: question.model_answer }));
+        expect(screen.queryByText("My name is _____.")).not.toBeInTheDocument();
+        expect(screen.queryByRole("status")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" })).toBeEnabled();
     });
 });

@@ -334,6 +334,9 @@ Deno.serve(async (req: Request) => {
                     answerAudioEnabled: questionSet.generation_metadata?.source === "ocr_page_candidate"
                         && questionSet.generation_metadata?.requires_answer_audio === true,
                     staffAudioPreview: demoMode,
+                    readingAudioEnabled: interactionType !== "mixed" || Array.isArray(questionSet.generation_metadata?.question_modes)
+                        && questionSet.generation_metadata.question_modes.some((mode: any) => Number(mode.sort_order) === Number(question.sort_order)
+                            && mode.interaction_type === questionMode.interactionType),
                     showEasyAnswer: challengeMode === "easy",
                     progressStatus: statusByQuestion.get(Number(question.id)),
                     modelAsset,

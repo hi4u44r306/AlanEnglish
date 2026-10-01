@@ -57,6 +57,35 @@ const createOpaqueSigner = () => {
     return { keys, sign };
 };
 
+test("朗讀示範只簽發 ready 私人資產；mixed 依每題核准類型", async () => {
+    for (const [type, allowed] of [["standard_sentence", true], ["letter_spelling", true], ["text_qa", false], ["unknown", false]]) {
+        const signer = createOpaqueSigner();
+        const result = await buildPublicSpeakingQuestion({
+            question: secretQuestion, interactionType: "mixed", questionInteractionType: type,
+            modelAsset: { status: "ready", private_object_key: "private/model.wav" },
+            signPrivateObject: signer.sign
+        });
+        assert.equal(Boolean(result.model_audio_url), allowed);
+        assert.deepEqual(signer.keys, allowed ? ["private/model.wav"] : []);
+        assert.doesNotMatch(JSON.stringify(result), /private_object_key|private\/model/);
+    }
+    const signer = createOpaqueSigner();
+    const missing = await buildPublicSpeakingQuestion({ question: secretQuestion, interactionType: "standard_sentence",
+        modelAsset: { status: "processing", private_object_key: "private/model.wav" }, signPrivateObject: signer.sign });
+    assert.equal(missing.model_audio_url, null);
+    assert.deepEqual(signer.keys, []);
+});
+
+test("mixed 頁未明確核准照念類時不使用 fallback 題型簽發語音", async () => {
+    const signer = createOpaqueSigner();
+    for (const options of [{}, { questionInteractionType: "standard_sentence", readingAudioEnabled: false }]) {
+        const result = await buildPublicSpeakingQuestion({ question: secretQuestion, interactionType: "mixed", ...options,
+            modelAsset: { status: "ready", private_object_key: "private/model.wav" }, signPrivateObject: signer.sign });
+        assert.equal(result.model_audio_url, null);
+    }
+    assert.deepEqual(signer.keys, []);
+});
+
 test("P21 學生輸出只保留核准圖片，不含問句、答案、accepted responses 或 R2 key", async () => {
     const signer = createOpaqueSigner();
     const result = await buildPublicSpeakingQuestion({
@@ -218,7 +247,7 @@ test("P21 圖片未 ready 與 P22 整句音檔未完成時拒絕輸出", async (
     );
 });
 
-test("字母、拼讀與一般口說的學生題目音檔都不簽發", async () => {
+test("A–Z 導聽不變；拼讀可取得示範，未知題型不簽發音檔", async () => {
     const hiddenSigner = createOpaqueSigner();
     const alphabet = await buildPublicSpeakingQuestion({
         question: { ...secretQuestion, question_text: "A", model_answer: "A" },
@@ -245,9 +274,10 @@ test("字母、拼讀與一般口說的學生題目音檔都不簽發", async ()
     });
     assert.equal(spelling.question_text, "apple");
     assert.equal(spelling.model_answer, "");
-    assert.equal(spelling.question_audio_status, "hidden");
-    assert.equal(spelling.model_audio_status, "hidden");
-    assert.deepEqual(spellingSigner.keys, []);
+    assert.equal(spelling.question_audio_status, "ready");
+    assert.equal(spelling.model_audio_status, "ready");
+    assert.equal(spelling.model_audio_url, "https://signed.test/2");
+    assert.deepEqual(spellingSigner.keys, ["private/apple-prompt.mp3", "private/apple-model.mp3"]);
 
     const regularSigner = createOpaqueSigner();
     const regular = await buildPublicSpeakingQuestion({

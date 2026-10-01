@@ -2,6 +2,56 @@
 
 最後更新：2026-10-01
 
+發布進行中：口說本機審核 v3.12–v3.16 整批（2026-10-01）：
+
+- 使用者已核准全部 Push、合併及正式部署；功能分支 `codex/speaking-road-centerline-review`，包含道路中心線／留白、模式載入、返回／完成動畫、錯題重試與提示提醒、照念單一練習、技術失敗直接重試，以及原工作目錄的路牌隱藏／排版。
+- `origin/main` 與正式 `speaking-challenge` v46 已核對一致；本批沒有 migration，僅發布一支 Function 與 Cloudflare 前端。既有 Firebase 驗證、教材權限、學生暫停及真實獎勵規則維持；回復方式為上一版前端與 Function，無資料回填或刪除。
+- 新增發布前驗證：地圖／主頁及完成動畫 3 suites、50／50 tests 與 ESLint 通過，舊路牌與星數文案斷言已跟隨核准畫面更新；前批 87 前端、12 後端測試及 build 結果仍有效。正式實際學生獎勵待瀏覽器驗收：目前正式登入為管理員 Victor，預覽不發獎勵；學生口說後端仍暫停，不能以管理員預覽 0 XP／0 Points 代替入帳驗證。
+
+本機審核：照念單一練習與改善第 4、5 項（尚未部署）：
+
+- 分支 `codex/speaking-road-centerline-review`，接續 `8d83e3e2`。`alphabet_round`／`letter_spelling`／`standard_sentence` 使用單一入口，沿用 easy 通關紀錄、解鎖與獎勵；既有 challenge 成就不刪除。舊挑戰網址轉回 easy 再取得正確紀錄。混合頁只有全部題型完整且皆為照念類才合併；問答／看圖補句／中翻英與未知題型保留兩種模式，不從標題或頁碼猜測。
+- 已有音檔才顯示「聽示範發音」，照念題不重複顯示參考答案／提示。Edge 共用 renderer 本機修改為對通過既有身分、教材及關卡檢查的照念題簽發 ready 私人資產；不產生新語音、沒有 migration 或正式資料操作。A–Z 原導聽流程、學生暫停及問答題音檔政策保留，Function 尚未部署。
+- 網路／上傳／評分服務失敗保留錄音直接「重試評分」，不回報答錯；辨識 uncertain 不顯示紅色判分、不回報錯題或完成。正確回答的通關紀錄儲存失敗可重送同一結果；一般題、拼讀及圖片題不提前通關。試聽失敗以原關卡中性提示顯示，仍可直接錄音。
+- 三顆相同尺寸星星只作慶祝裝飾，徽章改為「全部完成！」；XP／AE Points 仍顯示實際後端獎勵。
+- 前端 6 suites／87 targeted tests、後端 12 契約測試、ESLint、共用 TypeScript 檢查、Edge 語法及 production build 通過；圖片題儲存回傳及混合題型補強後分別重跑 10／22 tests。未跑全專案測試，因影響集中於口說流程。正式 Function 未部署，學生真實錄音／試聽及 iPhone Safari 實機未驗證。
+- Chrome 本機桌面及 412×915 管理員預覽確認 P14 僅有全寬「開始練習」、P18～20 保留兩種模式；完成動畫顯示「全部完成！」與實際預覽 0 XP／0 AE Points，三顆星星同為 53.31×64px，無橫向溢出、Console 無 error。`S-20-M`／`S-20-E` 本機審核截圖已產生，正式教材素材待部署後更新。
+- 相關：口說主頁、PracticeSteps、PronunciationRecorder、Foundation／PictureChallenge、Loading／Animation、speakingPracticeMode、speaking-challenge-view、相應樣式／測試及手冊 v3.16。使用者原有路牌註解與排版修改保留。僅本機，未 Push／PR／部署。
+
+本機審核：口說錯題重試與提示提醒（2026-10-01，尚未部署）：
+
+- 分支 `codex/speaking-road-centerline-review`，接續 `3f00d7ba`；使用者核准改善第 2、3 項，僅本機修改，未 Push／PR／部署。
+- 一般題與圖片題結束時顯示整頁「已完成 N／總題數」、「只剩 N 題，再試一次！」及「再挑戰這 N 題」。沿用既有已通過紀錄與只重試未過題的回合，不修改 A–Z 規則、評分、解鎖或獎勵。
+- 挑戰提示成功開啟後立即顯示「這題先練習，稍後不用提示再試一次」與本輪不計通關說明；收起提示仍保留，重新挑戰的新回合清除。提示失敗不顯示成功提醒，舊回合的遲到提示回應不會打開新題／新回合答案。
+- `SpeakingPracticeSteps`、`WorkbookOnePictureChallenge`、`SpeakingChallengeFlow` 共 36／36 targeted tests 通過；受影響 JSX ESLint、diff 檢查通過。未執行全套測試或 production build，因只修改局部前端提示／重試呈現。學生入口仍暫停，真實學生錄音重試與 iPhone Safari 尚待驗證。
+- 相關檔案：`SpeakingPracticeSteps.jsx`、`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`ImmersiveSpeaking.scss`、對應測試及手冊 v3.15 草稿。使用者既有路牌註解／排版維持原樣。
+- Chrome 本機管理員預覽已確認提示成功開啟即顯示提醒、收起後仍保留；412×915 無橫向溢出，Console 無 error，`S-20-R` 提醒截圖已產生。學生未過題結算／重新錄音由 targeted tests 驗證，尚未做學生實機驗收。
+
+本機審核：口說返回與通關動畫（2026-10-01，尚未部署）：
+
+- 後續審核：通關三顆星統一為 64px、同一水平線，保留依序亮起動畫。本批只調整 SCSS，未改解鎖／獎勵規則；本機視覺與 diff 檢查，免重跑測試及 build。
+- 分支 `codex/speaking-road-centerline-review`，接續 `ece8db1b`；依使用者指示只修改本機，未 Push／PR／部署。
+- 新增共用 `SpeakingChallengeAnimation.jsx` 與 SCSS：返回時顯示約 650ms 木框過場並卸載題目／停止關卡音訊；回地圖後定位及聚焦剛離開的關卡。遲到的請求成功／失敗不會打斷返回。
+- 一般題、圖片題、拼讀與 A–Z 完成時共用木框通關畫面，三顆星依序亮起、少量彩紙、實際 XP／AE Points 數字跳動。三顆星只是整頁通關慶祝，不新增星等評分或資料紀錄；獎勵以後端回傳為準，缺少資料／重玩／挑戰不自行補發，老師／管理員預覽均為 0。
+- 通關後讀取最新關卡列表；學生僅能前往後端已解鎖的下一關，保留簡單／挑戰模式，末關則返回地圖。支援鍵盤焦點圈限、Escape、safe area 與 reduced motion。題目、評分、提示及錯題重試規則不變。
+- 相關 5 組 targeted tests 合計 90 項通過；3 項既有路牌測試因保留使用者註解而略過。最後修正的流程測試 13／13 通過；受影響 JSX ESLint 與 diff 檢查通過。Chrome 桌面與 412×915 管理員預覽確認通關、下一關及返回定位；手機卡片 370×535px，無橫向溢出。未執行全套測試或 production build，因只影響局部前端狀態／動畫；學生真實獎勵寫入與 iPhone Safari 實機未驗，學生入口仍暫停。
+- 同步手冊 v3.14 草稿；使用者既有路牌註解及排版修改保留且不納入本批 checkpoint。相關檔案：`TextbookSpeakingChallenge.jsx`、`WorkbookOnePictureChallenge.jsx`、`WorkbookOneFoundationChallenge.jsx`、新動畫元件／SCSS 與相關測試。
+
+本機審核：口說關卡模式讀取畫面（2026-10-01，尚未部署）：
+
+- 沿用本機分支 `codex/speaking-road-centerline-review`，接續地圖 checkpoint `7d29fa85`；使用者明確要求本地修改，未 Push／PR／部署。
+- 新增 `SpeakingChallengeLoading.jsx` 與獨立 SCSS：木質外框、米白卡片、模糊場景背景；簡單模式黃色書本，挑戰模式藍色麥克風，顯示「正在進入 XXX 模式…」、教材／頁碼、非百分比讀取動畫及返回地圖。支援鍵盤、讀屏與 reduced motion。
+- 地圖入口透過 Router state 傳遞教材標籤與原地圖路徑。讀取綁定實際 question-set 請求，不設固定等待時間；使用題庫 ID＋模式辨識已完成的請求，避免同關切換模式時露出舊內容；返回會沿用既有請求清理，忽略遲到回應。沒有修改評分、資料庫或學生進度。
+- 針對載入、返回、失敗、同關模式切換、換關與地圖入口 state 的 7 個測試全部通過；受影響 3 個 JSX 檔 ESLint 無 error／warning。Chrome 本機管理員預覽實測兩種入口均先顯示讀取畫面、再進入 P.18～20 題目；桌面與 412×915 截圖已驗收，手機卡片 364×454px 無溢出、Console 無 error。未執行全套測試或 production build，因僅影響局部前端載入狀態與視覺；iPhone Safari 實機待審核。
+- 使用者原有 `TextbookSpeakingChallenge.jsx` 路牌註解與排版修改保留；本批不修改其內容。
+
+本機審核：口說地圖平滑道路中心線（2026-10-01，尚未部署）：
+
+- 分支 `codex/speaking-road-centerline-review`，基準 `main` `784aca5b`。依使用者核准的重繪 SVG，將舊 34 點折線改為 62 個道路／木橋中心錨點所形成的平滑三次貝茲曲線，依曲線弧長平均配置關卡。
+- Workbook 1 的定位沿核准預覽配置；依後續審核，第一關沿路往右前進 32 個原圖座標單位，避開旗幟，其餘 24 個定位不變。其他 Workbook 依實際題庫數沿同一路線配置。末關停在城堡前道路。原插畫與按鈕外型保留。
+- 後續本機審核修正：地圖頂部預留 96px 加 safe area，固定工具列不遮住頂部火山與末關；場景容器至少填滿 100dvh，手機也啟用場景背景補足底部留白，移除原有藍色底。容器改用 `overflow: clip`，避免進入地圖時 `scrollIntoView` 捲動隱藏容器而吃掉頂部留白。
+- 使用者指定先在本機審核。本批修改定位計算、地圖 SCSS、對應測試與文件；既有未提交的 `TextbookSpeakingChallenge.jsx` 路牌註解與排版修改完整保留。道路定位測試 4/4 通過；Chrome 桌面 1920px、手機 375×667 與 430×932 已確認無橫向溢出、容器內部捲動為 0。430px 畫面地圖起始 96px、工具列底部 70px，場景填滿 932px，Console 無 error。本批局部定位／視覺調整未執行全套測試或 production build；iPhone Safari 實機尚待使用者審核。未 Push、未建立 PR、未部署。
+
 本次由下往上的插畫口說地圖（2026-10-01，已正式部署並完成工作人員預覽驗收）：
 
 - 撤換前一版輕量 SVG 地圖，改用單張 1882×3344、約 586 KB 的高品質童話插畫 WebP；地圖由底部草原旗幟一路延伸至頂部火山城堡，森林、雪地與火山場景連續銜接，沒有拼接圖片或預畫的關卡數字。

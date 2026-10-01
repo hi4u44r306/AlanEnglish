@@ -1,0 +1,133 @@
+.speaking-challenge-page.speaking-mode-loading-page {
+  --loading-accent: #ffc950;
+  --loading-icon-color: #17345e;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  background: #19364c;
+  color: #17345e;
+
+  &::before {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    inset: -24px;
+    background: url("../assets/speaking-map/storybook-adventure-map-v2.webp") center 65% / cover no-repeat;
+    filter: blur(12px);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: rgba(18, 44, 72, .68);
+  }
+
+  &.is-challenge {
+    --loading-accent: #2f83e8;
+    --loading-icon-color: #fff;
+  }
+}
+
+.speaking-mode-loading-card {
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  width: min(400px, 100%);
+  padding: 30px 25px 22px;
+  border: 7px solid transparent;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, #fffdf5, #fff8e8) padding-box,
+    repeating-linear-gradient(5deg, #d79a55 0 8px, #b96f34 8px 14px, #cb8748 14px 21px) border-box;
+  box-shadow: 0 18px 48px rgba(14, 35, 61, .28);
+  text-align: center;
+
+  h1 {
+    margin: 0;
+    color: #17345e;
+    font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
+    font-size: clamp(27px, 6.5vw, 34px);
+    font-weight: 900;
+    line-height: 1.35;
+    outline: none;
+  }
+}
+
+.speaking-mode-loading-card__badge {
+  display: grid;
+  place-items: center;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background: var(--loading-accent);
+  color: var(--loading-icon-color);
+
+  svg { width: 42px; height: 42px; }
+}
+
+.speaking-mode-loading-card__reference {
+  margin: -10px 0 -10px;
+  color: #6f5946;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.speaking-mode-loading-card__track {
+  width: 100%;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f7edd7;
+
+  span {
+    display: block;
+    width: 45%;
+    height: 100%;
+    border-radius: inherit;
+    background: repeating-linear-gradient(135deg, transparent 0 12px, rgba(255, 255, 255, .16) 12px 24px), var(--loading-accent);
+    animation: speaking-mode-loading-slide 1.6s ease-in-out infinite alternate;
+  }
+}
+
+.speaking-mode-loading-card__copy {
+  p { margin: 0 0 7px; color: #644b35; font-size: 17px; font-weight: 800; line-height: 1.5; }
+  small { color: #85817b; font-size: 14px; }
+}
+
+.speaking-mode-loading-card__return {
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #17345e;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover { background: #f4e8d0; }
+  &:focus-visible { outline: 3px solid #2f73c8; outline-offset: 3px; }
+}
+
+@keyframes speaking-mode-loading-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(122%); }
+}
+
+@media (max-width: 380px), (max-height: 650px) {
+  .speaking-mode-loading-card { gap: 18px; padding: 24px 18px 16px; }
+  .speaking-mode-loading-card__badge { width: 72px; height: 72px; }
+  .speaking-mode-loading-card__copy p { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speaking-mode-loading-card__track span { animation: none; }
+}
