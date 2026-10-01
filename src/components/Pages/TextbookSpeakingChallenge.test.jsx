@@ -251,7 +251,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(nodes).toHaveLength(3);
         expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["94.65%", "46.09%", "6.88%"]);
         expect(container.querySelectorAll(".speaking-map-biomes")).toHaveLength(0);
-        expect(screen.getByLabelText("Workbook 1 口說大挑戰")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
+        expect(container.querySelectorAll(".speaking-map-book-sign")).toHaveLength(0);
         expect(container.querySelectorAll(".speaking-map-landscape")).toHaveLength(0);
         expect(container.querySelectorAll(".speaking-map-route__line")).toHaveLength(0);
     });
@@ -373,9 +374,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         const firstLesson = screen.getByRole("button", { name: /我的名字與自我介紹/ });
         const secondLesson = screen.getByRole("button", { name: /顏色與生活物品/ });
         const compactToolbar = screen.getByRole("button", { name: /全部教材/ }).closest(".speaking-book-toolbar");
-        const mapSign = screen.getByLabelText("Workbook 1 口說大挑戰");
-        expect(compactToolbar).not.toContainElement(mapSign);
-        expect(mapSign).toHaveTextContent("Workbook 1口說大挑戰");
+        expect(compactToolbar).toContainElement(screen.getByRole("heading", { name: "Workbook 1" }));
+        expect(document.querySelector(".speaking-map-book-sign")).not.toBeInTheDocument();
         expect(compactToolbar).toHaveTextContent("0/2");
         expect(firstLesson).toBeEnabled();
         expect(secondLesson).toHaveAccessibleName(/尚未解鎖/);
@@ -420,7 +420,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByLabelText("Workbook 1 口說大挑戰")).toHaveTextContent("Workbook 1口說大挑戰");
+        expect(await screen.findByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
         expect(document.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         expect(screen.getByRole("button", { name: /看字拼讀/ })).toHaveTextContent("P.14");
         expect(screen.getByRole("button", { name: /我的名字與自我介紹/ })).toHaveAccessibleName(/P.18～20/);

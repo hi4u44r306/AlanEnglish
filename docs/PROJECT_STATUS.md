@@ -2,6 +2,12 @@
 
 最後更新：2026-10-01
 
+發布進行中：口說本機審核 v3.12–v3.16 整批（2026-10-01）：
+
+- 使用者已核准全部 Push、合併及正式部署；功能分支 `codex/speaking-road-centerline-review`，包含道路中心線／留白、模式載入、返回／完成動畫、錯題重試與提示提醒、照念單一練習、技術失敗直接重試，以及原工作目錄的路牌隱藏／排版。
+- `origin/main` 與正式 `speaking-challenge` v46 已核對一致；本批沒有 migration，僅發布一支 Function 與 Cloudflare 前端。既有 Firebase 驗證、教材權限、學生暫停及真實獎勵規則維持；回復方式為上一版前端與 Function，無資料回填或刪除。
+- 新增發布前驗證：地圖／主頁及完成動畫 3 suites、50／50 tests 與 ESLint 通過，舊路牌與星數文案斷言已跟隨核准畫面更新；前批 87 前端、12 後端測試及 build 結果仍有效。正式實際學生獎勵待瀏覽器驗收：目前正式登入為管理員 Victor，預覽不發獎勵；學生口說後端仍暫停，不能以管理員預覽 0 XP／0 Points 代替入帳驗證。
+
 本機審核：照念單一練習與改善第 4、5 項（尚未部署）：
 
 - 分支 `codex/speaking-road-centerline-review`，接續 `8d83e3e2`。`alphabet_round`／`letter_spelling`／`standard_sentence` 使用單一入口，沿用 easy 通關紀錄、解鎖與獎勵；既有 challenge 成就不刪除。舊挑戰網址轉回 easy 再取得正確紀錄。混合頁只有全部題型完整且皆為照念類才合併；問答／看圖補句／中翻英與未知題型保留兩種模式，不從標題或頁碼猜測。

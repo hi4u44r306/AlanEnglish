@@ -125,7 +125,7 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, mapNode
     const multilineLabel = /[～、]/.test(levelLabel);
     const visualLabel = levelLabel.replace("～", "\n～").replace("、", "\n");
     return <button data-question-set-id={item.id} className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${multilineLabel ? "is-multiline-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}`}>
-    <span className="speaking-challenge-lesson__number" aria-hidden="true">{visualLabel}</span>
+        <span className="speaking-challenge-lesson__number" aria-hidden="true">{visualLabel}</span>
     </button>;
 };
 
@@ -501,7 +501,9 @@ export default function TextbookSpeakingChallenge() {
         return renderScene(<main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
                 <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => requestReturn("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
-                <div className="speaking-book-toolbar__title"><FiBookOpen aria-hidden="true" /><div><h1>{selectedBook.label}</h1><p>口說大挑戰</p></div></div>
+                <div className="speaking-book-toolbar__title">
+                    <FiBookOpen aria-hidden="true" />
+                    <div><h1>{selectedBook.label}</h1><p>口說大挑戰</p></div></div>
                 <div className="speaking-book-toolbar__progress" aria-label={`已完成 ${selectedBookCompleted} / ${selectedBook.itemCount} 關`}>
                     <strong>{selectedBookCompleted}/{selectedBook.itemCount}</strong><span>已完成</span>
                 </div>
@@ -518,10 +520,10 @@ export default function TextbookSpeakingChallenge() {
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
                     <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-aspect-ratio": mapRoute.aspectRatio }}>
-                        <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}>
+                        {/* <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}>
                             <strong>{selectedBook.label}</strong>
                             <span>{staffPreview ? "關卡預覽" : "口說大挑戰"}</span>
-                        </div>
+                        </div> */}
                         {mapLessons.map(({ item, section, current, topicNumber: lessonTopicNumber }, index) => <ChallengeLesson key={item.id} item={item} section={section} staffPreview={staffPreview} current={current} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} topicNumber={lessonTopicNumber} onOpen={event => { selectedNodeRef.current = event.currentTarget; setSelectedLesson({ item, section }); }} />)}
                     </div></section>
                 </section>}
