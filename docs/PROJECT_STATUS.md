@@ -2,6 +2,14 @@
 
 最後更新：2026-10-01
 
+本機審核：口說關卡模式讀取畫面（2026-10-01，尚未部署）：
+
+- 沿用本機分支 `codex/speaking-road-centerline-review`，接續地圖 checkpoint `7d29fa85`；使用者明確要求本地修改，未 Push／PR／部署。
+- 新增 `SpeakingChallengeLoading.jsx` 與獨立 SCSS：木質外框、米白卡片、模糊場景背景；簡單模式黃色書本，挑戰模式藍色麥克風，顯示「正在進入 XXX 模式…」、教材／頁碼、非百分比讀取動畫及返回地圖。支援鍵盤、讀屏與 reduced motion。
+- 地圖入口透過 Router state 傳遞教材標籤與原地圖路徑。讀取綁定實際 question-set 請求，不設固定等待時間；使用題庫 ID＋模式辨識已完成的請求，避免同關切換模式時露出舊內容；返回會沿用既有請求清理，忽略遲到回應。沒有修改評分、資料庫或學生進度。
+- 針對載入、返回、失敗、同關模式切換、換關與地圖入口 state 的 7 個測試全部通過；受影響 3 個 JSX 檔 ESLint 無 error／warning。Chrome 本機管理員預覽實測兩種入口均先顯示讀取畫面、再進入 P.18～20 題目；桌面與 412×915 截圖已驗收，手機卡片 364×454px 無溢出、Console 無 error。未執行全套測試或 production build，因僅影響局部前端載入狀態與視覺；iPhone Safari 實機待審核。
+- 使用者原有 `TextbookSpeakingChallenge.jsx` 路牌註解與排版修改保留；本批不修改其內容。
+
 本機審核：口說地圖平滑道路中心線（2026-10-01，尚未部署）：
 
 - 分支 `codex/speaking-road-centerline-review`，基準 `main` `784aca5b`。依使用者核准的重繪 SVG，將舊 34 點折線改為 62 個道路／木橋中心錨點所形成的平滑三次貝茲曲線，依曲線弧長平均配置關卡。

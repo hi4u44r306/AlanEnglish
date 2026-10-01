@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiLock, FiMic, FiVolume2 } from "react-icons/fi";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
+import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
 import { buildSpeakingAdventureRoute } from "../../utils/speakingAdventureMap";
@@ -193,11 +194,13 @@ export default function TextbookSpeakingChallenge() {
     const [searchParams] = useSearchParams();
     const challengeMode = searchParams.get("mode") === "challenge" ? "challenge" : "easy";
     const navigate = useNavigate();
+    const location = useLocation();
     const [catalog, setCatalog] = useState([]);
     const [catalogRewardPolicy, setCatalogRewardPolicy] = useState(null);
     const [challengePolicy, setChallengePolicy] = useState(null);
     const [catalogLoading, setCatalogLoading] = useState(!questionSetId);
     const [challenge, setChallenge] = useState(null);
+    const [loadedChallengeKey, setLoadedChallengeKey] = useState("");
     const [error, setError] = useState("");
     const [audioWorking, setAudioWorking] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
@@ -332,6 +335,7 @@ export default function TextbookSpeakingChallenge() {
                     const challengeResponse = await getSpeakingChallengeSet(firebaseUser, Number(questionSetId), challengeMode);
                     if (!cancelled) {
                         setChallenge(challengeResponse.challenge);
+                        setLoadedChallengeKey(`${questionSetId}:${challengeMode}`);
                         if (!staffPreview) {
                             const nextIndex = (challengeResponse.challenge?.speaking_questions || [])
                                 .findIndex(question => question.progress_status !== "completed");
@@ -441,10 +445,24 @@ export default function TextbookSpeakingChallenge() {
                 </section>}
                 {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
-            {selectedLesson && <ChallengePreviewDialog item={selectedLesson.item} section={selectedLesson.section} staffPreview={staffPreview} dialogRef={levelDialogRef} onClose={() => setSelectedLesson(null)} onEnter={mode => navigate(`/student/speaking-challenges/${selectedLesson.item.id}?mode=${mode}`)} />}
+            {selectedLesson && <ChallengePreviewDialog item={selectedLesson.item} section={selectedLesson.section} staffPreview={staffPreview} dialogRef={levelDialogRef} onClose={() => setSelectedLesson(null)} onEnter={mode => navigate(`/student/speaking-challenges/${selectedLesson.item.id}?mode=${mode}`, { state: { speakingEntry: {
+                questionSetId: selectedLesson.item.id,
+                bookLabel: selectedBook?.label,
+                levelLabel: levelReference(selectedLesson.item) || lessonTitle(selectedLesson.item),
+                bookCatalogPath: location.pathname
+            } } })} />}
         </main>;
     }
-    if (!challenge || Number(challenge.id) !== Number(questionSetId)) return <main className="speaking-challenge-page"><p>載入小關卡中…</p></main>;
+    if (!challenge || Number(challenge.id) !== Number(questionSetId) || loadedChallengeKey !== `${questionSetId}:${challengeMode}`) {
+        const entry = Number(location.state?.speakingEntry?.questionSetId) === Number(questionSetId)
+            ? location.state.speakingEntry : null;
+        const catalogItem = catalog.find(item => Number(item.id) === Number(questionSetId));
+        const returnPath = entry?.bookCatalogPath || challengeBookCatalogPath(catalogItem);
+        return <SpeakingChallengeLoading mode={challengeMode}
+            bookLabel={entry?.bookLabel || catalogItem?.book?.name || catalogItem?.books?.name}
+            levelLabel={entry?.levelLabel || (catalogItem ? levelReference(catalogItem) || lessonTitle(catalogItem) : "")}
+            onReturn={() => navigate(returnPath)} />;
+    }
     const bookCatalogPath = challengeBookCatalogPath(challenge);
     const returnToBookCatalog = () => navigate(bookCatalogPath);
     if (["alphabet_round", "letter_spelling"].includes(interactionType)) return <WorkbookOneFoundationChallenge
