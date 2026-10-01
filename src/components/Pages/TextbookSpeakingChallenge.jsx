@@ -12,6 +12,7 @@ import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
 import { buildSpeakingAdventureRoute } from "../../utils/speakingAdventureMap";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import { questionPromptMode } from "../../utils/textQaPrompt";
+import { isReadAloudType, usesSinglePracticeMode } from "../../utils/speakingPracticeMode";
 import "./css/TextbookSpeakingChallenge.scss";
 import "./css/SpeakingAdventureMap.scss";
 import "./css/SpeakingAdventureRoute.scss";
@@ -135,6 +136,7 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
     const questionCount = Number(item.question_count) || 0;
     const completedCount = Number(item.completed_count) || 0;
     const challengeCompletedCount = Number(item.challenge_completed_count) || 0;
+    const singlePractice = usesSinglePracticeMode(item) || section === "preparation";
     const topicLabel = String(item.topic || "").replace(/[.\s]/g, "").toLowerCase() === pages.replace(/[.\s]/g, "").toLowerCase()
         ? sectionCopy.label
         : item.topic || sectionCopy.label;
@@ -145,15 +147,15 @@ const ChallengePreviewDialog = ({ item, section, onClose, onEnter, dialogRef, st
             <span className="speaking-level-dialog__eyebrow">{sectionCopy.eyebrow}</span>
             <h2 id="speaking-level-title">{pages || (section === "topic" ? lessonTitle(item) : sectionCopy.badge)}</h2>
             <p id="speaking-level-description" className="speaking-level-dialog__topic">{topicLabel}</p>
-            <div className={`speaking-level-dialog__facts${section === "preparation" ? " is-compact" : ""}`}>
+            <div className={`speaking-level-dialog__facts${singlePractice ? " is-compact" : ""}`}>
                 <span><small>本關題數</small><strong>{questionCount} 題</strong></span>
-                <span><small>{section === "preparation" ? "完成進度" : "簡單"}</small><strong>{completedCount} / {questionCount}</strong></span>
-                {section !== "preparation" && <span><small>挑戰</small><strong>{challengeCompletedCount} / {questionCount}</strong></span>}
+                <span><small>{singlePractice ? "完成進度" : "簡單"}</small><strong>{completedCount} / {questionCount}</strong></span>
+                {!singlePractice && <span><small>挑戰</small><strong>{challengeCompletedCount} / {questionCount}</strong></span>}
             </div>
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
-            <div className="speaking-level-dialog__actions">
-                <button type="button" className="primary is-easy" aria-label={locked ? "簡單模式尚未解鎖" : "簡單 · 看答案說"} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : "簡單模式"}</strong><small>看答案說</small></span><FiChevronRight aria-hidden="true" /></button>
-                {section !== "preparation" && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : "挑戰 · 看題目回答"} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : "挑戰模式"}</strong><small>看題目回答</small></span><FiChevronRight aria-hidden="true" /></button>}
+            <div className={`speaking-level-dialog__actions${singlePractice ? " is-single" : ""}`}>
+                <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : singlePractice ? "開始練習" : "簡單 · 看答案說"} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : singlePractice ? "開始練習" : "簡單模式"}</strong><small>{singlePractice ? "看著文字念，需要時聽示範" : "看答案說"}</small></span><FiChevronRight aria-hidden="true" /></button>
+                {!singlePractice && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : "挑戰 · 看題目回答"} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : "挑戰模式"}</strong><small>看題目回答</small></span><FiChevronRight aria-hidden="true" /></button>}
                 <button type="button" className="speaking-level-dialog__return" onClick={onClose}>返回地圖</button>
             </div>
         </section>
@@ -181,7 +183,7 @@ const ChallengeRules = ({ policy }) => {
                 <li><b>重錄不多扣</b><span>同一輪裡重新錄音、重試題目或繼續下一題，都只算同一次。</span></li>
                 <li><b>每次 12 秒</b><span>每段錄音最長 12 秒，錄音時會顯示還剩幾秒。</span></li>
                 <li><b>依序闖關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
-                <li><b>兩種玩法</b><span>簡單模式看答案說，通關後解鎖下一頁；挑戰模式看問題回答，成就分開記錄。</span></li>
+                <li><b>依題型練習</b><span>照念類只有一種練習，需要時可聽示範；問答類可選簡單或挑戰，成就分開記錄。練習或簡單通關後解鎖下一頁。</span></li>
                 <li><b>挑戰提示</b><span>看過提示的題目本輪不計通關，結束後只要重試未通過的題目。</span></li>
             </ol>
             <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
@@ -204,6 +206,7 @@ export default function TextbookSpeakingChallenge() {
     const [loadedChallengeKey, setLoadedChallengeKey] = useState("");
     const [error, setError] = useState("");
     const [audioWorking, setAudioWorking] = useState("");
+    const [audioError, setAudioError] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [completionNotice, setCompletionNotice] = useState(null);
     const [returnTransition, setReturnTransition] = useState(null);
@@ -220,6 +223,7 @@ export default function TextbookSpeakingChallenge() {
     activeRouteRef.current = `${questionSetId}:${challengeMode}`;
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const questions = challenge?.speaking_questions || [];
+    const singlePractice = usesSinglePracticeMode(challenge);
     const activeQuestion = questions[activeQuestionIndex];
     const staffPreview = role === "teacher" || role === "admin";
     const adminScoringPreview = role === "admin";
@@ -316,9 +320,9 @@ export default function TextbookSpeakingChallenge() {
         return <SpeakingChallengeCompletion notice={completionNotice} mode={challengeMode} staffPreview={staffPreview}
             reference={[challenge?.books?.name || challenge?.book?.name, challenge ? levelReference(challenge) || challenge.title : ""].filter(Boolean).join(" · ")}
             onReturn={() => requestReturn(bookPath)}
-            onNext={nextAvailable ? () => navigate(`/student/speaking-challenges/${next.id}?mode=${challengeMode}`, { state: { speakingEntry: {
+            onNext={nextAvailable ? () => navigate(`/student/speaking-challenges/${next.id}?mode=${usesSinglePracticeMode(next) ? "easy" : challengeMode}`, { state: { speakingEntry: {
                 questionSetId: next.id, bookLabel: next.book?.name || next.books?.name,
-                levelLabel: levelReference(next) || lessonTitle(next), bookCatalogPath: bookPath
+                levelLabel: levelReference(next) || lessonTitle(next), bookCatalogPath: bookPath, singlePractice: usesSinglePracticeMode(next)
             } } }) : undefined} />;
     };
 
@@ -392,6 +396,7 @@ export default function TextbookSpeakingChallenge() {
         if (!firebaseUser) return;
         let cancelled = false;
         setError("");
+        setAudioError("");
         if (questionSetId) {
             setActiveQuestionIndex(0);
             setChallenge(null);
@@ -403,6 +408,10 @@ export default function TextbookSpeakingChallenge() {
                 if (questionSetId) {
                     const challengeResponse = await getSpeakingChallengeSet(firebaseUser, Number(questionSetId), challengeMode);
                     if (!cancelled && !leavingRef.current) {
+                        if (challengeMode === "challenge" && usesSinglePracticeMode(challengeResponse.challenge)) {
+                            navigate(`${location.pathname}?mode=easy`, { replace: true, state: location.state });
+                            return;
+                        }
                         setChallenge(challengeResponse.challenge);
                         setLoadedChallengeKey(`${questionSetId}:${challengeMode}`);
                         if (!staffPreview) {
@@ -432,7 +441,7 @@ export default function TextbookSpeakingChallenge() {
         };
         load();
         return () => { cancelled = true; };
-    }, [firebaseUser, questionSetId, staffPreview, challengeMode]);
+    }, [firebaseUser, questionSetId, staffPreview, challengeMode, navigate, location.pathname, location.state]);
 
     const markComplete = async question => {
         if (staffPreview) return { success: true, demo_mode: true };
@@ -445,8 +454,8 @@ export default function TextbookSpeakingChallenge() {
             return response || true;
         } catch (saveError) {
             if (leavingRef.current || activeRouteRef.current !== requestKey) return false;
-            if (saveError.code === "challenge_hint_used") return false;
-            setError(saveError.message || "無法儲存練習紀錄"); return false;
+            if (saveError.code === "challenge_hint_used") return { hint_used: true };
+            return false;
         }
     };
 
@@ -472,8 +481,9 @@ export default function TextbookSpeakingChallenge() {
         setAudioWorking(String(question.id));
         const clear = () => setAudioWorking(current => current === String(question.id) ? "" : current);
         audio.addEventListener("ended", clear, { once: true });
-        audio.addEventListener("error", () => { clear(); setError("示範語音暫時無法播放，請重新整理後再試"); }, { once: true });
-        audio.play().catch(() => { clear(); setError("瀏覽器阻擋了示範語音，請再按一次播放"); });
+        setAudioError("");
+        audio.addEventListener("error", () => { clear(); setAudioError("示範暫時無法播放，請再按一次試聽；你仍可直接錄音。"); }, { once: true });
+        audio.play().catch(() => { clear(); setAudioError("示範暫時無法播放，請再按一次試聽；你仍可直接錄音。"); });
     };
 
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
@@ -521,7 +531,7 @@ export default function TextbookSpeakingChallenge() {
                 questionSetId: selectedLesson.item.id,
                 bookLabel: selectedBook?.label,
                 levelLabel: levelReference(selectedLesson.item) || lessonTitle(selectedLesson.item),
-                bookCatalogPath: location.pathname
+                bookCatalogPath: location.pathname, singlePractice: usesSinglePracticeMode(selectedLesson.item)
             } } })} />}
         </main>);
     }
@@ -531,6 +541,7 @@ export default function TextbookSpeakingChallenge() {
         const catalogItem = catalog.find(item => Number(item.id) === Number(questionSetId));
         const returnPath = entry?.bookCatalogPath || challengeBookCatalogPath(catalogItem);
         return renderScene(<SpeakingChallengeLoading mode={challengeMode}
+            singlePractice={entry?.singlePractice || usesSinglePracticeMode(catalogItem)}
             bookLabel={entry?.bookLabel || catalogItem?.book?.name || catalogItem?.books?.name}
             levelLabel={entry?.levelLabel || (catalogItem ? levelReference(catalogItem) || lessonTitle(catalogItem) : "")}
             onReturn={() => requestReturn(returnPath)} />);
@@ -548,6 +559,9 @@ export default function TextbookSpeakingChallenge() {
         onCompleteAlphabetIntro={listenSessionId => completeAlphabetIntroListen(firebaseUser, challenge.id, listenSessionId)}
         onExit={returnToBookCatalog}
         onFinished={showCompletion}
+        audioWorking={audioWorking}
+        onPlayModelAudio={playModelAudio}
+        audioError={audioError}
     />);
     if (["picture_qa", "picture_gap_sentence"].includes(interactionType)) return renderScene(<WorkbookOnePictureChallenge
         challenge={challenge}
@@ -569,6 +583,10 @@ export default function TextbookSpeakingChallenge() {
 
     const isCompleted = staffPreview || activeQuestion.progress_status === "completed";
     const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
+    const declaredQuestionType = interactionType === "mixed"
+        ? challenge.generation_metadata?.question_modes?.find(mode => Number(mode.sort_order) === Number(activeQuestion.sort_order))?.interaction_type
+        : activeInteractionType;
+    const activeReadAloud = singlePractice || isReadAloudType(declaredQuestionType);
     const activePictureMode = ["picture_qa", "picture_gap_sentence"].includes(activeInteractionType);
     const activeTextQa = activeInteractionType === "text_qa";
     const activePromptMode = activeQuestion.prompt_mode || questionPromptMode(challenge?.generation_metadata, activeQuestion);
@@ -606,7 +624,7 @@ export default function TextbookSpeakingChallenge() {
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
-                <p>{challenge.topic} · {challengeMode === "challenge" ? "挑戰：看問題回答" : "簡單：看答案說"}</p>
+                <p>{challenge.topic} · {singlePractice ? "朗讀練習：看著文字念" : challengeMode === "challenge" ? "挑戰：看問題回答" : "簡單：看答案說"}</p>
             </div>
             <div className="speaking-lesson-progress">
                 <div><span>第 {activeQuestionIndex + 1} / {questions.length} 題</span><strong>{progressPercent}%</strong></div>
@@ -621,12 +639,13 @@ export default function TextbookSpeakingChallenge() {
                     <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                     <header className="speaking-question-heading">
                         <span className="speaking-question-number">{isCompleted ? <FiCheck aria-hidden="true" /> : `第 ${activeQuestionIndex + 1} 題`}</span>
-                        <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeZhToEn ? "看中文句子，按下麥克風說出完整英文翻譯。" : activeGrammarCue ? "依照題目提供的文法提示，說出完整英文句子。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
+                        <div><small>{isCompleted ? "已完成本題" : `小關卡 ${activeQuestionIndex + 1}`}</small><h2 ref={questionHeadingRef} tabIndex="-1">{activePrompt}</h2>{groupedTextQaClue && !inlineLegacyClue && <p>題目線索：{groupedTextQaClue}</p>}<p>{activePictureMode ? "看圖片後，按下麥克風直接說出完整答案。" : activeZhToEn ? "看中文句子，按下麥克風說出完整英文翻譯。" : activeGrammarCue ? "依照題目提供的文法提示，說出完整英文句子。" : activeTextQa ? "閱讀問題後，用一個符合題目線索的完整句子回答。" : activeReadAloud ? "看著文字念，按下麥克風開始練習。" : "閱讀問題後，按下麥克風直接回答。"}</p></div>
                     </header>
                 </div>
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={challengeMode === "easy"} onRevealHint={revealHint} interactionType={activeInteractionType} hideHelp={activePictureMode && staffPreview && !adminScoringPreview} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
-                <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : challengeMode === "challenge" ? "挑戰成就會獨立記錄；簡單模式通關才會解鎖下一頁與領取首次獎勵。" : "簡單模式首次通關可獲得 XP 與 AE Points，並解鎖下一頁。"}</small>
+                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={!activeReadAloud && challengeMode === "easy"} onRevealHint={revealHint} interactionType={activeInteractionType} hideHelp={activeReadAloud || (activePictureMode && staffPreview && !adminScoringPreview)} readAloud={activeReadAloud} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={activeReadAloud || staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeReadAloud ? "看著文字，開口念" : activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeReadAloud ? "照著題目文字念，需要時可以先聽示範。" : activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
+                {audioError && <p className="speaking-audio-notice" role="alert">{audioError}</p>}
+                <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : challengeMode === "challenge" ? "挑戰成就會獨立記錄；簡單模式通關才會解鎖下一頁與領取首次獎勵。" : singlePractice ? "首次通關可獲得 XP 與 AE Points，並解鎖下一頁。" : "簡單模式首次通關可獲得 XP 與 AE Points，並解鎖下一頁。"}</small>
             </article>
         </section>
 

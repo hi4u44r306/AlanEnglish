@@ -1,3 +1,5 @@
+import { isReadAloudType } from "./speaking-practice-mode.ts";
+
 const studentSpeakingGamesEnabled = () => false;
 
 export const authorizeSpeakingChallenge = async (
@@ -34,6 +36,7 @@ export const buildPublicSpeakingQuestion = async ({
     promptMode,
     answerAudioEnabled = false,
     staffAudioPreview = false,
+    readingAudioEnabled = true,
     showEasyAnswer = false,
     progressStatus,
     modelAsset,
@@ -46,9 +49,11 @@ export const buildPublicSpeakingQuestion = async ({
         ? String(questionInteractionType || pictureInteraction?.interaction_type || "standard_sentence")
         : interactionType;
     const pictureMode = effectiveInteractionType === "picture_qa" || effectiveInteractionType === "picture_gap_sentence";
-    const hideChallengeAnswerAudio = !staffAudioPreview || (effectiveInteractionType === "text_qa" && !answerAudioEnabled)
+    const declaredType = interactionType === "mixed" ? questionInteractionType || pictureInteraction?.interaction_type : interactionType;
+    const readingAudio = readingAudioEnabled && isReadAloudType(declaredType) && declaredType !== "alphabet_round";
+    const hideChallengeAnswerAudio = (!staffAudioPreview && !readingAudio) || (effectiveInteractionType === "text_qa" && !answerAudioEnabled)
         || interactionType === "alphabet_round"
-        || interactionType === "letter_spelling" || pictureMode;
+        || pictureMode;
     const modelReady = modelAsset?.status === "ready" && modelAsset?.private_object_key;
     const promptReady = promptAsset?.status === "ready" && promptAsset?.private_object_key;
 

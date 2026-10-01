@@ -121,7 +121,8 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
 
     const handleCorrect = async result => {
         const saved = await onComplete?.(activeQuestion, result);
-        if (saved === false) { setCanSkip(true); return; }
+        if (saved === false) { setCanSkip(true); return false; }
+        if (saved?.hint_used) return saved;
         setCompletedIds(current => new Set([...current, activeQuestion.id]));
         stopAudio();
         if (activeIndex >= round.length - 1) {

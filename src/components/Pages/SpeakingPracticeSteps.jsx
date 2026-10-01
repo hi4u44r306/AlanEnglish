@@ -51,6 +51,7 @@ export default function SpeakingPracticeSteps({
     hideHelp = false,
     deferAnswerHelp = false,
     allowModelAudio = true,
+    readAloud = false,
     promptTitle = "直接開口回答",
     promptDetail = "不用打字，按下麥克風後用完整英文句子回答。"
 }) {
@@ -59,6 +60,7 @@ export default function SpeakingPracticeSteps({
     const [helpError, setHelpError] = useState("");
     const [helpLoading, setHelpLoading] = useState(false);
     const [lastResult, setLastResult] = useState(null);
+    const [saving, setSaving] = useState(false);
     const hintRequestRef = useRef(0);
     const answerQuestion = revealedAnswer ? { ...question, ...revealedAnswer } : question;
     const answerPattern = answerPatternForLearner(answerQuestion.model_answer);
@@ -71,23 +73,38 @@ export default function SpeakingPracticeSteps({
         setHelpError("");
         setHelpLoading(false);
         setLastResult(null);
+        setSaving(false);
         return () => { hintRequestRef.current += 1; };
     }, [question.id, challengeSessionId, challengeMode]);
 
     const handleScored = async result => {
+        if (result?.assessment_status === "uncertain") return false;
+        const request = hintRequestRef.current;
         const scoredResult = challengeMode === "challenge" && revealedAnswer
             ? { ...result, hint_used: true }
             : result;
         if (scoredResult?.answer_match !== false && !scoredResult?.hint_used) {
-            const saved = await onCompleted?.(scoredResult);
-            if (saved === false) {
-                const failedResult = { ...scoredResult, save_failed: true };
-                setLastResult(failedResult);
-                onIncorrect?.(failedResult);
-                return;
-            }
+            setSaving(true);
+            try {
+                const saved = await onCompleted?.(scoredResult);
+                if (request !== hintRequestRef.current) return false;
+                if (saved?.hint_used) {
+                    const practiceResult = { ...scoredResult, hint_used: true, save_failed: false };
+                    setLastResult(practiceResult);
+                    onIncorrect?.(practiceResult);
+                    return false;
+                }
+                if (saved === false) {
+                    setLastResult({ ...scoredResult, save_failed: true });
+                    return false;
+                }
+            } catch {
+                if (request === hintRequestRef.current) setLastResult({ ...scoredResult, save_failed: true });
+                return false;
+            } finally { if (request === hintRequestRef.current) setSaving(false); }
         } else onIncorrect?.(scoredResult);
-        setLastResult(scoredResult);
+        if (request === hintRequestRef.current) setLastResult({ ...scoredResult, save_failed: false });
+        return !scoredResult.hint_used && scoredResult.answer_match !== false;
     };
 
     const toggleHelp = async () => {
@@ -117,10 +134,14 @@ export default function SpeakingPracticeSteps({
 
         {showAnswerByDefault && answerPattern && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
             <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPattern}</strong>
-            {allowModelAudio && <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
+            {allowModelAudio && question.model_audio_url && <button type="button" disabled={audioWorking} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
         </div>}
+
+        {readAloud && allowModelAudio && question.model_audio_url && <button type="button" className="speaking-help-toggle" disabled={audioWorking} onClick={onPlayAudio}>
+            <FiVolume2 aria-hidden="true" />{audioWorking ? "播放中…" : "聽示範發音"}
+        </button>}
 
         {!hideHelp && !showAnswerByDefault && (!deferAnswerHelp || lastResult || challengeMode === "challenge") && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={toggleHelp} disabled={helpLoading}>
             <FiHelpCircle aria-hidden="true" />{helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : challengeMode === "challenge" ? "看提示（本輪此題不計通關）" : "不知道怎麼說？"}
@@ -135,7 +156,7 @@ export default function SpeakingPracticeSteps({
         {!hideHelp && showHelp && <div className="speaking-help-panel">
             {answerQuestion.hint_zh && <p>{answerQuestion.hint_zh}</p>}
             <div><small>可以這樣說</small><strong>{answerPattern}</strong></div>
-            {allowModelAudio && <button type="button" disabled={!question.model_audio_url || audioWorking} onClick={onPlayAudio}>
+            {allowModelAudio && question.model_audio_url && <button type="button" disabled={audioWorking} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
             {example && <small>示範：{example}</small>}
@@ -156,7 +177,7 @@ export default function SpeakingPracticeSteps({
         />
 
         {lastResult?.answer_match !== false && lastResult && !lastResult.hint_used && !lastResult.save_failed && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
-        {lastResult?.save_failed && <p className="speaking-practice-retry" role="alert">這次回答尚未記錄為通關，請重新錄音再試一次。</p>}
+        {lastResult?.save_failed && <div className="speaking-save-retry" role="alert"><strong>回答已評分，通關紀錄尚未儲存。</strong><p>保留這次回答，重試儲存即可。</p><button type="button" onClick={() => handleScored(lastResult)} disabled={saving}>{saving ? "儲存中…" : "重試儲存"}</button></div>}
         {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不用提示再試一次。本輪這題不計通關。</p>}
         {lastResult?.answer_match === false && (
           <p className="speaking-practice-retry">

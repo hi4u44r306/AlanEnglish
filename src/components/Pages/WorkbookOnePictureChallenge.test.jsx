@@ -185,9 +185,11 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(onComplete).toHaveBeenCalledTimes(1);
         expect(screen.getByRole("article", { name: "第 1 題，共 2 題" })).toBeInTheDocument();
         expect(screen.getByRole("img")).toHaveAttribute("src", firstImageUrl);
+        expect(screen.getByRole("button", { name: "重試儲存" })).toBeInTheDocument();
+        expect(screen.queryByText(/本題已完成！/)).not.toBeInTheDocument();
 
         await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+            fireEvent.click(screen.getByRole("button", { name: "重試儲存" }));
             await Promise.resolve();
         });
         expect(onComplete).toHaveBeenCalledTimes(2);

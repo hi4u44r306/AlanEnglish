@@ -56,10 +56,10 @@ export function SpeakingChallengeCompletion({ notice, mode, reference, staffPrev
         <div className="speaking-celebration-confetti" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <span key={index} style={{ "--confetti-x": `${(index * 37 + 11) % 98}%`, "--confetti-delay": `${index % 6 * .07}s`, "--confetti-color": ["#ffd168", "#77c967", "#71b5ef"][index % 3] }} />)}</div>
         <section ref={dialogRef} className="speaking-celebration-card" role="dialog" aria-modal="true" aria-labelledby="speaking-celebration-title" aria-describedby="speaking-celebration-description" onKeyDown={onKeyDown}>
             <p className="speaking-celebration-reference">{reference}</p>
-            <div className="speaking-celebration-stars" aria-label="本次整頁通關 3 星">{[0, 1, 2].map(index => <span key={index} style={{ "--star-delay": `${.35 + index * .26}s` }} aria-hidden="true">★</span>)}</div>
+            <div className="speaking-celebration-stars" aria-hidden="true">{[0, 1, 2].map(index => <span key={index} style={{ "--star-delay": `${.35 + index * .26}s` }}>★</span>)}</div>
             <h1 id="speaking-celebration-title">{staffPreview ? "通關動畫預覽" : "闖關成功！"}</h1>
             <p id="speaking-celebration-description">{staffPreview ? "預覽不會寫入進度或發放獎勵" : mode === "challenge" ? "挑戰成就已記錄！" : "每一句，都更有自信了"}</p>
-            <span className="speaking-celebration-star-count">通關 3 星</span>
+            <span className="speaking-celebration-star-count">全部完成！</span>
             <div className="speaking-celebration-rewards">
                 <div aria-label={`本次獲得 ${xp} XP`}><span className="speaking-celebration-rewards__icon is-xp"><FiZap aria-hidden="true" /></span><small>經驗值</small><strong><AnimatedReward amount={xp} /><em>XP</em></strong></div>
                 <div aria-label={`本次獲得 ${points} AE Points`}><span className="speaking-celebration-rewards__icon is-points"><FiHexagon aria-hidden="true" /></span><small>獲得點數</small><strong><AnimatedReward amount={points} /><em>AE Points</em></strong></div>

@@ -18,7 +18,7 @@ const interactionCopy = {
     }
 };
 
-export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false }) {
+export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false, audioWorking = "", onPlayModelAudio, audioError = "" }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
@@ -344,7 +344,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             }
         } else {
             const saved = await onComplete?.(activeQuestion, result);
-            if (saved === false) return;
+            if (saved === false) return false;
             completionReward = saved;
         }
         if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.(alphabetMode ? result.foundation_round : completionReward); }
@@ -442,12 +442,16 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 foundationRoundId={roundId}
                 challengeSessionId={challengeSessionId}
                 hideHelp
+                readAloud
+                audioWorking={audioWorking === String(activeQuestion.id)}
+                onPlayAudio={() => onPlayModelAudio?.(activeQuestion)}
                 promptTitle="輪到你逐字母拼讀"
                 promptDetail="按下麥克風，把每個字母依序唸清楚。"
                 onCompleted={handleCorrect}
                 onIncorrect={handleIncorrect}
                 onRoundInvalid={handleIncorrect}
             />}
+            {!alphabetMode && audioError && <p className="speaking-audio-notice" role="alert">{audioError}</p>}
             {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></aside>}
             {statusAlert}
         </article></section>

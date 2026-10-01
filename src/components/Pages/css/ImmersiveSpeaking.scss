@@ -1093,6 +1093,8 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   text-align: left;
 }
 
+.speaking-level-dialog__actions.is-single { grid-template-columns: 1fr; }
+
 .speaking-level-dialog__actions button.primary strong {
   font-size: 16px;
 }

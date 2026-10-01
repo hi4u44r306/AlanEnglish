@@ -9,7 +9,7 @@ const mockUser = { uid: "student" };
 let mockRole = "student";
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockUser, role: mockRole }) }));
 jest.mock("../../services/speakingChallengeService", () => ({ completeSpeakingChallengeQuestion: jest.fn(), getSpeakingChallengeCatalog: jest.fn(), getSpeakingChallengeSet: jest.fn() }));
-jest.mock("./SpeakingPracticeSteps", () => function Practice({ onCompleted, challengeSessionId }) { return <button data-session={challengeSessionId} onClick={onCompleted}>通過本題</button>; });
+jest.mock("./SpeakingPracticeSteps", () => function Practice({ onCompleted, challengeSessionId, challengeMode, readAloud, showAnswerByDefault }) { return <button data-session={challengeSessionId} data-mode={challengeMode} data-reading={String(readAloud)} data-answer={String(showAnswerByDefault)} onClick={onCompleted}>通過本題</button>; });
 jest.mock("./WorkbookOnePictureChallenge", () => function Picture({ onFinished }) { return <button onClick={() => onFinished({ xp_awarded: 0, ae_points_awarded: 0 })}>完成圖片頁</button>; });
 jest.mock("./WorkbookOneFoundationChallenge", () => function Foundation({ onFinished }) { return <button onClick={() => onFinished({ xp_awarded: 30, ae_points_awarded: 3 })}>完成字母頁</button>; });
 const Probe = () => { const location = useLocation(); return <output data-testid="route">{location.pathname}|{location.search}|{location.state?.speakingReturn?.questionSetId}</output>; };
@@ -25,6 +25,47 @@ describe("speaking return and completion flow", () => {
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [] });
     });
     afterEach(() => { window.matchMedia = originalMatchMedia; });
+    it("朗讀關卡從舊挑戰網址進入，回到單一練習與原通關紀錄", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({ challenge: { ...fixture, generation_metadata: { interaction_type: "standard_sentence" } } });
+        mount("challenge");
+        const practice = await screen.findByRole("button", { name: "通過本題" });
+        expect(practice).toHaveAttribute("data-mode", "easy");
+        expect(practice).toHaveAttribute("data-reading", "true");
+        expect(practice).toHaveAttribute("data-answer", "false");
+        expect(screen.getByTestId("route")).toHaveTextContent("?mode=easy");
+        expect(getSpeakingChallengeSet).toHaveBeenLastCalledWith(mockUser, 7, "easy");
+    });
+    it.each([
+        [[], false],
+        [[{ sort_order: 0, interaction_type: "standard_sentence" }, { sort_order: 1, interaction_type: "text_qa" }], true],
+        [[{ sort_order: 0, interaction_type: "text_qa" }], false]
+    ])("mixed 頁只將明確核准朗讀的題目顯示為照念練習：%j", async (question_modes, reading) => {
+        getSpeakingChallengeSet.mockResolvedValue({ challenge: { ...fixture, question_count: 2,
+            generation_metadata: { interaction_type: "mixed", question_modes },
+            speaking_questions: [{ ...fixture.speaking_questions[0], sort_order: 0, interaction_type: "standard_sentence" }] } });
+        mount("challenge");
+        const practice = await screen.findByRole("button", { name: "通過本題" });
+        expect(practice).toHaveAttribute("data-mode", "challenge");
+        expect(practice).toHaveAttribute("data-reading", String(reading));
+    });
+    it.each(["letter_spelling", "standard_sentence"])("%s 摘要只顯示開始練習與完成進度", async type => {
+        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [{ ...fixture, book: fixture.books,
+            generation_metadata: { interaction_type: type }, source_pages: [11], question_count: 1, completed_count: 0, is_unlocked: true }] });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-1"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: /P.11，/ }));
+        expect(screen.getByRole("button", { name: "開始練習" })).toBeInTheDocument();
+        expect(screen.getByRole("dialog")).toHaveTextContent("完成進度");
+        expect(screen.queryByRole("button", { name: /挑戰 ·/ })).not.toBeInTheDocument();
+    });
+    it("通關星星只是慶祝裝飾，完成文案與實際獎勵分開", async () => {
+        completeSpeakingChallengeQuestion.mockResolvedValue({ challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 });
+        mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
+        await screen.findByRole("dialog");
+        expect(screen.getByText("全部完成！")).toBeInTheDocument();
+        expect(screen.queryByText("通關 3 星")).not.toBeInTheDocument();
+        expect(document.querySelectorAll(".speaking-celebration-stars > span")).toHaveLength(3);
+        expect(document.querySelector(".speaking-celebration-stars")).toHaveAttribute("aria-hidden", "true");
+    });
     it.each(["easy", "challenge"])("%s 重試顯示整頁進度與剩餘題數，保留通關並建立新回合", async mode => {
         getSpeakingChallengeSet.mockResolvedValue({ challenge: { ...fixture, speaking_questions: [
             { id: 1, question_text: "Passed one", progress_status: "completed" },

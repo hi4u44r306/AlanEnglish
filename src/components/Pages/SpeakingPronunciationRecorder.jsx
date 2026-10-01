@@ -125,29 +125,35 @@ export default function SpeakingPronunciationRecorder({
     const submit = async () => {
         if (!recordedBlob || submitting) return;
         prepareSpeakingFeedbackSound();
-        setSubmitting(true); setError("");
+        setSubmitting(true); setError(""); setResult(null);
         try {
             const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId, challengeMode });
+            if (typeof score?.answer_match !== "boolean" || !Number.isFinite(score?.scores?.pronunciation)) {
+                throw new Error("assessment_response_incomplete");
+            }
             setResult(score);
+            const saved = score?.assessment_status === "uncertain" ? false : await onScored?.(score);
             playSpeakingFeedbackSound(
                 score?.assessment_status === "uncertain"
                     ? "practice"
                     : score?.answer_match === false
                     ? "retry"
+                    : saved === false ? "practice"
                     : scoreTone(Math.round(score?.scores?.pronunciation || 0))
             );
-            onScored?.(score);
         } catch (cause) {
-            setError(cause?.message || "發音評分失敗，請稍後再試");
+            setResult(null);
+            setError(ROUND_RESET_ERROR_CODES.has(String(cause?.code || "")) || cause?.code === "foundation_round_busy"
+                ? cause.message : "評分服務暫時無法完成。錄音仍保留，請重試評分。");
             if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) onRoundInvalid?.(cause);
         }
         finally { setSubmitting(false); }
     };
 
     const pronunciationScore = Math.round(result?.scores?.pronunciation || 0);
-    const answerMatched = result?.answer_match !== false;
     const assessmentUncertain = result?.assessment_status === "uncertain";
-    const resultTone = answerMatched ? scoreTone(pronunciationScore) : "retry";
+    const answerMatched = !assessmentUncertain && result?.answer_match !== false;
+    const resultTone = assessmentUncertain ? "practice" : answerMatched ? scoreTone(pronunciationScore) : "retry";
     const accessibleDisabledReason = /\d+\s*秒後播放提示音/.test(disabledReason)
         ? "三秒後播放提示音。"
         : disabledReason;
@@ -172,17 +178,17 @@ export default function SpeakingPronunciationRecorder({
                 {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
                 <span>{recording ? (voiceDetected ? "送出並評分" : "我已說完，送出") : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
-            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : "送出評分"}</button></div></div>}
+            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button></div></div>}
             <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
             {result.recognized_text && <p className="speaking-recognized-answer"><strong>我聽到</strong><span>{result.recognized_text}</span></p>}
-            <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>
-            {(result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}</span>)}</div>}
+            {!assessmentUncertain && <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>}
+            {!assessmentUncertain && (result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}</span>)}</div>}
             <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback}</span></p>
             <button type="button" className="secondary" onClick={reset}><FiRefreshCw />再練一次</button>
         </div>}
-        {error && <p className="speaking-pronunciation-error" role="alert">{error}</p>}
+        {error && <div className="speaking-pronunciation-error" role="alert"><strong>本次練習尚未完成</strong><p>{error}</p></div>}
     </section>;
 }

@@ -24,6 +24,26 @@ const question = {
 };
 
 describe("SpeakingPracticeSteps", () => {
+    it("儲存失敗可以保存同一評分結果重試，不回報答錯", async () => {
+        const onCompleted = jest.fn().mockRejectedValueOnce(new Error("network")).mockResolvedValue(true);
+        const onIncorrect = jest.fn();
+        render(<SpeakingPracticeSteps question={question} onCompleted={onCompleted} onIncorrect={onIncorrect} />);
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        fireEvent.click(await screen.findByRole("button", { name: "重試儲存" }));
+        expect(await screen.findByText(/本題已完成/)).toBeInTheDocument();
+        expect(onCompleted).toHaveBeenCalledTimes(2);
+        expect(onCompleted.mock.calls[1][0].recognized_text).toBe("My name is Amy.");
+        expect(onIncorrect).not.toHaveBeenCalled();
+    });
+    it("照念類提供現有示範發音，沒有音檔時不顯示無作用按鈕", () => {
+        const play = jest.fn();
+        const { rerender } = render(<SpeakingPracticeSteps question={question} readAloud hideHelp onPlayAudio={play} />);
+        fireEvent.click(screen.getByRole("button", { name: "聽示範發音" }));
+        expect(play).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole("button", { name: /提示/ })).not.toBeInTheDocument();
+        rerender(<SpeakingPracticeSteps question={{ ...question, model_audio_url: null }} readAloud hideHelp />);
+        expect(screen.queryByRole("button", { name: "聽示範發音" })).not.toBeInTheDocument();
+    });
     it("把個人答案欄位顯示成句型空格，不要求學生打字", () => {
         expect(extractAnswerSlots("My name is [你的名字]. [你的名字]!")).toEqual(["你的名字"]);
         expect(answerPatternForLearner(question.model_answer)).toBe("My name is _____.");
@@ -72,9 +92,9 @@ describe("SpeakingPracticeSteps", () => {
         const onIncorrect = jest.fn();
         render(<SpeakingPracticeSteps firebaseUser={{}} question={question} onCompleted={jest.fn().mockResolvedValue(false)} onIncorrect={onIncorrect} />);
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
-        expect(await screen.findByText("這次回答尚未記錄為通關，請重新錄音再試一次。")).toBeInTheDocument();
+        expect(await screen.findByText("回答已評分，通關紀錄尚未儲存。")).toBeInTheDocument();
         expect(screen.queryByText("本題已完成！你可以繼續挑戰或再練一次。")).not.toBeInTheDocument();
-        expect(onIncorrect).toHaveBeenCalledWith(expect.objectContaining({ save_failed: true }));
+        expect(onIncorrect).not.toHaveBeenCalled();
     });
 
     it("基礎拼讀模式隱藏答案提示並把錯誤交回關卡流程", () => {

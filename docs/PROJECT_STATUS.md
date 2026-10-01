@@ -2,6 +2,16 @@
 
 最後更新：2026-10-01
 
+本機審核：照念單一練習與改善第 4、5 項（尚未部署）：
+
+- 分支 `codex/speaking-road-centerline-review`，接續 `8d83e3e2`。`alphabet_round`／`letter_spelling`／`standard_sentence` 使用單一入口，沿用 easy 通關紀錄、解鎖與獎勵；既有 challenge 成就不刪除。舊挑戰網址轉回 easy 再取得正確紀錄。混合頁只有全部題型完整且皆為照念類才合併；問答／看圖補句／中翻英與未知題型保留兩種模式，不從標題或頁碼猜測。
+- 已有音檔才顯示「聽示範發音」，照念題不重複顯示參考答案／提示。Edge 共用 renderer 本機修改為對通過既有身分、教材及關卡檢查的照念題簽發 ready 私人資產；不產生新語音、沒有 migration 或正式資料操作。A–Z 原導聽流程、學生暫停及問答題音檔政策保留，Function 尚未部署。
+- 網路／上傳／評分服務失敗保留錄音直接「重試評分」，不回報答錯；辨識 uncertain 不顯示紅色判分、不回報錯題或完成。正確回答的通關紀錄儲存失敗可重送同一結果；一般題、拼讀及圖片題不提前通關。試聽失敗以原關卡中性提示顯示，仍可直接錄音。
+- 三顆相同尺寸星星只作慶祝裝飾，徽章改為「全部完成！」；XP／AE Points 仍顯示實際後端獎勵。
+- 前端 6 suites／87 targeted tests、後端 12 契約測試、ESLint、共用 TypeScript 檢查、Edge 語法及 production build 通過；圖片題儲存回傳及混合題型補強後分別重跑 10／22 tests。未跑全專案測試，因影響集中於口說流程。正式 Function 未部署，學生真實錄音／試聽及 iPhone Safari 實機未驗證。
+- Chrome 本機桌面及 412×915 管理員預覽確認 P14 僅有全寬「開始練習」、P18～20 保留兩種模式；完成動畫顯示「全部完成！」與實際預覽 0 XP／0 AE Points，三顆星星同為 53.31×64px，無橫向溢出、Console 無 error。`S-20-M`／`S-20-E` 本機審核截圖已產生，正式教材素材待部署後更新。
+- 相關：口說主頁、PracticeSteps、PronunciationRecorder、Foundation／PictureChallenge、Loading／Animation、speakingPracticeMode、speaking-challenge-view、相應樣式／測試及手冊 v3.16。使用者原有路牌註解與排版修改保留。僅本機，未 Push／PR／部署。
+
 本機審核：口說錯題重試與提示提醒（2026-10-01，尚未部署）：
 
 - 分支 `codex/speaking-road-centerline-review`，接續 `3f00d7ba`；使用者核准改善第 2、3 項，僅本機修改，未 Push／PR／部署。
