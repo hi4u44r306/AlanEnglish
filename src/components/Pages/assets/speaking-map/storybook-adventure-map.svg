@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 6000" role="img" aria-labelledby="title desc">
+  <title id="title">童話冒險關卡地圖</title>
+  <desc id="desc">從草原、森林、雪山到火山城堡的輕量向量冒險地圖。</desc>
+  <defs>
+    <linearGradient id="world" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a9df91"/>
+      <stop offset=".23" stop-color="#6ab48d"/>
+      <stop offset=".43" stop-color="#247173"/>
+      <stop offset=".62" stop-color="#b9dded"/>
+      <stop offset=".79" stop-color="#eaf5fb"/>
+      <stop offset="1" stop-color="#35254f"/>
+    </linearGradient>
+    <linearGradient id="road" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0c6"/>
+      <stop offset="1" stop-color="#f3c982"/>
+    </linearGradient>
+    <linearGradient id="lava" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ffcb56"/>
+      <stop offset=".42" stop-color="#ff6a37"/>
+      <stop offset="1" stop-color="#b52d3c"/>
+    </linearGradient>
+    <pattern id="paper" width="48" height="48" patternUnits="userSpaceOnUse">
+      <circle cx="8" cy="12" r="2" fill="#fff" opacity=".08"/>
+      <circle cx="36" cy="31" r="1.5" fill="#17394d" opacity=".06"/>
+    </pattern>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#102a36" flood-opacity=".22"/>
+    </filter>
+    <symbol id="pine" viewBox="0 0 120 190">
+      <rect x="51" y="130" width="18" height="54" rx="8" fill="#795337"/>
+      <path d="M60 0 9 88h28L4 135h112L83 88h28z" fill="#176462"/>
+      <path d="M60 20 25 83h20L18 119h84L76 83h19z" fill="#2b8780" opacity=".72"/>
+    </symbol>
+    <symbol id="tree" viewBox="0 0 160 190">
+      <path d="M72 92h23l12 95H57z" fill="#805438"/>
+      <circle cx="49" cy="79" r="44" fill="#2e856b"/>
+      <circle cx="103" cy="68" r="52" fill="#4da36f"/>
+      <circle cx="84" cy="35" r="42" fill="#79bd75"/>
+    </symbol>
+    <symbol id="rock" viewBox="0 0 130 90">
+      <path d="M5 78 27 27 67 4l48 24 12 50z" fill="#627786"/>
+      <path d="m28 28 39-24 19 39-34 35H5z" fill="#8296a1" opacity=".7"/>
+    </symbol>
+    <symbol id="cloud" viewBox="0 0 220 90">
+      <path d="M25 79C6 78 1 51 19 43c-3-23 30-38 47-19 15-35 69-31 78 6 26-13 55 8 49 35 27 6 20 26-5 26H25z" fill="#fff" opacity=".76"/>
+    </symbol>
+  </defs>
+
+  <rect width="1000" height="6000" fill="url(#world)"/>
+  <rect width="1000" height="6000" fill="url(#paper)"/>
+
+  <!-- Meadow -->
+  <path d="M0 0h1000v1340c-148-93-262-81-390 8-149 103-355 107-610-11z" fill="#a9df91"/>
+  <path d="M0 388c210-126 369-95 511 5 147 104 305 91 489-33v520c-193 99-354 107-489 24-156-96-326-88-511 44z" fill="#7bc77d" opacity=".88"/>
+  <path d="M0 1010c181-116 334-110 482-14 162 105 334 104 518-26v432c-166 104-337 118-513 35-150-71-312-68-487 31z" fill="#55a977"/>
+  <use href="#cloud" x="600" y="95" width="260" height="105"/>
+  <use href="#cloud" x="90" y="250" width="190" height="78"/>
+  <use href="#tree" x="28" y="470" width="160" height="190"/>
+  <use href="#tree" x="790" y="760" width="170" height="202"/>
+  <use href="#tree" x="690" y="1120" width="150" height="178"/>
+  <use href="#rock" x="50" y="1030" width="120" height="84"/>
+  <use href="#rock" x="810" y="310" width="100" height="70"/>
+  <path d="M35 585h58v-88h12v88h60v12H35z" fill="#705238"/>
+  <path d="m105 492 94 28-94 31z" fill="#245fbe"/>
+  <circle cx="70" cy="545" r="8" fill="#ffd958"/>
+
+  <!-- Forest -->
+  <path d="M0 1260c207 98 375 92 519-20 137-106 297-112 481-11v1430c-206-88-379-70-519 55-137 122-297 125-481 9z" fill="#1f6d68"/>
+  <path d="M0 1540c172-128 338-148 499-61 170 92 337 76 501-48v770c-183 93-348 88-495-17-151-108-320-95-505 41z" fill="#19585e" opacity=".78"/>
+  <use href="#pine" x="10" y="1460" width="170" height="270"/>
+  <use href="#pine" x="760" y="1350" width="190" height="300"/>
+  <use href="#pine" x="130" y="2020" width="160" height="252"/>
+  <use href="#pine" x="750" y="2220" width="180" height="284"/>
+  <use href="#tree" x="20" y="2380" width="185" height="220"/>
+  <use href="#rock" x="805" y="1870" width="135" height="94"/>
+  <path d="M64 1940h250l-25-190H108z" fill="#f5e4be" stroke="#d5b17c" stroke-width="12"/>
+  <path d="m87 1760 110-122 112 122z" fill="#f7c85f" stroke="#9c6b3c" stroke-width="12"/>
+  <path d="M197 1642v304" stroke="#9c6b3c" stroke-width="12"/>
+  <circle cx="334" cy="1934" r="40" fill="#ffcf5d" opacity=".35"/>
+  <circle cx="334" cy="1934" r="22" fill="#ffce56"/>
+  <path d="M580 2220h280v34H580z" fill="#8a5937"/>
+  <path d="M610 2175h30v120h-30zm190 0h30v120h-30z" fill="#6c432f"/>
+  <path d="M637 2189h168m-168 42h168" stroke="#c68b52" stroke-width="19"/>
+
+  <!-- Snow -->
+  <path d="M0 2570c163-107 324-109 483-7 167 108 339 103 517-14v1665c-191-96-359-89-504 21-157 119-322 123-496 12z" fill="#d8edf7"/>
+  <path d="m0 3140 182-524 177 397 205-665 224 587 212-346v884H0z" fill="#9acbe0"/>
+  <path d="m0 3140 182-524 58 130 119 267 205-665 82 215 142 372 212-346v270l-154 201-195-189-158 279-229-236-175 201-176-172z" fill="#f7fcff" opacity=".92"/>
+  <use href="#pine" x="30" y="2760" width="160" height="252"/>
+  <use href="#pine" x="770" y="2920" width="170" height="270"/>
+  <use href="#pine" x="105" y="3620" width="190" height="300"/>
+  <use href="#pine" x="735" y="3800" width="180" height="284"/>
+  <path d="M664 3350c102-116 230-93 280 17v322H642v-265c0-29 7-54 22-74z" fill="#6aa8c6"/>
+  <path d="M711 3411c72-81 153-62 185 16v211H690v-168c0-24 7-44 21-59z" fill="#173f68"/>
+  <path d="m792 3490 31 53-31 53-31-53z" fill="#72e8ff"/>
+  <path d="M171 3277h305" stroke="#7b604b" stroke-width="34"/>
+  <path d="M197 3225v112m246-112v112" stroke="#654b3b" stroke-width="24"/>
+  <path d="M185 3251h272" stroke="#d9b479" stroke-width="18" stroke-dasharray="39 16"/>
+  <use href="#cloud" x="545" y="3910" width="300" height="122"/>
+
+  <!-- Volcano -->
+  <path d="M0 4110c176 126 343 131 501 15 154-113 320-120 499-22v1897H0z" fill="#3b2a50"/>
+  <path d="m0 5020 228-666 158 422 212-794 190 664 212-500v1854H0z" fill="#2b263f"/>
+  <path d="m227 4354 34 99-52 139 65 132-42 296" fill="none" stroke="url(#lava)" stroke-width="34" stroke-linecap="round"/>
+  <path d="m598 3982 30 150-61 129 86 158-48 235 74 178" fill="none" stroke="url(#lava)" stroke-width="38" stroke-linecap="round"/>
+  <path d="m787 4146-27 172 73 118-54 181 67 210" fill="none" stroke="url(#lava)" stroke-width="30" stroke-linecap="round"/>
+  <path d="M0 5530c164-81 321-76 471 14 164 98 341 87 529-34v490H0z" fill="#211f35"/>
+  <path d="M110 5080h320v38H110z" fill="#786053"/>
+  <path d="M140 5020h30v150h-30zm226 0h30v150h-30z" fill="#574437"/>
+  <path d="M161 5048h215" stroke="#d28f50" stroke-width="20" stroke-dasharray="44 18"/>
+  <g transform="translate(692 5460)" filter="url(#softShadow)">
+    <path d="M0 282h256V92h-48V0h-55v92H99V27H44v65H0z" fill="#eee7dd" stroke="#22314f" stroke-width="15"/>
+    <path d="M30 92 71 37l41 55zm94 0 47-74 47 74z" fill="#2c66aa"/>
+    <path d="M103 282v-72c0-62 54-62 54 0v72z" fill="#ffd45d" stroke="#22314f" stroke-width="12"/>
+    <path d="M34 137h33v45H34zm153 0h33v45h-33z" fill="#78cfe3"/>
+  </g>
+
+  <!-- One continuous route, shared with speakingAdventureMap.js -->
+  <polyline points="140,470 250,520 390,600 550,720 690,860 820,1040 860,1260 740,1460 590,1600 440,1740 310,1910 220,2110 270,2330 410,2520 570,2660 720,2840 800,3040 750,3260 620,3440 470,3620 330,3810 220,4010 260,4230 390,4400 550,4520 700,4690 820,4880 840,5100 730,5300 580,5440 430,5570 280,5680 180,5760"
+    fill="none" stroke="#8c613d" stroke-width="184" stroke-linecap="round" stroke-linejoin="round" opacity=".36" filter="url(#softShadow)"/>
+  <polyline points="140,470 250,520 390,600 550,720 690,860 820,1040 860,1260 740,1460 590,1600 440,1740 310,1910 220,2110 270,2330 410,2520 570,2660 720,2840 800,3040 750,3260 620,3440 470,3620 330,3810 220,4010 260,4230 390,4400 550,4520 700,4690 820,4880 840,5100 730,5300 580,5440 430,5570 280,5680 180,5760"
+    fill="none" stroke="#a96839" stroke-width="174" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="140,470 250,520 390,600 550,720 690,860 820,1040 860,1260 740,1460 590,1600 440,1740 310,1910 220,2110 270,2330 410,2520 570,2660 720,2840 800,3040 750,3260 620,3440 470,3620 330,3810 220,4010 260,4230 390,4400 550,4520 700,4690 820,4880 840,5100 730,5300 580,5440 430,5570 280,5680 180,5760"
+    fill="none" stroke="url(#road)" stroke-width="148" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="140,470 250,520 390,600 550,720 690,860 820,1040 860,1260 740,1460 590,1600 440,1740 310,1910 220,2110 270,2330 410,2520 570,2660 720,2840 800,3040 750,3260 620,3440 470,3620 330,3810 220,4010 260,4230 390,4400 550,4520 700,4690 820,4880 840,5100 730,5300 580,5440 430,5570 280,5680 180,5760"
+    fill="none" stroke="#fff5d8" stroke-width="5" stroke-linecap="round" stroke-dasharray="18 38" opacity=".42"/>
+
+  <!-- Friendly discoveries -->
+  <g transform="translate(735 1710)">
+    <ellipse cx="52" cy="68" rx="36" ry="46" fill="#d36f34"/>
+    <circle cx="51" cy="27" r="30" fill="#e98943"/>
+    <path d="m27 7 7-37 21 31m21 6-7-37-22 31" fill="#e98943" stroke="#9c4d30" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M40 34q12 15 25 0" fill="none" stroke="#51332d" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="42" cy="24" r="4" fill="#24334b"/><circle cx="63" cy="24" r="4" fill="#24334b"/>
+  </g>
+  <g transform="translate(82 3440)">
+    <ellipse cx="54" cy="72" rx="39" ry="48" fill="#f8fbfd"/>
+    <circle cx="53" cy="31" r="31" fill="#fff"/>
+    <path d="m30 10 2-42 23 34m21 8-2-42-24 34" fill="#fff" stroke="#7e91a0" stroke-width="7" stroke-linejoin="round"/>
+    <circle cx="43" cy="29" r="4" fill="#20304d"/><circle cx="64" cy="29" r="4" fill="#20304d"/>
+    <path d="M44 43q10 9 20 0" fill="none" stroke="#586778" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(72 5280)">
+    <ellipse cx="70" cy="70" rx="45" ry="53" fill="#96502f"/>
+    <circle cx="66" cy="29" r="32" fill="#bd6b3b"/>
+    <path d="M93 87c63 12 74-89 14-101 26 30 7 55-20 48" fill="#bd6b3b" stroke="#7e3f2a" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="56" cy="26" r="4" fill="#22324a"/><circle cx="76" cy="26" r="4" fill="#22324a"/>
+    <path d="M57 40q9 8 18 0" fill="none" stroke="#51332d" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>
