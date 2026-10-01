@@ -1,18 +1,18 @@
-const MAP_WIDTH = 1000;
-const MAP_HEIGHT = 6000;
+const MAP_WIDTH = 941;
+const MAP_HEIGHT = 1672;
 const MAX_ROWS = 7;
 const PREFERRED_LEVELS_PER_ROW = 4;
 
-// This centreline is shared with storybook-adventure-map.svg. Sampling the same
-// geometry keeps every HTML level control centred on the painted SVG road at
-// any responsive width without baking labels into the artwork.
+// Measured from the illustrated v2 road, starting beside the flag at the
+// bottom and ending at the castle. Sampling this same centreline keeps every
+// HTML level control on the painted road while students climb upward.
 const ROAD_POINTS = [
-    [140, 470], [250, 520], [390, 600], [550, 720], [690, 860], [820, 1040],
-    [860, 1260], [740, 1460], [590, 1600], [440, 1740], [310, 1910], [220, 2110],
-    [270, 2330], [410, 2520], [570, 2660], [720, 2840], [800, 3040], [750, 3260],
-    [620, 3440], [470, 3620], [330, 3810], [220, 4010], [260, 4230], [390, 4400],
-    [550, 4520], [700, 4690], [820, 4880], [840, 5100], [730, 5300], [580, 5440],
-    [430, 5570], [280, 5680], [180, 5760]
+    [135, 1575], [240, 1550], [360, 1505], [500, 1440], [620, 1370], [690, 1285],
+    [675, 1210], [560, 1150], [440, 1105], [410, 1050], [450, 1000], [570, 955],
+    [700, 910], [765, 860], [740, 805], [620, 770], [500, 735], [425, 690],
+    [420, 640], [470, 590], [580, 540], [700, 490], [780, 435], [770, 385],
+    [650, 345], [500, 315], [340, 300], [225, 280], [245, 245], [360, 220],
+    [510, 205], [650, 175], [760, 130], [825, 85]
 ];
 
 const ROAD_SEGMENTS = ROAD_POINTS.slice(1).map((point, index) => {
@@ -26,7 +26,15 @@ const ROAD_SEGMENTS = ROAD_POINTS.slice(1).map((point, index) => {
 const ROAD_LENGTH = ROAD_SEGMENTS.reduce((sum, segment) => sum + segment.length, 0);
 
 const sampleRoad = progress => {
-    let remaining = Math.min(1, Math.max(0, progress)) * ROAD_LENGTH;
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+    if (clampedProgress === 1) {
+        const [x, y] = ROAD_POINTS[ROAD_POINTS.length - 1];
+        return {
+            x: Number((x / MAP_WIDTH * 100).toFixed(2)),
+            y: Number((y / MAP_HEIGHT * 100).toFixed(2))
+        };
+    }
+    let remaining = clampedProgress * ROAD_LENGTH;
     const segment = ROAD_SEGMENTS.find(current => {
         if (remaining <= current.length) return true;
         remaining -= current.length;
@@ -77,6 +85,7 @@ export const buildSpeakingAdventureRoute = (_bookKey, items) => {
     return {
         nodes,
         rowCounts,
-        aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}`
+        aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}`,
+        startsAtBottom: true
     };
 };

@@ -484,16 +484,16 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   content: "";
   position: absolute;
   inset: -28px;
-  background: linear-gradient(180deg, #77b48b 0 22%, #19585e 42%, #b9ddeb 67%, #322847 100%);
-  filter: blur(24px) saturate(.82) brightness(.72);
+  background: #24314b url("../assets/speaking-map/storybook-adventure-map-v2.webp") center / cover no-repeat;
+  filter: blur(26px) saturate(.8) brightness(.62);
   transform: scale(1.05);
 }
 .speaking-adventure-route .speaking-map-canvas {
   width: min(760px, 100%);
   height: auto;
-  aspect-ratio: var(--map-aspect-ratio, 1000 / 6000);
-  background: #7bc58c url("../assets/speaking-map/storybook-adventure-map.svg") center / 100% 100% no-repeat;
-  box-shadow: 0 0 28px rgba(7, 31, 42, .38);
+  aspect-ratio: var(--map-aspect-ratio, 941 / 1672);
+  background: #78b9d5 url("../assets/speaking-map/storybook-adventure-map-v2.webp") center / 100% 100% no-repeat;
+  box-shadow: 0 0 32px rgba(7, 20, 39, .45);
 }
 .speaking-adventure-route .speaking-map-book-sign {
   position: absolute;
@@ -676,8 +676,8 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 
 @media (max-width: 520px) {
   .speaking-adventure-route .speaking-map-canvas {
-    aspect-ratio: 1000 / 6000;
-    background-image: url("../assets/speaking-map/storybook-adventure-map.svg");
+    aspect-ratio: 941 / 1672;
+    background-image: url("../assets/speaking-map/storybook-adventure-map-v2.webp");
     background-size: 100% 100%;
     background-position: center;
   }
@@ -711,11 +711,11 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-shadow: 0 8px 22px rgba(35, 67, 112, .09);
 }
 
-// The SVG road and HTML markers use one responsive coordinate system.
+// The illustrated road and HTML markers use one responsive coordinate system.
 .speaking-adventure-route .speaking-map-canvas {
   container-type: inline-size;
-  aspect-ratio: 1000 / 6000;
-  background-image: url("../assets/speaking-map/storybook-adventure-map.svg");
+  aspect-ratio: 941 / 1672;
+  background-image: url("../assets/speaking-map/storybook-adventure-map-v2.webp");
   background-position: center;
   background-size: 100% 100%;
 }
@@ -747,8 +747,8 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 
 @media (max-width: 520px) {
   .speaking-adventure-route .speaking-map-canvas {
-    aspect-ratio: 1000 / 6000;
-    background-image: url("../assets/speaking-map/storybook-adventure-map.svg");
+    aspect-ratio: 941 / 1672;
+    background-image: url("../assets/speaking-map/storybook-adventure-map-v2.webp");
     background-position: center;
     background-size: 100% 100%;
   }
