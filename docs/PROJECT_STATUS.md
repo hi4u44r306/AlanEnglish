@@ -2,11 +2,12 @@
 
 最後更新：2026-10-02
 
-口說地圖目標獨立發布（2026-10-02，發布驗收中）：
+口說地圖目標獨立發布（2026-10-02，正式部署及學生畫面驗收完成）：
 
 - 使用者核准獨立發布本機 checkpoint `22ebd5aa`。從最新 main `a23546e6` 建立 `codex/speaking-next-goal-release`；僅移植下一個目標、主題摘要與模式進度入口，沿用正式地圖及既有路由／權限。`/links`、延長地圖素材、其他本機修改不在本批。
 - 目標沿用既有教材順序與未完成／已解鎖狀態；按目標先開摘要，easy／challenge 依各自紀錄顯示開始、繼續或再練。鎖定關卡不能開始，摘要支援 Escape、焦點返回及背景捲動鎖定。沒有新增獎勵、學習紀錄、API、migration 或 Function 操作。
-- 分離後口說主頁、入口元件及既有關卡流程 3 suites／67 targeted tests、四檔 ESLint、SCSS 編譯與 diff 檢查通過；不跑全套測試或重複本機 Production build，正式 build 由 Cloudflare main 執行。PR、正式建置與桌面／412px 驗收待完成；iPhone Safari 實機與真實錄音／獎勵未驗。回復方式為反向套用本批前端差異。
+- 分離後口說主頁、入口元件及既有關卡流程 3 suites／67 targeted tests、四檔 ESLint、SCSS 編譯、diff 與發布前檢查通過；不跑全套測試或重複本機 Production build。PR #396 已合併，功能 main `6cb2b0a8`；Cloudflare production build `2d04f524-f7e5-4db4-8755-6b8e38428ecf` success（2026-10-02 14:26:15 台灣時間），正式 bundle `main.ee05571e.js`。
+- Chrome 正式學生在 1440×900 與 412×915 確認 Workbook 1 共 25 關、唯一 A–Z 目標 0／26 題，按目標只開主題摘要；單一／雙模式、P.15 與 P.18～20 鎖定、焦點跳過 disabled、Escape 返回入口與背景捲動還原正常。沒有橫向溢出或 Console error，目標按鈕約 49px 高。正式截圖 `speaking-goal-production-desktop.jpg`、`speaking-goal-production-mobile.jpg`、`speaking-entry-production-mobile.jpg` 已保存於本次 Codex visualizations。部分進度／全部通關以 targeted tests 驗證；iPhone Safari 實機與真實錄音／獎勵未驗。本批沒有錄音或寫入學習資料，回復方式為反向套用本批前端差異。
 
 學生口說前端入口獨立發布（2026-10-02，發布驗收中）：
 
