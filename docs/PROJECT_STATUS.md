@@ -2,6 +2,12 @@
 
 最後更新：2026-10-02
 
+Workbook 入口讀取動畫獨立發布（2026-10-02，準備正式部署）：
+
+- 使用者授權發布本機 `4b807eeb` 的 Workbook 讀取動畫。由最新 main `95405bad` 建立 `codex/workbook-entry-loading-release`，只移植讀取元件、冊別入口與測試；模糊背景沿用正式 WebP，不包含尚在本機審核的延長地圖、道路定位、影片引導或其他草稿。
+- 各冊顯示「正在進入 Workbook X 口說大挑戰…」、木框、書本浮動與不定進度帶。catalog 對應路徑避免閃現舊清單；資料完成即進入地圖，等待中可返回，錯誤及晚到回應沿用原處理。保留最新 main 錄音／聽力／通關流程，無 migration、Function、權限或獎勵變動。
+- 移植後 51 targeted tests、相關 ESLint、SCSS 編譯通過；不重跑全套或本機 production build，正式 build 由 Cloudflare main 執行。尚待 PR／Cloudflare production 與正式桌面／手機驗收，iPhone Safari 實機待驗。回復方式為反向套用本批前端差異。
+
 口說關卡連貫體驗第 2–4 項（2026-10-02，正式部署及學生畫面驗收完成）：
 
 - 使用者同意合併關卡視覺、錄音／通關回饋及聽力串接。分支 `codex/speaking-immersive-flow` 從最新 main `1f858ae4` 開始，在既有乾淨發布副本實作，保留原 checkout 與正在審核的延長地圖。

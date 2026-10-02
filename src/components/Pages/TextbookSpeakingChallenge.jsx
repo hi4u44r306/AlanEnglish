@@ -173,6 +173,7 @@ export default function TextbookSpeakingChallenge() {
     const [catalogRewardPolicy, setCatalogRewardPolicy] = useState(null);
     const [challengePolicy, setChallengePolicy] = useState(null);
     const [catalogLoading, setCatalogLoading] = useState(!questionSetId);
+    const [loadedCatalogPath, setLoadedCatalogPath] = useState("");
     const [challenge, setChallenge] = useState(null);
     const [loadedChallengeKey, setLoadedChallengeKey] = useState("");
     const [error, setError] = useState("");
@@ -404,6 +405,7 @@ export default function TextbookSpeakingChallenge() {
                     const nextCatalog = catalogResponse.challenges || [];
                     if (!cancelled && !leavingRef.current) {
                         setCatalog(nextCatalog);
+                        setLoadedCatalogPath(location.pathname);
                         setCatalogRewardPolicy(catalogResponse.reward_policy || null);
                         setChallengePolicy(catalogResponse.challenge_policy || null);
                     }
@@ -465,6 +467,13 @@ export default function TextbookSpeakingChallenge() {
     if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
     if (!questionSetId) {
         const selectedBook = bookKey ? catalogGroups.find(group => group.id === bookKey || encodeURIComponent(group.id) === bookKey) : null;
+        if (bookKey && (catalogLoading || loadedCatalogPath !== location.pathname)) {
+            const entry = location.state?.speakingBookEntry;
+            const routeLabel = /^book-\d+$/.test(bookKey) ? `Workbook ${bookKey.slice(5)}` : bookKey.replace(/^book-/, "");
+            return renderScene(<SpeakingChallengeLoading workbookEntry
+                bookLabel={selectedBook?.label || (entry?.bookKey === bookKey ? entry.bookLabel : "") || routeLabel}
+                onReturn={() => requestReturn("/student/speaking-challenges")} />);
+        }
         const selectedBookCompleted = selectedBook?.sections
             .flatMap(section => section.items)
             .filter(item => item.is_completed).length || 0;
@@ -498,7 +507,7 @@ export default function TextbookSpeakingChallenge() {
             {!staffPreview && !selectedBook && <ChallengeRules policy={challengePolicy} />}
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
-                {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`)} />)}
+                {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`, { state: { speakingBookEntry: { bookKey: group.id, bookLabel: group.label } } })} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
                     <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-aspect-ratio": mapRoute.aspectRatio }}>
                         {/* <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}>
