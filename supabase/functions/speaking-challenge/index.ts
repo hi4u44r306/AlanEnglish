@@ -55,7 +55,10 @@ const taipeiActivityDate = () => {
 };
 
 const speakingChallengePolicy = async (admin: any, studentId: number, demoMode: boolean) => {
+    const { data: assessmentUsage, error: usageError } = await admin.rpc("speaking_assessment_usage_v1", { p_student_id: studentId });
+    if (usageError) throw usageError;
     if (demoMode) return {
+        assessment_usage: assessmentUsage,
         daily_limit: SPEAKING_CHALLENGE_DAILY_LIMIT,
         daily_used: null,
         daily_remaining: null,
@@ -69,6 +72,7 @@ const speakingChallengePolicy = async (admin: any, studentId: number, demoMode: 
     if (error) throw error;
     const used = Math.max(0, Number(count) || 0);
     return {
+        assessment_usage: assessmentUsage,
         daily_limit: SPEAKING_CHALLENGE_DAILY_LIMIT,
         daily_used: used,
         daily_remaining: Math.max(SPEAKING_CHALLENGE_DAILY_LIMIT - used, 0),

@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import { SpeakingActivityContext } from "./SpeakingAdventureSession";
+import { SpeakingAssessmentContext } from "./SpeakingAssessmentBudget";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
@@ -50,6 +51,39 @@ describe("SpeakingPronunciationRecorder", () => {
         URL.createObjectURL = originalCreateObjectUrl;
         URL.revokeObjectURL = originalRevokeObjectUrl;
         jest.clearAllMocks();
+    });
+
+    it("額度用完仍能錄音回聽，但不呼叫評分或通關", async () => {
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
+        const onScored = jest.fn();
+        render(<SpeakingAssessmentContext.Provider value={{ usage: { can_assess: false, global_available: true, reset_at: "2026-10-31T16:00:00Z" }, onUsage: jest.fn() }}>
+            <SpeakingPronunciationRecorder question={{ id: 9 }} firebaseUser={{}} onScored={onScored} />
+        </SpeakingAssessmentContext.Provider>);
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
+        const submit = await screen.findByRole("button", { name: "AI 評分額度不足" });
+        expect(submit).toBeDisabled();
+        expect(document.querySelector("audio")).toHaveAttribute("src", "blob:scoring-wav");
+        expect(screen.getByRole("button", { name: "重新錄音" })).toBeEnabled();
+        expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
+        expect(onScored).not.toHaveBeenCalled();
+    });
+
+    it("後端額度拒絕保留錄音並顯示正確原因，不顯示服務故障", async () => {
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
+        const onUsage = jest.fn();
+        const monthlyUsage = { can_assess: false, monthly_remaining_seconds: 0 };
+        submitSpeakingPronunciationAttempt.mockRejectedValueOnce(Object.assign(new Error("本月 AI 評分額度不足，下月恢復"), {
+            code: "speaking_monthly_quota_reached", assessment_usage: monthlyUsage
+        }));
+        render(<SpeakingAssessmentContext.Provider value={{ usage: null, onUsage }}><SpeakingPronunciationRecorder question={{ id: 9 }} firebaseUser={{}} /></SpeakingAssessmentContext.Provider>);
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
+        fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("本月 AI 評分額度不足");
+        expect(screen.getByRole("button", { name: "AI 評分額度不足" })).toBeDisabled();
+        expect(onUsage).toHaveBeenCalledWith(monthlyUsage);
+        expect(document.querySelector("audio")).toBeInTheDocument();
     });
 
     it.each([new TypeError("Failed to fetch"), new Error("upload failed"), new Error("provider timeout")])("技術失敗保留 WAV 重送，沒有答錯音效或通關回呼：%s", async failure => {
