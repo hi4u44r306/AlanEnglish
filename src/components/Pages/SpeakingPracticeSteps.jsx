@@ -176,7 +176,8 @@ export default function SpeakingPracticeSteps({
             onRoundInvalid={onRoundInvalid}
         />
 
-        {lastResult?.answer_match !== false && lastResult && !lastResult.hint_used && !lastResult.save_failed && <p className="speaking-practice-finished"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
+        {saving && <p className="speaking-practice-saving" role="status">正在儲存本題進度，請稍候…</p>}
+        {!saving && lastResult?.answer_match !== false && lastResult && !lastResult.hint_used && !lastResult.save_failed && <p className="speaking-practice-finished" role="status"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
         {lastResult?.save_failed && <div className="speaking-save-retry" role="alert"><strong>回答已評分，通關紀錄尚未儲存。</strong><p>保留這次回答，重試儲存即可。</p><button type="button" onClick={() => handleScored(lastResult)} disabled={saving}>{saving ? "儲存中…" : "重試儲存"}</button></div>}
         {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不用提示再試一次。本輪這題不計通關。</p>}
         {lastResult?.answer_match === false && (

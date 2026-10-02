@@ -2,6 +2,7 @@ import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
+import { SpeakingActivityContext } from "./SpeakingAdventureSession";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
@@ -69,6 +70,25 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(onScored).toHaveBeenCalledTimes(1);
         expect(submitSpeakingPronunciationAttempt.mock.calls.at(-1)[0].audio).toBe(wav);
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
+    });
+    it("評分等待期間顯示正確狀態，不提前呈現完成", async () => {
+        let resolveScore;
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
+        submitSpeakingPronunciationAttempt.mockReturnValue(new Promise(resolve => { resolveScore = resolve; }));
+        const onScored = jest.fn();
+        const setBusy = jest.fn();
+        render(<SpeakingActivityContext.Provider value={setBusy}><SpeakingPronunciationRecorder question={{ id: 9 }} onScored={onScored} /></SpeakingActivityContext.Provider>);
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
+        fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
+        expect(screen.getByRole("status")).toHaveTextContent("正在評分，請稍候");
+        expect(setBusy).toHaveBeenLastCalledWith(true);
+        expect(screen.getByRole("button", { name: "AI 評分中…" })).toBeDisabled();
+        expect(screen.queryByText("本次練習結果")).not.toBeInTheDocument();
+        expect(onScored).not.toHaveBeenCalled();
+        resolveScore({ answer_match: true, scores: { pronunciation: 88 } });
+        await screen.findByText("表現良好");
+        await waitFor(() => expect(setBusy).toHaveBeenLastCalledWith(false));
     });
     it("不完整評分回應不能被當成通關", async () => {
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));

@@ -3,10 +3,14 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Headphones } from "lucide-react";
 import MusicCard from "./MusicCard";
 import "../assets/scss/Playlist.scss";
+import "../Pages/css/SpeakingAdventureSession.scss";
 import { useAuth } from "../../auth/AuthContext";
 import { getBookPlaybackProgress } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
 import { hasReachedListeningMastery } from "../../constants/listeningProgress";
+import { useDispatch } from "react-redux";
+import { setPlayPauseStatus } from "../../actions/actions";
+import { speakingListeningContext } from "../../utils/speakingListening";
 
 const PLAYLIST_CACHE_PREFIX = "ae-playlist-cache:";
 const PLAYLIST_CACHE_TTL = 45 * 60 * 1000;
@@ -40,6 +44,7 @@ function writePlaylistCache(playlistId, book, tracks) {
 function Playlist() {
     const { playlistId } = useParams();
     const location = useLocation();
+    const dispatch = useDispatch();
     const { firebaseUser, role } = useAuth();
     const [book, setBook] = useState(null);
     const [tracks, setTracks] = useState([]);
@@ -56,6 +61,12 @@ function Playlist() {
     }, [location.search]);
 
     const homeworkTrackSet = useMemo(() => new Set(homeworkContext.trackIds.map(String)), [homeworkContext.trackIds]);
+    const speakingContext = useMemo(() => homeworkContext.active ? null : speakingListeningContext(location.search), [homeworkContext.active, location.search]);
+    useEffect(() => {
+        if (!speakingContext) return undefined;
+        dispatch(setPlayPauseStatus(false));
+        return () => { dispatch(setPlayPauseStatus(false)); };
+    }, [speakingContext, dispatch]);
 
     useEffect(() => {
         let cancelled = false;
@@ -147,7 +158,8 @@ function Playlist() {
     }, [tracks, progressMap]);
 
     const homeworkTracks = useMemo(() => tracks.filter(track => homeworkTrackSet.has(String(track.id))), [tracks, homeworkTrackSet]);
-    const visibleTracks = homeworkContext.active ? homeworkTracks : tracks;
+    const speakingTracks = speakingContext ? tracks.filter(track => speakingContext.trackIds.has(String(track.id))) : [];
+    const visibleTracks = homeworkContext.active ? homeworkTracks : speakingContext ? speakingTracks : tracks;
     const isHomeworkTrackCompleted = track => {
         const progress = progressMap[String(track.id)] || {};
         return Boolean(progress.completed) || Number(progress.playCount || 0) >= homeworkContext.requiredListens;
@@ -155,12 +167,17 @@ function Playlist() {
     const homeworkCompletedCount = homeworkTracks.filter(isHomeworkTrackCompleted).length;
     const homeworkCompletionRate = homeworkTracks.length ? Math.round((homeworkCompletedCount / homeworkTracks.length) * 100) : 0;
 
-    if (loading && tracks.length === 0) return <div className="playlist-loading"><div className="playlist-loading__icon">🎧</div><div>音檔載入中...</div></div>;
-    if (errorMessage && tracks.length === 0) return <div className="playlist-error"><h2>讀取失敗</h2><p>{errorMessage}</p></div>;
+    const speakingReturn = speakingContext && <Link className="playlist-speaking-return" to={speakingContext.returnPath}><ArrowLeft aria-hidden="true" size={18} />回到原口說關卡</Link>;
+    if (loading && tracks.length === 0) return <div className="playlist-loading">{speakingReturn}<div className="playlist-loading__icon">🎧</div><div>音檔載入中...</div></div>;
+    if (errorMessage && tracks.length === 0) return <div className="playlist-error">{speakingReturn}<h2>讀取失敗</h2><p>{errorMessage}</p></div>;
 
     return (
         <div className="playlist-page">
             <div className="playlist-content">
+                {speakingContext && <section className="playlist-speaking-preparation" aria-label="本關聽力準備">
+                    <div><span><Headphones aria-hidden="true" size={18} />本關聽力準備</span><p>先把教材聽熟，再回到口說關卡試著自己回答。已完成的題目會保留，回去後重新載入本關。</p></div>
+                    {speakingReturn}
+                </section>}
                 <header className="playlist-header">
                     <div className="playlist-header__main">
                         <div className="playlist-header__copy">
@@ -224,7 +241,7 @@ function Playlist() {
                                     index={index}
                                 />
                             </div>
-                        )) : <div className="playlist-empty">目前沒有音檔</div>}
+                        )) : <div className="playlist-empty">{speakingContext ? "本關對應音檔目前無法載入，請回到口說關卡繼續練習。" : "目前沒有音檔"}</div>}
                     </div>
                 </section>
             </div>

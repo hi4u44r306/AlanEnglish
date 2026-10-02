@@ -6,7 +6,8 @@ import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpea
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
-import { ChallengePreviewDialog, SpeakingMapGoal } from "./SpeakingMapEntry";
+import { ChallengePreviewDialog, SpeakingMapGoal, speakingLessonTopic } from "./SpeakingMapEntry";
+import SpeakingAdventureSession from "./SpeakingAdventureSession";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
@@ -19,6 +20,7 @@ import "./css/SpeakingAdventureMap.scss";
 import "./css/SpeakingAdventureRoute.scss";
 import "./css/ImmersiveSpeaking.scss";
 import "./css/SpeakingMapEntry.scss";
+import "./css/SpeakingAdventureSession.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },
@@ -275,7 +277,9 @@ export default function TextbookSpeakingChallenge() {
 
     const renderScene = content => {
         if (returnTransition) return <SpeakingChallengeReturn toCatalog={returnTransition.path === "/student/speaking-challenges"} />;
-        if (!completionNotice) return content;
+        if (!completionNotice) return questionSetId && challenge && Number(challenge.id) === Number(questionSetId) && loadedChallengeKey === `${questionSetId}:${challengeMode}`
+            ? <SpeakingAdventureSession key={`${questionSetId}:${challengeMode}`} challenge={challenge} pages={levelReference(challenge)} mode={challengeMode} firebaseUser={firebaseUser}>{content}</SpeakingAdventureSession>
+            : content;
         const bookPath = challengeBookCatalogPath(challenge);
         const items = (completionCatalog.length ? completionCatalog : staffPreview ? catalog : [])
             .filter(item => challengeBookCatalogPath(item) === bookPath)
@@ -287,6 +291,7 @@ export default function TextbookSpeakingChallenge() {
         const next = currentIndex >= 0 ? items[currentIndex + 1] : null;
         const nextAvailable = next && (staffPreview || next.is_unlocked === true);
         return <SpeakingChallengeCompletion notice={completionNotice} mode={challengeMode} staffPreview={staffPreview}
+            nextTopic={nextAvailable ? speakingLessonTopic(next, levelReference(next)) : ""}
             reference={[challenge?.books?.name || challenge?.book?.name, challenge ? levelReference(challenge) || challenge.title : ""].filter(Boolean).join(" · ")}
             onReturn={() => requestReturn(bookPath)}
             onNext={nextAvailable ? () => navigate(`/student/speaking-challenges/${next.id}?mode=${usesSinglePracticeMode(next) ? "easy" : challengeMode}`, { state: { speakingEntry: {

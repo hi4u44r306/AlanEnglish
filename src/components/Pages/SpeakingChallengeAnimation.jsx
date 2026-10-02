@@ -33,7 +33,7 @@ function AnimatedReward({ amount }) {
     return <span ref={valueRef} aria-hidden="true">+0</span>;
 }
 
-export function SpeakingChallengeCompletion({ notice, mode, reference, staffPreview, onReturn, onNext }) {
+export function SpeakingChallengeCompletion({ notice, mode, reference, staffPreview, onReturn, onNext, nextTopic }) {
     const dialogRef = useRef(null);
     const xp = staffPreview ? 0 : awardedAmount(notice?.xp_awarded ?? notice?.reward_xp);
     const points = staffPreview ? 0 : awardedAmount(notice?.ae_points_awarded);
@@ -65,6 +65,7 @@ export function SpeakingChallengeCompletion({ notice, mode, reference, staffPrev
                 <div aria-label={`本次獲得 ${points} AE Points`}><span className="speaking-celebration-rewards__icon is-points"><FiHexagon aria-hidden="true" /></span><small>獲得點數</small><strong><AnimatedReward amount={points} /><em>AE Points</em></strong></div>
             </div>
             {!staffPreview && xp === 0 && points === 0 && <small className="speaking-celebration-reward-note">{mode === "challenge" ? "挑戰模式記錄成就，不重複發放獎勵" : "本次未新增 XP 或 AE Points"}</small>}
+            {nextTopic && onNext && <p className="speaking-celebration-next-topic"><small>下一個目標</small><strong>{nextTopic}</strong></p>}
             <button type="button" className="speaking-celebration-next" onClick={onNext || onReturn}>{onNext ? "前往下一關" : "回地圖繼續冒險"}<FiArrowRight aria-hidden="true" /></button>
             <button type="button" className="speaking-celebration-return" onClick={onReturn}>返回地圖</button>
         </section>
