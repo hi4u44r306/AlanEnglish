@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FiBookOpen, FiCheck, FiCheckCircle, FiCreditCard, FiHeadphones, FiLock, FiMessageCircle, FiMic, FiRefreshCw, FiStar, FiUsers, FiZap } from "react-icons/fi";
+import { FiBookOpen, FiCheck, FiCheckCircle, FiCreditCard, FiHeadphones, FiLock, FiMessageCircle, FiMic, FiStar, FiUsers, FiZap } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
@@ -46,9 +46,7 @@ const formatRenewalDay = value => {
 const FEATURE_OVERVIEW = [
     { key: "listening", label: "教材與聽力", description: "使用已取得權限的教材、音檔與學習進度。", path: "/materials", icon: FiHeadphones },
     { key: "conversation", label: "英文情境對話", description: "練習遇到外國人時的聽力與口說反應。", path: "/student/conversation", icon: FiMessageCircle },
-    { key: "review", label: "智慧複習", description: "重新練習錯題與還沒完全掌握的內容。", path: "/student/review", icon: FiRefreshCw },
     { key: "assignments", label: "英文班作業", description: "只有有效在學、且老師有發布作業時才會顯示。", path: "/student/assignments", icon: FiUsers },
-    { key: "ai_materials", label: "AI 專屬教材", description: "依自己的需求生成個人化英文練習。", path: "/student/ai-generator", icon: FiZap },
     { key: "pronunciation", label: "口說遊戲", description: "口說教練與口說大挑戰正在調整，完成測試後開放。", path: "", icon: FiMic, temporarilyDisabled: true }
 ];
 
@@ -308,7 +306,7 @@ function MembershipCenter() {
                 </div>
             </section>
 
-            {hasAiPremium && <section className="membership-active-addon" role="status" aria-label="AI Premium｜AI 教材與發音練習已啟用"><span className="membership-active-addon-icon"><FiZap aria-hidden="true" /></span><div><span>AI Premium</span><strong>你的 AI 學習力已升級</strong><small>{isActiveAcademyStudent ? "英文班在校期間已包含 · 每日 5 次、每月 150 次" : hasAiAddon ? aiAddonCancelling ? `使用至 ${formatDate(aiRenewalAt)}，到期後不再扣款` : aiRenewalDay ? `每月 ${aiRenewalDay} 日續訂 · 每日 5 次、每月 150 次` : "AI 教材與發音練習已啟用" : "AI 教材與發音練習已啟用"}</small></div><div className="membership-active-addon-actions"><Link to="/student/ai-generator">AI 教材</Link><span aria-label="口說遊戲準備中">口說遊戲準備中</span>{!isActiveAcademyStudent && hasAiAddon && aiAddonSubscription?.stripe_subscription_id && <button type="button" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "恢復續訂" : "到期取消"}</button>}</div></section>}
+            {hasAiPremium && <section className="membership-active-addon" role="status" aria-label="AI Premium｜AI 教材與發音練習已啟用"><span className="membership-active-addon-icon"><FiZap aria-hidden="true" /></span><div><span>AI Premium</span><strong>你的 AI 學習力已升級</strong><small>{isActiveAcademyStudent ? "英文班在校期間已包含 · 每日 5 次、每月 150 次" : hasAiAddon ? aiAddonCancelling ? `使用至 ${formatDate(aiRenewalAt)}，到期後不再扣款` : aiRenewalDay ? `每月 ${aiRenewalDay} 日續訂 · 每日 5 次、每月 150 次` : "AI 教材與發音練習已啟用" : "AI 教材與發音練習已啟用"}</small></div><div className="membership-active-addon-actions"><span aria-label="口說遊戲準備中">口說遊戲準備中</span>{!isActiveAcademyStudent && hasAiAddon && aiAddonSubscription?.stripe_subscription_id && <button type="button" disabled={Boolean(working)} onClick={() => updateRenewal(aiAddonCancelling, aiAddonSubscription.stripe_subscription_id)}>{aiAddonCancelling ? "恢復續訂" : "到期取消"}</button>}</div></section>}
 
             {!isActiveAcademyStudent && <section className="platform-card membership-plans" id="plans">
                 <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">MEMBERSHIP & AI</span><h2>延續使用與功能加購</h2><p>基本會員可使用全部正式聽力教材；AI 教材與發音練習為獨立加購。</p></div>{(membership?.has_stripe_customer || membership?.stripe_subscription_status) && <button className="platform-secondary" type="button" onClick={portal} disabled={working === "portal"} aria-busy={working === "portal"}>{working === "portal" && <span className="platform-button-spinner is-dark" aria-hidden="true" />} {working === "portal" ? "正在開啟訂閱管理…" : "管理目前訂閱"}</button>}</div>

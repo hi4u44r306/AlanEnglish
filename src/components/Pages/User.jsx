@@ -5,8 +5,7 @@ import {
     FiBookOpen,
     FiCheckSquare,
     FiMic,
-    FiMoreHorizontal,
-    FiStar
+    FiMoreHorizontal
 } from "react-icons/fi";
 import Logout from "./Logout";
 import { useAuth } from "../../auth/AuthContext";
@@ -15,7 +14,6 @@ import "./css/User.scss";
 export const StudentLaunchpad = ({ user }) => {
     const features = user?.membership?.effective_access?.features || {};
     const hasActiveAccess = user?.membership?.is_active === true;
-    const hasAiAccess = hasActiveAccess && features.ai_materials === true;
     const hasAssignmentsAccess = hasActiveAccess && features.assignments === true;
     const hasMaterialsAccess = hasActiveAccess && features.listening === true;
     const hasSpeakingAccess = hasActiveAccess && (
@@ -52,25 +50,16 @@ export const StudentLaunchpad = ({ user }) => {
             tone: "yellow",
             path: "/student/assignments"
         },
-        hasAiAccess && {
-            id: "ai",
-            title: "AI 教材",
-            description: "做一份適合自己的英文練習",
-            action: "開始使用",
-            icon: FiStar,
-            tone: "purple",
-            path: "/student/ai-generator"
-        },
         {
             id: "more",
             title: "更多功能",
-            description: "複習、成果、設定都在這裡",
+            description: "作業、成果、設定都在這裡",
             action: "打開更多",
             icon: FiMoreHorizontal,
             tone: "navy",
             menu: "more"
         }
-    ].filter(Boolean), [hasAiAccess, hasAssignmentsAccess, hasMaterialsAccess, hasSpeakingAccess]);
+    ].filter(Boolean), [hasAssignmentsAccess, hasMaterialsAccess, hasSpeakingAccess]);
 
     const openStudentMenu = menu => {
         window.dispatchEvent(new CustomEvent("ae:open-student-menu", { detail: menu }));
