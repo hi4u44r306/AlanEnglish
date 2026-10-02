@@ -1,0 +1,62 @@
+.speaking-adventure-session {
+  min-height: 100svh;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(24px, env(safe-area-inset-bottom, 0px));
+  background: radial-gradient(ellipse at 10% 0%, #416f60, transparent 55%), linear-gradient(155deg, #254b52, #18324e 70%);
+  color: #17345e;
+
+  .speaking-challenge-detail { width: min(920px, 100%); min-height: 0; margin: auto; padding: 0; background: transparent; }
+  .speaking-lesson-header { border: 3px solid #bc8b50; background: #fff8e9; box-shadow: 0 5px 0 #754521; }
+  .speaking-lesson-heading h1, .speaking-question-heading h2 { color: #17345e; }
+  .speaking-lesson-heading p, .speaking-lesson-heading > span { color: #4b6071; }
+  .speaking-focus-card, .speaking-foundation-intro, .speaking-foundation-result { border: 3px solid #c49053; border-radius: 24px; background: #fffdf5; color: #17345e; box-shadow: 0 6px 0 #754521, 0 16px 30px rgba(0, 0, 0, .2); }
+  .speaking-focus-card::before { content: none; }
+  .speaking-question-heading { border-color: #e5dbc5; }
+  .speaking-question-heading p { color: #4b6071; }
+  .speaking-question-number { background: #ffcf4f; color: #17345e; }
+  .speaking-direct-prompt, .speaking-help-panel, .speaking-pronunciation { border-color: #d7dfd5; background: #edf4ef; color: #17345e; }
+  .speaking-direct-prompt strong, .speaking-help-panel strong { color: #17345e; }
+  .speaking-direct-prompt span, .speaking-help-panel p, .speaking-help-panel small { color: #4b6071; }
+  .speaking-help-toggle { border-color: #9cb7d3; background: #edf5ff; color: #244c86; }
+  .speaking-continue-button { background: #ffcf4f; color: #17345e; }
+  .speaking-progress-track { background: #d9e6dc; }
+  .speaking-progress-track > span { background: #28825b; }
+  .speaking-no-reward { color: #506072; }
+  .speaking-practice-finished { padding: 12px; border: 1px solid #85c3a0; border-radius: 14px; background: #e5f5e9; color: #1b6344; }
+  .speaking-practice-saving { padding: 12px; border-radius: 14px; background: #edf5ff; color: #244c86; }
+  .speaking-pronunciation.is-recording { background: #fff3e3; border-color: #daa65a; }
+  .speaking-pronunciation.is-assessing, .speaking-pronunciation.is-preparing { background: #edf5ff; border-color: #9ab9e2; }
+  .speaking-pronunciation.is-retry { border-color: #d6b778; }
+  .speaking-recording-heading strong, .speaking-pronunciation-result > header strong { color: #17345e; }
+  .speaking-recording-heading span, .speaking-recording-privacy, .speaking-pronunciation-result > header span { color: #4b6071; }
+  .speaking-pronunciation-mic { border-color: #fff4d6; background: #315bc8; color: #fff; box-shadow: 0 5px 0 #183c84; }
+  .speaking-pronunciation.is-recording .speaking-pronunciation-mic { background: #ffd16a; color: #17345e; }
+  .speaking-pronunciation.is-recording.has-voice .speaking-pronunciation-mic { background: #28825b; color: #fff; }
+}
+
+.speaking-lesson-preparation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: min(920px, 100%);
+  margin: 0 auto 16px;
+  color: #fff8e9;
+  > div { display: grid; gap: 4px; min-width: 0; flex: 1 1 200px; }
+  small { color: #d9eadf; font-size: 12px; }
+  strong { font-size: 18px; overflow-wrap: anywhere; }
+  a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 14px; border: 2px solid #e4bc64; border-radius: 14px; background: #fff4d6; color: #17345e; font-weight: 800; text-decoration: none; }
+  a:focus-visible { outline: 3px solid #ffcf4f; outline-offset: 3px; }
+}
+
+.speaking-recording-status { margin: 0; padding: 7px 12px; border: 1px solid #b3cadb; border-radius: 12px; background: #fff; color: #244c86; font-size: 13px; font-weight: 700; }
+.speaking-listening-busy { max-width: 280px; font-size: 13px; line-height: 1.5; color: #fff4d6; }
+.speaking-celebration-next-topic { display: grid; gap: 4px; padding: 10px; border-radius: 12px; background: #fff4d6; color: #17345e; overflow-wrap: anywhere; small { font-size: 12px; } }
+
+.playlist-speaking-preparation { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 20px; padding: 18px; border: 2px solid #c49053; border-radius: 20px; background: #fff8e9; color: #17345e; > div { flex: 1 1 250px; } span { display: inline-flex; gap: 8px; align-items: center; font-weight: 800; } p { margin: 8px 0 0; font-size: 14px; line-height: 1.6; } }
+.playlist-speaking-return { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 14px; border-radius: 12px; background: #315bc8; color: #fff; font-weight: 800; text-decoration: none; &:focus-visible { outline: 3px solid #e4ab2b; outline-offset: 3px; } }
+
+@media (max-width: 760px) {
+  .speaking-adventure-session { padding-inline: 10px; .speaking-lesson-header { top: max(8px, env(safe-area-inset-top, 0px)); } }
+  .speaking-lesson-preparation strong { font-size: 16px; }
+}

@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import "./css/SpeakingPronunciationRecorder.scss";
+import { SpeakingActivityContext } from "./SpeakingAdventureSession";
 
 const MAX_RECORDING_SECONDS = 12;
 
@@ -41,6 +42,11 @@ export default function SpeakingPronunciationRecorder({
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
     const [voiceDetected, setVoiceDetected] = useState(false);
+    const setSessionBusy = useContext(SpeakingActivityContext);
+    useEffect(() => {
+        setSessionBusy?.(recording || preparing || submitting);
+        return () => setSessionBusy?.(false);
+    }, [recording, preparing, submitting, setSessionBusy]);
     const recorderRef = useRef(null);
     const streamRef = useRef(null);
     const chunksRef = useRef([]);
@@ -158,13 +164,14 @@ export default function SpeakingPronunciationRecorder({
         ? "三秒後播放提示音。"
         : disabledReason;
     const remainingSeconds = Math.max(0, MAX_RECORDING_SECONDS - elapsed);
+    const recordingState = submitting ? "assessing" : preparing ? "preparing" : recording ? "recording" : error ? "retry" : recordedBlob ? "ready" : "idle";
 
-    return <section className={`speaking-pronunciation ${recording ? "is-recording" : ""} ${voiceDetected ? "has-voice" : ""}`}>
-        {!result && <p className="speaking-sr-only" role="status" aria-live="polite" aria-atomic="true">{recording ? `錄音進行中，每次最長 ${MAX_RECORDING_SECONDS} 秒。` : preparing ? "正在準備評分音檔。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
+    return <section aria-busy={preparing || submitting} className={`speaking-pronunciation is-${recordingState} ${voiceDetected ? "has-voice" : ""}`}>
+        {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? "正在準備評分音檔。" : recording ? `錄音進行中，每次最長 ${MAX_RECORDING_SECONDS} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
         {!result && <>
             <div className="speaking-recording-heading">
-                <strong>{recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "啟用麥克風開始挑戰"}</strong>
-                <span>{recording ? `最長 ${MAX_RECORDING_SECONDS} 秒，說完後按送出。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : `每次最長 ${MAX_RECORDING_SECONDS} 秒；本題會立刻開始收音。`}</span>
+                <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "啟用麥克風開始挑戰"}</strong>
+                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${MAX_RECORDING_SECONDS} 秒，說完後按送出。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : `每次最長 ${MAX_RECORDING_SECONDS} 秒；本題會立刻開始收音。`}</span>
             </div>
             {recording && <div className="speaking-recording-countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}><strong>{remainingSeconds}</strong><span>秒</span></div>}
             {disabledReason && !recordedBlob && <p className="speaking-pronunciation-notice">{disabledReason}</p>}

@@ -24,6 +24,15 @@ const question = {
 };
 
 describe("SpeakingPracticeSteps", () => {
+    it("儲存等待期間不提前宣布本題完成", async () => {
+        let resolveSave;
+        render(<SpeakingPracticeSteps question={question} onCompleted={() => new Promise(resolve => { resolveSave = resolve; })} />);
+        fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
+        expect(screen.getByRole("status")).toHaveTextContent("正在儲存本題進度");
+        expect(screen.queryByText(/本題已完成/)).not.toBeInTheDocument();
+        await act(async () => resolveSave(true));
+        expect(screen.getByRole("status")).toHaveTextContent("本題已完成");
+    });
     it("儲存失敗可以保存同一評分結果重試，不回報答錯", async () => {
         const onCompleted = jest.fn().mockRejectedValueOnce(new Error("network")).mockResolvedValue(true);
         const onIncorrect = jest.fn();

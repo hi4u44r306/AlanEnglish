@@ -46,6 +46,15 @@ describe("SpeakingChallengeCompletion", () => {
         unmount();
         expect(document.body.style.overflow).toBe(previousOverflow);
     });
+    it("only names a next target when an unlocked next action exists", () => {
+        const next = jest.fn();
+        const { rerender } = render(<SpeakingChallengeCompletion nextTopic="顏色" onNext={next} onReturn={jest.fn()} />);
+        expect(screen.getByText("下一個目標")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "前往下一關" }));
+        expect(next).toHaveBeenCalledTimes(1);
+        rerender(<SpeakingChallengeCompletion nextTopic="顏色" onReturn={jest.fn()} />);
+        expect(screen.queryByText("下一個目標")).not.toBeInTheDocument();
+    });
     it("reduced motion immediately shows the actual totals", () => {
         window.matchMedia.mockReturnValue({ matches: true });
         render(<SpeakingChallengeCompletion notice={{ xp_awarded: 30, ae_points_awarded: 3 }} onReturn={jest.fn()} />);
