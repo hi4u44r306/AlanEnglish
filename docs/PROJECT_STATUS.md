@@ -1,6 +1,12 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-01
+最後更新：2026-10-02
+
+發布中：隱藏入口與家長折線週報（2026-10-02，尚未部署驗收）：
+
+- 獨立發布分支 codex/parent-weekly-report-release，從最新 origin/main 分離 4c8c87b8 與 cf809ac0 的前端修改；正式口說暫停、舊地圖、App 路由、Supabase、資料與權限保持原狀。原 checkout 的口說草稿及未提交修改完整保留。
+- 本批包含學生選單／首頁／會員捷徑、每週報告與兩張折線圖、局部測試、產品邏輯及手冊 v3.18。原有複製、列印、寄信與週次切換保留；未來日期及缺資料不冒充零。
+- 分離後相關 5 suites／37 targeted tests 全部通過，ESLint 無 error（會員測試有既有 unused import warning），diff 檢查通過；PR、Cloudflare production build 與正式站桌面／412px 驗收待補。局部前端不跑全套測試或重複 Production build，正式 build 由 Cloudflare 執行。iPhone Safari 與實際 PDF 尚未驗證。回復方式為反向套用本批前端差異，無資料回填／刪除。
 
 正式發布：口說本機審核 v3.12–v3.16 整批（2026-10-01，部署與工作人員畫面驗收完成）：
 

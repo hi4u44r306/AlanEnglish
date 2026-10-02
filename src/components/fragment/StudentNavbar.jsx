@@ -17,7 +17,6 @@ import {
     FiLogOut,
     FiMenu,
     FiMic,
-    FiRefreshCw,
     FiSettings,
     FiStar,
     FiTrendingUp,
@@ -29,7 +28,6 @@ import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
-import { prefetchReviewDashboard } from "../../services/reviewService";
 import MaterialsNavigator from "./MaterialsNavigator";
 import "../assets/scss/StudentNavbar.scss";
 
@@ -48,7 +46,6 @@ const StudentNavbar = ({
     categories,
     firebaseUser,
     gamificationLevel,
-    hasAiAccess,
     hasAiPremium,
     hasRewardsAccess,
     loading,
@@ -78,7 +75,6 @@ const StudentNavbar = ({
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
     const hasAssignmentsAccess = hasActiveLearningAccess && features.assignments === true;
-    const hasReviewAccess = hasActiveLearningAccess && features.review === true;
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
     const speakingActive = drawerOpen && drawer === "speaking";
@@ -105,17 +101,11 @@ const StudentNavbar = ({
         setMaterialsResetToken(current => current + 1);
     }, []);
 
-    const warmReviewExperience = useCallback(() => {
-        if (!firebaseUser || !hasReviewAccess) return;
-        prefetchReviewDashboard(firebaseUser);
-        import("../Pages/ReviewCenter").catch(() => { });
-    }, [firebaseUser, hasReviewAccess]);
     const openDrawer = useCallback(view => {
         if (view === "materials") resetMaterialsView();
         setDrawer(view);
         setDrawerOpen(true);
-        if (view === "menu") warmReviewExperience();
-    }, [resetMaterialsView, warmReviewExperience]);
+    }, [resetMaterialsView]);
     const closeDrawer = () => {
         setDrawerOpen(false);
         setMaterialsOpen(false);
@@ -166,10 +156,8 @@ const StudentNavbar = ({
             <span>學習功能</span>
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友</InstantDrawerLink>}
             {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
-            {hasReviewAccess && <InstantDrawerLink to="/student/review" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/review") ? "active" : ""}><FiRefreshCw />智慧複習</InstantDrawerLink>}
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
             {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
-            {hasAiAccess && <InstantDrawerLink to="/student/ai-generator" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/ai-generator") ? "active" : ""}><FiStar />AI 練習教材</InstantDrawerLink>}
         </section>
     );
 

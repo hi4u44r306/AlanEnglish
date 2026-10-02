@@ -4,7 +4,6 @@ import {
     FiAlertCircle,
     FiArrowLeft,
     FiAward,
-    FiBarChart2,
     FiBookOpen,
     FiCalendar,
     FiCheckCircle,
@@ -13,14 +12,14 @@ import {
     FiCopy,
     FiHeadphones,
     FiMail,
-    FiMessageCircle,
     FiMic,
     FiPrinter,
     FiRefreshCw,
-    FiStar,
     FiTarget,
     FiTrendingUp
 } from "react-icons/fi";
+import WeeklyLineChart from "./WeeklyLineChart";
+import { getWeeklyChartDays } from "../../utils/weeklyReportChart";
 import { useAuth } from "../../auth/AuthContext";
 import { markGuardianNotificationSent } from "../../services/learningActivityService";
 import {
@@ -37,19 +36,6 @@ const formatDate = value => {
         day: "numeric"
     }).format(new Date(`${value}T00:00:00+08:00`));
 };
-
-const formatPercent = value => (
-    value === null || value === undefined ? "—" : `${Number(value)}%`
-);
-
-const ACTIVITY_SEGMENTS = [
-    "listening",
-    "assignments",
-    "ai",
-    "review",
-    "conversation",
-    "speaking_challenge"
-];
 
 const copyText = async value => {
     if (navigator.clipboard?.writeText) {
@@ -130,10 +116,7 @@ const WeeklyReport = () => {
         loadReport();
     }, [loadReport]);
 
-    const maxDailyTotal = useMemo(() => Math.max(
-        1,
-        ...(report?.daily_breakdown || []).map(day => Number(day.total || 0))
-    ), [report]);
+    const chartDays = useMemo(() => getWeeklyChartDays(report), [report]);
 
     const handleStudentChange = event => {
         const studentId = event.target.value;
@@ -224,10 +207,6 @@ const WeeklyReport = () => {
     }
 
     const weekLabel = `${formatDate(report.week.start_date)}－${formatDate(report.week.end_date)}`;
-    const accuracyText = formatPercent(report.metrics.answer_accuracy);
-    const assignmentRate = report.assignments.completion_rate === null
-        ? "本週無指定"
-        : `${report.assignments.completed}/${report.assignments.assigned}`;
     const speakingChallenge = report.speaking_challenge || {
         completed_questions: 0,
         completed_challenges: 0,
@@ -244,7 +223,7 @@ const WeeklyReport = () => {
                 <nav className="weekly-report-toolbar" aria-label="週報工具列">
                     <Link to={backPath}><FiArrowLeft /> 返回{isManager ? "管理首頁" : "學習首頁"}</Link>
                     <div className="weekly-report-toolbar__actions">
-                        <button type="button" onClick={handleCopy}><FiCopy /> 複製家長版</button>
+                        <button type="button" onClick={handleCopy}><FiCopy /> 複製文字摘要</button>
                         <button type="button" onClick={() => window.print()}><FiPrinter /> 列印／存 PDF</button>
                     </div>
                 </nav>
@@ -267,10 +246,10 @@ const WeeklyReport = () => {
 
                 {message && <div className="weekly-report-message">{message}</div>}
 
-                <header className={`weekly-report-hero weekly-report-hero--${report.status.code}`}>
+                <header className="weekly-report-hero weekly-report-hero--parent">
                     <div className="weekly-report-hero__copy">
-                        <span className="weekly-report-kicker"><FiBarChart2 /> WEEKLY GROWTH REPORT</span>
-                        <h1>{report.student.name} 的每週成長報告</h1>
+                        <span className="weekly-report-kicker"><FiTrendingUp /> WEEKLY LEARNING REPORT</span>
+                        <h1>{report.student.name} 的每週學習報告</h1>
                         <div className="weekly-report-week-picker">
                             <button
                                 type="button"
@@ -291,117 +270,54 @@ const WeeklyReport = () => {
                             </button>
                         </div>
                         <div className="weekly-report-status-copy">
-                            <strong>{report.status.label}</strong>
-                            <p>{report.status.message}</p>
-                            <span className={report.comparison.change >= 0 ? "positive" : ""}>
-                                <FiTrendingUp /> {report.comparison.text}
-                            </span>
+                            <strong>看見聆聽的累積，也看見開口的進步。</strong>
+                            <p>本週有效聆聽次數與口說大挑戰進度，依每天的紀錄呈現。</p>
                         </div>
                     </div>
-                    <div className="weekly-report-score" style={{ "--weekly-score": `${report.status.score * 3.6}deg` }}>
-                        <div>
-                            <strong>{report.status.score}</strong>
-                            <span>學習投入度</span>
-                        </div>
+                    <div className="weekly-report-parent-note">
+                        <FiHeadphones aria-hidden="true" /><FiMic aria-hidden="true" />
+                        <span>聽力 × 口說</span>
+                        <small>家長每週學習紀錄</small>
                     </div>
                 </header>
 
                 <section className="weekly-report-key-metrics" aria-label="本週重點數據">
                     <article>
                         <div className="weekly-report-metric-icon weekly-report-metric-icon--days"><FiCalendar /></div>
-                        <span>本週學習</span>
-                        <strong>{report.metrics.active_days}<small> / 7 天</small></strong>
+                        <span>有效聆聽次數</span>
+                        <strong>{report.listening.plays}<small> 次</small></strong>
                     </article>
                     <article>
                         <div className="weekly-report-metric-icon weekly-report-metric-icon--actions"><FiTarget /></div>
-                        <span>學習活動</span>
-                        <strong>{report.metrics.total_actions}<small> 次</small></strong>
+                        <span>口說新完成題數</span>
+                        <strong>{speakingChallenge.completed_questions}<small> 題</small></strong>
                     </article>
                     <article>
                         <div className="weekly-report-metric-icon weekly-report-metric-icon--homework"><FiBookOpen /></div>
-                        <span>老師作業</span>
-                        <strong className={report.assignments.completion_rate === null ? "is-text" : ""}>{assignmentRate}</strong>
+                        <span>本週口說通關</span>
+                        <strong>{speakingChallenge.completed_challenges}<small> 關</small></strong>
                     </article>
                     <article>
                         <div className="weekly-report-metric-icon weekly-report-metric-icon--accuracy"><FiAward /></div>
-                        <span>答題正確率</span>
-                        <strong>{accuracyText}</strong>
+                        <span>截至本週累計通關</span>
+                        <strong>{speakingChallenge.all_time_completed_challenges}<small> 關</small></strong>
                     </article>
                 </section>
 
-                <section className="weekly-report-panel weekly-report-activity">
-                    <div className="weekly-report-heading">
-                        <div>
-                            <span>CONSISTENCY</span>
-                            <h2>一週學習節奏</h2>
-                            <p>短時間、固定頻率，比偶爾一次學很久更容易養成習慣。</p>
-                        </div>
-                        <strong>{report.metrics.active_days} 天有學習</strong>
-                    </div>
-                    <div className="weekly-report-chart" aria-label="一週每日學習活動圖">
-                        {report.daily_breakdown.map(day => (
-                            <div className={`weekly-report-day ${day.total ? "is-active" : ""}`} key={day.date}>
-                                <span className="weekly-report-day__count">{day.total || ""}</span>
-                                <div className="weekly-report-day__track">
-                                    <div
-                                        className="weekly-report-day__stack"
-                                        style={{ height: day.total ? `${Math.max(10, (day.total / maxDailyTotal) * 100)}%` : "4px" }}
-                                        aria-label={`${day.weekday}共 ${day.total || 0} 次學習活動`}
-                                    >
-                                        {ACTIVITY_SEGMENTS.map(segment => Number(day[segment] || 0) > 0 && (
-                                            <i
-                                                className={`weekly-report-day__segment weekly-report-day__segment--${segment}`}
-                                                style={{ flexGrow: Number(day[segment] || 0) }}
-                                                key={segment}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                                <strong>{day.weekday}</strong>
-                                <small>{formatDate(day.date)}</small>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="weekly-report-legend">
-                        <span><i className="listening" /> 聽力 {report.listening.plays}</span>
-                        <span><i className="assignment" /> 作業 {report.assignments.attempts}</span>
-                        <span><i className="ai" /> AI {report.ai_practice.attempts}</span>
-                        <span><i className="review" /> 複習 {report.review.attempts}</span>
-                        <span><i className="speaking" /> 情境口說 {report.conversation.practice_steps}</span>
-                        <span><i className="challenge" /> 大挑戰 {speakingChallenge.completed_questions}</span>
-                    </div>
-                </section>
+                <div className="weekly-report-trends">
+                    <WeeklyLineChart days={chartDays} valueKey="listening" title="每日有效聆聽" unit="次"
+                        description="每天實際完成的有效聆聽次數；點選日期可查看數字。" />
+                    <WeeklyLineChart days={chartDays} valueKey="speakingCumulative" title="口說大挑戰累計進度" unit="題" tone="green"
+                        description="從週一開始累計本週新完成題數，重練同題不重複增加。" />
+                </div>
+                <p className="weekly-report-counting-note">聽力依系統保存的有效聆聽紀錄統計；口說曲線表示本週新增的完成題數，不代表整本教材完成率。當週尚未到來的日期顯示待更新。</p>
 
                 <section className="weekly-report-learning-grid" aria-label="各項學習成果">
                     <article className="weekly-report-learning-card weekly-report-learning-card--listening">
                         <div><FiHeadphones /><span>LISTENING</span></div>
                         <h3>聽力累積</h3>
-                        <strong>{report.listening.plays}<small> 次播放</small></strong>
+                        <strong>{report.listening.plays}<small> 次有效聆聽</small></strong>
                         <p>{report.listening.goal_days} 天達成每日 3 次目標</p>
-                    </article>
-                    <article className="weekly-report-learning-card weekly-report-learning-card--assignment">
-                        <div><FiBookOpen /><span>HOMEWORK</span></div>
-                        <h3>老師作業</h3>
-                        <strong>{report.assignments.completed}<small> / {report.assignments.assigned} 完成</small></strong>
-                        <p>{report.assignments.attempts ? `本週練習 ${report.assignments.attempts} 次，最高 ${report.assignments.best_score} 分` : "本週尚無作業作答紀錄"}</p>
-                    </article>
-                    <article className="weekly-report-learning-card weekly-report-learning-card--ai">
-                        <div><FiStar /><span>AI PRACTICE</span></div>
-                        <h3>AI 專屬練習</h3>
-                        <strong>{report.ai_practice.attempts}<small> 次完成</small></strong>
-                        <p>{report.ai_practice.attempts ? `平均 ${report.ai_practice.average_score} 分，通過 ${report.ai_practice.passed} 次` : "本週尚未完成 AI 測驗"}</p>
-                    </article>
-                    <article className="weekly-report-learning-card weekly-report-learning-card--review">
-                        <div><FiTarget /><span>SMART REVIEW</span></div>
-                        <h3>智慧錯題複習</h3>
-                        <strong>{report.review.mastered}<small> 題新掌握</small></strong>
-                        <p>{report.review.attempts ? `複習 ${report.review.attempts} 題，正確率 ${formatPercent(report.review.accuracy)}` : `還有 ${report.review.learning} 題持續學習中`}</p>
-                    </article>
-                    <article className="weekly-report-learning-card weekly-report-learning-card--speaking">
-                        <div><FiMessageCircle /><span>CONVERSATION</span></div>
-                        <h3>情境口說</h3>
-                        <strong>{report.conversation.completed_steps}<small> / {report.conversation.total_steps} 關</small></strong>
-                        <p>{report.conversation.practice_steps ? `本週推進 ${report.conversation.practice_steps} 次口說步驟` : "本週可以安排一次真實情境口說"}</p>
                     </article>
                     <article className="weekly-report-learning-card weekly-report-learning-card--challenge">
                         <div><FiMic /><span>SPEAKING CHALLENGE</span></div>
@@ -414,11 +330,12 @@ const WeeklyReport = () => {
                         </p>
                         {speakingChallenge.current_challenge && (
                             <div className="weekly-report-challenge-progress">
+                                <small>截至本週的最近關卡</small>
                                 <span>
                                     <b>{speakingChallenge.current_challenge.book_name}</b>
                                     {speakingChallenge.current_challenge.completed_questions}/{speakingChallenge.current_challenge.total_questions}
                                 </span>
-                                <div aria-label={`目前關卡完成 ${speakingChallenge.current_challenge.progress_percent}%`}>
+                                <div role="progressbar" aria-label="目前口說關卡完成率" aria-valuemin={0} aria-valuemax={100} aria-valuenow={speakingChallenge.current_challenge.progress_percent}>
                                     <i style={{ width: `${speakingChallenge.current_challenge.progress_percent}%` }} />
                                 </div>
                                 <small>{speakingChallenge.current_challenge.title}</small>
@@ -430,6 +347,8 @@ const WeeklyReport = () => {
                     </article>
                 </section>
 
+                <details className="weekly-report-extra">
+                    <summary>其他學習紀錄與文字摘要</summary>
                 <section className="weekly-report-insights">
                     <article className="weekly-report-panel weekly-report-highlights">
                         <div className="weekly-report-heading">
@@ -487,9 +406,10 @@ const WeeklyReport = () => {
                     )}
                 </section>
 
+                </details>
                 <footer className="weekly-report-footer">
                     <span>Alan English · 每週成長報告</span>
-                    <small>報告產生時間以台灣時間為準；投入度反映學習規律與參與，不等同考試成績。</small>
+                    <small>每週範圍為台灣時間週一至週日；次數與完成進度不等同考試成績。</small>
                 </footer>
             </div>
 

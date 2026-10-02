@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import WeeklyReport from "./WeeklyReport";
@@ -28,6 +28,7 @@ const emptyDay = (date, weekday) => ({
 });
 
 const report = {
+    generated_at: "2026-09-20T08:00:00Z",
     student: { id: 7, name: "小安", class: "E3", plan: "academy" },
     guardian: { configured: false, name: "", email: "" },
     week: {
@@ -95,5 +96,32 @@ test("每週成長報告獨立顯示口說大挑戰進度與實際獎勵", async
     expect(screen.getByText("P28 顏色")).toBeInTheDocument();
     expect(screen.getByLabelText("口說遊戲準備中")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /再次挑戰|繼續挑戰/ })).not.toBeInTheDocument();
-    expect(container.querySelector(".weekly-report-day__segment--speaking_challenge")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "每日有效聆聽折線圖" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "口說大挑戰累計進度折線圖" })).toBeInTheDocument();
+    expect(container.querySelector(".weekly-report-day__segment--speaking_challenge")).not.toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "目前口說關卡完成率" })).toHaveAttribute("aria-valuenow", "100");
+    expect(screen.queryByRole("heading", { name: "AI 專屬練習" })).not.toBeInTheDocument();
+    const listening = screen.getByRole("region", { name: "每日有效聆聽" });
+    fireEvent.click(within(listening).getByRole("button", { name: "週一 2026-09-14，2 次" }));
+    expect(within(listening).getByRole("status")).toHaveTextContent("週一（2026-09-14）：2 次");
+    const speaking = screen.getByRole("region", { name: "口說大挑戰累計進度" });
+    expect(within(speaking).getByRole("button", { name: "週二 2026-09-15，2 題" })).toBeInTheDocument();
+});
+
+test("週報切換週次後重新取得該週的統計", async () => {
+    useAuth.mockReturnValue({ firebaseUser: { uid: "student-7" }, role: "student" });
+    getWeeklyReport.mockResolvedValue({ report, students: [] });
+    render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><WeeklyReport /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button", { name: "查看前一週" }));
+    await screen.findByRole("img", { name: "每日有效聆聽折線圖" });
+    expect(getWeeklyReport).toHaveBeenLastCalledWith(expect.anything(), { studentId: undefined, weekOffset: -1 });
+});
+
+test("讀取失敗顯示錯誤與重試，不能當作零次週報", async () => {
+    useAuth.mockReturnValue({ firebaseUser: { uid: "student-7" }, role: "student" });
+    getWeeklyReport.mockRejectedValue(new Error("報表服務暫時無法連線"));
+    render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><WeeklyReport /></MemoryRouter>);
+    expect(await screen.findByText("報表服務暫時無法連線")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /重新整理/ })).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "每日有效聆聽折線圖" })).not.toBeInTheDocument();
 });

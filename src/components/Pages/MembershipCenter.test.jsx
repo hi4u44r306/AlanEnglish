@@ -203,7 +203,8 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByText(/每月 24 日續訂/)).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "AI 教材與發音練習使用中" })).toBeDisabled();
         expect(screen.getByRole("button", { name: "管理目前訂閱" })).toBeEnabled();
-        expect(screen.getByRole("link", { name: "AI 教材" })).toHaveAttribute("href", "/student/ai-generator");
+        expect(screen.queryByRole("link", { name: "AI 教材" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: /智慧複習|AI 專屬教材/ })).not.toBeInTheDocument();
         expect(screen.getByLabelText("口說遊戲準備中")).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "發音練習" })).not.toBeInTheDocument();
         expect(screen.getByText(/每月最多/, { selector: "li" })).toHaveTextContent("每月最多 150 次");
@@ -339,7 +340,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getAllByText("基本自主學習會員").length).toBeGreaterThan(0);
         expect(screen.getAllByText("已到期").length).toBeGreaterThan(0);
         expect(screen.getByText("2026年8月30日")).toBeInTheDocument();
-        expect(screen.getByText("0／6")).toBeInTheDocument();
+        expect(screen.getByText("0／4")).toBeInTheDocument();
         expect(screen.queryByText("無期限")).not.toBeInTheDocument();
     });
 

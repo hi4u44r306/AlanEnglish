@@ -103,9 +103,10 @@ describe("MainNavbar student navigation", () => {
 
         const mobileMenu = await screen.findByRole("complementary");
         expect(within(mobileMenu).getByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
-        expect(prefetchReviewDashboard).toHaveBeenCalledWith(expect.objectContaining({ uid: "student-test" }));
+        expect(prefetchReviewDashboard).not.toHaveBeenCalled();
         expect(within(mobileMenu).getByRole("link", { name: "好友" })).toHaveAttribute("href", "/student/friends");
-        expect(within(mobileMenu).getByRole("link", { name: "智慧複習" })).toBeInTheDocument();
+        expect(within(mobileMenu).queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
+        expect(within(mobileMenu).queryByRole("link", { name: "AI 練習教材" })).not.toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
@@ -139,9 +140,9 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         const mobileMenu = await screen.findByRole("complementary");
         expect(mobileMenu).toHaveAttribute("data-placement", "end");
-        fireEvent.click(within(mobileMenu).getByRole("link", { name: "智慧複習" }));
+        fireEvent.click(within(mobileMenu).getByRole("link", { name: "每週報告" }));
 
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/review");
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/weekly-report");
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
         expect(mockOffcanvasRender).toHaveBeenLastCalledWith({ show: false, placement: "end" });
     });
@@ -149,7 +150,7 @@ describe("MainNavbar student navigation", () => {
     it("keeps the navbar mounted while a lazy route loads inside the persistent app shell", async () => {
         let resolveReviewPage;
         const LazyReviewPage = lazy(() => new Promise(resolve => {
-            resolveReviewPage = () => resolve({ default: () => <h1>智慧複習頁面</h1> });
+            resolveReviewPage = () => resolve({ default: () => <h1>每週報告頁面</h1> });
         }));
 
         render(
@@ -157,14 +158,14 @@ describe("MainNavbar student navigation", () => {
                 <Routes>
                     <Route element={<PersistentTestLayout />}>
                         <Route path="/student/dashboard" element={<h1>學習首頁</h1>} />
-                        <Route path="/student/review" element={<LazyReviewPage />} />
+                        <Route path="/student/weekly-report" element={<LazyReviewPage />} />
                     </Route>
                 </Routes>
             </MemoryRouter>
         );
 
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
-        fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "智慧複習" }));
+        fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "每週報告" }));
 
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
@@ -174,7 +175,7 @@ describe("MainNavbar student navigation", () => {
             resolveReviewPage();
         });
 
-        expect(await screen.findByRole("heading", { name: "智慧複習頁面" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "每週報告頁面" })).toBeInTheDocument();
     });
 
     it("starts teacher and admin navigation while the offcanvas closes", async () => {
@@ -355,7 +356,7 @@ describe("MainNavbar student navigation", () => {
                 membership: {
                     is_active: true,
                     effective_access: {
-                        features: { ai_materials: true },
+                        features: { ai_materials: true, review: true },
                         plan_codes: ["ai_materials_addon_monthly"]
                     }
                 }
@@ -366,6 +367,9 @@ describe("MainNavbar student navigation", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "AI 練習教材" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
     });
 
     it("hides the rewards shop from students who are not actively enrolled", async () => {
