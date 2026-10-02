@@ -5,6 +5,7 @@
 口說關卡連貫體驗第 2–4 項（2026-10-02，尚未部署）：
 
 - 使用者同意合併關卡視覺、錄音／通關回饋及聽力串接。分支 `codex/speaking-immersive-flow` 從最新 main `1f858ae4` 開始，在既有乾淨發布副本實作，保留原 checkout 與正在審核的延長地圖。
+- PR #398 已合併至 main `6742dd0f`；Cloudflare build `68a223bb-a2fc-4c98-8c13-cba7d401de42` success（2026-10-02 15:09:32 台灣時間），正式 bundle `main.e9d81c6f.js`。正式學生驗收發現舊 ImmersiveSpeaking 樣式優先序蓋住部分新外框，立即建立最小 CSS 修正 `codex/speaking-session-style-fix`；修正僅增加關卡範圍 specificity、恢復自然內容高度與手機捲動，不改題目或錄音邏輯。SCSS 編譯通過，正式完整驗收待修正發布後完成。
 - 共用森林色外框、木框淺色題目卡與清楚的藍／黃／綠操作；錄音、音檔準備、評分等待與進度儲存分開呈現，完成動畫顯示既有已解鎖下一關的實際主題。沒有更動評分、錄音上限、提示、完成判定或獎勵契約。
 - 聽力僅依已發布關卡的明確 source_pages、相同 book id/code 與既有授權 content-access 音檔頁碼／base_page 比對。無來源、錯冊、跨出頁碼範圍或無音檔時不顯示入口。聽力頁只列本關音檔與播放佇列，返回保留關卡／模式並暫停教材播放；作業頁優先沿用原篩選，不自動播放或寫入完成。無 migration、後端／權限修改。
 - 8 suites／109 個獨立 targeted tests 已全部通過（變更後只重跑受影響 suites），相關 ESLint、SCSS 與 dev compiler 通過；新增錄音／準備／評分中的聽力入口限制，A–Z 保留原導聽。獨立 localhost:3002 沒有原埠登入 session，完整畫面／聽力往返待正式學生驗收。不跑全套測試或重複本機 production build，正式 build 由 Cloudflare main 執行。iPhone Safari 實機與真實朗讀通關不以模擬測試替代。回復方式為反向套用本批前端差異。
