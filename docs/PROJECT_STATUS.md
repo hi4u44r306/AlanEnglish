@@ -2,11 +2,11 @@
 
 最後更新：2026-10-02
 
-Workbook 入口讀取動畫獨立發布（2026-10-02，準備正式部署）：
+Workbook 入口讀取動畫獨立發布（2026-10-02，正式部署及學生畫面驗收完成）：
 
 - 使用者授權發布本機 `4b807eeb` 的 Workbook 讀取動畫。由最新 main `95405bad` 建立 `codex/workbook-entry-loading-release`，只移植讀取元件、冊別入口與測試；模糊背景沿用正式 WebP，不包含尚在本機審核的延長地圖、道路定位、影片引導或其他草稿。
 - 各冊顯示「正在進入 Workbook X 口說大挑戰…」、木框、書本浮動與不定進度帶。catalog 對應路徑避免閃現舊清單；資料完成即進入地圖，等待中可返回，錯誤及晚到回應沿用原處理。保留最新 main 錄音／聽力／通關流程，無 migration、Function、權限或獎勵變動。
-- 移植後 51 targeted tests、相關 ESLint、SCSS 編譯通過；不重跑全套或本機 production build，正式 build 由 Cloudflare main 執行。尚待 PR／Cloudflare production 與正式桌面／手機驗收，iPhone Safari 實機待驗。回復方式為反向套用本批前端差異。
+- 移植後 51 targeted tests、相關 ESLint、SCSS 編譯、diff check 與 require-pushed release preflight 通過；不重跑全套或本機 production build，正式 build 由 Cloudflare main 執行。PR #401 已合併為 `fef107c1`，Cloudflare build `4c633a9a-827d-4488-8a11-7fc61a61f7d6` 成功（17:42 台灣時間，3m 8s）；正式 JS `main.ab6a3bff.js`、口說 CSS `37.4ead7a16.chunk.css`。Chrome 正式學生桌面 Workbook 3 讀取畫面已捕捉、隨即進入 36 關地圖；412×915 手機 Workbook 1 名稱正確、木框 364×453px、返回按鈕 44px、無橫向溢出、成功進入 25 關地圖並恢復列表導覽，Console 無 error。電腦啟用 reduced-motion，確認依偏好停用動畫；一般偏好動畫規則已編譯，iPhone Safari 實機待驗。正式桌面讀取及手機地圖截圖 `output/workbook-loading-production-desktop.png`／`output/workbook-map-production-mobile.png`；正式教學影片待製作。回復方式為反向套用本批前端差異。
 
 口說關卡連貫體驗第 2–4 項（2026-10-02，正式部署及學生畫面驗收完成）：
 
