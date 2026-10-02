@@ -122,6 +122,29 @@
   to { transform: translateX(122%); }
 }
 
+.speaking-mode-loading-page.is-workbook-entry {
+  &::before {
+    background-image: url("../assets/speaking-map/storybook-adventure-map-v2.webp");
+    background-position: center bottom;
+  }
+
+  .speaking-mode-loading-card__badge {
+    animation: speaking-workbook-loading-book 1.8s ease-in-out infinite;
+  }
+
+  h1 {
+    font-size: clamp(23px, 5.5vw, 29px);
+    overflow-wrap: anywhere;
+
+    span { color: #2f6ba6; }
+  }
+}
+
+@keyframes speaking-workbook-loading-book {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-7px) rotate(3deg); }
+}
+
 @media (max-width: 380px), (max-height: 650px) {
   .speaking-mode-loading-card { gap: 18px; padding: 24px 18px 16px; }
   .speaking-mode-loading-card__badge { width: 72px; height: 72px; }
@@ -129,5 +152,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .speaking-mode-loading-card__track span { animation: none; }
+  .speaking-mode-loading-card__track span,
+  .speaking-mode-loading-page.is-workbook-entry .speaking-mode-loading-card__badge { animation: none; }
 }

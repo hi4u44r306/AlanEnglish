@@ -452,7 +452,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByText("選擇 Workbook 預覽已發布關卡。")).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
         const lesson = await screen.findByRole("button", { name: /顏色與生活物品/ });
         expect(lesson).toBeEnabled();
         fireEvent.click(lesson);
@@ -643,6 +643,61 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("figure", { name: "台灣國旗" })).toBeInTheDocument();
         expect(container.querySelector('svg[viewBox="0 0 900 600"]')).toBeInTheDocument();
         expect(container).not.toHaveTextContent("TW");
+    });
+
+    it.each([1, 2, 3, 4, 5, 6])("Workbook %s 直接進入時顯示讀取頁，資料到齊即進入地圖", async bookId => {
+        let resolveCatalog;
+        getSpeakingChallengeCatalog.mockImplementation(() => new Promise(resolve => { resolveCatalog = resolve; }));
+        render(<MemoryRouter initialEntries={[`/student/speaking-challenges/book/book-${bookId}`]}><Routes>
+            <Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} />
+        </Routes></MemoryRouter>);
+        expect(screen.getByRole("heading", { name: `正在進入 Workbook ${bookId} 口說大挑戰…` })).toHaveFocus();
+        expect(screen.getByRole("progressbar", { name: "關卡地圖載入中" })).not.toHaveAttribute("aria-valuenow");
+        expect(screen.queryByText("正在準備口說大挑戰…")).not.toBeInTheDocument();
+        await act(async () => resolveCatalog({ challenges: [{ id: 71, title: "P4 問候", source_pages: [4], book: { id: bookId, name: `Workbook ${bookId}` }, question_count: 1 }] }));
+        expect(screen.getByRole("heading", { name: `Workbook ${bookId}` })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /P.4，問候/ })).toBeInTheDocument();
+        expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    });
+
+    it("從教材列表進入另一冊，載入期間不閃現舊清單或地圖", async () => {
+        let resolveCatalog;
+        const challenges = [{ id: 71, title: "P4 問候", source_pages: [4], book: { id: 3, name: "Workbook 3" }, question_count: 1 }];
+        getSpeakingChallengeCatalog.mockResolvedValueOnce({ challenges }).mockImplementationOnce(() => new Promise(resolve => { resolveCatalog = resolve; }));
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes>
+            <Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} />
+            <Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} />
+        </Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: /開啟 Workbook 3/ }));
+        expect(screen.getByRole("heading", { name: "正在進入 Workbook 3 口說大挑戰…" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /開啟 Workbook 3/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /P.4，問候/ })).not.toBeInTheDocument();
+        await act(async () => resolveCatalog({ challenges }));
+        expect(screen.getByRole("button", { name: /P.4，問候/ })).toBeInTheDocument();
+    });
+
+    it("Workbook 讀取中返回教材列表，忽略晚到的關卡", async () => {
+        let resolveCatalog;
+        getSpeakingChallengeCatalog.mockImplementation(() => new Promise(resolve => { resolveCatalog = resolve; }));
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-3"]}><Routes>
+            <Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} />
+            <Route path="/student/speaking-challenges" element={<h1>選擇教材</h1>} />
+        </Routes></MemoryRouter>);
+        fireEvent.click(screen.getByRole("button", { name: "返回全部教材" }));
+        await screen.findByRole("heading", { name: "選擇教材" });
+        await act(async () => resolveCatalog({ challenges: [{ id: 71, title: "晚到的關卡", book: { id: 3, name: "Workbook 3" } }] }));
+        expect(screen.queryByText("晚到的關卡")).not.toBeInTheDocument();
+        expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    });
+
+    it("Workbook 載入失敗停止讀取動畫並保留錯誤訊息", async () => {
+        getSpeakingChallengeCatalog.mockRejectedValue(new Error("地圖暫時無法讀取"));
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-3"]}><Routes>
+            <Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} />
+        </Routes></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "口說大挑戰暫時無法開啟" })).toBeInTheDocument();
+        expect(screen.getByText("地圖暫時無法讀取")).toBeInTheDocument();
+        expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     });
 
     it.each(["easy", "challenge"])("讀取畫面依 %s 模式顯示並在題目準備完成後進入", async mode => {
