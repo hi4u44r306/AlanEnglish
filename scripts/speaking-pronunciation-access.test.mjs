@@ -44,4 +44,8 @@ test("學生送評仍須通過有效的 AI 發音資格", async () => {
         ),
         error => error?.status === 403 && error?.code === "pronunciation_access_required"
     );
+    await assert.rejects(
+        authorizeSpeakingPronunciation({ id: 7, role: "student" }, async () => ({ is_active: false, features: { pronunciation: true } })),
+        error => error?.status === 403 && error?.code === "pronunciation_access_required"
+    );
 });
