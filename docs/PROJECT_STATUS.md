@@ -2,11 +2,11 @@
 
 最後更新：2026-10-02
 
-發布中：隱藏入口與家長折線週報（2026-10-02，尚未部署驗收）：
+正式發布：隱藏入口與家長折線週報（2026-10-02，Cloudflare 部署及管理員週報驗收完成）：
 
-- 獨立發布分支 codex/parent-weekly-report-release，從最新 origin/main 分離 4c8c87b8 與 cf809ac0 的前端修改；正式口說暫停、舊地圖、App 路由、Supabase、資料與權限保持原狀。原 checkout 的口說草稿及未提交修改完整保留。
+- 獨立發布分支 codex/parent-weekly-report-release，從最新 origin/main 分離 4c8c87b8 與 cf809ac0 的前端修改；本批沒有修改口說開放、地圖、App 路由、Supabase、資料與權限；後續另批口說發布以該節紀錄為準。原 checkout 的口說草稿及未提交修改完整保留。
 - 本批包含學生選單／首頁／會員捷徑、每週報告與兩張折線圖、局部測試、產品邏輯及手冊 v3.18。原有複製、列印、寄信與週次切換保留；未來日期及缺資料不冒充零。
-- 分離後相關 5 suites／37 targeted tests 全部通過，ESLint 無 error（會員測試有既有 unused import warning），diff 檢查通過；PR、Cloudflare production build 與正式站桌面／412px 驗收待補。局部前端不跑全套測試或重複 Production build，正式 build 由 Cloudflare 執行。iPhone Safari 與實際 PDF 尚未驗證。回復方式為反向套用本批前端差異，無資料回填／刪除。
+- 分離後相關 5 suites／37 targeted tests 全部通過，ESLint 無 error（會員測試有既有 unused import warning），diff 檢查通過；PR #393 已合併，功能 main 為 f0ee9f6d；Cloudflare production build b89316fb-cc6c-4207-a8d0-e4e65d0f48f6 success（2026-10-02 13:39:57 台灣時間），正式 bundle main.0d260e23.js。局部前端不跑全套測試或重複 Production build，正式 build 由 Cloudflare 執行。Chrome 正式管理員以測試學生資料驗證週報：1440×900 與 412×915 無橫向溢出，日期點選／鍵盤、週次切換、未來留白、既有文字摘要與寄信入口正常，Console 無 error。手機日期按鈕最小約 48×72px，正式截圖存於 Codex visualizations 的 parent-weekly-production-desktop.jpg／parent-weekly-production-mobile.jpg。學生端選單／首頁／會員捷徑以分離後 targeted tests 驗證；正式瀏覽器目前為管理員，測試學生登入驗收、iPhone Safari 與實際 PDF 尚待補。回復方式為反向套用本批前端差異，無資料回填／刪除。
 
 學生口說後端開放（2026-10-02，發布驗收中）：
 
