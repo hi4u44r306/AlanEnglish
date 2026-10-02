@@ -5,7 +5,7 @@ import {
     buildPublicSpeakingQuestion
 } from "../supabase/functions/_shared/speaking-challenge-view.ts";
 
-test("工作人員可預覽，學生口說暫停時在查詢權限前拒絕", async () => {
+test("工作人員可預覽，學生必須通過有效發音權限", async () => {
     let loadCalls = 0;
     const loadAccess = async studentId => {
         loadCalls += 1;
@@ -29,11 +29,17 @@ test("工作人員可預覽，學生口說暫停時在查詢權限前拒絕", as
     );
     assert.equal(loadCalls, 0);
 
-    await assert.rejects(
-        authorizeSpeakingChallenge({ id: 7, role: "student" }, loadAccess),
-        error => error.status === 423 && error.code === "student_speaking_games_paused"
+    assert.deepEqual(
+        await authorizeSpeakingChallenge({ id: 7, role: "student" }, loadAccess),
+        { demoMode: false, effectiveAccess: { is_active: true, features: { pronunciation: true } } }
     );
-    assert.equal(loadCalls, 0);
+    assert.equal(loadCalls, 1);
+    for (const access of [null, { is_active: false, features: { pronunciation: true } }, { is_active: true, features: { pronunciation: false } }]) {
+        await assert.rejects(
+            authorizeSpeakingChallenge({ id: 7, role: "student" }, async () => access),
+            error => error.status === 403 && error.code === "pronunciation_access_required"
+        );
+    }
 });
 
 const secretQuestion = {
