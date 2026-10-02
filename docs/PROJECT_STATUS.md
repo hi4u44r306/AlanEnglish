@@ -2,6 +2,11 @@
 
 最後更新：2026-10-02
 
+口說共用讀取條升級（2026-10-02，尚未部署）：
+
+- 基準 main `03aaa717`，乾淨發布副本分支 `codex/speaking-loading-bar-fill`。只調整 `SpeakingChallengeLoading.scss`：26px 底槽、固定左端逐步填色、等待流動條紋、reduced-motion 靜態 66% 裝飾填色；覆蓋 Workbook／簡單／挑戰／朗讀入口。沒有真實百分比或人工等待，保留原 API、返回、錯誤、權限及獎勵流程。
+- SCSS 編譯、Chrome 使用同一份編譯 CSS 的桌面／412px 樣式驗收通過：填色從 88.8px 延伸至 301.8px，左端固定 4px、無 translate；手機無橫向溢出、返回 44px，減少動態效果停止兩個動畫。未跑全套／本機 build，純 SCSS 改動交由 Cloudflare production build；Safari 實機待驗。原 checkout 本機樣式同步，其他草稿保留。
+
 Workbook 入口讀取動畫獨立發布（2026-10-02，正式部署及學生畫面驗收完成）：
 
 - 使用者授權發布本機 `4b807eeb` 的 Workbook 讀取動畫。由最新 main `95405bad` 建立 `codex/workbook-entry-loading-release`，只移植讀取元件、冊別入口與測試；模糊背景沿用正式 WebP，不包含尚在本機審核的延長地圖、道路定位、影片引導或其他草稿。
