@@ -80,19 +80,35 @@
 }
 
 .speaking-mode-loading-card__track {
+  position: relative;
   width: 100%;
-  height: 18px;
+  height: 26px;
+  padding: 3px;
   overflow: hidden;
+  border: 1px solid #dfcba6;
   border-radius: 999px;
-  background: #f7edd7;
+  background: #eee2c8;
+  box-shadow: inset 0 2px 4px rgba(105, 75, 35, .12), 0 1px 0 #fff;
 
   span {
+    position: relative;
     display: block;
-    width: 45%;
+    width: 12%;
     height: 100%;
+    overflow: hidden;
     border-radius: inherit;
-    background: repeating-linear-gradient(135deg, transparent 0 12px, rgba(255, 255, 255, .16) 12px 24px), var(--loading-accent);
-    animation: speaking-mode-loading-slide 1.6s ease-in-out infinite alternate;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .35), transparent), var(--loading-accent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
+    animation: speaking-mode-loading-fill 4.8s cubic-bezier(.2, .65, .3, 1) forwards;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(115deg, transparent 0 12px, rgba(255, 255, 255, .25) 12px 24px);
+      background-size: 26px 100%;
+      animation: speaking-mode-loading-sheen 1.2s linear infinite;
+    }
   }
 }
 
@@ -117,9 +133,18 @@
   &:focus-visible { outline: 3px solid #2f73c8; outline-offset: 3px; }
 }
 
-@keyframes speaking-mode-loading-slide {
-  from { transform: translateX(0); }
-  to { transform: translateX(122%); }
+// This is an indeterminate waiting cue, not a measured download percentage.
+// Keep the fill anchored at the start and leave room until the request resolves.
+@keyframes speaking-mode-loading-fill {
+  0% { width: 12%; }
+  25% { width: 38%; }
+  55% { width: 66%; }
+  80% { width: 82%; }
+  100% { width: 92%; }
+}
+
+@keyframes speaking-mode-loading-sheen {
+  to { background-position: 26px 0; }
 }
 
 .speaking-mode-loading-page.is-workbook-entry {
@@ -153,5 +178,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .speaking-mode-loading-card__track span,
+  .speaking-mode-loading-card__track span::after,
   .speaking-mode-loading-page.is-workbook-entry .speaking-mode-loading-card__badge { animation: none; }
+
+  .speaking-mode-loading-card__track span { width: 66%; }
 }
