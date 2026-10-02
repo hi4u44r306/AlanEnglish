@@ -1,0 +1,95 @@
+.speaking-adventure-route {
+  .speaking-map-chapter {
+    padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .speaking-challenge-lesson {
+    scroll-margin-top: 100px;
+    scroll-margin-bottom: 190px;
+  }
+
+  .speaking-challenge-lesson.is-next-target .speaking-challenge-lesson__number {
+    box-shadow: inset 0 0 0 3px #fff5cd;
+    border-color: #754521;
+  }
+}
+
+.speaking-map-goal {
+  position: fixed;
+  z-index: 50;
+  right: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  width: min(600px, calc(100% - 24px));
+  max-height: calc(100dvh - 110px);
+  overflow-y: auto;
+  padding: 14px 18px;
+  transform: translateX(50%);
+  border: 3px solid #c49053;
+  border-radius: 20px;
+  background: #fff8e9;
+  color: #17345e;
+  box-shadow: 0 5px 0 #754521, 0 12px 30px rgba(8, 25, 45, .3);
+}
+
+.speaking-map-goal__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+
+  small { color: #805224; font-size: 12px; font-weight: 800; }
+  strong { font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; }
+  span { font-size: 12px; line-height: 1.5; }
+}
+
+.speaking-map-goal button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid #e1a31d;
+  border-radius: 13px;
+  background: #ffcf4f;
+  color: #17345e;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.speaking-map-goal button:focus-visible {
+  outline: 3px solid #315bc8;
+  outline-offset: 3px;
+}
+
+.speaking-level-dialog h2 {
+  overflow-wrap: anywhere;
+}
+
+.speaking-level-dialog .speaking-level-dialog__topic {
+  font-size: 13px;
+  color: #d4e2f1;
+}
+
+.speaking-level-dialog__actions button.primary.is-challenge {
+  border-color: #9bc5ff;
+  background: #315bc8;
+  color: #fff;
+  box-shadow: 0 4px 0 #183c84;
+}
+
+@media (max-width: 760px) {
+  .speaking-map-goal {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 17px;
+  }
+
+  .speaking-map-goal__copy strong { font-size: 16px; }
+  .speaking-map-goal button { width: 100%; }
+}
