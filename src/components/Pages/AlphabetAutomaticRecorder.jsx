@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { FiLoader, FiMic, FiMicOff } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
+import { SpeakingAssessmentContext } from "./SpeakingAssessmentBudget";
+import { assessmentBlockedMessage } from "../../utils/speakingAssessmentBudget";
 
 const CALIBRATION_MS = 450;
 const NO_SPEECH_RETRY_MS = 8000;
@@ -41,7 +43,13 @@ export default function AlphabetAutomaticRecorder({
 }) {
     const [status, setStatus] = useState("preparing");
     const [error, setError] = useState("");
+    const [previewUrl, setPreviewUrl] = useState("");
+    const assessmentBudget = useContext(SpeakingAssessmentContext);
+    const budgetRef = useRef(assessmentBudget);
+    budgetRef.current = assessmentBudget;
+    useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
     const [sessionVersion, setSessionVersion] = useState(0);
+    const [prepareVersion, setPrepareVersion] = useState(0);
     const [attemptVersion, setAttemptVersion] = useState(0);
     const [remainingSeconds, setRemainingSeconds] = useState(MAX_UTTERANCE_MS / 1000);
     const streamRef = useRef(null);
@@ -87,6 +95,10 @@ export default function AlphabetAutomaticRecorder({
             release();
         };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (status === "blocked") release();
+    }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         const stopWhenHidden = () => {
@@ -137,7 +149,7 @@ export default function AlphabetAutomaticRecorder({
         };
         prepare();
         return () => { cancelled = true; };
-    }, []);
+    }, [prepareVersion]);
 
     useEffect(() => {
         operationRef.current += 1;
@@ -175,6 +187,9 @@ export default function AlphabetAutomaticRecorder({
             try {
                 const wav = await convertAudioBlobToWav(blob);
                 if (operationId !== operationRef.current) return;
+                if (URL.createObjectURL) setPreviewUrl(URL.createObjectURL(wav));
+                const blocked = assessmentBlockedMessage(budgetRef.current?.usage);
+                if (blocked) { setError(blocked); setStatus("blocked"); return; }
                 const result = await submitSpeakingPronunciationAttempt({
                     firebaseUser,
                     questionId: question.id,
@@ -183,9 +198,11 @@ export default function AlphabetAutomaticRecorder({
                     challengeSessionId
                 });
                 if (operationId !== operationRef.current) return;
+                if (result?.assessment_usage) budgetRef.current?.onUsage(result.assessment_usage);
                 onScoredRef.current?.(result);
             } catch (cause) {
                 if (operationId !== operationRef.current) return;
+                if (cause?.assessment_usage) budgetRef.current?.onUsage(cause.assessment_usage);
                 setError(cause?.message || "發音評分失敗，請回到列表後再進入一次");
                 if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) {
                     onRoundInvalidRef.current?.(cause);
@@ -273,7 +290,7 @@ export default function AlphabetAutomaticRecorder({
             : status === "submitting"
                 ? ["正在評分…", "不用按任何按鈕，下一題會自動出現。"]
                 : status === "blocked"
-                    ? ["麥克風沒有開啟", "請確認瀏覽器的麥克風權限。"]
+                    ? previewUrl ? ["錄音已保留", "請依下方提示處理，可先回聽自己的聲音。"] : ["麥克風沒有開啟", "請確認瀏覽器的麥克風權限。"]
                     : ["麥克風已開啟", "看到字母後直接唸，不會播放答案提示。"];
 
     return <section className={`speaking-alphabet-auto is-${status}`} aria-live="polite" aria-atomic="true">
@@ -284,5 +301,7 @@ export default function AlphabetAutomaticRecorder({
         {status === "recording" && <strong className="speaking-alphabet-auto__countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}>還能錄 {remainingSeconds} 秒</strong>}
         <small>每題只會把偵測到的短音訊送至發音評分服務；完成、失敗或離開時會關閉麥克風。</small>
         {error && <p role="alert">{error}</p>}
+        {status === "blocked" && previewUrl && <div className="speaking-recording-preview"><p>可回聽這次錄音；自行練習不計通關。</p><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio></div>}
+        {status === "blocked" && assessmentBlockedMessage(assessmentBudget?.usage) && <button type="button" onClick={() => { setError(""); setStatus("preparing"); setPrepareVersion(version => version + 1); }}>再錄一次（不送評）</button>}
     </section>;
 }

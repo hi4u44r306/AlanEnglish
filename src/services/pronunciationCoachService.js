@@ -22,6 +22,7 @@ export const submitPronunciationAttempt = async ({ firebaseUser, lessonId, audio
         const error = new Error(result?.error || "發音評分服務暫時無法使用");
         error.status = response.status;
         error.code = result?.code || null;
+        error.assessment_usage = result?.assessment_usage || null;
         throw error;
     }
     return result;
@@ -54,6 +55,7 @@ export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questio
         const error = new Error(result?.error || "發音評分服務暫時無法使用");
         error.status = response.status;
         error.code = result?.code || null;
+        error.assessment_usage = result?.assessment_usage || null;
         throw error;
     }
     return result;

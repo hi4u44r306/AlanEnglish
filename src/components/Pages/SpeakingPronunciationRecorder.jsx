@@ -4,6 +4,8 @@ import { submitSpeakingPronunciationAttempt } from "../../services/pronunciation
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import "./css/SpeakingPronunciationRecorder.scss";
+import { SpeakingAssessmentContext } from "./SpeakingAssessmentBudget";
+import { ASSESSMENT_QUOTA_CODES, assessmentBlockedMessage } from "../../utils/speakingAssessmentBudget";
 import { SpeakingActivityContext } from "./SpeakingAdventureSession";
 
 const MAX_RECORDING_SECONDS = 12;
@@ -42,6 +44,9 @@ export default function SpeakingPronunciationRecorder({
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
     const [voiceDetected, setVoiceDetected] = useState(false);
+    const [quotaError, setQuotaError] = useState(false);
+    const assessmentBudget = useContext(SpeakingAssessmentContext);
+    const budgetBlocked = assessmentBlockedMessage(assessmentBudget?.usage);
     const setSessionBusy = useContext(SpeakingActivityContext);
     useEffect(() => {
         setSessionBusy?.(recording || preparing || submitting);
@@ -68,6 +73,7 @@ export default function SpeakingPronunciationRecorder({
         analyserRef.current = null;
     };
     const reset = () => {
+        setQuotaError(false);
         release();
         if (previewUrl) URL.revokeObjectURL(previewUrl);
         setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setElapsed(0); setRecording(false); setPreparing(false); setVoiceDetected(false);
@@ -129,11 +135,12 @@ export default function SpeakingPronunciationRecorder({
         }
     };
     const submit = async () => {
-        if (!recordedBlob || submitting) return;
+        if (!recordedBlob || submitting || budgetBlocked || quotaError) return;
         prepareSpeakingFeedbackSound();
         setSubmitting(true); setError(""); setResult(null);
         try {
             const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId, challengeMode });
+            if (score?.assessment_usage) assessmentBudget?.onUsage(score.assessment_usage);
             if (typeof score?.answer_match !== "boolean" || !Number.isFinite(score?.scores?.pronunciation)) {
                 throw new Error("assessment_response_incomplete");
             }
@@ -148,8 +155,11 @@ export default function SpeakingPronunciationRecorder({
                     : scoreTone(Math.round(score?.scores?.pronunciation || 0))
             );
         } catch (cause) {
+            if (cause?.assessment_usage) assessmentBudget?.onUsage(cause.assessment_usage);
+            const quotaReached = ASSESSMENT_QUOTA_CODES.has(cause?.code);
+            setQuotaError(quotaReached);
             setResult(null);
-            setError(ROUND_RESET_ERROR_CODES.has(String(cause?.code || "")) || cause?.code === "foundation_round_busy"
+            setError(quotaReached || cause?.code === "speaking_daily_limit_reached" || cause?.code === "rate_limited" || ROUND_RESET_ERROR_CODES.has(String(cause?.code || "")) || cause?.code === "foundation_round_busy"
                 ? cause.message : "評分服務暫時無法完成。錄音仍保留，請重試評分。");
             if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) onRoundInvalid?.(cause);
         }
@@ -185,8 +195,9 @@ export default function SpeakingPronunciationRecorder({
                 {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
                 <span>{recording ? (voiceDetected ? "送出並評分" : "我已說完，送出") : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
-            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button></div></div>}
-            <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
+            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting || Boolean(budgetBlocked) || quotaError}><FiSend />{submitting ? "AI 評分中…" : budgetBlocked || quotaError ? "AI 評分額度不足" : error ? "重試評分" : "送出評分"}</button></div></div>}
+            {budgetBlocked && <p className="speaking-pronunciation-notice" role="status">{budgetBlocked} 可以繼續錄音回聽；自行練習不計通關。</p>}
+            <small className="speaking-recording-privacy">錄音只在這台裝置暫存。只錄音或回聽不扣額度；每次送評（包含重試）依音檔長度計時。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>

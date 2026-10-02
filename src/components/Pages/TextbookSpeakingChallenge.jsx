@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
+import { FiAward, FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
+import ChallengeRules from "./SpeakingChallengeRules";
 import { ChallengePreviewDialog, SpeakingMapGoal, speakingLessonTopic } from "./SpeakingMapEntry";
 import SpeakingAdventureSession from "./SpeakingAdventureSession";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
@@ -133,35 +134,6 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, nextTar
     </button>;
 };
 
-const ChallengeRules = ({ policy }) => {
-    const [expanded, setExpanded] = useState(false);
-    const dailyRemaining = Number(policy?.daily_remaining);
-    const hasUsage = Number.isFinite(dailyRemaining);
-    return <section className={`speaking-challenge-rules ${expanded ? "is-expanded" : ""}`} aria-labelledby="speaking-challenge-rules-title">
-        <button type="button" className="speaking-challenge-rules__toggle" aria-expanded={expanded} aria-controls="speaking-challenge-rules-content" onClick={() => setExpanded(current => !current)}>
-            <span className="speaking-challenge-rules__icon" aria-hidden="true">?</span>
-            <span className="speaking-challenge-rules__heading">
-                <small>HOW TO PLAY</small>
-                <strong id="speaking-challenge-rules-title">遊戲規則</strong>
-                <span className="speaking-challenge-rules__quota">每天最多 5 次{hasUsage ? ` · 今天剩 ${dailyRemaining} 次` : ""}</span>
-            </span>
-            <span className="speaking-challenge-rules__action">{expanded ? "收起規則" : "查看規則"}<FiChevronDown aria-hidden="true" /></span>
-        </button>
-        {expanded && <div id="speaking-challenge-rules-content" className="speaking-challenge-rules__content">
-            <ol>
-                <li><b>每天 5 次</b><span>每天最多開始 5 輪正式挑戰，於台北時間午夜重置。</span></li>
-                <li><b>送出才計次</b><span>只進入關卡、還沒正式送出第一段錄音就離開，不會扣次數。</span></li>
-                <li><b>重錄不多扣</b><span>同一輪裡重新錄音、重試題目或繼續下一題，都只算同一次。</span></li>
-                <li><b>每次 12 秒</b><span>每段錄音最長 12 秒，錄音時會顯示還剩幾秒。</span></li>
-                <li><b>依序闖關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
-                <li><b>依題型練習</b><span>照念類只有一種練習，需要時可聽示範；問答類可選簡單或挑戰，成就分開記錄。練習或簡單通關後解鎖下一頁。</span></li>
-                <li><b>挑戰提示</b><span>看過提示的題目本輪不計通關，結束後只要重試未通過的題目。</span></li>
-            </ol>
-            <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
-        </div>}
-    </section>;
-};
-
 export default function TextbookSpeakingChallenge() {
     const { firebaseUser, role } = useAuth();
     const { questionSetId, bookKey } = useParams();
@@ -279,7 +251,7 @@ export default function TextbookSpeakingChallenge() {
     const renderScene = content => {
         if (returnTransition) return <SpeakingChallengeReturn toCatalog={returnTransition.path === "/student/speaking-challenges"} />;
         if (!completionNotice) return questionSetId && challenge && Number(challenge.id) === Number(questionSetId) && loadedChallengeKey === `${questionSetId}:${challengeMode}`
-            ? <SpeakingAdventureSession key={`${questionSetId}:${challengeMode}`} challenge={challenge} pages={levelReference(challenge)} mode={challengeMode} firebaseUser={firebaseUser}>{content}</SpeakingAdventureSession>
+            ? <SpeakingAdventureSession key={`${questionSetId}:${challengeMode}`} challenge={challenge} pages={levelReference(challenge)} mode={challengeMode} firebaseUser={firebaseUser} assessmentUsage={challengePolicy?.assessment_usage}>{content}</SpeakingAdventureSession>
             : content;
         const bookPath = challengeBookCatalogPath(challenge);
         const items = (completionCatalog.length ? completionCatalog : staffPreview ? catalog : [])

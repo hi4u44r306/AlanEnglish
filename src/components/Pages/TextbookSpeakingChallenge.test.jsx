@@ -567,18 +567,18 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         const rulesToggle = await screen.findByRole("button", { name: /遊戲規則.*查看規則/ });
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
-        expect(await screen.findByText("每天最多 5 次 · 今天剩 3 次")).toBeInTheDocument();
-        expect(screen.queryByText("送出才計次")).not.toBeInTheDocument();
+        expect(await screen.findByText("每天最多新開始 5 輪 · 今天剩 3 輪 · 每月 90 分鐘 AI 評分")).toBeInTheDocument();
+        expect(screen.queryByText("每月 90 分鐘")).not.toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByText("每天 5 次")).toBeInTheDocument();
-        expect(screen.getByText("送出才計次")).toBeInTheDocument();
-        expect(screen.getByText("重錄不多扣")).toBeInTheDocument();
+        expect(screen.getByText("每天 5 輪")).toBeInTheDocument();
+        expect(screen.getByText("每月 90 分鐘")).toBeInTheDocument();
+        expect(screen.getByText("重試如何計算")).toBeInTheDocument();
         expect(screen.getByText("每次 12 秒")).toBeInTheDocument();
-        expect(screen.getByText(/通關會顯示打勾並開啟下一關/)).toBeInTheDocument();
+        expect(screen.getByText(/本關所有題目取得有效通過結果才通關/)).toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByText("送出才計次")).not.toBeInTheDocument();
+        expect(screen.queryByText("每月 90 分鐘")).not.toBeInTheDocument();
         unmount();
 
         mockRole = "teacher";

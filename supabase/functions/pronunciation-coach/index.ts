@@ -21,6 +21,7 @@ import {
 import { runSpeakingPronunciationFlow } from "../_shared/speaking-pronunciation-flow.ts";
 import { authorizeSpeakingPronunciation } from "../_shared/speaking-pronunciation-access.ts";
 import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
+import { assessmentAudioSeconds, assessmentBudgetError } from "../_shared/speaking-assessment-budget.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -194,33 +195,18 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
     };
 };
 
-const reserveProviderRequest = async (admin: any, studentId: number, question: any) => {
-    const { data, error } = await admin.rpc("reserve_speaking_pronunciation_request", {
+const reserveProviderRequest = async (admin: any, studentId: number, question: any, duration: number, clientSessionId: string | null) => {
+    const { data, error } = await admin.rpc("reserve_speaking_pronunciation_request_v2", {
         p_student_id: studentId,
         p_question_set_id: question.questionSetId,
         p_question_id: question.questionId,
-        p_interaction_type: question.interactionType || null
-    });
-    if (error) throw error;
-    if (data?.allowed !== true || !data?.request_id) {
-        throw Object.assign(new Error("短時間練習次數較多，請休息一下再繼續"), { status: 429, code: "rate_limited" });
-    }
-    return String(data.request_id);
-};
-
-const reserveChallengeSession = async (admin: any, studentId: number, question: any, clientSessionId: string) => {
-    const { data, error } = await admin.rpc("reserve_speaking_challenge_session_v1", {
-        p_student_id: studentId,
-        p_question_set_id: question.questionSetId,
-        p_question_id: question.questionId,
+        p_interaction_type: question.interactionType || null,
+        p_audio_seconds: assessmentAudioSeconds(duration),
         p_client_session_id: clientSessionId
     });
     if (error) throw error;
-    if (data?.allowed !== true) {
-        throw Object.assign(new Error("今天已完成 5 次口說大挑戰，明天再繼續冒險吧！"), {
-            status: 429,
-            code: "speaking_daily_limit_reached"
-        });
+    if (data?.allowed !== true || !data?.request_id) {
+        throw assessmentBudgetError(data);
     }
     return data;
 };
@@ -362,6 +348,7 @@ Deno.serve(async (req: Request) => {
 
     let admin: any = null;
     let foundationRoundId: string | null = null;
+    let providerReservation: any = null;
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -436,9 +423,6 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
-        const challengeUsage = adminDemo
-            ? null
-            : await reserveChallengeSession(admin, Number(user.id), question, challengeSessionId);
         const { data: revealedHint, error: hintError } = challengeMode === "challenge" && !adminDemo
             ? await admin.from("speaking_challenge_hint_reveals").select("question_id")
                 .eq("student_id", Number(user.id)).eq("question_id", question.questionId)
@@ -474,7 +458,10 @@ Deno.serve(async (req: Request) => {
                 if (claim?.status !== "claimed" || !claim?.claim_token) return { status: "invalid" as const };
                 return { status: "claimed" as const, claimToken: String(claim.claim_token) };
             } : undefined,
-            reserve: () => reserveProviderRequest(admin, Number(user.id), question),
+            reserve: async () => {
+                providerReservation = await reserveProviderRequest(admin, Number(user.id), question, wavInfo.durationSeconds, adminDemo ? null : challengeSessionId);
+                return String(providerReservation.request_id);
+            },
             assess: async () => {
                 let providerResponse: Response;
                 const providerController = new AbortController();
@@ -603,13 +590,16 @@ Deno.serve(async (req: Request) => {
         if (flow.status === "invalid") {
             return json(409, { error: "這一輪已失效，請從第一題重新開始", code: "foundation_round_invalid" });
         }
-        if (flow.status === "provider_failure") return json(flow.failure.status, flow.failure.payload);
+        if (flow.status === "provider_failure") return json(flow.failure.status, {
+            ...flow.failure.payload, assessment_usage: providerReservation?.assessment_usage || null
+        });
 
         return json(200, {
             success: true,
             question_id: question.questionId,
             demo_mode: adminDemo,
-            challenge_usage: challengeUsage,
+            challenge_usage: providerReservation?.challenge_usage || null,
+            assessment_usage: providerReservation?.assessment_usage || null,
             challenge_mode: challengeMode,
             hint_used: hintUsed,
             reference_text: question.interactionType ? null : (question.referenceText || null),
@@ -620,7 +610,8 @@ Deno.serve(async (req: Request) => {
         const status = Number((error as any)?.status || 500);
         return json(status, {
             error: status < 500 ? String((error as any)?.message || "請求失敗") : "發音評分服務發生錯誤",
-            code: String((error as any)?.code || "") || null
+            code: String((error as any)?.code || "") || null,
+            assessment_usage: (error as any)?.assessment_usage || providerReservation?.assessment_usage || null
         });
     }
 });

@@ -374,7 +374,7 @@
 }
 .speaking-challenge-rules ol {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0 12px;
   padding: 0;
@@ -389,7 +389,7 @@
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr);
   gap: 2px 9px;
-  align-content: center;
+  align-content: start;
   min-height: 74px;
   padding: 11px 12px;
   border: 1px solid #f1dfaa;
@@ -415,8 +415,8 @@
 }
 .speaking-challenge-rules li span {
   color: #65758c;
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.65;
 }
 .speaking-challenge-rules__content > p {
   display: flex;

@@ -2,6 +2,16 @@
 
 最後更新：2026-10-02
 
+口說每月 AI 評分預算與規則（2026-10-02，本機完成，尚未部署）：
+
+- 草稿 PR #405 已推送，功能 checkpoint `6f73fd0c`；require-pushed preflight 通過，功能分支與遠端一致。未合併或部署；正式操作仍等本批授權。
+- 基準最新 main `e12a1b91`，功能分支 `codex/speaking-monthly-budget`。於 `output/speaking-budget-20261002` 建立一般本機 clone，保留原 checkout 的未提交變更；沒有建立 worktree。會員價格、權限、題庫、地圖、通關判定與獎勵契約未變更。
+- 學生跨 Workbook／模式每月 90 分鐘，台灣時間每月 1 日 00:00 重置；全站含工作人員示範 4,500 分鐘。以 Edge 解析 WAV 的向上取整秒數交易預留，使用全域／學生 advisory lock；所有狀態保守計時，不自動退還不確定的供應商失敗。保留每日 5 輪；所有題型含空白舊題型套用 24 小時 160 次。額度拒絕不送 Azure、不增加新輪；舊 RPC 包裝器同樣受限，未知舊時長保守以 12 秒計入。新增 additive migration `20261002150738`，舊學習／供應商紀錄不刪除。
+- 列表規則與關卡顯示剩餘分秒、重置日與用量條，清楚區分每日輪數、送評分鐘、提示、補考、A–Z 整輪與首次獎勵。用完仍可錄音回聽，不取得通關或獎勵。A–Z 失敗／額度不足後停止麥克風，可重新開啟只錄音練習；手冊 v3.24 與 PROJECT_LOGIC 同步。本批未升級 Azure 或修改付款設定。
+- 驗證：4 suites／69 前端 targeted tests、20 後端／PGlite SQL tests、相關 ESLint、共享 TypeScript、兩支 Edge 語法、production build 與 Cloudflare SEO／資產生成成功；最後樣式微調另以同一 SCSS 編譯驗證。Chrome（Edge Chromium）1440px／412px 的真實規則元件預覽展開／收起、14px 文字、44px 以上操作、無橫向溢出與 page error，額度用完提示正常。預覽為明確標示的範例數據，非登入 E2E；`output/budget-rules-desktop.png`／`budget-rules-mobile.png`。
+- 未跑全專案 suite，因影響集中口說預算流程。隔離 PGlite 實際執行 ledger、每日輪數及本批 migration，驗證最後秒數、Taipei 月邊界、舊 RPC、失敗計時與 service-role／匿名權限；單一連線排隊測試不等於遠端多連線鎖競爭驗證。沒有可用的隔離 Supabase 分支；本批 migration／Function／前端正式操作尚未執行，需依 AGENTS 第 13–14 節取得本批明確授權。Azure 免費帳戶停用問題未因配額修改恢復，真實音訊評分／獎勵與 iPhone Safari 實機仍未驗。
+- 發布順序：先 additive migration，再 `pronunciation-coach`／`speaking-challenge`，最後測試過的 main 前端並立即驗收。若整合失敗，回復 Function／前端；保留新增欄位、歷史紀錄及舊 RPC 預算保護，避免回退時失去費用上限。相關檔案：quota migration／共享 helper、兩支 Function、SpeakingAssessmentBudget／Rules／AdventureSession／兩種 Recorder、服務及相關測試。S-20 圖／影片待正式驗收後更新。
+
 口說共用讀取條升級（2026-10-02，正式部署及學生入口驗收完成）：
 
 - 基準 main `03aaa717`，乾淨發布副本分支 `codex/speaking-loading-bar-fill`。只調整 `SpeakingChallengeLoading.scss`：26px 底槽、固定左端逐步填色、等待流動條紋、reduced-motion 靜態 66% 裝飾填色；覆蓋 Workbook／簡單／挑戰／朗讀入口。沒有真實百分比或人工等待，保留原 API、返回、錯誤、權限及獎勵流程。
