@@ -34,6 +34,60 @@ describe("TextbookSpeakingChallenge model audio", () => {
     beforeEach(() => { jest.clearAllMocks(); mockRole = "student"; });
     afterEach(() => { global.Audio = originalAudio; });
 
+    it("下一個目標只推薦已解鎖未完成關卡，入口開摘要並在 Escape 後還原焦點", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [
+            { id: 1, title: "P14 已完成", source_pages: [14], book: { name: "Workbook 1" }, question_count: 7, completed_count: 7, is_completed: true },
+            { id: 2, title: "P15 問候", topic: "認識新朋友", source_pages: [15], book: { name: "Workbook 1" }, question_count: 7, completed_count: 2, is_unlocked: true },
+            { id: 3, title: "P16 下一頁", source_pages: [16], book: { name: "Workbook 1" }, question_count: 7, completed_count: 0, is_unlocked: true }
+        ] });
+        const { container } = render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        const goal = await screen.findByRole("button", { name: "繼續這一關" });
+        expect(screen.getByLabelText("地圖學習目標")).toHaveTextContent("P.15 · 已完成 2 / 7 題");
+        expect(container.querySelectorAll('[aria-current="step"]')).toHaveLength(1);
+        expect(container.querySelector('[aria-current="step"]')).toHaveAttribute("data-question-set-id", "2");
+        expect(screen.getByRole("button", { name: /下一頁，尚未解鎖/ })).toBeInTheDocument();
+        fireEvent.click(goal);
+        expect(screen.getByRole("dialog", { name: "認識新朋友" })).toHaveTextContent("P.15");
+        expect(screen.getByRole("button", { name: /繼續練習 · 簡單/ })).toHaveFocus();
+        expect(getSpeakingChallengeSet).not.toHaveBeenCalled();
+        fireEvent.keyDown(document, { key: "Escape" });
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(goal).toHaveFocus();
+    });
+
+    it("各路徑皆有可玩關卡時只標記一個推薦目標，全部完成後不再推薦", async () => {
+        const items = [
+            { id: 1, title: "A–Z", catalog_section: "preparation" },
+            { id: 2, title: "P15 問候", catalog_section: "textbook", source_pages: [15] },
+            { id: 3, title: "顏色練習", catalog_section: "topic" }
+        ].map(item => ({ ...item, book: { name: "Workbook 1" }, question_count: 2, completed_count: 0, is_unlocked: true }));
+        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: items });
+        const mountMap = () => render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        const first = mountMap();
+        await screen.findByRole("button", { name: "開始這一關" });
+        expect(first.container.querySelectorAll('[aria-current="step"]')).toHaveLength(1);
+        expect(first.container.querySelector('[aria-current="step"]')).toHaveAttribute("data-question-set-id", "1");
+        first.unmount();
+        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: items.map(item => ({ ...item, is_completed: true, completed_count: 2 })) });
+        const completed = mountMap();
+        await screen.findByText("這本已全部通關！");
+        expect(screen.queryByRole("button", { name: /這一關/ })).not.toBeInTheDocument();
+        expect(completed.container.querySelector('[aria-current="step"]')).not.toBeInTheDocument();
+    });
+
+    it("鎖定關卡只聚焦可操作的關閉按鈕，不啟用練習入口", async () => {
+        getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [
+            { id: 1, title: "P14 前一關", source_pages: [14], book: { name: "Workbook 1" }, question_count: 7 },
+            { id: 2, title: "P15 問候", source_pages: [15], book: { name: "Workbook 1" }, question_count: 7, is_unlocked: false }
+        ] });
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-Workbook%201"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        fireEvent.click(await screen.findByRole("button", { name: /P.15，問候，尚未解鎖/ }));
+        expect(screen.getByRole("button", { name: "關閉關卡摘要" })).toHaveFocus();
+        expect(screen.getByRole("button", { name: "尚未解鎖" })).toBeDisabled();
+        fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+        expect(screen.getByRole("button", { name: "返回地圖" })).toHaveFocus();
+    });
+
     it("shows the existing Workbook 2 object clue inline without duplicating a manually edited clue", async () => {
         getSpeakingChallengeSet.mockResolvedValue({
             challenge: {
@@ -468,7 +522,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(node.closest(".speaking-adventure-route")).toBeInTheDocument();
         expect(node.querySelector(".speaking-challenge-lesson__number")).toHaveTextContent("P.21");
         fireEvent.click(node);
-        expect(screen.getByRole("dialog", { name: "P.21" })).toHaveTextContent("看圖問答");
+        expect(screen.getByRole("dialog", { name: "看圖問答" })).toHaveTextContent("P.21");
         expect(screen.getByRole("dialog")).toHaveTextContent("簡單0 / 9");
         expect(screen.getByRole("dialog")).toHaveTextContent("挑戰0 / 9");
         expect(screen.queryByText("本關道具")).not.toBeInTheDocument();

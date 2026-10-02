@@ -2,6 +2,12 @@
 
 最後更新：2026-10-02
 
+口說地圖目標獨立發布（2026-10-02，發布驗收中）：
+
+- 使用者核准獨立發布本機 checkpoint `22ebd5aa`。從最新 main `a23546e6` 建立 `codex/speaking-next-goal-release`；僅移植下一個目標、主題摘要與模式進度入口，沿用正式地圖及既有路由／權限。`/links`、延長地圖素材、其他本機修改不在本批。
+- 目標沿用既有教材順序與未完成／已解鎖狀態；按目標先開摘要，easy／challenge 依各自紀錄顯示開始、繼續或再練。鎖定關卡不能開始，摘要支援 Escape、焦點返回及背景捲動鎖定。沒有新增獎勵、學習紀錄、API、migration 或 Function 操作。
+- 分離後口說主頁、入口元件及既有關卡流程 3 suites／67 targeted tests、四檔 ESLint、SCSS 編譯與 diff 檢查通過；不跑全套測試或重複本機 Production build，正式 build 由 Cloudflare main 執行。PR、正式建置與桌面／412px 驗收待完成；iPhone Safari 實機與真實錄音／獎勵未驗。回復方式為反向套用本批前端差異。
+
 學生口說前端入口獨立發布（2026-10-02，發布驗收中）：
 
 - 使用者明確核准單獨發布學生路由修正，地圖留本機。從最新 main `251ddf8` 建立 `codex/student-speaking-routes-release`；僅修改 App 三條大挑戰路由與 StudentNavbar 對應入口，保留有效會員／首次登入、Firebase 及已部署後端教材／發音 entitlement，口說教練仍停用。原工作目錄地圖、素材與其他未提交修改完整保留，不進 PR。
