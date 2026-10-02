@@ -2,10 +2,11 @@
 
 最後更新：2026-10-02
 
-口說共用讀取條升級（2026-10-02，尚未部署）：
+口說共用讀取條升級（2026-10-02，正式部署及學生入口驗收完成）：
 
 - 基準 main `03aaa717`，乾淨發布副本分支 `codex/speaking-loading-bar-fill`。只調整 `SpeakingChallengeLoading.scss`：26px 底槽、固定左端逐步填色、等待流動條紋、reduced-motion 靜態 66% 裝飾填色；覆蓋 Workbook／簡單／挑戰／朗讀入口。沒有真實百分比或人工等待，保留原 API、返回、錯誤、權限及獎勵流程。
 - SCSS 編譯、Chrome 使用同一份編譯 CSS 的桌面／412px 樣式驗收通過：填色從 88.8px 延伸至 301.8px，左端固定 4px、無 translate；手機無橫向溢出、返回 44px，減少動態效果停止兩個動畫。未跑全套／本機 build，純 SCSS 改動交由 Cloudflare production build；Safari 實機待驗。原 checkout 本機樣式同步，其他草稿保留。
+- PR #403／`8eacf052` 合併 main `dd1c0f50`；Cloudflare production build `e113fc21-80bf-4be9-84c4-fd228163c2f5` success（3m 38s）。正式口說 CSS `37.6fdf6a07.chunk.css`；已登入學生桌面 Workbook 3、412×915 Workbook 1 的讀取 DOM 確認 26px、左端 4px、返回 44px、無橫向溢出，隨後成功進入地圖、返回列表，Console 無 error。測試 OS 啟用 reduced-motion，正式條為靜態，正常動態在同一編譯 CSS 的獨立樣式頁驗證；正式截圖捕捉落在讀取前一幀，不作讀取條圖片證據。樣式頁 `output/loading-progress-preview.html` 以真實元件 SSR 及同一 SCSS 呈現。教學影片／Safari 實機未驗；回復可反向套用本批單一 SCSS 差異。
 
 Workbook 入口讀取動畫獨立發布（2026-10-02，正式部署及學生畫面驗收完成）：
 
