@@ -2,6 +2,12 @@
 
 最後更新：2026-10-02
 
+學生口說前端入口獨立發布（2026-10-02，發布驗收中）：
+
+- 使用者明確核准單獨發布學生路由修正，地圖留本機。從最新 main `251ddf8` 建立 `codex/student-speaking-routes-release`；僅修改 App 三條大挑戰路由與 StudentNavbar 對應入口，保留有效會員／首次登入、Firebase 及已部署後端教材／發音 entitlement，口說教練仍停用。原工作目錄地圖、素材與其他未提交修改完整保留，不進 PR。
+- 分離後 ProtectedRoute／MainNavbar 2 suites、28/28 targeted tests 與四檔 ESLint 通過；涵蓋有效學生、會員到期、無發音權限、未登入及老師／管理員。diff 檢查於提交前執行；不重跑全套測試或本機 Production build，正式前端建置由 Cloudflare 的 main build 執行。回復方式為反向套用本批路由／入口差異，無資料庫或 Function 操作。
+- PR／Cloudflare production／正式學生桌面與手機驗收待完成；錄音及真實通關獎勵不以入口驗收替代。
+
 正式發布：隱藏入口與家長折線週報（2026-10-02，Cloudflare 部署及管理員週報驗收完成）：
 
 - 獨立發布分支 codex/parent-weekly-report-release，從最新 origin/main 分離 4c8c87b8 與 cf809ac0 的前端修改；本批沒有修改口說開放、地圖、App 路由、Supabase、資料與權限；後續另批口說發布以該節紀錄為準。原 checkout 的口說草稿及未提交修改完整保留。
