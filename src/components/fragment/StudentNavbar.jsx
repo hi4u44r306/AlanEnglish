@@ -75,6 +75,7 @@ const StudentNavbar = ({
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
     const hasAssignmentsAccess = hasActiveLearningAccess && features.assignments === true;
+    const hasSpeakingChallengeAccess = hasActiveLearningAccess && features.pronunciation === true;
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
     const speakingActive = drawerOpen && drawer === "speaking";
@@ -143,11 +144,14 @@ const StudentNavbar = ({
                 <span><strong>口說教練</strong><small>準備中，完成測試後開放</small></span>
                 <b>準備中</b>
             </button>
-            <button type="button" disabled aria-label="口說大挑戰，準備中">
+            {hasSpeakingChallengeAccess ? <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawerThenNavigate}>
                 <span className="is-orange"><FiStar /></span>
-                <span><strong>口說大挑戰</strong><small>準備中，完成測試後開放</small></span>
-                <b>準備中</b>
-            </button>
+                <span><strong>口說大挑戰</strong><small>選擇教材，開始闖關</small></span>
+            </InstantDrawerLink> : <button type="button" disabled aria-label="口說大挑戰，需要有效發音練習權限">
+                <span className="is-orange"><FiStar /></span>
+                <span><strong>口說大挑戰</strong><small>需要有效發音練習權限</small></span>
+                <b><FiLock /></b>
+            </button>}
         </div>
     );
 
@@ -221,7 +225,7 @@ const StudentNavbar = ({
                             </NavDropdown>
                         )}
                         <NavDropdown id="student-speaking" title={<span><FiStar />遊戲</span>} className={speakingActive ? "active" : ""}>
-                                <div className="ae-student-dropdown-heading"><strong>遊戲世界</strong><small>新關卡準備中</small></div>
+                                <div className="ae-student-dropdown-heading"><strong>遊戲世界</strong><small>選擇教材，開始闖關</small></div>
                                 {speakingLinks}
                         </NavDropdown>
                         <NavDropdown id="student-more" title={<span><FiZap />學習功能</span>} className={learningActive ? "active" : ""}>
@@ -248,7 +252,7 @@ const StudentNavbar = ({
 
             <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "speaking" ? "bottom" : "end"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : drawer === "materials" ? "is-materials" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "遊戲" : "功能選單"}</strong><small>{drawer === "materials" ? "選擇教材、程度與冊別" : drawer === "speaking" ? "新關卡正在準備中" : "學習、帳號與幫助"}</small></div>
+                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "遊戲" : "功能選單"}</strong><small>{drawer === "materials" ? "選擇教材、程度與冊別" : drawer === "speaking" ? "選擇教材，開始闖關" : "學習、帳號與幫助"}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     {drawer === "materials" && renderMaterials("mobile")}

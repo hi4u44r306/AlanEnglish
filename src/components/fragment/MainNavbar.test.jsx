@@ -393,7 +393,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });
 
-    it("shows the game entry but keeps both speaking games disabled for students", async () => {
+    it("opens entitled student challenges while keeping the coach disabled", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "academy-all-access" },
             role: "student",
@@ -416,11 +416,34 @@ describe("MainNavbar student navigation", () => {
 
         fireEvent.click(screen.getAllByRole("button", { name: "遊戲" })[0]);
         expect(screen.getByRole("button", { name: "口說教練，準備中" })).toBeDisabled();
-        expect(screen.getByRole("button", { name: "口說大挑戰，準備中" })).toBeDisabled();
+        expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.queryByRole("link", { name: /口說教練/ })).not.toBeInTheDocument();
-        expect(screen.queryByRole("link", { name: /口說大挑戰/ })).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
+    });
+
+    it.each([
+        ["no pronunciation entitlement", true, false],
+        ["inactive membership", false, true]
+    ])("keeps challenges disabled for students with %s", (_label, isActive, pronunciation) => {
+        useAuth.mockReturnValue({
+            firebaseUser: { uid: "speaking-entry-test" },
+            role: "student",
+            isAuthenticated: true,
+            logout: jest.fn(),
+            studentProfile: {
+                name: "測試學生",
+                membership: {
+                    is_active: isActive,
+                    effective_access: { features: { pronunciation } }
+                }
+            }
+        });
+
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+        fireEvent.click(screen.getAllByRole("button", { name: "遊戲" })[0]);
+        expect(screen.getByRole("button", { name: "口說大挑戰，需要有效發音練習權限" })).toBeDisabled();
+        expect(screen.queryByRole("link", { name: /口說大挑戰/ })).not.toBeInTheDocument();
     });
 
     it("shows one music-management link and the links admin entry to admins", async () => {
