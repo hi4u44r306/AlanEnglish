@@ -38,7 +38,7 @@ export const encodePcm16Wav = audioBuffer => {
     return new Blob([buffer], { type: "audio/wav" });
 };
 
-export const convertAudioBlobToWav = async (blob, sampleRate = 16000) => {
+export const convertAudioBlobToWav = async (blob, sampleRate = 16000, { startSeconds = 0 } = {}) => {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     const OfflineAudioContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     if (!AudioContextClass || !OfflineAudioContextClass) {
@@ -48,12 +48,14 @@ export const convertAudioBlobToWav = async (blob, sampleRate = 16000) => {
     const sourceContext = new AudioContextClass();
     try {
         const source = await sourceContext.decodeAudioData(await blob.arrayBuffer());
-        const frameCount = Math.max(1, Math.ceil(source.duration * sampleRate));
+        const offset = Math.min(source.duration, Math.max(0, Number(startSeconds) || 0));
+        if (offset >= source.duration) throw new Error("沒有取得完整錄音，請重新錄音");
+        const frameCount = Math.max(1, Math.ceil((source.duration - offset) * sampleRate));
         const offline = new OfflineAudioContextClass(1, frameCount, sampleRate);
         const node = offline.createBufferSource();
         node.buffer = source;
         node.connect(offline.destination);
-        node.start(0);
+        node.start(0, offset);
         return encodePcm16Wav(await offline.startRendering());
     } finally {
         await sourceContext.close().catch(() => undefined);

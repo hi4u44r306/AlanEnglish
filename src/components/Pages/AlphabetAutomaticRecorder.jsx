@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiLoader, FiMic, FiMicOff } from "react-icons/fi";
+import { FiLoader, FiMic, FiMicOff, FiRefreshCw } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 
@@ -7,6 +7,7 @@ const CALIBRATION_MS = 450;
 const NO_SPEECH_RETRY_MS = 8000;
 const TRAILING_SILENCE_MS = 900;
 const MAX_UTTERANCE_MS = 12000;
+const PRE_SPEECH_MS = 250;
 const MIN_BLOB_BYTES = 800;
 const ROUND_RESET_ERROR_CODES = new Set([
     "foundation_round_invalid",
@@ -44,6 +45,8 @@ export default function AlphabetAutomaticRecorder({
     const [sessionVersion, setSessionVersion] = useState(0);
     const [attemptVersion, setAttemptVersion] = useState(0);
     const [remainingSeconds, setRemainingSeconds] = useState(MAX_UTTERANCE_MS / 1000);
+    const [recordedBlob, setRecordedBlob] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState("");
     const streamRef = useRef(null);
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
@@ -52,12 +55,22 @@ export default function AlphabetAutomaticRecorder({
     const chunksRef = useRef([]);
     const operationRef = useRef(0);
     const mountedRef = useRef(true);
+    const pendingAttemptRef = useRef(null);
+    const retrySubmissionRef = useRef(null);
+    const submittingRef = useRef(false);
     const onScoredRef = useRef(onScored);
     const onRoundInvalidRef = useRef(onRoundInvalid);
 
     useEffect(() => { onScoredRef.current = onScored; }, [onScored]);
     useEffect(() => { onRoundInvalidRef.current = onRoundInvalid; }, [onRoundInvalid]);
     useEffect(() => { onStatusChange?.(status); }, [onStatusChange, status]);
+
+    useEffect(() => {
+        if (!recordedBlob) { setPreviewUrl(""); return undefined; }
+        const url = URL.createObjectURL(recordedBlob);
+        setPreviewUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [recordedBlob]);
 
     const cancelDetection = () => {
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -85,6 +98,8 @@ export default function AlphabetAutomaticRecorder({
         return () => {
             mountedRef.current = false;
             release();
+            pendingAttemptRef.current = null;
+            retrySubmissionRef.current = null;
         };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -92,6 +107,9 @@ export default function AlphabetAutomaticRecorder({
         const stopWhenHidden = () => {
             if (document.visibilityState !== "hidden") return;
             release();
+            pendingAttemptRef.current = null;
+            retrySubmissionRef.current = null;
+            setRecordedBlob(null);
             setStatus("blocked");
             setError("為了保護錄音隱私，切換到其他頁面後已關閉麥克風；請回到列表再開始一次");
         };
@@ -119,6 +137,11 @@ export default function AlphabetAutomaticRecorder({
                 if (!AudioContextClass) throw new Error("audio_context_unavailable");
                 const context = new AudioContextClass();
                 await context.resume?.();
+                if (cancelled) {
+                    stream.getTracks().forEach(track => track.stop());
+                    await context.close().catch(() => undefined);
+                    return;
+                }
                 const analyser = context.createAnalyser();
                 analyser.fftSize = 1024;
                 context.createMediaStreamSource(stream).connect(analyser);
@@ -149,13 +172,18 @@ export default function AlphabetAutomaticRecorder({
         }
         recorderRef.current = null;
         chunksRef.current = [];
+        pendingAttemptRef.current = null;
+        retrySubmissionRef.current = null;
+        submittingRef.current = false;
+        setRecordedBlob(null);
 
         if (paused || !question?.id || (!foundationRoundId && !allowDemoAssessment) || !analyserRef.current || !streamRef.current) return undefined;
         setError("");
-        setStatus("listening");
+        setStatus("preparing");
         const analyser = analyserRef.current;
         const samples = new Float32Array(analyser.fftSize);
         const calibrationStartedAt = performance.now();
+        let bufferStartedAt = calibrationStartedAt;
         let noiseTotal = 0;
         let noiseSamples = 0;
         let speechFrames = 0;
@@ -163,18 +191,24 @@ export default function AlphabetAutomaticRecorder({
         let lastVoiceAt = 0;
         let recorder = null;
 
-        const submitRecording = async blob => {
-            if (operationId !== operationRef.current || !mountedRef.current) return;
+        const submitRecording = async () => {
+            const attempt = pendingAttemptRef.current;
+            if (!attempt || submittingRef.current || operationId !== operationRef.current || !mountedRef.current) return;
+            const { blob } = attempt;
             if (blob.size < MIN_BLOB_BYTES) {
                 setError("沒有聽清楚，再靠近一點說一次");
                 setStatus("listening");
                 setAttemptVersion(version => version + 1);
                 return;
             }
+            submittingRef.current = true;
+            setError("");
             setStatus("submitting");
             try {
-                const wav = await convertAudioBlobToWav(blob);
+                const wav = attempt.wav || await convertAudioBlobToWav(blob, 16000, { startSeconds: attempt.startSeconds });
                 if (operationId !== operationRef.current) return;
+                attempt.wav = wav;
+                setRecordedBlob(wav);
                 const result = await submitSpeakingPronunciationAttempt({
                     firebaseUser,
                     questionId: question.id,
@@ -184,24 +218,32 @@ export default function AlphabetAutomaticRecorder({
                 });
                 if (operationId !== operationRef.current) return;
                 onScoredRef.current?.(result);
+                pendingAttemptRef.current = null;
+                setRecordedBlob(null);
             } catch (cause) {
                 if (operationId !== operationRef.current) return;
-                setError(cause?.message || "發音評分失敗，請回到列表後再進入一次");
+                setError(cause?.message || "評分暫時無法完成，錄音已保留，請重試評分。");
                 if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) {
+                    pendingAttemptRef.current = null;
+                    setRecordedBlob(null);
+                    setStatus("blocked");
                     onRoundInvalidRef.current?.(cause);
                     return;
                 }
                 // 不自動重送不確定是否已到達後端的請求，避免重複產生 Azure 評分費用。
-                setStatus("blocked");
+                setStatus("retry");
+            } finally {
+                if (operationId === operationRef.current) submittingRef.current = false;
             }
         };
+        retrySubmissionRef.current = submitRecording;
 
         const finishUtterance = () => {
             cancelDetection();
             if (recorder?.state === "recording") recorder.stop();
         };
 
-        const startRecorder = now => {
+        const startBuffer = () => {
             chunksRef.current = [];
             const type = recordingMimeType();
             recorder = type ? new MediaRecorder(streamRef.current, { mimeType: type }) : new MediaRecorder(streamRef.current);
@@ -209,15 +251,33 @@ export default function AlphabetAutomaticRecorder({
             recorder.ondataavailable = event => { if (event.data?.size) chunksRef.current.push(event.data); };
             recorder.onerror = () => {
                 cancelDetection();
+                recorder.onstop = null;
+                if (recorder.state === "recording") recorder.stop();
                 setStatus("blocked");
                 setError("自動收音發生問題，請回到列表後再進入一次");
             };
             recorder.onstop = () => {
+                if (operationId !== operationRef.current || !mountedRef.current) return;
                 recorderRef.current = null;
+                if (!speechStartedAt) {
+                    // 等待中的環境音不送評；定期重新建立容器，限制本機暫存大小。
+                    setAttemptVersion(version => version + 1);
+                    return;
+                }
                 const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-                submitRecording(blob);
+                pendingAttemptRef.current = {
+                    blob,
+                    wav: null,
+                    startSeconds: Math.max(0, (speechStartedAt - bufferStartedAt - PRE_SPEECH_MS) / 1000)
+                };
+                setRecordedBlob(blob);
+                submitRecording();
             };
+            bufferStartedAt = performance.now();
             recorder.start(100);
+        };
+
+        const startSpeech = now => {
             speechStartedAt = now;
             lastVoiceAt = now;
             setError("");
@@ -233,21 +293,25 @@ export default function AlphabetAutomaticRecorder({
                 noiseTotal += level;
                 noiseSamples += 1;
             } else {
+                if (!speechStartedAt) setStatus("listening");
                 const noiseFloor = noiseSamples ? noiseTotal / noiseSamples : 0;
                 const startThreshold = Math.max(0.025, noiseFloor * 3.2);
                 const continueThreshold = Math.max(0.015, startThreshold * 0.58);
-                if (!recorder) {
+                if (!speechStartedAt) {
                     speechFrames = level >= startThreshold ? speechFrames + 1 : 0;
-                    if (speechFrames >= 3) startRecorder(now);
+                    if (speechFrames >= 3) startSpeech(now);
                     else if (now - calibrationStartedAt > NO_SPEECH_RETRY_MS) {
                         setError("還沒聽到聲音，看到字母後直接唸出來就可以了");
+                        finishUtterance();
+                        return;
                     }
                 } else if (recorder.state === "recording") {
-                    const nextRemaining = Math.max(0, Math.ceil((MAX_UTTERANCE_MS - (now - speechStartedAt)) / 1000));
+                    const elapsed = now - speechStartedAt + PRE_SPEECH_MS;
+                    const nextRemaining = Math.max(0, Math.ceil((MAX_UTTERANCE_MS - elapsed) / 1000));
                     setRemainingSeconds(current => current === nextRemaining ? current : nextRemaining);
                     if (level >= continueThreshold) lastVoiceAt = now;
                     if ((now - lastVoiceAt >= TRAILING_SILENCE_MS && now - speechStartedAt >= 300)
-                        || now - speechStartedAt >= MAX_UTTERANCE_MS) {
+                        || elapsed >= MAX_UTTERANCE_MS - 100) {
                         finishUtterance();
                         return;
                     }
@@ -255,6 +319,12 @@ export default function AlphabetAutomaticRecorder({
             }
             animationRef.current = requestAnimationFrame(detect);
         };
+        // 聲音偵測前已開始本機緩衝，保留字母開頭；送評前才裁掉等待空白。
+        try { startBuffer(); } catch {
+            setStatus("blocked");
+            setError("自動收音發生問題，請確認麥克風後再試一次");
+            return undefined;
+        }
         animationRef.current = requestAnimationFrame(detect);
         return () => {
             cancelDetection();
@@ -270,8 +340,10 @@ export default function AlphabetAutomaticRecorder({
         ? ["正在開啟麥克風…", "只要允許一次，這一輪會自動收音。"]
         : status === "recording"
             ? ["正在聽你說", "說完後停一下，系統會自動送出。"]
-            : status === "submitting"
+        : status === "submitting"
                 ? ["正在評分…", "不用按任何按鈕，下一題會自動出現。"]
+                : status === "retry"
+                    ? ["錄音已保留", "先回聽，或直接重試評分，不需要離開關卡。"]
                 : status === "blocked"
                     ? ["麥克風沒有開啟", "請確認瀏覽器的麥克風權限。"]
                     : ["麥克風已開啟", "看到字母後直接唸，不會播放答案提示。"];
@@ -282,7 +354,12 @@ export default function AlphabetAutomaticRecorder({
         </span>
         <div><strong>{copy[0]}</strong><span>{copy[1]}</span></div>
         {status === "recording" && <strong className="speaking-alphabet-auto__countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}>還能錄 {remainingSeconds} 秒</strong>}
-        <small>每題只會把偵測到的短音訊送至發音評分服務；完成、失敗或離開時會關閉麥克風。</small>
+        <small>等待中的環境音不會送評；錄音只在這台裝置暫存，離開關卡時會關閉麥克風。</small>
+        {status === "retry" && pendingAttemptRef.current && <div className="speaking-alphabet-auto__retry">
+            {previewUrl && <audio aria-label="回聽這次字母錄音" controls src={previewUrl} />}
+            <button type="button" onClick={() => retrySubmissionRef.current?.()}><FiRefreshCw aria-hidden="true" />重試評分</button>
+            <button type="button" onClick={() => setAttemptVersion(version => version + 1)}>重新錄音</button>
+        </div>}
         {error && <p role="alert">{error}</p>}
     </section>;
 }

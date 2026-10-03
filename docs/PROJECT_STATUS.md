@@ -1,6 +1,13 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-02
+最後更新：2026-10-03
+
+本機修正：A–Z 收音緩衝與原地重試（2026-10-03，尚未部署）：
+
+- 乾淨副本 `output/alphabet-recording-fix-20261003`，分支 `codex/alphabet-recording-retry`，同步 main `e12a1b91`；原工作區與瀏覽器辨識測試版草稿保留。
+- 相關檔案：`AlphabetAutomaticRecorder.jsx`／測試、`audioWav.js`／測試、`TextbookSpeakingChallenge.scss`。自動收音前先建立本機緩衝；轉 WAV 時裁掉等待開頭，保留約 250ms 前段與既有尾端停頓。無聲暫存八秒重建、不送 Azure；保留原逐字母玩法與 12 秒上限。
+- 技術失敗原地回聽／手動重試／重新錄音；同一 WAV 不重轉，連點不併發送評；換題／暫停／背景／離開使舊操作失效，回合失效走既有復原。未新增後端、migration 或月額度，未調整句子題時限。
+- 驗證完成：4 suites／48 個 targeted tests、相關 ESLint、SCSS 編譯、production build 與 diff check 通過；未跑無關全套測試。Edge 真實 MediaRecorder／Web Audio、實際元件與同一 SCSS 在 1440×900／412×915 的隔離 harness 通過：700ms 合成聲音完整保留（WAV 約 1.69／1.77 秒，含前段與尾端停頓），第一次模擬失敗不自動重送，手動重試沿用相同 WAV、只回報一次；無 Console error／橫向溢出，重試按鈕高 44px。證據 `output/alphabet-qa/retry-1440.png`／`retry-412.png`；harness 不連 Azure、不寫學習紀錄、不作發音準確度證據。真實 iPhone Safari／兒童字母錄音及 Azure 評分仍待驗證。下一步先進行實機驗收，再確認正式發布範圍；本批尚未部署。
 
 口說共用讀取條升級（2026-10-02，正式部署及學生入口驗收完成）：
 
