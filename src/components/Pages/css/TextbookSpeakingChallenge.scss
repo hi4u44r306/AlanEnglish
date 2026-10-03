@@ -2555,6 +2555,32 @@
   background: #f4f8ff;
   text-align: left;
 }
+.speaking-alphabet-auto .speaking-alphabet-auto__retry {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+
+  audio {
+    width: 100%;
+    min-width: 0;
+  }
+
+  button {
+    flex: 1 1 120px;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid #bcd1e4;
+    border-radius: 14px;
+    background: #fff;
+    color: #244d76;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
 .speaking-alphabet-auto__icon {
   width: 60px;
   height: 60px;
