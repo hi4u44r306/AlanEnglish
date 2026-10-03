@@ -8,6 +8,7 @@
 - 相關檔案：`AlphabetAutomaticRecorder.jsx`／測試、`audioWav.js`／測試、`TextbookSpeakingChallenge.scss`。自動收音前先建立本機緩衝；轉 WAV 時裁掉等待開頭，保留約 250ms 前段與既有尾端停頓。無聲暫存八秒重建、不送 Azure；保留原逐字母玩法與 12 秒上限。
 - 技術失敗原地回聽／手動重試／重新錄音；同一 WAV 不重轉，連點不併發送評；換題／暫停／背景／離開使舊操作失效，回合失效走既有復原。未新增後端、migration 或月額度，未調整句子題時限。
 - 驗證完成：4 suites／48 個 targeted tests、相關 ESLint、SCSS 編譯、production build 與 diff check 通過；未跑無關全套測試。Edge 真實 MediaRecorder／Web Audio、實際元件與同一 SCSS 在 1440×900／412×915 的隔離 harness 通過：700ms 合成聲音完整保留（WAV 約 1.69／1.77 秒，含前段與尾端停頓），第一次模擬失敗不自動重送，手動重試沿用相同 WAV、只回報一次；無 Console error／橫向溢出，重試按鈕高 44px。證據 `output/alphabet-qa/retry-1440.png`／`retry-412.png`；harness 不連 Azure、不寫學習紀錄、不作發音準確度證據。真實 iPhone Safari／兒童字母錄音及 Azure 評分仍待驗證。下一步先進行實機驗收，再確認正式發布範圍；本批尚未部署。
+- 手機 localhost 預覽（2026-10-03）：依使用者要求，重用既有受 Basic Auth 保護的 localhost:3001 與 `https://dev.alanenglish.com.tw/dev/speaking-browser` Tunnel，沒有變更網域、Secret 或正式服務。替換 ignored 靜態測試資產，舊頁備份於 `output/alphabet-mobile/previous-preview`。新頁使用本批實際 A–Z 元件與真實麥克風，逐字母收音後保留回聽，模擬技術失敗／手動重試；明示不判斷發音、不呼叫 Azure、不寫學習紀錄。1440／412px 合成音瀏覽器檢查回聽、重試、關閉 tracks、26 字母邊界、零外部請求／溢出／Console error 通過；本機與遠端未授權 401，原登入保護仍在。CUA 初始化失敗，未取得帶登入的遠端畫面，iPhone 真實收音仍待使用者測試。本批只更新測試頁，沒有正式部署；原工作區草稿未修改。
 
 口說共用讀取條升級（2026-10-02，正式部署及學生入口驗收完成）：
 
