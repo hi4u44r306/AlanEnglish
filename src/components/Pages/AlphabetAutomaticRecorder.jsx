@@ -248,8 +248,11 @@ export default function AlphabetAutomaticRecorder({
             const type = recordingMimeType();
             recorder = type ? new MediaRecorder(streamRef.current, { mimeType: type }) : new MediaRecorder(streamRef.current);
             recorderRef.current = recorder;
-            recorder.ondataavailable = event => { if (event.data?.size) chunksRef.current.push(event.data); };
+            recorder.ondataavailable = event => {
+                if (operationId === operationRef.current && mountedRef.current && event.data?.size) chunksRef.current.push(event.data);
+            };
             recorder.onerror = () => {
+                if (operationId !== operationRef.current || !mountedRef.current) return;
                 cancelDetection();
                 recorder.onstop = null;
                 if (recorder.state === "recording") recorder.stop();

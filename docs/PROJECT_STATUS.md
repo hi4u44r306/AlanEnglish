@@ -2,6 +2,12 @@
 
 最後更新：2026-10-03
 
+A–Z 收音修正正式發布（2026-10-03，發布驗收中）：
+
+- 使用者回報手機測試頁錄音正常，明確要求正式站測試本批。分支 `codex/alphabet-recording-retry`，最新 main 仍為 `e12a1b91`，沒有未整合 main 變更；僅發布既有 A–Z 錄音元件、WAV 裁切、重試樣式與相關測試／文件。不包含 ignored 手機測試頁、地圖或其他原工作區草稿。
+- 本機原 48 targeted tests／build 已通過；發布前新增舊容器晚到音訊／錯誤隔離防護，受影響 recorder suite 11 tests／ESLint／diff check 通過（本批共 49 個獨立 targeted tests）。正式 production build 交 Cloudflare 執行，不重跑無關全套測試。桌面／412px 合成音與手機使用者收音回聽已完成；真實 Azure 判分／學生通關／iPhone 正式結果待驗。
+- 唯讀正式評分帳本最近三天只見一筆 `provider_failed / http_401`，時間 2026-10-02 12:15:36 UTC；目前沒有恢復成功證據。未更改 Azure 訂閱／金鑰或部署後端。回復方式為 revert 本批前端 PR，資料表、題庫、原通關與獎勵契約不變。等待 PR／Cloudflare 完成後更新實際部署與線上證據。
+
 本機修正：A–Z 收音緩衝與原地重試（2026-10-03，尚未部署）：
 
 - 乾淨副本 `output/alphabet-recording-fix-20261003`，分支 `codex/alphabet-recording-retry`，同步 main `e12a1b91`；原工作區與瀏覽器辨識測試版草稿保留。

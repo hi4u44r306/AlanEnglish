@@ -187,6 +187,20 @@ describe("AlphabetAutomaticRecorder", () => {
         expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(1);
     });
 
+    it("換題後忽略舊容器晚到的音訊與錯誤，不混入新題錄音", async () => {
+        const view = await mount();
+        const oldRecorder = recorders[0];
+        view.rerender(<AlphabetAutomaticRecorder {...props} question={{ id: 2 }} />);
+        await act(async () => {
+            oldRecorder.ondataavailable({ data: new Blob([new Uint8Array(3000)]) });
+            oldRecorder.onerror();
+        });
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        await speak();
+        expect(convertAudioBlobToWav.mock.calls[0][0].size).toBe(1000);
+        expect(submitSpeakingPronunciationAttempt.mock.calls[0][0].questionId).toBe(2);
+    });
+
     it("計算本機 VAD 音量，不需要把連續環境音上傳", () => {
         expect(rmsLevel(new Float32Array([0, 0, 0]))).toBe(0);
         expect(rmsLevel(new Float32Array([1, -1]))).toBeCloseTo(1);
