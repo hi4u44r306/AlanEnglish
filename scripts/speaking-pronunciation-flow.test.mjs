@@ -25,6 +25,17 @@ test("busy claim stops before quota reservation, provider call, and attempt inse
     assert.deepEqual(events, ["claim"]);
 });
 
+test("monthly budget refusal releases the alphabet claim before any Azure call", async () => {
+    const events = [];
+    const options = baseOptions(events);
+    options.reserve = async () => {
+        events.push("budget-refused");
+        throw Object.assign(new Error("Monthly budget reached"), { code: "student_audio_budget_exhausted" });
+    };
+    await assert.rejects(runSpeakingPronunciationFlow(options), { code: "student_audio_budget_exhausted" });
+    assert.deepEqual(events, ["claim", "budget-refused", "release:claim-1"]);
+});
+
 test("provider failure finalizes its ledger and releases the claim without saving progress", async () => {
     const events = [];
     const options = baseOptions(events);

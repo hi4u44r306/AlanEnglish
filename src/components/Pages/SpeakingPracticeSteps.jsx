@@ -168,6 +168,7 @@ export default function SpeakingPracticeSteps({
             key={question.id}
             firebaseUser={firebaseUser}
             question={question}
+            interactionType={interactionType}
             foundationRoundId={foundationRoundId}
             challengeSessionId={challengeSessionId}
             challengeMode={challengeMode}

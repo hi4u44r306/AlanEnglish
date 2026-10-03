@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import { SpeakingActivityContext } from "./SpeakingAdventureSession";
@@ -45,6 +45,7 @@ describe("SpeakingPronunciationRecorder", () => {
     });
 
     afterEach(() => {
+        jest.useRealTimers();
         window.MediaRecorder = originalMediaRecorder;
         Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: originalMediaDevices });
         URL.createObjectURL = originalCreateObjectUrl;
@@ -142,7 +143,7 @@ describe("SpeakingPronunciationRecorder", () => {
         />);
         expect(screen.getByRole("status")).toHaveTextContent("可以開始錄音");
         fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
-        expect(await screen.findByRole("timer", { name: "錄音剩餘 12 秒" })).toHaveTextContent("12秒");
+        expect(await screen.findByRole("timer", { name: "錄音剩餘 25 秒" })).toHaveTextContent("25秒");
         fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
 
         await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1));
@@ -169,6 +170,36 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(screen.queryByText("查看詳細分析")).not.toBeInTheDocument();
         expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(1);
         expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("good");
+    });
+
+    it.each([["standard_sentence", 25], ["text_qa", 25], ["letter_spelling", 12]])(
+        "%s 依題型錄音，直到 %s 秒才停止", async (interactionType, seconds) => {
+            jest.useFakeTimers();
+            convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
+            render(<SpeakingPronunciationRecorder question={{ id: 9 }} interactionType={interactionType} />);
+            await act(async () => { fireEvent.click(screen.getByRole("button", { name: /開始錄音/ })); });
+            await act(async () => { jest.advanceTimersByTime(seconds * 1000 - 1); });
+            expect(screen.getByRole("button", { name: "完成錄音" })).toBeEnabled();
+            expect(convertAudioBlobToWav).not.toHaveBeenCalled();
+            await act(async () => { jest.advanceTimersByTime(1); });
+            expect(convertAudioBlobToWav).toHaveBeenCalledWith(expect.any(Blob), 16000, { maxSeconds: seconds });
+            expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+            expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
+        }
+    );
+
+    it("月額度用完仍可回聽，但不提供可重複送評的按鈕", async () => {
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
+        submitSpeakingPronunciationAttempt.mockRejectedValueOnce(Object.assign(new Error("本月的語音評分時間已用完"), { code: "student_audio_budget_exhausted" }));
+        const onScored = jest.fn();
+        render(<SpeakingPronunciationRecorder question={{ id: 9 }} onScored={onScored} />);
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
+        fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("本月的語音評分時間已用完");
+        expect(screen.getByRole("button", { name: "重試評分" })).toBeDisabled();
+        expect(document.querySelector("audio")).toHaveAttribute("src", "blob:scoring-wav");
+        expect(onScored).not.toHaveBeenCalled();
     });
 
     it("後端判定 A–Z 回合失效時通知外層回到第一題", async () => {
