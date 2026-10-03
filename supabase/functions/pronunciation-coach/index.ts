@@ -21,6 +21,8 @@ import {
 import { runSpeakingPronunciationFlow } from "../_shared/speaking-pronunciation-flow.ts";
 import { authorizeSpeakingPronunciation } from "../_shared/speaking-pronunciation-access.ts";
 import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
+import { speakingRecordingSeconds, validSpeakingAudioDuration } from "../_shared/speaking-recording-policy.ts";
+import { inspectPcm16Wav } from "../_shared/speaking-pcm-wav.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -33,8 +35,6 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 });
 
 const MAX_AUDIO_BYTES = 1024 * 1024;
-const MIN_AUDIO_SECONDS = 0.35;
-const MAX_AUDIO_SECONDS = 12;
 const PROVIDER_TIMEOUT_MS = 75_000;
 
 const normalizeWord = (value: unknown) => String(value || "")
@@ -47,57 +47,6 @@ const numberScore = (value: unknown) => {
 };
 
 const statusForScore = (score: number) => score >= 80 ? "good" : score >= 60 ? "practice" : "retry";
-
-const readAscii = (view: DataView, offset: number, length: number) => Array.from(
-    { length },
-    (_, index) => String.fromCharCode(view.getUint8(offset + index))
-).join("");
-
-const inspectPcm16Wav = (buffer: ArrayBuffer) => {
-    if (buffer.byteLength < 44) return null;
-    const view = new DataView(buffer);
-    if (
-        readAscii(view, 0, 4) !== "RIFF"
-        || readAscii(view, 8, 4) !== "WAVE"
-        || readAscii(view, 12, 4) !== "fmt "
-        || readAscii(view, 36, 4) !== "data"
-    ) return null;
-
-    const audioFormat = view.getUint16(20, true);
-    const channels = view.getUint16(22, true);
-    const sampleRate = view.getUint32(24, true);
-    const bitsPerSample = view.getUint16(34, true);
-    const dataBytes = view.getUint32(40, true);
-    const bytesPerSecond = sampleRate * channels * (bitsPerSample / 8);
-    if (
-        audioFormat !== 1
-        || channels !== 1
-        || sampleRate !== 16000
-        || bitsPerSample !== 16
-        || dataBytes <= 0
-        || 44 + dataBytes > buffer.byteLength
-        || !Number.isFinite(bytesPerSecond)
-        || bytesPerSecond <= 0
-    ) return null;
-
-    const sampleCount = Math.floor(dataBytes / 2);
-    let peak = 0;
-    let sumSquares = 0;
-    let activeSamples = 0;
-    for (let index = 0; index < sampleCount; index += 1) {
-        const amplitude = Math.abs(view.getInt16(44 + index * 2, true)) / 0x8000;
-        peak = Math.max(peak, amplitude);
-        sumSquares += amplitude * amplitude;
-        if (amplitude >= 0.01) activeSamples += 1;
-    }
-
-    return {
-        durationSeconds: dataBytes / bytesPerSecond,
-        peak,
-        rms: sampleCount > 0 ? Math.sqrt(sumSquares / sampleCount) : 0,
-        activeRatio: sampleCount > 0 ? activeSamples / sampleCount : 0
-    };
-};
 
 const speechRecognitionError = (providerResult: any, wavInfo: ReturnType<typeof inspectPcm16Wav>) => {
     const status = String(providerResult?.RecognitionStatus || "");
@@ -194,35 +143,27 @@ const assertPublishedQuestionAccess = async (admin: any, questionId: number, use
     };
 };
 
-const reserveProviderRequest = async (admin: any, studentId: number, question: any) => {
-    const { data, error } = await admin.rpc("reserve_speaking_pronunciation_request", {
+const reserveProviderRequest = async (admin: any, studentId: number, question: any, audioSeconds: number, clientSessionId: string | null) => {
+    const { data, error } = await admin.rpc("reserve_speaking_pronunciation_request_v2", {
         p_student_id: studentId,
         p_question_set_id: question.questionSetId,
         p_question_id: question.questionId,
-        p_interaction_type: question.interactionType || null
-    });
-    if (error) throw error;
-    if (data?.allowed !== true || !data?.request_id) {
-        throw Object.assign(new Error("短時間練習次數較多，請休息一下再繼續"), { status: 429, code: "rate_limited" });
-    }
-    return String(data.request_id);
-};
-
-const reserveChallengeSession = async (admin: any, studentId: number, question: any, clientSessionId: string) => {
-    const { data, error } = await admin.rpc("reserve_speaking_challenge_session_v1", {
-        p_student_id: studentId,
-        p_question_set_id: question.questionSetId,
-        p_question_id: question.questionId,
+        p_interaction_type: question.interactionType || null,
+        p_audio_seconds: Math.ceil(audioSeconds),
         p_client_session_id: clientSessionId
     });
     if (error) throw error;
-    if (data?.allowed !== true) {
-        throw Object.assign(new Error("今天已完成 5 次口說大挑戰，明天再繼續冒險吧！"), {
-            status: 429,
-            code: "speaking_daily_limit_reached"
-        });
+    if (data?.allowed !== true || !data?.request_id) {
+        const messages: Record<string, string> = {
+            student_audio_budget_exhausted: "本月的語音評分時間已用完，下個月會自動恢復；仍可聽示範與自行練習。",
+            global_audio_budget_exhausted: "平台的語音評分額度暫時用完，請聯絡老師；仍可聽示範與自行練習。",
+            audio_budget_not_configured: "語音評分額度尚未設定，請聯絡老師。",
+            speaking_daily_limit_reached: "今天已開始 5 次口說大挑戰，明天再繼續冒險吧！"
+        };
+        if (messages[data?.code]) throw Object.assign(new Error(messages[data.code]), { status: 429, code: data.code });
+        throw Object.assign(new Error("短時間練習次數較多，請休息一下再繼續"), { status: 429, code: "rate_limited" });
     }
-    return data;
+    return { requestId: String(data.request_id), challengeUsage: data.challenge_usage || null };
 };
 
 const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null) => {
@@ -384,6 +325,7 @@ Deno.serve(async (req: Request) => {
             return json(400, { error: "口說挑戰回合無效，請重新進入關卡", code: "challenge_session_required" });
         }
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
+        const maxAudioSeconds = speakingRecordingSeconds(question.interactionType);
         if (challengeMode === "challenge" && ["alphabet_round", "letter_spelling"].includes(question.interactionType)) {
             return json(400, { error: "A–Z 不使用挑戰模式" });
         }
@@ -412,7 +354,7 @@ Deno.serve(async (req: Request) => {
         if (!(audio instanceof File)) return json(400, { error: "缺少錄音資料" });
         if (audio.type !== "audio/wav") return json(415, { error: "錄音格式不正確，請重新錄音" });
         if (audio.size < 1000 || audio.size > MAX_AUDIO_BYTES) {
-            return json(413, { error: "錄音太短或太長，請在 12 秒內完成朗讀" });
+            return json(413, { error: `錄音太短或太長，請在 ${maxAudioSeconds} 秒內完成朗讀`, code: "audio_duration_invalid" });
         }
 
         const audioBuffer = await audio.arrayBuffer();
@@ -420,8 +362,8 @@ Deno.serve(async (req: Request) => {
         if (!wavInfo) {
             return json(415, { error: "錄音必須是 16 kHz、單聲道的 PCM WAV，請重新錄音" });
         }
-        if (wavInfo.durationSeconds < MIN_AUDIO_SECONDS || wavInfo.durationSeconds > MAX_AUDIO_SECONDS) {
-            return json(413, { error: "錄音太短或太長，請在 12 秒內完成朗讀" });
+        if (!validSpeakingAudioDuration(wavInfo.durationSeconds, question.interactionType)) {
+            return json(413, { error: `錄音太短或太長，請在 ${maxAudioSeconds} 秒內完成朗讀`, code: "audio_duration_invalid" });
         }
         if (wavInfo.peak < 0.002 || wavInfo.rms < 0.0002) {
             return json(422, {
@@ -436,9 +378,7 @@ Deno.serve(async (req: Request) => {
         if (!speechKey || !endpoint) {
             return json(503, { error: "發音評分測試服務尚未設定", code: "service_not_configured" });
         }
-        const challengeUsage = adminDemo
-            ? null
-            : await reserveChallengeSession(admin, Number(user.id), question, challengeSessionId);
+        let challengeUsage: any = null;
         const { data: revealedHint, error: hintError } = challengeMode === "challenge" && !adminDemo
             ? await admin.from("speaking_challenge_hint_reveals").select("question_id")
                 .eq("student_id", Number(user.id)).eq("question_id", question.questionId)
@@ -474,7 +414,12 @@ Deno.serve(async (req: Request) => {
                 if (claim?.status !== "claimed" || !claim?.claim_token) return { status: "invalid" as const };
                 return { status: "claimed" as const, claimToken: String(claim.claim_token) };
             } : undefined,
-            reserve: () => reserveProviderRequest(admin, Number(user.id), question),
+            reserve: async () => {
+                const reserved = await reserveProviderRequest(admin, Number(user.id), question,
+                    wavInfo.durationSeconds, adminDemo ? null : challengeSessionId);
+                challengeUsage = reserved.challengeUsage;
+                return reserved.requestId;
+            },
             assess: async () => {
                 let providerResponse: Response;
                 const providerController = new AbortController();
@@ -588,7 +533,7 @@ Deno.serve(async (req: Request) => {
             } : undefined,
             finishRequest: (requestId, status, errorCode) => finishProviderRequest(admin, requestId, status, errorCode),
             releaseClaim: foundationRoundId
-                ? claimToken => releaseFoundationRoundClaim(admin, Number(user.id), foundationRoundId, claimToken)
+                ? claimToken => releaseFoundationRoundClaim(admin, Number(user.id), foundationRoundId!, claimToken)
                 : undefined,
             warn: message => console.warn(message)
         });

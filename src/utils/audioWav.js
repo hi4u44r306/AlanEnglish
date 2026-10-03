@@ -38,7 +38,7 @@ export const encodePcm16Wav = audioBuffer => {
     return new Blob([buffer], { type: "audio/wav" });
 };
 
-export const convertAudioBlobToWav = async (blob, sampleRate = 16000, { startSeconds = 0 } = {}) => {
+export const convertAudioBlobToWav = async (blob, sampleRate = 16000, { startSeconds = 0, maxSeconds } = {}) => {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     const OfflineAudioContextClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     if (!AudioContextClass || !OfflineAudioContextClass) {
@@ -50,7 +50,10 @@ export const convertAudioBlobToWav = async (blob, sampleRate = 16000, { startSec
         const source = await sourceContext.decodeAudioData(await blob.arrayBuffer());
         const offset = Math.min(source.duration, Math.max(0, Number(startSeconds) || 0));
         if (offset >= source.duration) throw new Error("沒有取得完整錄音，請重新錄音");
-        const frameCount = Math.max(1, Math.ceil((source.duration - offset) * sampleRate));
+        // Browser timers may fire late on phones. Bound the actual WAV, too.
+        const duration = Number.isFinite(maxSeconds) && maxSeconds > 0
+            ? Math.min(source.duration - offset, maxSeconds) : source.duration - offset;
+        const frameCount = Math.max(1, Math.ceil(duration * sampleRate));
         const offline = new OfflineAudioContextClass(1, frameCount, sampleRate);
         const node = offline.createBufferSource();
         node.buffer = source;

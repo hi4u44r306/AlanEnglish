@@ -116,7 +116,7 @@ export const loadEffectiveAccess = async (
         ) invalidAiPlanCodes.add(GENERAL_AI_ADDON_PLAN_CODE);
 
         if (invalidAiPlanCodes.size > 0) {
-            planCodes = planCodes.filter(code => !invalidAiPlanCodes.has(code));
+            planCodes = planCodes.filter((code: string) => !invalidAiPlanCodes.has(code));
             grants = grants.filter((grant: any) => !invalidAiPlanCodes.has(String(grant?.plan_code || "")));
 
             const { data: activePlans, error: activePlansError } = planCodes.length > 0

@@ -101,7 +101,7 @@ describe("AlphabetAutomaticRecorder", () => {
         await mount();
         expect(recorders[0].startedAt).toBe(0);
         await speak();
-        expect(convertAudioBlobToWav).toHaveBeenCalledWith(expect.any(Blob), 16000, { startSeconds: 0.782 });
+        expect(convertAudioBlobToWav).toHaveBeenCalledWith(expect.any(Blob), 16000, { startSeconds: 0.782, maxSeconds: 12 });
         expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(1);
         expect(callbacks.onScored).toHaveBeenCalledTimes(1);
     });
