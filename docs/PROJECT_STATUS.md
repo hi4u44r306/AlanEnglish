@@ -2,13 +2,14 @@
 
 最後更新：2026-10-03
 
-A–Z 收音修正正式發布（2026-10-03，發布驗收中）：
+A–Z 收音修正正式發布（2026-10-03，已部署；真實評分待驗）：
 
 - 使用者回報手機測試頁錄音正常，明確要求正式站測試本批。分支 `codex/alphabet-recording-retry`，最新 main 仍為 `e12a1b91`，沒有未整合 main 變更；僅發布既有 A–Z 錄音元件、WAV 裁切、重試樣式與相關測試／文件。不包含 ignored 手機測試頁、地圖或其他原工作區草稿。
 - 本機原 48 targeted tests／build 已通過；發布前新增舊容器晚到音訊／錯誤隔離防護，受影響 recorder suite 11 tests／ESLint／diff check 通過（本批共 49 個獨立 targeted tests）。正式 production build 交 Cloudflare 執行，不重跑無關全套測試。桌面／412px 合成音與手機使用者收音回聽已完成；真實 Azure 判分／學生通關／iPhone 正式結果待驗。
-- 唯讀正式評分帳本最近三天只見一筆 `provider_failed / http_401`，時間 2026-10-02 12:15:36 UTC；目前沒有恢復成功證據。未更改 Azure 訂閱／金鑰或部署後端。回復方式為 revert 本批前端 PR，資料表、題庫、原通關與獎勵契約不變。等待 PR／Cloudflare 完成後更新實際部署與線上證據。
+- 唯讀正式評分帳本最近三天只見一筆 `provider_failed / http_401`，時間 2026-10-02 12:15:36 UTC；目前沒有恢復成功證據。未更改 Azure 訂閱／金鑰或部署後端。回復方式為 revert 本批前端 PR，資料表、題庫、原通關與獎勵契約不變。
+- PR #406 合併 main `1827a6ad49eb31678ffe2a612eafd93a7df7a7b8`；Cloudflare production build `d2e12f18-87d9-4da4-bd43-73c987fffa0a` success（2026-10-03 16:51:46 台灣時間）。正式 main `main.90d67efd.js`、口說 `37.ff44d4de.chunk.js` 已確認含保留錄音／重試與前段緩衝。正式 URL HTTP 200；獨立 Edge 桌面 1440×900／412×915 未登入口說路由正確回登入、無橫向溢出／pageerror。CUA 初始化仍失敗，無法讀取原已登入瀏覽器；沒有代用帳密或學生資料，正式已登入 A–Z 画面、iPhone Safari 真實評分／通關仍交使用者驗收，不能以資產或登入頁檢查宣稱已端到端通關。原工作區與 localhost 預覽保留；證據 `output/alphabet-production-assets.json`／`alphabet-production-route-check.json`。
 
-本機修正：A–Z 收音緩衝與原地重試（2026-10-03，尚未部署）：
+本機修正歷史：A–Z 收音緩衝與原地重試（2026-10-03，後續已由 PR #406 部署）：
 
 - 乾淨副本 `output/alphabet-recording-fix-20261003`，分支 `codex/alphabet-recording-retry`，同步 main `e12a1b91`；原工作區與瀏覽器辨識測試版草稿保留。
 - 相關檔案：`AlphabetAutomaticRecorder.jsx`／測試、`audioWav.js`／測試、`TextbookSpeakingChallenge.scss`。自動收音前先建立本機緩衝；轉 WAV 時裁掉等待開頭，保留約 250ms 前段與既有尾端停頓。無聲暫存八秒重建、不送 Azure；保留原逐字母玩法與 12 秒上限。
