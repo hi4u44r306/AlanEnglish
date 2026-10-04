@@ -5,14 +5,15 @@ alter table public.speaking_pronunciation_requests
 create index speaking_pronunciation_requests_created_idx
     on public.speaking_pronunciation_requests(created_at);
 
--- Deliberately unconfigured: owner approval is required before enabling.
+-- Owner approved this release on 2026-10-04: 60 minutes/user, 50 hours/site.
 create table public.speaking_audio_budget_policy (
     id boolean primary key default true check (id),
     student_monthly_seconds integer check (student_monthly_seconds > 0),
     global_monthly_seconds integer check (global_monthly_seconds > 0),
     updated_at timestamptz not null default now()
 );
-insert into public.speaking_audio_budget_policy(id) values (true);
+insert into public.speaking_audio_budget_policy(id, student_monthly_seconds, global_monthly_seconds)
+    values (true, 3600, 180000);
 alter table public.speaking_audio_budget_policy enable row level security;
 revoke all on public.speaking_audio_budget_policy from public, anon, authenticated;
 grant select, update on public.speaking_audio_budget_policy to service_role;

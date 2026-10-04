@@ -1,15 +1,15 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-03
+最後更新：2026-10-04
 
-錄音時限與月音訊用量草稿（2026-10-03，尚未部署）：
+錄音時限與月音訊用量（2026-10-04，已核准，發布準備中）：
 
 - 分支 `codex/speaking-recording-budget`，基準最新 main `acfe8e3d`；延用既有乾淨 clone，保留原主工作區未提交修改與既有 Azure 恢復驗收紀錄。
 - 句子／問答放寬至 25 秒，A–Z／拼讀 12 秒；前端倒數、WAV 轉檔長度與後端題型時限同步。完整 PCM 標頭檢查拒絕偽造短資料長度／額外音訊；1 MiB 傳輸上限保留。
-- 新 additive migration `20261003123607_speaking_audio_monthly_budget.sql` 增加秒數帳本、server-only 設定及 v2 atomic reservation。月上限尚未填入，無正式 SQL／Secret／Azure 設定變更；個人與全站上限仍待擁有者回覆。
+- 新 additive migration `20261003123607_speaking_audio_monthly_budget.sql` 增加秒數帳本、server-only 設定及 v2 atomic reservation。擁有者已同意 PR #408 本批正式 migration／Function／前端測試發布，每人每月 3,600 秒、全站每月 180,000 秒。migration 初始化已填核准上限；Azure 方案與 Secret 未變更。
 - 本機隔離 PGlite 9 項通過，含個人／全站邊界、歷史未知長度、月份、失敗保留、每日回合與預留回復、服務角色及未授權拒絕。此單一記憶體資料庫不能代替正式 PostgREST／多連線並行驗收；正式月額度切換仍依重大改動閘門處理。
 - React 錄音／A–Z／練習流程／WAV targeted tests 44 項、Node 題型時限／WAV／送評流程／資格測試 13 項與 PGlite 9 項均通過（共 66 項）。ESLint、Node Edge 語法、Deno strict entry／新增 helpers check、production build、diff check 通過。最新 main 原有 2 項 Deno 型別錯誤已以 string 型別註記與經分支驗證的非空斷言修復，不改權限或回合行為。未跑無關全套；無新 CSS／layout，元件測試驗證倒數與用量提示，手機 Safari 真實 25 秒錄音／正式串接尚未驗收。
-- 下一步：核准每人與全站月音訊上限，取得本批正式 migration／Function 操作授權後，依政策設定 → Function → 前端順序切換並驗收 25 秒錄音、額度拒絕、學生通關與 XP／AE Points。目前正式站仍使用原 12 秒與原防重送規則。
+- 下一步：PR #408 合併最新 main，依政策設定 → Function → 前端顺序切換並驗收；25 秒真實錄音、學生通關與 XP／AE Points 另需實機驗收。目前正式站仍使用原 12 秒與原防重送規則。
 
 A–Z 收音修正正式發布（2026-10-03，已部署；真實字母評分已驗證）：
 
