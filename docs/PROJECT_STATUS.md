@@ -2,11 +2,13 @@
 
 最後更新：2026-10-04
 
-口說規則圖解（2026-10-04，尚未部署）：
+口說規則圖解（2026-10-04，已正式部署）：
 
 - 分支 `codex/speaking-rules-visual-guide`，基準 main `8770fa6d`。使用者反映文字難懂，改三步驟圖示、今日可用輪數格子、月剩餘時間條／估算段數；家長小提醒收合為四則說明，沒有新套件或點陣圖片。
 - 修改限定 `SpeakingChallengeRules` 元件／SCSS／相關測試、邏輯與手冊 v3.28；後端、額度、權限、資料庫與地圖不改。保留主工作區未提交修改。圖表含文字／ARIA 等值、未知狀態不冒充零。
 - React 5 項針對用量／未知／用完／少於 25 秒／展開操作的測試通過（50 項無關測試跳過），ESLint、SCSS 編譯與 diff 通過；實際元件 fixture 驗收 1440×900／412×915，三步驟及每日格子均完整，用量卡桌面兩欄／手機單欄，無橫向溢出。局部 UI 未跑 full suite 或本機 production build，由 Cloudflare main 建置。iPhone Safari 實機未驗收。
+- PR #414 合併 main `5798b0f9a3f2a5ae83009a192674a7ca1ce5a93b`；Cloudflare production build `9824e33b-6c0d-4739-80cb-452ab78da649` success，正式 HTTP 200、資產 `main.d3337311.js`。未部署 Function 或 migration。
+- 已登入學生正式列表顯示 5 個可用格子、約 285 段錄音、剩 118 分鐘 47 秒／120 分鐘；月條 ARIA 值 7,127 秒，原快照不變。正式 1440px／412×915 驗收兩欄／單欄、三步驟及格子完整、無橫向溢出；家長說明可點開、Enter 收合，Console 無 error。截圖保存於 `output/rules-qa/visual-guide-production-desktop.png` 與 `visual-guide-production-412.png`；未送評或消耗 Azure，iPhone Safari／真實錄音未重測。最後只澄清「同一輪重試不多扣」文案，受影響整合測試再次通過。
 
 大關卡列表規則與用量（2026-10-04，已正式部署）：
 
