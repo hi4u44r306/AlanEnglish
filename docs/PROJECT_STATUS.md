@@ -2,6 +2,13 @@
 
 最後更新：2026-10-04
 
+送評月額度提高（2026-10-04，正式套用前）：
+
+- 分支 `codex/speaking-budget-120-minutes`，基準 main `84a6f4a6`；擁有者明確核准每人 120 分鐘／全站 100 小時。新 additive migration `20261004065744_speaking_audio_budget_120_minutes.sql` 只更新 server-only policy 一筆資料，保留既有送評秒數、回合、通關及獎勵；不改 Function、前端、Azure／Secret。
+- 目前正式仍 3,600／180,000 秒，套用目標 7,200／360,000 秒；若政策已被其他批次更動則整筆交易失敗。可把政策改回原上限回復，既有用量不歸零。隔離 PGlite 11 項及 diff 檢查通過，涵蓋新月邊界、已用秒數、每日回合、失敗與權限；正式 readback 待完成。只改設定，不改型別／Function／前端，免重跑無關 full suite、lint／production build。
+- CLI 正式 dry-run 發現既有遠端歷史版本未在本機目錄，不执行整批 db push 或 repair 舊歷史；本批由 main 單獨執行已驗證的新 DML，再只對齊本批 migration 版本。
+- 120 分鐘按官方 East Asia／TWD 含韻律公開費率約 NT$82.76 未稅；每人 NT$100 留缓衝，50 人用滿約 NT$4,137.90 未稅。音訊上限不涵蓋其他服務，也不是帳單金額硬上限。原主工作區未提交修改保留。
+
 錄音時限與月音訊用量（2026-10-04，已正式部署）：
 
 - 分支 `codex/speaking-recording-budget`，基準最新 main `acfe8e3d`；延用既有乾淨 clone，保留原主工作區未提交修改與既有 Azure 恢復驗收紀錄。
