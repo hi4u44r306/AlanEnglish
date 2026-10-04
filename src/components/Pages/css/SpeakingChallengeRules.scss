@@ -1,0 +1,58 @@
+.speaking-challenge-rules__intro {
+  padding: 22px 22px 0;
+  h2 { margin: 0 0 8px; color: #17366f; font-size: 22px; font-weight: 900; }
+  p { margin: 0; color: #52657e; font-size: 15px; line-height: 1.75; }
+}
+.speaking-challenge-rules__usage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px 22px 12px;
+}
+.speaking-usage-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d5e3f6;
+  border-radius: 18px;
+  background: #fff;
+  color: #52657e;
+  &__label { display: flex; align-items: center; gap: 8px; color: #234e8c; font-size: 15px; font-weight: 800; }
+  > strong { color: #17366f; font-size: clamp(22px, 3vw, 30px); font-weight: 900; line-height: 1.25; }
+  > span:not(.speaking-usage-card__label) { font-size: 13px; line-height: 1.6; }
+  p { margin: 2px 0 0; font-size: 14px; line-height: 1.7; }
+  b { color: #17366f; }
+  &--audio { border-color: #ecd297; background: #fffdf6; }
+}
+.speaking-challenge-rules__snapshot,
+.speaking-challenge-rules__notice {
+  margin: 0 22px 10px;
+  color: #64748a;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.speaking-challenge-rules__snapshot svg { margin-right: 5px; vertical-align: -2px; }
+.speaking-challenge-rules__notice { color: #8a5200; font-size: 14px; }
+.speaking-challenge-rules__tips {
+  border-top: 1px solid #f1dfaa;
+  padding-top: 12px;
+  p { margin: 0 0 9px; color: #52657e; font-size: 14px; line-height: 1.75; }
+  b { color: #17366f; }
+}
+.speaking-challenge-rules .speaking-challenge-rules__heading strong { font-size: 17px; }
+.speaking-challenge-rules li span { font-size: 14px; line-height: 1.65; }
+@media (max-width: 760px) {
+  .speaking-challenge-rules__intro {
+    padding: 18px 14px 0;
+    h2 { font-size: 19px; }
+    p { font-size: 14px; }
+  }
+  .speaking-challenge-rules__usage { grid-template-columns: 1fr; padding: 14px; gap: 10px; }
+  .speaking-usage-card { padding: 15px; > strong { font-size: 25px; } }
+  .speaking-challenge-rules__snapshot,
+  .speaking-challenge-rules__notice { margin-inline: 14px; }
+  .speaking-challenge-rules__toggle { min-height: 60px; }
+  .speaking-challenge-rules .speaking-challenge-rules__heading strong { font-size: 15px; }
+}
