@@ -1,9 +1,20 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-03
+最後更新：2026-10-04
 
-A–Z 收音修正正式發布（2026-10-03，已部署；真實評分待驗）：
+錄音時限與月音訊用量（2026-10-04，已核准，發布準備中）：
 
+- 分支 `codex/speaking-recording-budget`，基準最新 main `acfe8e3d`；延用既有乾淨 clone，保留原主工作區未提交修改與既有 Azure 恢復驗收紀錄。
+- 句子／問答放寬至 25 秒，A–Z／拼讀 12 秒；前端倒數、WAV 轉檔長度與後端題型時限同步。完整 PCM 標頭檢查拒絕偽造短資料長度／額外音訊；1 MiB 傳輸上限保留。
+- 新 additive migration `20261003123607_speaking_audio_monthly_budget.sql` 增加秒數帳本、server-only 設定及 v2 atomic reservation。擁有者已同意 PR #408 本批正式 migration／Function／前端測試發布，每人每月 3,600 秒、全站每月 180,000 秒。migration 初始化已填核准上限；Azure 方案與 Secret 未變更。
+- 本機隔離 PGlite 9 項通過，含個人／全站邊界、歷史未知長度、月份、失敗保留、每日回合與預留回復、服務角色及未授權拒絕。此單一記憶體資料庫不能代替正式 PostgREST／多連線並行驗收；正式月額度切換仍依重大改動閘門處理。
+- React 錄音／A–Z／練習流程／WAV targeted tests 44 項、Node 題型時限／WAV／送評流程／資格測試 13 項與 PGlite 9 項均通過（共 66 項）。ESLint、Node Edge 語法、Deno strict entry／新增 helpers check、production build、diff check 通過。最新 main 原有 2 項 Deno 型別錯誤已以 string 型別註記與經分支驗證的非空斷言修復，不改權限或回合行為。未跑無關全套；無新 CSS／layout，元件測試驗證倒數與用量提示，手機 Safari 真實 25 秒錄音／正式串接尚未驗收。
+- 下一步：PR #408 合併最新 main，依政策設定 → Function → 前端顺序切換並驗收；25 秒真實錄音、學生通關與 XP／AE Points 另需實機驗收。目前正式站仍使用原 12 秒與原防重送規則。
+
+A–Z 收音修正正式發布（2026-10-03，已部署；真實字母評分已驗證）：
+
+- Azure 恢復後正式驗收（2026-10-03 20:06 台灣時間）：擁有者回報已實測；唯讀查核正式帳本於 12:06:34、12:06:41、12:06:45 UTC 的三筆 `alphabet_round` 均為 `azure / completed`，`error_code` 為空；同時間三筆正式評分結果已保存，具有效分數且 `answer_match = true`。證明本次字母送評、Azure 回傳與結果儲存恢復；尚未驗證整個 26 字母回合通關、XP／AE Points 或句子題。不改訂閱、定價層、Secret、後端或學生資料；本次僅增量記錄驗收證據，未另推送文件。
+- iPhone 正式實測（2026-10-03 17:01）：使用者畫面顯示字母 M、錄音已保留、可回聽／重試／重新錄音；唯讀帳本對應 09:01:41.903 UTC 的 `alphabet_round`，09:01:42.159 UTC 結束為 `azure / provider_failed / http_401`。證明請求已進正式後端並呼叫 Azure，但 Azure 拒絕驗證，尚未取得判分或通關。沒有改付款、金鑰或學生資料；下一步核對 Azure 訂閱／Speech 資源啟用狀態及伺服器金鑰／區域對應，恢復後再實測。CUA 先前初始化失敗、沒有 Azure CLI，可查正式帳本但無法直接核對 Azure 帳戶頁面；不以錄音正常宣稱評分已修復。
 - 使用者回報手機測試頁錄音正常，明確要求正式站測試本批。分支 `codex/alphabet-recording-retry`，最新 main 仍為 `e12a1b91`，沒有未整合 main 變更；僅發布既有 A–Z 錄音元件、WAV 裁切、重試樣式與相關測試／文件。不包含 ignored 手機測試頁、地圖或其他原工作區草稿。
 - 本機原 48 targeted tests／build 已通過；發布前新增舊容器晚到音訊／錯誤隔離防護，受影響 recorder suite 11 tests／ESLint／diff check 通過（本批共 49 個獨立 targeted tests）。正式 production build 交 Cloudflare 執行，不重跑無關全套測試。桌面／412px 合成音與手機使用者收音回聽已完成；真實 Azure 判分／學生通關／iPhone 正式結果待驗。
 - 唯讀正式評分帳本最近三天只見一筆 `provider_failed / http_401`，時間 2026-10-02 12:15:36 UTC；目前沒有恢復成功證據。未更改 Azure 訂閱／金鑰或部署後端。回復方式為 revert 本批前端 PR，資料表、題庫、原通關與獎勵契約不變。

@@ -54,6 +54,19 @@ describe("convertAudioBlobToWav waiting buffer", () => {
         await expect(convertAudioBlobToWav(blob, 16000, { startSeconds: 3 })).rejects.toThrow("沒有取得完整錄音");
         expect(close).toHaveBeenCalledTimes(2);
     });
+
+    it("手機計時延遲仍限制真正輸出的 WAV 長度，不補長短錄音", async () => {
+        window.AudioContext = class {
+            decodeAudioData = jest.fn().mockResolvedValue({ duration: 26.4 });
+            close = close;
+        };
+        const wav = await convertAudioBlobToWav({ arrayBuffer: async () => new ArrayBuffer(10) }, 16000, { maxSeconds: 25 });
+        const view = new DataView(await readBlob(wav));
+        expect(view.getUint32(40, true) / view.getUint32(28, true)).toBe(25);
+        expect(wav.size).toBeLessThan(1024 * 1024);
+        const shorter = await convertAudioBlobToWav({ arrayBuffer: async () => new ArrayBuffer(10) }, 16000, { startSeconds: 25, maxSeconds: 25 });
+        expect(shorter.size).toBeLessThan(wav.size);
+    });
 });
 
 describe("encodePcm16Wav", () => {

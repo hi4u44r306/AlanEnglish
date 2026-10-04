@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FiLoader, FiMic, FiMicOff, FiRefreshCw } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
+import { SPEAKING_BUDGET_ERROR_CODES } from "../../utils/speakingRecordingPolicy";
 
 const CALIBRATION_MS = 450;
 const NO_SPEECH_RETRY_MS = 8000;
@@ -42,6 +43,7 @@ export default function AlphabetAutomaticRecorder({
 }) {
     const [status, setStatus] = useState("preparing");
     const [error, setError] = useState("");
+    const [budgetBlocked, setBudgetBlocked] = useState(false);
     const [sessionVersion, setSessionVersion] = useState(0);
     const [attemptVersion, setAttemptVersion] = useState(0);
     const [remainingSeconds, setRemainingSeconds] = useState(MAX_UTTERANCE_MS / 1000);
@@ -176,6 +178,7 @@ export default function AlphabetAutomaticRecorder({
         retrySubmissionRef.current = null;
         submittingRef.current = false;
         setRecordedBlob(null);
+        setBudgetBlocked(false);
 
         if (paused || !question?.id || (!foundationRoundId && !allowDemoAssessment) || !analyserRef.current || !streamRef.current) return undefined;
         setError("");
@@ -205,7 +208,7 @@ export default function AlphabetAutomaticRecorder({
             setError("");
             setStatus("submitting");
             try {
-                const wav = attempt.wav || await convertAudioBlobToWav(blob, 16000, { startSeconds: attempt.startSeconds });
+                const wav = attempt.wav || await convertAudioBlobToWav(blob, 16000, { startSeconds: attempt.startSeconds, maxSeconds: 12 });
                 if (operationId !== operationRef.current) return;
                 attempt.wav = wav;
                 setRecordedBlob(wav);
@@ -223,6 +226,7 @@ export default function AlphabetAutomaticRecorder({
             } catch (cause) {
                 if (operationId !== operationRef.current) return;
                 setError(cause?.message || "評分暫時無法完成，錄音已保留，請重試評分。");
+                setBudgetBlocked(SPEAKING_BUDGET_ERROR_CODES.has(cause?.code));
                 if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) {
                     pendingAttemptRef.current = null;
                     setRecordedBlob(null);
@@ -360,8 +364,8 @@ export default function AlphabetAutomaticRecorder({
         <small>等待中的環境音不會送評；錄音只在這台裝置暫存，離開關卡時會關閉麥克風。</small>
         {status === "retry" && pendingAttemptRef.current && <div className="speaking-alphabet-auto__retry">
             {previewUrl && <audio aria-label="回聽這次字母錄音" controls src={previewUrl} />}
-            <button type="button" onClick={() => retrySubmissionRef.current?.()}><FiRefreshCw aria-hidden="true" />重試評分</button>
-            <button type="button" onClick={() => setAttemptVersion(version => version + 1)}>重新錄音</button>
+            <button type="button" disabled={budgetBlocked} onClick={() => retrySubmissionRef.current?.()}><FiRefreshCw aria-hidden="true" />重試評分</button>
+            <button type="button" disabled={budgetBlocked} onClick={() => setAttemptVersion(version => version + 1)}>重新錄音</button>
         </div>}
         {error && <p role="alert">{error}</p>}
     </section>;
