@@ -303,7 +303,11 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
         expect(nodes).toHaveLength(3);
-        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["94.65%", "46.09%", "6.88%"]);
+        const positions = nodes.map(node => Number.parseFloat(node.style.getPropertyValue("--map-y")));
+        expect(positions[0]).toBeGreaterThan(positions[1]);
+        expect(positions[1]).toBeGreaterThan(positions[2]);
+        expect(container.querySelectorAll(".speaking-continuous-road")).toHaveLength(1);
+        expect(container.querySelector(".speaking-map-chapter")).toHaveClass("is-segmented");
         expect(container.querySelectorAll(".speaking-map-biomes")).toHaveLength(0);
         expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
         expect(container.querySelectorAll(".speaking-map-book-sign")).toHaveLength(0);

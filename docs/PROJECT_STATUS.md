@@ -2,6 +2,13 @@
 
 最後更新：2026-10-04
 
+分段連續闖關地圖（2026-10-04，本機審核中，尚未部署）：
+
+- 分支 `codex/segmented-speaking-map`，由 main `9777d155` 建立；主工作區的既有未提交修改保留。本批只修改口說 Workbook 地圖元件、SVG 路徑與關卡定位、WebP 場景及對應測試／文件，未修改口說權限、題庫、評分、額度、獎勵與資料庫。
+- 地圖依關卡數延長：25／36／60／100 關採固定道路寬度與固定關卡大小，節點沿路等距；橋面取同一路徑切線，場景分段在附近才載入。起點在下、當前目標進場靠近畫面下方，頂部為工具列留空間。五張原生 1024×1536 場景轉 WebP，總大小約 879 KB，SVG 道路及文字在桌面放大可保持清晰；插畫素材不宣稱原生 4K。
+- 本機預覽 `http://127.0.0.1:3003/` 為示範進度，可切換關卡數、查看橋樑及終點，未寫入學生資料。產物位於 `output/segmented-map/`，審核截圖與生成提示詞也在該目錄。目標是待使用者檢視後再決定發布，正式站仍顯示舊地圖。
+- 相關檔案：`src/utils/segmentedSpeakingMap.js`、`src/components/Pages/SegmentedSpeakingMap.jsx`、`src/components/Pages/css/SegmentedSpeakingMap.scss`、`src/components/Pages/TextbookSpeakingChallenge.jsx`。目前 targeted 3 套／63 項與相關 ESLint 通過；正式 build、真實 iPhone Safari、登入後實際 catalog 資料及正式站尚未驗收。UI／局部路由捲動變更未執行全套與本機 production build。
+
 口說規則圖解（2026-10-04，已正式部署）：
 
 - 分支 `codex/speaking-rules-visual-guide`，基準 main `8770fa6d`。使用者反映文字難懂，改三步驟圖示、今日可用輪數格子、月剩餘時間條／估算段數；家長小提醒收合為四則說明，沒有新套件或點陣圖片。

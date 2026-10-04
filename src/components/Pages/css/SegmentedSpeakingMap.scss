@@ -1,0 +1,83 @@
+// Last in the catalog cascade: legacy single-image sizing must not shrink this world.
+:root:has(.is-segmented-world) { scroll-behavior: auto; }
+.speaking-challenge-page.is-book-open.is-segmented-world {
+  background: #254940;
+
+  .speaking-book-toolbar { width: min(560px, calc(100% - 24px)); max-width: 560px; }
+  .speaking-map-goal { width: min(550px, calc(100% - 24px)); }
+
+  .speaking-adventure-route .speaking-map-chapter.is-segmented {
+    min-height: 100dvh;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #254940;
+    box-shadow: none;
+    &::before { content: none; }
+  }
+
+  .speaking-map-chapter.is-segmented .speaking-segmented-canvas {
+    position: relative;
+    container-type: inline-size;
+    width: min(580px, 100%);
+    height: auto;
+    aspect-ratio: var(--map-aspect-ratio);
+    background: linear-gradient(#98739b 0% 21%, #dbeef6 28% 46%, #8cb65a 54% 73%, #a1c751 80% 100%);
+    overflow: clip;
+    box-shadow: 0 0 35px #172f2b;
+  }
+
+  .speaking-scene-layer, .speaking-continuous-road { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .speaking-scene-layer { z-index: 0; }
+  .speaking-continuous-road { z-index: 1; pointer-events: none; }
+  .speaking-scene-tile {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    contain: layout paint;
+    -webkit-mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent);
+    &.is-last { -webkit-mask-image: linear-gradient(transparent, #000 12%); mask-image: linear-gradient(transparent, #000 12%); }
+    img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  }
+  .speaking-scene-retry { position: absolute; right: 4%; top: 50%; min-height: 44px; border: 1px solid #b1bdc5; border-radius: 10px; background: #fff; color: #17345e; font-size: 12px; pointer-events: auto; }
+
+  .speaking-adventure-route .speaking-challenge-lesson {
+    position: absolute;
+    top: var(--map-y);
+    left: var(--map-side);
+    bottom: auto;
+    width: var(--segmented-marker-size);
+    height: var(--segmented-marker-size);
+    min-height: var(--segmented-marker-size);
+    transform: translate(-50%, -50%);
+    padding: 0;
+    gap: 0;
+    scroll-margin-top: 110px;
+    scroll-margin-bottom: 180px;
+    cursor: pointer;
+    .speaking-challenge-lesson__number {
+      width: 100%; height: 100%; min-width: 0; min-height: 0;
+      box-sizing: border-box;
+      border: 1.86cqw solid #a96f3b;
+      outline: 0;
+      border-radius: 50%;
+      background: #a1a9ad;
+      color: #17345e;
+      box-shadow: inset 0 0 0 .55cqw #efbe7b, 0 3px 0 #714723, 0 5px 8px #243c3426;
+      padding: .5cqw;
+      font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
+      font-size: 4.3cqw;
+      font-weight: 800;
+      line-height: 1.05;
+      white-space: nowrap;
+      text-shadow: none;
+      transform: none;
+    }
+    &.is-multiline-label .speaking-challenge-lesson__number { white-space: pre-line; font-size: 3.65cqw; }
+    &.is-current .speaking-challenge-lesson__number { background: #ffda4b; color: #17345e; }
+    &.is-completed .speaking-challenge-lesson__number { background: #58e347; color: #123b23; }
+    &:focus-visible { outline: 3px solid #fff; outline-offset: 5px; border-radius: 50%; }
+    &:hover .speaking-challenge-lesson__number { transform: none; filter: brightness(1.04); }
+  }
+}

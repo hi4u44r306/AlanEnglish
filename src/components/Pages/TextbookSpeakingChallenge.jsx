@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FiAward, FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
@@ -12,7 +12,8 @@ import SpeakingAdventureSession from "./SpeakingAdventureSession";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
-import { buildSpeakingAdventureRoute } from "../../utils/speakingAdventureMap";
+import { buildSegmentedSpeakingRoute } from "../../utils/segmentedSpeakingMap";
+import SegmentedSpeakingMap from "./SegmentedSpeakingMap";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import { questionPromptMode } from "../../utils/textQaPrompt";
 import { isReadAloudType, usesSinglePracticeMode } from "../../utils/speakingPracticeMode";
@@ -23,6 +24,7 @@ import "./css/ImmersiveSpeaking.scss";
 import "./css/SpeakingMapEntry.scss";
 import "./css/SpeakingAdventureSession.scss";
 import "./css/SpeakingChallengeRules.scss";
+import "./css/SegmentedSpeakingMap.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },
@@ -295,7 +297,7 @@ export default function TextbookSpeakingChallenge() {
         }
     }, [activeQuestion?.id, interactionType, questionSetId]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         // Keep every catalog, workbook, and individual challenge entry at a
         // predictable reading position. JSDOM deliberately omits scrolling.
         if (process.env.NODE_ENV !== "test") {
@@ -307,13 +309,14 @@ export default function TextbookSpeakingChallenge() {
         setSelectedLesson(null);
     }, [bookKey]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!bookKey || !catalog.length || process.env.NODE_ENV === "test") return;
         const returnedId = Number(location.state?.speakingReturn?.questionSetId);
         const node = (returnedId && document.querySelector(`[data-question-set-id="${returnedId}"]`))
             || document.querySelector(".speaking-challenge-lesson.is-next-target")
-            || document.querySelector(".speaking-challenge-lesson.is-current");
-        node?.scrollIntoView?.({ block: "center", behavior: "auto" });
+            || document.querySelector(".speaking-challenge-lesson.is-current")
+            || document.querySelector(".speaking-challenge-lesson");
+        node?.scrollIntoView?.({ block: "end", behavior: "auto" });
         if (returnedId) node?.focus?.({ preventScroll: true });
     }, [bookKey, catalog, location.state]);
 
@@ -461,8 +464,10 @@ export default function TextbookSpeakingChallenge() {
             selectedNodeRef.current = trigger;
             setSelectedLesson({ item: lesson.item, section: lesson.section });
         };
-        const mapRoute = selectedBook ? buildSpeakingAdventureRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
-        return renderScene(<main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open" : ""}`}>
+        const mapRoute = selectedBook ? buildSegmentedSpeakingRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
+        const returnedLevelIndex = mapLessons.findIndex(lesson => Number(lesson.item.id) === Number(location.state?.speakingReturn?.questionSetId));
+        const initialLevelIndex = returnedLevelIndex >= 0 ? returnedLevelIndex : Math.max(0, mapLessons.indexOf(nextTarget));
+        return renderScene(<main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open is-segmented-world" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
                 <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => requestReturn("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
                 <div className="speaking-book-toolbar__title">
@@ -483,13 +488,9 @@ export default function TextbookSpeakingChallenge() {
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`, { state: { speakingBookEntry: { bookKey: group.id, bookLabel: group.label } } })} />)}
                 {!catalogLoading && selectedBook && <section className="speaking-catalog-group speaking-adventure-route" aria-label={`${selectedBook.label} 冒險地圖`}>
-                    <section className="speaking-map-chapter is-book"><div className="speaking-map-canvas" style={{ "--map-aspect-ratio": mapRoute.aspectRatio }}>
-                        {/* <div className="speaking-map-book-sign" aria-label={`${selectedBook.label} 口說大挑戰`}>
-                            <strong>{selectedBook.label}</strong>
-                            <span>{staffPreview ? "關卡預覽" : "口說大挑戰"}</span>
-                        </div> */}
+                    <SegmentedSpeakingMap key={selectedBook.id} route={mapRoute} initialLevelIndex={initialLevelIndex}>
                         {mapLessons.map((lesson, index) => <ChallengeLesson key={lesson.item.id} item={lesson.item} section={lesson.section} staffPreview={staffPreview} current={lesson.current} nextTarget={lesson === nextTarget} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} topicNumber={lesson.topicNumber} onOpen={event => openMapLesson(lesson, event.currentTarget)} />)}
-                    </div></section>
+                    </SegmentedSpeakingMap>
                 </section>}
                 {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
