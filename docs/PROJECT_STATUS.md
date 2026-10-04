@@ -2,14 +2,18 @@
 
 最後更新：2026-10-04
 
-錄音時限與月音訊用量（2026-10-04，已核准，發布準備中）：
+錄音時限與月音訊用量（2026-10-04，已正式部署）：
 
 - 分支 `codex/speaking-recording-budget`，基準最新 main `acfe8e3d`；延用既有乾淨 clone，保留原主工作區未提交修改與既有 Azure 恢復驗收紀錄。
 - 句子／問答放寬至 25 秒，A–Z／拼讀 12 秒；前端倒數、WAV 轉檔長度與後端題型時限同步。完整 PCM 標頭檢查拒絕偽造短資料長度／額外音訊；1 MiB 傳輸上限保留。
 - 新 additive migration `20261003123607_speaking_audio_monthly_budget.sql` 增加秒數帳本、server-only 設定及 v2 atomic reservation。擁有者已同意 PR #408 本批正式 migration／Function／前端測試發布，每人每月 3,600 秒、全站每月 180,000 秒。migration 初始化已填核准上限；Azure 方案與 Secret 未變更。
 - 本機隔離 PGlite 9 項通過，含個人／全站邊界、歷史未知長度、月份、失敗保留、每日回合與預留回復、服務角色及未授權拒絕。此單一記憶體資料庫不能代替正式 PostgREST／多連線並行驗收；正式月額度切換仍依重大改動閘門處理。
 - React 錄音／A–Z／練習流程／WAV targeted tests 44 項、Node 題型時限／WAV／送評流程／資格測試 13 項與 PGlite 9 項均通過（共 66 項）。ESLint、Node Edge 語法、Deno strict entry／新增 helpers check、production build、diff check 通過。最新 main 原有 2 項 Deno 型別錯誤已以 string 型別註記與經分支驗證的非空斷言修復，不改權限或回合行為。未跑無關全套；無新 CSS／layout，元件測試驗證倒數與用量提示，手機 Safari 真實 25 秒錄音／正式串接尚未驗收。
-- 下一步：PR #408 合併最新 main，依政策設定 → Function → 前端顺序切換並驗收；25 秒真實錄音、學生通關與 XP／AE Points 另需實機驗收。目前正式站仍使用原 12 秒與原防重送規則。
+- PR #408 合併 main `4f89aea6`；正式 migration `20261003123607` 已套用，MCP 自動歷史版本已在確認 SQL／RPC 實際存在後以 CLI repair 對齊儲存庫，未重複執行 SQL。正式 policy 3,600／180,000 秒及 RLS／anon、authenticated 拒絕、service_role 執行權已核對。
+- `pronunciation-coach` v30 ACTIVE，Firebase 驗證保留；Cloudflare 唯一 production build `0f47c592-8149-4c62-979d-09d9de0fb393` success，正式載入 `main.81bfc176.js`。原主工作区修改未碰觸。
+- 正式 SQL 在 transaction 中驗證 25 秒預留、個人／全站用量拒絕、拒絕不新增紀錄後全部 ROLLBACK；正式當月送評仍為原 5 筆、政策恢復 3,600／180,000。沒有呼叫 Azure 或改學生通關資料。安全 advisor 本表僅 INFO `rls_enabled_no_policy`，為 server-only 明確拒絕前端的預期設計。
+- Chrome 已登入學生正式列表、Workbook 1 地圖／摘要／簡單模式載入流程及新版 12／25 秒規則驗證。P.11 第一題正式錄音前畫面顯示「每次最長 25 秒」，無 Console error。桌面無橫向溢出；Chrome viewport override 未套用到指定頁，未以此宣稱 412px 驗收。iPhone Safari 真實 25 秒錄音、完整通關與 XP／AE Points 尚待實機驗收；沒有代替使用者開啟麥克風。
+- 擁有者在付費套用前另確認 S0 按量付費；Azure `alanenglish-speech-test` 已由 F0 切換 S0，概觀定價層顯示標準／作用中。未讀取或更換 Secret，未設定金額預算；入口頁未顯示單價，官方費率 API 429，帳單費率未確認。證據 `output/azure-s0-active-20261004.jpg`。下一步：使用者真實錄音後查核新秒數帳本與 Azure 結果，並確認帳戶費率後另設定金額預算。
 
 A–Z 收音修正正式發布（2026-10-03，已部署；真實字母評分已驗證）：
 
