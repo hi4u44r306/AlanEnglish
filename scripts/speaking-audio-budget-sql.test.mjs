@@ -19,13 +19,42 @@ before(async () => {
         insert into public.speaking_questions values (100,10),(101,11);
         grant select on public.students, public.speaking_question_sets, public.speaking_questions to service_role;
     `);
-    for (const name of ["20260913013037_speaking_pronunciation_request_ledger.sql", "20260918063338_speaking_challenge_daily_sessions.sql", "20261003123607_speaking_audio_monthly_budget.sql"])
+    for (const name of ["20260913013037_speaking_pronunciation_request_ledger.sql", "20260918063338_speaking_challenge_daily_sessions.sql", "20261003123607_speaking_audio_monthly_budget.sql", "20261004065744_speaking_audio_budget_120_minutes.sql"])
         await db.exec(readFileSync(new URL("../supabase/migrations/" + name, import.meta.url), "utf8"));
+    const policy = await scalar("select student_monthly_seconds,global_monthly_seconds from public.speaking_audio_budget_policy");
+    assert.deepEqual(policy, { student_monthly_seconds: 7200, global_monthly_seconds: 360000 });
 });
 beforeEach(async () => {
-    await db.exec("delete from public.speaking_pronunciation_requests; delete from public.speaking_challenge_sessions; update public.speaking_audio_budget_policy set student_monthly_seconds=3600,global_monthly_seconds=180000;");
+    await db.exec("delete from public.speaking_pronunciation_requests; delete from public.speaking_challenge_sessions; update public.speaking_audio_budget_policy set student_monthly_seconds=7200,global_monthly_seconds=360000;");
 });
 after(() => db.close());
+
+test("120 分鐘政策保留已用秒數；超過舊 60 分鐘仍可送評，120 分鐘整筆拒絕", async () => {
+    await db.exec(`
+        insert into public.speaking_pronunciation_requests(student_id,question_set_id,question_id,audio_seconds,created_at)
+        select 1,10,100,25,now() - interval '11 minutes' from generate_series(1,144);
+    `);
+    const allowed = await reserve(1, 25);
+    assert.equal(allowed.allowed, true);
+    assert.equal(allowed.student_monthly_remaining_seconds, 3575);
+    await db.exec(`
+        insert into public.speaking_pronunciation_requests(student_id,question_set_id,question_id,audio_seconds,created_at)
+        select 1,10,100,25,now() - interval '11 minutes' from generate_series(1,142);
+    `);
+    assert.equal((await reserve(1, 25)).student_monthly_remaining_seconds, 0);
+    assert.equal((await reserve(1, 1)).code, "student_audio_budget_exhausted");
+    assert.equal((await scalar("select sum(audio_seconds)::int n from public.speaking_pronunciation_requests")).n, 7200);
+});
+
+test("100 小時全站政策於邊界拒絕且不新增送評", async () => {
+    await db.exec(`
+        insert into public.speaking_pronunciation_requests(student_id,question_set_id,question_id,audio_seconds,created_at)
+        select 2,10,100,25,now() - interval '11 minutes' from generate_series(1,14399);
+    `);
+    assert.equal((await reserve(1, 25)).allowed, true);
+    assert.equal((await reserve(1, 1)).code, "global_audio_budget_exhausted");
+    assert.equal((await scalar("select sum(audio_seconds)::int n from public.speaking_pronunciation_requests")).n, 360000);
+});
 test("沒有額度設定時拒絕，且不建立送評／每日回合紀錄", async () => {
     await db.exec("update public.speaking_audio_budget_policy set student_monthly_seconds=null;");
     assert.equal((await reserve()).code, "audio_budget_not_configured");
