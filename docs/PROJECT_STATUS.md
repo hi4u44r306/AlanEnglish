@@ -2,12 +2,14 @@
 
 最後更新：2026-10-04
 
-大關卡列表規則與用量（2026-10-04，進行中／尚未部署）：
+大關卡列表規則與用量（2026-10-04，已正式部署）：
 
 - 分支 `codex/speaking-rules-and-usage`，基準 main `d333c5d6`，延用乾淨 clone 並保留主工作區未提交修改。列表常駐用途、每日剩餘輪數、月剩餘送評時間與 25 秒段數估算；展開五步驟規則與重試／提示／用量恢復說明。老師／管理員預覽不顯示配額卡。
 - `speaking-challenge` catalog 只新增目前已驗證學生的月用量唯讀快照；既有權限、送評／扣秒數 RPC、獎勵與錄音時限不改，沒有 migration。新增 helper 分頁／台北月份／歷史保守估算，失敗不冒充零使用；前端重載清除旧快照。
 - 使用手冊 v3.27 增加固定頁面命名表及範例，素材 S-23-A／B 待製作。React 55 項、Node 用量／權限 17 項、ESLint、Deno strict entry check、SCSS 編譯與 diff 通過。既有 `Set<unknown>` 推斷補上 `Set<number>` 型別，不改判定行為。遠端 Function v48 與 main 唯一既有差異為共享 helper 的 string 型別註記，沒有權限行為差异。
 - 本機真實規則元件使用預覽 fixture 驗收 1440×900／412×915，確認兩欄／單欄用量卡、規則展開收合及無橫向溢出；照片 `output/rules-qa/mobile-412.png` 為 fixture，非正式用量。正式發布後核對實際學生月用量。改動範圍局部，未跑無關 full suite；production build 由 Cloudflare main 唯一建置執行，免重跑本機同份 build。iPhone Safari 實機與真實錄音未驗收。
+- PR #412 合併 main `73e452b4`；只部署 `speaking-challenge` v49 ACTIVE，原 `verify_jwt=false`／Function 內 Firebase 身分驗證保留，沒有 migration／正式資料異動。Cloudflare production build `074caf04-5045-4f50-9d48-49dfc432e751` success，正式網址 HTTP 200、資產 `main.2dc0fa8a.js`。
+- 已登入學生正式列表顯示今日剩 5 輪、月剩 118 分鐘 47 秒、25 秒估算 285 段，与後端正式 7,200 秒上限及既有 73 秒相符；月請求仍 5 筆／73 秒，未呼叫 Azure。規則展開及 Enter 收合通過，1920px 無橫向溢出、Console 無 error。正式 viewport override 未套用，不能宣稱正式 412px；412px 已在本機實際元件驗收，iPhone Safari 仍待實機。正式截图 `output/rules-qa/production-rules.png`。
 
 送評月額度提高（2026-10-04，正式政策已啟用）：
 
