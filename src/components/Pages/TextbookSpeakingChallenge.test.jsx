@@ -565,26 +565,26 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        const rulesToggle = await screen.findByRole("button", { name: /遊戲規則.*查看規則/ });
+        const rulesToggle = await screen.findByRole("button", { name: /怎麼玩.*查看規則/ });
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
-        expect(await screen.findByText("每天最多 5 次 · 今天剩 3 次")).toBeInTheDocument();
-        expect(screen.queryByText("送出才計次")).not.toBeInTheDocument();
+        expect(await screen.findByText("3 輪")).toBeInTheDocument();
+        expect(screen.queryByText("送出錄音，看回饋")).not.toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByText("每天 5 次")).toBeInTheDocument();
-        expect(screen.getByText("送出才計次")).toBeInTheDocument();
-        expect(screen.getByText("重錄不多扣")).toBeInTheDocument();
-        expect(screen.getByText("每次 12 秒")).toBeInTheDocument();
-        expect(screen.getByText(/通關會顯示打勾並開啟下一關/)).toBeInTheDocument();
+        expect(screen.getByText("選一本，挑一關")).toBeInTheDocument();
+        expect(screen.getByText("送出錄音，看回饋")).toBeInTheDocument();
+        expect(screen.getByText(/同一輪重錄、重試或換到下一題不多扣輪數/)).toBeInTheDocument();
+        expect(screen.getByText(/字母／拼讀最多 12 秒/)).toBeInTheDocument();
+        expect(screen.getByText(/練習／簡單通關解鎖下一頁/)).toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByText("送出才計次")).not.toBeInTheDocument();
+        expect(screen.queryByText("送出錄音，看回饋")).not.toBeInTheDocument();
         unmount();
 
         mockRole = "teacher";
         render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         expect(await screen.findByText("選擇 Workbook 預覽已發布關卡。")).toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: /遊戲規則/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /怎麼玩.*查看規則/ })).not.toBeInTheDocument();
     });
 
     it("管理員在學生版型中可逐題預覽，但不會寫入學生進度", async () => {

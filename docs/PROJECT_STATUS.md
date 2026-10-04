@@ -2,6 +2,13 @@
 
 最後更新：2026-10-04
 
+大關卡列表規則與用量（2026-10-04，進行中／尚未部署）：
+
+- 分支 `codex/speaking-rules-and-usage`，基準 main `d333c5d6`，延用乾淨 clone 並保留主工作區未提交修改。列表常駐用途、每日剩餘輪數、月剩餘送評時間與 25 秒段數估算；展開五步驟規則與重試／提示／用量恢復說明。老師／管理員預覽不顯示配額卡。
+- `speaking-challenge` catalog 只新增目前已驗證學生的月用量唯讀快照；既有權限、送評／扣秒數 RPC、獎勵與錄音時限不改，沒有 migration。新增 helper 分頁／台北月份／歷史保守估算，失敗不冒充零使用；前端重載清除旧快照。
+- 使用手冊 v3.27 增加固定頁面命名表及範例，素材 S-23-A／B 待製作。React 55 項、Node 用量／權限 17 項、ESLint、Deno strict entry check、SCSS 編譯與 diff 通過。既有 `Set<unknown>` 推斷補上 `Set<number>` 型別，不改判定行為。遠端 Function v48 與 main 唯一既有差異為共享 helper 的 string 型別註記，沒有權限行為差异。
+- 本機真實規則元件使用預覽 fixture 驗收 1440×900／412×915，確認兩欄／單欄用量卡、規則展開收合及無橫向溢出；照片 `output/rules-qa/mobile-412.png` 為 fixture，非正式用量。正式發布後核對實際學生月用量。改動範圍局部，未跑無關 full suite；production build 由 Cloudflare main 唯一建置執行，免重跑本機同份 build。iPhone Safari 實機與真實錄音未驗收。
+
 送評月額度提高（2026-10-04，正式政策已啟用）：
 
 - 分支 `codex/speaking-budget-120-minutes`，基準 main `84a6f4a6`；擁有者明確核准每人 120 分鐘／全站 100 小時。新 additive migration `20261004065744_speaking_audio_budget_120_minutes.sql` 只更新 server-only policy 一筆資料，保留既有送評秒數、回合、通關及獎勵；不改 Function、前端、Azure／Secret。

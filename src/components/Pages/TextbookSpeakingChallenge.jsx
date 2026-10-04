@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
+import { FiAward, FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
+import SpeakingChallengeRules from "./SpeakingChallengeRules";
 import { ChallengePreviewDialog, SpeakingMapGoal, speakingLessonTopic } from "./SpeakingMapEntry";
 import SpeakingAdventureSession from "./SpeakingAdventureSession";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
@@ -21,6 +22,7 @@ import "./css/SpeakingAdventureRoute.scss";
 import "./css/ImmersiveSpeaking.scss";
 import "./css/SpeakingMapEntry.scss";
 import "./css/SpeakingAdventureSession.scss";
+import "./css/SpeakingChallengeRules.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },
@@ -131,36 +133,6 @@ const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, nextTar
     return <button data-question-set-id={item.id} aria-current={nextTarget ? "step" : undefined} className={`speaking-challenge-lesson is-${section} is-${mapNode.zone} ${multilineLabel ? "is-multiline-label" : ""} ${special ? "is-special" : ""} ${locked ? "is-locked" : ""} ${completed ? "is-completed" : ""} ${current ? "is-current" : ""} ${nextTarget ? "is-next-target" : ""}`} style={{ "--map-y": `${mapNode.y}%`, "--map-side": `${mapNode.x}%`, "--map-mobile-side": `${mapNode.xMobile}%` }} type="button" onClick={onOpen} aria-label={`${levelLabel}，${challengeLabel}，${locked ? "尚未解鎖" : completed ? "已通關" : "可挑戰"}${nextTarget ? "，下一個目標" : ""}`}>
         <span className="speaking-challenge-lesson__number" aria-hidden="true">{visualLabel}</span>
     </button>;
-};
-
-const ChallengeRules = ({ policy }) => {
-    const [expanded, setExpanded] = useState(false);
-    const dailyRemaining = Number(policy?.daily_remaining);
-    const hasUsage = Number.isFinite(dailyRemaining);
-    return <section className={`speaking-challenge-rules ${expanded ? "is-expanded" : ""}`} aria-labelledby="speaking-challenge-rules-title">
-        <button type="button" className="speaking-challenge-rules__toggle" aria-expanded={expanded} aria-controls="speaking-challenge-rules-content" onClick={() => setExpanded(current => !current)}>
-            <span className="speaking-challenge-rules__icon" aria-hidden="true">?</span>
-            <span className="speaking-challenge-rules__heading">
-                <small>HOW TO PLAY</small>
-                <strong id="speaking-challenge-rules-title">遊戲規則</strong>
-                <span className="speaking-challenge-rules__quota">每天最多 5 次{hasUsage ? ` · 今天剩 ${dailyRemaining} 次` : ""}</span>
-            </span>
-            <span className="speaking-challenge-rules__action">{expanded ? "收起規則" : "查看規則"}<FiChevronDown aria-hidden="true" /></span>
-        </button>
-        {expanded && <div id="speaking-challenge-rules-content" className="speaking-challenge-rules__content">
-            <ol>
-                <li><b>每天 5 次</b><span>每天最多開始 5 輪正式挑戰，於台北時間午夜重置。</span></li>
-                <li><b>送出才計次</b><span>只進入關卡、還沒正式送出第一段錄音就離開，不會扣次數。</span></li>
-                <li><b>重錄不多扣輪數</b><span>同一輪裡重新錄音、重試題目或繼續下一題，都只算每天額度中的同一輪。</span></li>
-                <li><b>慢慢說也有時間</b><span>字母與拼讀最長 12 秒，句子與問答最長 25 秒；說完就能停止，不必等倒數結束。</span></li>
-                <li><b>回聽安心練習</b><span>錄音與回聽不占送評時間；送出與重試評分會按音檔實際長度計入月用量，不是一律計滿 25 秒。</span></li>
-                <li><b>依序闖關</b><span>先完成入門準備，課本關卡會照順序開放。</span></li>
-                <li><b>依題型練習</b><span>照念類只有一種練習，需要時可聽示範；問答類可選簡單或挑戰，成就分開記錄。練習或簡單通關後解鎖下一頁。</span></li>
-                <li><b>挑戰提示</b><span>看過提示的題目本輪不計通關，結束後只要重試未通過的題目。</span></li>
-            </ol>
-            <p><FiCheck aria-hidden="true" /> 通關會顯示打勾並開啟下一關；主題練習可以自由選擇。</p>
-        </div>}
-    </section>;
 };
 
 export default function TextbookSpeakingChallenge() {
@@ -402,6 +374,7 @@ export default function TextbookSpeakingChallenge() {
                 }
                 else {
                     setCatalogLoading(true);
+                    setChallengePolicy(null);
                     const catalogResponse = await getSpeakingChallengeCatalog(firebaseUser);
                     const nextCatalog = catalogResponse.challenges || [];
                     if (!cancelled && !leavingRef.current) {
@@ -502,10 +475,10 @@ export default function TextbookSpeakingChallenge() {
                 <span className="speaking-challenge-hero__copy">
                     <span>{staffPreview ? "STAFF PREVIEW" : "SPEAKING ADVENTURE"}</span>
                     <h1>口說大挑戰</h1>
-                    <p>{staffPreview ? "選擇 Workbook 預覽已發布關卡。" : "選一本 Workbook，沿著地圖開始冒險。"}</p>
+                    <p>{staffPreview ? "選擇 Workbook 預覽已發布關卡。" : "把課本裡的英文說出來，練習發音與完整回答。"}</p>
                 </span>
             </header>}
-            {!staffPreview && !selectedBook && <ChallengeRules policy={challengePolicy} />}
+            {!staffPreview && !selectedBook && <SpeakingChallengeRules policy={challengePolicy} loading={catalogLoading} />}
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`, { state: { speakingBookEntry: { bookKey: group.id, bookLabel: group.label } } })} />)}

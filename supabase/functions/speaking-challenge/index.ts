@@ -11,6 +11,7 @@ import {
 } from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
 import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
+import { loadSpeakingAudioUsage } from "../_shared/speaking-audio-usage.ts";
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
     ALPHABET_SEQUENCE_GAP_MS,
@@ -97,7 +98,7 @@ const challengeProgress = async (admin: any, studentId: number, sets: any[]) => 
     const { data, error } = await admin.from("speaking_challenge_question_progress")
         .select("question_id,status").eq("student_id", studentId).in("question_id", questionIds);
     if (error) throw error;
-    return new Set((data || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
+    return new Set<number>((data || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
 };
 
 const challengeModeProgress = async (admin: any, studentId: number, questionIds: number[]) => {
@@ -180,7 +181,11 @@ Deno.serve(async (req: Request) => {
                     || Number(stateBySet.get(Number(left.id))?.source_pages?.at(-1) || 0) - Number(stateBySet.get(Number(right.id))?.source_pages?.at(-1) || 0)
                     || Number(left.id) - Number(right.id);
             });
-            const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);
+            const [dailyPolicy, audioBudget] = await Promise.all([
+                speakingChallengePolicy(admin, Number(user.id), demoMode),
+                demoMode ? Promise.resolve(null) : loadSpeakingAudioUsage(admin, Number(user.id))
+            ]);
+            const challengePolicy = { ...dailyPolicy, audio_budget: audioBudget };
             return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenge_policy: challengePolicy, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
