@@ -565,26 +565,27 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         const { unmount } = render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        const rulesToggle = await screen.findByRole("button", { name: /怎麼玩.*查看規則/ });
+        const rulesToggle = await screen.findByRole("button", { name: /家長小提醒.*查看說明/ });
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
         expect(await screen.findByText("3 輪")).toBeInTheDocument();
-        expect(screen.queryByText("送出錄音，看回饋")).not.toBeInTheDocument();
+        expect(screen.getByLabelText("口說挑戰三步驟")).toBeInTheDocument();
+        expect(screen.queryByText("輪數怎麼算？")).not.toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "true");
-        expect(screen.getByText("選一本，挑一關")).toBeInTheDocument();
-        expect(screen.getByText("送出錄音，看回饋")).toBeInTheDocument();
-        expect(screen.getByText(/同一輪重錄、重試或換到下一題不多扣輪數/)).toBeInTheDocument();
+        expect(screen.getByText("輪數怎麼算？")).toBeInTheDocument();
+        expect(screen.getByText("送評怎麼算？")).toBeInTheDocument();
+        expect(screen.getByText(/第一次送評才扣一輪.*同一輪重試不多扣/)).toBeInTheDocument();
         expect(screen.getByText(/字母／拼讀最多 12 秒/)).toBeInTheDocument();
         expect(screen.getByText(/練習／簡單通關解鎖下一頁/)).toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
-        expect(screen.queryByText("送出錄音，看回饋")).not.toBeInTheDocument();
+        expect(screen.queryByText("輪數怎麼算？")).not.toBeInTheDocument();
         unmount();
 
         mockRole = "teacher";
         render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes><Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         expect(await screen.findByText("選擇 Workbook 預覽已發布關卡。")).toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: /怎麼玩.*查看規則/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /家長小提醒.*查看說明/ })).not.toBeInTheDocument();
     });
 
     it("管理員在學生版型中可逐題預覽，但不會寫入學生進度", async () => {
