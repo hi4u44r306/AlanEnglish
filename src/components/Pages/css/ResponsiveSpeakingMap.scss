@@ -1,0 +1,40 @@
+.speaking-challenge-page.is-book-open.is-segmented-world .responsive-speaking-map {
+  position: relative;
+  isolation: isolate;
+  width: min(1600px, 100%);
+  margin: 0 auto;
+  overflow: clip;
+  background:
+    radial-gradient(ellipse at center, #d5ec8188, transparent 65%) 0 0 / 700px 850px,
+    radial-gradient(ellipse at center, #8fc34455, transparent 65%) 350px 400px / 800px 1100px,
+    #b4da67;
+  .responsive-map-road { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .responsive-map-scenery { position: absolute; pointer-events: none; img { width: 100%; height: 100%; object-fit: contain; } }
+  .responsive-map-level {
+    position: absolute;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: var(--responsive-marker);
+    height: var(--responsive-marker);
+    min-height: 44px;
+    padding: 0;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid #925b2e;
+    background: repeating-linear-gradient(11deg, #bd8043 0 6px, #d69a54 7px 11px, #b7783b 12px 13px, #cf914c 14px 19px);
+    box-shadow: inset 0 1px 0 #ffe5b6, 0 2px 0 #764821, 0 4px 5px #455c3833;
+    cursor: pointer;
+    scroll-margin: 110px 0 170px;
+    span {
+      display: grid; place-items: center;
+      width: 80%; height: 80%; border-radius: 50%;
+      background: #a9b3b9; border: 2px solid #f6cc88; outline: 1px solid #704221;
+      font: 900 22px/1.05 "Nunito", "Arial Rounded MT Bold", system-ui, sans-serif;
+      color: #183450; white-space: pre-line;
+    }
+    &.is-current span { background: #ffdc4d; }
+    &.is-completed span { background: #70df42; }
+    &:focus-visible { outline: 3px solid #17345e; outline-offset: 5px; }
+  }
+}
