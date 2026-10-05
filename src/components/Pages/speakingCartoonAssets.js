@@ -10,12 +10,12 @@ import tile8 from "../assets/speaking-map/cartoon-sky-a-v1.webp";
 import tile9 from "../assets/speaking-map/cartoon-sky-b-v1.webp";
 import tile10 from "../assets/speaking-map/cartoon-magic-a-v1.webp";
 import tile11 from "../assets/speaking-map/cartoon-magic-b-v1.webp";
-import forestSides from "../assets/speaking-map/cartoon-forest-sides-v1.webp";
-import islandSides from "../assets/speaking-map/cartoon-island-sides-v1.webp";
-import candySides from "../assets/speaking-map/cartoon-candy-sides-v1.webp";
-import snowSides from "../assets/speaking-map/cartoon-snow-sides-v1.webp";
-import skySides from "../assets/speaking-map/cartoon-sky-sides-v1.webp";
-import magicSides from "../assets/speaking-map/cartoon-magic-sides-v1.webp";
+import forestSides from "../assets/speaking-map/cartoon-forest-sides-v2.webp";
+import islandSides from "../assets/speaking-map/cartoon-island-sides-v2.webp";
+import candySides from "../assets/speaking-map/cartoon-candy-sides-v2.webp";
+import snowSides from "../assets/speaking-map/cartoon-snow-sides-v2.webp";
+import skySides from "../assets/speaking-map/cartoon-sky-sides-v2.webp";
+import magicSides from "../assets/speaking-map/cartoon-magic-sides-v2.webp";
 
 export const CARTOON_SIDE_ASSETS = {
     forest: forestSides,
