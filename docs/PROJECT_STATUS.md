@@ -2,6 +2,12 @@
 
 最後更新：2026-10-05
 
+Workbook 4 動物修正（2026-10-05，本機完成，未部署）：
+
+- 基準 `fdc02ed6`；將 snow A 的企鵝替換為北極狐，snow B 北極熊保留。新 `cartoon-snow-a-v2.webp` 原生887×1774、154,112 bytes；registry 改用新版，來源與完整提示詞記錄於 `ARCTIC-ANIMALS-V2.md`。
+- 既有SVG／四個錨點座標不變；圓牌外圈含1單位留白512點、中心線201點的路面色取樣全數通過。412／1440px本機實際畫面已載入新版，無溢出／破圖／pageerror；截圖 `arctic-v2-*.png`。SCSS／preview bundle與diff check通過，純素材修改不跑全套或production build；iPhone Safari實機未驗。
+- 使用者詢問道路隨螢幕寬改變；已提出插畫／SVG／關卡共同等比例縮放、加上螢幕高度與3～5關視野限制的方向，本批尚未更改中央寬度，未推送／部署。
+
 中央闖關與左右延伸造景（2026-10-05，本機完成，未部署）：
 
 - 基準 `277cff65`，同一 `codex/segmented-speaking-map` clone；修改 `SegmentedSpeakingMap.jsx`／SCSS、素材 registry 與元件測試，新增六冊側景 WebP 與來源提示詞 `SIDE-SCENERY-V1.md`。中央道路／SVG／關卡座標完全沿用，桌面中央500px、圓牌80px；700px以上加入1500px寬側景，較窄平板裁切兩侧、超寬螢幕外側淡入主題底色。

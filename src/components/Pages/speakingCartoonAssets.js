@@ -4,7 +4,7 @@ import tile2 from "../assets/speaking-map/cartoon-island-a-v1.webp";
 import tile3 from "../assets/speaking-map/cartoon-island-b-v1.webp";
 import tile4 from "../assets/speaking-map/cartoon-candy-a-v1.webp";
 import tile5 from "../assets/speaking-map/cartoon-candy-b-v1.webp";
-import tile6 from "../assets/speaking-map/cartoon-snow-a-v1.webp";
+import tile6 from "../assets/speaking-map/cartoon-snow-a-v2.webp";
 import tile7 from "../assets/speaking-map/cartoon-snow-b-v1.webp";
 import tile8 from "../assets/speaking-map/cartoon-sky-a-v1.webp";
 import tile9 from "../assets/speaking-map/cartoon-sky-b-v1.webp";
