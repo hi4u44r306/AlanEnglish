@@ -2,14 +2,13 @@ import { buildSpeakingMapPilot } from "./speakingMapPilot";
 
 const lessons = Array.from({ length: 8 }, (_, i) => ({ id: "source-" + i }));
 describe("eight-level art pilot", () => {
-    test("each horizontal row holds two levels in alternating travel order", () => {
+    test("levels ascend in source order with usable separation and no repeated rows", () => {
         const route = buildSpeakingMapPilot(lessons);
         expect(route.nodes.map(n => n.id)).toEqual(lessons.map(l => l.id));
-        for (let row = 0; row < 4; row++) {
-            const [a, b] = route.nodes.filter(n => n.row === row);
-            expect(a.worldY).toBeCloseTo(b.worldY, 8);
-            expect(Math.abs(a.worldX - b.worldX)).toBeGreaterThan(route.markerDiameter * 2);
-            expect(row % 2 === 0 ? b.worldX > a.worldX : b.worldX < a.worldX).toBe(true);
+        for (let i = 1; i < route.nodes.length; i++) {
+            const [a, b] = [route.nodes[i - 1], route.nodes[i]];
+            expect(b.worldY).toBeLessThan(a.worldY);
+            expect(Math.hypot(a.worldX - b.worldX, a.worldY - b.worldY)).toBeGreaterThan(route.markerDiameter * 1.5);
             expect(b.distance).toBeGreaterThan(a.distance);
         }
     });
@@ -20,12 +19,19 @@ describe("eight-level art pilot", () => {
         points.forEach(([x, y]) => {
             expect(x - route.roadWidth / 2).toBeGreaterThan(0);
             expect(x + route.roadWidth / 2).toBeLessThan(route.width);
-            expect(y).toBeGreaterThan(200);
-            expect(y).toBeLessThan(route.height - 200);
+            expect(y - route.roadWidth / 2).toBeGreaterThan(100);
+            expect(y + route.roadWidth / 2).toBeLessThan(route.height);
         });
         route.nodes.forEach(node => {
             expect(Math.min(...points.map(([x, y]) => Math.hypot(x - node.worldX, y - node.worldY)))).toBeLessThan(.001);
         });
+    });
+    test("bridge replaces the earth road and has no level on its deck or approaches", () => {
+        const route = buildSpeakingMapPilot(lessons);
+        expect(route.roadPath.match(/M/g)).toHaveLength(2);
+        const earthPoints = route.roadPath.split(" ").map(command => command.slice(1).split(",").map(Number));
+        expect(earthPoints.some(([, y]) => y > 450 && y < 600)).toBe(false);
+        route.nodes.forEach(n => expect(n.distance <= route.bridge.start - 70 || n.distance >= route.bridge.end + 70).toBe(true));
     });
     test("two distinct landmarks overlap across a continuous scene boundary", () => {
         const { scenes, height } = buildSpeakingMapPilot(lessons);

@@ -4,8 +4,8 @@ import meadow from "../assets/speaking-map/serpentine-meadow-v3.webp";
 import forest from "../assets/speaking-map/serpentine-forest-v3.webp";
 import snow from "../assets/speaking-map/serpentine-snow-v3.webp";
 import volcano from "../assets/speaking-map/serpentine-volcano-v3.webp";
-import pilotMeadow from "../assets/speaking-map/pilot-meadow-v4.webp";
-import pilotForest from "../assets/speaking-map/pilot-forest-v4.webp";
+import pilotMeadow from "../assets/speaking-map/pilot-meadow-v5.webp";
+import pilotForest from "../assets/speaking-map/pilot-forest-v5.webp";
 
 const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest };
 
@@ -25,15 +25,35 @@ function SceneTile({ scene, route, eager }) {
     }, [nearby]);
     return <div ref={container} className={`speaking-scene-tile is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
         data-scene-index={scene.index} style={{ "--scene-overlap": `${(scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%` }}>
-        {nearby && !failed && <img key={attempt} src={SCENES[scene.asset]} alt="" width={route.isPilot ? 941 : 887} height={route.isPilot ? 1672 : 1774} decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
+        {nearby && !failed && <img key={attempt} src={SCENES[scene.asset]} alt="" width="887" height="1774" decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
         {failed && <button className="speaking-scene-retry" type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>重試載入場景</button>}
     </div>;
+}
+
+function PilotBridge({ bridge, width }) {
+    const dx = bridge.to.x - bridge.from.x, dy = bridge.to.y - bridge.from.y;
+    const length = Math.hypot(dx, dy), angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const boards = Math.ceil(length / 14);
+    return <g className="speaking-map-pilot-bridge" transform={`translate(${bridge.from.x} ${bridge.from.y}) rotate(${angle})`}>
+        <rect x="-3" y={-width / 2 + 5} width={length + 6} height={width} rx="4" fill="#183e38" opacity=".2" />
+        <rect x="-2" y={-width / 2} width={length + 4} height={width} rx="3" fill="#7e502e" />
+        {Array.from({ length: boards }, (_, i) => <g key={i}>
+            <rect x={i * length / boards} y={-width / 2 + 3} width={length / boards - 1.5} height={width - 6} rx="1.5" fill={i % 3 === 0 ? "#d5a063" : "#e1b174"} />
+            <path d={`M${i * length / boards + 5},${-width / 2 + 14}v${width - 28}`} stroke="#9e6b3e" opacity=".3" strokeWidth="1" />
+        </g>)}
+        {[-1, 1].map(side => <g key={side}>
+            <path d={`M0,${side * (width / 2 - 3)}H${length}`} fill="none" stroke="#7f512d" strokeWidth="8" strokeLinecap="round" />
+            <path d={`M0,${side * (width / 2 - 3) - 2}H${length}`} fill="none" stroke="#efc88d" strokeWidth="3" strokeLinecap="round" />
+            {[0, .5, 1].map(t => <rect key={t} x={t * length - 5} y={side * (width / 2 - 3) - 7} width="10" height="14" rx="2" fill="#986038" stroke="#f2c68d" strokeWidth="1.5" />)}
+        </g>)}
+    </g>;
 }
 
 export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, children }) {
     const id = useId().replace(/:/g, "");
     const initialY = route.nodes[initialLevelIndex]?.worldY ?? route.height;
     const start = route.nodes[0];
+    const roadPath = route.roadPath ?? route.path;
     return <section className={`speaking-map-chapter is-book is-segmented${route.isPilot ? " is-refined-pilot" : ""}`}>
         <div className="speaking-map-canvas speaking-segmented-canvas" style={{ "--map-aspect-ratio": route.aspectRatio,
             "--segmented-marker-size": `${route.markerDiameter / route.width * 100}cqw` }}>
@@ -53,15 +73,17 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
                         <stop stopColor="#ffe7b2" /><stop offset=".5" stopColor="#ffdda0" /><stop offset="1" stopColor="#f7cf8d" />
                     </linearGradient>
                 </defs>
-                {route.isPilot && <path d={route.path} transform="translate(0 4)" fill="none" stroke="#57783e" opacity=".22" strokeWidth={route.roadWidth + 8} strokeLinecap="round" strokeLinejoin="round" />}
-                <path className="speaking-continuous-road__rim" d={route.path} fill="none" stroke={route.isPilot ? "#d5a45e" : "#bd864b"} strokeWidth={route.roadWidth} strokeLinecap="round" strokeLinejoin="round" />
-                <path className="speaking-continuous-road__surface" d={route.path} fill="none" stroke={`url(#${id}-sand)`} strokeWidth={route.roadWidth - 6} strokeLinecap="round" strokeLinejoin="round" />
+                {route.isPilot && route.ends.map((point, index) => <circle key={index} cx={point.x} cy={point.y} r={route.roadWidth / 2 - 1.5} fill={`url(#${id}-sand)`} stroke="#d5a45e" strokeWidth="3" />)}
+                {route.isPilot && <path d={roadPath} transform="translate(0 4)" fill="none" stroke="#57783e" opacity=".22" strokeWidth={route.roadWidth + 8} strokeLinecap="butt" strokeLinejoin="round" />}
+                <path className="speaking-continuous-road__rim" d={roadPath} fill="none" stroke={route.isPilot ? "#d5a45e" : "#bd864b"} strokeWidth={route.roadWidth} strokeLinecap={route.isPilot ? "butt" : "round"} strokeLinejoin="round" />
+                <path className="speaking-continuous-road__surface" d={roadPath} fill="none" stroke={`url(#${id}-sand)`} strokeWidth={route.roadWidth - 6} strokeLinecap={route.isPilot ? "butt" : "round"} strokeLinejoin="round" />
                 {route.isPilot && <>
-                    <path d={route.path} fill="none" stroke={`url(#${id}-sand-grain)`} strokeWidth={route.roadWidth - 10} strokeLinecap="round" />
+                    <path d={roadPath} fill="none" stroke={`url(#${id}-sand-grain)`} strokeWidth={route.roadWidth - 10} strokeLinecap="butt" />
                     {route.details.map((point, index) => <g key={index} transform={`translate(${point.x} ${point.y}) rotate(${point.angle})`} opacity=".14" fill="#c18d47">
                         <ellipse cx="-17" cy="5" rx="5" ry="2.6" /><ellipse cx="14" cy="-4" rx="3" ry="1.6" />
                     </g>)}
                 </>}
+                {route.isPilot && route.bridge && <PilotBridge bridge={route.bridge} width={route.roadWidth} />}
                 {start && <g className="speaking-map-start-flag" transform={`translate(${start.worldX - 90} ${start.worldY + (route.isPilot ? -100 : 20)})`}>
                     <ellipse cx="0" cy="75" rx="17" ry="5" fill="#456c38" opacity=".4" />
                     <path d="M0 0V75" stroke="#754826" strokeWidth="6" strokeLinecap="round" />

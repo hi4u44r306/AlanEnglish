@@ -2,6 +2,13 @@
 
 最後更新：2026-10-05
 
+8 關自然彎道與溪橋 v5（2026-10-05，本機審核，未部署）：
+
+- 基準 `7a984ce1`，沿用 `codex/segmented-speaking-map`；僅修改 opt-in 樣板的路線、兩張插畫與共享元件的條件式木橋。取消每排兩關的規則，使用不對稱曲線繞池塘、穿樹林，弧長目標避開急彎與橋頭；木橋取代跨溪土路，沿同一中心線連接兩岸。
+- 新 `pilot-meadow-v5.webp`／`pilot-forest-v5.webp` 原生各 887×1774，共 849,792 bytes；保留 v4 素材以供回復，沒有放大或宣稱原生 4K。提示詞與素材來源見 `src/components/assets/speaking-map/PILOT-V5.md`。SVG、關卡、木橋清晰度不受背景點陣尺寸限制。
+- 412×915／1440×915 實際元件預覽進場完整顯示 5／4 關，圓牌直徑約 65.91／80px；起點已避開底部目標卡，無橫向溢出與 pageerror。橋樑、池塘、場景過渡已目視檢查；截圖更新於 `output/segmented-map/pilot-start-*`、`pilot-forest-*`。
+- 路線／橋面排除及既有 lazy loading 測試、ESLint、preview bundle、diff check 驗證；不跑全套或 production build，因為本批是 opt-in 本機視覺樣板。真實帳號 catalog、iPhone Safari、錄音／獎勵未驗且未修改；未套用全冊、未 Push／部署。下一步為使用者審核同一 `http://127.0.0.1:3003/?levels=8`。
+
 起點至第 8 關視覺精修（2026-10-05，本機樣板，未套用 50 關／未部署）：
 
 - 基準 `b696c768`，同一 `codex/segmented-speaking-map` 分支，主工作區修改保留。本批新 `speakingMapPilot.js`／test；共享 `SegmentedSpeakingMap.jsx`／SCSS 增加 opt-in 樣板素材與材質，原 v3 的 full-book allocator 不修改。
