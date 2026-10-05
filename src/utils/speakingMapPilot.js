@@ -41,7 +41,13 @@ export function buildSpeakingMapPilot(lessons) {
     });
     const nodes = lessons.map((lesson, index) => {
         const target = 155 + (length - 225) * index / (lessons.length - 1);
-        const p = safe.reduce((best, point) => Math.abs(point.distance - target) < Math.abs(best.distance - target) ? point : best);
+        let p = safe.reduce((best, point) => Math.abs(point.distance - target) < Math.abs(best.distance - target) ? point : best);
+        // The painted pond bank narrows slightly here. Move back along the same
+        // safe centerline to clear the grass (reviewed against the v6 artwork).
+        if (index === 3) {
+            const adjusted = p.distance - 12;
+            p = safe.reduce((best, point) => Math.abs(point.distance - adjusted) < Math.abs(best.distance - adjusted) ? point : best);
+        }
         return { id: lesson.id, distance: p.distance, worldX: p.x, worldY: p.y,
             x: p.x / width * 100, xMobile: p.x / width * 100, y: p.y / height * 100,
             zone: p.y > 900 ? "meadow" : "forest" };
@@ -51,11 +57,11 @@ export function buildSpeakingMapPilot(lessons) {
     const details = samples.filter((p, i) => !p.bridge && i % 19 === 0 &&
         nodes.every(node => Math.hypot(p.x - node.worldX, p.y - node.worldY) > 70))
         .map((p, i) => ({ x: p.x, y: p.y, angle: i * 37 % 180 }));
-    return { bookId: "eight-level-art-pilot", isPilot: true, width, height, roadWidth,
+    return { bookId: "eight-level-art-pilot", isPilot: true, paintedRoad: true, width, height, roadWidth,
         markerDiameter: roadWidth * 2 / 3, aspectRatio: width + " / " + height, nodes,
         scenes: [
             { id: "pilot-forest", index: 0, top: 0, height: 1000, overlap: 200, asset: "pilotForest", biome: "forest", first: true },
-            { id: "pilot-meadow", index: 1, top: 800, height: 1000, overlap: 200, asset: "pilotMeadow", biome: "meadow", last: true }
+            { id: "pilot-meadow", index: 1, top: 800, height: 1000, overlap: 200, fadeOverlap: 40, asset: "pilotMeadow", biome: "meadow", last: true }
         ],
         details, bridge: { from: { x: 300, y: 600 }, to: { x: 195, y: 450 }, start: bridgeStart, end: bridgeEnd },
         startsAtBottom: true, length, roadPath, ends: [samples[0], samples[samples.length - 1]],

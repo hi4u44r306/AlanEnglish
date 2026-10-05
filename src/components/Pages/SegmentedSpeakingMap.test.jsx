@@ -2,6 +2,7 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import SegmentedSpeakingMap from "./SegmentedSpeakingMap";
 import { buildSegmentedSpeakingRoute } from "../../utils/segmentedSpeakingMap";
+import { buildSpeakingMapPilot } from "../../utils/speakingMapPilot";
 
 describe("segmented scene loading", () => {
     const originalObserver = global.IntersectionObserver;
@@ -15,6 +16,16 @@ describe("segmented scene loading", () => {
         });
     });
     afterEach(() => { global.IntersectionObserver = originalObserver; });
+
+    test("painted pilot keeps the invisible centerline without a second visible road or bridge", () => {
+        const pilot = buildSpeakingMapPilot(Array.from({ length: 8 }, (_, index) => ({ id: index })));
+        const { container } = render(<SegmentedSpeakingMap route={pilot} />);
+        expect(container.querySelector('.speaking-map-centerline')).toHaveAttribute('d', pilot.path);
+        expect(container.querySelector('.speaking-map-centerline')).toHaveAttribute('stroke', 'none');
+        expect(container.querySelector('.speaking-continuous-road__surface')).toBeNull();
+        expect(container.querySelector('.speaking-map-pilot-bridge')).toBeNull();
+        expect(container.querySelector('.speaking-map-start-flag')).not.toBeNull();
+    });
 
     test("initial target loads only nearby images; entering another section loads that image", () => {
         const { container, unmount } = render(<SegmentedSpeakingMap route={route}><button>真實關卡入口</button></SegmentedSpeakingMap>);

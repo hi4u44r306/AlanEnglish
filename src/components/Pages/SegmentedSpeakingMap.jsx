@@ -4,8 +4,8 @@ import meadow from "../assets/speaking-map/serpentine-meadow-v3.webp";
 import forest from "../assets/speaking-map/serpentine-forest-v3.webp";
 import snow from "../assets/speaking-map/serpentine-snow-v3.webp";
 import volcano from "../assets/speaking-map/serpentine-volcano-v3.webp";
-import pilotMeadow from "../assets/speaking-map/pilot-meadow-v5.webp";
-import pilotForest from "../assets/speaking-map/pilot-forest-v5.webp";
+import pilotMeadow from "../assets/speaking-map/pilot-meadow-v6.webp";
+import pilotForest from "../assets/speaking-map/pilot-forest-v6.webp";
 
 const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest };
 
@@ -24,7 +24,7 @@ function SceneTile({ scene, route, eager }) {
         return () => observer.disconnect();
     }, [nearby]);
     return <div ref={container} className={`speaking-scene-tile is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
-        data-scene-index={scene.index} style={{ "--scene-overlap": `${(scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%` }}>
+        data-scene-index={scene.index} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%` }}>
         {nearby && !failed && <img key={attempt} src={SCENES[scene.asset]} alt="" width="887" height="1774" decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
         {failed && <button className="speaking-scene-retry" type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>重試載入場景</button>}
     </div>;
@@ -62,6 +62,7 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
                     eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
             </div>
             <svg className="speaking-continuous-road" viewBox={`0 0 ${route.width} ${route.height}`} aria-hidden="true" focusable="false">
+                {route.paintedRoad ? <path className="speaking-map-centerline" d={route.path} fill="none" stroke="none" /> : <>
                 <defs>
                     {route.isPilot && <pattern id={`${id}-sand-grain`} width="79" height="93" patternUnits="userSpaceOnUse">
                         <ellipse cx="12" cy="19" rx="3.5" ry="1.8" fill="#ce9550" opacity=".15" />
@@ -84,6 +85,7 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
                     </g>)}
                 </>}
                 {route.isPilot && route.bridge && <PilotBridge bridge={route.bridge} width={route.roadWidth} />}
+                </>}
                 {start && <g className="speaking-map-start-flag" transform={`translate(${start.worldX - 90} ${start.worldY + (route.isPilot ? -100 : 20)})`}>
                     <ellipse cx="0" cy="75" rx="17" ry="5" fill="#456c38" opacity=".4" />
                     <path d="M0 0V75" stroke="#754826" strokeWidth="6" strokeLinecap="round" />
