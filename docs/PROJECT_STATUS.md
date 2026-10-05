@@ -2,6 +2,14 @@
 
 最後更新：2026-10-05
 
+起點至第 8 關視覺精修（2026-10-05，本機樣板，未套用 50 關／未部署）：
+
+- 基準 `b696c768`，同一 `codex/segmented-speaking-map` 分支，主工作區修改保留。本批新 `speakingMapPilot.js`／test；共享 `SegmentedSpeakingMap.jsx`／SCSS 增加 opt-in 樣板素材與材質，原 v3 的 full-book allocator 不修改。
+- 樣板共 8 關、4 條横路，每條 2 關，U 型彎道留空；關卡在横路內等距，刻意不宣稱全程弧長等距。兩張獨立地標為蘋果樹池塘／兔子與松樹營地，縮小樹冠範圍以避開路面；地面留白、砂石路面、輕陰影、木紋外框與純色中心。起點旗移到道路左上側避開底部卡片。
+- 兩圖各 941×1672，WebP 共 353,844 bytes，未升頻、非原生 4K。素材與生成／編輯提示詞見 `src/components/assets/speaking-map/PILOT-V4.md`。8 關數字、題數及進度均為 fixture，沒有新增正式題庫。
+- 7 項 targeted tests（樣板幾何、兩段邊界、原地圖 lazy loading／重試）通過，相關 ESLint、SCSS／preview bundle 編譯、diff check 通過。實際元件 Edge Chromium headless 412×915／1440×915 進場均完整顯示 4 關，圓牌約 65.91／80px，無橫向溢出或 pageerror，摘要點擊與 Escape 關閉已驗收。未跑 full suite／production build，因 opt-in 視覺樣板不發布。
+- 審核 `http://127.0.0.1:3003/?levels=8`，`&tools=1` 顯示樣板工具；原 50 關可用 `?levels=50` 比較。`output/segmented-map/pilot-start-412.png`、`pilot-forest-412.png`／1440、`pilot-dialog-412.png` 與 `pilot-report.json` 為實際本機畫面。iPhone Safari、真實帳號 catalog 與錄音未驗；待使用者核准視覺後再延伸其餘關卡，未 Push／部署。
+
 50 關蛇形地圖與自動分布（2026-10-05，本機審核，尚未部署）：
 
 - 延用 `codex/segmented-speaking-map`／`140854bd` 的既有本機 clone，主工作區未提交修改保持原狀。四張新的無道路草地／森林／雪地／火山 WebP 共 1,248,192 bytes、各 887×1774；50 關共 13 個場景實例，素材重用，不是 13 張不同插畫，也不是原生 4K。
