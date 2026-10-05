@@ -2,14 +2,11 @@
 
 最後更新：2026-10-05
 
-真正可變彎曲路線：森林審核樣板（2026-10-05，本機，未部署）：
+取消可變彎道樣板，恢復核准卡通地圖（2026-10-05，本機）：
 
-- 基準 `b96cbddd`，同一feature clone。使用者澄清要依螢幕重新計算彎道，授權先往此方向且保留核准卡通風格。本階段新增 `responsiveSpeakingRoute.js`／test、`ResponsiveSpeakingMap.jsx`／SCSS與兩張透明森林造景；先驗證代表性森林版，其他五冊及真實題庫入口不切換。
-- SVG為唯一可見道路，重新計算彎道數、振幅及節點弧長；道路108～132px、木框外徑72～88px保持2/3。由下往上、上下保留空間、50關自動延長。樹叢／池塘／兔子依道路淨空安排；本樣板水面不跨道路，無不合理橋樑。背景和圖示不橫向拉伸。ResizeObserver重排並保持最近關卡的視窗位置。
-- 兩張imagegen RGBA原生1254×1254，WebP共393,908 bytes，可近視野載入並重用；非原生4K。來源提示詞見 `RESPONSIVE-FOREST-V1.md`。樣板目前只用兩種景物組合，後續美術豐富度仍待審。
-- 12項targeted tests通過：0/1/25/50/101關ID與排序、等弧長分布、寬度改變確實重算彎道、320～1920px景物避開道路。ESLint、SCSS／preview bundle、diff check通過；不跑無關全套／production build。
-- Edge Chromium 412／768／1440／1920×915無橫向溢出、破圖或pageerror，進場完整可見4／4／3／3關，摘要點擊與Escape通過。768→1024×768重排時第25關視窗偏移0.25px，SVG路線確實改變。報告／實際截圖 `output/segmented-map/responsive-report.json`、`responsive-*.png`。
-- 本機 `http://127.0.0.1:3003/?book=1&levels=50&layout=responsive`。這是50關示範資料，未接正式catalog／錄音／獎勵，iPhone Safari實機未驗，未推送／部署。下一步先審核森林路線與造景密度，再延伸各冊完整配置。
+- 使用者認為可變彎道樣板太普通，要求換回原本版本。本批撤回 `ba13f553` 的獨立樣板元件、路線計算與兩張素材，回到 `b96cbddd` 的地圖呈現；保留六冊卡通地圖、左右延伸造景、木質關卡及Workbook 4北極狐修正。樣板仍可由Git歷史恢復。
+- 本機preview移除responsive分流；舊 `layout=responsive` 網址重新整理也會顯示原版。審核入口 `http://127.0.0.1:3003/?book=1&levels=50`。僅本機回復，未推送／部署。
+- 驗證：src與 `b96cbddd` 無差異；preview bundle與diff check通過，412／1440px舊網址確認原版50關、無樣板元件／橫向溢出／pageerror。截圖 `restored-412.png`／`restored-1440.png`。純回復已驗證版本，不重跑全套／production build；未驗iPhone Safari實機。
 
 Workbook 4 動物修正（2026-10-05，本機完成，未部署）：
 
