@@ -2,6 +2,15 @@
 
 最後更新：2026-10-05
 
+六冊兒童卡通完整地圖（2026-10-05，本機完成，未部署）：
+
+- 基準 `660a58a2`，分支 `codex/segmented-speaking-map`；沿用既有 `output/alphabet-recording-fix-20261003` clone，主工作區保持原狀。使用者核准可愛卡通方向後，將完整各冊地圖改為森林／海島／糖果／雪地／天空／魔法火山六主題；列表卡片同步主題名稱與配色。
+- 新 `speakingCartoonMap.js`、`speakingCartoonTraces.json`、`speakingCartoonAssets.js`、`SpeakingBookCard.jsx` 與12張 WebP；共享 `SegmentedSpeakingMap` 延用木框、灰／黃／亮綠純色內層與 lazy loading；`TextbookSpeakingChallenge` 接到真實 catalog 的前端配置，沒有新增遠端關卡。來源／提示詞見 `src/components/assets/speaking-map/CARTOON-THEMES-V1.md`。
+- 每冊兩張造景交替重用，依題庫數延長，50 關13段；原生887×1774、各冊兩圖約252～365KB，總1,916,536 bytes，非4K。逐圖描實際路面，48個候選位置以半徑41世界單位、每圈128點檢查留白，再沿路分配直徑80的圓牌；SVG不疊加可見道路。魔法A的水平草地邊界已另修圖。
+- 70項 targeted tests（各冊0～101關邊界／沿路排序與間距、載入／重試、51項既有口說整合）通過；相關ESLint、SCSS與實際元件preview bundle通過。修正終點旗位置後另做端點視覺檢查；不重跑無關全套／production build。
+- Edge Chromium headless 412×915／1440×915六冊50關各驗一次：進場完整可見3～4關、按鈕約65.9／80px、無橫向溢出／pageerror／破圖，初始只載附近3個img實例。摘要點擊／Escape已驗，起點旗與第一關、頂部旗與工具列無遮擋。截圖及報告：`output/segmented-map/cartoon-*.png`、`cartoon-browser-report.json`、`cartoon-endpoints.json`。
+- 審核入口 `http://127.0.0.1:3003/` 可選六冊；`?book=1&levels=50&tools=1` 可調數量，為示範進度，不写入資料。iPhone Safari實機、登入後真實catalog／錄音／獎勵尚未驗；本批只做前端本機審核，未Push／部署。下一步為使用者檢視六冊畫風與路線。
+
 8 關兒童卡通地圖 v6（2026-10-05，本機審核，未部署）：
 
 - 基準 `684b4aef`，沿用同一分支；以 v5 實際無 UI 道路畫面為幾何參考，內建 image_gen 重繪圓潤樹木、大頭兔子／松鼠、簡化花朵與營地。路面、自然土邊及橋樑合併於插畫；`paintedRoad` 僅保留隱形 SVG 中心線，移除樣板第二層可見 SVG 道路與橋面。正式 v3 配置未變。

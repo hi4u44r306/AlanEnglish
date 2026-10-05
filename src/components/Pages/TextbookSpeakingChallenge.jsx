@@ -12,7 +12,8 @@ import SpeakingAdventureSession from "./SpeakingAdventureSession";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
-import { buildSegmentedSpeakingRoute } from "../../utils/segmentedSpeakingMap";
+import { buildCartoonSpeakingRoute } from "../../utils/speakingCartoonMap";
+import SpeakingBookCard from "./SpeakingBookCard";
 import SegmentedSpeakingMap from "./SegmentedSpeakingMap";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import { questionPromptMode } from "../../utils/textQaPrompt";
@@ -80,48 +81,6 @@ const challengeBookCatalogPath = challenge => {
         : "/student/speaking-challenges";
 };
 
-const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
-    const completedCount = group.sections
-        .flatMap(section => section.items)
-        .filter(item => item.is_completed).length;
-    const progressPercent = group.itemCount
-        ? Math.round((completedCount / group.itemCount) * 100)
-        : 0;
-    const actionLabel = completedCount === group.itemCount && group.itemCount > 0
-        ? "再次挑戰"
-        : completedCount > 0 ? "繼續冒險" : "開始冒險";
-    const rewardXp = Number(rewardPolicy?.xp);
-    const rewardPoints = Number(rewardPolicy?.ae_points);
-    const hasRewardPolicy = Number.isFinite(rewardXp) && Number.isFinite(rewardPoints);
-    const rewardLabel = hasRewardPolicy
-        ? `，每關首次通關 ${rewardXp} XP、最多 ${rewardPoints} AE Points`
-        : "";
-
-    return <button
-        type="button"
-        className={`speaking-book-card speaking-book-card--theme-${index % 4}`}
-        onClick={onOpen}
-        aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關${rewardLabel}`}
-    >
-        <span className="speaking-book-card__chapter" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-        <span className="speaking-book-card__content">
-            <small className="speaking-book-card__eyebrow">口說冒險 · 第 {index + 1} 冊</small>
-            <strong>{group.label}</strong>
-            <span className="speaking-book-card__count">共 {group.itemCount} 關 · 已完成 {completedCount} 關</span>
-            <span className="speaking-book-card__progress">
-                <span
-                    className="speaking-book-card__track"
-                    role="progressbar"
-                    aria-label={`${group.label} 完成進度`}
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    aria-valuenow={progressPercent}
-                ><span style={{ width: `${progressPercent}%` }} /></span>
-            </span>
-        </span>
-        <span className="speaking-book-card__action">{actionLabel}<FiChevronRight aria-hidden="true" /></span>
-    </button>;
-};
 
 const ChallengeLesson = ({ item, onOpen, staffPreview, section, current, nextTarget, mapNode, levelNumber, topicNumber }) => {
     const locked = !staffPreview && item.is_unlocked === false;
@@ -464,7 +423,7 @@ export default function TextbookSpeakingChallenge() {
             selectedNodeRef.current = trigger;
             setSelectedLesson({ item: lesson.item, section: lesson.section });
         };
-        const mapRoute = selectedBook ? buildSegmentedSpeakingRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
+        const mapRoute = selectedBook ? buildCartoonSpeakingRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
         const returnedLevelIndex = mapLessons.findIndex(lesson => Number(lesson.item.id) === Number(location.state?.speakingReturn?.questionSetId));
         const initialLevelIndex = returnedLevelIndex >= 0 ? returnedLevelIndex : Math.max(0, mapLessons.indexOf(nextTarget));
         return renderScene(<main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open is-segmented-world" : ""}`}>

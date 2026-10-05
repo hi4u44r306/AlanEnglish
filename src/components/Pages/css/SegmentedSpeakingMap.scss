@@ -84,9 +84,9 @@
   }
 }
 
-/* Local eight-level art review. Full-book layouts retain their current styling. */
+/* Shared wood rim and flat centers for the approved cartoon maps. */
 .speaking-challenge-page.is-book-open.is-segmented-world .speaking-map-chapter.is-refined-pilot {
-  .speaking-segmented-canvas { background: #bde057; }
+  .speaking-segmented-canvas { background: var(--map-scene-background, #bde057); }
   .speaking-challenge-lesson {
     --pilot-fill: #a9b3b9;
     &.is-current { --pilot-fill: #ffdc4d; }

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import SegmentedSpeakingMap from "./SegmentedSpeakingMap";
 import { buildSegmentedSpeakingRoute } from "../../utils/segmentedSpeakingMap";
 import { buildSpeakingMapPilot } from "../../utils/speakingMapPilot";
+import { buildCartoonSpeakingRoute } from "../../utils/speakingCartoonMap";
 
 describe("segmented scene loading", () => {
     const originalObserver = global.IntersectionObserver;
@@ -16,6 +17,17 @@ describe("segmented scene loading", () => {
         });
     });
     afterEach(() => { global.IntersectionObserver = originalObserver; });
+
+    test("full books use their painted theme and only load nearby scene instances", () => {
+        const cartoon = buildCartoonSpeakingRoute("book-5", Array.from({ length: 50 }, (_, id) => ({ id })));
+        const { container } = render(<SegmentedSpeakingMap route={cartoon} />);
+        expect(container.querySelector('.is-cartoon')).not.toBeNull();
+        expect(container.querySelector('.speaking-map-centerline')).toHaveAttribute('stroke', 'none');
+        expect(container.querySelector('.speaking-continuous-road__surface')).toBeNull();
+        expect(container.querySelectorAll('.speaking-scene-tile')).toHaveLength(13);
+        expect(container.querySelectorAll('img').length).toBeLessThan(4);
+        expect(container.querySelectorAll('.is-sky')).toHaveLength(13);
+    });
 
     test("painted pilot keeps the invisible centerline without a second visible road or bridge", () => {
         const pilot = buildSpeakingMapPilot(Array.from({ length: 8 }, (_, index) => ({ id: index })));

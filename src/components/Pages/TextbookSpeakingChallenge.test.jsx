@@ -401,8 +401,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         const workbookOne = await screen.findByRole("button", { name: "開啟 Workbook 1，共 2 關，已完成 1 關，每關首次通關 30 XP、最多 3 AE Points" });
         const workbookTwo = screen.getByRole("button", { name: "開啟 Workbook 2，共 1 關，已完成 0 關，每關首次通關 30 XP、最多 3 AE Points" });
         const workbookThree = screen.getByRole("button", { name: "開啟 Workbook 3，共 1 關，已完成 0 關，每關首次通關 30 XP、最多 3 AE Points" });
-        expect(workbookOne).toHaveClass("speaking-book-card--theme-0");
-        expect(workbookTwo).toHaveClass("speaking-book-card--theme-1");
+        expect(workbookOne).toHaveTextContent("森林池塘");
+        expect(workbookTwo).toHaveTextContent("海島沙灘");
+        expect(workbookThree).toHaveTextContent("糖果花園");
         expect(screen.getByRole("progressbar", { name: "Workbook 1 完成進度" })).toHaveAttribute("aria-valuenow", "50");
         expect(screen.getByRole("progressbar", { name: "Workbook 2 完成進度" })).toHaveAttribute("aria-valuenow", "0");
         expect(workbookOne).toHaveTextContent("繼續冒險");
