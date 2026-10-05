@@ -7,6 +7,7 @@ import { buildCartoonSpeakingRoute } from "../../utils/speakingCartoonMap";
 
 describe("segmented scene loading", () => {
     const originalObserver = global.IntersectionObserver;
+    const originalMatchMedia = window.matchMedia;
     const observers = [];
     const route = buildSegmentedSpeakingRoute("book-3", Array.from({ length: 36 }, (_, index) => ({ id: index + 1 })));
     beforeEach(() => {
@@ -16,7 +17,40 @@ describe("segmented scene loading", () => {
             this.observe = jest.fn(); this.disconnect = jest.fn(); observers.push(this);
         });
     });
-    afterEach(() => { global.IntersectionObserver = originalObserver; });
+    afterEach(() => {
+        global.IntersectionObserver = originalObserver;
+        window.matchMedia = originalMatchMedia;
+    });
+
+    test("phones omit side assets; resizing adds only nearby decorations without changing the route", () => {
+        let onChange;
+        const media = {
+            matches: false,
+            addEventListener: jest.fn((event, handler) => { onChange = handler; }),
+            removeEventListener: jest.fn(),
+        };
+        window.matchMedia = jest.fn(() => media);
+        const cartoon = buildCartoonSpeakingRoute("book-2", Array.from({ length: 50 }, (_, id) => ({ id })));
+        const { container, unmount } = render(<SegmentedSpeakingMap route={cartoon} />);
+        const centerline = container.querySelector(".speaking-map-centerline");
+        const canvas = container.querySelector(".speaking-segmented-canvas");
+        const initialImages = canvas.querySelectorAll("img").length;
+        expect(container.querySelector(".speaking-map-side-scenery")).toBeNull();
+        act(() => { media.matches = true; onChange(); });
+        const sides = container.querySelector(".speaking-map-side-scenery");
+        expect(sides).toHaveAttribute("aria-hidden", "true");
+        expect(sides.querySelectorAll("img").length).toBeGreaterThan(0);
+        expect(sides.querySelectorAll("img").length).toBeLessThan(4);
+        expect(canvas.querySelectorAll("img")).toHaveLength(initialImages);
+        expect(container.querySelector(".speaking-map-centerline")).toBe(centerline);
+        expect(centerline).toHaveAttribute("d", cartoon.path);
+        fireEvent.error(sides.querySelector("img"));
+        expect(screen.queryByRole("button", { name: "重試載入場景" })).not.toBeInTheDocument();
+        act(() => { media.matches = false; onChange(); });
+        expect(container.querySelector(".speaking-map-side-scenery")).toBeNull();
+        unmount();
+        expect(media.removeEventListener).toHaveBeenCalledWith("change", onChange);
+    });
 
     test("full books use their painted theme and only load nearby scene instances", () => {
         const cartoon = buildCartoonSpeakingRoute("book-5", Array.from({ length: 50 }, (_, id) => ({ id })));

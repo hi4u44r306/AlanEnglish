@@ -84,7 +84,41 @@
   }
 }
 
-/* Shared wood rim and flat centers for the approved cartoon maps. */
+/* Keep gameplay at its approved scale; extend only the scenery on wide screens. */
+.speaking-challenge-page.is-book-open.is-segmented-world .speaking-map-chapter.is-cartoon.is-refined-pilot {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  background: var(--map-scene-background);
+  .speaking-segmented-canvas { z-index: 1; }
+  .speaking-map-side-scenery {
+    position: absolute;
+    inset: 0 auto 0 50%;
+    width: 1500px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    overflow: hidden;
+    .is-side-scenery {
+      left: 50%;
+      width: 1500px;
+      transform: translateX(-50%);
+      img { object-fit: cover; }
+    }
+  }
+  @media (min-width: 700px) {
+    .speaking-segmented-canvas { background: transparent; box-shadow: none; }
+    // Only blend the outer foliage, never the painted road or the interactive markers.
+    .speaking-scene-layer {
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 50px, #000 calc(100% - 50px), transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 50px, #000 calc(100% - 50px), transparent);
+    }
+    .speaking-map-side-scenery {
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 80px, #000 calc(100% - 80px), transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 80px, #000 calc(100% - 80px), transparent);
+    }
+  }
+}
+
 .speaking-challenge-page.is-book-open.is-segmented-world .speaking-map-chapter.is-refined-pilot {
   .speaking-segmented-canvas { background: var(--map-scene-background, #bde057); }
   .speaking-challenge-lesson {

@@ -6,11 +6,11 @@ import snow from "../assets/speaking-map/serpentine-snow-v3.webp";
 import volcano from "../assets/speaking-map/serpentine-volcano-v3.webp";
 import pilotMeadow from "../assets/speaking-map/pilot-meadow-v6.webp";
 import pilotForest from "../assets/speaking-map/pilot-forest-v6.webp";
-import { CARTOON_ASSETS } from "./speakingCartoonAssets";
+import { CARTOON_ASSETS, CARTOON_SIDE_ASSETS } from "./speakingCartoonAssets";
 
 const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest, ...CARTOON_ASSETS };
 
-function SceneTile({ scene, route, eager }) {
+function SceneTile({ scene, route, eager, scenery = false }) {
     const container = useRef(null);
     const [nearby, setNearby] = useState(eager);
     const [failed, setFailed] = useState(false);
@@ -24,10 +24,28 @@ function SceneTile({ scene, route, eager }) {
         observer.observe(container.current);
         return () => observer.disconnect();
     }, [nearby]);
-    return <div ref={container} className={`speaking-scene-tile is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
-        data-scene-index={scene.index} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%` }}>
-        {nearby && !failed && <img key={attempt} src={SCENES[scene.asset]} alt="" width="887" height="1774" decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
-        {failed && <button className="speaking-scene-retry" type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>重試載入場景</button>}
+    return <div ref={container} className={`speaking-scene-tile ${scenery ? "is-side-scenery" : ""} is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
+        data-scene-index={scenery ? undefined : scene.index} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%` }}>
+        {nearby && !failed && <img key={attempt} src={scenery ? CARTOON_SIDE_ASSETS[scene.biome] : SCENES[scene.asset]} alt="" width={scenery ? "1536" : "887"} height={scenery ? "1024" : "1774"} decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
+        {failed && !scenery && <button className="speaking-scene-retry" type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>重試載入場景</button>}
+    </div>;
+}
+
+// Do not mount decorative images on phones: display:none alone can still download img sources.
+function WideScenery({ route, initialY }) {
+    const [wide, setWide] = useState(false);
+    useEffect(() => {
+        if (typeof window.matchMedia !== "function") return;
+        const media = window.matchMedia("(min-width: 700px)");
+        const update = () => setWide(media.matches);
+        update();
+        media.addEventListener("change", update);
+        return () => media.removeEventListener("change", update);
+    }, []);
+    if (!wide) return null;
+    return <div className="speaking-map-side-scenery" aria-hidden="true">
+        {route.scenes.map(scene => <SceneTile key={scene.id} scene={scene} route={route} scenery
+            eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
     </div>;
 }
 
@@ -55,7 +73,9 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
     const initialY = route.nodes[initialLevelIndex]?.worldY ?? route.height;
     const start = route.nodes[0];
     const roadPath = route.roadPath ?? route.path;
-    return <section className={`speaking-map-chapter is-book is-segmented${route.isPilot || route.isCartoon ? " is-refined-pilot" : ""}${route.isCartoon ? " is-cartoon" : ""}`}>
+    return <section className={`speaking-map-chapter is-book is-segmented${route.isPilot || route.isCartoon ? " is-refined-pilot" : ""}${route.isCartoon ? " is-cartoon" : ""}`}
+        style={{ "--map-scene-background": route.theme?.ground }}>
+        {route.isCartoon && <WideScenery route={route} initialY={initialY} />}
         <div className="speaking-map-canvas speaking-segmented-canvas" style={{ "--map-aspect-ratio": route.aspectRatio, "--map-scene-background": route.theme?.ground,
             "--segmented-marker-size": `${route.markerDiameter / route.width * 100}cqw` }}>
             <div className="speaking-scene-layer">
