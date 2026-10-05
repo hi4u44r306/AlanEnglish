@@ -1,6 +1,14 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-04
+最後更新：2026-10-05
+
+50 關蛇形地圖與自動分布（2026-10-05，本機審核，尚未部署）：
+
+- 延用 `codex/segmented-speaking-map`／`140854bd` 的既有本機 clone，主工作區未提交修改保持原狀。四張新的無道路草地／森林／雪地／火山 WebP 共 1,248,192 bytes、各 887×1774；50 關共 13 個場景實例，素材重用，不是 13 張不同插畫，也不是原生 4K。
+- 改為左右往返 U 型連續道路，弧長平均配置，固定 110 路寬／73⅓ 圓牌、上下留白。25／36／50 關依序 7／9／13 段，0／1／2／3／4／5 及 15–101 關邊界有測試。場景低細節交界重疊 170 單位，移除舊疊加河流／桥；同一 SVG 為唯一道路。
+- 相關檔案：`SegmentedSpeakingMap.jsx`、對應 SCSS、`segmentedSpeakingMap.js`／test、四張 `serpentine-*-v3.webp`、素材提示詞 `SERPENTINE-V3.md`。68 項 targeted tests（17 路線／載入、51 既有口說整合）及四檔 ESLint 通過；SCSS／元件 preview bundle 編譯、diff 檢查通過。局部前端不執行全套或 production build。
+- Edge Chromium headless 使用真正元件與 SCSS 的本機 fixture，在 412×915 與 1440×915 測 25／36／50 關：節點數正確、無橫向溢出、無 pageerror；手機圓牌約 70.25px，桌面 85.27px。進場可見 3–4 關，13 段只載入附近 3 張 img；場景過渡與終點截圖已檢查。
+- 本機審核入口 `http://127.0.0.1:3003/?levels=50`，可切換關卡數，為示範進度，不建立 50 筆正式關卡。驗收資料／截圖在 `output/segmented-map/v3-report.json`、`v3-50-412.png`、`v3-50-1440.png`、`v3-seam-412.png`、`v3-summit-412.png`。未驗真實 catalog 登入／iPhone Safari／錄音通關，本批不改後端且未 Push／部署。下一步為使用者視覺審核。
 
 分段連續闖關地圖（2026-10-04，本機審核中，尚未部署）：
 
