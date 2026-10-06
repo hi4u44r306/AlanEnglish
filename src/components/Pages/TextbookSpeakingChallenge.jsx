@@ -442,7 +442,7 @@ export default function TextbookSpeakingChallenge() {
                     <p>{staffPreview ? "選擇 Workbook 預覽已發布關卡。" : "把課本裡的英文說出來，練習發音與完整回答。"}</p>
                 </span>
             </header>}
-            {!staffPreview && !selectedBook && <SpeakingChallengeRules policy={challengePolicy} loading={catalogLoading} />}
+            {!staffPreview && !selectedBook && <details className="speaking-catalog-help"><summary>查看今日額度與練習說明</summary><SpeakingChallengeRules policy={challengePolicy} loading={catalogLoading} /></details>}
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`, { state: { speakingBookEntry: { bookKey: group.id, bookLabel: group.label } } })} />)}

@@ -13,6 +13,7 @@ import {
     FiCreditCard,
     FiGift,
     FiHelpCircle,
+    FiHome,
     FiLock,
     FiLogOut,
     FiMenu,
@@ -78,7 +79,7 @@ const StudentNavbar = ({
     const hasSpeakingChallengeAccess = hasActiveLearningAccess && features.pronunciation === true;
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
-    const speakingActive = drawerOpen && drawer === "speaking";
+    const speakingActive = (drawerOpen && drawer === "speaking") || isPathActive("/student/speaking-challenges");
     const learningActive = [
         "/student/assignments",
         "/student/review",
@@ -158,6 +159,7 @@ const StudentNavbar = ({
     const learningLinks = (
         <section className="ae-student-drawer-section">
             <span>學習功能</span>
+            {hasActiveLearningAccess && <InstantDrawerLink to="/student/leaderboard" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp />排行榜</InstantDrawerLink>}
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友</InstantDrawerLink>}
             {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
@@ -201,12 +203,12 @@ const StudentNavbar = ({
 
     const bottomNavigation = (
         <nav className="ae-student-bottom-nav" aria-label="學生主要導覽">
-            <Link to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp /><span>排行榜</span></Link>
+            <Link to="/student/dashboard" aria-current={isPathActive("/student/dashboard") ? "page" : undefined} className={isPathActive("/student/dashboard") ? "active" : ""}><FiHome /><span>今日</span></Link>
             {shouldShowMaterials && <button type="button" onClick={() => openDrawer("materials")} className={isPathActive("/student/books") ? "active" : ""}><FiBookOpen /><span>教材</span></button>}
-            <button type="button" onClick={() => openDrawer("speaking")} className={speakingActive ? "active" : ""}><FiStar /><span>遊戲</span></button>
-            <Link to="/student/settings" className={`ae-student-bottom-profile ${isPathActive("/student/settings") ? "active" : ""}`} aria-label="帳號">
+            <button type="button" onClick={() => openDrawer("speaking")} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={speakingActive ? "active" : ""}><FiStar /><span>冒險</span></button>
+            <Link to="/student/settings" className={`ae-student-bottom-profile ${isPathActive("/student/settings") ? "active" : ""}`} aria-label="我的">
                 <span className="ae-student-bottom-avatar">{profileAvatar}</span>
-                <span>帳號</span>
+                <span>我的</span>
             </Link>
         </nav>
     );
@@ -215,17 +217,17 @@ const StudentNavbar = ({
         <>
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
-                    <Navbar.Brand as={Link} to="/student/leaderboard" className="ae-brand" aria-label="Alan English 學習排行榜"><Brand /></Navbar.Brand>
+                    <Navbar.Brand as={Link} to="/student/dashboard" className="ae-brand" aria-label="Alan English 今日學習"><Brand /></Navbar.Brand>
                     <Nav className="ae-student-desktop-nav" onSelect={closeDrawer}>
-                        <Nav.Link as={Link} to="/student/leaderboard" className={isPathActive("/student/leaderboard") ? "active" : ""}><span><FiTrendingUp />排行榜</span></Nav.Link>
+                        <Nav.Link as={Link} to="/student/dashboard" aria-current={isPathActive("/student/dashboard") ? "page" : undefined} className={isPathActive("/student/dashboard") ? "active" : ""}><span><FiHome />今日</span></Nav.Link>
                         {shouldShowMaterials && (
                             <NavDropdown id="student-materials" title={<span><FiBookOpen />我的教材</span>} show={materialsOpen} onToggle={nextOpen => { setMaterialsOpen(nextOpen); if (nextOpen && !materialsOpen) resetMaterialsView(); }} autoClose="outside" className={isPathActive("/student/books") ? "active" : ""}>
                                 <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>
                                 {renderMaterials("desktop")}
                             </NavDropdown>
                         )}
-                        <NavDropdown id="student-speaking" title={<span><FiStar />遊戲</span>} className={speakingActive ? "active" : ""}>
-                                <div className="ae-student-dropdown-heading"><strong>遊戲世界</strong><small>選擇教材，開始闖關</small></div>
+                        <NavDropdown id="student-speaking" title={<span><FiStar />冒險</span>} className={speakingActive ? "active" : ""}>
+                                <div className="ae-student-dropdown-heading"><strong>冒險世界</strong><small>選擇教材，開始闖關</small></div>
                                 {speakingLinks}
                         </NavDropdown>
                         <NavDropdown id="student-more" title={<span><FiZap />學習功能</span>} className={learningActive ? "active" : ""}>
@@ -252,7 +254,7 @@ const StudentNavbar = ({
 
             <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "speaking" ? "bottom" : "end"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : drawer === "materials" ? "is-materials" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "遊戲" : "功能選單"}</strong><small>{drawer === "materials" ? "選擇教材、程度與冊別" : drawer === "speaking" ? "選擇教材，開始闖關" : "學習、帳號與幫助"}</small></div>
+                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "冒險" : "功能選單"}</strong><small>{drawer === "materials" ? "選擇教材、程度與冊別" : drawer === "speaking" ? "選擇教材，開始闖關" : "學習、帳號與幫助"}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     {drawer === "materials" && renderMaterials("mobile")}

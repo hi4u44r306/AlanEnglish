@@ -81,20 +81,20 @@ describe("MainNavbar student navigation", () => {
     it("keeps only the child-friendly primary destinations in the student navbar", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        const leaderboardLinks = screen.getAllByRole("link", { name: "排行榜" });
+        const leaderboardLinks = screen.getAllByRole("link", { name: "今日" });
         expect(leaderboardLinks).toHaveLength(2);
-        leaderboardLinks.forEach(link => expect(link).toHaveAttribute("href", "/student/leaderboard"));
+        leaderboardLinks.forEach(link => expect(link).toHaveAttribute("href", "/student/dashboard"));
         expect(screen.queryByRole("link", { name: "方案與功能" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "英文對話" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "口說大挑戰" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
-        expect(screen.getAllByRole("button", { name: "遊戲" })).toHaveLength(2);
+        expect(screen.getAllByRole("button", { name: "冒險" })).toHaveLength(2);
         expect(screen.getByRole("button", { name: "學習功能" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "前往帳號" })).toHaveAttribute("href", "/student/settings");
-        expect(screen.getByRole("link", { name: "帳號" })).toHaveAttribute("href", "/student/settings");
+        expect(screen.getByRole("link", { name: "我的" })).toHaveAttribute("href", "/student/settings");
         const bottomNavigation = screen.getByRole("navigation", { name: "學生主要導覽" });
         expect(bottomNavigation).toBeInTheDocument();
         expect(bottomNavigation.parentElement).toBe(document.body);
@@ -414,7 +414,7 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        fireEvent.click(screen.getAllByRole("button", { name: "遊戲" })[0]);
+        fireEvent.click(screen.getAllByRole("button", { name: "冒險" })[0]);
         expect(screen.getByRole("button", { name: "口說教練，準備中" })).toBeDisabled();
         expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.queryByRole("link", { name: /口說教練/ })).not.toBeInTheDocument();
@@ -441,7 +441,7 @@ describe("MainNavbar student navigation", () => {
         });
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getAllByRole("button", { name: "遊戲" })[0]);
+        fireEvent.click(screen.getAllByRole("button", { name: "冒險" })[0]);
         expect(screen.getByRole("button", { name: "口說大挑戰，需要有效發音練習權限" })).toBeDisabled();
         expect(screen.queryByRole("link", { name: /口說大挑戰/ })).not.toBeInTheDocument();
     });
@@ -572,6 +572,6 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(screen.getAllByRole("link", { name: "會員與功能" }).every(link => link.classList.contains("active"))).toBe(true);
-        expect(screen.getAllByRole("link", { name: "排行榜" }).every(link => !link.classList.contains("active"))).toBe(true);
+        expect(screen.getAllByRole("link", { name: "今日" }).every(link => !link.classList.contains("active"))).toBe(true);
     });
 });

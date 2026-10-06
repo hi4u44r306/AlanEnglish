@@ -1,0 +1,36 @@
+// Scoped refinement: preserve the existing assignment player and quiz layouts.
+.student-homework-page {
+    padding-top: 28px;
+    background: #eef5fc;
+    .student-homework-hero { padding: 24px 28px; gap: 20px; border-radius: 24px; background: #17365d; box-shadow: none; }
+    .student-homework-hero::before, .student-homework-hero::after { display: none; }
+    .student-homework-hero h1 { font-size: clamp(24px, 3vw, 32px); line-height: 1.35; }
+    .student-homework-hero p { font-size: 16px; }
+    .student-homework-progress__ring { width: 84px; height: 84px; }
+    .student-homework-summary { margin: 20px 0; }
+    .student-homework-summary__tip { font-size: 14px; }
+    .student-homework-task { scroll-margin-top: 100px; }
+    .student-homework-task:focus { outline: 3px solid #245fc5; outline-offset: 3px; }
+    .student-homework-quick-start { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; margin: 0 0 18px; padding: 10px 18px; border-radius: 13px; color: #fff; background: #245fc5; font-weight: 800; text-decoration: none; box-shadow: 0 3px 0 #17468f; }
+    .student-homework-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;
+        button { min-height: 44px; padding: 8px 16px; border: 1px solid #c5d6e8; border-radius: 24px; background: #fff; color: #17365d; font: inherit; cursor: pointer; }
+        button[aria-pressed="true"] { background: #17365d; color: #fff; }
+    }
+    a:focus-visible, button:focus-visible { outline: 3px solid #17365d; outline-offset: 4px; }
+}
+@media (max-width: 640px) {
+    .student-homework-page {
+        padding-top: 24px;
+        .student-homework-hero { padding: 20px; }
+        .student-homework-hero h1 { font-size: 25px; }
+        .student-homework-progress { display: none; }
+        .student-homework-summary { gap: 10px; }
+        .student-homework-summary__tip { display: none; }
+        .student-homework-summary__item { padding: 12px 16px; min-height: auto; }
+        .student-homework-task__rail { display: none; }
+        .student-homework-task { display: block; }
+        .student-homework-task__body { padding: 20px; }
+        .student-homework-task__title h3 { font-size: 21px; }
+        .student-homework-section-heading { margin-bottom: 12px; }
+    }
+}

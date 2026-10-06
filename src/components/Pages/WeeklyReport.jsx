@@ -55,7 +55,7 @@ const copyText = async value => {
 };
 
 const WeeklyReport = () => {
-    const { firebaseUser, role } = useAuth();
+    const { firebaseUser, role, studentProfile } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
     const isManager = role === "teacher" || role === "admin";
     const initialStudentId = isManager ? searchParams.get("student") || "" : "";
@@ -341,9 +341,9 @@ const WeeklyReport = () => {
                                 <small>{speakingChallenge.current_challenge.title}</small>
                             </div>
                         )}
-                        <span className="weekly-report-challenge-link is-disabled" aria-label="口說遊戲準備中">
-                            <FiMic /> 口說遊戲準備中
-                        </span>
+                        {isManager || (studentProfile?.membership?.is_active && studentProfile?.membership?.effective_access?.features?.pronunciation === true)
+                            ? <Link className="weekly-report-challenge-link" to="/student/speaking-challenges"><FiMic />查看口說冒險</Link>
+                            : <Link className="weekly-report-challenge-link" to="/student/membership"><FiMic />查看口說功能權限</Link>}
                     </article>
                 </section>
 
