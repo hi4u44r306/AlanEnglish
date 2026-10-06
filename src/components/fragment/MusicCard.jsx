@@ -15,7 +15,8 @@ function MusicCard({
     music,
     playbackQueue = [],
     progress = {},
-    index = 0
+    index = 0,
+    progressStatus = "ready"
 }) {
     const dispatch = useDispatch();
 
@@ -32,7 +33,8 @@ function MusicCard({
             0
         ) || 0;
 
-    const completed = hasReachedListeningMastery(progress);
+    const completed = progressStatus === "ready" && hasReachedListeningMastery(progress);
+    const title = music?.title || music?.music_name || music?.musicName || page || "教材音檔";
 
     const currentPlaying =
         useSelector(
@@ -125,11 +127,8 @@ function MusicCard({
                 type="button"
                 className="music-card__play"
                 onClick={handlePlay}
-                aria-label={
-                    isPlaying
-                        ? "暫停"
-                        : "播放"
-                }
+                disabled={!audioURL}
+                aria-label={`${audioURL ? isPlaying ? "暫停" : "播放" : "音檔暫時無法播放"} ${title}`}
             >
                 <span className="music-card__play-ring" aria-hidden="true" />
                 {isPlaying ? (
@@ -140,25 +139,29 @@ function MusicCard({
                         <span />
                     </span>
                 ) : (
-                    <AiFillPlayCircle />
+                    <AiFillPlayCircle aria-hidden="true" />
                 )}
+                <span className="music-card__play-label">{isPlaying ? "暫停" : "播放"}</span>
             </button>
 
             <div className="music-card__info">
-                <span className="music-card__eyebrow">LISTENING QUEST {String(index + 1).padStart(2, "0")}</span>
-                <div className="music-card__page">
-                    {page || "Audio"}
+                <span className="music-card__eyebrow">音檔 {index + 1}</span>
+                <div className="music-card__title">
+                    {title}
                 </div>
 
                 <div className="music-card__book">
-                    {bookname || "Alan English"}
+                    {page && page !== title && <span className="music-card__page">{page}</span>}
+                    <span>{bookname || "Alan English"}</span>
                 </div>
+                {isCurrentTrack && <span className="music-card__current">{isPlaying ? "正在聆聽" : "已暫停，可繼續聽"}</span>}
+                {!audioURL && <span className="music-card__unavailable">音檔暫時無法播放</span>}
             </div>
 
             <div className="music-card__status">
                 <div className="music-card__plays">
-                    <FiHeadphones />
-                    <span><small>熟練進度</small><strong>{Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / {LISTENING_MASTERY_REQUIRED_PLAYS}</strong></span>
+                    <FiHeadphones aria-hidden="true" />
+                    <span><small>熟練進度</small><strong>{progressStatus === "ready" ? `${Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / ${LISTENING_MASTERY_REQUIRED_PLAYS}` : progressStatus === "loading" ? "讀取中" : "紀錄未載入"}</strong></span>
                 </div>
 
                 {completed && (
@@ -166,7 +169,7 @@ function MusicCard({
                         className="music-card__check"
                         title="已通過"
                     >
-                        <FiCheck />
+                        <FiCheck aria-hidden="true" />
                         <span>通過</span>
                     </div>
                 )}

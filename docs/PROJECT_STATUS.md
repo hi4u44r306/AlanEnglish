@@ -2,6 +2,16 @@
 
 最後更新：2026-10-06
 
+### 教材與聽力互動介面（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/listening-learning-ui` 承接學生導覽 checkpoint `e95e2653`；已 fetch 並合併最新 main `99d3c540` 為基準 `14ec6f7e`。保留正式品牌更新與所有先前本機批次，原主工作目錄草稿未動。
+- 聽力列表改成緊湊任務卡，完整音檔名稱／頁碼／教材、黃色播放／暫停文字按鈕、既有熟練進度及已暫停／正在聆聽狀態。音檔缺網址停用播放；不截斷題目／曲名，不更改教材順序或指定音檔 queue。
+- 桌面左清單右目前學習區，800px 以下單欄；手機說明預設收合。播放器主操作至少44px、播放鍵48px，操作名稱改中文；沿用固定位置、導覽／safe area 與頁底預留，不新增播放器。
+- 紀錄讀取失敗明示未知與重新讀取，不填零進度；既有 progress event 只增加 presentation metadata `listen_counted`，須 recordTrackPlay 明確 `counted === true` 才顯示本次有效聆聽成功。提示保留當次確認次數，可收起；下一步只定位清單或返回原作業／口說模式，不自動播放、寄送或產生獎勵。
+- 相關檔案：Playlist.jsx／test、MusicCard.jsx／test、ListeningLearningPanel.jsx、ListeningLearning.scss、MusicPlayer.jsx／visibility.test、PROJECT_LOGIC.md、網站使用手冊、網站優化.md與本文件。無 migration、API、權限、聆聽提交／計算、反掛機、字幕資格或正式設定變更。
+- 驗證：5份局部測試共33項通過（首輪32項；提示快照／老師預覽追補後只重跑Playlist的11項），focused ESLint、SCSS、3015開發編譯與diff檢查通過。不跑無關全套或 production build：本批只影響前端呈現、只讀重試與完成提示事件，核心寫入契約維持，已跑原覆蓋率／可見性／口說播放器防護測試。
+- Chrome 本機 saved permissions 仍無法驗證；未繞過限制。實際登入學生／老師畫面、412px／768px／桌面、真實播放／上下首／有效計入／字幕、R2 Range、鍵盤焦點、重疊與 iPhone Safari 尚待驗收，保持本機預覽、尚未發布。下一步於3015從「教材」選一冊查看，補畫面驗收後再安排發布。
+
 ### 學生冒險導覽一致性（2026-10-06，本機／尚未部署）
 
 - 分支 `codex/student-adventure-navigation`，沿用工作樹並承接第四批 A checkpoint `c3dc3103`；已 fetch 確認包含最新 main。原主工作目錄草稿保留。
