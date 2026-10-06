@@ -11,6 +11,7 @@
 - 驗證：2 份局部測試共 20 項通過（商城 6、設定 14），focused ESLint、實際 JSX／SCSS 隔離編譯及 diff check 通過。以 mock 驗證目標切換不兌換、讀取失敗／重試、兌換後 XP 保留及角色確認；不重跑無關全套或 production build。
 - ignored `output/growth-qa` 提供 `http://localhost:3014/student/settings`／`/student/rewards` 合成資料預覽，所有遠端讀寫被 mock 取代；不是正式資料或完整網站導航驗收。Chrome 工具目前無法確認 localhost 的 saved permissions，已請使用者恢復存取；412／768／1440px 視覺、iPhone Safari、真實兌換未驗證。待視覺驗收後發布，尚未合併／部署。
 - 相關檔案：StudentGrowthCard.jsx／scss、StudentSettings.jsx／scss／test、Rewards.jsx／test、StudentRewards.scss、網站使用手冊與網站優化.md。
+- 本機視覺追補：使用者回報獎品圖片疑似遮住描述。StudentRewards.scss 將卡片／目標圖固定在各自圖片容器內，使用 contain 完整縮放及 overflow 裁切，排除 Grid 的圖片固有尺寸撐開百分比高度。SCSS 編譯與 diff check 通過；Chrome 本機存取仍受阻，實際桌面／手機重疊需使用者本機確認。此追補尚未部署。
 
 ### 第二批口說學習循環與地圖風格大關卡列表（2026-10-06，已正式部署）
 
