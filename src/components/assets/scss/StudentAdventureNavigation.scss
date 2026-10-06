@@ -67,3 +67,14 @@
     .ae-student-drawer.is-menu .offcanvas-header { background: #eef5fc; }
     .ae-student-drawer .ae-student-more-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+// Keep this after the shared mobile theme: its padding shorthand must not
+// remove the Home Indicator clearance in home-screen web apps.
+@media (display-mode: standalone) and (max-width: 1100px) {
+    .ae-student-bottom-nav {
+        padding: 5px max(12px, calc((100vw - 560px) / 2)) var(--student-bottom-nav-offset);
+        border: 0;
+        border-top: 2px solid #c9d9ed;
+        box-shadow: 0 -8px 26px rgba(22, 47, 82, .12);
+    }
+}
