@@ -2,6 +2,54 @@
 
 最後更新：2026-10-06
 
+### 教材與聽力互動介面（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/listening-learning-ui` 承接學生導覽 checkpoint `e95e2653`；已 fetch 並合併最新 main `99d3c540` 為基準 `14ec6f7e`。保留正式品牌更新與所有先前本機批次，原主工作目錄草稿未動。
+- 聽力列表改成緊湊任務卡，完整音檔名稱／頁碼／教材、黃色播放／暫停文字按鈕、既有熟練進度及已暫停／正在聆聽狀態。音檔缺網址停用播放；不截斷題目／曲名，不更改教材順序或指定音檔 queue。
+- 桌面左清單右目前學習區，800px 以下單欄；手機說明預設收合。播放器主操作至少44px、播放鍵48px，操作名稱改中文；沿用固定位置、導覽／safe area 與頁底預留，不新增播放器。
+- 紀錄讀取失敗明示未知與重新讀取，不填零進度；既有 progress event 只增加 presentation metadata `listen_counted`，須 recordTrackPlay 明確 `counted === true` 才顯示本次有效聆聽成功。提示保留當次確認次數，可收起；下一步只定位清單或返回原作業／口說模式，不自動播放、寄送或產生獎勵。
+- 相關檔案：Playlist.jsx／test、MusicCard.jsx／test、ListeningLearningPanel.jsx、ListeningLearning.scss、MusicPlayer.jsx／visibility.test、PROJECT_LOGIC.md、網站使用手冊、網站優化.md與本文件。無 migration、API、權限、聆聽提交／計算、反掛機、字幕資格或正式設定變更。
+- 驗證：5份局部測試共33項通過（首輪32項；提示快照／老師預覽追補後只重跑Playlist的11項），focused ESLint、SCSS、3015開發編譯與diff檢查通過。不跑無關全套或 production build：本批只影響前端呈現、只讀重試與完成提示事件，核心寫入契約維持，已跑原覆蓋率／可見性／口說播放器防護測試。
+- Chrome 本機 saved permissions 仍無法驗證；未繞過限制。實際登入學生／老師畫面、412px／768px／桌面、真實播放／上下首／有效計入／字幕、R2 Range、鍵盤焦點、重疊與 iPhone Safari 尚待驗收，保持本機預覽、尚未發布。下一步於3015從「教材」選一冊查看，補畫面驗收後再安排發布。
+
+### 學生冒險導覽一致性（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/student-adventure-navigation`，沿用工作樹並承接第四批 A checkpoint `c3dc3103`；已 fetch 確認包含最新 main。原主工作目錄草稿保留。
+- 桌面四入口統一為今日學習、我的教材、口說冒險與我的角色，手機／平板維持今日、教材、冒險、我的。以原圖示系統製作有色圖示底座，主要選中狀態採黃色底＋深藍標記；不新增圖片素材。
+- 角色下拉與側邊選單整理為角色與獎勵、學習紀錄、帳號與幫助。新桌面角色下拉在路由切換後關閉；教材與冒險仍用原選擇器，原快速登出、通知、教學、客服與權限條件保留。開啟選擇器只加藍框，不改目前頁面的黃色位置標記。
+- 樣式維持原 1100px 斷點、底部寬度、播放器／浮動按鈕位移與 safe area；底部按鈕仍至少 54px，關閉選單控制44px。加強鍵盤焦點、長文字換行，桌面角色選單可垂直捲動。
+- 修改檔案：StudentNavbar.jsx、StudentAdventureNavigation.scss、MainNavbar.test.jsx、PROJECT_LOGIC.md、本狀態文件、網站使用手冊與網站優化.md。
+- 驗證：MainNavbar 局部測試 24 項通過，focused ESLint、樣式編譯、3015 開發編譯與 diff check 通過；未跑全套測試或 production build。本機 3015 預覽沿用；Chrome 再次無法驗證 localhost saved permissions，412px／平板／桌面實際外觀、真實選單鎖捲動／鍵盤焦點、播放器重疊與 iPhone Safari safe area 尚未驗證。未修改權限、API、學習寫入或正式站設定，尚未發布。
+
+### 第四批 A：家長週報摘要與 RWD（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/parent-weekly-summary`，沿用原工作樹，承接第三批與按鈕追補 checkpoint `59415061`；已 fetch 確認包含最新 main。保留原主工作目錄草稿。
+- 以本週摘要取代四張獨立數字卡，先呈現有效聆聽、口說新完成、當週／累計通關與既有 next_focus 練習方向。明示練習紀錄不等同成績；零次與缺資料分開，缺少口說欄位不再填成零題。
+- 頁首縮小高度；週次切換至少 44px，新增跳到每日圖表與文字摘要的按鈕。完整 family_message 與分享按鈕移出收合區；其他鼓勵／建議保留展開閱讀。手機摘要改為單欄，長文字自然換行；列印隱藏頁內導覽。
+- 原週次、學生篩選、圖表／日期、複製、列印、家長 Email 準備與標記流程沿用，不新增生成報告、寄信、學習或獎勵寫入。公開首頁／首次開通與客服狀態屬第四批後續子階段。
+- 修改檔案：WeeklyReport.jsx／test、WeeklyReportOverview.jsx、WeeklyReportOverview.scss、PROJECT_LOGIC.md、本狀態文件、網站使用手冊與網站優化.md。
+- 驗證：週報 7 項與圖表資料 3 項局部測試通過，focused ESLint、SCSS 編譯、3015 開發編譯與 diff check 通過。補強摘要位置、分享可見、零與缺資料、舊報告、老師學生切換及信箱缺漏；中風險前端呈現／錨點導航，不跑全套測試或 production build。Chrome 仍無法驗證 localhost saved permissions；實際學生／管理員畫面、412px、iPhone Safari、列印 PDF 與真實寄信未驗證，尚未發布。
+
+### 第一至三批操作入口辨識度追補（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/student-growth-rewards`，沿用第三批工作樹。檢查第一批今日學習、導覽、作業、首次設定、週報與會員口說入口；第二批口說總覽、地圖、題目說明、示範／提示、錄音回聽、送評／重試、題目切換；第三批角色設定、成長捷徑與獎品操作。
+- 將首頁角色／排行榜／全部作業／無教材權限入口、共用成長卡捷徑、頭像與口說練習說明展開入口、首次設定登出及導覽入口補上底色與外框；保留原有連結與原生 details 語意。補充 hover、按下與鍵盤焦點，手機成長卡捷徑單欄排列。
+- 週報工具列／口說入口、會員口說捷徑與角色確認視窗關閉鍵補足至少 44px 高度。作業開始、口說地圖／大關卡、錄音／送評與獎品兌換已有按鈕或卡片造型，維持原操作層級。不改路由、錄音、權限、資料寫入或獎勵。
+- 驗證：9 份受影響 SCSS 編譯、StudentLearningHome.jsx focused ESLint 與 diff check 通過。本批為樣式及 JSX class 調整，不重跑既有功能測試、全套測試或 production build。Chrome 再次無法驗證 localhost saved permissions，實際桌面／412px 與 iPhone Safari 未驗證；仍供本機審閱，尚未發布。
+- 本機預覽：3000 已有其他伺服器占用，保留其程序；以本工作樹執行 `npm start` 於 `http://localhost:3015/student/dashboard`，development webpack 編譯成功並保持運行。此為完整程式預覽，仍未驗證登入後渲染與真實資料流程。
+- 修改檔案：StudentLearningHome.jsx；StudentLearningHome.scss、StudentSettings.scss、SpeakingLearningJourney.scss、TextbookSpeakingChallenge.scss、WeeklyReport.scss、Platform.scss、StudentOnboarding.scss；StudentGrowthCard.scss、StudentNavbar.scss；本狀態文件、網站使用手冊與網站優化.md。
+
+### 第三批角色成長與獎品目標（2026-10-06，本機完成／待視覺驗收）
+
+- 沿用既有隔離工作樹，分支 `codex/student-growth-rewards`，基準最新 main `af0fe0d7`。本批集中「看見進步與近期目標」；原主工作目錄草稿保留。
+- StudentGrowthCard 在設定與商城共用等級、累積 XP、後端等級進度、距離下一級及可用／保留 AE Points。讀取中與讀取失敗各自顯示，失敗可重試，缺資料不顯示虛假零點數；不改獎勵計算或寫入。
+- 我的設定先呈現成長與學習角色，25 款預設頭像按需展開；保留裁切／最終確認、公開暱稱、生日、家長驗證與推播原流程。商城可切換本次獎品目標，依實際點數／價格顯示差額及進度；目標只存在本次頁面，重新開啟時選庫存中最低點數獎品。
+- 兌換繼續走既有確認與後端檢查，更新資料失敗時不能用舊資料申請；成功後重讀後端餘額及兌換紀錄。未修改正式獎品、權限、錄音回饋、API／Function 或資料表。本階段的好友／通知頁精修仍待後續安排。
+- 驗證：2 份局部測試共 20 項通過（商城 6、設定 14），focused ESLint、實際 JSX／SCSS 隔離編譯及 diff check 通過。以 mock 驗證目標切換不兌換、讀取失敗／重試、兌換後 XP 保留及角色確認；不重跑無關全套或 production build。
+- ignored `output/growth-qa` 提供 `http://localhost:3014/student/settings`／`/student/rewards` 合成資料預覽，所有遠端讀寫被 mock 取代；不是正式資料或完整網站導航驗收。Chrome 工具目前無法確認 localhost 的 saved permissions，已請使用者恢復存取；412／768／1440px 視覺、iPhone Safari、真實兌換未驗證。待視覺驗收後發布，尚未合併／部署。
+- 相關檔案：StudentGrowthCard.jsx／scss、StudentSettings.jsx／scss／test、Rewards.jsx／test、StudentRewards.scss、網站使用手冊與網站優化.md。
+- 本機視覺追補：使用者回報獎品圖片疑似遮住描述。StudentRewards.scss 將卡片／目標圖固定在各自圖片容器內，使用 contain 完整縮放及 overflow 裁切，排除 Grid 的圖片固有尺寸撐開百分比高度。SCSS 編譯與 diff check 通過；Chrome 本機存取仍受阻，實際桌面／手機重疊需使用者本機確認。此追補尚未部署。
+
 ### 彩色圓潤字標 01（2026-10-06，已正式部署）
 
 - 從 main `af0fe0d` 建立 `codex/rounded-rainbow-wordmark`，依使用者核准的 01 範本描繪透明 SVG；共用 Brand 與登入頁桌面／手機統一字形及配色，手機側選單保留既有 AE 縮寫。僅調整字標，頁面配置、登入與導覽行為不變；原工作目錄其他草稿未納入。

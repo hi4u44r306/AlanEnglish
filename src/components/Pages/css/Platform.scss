@@ -158,6 +158,10 @@
 .membership-active-addon-actions button,
 .membership-active-addon-actions > span { min-height: 36px; padding: 8px 11px; border: 1px solid rgba(255,255,255,.2); border-radius: 10px; color: #fff; background: rgba(255,255,255,.09); font: inherit; font-size: 11px; font-weight: 850; text-decoration: none; }
 .membership-active-addon-actions > span { display: inline-flex; align-items: center; opacity: .78; }
+.membership-active-addon-actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border-color: #f2d57d; background: #ffdf78; color: #17365d; font-size: 14px; text-align: center; }
+.membership-active-addon-actions a:hover { background: #ffd45a; }
+.membership-active-addon-actions a:active { background: #f7c94c; }
+.membership-active-addon-actions a:focus-visible { outline: 3px solid #ffdf78; outline-offset: 3px; }
 .membership-active-addon-actions button { cursor: pointer; }
 .membership-compact-card { padding-top: 20px; padding-bottom: 20px; }
 .membership-compact-card .platform-section-title { margin-bottom: 13px; }

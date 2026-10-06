@@ -54,7 +54,17 @@
     img, .ae-student-avatar-image { width: 100%; height: 100%; }
 }
 .learning-home__xp { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 24px 0 8px; strong { font-size: 25px; } span { font-size: 13px; color: #526780; } }
-.learning-home__growth-links { display: flex; gap: 18px; margin-top: 18px; a { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--learning-blue); } }
+.learning-home__growth-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; a { flex: 1 1 90px; } }
+.learning-home .learning-home__growth-links a,
+.learning-home .learning-home__section-heading > a,
+.learning-home a.learning-home__secondary,
+.learning-home .learning-home__empty > a {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; max-width: 100%; padding: 10px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: var(--learning-blue); background: #eef5fc; box-shadow: 0 2px 0 #c9d9ed; font-weight: 800; text-decoration: none; text-align: center; overflow-wrap: anywhere;
+    &:hover { border-color: var(--learning-blue); background: #e1ecfb; }
+    &:active { box-shadow: none; }
+    svg { flex-shrink: 0; }
+}
+.learning-home a.learning-home__secondary { margin-top: 16px; }
 .learning-home__paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 30px 0 36px;
     > a { display: flex; align-items: center; gap: 12px; padding: 18px; border-radius: 18px; background: #fff; border: 1px solid #d5e3f0; }
     > a > span:nth-child(2) { flex: 1; min-width: 0; }
@@ -93,7 +103,9 @@
     small { color: #526780; } strong { font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; } > span { font-size: 14px; color: var(--learning-blue); margin-top: 5px; }
 }
 .learning-home__notice, .learning-home__empty { padding: 22px; background: #fff; border: 1px dashed #adbed1; border-radius: 16px; color: #49617d;
-    button { display: inline-flex; min-height: 44px; padding: 8px 14px; background: #e4efff; border: 0; border-radius: 9px; color: #17365d; margin: 8px; }
+    button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 8px 14px; background: #e4efff; border: 1px solid #adc5e3; border-radius: 12px; color: #17365d; margin: 8px 0; font-weight: 800; box-shadow: 0 2px 0 #c9d9ed; }
+    button:hover { border-color: #245fc5; background: #d8e7fb; }
+    button:active { box-shadow: none; }
     a { display: inline-flex; min-height: 44px; align-items: center; text-decoration: underline; }
 }
 .learning-home__closing { text-align: center; margin: 40px 0 0 !important; color: #526780; }

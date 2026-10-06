@@ -766,8 +766,8 @@ function MusicPlayer({
                     new CustomEvent(
                         "ae:track-progress-updated",
                         {
-                            detail:
-                                progress
+                            // Presentation metadata only; the server still owns counting.
+                            detail: { ...progress, listen_counted: result?.counted === true }
                         }
                     )
                 );
@@ -1336,6 +1336,7 @@ function MusicPlayer({
                 }
                 showSkipControls={true}
                 showJumpControls={false}
+                i18nAriaLabels={{ player: "教材音檔播放器", progressControl: "音檔播放進度", volumeControl: "音量", play: "播放", pause: "暫停", previous: "上一首", next: "下一首", rewind: "倒退", forward: "快轉", loop: "關閉重複播放", loopOff: "開啟重複播放", volume: "靜音", volumeMute: "取消靜音" }}
                 onClickNext={
                     handleClickNext
                 }

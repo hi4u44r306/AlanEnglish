@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FiBell, FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiStar, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { FiBell, FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { cacheStudentAvatarDisplayUrl, updateStudentAvatarCache } from "../../constants/studentAvatarCache";
@@ -18,9 +19,9 @@ import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { validatePublicNickname } from "../../utils/nicknameValidation";
 import BirthdaySelect from "../fragment/BirthdaySelect";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
+import StudentGrowthCard from "../fragment/StudentGrowthCard";
 import "./css/StudentSettings.scss";
 
-const number = value => Number(value || 0).toLocaleString("zh-TW");
 const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
 const AVATAR_CROP_SIZE = 280;
 const NICKNAME_CHANGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
@@ -89,6 +90,8 @@ function StudentSettings() {
     const { firebaseUser, studentProfile, setStudentProfile, refreshStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
     const [summary, setSummary] = useState(null);
+    const [summaryLoading, setSummaryLoading] = useState(true);
+    const [summaryError, setSummaryError] = useState(false);
     const [commerce, setCommerce] = useState(null);
     const [nicknameSettings, setNicknameSettings] = useState({ profile: null, nickname_history: [] });
     const [nicknameDraft, setNicknameDraft] = useState(studentProfile?.nickname || "");
@@ -116,12 +119,14 @@ function StudentSettings() {
 
     const load = useCallback(async () => {
         if (!firebaseUser) return;
+        setSummaryLoading(true);
         try {
             const [summaryResult, commerceResult, nicknameResult] = await Promise.allSettled([
                 getGamificationSummary(firebaseUser),
                 loadStudentCommerceProfile(firebaseUser),
                 getNicknameSettings(firebaseUser)
             ]);
+            setSummaryError(summaryResult.status === "rejected" || !summaryResult.value?.balance);
             if (summaryResult.status === "fulfilled") {
                 const summary = summaryResult.value || null;
                 cacheStudentAvatarDisplayUrl(summary?.profile?.avatar_url, {
@@ -142,6 +147,8 @@ function StudentSettings() {
             if (summaryResult.status === "rejected" && commerceResult.status === "rejected" && nicknameResult.status === "rejected") throw summaryResult.reason;
         } catch (error) {
             toast.error(error.message || "設定資料讀取失敗");
+        } finally {
+            setSummaryLoading(false);
         }
     }, [firebaseUser, studentProfile?.nickname, studentProfile?.user_image, studentProfile?.userimage]);
 
@@ -487,7 +494,6 @@ function StudentSettings() {
     const currentGuardian = commerce?.guardian || profile?.guardian || null;
     const guardianVerified = Boolean(currentGuardian?.email && currentGuardian?.email_verified_at);
     const publicDisplayName = nicknameSettings.profile?.nickname || profile.nickname || profile.chinese_name || profile.name || "學生";
-    const balance = summary?.balance || {};
     const avatarUrl = useCachedStudentAvatarUrl(summary?.profile?.avatar_url || studentProfile?.avatar_url, {
         ownerUid: firebaseUser?.uid,
         sourceKey: studentProfile?.user_image || studentProfile?.userimage
@@ -539,20 +545,15 @@ function StudentSettings() {
     return (
         <main className="student-settings-page">
             <section className="student-settings-hero">
-                <span><FiUser /> MY SETTINGS</span>
                 <h1>我的設定</h1>
+                <p>看看自己的成長，選一個陪你學習的角色。</p>
             </section>
 
-            <section className="student-settings-push-panel" aria-labelledby="student-settings-push-heading">
-                <div>
-                    <h2 id="student-settings-push-heading"><FiBell /> 手機推播通知</h2>
-                    <p>登入時選擇「稍後再說」也能在這裡開啟。新班級作業與教材期限提醒會送到此裝置；晚上 9 點至早上 8 點不發送，每裝置每日最多三則。</p>
-                    <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟推播" : "此裝置尚未開啟推播")}</small>
-                </div>
-                <button type="button" onClick={togglePush} disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
-                    {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
-                </button>
-            </section>
+            <StudentGrowthCard balance={summary?.balance} loading={summaryLoading} error={summaryError} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
+                <Link to="/student/dashboard">繼續今日學習</Link>
+                <Link to="/student/weekly-report">看看本週進步</Link>
+                {profile.learner_type === "academy_student" && isActiveAcademyStudent && <Link to="/student/rewards">挑選獎品目標</Link>}
+            </StudentGrowthCard>
 
             <section className="student-settings-profile-card">
                 <div className="student-settings-avatar-wrap">
@@ -563,7 +564,7 @@ function StudentSettings() {
                     <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarChange} />
                 </div>
                 <div className="student-settings-profile-copy">
-                    <span>學生基本資料</span>
+                    <span>我的學習角色</span>
                     <div className="student-settings-profile-heading">
                         <h2>{publicDisplayName}</h2>
                         <span
@@ -608,8 +609,8 @@ function StudentSettings() {
                         </small>
                     </form>
                 </div>
-                <div className="student-settings-avatar-presets">
-                    <div><strong>選擇預設頭像</strong><span>不想使用自己的照片時，可以隨時換回下列角色。</span></div>
+                <details className="student-settings-avatar-presets">
+                    <summary>選擇預設頭像<span>換個角色陪我學習</span></summary>
                     <div className="student-settings-avatar-preset-grid">
                         {DEFAULT_STUDENT_AVATARS.map(avatar => (
                             <button key={avatar.id} type="button" onClick={() => reviewPresetAvatar(avatar)} disabled={uploading} aria-pressed={avatarUrl === avatar.path} aria-label={`使用${avatar.name}頭像`}>
@@ -618,7 +619,18 @@ function StudentSettings() {
                             </button>
                         ))}
                     </div>
+                </details>
+            </section>
+
+            <section className="student-settings-push-panel" aria-labelledby="student-settings-push-heading">
+                <div>
+                    <h2 id="student-settings-push-heading"><FiBell /> 手機推播通知</h2>
+                    <p>登入時選擇「稍後再說」也能在這裡開啟。新班級作業與教材期限提醒會送到此裝置；晚上 9 點至早上 8 點不發送，每裝置每日最多三則。</p>
+                    <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟推播" : "此裝置尚未開啟推播")}</small>
                 </div>
+                <button type="button" onClick={togglePush} disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
+                    {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
+                </button>
             </section>
 
             {
@@ -709,13 +721,13 @@ function StudentSettings() {
 
             <section className="student-settings-grid">
                 <article className="student-settings-panel">
-                    <header><FiStar /><div><span>LEARNING HONORS</span><h2>學習榮譽</h2></div></header>
-                    <div className="student-settings-stats">
-                        <div><span>目前等級</span><strong>Lv.{balance.level || 1}</strong></div>
-                        <div><span>總 XP</span><strong>{number(balance.total_xp)} XP</strong></div>
-                        <div><span>AE Points</span><strong>{number(balance.points_balance)} P</strong></div>
+                    <header><FiUser /><div><h2>學習與成長</h2></div></header>
+                    <div className="student-settings-learning-links">
+                        <Link to="/student/leaderboard">查看學習排行榜</Link>
+                        <Link to="/student/friends">我的好友</Link>
+                        <Link to="/student/membership">查看會員與功能</Link>
                     </div>
-                    <p>完成學習任務、作業與挑戰可累積 XP 和 AE Points。</p>
+                    <p>XP 記錄你的學習成長；有效在校生可累積 AE Points，兌換獎品。</p>
                 </article>
 
                 <article className="student-settings-panel">

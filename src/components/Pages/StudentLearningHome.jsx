@@ -80,7 +80,7 @@ function StudentLearningHome() {
     const heroPath = nextTask ? taskPath(nextTask) : books[0] ? bookPath(books[0]) : null;
     const refresh = () => setRevision(value => value + 1);
 
-    if (!active) return <main className="learning-home"><h1>今日學習</h1><p>先確認目前可使用的教材與功能。</p><Link to="/student/membership">查看會員與功能</Link></main>;
+    if (!active) return <main className="learning-home"><h1>今日學習</h1><p>先確認目前可使用的教材與功能。</p><Link className="learning-home__secondary" to="/student/membership">查看會員與功能</Link></main>;
 
     return <main className="learning-home">
         <div className="learning-home__shell">

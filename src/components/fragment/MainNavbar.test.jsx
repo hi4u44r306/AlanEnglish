@@ -81,7 +81,7 @@ describe("MainNavbar student navigation", () => {
     it("keeps only the child-friendly primary destinations in the student navbar", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        const leaderboardLinks = screen.getAllByRole("link", { name: "今日" });
+        const leaderboardLinks = screen.getAllByRole("link", { name: /^(今日|今日學習)$/ });
         expect(leaderboardLinks).toHaveLength(2);
         leaderboardLinks.forEach(link => expect(link).toHaveAttribute("href", "/student/dashboard"));
         expect(screen.queryByRole("link", { name: "方案與功能" })).not.toBeInTheDocument();
@@ -90,8 +90,9 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
-        expect(screen.getAllByRole("button", { name: "冒險" })).toHaveLength(2);
-        expect(screen.getByRole("button", { name: "學習功能" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "冒險" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "口說冒險" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "我的角色" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "前往帳號" })).toHaveAttribute("href", "/student/settings");
         expect(screen.getByRole("link", { name: "我的" })).toHaveAttribute("href", "/student/settings");
@@ -110,10 +111,48 @@ describe("MainNavbar student navigation", () => {
         expect(within(mobileMenu).getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
-        expect(within(mobileMenu).getByRole("link", { name: "帳號" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "我的角色" })).toBeInTheDocument();
         expect(within(mobileMenu).queryByRole("link", { name: "實體教材商城" })).not.toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
+    });
+
+    it("groups desktop destinations and closes the role menu after client-side navigation", async () => {
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /><LocationProbe /></MemoryRouter>);
+        const desktop = screen.getByRole("navigation", { name: "學生桌面導覽" });
+        const roleMenu = within(desktop).getByRole("button", { name: "我的角色" });
+        fireEvent.click(roleMenu);
+        expect(roleMenu).toHaveAttribute("aria-expanded", "true");
+        expect(within(desktop).getByText("角色與獎勵")).toBeInTheDocument();
+        expect(within(desktop).getByText("學習紀錄")).toBeInTheDocument();
+        expect(within(desktop).getByText("帳號與幫助")).toBeInTheDocument();
+        fireEvent.click(within(desktop).getByRole("link", { name: "我的角色" }));
+        expect(screen.getByLabelText("目前路徑")).toHaveTextContent("/student/settings");
+        expect(roleMenu).toHaveAttribute("aria-expanded", "false");
+        expect(within(screen.getByRole("navigation", { name: "學生主要導覽" })).getByRole("link", { name: "我的" })).toHaveClass("active");
+    });
+
+    it("keeps the current page selected while a different mobile chooser is open", async () => {
+        getAccessibleCatalog.mockResolvedValue({ categories: [{ id: "books", name: "習作本", books: [{ id: "wb1", name: "Workbook 1", code: "Workbook1" }] }] });
+        render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
+        const bottom = screen.getByRole("navigation", { name: "學生主要導覽" });
+        const materials = await within(bottom).findByRole("button", { name: "教材" });
+        fireEvent.click(materials);
+        expect(materials).toHaveAttribute("aria-expanded", "true");
+        expect(materials).toHaveAttribute("aria-controls", "student-navigation-drawer");
+        expect(materials).toHaveClass("is-open");
+        expect(materials).not.toHaveClass("active");
+        expect(within(bottom).getByRole("link", { name: "今日" })).toHaveAttribute("aria-current", "page");
+        fireEvent.click(within(bottom).getByRole("button", { name: "冒險" }));
+        expect(materials).toHaveAttribute("aria-expanded", "false");
+        expect(mockOffcanvasRender).toHaveBeenLastCalledWith({ show: true, placement: "bottom" });
+    });
+
+    it("selects the role section on reward and report pages", () => {
+        render(<MemoryRouter initialEntries={["/student/weekly-report"]}><MainNavbar /></MemoryRouter>);
+        const bottom = screen.getByRole("navigation", { name: "學生主要導覽" });
+        expect(within(bottom).getByRole("link", { name: "我的" })).toHaveClass("active");
+        expect(within(bottom).getByRole("link", { name: "今日" })).not.toHaveClass("active");
     });
 
     it("keeps a direct desktop logout action while mobile logout remains in the offcanvas menu", async () => {
@@ -388,7 +427,7 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
 
-        expect(await screen.findAllByText("學習功能")).not.toHaveLength(0);
+        expect(await screen.findByRole("link", { name: "我的角色" })).toHaveAttribute("href", "/student/settings");
         expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });
@@ -572,6 +611,6 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         expect(screen.getAllByRole("link", { name: "會員與功能" }).every(link => link.classList.contains("active"))).toBe(true);
-        expect(screen.getAllByRole("link", { name: "今日" }).every(link => !link.classList.contains("active"))).toBe(true);
+        expect(screen.getAllByRole("link", { name: /^(今日|今日學習)$/ }).every(link => !link.classList.contains("active"))).toBe(true);
     });
 });

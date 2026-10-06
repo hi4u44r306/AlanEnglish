@@ -2,7 +2,7 @@ import React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import MusicPlayer from "./MusicPlayer";
-import { startListeningSession } from "../../services/listeningService";
+import { startListeningSession, recordTrackPlay } from "../../services/listeningService";
 
 const mockDispatch = jest.fn();
 jest.mock("react-redux", () => ({ useDispatch: () => mockDispatch }));
@@ -135,4 +135,33 @@ test("進入口說挑戰時保留曲目但立即暫停", async () => {
     expect(audio.paused).toBe(true);
     expect(audio).toHaveAttribute("data-autoplay", "false");
     expect(audio).toHaveAttribute("data-autoplay-after-src-change", "false");
+});
+
+test.each([true, false, undefined])("完成提示旗標只依後端 counted，值為 %s", async counted => {
+    recordTrackPlay.mockResolvedValueOnce({ counted, progress: { track_id: 1, play_count: 7 } });
+    const listener = jest.fn();
+    window.addEventListener("ae:track-progress-updated", listener);
+    try {
+        const { audio } = await begin();
+        await act(async () => fireEvent.ended(audio));
+        expect(recordTrackPlay).toHaveBeenCalledTimes(1);
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(listener.mock.calls[0][0].detail).toEqual({ track_id: 1, play_count: 7, listen_counted: counted === true });
+    } finally {
+        window.removeEventListener("ae:track-progress-updated", listener);
+    }
+});
+
+test("儲存失敗不發出完成紀錄事件", async () => {
+    recordTrackPlay.mockRejectedValueOnce(new Error("save unavailable"));
+    const listener = jest.fn();
+    window.addEventListener("ae:track-progress-updated", listener);
+    try {
+        const { audio } = await begin();
+        await act(async () => fireEvent.ended(audio));
+        expect(recordTrackPlay).toHaveBeenCalledTimes(1);
+        expect(listener).not.toHaveBeenCalled();
+    } finally {
+        window.removeEventListener("ae:track-progress-updated", listener);
+    }
 });

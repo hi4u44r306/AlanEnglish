@@ -1,13 +1,13 @@
 .student-settings-page {
     width: min(1080px, calc(100% - 32px));
     margin: 0 auto;
-    padding: 34px 0 76px;
+    padding: 34px 0 calc(100px + env(safe-area-inset-bottom));
     color: #19243a;
 }
 
 .student-settings-hero {
     margin-bottom: 22px;
-    padding: clamp(24px, 4vw, 38px);
+    padding: 24px;
     border-radius: 28px;
     color: #fff;
     background: radial-gradient(circle at 88% 18%, rgba(255, 215, 99, .28), transparent 31%), linear-gradient(135deg, #112a5b, #203f84 62%, #2c3175);
@@ -15,7 +15,7 @@
 
     > span,
     header > span { display: inline-flex; align-items: center; gap: 7px; color: #ffd965; font-size: 12px; font-weight: 900; letter-spacing: .11em; }
-    h1 { margin: 8px 0 10px; font-size: clamp(30px, 5vw, 47px); font-weight: 950; letter-spacing: -.045em; }
+    h1 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 34px); font-weight: 950; letter-spacing: -.045em; }
     p { max-width: 680px; margin: 0; color: #d9e3ff; line-height: 1.75; }
 }
 
@@ -63,9 +63,19 @@
 .student-settings-avatar-wrap { position: relative; width: 200px; height: 200px; }
 .student-settings-avatar { width: 200px; height: 200px; display: grid; place-items: center; border: 4px solid #fff; border-radius: 38px; object-fit: cover; box-shadow: 0 10px 25px rgba(31, 50, 94, .18); }
 .student-settings-avatar.fallback { background: linear-gradient(145deg, #ffdb76, #ffaf4f); color: #503303; font-size: 31px; font-weight: 950; }
-.student-settings-avatar-button { position: absolute; right: -7px; bottom: -7px; width: 36px; height: 36px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; color: #fff; background: #1d3771; box-shadow: 0 5px 13px rgba(16, 30, 64, .23); cursor: pointer; }
+.student-settings-avatar-button { position: absolute; right: -7px; bottom: -7px; width: 44px; height: 44px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; color: #fff; background: #1d3771; box-shadow: 0 5px 13px rgba(16, 30, 64, .23); cursor: pointer; }
 .student-settings-avatar-button:disabled { cursor: wait; opacity: .65; }
-.student-settings-avatar-presets { grid-column: 1 / -1; display: grid; gap: 13px; width: 100%; min-width: 0; padding-top: 18px; border-top: 1px solid #e8edf5; }
+.student-settings-avatar-presets { grid-column: 1 / -1; width: 100%; min-width: 0; padding-top: 10px; border-top: 1px solid #e8edf5; }
+.student-settings-avatar-presets > summary { box-sizing: border-box; min-height: 44px; padding: 12px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: #245fc5; background: #eef5fc; box-shadow: 0 2px 0 #c9d9ed; font-size: 16px; font-weight: 850; cursor: pointer; }
+.student-settings-avatar-presets > summary > span { margin-left: 12px; color: #526580; font-size: 13px; font-weight: 600; }
+.student-settings-avatar-presets[open] > summary { margin-bottom: 12px; border-color: #d8b747; background: #fff6d7; box-shadow: none; }
+.student-settings-avatar-presets > summary:hover { border-color: #245fc5; }
+.student-settings-avatar-presets > summary:active { box-shadow: none; }
+.student-settings-avatar-presets > summary:focus-visible, .student-settings-learning-links a:focus-visible { outline: 3px solid #245fc5; outline-offset: 4px; }
+.student-settings-learning-links { display: grid; gap: 8px; margin-bottom: 14px; }
+.student-settings-learning-links a { box-sizing: border-box; display: flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: #245fc5; background: #eef5fc; box-shadow: 0 2px 0 #c9d9ed; font-weight: 800; text-decoration: none; }
+.student-settings-learning-links a:hover { border-color: #245fc5; background: #e1ecfb; }
+.student-settings-learning-links a:active { box-shadow: none; }
 .student-settings-avatar-presets > div:first-child { display: grid; gap: 3px; }
 .student-settings-avatar-presets > div:first-child strong { color: #243754; font-size: 14px; }
 .student-settings-avatar-presets > div:first-child span { color: #74819a; font-size: 12px; }
@@ -80,7 +90,7 @@
 .student-avatar-editor > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 9px; }
 .student-avatar-editor header span { color: #71809a; font-size: 10px; font-weight: 900; letter-spacing: .11em; }
 .student-avatar-editor h2 { margin: 4px 0 0; font-size: 24px; font-weight: 950; }
-.student-avatar-editor header button { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #dfe5ef; border-radius: 12px; color: #54627a; background: #fff; cursor: pointer; }
+.student-avatar-editor header button { flex: 0 0 44px; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid #adc5e3; border-radius: 12px; color: #245fc5; background: #eef5fc; cursor: pointer; }
 .student-avatar-editor > p { margin: 0 0 17px; color: #6a7790; font-size: 13px; line-height: 1.65; }
 .student-avatar-crop-canvas { position: relative; width: 280px; height: 280px; margin: 0 auto; overflow: hidden; border-radius: 20px; background: repeating-conic-gradient(#e7ebf2 0% 25%, #f7f8fb 0% 50%) 50% / 24px 24px; box-shadow: inset 0 0 0 1px #d9e0eb, 0 13px 30px rgba(36, 54, 91, .16); touch-action: none; overscroll-behavior: contain; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .student-avatar-crop-canvas:active { cursor: grabbing; }

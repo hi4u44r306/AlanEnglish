@@ -1,5 +1,6 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render as renderView, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import StudentSettings from "./StudentSettings";
 import { useAuth } from "../../auth/AuthContext";
@@ -12,6 +13,8 @@ import {
 import { loadStudentCommerceProfile } from "../../services/commerceService";
 import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
 import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
+
+const render = element => renderView(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{element}</MemoryRouter>);
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({
@@ -68,7 +71,7 @@ describe("StudentSettings", () => {
         });
         getGamificationSummary.mockResolvedValue({
             profile: { avatar_url: null },
-            balance: { level: 3, total_xp: 390, points_balance: 21 }
+            balance: { level: 3, total_xp: 390, points_balance: 21, next_level_xp: 600, progress_percent: 30 }
         });
         loadStudentCommerceProfile.mockResolvedValue({
             profile: {
@@ -117,12 +120,27 @@ describe("StudentSettings", () => {
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
+        expect(screen.getByRole("progressbar", { name: "目前等級成長進度" })).toHaveAttribute("value", "30");
+        expect(screen.getByText("210 XP")).toBeInTheDocument();
         expect(screen.getByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByText("英文班方案已包含")).toBeInTheDocument();
 
         expect(screen.getByText("2015-05-12")).toBeInTheDocument();
         expect(screen.getByText("已鎖定")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "確認並保存生日" })).not.toBeInTheDocument();
+    });
+
+    it("keeps profile settings usable when growth fails and retries without inventing zero points", async () => {
+        getGamificationSummary.mockRejectedValueOnce(new Error("讀取失敗")).mockResolvedValueOnce({
+            balance: { level: 3, total_xp: 390, points_balance: 21, next_level_xp: 600, progress_percent: 30 }
+        });
+        render(<StudentSettings />);
+        const retry = await screen.findByRole("button", { name: "重新讀取成長" });
+        expect(screen.queryByText("0 P")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "更換學生頭像" })).toBeEnabled();
+        fireEvent.click(retry);
+        expect(await screen.findByText("390 XP")).toBeInTheDocument();
+        expect(screen.getByText("21 P")).toBeInTheDocument();
     });
 
     it("allows a missing birthday to be set exactly once", async () => {
@@ -213,7 +231,7 @@ describe("StudentSettings", () => {
         render(<StudentSettings />);
 
         const nicknameInput = await screen.findByLabelText("公開暱稱");
-        expect(nicknameInput).toHaveValue("Brave Owl");
+        await waitFor(() => expect(nicknameInput).toHaveValue("Brave Owl"));
         expect(nicknameInput).toBeDisabled();
         expect(screen.getByRole("button", { name: "暫時無法改名" })).toBeDisabled();
         expect(screen.getByText(/距離下次修改還有/)).toHaveTextContent(/2 天 3 小時/);
@@ -365,6 +383,7 @@ describe("StudentSettings", () => {
     it("requires final confirmation before applying one of twenty-five preset avatars", async () => {
         render(<StudentSettings />);
         await screen.findByRole("heading", { name: "我的設定" });
+        fireEvent.click(screen.getByText("選擇預設頭像"));
 
         expect(screen.getAllByRole("button", { name: /使用.+頭像/ })).toHaveLength(25);
         expect(screen.getByRole("button", { name: "使用好奇科學家頭像" })).toBeInTheDocument();

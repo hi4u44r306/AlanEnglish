@@ -17,9 +17,11 @@
 
 .speaking-practice-instructions {
   min-width: 0;
-  border-bottom: 1px solid #d9e4ef;
   color: #17345e;
-  summary { min-height: 44px; padding: 10px 4px; cursor: pointer; font-size: 14px; font-weight: 700; }
+  summary { box-sizing: border-box; min-height: 44px; padding: 12px 14px; border: 1px solid #9cb7d3; border-radius: 12px; background: #edf5ff; color: #244c86; box-shadow: 0 2px 0 #c9d9ed; cursor: pointer; font-size: 14px; font-weight: 800; }
+  summary:hover { border-color: #245fc5; background: #e1ecfb; }
+  summary:active { box-shadow: none; }
+  &[open] > summary { margin-bottom: 10px; border-color: #d8b747; background: #fff6d7; box-shadow: none; }
   summary:focus-visible { outline: 3px solid #315bc8; outline-offset: 2px; }
   .speaking-direct-prompt { margin-bottom: 10px; }
 }

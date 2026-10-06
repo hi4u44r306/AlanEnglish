@@ -2921,7 +2921,10 @@
   border: 1px solid #d4e1ef;
   border-radius: 16px;
   background: #fff;
-  > summary { min-height: 48px; padding: 12px 18px; cursor: pointer; color: #17365d; font-weight: 750; }
+  > summary { min-height: 48px; padding: 12px 18px; border-radius: 15px; background: #edf5ff; box-shadow: 0 2px 0 #c9d9ed; cursor: pointer; color: #2459a2; font-weight: 800; }
+  > summary:hover { background: #e1ecfb; }
+  > summary:active { box-shadow: none; }
+  &[open] > summary { border-radius: 15px 15px 0 0; background: #fff6d7; box-shadow: none; }
   > summary:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; }
   &[open] { padding-bottom: 12px; }
 }
