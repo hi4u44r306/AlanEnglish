@@ -1,58 +1,25 @@
 .brand {
   display: flex;
+  align-items: center;
+  width: 10em;
+  max-width: 100%;
+  flex-shrink: 1;
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
   font-size: 25px;
-  font-family: "Nunito", sans-serif;
-  font-weight: 900;
-  letter-spacing: 1.5px;
-  cursor: pointer;
 }
 
-.brand span {
-  transition: 0.2s linear;
+.brand .brand-wordmark,
+.brand .brand-wordmark-compact {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.brand span:nth-child(1) {
-  color: red;
-}
-.brand span:nth-child(2) {
-  color: #f45d01;
-  margin-right: 2px;
-}
-.brand span:nth-child(3) {
-  color: #eeb902;
-  margin-right: 2px;
-}
-.brand span:nth-child(4) {
-  color: #04cc0b;
-  margin-right: 2px;
-}
-.brand span:nth-child(5) {
-  display: space;
-}
-.brand span:nth-child(6) {
-  color: #2d7dd2;
-}
-.brand span:nth-child(7) {
-  color: #4062bb;
-}
-.brand span:nth-child(8) {
-  color: #52489c;
-}
-.brand span:nth-child(9) {
-  color: red;
-}
-.brand span:nth-child(10) {
-  color: #f45d01;
-}
-.brand span:nth-child(11) {
-  color: #eeb902;
-}
-.brand span:nth-child(12) {
-  color: #4062bb;
+.brand .brand-wordmark-compact {
+  display: none;
 }
 
 @media only screen and (max-width: 1210px) {
@@ -88,7 +55,7 @@
 
 .ae-mobile-brand .brand {
   display: block;
-  width: auto;
+  width: 2.2em;
   max-width: 100%;
   font-size: 20px !important;
   line-height: 1;
@@ -96,23 +63,19 @@
   white-space: nowrap;
 }
 
-.ae-mobile-brand .brand > div {
+.ae-mobile-brand .brand .brand-wordmark {
+  display: none;
+}
+
+/* Reserve room for the existing login and menu controls on narrow headers. */
+@media only screen and (max-width: 575px) {
+  .brand {
+    width: min(10em, calc(100vw - 176px));
+  }
+}
+
+.ae-mobile-brand .brand .brand-wordmark-compact {
   display: block;
-  white-space: nowrap;
-}
-
-.ae-mobile-brand .brand span {
-  display: none !important;
-  margin: 0 !important;
-}
-
-.ae-mobile-brand .brand span:nth-child(1),
-.ae-mobile-brand .brand span:nth-child(6) {
-  display: inline !important;
-}
-
-.ae-mobile-brand .brand span:nth-child(1) {
-  margin-right: 5px !important;
 }
 
 .ae-mobile-offcanvas .offcanvas-header {
