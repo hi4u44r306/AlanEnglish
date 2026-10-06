@@ -2,7 +2,12 @@
 
 最後更新：2026-10-06
 
-六冊整幅寬景正式發布準備（2026-10-06）：
+六冊整幅寬景正式發布完成（2026-10-06）：
+
+- 最終正式應用版本 a8f531ac（PR #417），Cloudflare build 931de7c3-aa4e-447e-902b-c2ce6bebf188 於01:48:13 UTC成功。PR #416主發布與#417驗收hotfix均已合併main；只有兩次有程式修改的production build。
+- 登入學生正式站六冊在412px／1440px驗證：實際關卡數25／35／36／30／35／33，近視野素材皆1536×1024且無破圖、橫向溢出；手機實際內容404px、整圖1212px，比例精確1:3；第一關底部約735px、固定目標卡頂部747px，不再重疊。桌面中央500px、整圖1500px。
+- 學生目前目標可開啟正式關卡摘要並關閉；未啟動錄音／送評／通關，未修改學習資料。證據output/segmented-map/production-mobile-final.json、production-desktop-final.json及production-book6-412.png。本批78項整合／元件／路線測試與hotfix 15項路線測試、focused lint、diff檢查完成；未跑無關全套，正式build由Cloudflare完成。
+- 正式網址 https://alanenglish.com.tw/student/speaking-challenges 。使用者下一步在iPhone Safari實機檢視畫質；圖片仍非原生4K。下方「待部署」為此前發布準備過程，本批目前無未部署應用程式變更。
 
 - PR #416 已合併為 0b7dbfff；Cloudflare build d22084ee-1449-480b-ac39-56786b400af7 於01:36 UTC成功。學生正式目錄六冊可讀，Workbook 1已載入新版1536×1024素材及25個真實關卡，目標摘要可開啟。
 - 正式412px頁面存在8px捲軸，容器404px但背景以300vw計算為1236px，產生小幅定位偏差；本機fixture未出現此捲軸。hotfix改為依父容器300%計算；起點沿原路移到y680的安全位置，留下320世界單位底部空間，避免固定目標卡遮住第一關。正式問題優先修正，尚待第二次部署驗收。
