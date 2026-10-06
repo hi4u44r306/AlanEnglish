@@ -196,6 +196,7 @@ before(async () => {
     await db.exec(read("supabase/migrations/20260914000000_speaking_alphabet_intro_progress.sql"));
     await db.exec(read("supabase/migrations/20260918063338_speaking_challenge_daily_sessions.sql"));
     await db.exec(read("supabase/migrations/20261006150733_speaking_local_completeness.sql"));
+    await db.exec(read("supabase/migrations/20261006154419_speaking_ten_daily_rounds.sql"));
 });
 
 after(() => db.close());
@@ -528,15 +529,19 @@ test("本機完整度保存 null 發音維度且標記來源；A–Z 仍按 clai
     const saved = await scalar("select assessment_kind,pronunciation_score,completeness_score from public.speaking_pronunciation_attempts where id=$1",[result.attempt_id]);
     assert.equal(saved.assessment_kind,"local_completeness_v1"); assert.equal(saved.pronunciation_score,null); assert.equal(Number(saved.completeness_score),100);
 });
-test("本機請求保持每日五輪、同輪只算一次，公開角色不能讀寫", async () => {
+test("本機請求每天十輪、第十一輪拒絕，同輪只算一次，公開角色不能讀寫", async () => {
     await db.exec("insert into public.students(id) values (92)");
     const reserve = async session => (await scalar("select public.reserve_speaking_local_request_v1(92,10,1001,'alphabet_round',$1::uuid) result",[session])).result;
     const first = "00000000-0000-4000-8000-000000000001";
     assert.equal((await reserve(first)).challenge_usage.daily_used,1);
     assert.equal((await reserve(first)).challenge_usage.daily_used,1);
-    for(let i=2;i<=5;i++) assert.equal((await reserve("00000000-0000-4000-8000-00000000000"+i)).allowed,true);
-    assert.equal((await reserve("00000000-0000-4000-8000-000000000006")).code,"speaking_daily_limit_reached");
-    assert.equal((await scalar("select count(*)::int n from public.speaking_local_reading_requests where student_id=92")).n,6);
+    for(let i=2;i<=10;i++) assert.equal((await reserve("00000000-0000-4000-8000-"+String(i).padStart(12,"0"))).allowed,true);
+    const blocked = await reserve("00000000-0000-4000-8000-000000000011");
+    assert.equal(blocked.code,"speaking_daily_limit_reached");
+    assert.equal(blocked.daily_limit,10);
+    assert.equal((await reserve(first)).allowed,true);
+    assert.equal((await scalar("select count(*)::int n from public.speaking_challenge_sessions where student_id=92")).n,10);
+    assert.equal((await scalar("select count(*)::int n from public.speaking_local_reading_requests where student_id=92")).n,12);
     await db.exec("set role anon");
     try { await assert.rejects(db.query("select * from public.speaking_local_reading_requests"),/permission denied/); }
     finally { await db.exec("reset role"); }

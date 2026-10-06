@@ -2,6 +2,14 @@
 
 最後更新：2026-10-06
 
+### 每日十輪與 A–Z 成本評估（2026-10-06，尚未部署）
+
+- 承接 `17b3e04a`，同分支／副本；使用者改為保留每天 10 輪、移除學生每月送評額度。新增 additive migration `20261006154419_speaking_ten_daily_rounds.sql`，保留鎖定、題目歸屬與同輪去重，只把每日值 5 改為 10。catalog 不再查舊付費月額度，規則卡只顯示輪數並保留單段 12／25 秒與安全限流。
+- 使用者詢問 A–Z 免費用完接付費可行性與費用；僅此題型考慮 Azure，其他題維持本機。Azure 設定與路由未改，正式 SQL／Function／前端未部署。原模型快取已啟用；跨重新開頁快取驗收及提示改善仍待處理。
+- 官方 Retail Prices API 於本批核對 southeastasia：Azure Speech S1 Speech To Text 每音訊小時 US$1（資源定價層仍稱 S0），enhanced feature US$0.3／小時。原 Azure 程式開啟 Prosody 加購，A–Z 建議關閉。以匯率 NT$32／USD 作預算假設，40 人、30 天、26 字母／輪、每字母 3 秒、每日一輪，全部付費 NT$832／月；兩輪 NT$1,664；十輪 NT$8,320。兩資源先 F0 五小時再 S0 可最多少 NT$160；並行限制與重試會影響實際用量，S0 不應直接扣五小時。
+- 本批驗證結果見下方補充；未重跑無關全套測試，原 production build 證據沿用，本批局部 UI 編譯與 SQL 隔離執行另外驗證。A–Z 付費整合、跨頁模型快取、正式學生／手機驗收仍未完成。
+- 驗證補充：PGlite SQL 10 項與真實 handler 隔離 4 項、規則卡 React 4 項，共 18 項通過；focused ESLint、SCSS／webpack 預覽編譯、diff check 通過。規則卡 Chrome 引擎 320／412／1440px 無橫向溢出，10 個輪數標記且沒有月額度顯示，報告 output/local-reading-validation/rules-validation.json。
+
 ### 口說本機朗讀完整度（2026-10-06，整合草稿／尚未部署）
 
 - 使用者回報獨立測試版成功，要求整合口說大挑戰，最後選擇 100 分制。分支 `codex/speaking-local-completeness`，基準 main `dc866e7a`，獨立副本 `output/speaking-local-completeness-20261006`；原工作目錄未提交修改保留。

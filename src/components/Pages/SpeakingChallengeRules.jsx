@@ -1,23 +1,11 @@
 import React, { useState } from "react";
 import { FiArrowRight, FiBookOpen, FiCheckCircle, FiChevronDown, FiMic } from "react-icons/fi";
 
-const durationLabel = seconds => {
-    const minutes = Math.floor(seconds / 60);
-    const remainder = seconds % 60;
-    return minutes ? `${minutes} 分鐘${remainder ? ` ${remainder} 秒` : ""}` : `${remainder} 秒`;
-};
-
 export default function SpeakingChallengeRules({ policy, loading = false }) {
     const [expanded, setExpanded] = useState(false);
     const dailyReady = !loading && Number.isInteger(policy?.daily_remaining) && policy.daily_remaining >= 0
         && Number.isInteger(policy?.daily_limit) && policy.daily_limit > 0 && policy.daily_limit <= 20;
-    const budget = policy?.audio_budget;
-    const audioReady = !loading && budget?.status === "ready" && Number.isInteger(budget?.remaining_seconds) && budget.remaining_seconds >= 0
-        && Number.isInteger(budget?.limit_seconds) && budget.limit_seconds > 0;
     const dailyRemaining = dailyReady ? Math.min(policy.daily_remaining, policy.daily_limit) : null;
-    const remaining = audioReady ? Math.min(budget.remaining_seconds, budget.limit_seconds) : null;
-    const longRecordings = audioReady ? Math.floor(remaining / 25) : null;
-    const remainingPercent = audioReady ? remaining / budget.limit_seconds * 100 : 0;
     const unavailable = loading ? "正在確認用量…" : "暫時無法取得，請重新整理";
     return <section className={`speaking-challenge-rules ${expanded ? "is-expanded" : ""}`} aria-labelledby="speaking-challenge-rules-title">
         <div className="speaking-challenge-rules__intro">
@@ -34,21 +22,10 @@ export default function SpeakingChallengeRules({ policy, loading = false }) {
                 <span className="speaking-usage-card__label">今天還能挑戰</span>
                 <strong>{dailyReady ? `${dailyRemaining} 輪` : "—"}</strong>
                 <div className={`speaking-round-slots ${dailyReady ? "" : "is-unknown"}`} role="img" aria-label={dailyReady ? `今天 ${policy.daily_limit} 輪，剩 ${dailyRemaining} 輪，已用 ${policy.daily_limit - dailyRemaining} 輪` : unavailable}>
-                    {Array.from({ length: dailyReady ? policy.daily_limit : 5 }, (_, index) => <span key={index} aria-hidden="true" className={dailyReady && index >= policy.daily_limit - dailyRemaining ? "is-available" : ""}><FiMic /></span>)}
+                    {Array.from({ length: dailyReady ? policy.daily_limit : 10 }, (_, index) => <span key={index} aria-hidden="true" className={dailyReady && index >= policy.daily_limit - dailyRemaining ? "is-available" : ""}><FiMic /></span>)}
                 </div>
                 <span>{dailyReady ? `藍色還能用 · 灰色已用過 · 明天恢復` : unavailable}</span>
                 <p>1 輪可以答很多題，同一輪重試不多扣。</p>
-            </div>
-            <div className="speaking-usage-card speaking-usage-card--audio">
-                <span className="speaking-usage-card__label">本月還能送評</span>
-                <strong>{audioReady ? remaining === 0 ? "本月已用完" : longRecordings > 0 ? `約 ${longRecordings} 段錄音` : `還能送 ${remaining} 秒` : "—"}</strong>
-                <div className={`speaking-audio-meter ${audioReady ? "" : "is-unknown"}`} role={audioReady ? "progressbar" : "img"} aria-label={audioReady ? "本月剩餘送評時間" : unavailable} aria-valuemin={audioReady ? 0 : undefined} aria-valuemax={audioReady ? budget.limit_seconds : undefined} aria-valuenow={audioReady ? remaining : undefined} aria-valuetext={audioReady ? `剩 ${durationLabel(remaining)}，每月 ${durationLabel(budget.limit_seconds)}` : undefined}>
-                    <span style={{ width: `${remainingPercent}%` }} />
-                </div>
-                <span>{audioReady ? `剩 ${durationLabel(remaining)} / ${durationLabel(budget.limit_seconds)}` : unavailable}</span>
-                <p>{audioReady && remaining === 0 ? "下月 1 日恢復，現在仍可聽示範、自己練習。"
-                    : audioReady && longRecordings === 0 ? "可以送短錄音；下月 1 日恢復。"
-                        : "每段 25 秒估算；短錄音可送更多段。"}</p>
             </div>
         </div>
         {dailyReady && dailyRemaining === 0 && <p className="speaking-challenge-rules__notice" role="status">今天的新挑戰用完了，明天再來！這一輪還沒結束的話，可以繼續。</p>}
@@ -58,10 +35,10 @@ export default function SpeakingChallengeRules({ policy, loading = false }) {
         </button>
         {expanded && <div id="speaking-challenge-rules-content" className="speaking-challenge-rules__content">
             <div className="speaking-challenge-rules__tips">
-                <p><b>輪數怎麼算？</b>每天最多 {dailyReady ? policy.daily_limit : 5} 輪，第一次送評才扣一輪。只錄音、回聽不扣；同一輪重試不多扣。離開後重新挑戰、或 A–Z 從頭再來，會開新的一輪。</p>
-                <p><b>送評怎麼算？</b>只計送出的錄音秒數；重試送評也會扣時間，短錄音扣得較少。字母／拼讀最多 12 秒，句子／問答最多 25 秒，說完就能停止。</p>
+                <p><b>輪數怎麼算？</b>每天最多 {dailyReady ? policy.daily_limit : 10} 輪，第一次送評才扣一輪。只錄音、回聽不扣；同一輪重試不多扣。離開後重新挑戰、或 A–Z 從頭再來，會開新的一輪。</p>
+                <p><b>送評有上限嗎？</b>沒有個人每月送評秒數額度。單段字母／拼讀最多 12 秒，句子／問答最多 25 秒，說完就能停止；短錄音有助於手機穩定處理。</p>
                 <p><b>怎麼通關？</b>照念題直接練；問答題可選簡單（看答案）或挑戰（自己回答）。挑戰看提示的題本輪不通過，結束後可只重試未過題。練習／簡單通關解鎖下一頁，獎勵依資格發放。</p>
-                <p><b>出錯或用完？</b>評分失敗不算答錯，錄音會保留；再次送評仍扣時間。用完仍可聽示範、自行練習。月時間下月 1 日恢復，重新登入不會重置；全站用量暫滿時請聯絡老師。</p>
+                <p><b>出錯或輪數用完？</b>評分失敗不算答錯，錄音會保留，可重試評分。當天新輪數用完，仍可完成這一輪、聽示範及自行練習；明天恢復，重新登入不會重置輪數。</p>
             </div>
             <small>用量在進入列表時更新，恢復時間以台北時間為準。</small>
         </div>}

@@ -11,7 +11,6 @@ import {
 } from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
 import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
-import { loadSpeakingAudioUsage } from "../_shared/speaking-audio-usage.ts";
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
     ALPHABET_SEQUENCE_GAP_MS,
@@ -41,7 +40,7 @@ const SPEAKING_CHALLENGE_REWARD_POLICY = Object.freeze({
     basis: "first_completion_per_challenge",
     ae_points_eligible_students_only: true
 });
-const SPEAKING_CHALLENGE_DAILY_LIMIT = 5;
+const SPEAKING_CHALLENGE_DAILY_LIMIT = 10;
 const SPEAKING_RECORDING_LIMIT_SECONDS = 12;
 const CLIENT_SESSION_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const taipeiActivityDate = () => {
@@ -181,11 +180,7 @@ Deno.serve(async (req: Request) => {
                     || Number(stateBySet.get(Number(left.id))?.source_pages?.at(-1) || 0) - Number(stateBySet.get(Number(right.id))?.source_pages?.at(-1) || 0)
                     || Number(left.id) - Number(right.id);
             });
-            const [dailyPolicy, audioBudget] = await Promise.all([
-                speakingChallengePolicy(admin, Number(user.id), demoMode),
-                demoMode ? Promise.resolve(null) : loadSpeakingAudioUsage(admin, Number(user.id))
-            ]);
-            const challengePolicy = { ...dailyPolicy, audio_budget: audioBudget };
+            const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);
             return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenge_policy: challengePolicy, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,

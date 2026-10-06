@@ -97,7 +97,7 @@ const reserveProviderRequest = async (admin: any, studentId: number, question: a
  p_interaction_type: question.interactionType || null, p_client_session_id: clientSessionId });
  if (error) throw error;
  if (data?.allowed !== true || !data?.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached"
- ? "今天已開始 5 次口說大挑戰，明天再繼續吧！" : "短時間練習次數較多，請休息一下再繼續。"), {status:429,code:data?.code || "rate_limited"});
+ ? "今天已開始 10 次口說大挑戰，明天再繼續吧！" : "短時間練習次數較多，請休息一下再繼續。"), {status:429,code:data?.code || "rate_limited"});
  return {requestId:String(data.request_id),challengeUsage:data.challenge_usage || null};
 };
 const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null) => {
