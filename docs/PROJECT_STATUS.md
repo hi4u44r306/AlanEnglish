@@ -2,6 +2,15 @@
 
 最後更新：2026-10-06
 
+### 學生冒險導覽一致性（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/student-adventure-navigation`，沿用工作樹並承接第四批 A checkpoint `c3dc3103`；已 fetch 確認包含最新 main。原主工作目錄草稿保留。
+- 桌面四入口統一為今日學習、我的教材、口說冒險與我的角色，手機／平板維持今日、教材、冒險、我的。以原圖示系統製作有色圖示底座，主要選中狀態採黃色底＋深藍標記；不新增圖片素材。
+- 角色下拉與側邊選單整理為角色與獎勵、學習紀錄、帳號與幫助。新桌面角色下拉在路由切換後關閉；教材與冒險仍用原選擇器，原快速登出、通知、教學、客服與權限條件保留。開啟選擇器只加藍框，不改目前頁面的黃色位置標記。
+- 樣式維持原 1100px 斷點、底部寬度、播放器／浮動按鈕位移與 safe area；底部按鈕仍至少 54px，關閉選單控制44px。加強鍵盤焦點、長文字換行，桌面角色選單可垂直捲動。
+- 修改檔案：StudentNavbar.jsx、StudentAdventureNavigation.scss、MainNavbar.test.jsx、PROJECT_LOGIC.md、本狀態文件、網站使用手冊與網站優化.md。
+- 驗證：MainNavbar 局部測試 24 項通過，focused ESLint、樣式編譯、3015 開發編譯與 diff check 通過；未跑全套測試或 production build。本機 3015 預覽沿用；Chrome 再次無法驗證 localhost saved permissions，412px／平板／桌面實際外觀、真實選單鎖捲動／鍵盤焦點、播放器重疊與 iPhone Safari safe area 尚未驗證。未修改權限、API、學習寫入或正式站設定，尚未發布。
+
 ### 第四批 A：家長週報摘要與 RWD（2026-10-06，本機／尚未部署）
 
 - 分支 `codex/parent-weekly-summary`，沿用原工作樹，承接第三批與按鈕追補 checkpoint `59415061`；已 fetch 確認包含最新 main。保留原主工作目錄草稿。
