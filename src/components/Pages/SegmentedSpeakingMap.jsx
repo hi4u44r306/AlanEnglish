@@ -7,11 +7,10 @@ import volcano from "../assets/speaking-map/serpentine-volcano-v3.webp";
 import pilotMeadow from "../assets/speaking-map/pilot-meadow-v6.webp";
 import pilotForest from "../assets/speaking-map/pilot-forest-v6.webp";
 import { CARTOON_ASSETS, CARTOON_SIDE_ASSETS } from "./speakingCartoonAssets";
-import unifiedForestA from "../assets/speaking-map/unified-forest-a-v1.webp";
-import unifiedForestB from "../assets/speaking-map/unified-forest-b-v1.webp";
+import { UNIFIED_MAP_ASSETS } from "./speakingUnifiedAssets";
 
 const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest, ...CARTOON_ASSETS,
-    "unified-forest-a": unifiedForestA, "unified-forest-b": unifiedForestB };
+    ...UNIFIED_MAP_ASSETS };
 
 function SceneTile({ scene, route, eager, scenery = false }) {
     const container = useRef(null);
@@ -76,16 +75,16 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
     const initialY = route.nodes[initialLevelIndex]?.worldY ?? route.height;
     const start = route.nodes[0];
     const roadPath = route.roadPath ?? route.path;
-    return <section className={`speaking-map-chapter is-book is-segmented${route.isPilot || route.isCartoon ? " is-refined-pilot" : ""}${route.isCartoon ? " is-cartoon" : ""}${route.isUnifiedForest ? " is-unified-map" : ""}`}
+    return <section className={`speaking-map-chapter is-book is-segmented${route.isPilot || route.isCartoon ? " is-refined-pilot" : ""}${route.isCartoon ? " is-cartoon" : ""}${route.isUnifiedMap ? " is-unified-map" : ""}`}
         style={{ "--map-scene-background": route.theme?.ground }}>
-        {route.isCartoon && !route.isUnifiedForest && <WideScenery route={route} initialY={initialY} />}
-        {route.isUnifiedForest && <div className="speaking-unified-scene-layer">
+        {route.isCartoon && !route.isUnifiedMap && <WideScenery route={route} initialY={initialY} />}
+        {route.isUnifiedMap && <div className="speaking-unified-scene-layer">
             {route.scenes.map(scene => <SceneTile key={scene.id} scene={scene} route={route}
                 eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
         </div>}
         <div className="speaking-map-canvas speaking-segmented-canvas" style={{ "--map-aspect-ratio": route.aspectRatio, "--map-scene-background": route.theme?.ground,
             "--segmented-marker-size": `${route.markerDiameter / route.width * 100}cqw` }}>
-            {!route.isUnifiedForest && <div className="speaking-scene-layer">
+            {!route.isUnifiedMap && <div className="speaking-scene-layer">
                 {route.scenes.map(scene => <SceneTile key={scene.id} scene={scene} route={route}
                     eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
             </div>}

@@ -30,7 +30,7 @@ describe("segmented scene loading", () => {
             removeEventListener: jest.fn(),
         };
         window.matchMedia = jest.fn(() => media);
-        const cartoon = buildCartoonSpeakingRoute("book-2", Array.from({ length: 50 }, (_, id) => ({ id })));
+        const cartoon = buildCartoonSpeakingRoute("book-2", Array.from({ length: 50 }, (_, id) => ({ id })), { unified: false });
         const { container, unmount } = render(<SegmentedSpeakingMap route={cartoon} />);
         const centerline = container.querySelector(".speaking-map-centerline");
         const canvas = container.querySelector(".speaking-segmented-canvas");
@@ -52,8 +52,8 @@ describe("segmented scene loading", () => {
         expect(media.removeEventListener).toHaveBeenCalledWith("change", onChange);
     });
 
-    test("unified forest uses one full-width layer and retains loading retry", () => {
-        const cartoon = buildCartoonSpeakingRoute("book-1", Array.from({ length: 50 }, (_, id) => ({ id })), { unifiedForest: true });
+    test.each([1, 2, 3, 4, 5, 6])("Workbook %i uses one full-width layer and retains loading retry", book => {
+        const cartoon = buildCartoonSpeakingRoute("book-" + book, Array.from({ length: 50 }, (_, id) => ({ id })));
         const { container } = render(<SegmentedSpeakingMap route={cartoon} />);
         expect(container.querySelector(".speaking-map-side-scenery")).toBeNull();
         expect(container.querySelector(".speaking-scene-layer")).toBeNull();

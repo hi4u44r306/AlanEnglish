@@ -1,11 +1,11 @@
 import { buildCartoonSpeakingRoute, getSpeakingBookTheme, SPEAKING_BOOK_THEMES } from "./speakingCartoonMap";
 
 describe("full Workbook cartoon maps", () => {
-    test("unified forest is opt-in, keeps lesson order and maps every node to its new painted trace", () => {
+    test("unified maps keep lesson order and map every node to the painted trace", () => {
         for (const count of [0, 1, 5, 25, 50, 101]) {
             const lessons = Array.from({ length: count }, (_, id) => ({ id }));
-            const route = buildCartoonSpeakingRoute("book-1", lessons, { unifiedForest: true });
-            expect(route.isUnifiedForest).toBe(true);
+            const route = buildCartoonSpeakingRoute("book-1", lessons, { unified: true });
+            expect(route.isUnifiedMap).toBe(true);
             expect(route.nodes.map(n => n.id)).toEqual(lessons.map(l => l.id));
             const points = route.path.split(" ").map(p => p.slice(1).split(",").map(Number));
             route.nodes.forEach((node, index) => {
@@ -19,8 +19,9 @@ describe("full Workbook cartoon maps", () => {
                 }
             });
         }
-        expect(buildCartoonSpeakingRoute("book-1").isUnifiedForest).toBe(false);
-        expect(buildCartoonSpeakingRoute("book-4", [], { unifiedForest: true }).isUnifiedForest).toBe(false);
+        expect(buildCartoonSpeakingRoute("book-1").isUnifiedMap).toBe(true);
+        expect(buildCartoonSpeakingRoute("book-4").isUnifiedMap).toBe(true);
+        expect(buildCartoonSpeakingRoute("book-1", [], { unified: false }).isUnifiedMap).toBe(false);
     });
     test.each([0, 1, 2, 3, 4, 5, 15, 25, 36, 50, 60, 100, 101])("%i lessons keep source order and expand without shrinking markers", count => {
         const lessons = Array.from({ length: count }, (_, i) => ({ id: "lesson-" + i }));
@@ -53,7 +54,7 @@ describe("full Workbook cartoon maps", () => {
         expect(new Set(SPEAKING_BOOK_THEMES.map(t => t.id)).size).toBe(6);
         for (let book = 1; book <= 6; book++) {
             const route = buildCartoonSpeakingRoute("book-" + book, Array.from({ length: 50 }, (_, id) => ({ id })));
-            expect(new Set(route.scenes.map(s => s.asset))).toEqual(new Set([route.theme.id + "-a", route.theme.id + "-b"]));
+            expect(new Set(route.scenes.map(s => s.asset))).toEqual(new Set(["unified-" + route.theme.id + "-a", "unified-" + route.theme.id + "-b"]));
             expect(route.paintedRoad).toBe(true);
             expect(route.isCartoon).toBe(true);
         }

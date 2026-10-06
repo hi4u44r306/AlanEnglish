@@ -1,5 +1,5 @@
 import traces from "./speakingCartoonTraces.json";
-import unifiedForestTraces from "./speakingUnifiedForestTraces.json";
+import unifiedTraces from "./speakingUnifiedTraces.json";
 
 // Traces follow the final painted assets; no visible SVG road is added.
 export const CARTOON_WIDTH = 500;
@@ -24,7 +24,7 @@ export const getSpeakingBookTheme = bookId => {
 
 const tiles = Object.fromEntries(Object.entries({
     ...traces,
-    ...Object.fromEntries(Object.entries(unifiedForestTraces).map(([key, value]) => ["unified-" + key, value])),
+    ...Object.fromEntries(Object.entries(unifiedTraces).map(([key, value]) => ["unified-" + key, value])),
 }).map(([key, trace]) => {
     let distance = 0;
     const samples = trace.points.map(([x, y], index) => {
@@ -35,16 +35,16 @@ const tiles = Object.fromEntries(Object.entries({
     return [key, { samples, anchors: trace.anchors }];
 }));
 
-export function buildCartoonSpeakingRoute(bookId, lessons = [], { unifiedForest = false } = {}) {
+export function buildCartoonSpeakingRoute(bookId, lessons = [], { unified = true } = {}) {
     const count = lessons.length, theme = getSpeakingBookTheme(bookId);
-    const isUnifiedForest = unifiedForest && theme.id === "forest";
+    const isUnifiedMap = unified;
     const sceneCount = Math.max(1, Math.ceil(count / 4));
     const height = STEP * sceneCount + CARTOON_OVERLAP;
     const scenes = Array.from({ length: sceneCount }, (_, index) => {
         const journeyIndex = sceneCount - 1 - index;
         const variant = journeyIndex % 2 ? "b" : "a";
         return { id: bookId + "-cartoon-" + index, index, variant, biome: theme.id,
-            asset: (isUnifiedForest ? "unified-" : "") + theme.id + "-" + variant, unified: isUnifiedForest,
+            asset: (isUnifiedMap ? "unified-" : "") + theme.id + "-" + variant, unified: isUnifiedMap,
             top: index * STEP, height: CARTOON_TILE_HEIGHT,
             overlap: CARTOON_OVERLAP, fadeOverlap: CARTOON_OVERLAP, first: index === 0, last: index === sceneCount - 1 };
     });
@@ -73,6 +73,6 @@ export function buildCartoonSpeakingRoute(bookId, lessons = [], { unifiedForest 
     });
     return { bookId, theme, width: CARTOON_WIDTH, height, aspectRatio: CARTOON_WIDTH + " / " + height,
         roadWidth: CARTOON_ROAD_WIDTH, markerDiameter: CARTOON_ROAD_WIDTH * 2 / 3,
-        isCartoon: true, isUnifiedForest, paintedRoad: true, scenes, nodes, length: distance, bridge: null, startsAtBottom: true,
+        isCartoon: true, isUnifiedMap, paintedRoad: true, scenes, nodes, length: distance, bridge: null, startsAtBottom: true,
         path: points.map((p, i) => (i ? "L" : "M") + p.x.toFixed(3) + "," + p.y.toFixed(3)).join(" ") };
 }

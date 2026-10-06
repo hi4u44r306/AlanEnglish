@@ -2,6 +2,15 @@
 
 最後更新：2026-10-06
 
+六冊整幅寬景正式發布準備（2026-10-06）：
+
+- 分支 codex/segmented-speaking-map，基準main 9777d155已fetch核對，無落後。使用者核准森林整幅图並要求其餘五冊套用、推送部署，先在手機看現有畫質；原生4K不再是本批發布前置條件。
+- 新增其他五冊A/B共10張WebP、全冊trace與asset registry；預設路由全面啟用同幅寬圖。手機裁切中央、桌面展開左右，無獨立側景層。保留木框／純色按鈕、由下往上、實際題庫及既有模式流程；雪地無企鵝。
+- 素材1536×1024，未升頻。新增10張共2,587,032 bytes，加森林合計3,191,704 bytes；只載目前冊別兩個URL並逐段掛載。完整提示詞／來源UNIFIED-BOOKS-V1.md。新40個錨點周界128點取樣通過，最小相鄰距離194.06單位，關卡半徑40。
+- 本機Edge Chromium六冊412／1440px，加森林768／1920px共14組：無破圖、溢出或pageerror；中央／整圖比例1:3、木框直徑65.9／80／102.4px、摘要點擊與Escape正常。截圖output/segmented-map/unified-{book}-{width}.png、接縫圖及all-wide-browser-report.json。
+- 相關元件／路線／正式目錄整合78項測試通過；第一次指令多列不存在的SpeakingBookCard.test.jsx造成命令失敗，移除錯誤路徑後重新執行。focused ESLint、preview SCSS/bundle及diff check通過。Cloudflare負責唯一正式production build，本機不重跑全套／完整build。
+- 待完成Push／PR／合併／Cloudflare production及正式站驗收。內建瀏覽器已由使用者重新登入，接著驗證真實關卡畫面。iPhone Safari實機畫質交由使用者確認，未操作錄音、評分或學習資料。
+
 森林整幅寬圖樣板（2026-10-06，本機待審）：
 
 - 基準 `6511c376`，同一分支。使用者認為左右漸層側景仍不自然，要求地圖道路保持中央、電腦展現寬景、手機裁切兩側。本批先完成森林A/B兩張完整寬圖，左右不再疊加／淡化獨立素材；上下仍沿用100單位重疊與逐段載入，50關13段。
