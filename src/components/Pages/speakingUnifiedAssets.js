@@ -25,4 +25,3 @@ export const UNIFIED_MAP_ASSETS = {
     "unified-magic-a": magicA,
     "unified-magic-b": magicB,
 };
-
