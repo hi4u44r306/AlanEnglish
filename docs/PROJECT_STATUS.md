@@ -2,12 +2,13 @@
 
 最後更新：2026-10-06
 
-### iPhone 底部導覽安全留白修正（2026-10-06，本機／尚未部署）
+### iPhone 底部導覽安全留白修正（2026-10-06，已正式部署／實機待驗收）
 
 - 分支 `codex/iphone-bottom-navigation-clearance` 從最新 main `5a30ffda` 開始，沿用學生介面工作樹，原主目錄修改保留。
 - 使用者提供 iPhone 截圖：底部導覽貼近下緣。確認 StudentAdventureNavigation.scss 較晚載入的 `padding: 5px` 覆蓋 standalone 安全留白；於同檔最後恢復 `24px + env(safe-area-inset-bottom)` 底部留白與橫向間距，白色背景延伸至系統手勢區，四個按鈕上移。
 - 一般手機／平板瀏覽模式底部距離由12px增加到20px，仍加 safe area；standalone 播放器同步使用76px加導覽位移，留出間隔。頁面、播放器及作業浮動入口沿用共用位移，桌面不變。
-- 範圍僅 StudentNavbar.scss、StudentAdventureNavigation.scss 與手冊／狀態文件；不修改 viewport、導覽行為、帳號權限或學習寫入。兩份SCSS編譯、3015開發編譯與diff check通過；CSS低風險修正不跑全套測試或重複本機 production build，正式 build 交由 Cloudflare。瀏覽器 saved permissions 限制仍未排除，iPhone Safari／加入主畫面實機及播放器重疊驗收待補。依一般UI發布持續授權安排正式修正，部署結果待記錄；回復可 revert 本批前端修正，無資料變更。
+- 範圍僅 StudentNavbar.scss、StudentAdventureNavigation.scss 與手冊／狀態文件；不修改 viewport、導覽行為、帳號權限或學習寫入。兩份SCSS編譯、3015開發編譯、diff check與require-pushed preflight通過；CSS低風險修正不跑全套測試或重複本機 production build，正式 build 交由 Cloudflare。瀏覽器 saved permissions 限制再次拒絕正式網址存取，未繞過限制；iPhone Safari／加入主畫面實機及播放器重疊驗收待補。回復可 revert 本批前端修正，無資料變更。
+- PR #429 已合併 main `5e52f262d1e32cd60ece350c2820b3eebd956d05`；Cloudflare production build `0dcf99b5-50e8-4f94-b9bc-ee7d1780b9a2` completed／success（2026-10-06 09:38:47 UTC），最新 check `112205588651`，Worker version `f1fed6d0-d07b-4e44-8c60-0f941fdece5c`。純文件發布紀錄不另觸發前端建置。下一步使用iPhone重整正式站，加入主畫面版本關閉後重開，補按鈕與滑動橫條距離、播放器及頁尾實際驗收。
 
 ### 累積學生介面正式發布（2026-10-06，已正式部署／畫面待驗收）
 
