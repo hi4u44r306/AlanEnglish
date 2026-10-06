@@ -2,6 +2,16 @@
 
 最後更新：2026-10-06
 
+### 第三批角色成長與獎品目標（2026-10-06，本機完成／待視覺驗收）
+
+- 沿用既有隔離工作樹，分支 `codex/student-growth-rewards`，基準最新 main `af0fe0d7`。本批集中「看見進步與近期目標」；原主工作目錄草稿保留。
+- StudentGrowthCard 在設定與商城共用等級、累積 XP、後端等級進度、距離下一級及可用／保留 AE Points。讀取中與讀取失敗各自顯示，失敗可重試，缺資料不顯示虛假零點數；不改獎勵計算或寫入。
+- 我的設定先呈現成長與學習角色，25 款預設頭像按需展開；保留裁切／最終確認、公開暱稱、生日、家長驗證與推播原流程。商城可切換本次獎品目標，依實際點數／價格顯示差額及進度；目標只存在本次頁面，重新開啟時選庫存中最低點數獎品。
+- 兌換繼續走既有確認與後端檢查，更新資料失敗時不能用舊資料申請；成功後重讀後端餘額及兌換紀錄。未修改正式獎品、權限、錄音回饋、API／Function 或資料表。本階段的好友／通知頁精修仍待後續安排。
+- 驗證：2 份局部測試共 20 項通過（商城 6、設定 14），focused ESLint、實際 JSX／SCSS 隔離編譯及 diff check 通過。以 mock 驗證目標切換不兌換、讀取失敗／重試、兌換後 XP 保留及角色確認；不重跑無關全套或 production build。
+- ignored `output/growth-qa` 提供 `http://localhost:3014/student/settings`／`/student/rewards` 合成資料預覽，所有遠端讀寫被 mock 取代；不是正式資料或完整網站導航驗收。Chrome 工具目前無法確認 localhost 的 saved permissions，已請使用者恢復存取；412／768／1440px 視覺、iPhone Safari、真實兌換未驗證。待視覺驗收後發布，尚未合併／部署。
+- 相關檔案：StudentGrowthCard.jsx／scss、StudentSettings.jsx／scss／test、Rewards.jsx／test、StudentRewards.scss、網站使用手冊與網站優化.md。
+
 ### 第二批口說學習循環與地圖風格大關卡列表（2026-10-06，已正式部署）
 
 - PR #423 於 2026-10-06 合併至 main，merge commit `349688aa37474e85fe0d14eb7b70bffe7aabb551`；Cloudflare Workers Build check run `112128225782` 成功。包含口說學習循環與此緊湊列表更新。
