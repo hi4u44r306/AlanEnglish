@@ -66,59 +66,14 @@
   margin-bottom: 38px;
 }
 
-.login-brand-word,
-.mobile-brand-word {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  user-select: none;
-
-  span {
-    font-weight: 950;
-    letter-spacing: 1px;
-  }
-
-  i {
-    width: 8px;
-  }
-
-  span:nth-of-type(1) {
-    color: #ef4136;
-  }
-  span:nth-of-type(2) {
-    color: #f26522;
-  }
-  span:nth-of-type(3) {
-    color: #eeb902;
-  }
-  span:nth-of-type(4) {
-    color: #39a852;
-  }
-  span:nth-of-type(5) {
-    color: #3478dc;
-  }
-  span:nth-of-type(6) {
-    color: #4666c5;
-  }
-  span:nth-of-type(7) {
-    color: #594ba2;
-  }
-  span:nth-of-type(8) {
-    color: #ef4136;
-  }
-  span:nth-of-type(9) {
-    color: #f26522;
-  }
-  span:nth-of-type(10) {
-    color: #eeb902;
-  }
-  span:nth-of-type(11) {
-    color: #4072cf;
-  }
+.brand.login-brand-word {
+  width: 350px;
+  margin-bottom: 10px;
 }
 
-.login-brand-word span {
-  font-size: 2.05rem;
+.brand.mobile-brand-word {
+  width: 280px;
+  margin-inline: auto;
 }
 
 .login-brand-subtitle {
@@ -541,14 +496,6 @@
     margin-bottom: 30px;
   }
 
-  .mobile-brand-word {
-    justify-content: center;
-
-    span {
-      font-size: 1.55rem;
-    }
-  }
-
   .login-title {
     text-align: center;
 
@@ -584,8 +531,8 @@
     max-width: 100%;
   }
 
-  .mobile-brand-word span {
-    font-size: 1.35rem;
+  .brand.mobile-brand-word {
+    width: 260px;
   }
 
   .login-title h2 {

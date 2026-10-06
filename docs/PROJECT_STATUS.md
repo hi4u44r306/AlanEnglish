@@ -2,6 +2,12 @@
 
 最後更新：2026-10-06
 
+### 彩色圓潤字標 01（2026-10-06，發布驗收中）
+
+- 從 main `af0fe0d` 建立 `codex/rounded-rainbow-wordmark`，依使用者核准的 01 範本描繪透明 SVG；共用 Brand 與登入頁桌面／手機統一字形及配色，手機側選單保留既有 AE 縮寫。僅調整字標，頁面配置、登入與導覽行為不變；原工作目錄其他草稿未納入。
+- 相關檔案：Brand.jsx、Brand.css、Login.jsx、Login.scss、兩份 alan-english-rounded SVG 與手冊 v3.47。JSX ESLint、SCSS／開發編譯、diff 檢查通過；最新 main 發布副本的首頁、登入及教材連結頁於 1440／412／320px 共九組畫面無水平溢出、字標載入正常且無 pageerror。手機 Navbar 再驗 412／320px，標誌與按鈕維持單列、導覽高 66px；截圖與幾何結果存於原工作目錄 output/brand-assets/local-*。正式發布結果於驗收後補充。
+- 局部視覺修改不跑 npm test、全套測試或本機 production build；由 Cloudflare main 自動建置驗證正式產物。iPhone Safari 實機及登入後真實帳號頁尚未驗證。
+
 ### 第二批口說學習循環與地圖風格大關卡列表（2026-10-06，已正式部署）
 
 - PR #423 於 2026-10-06 合併至 main，merge commit `349688aa37474e85fe0d14eb7b70bffe7aabb551`；Cloudflare Workers Build check run `112128225782` 成功。包含口說學習循環與此緊湊列表更新。
