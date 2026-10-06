@@ -2,6 +2,13 @@
 
 最後更新：2026-10-06
 
+### iPhone 底部導覽安全留白修正（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/iphone-bottom-navigation-clearance` 從最新 main `5a30ffda` 開始，沿用學生介面工作樹，原主目錄修改保留。
+- 使用者提供 iPhone 截圖：底部導覽貼近下緣。確認 StudentAdventureNavigation.scss 較晚載入的 `padding: 5px` 覆蓋 standalone 安全留白；於同檔最後恢復 `24px + env(safe-area-inset-bottom)` 底部留白與橫向間距，白色背景延伸至系統手勢區，四個按鈕上移。
+- 一般手機／平板瀏覽模式底部距離由12px增加到20px，仍加 safe area；standalone 播放器同步使用76px加導覽位移，留出間隔。頁面、播放器及作業浮動入口沿用共用位移，桌面不變。
+- 範圍僅 StudentNavbar.scss、StudentAdventureNavigation.scss 與手冊／狀態文件；不修改 viewport、導覽行為、帳號權限或學習寫入。兩份SCSS編譯、3015開發編譯與diff check通過；CSS低風險修正不跑全套測試或重複本機 production build，正式 build 交由 Cloudflare。瀏覽器 saved permissions 限制仍未排除，iPhone Safari／加入主畫面實機及播放器重疊驗收待補。依一般UI發布持續授權安排正式修正，部署結果待記錄；回復可 revert 本批前端修正，無資料變更。
+
 ### 累積學生介面正式發布（2026-10-06，已正式部署／畫面待驗收）
 
 - 使用者明確要求將本對話目前全部累積修改推送正式站。沿用 PR #425，將角色成長／獎品目標及圖片界線、第一至三批操作入口、家長週報摘要、學生冒險導覽、教材與聽力互動介面合併至 main `0f08dbd2d9df6fa86b25da6d1ede1ff5944c5095`（2026-10-06 08:52:03 UTC）。整合前 main `99d3c540`，功能 checkpoint `2c9775cf`；共35個檔案。

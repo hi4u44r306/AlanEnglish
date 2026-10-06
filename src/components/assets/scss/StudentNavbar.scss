@@ -618,7 +618,7 @@
 // so tablets use the same clear header and bottom navigation as phones.
 @media (max-width: 1100px) {
   body:has(.ae-student-bottom-nav) {
-    --student-bottom-nav-offset: calc(12px + env(safe-area-inset-bottom, 0px));
+    --student-bottom-nav-offset: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 
   .ae-student-navbar,
@@ -783,7 +783,7 @@
   }
   body:has(.ae-student-bottom-nav) .app-player,
   body:has(.ae-student-bottom-nav) .app-player.mini {
-    bottom: calc(61px + var(--student-bottom-nav-offset));
+    bottom: calc(76px + var(--student-bottom-nav-offset));
   }
 }
 
