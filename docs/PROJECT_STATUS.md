@@ -2,12 +2,13 @@
 
 最後更新：2026-10-06
 
-### 口說關卡頂部精簡（2026-10-06，本機／尚未部署）
+### 口說關卡頂部精簡（2026-10-06，已正式部署／實際畫面待驗收）
 
 - `codex/speaking-session-compact-top` 從最新 main `a624df35` 開始，沿用既有工作樹。依使用者截圖移除教材名稱／口說練習標題／泛用說明的大型區塊，保留下方關卡返回、標題、題數及進度。
 - SpeakingLessonPreparation 僅在既有明確來源與教材權限確認有對應音檔時，呈現精簡「先聽本關教材」入口；無可用對應音檔時不渲染空白區塊。錄音／準備／評分忙碌狀態仍不允許跳去聽力，模式與指定音檔回程不變。
 - 範圍：SpeakingLessonPreparation.jsx／既有測試、SpeakingAdventureSession.scss、優化文件／手冊／本狀態文件。錄音、AI評分、提示計入、題目內容、獎勵、權限與後端未改。關卡工具列、步驟提示與重複說明的後續精簡僅列為建議，尚未實作。
-- SpeakingLessonPreparation局部測試4項、focused ESLint、SCSS／3015開發編譯、diff check通過；只驗證受影響的既有聽力準備契約，不跑無關全套或重複production build，正式建置交由Cloudflare。瀏覽器權限限制與實際桌面／412px／iPhone驗收待補。依一般UI發布持續授權安排正式修正，部署結果待記錄；回復可revert本批前端修正，無資料變更。
+- SpeakingLessonPreparation局部測試4項、focused ESLint、SCSS／3015開發編譯、diff check與require-pushed preflight通過；只驗證受影響的既有聽力準備契約，不跑無關全套或重複production build。瀏覽器saved permissions再次拒絕正式網址存取，未繞過限制；實際桌面／412px／iPhone與真實錄音驗收待補。回復可revert本批前端修正，無資料變更。
+- PR #431 已合併 main `a039a35233381ea7cdf0d6ed1a8275b6dee5f953`；Cloudflare production build `0033f38f-3ffa-44b9-84eb-cced6b605684` completed／success（2026-10-06 09:51:57 UTC），check `112210500821`，Worker version `84530e25-a1f0-4f27-aae1-bdfa27d1b523`。純Markdown補發布紀錄不再觸發前端建置。下一步重整口說關卡確認大型標題區已移除，後續優先縮小三步驟提示、補模式標記與處理長關卡名稱，未開始其他功能。
 
 ### iPhone 底部導覽安全留白修正（2026-10-06，已正式部署／實機待驗收）
 
