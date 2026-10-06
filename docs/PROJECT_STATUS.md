@@ -2,14 +2,18 @@
 
 最後更新：2026-10-06
 
-### 第一批兒童學習首頁與 RWD（2026-10-06，待正式發布驗收）
+### 第一批兒童學習首頁與 RWD（2026-10-06，已正式發布驗收）
+
+- PR #421 已合併為 `b60bcf01`；Cloudflare production build `dfc872b2-549d-45a0-9d6d-9d13932d8bce` 於 03:36:18 UTC 成功。合併前已整合最新 main `6d94474f`，保留 PR #419 地圖／字母修正；共用口說頁再驗 51 項測試通過。
+- 正式學生首頁 1440／412px 驗收通過：真實授權教材、XP、作業狀態可讀；無橫向溢出／破圖。教材搜尋可縮小至指定冊並進入原 Playlist；逾期篩選及指定作業定位成功，手機任務完整位於固定導覽上方。側欄背景鎖定／關閉還原、口說規則收合與展開、週報／會員口說入口均正常，驗收分頁無 console error。
+- 正式畫面證據 `learning-home-production-desktop.jpg`、`learning-home-production-mobile.jpg` 已存本對話附件目錄；使用提供的測試帳號，未啟動播放／錄音／送評。此批已完成前端發布，iPhone Safari 實機及學習寫入端到端仍未驗證。
 
 - 分支 `codex/student-learning-rwd`，獨立工作樹 `C:\Users\user\.codex\worktrees\student-learning-rwd\AlanEnglish`，基準 `origin/main`／`37d08e8f`。保留原工作目錄未提交變更及最新六冊口說地圖。
 - 完成今日學習首頁、真實 XP 成長卡、可搜尋／分類教材書架、V1／V2 任務狀態與指定任務定位；調整桌面與手機導覽、作業頁資訊密度、口說用量說明收合、週報與會員口說入口一致性。
 - 相關檔案：StudentLearningHome、studentLearning、StudentNavbar、StudentAssignments、RoleHomeRedirect、StudentOnboarding、TextbookSpeakingChallenge、WeeklyReport、MembershipCenter 及相應測試／樣式；完整方向見根目錄 `網站優化.md`。本批無 migration、Edge Function、Secret、權限契約或學習寫入變更。
 - 驗證：8 份相關測試共 97 項已通過（修正預期後針對失敗套件重測）；focused ESLint、開發編譯、diff 檢查通過。隔離預覽使用實際元件與合成資料，412／768／1440px 無橫向溢出；搜尋、分類、任務定位、手機選單捲動鎖定、無作業權限與資料失敗狀態已驗證。
 - 本機 localhost:3011 Firebase 登入遭 referrer 限制，因此上述視覺證據不是正式登入端到端驗證；未更改 Firebase 設定。iPhone Safari、真實錄音／有效播放／獎勵寫入未驗證。未跑無關全套與本機 production build，正式建置交由 Cloudflare。
-- 下一步：Git checkpoint、PR 與 Cloudflare main 發布，正式學生登入及 412／1440px 驗收後補記結果。後續互動式學習設計以既有口說與學習回饋為下一階段。
+- 下一步：以既有口說結果深化「聽示範、練習、具體回饋、再試一次」循環；iPhone Safari 由實機補驗。新增資料／評分／獎勵改動應另立階段，本批沒有未部署應用程式差異。
 地圖分布／接縫與 A–Z 字型修正（2026-10-06，已正式發布）：
 
 - PR #419合併main為328bb804；Cloudflare build bcb03833-4620-4dbf-86c4-8e2c6e9b8bb9於03:09:54 UTC成功。
