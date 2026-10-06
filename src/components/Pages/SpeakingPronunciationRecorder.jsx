@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend } from "react-icons/fi";
+import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiVolume2 } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
@@ -31,7 +31,11 @@ export default function SpeakingPronunciationRecorder({
     challengeMode = "easy",
     disabledReason = "",
     onScored,
-    onRoundInvalid
+    onRoundInvalid,
+    onPhaseChange,
+    onRetry,
+    onListenAgain,
+    audioWorking = false
 }) {
     const maxRecordingSeconds = speakingRecordingSeconds(interactionType || question.interaction_type);
     const [recording, setRecording] = useState(false);
@@ -80,6 +84,7 @@ export default function SpeakingPronunciationRecorder({
     const stop = () => { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); };
     const start = async () => {
         reset();
+        onRetry?.();
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return setError("這個瀏覽器不支援錄音，請使用新版 Chrome 或 Safari");
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -169,6 +174,9 @@ export default function SpeakingPronunciationRecorder({
         : disabledReason;
     const remainingSeconds = Math.max(0, maxRecordingSeconds - elapsed);
     const recordingState = submitting ? "assessing" : preparing ? "preparing" : recording ? "recording" : error ? "retry" : recordedBlob ? "ready" : "idle";
+    const learningPhase = submitting ? "assessing" : preparing ? "preparing" : recording ? "recording" : result ? "feedback" : recordedBlob ? "review" : "ready";
+    useEffect(() => { onPhaseChange?.(learningPhase); }, [learningPhase, onPhaseChange]);
+    const practiceWords = assessmentUncertain ? [] : (result?.words || []).filter(word => ["practice", "retry"].includes(word.status)).slice(0, 3);
 
     return <section aria-busy={preparing || submitting} className={`speaking-pronunciation is-${recordingState} ${voiceDetected ? "has-voice" : ""}`}>
         {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? "正在準備評分音檔。" : recording ? `錄音進行中，每次最長 ${maxRecordingSeconds} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
@@ -187,7 +195,7 @@ export default function SpeakingPronunciationRecorder({
                 aria-label={recording ? "完成錄音" : "開始錄音"}
             >
                 {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
-                <span>{recording ? (voiceDetected ? "送出並評分" : "我已說完，送出") : preparing ? "準備中…" : "啟用麥克風"}</span>
+                <span>{recording ? "完成錄音" : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting || budgetBlocked}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button></div></div>}
             <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
@@ -196,9 +204,13 @@ export default function SpeakingPronunciationRecorder({
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
             {result.recognized_text && <p className="speaking-recognized-answer"><strong>我聽到</strong><span>{result.recognized_text}</span></p>}
             {!assessmentUncertain && <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>}
-            {!assessmentUncertain && (result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`}>{word.text}</span>)}</div>}
-            <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback}</span></p>
-            <button type="button" className="secondary" onClick={reset}><FiRefreshCw />再練一次</button>
+            {!assessmentUncertain && (result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`} aria-label={`${word.text}：${word.status === "good" ? "很清楚" : word.status === "practice" ? "再練一下" : "慢慢重念"}`}>{word.text}</span>)}</div>}
+            <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback || (assessmentUncertain ? "這次沒有聽清楚，靠近麥克風再試一次。" : answerMatched ? "回聽自己的回答，試著把完整句子說得更清楚。" : "重新看清楚題目，再用完整句子回答。")}</span></p>
+            {practiceWords.length > 0 && <p className="speaking-pronunciation-focus"><strong>這次先練這幾個字</strong><span>{practiceWords.map(word => word.text).join("、")}</span></p>}
+            <div className="speaking-result-actions">
+                {onListenAgain && <button type="button" className="secondary" onClick={onListenAgain} disabled={audioWorking || submitting}><FiVolume2 aria-hidden="true" />{audioWorking ? "示範播放中…" : "再聽示範"}</button>}
+                <button type="button" className="secondary" onClick={() => { reset(); onRetry?.(); }} disabled={submitting}><FiRefreshCw />再練一次</button>
+            </div>
         </div>}
         {error && <div className="speaking-pronunciation-error" role="alert"><strong>本次練習尚未完成</strong><p>{error}</p></div>}
     </section>;

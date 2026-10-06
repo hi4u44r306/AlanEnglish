@@ -2,6 +2,15 @@
 
 最後更新：2026-10-06
 
+### 第二批口說學習循環（2026-10-06，本機完成／待視覺驗收）
+
+- 沿用第一批工作樹（目前實際路徑 `D:\CodexData\home\worktrees\student-learning-rwd\AlanEnglish`），分支 `codex/speaking-learning-loop`，基準最新 main／`35fe55e1`；原主工作目錄的未提交草稿保留。
+- 新增 SpeakingLearningJourney 三步引導；SpeakingPracticeSteps 將操作說明收合、錄音中暫停提示／示範、回饋與重新練習同步步驟。SpeakingPronunciationRecorder 整理最多三個練習字詞、加入可用的結果示範入口及文字狀態，停止按鈕正名為完成錄音。
+- TextbookSpeakingChallenge 與 SpeakingAdventureSession 樣式採桌面雙欄／手機單欄一般題目工作區，圖片放大、線索完整換行；SpeakingLessonPreparation 提供模式說明。沒有變更錄音編碼／時間、提交／評分／獎勵／提示契約、後端或正式資料。
+- 驗證：5 份相關測試 92 項通過；補強真實 recorder 階段／回聽／重試 assertions 後同套件 14 項再通過。focused ESLint、diff check 及 isolated webpack／SCSS 預覽編譯通過；未跑無關全套或重複 production build。
+- 隔離合成資料預覽 `http://localhost:3013/`，可切換簡單／挑戰／朗讀與完整回答／不符／不確定／服務失敗，不呼叫真實麥克風、評分或學習寫入。一次性預覽在 ignored output/speaking-loop-qa，不提交。
+- Chrome 工具對正式站及 localhost 均無法確認 saved browser permissions，重試仍失敗；尚未取得手機／桌面截圖或正式站驗收。因此只建立 checkpoint 與草稿 PR，不合併／部署。已請使用者重新啟用 Chrome 網站存取；恢復後驗證 412／768／1440px 與實際題目，完成發布。本機錄音測試為 mock，真實 Azure 評分／iPhone Safari 尚未驗證。
+
 ### 第一批兒童學習首頁與 RWD（2026-10-06，已正式發布驗收）
 
 - PR #421 已合併為 `b60bcf01`；Cloudflare production build `dfc872b2-549d-45a0-9d6d-9d13932d8bce` 於 03:36:18 UTC 成功。合併前已整合最新 main `6d94474f`，保留 PR #419 地圖／字母修正；共用口說頁再驗 51 項測試通過。

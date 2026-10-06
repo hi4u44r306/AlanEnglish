@@ -169,6 +169,8 @@
   text-align: left;
 }
 .speaking-pronunciation-feedback strong { color: #142c54; }
+.speaking-pronunciation-focus { display: grid; gap: 4px; width: 100%; margin: 0; padding: 12px; border-left: 4px solid #e0b84f; background: #fff8df; color: #17345e; text-align: left; overflow-wrap: anywhere; strong { font-size: 13px; } }
+.speaking-result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
 
 @keyframes speaking-recording-pulse {
   50% { transform: scale(1.035); }

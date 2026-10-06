@@ -121,6 +121,9 @@ describe("SpeakingPronunciationRecorder", () => {
     });
 
     it("回聽與送評使用同一份轉換後 WAV，不在送出時重複轉檔", async () => {
+        const onPhaseChange = jest.fn();
+        const onListenAgain = jest.fn();
+        const onRetry = jest.fn();
         const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
         convertAudioBlobToWav.mockResolvedValue(wav);
         submitSpeakingPronunciationAttempt.mockResolvedValue({
@@ -140,14 +143,20 @@ describe("SpeakingPronunciationRecorder", () => {
             question={{ id: 9 }}
             foundationRoundId="11111111-1111-4111-8111-111111111111"
             challengeSessionId="22222222-2222-4222-8222-222222222222"
+            onPhaseChange={onPhaseChange}
+            onListenAgain={onListenAgain}
+            onRetry={onRetry}
         />);
         expect(screen.getByRole("status")).toHaveTextContent("可以開始錄音");
+        expect(onPhaseChange).toHaveBeenLastCalledWith("ready");
         fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
         expect(await screen.findByRole("timer", { name: "錄音剩餘 25 秒" })).toHaveTextContent("25秒");
+        expect(onPhaseChange).toHaveBeenLastCalledWith("recording");
         fireEvent.click(await screen.findByRole("button", { name: "完成錄音" }));
 
         await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1));
         expect(await screen.findByText("錄音完成，先聽聽看送評的聲音")).toBeInTheDocument();
+        expect(onPhaseChange).toHaveBeenLastCalledWith("review");
         fireEvent.click(screen.getByRole("button", { name: /送出評分/ }));
 
         await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({
@@ -167,9 +176,20 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(screen.getByText("name")).toHaveClass("word-practice");
         expect(screen.getByText("Amy")).toHaveClass("word-retry");
         expect(screen.getByText("句尾再放慢一點。")).toBeInTheDocument();
+        expect(screen.getByText("這次先練這幾個字")).toBeInTheDocument();
+        expect(screen.getByText("name、Amy")).toBeInTheDocument();
+        expect(screen.getByLabelText("name：再練一下")).toBeInTheDocument();
         expect(screen.queryByText("查看詳細分析")).not.toBeInTheDocument();
         expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(1);
         expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("good");
+        expect(onPhaseChange).toHaveBeenLastCalledWith("feedback");
+        fireEvent.click(screen.getByRole("button", { name: "再聽示範" }));
+        expect(onListenAgain).toHaveBeenCalledTimes(1);
+        expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(1);
+        fireEvent.click(screen.getByRole("button", { name: "再練一次" }));
+        expect(onRetry).toHaveBeenCalledTimes(2);
+        expect(onPhaseChange).toHaveBeenLastCalledWith("ready");
+        expect(screen.queryByText("本次練習結果")).not.toBeInTheDocument();
     });
 
     it.each([["standard_sentence", 25], ["text_qa", 25], ["letter_spelling", 12]])(
@@ -260,6 +280,7 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("practice");
         expect(onScored).not.toHaveBeenCalled();
         expect(screen.queryByLabelText("發音顏色說明")).not.toBeInTheDocument();
+        expect(screen.queryByText("這次先練這幾個字")).not.toBeInTheDocument();
     });
 
     it("另一個請求正在評分時只提示等待，不把有效回合歸零", async () => {

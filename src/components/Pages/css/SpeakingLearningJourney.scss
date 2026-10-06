@@ -1,0 +1,25 @@
+.speaking-learning-journey {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d9e4ef;
+  border-radius: 16px;
+  background: #fff;
+  color: #17345e;
+  ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+  li { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: 8px 4px; border-radius: 10px; color: #526478; text-align: center; }
+  li > span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #edf2f7; }
+  li strong { font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+  li.is-current { background: #fff3c9; color: #17345e; }
+  li.is-current > span { background: #ffcf4f; }
+  li.is-visited > span { background: #e1f2e7; color: #236644; }
+  p { margin: 10px 0 0; color: #526478; font-size: 13px; line-height: 1.6; }
+}
+
+.speaking-practice-instructions {
+  min-width: 0;
+  border-bottom: 1px solid #d9e4ef;
+  color: #17345e;
+  summary { min-height: 44px; padding: 10px 4px; cursor: pointer; font-size: 14px; font-weight: 700; }
+  summary:focus-visible { outline: 3px solid #315bc8; outline-offset: 2px; }
+  .speaking-direct-prompt { margin-bottom: 10px; }
+}
