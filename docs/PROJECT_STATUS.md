@@ -10,6 +10,17 @@
 - 驗證：8 份相關測試共 97 項已通過（修正預期後針對失敗套件重測）；focused ESLint、開發編譯、diff 檢查通過。隔離預覽使用實際元件與合成資料，412／768／1440px 無橫向溢出；搜尋、分類、任務定位、手機選單捲動鎖定、無作業權限與資料失敗狀態已驗證。
 - 本機 localhost:3011 Firebase 登入遭 referrer 限制，因此上述視覺證據不是正式登入端到端驗證；未更改 Firebase 設定。iPhone Safari、真實錄音／有效播放／獎勵寫入未驗證。未跑無關全套與本機 production build，正式建置交由 Cloudflare。
 - 下一步：Git checkpoint、PR 與 Cloudflare main 發布，正式學生登入及 412／1440px 驗收後補記結果。後續互動式學習設計以既有口說與學習回饋為下一階段。
+地圖分布／接縫與 A–Z 字型修正（2026-10-06，已正式發布）：
+
+- PR #419合併main為328bb804；Cloudflare build bcb03833-4620-4dbf-86c4-8e2c6e9b8bb9於03:09:54 UTC成功。
+- 正式學生六冊412／1440px共12組：25／35／36／30／35／33關，無破圖與橫向溢出；關卡中心與SVG描線最大偏差0.013世界單位，最長／最短相鄰路程比1.025～1.075。已確認新版接縫遮罩及五張v2圖片載入。證據output/segmented-map/production-fix-report.json、production-fix-book{1..6}-{412,1440}.png。
+- 正式A–Z準備頁320／375／412／768／1440px全26組無字卡或頁面溢出，Arial字型及手機四欄生效；摘要開啟及進入準備頁成功。截圖production-fix-alphabet-412.png、報告production-alphabet-fix-report.json。未啟動錄音、送評或修改通關紀錄；實體iPhone Safari仍需使用者檢視。
+
+- 基準 main 37d08e8f，分支 codex/map-spacing-alphabet-fix；只改前端地圖與字母樣式，不變更評分、額度、權限或學習紀錄。
+- 捨棄每張四個固定錨點的跳位方式；改沿全道路弧長分配，利用路面周界淨空避開急彎，整體最佳化相鄰間距。保留木框直徑80／道路120及起終點留白。六冊25／30／33／35／36／50／101關納入間距回歸。
+- 場景改用沿低細節造景的 SVG alpha 接縫與路面漸變，減少整條橫向淡化的樹木重影。內建 imagegen 修正雪地B道路端點，以及天空／魔法A、B上方的天空斷層；五張v2 WebP維持1536×1024、未升頻。提示詞與來源見UNIFIED-SEAMS-V2.md；原始v1保留。
+- A–Z 表與作答字母使用Arial／Helvetica標準印刷字型；手機四欄及依容器縮放，320／375／412／768／1440px全26組沒有文字溢出。
+- 前端相關103項先前批次通過；最後素材／接縫更新後重驗路線與元件28項通過。ESLint、SCSS預覽編譯與diff檢查通過；不跑無關全套測試，正式production build已由Cloudflare完成。實體iPhone Safari／錄音評分本批未驗。
 
 六冊整幅寬景正式發布完成（2026-10-06）：
 

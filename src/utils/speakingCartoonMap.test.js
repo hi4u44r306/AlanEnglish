@@ -1,6 +1,17 @@
 import { buildCartoonSpeakingRoute, getSpeakingBookTheme, SPEAKING_BOOK_THEMES } from "./speakingCartoonMap";
 
 describe("full Workbook cartoon maps", () => {
+    test("real book counts and longer journeys distribute along road length without skipped slots", () => {
+        for (let book = 1; book <= 6; book++) {
+            for (const count of [25, 30, 33, 35, 36, 50, 101]) {
+                const route = buildCartoonSpeakingRoute(`book-${book}`, Array.from({ length: count }, (_, id) => ({ id })));
+                const gaps = route.nodes.slice(1).map((node, i) => node.distance - route.nodes[i].distance);
+                expect(Math.max(...gaps) / Math.min(...gaps)).toBeLessThan(1.3);
+                expect(route.scenes.slice(1).every(scene => scene.seamCut.length > 0)).toBe(true);
+                expect(route.scenes[0].seamCut).toBeUndefined();
+            }
+        }
+    });
     test("unified maps keep lesson order and map every node to the painted trace", () => {
         for (const count of [0, 1, 5, 25, 50, 101]) {
             const lessons = Array.from({ length: count }, (_, id) => ({ id }));
