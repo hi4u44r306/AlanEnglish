@@ -84,6 +84,26 @@
   }
 }
 
+/* One illustration spans the whole world; narrow screens crop its sides. */
+.speaking-challenge-page.is-book-open.is-segmented-world .speaking-map-chapter.is-cartoon.is-unified-map {
+  .speaking-segmented-canvas {
+    width: min(100%, max(500px, 33.333333vw));
+    background: transparent;
+    box-shadow: none;
+    // Let the scene's retry control remain clickable behind the transparent canvas.
+    pointer-events: none;
+    .speaking-challenge-lesson { pointer-events: auto; }
+  }
+  .speaking-unified-scene-layer {
+    position: absolute;
+    inset: 0 auto 0 50%;
+    width: max(min(1500px, 300vw), 100vw);
+    height: 100%;
+    transform: translateX(-50%);
+    .speaking-scene-retry { right: calc(50% - 110px); z-index: 2; }
+  }
+}
+
 /* Keep gameplay at its approved scale; extend only the scenery on wide screens. */
 .speaking-challenge-page.is-book-open.is-segmented-world .speaking-map-chapter.is-cartoon.is-refined-pilot {
   position: relative;

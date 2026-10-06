@@ -52,6 +52,21 @@ describe("segmented scene loading", () => {
         expect(media.removeEventListener).toHaveBeenCalledWith("change", onChange);
     });
 
+    test("unified forest uses one full-width layer and retains loading retry", () => {
+        const cartoon = buildCartoonSpeakingRoute("book-1", Array.from({ length: 50 }, (_, id) => ({ id })), { unifiedForest: true });
+        const { container } = render(<SegmentedSpeakingMap route={cartoon} />);
+        expect(container.querySelector(".speaking-map-side-scenery")).toBeNull();
+        expect(container.querySelector(".speaking-scene-layer")).toBeNull();
+        const layer = container.querySelector(".speaking-unified-scene-layer");
+        expect(layer.querySelectorAll("img").length).toBeLessThan(4);
+        const image = layer.querySelector("img");
+        expect(image).toHaveAttribute("width", "1536");
+        fireEvent.error(image);
+        fireEvent.click(screen.getByRole("button", { name: "重試載入場景" }));
+        expect(layer.querySelector("img")).toBeInTheDocument();
+        expect(container.querySelector(".speaking-map-centerline")).toHaveAttribute("d", cartoon.path);
+    });
+
     test("full books use their painted theme and only load nearby scene instances", () => {
         const cartoon = buildCartoonSpeakingRoute("book-5", Array.from({ length: 50 }, (_, id) => ({ id })));
         const { container } = render(<SegmentedSpeakingMap route={cartoon} />);

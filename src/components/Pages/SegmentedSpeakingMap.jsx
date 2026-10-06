@@ -7,8 +7,11 @@ import volcano from "../assets/speaking-map/serpentine-volcano-v3.webp";
 import pilotMeadow from "../assets/speaking-map/pilot-meadow-v6.webp";
 import pilotForest from "../assets/speaking-map/pilot-forest-v6.webp";
 import { CARTOON_ASSETS, CARTOON_SIDE_ASSETS } from "./speakingCartoonAssets";
+import unifiedForestA from "../assets/speaking-map/unified-forest-a-v1.webp";
+import unifiedForestB from "../assets/speaking-map/unified-forest-b-v1.webp";
 
-const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest, ...CARTOON_ASSETS };
+const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest, ...CARTOON_ASSETS,
+    "unified-forest-a": unifiedForestA, "unified-forest-b": unifiedForestB };
 
 function SceneTile({ scene, route, eager, scenery = false }) {
     const container = useRef(null);
@@ -26,7 +29,7 @@ function SceneTile({ scene, route, eager, scenery = false }) {
     }, [nearby]);
     return <div ref={container} className={`speaking-scene-tile ${scenery ? "is-side-scenery" : ""} is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
         data-scene-index={scenery ? undefined : scene.index} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%` }}>
-        {nearby && !failed && <img key={attempt} src={scenery ? CARTOON_SIDE_ASSETS[scene.biome] : SCENES[scene.asset]} alt="" width={scenery ? "1536" : "887"} height={scenery ? "1024" : "1774"} decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
+        {nearby && !failed && <img key={attempt} src={scenery ? CARTOON_SIDE_ASSETS[scene.biome] : SCENES[scene.asset]} alt="" width={scenery || scene.unified ? "1536" : "887"} height={scenery || scene.unified ? "1024" : "1774"} decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
         {failed && !scenery && <button className="speaking-scene-retry" type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>重試載入場景</button>}
     </div>;
 }
@@ -73,15 +76,19 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
     const initialY = route.nodes[initialLevelIndex]?.worldY ?? route.height;
     const start = route.nodes[0];
     const roadPath = route.roadPath ?? route.path;
-    return <section className={`speaking-map-chapter is-book is-segmented${route.isPilot || route.isCartoon ? " is-refined-pilot" : ""}${route.isCartoon ? " is-cartoon" : ""}`}
+    return <section className={`speaking-map-chapter is-book is-segmented${route.isPilot || route.isCartoon ? " is-refined-pilot" : ""}${route.isCartoon ? " is-cartoon" : ""}${route.isUnifiedForest ? " is-unified-map" : ""}`}
         style={{ "--map-scene-background": route.theme?.ground }}>
-        {route.isCartoon && <WideScenery route={route} initialY={initialY} />}
+        {route.isCartoon && !route.isUnifiedForest && <WideScenery route={route} initialY={initialY} />}
+        {route.isUnifiedForest && <div className="speaking-unified-scene-layer">
+            {route.scenes.map(scene => <SceneTile key={scene.id} scene={scene} route={route}
+                eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
+        </div>}
         <div className="speaking-map-canvas speaking-segmented-canvas" style={{ "--map-aspect-ratio": route.aspectRatio, "--map-scene-background": route.theme?.ground,
             "--segmented-marker-size": `${route.markerDiameter / route.width * 100}cqw` }}>
-            <div className="speaking-scene-layer">
+            {!route.isUnifiedForest && <div className="speaking-scene-layer">
                 {route.scenes.map(scene => <SceneTile key={scene.id} scene={scene} route={route}
                     eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
-            </div>
+            </div>}
             <svg className="speaking-continuous-road" viewBox={`0 0 ${route.width} ${route.height}`} aria-hidden="true" focusable="false">
                 {route.paintedRoad ? <path className="speaking-map-centerline" d={route.path} fill="none" stroke="none" /> : <>
                 <defs>

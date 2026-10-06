@@ -1,6 +1,27 @@
 import { buildCartoonSpeakingRoute, getSpeakingBookTheme, SPEAKING_BOOK_THEMES } from "./speakingCartoonMap";
 
 describe("full Workbook cartoon maps", () => {
+    test("unified forest is opt-in, keeps lesson order and maps every node to its new painted trace", () => {
+        for (const count of [0, 1, 5, 25, 50, 101]) {
+            const lessons = Array.from({ length: count }, (_, id) => ({ id }));
+            const route = buildCartoonSpeakingRoute("book-1", lessons, { unifiedForest: true });
+            expect(route.isUnifiedForest).toBe(true);
+            expect(route.nodes.map(n => n.id)).toEqual(lessons.map(l => l.id));
+            const points = route.path.split(" ").map(p => p.slice(1).split(",").map(Number));
+            route.nodes.forEach((node, index) => {
+                expect(Math.min(...points.map(([x, y]) => Math.hypot(x - node.worldX, y - node.worldY)))).toBeLessThan(.001);
+                expect(node.worldX).toBeGreaterThan(40);
+                expect(node.worldX).toBeLessThan(460);
+                if (index) {
+                    const prior = route.nodes[index - 1];
+                    expect(node.worldY).toBeLessThan(prior.worldY);
+                    expect(Math.hypot(node.worldX-prior.worldX, node.worldY-prior.worldY)).toBeGreaterThan(120);
+                }
+            });
+        }
+        expect(buildCartoonSpeakingRoute("book-1").isUnifiedForest).toBe(false);
+        expect(buildCartoonSpeakingRoute("book-4", [], { unifiedForest: true }).isUnifiedForest).toBe(false);
+    });
     test.each([0, 1, 2, 3, 4, 5, 15, 25, 36, 50, 60, 100, 101])("%i lessons keep source order and expand without shrinking markers", count => {
         const lessons = Array.from({ length: count }, (_, i) => ({ id: "lesson-" + i }));
         for (let book = 1; book <= 6; book++) {

@@ -1,6 +1,14 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-05
+最後更新：2026-10-06
+
+森林整幅寬圖樣板（2026-10-06，本機待審）：
+
+- 基準 `6511c376`，同一分支。使用者認為左右漸層側景仍不自然，要求地圖道路保持中央、電腦展現寬景、手機裁切兩側。本批先完成森林A/B兩張完整寬圖，左右不再疊加／淡化獨立素材；上下仍沿用100單位重疊與逐段載入，50關13段。
+- `SegmentedSpeakingMap.jsx`／SCSS 新增整幅圖層；`speakingCartoonMap.js`加入預設關閉的unifiedForest選項及新描線JSON。只有本機preview的Workbook 1啟用，其他五冊及正式入口保留原配置。木框圓牌沿新路面安全位置分布，半徑41周界每點128取樣通過，避開窄彎；8個錨點，A/B最小間距207.5／199.1單位。
+- 新WebP原生1536×1024，共604,672 bytes，未升頻、仍非原生4K。內建imagegen來源與完整提示詞存 `src/components/assets/speaking-map/UNIFIED-FOREST-V1.md`。手機同圖裁切；1920px桌面中央640px、按鈕約102px，412px中央412px、按鈕約66px。
+- 22項相關元件／路線測試通過；SCSS與preview bundle、focused lint、diff check驗證。Edge Chromium 412／768／1440／1920px無破圖／溢出／pageerror，整幅層寬正好為中央3倍、無獨立側景層；摘要點擊與Escape通過。截圖 `output/segmented-map/unified-*.png`、報告 `unified-browser-report.json`。本機server已恢復3003。
+- 本機審核 `http://127.0.0.1:3003/?book=1&levels=50`，不寫學習資料，未推送／部署。純本機視覺樣板不跑全套或production build；iPhone Safari實機／真實題庫流程未驗。下一步為使用者審核寬圖與手機裁切，再處理其他主題；原生4K發布条件仍未達成。
 
 六冊大螢幕側景精簡（2026-10-05，本機完成，未部署）：
 
