@@ -183,7 +183,7 @@ const App = () => {
                         <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
                         <Route path="/student/speaking-challenges/book/:bookKey" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
                         <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
-                        <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><AIMaterialGenerator /></ProtectedRoute>} />
+                        <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><AIMaterialGenerator /></ProtectedRoute>} />
                         <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Playlist /></ProtectedRoute>} />
                         <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><BillingResult /></ProtectedRoute>} />
                         <Route path="/billing/cancel" element={<ProtectedRoute allowedRoles={["student"]}><BillingResult cancelled /></ProtectedRoute>} />

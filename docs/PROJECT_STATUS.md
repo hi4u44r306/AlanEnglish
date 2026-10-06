@@ -2,6 +2,15 @@
 
 最後更新：2026-10-06
 
+### 停止學生個人 AI 教材（2026-10-06，本機驗證完成，尚未部署）
+
+- 分支 `codex/disable-student-ai-materials`，最新 main 基準 `dc866e7a`；獨立 Git 副本 `output/student-ai-disable-20261006`，原工作目錄與未提交草稿保留，未建立 worktree。
+- `/student/ai-generator` 僅老師／管理員可進入；`generate-ai-material` 依 Firebase 對應的資料庫角色拒絕所有學生操作，於額度查詢與 OpenAI 呼叫前回傳 `student_ai_materials_disabled`。會員中心移除每日／每月生成額度，顯示停止開放與口說保留說明。
+- 不改資料庫、RLS、會員 grant、付款訂閱、口說評分或共用班級作業；不刪教材與學習紀錄。相關檔案：App.jsx、MembershipCenter.jsx／測試、generate-ai-material/index.ts、scripts/student-ai-material-access.test.mjs、PROJECT_LOGIC.md、手冊 v3.54。
+- 驗證：隔離執行實際 Edge handler 11 項、會員／路由／口說 service 21 項、現行發音權限／流程 10 項通過；語法、focused ESLint、production build 與 diff 通過。額外既有混合作業 contract 為 12/13：第 8 項仍在 pronunciation-coach 原檔搜尋已移往 shared helper 的權限式，相關兩檔與 main 無差異；未擴大修復此既有測試。沒有跑 full suite。
+- 會員頁以合成測試資料與本批 production CSS 於 1440／412px 渲染檢查，無水平溢出；412px 截圖已目視，產物在 `output/student-ai-review/`。不等同真實登入、全站導覽或 iPhone Safari 驗收。核心存取規則變更依 AGENTS.md 第 13 節，仍須本批正式發布同意；尚未部署 Supabase 或 Cloudflare。回復方式為還原本批前端及 Function 版本，不需資料回填。
+- 成本依使用者更正：40 位學生、ChatGPT Pro 5x 每月 NT$3,300，另付口說評分；其餘服務目前免費。Pro 全額分攤即 NT$82.5／生／月，全班 NT$50 目標預算僅 NT$2,000，未加口說及人力已不足 NT$1,300。Pro 如用於其他工作，可按實際比例分攤；不虛列 Supabase Pro／Workers Paid 費用，口說實付與工時待核對。
+
 ### 口說關卡頂部精簡（2026-10-06，已正式部署／實際畫面待驗收）
 
 - `codex/speaking-session-compact-top` 從最新 main `a624df35` 開始，沿用既有工作樹。依使用者截圖移除教材名稱／口說練習標題／泛用說明的大型區塊，保留下方關卡返回、標題、題數及進度。

@@ -180,6 +180,14 @@ Deno.serve(async (req: Request) => {
         if (!student) return json(404, { error: "找不到 Alan English 帳號" });
 
         const role = ALLOWED_ROLES.includes(student.role) ? student.role : "student";
+        // Personal AI materials are staff-only, regardless of legacy student grants.
+        // Keep pronunciation and teacher-published assignment services independent.
+        if (!STAFF_ROLES.has(role)) {
+            return json(403, {
+                error: "學生個人 AI 教材已停止開放，請使用教材聽力、口說大挑戰或老師指派的作業。",
+                code: "student_ai_materials_disabled"
+            });
+        }
         const body = await req.json().catch(() => ({}));
         const action = String(body?.action || "generate");
         const today = taiwanDate();
