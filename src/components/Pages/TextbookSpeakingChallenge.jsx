@@ -26,6 +26,7 @@ import "./css/SpeakingMapEntry.scss";
 import "./css/SpeakingAdventureSession.scss";
 import "./css/SpeakingChallengeRules.scss";
 import "./css/SegmentedSpeakingMap.scss";
+import "./css/SpeakingBookCard.scss";
 
 const CATALOG_SECTION_COPY = {
     preparation: { label: "入門準備", eyebrow: "先從基礎開始", badge: "ABC" },

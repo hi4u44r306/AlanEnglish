@@ -2,6 +2,13 @@
 
 最後更新：2026-10-06
 
+### 大關卡列表與地圖視覺一致（2026-10-06，本機實作／尚未部署）
+
+- 延續 `codex/speaking-learning-loop`／草稿 PR #423：SpeakingBookCard 使用各冊 unified 地圖 A 段原素材作為場景預覽，六冊配色沿用 getSpeakingBookTheme；木框編號、暖色資訊區與黃色冒險按鈕呼應地圖關卡。桌面三欄、平板兩欄、手機單欄，後四張場景延遲載入。
+- 新增最後載入且僅作用於教材總覽的 SpeakingBookCard.scss；關卡數、完成進度、再次／繼續／開始入口、角色與權限維持原契約。不新增圖片、後端或學習資料寫入。
+- 驗證：TextbookSpeakingChallenge 51 項測試、focused ESLint、SCSS 編譯通過。Chrome 對 localhost 仍無法確認 saved browser permissions，尚未完成 412／768／1440px 截圖與視覺驗收，保持草稿，未合併／部署；無邏輯改動，未跑無關 full suite／production build。
+- 相關檔案：SpeakingBookCard.jsx、SpeakingBookCard.scss、TextbookSpeakingChallenge.jsx／test、網站使用手冊與網站優化.md。下一步由本機頁面檢視場景卡片，恢復工具存取後補 RWD 視覺驗收。
+
 ### 第二批口說學習循環（2026-10-06，本機完成／待視覺驗收）
 
 - 沿用第一批工作樹（目前實際路徑 `D:\CodexData\home\worktrees\student-learning-rwd\AlanEnglish`），分支 `codex/speaking-learning-loop`，基準最新 main／`35fe55e1`；原主工作目錄的未提交草稿保留。
