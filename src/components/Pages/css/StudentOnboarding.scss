@@ -174,7 +174,8 @@
 
 .student-onboarding-card button.secondary { border: 1px solid #c9d6e8; color: #31568f; background: #fff; }
 .student-onboarding-card button:disabled { opacity: .6; cursor: wait; }
-.student-onboarding-logout { justify-self: center; color: #52627a; background: transparent; }
+.student-onboarding-logout { justify-self: center; color: #245fc5; background: #eef5fc; border: 1px solid #adc5e3; }
+.student-onboarding-logout:hover { background: #e1ecfb; border-color: #245fc5; }
 
 @media (max-width: 560px) {
     .student-onboarding-page { padding: 14px 12px calc(34px + env(safe-area-inset-bottom)); }

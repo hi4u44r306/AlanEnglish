@@ -2,6 +2,15 @@
 
 最後更新：2026-10-06
 
+### 第一至三批操作入口辨識度追補（2026-10-06，本機／尚未部署）
+
+- 分支 `codex/student-growth-rewards`，沿用第三批工作樹。檢查第一批今日學習、導覽、作業、首次設定、週報與會員口說入口；第二批口說總覽、地圖、題目說明、示範／提示、錄音回聽、送評／重試、題目切換；第三批角色設定、成長捷徑與獎品操作。
+- 將首頁角色／排行榜／全部作業／無教材權限入口、共用成長卡捷徑、頭像與口說練習說明展開入口、首次設定登出及導覽入口補上底色與外框；保留原有連結與原生 details 語意。補充 hover、按下與鍵盤焦點，手機成長卡捷徑單欄排列。
+- 週報工具列／口說入口、會員口說捷徑與角色確認視窗關閉鍵補足至少 44px 高度。作業開始、口說地圖／大關卡、錄音／送評與獎品兌換已有按鈕或卡片造型，維持原操作層級。不改路由、錄音、權限、資料寫入或獎勵。
+- 驗證：9 份受影響 SCSS 編譯、StudentLearningHome.jsx focused ESLint 與 diff check 通過。本批為樣式及 JSX class 調整，不重跑既有功能測試、全套測試或 production build。Chrome 再次無法驗證 localhost saved permissions，實際桌面／412px 與 iPhone Safari 未驗證；仍供本機審閱，尚未發布。
+- 本機預覽：3000 已有其他伺服器占用，保留其程序；以本工作樹執行 `npm start` 於 `http://localhost:3015/student/dashboard`，development webpack 編譯成功並保持運行。此為完整程式預覽，仍未驗證登入後渲染與真實資料流程。
+- 修改檔案：StudentLearningHome.jsx；StudentLearningHome.scss、StudentSettings.scss、SpeakingLearningJourney.scss、TextbookSpeakingChallenge.scss、WeeklyReport.scss、Platform.scss、StudentOnboarding.scss；StudentGrowthCard.scss、StudentNavbar.scss；本狀態文件、網站使用手冊與網站優化.md。
+
 ### 第三批角色成長與獎品目標（2026-10-06，本機完成／待視覺驗收）
 
 - 沿用既有隔離工作樹，分支 `codex/student-growth-rewards`，基準最新 main `af0fe0d7`。本批集中「看見進步與近期目標」；原主工作目錄草稿保留。
