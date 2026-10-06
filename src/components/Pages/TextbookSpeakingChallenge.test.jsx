@@ -411,6 +411,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(workbookThree).toHaveTextContent("開始冒險");
         expect(workbookOne).toHaveTextContent("共 2 關 · 已完成 1 關");
         expect(workbookOne.querySelector(".speaking-book-card__chapter")).toHaveTextContent("01");
+        expect(workbookOne.querySelector(".speaking-book-card__scene img")).toHaveAttribute("src", expect.stringContaining("unified-forest-a"));
+        expect(workbookTwo.querySelector(".speaking-book-card__scene img")).toHaveAttribute("src", expect.stringContaining("unified-island-a"));
+        expect(workbookThree.querySelector(".speaking-book-card__scene img")).toHaveAttribute("src", expect.stringContaining("unified-candy-a"));
         expect(workbookOne.querySelector(".speaking-book-card__art")).toBeNull();
         expect(workbookOne.querySelector(".speaking-book-card__reward")).toBeNull();
 

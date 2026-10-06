@@ -56,6 +56,23 @@
 }
 
 .speaking-recording-status { margin: 0; padding: 7px 12px; border: 1px solid #b3cadb; border-radius: 12px; background: #fff; color: #244c86; font-size: 13px; font-weight: 700; }
+.speaking-lesson-preparation p { margin: 3px 0 0; color: #d9eadf; font-size: 13px; line-height: 1.6; }
+
+.speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-focus-card.speaking-lesson-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  padding: 22px;
+  .speaking-game-question-card { display: grid; align-content: start; gap: 20px; min-width: 0; }
+  .speaking-practice-flow { min-width: 0; }
+  .speaking-question-heading { padding: 0; border: 0; box-shadow: none; background: transparent; }
+  .speaking-question-heading h2 { font-size: clamp(22px, 2.5vw, 30px); line-height: 1.5; overflow-wrap: anywhere; }
+  .speaking-question-heading p { display: block; overflow: visible; font-size: 14px; line-height: 1.7; -webkit-line-clamp: unset; }
+  .speaking-visual-aid--challenge { width: min(360px, 100%); }
+  .speaking-no-reward, .speaking-audio-notice, .speaking-staff-preview-banner, .speaking-gap-sentence-audio { grid-column: 1 / -1; }
+  .speaking-no-reward { border-top: 1px solid #e5dbc5; padding-top: 12px; line-height: 1.6; }
+}
 .speaking-listening-busy { max-width: 280px; font-size: 13px; line-height: 1.5; color: #fff4d6; }
 .speaking-celebration-next-topic { display: grid; gap: 4px; padding: 10px; border-radius: 12px; background: #fff4d6; color: #17345e; overflow-wrap: anywhere; small { font-size: 12px; } }
 
@@ -65,4 +82,12 @@
 @media (max-width: 760px) {
   .speaking-adventure-session { padding-inline: 10px; .speaking-challenge-detail.speaking-immersive-play .speaking-lesson-header { top: max(8px, env(safe-area-inset-top, 0px)); } }
   .speaking-lesson-preparation strong { font-size: 16px; }
+  .speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-focus-card.speaking-lesson-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 14px;
+    .speaking-game-question-card { gap: 12px; }
+    .speaking-visual-aid--challenge { width: min(320px, 100%); }
+    .speaking-question-heading h2 { font-size: 21px; }
+  }
 }

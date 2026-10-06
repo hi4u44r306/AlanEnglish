@@ -1,6 +1,7 @@
 import React from "react";
 import { FiChevronRight } from "react-icons/fi";
 import { getSpeakingBookTheme } from "../../utils/speakingCartoonMap";
+import { UNIFIED_MAP_ASSETS } from "./speakingUnifiedAssets";
 
 const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
     const theme = getSpeakingBookTheme(group.id);
@@ -22,12 +23,15 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
 
     return <button
         type="button"
-        className={`speaking-book-card speaking-book-card--theme-${theme.id}`}
-        style={{ "--book-primary": theme.color, "--book-deep": theme.color }}
+        className={`speaking-book-card is-map-preview speaking-book-card--theme-${theme.id}`}
+        style={{ "--book-primary": theme.color, "--book-deep": theme.color, "--book-ground": theme.ground }}
         onClick={onOpen}
         aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關${rewardLabel}`}
     >
-        <span className="speaking-book-card__chapter" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+        <span className="speaking-book-card__scene" aria-hidden="true">
+            <img src={UNIFIED_MAP_ASSETS[`unified-${theme.id}-a`]} alt="" width="1536" height="1024" loading={index < 2 ? "eager" : "lazy"} decoding="async" />
+            <span className="speaking-book-card__chapter">{String(index + 1).padStart(2, "0")}</span>
+        </span>
         <span className="speaking-book-card__content">
             <small className="speaking-book-card__eyebrow">{theme.title} · 第 {index + 1} 冊</small>
             <strong>{group.label}</strong>

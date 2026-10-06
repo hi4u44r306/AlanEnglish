@@ -1,0 +1,149 @@
+// Keep this catalog treatment after the legacy speaking styles. The scene is
+// the same first tile used by each Workbook's map, so both entries share a world.
+.speaking-challenge-catalog:not(.is-book-open) {
+  background: #eef2e9;
+
+  .speaking-challenge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    align-items: stretch;
+  }
+
+  .speaking-book-card.is-map-preview {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    min-height: 128px;
+    padding: 14px;
+    overflow: visible;
+    border: 2px solid #a96f3b;
+    border-radius: 18px;
+    background: #fff4d6;
+    color: #17345e;
+    box-shadow: 0 3px 0 #714723, 0 7px 14px #243c3412;
+    text-align: left;
+    font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
+    transition: box-shadow .15s ease;
+
+    &::before, &::after { content: none; }
+
+    .speaking-book-card__scene {
+      position: relative;
+      display: block;
+      width: 80px;
+      height: 80px;
+      overflow: hidden;
+      border: 2px solid #a96f3b;
+      border-radius: 14px;
+      background: var(--book-ground);
+      box-shadow: inset 0 0 0 2px #efbe7b;
+
+      img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    }
+
+    .speaking-book-card__chapter {
+      position: absolute;
+      inset: auto auto 3px 3px;
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      margin: 0;
+      border: 2px solid #a96f3b;
+      border-radius: 50%;
+      background: #ffda4b;
+      color: #17345e;
+      box-shadow: inset 0 0 0 1px #fff0ae;
+      font-size: 12px;
+      line-height: 1;
+      text-shadow: none;
+    }
+
+    .speaking-book-card__content {
+      display: grid;
+      align-content: start;
+      gap: 4px;
+      min-width: 0;
+      padding: 0;
+      background: transparent;
+
+      > .speaking-book-card__eyebrow {
+        color: #6f4829;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.5;
+        letter-spacing: normal;
+        text-transform: none;
+        overflow-wrap: anywhere;
+      }
+      > strong { color: #17345e; font-size: 22px; line-height: 1.3; overflow-wrap: anywhere; }
+      > .speaking-book-card__count { color: #4c5d59; font-size: 12px; line-height: 1.5; }
+    }
+
+    .speaking-book-card__progress { display: block; margin: 2px 0 0; }
+    .speaking-book-card__progress > .speaking-book-card__track {
+      display: block;
+      width: 100%;
+      height: 8px;
+      padding: 1px;
+      overflow: hidden;
+      border: 1px solid #c4a272;
+      border-radius: 10px;
+      background: #eadfc4;
+      > span { display: block; height: 100%; border-radius: 8px; background: var(--book-primary); }
+    }
+
+    .speaking-book-card__action {
+      display: flex;
+      grid-column: 3;
+      justify-self: end;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 44px;
+      margin: 0;
+      padding: 8px 10px;
+      border: 2px solid #a96f3b;
+      border-radius: 10px;
+      background: #ffda4b;
+      color: #17345e;
+      box-shadow: 0 2px 0 #714723;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+      > svg { flex: 0 0 auto; color: #17345e; width: 16px; height: 16px; }
+    }
+
+    &:focus-visible { outline: 3px solid #2459a2; outline-offset: 5px; }
+    &:hover { transform: none; box-shadow: 0 3px 0 #714723, 0 9px 18px #243c3420; }
+  }
+
+  @media (max-width: 1000px) {
+    .speaking-book-card.is-map-preview {
+      grid-template-columns: 64px minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 12px;
+      min-height: 124px;
+      .speaking-book-card__scene { width: 64px; height: 64px; }
+      .speaking-book-card__content > strong { font-size: 20px; }
+      .speaking-book-card__action { padding: 8px 6px; font-size: 12px; }
+    }
+  }
+  @media (max-width: 760px) {
+    .speaking-challenge-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  }
+  @media (max-width: 399px) {
+    .speaking-book-card.is-map-preview {
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 6px 10px;
+      .speaking-book-card__scene { grid-row: 1 / 3; }
+      .speaking-book-card__action { grid-column: 2; justify-self: start; }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .speaking-book-card.is-map-preview { transition: none; }
+  }
+}

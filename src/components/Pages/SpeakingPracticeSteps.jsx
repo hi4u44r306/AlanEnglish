@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
+import SpeakingLearningJourney from "./SpeakingLearningJourney";
 
 const ANSWER_SLOT_PATTERN = /[\u005B［]([^\u005D］]{1,80})[\u005D］]/g;
 
@@ -61,6 +62,10 @@ export default function SpeakingPracticeSteps({
     const [helpLoading, setHelpLoading] = useState(false);
     const [lastResult, setLastResult] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [recorderPhase, setRecorderPhase] = useState("ready");
+    const helpId = useId();
+    const busy = ["recording", "preparing", "assessing"].includes(recorderPhase) || saving;
+    const canListen = allowModelAudio && Boolean(question.model_audio_url);
     const hintRequestRef = useRef(0);
     const answerQuestion = revealedAnswer ? { ...question, ...revealedAnswer } : question;
     const answerPattern = answerPatternForLearner(answerQuestion.model_answer);
@@ -74,6 +79,7 @@ export default function SpeakingPracticeSteps({
         setHelpLoading(false);
         setLastResult(null);
         setSaving(false);
+        setRecorderPhase("ready");
         return () => { hintRequestRef.current += 1; };
     }, [question.id, challengeSessionId, challengeMode]);
 
@@ -127,23 +133,27 @@ export default function SpeakingPracticeSteps({
     };
 
     return <section className="speaking-practice-flow">
-        <div className="speaking-direct-prompt">
+        <SpeakingLearningJourney phase={saving ? "assessing" : lastResult ? "feedback" : recorderPhase} canListen={canListen} />
+        <details className="speaking-practice-instructions">
+            <summary>這題怎麼練？</summary>
+            <div className="speaking-direct-prompt">
             <FiMic aria-hidden="true" />
             <div><strong>{promptTitle}</strong><span>{promptDetail}</span></div>
-        </div>
+            </div>
+        </details>
 
         {showAnswerByDefault && answerPattern && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
             <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPattern}</strong>
-            {allowModelAudio && question.model_audio_url && <button type="button" disabled={audioWorking} onClick={onPlayAudio}>
+            {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
         </div>}
 
-        {readAloud && allowModelAudio && question.model_audio_url && <button type="button" className="speaking-help-toggle" disabled={audioWorking} onClick={onPlayAudio}>
+        {readAloud && canListen && <button type="button" className="speaking-help-toggle" disabled={audioWorking || busy} onClick={onPlayAudio}>
             <FiVolume2 aria-hidden="true" />{audioWorking ? "播放中…" : "聽示範發音"}
         </button>}
 
-        {!hideHelp && !showAnswerByDefault && (!deferAnswerHelp || lastResult || challengeMode === "challenge") && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} onClick={toggleHelp} disabled={helpLoading}>
+        {!hideHelp && !showAnswerByDefault && (!deferAnswerHelp || lastResult || challengeMode === "challenge") && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} aria-controls={helpId} onClick={toggleHelp} disabled={helpLoading || busy}>
             <FiHelpCircle aria-hidden="true" />{helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : challengeMode === "challenge" ? "看提示（本輪此題不計通關）" : "不知道怎麼說？"}
         </button>}
 
@@ -153,10 +163,10 @@ export default function SpeakingPracticeSteps({
             <span>本輪這題不計通關；已通過的題目會保留。</span>
         </p>}
 
-        {!hideHelp && showHelp && <div className="speaking-help-panel">
+        {!hideHelp && showHelp && <div className="speaking-help-panel" id={helpId}>
             {answerQuestion.hint_zh && <p>{answerQuestion.hint_zh}</p>}
             <div><small>可以這樣說</small><strong>{answerPattern}</strong></div>
-            {allowModelAudio && question.model_audio_url && <button type="button" disabled={audioWorking} onClick={onPlayAudio}>
+            {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
             {example && <small>示範：{example}</small>}
@@ -175,6 +185,10 @@ export default function SpeakingPracticeSteps({
             disabledReason={disabledReason}
             onScored={handleScored}
             onRoundInvalid={onRoundInvalid}
+            onPhaseChange={setRecorderPhase}
+            onRetry={() => setLastResult(null)}
+            onListenAgain={canListen ? onPlayAudio : undefined}
+            audioWorking={audioWorking}
         />
 
         {saving && <p className="speaking-practice-saving" role="status">正在儲存本題進度，請稍候…</p>}
