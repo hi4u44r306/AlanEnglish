@@ -100,7 +100,7 @@ function StudentOnboarding() {
         const requested = location.state?.from;
         const destination = requested?.pathname?.startsWith("/student/")
             ? `${requested.pathname}${requested.search || ""}`
-            : "/student/leaderboard";
+            : "/student/dashboard";
         navigate(destination, { replace: true });
     }, [completedCount, location.state, navigate, pushDecisionMade, shouldOfferPush, studentProfile?.onboarding?.required]);
 

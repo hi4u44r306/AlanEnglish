@@ -205,7 +205,7 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByRole("button", { name: "管理目前訂閱" })).toBeEnabled();
         expect(screen.queryByRole("link", { name: "AI 教材" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: /智慧複習|AI 專屬教材/ })).not.toBeInTheDocument();
-        expect(screen.getByLabelText("口說遊戲準備中")).toBeInTheDocument();
+        expect(screen.queryByLabelText("口說遊戲準備中")).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "發音練習" })).not.toBeInTheDocument();
         expect(screen.getByText(/每月最多/, { selector: "li" })).toHaveTextContent("每月最多 150 次");
     });

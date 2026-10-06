@@ -94,7 +94,7 @@ test("每週成長報告獨立顯示口說大挑戰進度與實際獎勵", async
     expect(screen.getByText("本週通過 1 關，獲得 30 XP、3 AE Points")).toBeInTheDocument();
     expect(screen.getByText("Workbook 1")).toBeInTheDocument();
     expect(screen.getByText("P28 顏色")).toBeInTheDocument();
-    expect(screen.getByLabelText("口說遊戲準備中")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "查看口說功能權限" })).toHaveAttribute("href", "/student/membership");
     expect(screen.queryByRole("link", { name: /再次挑戰|繼續挑戰/ })).not.toBeInTheDocument();
     expect(screen.getByRole("img", { name: "每日有效聆聽折線圖" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "口說大挑戰累計進度折線圖" })).toBeInTheDocument();

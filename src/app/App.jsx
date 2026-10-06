@@ -20,6 +20,7 @@ import AccountManagement from "../components/Pages/AccountManagement";
 import AcademyStudentCsvImport from "../components/Pages/AcademyStudentCsvImport";
 import BillingResult from "../components/Pages/BillingResult";
 import LearningLeaderboard from "../components/Pages/LearningLeaderboard";
+import StudentLearningHome from "../components/Pages/StudentLearningHome";
 import RewardsAdmin from "../components/Pages/RewardsAdmin";
 import ApiUsageAdmin from "../components/Pages/ApiUsageAdmin";
 import MembershipAdmin from "../components/Pages/MembershipAdmin";
@@ -166,7 +167,7 @@ const App = () => {
 
                     <Route path="/student/onboarding" element={<ProtectedRoute allowedRoles={["student"]} allowsIncompleteOnboarding><StudentOnboarding /></ProtectedRoute>} />
                     <Route element={<AuthenticatedAppLayout />}>
-                        <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><LearningLeaderboard /></ProtectedRoute>} />
+                        <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><StudentLearningHome /></ProtectedRoute>} />
                         <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><StudentAssignments /></ProtectedRoute>} />
                         <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><ReviewCenter /></ProtectedRoute>} />
                         <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><WeeklyReport /></ProtectedRoute>} />

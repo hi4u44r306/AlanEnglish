@@ -2,6 +2,15 @@
 
 最後更新：2026-10-06
 
+### 第一批兒童學習首頁與 RWD（2026-10-06，待正式發布驗收）
+
+- 分支 `codex/student-learning-rwd`，獨立工作樹 `C:\Users\user\.codex\worktrees\student-learning-rwd\AlanEnglish`，基準 `origin/main`／`37d08e8f`。保留原工作目錄未提交變更及最新六冊口說地圖。
+- 完成今日學習首頁、真實 XP 成長卡、可搜尋／分類教材書架、V1／V2 任務狀態與指定任務定位；調整桌面與手機導覽、作業頁資訊密度、口說用量說明收合、週報與會員口說入口一致性。
+- 相關檔案：StudentLearningHome、studentLearning、StudentNavbar、StudentAssignments、RoleHomeRedirect、StudentOnboarding、TextbookSpeakingChallenge、WeeklyReport、MembershipCenter 及相應測試／樣式；完整方向見根目錄 `網站優化.md`。本批無 migration、Edge Function、Secret、權限契約或學習寫入變更。
+- 驗證：8 份相關測試共 97 項已通過（修正預期後針對失敗套件重測）；focused ESLint、開發編譯、diff 檢查通過。隔離預覽使用實際元件與合成資料，412／768／1440px 無橫向溢出；搜尋、分類、任務定位、手機選單捲動鎖定、無作業權限與資料失敗狀態已驗證。
+- 本機 localhost:3011 Firebase 登入遭 referrer 限制，因此上述視覺證據不是正式登入端到端驗證；未更改 Firebase 設定。iPhone Safari、真實錄音／有效播放／獎勵寫入未驗證。未跑無關全套與本機 production build，正式建置交由 Cloudflare。
+- 下一步：Git checkpoint、PR 與 Cloudflare main 發布，正式學生登入及 412／1440px 驗收後補記結果。後續互動式學習設計以既有口說與學習回饋為下一階段。
+
 六冊整幅寬景正式發布完成（2026-10-06）：
 
 - 最終正式應用版本 a8f531ac（PR #417），Cloudflare build 931de7c3-aa4e-447e-902b-c2ce6bebf188 於01:48:13 UTC成功。PR #416主發布與#417驗收hotfix均已合併main；只有兩次有程式修改的production build。

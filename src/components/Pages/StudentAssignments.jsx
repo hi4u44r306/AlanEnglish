@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
     ArrowRight,
     BookOpenCheck,
@@ -21,8 +21,10 @@ import {
     submitAssignment
 } from "../../services/assignmentService";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
+import { assignmentStateLabel, getAssignmentState } from "../../utils/studentLearning";
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
+import "./css/StudentAssignmentsJourney.scss";
 
 const formatDateTime = value => {
     if (!value) return "—";
@@ -174,6 +176,10 @@ const StudentAssignments = () => {
     const [assignments, setAssignments] = useState([]);
     const [v2Assignments, setV2Assignments] = useState([]);
     const [today, setToday] = useState("");
+    const [searchParams] = useSearchParams();
+    const requestedTask = searchParams.get("task");
+    const [taskFilter, setTaskFilter] = useState("all");
+    const [partialError, setPartialError] = useState(false);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState("");
     const [activeAssignment, setActiveAssignment] = useState(null);
@@ -188,11 +194,12 @@ const StudentAssignments = () => {
         if (!firebaseUser) return;
         if (!silent) setLoading(true);
         setMessage("");
+        setPartialError(false);
         try {
             const [response, v2Response] = await Promise.all([
                 getStudentAssignments(firebaseUser),
                 typeof getStudentAssignmentsV2 === "function"
-                    ? getStudentAssignmentsV2(firebaseUser).catch(() => ({ assignments: [] }))
+                    ? getStudentAssignmentsV2(firebaseUser).catch(() => { setPartialError(true); return { assignments: [] }; })
                     : Promise.resolve({ assignments: [] })
             ]);
             setAssignments(response.assignments || []);
@@ -207,6 +214,8 @@ const StudentAssignments = () => {
             });
         } catch (error) {
             setMessage(error.message);
+            setAssignments([]);
+            setV2Assignments([]);
         } finally {
             if (!silent) setLoading(false);
         }
@@ -231,6 +240,23 @@ const StudentAssignments = () => {
         completed: [...assignments, ...v2Assignments].filter(item => item.progress?.completed).length,
         pending: [...assignments, ...v2Assignments].filter(item => !item.progress?.completed).length
     }), [assignments, v2Assignments]);
+
+    const filterCounts = Object.fromEntries(Object.keys(assignmentStateLabel).map(state => [state,
+        [...assignments, ...v2Assignments].filter(item => getAssignmentState(item) === state).length
+    ]));
+    const matchesFilter = item => taskFilter === "all" || getAssignmentState(item) === taskFilter;
+    const visibleAssignments = assignments.filter(matchesFilter);
+    const visibleV2Assignments = v2Assignments.filter(matchesFilter);
+
+    useEffect(() => {
+        if (loading || !requestedTask) return undefined;
+        setTaskFilter("all");
+        const frame = window.requestAnimationFrame(() => {
+            const target = document.getElementById(`learning-task-${requestedTask}`);
+            if (target) { target.focus({ preventScroll: true }); target.scrollIntoView({ block: "start" }); }
+        });
+        return () => window.cancelAnimationFrame(frame);
+    }, [loading, requestedTask]);
 
     const completionRate = counts.total
         ? Math.round((counts.completed / counts.total) * 100)
@@ -330,21 +356,17 @@ const StudentAssignments = () => {
                             {formatToday(today)}
                         </span>
                         <h1>
-                            {counts.pending
-                                ? "今天還有 " + counts.pending + " 份任務包"
-                                : "今天的任務都完成了"}
+                            {loading ? "正在整理我的作業" : message ? "作業暫時無法讀取" : "我的學習任務"}
                         </h1>
                         <p>
-                            {counts.pending
-                                ? "依序完成每個步驟，全部達標才會正式交作業。"
-                                : "做得很好！你已經完成老師安排的所有練習。"}
+                            選一份任務開始，完成老師指定的練習。過往任務與截止時間也能在這裡查看。
                         </p>
                     </div>
 
-                    <div
+                    {!loading && !message && !partialError && <div
                         className="student-homework-progress"
                         role="progressbar"
-                        aria-label="今日作業完成進度"
+                        aria-label="已載入作業完成進度"
                         aria-valuemin="0"
                         aria-valuemax="100"
                         aria-valuenow={completionRate}
@@ -359,13 +381,13 @@ const StudentAssignments = () => {
                             </div>
                         </div>
                         <div className="student-homework-progress__copy">
-                            <span>今日進度</span>
+                            <span>已載入作業進度</span>
                             <strong>{counts.completed} / {counts.total} 已完成</strong>
                         </div>
-                    </div>
+                    </div>}
                 </section>
 
-                <section className="student-homework-summary" aria-label="作業統計">
+                {!loading && !message && !partialError && <section className="student-homework-summary" aria-label="作業統計">
                     <div className="student-homework-summary__item pending">
                         <span><Clock3 aria-hidden="true" size={18} />待完成</span>
                         <strong>{counts.pending}</strong>
@@ -377,23 +399,26 @@ const StudentAssignments = () => {
                     <div className="student-homework-summary__tip">
                         <Target aria-hidden="true" size={20} />
                         <span>
-                            完整任務包必須同時完成指定聽力與 AI 測驗；
-                            選擇題達到老師設定分數才算通過。
+                            每份任務的步驟不同，請依卡片上的要求練習；完成狀態會由系統確認。
                         </span>
                     </div>
-                </section>
+                </section>}
 
-                {message && <div className="assignment-message">{message}</div>}
+                {message && <div className="assignment-message" role="alert">{message}<button type="button" onClick={() => load()}>重新讀取</button></div>}
+                {partialError && <div className="assignment-message" role="status">部分任務暫時無法讀取，清單可能不完整。<button type="button" onClick={() => load()}>重新讀取</button></div>}
 
                 <section className="student-homework-tasks">
                     <div className="student-homework-section-heading">
                         <div>
-                            <span>TODAY'S PLAN</span>
-                            <h2>今天的課後任務</h2>
+                            <h2>老師的任務</h2>
                         </div>
-                        <span>{counts.total} 份作業</span>
+                        <span>{partialError ? "已載入 " : ""}{counts.total} 份作業</span>
                     </div>
 
+                    <div className="student-homework-filters" role="group" aria-label="篩選作業狀態">
+                        <button type="button" aria-pressed={taskFilter === "all"} onClick={() => setTaskFilter("all")}>全部</button>
+                        {Object.entries(assignmentStateLabel).map(([state, label]) => <button type="button" key={state} aria-pressed={taskFilter === state} onClick={() => setTaskFilter(state)}>{label}{!loading && !message && !partialError ? ` ${filterCounts[state]}` : ""}</button>)}
+                    </div>
                     <div className="student-homework-task-list">
                         {loading ? (
                             <div className="student-homework-state loading">
@@ -401,15 +426,16 @@ const StudentAssignments = () => {
                                 <strong>正在整理今天的作業</strong>
                                 <p>馬上就好，請稍候一下。</p>
                             </div>
-                        ) : assignments.length === 0 ? (
+                        ) : !message && !partialError && visibleAssignments.length === 0 && visibleV2Assignments.length === 0 ? (
                             <div className="student-homework-state empty">
                                 <span className="student-homework-state__icon">
                                     <BookOpenCheck aria-hidden="true" size={30} />
                                 </span>
-                                <strong>今天沒有新作業</strong>
-                                <p>目前沒有老師發布的任務，可以自由複習之前學過的內容。</p>
+                                <strong>{taskFilter === "all" ? "目前沒有作業" : `目前沒有${assignmentStateLabel[taskFilter]}的任務`}</strong>
+                                <p>可以切換上方分類，或回到今日學習選一本教材。</p>
+                                <Link to="/student/dashboard">回到今日學習</Link>
                             </div>
-                        ) : assignments.map((item, itemIndex) => {
+                        ) : visibleAssignments.map((item, itemIndex) => {
                             const listening = getListeningMeta(item);
                             const includesAi = hasAiTask(item);
                             const includesListening = hasListeningTask(item);
@@ -459,6 +485,8 @@ const StudentAssignments = () => {
                                         + (isCompleted ? " completed" : "")
                                     }
                                     key={item.id}
+                                    id={`learning-task-v1-${item.id}`}
+                                    tabIndex={-1}
                                 >
                                     <div className="student-homework-task__rail" aria-hidden="true">
                                         <span>{String(itemIndex + 1).padStart(2, "0")}</span>
@@ -498,7 +526,7 @@ const StudentAssignments = () => {
                                                 {isCompleted
                                                     ? <Check size={15} />
                                                     : <Clock3 size={15} />}
-                                                {isCompleted ? "已完成" : "待完成"}
+                                                {assignmentStateLabel[getAssignmentState(item)]}
                                             </span>
                                         </div>
 
@@ -517,6 +545,8 @@ const StudentAssignments = () => {
                                                 {formatDateTime(item.due_at)} 截止
                                             </span>
                                         </div>
+
+                                        {!isMissionPack && includesListening && listening.url && <Link className="student-homework-quick-start" to={listening.url}><Headphones size={18} />{isCompleted ? "再次聆聽" : "開始聆聽"}<ArrowRight size={18} /></Link>}
 
                                         {isMissionPack ? (
                                             <>
@@ -686,15 +716,7 @@ const StudentAssignments = () => {
                                                         {isCompleted ? "再次複習" : "開始作業"}
                                                         <ArrowRight aria-hidden="true" size={18} />
                                                     </button>
-                                                ) : listening.url ? (
-                                                    <Link
-                                                        className="student-homework-action"
-                                                        to={listening.url}
-                                                    >
-                                                        {isCompleted ? "再次聆聽" : "開始聆聽"}
-                                                        <ArrowRight aria-hidden="true" size={18} />
-                                                    </Link>
-                                                ) : (
+                                                ) : listening.url ? null : (
                                                     <button
                                                         className="student-homework-action"
                                                         type="button"
@@ -711,11 +733,12 @@ const StudentAssignments = () => {
                         })}
                     </div>
 
-                    {v2Assignments.length > 0 && <div className="student-homework-task-list assignment-v2-list" aria-label="新版混合作業">
-                        {v2Assignments.map((assignment, assignmentIndex) => <article className={`student-homework-task mission-pack${assignment.progress?.completed ? " completed" : ""}`} key={assignment.id}>
+                    {visibleV2Assignments.length > 0 && <div className="student-homework-task-list assignment-v2-list" aria-label="混合任務">
+                        {visibleV2Assignments.map((assignment, assignmentIndex) => <article className={`student-homework-task mission-pack${assignment.progress?.completed ? " completed" : ""}`} key={assignment.id} id={`learning-task-v2-${assignment.id}`} tabIndex={-1}>
                             <div className="student-homework-task__rail" aria-hidden="true"><span>V{assignmentIndex + 1}</span></div>
                             <div className="student-homework-task__body">
-                                <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><small>MIXED ASSIGNMENT</small><strong>課後任務包</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignment.progress?.completed ? "已完成" : "待完成"}</span></div>
+                                <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><strong>課後任務包</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignmentStateLabel[getAssignmentState(assignment)]}</span></div>
+                                {assignment.due_at && <p>{formatDateTime(assignment.due_at)} 截止</p>}
                                 <div className="student-homework-task__title"><h3>{assignment.title}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
                                 <div className="student-homework-pack-progress"><div><span>整份作業進度</span><strong>{assignment.progress?.task_completed_count || 0} / {assignment.progress?.total_tasks || 0} 個步驟</strong></div><div aria-hidden="true"><span style={{ width: `${assignment.progress?.total_tasks ? Math.round((assignment.progress?.task_completed_count || 0) / assignment.progress.total_tasks * 100) : 0}%` }} /></div></div>
                                 <div className="student-homework-pack-steps">
