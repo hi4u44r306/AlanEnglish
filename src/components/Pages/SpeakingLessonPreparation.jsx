@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { FiHeadphones } from "react-icons/fi";
 import { getAccessibleBook } from "../../services/contentAccessService";
 import { matchedSpeakingTracks, speakingListeningPath, speakingListeningSource } from "../../utils/speakingListening";
-import { speakingLessonTopic } from "./SpeakingMapEntry";
 
-export default function SpeakingLessonPreparation({ challenge, pages, mode, firebaseUser, busy = false }) {
+export default function SpeakingLessonPreparation({ challenge, mode, firebaseUser, busy = false }) {
     const [listening, setListening] = useState(null);
     const sourceKey = JSON.stringify(speakingListeningSource(challenge));
     const challengeId = challenge.id;
@@ -19,10 +18,10 @@ export default function SpeakingLessonPreparation({ challenge, pages, mode, fire
         }).catch(() => { /* The lesson remains available when optional listening is unavailable. */ });
         return () => { cancelled = true; };
     }, [sourceKey, challengeId, mode, firebaseUser]);
-    return <aside className="speaking-lesson-preparation" aria-label="本關冒險">
-        <div><small>{challenge.books?.name || challenge.book?.name || "口說大挑戰"}</small><strong>{speakingLessonTopic(challenge, pages)}</strong><p>{mode === "challenge" ? "挑戰模式：先自己回答，需要提示時再打開。" : "看清楚題目，照本題提供的方式開口練習。"}</p></div>
-        {listening?.id === challenge.id && listening.mode === mode && (busy
+    if (listening?.id !== challenge.id || listening.mode !== mode) return null;
+    return <aside className="speaking-lesson-preparation" aria-label="本關教材聽力">
+        {busy
             ? <span className="speaking-listening-busy">完成這次錄音與評分後，就能去聽教材。</span>
-            : <Link to={listening.path}><FiHeadphones aria-hidden="true" />先聽本關教材</Link>)}
+            : <Link to={listening.path}><FiHeadphones aria-hidden="true" />先聽本關教材</Link>}
     </aside>;
 }

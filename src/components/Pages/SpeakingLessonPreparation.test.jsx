@@ -14,11 +14,13 @@ it("opens exact listening without starting playback or altering the challenge mo
     render(<MemoryRouter><SpeakingLessonPreparation challenge={challenge} mode="challenge" firebaseUser={user} /></MemoryRouter>);
     expect(await screen.findByRole("link", { name: "先聽本關教材" })).toHaveAttribute("href", "/student/books/W1?speaking=7&mode=challenge&tracks=3");
     expect(getAccessibleBook).toHaveBeenCalledWith(user, "W1");
+    expect(screen.queryByText("Workbook 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("打招呼")).not.toBeInTheDocument();
 });
-it("keeps the lesson usable when entitlement rejects listening", async () => {
+it("omits the optional toolbar when entitlement rejects listening", async () => {
     getAccessibleBook.mockRejectedValue(new Error("not entitled"));
     await act(async () => render(<MemoryRouter><SpeakingLessonPreparation challenge={challenge} mode="easy" firebaseUser={user} /></MemoryRouter>));
-    expect(screen.getByText("打招呼")).toBeInTheDocument();
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
 });
 it("does not allow a listening departure during recording or scoring", async () => {

@@ -42,21 +42,17 @@
 .speaking-lesson-preparation {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 12px;
   width: min(920px, 100%);
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
   color: #fff8e9;
-  > div { display: grid; gap: 4px; min-width: 0; flex: 1 1 200px; }
-  small { color: #d9eadf; font-size: 12px; }
-  strong { font-size: 18px; overflow-wrap: anywhere; }
   a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 14px; border: 2px solid #e4bc64; border-radius: 14px; background: #fff4d6; color: #17345e; font-weight: 800; text-decoration: none; }
   a:focus-visible { outline: 3px solid #ffcf4f; outline-offset: 3px; }
 }
 
 .speaking-recording-status { margin: 0; padding: 7px 12px; border: 1px solid #b3cadb; border-radius: 12px; background: #fff; color: #244c86; font-size: 13px; font-weight: 700; }
-.speaking-lesson-preparation p { margin: 3px 0 0; color: #d9eadf; font-size: 13px; line-height: 1.6; }
 
 .speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-focus-card.speaking-lesson-workspace {
   display: grid;
@@ -81,7 +77,6 @@
 
 @media (max-width: 760px) {
   .speaking-adventure-session { padding-inline: 10px; .speaking-challenge-detail.speaking-immersive-play .speaking-lesson-header { top: max(8px, env(safe-area-inset-top, 0px)); } }
-  .speaking-lesson-preparation strong { font-size: 16px; }
   .speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-focus-card.speaking-lesson-workspace {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
