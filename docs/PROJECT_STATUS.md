@@ -2,10 +2,11 @@
 
 最後更新：2026-10-06
 
-### 彩色圓潤字標 01（2026-10-06，發布驗收中）
+### 彩色圓潤字標 01（2026-10-06，已正式部署）
 
 - 從 main `af0fe0d` 建立 `codex/rounded-rainbow-wordmark`，依使用者核准的 01 範本描繪透明 SVG；共用 Brand 與登入頁桌面／手機統一字形及配色，手機側選單保留既有 AE 縮寫。僅調整字標，頁面配置、登入與導覽行為不變；原工作目錄其他草稿未納入。
-- 相關檔案：Brand.jsx、Brand.css、Login.jsx、Login.scss、兩份 alan-english-rounded SVG 與手冊 v3.47。JSX ESLint、SCSS／開發編譯、diff 檢查通過；最新 main 發布副本的首頁、登入及教材連結頁於 1440／412／320px 共九組畫面無水平溢出、字標載入正常且無 pageerror。手機 Navbar 再驗 412／320px，標誌與按鈕維持單列、導覽高 66px；截圖與幾何結果存於原工作目錄 output/brand-assets/local-*。正式發布結果於驗收後補充。
+- 相關檔案：Brand.jsx、Brand.css、Login.jsx、Login.scss、兩份 alan-english-rounded SVG 與手冊 v3.47。JSX ESLint、SCSS／開發編譯、diff 檢查通過；本機及正式首頁、登入與教材連結頁於 1440／412／320px 各九組畫面無水平溢出、字標載入正常且無 pageerror。手機 Navbar 保持單列、高 66px；正式選單開關及背景捲動鎖定／解除通過，AE 素材另以實際 CSS 隔離確認 44px。截圖與幾何結果存於原工作目錄 output/brand-assets/local-*、production-*。
+- PR #426 合併 main `5614eed7`，Cloudflare production build `d3ffc7cc-bd01-4254-92f7-da69bf567f0c` success；正式字標檔名 `alan-english-rounded.ac2421ac33c4a14a14e1e09871b8626e.svg`。本機原 checkout 已同步這六份程式／素材，其他草稿保留。後續僅補充 Markdown 驗收紀錄，不觸發第二次前端建置。
 - 局部視覺修改不跑 npm test、全套測試或本機 production build；由 Cloudflare main 自動建置驗證正式產物。iPhone Safari 實機及登入後真實帳號頁尚未驗證。
 
 ### 第二批口說學習循環與地圖風格大關卡列表（2026-10-06，已正式部署）
