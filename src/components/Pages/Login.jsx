@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { loginWithIdentifier } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
 import HeadPhone from "../assets/img/Login2.png";
+import Brand from "../fragment/Brand";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.scss";
 
@@ -151,11 +152,7 @@ function Login() {
                 <div className="login-left">
                     <div className="login-left-content">
                         <div className="login-brand">
-                            <div className="login-brand-word">
-                                <span>A</span><span>L</span><span>A</span><span>N</span>
-                                <i></i>
-                                <span>E</span><span>N</span><span>G</span><span>L</span><span>I</span><span>S</span><span>H</span>
-                            </div>
+                            <Brand className="login-brand-word" />
                             <div className="login-brand-subtitle">Learn English · Listen Better</div>
                         </div>
 
@@ -199,11 +196,7 @@ function Login() {
                 <div className="login-right">
                     <form className="login-card" onSubmit={login}>
                         <div className="mobile-brand">
-                            <div className="mobile-brand-word">
-                                <span>A</span><span>L</span><span>A</span><span>N</span>
-                                <i></i>
-                                <span>E</span><span>N</span><span>G</span><span>L</span><span>I</span><span>S</span><span>H</span>
-                            </div>
+                            <Brand className="mobile-brand-word" />
                         </div>
 
                         <div className="login-title">
