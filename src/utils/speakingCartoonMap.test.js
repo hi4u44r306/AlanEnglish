@@ -31,6 +31,7 @@ describe("full Workbook cartoon maps", () => {
             expect(route.scenes).toHaveLength(Math.max(1, Math.ceil(count / 4)));
             expect(route.markerDiameter).toBe(80);
             expect(route.markerDiameter / route.roadWidth).toBeCloseTo(2 / 3);
+            if (count) expect(route.height - route.nodes[0].worldY).toBeGreaterThanOrEqual(320);
             const points = route.path.split(" ").map(p => p.slice(1).split(",").map(Number));
             for (const node of route.nodes) {
                 expect(node.worldX).toBeGreaterThan(40);

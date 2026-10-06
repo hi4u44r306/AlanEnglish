@@ -32,7 +32,7 @@ const tiles = Object.fromEntries(Object.entries({
         if (prior) distance += Math.hypot(x - prior[0], y - prior[1]);
         return { x, y, distance };
     });
-    return [key, { samples, anchors: trace.anchors }];
+    return [key, { samples, anchors: trace.anchors, startAnchor: trace.startAnchor }];
 }));
 
 export function buildCartoonSpeakingRoute(bookId, lessons = [], { unified = true } = {}) {
@@ -59,7 +59,10 @@ export function buildCartoonSpeakingRoute(bookId, lessons = [], { unified = true
             points.push({ x: p.x, y, distance });
         }
         // Four independently reviewed positions per illustration. No markers at tile seams.
-        for (const [x, y] of tile.anchors) {
+        const anchors = journeyIndex === 0 && tile.startAnchor
+            ? [tile.startAnchor, ...tile.anchors.slice(1)]
+            : tile.anchors;
+        for (const [x, y] of anchors) {
             const worldY = y + scene.top;
             const world = points.reduce((a, b) => Math.abs(a.y-worldY) < Math.abs(b.y-worldY) ? a : b);
             slots.push({ worldX: x, worldY, distance: world.distance, scene: scene.index });
