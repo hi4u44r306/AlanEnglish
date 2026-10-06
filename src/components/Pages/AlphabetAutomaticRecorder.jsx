@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FiLoader, FiMic, FiMicOff, FiRefreshCw } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
+import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { SPEAKING_BUDGET_ERROR_CODES } from "../../utils/speakingRecordingPolicy";
 
@@ -49,6 +50,13 @@ export default function AlphabetAutomaticRecorder({
     const [remainingSeconds, setRemainingSeconds] = useState(MAX_UTTERANCE_MS / 1000);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
+    const [engineInfo, setEngineInfo] = useState("正在準備本機語音辨識，首次建議使用 Wi-Fi。");
+    const [readingScore, setReadingScore] = useState(null);
+    const engineRef = useRef(null);
+    useEffect(() => {
+        const lease = retainLocalSpeakingRecognizer(); engineRef.current = lease.recognizer;
+        return lease.release;
+    }, []);
     const streamRef = useRef(null);
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
@@ -128,6 +136,8 @@ export default function AlphabetAutomaticRecorder({
                 return;
             }
             try {
+                await engineRef.current.prepare(info => { if (!cancelled) setEngineInfo(info); });
+                if (cancelled) return;
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
                 });
@@ -157,7 +167,7 @@ export default function AlphabetAutomaticRecorder({
                 setStatus("blocked");
                 setError(cause?.name === "NotAllowedError"
                     ? "請允許麥克風權限，才能開始 A–Z 挑戰"
-                    : "目前無法啟動麥克風，請確認瀏覽器設定後再試一次");
+                    : cause?.code ? cause.message : "目前無法啟動麥克風，請確認瀏覽器設定後再試一次");
             }
         };
         prepare();
@@ -178,6 +188,7 @@ export default function AlphabetAutomaticRecorder({
         retrySubmissionRef.current = null;
         submittingRef.current = false;
         setRecordedBlob(null);
+        setReadingScore(null);
         setBudgetBlocked(false);
 
         if (paused || !question?.id || (!foundationRoundId && !allowDemoAssessment) || !analyserRef.current || !streamRef.current) return undefined;
@@ -212,13 +223,22 @@ export default function AlphabetAutomaticRecorder({
                 if (operationId !== operationRef.current) return;
                 attempt.wav = wav;
                 setRecordedBlob(wav);
+                await engineRef.current.prepare(info => { if (operationId === operationRef.current) setEngineInfo(info); });
+                if (operationId !== operationRef.current) return;
+                const transcription = attempt.transcription || await engineRef.current.transcribe(wav, 12);
+                if (operationId !== operationRef.current) return;
+                attempt.transcription = transcription;
                 const result = await submitSpeakingPronunciationAttempt({
                     firebaseUser,
                     questionId: question.id,
-                    audio: wav,
+                    ...transcription,
                     foundationRoundId,
                     challengeSessionId
                 });
+                if (operationId !== operationRef.current) return;
+                if (result?.assessment_kind !== "local_completeness_v1" || !Number.isFinite(result?.scores?.completeness) || typeof result?.answer_match !== "boolean") throw new Error("朗讀結果不完整，請重試。");
+                setReadingScore(Math.round(result.scores.completeness));
+                await new Promise(resolve => setTimeout(resolve, 4000));
                 if (operationId !== operationRef.current) return;
                 onScoredRef.current?.(result);
                 pendingAttemptRef.current = null;
@@ -234,7 +254,7 @@ export default function AlphabetAutomaticRecorder({
                     onRoundInvalidRef.current?.(cause);
                     return;
                 }
-                // 不自動重送不確定是否已到達後端的請求，避免重複產生 Azure 評分費用。
+                // 不自動重送不確定是否已到達後端的請求，避免重複寫入。
                 setStatus("retry");
             } finally {
                 if (operationId === operationRef.current) submittingRef.current = false;
@@ -343,7 +363,7 @@ export default function AlphabetAutomaticRecorder({
         };
     }, [allowDemoAssessment, attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, paused, question?.id, sessionVersion]);
 
-    const copy = status === "preparing"
+    const copy = readingScore !== null ? ["朗讀結果已完成", "看完成績後，系統會繼續下一步。"] : status === "preparing"
         ? ["正在開啟麥克風…", "只要允許一次，這一輪會自動收音。"]
         : status === "recording"
             ? ["正在聽你說", "說完後停一下，系統會自動送出。"]
@@ -356,6 +376,8 @@ export default function AlphabetAutomaticRecorder({
                     : ["麥克風已開啟", "看到字母後直接唸，不會播放答案提示。"];
 
     return <section className={`speaking-alphabet-auto is-${status}`} aria-live="polite" aria-atomic="true">
+        <p>{engineInfo}</p>
+        {readingScore !== null && <p className="speaking-completeness-score">朗讀完整度 <strong>{readingScore} 分</strong></p>}
         <span className="speaking-alphabet-auto__icon" aria-hidden="true">
             {status === "submitting" || status === "preparing" ? <FiLoader /> : status === "blocked" ? <FiMicOff /> : <FiMic />}
         </span>

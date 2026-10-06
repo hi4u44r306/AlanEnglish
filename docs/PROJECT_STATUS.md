@@ -2,6 +2,16 @@
 
 最後更新：2026-10-06
 
+### 口說本機朗讀完整度（2026-10-06，整合草稿／尚未部署）
+
+- 使用者回報獨立測試版成功，要求整合口說大挑戰，最後選擇 100 分制。分支 `codex/speaking-local-completeness`，基準 main `dc866e7a`，獨立副本 `output/speaking-local-completeness-20261006`；原工作目錄未提交修改保留。
+- 一般與 A–Z 錄音接入本機相容 SIMD／scalar Worker；只送辨識文字與題目／回合資料，後端按正式答案計算完整度，舊 multipart 請求拒絕並要求更新，不再呼叫 Azure。結果用「朗讀完整度 N 分」，顯示 4 秒後交回通關流程。一般題保留既有手動送評；本批不改全部題型的導航操作。
+- 新增 migration `20261006150733_speaking_local_completeness.sql`：發音維度可為 null，新增來源欄位、獨立本機請求表及限流 RPC；保留舊資料、每日五輪及 A–Z／獎勵交易。一般題完成也須同回合有效後端紀錄。手機文字不具真人朗讀證明，已明記風險。
+- 隔離驗證：完整度／既有授權與流程 17 項、實際 Edge handler（替身資料庫／禁止供應商網路）4 項、PGlite SQL 10 項通過。React 元件／服務及瀏覽器結果記於同副本 output/local-reading-validation；production build 已成功，無套件或 lockfile 更動。非全套測試，聚焦錄音、評分與儲存。
+- 正式 migration、兩支 Edge Function、Git 合併與 Cloudflare 發布均未執行。依 AGENTS §13–14，待本批正式資料變更明確同意後才執行。發布顺序：migration → pronunciation-coach／speaking-challenge → main 前端 → 正式驗收；舊頁需重整。可保留新增表／舊紀錄回復程式，但會恢復原 Azure 路徑，必須由擁有者選擇恢復付費或暫停入口，不能偷偷使用付費備援。
+- 尚未驗證：新整合版的實機 iPhone／Android、兒童聲音／單字母辨識品質、正式登入後紀錄與獎勵。先前手機獨立測試成功不等於本批正式整合已驗收。
+- 驗收補充：React 元件／服務共 52 項通過（含分數先顯示 4 秒、相容退回、離頁取消、無聲防護）；實際 MediaRecorder → 真正本機 Whisper → 100 分 UI 通過，伺服器評分使用替身，真正 handler 由上列隔離測試驗證。320／412／1440px 無橫向溢出，無 pageerror／錄音 POST。截圖及報告在 output/local-reading-validation，完整 build 成功後另以 targeted tests／preview 編譯驗證結果出現後停止等待提示的小調整。
+
 ### 口說關卡頂部精簡（2026-10-06，已正式部署／實際畫面待驗收）
 
 - `codex/speaking-session-compact-top` 從最新 main `a624df35` 開始，沿用既有工作樹。依使用者截圖移除教材名稱／口說練習標題／泛用說明的大型區塊，保留下方關卡返回、標題、題數及進度。

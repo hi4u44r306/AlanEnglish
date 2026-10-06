@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiVolume2 } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
+import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import "./css/SpeakingPronunciationRecorder.scss";
@@ -48,6 +49,26 @@ export default function SpeakingPronunciationRecorder({
     const [error, setError] = useState("");
     const [budgetBlocked, setBudgetBlocked] = useState(false);
     const [voiceDetected, setVoiceDetected] = useState(false);
+    const [engineReady, setEngineReady] = useState(false);
+    const [engineInfo, setEngineInfo] = useState("首次需下載語音模型，建議使用 Wi-Fi。");
+    const [waitingSeconds, setWaitingSeconds] = useState(0);
+    const engineRef = useRef(null);
+    const generationRef = useRef(0);
+    const previewRef = useRef("");
+    const transcriptionRef = useRef(null);
+    useEffect(() => {
+        const lease = retainLocalSpeakingRecognizer(); engineRef.current = lease.recognizer;
+        setEngineReady(lease.recognizer.ready);
+        if (lease.recognizer.ready) setEngineInfo(lease.recognizer.mode);
+        return lease.release;
+    }, []);
+    useEffect(() => {
+        if (!submitting || result) return undefined;
+        setWaitingSeconds(0);
+        const started = Date.now();
+        const timer = setInterval(() => setWaitingSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
+        return () => clearInterval(timer);
+    }, [submitting, result]);
     const setSessionBusy = useContext(SpeakingActivityContext);
     useEffect(() => {
         setSessionBusy?.(recording || preparing || submitting);
@@ -74,22 +95,39 @@ export default function SpeakingPronunciationRecorder({
         analyserRef.current = null;
     };
     const reset = () => {
+        generationRef.current++;
+        if (recorderRef.current?.state === "recording") { recorderRef.current.onstop = null; recorderRef.current.stop(); }
         release();
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setBudgetBlocked(false); setElapsed(0); setRecording(false); setPreparing(false); setVoiceDetected(false);
+        if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+        previewRef.current = "";
+        transcriptionRef.current = null;
+        setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setBudgetBlocked(false); setElapsed(0); setRecording(false); setPreparing(false); setSubmitting(false); setVoiceDetected(false);
     };
     useEffect(() => () => release(), []);
     useEffect(() => reset, [question.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const stop = () => { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); };
+    const prepareEngine = async () => {
+        const token = generationRef.current;
+        setPreparing(true); setError("");
+        try {
+            await engineRef.current.prepare(info => { if (token === generationRef.current) setEngineInfo(info); });
+            if (token === generationRef.current) setEngineReady(true);
+        } catch (cause) {
+            if (token === generationRef.current) { setEngineReady(false); setError(cause.message); }
+        } finally { if (token === generationRef.current) setPreparing(false); }
+    };
     const start = async () => {
+        if (!engineRef.current?.ready) return prepareEngine();
         reset();
+        const token = generationRef.current;
         onRetry?.();
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return setError("這個瀏覽器不支援錄音，請使用新版 Chrome 或 Safari");
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
             });
+            if (token !== generationRef.current) { stream.getTracks().forEach(track => track.stop()); return; }
             streamRef.current = stream; chunksRef.current = [];
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -113,6 +151,7 @@ export default function SpeakingPronunciationRecorder({
             recorder.ondataavailable = event => { if (event.data?.size) chunksRef.current.push(event.data); };
             recorder.onerror = () => setError("錄音發生問題，請重新允許麥克風後再試一次");
             recorder.onstop = async () => {
+                if (token !== generationRef.current) return;
                 const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
                 release(); setRecording(false);
                 if (blob.size < 1000) return setError("沒有收到清楚的錄音，請靠近麥克風再試一次");
@@ -120,17 +159,20 @@ export default function SpeakingPronunciationRecorder({
                 try {
                     // 回聽與送評使用同一份 16 kHz PCM WAV，避免原始錄音正常、轉檔後卻無聲。
                     const wav = await convertAudioBlobToWav(blob, 16000, { maxSeconds: maxRecordingSeconds });
-                    setRecordedBlob(wav); setPreviewUrl(URL.createObjectURL(wav));
+                    if (token !== generationRef.current) return;
+                    previewRef.current = URL.createObjectURL(wav);
+                    setRecordedBlob(wav); setPreviewUrl(previewRef.current);
                 } catch (cause) {
                     setError(cause?.message || "錄音轉換失敗，請重新錄音後再試一次");
                 } finally {
-                    setPreparing(false);
+                    if (token === generationRef.current) setPreparing(false);
                 }
             };
             recorder.start(250); setRecording(true); setElapsed(0);
             elapsedTimerRef.current = window.setInterval(() => setElapsed(current => Math.min(maxRecordingSeconds, current + 1)), 1000);
             stopTimerRef.current = window.setTimeout(stop, maxRecordingSeconds * 1000);
         } catch (cause) {
+            if (token !== generationRef.current) return;
             release(); setRecording(false);
             setError(cause?.name === "NotAllowedError" ? "請允許麥克風權限，才能練習發音" : "目前無法啟動麥克風，請確認瀏覽器設定後再試一次");
         }
@@ -139,33 +181,45 @@ export default function SpeakingPronunciationRecorder({
         if (!recordedBlob || submitting || budgetBlocked) return;
         prepareSpeakingFeedbackSound();
         setSubmitting(true); setError(""); setResult(null);
+        const token = generationRef.current;
         try {
-            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId, challengeMode });
-            if (typeof score?.answer_match !== "boolean" || !Number.isFinite(score?.scores?.pronunciation)) {
+            const transcription = transcriptionRef.current || await engineRef.current.transcribe(recordedBlob, maxRecordingSeconds);
+            if (token !== generationRef.current) return;
+            transcriptionRef.current = transcription;
+            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, ...transcription, foundationRoundId, challengeSessionId, challengeMode });
+            if (token !== generationRef.current) return;
+            if (score?.assessment_kind !== "local_completeness_v1" || typeof score?.answer_match !== "boolean" || !Number.isFinite(score?.scores?.completeness) || score.scores.completeness < 0 || score.scores.completeness > 100) {
                 throw new Error("assessment_response_incomplete");
             }
             setResult(score);
+            // Keep the result visible before parent flows advance the question.
+            await new Promise(resolve => setTimeout(resolve, 4000));
+            if (token !== generationRef.current) return;
             const saved = score?.assessment_status === "uncertain" ? false : await onScored?.(score);
+            if (token !== generationRef.current) return;
             playSpeakingFeedbackSound(
                 score?.assessment_status === "uncertain"
                     ? "practice"
                     : score?.answer_match === false
                     ? "retry"
                     : saved === false ? "practice"
-                    : scoreTone(Math.round(score?.scores?.pronunciation || 0))
+                    : scoreTone(Math.round(score?.scores?.completeness || 0))
             );
         } catch (cause) {
+            if (token !== generationRef.current) return;
             setResult(null);
+            setEngineReady(Boolean(engineRef.current?.ready));
             const limited = SPEAKING_BUDGET_ERROR_CODES.has(cause?.code);
             setBudgetBlocked(limited);
             setError(limited || ROUND_RESET_ERROR_CODES.has(String(cause?.code || "")) || cause?.code === "foundation_round_busy"
-                ? cause.message : "評分服務暫時無法完成。錄音仍保留，請重試評分。");
+                ? cause.message : cause?.code?.startsWith("local_") || ["audio_too_quiet", "speech_no_match", "MEMORY", "ENGINE", "DOWNLOAD"].includes(cause?.code)
+                    ? cause.message : "朗讀結果暫時無法完成。錄音仍保留，請重試評分。");
             if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) onRoundInvalid?.(cause);
         }
-        finally { setSubmitting(false); }
+        finally { if (token === generationRef.current) setSubmitting(false); }
     };
 
-    const pronunciationScore = Math.round(result?.scores?.pronunciation || 0);
+    const pronunciationScore = Math.round(result?.scores?.completeness || 0);
     const assessmentUncertain = result?.assessment_status === "uncertain";
     const answerMatched = !assessmentUncertain && result?.answer_match !== false;
     const resultTone = assessmentUncertain ? "practice" : answerMatched ? scoreTone(pronunciationScore) : "retry";
@@ -179,6 +233,9 @@ export default function SpeakingPronunciationRecorder({
     const practiceWords = assessmentUncertain ? [] : (result?.words || []).filter(word => ["practice", "retry"].includes(word.status)).slice(0, 3);
 
     return <section aria-busy={preparing || submitting} className={`speaking-pronunciation is-${recordingState} ${voiceDetected ? "has-voice" : ""}`}>
+        <p className="speaking-local-mode">{engineInfo}</p>
+        {!engineReady && <button type="button" onClick={prepareEngine} disabled={preparing || submitting}>{preparing ? "正在準備語音辨識…" : "準備語音辨識"}</button>}
+        {submitting && !result && <p role="timer">正在辨識與儲存，已等待 {waitingSeconds} 秒</p>}
         {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? "正在準備評分音檔。" : recording ? `錄音進行中，每次最長 ${maxRecordingSeconds} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
         {!result && <>
             <div className="speaking-recording-heading">
@@ -191,20 +248,21 @@ export default function SpeakingPronunciationRecorder({
                 type="button"
                 className="speaking-pronunciation-mic"
                 onClick={recording ? stop : start}
-                disabled={preparing || Boolean(disabledReason)}
+                disabled={!engineReady || preparing || Boolean(disabledReason)}
                 aria-label={recording ? "完成錄音" : "開始錄音"}
             >
                 {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
                 <span>{recording ? "完成錄音" : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting || budgetBlocked}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button></div></div>}
-            <small className="speaking-recording-privacy">錄音只在這台裝置暫存，送出後用於本次發音評分。</small>
+            <small className="speaking-recording-privacy">錄音在這台裝置辨識，只傳送辨識文字供核對及儲存。分數是朗讀完整度，不是發音準確度。</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
+            <p className="speaking-completeness-score"><span>朗讀完整度</span><strong>{pronunciationScore} 分</strong></p>
             {result.recognized_text && <p className="speaking-recognized-answer"><strong>我聽到</strong><span>{result.recognized_text}</span></p>}
-            {!assessmentUncertain && <div className="speaking-pronunciation-legend" aria-label="發音顏色說明"><span className="word-good">綠色：很清楚</span><span className="word-practice">黃色：再練一下</span><span className="word-retry">紅色：慢慢重念</span></div>}
-            {!assessmentUncertain && (result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字發音結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`} aria-label={`${word.text}：${word.status === "good" ? "很清楚" : word.status === "practice" ? "再練一下" : "慢慢重念"}`}>{word.text}</span>)}</div>}
+            {!assessmentUncertain && <div className="speaking-pronunciation-legend" aria-label="朗讀比對說明"><span className="word-good">綠色：有讀到</span><span className="word-practice">黃色：辨識文字</span><span className="word-retry">紅色：未讀到</span></div>}
+            {!assessmentUncertain && (result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字朗讀結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`} aria-label={`${word.text}：${word.status === "good" ? "有讀到" : word.status === "practice" ? "辨識文字" : "未讀到"}`}>{word.text}</span>)}</div>}
             <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback || (assessmentUncertain ? "這次沒有聽清楚，靠近麥克風再試一次。" : answerMatched ? "回聽自己的回答，試著把完整句子說得更清楚。" : "重新看清楚題目，再用完整句子回答。")}</span></p>
             {practiceWords.length > 0 && <p className="speaking-pronunciation-focus"><strong>這次先練這幾個字</strong><span>{practiceWords.map(word => word.text).join("、")}</span></p>}
             <div className="speaking-result-actions">

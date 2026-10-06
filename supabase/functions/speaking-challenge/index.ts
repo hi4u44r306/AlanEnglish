@@ -532,7 +532,7 @@ Deno.serve(async (req: Request) => {
             if (interactionType === "alphabet_round") {
                 return json(409, { error: "A–Z 必須完成同一個連續挑戰回合", code: "foundation_round_required" });
             }
-            if (interactionType || challengeMode === "challenge") {
+            {
                 const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
                 if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
                     return json(409, { error: "這題的圖片口說內容尚未完成核准", code: "picture_interaction_missing" });
@@ -543,19 +543,15 @@ Deno.serve(async (req: Request) => {
                     .eq("question_set_id", setId).eq("question_id", questionId)
                     .eq("challenge_mode", challengeMode).gte("created_at", since);
                 const clientSessionId = String(body?.challenge_session_id || "").trim();
-                if (challengeMode === "challenge") {
-                    if (!CLIENT_SESSION_PATTERN.test(clientSessionId)) {
-                        return json(400, { error: "挑戰回合無效，請重新進入關卡" });
-                    }
-                    attemptQuery = attemptQuery.eq("client_session_id", clientSessionId);
+                if (!CLIENT_SESSION_PATTERN.test(clientSessionId)) {
+                    return json(400, { error: "挑戰回合無效，請重新進入關卡" });
                 }
+                attemptQuery = attemptQuery.eq("client_session_id", clientSessionId);
                 const { data: attempt, error: attemptError } = await attemptQuery
                     .order("created_at", { ascending: false }).limit(1).maybeSingle();
                 if (attemptError) throw attemptError;
-                // pronunciation-coach computes answer_match from the provider response and
-                // persists it server-side. Reusing that authoritative decision keeps the
-                // child-tolerant spelling policy consistent while still rejecting any
-                // completion value supplied by the browser.
+                // Every question needs a saved server decision for this session.
+                // Local ASR text is client-reported; scores/completion flags are ignored.
                 if (!attempt || attempt.answer_match !== true) {
                     return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
                 }

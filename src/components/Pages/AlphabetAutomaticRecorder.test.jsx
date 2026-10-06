@@ -1,6 +1,7 @@
+jest.mock("../../services/localSpeakingRecognizer", () => ({ retainLocalSpeakingRecognizer: () => ({ recognizer: { ready: true, mode: "相容加速模式", prepare: jest.fn().mockResolvedValue(), transcribe: jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2}) }, release: jest.fn() }) }));
 import React from "react";
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AlphabetAutomaticRecorder, { rmsLevel } from "./AlphabetAutomaticRecorder";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
@@ -9,6 +10,7 @@ jest.mock("../../utils/audioWav", () => ({ convertAudioBlobToWav: jest.fn() }));
 jest.mock("../../services/pronunciationCoachService", () => ({ submitSpeakingPronunciationAttempt: jest.fn() }));
 
 describe("AlphabetAutomaticRecorder", () => {
+    const originalTimeout = global.setTimeout;
     const originalMediaDevices = navigator.mediaDevices;
     const originalMediaRecorder = window.MediaRecorder;
     const originalAudioContext = window.AudioContext;
@@ -30,6 +32,8 @@ describe("AlphabetAutomaticRecorder", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        const nativeTimeout = global.setTimeout;
+        global.setTimeout = (fn, ms, ...args) => nativeTimeout(fn, ms === 4000 ? 0 : ms, ...args);
         now = 0;
         level = 0;
         frames = new Map();
@@ -61,7 +65,7 @@ describe("AlphabetAutomaticRecorder", () => {
             }
         };
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(16000)], { type: "audio/wav" }));
-        submitSpeakingPronunciationAttempt.mockResolvedValue({ answer_match: true, foundation_round: { status: "open" } });
+        submitSpeakingPronunciationAttempt.mockResolvedValue({ assessment_kind: "local_completeness_v1", answer_match: true, scores: { completeness: 100 }, foundation_round: { status: "open" } });
     });
 
     const frame = async (time, volume = 0) => {
@@ -87,6 +91,8 @@ describe("AlphabetAutomaticRecorder", () => {
     };
 
     afterEach(() => {
+        cleanup();
+        global.setTimeout = originalTimeout;
         Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: originalMediaDevices });
         window.MediaRecorder = originalMediaRecorder;
         window.AudioContext = originalAudioContext;
@@ -103,7 +109,7 @@ describe("AlphabetAutomaticRecorder", () => {
         await speak();
         expect(convertAudioBlobToWav).toHaveBeenCalledWith(expect.any(Blob), 16000, { startSeconds: 0.782, maxSeconds: 12 });
         expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(1);
-        expect(callbacks.onScored).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(callbacks.onScored).toHaveBeenCalledTimes(1));
     });
 
     it("等待逾八秒只重建本機緩衝，不送環境音、不判答錯", async () => {
@@ -137,8 +143,8 @@ describe("AlphabetAutomaticRecorder", () => {
         await speak();
         const retry = screen.getByRole("button", { name: "重試評分" });
         act(() => { retry.click(); retry.click(); });
-        expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(2);
-        await act(async () => finish({ answer_match: false, foundation_round: { status: "retry" } }));
+        await waitFor(() => expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(2));
+        await act(async () => finish({ assessment_kind: "local_completeness_v1", answer_match: false, scores: { completeness: 0 }, foundation_round: { status: "retry" } }));
         // 下一次錄音需由關卡回饋重新啟動；成功收到評分不留下技術失敗操作。
         expect(screen.queryByRole("button", { name: "重試評分" })).not.toBeInTheDocument();
     });
@@ -180,7 +186,7 @@ describe("AlphabetAutomaticRecorder", () => {
         const view = await mount();
         await speak();
         view.rerender(<AlphabetAutomaticRecorder {...props} question={{ id: 2 }} />);
-        await act(async () => finish({ answer_match: true }));
+        await act(async () => finish({ assessment_kind: "local_completeness_v1", answer_match: true }));
         expect(callbacks.onScored).not.toHaveBeenCalled();
         view.unmount();
         expect(stopTrack).toHaveBeenCalled();

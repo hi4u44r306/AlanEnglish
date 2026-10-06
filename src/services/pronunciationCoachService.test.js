@@ -68,20 +68,20 @@ describe("submitPronunciationAttempt", () => {
         });
     });
 
-    it("題庫回答只傳 question_id 與錄音，不傳個人答案或示範文字", async () => {
+    it("題庫回答只傳 question_id 與本機辨識文字，不傳個人答案或示範文字", async () => {
         global.fetch.mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue({ success: true }) });
         await submitSpeakingPronunciationAttempt({
             firebaseUser: { getIdToken: jest.fn().mockResolvedValue("firebase-token") },
             questionId: 42,
-            audio: new Blob(["wav-data"], { type: "audio/wav" })
+            recognizedText: "I like apples.", audioSeconds: 2
         });
-        const body = global.fetch.mock.calls[0][1].body;
-        expect(body.get("question_id")).toBe("42");
-        expect(body.get("lesson_id")).toBeNull();
-        expect(body.get("reference_text")).toBeNull();
-        expect(body.get("slot_values")).toBeNull();
-        expect(body.get("foundation_round_id")).toBeNull();
-        expect(body.get("challenge_mode")).toBe("easy");
+        const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+        expect(body.question_id).toBe(42);
+        expect(body.lesson_id).toBeUndefined();
+        expect(body.reference_text).toBeUndefined();
+        expect(body.slot_values).toBeUndefined();
+        expect(body.foundation_round_id).toBe("");
+        expect(body.challenge_mode).toBe("easy");
     });
 
     it("A–Z 評分只附上後端簽發的 round id，不傳成功狀態或題序", async () => {
@@ -90,13 +90,13 @@ describe("submitPronunciationAttempt", () => {
             firebaseUser: { getIdToken: jest.fn().mockResolvedValue("firebase-token") },
             questionId: 42,
             foundationRoundId: "11111111-1111-4111-8111-111111111111",
-            audio: new Blob(["wav-data"], { type: "audio/wav" })
+            recognizedText: "I like apples.", audioSeconds: 2
         });
 
-        const body = global.fetch.mock.calls[0][1].body;
-        expect(body.get("foundation_round_id")).toBe("11111111-1111-4111-8111-111111111111");
-        expect(body.get("answer_match")).toBeNull();
-        expect(body.get("question_order")).toBeNull();
+        const body = JSON.parse(global.fetch.mock.calls[0][1].body);
+        expect(body.foundation_round_id).toBe("11111111-1111-4111-8111-111111111111");
+        expect(body.answer_match).toBeUndefined();
+        expect(body.question_order).toBeUndefined();
     });
 
     it("保留 A–Z 回合失效代碼，讓畫面安全歸零", async () => {
@@ -113,7 +113,7 @@ describe("submitPronunciationAttempt", () => {
             firebaseUser: { getIdToken: jest.fn().mockResolvedValue("firebase-token") },
             questionId: 42,
             foundationRoundId: "11111111-1111-4111-8111-111111111111",
-            audio: new Blob(["wav-data"], { type: "audio/wav" })
+            recognizedText: "I like apples.", audioSeconds: 2
         })).rejects.toMatchObject({
             status: 409,
             code: "foundation_round_invalid"
