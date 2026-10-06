@@ -309,14 +309,14 @@ NT$299 基本會員目前使用 Stripe 沙盒 Price。AI「教材與發音練習
 | Dashboard | 學生已登入且帳號可用；內容依有效權限裁切 |
 | 今日／班級作業 | `features.assignments = true`，且為有效在學英文班學生 |
 | 教材聽力 | `features.listening = true`；若 `requires_book_entitlement = true` 再檢查逐本 entitlement，否則可使用全部正式聽力教材 |
-| AI 教材 | 老師／管理員，或學生 `features.ai_materials = true` |
+| AI 教材 | 本批待部署：僅老師／管理員；學生即使保留歷史 `features.ai_materials = true` 也不可使用個人 AI 教材 |
 | AI 加購宣傳 | 學生 `features.ai_materials = false`；已有任何有效 AI 權限時不重複推銷 |
 | 智慧錯題複習 | `features.review = true` |
 | 英文會話 | `features.conversation = true` |
 | 會員中心 | 學生登入後可查看，即使學習方案失效仍可進入處理方案 |
 | 排行榜／獎品商城 | XP 排行依後端規則顯示；AE Points 取得與獎品商城只限有效在校英文班學生 |
 
-學生沒有 AI 權限卻直接進入 AI 教材路由時，頁面必須停在頂部顯示加購卡，不能自動捲過銷售內容；生成工作區必須隱藏且後端拒絕生成。
+本批待部署：學生直接開啟 AI 教材舊網址會返回學生首頁；後端在 Firebase 驗證與資料庫角色確認後，對所有學生個人 AI 教材操作回傳 `403 / student_ai_materials_disabled`，不查額度、不呼叫 OpenAI、不修改教材或紀錄。
 
 ### 5.3 導覽列與浮動入口
 
@@ -331,6 +331,8 @@ NT$299 基本會員目前使用 Stripe 沙盒 Price。AI「教材與發音練習
 ## 6. AI 教材
 
 ### 6.1 學生授權
+
+2026-10-06 學生個人 AI 教材停用（本批尚未部署）：所有學生類型均停止使用個人 AI 教材，歷史 AI grant、試用或加購也不能繞過後端角色限制。老師／管理員備課保留；口說評分、教材聽力、老師發布的共用 AI 作業與既有學習資料不受影響。以下方案與額度段落是既有資料契約，不代表停用後仍可使用個人 AI 教材。會員中心移除個人生成額度承諾並說明停用；不變更訂閱、價格或發音 entitlement。
 
 - 一般學生沒有 `features.ai_materials` 時不可生成 AI 教材。
 - 有效在校英文班學生由 `academy_internal` 直接取得 AI 教材與發音練習，不需要另外購買 AI 加購。
