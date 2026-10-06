@@ -2,6 +2,14 @@
 
 最後更新：2026-10-06
 
+### 累積學生介面正式發布（2026-10-06，已正式部署／畫面待驗收）
+
+- 使用者明確要求將本對話目前全部累積修改推送正式站。沿用 PR #425，將角色成長／獎品目標及圖片界線、第一至三批操作入口、家長週報摘要、學生冒險導覽、教材與聽力互動介面合併至 main `0f08dbd2d9df6fa86b25da6d1ede1ff5944c5095`（2026-10-06 08:52:03 UTC）。整合前 main `99d3c540`，功能 checkpoint `2c9775cf`；共35個檔案。
+- 發布整合驗證：最新品牌 main 上的 Navbar、Rewards、StudentSettings、WeeklyReport、StudentLearningHome 5 suites／57 tests 通過；沿用已通過的聽力與播放器5份測試33項。各批 focused ESLint、SCSS、開發編譯、diff check 及 require-pushed preflight 通過，合併前功能工作樹乾淨。沒有新增 migration／Function／Secret／權限／付款／核心學習寫入，正式 production build 由 Cloudflare 執行，未重跑無關全套或重複本機 build。
+- Cloudflare production build `a7c78547-67ed-462d-a90e-59c46308b633` 已成功，最新 GitHub check run `112189116226` 為 completed／success、head_sha 精確對應 `0f08dbd2`，完成時間2026-10-06 08:55:35 UTC；Worker version `20dc13c7-6f95-44b4-84ae-81a68df5adbe`。平台另新增完成檢查，同 build 的舊 check `112187810646` 仍停在 in_progress；以 commit 最新 check-runs 判定，沒有重複觸發正式建置。只從 main 發布；Netlify 歷史結果不作正式依據。
+- 正式網址瀏覽器驗收再次被 saved browser permissions 限制拒絕，未繞過限制。實際登入後桌面／412px／平板、iPhone Safari、播放器／字幕／有效計入、角色儲存／真實兌換、週報分享／列印及背景鎖定尚未驗證，不能回報線上完整驗收通過。可回復方式為 revert PR #425 的前端 merge，無資料遷移。
+- 下方各批「本機／尚未部署」為合併前歷史紀錄；本次正式發布狀態以本節為準。手冊v3.51與發布文件由純Markdown PR #428同步，不觸發另一個正式前端建置。原主工作目錄無關草稿及其他既有 PR 未納入，不開始下一個功能，先補這批線上畫面驗收。
+
 ### 教材與聽力互動介面（2026-10-06，本機／尚未部署）
 
 - 分支 `codex/listening-learning-ui` 承接學生導覽 checkpoint `e95e2653`；已 fetch 並合併最新 main `99d3c540` 為基準 `14ec6f7e`。保留正式品牌更新與所有先前本機批次，原主工作目錄草稿未動。
