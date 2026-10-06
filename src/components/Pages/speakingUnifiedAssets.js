@@ -5,11 +5,11 @@ import islandB from "../assets/speaking-map/unified-island-b-v1.webp";
 import candyA from "../assets/speaking-map/unified-candy-a-v1.webp";
 import candyB from "../assets/speaking-map/unified-candy-b-v1.webp";
 import snowA from "../assets/speaking-map/unified-snow-a-v1.webp";
-import snowB from "../assets/speaking-map/unified-snow-b-v1.webp";
-import skyA from "../assets/speaking-map/unified-sky-a-v1.webp";
-import skyB from "../assets/speaking-map/unified-sky-b-v1.webp";
-import magicA from "../assets/speaking-map/unified-magic-a-v1.webp";
-import magicB from "../assets/speaking-map/unified-magic-b-v1.webp";
+import snowB from "../assets/speaking-map/unified-snow-b-v2.webp";
+import skyA from "../assets/speaking-map/unified-sky-a-v2.webp";
+import skyB from "../assets/speaking-map/unified-sky-b-v2.webp";
+import magicA from "../assets/speaking-map/unified-magic-a-v2.webp";
+import magicB from "../assets/speaking-map/unified-magic-b-v2.webp";
 
 export const UNIFIED_MAP_ASSETS = {
     "unified-forest-a": forestA,
