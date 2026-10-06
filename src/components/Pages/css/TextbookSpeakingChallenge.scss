@@ -2382,23 +2382,28 @@
 }
 .speaking-alphabet-list {
   display: grid;
-  grid-template-columns: repeat(5, minmax(86px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   width: min(680px, 100%);
   margin-block: 8px;
+  container-type: inline-size;
 }
 .speaking-alphabet-list span {
+  min-width: 0;
   min-height: 86px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 2px;
   border: 2px solid #dbe6f4;
   border-radius: 18px;
   color: #55657d;
   background: #fff;
-  font-size: clamp(34px, 3.2vw, 48px);
-  font-weight: 950;
+  // Conventional printed Q and letterforms; independent of the decorative game font.
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: clamp(24px, 7.2cqw, 48px);
+  font-weight: 700;
+  letter-spacing: 0;
   line-height: 1;
   transition:
     transform 0.18s ease,
@@ -2407,7 +2412,7 @@
 .speaking-alphabet-list span small {
   color: inherit;
   font-size: 0.82em;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
 }
 .speaking-alphabet-list span.heard {
@@ -2518,6 +2523,8 @@
   letter-spacing: 0.02em;
 }
 .speaking-foundation-letter {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
   font-size: clamp(92px, 18vw, 168px);
   line-height: 1;
 }
@@ -2834,14 +2841,14 @@
     padding: 16px 14px;
   }
   .speaking-alphabet-list {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 9px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
   }
   .speaking-alphabet-list span {
     min-height: 66px;
-    gap: 4px;
+    gap: 2px;
     border-radius: 15px;
-    font-size: clamp(28px, 8vw, 36px);
+    font-size: clamp(22px, 9cqw, 36px);
   }
   .speaking-alphabet-list span small {
     font-size: 0.84em;

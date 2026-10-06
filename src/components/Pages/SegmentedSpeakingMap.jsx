@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { SPEAKING_SCENE_OVERLAP } from "../../utils/segmentedSpeakingMap";
 import meadow from "../assets/speaking-map/serpentine-meadow-v3.webp";
 import forest from "../assets/speaking-map/serpentine-forest-v3.webp";
@@ -12,11 +12,20 @@ import { UNIFIED_MAP_ASSETS } from "./speakingUnifiedAssets";
 const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest, ...CARTOON_ASSETS,
     ...UNIFIED_MAP_ASSETS };
 
+function terrainMask(cut, overlap) {
+    if (!cut) return undefined;
+    // A short feather along open terrain avoids the ghosted trees of a full-width fade.
+    const edge = cut.map(([x, y]) => `${x},${y}`).join(" ");
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000" viewBox="0 0 1500 1000"><defs><filter id="soft" x="-1%" y="-1%" width="102%" height="102%"><feGaussianBlur stdDeviation="3"/></filter><clipPath id="terrain"><path d="M0 0H600V1000H0ZM900 0H1500V1000H900Z"/></clipPath><linearGradient id="road" x2="0" y2="${overlap}" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0"/><stop offset="1" stop-color="white"/></linearGradient></defs><g clip-path="url(#terrain)"><polygon points="${edge} 1500,${cut[cut.length - 1][1]} 1510,1010 -10,1010 -10,${cut[0][1]}" fill="white" filter="url(#soft)"/></g><rect x="600" width="300" height="1000" fill="url(#road)"/></svg>`;
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
 function SceneTile({ scene, route, eager, scenery = false }) {
     const container = useRef(null);
     const [nearby, setNearby] = useState(eager);
     const [failed, setFailed] = useState(false);
     const [attempt, setAttempt] = useState(0);
+    const seamMask = useMemo(() => terrainMask(scene.seamCut, scene.overlap), [scene.seamCut, scene.overlap]);
     useEffect(() => {
         if (nearby) return;
         if (typeof IntersectionObserver === "undefined") { setNearby(true); return; }
@@ -27,7 +36,8 @@ function SceneTile({ scene, route, eager, scenery = false }) {
         return () => observer.disconnect();
     }, [nearby]);
     return <div ref={container} className={`speaking-scene-tile ${scenery ? "is-side-scenery" : ""} is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
-        data-scene-index={scenery ? undefined : scene.index} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%` }}>
+        data-scene-index={scenery ? undefined : scene.index} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%`,
+            maskImage: seamMask, WebkitMaskImage: seamMask, maskSize: "100% 100%", WebkitMaskSize: "100% 100%" }}>
         {nearby && !failed && <img key={attempt} src={scenery ? CARTOON_SIDE_ASSETS[scene.biome] : SCENES[scene.asset]} alt="" width={scenery || scene.unified ? "1536" : "887"} height={scenery || scene.unified ? "1024" : "1774"} decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
         {failed && !scenery && <button className="speaking-scene-retry" type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>重試載入場景</button>}
     </div>;

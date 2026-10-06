@@ -35,8 +35,8 @@
     left: 0;
     width: 100%;
     contain: layout paint;
-    // Top-to-bottom painter order: each lower tile fades over the fully opaque
-    // previous tile. There is no half-transparent gap exposing the page color.
+    // Unified art supplies a terrain-following mask. Legacy art retains a fade.
+    // The previous tile remains opaque beneath either mask.
     -webkit-mask-image: linear-gradient(transparent, #000 var(--scene-overlap));
     mask-image: linear-gradient(transparent, #000 var(--scene-overlap));
     &.is-first { -webkit-mask-image: none; mask-image: none; }
