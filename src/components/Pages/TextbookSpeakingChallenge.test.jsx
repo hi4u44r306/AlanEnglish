@@ -303,7 +303,11 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelectorAll(".speaking-map-canvas")).toHaveLength(1);
         const nodes = [...container.querySelectorAll(".speaking-map-canvas .speaking-challenge-lesson")];
         expect(nodes).toHaveLength(3);
-        expect(nodes.map(node => node.style.getPropertyValue("--map-y"))).toEqual(["94.65%", "46.09%", "6.88%"]);
+        const positions = nodes.map(node => Number.parseFloat(node.style.getPropertyValue("--map-y")));
+        expect(positions[0]).toBeGreaterThan(positions[1]);
+        expect(positions[1]).toBeGreaterThan(positions[2]);
+        expect(container.querySelectorAll(".speaking-continuous-road")).toHaveLength(1);
+        expect(container.querySelector(".speaking-map-chapter")).toHaveClass("is-segmented");
         expect(container.querySelectorAll(".speaking-map-biomes")).toHaveLength(0);
         expect(screen.getByRole("heading", { name: "Workbook 1" })).toBeInTheDocument();
         expect(container.querySelectorAll(".speaking-map-book-sign")).toHaveLength(0);
@@ -397,8 +401,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         const workbookOne = await screen.findByRole("button", { name: "開啟 Workbook 1，共 2 關，已完成 1 關，每關首次通關 30 XP、最多 3 AE Points" });
         const workbookTwo = screen.getByRole("button", { name: "開啟 Workbook 2，共 1 關，已完成 0 關，每關首次通關 30 XP、最多 3 AE Points" });
         const workbookThree = screen.getByRole("button", { name: "開啟 Workbook 3，共 1 關，已完成 0 關，每關首次通關 30 XP、最多 3 AE Points" });
-        expect(workbookOne).toHaveClass("speaking-book-card--theme-0");
-        expect(workbookTwo).toHaveClass("speaking-book-card--theme-1");
+        expect(workbookOne).toHaveTextContent("森林池塘");
+        expect(workbookTwo).toHaveTextContent("海島沙灘");
+        expect(workbookThree).toHaveTextContent("糖果花園");
         expect(screen.getByRole("progressbar", { name: "Workbook 1 完成進度" })).toHaveAttribute("aria-valuenow", "50");
         expect(screen.getByRole("progressbar", { name: "Workbook 2 完成進度" })).toHaveAttribute("aria-valuenow", "0");
         expect(workbookOne).toHaveTextContent("繼續冒險");

@@ -1,6 +1,102 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-04
+最後更新：2026-10-06
+
+六冊整幅寬景正式發布準備（2026-10-06）：
+
+- 分支 codex/segmented-speaking-map，基準main 9777d155已fetch核對，無落後。使用者核准森林整幅图並要求其餘五冊套用、推送部署，先在手機看現有畫質；原生4K不再是本批發布前置條件。
+- 新增其他五冊A/B共10張WebP、全冊trace與asset registry；預設路由全面啟用同幅寬圖。手機裁切中央、桌面展開左右，無獨立側景層。保留木框／純色按鈕、由下往上、實際題庫及既有模式流程；雪地無企鵝。
+- 素材1536×1024，未升頻。新增10張共2,587,032 bytes，加森林合計3,191,704 bytes；只載目前冊別兩個URL並逐段掛載。完整提示詞／來源UNIFIED-BOOKS-V1.md。新40個錨點周界128點取樣通過，最小相鄰距離194.06單位，關卡半徑40。
+- 本機Edge Chromium六冊412／1440px，加森林768／1920px共14組：無破圖、溢出或pageerror；中央／整圖比例1:3、木框直徑65.9／80／102.4px、摘要點擊與Escape正常。截圖output/segmented-map/unified-{book}-{width}.png、接縫圖及all-wide-browser-report.json。
+- 相關元件／路線／正式目錄整合78項測試通過；第一次指令多列不存在的SpeakingBookCard.test.jsx造成命令失敗，移除錯誤路徑後重新執行。focused ESLint、preview SCSS/bundle及diff check通過。Cloudflare負責唯一正式production build，本機不重跑全套／完整build。
+- 待完成Push／PR／合併／Cloudflare production及正式站驗收。內建瀏覽器已由使用者重新登入，接著驗證真實關卡畫面。iPhone Safari實機畫質交由使用者確認，未操作錄音、評分或學習資料。
+
+森林整幅寬圖樣板（2026-10-06，本機待審）：
+
+- 基準 `6511c376`，同一分支。使用者認為左右漸層側景仍不自然，要求地圖道路保持中央、電腦展現寬景、手機裁切兩側。本批先完成森林A/B兩張完整寬圖，左右不再疊加／淡化獨立素材；上下仍沿用100單位重疊與逐段載入，50關13段。
+- `SegmentedSpeakingMap.jsx`／SCSS 新增整幅圖層；`speakingCartoonMap.js`加入預設關閉的unifiedForest選項及新描線JSON。只有本機preview的Workbook 1啟用，其他五冊及正式入口保留原配置。木框圓牌沿新路面安全位置分布，半徑41周界每點128取樣通過，避開窄彎；8個錨點，A/B最小間距207.5／199.1單位。
+- 新WebP原生1536×1024，共604,672 bytes，未升頻、仍非原生4K。內建imagegen來源與完整提示詞存 `src/components/assets/speaking-map/UNIFIED-FOREST-V1.md`。手機同圖裁切；1920px桌面中央640px、按鈕約102px，412px中央412px、按鈕約66px。
+- 22項相關元件／路線測試通過；SCSS與preview bundle、focused lint、diff check驗證。Edge Chromium 412／768／1440／1920px無破圖／溢出／pageerror，整幅層寬正好為中央3倍、無獨立側景層；摘要點擊與Escape通過。截圖 `output/segmented-map/unified-*.png`、報告 `unified-browser-report.json`。本機server已恢復3003。
+- 本機審核 `http://127.0.0.1:3003/?book=1&levels=50`，不寫學習資料，未推送／部署。純本機視覺樣板不跑全套或production build；iPhone Safari實機／真實題庫流程未驗。下一步為使用者審核寬圖與手機裁切，再處理其他主題；原生4K發布条件仍未達成。
+
+六冊大螢幕側景精簡（2026-10-05，本機完成，未部署）：
+
+- 基準 `428bec61`，分支 `codex/segmented-speaking-map`。六冊側景改為大片地面加少量樹木、花草，移除池塘／建築等重複焦點；只降低側景飽和度與對比並擴大外緣漸層，中央素材／SVG／關卡座標未改。registry、SCSS、六張V2 WebP及來源提示詞 `SIDE-SCENERY-V2.md`；V1保留可回復。
+- 原生1536×1024，不升頻；六張共343,626 bytes，比V1減少68.9%。700px以下仍不掛載／下載側景，寬螢幕只載目前冊別一張並重用。中央500px、圓牌80px；412px手機圓牌約65.9px。
+- SCSS／實際元件preview bundle、diff check通過。Edge Chromium 412／768／1024／1440／1920px共10組檢查通過，1440包含六冊；無溢出／破圖／pageerror，手機0側景請求、寬螢幕1個，平板旋轉正常。已目視六冊桌面、平板、超寬及森林接縫；截圖 `output/segmented-map/calm-*.png`、報告 `calm-browser-report.json`。
+- 純素材與CSS修改，不跑全套測試或production build。審核入口 `http://127.0.0.1:3003/?book=1&levels=50`；僅本機示範資料，未推送／部署，iPhone Safari實機未驗。下一步為使用者視覺審核；原生4K正式發布條件仍未達成。
+
+取消可變彎道樣板，恢復核准卡通地圖（2026-10-05，本機）：
+
+- 使用者認為可變彎道樣板太普通，要求換回原本版本。本批撤回 `ba13f553` 的獨立樣板元件、路線計算與兩張素材，回到 `b96cbddd` 的地圖呈現；保留六冊卡通地圖、左右延伸造景、木質關卡及Workbook 4北極狐修正。樣板仍可由Git歷史恢復。
+- 本機preview移除responsive分流；舊 `layout=responsive` 網址重新整理也會顯示原版。審核入口 `http://127.0.0.1:3003/?book=1&levels=50`。僅本機回復，未推送／部署。
+- 驗證：src與 `b96cbddd` 無差異；preview bundle與diff check通過，412／1440px舊網址確認原版50關、無樣板元件／橫向溢出／pageerror。截圖 `restored-412.png`／`restored-1440.png`。純回復已驗證版本，不重跑全套／production build；未驗iPhone Safari實機。
+
+Workbook 4 動物修正（2026-10-05，本機完成，未部署）：
+
+- 基準 `fdc02ed6`；將 snow A 的企鵝替換為北極狐，snow B 北極熊保留。新 `cartoon-snow-a-v2.webp` 原生887×1774、154,112 bytes；registry 改用新版，來源與完整提示詞記錄於 `ARCTIC-ANIMALS-V2.md`。
+- 既有SVG／四個錨點座標不變；圓牌外圈含1單位留白512點、中心線201點的路面色取樣全數通過。412／1440px本機實際畫面已載入新版，無溢出／破圖／pageerror；截圖 `arctic-v2-*.png`。SCSS／preview bundle與diff check通過，純素材修改不跑全套或production build；iPhone Safari實機未驗。
+- 使用者詢問道路隨螢幕寬改變；已提出插畫／SVG／關卡共同等比例縮放、加上螢幕高度與3～5關視野限制的方向，本批尚未更改中央寬度，未推送／部署。
+
+中央闖關與左右延伸造景（2026-10-05，本機完成，未部署）：
+
+- 基準 `277cff65`，同一 `codex/segmented-speaking-map` clone；修改 `SegmentedSpeakingMap.jsx`／SCSS、素材 registry 與元件測試，新增六冊側景 WebP 與來源提示詞 `SIDE-SCENERY-V1.md`。中央道路／SVG／關卡座標完全沿用，桌面中央500px、圓牌80px；700px以上加入1500px寬側景，較窄平板裁切兩侧、超寬螢幕外側淡入主題底色。
+- 側景原生1536×1024、每冊額外145,552～230,632 bytes（約142～225KiB），不升頻且非原生4K。共1,104,610 bytes；只載目前冊別一張並重用、近視野分段掛載。手機不掛載側景img；縮放跨斷點會卸載／恢復側景。
+- 20項元件／路線 targeted tests、相關ESLint、SCSS與實際元件preview bundle、git diff check通過；不跑全套或production build，因本批為本機限定視覺與響應載入調整。
+- Edge Chromium本機412／768／1024／1440／1920px通過：中央尺寸／按鈕尺寸不變、無橫向溢出／破圖／pageerror。1440六冊各驗一次；手機側景請求0，寬螢幕各冊1，平板轉窄再轉橫向正常。摘要開關沿用既有流程並驗證。截圖與報告 `output/segmented-map/scenery-*.png`、`scenery-browser-report.json`；側景以邊緣漸層銜接，屬本機視覺待審版本。
+- 本機審核 `http://127.0.0.1:3003/?book=1&levels=50`，返回可選六冊。未推送／部署；未驗iPhone Safari實機、正式登入／錄音／獎勵，未改後端。下一步為使用者審核左右延伸畫面；原生4K發布條件仍未達成。
+
+原生4K發布條件核對（2026-10-05，尚未達成）：
+
+- 使用者已核准六冊畫風，授權「提升為原生4K以上後正式發布」。目前核准版本為 `0e02e0f6`；未以放大圖片冒充原生4K，未推送／部署。
+- 內建 imagegen 以森林A為參考，明確要求4096×8192原生重繪；實際PNG metadata仍為887×1774。試驗檔 `exec-4f22d808-3704-4038-b328-9d230bb71a80.png` 不替換已核准素材。證據與提示詞存於 `output/segmented-map/native4k-probe.json`。
+- 目前工具無可指定解析度的參數，這次輸出未達條件。已請使用者選擇先確認其他原生4K工具及費用，或提供高解析素材；切換額外API遵守 imagegen 技能明確授權要求。程式與既有素材保持核准版本。
+
+六冊兒童卡通完整地圖（2026-10-05，本機完成，未部署）：
+
+- 基準 `660a58a2`，分支 `codex/segmented-speaking-map`；沿用既有 `output/alphabet-recording-fix-20261003` clone，主工作區保持原狀。使用者核准可愛卡通方向後，將完整各冊地圖改為森林／海島／糖果／雪地／天空／魔法火山六主題；列表卡片同步主題名稱與配色。
+- 新 `speakingCartoonMap.js`、`speakingCartoonTraces.json`、`speakingCartoonAssets.js`、`SpeakingBookCard.jsx` 與12張 WebP；共享 `SegmentedSpeakingMap` 延用木框、灰／黃／亮綠純色內層與 lazy loading；`TextbookSpeakingChallenge` 接到真實 catalog 的前端配置，沒有新增遠端關卡。來源／提示詞見 `src/components/assets/speaking-map/CARTOON-THEMES-V1.md`。
+- 每冊兩張造景交替重用，依題庫數延長，50 關13段；原生887×1774、各冊兩圖約252～365KB，總1,916,536 bytes，非4K。逐圖描實際路面，48個候選位置以半徑41世界單位、每圈128點檢查留白，再沿路分配直徑80的圓牌；SVG不疊加可見道路。魔法A的水平草地邊界已另修圖。
+- 70項 targeted tests（各冊0～101關邊界／沿路排序與間距、載入／重試、51項既有口說整合）通過；相關ESLint、SCSS與實際元件preview bundle通過。修正終點旗位置後另做端點視覺檢查；不重跑無關全套／production build。
+- Edge Chromium headless 412×915／1440×915六冊50關各驗一次：進場完整可見3～4關、按鈕約65.9／80px、無橫向溢出／pageerror／破圖，初始只載附近3個img實例。摘要點擊／Escape已驗，起點旗與第一關、頂部旗與工具列無遮擋。截圖及報告：`output/segmented-map/cartoon-*.png`、`cartoon-browser-report.json`、`cartoon-endpoints.json`。
+- 審核入口 `http://127.0.0.1:3003/` 可選六冊；`?book=1&levels=50&tools=1` 可調數量，為示範進度，不写入資料。iPhone Safari實機、登入後真實catalog／錄音／獎勵尚未驗；本批只做前端本機審核，未Push／部署。下一步為使用者檢視六冊畫風與路線。
+
+8 關兒童卡通地圖 v6（2026-10-05，本機審核，未部署）：
+
+- 基準 `684b4aef`，沿用同一分支；以 v5 實際無 UI 道路畫面為幾何參考，內建 image_gen 重繪圓潤樹木、大頭兔子／松鼠、簡化花朵與營地。路面、自然土邊及橋樑合併於插畫；`paintedRoad` 僅保留隱形 SVG 中心線，移除樣板第二層可見 SVG 道路與橋面。正式 v3 配置未變。
+- 新 `pilot-*-v6.webp` 各 887×1774、合計 372,416 bytes，無升頻、非原生 4K。兩段交界過渡縮至40單位，降低樹木雙影；第4關沿同一中心線退後12單位，8顆圓牌外圈各64點共512點的沙路像素取樣全數符合，另已目視檢查。這不等於生成插畫與 SVG 像素完全相同；細節見 `PILOT-V6.md` 的素材／提示詞／限制。
+- 共9項路線／元件測試通過，含隱形定位且沒有第二層可見道路；ESLint、preview bundle、diff check 及 412×915／1440×915 實際畫面檢查通過。進場完整顯示5／4關，沒有橫向溢出或 pageerror。僅本機示範，不測錄音／真實獎勵；iPhone Safari 實機未驗，未跑全套／正式 build。
+- 審核 `http://127.0.0.1:3003/?levels=8&v=6`。主工作區保持原狀；未 Push／部署，未延伸到50關。下一步為使用者審核畫風與道路融合。
+
+8 關自然彎道與溪橋 v5（2026-10-05，本機審核，未部署）：
+
+- 基準 `7a984ce1`，沿用 `codex/segmented-speaking-map`；僅修改 opt-in 樣板的路線、兩張插畫與共享元件的條件式木橋。取消每排兩關的規則，使用不對稱曲線繞池塘、穿樹林，弧長目標避開急彎與橋頭；木橋取代跨溪土路，沿同一中心線連接兩岸。
+- 新 `pilot-meadow-v5.webp`／`pilot-forest-v5.webp` 原生各 887×1774，共 849,792 bytes；保留 v4 素材以供回復，沒有放大或宣稱原生 4K。提示詞與素材來源見 `src/components/assets/speaking-map/PILOT-V5.md`。SVG、關卡、木橋清晰度不受背景點陣尺寸限制。
+- 412×915／1440×915 實際元件預覽進場完整顯示 5／4 關，圓牌直徑約 65.91／80px；起點已避開底部目標卡，無橫向溢出與 pageerror。橋樑、池塘、場景過渡已目視檢查；截圖更新於 `output/segmented-map/pilot-start-*`、`pilot-forest-*`。
+- 路線／橋面排除及既有 lazy loading 測試、ESLint、preview bundle、diff check 驗證；不跑全套或 production build，因為本批是 opt-in 本機視覺樣板。真實帳號 catalog、iPhone Safari、錄音／獎勵未驗且未修改；未套用全冊、未 Push／部署。下一步為使用者審核同一 `http://127.0.0.1:3003/?levels=8`。
+
+起點至第 8 關視覺精修（2026-10-05，本機樣板，未套用 50 關／未部署）：
+
+- 基準 `b696c768`，同一 `codex/segmented-speaking-map` 分支，主工作區修改保留。本批新 `speakingMapPilot.js`／test；共享 `SegmentedSpeakingMap.jsx`／SCSS 增加 opt-in 樣板素材與材質，原 v3 的 full-book allocator 不修改。
+- 樣板共 8 關、4 條横路，每條 2 關，U 型彎道留空；關卡在横路內等距，刻意不宣稱全程弧長等距。兩張獨立地標為蘋果樹池塘／兔子與松樹營地，縮小樹冠範圍以避開路面；地面留白、砂石路面、輕陰影、木紋外框與純色中心。起點旗移到道路左上側避開底部卡片。
+- 兩圖各 941×1672，WebP 共 353,844 bytes，未升頻、非原生 4K。素材與生成／編輯提示詞見 `src/components/assets/speaking-map/PILOT-V4.md`。8 關數字、題數及進度均為 fixture，沒有新增正式題庫。
+- 7 項 targeted tests（樣板幾何、兩段邊界、原地圖 lazy loading／重試）通過，相關 ESLint、SCSS／preview bundle 編譯、diff check 通過。實際元件 Edge Chromium headless 412×915／1440×915 進場均完整顯示 4 關，圓牌約 65.91／80px，無橫向溢出或 pageerror，摘要點擊與 Escape 關閉已驗收。未跑 full suite／production build，因 opt-in 視覺樣板不發布。
+- 審核 `http://127.0.0.1:3003/?levels=8`，`&tools=1` 顯示樣板工具；原 50 關可用 `?levels=50` 比較。`output/segmented-map/pilot-start-412.png`、`pilot-forest-412.png`／1440、`pilot-dialog-412.png` 與 `pilot-report.json` 為實際本機畫面。iPhone Safari、真實帳號 catalog 與錄音未驗；待使用者核准視覺後再延伸其餘關卡，未 Push／部署。
+
+50 關蛇形地圖與自動分布（2026-10-05，本機審核，尚未部署）：
+
+- 延用 `codex/segmented-speaking-map`／`140854bd` 的既有本機 clone，主工作區未提交修改保持原狀。四張新的無道路草地／森林／雪地／火山 WebP 共 1,248,192 bytes、各 887×1774；50 關共 13 個場景實例，素材重用，不是 13 張不同插畫，也不是原生 4K。
+- 改為左右往返 U 型連續道路，弧長平均配置，固定 110 路寬／73⅓ 圓牌、上下留白。25／36／50 關依序 7／9／13 段，0／1／2／3／4／5 及 15–101 關邊界有測試。場景低細節交界重疊 170 單位，移除舊疊加河流／桥；同一 SVG 為唯一道路。
+- 相關檔案：`SegmentedSpeakingMap.jsx`、對應 SCSS、`segmentedSpeakingMap.js`／test、四張 `serpentine-*-v3.webp`、素材提示詞 `SERPENTINE-V3.md`。68 項 targeted tests（17 路線／載入、51 既有口說整合）及四檔 ESLint 通過；SCSS／元件 preview bundle 編譯、diff 檢查通過。局部前端不執行全套或 production build。
+- Edge Chromium headless 使用真正元件與 SCSS 的本機 fixture，在 412×915 與 1440×915 測 25／36／50 關：節點數正確、無橫向溢出、無 pageerror；手機圓牌約 70.25px，桌面 85.27px。進場可見 3–4 關，13 段只載入附近 3 張 img；場景過渡與終點截圖已檢查。
+- 本機審核入口 `http://127.0.0.1:3003/?levels=50`，可切換關卡數，為示範進度，不建立 50 筆正式關卡。驗收資料／截圖在 `output/segmented-map/v3-report.json`、`v3-50-412.png`、`v3-50-1440.png`、`v3-seam-412.png`、`v3-summit-412.png`。未驗真實 catalog 登入／iPhone Safari／錄音通關，本批不改後端且未 Push／部署。下一步為使用者視覺審核。
+
+分段連續闖關地圖（2026-10-04，本機審核中，尚未部署）：
+
+- 分支 `codex/segmented-speaking-map`，由 main `9777d155` 建立；主工作區的既有未提交修改保留。本批只修改口說 Workbook 地圖元件、SVG 路徑與關卡定位、WebP 場景及對應測試／文件，未修改口說權限、題庫、評分、額度、獎勵與資料庫。
+- 地圖依關卡數延長：25／36／60／100 關採固定道路寬度與固定關卡大小，節點沿路等距；橋面取同一路徑切線，場景分段在附近才載入。起點在下、當前目標進場靠近畫面下方，頂部為工具列留空間。五張原生 1024×1536 場景轉 WebP，總大小約 879 KB，SVG 道路及文字在桌面放大可保持清晰；插畫素材不宣稱原生 4K。
+- 本機預覽 `http://127.0.0.1:3003/` 為示範進度，可切換關卡數、查看橋樑及終點，未寫入學生資料。產物位於 `output/segmented-map/`，審核截圖與生成提示詞也在該目錄。目標是待使用者檢視後再決定發布，正式站仍顯示舊地圖。
+- 相關檔案：`src/utils/segmentedSpeakingMap.js`、`src/components/Pages/SegmentedSpeakingMap.jsx`、`src/components/Pages/css/SegmentedSpeakingMap.scss`、`src/components/Pages/TextbookSpeakingChallenge.jsx`。目前 targeted 3 套／63 項與相關 ESLint 通過；正式 build、真實 iPhone Safari、登入後實際 catalog 資料及正式站尚未驗收。UI／局部路由捲動變更未執行全套與本機 production build。
 
 口說規則圖解（2026-10-04，已正式部署）：
 

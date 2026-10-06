@@ -1,0 +1,25 @@
+# Eight-level landscape pilot v5
+
+2026-10-05. Local review only; not activated in real Workbook catalogs or the 50-level allocator.
+
+## Assets and boundaries
+
+- Built-in image_gen was used for both assets. Sharp performed WebP encoding only, quality 88; no enlargement.
+- Both native images: 887 × 1774. Not native 4K.
+- `pilot-meadow-v5.webp`: 351,678 bytes. Source `exec-8f520b2e-c38b-47c9-965c-a186a742770a.png`.
+- `pilot-forest-v5.webp`: 498,114 bytes. Source `exec-6ec964b2-adf8-472e-bfe8-45971ed4e643.png`.
+- Both are roadless illustrations. The only road is the SVG from the same sampled centerline used by the eight marker coordinates.
+- The route follows unequal bends around the pond, through a woodland clearing, then across the stream. Approximate arc-length targets are shifted to clear tight bends and the bridge; this is not exact equal spacing.
+- A two-part earth path stops at the bridge banks. A wooden deck connects them on the same centerline; there is no earth path underneath the water crossing.
+- World 500 × 1800; road width 120; outer marker diameter 80, exactly 2/3 of road width. Each scene is 500 × 1000, with 200 units of overlap.
+- Preview: http://127.0.0.1:3003/?levels=8 . Demonstration progress only.
+
+## Meadow generation prompt
+
+Use case: stylized-concept. Production ROADLESS background tile for a polished children's exploration game, portrait 1:2, highest native resolution. Top-down slight illustrated depth, no horizon and NO perspective shrink. Bright sophisticated storybook environment, bold clean silhouettes, soft painterly shading, crisp layered foliage, teal shadows, warm mint and yellow-green ground, touches of coral and lavender. NOT a generic grass texture; grass is large smooth color shapes and occasional hand-painted tufts. No road, path, trail, bridge, text, UI, markers, circles or border. Composition precisely supports future winding path: canvas interpreted as x0..500,y0..1000. Create one turquoise irregular pond centered x145,y455 with edges entirely x50..225,y355..550. At x65,y370 put a modest sculptural willow/apple tree leaning over pond, tree canopy must stay left of x220. Tiny charming bunny at x100,y570, balanced face. Group flowers and smooth stone banks around pond. Some LARGE cropped rounded tree canopies at extreme bottom-left x0..65,y800..940 and upper-right edge x460..500,y200..330, subtle foreground depth. Keep these route corridors completely clear smooth grassy ground with NO objects: from x100,y760 diagonally to x350,y630 then curving up x350,y450 and diagonally to x140,y290 then x120,y160 and x250,y60. Reserve roughly60 units each side of this route. This path is ONLY an invisible planning guide, DO NOT draw it. At top0..180 gradual muted jade-green smooth meadow, no landmarks, for transition into forest; bottom180 cheerful lighter smooth meadow for start UI. Pond is a meaningful large landscape feature, not a tiny sticker. Do not fill ground with repetitive bushes. Natural quiet open areas and rich concentrated landmarks, collectible mobile adventure game art. No sky, no distant vista. Absolutely no visible road.
+
+## Forest generation prompt
+
+Reference image: the generated meadow, used for illustration style.
+
+Use case: stylized-concept. Create the upper forest-and-stream tile of the same children's adventure game as reference, matching its high-quality painterly botanical art and golden light, portrait1:2 highest available native resolution. Reference image1 is STYLE ONLY, not a layout to copy. Absolutely NO roads, paths, bridges, UI, labels, markers or circles. Entire canvas top-down natural terrain, no sky/horizon/perspective shrink. Interpret canvas x0..500,y0..1000 for precise composition. A narrow winding turquoise STREAM crosses from left to right, centered y570, water width35-45, clean two banks no branching, bends gently through y550..600. At crossing x260,y570 leave water and banks free of rocks, reeds, trees, or objects so a bridge can be added by game code. Stream must go off BOTH side edges; cannot be a pond. Lower y800..1000 is quiet smooth jade/lime-green grass for blending into reference's top. On left edge around x0..120,y660..770 create a substantial grouping of sculptural mossy rocks, ferns and a large curved tree trunk. On right side around x390..500,y270..470 a cozy cream tent under broad pine canopies, warm hanging lantern, logs, clustered violet/coral flowers, all off future route. Upper-left x0..110,y60..210 large foreground tree canopy, leaving middle clear. Main open grassy corridor imagined from x120,y920 up through x220,y780 then x340,y680, then diagonal northwest across the stream at x260,y570 to x150,y470 then x150,y340 then x260,y240 then x360,y160. Keep about65units either side completely clear of landmark objects; corridor is grass NO ROAD. Trees create a framed woodland clearing, concentrated rich scenery on the sides rather than a noisy uniform texture. Soft layered shadows, restrained sunbeams painted into grass only, NO fog overlay. Make landmarks comparable scale to reference pond; no repeated pond or rabbit. Beautiful cheerful storybook colors, clear gameplay space.
