@@ -2,6 +2,13 @@
 
 最後更新：2026-10-06
 
+### 口說關卡頂部精簡（2026-10-06，本機／尚未部署）
+
+- `codex/speaking-session-compact-top` 從最新 main `a624df35` 開始，沿用既有工作樹。依使用者截圖移除教材名稱／口說練習標題／泛用說明的大型區塊，保留下方關卡返回、標題、題數及進度。
+- SpeakingLessonPreparation 僅在既有明確來源與教材權限確認有對應音檔時，呈現精簡「先聽本關教材」入口；無可用對應音檔時不渲染空白區塊。錄音／準備／評分忙碌狀態仍不允許跳去聽力，模式與指定音檔回程不變。
+- 範圍：SpeakingLessonPreparation.jsx／既有測試、SpeakingAdventureSession.scss、優化文件／手冊／本狀態文件。錄音、AI評分、提示計入、題目內容、獎勵、權限與後端未改。關卡工具列、步驟提示與重複說明的後續精簡僅列為建議，尚未實作。
+- SpeakingLessonPreparation局部測試4項、focused ESLint、SCSS／3015開發編譯、diff check通過；只驗證受影響的既有聽力準備契約，不跑無關全套或重複production build，正式建置交由Cloudflare。瀏覽器權限限制與實際桌面／412px／iPhone驗收待補。依一般UI發布持續授權安排正式修正，部署結果待記錄；回復可revert本批前端修正，無資料變更。
+
 ### iPhone 底部導覽安全留白修正（2026-10-06，已正式部署／實機待驗收）
 
 - 分支 `codex/iphone-bottom-navigation-clearance` 從最新 main `5a30ffda` 開始，沿用學生介面工作樹，原主目錄修改保留。
