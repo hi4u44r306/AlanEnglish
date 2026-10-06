@@ -2,12 +2,14 @@
 
 最後更新：2026-10-06
 
-### 大關卡列表與地圖視覺一致（2026-10-06，本機實作／尚未部署）
+### 第二批口說學習循環與地圖風格大關卡列表（2026-10-06，已正式部署）
 
-- 延續 `codex/speaking-learning-loop`／草稿 PR #423：SpeakingBookCard 使用各冊 unified 地圖 A 段原素材作為 64–80px 小縮圖，六冊配色沿用 getSpeakingBookTheme；木框編號、暖色資訊區與黃色冒險按鈕呼應地圖關卡。保留緊湊列表，桌面兩欄、手機單欄，基本高度 124–128px；399px 以下將入口放到資訊下方，內容較長時自然增高。後四張場景延遲載入。
+- PR #423 於 2026-10-06 合併至 main，merge commit `349688aa37474e85fe0d14eb7b70bffe7aabb551`；Cloudflare Workers Build check run `112128225782` 成功。包含口說學習循環與此緊湊列表更新。
+- SpeakingBookCard 使用各冊地圖 A 段原素材作為 64–80px 小縮圖，六冊配色沿用 getSpeakingBookTheme；木框編號、暖色資訊區與黃色冒險按鈕呼應地圖關卡。桌面／平板雙欄、手機單欄，基本高度 124–128px；399px 以下入口移至資訊下方，長文字自然增高。後四張場景延遲載入。
 - 新增最後載入且僅作用於教材總覽的 SpeakingBookCard.scss；關卡數、完成進度、再次／繼續／開始入口、角色與權限維持原契約。不新增圖片、後端或學習資料寫入。
-- 驗證：先前 TextbookSpeakingChallenge 51 項測試與 focused ESLint 通過；緊湊版只調整 SCSS／文件，執行樣式編譯與 diff 檢查，不重跑未變更的 React 測試或 production build。Chrome 對 localhost 的 saved browser permissions 阻礙尚待排除，412／768／1440px 截圖與視覺驗收未完成，保持草稿，未合併／部署。
-- 相關檔案：SpeakingBookCard.jsx、SpeakingBookCard.scss、TextbookSpeakingChallenge.jsx／test、網站使用手冊與網站優化.md。下一步由本機頁面檢視場景卡片，恢復工具存取後補 RWD 視覺驗收。
+- 正式學生頁已登入驗收：桌面呈現緊湊雙欄，412px 手機單欄、768px 平板雙欄，均無水平溢出；六冊名稱、實際進度與開始／繼續入口正常。未啟動錄音或送評；iPhone Safari、Azure 真實評分與獎勵入帳未驗證。
+- 口說學習循環相關 5 份測試 92 項通過，補強 recorder assertions 後同套件 14 項通過；focused ESLint、樣式編譯與 diff 檢查通過。文件後續更新 PR 僅變更 Markdown，不觸發 Workers build。
+- 相關檔案：SpeakingBookCard.jsx、SpeakingBookCard.scss、口說練習元件、TextbookSpeakingChallenge.jsx／test、網站使用手冊與網站優化.md。下一步依網站優化計畫進行第三批優先介面改善。
 
 ### 第二批口說學習循環（2026-10-06，本機完成／待視覺驗收）
 
