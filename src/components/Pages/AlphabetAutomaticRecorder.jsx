@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiLoader, FiMic, FiMicOff, FiRefreshCw } from "react-icons/fi";
+import { FiCheck, FiX, FiLoader, FiMic, FiMicOff, FiRefreshCw } from "react-icons/fi";
 import { submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { SPEAKING_BUDGET_ERROR_CODES } from "../../utils/speakingRecordingPolicy";
@@ -50,8 +50,7 @@ export default function AlphabetAutomaticRecorder({
     const [remainingSeconds, setRemainingSeconds] = useState(MAX_UTTERANCE_MS / 1000);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
-    const engineInfo = "A–Z 字母評分";
-    const [readingScore, setReadingScore] = useState(null);
+    const [answerMatch, setAnswerMatch] = useState(null);
     const streamRef = useRef(null);
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
@@ -181,7 +180,7 @@ export default function AlphabetAutomaticRecorder({
         retrySubmissionRef.current = null;
         submittingRef.current = false;
         setRecordedBlob(null);
-        setReadingScore(null);
+        setAnswerMatch(null);
         setBudgetBlocked(false);
 
         if (paused || !question?.id || (!foundationRoundId && !allowDemoAssessment) || !analyserRef.current || !streamRef.current) return undefined;
@@ -225,7 +224,7 @@ export default function AlphabetAutomaticRecorder({
                 });
                 if (operationId !== operationRef.current) return;
                 if (result?.assessment_kind !== "azure_pronunciation" || !Number.isFinite(result?.scores?.pronunciation) || result.scores.pronunciation < 0 || result.scores.pronunciation > 100 || typeof result?.answer_match !== "boolean") throw new Error("字母評分結果不完整，請重試。");
-                setReadingScore(Math.round(result.scores.pronunciation));
+                setAnswerMatch(result.answer_match);
                 await new Promise(resolve => setTimeout(resolve, 4000));
                 if (operationId !== operationRef.current) return;
                 if (result?.answer_match === false && result?.alphabet_usage?.remaining === 0) {
@@ -356,27 +355,27 @@ export default function AlphabetAutomaticRecorder({
         };
     }, [allowDemoAssessment, attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, onPracticeOnly, paused, question?.id, sessionVersion]);
 
-    const copy = readingScore !== null ? ["朗讀結果已完成", "看完成績後，系統會繼續下一步。"] : status === "preparing"
+    const copy = answerMatch !== null
+        ? answerMatch ? ["通過！", "準備下一個字母。"] : ["再唸一次", "沒關係，再試一次！"]
+        : status === "preparing"
         ? ["正在開啟麥克風…", "只要允許一次，這一輪會自動收音。"]
         : status === "recording"
             ? ["正在聽你說", "說完後停一下，系統會自動送出。"]
         : status === "submitting"
-                ? ["正在評分…", "不用按任何按鈕，下一題會自動出現。"]
+                ? ["正在判別…", "請稍等一下。"]
                 : status === "retry"
                     ? ["錄音已保留", "先回聽，或直接重試評分，不需要離開關卡。"]
                 : status === "blocked"
                     ? ["麥克風沒有開啟", "請確認瀏覽器的麥克風權限。"]
                     : ["麥克風已開啟", "看到字母後直接唸，不會播放答案提示。"];
 
-    return <section className={`speaking-alphabet-auto is-${status}`} aria-live="polite" aria-atomic="true">
-        <p>{engineInfo}</p>
-        {readingScore !== null && <p className="speaking-completeness-score">字母發音 <strong>{readingScore} 分</strong></p>}
+    return <section className={`speaking-alphabet-auto is-${answerMatch !== null ? "result" : status}${answerMatch !== null ? answerMatch ? " is-passed" : " is-incorrect" : ""}`} aria-live="polite" aria-atomic="true">
         <span className="speaking-alphabet-auto__icon" aria-hidden="true">
-            {status === "submitting" || status === "preparing" ? <FiLoader /> : status === "blocked" ? <FiMicOff /> : <FiMic />}
+            {answerMatch !== null ? answerMatch ? <FiCheck /> : <FiX /> : status === "submitting" || status === "preparing" ? <FiLoader /> : status === "blocked" ? <FiMicOff /> : <FiMic />}
         </span>
-        <div><strong>{copy[0]}</strong><span>{copy[1]}</span></div>
+        <div className="speaking-alphabet-auto__message"><strong>{copy[0]}</strong><span>{copy[1]}</span></div>
         {status === "recording" && <strong className="speaking-alphabet-auto__countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}>還能錄 {remainingSeconds} 秒</strong>}
-        <small>等待中的環境音不會送評；字母錄音送交 Azure 本次評分，網站不儲存錄音。離開關卡時會關閉麥克風。</small>
+        <small>錄音僅用於本次判別，網站不保存錄音。</small>
         {status === "retry" && pendingAttemptRef.current && <div className="speaking-alphabet-auto__retry">
             {previewUrl && <audio aria-label="回聽這次字母錄音" controls src={previewUrl} />}
             <button type="button" disabled={budgetBlocked} onClick={() => retrySubmissionRef.current?.()}><FiRefreshCw aria-hidden="true" />重試評分</button>
