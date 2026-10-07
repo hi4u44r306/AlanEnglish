@@ -819,7 +819,7 @@ const loadBootstrap = async (admin: any) => {
         admin.from("speaking_source_documents").select("id,book_id,title,source_kind,original_filename,mime_type,byte_size,page_count,chunk_page_size,chunk_count,original_upload_status,status,ocr_status,ocr_error_code,ocr_model,created_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
         admin.from("speaking_source_chunks").select("id,document_id,source_section_id,chunk_index,page_from,page_to,byte_size,status,attempt_count,error_code,ocr_model,input_tokens,output_tokens,total_tokens,upload_verified_at,processing_started_at,completed_at,updated_at").order("chunk_index"),
         admin.from("speaking_source_sections").select("id,document_id,unit_label,page_from_label,page_to_label,topic,source_text,language_level,status,version,reviewed_at,updated_at").neq("status", "archived").order("updated_at", { ascending: false }),
-        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,previous_set_id,generation_metadata,published_at,created_at,updated_at,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order,speaking_question_interactions(interaction_type,prompt_text,answer_text,accepted_full_responses),speaking_question_visual_assets(asset_id,crop_metadata,speaking_visual_assets(id,status,source_page_label,mime_type,byte_size,width,height,alt_zh)))").neq("status", "archived").order("updated_at", { ascending: false })
+        admin.from("speaking_question_sets").select("id,source_section_id,book_id,title,topic,difficulty,status,version,previous_set_id,generation_metadata,published_at,created_at,updated_at,speaking_questions!speaking_questions_question_set_id_fkey(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order,speaking_question_interactions(interaction_type,prompt_text,answer_text,accepted_full_responses),speaking_question_visual_assets(asset_id,crop_metadata,speaking_visual_assets(id,status,source_page_label,mime_type,byte_size,width,height,alt_zh)))").neq("status", "archived").order("updated_at", { ascending: false })
     ]);
     const error = bookRes.error || documentRes.error || chunkRes.error || sectionRes.error || setRes.error;
     if (error) throw error;
@@ -914,7 +914,7 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "圖片預覽題目編號無效" });
             }
             const { data: question, error: questionError } = await admin.from("speaking_questions")
-                .select("id,question_set_id,speaking_question_sets!inner(status,generation_metadata)")
+                .select("id,question_set_id,speaking_question_sets!speaking_questions_question_set_id_fkey!inner(status,generation_metadata)")
                 .eq("id", questionId)
                 .maybeSingle();
             if (questionError) throw questionError;
@@ -949,7 +949,7 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "請勾選已逐題對照 Workbook 1 原頁面" });
             }
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,source_section_id,generation_metadata,speaking_questions(id)")
+                .select("id,status,source_section_id,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(id)")
                 .eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const metadata = questionSet?.generation_metadata || {};
@@ -1786,7 +1786,7 @@ Deno.serve(async (req: Request) => {
             let manualAuthoringReason: string | null = null;
             if (pageCandidate) {
                 const { data: existingQuestionSets, error: duplicateLookupError } = await admin.from("speaking_question_sets")
-                    .select("id,title,status,generation_metadata,speaking_questions(question_text,simple_answer,model_answer)")
+                    .select("id,title,status,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(question_text,simple_answer,model_answer)")
                     .eq("book_id", bookId).neq("status", "archived");
                 if (duplicateLookupError) throw duplicateLookupError;
                 const deduplicated = findExistingSentenceMatches(
@@ -1888,7 +1888,7 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "請確認已逐題對照教材原頁" });
             }
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,generation_metadata,speaking_source_sections!inner(status,source_text,page_from_label,page_to_label),speaking_questions(id,sort_order,question_text,simple_answer,model_answer,accepted_intents)")
+                .select("id,status,generation_metadata,speaking_source_sections!inner(status,source_text,page_from_label,page_to_label),speaking_questions!speaking_questions_question_set_id_fkey(id,sort_order,question_text,simple_answer,model_answer,accepted_intents)")
                 .eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
@@ -1926,7 +1926,7 @@ Deno.serve(async (req: Request) => {
         if (action === "update_draft_question") {
             const questionId = Number(body?.question_id);
             const { data: question, error: questionError } = await admin.from("speaking_questions")
-                .select("id,question_set_id,sort_order,speaking_question_sets(status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
+                .select("id,question_set_id,sort_order,speaking_question_sets!speaking_questions_question_set_id_fkey(status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
@@ -1992,7 +1992,7 @@ Deno.serve(async (req: Request) => {
             const setId = Number(body?.question_set_id);
             if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "題庫編號不正確" });
             const { data: original, error: originalError } = await admin.from("speaking_question_sets")
-                .select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,speaking_questions(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order)")
+                .select("id,source_section_id,book_id,title,topic,difficulty,status,version,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(id,question_text,hint_zh,keywords,simple_answer,model_answer,follow_up_question,pronunciation_notes_zh,accepted_intents,visual_aid,sort_order)")
                 .eq("id", setId).maybeSingle();
             if (originalError) throw originalError;
             const picturePolicy = pictureDraftPolicyForMetadata(original?.generation_metadata);
@@ -2117,8 +2117,8 @@ Deno.serve(async (req: Request) => {
             const lookupId = action === "update_manual_standard_question" ? questionId : setId;
             if (!Number.isInteger(lookupId) || lookupId <= 0) return json(400, { error: "題庫或題目編號不正確" });
             const setQuery = action === "update_manual_standard_question"
-                ? admin.from("speaking_questions").select("id,question_set_id,model_answer,speaking_question_sets!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
-                : admin.from("speaking_question_sets").select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
+                ? admin.from("speaking_questions").select("id,question_set_id,model_answer,speaking_question_sets!speaking_questions_question_set_id_fkey!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
+                : admin.from("speaking_question_sets").select("id,status,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(id,sort_order)").eq("id", setId).maybeSingle();
             const { data: record, error: recordError } = await setQuery;
             if (recordError) throw recordError;
             const questionSet: any = action === "update_manual_standard_question"
@@ -2172,8 +2172,8 @@ Deno.serve(async (req: Request) => {
             const lookupId = action === "update_picture_draft_question" ? questionId : setId;
             if (!Number.isInteger(lookupId) || lookupId <= 0) return json(400, { error: "題庫或題目編號不正確" });
             const setQuery = action === "update_picture_draft_question"
-                ? admin.from("speaking_questions").select("id,sort_order,question_set_id,speaking_question_sets!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
-                : admin.from("speaking_question_sets").select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
+                ? admin.from("speaking_questions").select("id,sort_order,question_set_id,speaking_question_sets!speaking_questions_question_set_id_fkey!inner(id,status,generation_metadata)").eq("id", questionId).maybeSingle()
+                : admin.from("speaking_question_sets").select("id,status,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(id,sort_order)").eq("id", setId).maybeSingle();
             const { data: record, error: recordError } = await setQuery;
             if (recordError) throw recordError;
             const questionSet: any = action === "update_picture_draft_question"
@@ -2252,7 +2252,7 @@ Deno.serve(async (req: Request) => {
         if (action === "delete_draft_question" || action === "reorder_draft_questions") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,generation_metadata,speaking_questions(id,sort_order)").eq("id", setId).maybeSingle();
+                .select("id,status,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(id,sort_order)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const editablePolicy = pictureDraftPolicyForMetadata(questionSet?.generation_metadata)
                 || manualDraftPolicyForMetadata(questionSet?.generation_metadata)
@@ -2689,7 +2689,7 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "圖片必須是 10MB 內的 JPG、PNG 或 WebP，並填寫正確頁碼與替代文字" });
             }
             const { data: question, error: questionError } = await admin.from("speaking_questions")
-                .select("id,question_set_id,speaking_question_interactions(interaction_type),speaking_question_sets!inner(id,book_id,status,source_section_id,generation_metadata)")
+                .select("id,question_set_id,speaking_question_interactions(interaction_type),speaking_question_sets!speaking_questions_question_set_id_fkey!inner(id,book_id,status,source_section_id,generation_metadata)")
                 .eq("id", questionId).maybeSingle();
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
@@ -2734,7 +2734,7 @@ Deno.serve(async (req: Request) => {
                 .select("id,book_id,source_document_id,source_page_label,status,private_object_key,mime_type,byte_size").eq("id", assetId).maybeSingle();
             if (assetError) throw assetError;
             const { data: question, error: questionError } = await admin.from("speaking_questions")
-                .select("id,speaking_question_interactions(interaction_type),speaking_question_sets!inner(book_id,status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
+                .select("id,speaking_question_interactions(interaction_type),speaking_question_sets!speaking_questions_question_set_id_fkey!inner(book_id,status,source_section_id,generation_metadata)").eq("id", questionId).maybeSingle();
             if (questionError) throw questionError;
             const questionSet = Array.isArray(question?.speaking_question_sets)
                 ? question.speaking_question_sets[0] : question?.speaking_question_sets;
@@ -2799,7 +2799,7 @@ Deno.serve(async (req: Request) => {
             const setId = Number(body?.question_set_id);
             if (!Number.isInteger(setId) || setId <= 0) return json(400, { error: "題庫編號不正確" });
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,status,source_section_id,generation_metadata,speaking_questions(id)")
+                .select("id,status,source_section_id,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(id)")
                 .eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const interactionType = String(questionSet?.generation_metadata?.interaction_type || "");
@@ -2848,7 +2848,7 @@ Deno.serve(async (req: Request) => {
         if (action === "publish_question_set") {
             const setId = Number(body?.question_set_id);
             const { data: questionSet, error: setError } = await admin.from("speaking_question_sets")
-                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions(id,sort_order,question_text,simple_answer,model_answer)").eq("id", setId).maybeSingle();
+                .select("id,book_id,status,version,previous_set_id,updated_at,generation_metadata,speaking_source_sections!inner(status),speaking_questions!speaking_questions_question_set_id_fkey(id,sort_order,question_text,simple_answer,model_answer)").eq("id", setId).maybeSingle();
             if (setError) throw setError;
             const sourceSection = Array.isArray(questionSet?.speaking_source_sections)
                 ? questionSet?.speaking_source_sections[0] : questionSet?.speaking_source_sections;

@@ -33,7 +33,7 @@ const json = (status: number, payload: Record<string, unknown>) => new Response(
 
 const assertPublishedQuestionAccess = async (admin: any, questionId: number, user: any, effectiveAccess: any) => {
     const { data, error } = await admin.from("speaking_questions")
-        .select("id,sort_order,question_set_id,speaking_question_sets!inner(id,book_id,status,version,generation_metadata,books(id,name,code,content_scope,enabled,archived_at))")
+        .select("id,sort_order,question_set_id,speaking_question_sets!speaking_questions_question_set_id_fkey!inner(id,book_id,status,version,generation_metadata,books(id,name,code,content_scope,enabled,archived_at))")
         .eq("id", questionId).eq("speaking_question_sets.status", "published").maybeSingle();
     if (error) throw error;
     if (!data) throw Object.assign(new Error("找不到已發布的口說題目"), { status: 404 });

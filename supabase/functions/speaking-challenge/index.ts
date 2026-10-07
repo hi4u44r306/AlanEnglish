@@ -120,7 +120,7 @@ const challengeModeProgress = async (admin: any, studentId: number, questionIds:
 
 const assertStudentChallengeUnlocked = async (admin: any, studentId: number, questionSet: any) => {
     const { data: sets, error } = await admin.from("speaking_question_sets")
-        .select("id,title,generation_metadata,speaking_questions(id)")
+        .select("id,title,generation_metadata,speaking_questions!speaking_questions_question_set_id_fkey(id)")
         .eq("book_id", Number(questionSet.book_id)).eq("status", "published");
     if (error) throw error;
     const orderedSets = sortSpeakingChallengeSets(sets || []);
@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
 
         if (action === "catalog") {
             const { data: sets, error } = await admin.from("speaking_question_sets")
-                .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code,content_scope,enabled,archived_at),speaking_questions(id,sort_order)")
+                .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code,content_scope,enabled,archived_at),speaking_questions!speaking_questions_question_set_id_fkey(id,sort_order)")
                 .eq("status", "published");
             if (error) throw error;
             const entitlementByBook = new Map<number, boolean>();
