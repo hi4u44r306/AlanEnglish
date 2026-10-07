@@ -70,11 +70,9 @@ begin
     values(v_recipient,v_month,v_level,v_cost,v_budget.monthly_budget_usd,v_budget.warning_percent)
     on conflict(recipient_student_id,month) do update set
         cost_usd=excluded.cost_usd, monthly_budget_usd=excluded.monthly_budget_usd, warning_percent=excluded.warning_percent,
-        level=case when a.level='critical' then a.level else excluded.level end,
-        generation=a.generation + case when a.level='warning' and excluded.level='critical' then 1 else 0 end,
-        acknowledged_at=case when a.level='warning' and excluded.level='critical' then null else a.acknowledged_at end,
-        next_attempt_at=case when a.level='warning' and excluded.level='critical' then now() else a.next_attempt_at end,
-        delivery_token=case when a.level='warning' and excluded.level='critical' then null else a.delivery_token end;
+        -- Acknowledgement covers the entire month, including later budget overruns.
+        -- Updating the displayed severity must never rearm or unlock a delivery.
+        level=case when a.level='critical' then a.level else excluded.level end;
 end;
 $$;
 

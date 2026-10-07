@@ -82,12 +82,12 @@ test("only explicit acknowledgement stops reminders and remains stopped after re
     assert.equal((await claim()).length, 0); assert.ok((await alerts())[0].acknowledged_at);
     assert.equal(await ack(a), true);
 });
-test("critical escalation requires new acknowledgement and rejects a stale page", async () => {
+test("reaching 100 percent after acknowledgement remains silent for the same month", async () => {
     await spend(8); await reconcile(); const [old] = await alerts(); await ack(old);
     await spend(2); await reconcile(); const [current] = await alerts();
-    assert.equal(current.level, "critical"); assert.equal(current.generation, old.generation + 1);
-    assert.equal(current.acknowledged_at, null); assert.equal(await ack(old), false);
-    assert.equal((await claim()).length, 1); await ack(current); assert.equal((await claim()).length, 0);
+    assert.equal(current.level, "critical"); assert.equal(current.generation, old.generation);
+    assert.ok(current.acknowledged_at); assert.equal(await ack(old), true);
+    assert.equal((await claim()).length, 0);
 });
 test("a new month gets its own event while an older unacknowledged event remains pending", async () => {
     await spend(8); await reconcile();

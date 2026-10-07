@@ -43,7 +43,7 @@ export default function CostAlertPanel({ firebaseUser }) {
     return <section className="platform-card api-notifications" aria-labelledby="api-notifications-title">
         <div className="platform-section-title"><div><span className="platform-eyebrow">EMAIL ALERTS</span><h2 id="api-notifications-title">成本超標自動提醒</h2></div></div>
         <p>成本達到您設定的警戒線後，系統每 5 分鐘寄送 Email。沒有登入或關閉網站仍會提醒；登入、查看成本頁面都不會自動停止。</p>
-        <p>按「我已經看到」才會停止該次提醒。之後若達到 100% 月預算，會產生新的提醒；下個月重新計算。外部帳單仍需另行核對。</p>
+        <p>按「我已經看到」才會停止該月份提醒，該月費用再增加也不會重新通知；下個月達到警戒線再提醒。外部帳單仍需另行核對。</p>
         {error ? <div className="api-notification-error" role="alert"><p>{error}；目前無法確認通知狀態。</p><button type="button" className="api-refresh" onClick={reload}>重試讀取提醒</button></div> : !data ? <p role="status">通知狀態載入中…</p> : <>
             {notification?.paused && <p role="alert">成本通知排程目前已暫停，請聯絡系統管理員。</p>}
             {notification?.delivery_configured === false && <p role="alert">寄信服務尚未設定完成，目前不會寄出 Email。</p>}
