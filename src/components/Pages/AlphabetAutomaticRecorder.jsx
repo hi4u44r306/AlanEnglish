@@ -39,6 +39,7 @@ export default function AlphabetAutomaticRecorder({
     paused = false,
     onStatusChange,
     onScored,
+    onPracticeOnly,
     onRoundInvalid
 }) {
     const [status, setStatus] = useState("preparing");
@@ -227,11 +228,16 @@ export default function AlphabetAutomaticRecorder({
                 setReadingScore(Math.round(result.scores.pronunciation));
                 await new Promise(resolve => setTimeout(resolve, 4000));
                 if (operationId !== operationRef.current) return;
+                if (result?.answer_match === false && result?.alphabet_usage?.remaining === 0) {
+                    onPracticeOnly?.("這個字母今天已評分三次，先錄音回聽，明天再挑戰。");
+                    return;
+                }
                 onScoredRef.current?.(result);
                 pendingAttemptRef.current = null;
                 setRecordedBlob(null);
             } catch (cause) {
                 if (operationId !== operationRef.current) return;
+                if (["alphabet_letter_daily_limit_reached", "speaking_level_completed_today"].includes(cause?.code)) { onPracticeOnly?.(cause.message); return; }
                 setError(cause?.message || "評分暫時無法完成，錄音已保留，請重試評分。");
                 setBudgetBlocked(SPEAKING_BUDGET_ERROR_CODES.has(cause?.code));
                 if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) {
@@ -348,7 +354,7 @@ export default function AlphabetAutomaticRecorder({
             }
             if (recorderRef.current === recorder) recorderRef.current = null;
         };
-    }, [allowDemoAssessment, attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, paused, question?.id, sessionVersion]);
+    }, [allowDemoAssessment, attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, onPracticeOnly, paused, question?.id, sessionVersion]);
 
     const copy = readingScore !== null ? ["朗讀結果已完成", "看完成績後，系統會繼續下一步。"] : status === "preparing"
         ? ["正在開啟麥克風…", "只要允許一次，這一輪會自動收音。"]

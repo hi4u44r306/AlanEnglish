@@ -101,7 +101,7 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
         expect(onComplete).toHaveBeenCalledWith(
             expect.objectContaining({ id: 2101 }),
-            expect.objectContaining({ answer_match: true, recognized_text: "complete" })
+            expect.objectContaining({ answer_match: true, recognized_text: "complete" }), expect.stringMatching(/^[0-9a-f-]{36}$/)
         );
     });
 
@@ -289,7 +289,7 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
         expect(onComplete).toHaveBeenCalledWith(
             expect.objectContaining({ id: 2201 }),
-            expect.objectContaining({ answer_match: true, recognized_text: "complete" })
+            expect.objectContaining({ answer_match: true, recognized_text: "complete" }), expect.stringMatching(/^[0-9a-f-]{36}$/)
         );
     });
 

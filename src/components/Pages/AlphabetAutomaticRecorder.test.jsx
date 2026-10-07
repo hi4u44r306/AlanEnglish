@@ -110,6 +110,16 @@ describe("AlphabetAutomaticRecorder", () => {
         expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledTimes(1);
         await waitFor(() => expect(callbacks.onScored).toHaveBeenCalledTimes(1));
     });
+    it("字母額度用完即轉回聽模式，不判通關或自動重送", async () => {
+        submitAlphabetPronunciationAttempt.mockRejectedValueOnce(Object.assign(new Error("明天再挑戰"), { code: "alphabet_letter_daily_limit_reached" }));
+        const onPracticeOnly = jest.fn();
+        render(<AlphabetAutomaticRecorder {...props} onPracticeOnly={onPracticeOnly} />);
+        await waitFor(() => expect(recorders.length).toBe(1));
+        await speak();
+        expect(onPracticeOnly).toHaveBeenCalledWith("明天再挑戰");
+        expect(callbacks.onScored).not.toHaveBeenCalled();
+        expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledTimes(1);
+    });
 
     it("等待逾八秒只重建本機緩衝，不送環境音、不判答錯", async () => {
         await mount();

@@ -2,6 +2,15 @@
 
 最後更新：2026-10-07
 
+### 每日一次通關／A–Z 三次字母評分／純回聽（2026-10-07，尚未部署）
+
+- 使用者核准：A–Z 保留 Azure 基本評分，每位學生每個字母每天最多 3 次；同一關每天最多正式完成一次，簡單與挑戰共用，仍保留全站共用的每人每日 10 輪。大小寫、重開、跨關卡／版本與裝置不能重置字母計數。預約後的技術失敗仍占字母次數；沒有恢復個人月秒數額度。
+- 同一隔離副本 `output/speaking-local-completeness-20261006`／`codex/speaking-local-completeness`，承接 `ec90ee7b`。新增 additive migration `20261007025513_speaking_daily_level_and_alphabet_limits.sql`：每日關卡／題目完成表（RLS、FK 索引、service-only），預約時在 Azure 呼叫前檢查上限，完成與預約共用每日 lock；A–Z 使用 v3 完成交易，保存成功每日通關且保留 claim 冪等／既有一次獎勵。一般今日進度只採成功的每日 completion 操作，不把歷史或只有評分、沒有完成的紀錄算成今日通關。
+- 新增 `SpeakingReviewPractice.jsx`／SCSS：今日完成或字母次數耗盡轉為純錄音回聽，可切題、聽已核准示範、返回地圖換關；不載入 ASR、不呼叫 Azure、不寫成績／完成／獎勵。學生不能透過回聽跳題通關。入口與家長規則同步更新；修正 foundation／picture 完成提交使用其自身錄音 session，避免與外層 session 不一致。手冊 v3.56、PROJECT_LOGIC 同批更新。
+- 驗證：後端 25 項（SQL 14、pronunciation handler 7、Azure helper 3、費用角色 handler 1）及受影響 React 9 套 140 項皆通過；首次舊文字／回呼參數斷言 4 項已按新規則更新並補上入口／回聽保護檢查。focused ESLint、diff check、production build 成功（daily-build.log）；最後純 UI 提示／返回圖示／局部 SCSS 調整以 focused webpack 預覽重編譯驗證，不重跑完整 build。沒有安裝 Deno，因此未宣稱完成 Deno check；TS handler 實際轉譯並執行測試。
+- 隔離瀏覽器 320／412／1440px 規則與回聽頁沒有橫向溢出、可切換題目，無模型啟動或送評按鈕；截圖 `output/local-reading-validation/daily-review-412.png` 與報告 daily-review-validation.json、rules-validation.json。屬獨立元件預覽，不代表正式整個遊戲版型或 iPhone Safari 實機驗收。PGlite 為合成資料，Azure 回應替身，未送付費請求。
+- 待完成：最新遠端 main 同步／整合 diff、正式 SQL 明確授權、migration → 兩支 Function → main／Cloudflare 發布與真實學生、iPhone／Android、Azure 帳單驗收。原主工作目錄無關草稿未納入。回復策略：保留 additive 表及歷史資料，恢復本批前混合方案程式與預約函式（會移除每日一次／三次限制）；不能只回復前端而保留不相容後端。未執行正式 migration、外部設定或 Push／PR／合併。
+
 ### 本機完整度／A–Z Azure 基本評分與費用提醒（2026-10-07，尚未部署）
 
 - 使用者已核准混合方案：一般／拼讀使用本機完整度 100 分制，只有 A–Z 使用現有 Azure S0 基本評分，關閉 prosody；每天共用 10 輪，同輪重試不重扣，取消學生月送評額度。未採 F0／S0 雙資源方案，未更改 Azure 設定或金鑰。

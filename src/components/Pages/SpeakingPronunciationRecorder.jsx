@@ -33,6 +33,8 @@ export default function SpeakingPronunciationRecorder({
     disabledReason = "",
     onScored,
     onRoundInvalid,
+    onPracticeOnly,
+    practiceOnly = false,
     onPhaseChange,
     onRetry,
     onListenAgain,
@@ -57,11 +59,12 @@ export default function SpeakingPronunciationRecorder({
     const previewRef = useRef("");
     const transcriptionRef = useRef(null);
     useEffect(() => {
+        if (practiceOnly) { setEngineReady(true); setEngineInfo("錄音回聽練習，不送出評分。"); return undefined; }
         const lease = retainLocalSpeakingRecognizer(); engineRef.current = lease.recognizer;
         setEngineReady(lease.recognizer.ready);
         if (lease.recognizer.ready) setEngineInfo(lease.recognizer.mode);
         return lease.release;
-    }, []);
+    }, [practiceOnly]);
     useEffect(() => {
         if (!submitting || result) return undefined;
         setWaitingSeconds(0);
@@ -118,7 +121,7 @@ export default function SpeakingPronunciationRecorder({
         } finally { if (token === generationRef.current) setPreparing(false); }
     };
     const start = async () => {
-        if (!engineRef.current?.ready) return prepareEngine();
+        if (!practiceOnly && !engineRef.current?.ready) return prepareEngine();
         reset();
         const token = generationRef.current;
         onRetry?.();
@@ -158,7 +161,7 @@ export default function SpeakingPronunciationRecorder({
                 setPreparing(true);
                 try {
                     // 回聽與送評使用同一份 16 kHz PCM WAV，避免原始錄音正常、轉檔後卻無聲。
-                    const wav = await convertAudioBlobToWav(blob, 16000, { maxSeconds: maxRecordingSeconds });
+                    const wav = practiceOnly ? blob : await convertAudioBlobToWav(blob, 16000, { maxSeconds: maxRecordingSeconds });
                     if (token !== generationRef.current) return;
                     previewRef.current = URL.createObjectURL(wav);
                     setRecordedBlob(wav); setPreviewUrl(previewRef.current);
@@ -178,7 +181,7 @@ export default function SpeakingPronunciationRecorder({
         }
     };
     const submit = async () => {
-        if (!recordedBlob || submitting || budgetBlocked) return;
+        if (practiceOnly || !recordedBlob || submitting || budgetBlocked) return;
         prepareSpeakingFeedbackSound();
         setSubmitting(true); setError(""); setResult(null);
         const token = generationRef.current;
@@ -207,6 +210,7 @@ export default function SpeakingPronunciationRecorder({
             );
         } catch (cause) {
             if (token !== generationRef.current) return;
+            if (cause?.code === "speaking_level_completed_today") { onPracticeOnly?.(cause.message); return; }
             setResult(null);
             setEngineReady(Boolean(engineRef.current?.ready));
             const limited = SPEAKING_BUDGET_ERROR_CODES.has(cause?.code);
@@ -234,13 +238,13 @@ export default function SpeakingPronunciationRecorder({
 
     return <section aria-busy={preparing || submitting} className={`speaking-pronunciation is-${recordingState} ${voiceDetected ? "has-voice" : ""}`}>
         <p className="speaking-local-mode">{engineInfo}</p>
-        {!engineReady && <button type="button" onClick={prepareEngine} disabled={preparing || submitting}>{preparing ? "正在準備語音辨識…" : "準備語音辨識"}</button>}
+        {!practiceOnly && !engineReady && <button type="button" onClick={prepareEngine} disabled={preparing || submitting}>{preparing ? "正在準備語音辨識…" : "準備語音辨識"}</button>}
         {submitting && !result && <p role="timer">正在辨識與儲存，已等待 {waitingSeconds} 秒</p>}
-        {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? "正在準備評分音檔。" : recording ? `錄音進行中，每次最長 ${maxRecordingSeconds} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
+        {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? "正在準備評分音檔。" : recording ? `錄音進行中，每次最長 ${maxRecordingSeconds} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? practiceOnly ? "錄音完成，可以播放回聽。" : "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
         {!result && <>
             <div className="speaking-recording-heading">
-                <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : "啟用麥克風開始挑戰"}</strong>
-                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按送出。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
+                <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : practiceOnly ? "啟用麥克風錄音練習" : "啟用麥克風開始挑戰"}</strong>
+                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按完成錄音。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
             </div>
             {recording && <div className="speaking-recording-countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}><strong>{remainingSeconds}</strong><span>秒</span></div>}
             {disabledReason && !recordedBlob && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
@@ -254,8 +258,8 @@ export default function SpeakingPronunciationRecorder({
                 {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
                 <span>{recording ? "完成錄音" : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
-            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button><button type="button" onClick={submit} disabled={submitting || budgetBlocked}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button></div></div>}
-            <small className="speaking-recording-privacy">錄音在這台裝置辨識，只傳送辨識文字供核對及儲存。分數是朗讀完整度，不是發音準確度。</small>
+            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button>{!practiceOnly && <button type="button" onClick={submit} disabled={submitting || budgetBlocked}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button>}</div></div>}
+            <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : "錄音在這台裝置辨識，只傳送辨識文字供核對及儲存。分數是朗讀完整度，不是發音準確度。"}</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>

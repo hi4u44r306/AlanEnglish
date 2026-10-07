@@ -18,7 +18,7 @@ const interactionCopy = {
     }
 };
 
-export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false, audioWorking = "", onPlayModelAudio, audioError = "" }) {
+export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onPracticeOnly, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false, audioWorking = "", onPlayModelAudio, audioError = "" }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
@@ -295,6 +295,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             setPhase("challenge");
         } catch (cause) {
             if (requestId === startRequestRef.current) {
+                if (cause?.code === "speaking_level_completed_today") onPracticeOnly?.(cause.message);
                 setStatusError(cause?.message || "目前無法開始這一輪挑戰");
             }
         } finally {
@@ -303,7 +304,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 setStartingRound(false);
             }
         }
-    }, [alphabetMode, interactionType, onStartRound, sourceQuestions, staffPreview, stopAudio]);
+    }, [alphabetMode, interactionType, onPracticeOnly, onStartRound, sourceQuestions, staffPreview, stopAudio]);
 
     useEffect(() => {
         if (["challenge", "failed", "result"].includes(phase)) {
@@ -343,7 +344,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 return;
             }
         } else {
-            const saved = await onComplete?.(activeQuestion, result);
+            const saved = await onComplete?.(activeQuestion, result, challengeSessionId);
             if (saved === false) return false;
             completionReward = saved;
         }
@@ -434,6 +435,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 onStatusChange={setAutomaticRecorderStatus}
                 onScored={handleCorrect}
                 onRoundInvalid={handleIncorrect}
+                onPracticeOnly={onPracticeOnly}
             /> : <SpeakingPracticeSteps
                 key={activeQuestion.id}
                 firebaseUser={firebaseUser}
@@ -450,6 +452,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 onCompleted={handleCorrect}
                 onIncorrect={handleIncorrect}
                 onRoundInvalid={handleIncorrect}
+                onPracticeOnly={onPracticeOnly}
             />}
             {!alphabetMode && audioError && <p className="speaking-audio-notice" role="alert">{audioError}</p>}
             {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></aside>}

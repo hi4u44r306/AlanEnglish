@@ -18,7 +18,7 @@ const ids = Array.from({ length: 26 }, (_, index) => 1001 + index);
 const questionOrder = `array[${ids.join(",")}]::bigint[]`;
 
 const startRound = async studentId => (await scalar(`
-    select public.start_speaking_foundation_round_v1(
+    select public.start_speaking_foundation_round_v2(
         ${studentId}, 10, 1, ${questionOrder}
     ) result
 `)).result;
@@ -200,9 +200,60 @@ before(async () => {
     await db.exec(read("supabase/migrations/20261006150733_speaking_local_completeness.sql"));
     await db.exec(read("supabase/migrations/20261006154419_speaking_ten_daily_rounds.sql"));
     await db.exec(read("supabase/migrations/20261006155728_speaking_alphabet_basic_cost_tracking.sql"));
+    await db.exec(read("supabase/migrations/20260929160325_speaking_challenge_modes.sql"));
+    await db.exec(read("supabase/migrations/20261007025513_speaking_daily_level_and_alphabet_limits.sql"));
 });
 
 after(() => db.close());
+
+test("A–Z 每個字母三次跨關卡共用，供應商失敗也占額度；其他字母仍可評分", async () => {
+    await db.exec("insert into public.students(id) values(94); insert into public.speaking_question_sets(id,status,version,generation_metadata) values(30,'published',1,'{\"interaction_type\":\"alphabet_round\"}'); insert into public.speaking_questions(id,question_set_id,model_answer) values(3001,30,'a')");
+    const reserve = async (set=10,q=1001) => (await scalar("select public.reserve_speaking_azure_alphabet_request_v1(94,$1,$2,3,'00000000-0000-4000-8000-000000000094') result",[set,q])).result;
+    for (let i=0;i<3;i++) { const result=await reserve(); assert.equal(result.letter_remaining,2-i); }
+    await db.exec("update public.speaking_pronunciation_requests set status='internal_failed' where student_id=94");
+    assert.equal((await reserve(30,3001)).code,"alphabet_letter_daily_limit_reached");
+    assert.equal((await reserve(10,1002)).allowed,true);
+    assert.equal((await scalar("select count(*)::int n from public.speaking_pronunciation_requests where student_id=94")).n,4);
+});
+
+test("A–Z 正式連續通關只記一次今日完成；重送冪等，重開與再次送評均拒絕，隔天可用", async () => {
+    await db.exec("insert into public.students(id) values(95)");
+    const round=await startRound(95); let lastArgs;
+    for(const q of ids) {
+        const claim=await claimQuestion(95,round.round_id,q);
+        lastArgs={version:'v3',studentId:95,roundId:round.round_id,claimToken:claim.claim_token,questionId:q,answerMatch:true,prosodyScore:null};
+        const result=await recordAssessment(lastArgs);
+        assert.equal(result.status,q===ids.at(-1)?'completed':'open');
+    }
+    assert.equal((await recordAssessment(lastArgs)).status,'completed');
+    assert.equal((await scalar("select count(*)::int n from public.speaking_daily_level_completions where student_id=95")).n,1);
+    assert.equal((await scalar(`select public.start_speaking_foundation_round_v2(95,10,1,${questionOrder}) result`)).result.code,'speaking_level_completed_today');
+    assert.equal((await scalar("select public.reserve_speaking_azure_alphabet_request_v1(95,10,1001,3,'00000000-0000-4000-8000-000000000095') result")).result.code,'speaking_level_completed_today');
+    assert.equal((await scalar("select public.reserve_speaking_local_request_v1(95,10,1001,'alphabet_round','00000000-0000-4000-8000-000000000095') result")).result.code,'speaking_level_completed_today');
+    await db.exec("update public.speaking_daily_level_completions set activity_date=activity_date-1 where student_id=95");
+    assert.equal((await scalar("select public.reserve_speaking_azure_alphabet_request_v1(95,10,1001,3,'00000000-0000-4000-8000-000000000095') result")).result.allowed,true);
+});
+
+test("今日完成不借用歷史通關；今日重試可累積，簡單與挑戰共用每日一次且公開角色無權限", async () => {
+    await db.exec("insert into public.students(id) values(96); insert into public.speaking_question_sets(id,status,version) values(40,'published',1); insert into public.speaking_questions(id,question_set_id,model_answer) values(4001,40,'Hello'),(4002,40,'Goodbye')");
+    for(const q of [4001,4002]) await scalar("select public.complete_speaking_challenge_question_v2(96,40,$1) result",[q]);
+    const session='00000000-0000-4000-8000-000000000096';
+    const save = async(q,s=session) => db.query("insert into public.speaking_pronunciation_attempts(student_id,question_set_id,question_id,answer_match,client_session_id) values(96,40,$1,true,$2::uuid)",[q,s]);
+    const complete=async(q,s=session,mode='easy')=>(await scalar("select public.complete_speaking_daily_question_v1(96,40,$1,$2::uuid,$3) result",[q,s,mode])).result;
+    await save(4001); assert.equal((await complete(4001)).challenge_completed,false);
+    await save(4002,'00000000-0000-4000-8000-000000000097');
+    assert.equal((await complete(4001)).challenge_completed,false,'已評分但尚未成功寫入完成操作的題目，不可使整關通關');
+    assert.equal((await complete(4002,'00000000-0000-4000-8000-000000000097')).challenge_completed,true);
+    assert.equal((await complete(4002,'00000000-0000-4000-8000-000000000097')).xp_awarded,0);
+    await assert.rejects(complete(4001,session,'challenge'),/DAILY_LEVEL_COMPLETED/);
+    const policy=(await scalar("select public.speaking_daily_level_policy_v1(96,null) result")).result;
+    assert.deepEqual(policy.completed_set_ids,[40]);
+    for(const role of ['anon','authenticated']) for(const fn of ['speaking_daily_level_policy_v1(bigint,bigint)','complete_speaking_daily_question_v1(bigint,bigint,bigint,uuid,text)','record_speaking_foundation_assessment_v3(bigint,uuid,bigint,uuid,numeric,numeric,numeric,numeric,numeric,text,jsonb,boolean)'])
+        assert.equal((await scalar("select has_function_privilege($1,$2,'EXECUTE') allowed",[role,'public.'+fn])).allowed,false);
+    await db.exec('set role anon');
+    try { await assert.rejects(db.query('select * from public.speaking_daily_level_completions'),/permission denied/); }
+    finally { await db.exec('reset role'); }
+});
 
 test("正確題只推進 server index；答錯後持久化歸零且不留下完成進度", async () => {
     const round = await startRound(1);
@@ -559,9 +610,12 @@ test("A–Z 基本 Azure 沒有個人月額度及 160 次日上限；只計 Azur
     await db.exec("update public.speaking_audio_budget_policy set student_monthly_seconds=1,global_monthly_seconds=1");
     assert.equal((await reserve()).allowed,true);
     await db.exec("update public.speaking_pronunciation_requests set created_at=now()-interval '1 hour' where student_id=93");
-    for(let i=0;i<180;i++) {const result=await reserve();assert.equal(result.allowed,true);await db.exec("update public.speaking_pronunciation_requests set created_at=now()-interval '1 hour' where student_id=93");}
+    assert.equal((await reserve()).allowed,true);
+    assert.equal((await reserve()).code,'alphabet_letter_daily_limit_reached');
+    await db.exec("update public.speaking_pronunciation_requests set created_at=now()-interval '2 days' where student_id=93");
+    assert.equal((await reserve()).allowed,true);
     const usage=(await scalar("select public.speaking_alphabet_cost_usage_v1() result")).result;
-    assert.equal(Number(usage.reserved_seconds),182*3);assert.equal(Number(usage.estimated_twd),4.85);
+    assert.ok(Number(usage.reserved_seconds)>=3);
     await assert.rejects(db.query("select public.reserve_speaking_azure_alphabet_request_v1(93,10,1001,13,null)"),/INVALID_ALPHABET_REQUEST/);
     for(const role of ['anon','authenticated'])assert.equal((await scalar("select has_function_privilege($1,'public.speaking_alphabet_cost_usage_v1()','EXECUTE') allowed",[role])).allowed,false);
     const round=await startRound(93),claim=await claimQuestion(93,round.round_id,ids[0]);

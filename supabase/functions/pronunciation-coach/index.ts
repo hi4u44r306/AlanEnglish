@@ -99,7 +99,7 @@ const reserveProviderRequest = async (admin: any, studentId: number, question: a
  p_interaction_type: question.interactionType || null, p_client_session_id: clientSessionId });
  if (error) throw error;
  if (data?.allowed !== true || !data?.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached"
- ? "今天已開始 10 次口說大挑戰，明天再繼續吧！" : "短時間練習次數較多，請休息一下再繼續。"), {status:429,code:data?.code || "rate_limited"});
+ ? "今天已開始 10 次口說大挑戰，明天再繼續吧！" : data?.code === "speaking_level_completed_today" ? "這一關今天已完成，可以錄音回聽，明天再評分。" : "短時間練習次數較多，請休息一下再繼續。"), {status:429,code:data?.code || "rate_limited"});
  return {requestId:String(data.request_id),challengeUsage:data.challenge_usage || null};
 };
 const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null, table = "speaking_local_reading_requests") => {
@@ -217,6 +217,7 @@ Deno.serve(async (req: Request) => {
         // Recalculate from approved answers. Client text cannot attest real speech.
         const localResult = azureRequest ? null : assessReadingCompleteness(question, body.recognized_text);
         let challengeUsage: any = null;
+        let alphabetUsage: any = null;
         const { data: revealedHint, error: hintError } = challengeMode === "challenge" && !adminDemo
             ? await admin.from("speaking_challenge_hint_reveals").select("question_id")
                 .eq("student_id", Number(user.id)).eq("question_id", question.questionId)
@@ -245,7 +246,8 @@ Deno.serve(async (req: Request) => {
                         p_student_id:Number(user.id),p_question_set_id:question.questionSetId,p_question_id:question.questionId,
                         p_audio_seconds:Math.ceil(body.audio_seconds),p_client_session_id:adminDemo ? null : challengeSessionId });
                     if (error) throw error;
-                    if (data?.allowed !== true || !data.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached" ? "今天已開始 10 輪，明天再繼續" : "短時間送評較多，請稍候"),{status:429,code:data?.code || "rate_limited"});
+                    if (data?.allowed !== true || !data.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached" ? "今天已開始 10 輪，明天再繼續" : data?.code === "alphabet_letter_daily_limit_reached" ? "這個字母今天已評分三次，可以先錄音回聽，明天再挑戰。" : data?.code === "speaking_level_completed_today" ? "這一關今天已完成，可以錄音回聽，明天再評分。" : "短時間送評較多，請稍候"),{status:429,code:data?.code || "rate_limited"});
+                    alphabetUsage = { letter: data.letter, remaining: data.letter_remaining, daily_limit: 3 };
                     challengeUsage = data.challenge_usage; return String(data.request_id);
                 }
                 const reserved = await reserveProviderRequest(admin, Number(user.id), question,
@@ -273,7 +275,7 @@ Deno.serve(async (req: Request) => {
                 let foundationAssessment = null;
                 let roundError = null;
                 for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
-                    const result = await admin.rpc("record_speaking_foundation_assessment_v2", {
+                    const result = await admin.rpc("record_speaking_foundation_assessment_v3", {
                         p_student_id: Number(user.id),
                         p_round_id: foundationRoundId,
                         p_question_id: question.questionId,
@@ -293,6 +295,7 @@ Deno.serve(async (req: Request) => {
                 }
                 if (roundError) {
                     const message = String(roundError.message || "");
+                    if (/DAILY_LEVEL_COMPLETED/.test(message)) throw Object.assign(new Error("這一關今天已完成，可以錄音回聽，明天再評分。"), { status: 409, code: "speaking_level_completed_today" });
                     if (/FOUNDATION_(?:ROUND|SET|ASSESSMENT_REPLAY_MISMATCH)/.test(message)) {
                         throw Object.assign(new Error("這一輪已失效，請從第一題重新開始"), {
                             status: 409,
@@ -329,6 +332,7 @@ Deno.serve(async (req: Request) => {
             question_id: question.questionId,
             demo_mode: adminDemo,
             challenge_usage: challengeUsage,
+            alphabet_usage: alphabetUsage,
             challenge_mode: challengeMode,
             hint_used: hintUsed,
             reference_text: question.interactionType ? null : (question.referenceText || null),

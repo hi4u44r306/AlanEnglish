@@ -25,6 +25,20 @@ describe("SpeakingPronunciationRecorder", () => {
     const originalCreateObjectUrl = URL.createObjectURL;
     const originalRevokeObjectUrl = URL.revokeObjectURL;
 
+    it("回聽練習可錄音但不準備模型、不轉 WAV、不送評、不通關", async () => {
+        const onScored=jest.fn();
+        render(<SpeakingPronunciationRecorder question={{id:9}} practiceOnly onScored={onScored} />);
+        expect(screen.queryByRole('button',{name:'準備語音辨識'})).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button',{name:'開始錄音'}));
+        await waitFor(()=>expect(screen.getByRole('button',{name:'完成錄音'})).toBeInTheDocument());
+        fireEvent.click(screen.getByRole('button',{name:'完成錄音'}));
+        await waitFor(()=>expect(screen.getByRole('button',{name:'重新錄音'})).toBeInTheDocument());
+        expect(screen.queryByRole('button',{name:'送出評分'})).not.toBeInTheDocument();
+        expect(convertAudioBlobToWav).not.toHaveBeenCalled();
+        expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
+        expect(onScored).not.toHaveBeenCalled();
+    });
+
     beforeEach(() => {
         const nativeTimeout = originalTimeout;
         global.setTimeout = (fn, ms, ...args) => nativeTimeout(fn, ms === 4000 ? 0 : ms, ...args);
