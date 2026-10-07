@@ -56,6 +56,13 @@ test('Cloudflare uses analytics and does not label usage or bytes as a bill',asy
     assert.equal(rows[0].cost_usd,null);assert.equal(rows[1].metrics[1].used,1100);assert.equal(payload.variables.script,'alanenglish');assert.equal(payload.variables.bucket,'alanenglish-audio');
     assert.match(payload.query,/r2OperationsAdaptiveGroups[^}]+datetime_leq:\$end/);assert.match(payload.query,/r2StorageAdaptiveGroups[^}]+datetime_leq:\$end/);assert.doesNotMatch(payload.query,/r2(?:Operations|Storage)AdaptiveGroups[^}]+datetime_lt:/);
 });
+test('Cloudflare errors expose only safe diagnostic categories',async()=>{
+    const env={COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_WORKER_NAME:'alanenglish',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'};
+    await assert.rejects(collectCloudflare('2026-10',io(env,async()=>response({errors:[{message:'user does not have access to account secret-account'}]}))),/provider_auth_failed/);
+    await assert.rejects(collectCloudflare('2026-10',io(env,async()=>response({errors:[{message:'Cannot query field hiddenField on type Account'}]}))),/provider_schema_failed/);
+    assert.equal(costError(new Error('provider_auth_failed')),'provider_auth_failed');
+    assert.equal(costError(new Error('secret-account token=hidden')),'collection_failed');
+});
 test('collection errors reveal no raw tokens or response bodies',()=>{
     assert.equal(costError(new Error('token=secret PII response')),'collection_failed');
     assert.equal(costError(new Error('provider_http_403')),'provider_http_403');
