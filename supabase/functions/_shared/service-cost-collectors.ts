@@ -165,8 +165,8 @@ export async function collectCloudflare(month: string, io: CostIO): Promise<Cost
         method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: `query($account:string!,$start:Time!,$end:Time!,$ws:string!,$we:string!,$script:string!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
           workersInvocationsAdaptive(limit:10000,filter:{datetime_geq:$ws,datetime_leq:$we,scriptName:$script}){sum{requests errors}}
-          r2OperationsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_lt:$end,bucketName:$bucket}){sum{requests} dimensions{actionType}}
-          r2StorageAdaptiveGroups(limit:1,filter:{datetime_geq:$start,datetime_lt:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
+          r2OperationsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket}){sum{requests} dimensions{actionType}}
+          r2StorageAdaptiveGroups(limit:1,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
         }}}`, variables: { account, start: period.start, end: period.end, ws: period.start, we: period.end, script, bucket } })
     });
     if (response.errors?.length) return fail('provider_query_failed');
