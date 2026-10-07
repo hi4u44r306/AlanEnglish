@@ -2,6 +2,12 @@
 
 最後更新：2026-10-07
 
+### 全站背景準備語音辨識（2026-10-07，尚未部署）
+
+- 使用者明確要求開啟網頁即背景載入；分支 feature/speaking-background-warmup，基準 main 84fa2926。App 掛載非阻塞 warmup，在 idle 或 1.5 秒後自動準備，全站租約保留引擎；prepare 共用同一 Promise 與進度，防止背景／口說頁雙啟動。口說頁自動接續準備，失敗才顯示重新準備，換題與換頁共用引擎；麥克風、送評、額度與後端維持原操作。
+- App、SpeakingRecognizerWarmup、localSpeakingRecognizer、SpeakingPronunciationRecorder 及相關測試修改；產品規則、手冊 v3.63 同步。27 項相關 React／Worker 測試與七檔 ESLint 通過，涵蓋同時準備、保留租約、清理、失敗重試及不自動開麥克風。最後文案批次驗證、diff、Cloudflare 發布與正式驗收待完成。只改前端行為，採 Cloudflare production build，不重跑全套或本機 build。
+- 首次下載／reload 載入记憶體仍會等待，網頁開著期間保持模型記憶體是使用者要求的取捨。首次真實模型下載、iPhone 記憶體與登入錄音仍待實機驗收；沒有實機證據不宣稱準備零等待。
+
 ### 括號替代答案完整度修正（2026-10-07，已部署／實機朗讀待驗）
 
 - 分支 fix/speaking-parenthetical-alternatives，基準 main 063b2da6。重現 P.11 完整肯定回答被計為 14/18＝78 分；將句尾括號 Yes／No 改為前一回覆的替代選項，保留共同句子，各自比對完整度及既有答案規則。一般句、文字／圖片問答與填空各自測試；其他括號不猜成答案。只改新送評，不回填、改題庫或資料表。

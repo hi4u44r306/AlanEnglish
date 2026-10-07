@@ -1,4 +1,4 @@
-import { LocalSpeakingRecognizer } from "./localSpeakingRecognizer";
+import { LocalSpeakingRecognizer, retainLocalSpeakingRecognizer } from "./localSpeakingRecognizer";
 describe("本機辨識引擎", () => {
     const originalWorker = global.Worker;
     let workers;
@@ -11,6 +11,39 @@ describe("本機辨識引擎", () => {
         };
     });
     afterEach(() => { global.Worker = originalWorker; });
+    it("背景及口說頁同時準備只建立一個 Worker，兩者都收到進度", async () => {
+        const engine = new LocalSpeakingRecognizer(), firstProgress = jest.fn(), secondProgress = jest.fn();
+        const first = engine.prepare(firstProgress);
+        workers[0].reply({ type: "mode", accelerated: true });
+        const second = engine.prepare(secondProgress);
+        expect(second).toBe(first);
+        expect(workers).toHaveLength(1);
+        expect(secondProgress).toHaveBeenCalledWith("相容加速模式：正在準備…");
+        workers[0].reply({ type: "ready", cached: true });
+        await Promise.all([first, second]);
+        expect(engine.ready).toBe(true);
+        expect(firstProgress).toHaveBeenLastCalledWith(engine.mode);
+        expect(secondProgress).toHaveBeenLastCalledWith(engine.mode);
+        await engine.prepare();
+        expect(workers).toHaveLength(1);
+        engine.dispose();
+    });
+    it("全站租約維持引擎，換題離開 recorder 不重新載入", async () => {
+        jest.useFakeTimers();
+        const site = retainLocalSpeakingRecognizer(), preparation = site.recognizer.prepare();
+        workers[0].reply({type:"ready",cached:true});
+        await preparation;
+        const question = retainLocalSpeakingRecognizer();
+        question.release();
+        jest.runOnlyPendingTimers();
+        const next = retainLocalSpeakingRecognizer();
+        expect(next.recognizer).toBe(site.recognizer);
+        expect(next.recognizer.ready).toBe(true);
+        expect(workers[0].terminate).not.toHaveBeenCalled();
+        next.release(); site.release(); jest.runOnlyPendingTimers();
+        expect(workers[0].terminate).toHaveBeenCalledTimes(1);
+        jest.useRealTimers();
+    });
     it("加速準備失敗先釋放 Worker，再退回一般相容一次", async () => {
         const engine = new LocalSpeakingRecognizer(), prepare = engine.prepare();
         expect(workers[0].message.preferSimd).toBe(true);
