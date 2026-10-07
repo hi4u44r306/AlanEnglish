@@ -7,6 +7,13 @@ const required = (io: CostIO, name: string) => io.env(name)?.trim() || fail('mis
 const number = (v: unknown) => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : fail('invalid_response');
 const list = (v: unknown): any[] => Array.isArray(v) ? v : fail('invalid_response');
 const identifier = (v: string, pattern: RegExp) => pattern.test(v) ? v : fail('invalid_configuration');
+const cloudflareQueryError = (errors: unknown): never => {
+    const message = (Array.isArray(errors) ? errors : []).map(error => String(error?.message || '')).join(' ').toLowerCase();
+    if (/auth|permission|access denied|not authorized|unauthorized|forbidden|does not have access/.test(message)) return fail('provider_auth_failed');
+    if (/account/.test(message) && /invalid|unknown|not found|access/.test(message)) return fail('provider_account_failed');
+    if (/cannot query field|unknown (argument|type)|validation|expected type|is not defined/.test(message)) return fail('provider_schema_failed');
+    return fail('provider_query_failed');
+};
 const usd = (amount: unknown, currency: unknown, io: CostIO) => {
     const value = number(amount);
     if (String(currency).toUpperCase() === 'USD') return value;
@@ -169,7 +176,7 @@ export async function collectCloudflare(month: string, io: CostIO): Promise<Cost
           r2StorageAdaptiveGroups(limit:1,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
         }}}`, variables: { account, start: period.start, end: period.end, ws: period.start, we: period.end, script, bucket } })
     });
-    if (response.errors?.length) return fail('provider_query_failed');
+    if (response.errors?.length) return cloudflareQueryError(response.errors);
     const row = list(response.data?.viewer?.accounts)[0];
     if (!row) return fail('invalid_response');
     const workers = list(row.workersInvocationsAdaptive);
@@ -209,5 +216,5 @@ export const costCollectors = [
 ];
 export function costError(error: unknown) {
     const code = error instanceof Error ? error.message : '';
-    return /^(missing_configuration|invalid_configuration|invalid_response|unsupported_currency|incomplete_pagination|incomplete_query|billing_export_empty|historical_usage_unavailable|provider_query_failed|test_mode_only|collection_timeout|provider_http_\d{3})$/.test(code) ? code : 'collection_failed';
+    return /^(missing_configuration|invalid_configuration|invalid_response|unsupported_currency|incomplete_pagination|incomplete_query|billing_export_empty|historical_usage_unavailable|provider_(?:query|auth|account|schema)_failed|test_mode_only|collection_timeout|provider_http_\d{3})$/.test(code) ? code : 'collection_failed';
 }
