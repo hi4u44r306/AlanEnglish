@@ -1,6 +1,16 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-06
+最後更新：2026-10-07
+
+### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
+
+- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
+- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認才停止當月該階段；確認警戒後達 100% 升級為新提醒，新月重新計算，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
+- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。Production build 最終 `main.0da00107.js` 成功；第一版 build 後補上遲到刷新防護，因此最終程式重新 build 一次。未跑無關全套測試、未改套件／lockfile。
+- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／升級舊頁拒絕、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
+- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
+- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
+- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
 
 ### 口說關卡頂部精簡（2026-10-06，已正式部署／實際畫面待驗收）
 

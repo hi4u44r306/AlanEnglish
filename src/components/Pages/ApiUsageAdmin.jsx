@@ -3,6 +3,7 @@ import { FiActivity, FiAlertTriangle, FiCheckCircle, FiChevronDown, FiExternalLi
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getAiCostDashboard, updateAiCostBudget } from "../../services/aiMaterialService";
+import CostAlertPanel from "./CostAlertPanel";
 import "./css/Platform.scss";
 import "./css/ApiUsageAdmin.scss";
 
@@ -79,10 +80,11 @@ function ApiUsageAdmin() {
 
     useEffect(() => { load(); }, [load]);
 
+    const [alertRefresh, setAlertRefresh] = useState(0);
     const saveBudget = async event => {
         event.preventDefault();
         setSaving(true);
-        try { await updateAiCostBudget(firebaseUser, budget); toast.success("API 預算已更新"); await load(); }
+        try { await updateAiCostBudget(firebaseUser, budget); toast.success("API 預算已更新"); setAlertRefresh(value => value + 1); await load(); }
         catch (error) { toast.error(error.message || "預算儲存失敗"); }
         finally { setSaving(false); }
     };
@@ -97,6 +99,7 @@ function ApiUsageAdmin() {
     return <main className="platform-page api-usage-page"><header className="platform-hero api-hero"><div><span className="platform-eyebrow">COST CONTROL CENTER</span><h1>API 使用量與費用</h1><p>集中查看可自動追蹤的用量、月底預估與異常；外部帳單會清楚標示，不把未知費用當成零元。</p></div><div className="api-hero-actions"><label><span className="sr-only">查詢月份</span><input className="platform-month" type="month" value={month} onChange={event => setMonth(event.target.value)} /></label><button type="button" className="api-refresh" onClick={load} disabled={loading}><FiRefreshCw className={loading ? "is-spinning" : ""} />重新整理</button></div></header>{loading ? <div className="platform-loading">成本資料載入中…</div> : <>
         <section className="api-overview" aria-label="本月成本摘要"><article className="api-overview-primary"><span>本月已追蹤估算</span><strong>US$ {money(summary.total_cost_usd)}</strong><small>約 NT$ {money(summary.total_cost_twd)}</small></article><article><span>月底預估</span><strong>US$ {money(summary.projected_cost_usd ?? summary.total_cost_usd)}</strong><small>約 NT$ {money(summary.projected_cost_twd ?? summary.total_cost_twd)}</small></article><article><span>追蹤請求</span><strong>{Number(summary.total_requests || 0).toLocaleString("zh-TW")}</strong><small>成功率 {summary.success_rate || 0}%</small></article><article className={criticalAlerts > 0 ? "has-alert" : "is-healthy"}><span>需要注意</span><strong>{criticalAlerts}</strong><small>{criticalAlerts > 0 ? "項成本或使用異常" : "目前沒有明顯異常"}</small></article></section>
         <BudgetProgress budget={data?.budget} projectedPercent={summary.projected_percent || data?.budget?.used_percent || 0} />
+        <CostAlertPanel key={alertRefresh} firebaseUser={firebaseUser} />
         <section className="api-alert-section" aria-labelledby="api-alert-title"><div className="platform-section-title"><div><span className="platform-eyebrow">ALERTS</span><h2 id="api-alert-title">系統提醒</h2></div><FiShield /></div><div className="api-alert-list">{(data?.alerts || []).map(alert => <article className={`api-alert api-alert-${alert.level}`} key={alert.code}>{alertIcon(alert.level)}<div><strong>{alert.title}</strong><p>{alert.message}</p></div></article>)}</div></section>
         <div className="api-dashboard-grid"><section className="platform-card api-trend-card"><div className="platform-section-title"><div><span className="platform-eyebrow">DAILY TREND</span><h2>每日用量</h2></div><FiActivity /></div><DailyTrend rows={data?.daily || []} /><p className="api-chart-note">柱狀高度代表每日估算費用，柱上數字為請求次數。</p></section><section className="platform-card api-settings-card"><div className="platform-section-title"><div><span className="platform-eyebrow">BUDGET</span><h2>預算警示設定</h2></div></div><form className="api-budget-form" onSubmit={saveBudget}><label><span>每月總預算（USD）</span><input type="number" min="1" max="10000" step="0.01" value={budget.monthly_budget_usd} onChange={event => setBudget(current => ({ ...current, monthly_budget_usd: event.target.value }))} /></label><label><span>警示門檻（%）</span><input type="number" min="50" max="100" value={budget.warning_percent} onChange={event => setBudget(current => ({ ...current, warning_percent: Number(event.target.value) }))} /></label><label><span>美元換台幣</span><input type="number" min="20" max="50" step="0.01" value={budget.usd_to_twd_rate} onChange={event => setBudget(current => ({ ...current, usd_to_twd_rate: event.target.value }))} /></label><button className="platform-primary" disabled={saving}>{saving ? "儲存中…" : "儲存設定"}</button></form></section></div>
         <section className="platform-card api-provider-section"><div className="platform-section-title api-provider-section-title"><div><span className="platform-eyebrow">SERVICES</span><h2>可能產生費用的服務</h2><p>「自動追蹤」為平台可估算資料；「外部核對」必須以供應商帳單為準。</p></div><div className="platform-segment" aria-label="服務篩選">{[{ id: "all", label: "全部" }, { id: "tracked", label: "自動追蹤" }, { id: "external", label: "外部核對" }].map(option => <button type="button" className={filter === option.id ? "active" : ""} onClick={() => setFilter(option.id)} key={option.id}>{option.label}</button>)}</div></div><div className="api-provider-grid">{providers.map(provider => <ProviderCard key={provider.id} provider={provider} expanded={expandedProvider === provider.id} onToggle={() => setExpandedProvider(current => current === provider.id ? null : provider.id)} exchangeRate={data?.budget?.usd_to_twd_rate} />)}</div></section>

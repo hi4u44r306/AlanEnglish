@@ -5,6 +5,7 @@ import { getAiCostDashboard, updateAiCostBudget } from "../../services/aiMateria
 import ApiUsageAdmin from "./ApiUsageAdmin";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
+jest.mock("./CostAlertPanel", () => () => <div>成本超標自動提醒</div>);
 jest.mock("../../services/aiMaterialService", () => ({
     getAiCostDashboard: jest.fn(),
     updateAiCostBudget: jest.fn()
