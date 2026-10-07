@@ -2,6 +2,17 @@
 
 最後更新：2026-10-07
 
+### 口說混合評分與每日換關正式發布（2026-10-07，已部署／實機驗收待補）
+
+- 使用者明確同意本批正式資料庫與核心通關流程發布。PR #434 已合併 main `9fab824db672a8aeadd9f1bc0fbaca041da95cba`；本機副本 `output/speaking-local-completeness-20261006`，原主工作目錄無關草稿與成本 Email 功能未納入。
+- 四筆 additive migration 已逐筆成功執行：`20261006150733`、`20261006154419`、`20261006155728`、`20261007025513`；MCP 產生的暫時版本已在成功執行後透過 CLI repair 對齊已提交版本並去除重複 history，沒有重跑 SQL、刪除學習資料或大量 db push。三張新增表確認 RLS 開啟、anon／authenticated 無讀取權；六支新增／更新 RPC 皆 invoker、僅 service_role 可執行。
+- 從已合併 main 部署 `pronunciation-coach v31` 與 `speaking-challenge v50`，ACTIVE、verify_jwt=false，服務內維持 Firebase 驗證；遠端入口原始碼與 main 相符，實際未登入 POST 均 401。既有 Secret 名稱已確認存在，沒有新增或變更 Azure／Firebase／R2 設定，未讀取金鑰值。
+- Cloudflare 唯一一次 production build `8c683943-f908-467b-aeda-6d7641cf307e` completed／success；check `112627901454` 精確對應上述 main，2026-10-07 12:14:48 台灣時間完成。正式前端只由 main 發布，Netlify 歷史檢查不作正式發布依據。
+- 已發布：一般／拼讀本機朗讀完整度 100 分制、模型瀏覽器快取；A–Z Azure S0 基本評分關閉 prosody；每日共用 10 輪、同關每日一次、每字母每日 3 次預約，跨大小寫／裝置／版本共用；達限後純錄音回聽，不送評、不寫通關／獎勵；管理員 NT$1,000／1,500 月費估算提醒。A–Z 仍可能計費，不是全站完全免費。
+- 驗證沿用本批 165 個相關測試、隔離 PGlite、production build、focused ESLint／320／412／1440px 元件預覽；發布前 diff check、require-pushed preflight 通過，兩支 TS syntax check 通過。純文件更新不重跑應用測試或 build，不應觸發另一個 Cloudflare build。
+- 正式網址 Browser Use 被 saved browser permissions 無法驗證所阻擋；未繞過控制。登入後全遊戲畫面、真實學生紀錄／獎勵、iPhone Safari／Android 錄音與 Azure 真實帳單尚未驗收，不能宣稱線上完整驗收通過。先請家長重新整理並測試，這些限制不以本機替身測試代替。
+- 回復：已保存發布前兩支 Function 來源於忽略目錄 `output/speaking-release-rollback`。若核心流程異常，保留新增表與所有歷史資料，配套恢復前後端及受影響預約／完成函式；不能只回復前端。恢復舊版會重新使用全部 Azure 付費，需明確決定恢復付費或暫停入口。下方尚未部署段落為發布前歷史紀錄，本節為目前狀態。
+
 ### 每日一次通關／A–Z 三次字母評分／純回聽（2026-10-07，尚未部署）
 
 - 使用者核准：A–Z 保留 Azure 基本評分，每位學生每個字母每天最多 3 次；同一關每天最多正式完成一次，簡單與挑戰共用，仍保留全站共用的每人每日 10 輪。大小寫、重開、跨關卡／版本與裝置不能重置字母計數。預約後的技術失敗仍占字母次數；沒有恢復個人月秒數額度。
