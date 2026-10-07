@@ -162,30 +162,53 @@ export async function collectStripe(month: string, io: CostIO): Promise<CostResu
     return fail('incomplete_pagination');
 }
 
-export async function collectCloudflare(month: string, io: CostIO): Promise<CostResult[]> {
-    const period = costPeriod(month, io.now);
-    const account = identifier(required(io, 'COST_CLOUDFLARE_ACCOUNT_ID'), /^[a-f0-9]{32}$/i);
-    const key = required(io, 'COST_CLOUDFLARE_READ_TOKEN');
-    const script = identifier(required(io, 'COST_CLOUDFLARE_WORKER_NAME'), /^[a-zA-Z0-9_-]+$/);
-    const bucket = identifier(required(io, 'COST_CLOUDFLARE_R2_BUCKET'), /^[a-zA-Z0-9_.-]+$/);
+const cloudflareConfig = (io: CostIO) => ({
+    account: identifier(required(io, 'COST_CLOUDFLARE_ACCOUNT_ID'), /^[a-f0-9]{32}$/i),
+    key: required(io, 'COST_CLOUDFLARE_READ_TOKEN')
+});
+const cloudflareAnalytics = async (io: CostIO, key: string, query: string, variables: Record<string, string>) => {
     const response = await request(io, 'https://api.cloudflare.com/client/v4/graphql', {
         method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: `query($account:string!,$start:Time!,$end:Time!,$ws:string!,$we:string!,$script:string!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
-          workersInvocationsAdaptive(limit:10000,filter:{datetime_geq:$ws,datetime_leq:$we,scriptName:$script}){sum{requests errors}}
-          r2OperationsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket}){sum{requests} dimensions{actionType}}
-          r2StorageAdaptiveGroups(limit:1,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
-        }}}`, variables: { account, start: period.start, end: period.end, ws: period.start, we: period.end, script, bucket } })
+        body: JSON.stringify({ query, variables })
     });
     if (response.errors?.length) return cloudflareQueryError(response.errors);
+    return response;
+};
+
+export async function collectCloudflareWorkers(month: string, io: CostIO): Promise<CostResult[]> {
+    const period = costPeriod(month, io.now);
+    const { account, key } = cloudflareConfig(io);
+    const script = identifier(required(io, 'COST_CLOUDFLARE_WORKER_NAME'), /^[a-zA-Z0-9_-]+$/);
+    const response = await cloudflareAnalytics(io, key, `query($account:string!,$start:string!,$end:string!,$script:string!){viewer{accounts(filter:{accountTag:$account}){
+      workersInvocationsAdaptive(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end,scriptName:$script}){sum{requests errors}}
+    }}}`, { account, start: period.start, end: period.end, script });
     const row = list(response.data?.viewer?.accounts)[0];
     if (!row) return fail('invalid_response');
     const workers = list(row.workersInvocationsAdaptive);
+    if (workers.length >= 10000) return fail('incomplete_pagination');
+    return [result('cloudflare_workers', period, null, [{ name: '網站 Worker 請求', used: workers.reduce((a, x) => a + number(x.sum?.requests), 0), unit: '次', limit: null }])];
+}
+
+export async function collectCloudflareR2(month: string, io: CostIO): Promise<CostResult[]> {
+    const period = costPeriod(month, io.now);
+    const { account, key } = cloudflareConfig(io);
+    const bucket = identifier(required(io, 'COST_CLOUDFLARE_R2_BUCKET'), /^[a-zA-Z0-9_.-]+$/);
+    const response = await cloudflareAnalytics(io, key, `query($account:string!,$start:Time!,$end:Time!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
+      r2OperationsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket}){sum{requests} dimensions{actionType}}
+      r2StorageAdaptiveGroups(limit:1,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
+    }}}`, { account, start: period.start, end: period.end, bucket });
+    const row = list(response.data?.viewer?.accounts)[0];
+    if (!row) return fail('invalid_response');
     const operations = list(row.r2OperationsAdaptiveGroups);
-    if (workers.length >= 10000 || operations.length >= 10000) return fail('incomplete_pagination');
+    if (operations.length >= 10000) return fail('incomplete_pagination');
     const storage = list(row.r2StorageAdaptiveGroups)[0]?.max;
     const r2: CostMetric[] = operations.map(x => ({ name: `R2 ${String(x.dimensions?.actionType || '').slice(0,60)}`, used: number(x.sum?.requests), unit: '次', limit: null }));
     if (storage) r2.push({ name: '目前 R2 儲存（非 GB-month）', used: number(storage.payloadSize) + number(storage.metadataSize), unit: 'bytes', limit: null });
-    return [result('cloudflare_workers', period, null, [{ name: '網站 Worker 請求', used: workers.reduce((a, x) => a + number(x.sum?.requests), 0), unit: '次', limit: null }]), result('cloudflare_r2', period, null, r2)];
+    return [result('cloudflare_r2', period, null, r2)];
+}
+
+export async function collectCloudflare(month: string, io: CostIO): Promise<CostResult[]> {
+    return [...await collectCloudflareWorkers(month, io), ...await collectCloudflareR2(month, io)];
 }
 
 export async function collectGitHub(month: string, io: CostIO): Promise<CostResult[]> {
@@ -209,7 +232,8 @@ export const costCollectors = [
     { ids: ['openai'], interval: 3600, run: collectOpenAI },
     { ids: ['azure'], interval: 86400, run: collectAzure },
     { ids: ['google_tts', 'firebase', 'google_other'], interval: 21600, run: collectGoogle },
-    { ids: ['cloudflare_workers', 'cloudflare_r2'], interval: 900, run: collectCloudflare },
+    { ids: ['cloudflare_workers'], interval: 900, run: collectCloudflareWorkers },
+    { ids: ['cloudflare_r2'], interval: 900, run: collectCloudflareR2 },
     { ids: ['resend'], interval: 300, run: collectResend },
     { ids: ['stripe'], interval: 3600, run: collectStripe },
     { ids: ['github'], interval: 3600, run: collectGitHub }
