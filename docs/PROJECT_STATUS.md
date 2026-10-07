@@ -2,6 +2,11 @@
 
 最後更新：2026-10-07
 
+### A–Z 原地重開麥克風（2026-10-07，尚未部署）
+
+- 分支 codex/alphabet-reopen-microphone，基準 origin/main b678b89e。使用者要求切到背景後留在原回合按鈕開啟；修改 AlphabetAutomaticRecorder 與測試、PROJECT_LOGIC／手冊 v3.59。背景釋放 stream／AudioContext，停止半段錄音不送評；回來顯示「麥克風已暫停」與重開按鈕，不再錯顯已開啟。重新取得麥克風保留原題／round／session，防連點；已開始送評不取消原回覆、不自動重送。過期／真正離開頁面／reload 不承諾復原。
+- 45 項相關 React 測試通過，涵蓋背景→可見→重開、保留 round／session、半段丟棄、已送評晚到回覆只處理一次、拒絕權限後原地重試及晚到 permission stream 立即停止；兩檔 ESLint／diff check 通過。實際 JSX／SCSS 合成預覽於 320／412／1440px 六狀態無溢出，重開按鈕至少 44px，412px 截圖已目視確認，預覽不啟動麥克風或付費 API。不改後端／SQL／每日額度，本機不重跑 full suite／production build，交 Cloudflare main 建置。發布待補；iPhone Safari／正式登入實機仍待驗收，回復可 revert 前端，無資料回復需求。
+
 ### A–Z 加速換題與手動重唸（2026-10-07，已部署／實機待驗收）
 
 - 基準 origin/main 38cf94c2，分支 codex/alphabet-fast-retry。使用者核准縮短結果等待並要求孩子可按鈕重唸；修改 AlphabetAutomaticRecorder／WorkbookOneFoundationChallenge 與兩支針對性測試、PROJECT_LOGIC／手冊 v3.58。答對約 1 秒換題；可重試答錯不另等待，保留叉號並暂停錄音，按「再唸一次」才恢復同題收音。等待 15 秒加提示，不自動重送 Azure。技術失敗仍沿用錄音回聽／手動重試。

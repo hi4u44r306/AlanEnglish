@@ -11,6 +11,7 @@ jest.mock("../../services/pronunciationCoachService", () => ({ submitAlphabetPro
 describe("AlphabetAutomaticRecorder", () => {
     const originalTimeout = global.setTimeout;
     const originalMediaDevices = navigator.mediaDevices;
+    const originalVisibility = Object.getOwnPropertyDescriptor(document, "visibilityState");
     const originalMediaRecorder = window.MediaRecorder;
     const originalAudioContext = window.AudioContext;
     const originalRequestFrame = window.requestAnimationFrame;
@@ -31,6 +32,7 @@ describe("AlphabetAutomaticRecorder", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
         const nativeTimeout = global.setTimeout;
         global.setTimeout = (fn, ms, ...args) => nativeTimeout(fn, ms === 900 ? 0 : ms, ...args);
         now = 0;
@@ -88,9 +90,17 @@ describe("AlphabetAutomaticRecorder", () => {
         await waitFor(() => expect(recorders.length).toBe(1));
         return view;
     };
+    const visibility = async value => {
+        await act(async () => {
+            Object.defineProperty(document, "visibilityState", { configurable: true, value });
+            document.dispatchEvent(new Event("visibilitychange"));
+        });
+    };
 
     afterEach(() => {
         cleanup();
+        if (originalVisibility) Object.defineProperty(document, "visibilityState", originalVisibility);
+        else delete document.visibilityState;
         global.setTimeout = originalTimeout;
         Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: originalMediaDevices });
         window.MediaRecorder = originalMediaRecorder;
@@ -176,6 +186,85 @@ describe("AlphabetAutomaticRecorder", () => {
         expect(recorders).toHaveLength(2);
         expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
         expect(callbacks.onScored).not.toHaveBeenCalled();
+    });
+
+    it("切到背景即停麥克風，回來不自動錄音，原題原回合按按鈕才重開", async () => {
+        render(<AlphabetAutomaticRecorder {...props} challengeSessionId="original-session" />);
+        await waitFor(() => expect(recorders).toHaveLength(1));
+        await visibility("hidden");
+        expect(stopTrack).toHaveBeenCalledTimes(1);
+        expect(recorders[0].state).toBe("inactive");
+        expect(screen.getByText("麥克風已暫停")).toBeInTheDocument();
+        expect(screen.queryByText("麥克風已開啟")).not.toBeInTheDocument();
+        await visibility("visible");
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+        const reopen = screen.getByRole("button", { name: "重新開啟麥克風" });
+        act(() => { reopen.click(); reopen.click(); });
+        await waitFor(() => expect(recorders).toHaveLength(2));
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(2);
+        expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
+        await speak();
+        expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledTimes(1);
+        expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({
+            questionId: props.question.id, foundationRoundId: props.foundationRoundId,
+            challengeSessionId: "original-session"
+        }));
+    });
+    it("切換時丟棄未完成的半段朗讀，不因停止錄音自動送評", async () => {
+        await mount();
+        await frame(100);
+        await frame(1000, 0.2);
+        await frame(1016, 0.2);
+        await frame(1032, 0.2);
+        expect(screen.getByText("正在聽你說")).toBeInTheDocument();
+        await visibility("hidden");
+        await visibility("visible");
+        expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
+        expect(callbacks.onScored).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "重新開啟麥克風" }));
+        await waitFor(() => expect(recorders).toHaveLength(2));
+        expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
+    });
+    it("已送評後切換頁面保留原回覆，只處理一次；換題後可重開麥克風", async () => {
+        let finish;
+        submitAlphabetPronunciationAttempt.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+        const view = await mount();
+        await speak();
+        await visibility("hidden");
+        await visibility("visible");
+        expect(screen.getByText("正在判別…")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "重新開啟麥克風" })).not.toBeInTheDocument();
+        await act(async () => finish({ assessment_kind: "azure_pronunciation", answer_match: true, scores: { pronunciation: 100 }, foundation_round: { status: "open" } }));
+        await waitFor(() => expect(callbacks.onScored).toHaveBeenCalledTimes(1));
+        view.rerender(<AlphabetAutomaticRecorder {...props} question={{ id: 2 }} />);
+        expect(screen.getByText("麥克風已暫停")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "重新開啟麥克風" }));
+        await waitFor(() => expect(recorders).toHaveLength(2));
+        expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledTimes(1);
+        expect(callbacks.onScored).toHaveBeenCalledTimes(1);
+    });
+    it("第一次拒絕麥克風權限，可留在關卡再次開啟", async () => {
+        navigator.mediaDevices.getUserMedia.mockRejectedValueOnce(Object.assign(new Error("denied"), { name: "NotAllowedError" }));
+        render(<AlphabetAutomaticRecorder {...props} />);
+        expect(await screen.findByRole("alert")).toHaveTextContent("請允許麥克風權限");
+        fireEvent.click(screen.getByRole("button", { name: "重新開啟麥克風" }));
+        await waitFor(() => expect(recorders).toHaveLength(1));
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
+    });
+    it("權限請求未完成就切走，晚到的麥克風會關閉，不在背景啟動", async () => {
+        let finishPermission;
+        const stopLateTrack = jest.fn();
+        navigator.mediaDevices.getUserMedia.mockImplementationOnce(() => new Promise(resolve => { finishPermission = resolve; }));
+        render(<AlphabetAutomaticRecorder {...props} />);
+        await visibility("hidden");
+        await act(async () => finishPermission({ getTracks: () => [{ stop: stopLateTrack }] }));
+        expect(stopLateTrack).toHaveBeenCalledTimes(1);
+        expect(recorders).toHaveLength(0);
+        expect(screen.getByText("麥克風已暫停")).toBeInTheDocument();
+        await visibility("visible");
+        fireEvent.click(screen.getByRole("button", { name: "重新開啟麥克風" }));
+        await waitFor(() => expect(recorders).toHaveLength(1));
     });
 
     it("技術失敗保留 WAV 回聽，手動重試不重轉檔、不自動重送", async () => {
