@@ -2,6 +2,8 @@
 
 最後更新：2026-10-07
 
+口說列表載入錯誤修復（2026-10-07，發布中）：正式日誌出現 PGRST201；新增每日題目完成表被 PostgREST 視為關卡／題目的第二條 many-to-many 關聯，導致原未指定 FK 的查詢歧義。limit=0 的正式 API 結構測試重現 300／PGRST201；指定 speaking_questions_question_set_id_fkey 後進入正常權限檢查 401／42501，未讀學生資料或放寬權限。修改 speaking-challenge（2 處）、speaking-content-manager（16 處）、weekly-report（1 處）、pronunciation-coach（1 處）、speaking-tts-manager（1 處）使用原有 FK；不改 SQL、通關限制或資料。實際 catalog handler 的學生／管理員回歸測試與費用权限、週報與評分 handler 測試共 12 項通過，五支 TS syntax check 通過。題庫契約 38 項中 34 項通過，4 項仍檢查舊評分／完成 RPC，與 hotfix 前基準結果相同（output/relation-baseline.log），非本批引入。正反向 limit=0 API 均確認原歧義重現及指定 FK 後正常進入權限檢查。後端查詢修改不需重跑 React build；正式 Functions 與登入後驗收待發布確認。
+
 ### 口說混合評分與每日換關正式發布（2026-10-07，已部署／實機驗收待補）
 
 - 使用者明確同意本批正式資料庫與核心通關流程發布。PR #434 已合併 main `9fab824db672a8aeadd9f1bc0fbaca041da95cba`；本機副本 `output/speaking-local-completeness-20261006`，原主工作目錄無關草稿與成本 Email 功能未納入。

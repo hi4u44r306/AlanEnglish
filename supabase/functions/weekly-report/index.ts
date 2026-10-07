@@ -238,7 +238,7 @@ const buildWeeklyReport = async (
             .limit(10000),
         admin
             .from("speaking_question_sets")
-            .select("id,title,topic,books(id,name,code),speaking_questions(id)")
+            .select("id,title,topic,books(id,name,code),speaking_questions!speaking_questions_question_set_id_fkey(id)")
             .in("status", ["published", "archived"])
             .limit(1000),
         admin
