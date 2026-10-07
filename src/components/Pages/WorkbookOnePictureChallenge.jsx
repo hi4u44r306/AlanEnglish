@@ -32,7 +32,7 @@ const challengePageLabel = challenge => {
     return titlePage ? `P.${titlePage[1].replace(/\s+/g, "")}` : challenge?.title || "口說挑戰";
 };
 
-export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
+export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onPracticeOnly, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
@@ -120,7 +120,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     );
 
     const handleCorrect = async result => {
-        const saved = await onComplete?.(activeQuestion, result);
+        const saved = await onComplete?.(activeQuestion, result, challengeSessionId);
         if (saved === false) { setCanSkip(true); return false; }
         if (saved?.hint_used) return saved;
         setCompletedIds(current => new Set([...current, activeQuestion.id]));
@@ -199,6 +199,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 promptTitle={copy.promptTitle}
                 promptDetail={copy.promptDetail}
                 onCompleted={handleCorrect}
+                onPracticeOnly={onPracticeOnly}
                 onIncorrect={() => setCanSkip(true)}
             />}
         </article></section>

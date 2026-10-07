@@ -42,6 +42,7 @@ export default function SpeakingPracticeSteps({
     onCompleted,
     onIncorrect,
     onRoundInvalid,
+    onPracticeOnly,
     interactionType = "",
     foundationRoundId = "",
     challengeSessionId = "",
@@ -185,6 +186,7 @@ export default function SpeakingPracticeSteps({
             disabledReason={disabledReason}
             onScored={handleScored}
             onRoundInvalid={onRoundInvalid}
+            onPracticeOnly={onPracticeOnly}
             onPhaseChange={setRecorderPhase}
             onRetry={() => setLastResult(null)}
             onListenAgain={canListen ? onPlayAudio : undefined}

@@ -1,0 +1,17 @@
+.speaking-review-practice {
+  .speaking-lesson-header { position: relative; top: auto; grid-template-columns: auto minmax(0, 1fr); }
+  .speaking-review-notice {
+    display: block;
+    width: min(920px, 100%);
+    box-sizing: border-box;
+    margin: 12px auto;
+    padding: 12px;
+    border-radius: 12px;
+    background: #edf3fb;
+    color: #2459a2;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .speaking-focus-card .speaking-review-letter { font-size: 48px; margin: 12px 0; }
+  button { min-height: 44px; }
+}

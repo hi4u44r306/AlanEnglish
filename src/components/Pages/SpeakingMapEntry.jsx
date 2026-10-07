@@ -36,7 +36,8 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
     const challengeCompletedCount = Number(item.challenge_completed_count) || 0;
     const singlePractice = usesSinglePracticeMode(item) || section === "preparation";
     const topicLabel = speakingLessonTopic(item, pages, sectionCopy.label);
-    const easyAction = speakingEntryAction(completedCount, questionCount, item.is_completed === true);
+    const practiceOnly = !staffPreview && item.completed_today === true;
+    const easyAction = practiceOnly ? "今天已完成，錄音回聽" : speakingEntryAction(completedCount, questionCount, item.is_completed === true);
     const challengeAction = speakingEntryAction(challengeCompletedCount, questionCount, false, "challenge");
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
         <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
@@ -51,9 +52,10 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
                 {!singlePractice && <span><small>挑戰</small><strong>{challengeCompletedCount} / {questionCount}</strong></span>}
             </div>
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
+            {practiceOnly && <p role="status">今天換一關挑戰吧！這一關仍可聽示範、錄音回聽，明天恢復評分。</p>}
             <div className={`speaking-level-dialog__actions${singlePractice ? " is-single" : ""}`}>
                 <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : singlePractice ? easyAction : `${easyAction} · 簡單 · 看答案說`} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : easyAction}</strong><small>{singlePractice ? "看著文字念，需要時聽示範" : "簡單模式 · 看答案說"}</small></span><FiChevronRight aria-hidden="true" /></button>
-                {!singlePractice && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : `${challengeAction} · 挑戰 · 看題目回答`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : challengeAction}</strong><small>挑戰模式 · 看題目回答</small></span><FiChevronRight aria-hidden="true" /></button>}
+                {!singlePractice && !practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : `${challengeAction} · 挑戰 · 看題目回答`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : challengeAction}</strong><small>挑戰模式 · 看題目回答</small></span><FiChevronRight aria-hidden="true" /></button>}
                 <button type="button" className="speaking-level-dialog__return" onClick={onClose}>返回地圖</button>
             </div>
         </section>

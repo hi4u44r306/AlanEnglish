@@ -899,7 +899,7 @@ Deno.serve(async (req: Request) => {
         if (!Number.isInteger(setId) || setId <= 0 || (requestedQuestionId !== null && (!Number.isInteger(requestedQuestionId) || requestedQuestionId <= 0))) {
             return json(400, { error: "題庫或題目編號不正確" });
         }
-        let query = admin.from("speaking_questions").select("id,question_set_id,question_text,simple_answer,model_answer,sort_order,speaking_question_sets(id,status,version,generation_metadata)").eq("question_set_id", setId);
+        let query = admin.from("speaking_questions").select("id,question_set_id,question_text,simple_answer,model_answer,sort_order,speaking_question_sets!speaking_questions_question_set_id_fkey(id,status,version,generation_metadata)").eq("question_set_id", setId);
         if (requestedQuestionId !== null) query = query.eq("id", requestedQuestionId);
         const { data: questions, error } = await query.order("sort_order");
         if (error) throw error;

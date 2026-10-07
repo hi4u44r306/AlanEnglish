@@ -550,7 +550,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         fireEvent.click(screen.getByRole("button", { name: "模擬答對" }));
 
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
-        expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ id: 20 }), expect.objectContaining({ answer_match: true }));
+        expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ id: 20 }), expect.objectContaining({ answer_match: true }), expect.stringMatching(/^[0-9a-f-]{36}$/));
     });
 
     it("拼讀答錯或完成紀錄保存失敗時留在同一題", async () => {
