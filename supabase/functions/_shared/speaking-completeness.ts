@@ -24,19 +24,34 @@ export function readingCoverage(expectedText: string, recognizedText: string) {
         words: expected.map((text, index) => ({ text, status: hits[index] ? "good" : "retry" })) };
 }
 
+// A textbook's trailing "(No, ...)" or "(Yes, ...)" replaces the preceding
+// yes/no response; reading either or both responses is acceptable.
+// Keep the shared question/answer prefix, and leave other parentheses intact.
+export function readingAnswerAlternatives(template: string): string[] {
+    const alternative = template.match(/\s*[（(]([^()（）]+)[）)]\s*[.!?]?\s*$/);
+    if (!alternative || !/^(yes|no)\b[\s,]/i.test(alternative[1].trim())) return [template];
+    const primary = template.slice(0, alternative.index).trim();
+    const responses = [...primary.matchAll(/\b(?:yes|no)\b/gi)];
+    const response = responses[responses.length - 1];
+    if (!response || (response.index! > 0 && !/[.!?]\s*$/.test(primary.slice(0, response.index)))) return [template];
+    const prefix = primary.slice(0, response.index);
+    const second = alternative[1].trim();
+    return [primary, prefix + second, primary + " " + second, prefix + second + " " + primary.slice(response.index)];
+}
+
 export function assessReadingCompleteness(question: { answerTemplate: string; acceptedAnswers: string[]; interactionType: string }, recognizedText: unknown) {
     if (typeof recognizedText !== "string" || recognizedText.length > 2000 || !/[a-z]/i.test(recognizedText)) {
         throw Object.assign(new Error("沒有辨識到有效英文，請重新錄音。"), { status: 422, code: "speech_no_match" });
     }
     const text = recognizedText.replace(/[\u0000-\u001f]/g, " ").trim();
-    const templates = [question.answerTemplate, ...question.acceptedAnswers];
+    const templates = [question.answerTemplate, ...question.acceptedAnswers].flatMap(readingAnswerAlternatives);
     const hasSlots = templates.some(hasSpeakingAnswerSlots);
     const structuredMatch = templates.some(template => hasSpeakingAnswerSlots(template) && matchesSpeakingAnswerTemplate(template, text));
     const strictType = FOUNDATION_INTERACTION_TYPES.has(question.interactionType);
     if (!strictType && !["", "standard_sentence"].includes(question.interactionType)) {
         throw Object.assign(new Error("這個題型尚未支援本機朗讀評分。"), { status: 422, code: "local_question_unsupported" });
     }
-    const strictMatch = strictType && matchesFoundationAnswer(question.interactionType, question.answerTemplate, text, question.acceptedAnswers);
+    const strictMatch = strictType && matchesFoundationAnswer(question.interactionType, templates[0], text, templates.slice(1));
     const candidates = templates.map(template => readingCoverage(template.replace(/[\u005B［][^\u005D］]+[\u005D］]/g, ""), text));
     const coverage = candidates.reduce((best, next) => next.score > best.score ? next : best);
     const alphabet = ["alphabet_round", "letter_spelling"].includes(question.interactionType);
