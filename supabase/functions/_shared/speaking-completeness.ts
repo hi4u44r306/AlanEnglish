@@ -58,7 +58,7 @@ export function assessReadingCompleteness(question: { answerTemplate: string; ac
     // Letter aliases and personal slots are all-or-nothing; missing/personal text
     // must never be reported as a measured phoneme score.
     const score = alphabet || hasSlots ? (strictMatch || structuredMatch ? 100 : 0) : coverage.score;
-    const answerMatch = hasSlots ? structuredMatch || strictMatch : strictType ? strictMatch : coverage.total > 0 && coverage.matched / coverage.total >= 0.8;
+    const answerMatch = score >= 70 && (hasSlots ? structuredMatch || strictMatch : strictType ? strictMatch : coverage.total > 0);
     const revealReference = answerMatch && !hasSlots && !alphabet;
     return {
         assessment_kind: "local_completeness_v1", assessment_status: "assessed", evidence_source: "client_transcript",

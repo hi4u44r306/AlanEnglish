@@ -36,6 +36,7 @@ export default function AlphabetAutomaticRecorder({
     question,
     foundationRoundId,
     challengeSessionId,
+    challengeMode = "challenge",
     allowDemoAssessment = false,
     paused = false,
     waitingForRetry = false,
@@ -225,7 +226,7 @@ export default function AlphabetAutomaticRecorder({
         setBudgetBlocked(false);
 
         if (paused) { setStatus("paused"); return undefined; }
-        if (!question?.id || (!foundationRoundId && !allowDemoAssessment) || !analyserRef.current || !streamRef.current) return undefined;
+        if (!question?.id || (!foundationRoundId && !allowDemoAssessment && challengeMode !== "easy") || !analyserRef.current || !streamRef.current) return undefined;
         setError("");
         setStatus("preparing");
         const analyser = analyserRef.current;
@@ -262,7 +263,8 @@ export default function AlphabetAutomaticRecorder({
                     questionId: question.id,
                     audio: wav,
                     foundationRoundId,
-                    challengeSessionId
+                    challengeSessionId,
+                    challengeMode
                 });
                 if (operationId !== operationRef.current) return;
                 if (result?.assessment_kind !== "azure_pronunciation" || !Number.isFinite(result?.scores?.pronunciation) || result.scores.pronunciation < 0 || result.scores.pronunciation > 100 || typeof result?.answer_match !== "boolean") throw new Error("字母評分結果不完整，請重試。");
@@ -400,7 +402,7 @@ export default function AlphabetAutomaticRecorder({
             }
             if (recorderRef.current === recorder) recorderRef.current = null;
         };
-    }, [allowDemoAssessment, attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, onPracticeOnly, paused, question?.id, sessionVersion]);
+    }, [allowDemoAssessment, attemptVersion, challengeMode, challengeSessionId, firebaseUser, foundationRoundId, onPracticeOnly, paused, question?.id, sessionVersion]);
 
     const microphonePaused = microphoneClosed && status !== "submitting" && answerMatch === null;
     const reopenMicrophone = () => {

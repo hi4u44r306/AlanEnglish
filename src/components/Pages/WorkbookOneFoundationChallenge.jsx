@@ -18,7 +18,7 @@ const interactionCopy = {
     }
 };
 
-export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, onComplete, onPracticeOnly, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false, audioWorking = "", onPlayModelAudio, audioError = "" }) {
+export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, challengeMode = "challenge", onComplete, onPracticeOnly, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false, audioWorking = "", onPlayModelAudio, audioError = "" }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
@@ -257,7 +257,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         try {
             let nextRound;
             let nextRoundId = "";
-            if (alphabetMode && staffPreview) {
+            if (alphabetMode && (staffPreview || challengeMode === "easy")) {
                 nextRound = sourceQuestions.map(question => ({
                     ...question,
                     display_text: String(question.question_text || "").toUpperCase()
@@ -298,7 +298,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 setStartingRound(false);
             }
         }
-    }, [alphabetMode, interactionType, onPracticeOnly, onStartRound, sourceQuestions, staffPreview, stopAudio]);
+    }, [alphabetMode, challengeMode, interactionType, onPracticeOnly, onStartRound, sourceQuestions, staffPreview, stopAudio]);
 
     useEffect(() => {
         if (["challenge", "failed", "result"].includes(phase)) {
@@ -319,12 +319,12 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
     const handleCorrect = async result => {
         let completionReward;
         if (alphabetMode) {
-            if (adminScoringPreview) {
+            if (adminScoringPreview || challengeMode === "easy") {
                 if (result?.answer_match === false) {
                     setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
                     return;
                 }
-                if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.({ demo_mode: true }); }
+                if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.({ demo_mode: adminScoringPreview, practice_completed: challengeMode === "easy" }); }
                 else setActiveIndex(index => index + 1);
                 return;
             }
@@ -424,6 +424,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 question={activeQuestion}
                 foundationRoundId={roundId}
                 challengeSessionId={challengeSessionId}
+                challengeMode={challengeMode}
                 allowDemoAssessment={adminScoringPreview}
                 paused={exitDialogOpen || Boolean(retryFeedback)}
                 waitingForRetry={Boolean(retryFeedback)}
@@ -439,6 +440,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 interactionType={interactionType}
                 foundationRoundId={roundId}
                 challengeSessionId={challengeSessionId}
+                challengeMode={challengeMode}
                 hideHelp
                 readAloud
                 audioWorking={audioWorking === String(activeQuestion.id)}

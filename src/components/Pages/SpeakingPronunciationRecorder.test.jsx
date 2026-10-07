@@ -3,7 +3,7 @@ import { cleanup, act, fireEvent, render, screen, waitFor } from "@testing-libra
 import "@testing-library/jest-dom";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import { SpeakingActivityContext } from "./SpeakingAdventureSession";
-import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
+import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
@@ -11,7 +11,7 @@ import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecog
 jest.mock("../../services/localSpeakingRecognizer", () => ({ retainLocalSpeakingRecognizer: jest.fn(() => ({ recognizer: { ready: true, mode: "相容加速模式", prepare: jest.fn().mockResolvedValue(), transcribe: jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2}) }, release: jest.fn() })) }));
 
 jest.mock("../../services/pronunciationCoachService", () => ({
-    submitSpeakingPronunciationAttempt: jest.fn()
+    submitSpeakingPronunciationAttempt: jest.fn(), submitAlphabetPronunciationAttempt: jest.fn()
 }));
 jest.mock("../../utils/audioWav", () => ({
     convertAudioBlobToWav: jest.fn()
@@ -21,6 +21,36 @@ jest.mock("../../utils/speakingFeedbackSound", () => ({
 }));
 
 describe("SpeakingPronunciationRecorder", () => {
+    it("70 分結果抵達立即開始保存，保存尚未完成時仍鎖住送評", async () => {
+        global.setTimeout = originalTimeout;
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], {type:"audio/wav"}));
+        submitSpeakingPronunciationAttempt.mockResolvedValue({assessment_kind:"local_completeness_v1",answer_match:true,scores:{completeness:70}});
+        let saved;
+        const onScored=jest.fn(()=>new Promise(resolve=>{saved=resolve;}));
+        render(<SpeakingPronunciationRecorder question={{id:9}} onScored={onScored} />);
+        fireEvent.click(screen.getByRole("button",{name:"開始錄音"}));
+        fireEvent.click(await screen.findByRole("button",{name:"完成錄音"}));
+        fireEvent.click(await screen.findByRole("button",{name:"送出評分"}));
+        await waitFor(()=>expect(onScored).toHaveBeenCalledTimes(1));
+        expect(screen.getByText("70 分")).toBeInTheDocument();
+        expect(screen.getByRole("button",{name:"再練一次"})).toBeDisabled();
+        await act(async()=>saved(true));
+        expect(screen.getByRole("button",{name:"再練一次"})).toBeEnabled();
+    });
+    it("拼字使用 Azure，顯示實際發音分數且不準備本機模型",async()=>{
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)],{type:"audio/wav"}));
+        submitAlphabetPronunciationAttempt.mockResolvedValue({assessment_kind:"azure_pronunciation",answer_match:true,scores:{pronunciation:78,completeness:100}});
+        const onScored=jest.fn().mockResolvedValue(true);
+        render(<SpeakingPronunciationRecorder question={{id:9}} interactionType="letter_spelling" challengeMode="challenge" onScored={onScored} />);
+        fireEvent.click(screen.getByRole("button",{name:"開始錄音"}));
+        fireEvent.click(await screen.findByRole("button",{name:"完成錄音"}));
+        fireEvent.click(await screen.findByRole("button",{name:"送出評分"}));
+        await waitFor(()=>expect(onScored).toHaveBeenCalledTimes(1));
+        expect(screen.getByText("78 分")).toBeInTheDocument();
+        expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({challengeMode:"challenge",audio:expect.any(Blob)}));
+        expect(retainLocalSpeakingRecognizer).not.toHaveBeenCalled();
+        expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
+    });
     it("未就緒時自動接續準備，不要求按準備按鈕，也不開啟麥克風", async () => {
         let complete;
         const prepare = jest.fn(() => new Promise(resolve => { complete = resolve; }));
@@ -327,7 +357,7 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(screen.queryByText("這次先練這幾個字")).not.toBeInTheDocument();
     });
 
-    it("分數先显示四秒，再通知外層通關，不顯示百分比", async () => {
+    it("分數抵達就通知外層儲存，不等待四秒、不顯示百分比", async () => {
         global.setTimeout = originalTimeout;
         jest.useFakeTimers();
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
@@ -339,8 +369,7 @@ describe("SpeakingPronunciationRecorder", () => {
         await act(async () => fireEvent.click(screen.getByRole("button", {name:/送出評分/})));
         expect(screen.getByText("85 分")).toBeInTheDocument();
         expect(screen.queryByText("85%")).not.toBeInTheDocument();
-        await act(async () => jest.advanceTimersByTime(3999)); expect(onScored).not.toHaveBeenCalled();
-        await act(async () => jest.advanceTimersByTime(1)); expect(onScored).toHaveBeenCalledTimes(1);
+        expect(onScored).toHaveBeenCalledTimes(1);
     });
 
     it("另一個請求正在評分時只提示等待，不把有效回合歸零", async () => {

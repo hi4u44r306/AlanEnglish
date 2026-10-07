@@ -1,11 +1,11 @@
 import { supabaseKey, supabaseUrl } from "../components/Pages/supabase-config";
 
-export const submitAlphabetPronunciationAttempt = async ({ firebaseUser, questionId, audio, foundationRoundId = "", challengeSessionId = "" }) => {
+export const submitAlphabetPronunciationAttempt = async ({ firebaseUser, questionId, audio, foundationRoundId = "", challengeSessionId = "", challengeMode = "challenge" }) => {
     if (!firebaseUser || !(audio instanceof Blob) || !Number.isInteger(Number(questionId)) || Number(questionId) <= 0) throw new Error("字母錄音資料不完整");
     const form = new FormData();
     form.append("assessment_kind", "azure_alphabet_v1"); form.append("question_id", String(questionId));
     form.append("foundation_round_id", foundationRoundId); form.append("challenge_session_id", challengeSessionId);
-    form.append("challenge_mode", "easy"); form.append("audio", audio, "alphabet.wav");
+    form.append("challenge_mode", challengeMode); form.append("audio", audio, "letters.wav");
     const response = await fetch(`${supabaseUrl}/functions/v1/pronunciation-coach`, { method: "POST",
         headers: { Authorization: `Bearer ${await firebaseUser.getIdToken()}`, apikey: supabaseKey }, body: form });
     const result = await response.json().catch(() => ({}));

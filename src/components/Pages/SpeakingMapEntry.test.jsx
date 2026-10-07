@@ -2,18 +2,19 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ChallengePreviewDialog, speakingEntryAction, speakingLessonTopic, SpeakingMapGoal } from "./SpeakingMapEntry";
 
-it("今日通關入口改回聽，簡單與挑戰不提供第二次正式挑戰", () => {
+it("本機題今日已通關仍提供練習與再次挑戰評分", () => {
     const onEnter=jest.fn();
     render(<ChallengePreviewDialog item={{id:1,title:"Hello",question_count:2,completed_count:2,is_completed:true,completed_today:true}} section="textbook" sectionCopy={{label:"課本",eyebrow:"課本練習"}} onEnter={onEnter} onClose={()=>{}} />);
-    fireEvent.click(screen.getByRole("button",{name:/今天已完成，錄音回聽/}));
+    fireEvent.click(screen.getByRole("button",{name:"自由練習"}));
     expect(onEnter).toHaveBeenCalledWith("easy");
-    expect(screen.queryByRole("button",{name:/挑戰 · 看題目回答/})).not.toBeInTheDocument();
+    expect(screen.getByRole("button",{name:/挑戰 · 看題目回答/})).toBeEnabled();
+    expect(screen.queryByText(/今天已完成，錄音回聽/)).not.toBeInTheDocument();
 });
 
 it("摘要依兩種模式各自的完成數顯示繼續或重玩，按鈕仍進入原模式", () => {
     const onEnter = jest.fn();
     render(<ChallengePreviewDialog item={{ title: "P15 問候", topic: "認識新朋友", question_count: 7, completed_count: 7, challenge_completed_count: 2, is_completed: true }} pages="P.15" section="textbook" sectionCopy={{ label: "課本練習", eyebrow: "依教材頁序完成", badge: "課本" }} onEnter={onEnter} />);
-    fireEvent.click(screen.getByRole("button", { name: /再練一次 · 簡單/ }));
+    fireEvent.click(screen.getByRole("button", { name: "自由練習" }));
     expect(onEnter).toHaveBeenLastCalledWith("easy");
     fireEvent.click(screen.getByRole("button", { name: /繼續挑戰 · 挑戰/ }));
     expect(onEnter).toHaveBeenLastCalledWith("challenge");

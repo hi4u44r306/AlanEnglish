@@ -1,13 +1,14 @@
 import { selectAzureAssessmentResult, readAzureWordAssessment } from "./azure-pronunciation.ts";
-import { matchesFoundationAnswer } from "./speaking-foundation-answer.ts";
+import { matchesFoundationAnswer, evaluateLetterSpellingAssessment } from "./speaking-foundation-answer.ts";
 
 const score = (value: unknown) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(100, Number(value))) : 0;
-export async function assessAzureAlphabet(audio: ArrayBuffer, answer: string, key: string, region: string) {
+export async function assessAzureAlphabet(audio: ArrayBuffer, answer: string, key: string, region: string, interactionType = "alphabet_round") {
     if (!key || !/^[a-z0-9-]{2,32}$/.test(region)) throw Object.assign(new Error("A–Z 評分服務尚未設定"), { status: 503, code: "service_not_configured" });
     const endpoint = new URL(`https://${region}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1`);
     endpoint.searchParams.set("language", "en-US"); endpoint.searchParams.set("format", "detailed");
     // Preserve the existing scripted letter assessment, without the prosody add-on.
-    const config = { ReferenceText: answer, GradingSystem: "HundredMark", Granularity: "Phoneme", Dimension: "Comprehensive", EnableMiscue: true, EnableProsodyAssessment: false, PhonemeAlphabet: "IPA" };
+    const reference = interactionType === "letter_spelling" ? answer.toUpperCase().replace(/[^A-Z]/g, "").split("").join(" ") : answer;
+    const config = { ReferenceText: reference, GradingSystem: "HundredMark", Granularity: "Phoneme", Dimension: "Comprehensive", EnableMiscue: true, EnableProsodyAssessment: false, PhonemeAlphabet: "IPA" };
     const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 75000);
     let response: Response;
     try {
@@ -28,8 +29,9 @@ export async function assessAzureAlphabet(audio: ArrayBuffer, answer: string, ke
     }
     const text = String(best.Display || best.Lexical || "").trim();
     if (!text) throw Object.assign(new Error("沒有聽清楚字母，請重錄"), { status: 422, code: "speech_no_match" });
-    const matched = matchesFoundationAnswer("alphabet_round", answer, text, []);
-    return { assessment_kind: "azure_pronunciation", assessment_status: "assessed", answer_match: matched, recognized_text: text,
+    const spelling = interactionType === "letter_spelling" ? evaluateLetterSpellingAssessment(answer, text, best.Words) : null;
+    const matched = (spelling ? spelling.answerMatch : matchesFoundationAnswer("alphabet_round", answer, text, [])) && score(assessment.PronScore ?? assessment.AccuracyScore) >= 70;
+    return { assessment_kind: "azure_pronunciation", assessment_status: spelling?.uncertain ? "uncertain" : "assessed", answer_match: matched, recognized_text: text,
         scores: { pronunciation: score(assessment.PronScore ?? assessment.AccuracyScore), accuracy: score(assessment.AccuracyScore),
             fluency: score(assessment.FluencyScore), completeness: matched ? 100 : 0, prosody: null },
         words: (Array.isArray(best.Words) ? best.Words : []).map((word: any) => ({ text: String(word.Word || ""),

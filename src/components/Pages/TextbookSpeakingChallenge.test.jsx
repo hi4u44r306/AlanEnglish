@@ -57,7 +57,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: /下一頁，尚未解鎖/ })).toBeInTheDocument();
         fireEvent.click(goal);
         expect(screen.getByRole("dialog", { name: "認識新朋友" })).toHaveTextContent("P.15");
-        expect(screen.getByRole("button", { name: /繼續練習 · 簡單/ })).toHaveFocus();
+        expect(screen.getByRole("button", { name: /挑戰 · 看題目回答/ })).toHaveFocus();
         expect(getSpeakingChallengeSet).not.toHaveBeenCalled();
         fireEvent.keyDown(document, { key: "Escape" });
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -355,7 +355,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         } });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        fireEvent.click(await screen.findByRole("button", { name: "聽回答範例" }));
+        const audition = await screen.findByRole("button", { name: "聽回答範例" });
+        await waitFor(() => expect(audition).toBeEnabled());
+        fireEvent.click(audition);
         expect(global.Audio).toHaveBeenCalledWith("https://r2.example/signed.mp3");
         expect(play).toHaveBeenCalled();
     });
@@ -473,7 +475,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         const lesson = await screen.findByRole("button", { name: /顏色與生活物品/ });
         expect(lesson).toBeEnabled();
         fireEvent.click(lesson);
-        expect(screen.getByRole("button", { name: /簡單 · 看答案說/ })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "自由練習" })).toBeEnabled();
         expect(screen.getByRole("button", { name: /挑戰 · 看題目回答/ })).toBeEnabled();
     });
 
@@ -540,12 +542,12 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(node.querySelector(".speaking-challenge-lesson__number")).toHaveTextContent("P.21");
         fireEvent.click(node);
         expect(screen.getByRole("dialog", { name: "看圖問答" })).toHaveTextContent("P.21");
-        expect(screen.getByRole("dialog")).toHaveTextContent("簡單0 / 9");
-        expect(screen.getByRole("dialog")).toHaveTextContent("挑戰0 / 9");
+        expect(screen.getByRole("dialog")).toHaveTextContent("挑戰通過0 / 9");
+        expect(screen.getByRole("dialog")).not.toHaveTextContent("簡單0 / 9");
         expect(screen.queryByText("本關道具")).not.toBeInTheDocument();
         expect(screen.queryByText("提示卡")).not.toBeInTheDocument();
         expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/");
-        fireEvent.click(screen.getByRole("button", { name: /簡單 · 看答案說/ }));
+        fireEvent.click(screen.getByRole("button", { name: "自由練習" }));
         expect(screen.getByText("正式挑戰頁")).toBeInTheDocument();
         expect(screen.getByTestId("location-path")).toHaveAttribute("data-loading-return", "/student/speaking-challenges/book/book-Workbook%201");
     });
@@ -592,9 +594,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByText("輪數怎麼算？")).toBeInTheDocument();
         expect(screen.getByText("送評有上限嗎？")).toBeInTheDocument();
         expect(screen.getByText(/每個字母每天最多評分 3 次/)).toBeInTheDocument();
-        expect(screen.getByText(/第一次送評才扣一輪.*同一輪重試不多扣/)).toBeInTheDocument();
+        expect(screen.getByText(/第一次送評才扣一輪.*同輪重試不多扣/)).toBeInTheDocument();
         expect(screen.getByText(/字母／拼讀最多 12 秒/)).toBeInTheDocument();
-        expect(screen.getByText(/練習／簡單通關解鎖下一頁/)).toBeInTheDocument();
+        expect(screen.getByText(/完成整關挑戰才算正式通關並解鎖下一頁/)).toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByText("輪數怎麼算？")).not.toBeInTheDocument();

@@ -101,10 +101,10 @@ const secureShuffle = <T>(items: T[]) => {
 const challengeProgress = async (admin: any, studentId: number, sets: any[]) => {
     const questionIds = sets.flatMap(set => (set.speaking_questions || []).map((question: any) => Number(question.id)));
     if (!questionIds.length) return new Set<number>();
-    const { data, error } = await admin.from("speaking_challenge_question_progress")
-        .select("question_id,status").eq("student_id", studentId).in("question_id", questionIds);
+    const { data, error } = await admin.from("speaking_challenge_mode_progress")
+        .select("question_id").eq("student_id", studentId).in("question_id", questionIds);
     if (error) throw error;
-    return new Set<number>((data || []).filter((row: any) => row.status === "completed").map((row: any) => Number(row.question_id)));
+    return new Set<number>((data || []).map((row: any) => Number(row.question_id)));
 };
 
 const challengeModeProgress = async (admin: any, studentId: number, questionIds: number[]) => {
@@ -198,7 +198,7 @@ Deno.serve(async (req: Request) => {
             const levelPolicy = await dailyLevelPolicy(admin, Number(user.id), demoMode);
             return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenge_policy: challengePolicy, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
-                completed_today: levelPolicy.completed_set_ids.includes(Number(set.id)),
+                completed_today: set.generation_metadata?.interaction_type === "alphabet_round" && levelPolicy.completed_set_ids.includes(Number(set.id)),
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, generation_metadata: set.generation_metadata || {},
                 question_count: (set.speaking_questions || []).length,
@@ -231,7 +231,7 @@ Deno.serve(async (req: Request) => {
 
         if (action === "question_set") {
             const levelPolicy = await dailyLevelPolicy(admin, Number(user.id), demoMode, setId);
-            const practiceOnly = levelPolicy.completed_set_ids.includes(setId);
+            const practiceOnly = questionSet.generation_metadata?.interaction_type === "alphabet_round" && levelPolicy.completed_set_ids.includes(setId);
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
             const interactionType = readQuestionSetInteractionType(questionSet.generation_metadata);
             const alphabetMode = interactionType === "alphabet_round";
@@ -248,13 +248,9 @@ Deno.serve(async (req: Request) => {
             const statusByQuestion = new Map((progress || []).map((row: any) => [
                 Number(row.question_id), challengeMode === "challenge" ? "completed" : row.status
             ]));
-            const { data: todayAttempts, error: todayError } = ids.length && !demoMode && !practiceOnly
-                ? await admin.from("speaking_daily_question_completions").select("question_id")
-                    .eq("student_id", Number(user.id)).eq("question_set_id", setId).eq("challenge_mode", challengeMode)
-                    .eq("activity_date", taipeiActivityDate())
-                : { data: [], error: null };
-            if (todayError) throw todayError;
-            const todayCompleted = new Set((todayAttempts || []).map((row: any) => Number(row.question_id)));
+            // A new page entry starts a new practice/challenge run. Historical
+            // achievement stays in the map; it must not auto-finish this run.
+            const todayCompleted = new Set<number>();
             const { data: audioLinks, error: audioLinkError } = ids.length
                 ? await admin.from("speaking_question_audio").select("question_id,asset_id,purpose").in("question_id", ids)
                 : { data: [], error: null };
@@ -488,6 +484,7 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "start_foundation_round") {
+            if (challengeMode !== "challenge") return json(400, { error: "練習模式不建立正式挑戰回合", code: "challenge_mode_required" });
             if (demoMode) return json(403, { error: "示範模式不會建立學生挑戰回合", code: "demo_read_only" });
             const interactionType = readFoundationInteractionType(questionSet.generation_metadata);
             if (interactionType !== "alphabet_round") {
@@ -563,7 +560,7 @@ Deno.serve(async (req: Request) => {
                 }
                 const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
                 let attemptQuery = admin.from("speaking_pronunciation_attempts")
-                    .select("answer_match,created_at,hint_used").eq("student_id", Number(user.id))
+                    .select("answer_match,created_at,hint_used,pronunciation_score,completeness_score").eq("student_id", Number(user.id))
                     .eq("question_set_id", setId).eq("question_id", questionId)
                     .eq("challenge_mode", challengeMode).gte("created_at", since);
                 const clientSessionId = String(body?.challenge_session_id || "").trim();
@@ -572,11 +569,11 @@ Deno.serve(async (req: Request) => {
                 }
                 attemptQuery = attemptQuery.eq("client_session_id", clientSessionId);
                 const { data: attempt, error: attemptError } = await attemptQuery
-                    .order("created_at", { ascending: false }).limit(1).maybeSingle();
+                    .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1).maybeSingle();
                 if (attemptError) throw attemptError;
                 // Every question needs a saved server decision for this session.
                 // Local ASR text is client-reported; scores/completion flags are ignored.
-                if (!attempt || attempt.answer_match !== true) {
+                if (!attempt || attempt.answer_match !== true || Number(attempt.pronunciation_score ?? attempt.completeness_score) < 70) {
                     return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
                 }
                 if (challengeMode === "challenge") {
@@ -589,7 +586,7 @@ Deno.serve(async (req: Request) => {
                     }
                 }
             }
-            const { data: completion, error: completionError } = await admin.rpc("complete_speaking_daily_question_v1", {
+            const { data: completion, error: completionError } = await admin.rpc("complete_speaking_session_question_v2", {
                 p_student_id: Number(user.id), p_question_set_id: setId, p_question_id: questionId,
                 p_client_session_id: String(body.challenge_session_id), p_challenge_mode: challengeMode
             });

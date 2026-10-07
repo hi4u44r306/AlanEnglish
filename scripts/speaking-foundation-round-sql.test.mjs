@@ -622,3 +622,33 @@ test("A–Z 基本 Azure 沒有個人月額度及 160 次日上限；只計 Azur
     const recorded=await recordAssessment({version:'v2',studentId:93,roundId:round.round_id,claimToken:claim.claim_token,questionId:ids[0],answerMatch:true,prosodyScore:null});
     assert.equal((await scalar("select assessment_kind from public.speaking_pronunciation_attempts where id=$1",[recorded.attempt_id])).assessment_kind,'azure_pronunciation');
 });
+
+test("新 migration 與既有 claim、獎勵、月額度真實 SQL 整合：70 分挑戰才通關，練習及重送不發獎勵", async () => {
+    await db.exec(read("supabase/migrations/20261007150657_speaking_challenge_only_reassessment.sql"));
+    await db.exec("insert into public.students(id) values(171),(172); insert into public.speaking_question_sets(id,status,version,generation_metadata) values(51,'published',1,'{}'); insert into public.speaking_questions(id,question_set_id,model_answer) values(5101,51,'I like apples.'),(5102,51,'I like pears.')");
+    const run = '00000000-0000-4000-8000-000000000171';
+    const save=async(q,mode)=>db.query("insert into public.speaking_pronunciation_attempts(student_id,question_set_id,question_id,client_session_id,challenge_mode,pronunciation_score,accuracy_score,fluency_score,prosody_score,completeness_score,answer_match) values(171,51,$1,$2,$3,null,null,null,null,70,true)",[q,run,mode]);
+    const complete=async(q,mode)=>(await scalar("select public.complete_speaking_session_question_v2(171,51,$1,$2,$3) result",[q,run,mode])).result;
+    for(const q of [5101,5102]) { await save(q,'easy');assert.equal((await complete(q,'easy')).xp_awarded,0); }
+    assert.equal((await scalar("select count(*)::int n from public.speaking_challenge_question_progress where student_id=171")).n,0);
+    assert.equal((await scalar("select count(*)::int n from public.speaking_challenge_mode_progress where student_id=171")).n,0);
+    await save(5101,'challenge');assert.equal((await complete(5101,'challenge')).xp_awarded,0);
+    await save(5102,'challenge');const reward=await complete(5102,'challenge');assert.equal(reward.challenge_completed,true);assert.equal(reward.xp_awarded,30);assert.equal(reward.ae_points_awarded,3);
+    assert.equal((await complete(5102,'challenge')).xp_awarded,0);
+    const round=await startRound(172);
+    const assess=async(q,claim,value)=>(await scalar("select public.record_speaking_foundation_challenge_v4(172,$1,$2,$3,$4,80,80,100,null,'A','[]',true) result",[round.round_id,q,claim.claim_token,value])).result;
+    let claim=await claimQuestion(172,round.round_id,ids[0]);assert.equal((await assess(ids[0],claim,69)).status,'retry');
+    for(const q of ids) {
+        claim=await claimQuestion(172,round.round_id,q);
+        const result=await assess(q,claim,70);assert.equal(result.status,q===ids.at(-1)?'completed':'open');
+    }
+    assert.equal((await scalar("select count(*)::int n from public.speaking_challenge_mode_progress where student_id=172")).n,26);
+    assert.equal((await scalar("select total_xp from public.student_gamification_balances where student_id=172")).total_xp,30);
+    // Previous test set the monthly budget to one second; spelling must refuse
+    // before provider submission, then succeed after restoring the budget.
+    const reserve=async()=>(await scalar("select public.reserve_speaking_azure_spelling_request_v1(171,51,5101,3,null) result")).result;
+    assert.equal((await reserve()).allowed,false);
+    await db.exec("update public.speaking_audio_budget_policy set student_monthly_seconds=7200,global_monthly_seconds=360000");
+    const reservation=await reserve();assert.equal(reservation.allowed,true);
+    assert.equal((await scalar("select provider from public.speaking_pronunciation_requests where id=$1",[reservation.request_id])).provider,'azure_alphabet_basic');
+});

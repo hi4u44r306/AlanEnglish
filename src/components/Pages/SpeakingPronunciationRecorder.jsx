@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiVolume2 } from "react-icons/fi";
-import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
+import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
@@ -14,8 +14,8 @@ const recordingMimeType = () => {
         .find(type => window.MediaRecorder.isTypeSupported(type)) || "";
 };
 
-const scoreLabel = score => score >= 80 ? "表現良好" : score >= 60 ? "再練一次會更好" : "先聽示範，再慢慢重讀";
-const scoreTone = score => score >= 80 ? "good" : score >= 60 ? "practice" : "retry";
+const scoreLabel = score => score >= 70 ? "表現良好" : score >= 60 ? "再練一次會更好" : "先聽示範，再慢慢重讀";
+const scoreTone = score => score >= 70 ? "good" : score >= 60 ? "practice" : "retry";
 const ROUND_RESET_ERROR_CODES = new Set([
     "foundation_round_invalid",
     "foundation_round_required",
@@ -41,6 +41,7 @@ export default function SpeakingPronunciationRecorder({
     audioWorking = false
 }) {
     const maxRecordingSeconds = speakingRecordingSeconds(interactionType || question.interaction_type);
+    const azureLetters = ["alphabet_round", "letter_spelling"].includes(interactionType || question.interaction_type);
     const [recording, setRecording] = useState(false);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
@@ -60,6 +61,7 @@ export default function SpeakingPronunciationRecorder({
     const transcriptionRef = useRef(null);
     useEffect(() => {
         if (practiceOnly) { setEngineReady(true); setEngineInfo("錄音回聽練習，不送出評分。"); return undefined; }
+        if (azureLetters) { setEngineReady(true); setEngineInfo("字母與拼字評分 · 70 分通過"); return undefined; }
         const lease = retainLocalSpeakingRecognizer(); engineRef.current = lease.recognizer;
         let active = true;
         setEngineReady(lease.recognizer.ready);
@@ -72,7 +74,7 @@ export default function SpeakingPronunciationRecorder({
                 .finally(() => { if (active) setPreparing(false); });
         }
         return () => { active = false; lease.release(); };
-    }, [practiceOnly]);
+    }, [practiceOnly, azureLetters]);
     useEffect(() => {
         if (!submitting || result) return undefined;
         setWaitingSeconds(0);
@@ -129,7 +131,7 @@ export default function SpeakingPronunciationRecorder({
         } finally { if (token === generationRef.current) setPreparing(false); }
     };
     const start = async () => {
-        if (!practiceOnly && !engineRef.current?.ready) return prepareEngine();
+        if (!practiceOnly && !azureLetters && !engineRef.current?.ready) return prepareEngine();
         reset();
         const token = generationRef.current;
         onRetry?.();
@@ -194,18 +196,19 @@ export default function SpeakingPronunciationRecorder({
         setSubmitting(true); setError(""); setResult(null);
         const token = generationRef.current;
         try {
-            const transcription = transcriptionRef.current || await engineRef.current.transcribe(recordedBlob, maxRecordingSeconds);
+            const transcription = azureLetters ? null : transcriptionRef.current || await engineRef.current.transcribe(recordedBlob, maxRecordingSeconds);
             if (token !== generationRef.current) return;
             transcriptionRef.current = transcription;
-            const score = await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, ...transcription, foundationRoundId, challengeSessionId, challengeMode });
+            const score = azureLetters
+                ? await submitAlphabetPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId, challengeMode })
+                : await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, ...transcription, foundationRoundId, challengeSessionId, challengeMode });
             if (token !== generationRef.current) return;
-            if (score?.assessment_kind !== "local_completeness_v1" || typeof score?.answer_match !== "boolean" || !Number.isFinite(score?.scores?.completeness) || score.scores.completeness < 0 || score.scores.completeness > 100) {
+            const measuredScore = azureLetters ? score?.scores?.pronunciation : score?.scores?.completeness;
+            if (score?.assessment_kind !== (azureLetters ? "azure_pronunciation" : "local_completeness_v1") || typeof score?.answer_match !== "boolean" || !Number.isFinite(measuredScore) || measuredScore < 0 || measuredScore > 100) {
                 throw new Error("assessment_response_incomplete");
             }
             setResult(score);
-            // Keep the result visible before parent flows advance the question.
-            await new Promise(resolve => setTimeout(resolve, 4000));
-            if (token !== generationRef.current) return;
+            // Start saving as soon as the result arrives; no fixed pre-save wait.
             const saved = score?.assessment_status === "uncertain" ? false : await onScored?.(score);
             if (token !== generationRef.current) return;
             playSpeakingFeedbackSound(
@@ -214,13 +217,13 @@ export default function SpeakingPronunciationRecorder({
                     : score?.answer_match === false
                     ? "retry"
                     : saved === false ? "practice"
-                    : scoreTone(Math.round(score?.scores?.completeness || 0))
+                    : scoreTone(Math.round(measuredScore))
             );
         } catch (cause) {
             if (token !== generationRef.current) return;
             if (cause?.code === "speaking_level_completed_today") { onPracticeOnly?.(cause.message); return; }
             setResult(null);
-            setEngineReady(Boolean(engineRef.current?.ready));
+            setEngineReady(azureLetters || Boolean(engineRef.current?.ready));
             const limited = SPEAKING_BUDGET_ERROR_CODES.has(cause?.code);
             setBudgetBlocked(limited);
             setError(limited || ROUND_RESET_ERROR_CODES.has(String(cause?.code || "")) || cause?.code === "foundation_round_busy"
@@ -231,7 +234,7 @@ export default function SpeakingPronunciationRecorder({
         finally { if (token === generationRef.current) setSubmitting(false); }
     };
 
-    const pronunciationScore = Math.round(result?.scores?.completeness || 0);
+    const pronunciationScore = Math.round((azureLetters ? result?.scores?.pronunciation : result?.scores?.completeness) || 0);
     const assessmentUncertain = result?.assessment_status === "uncertain";
     const answerMatched = !assessmentUncertain && result?.answer_match !== false;
     const resultTone = assessmentUncertain ? "practice" : answerMatched ? scoreTone(pronunciationScore) : "retry";
@@ -266,11 +269,11 @@ export default function SpeakingPronunciationRecorder({
                 <span>{recording ? "完成錄音" : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button>{!practiceOnly && <button type="button" onClick={submit} disabled={submitting || budgetBlocked}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button>}</div></div>}
-            <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : "錄音在這台裝置辨識，只傳送辨識文字供核對及儲存。分數是朗讀完整度，不是發音準確度。"}</small>
+            <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : azureLetters ? "字母與拼字錄音送至 Azure 評分；答案正確且達 70 分即可通過。" : "錄音在這台裝置辨識，只傳送辨識文字供核對及儲存。分數是朗讀完整度，不是發音準確度。"}</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
-            <p className="speaking-completeness-score"><span>朗讀完整度</span><strong>{pronunciationScore} 分</strong></p>
+            <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>
             {assessmentUncertain && <p className="speaking-pronunciation-feedback"><span>{result.feedback || "這次沒有聽清楚，不算你答錯，請再試一次。"}</span></p>}
             <div className="speaking-result-actions">
                 {onListenAgain && <button type="button" className="secondary" onClick={onListenAgain} disabled={audioWorking || submitting}><FiVolume2 aria-hidden="true" />{audioWorking ? "示範播放中…" : "再聽示範"}</button>}

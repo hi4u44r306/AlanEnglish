@@ -150,7 +150,7 @@ const tokenEditDistance = (expected: string[], spoken: string[]) => {
 
 // Young learners should not fail because the speech recognizer drops one short
 // grammar word.  Core answer words and yes/no polarity still have to match, and
-// longer answers may differ by at most 20 percent of their tokens.
+// longer answers may differ by at most 30 percent of their tokens.
 export const matchesChildFriendlySentence = (expectedAnswer: unknown, recognizedText: unknown) => {
     const expected = canonicalSentenceTokens(expectedAnswer);
     const spoken = canonicalSentenceTokens(recognizedText);
@@ -173,11 +173,11 @@ export const matchesChildFriendlySentence = (expectedAnswer: unknown, recognized
     }, 0);
     const requiredCoreMatches = expectedCore.length <= 1
         ? expectedCore.length
-        : Math.ceil(expectedCore.length * 0.8);
+        : Math.ceil(expectedCore.length * 0.7);
     if (matchedCoreCount < requiredCoreMatches) return false;
 
     const distance = tokenEditDistance(expected, spoken);
-    const allowedDistance = Math.max(1, Math.floor(expected.length * 0.2));
+    const allowedDistance = Math.max(1, Math.floor(expected.length * 0.3));
     return distance <= allowedDistance;
 };
 
