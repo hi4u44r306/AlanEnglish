@@ -2,6 +2,13 @@
 
 最後更新：2026-10-07
 
+### 成本正式發布及寄信欄位修復（2026-10-07）
+
+- 使用者已同意本批正式部署。PR #440 合併 main `321a5feb`；Cloudflare build `b69aa42d-d41b-479e-b0bb-8cb7219e75d0`／check `112664462725` 在 14:34:53 台灣時間 success，對應此 main。成本路由與 main.ac2fca7f.js HTTP 200；HTTP 資產核對不等於登入後操作驗收。
+- 兩個 additive migrations 已成功套用，歷史校正為原版本 `20261007024653`／`20261007041718`；五張表 RLS 啟用、anon／authenticated 無 SELECT，六個 RPC 只有 service_role 可執行。成本獨立 cron `*/5 * * * *` active，原家長每小時排程維持；cost-alert-manager v1 ACTIVE。六個未登入 action 皆 401，CORS OPTIONS 200。
+- 14:35 首次背景採集成功記錄缺口：OpenAI／Azure／Google／Cloudflare／GitHub 缺帳務設定，Stripe test_mode_only，Resend Usage API 回 401。其後寄信設定 SELECT 誤用 reply_to_email（實際 reply_to），run_due 回 500；本批立即修復欄位及 PostgreSQL fixture，增加實際 Reply-To 投遞內容斷言。41 項後端／SQL／採集器與 shared TS 0 diagnostics 再次通過。修復發布及下一排程驗證進行中。
+- 尚無收件管理員，須本人進成本頁按「使用我的 Email 接收提醒」；未啟用通知，實際收信／下一五分鐘重送／確認停止尚未驗證。所有供應商帳單尚未自動接通；不宣稱完整即時監測。瀏覽器工具初始化缺少 runtime 路徑，桌面／412px／iPhone 未驗收，未繞過。原主目錄草稿保留。
+
 ### A–Z 原地重開麥克風（2026-10-07，尚未部署）
 
 - 分支 codex/alphabet-reopen-microphone，基準 origin/main b678b89e；發布前已合併最新 main 321a5feb，兩份文件衝突保留雙方內容，應用程式無衝突。使用者要求切到背景後留在原回合按鈕開啟；修改 AlphabetAutomaticRecorder 與測試、PROJECT_LOGIC／手冊 v3.60。背景釋放 stream／AudioContext，停止半段錄音不送評；回來顯示「麥克風已暫停」與重開按鈕，不再錯顯已開啟。重新取得麥克風保留原題／round／session，防連點；已開始送評不取消原回覆、不自動重送。過期／真正離開頁面／reload 不承諾復原。
