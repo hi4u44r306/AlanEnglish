@@ -80,8 +80,8 @@ test("實際 handler 從後端答案重算，忽略偽造分數與參考答案�
     const saved = h.writes.find(row => row.table === "speaking_pronunciation_attempts").value;
     assert.equal(saved.pronunciation_score, null); assert.equal(saved.completeness_score, 67);
 });
-test("後端以已發布括號替代答案重算分數，肯定及否定各自保存 100 分", async () => {
-    for (const ending of ["Yes, it's mine.", "No, it's not."]) {
+test("後端以已發布括號答案重算分數，擇一或兩種都唸保存 100 分", async () => {
+    for (const ending of ["Yes, it's mine.", "No, it's not.", "Yes, it's mine. No, it's not.", "No, it's not. Yes, it's mine."]) {
         const h = harness({answerTemplate:"What is this? It is a key. Is it yours? Yes, it's mine. (No, it's not.)"});
         const response = await h.handler(request({recognized_text:"What is this? It is a key. Is it yours? " + ending, scores:{completeness:78}}));
         assert.equal(response.status, 200);

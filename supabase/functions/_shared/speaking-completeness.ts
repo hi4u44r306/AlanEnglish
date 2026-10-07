@@ -25,7 +25,7 @@ export function readingCoverage(expectedText: string, recognizedText: string) {
 }
 
 // A textbook's trailing "(No, ...)" or "(Yes, ...)" replaces the preceding
-// yes/no response; it is not an additional sentence the learner must read.
+// yes/no response; reading either or both responses is acceptable.
 // Keep the shared question/answer prefix, and leave other parentheses intact.
 export function readingAnswerAlternatives(template: string): string[] {
     const alternative = template.match(/\s*[（(]([^()（）]+)[）)]\s*[.!?]?\s*$/);
@@ -34,7 +34,9 @@ export function readingAnswerAlternatives(template: string): string[] {
     const responses = [...primary.matchAll(/\b(?:yes|no)\b/gi)];
     const response = responses[responses.length - 1];
     if (!response || (response.index! > 0 && !/[.!?]\s*$/.test(primary.slice(0, response.index)))) return [template];
-    return [primary, primary.slice(0, response.index) + alternative[1].trim()];
+    const prefix = primary.slice(0, response.index);
+    const second = alternative[1].trim();
+    return [primary, prefix + second, primary + " " + second, prefix + second + " " + primary.slice(response.index)];
 }
 
 export function assessReadingCompleteness(question: { answerTemplate: string; acceptedAnswers: string[]; interactionType: string }, recognizedText: unknown) {
