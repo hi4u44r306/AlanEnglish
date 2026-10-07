@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectOpenAI, collectAzure, collectGoogle, collectResend, collectStripe, collectCloudflare, collectGitHub, costPeriod, costError } from '../supabase/functions/_shared/service-cost-collectors.ts';
+import { collectOpenAI, collectAzure, collectGoogle, collectResend, collectStripe, collectCloudflareWorkers, collectCloudflareR2, collectGitHub, costPeriod, costError } from '../supabase/functions/_shared/service-cost-collectors.ts';
 const now = new Date('2026-10-07T04:00:00Z');
 const response = body => new Response(JSON.stringify(body));
 const io = (values, fetch) => ({ now, usdToTwd: 33, env: n => values[n], fetch });
@@ -49,17 +49,16 @@ test('Stripe test mode cannot contribute real costs; live fees exclude revenue a
     assert.equal(rows[0].cost_usd,3.4);
 });
 test('Cloudflare uses analytics and does not label usage or bytes as a bill',async()=>{
-    let payload;
-    const rows=await collectCloudflare('2026-10',io({COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_WORKER_NAME:'alanenglish',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'},async(_url,opts)=>{
-        payload=JSON.parse(opts.body);return response({data:{viewer:{accounts:[{workersInvocationsAdaptive:[{sum:{requests:12,errors:1}}],r2OperationsAdaptiveGroups:[{sum:{requests:10},dimensions:{actionType:'GetObject'}}],r2StorageAdaptiveGroups:[{max:{payloadSize:1000,metadataSize:100,objectCount:3}}]}]}}});
-    }));
-    assert.equal(rows[0].cost_usd,null);assert.equal(rows[1].metrics[1].used,1100);assert.equal(payload.variables.script,'alanenglish');assert.equal(payload.variables.bucket,'alanenglish-audio');
-    assert.match(payload.query,/r2OperationsAdaptiveGroups[^}]+datetime_leq:\$end/);assert.match(payload.query,/r2StorageAdaptiveGroups[^}]+datetime_leq:\$end/);assert.doesNotMatch(payload.query,/r2(?:Operations|Storage)AdaptiveGroups[^}]+datetime_lt:/);
+    const config={COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_WORKER_NAME:'alanenglish',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'};
+    let workersPayload;const workers=await collectCloudflareWorkers('2026-10',io(config,async(_url,opts)=>{workersPayload=JSON.parse(opts.body);return response({data:{viewer:{accounts:[{workersInvocationsAdaptive:[{sum:{requests:12,errors:1}}]}]}}});}));
+    let r2Payload;const r2=await collectCloudflareR2('2026-10',io(config,async(_url,opts)=>{r2Payload=JSON.parse(opts.body);return response({data:{viewer:{accounts:[{r2OperationsAdaptiveGroups:[{sum:{requests:10},dimensions:{actionType:'GetObject'}}],r2StorageAdaptiveGroups:[{max:{payloadSize:1000,metadataSize:100,objectCount:3}}]}]}}});}));
+    assert.equal(workers[0].cost_usd,null);assert.equal(r2[0].metrics[1].used,1100);assert.equal(workersPayload.variables.script,'alanenglish');assert.equal(r2Payload.variables.bucket,'alanenglish-audio');
+    assert.doesNotMatch(workersPayload.query,/r2OperationsAdaptiveGroups/);assert.doesNotMatch(r2Payload.query,/workersInvocationsAdaptive/);assert.match(r2Payload.query,/r2OperationsAdaptiveGroups[^}]+datetime_leq:\$end/);assert.match(r2Payload.query,/r2StorageAdaptiveGroups[^}]+datetime_leq:\$end/);
 });
 test('Cloudflare errors expose only safe diagnostic categories',async()=>{
     const env={COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_WORKER_NAME:'alanenglish',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'};
-    await assert.rejects(collectCloudflare('2026-10',io(env,async()=>response({errors:[{message:'user does not have access to account secret-account'}]}))),/provider_auth_failed/);
-    await assert.rejects(collectCloudflare('2026-10',io(env,async()=>response({errors:[{message:'Cannot query field hiddenField on type Account'}]}))),/provider_schema_failed/);
+    await assert.rejects(collectCloudflareWorkers('2026-10',io(env,async()=>response({errors:[{message:'user does not have access to account secret-account'}]}))),/provider_auth_failed/);
+    await assert.rejects(collectCloudflareR2('2026-10',io(env,async()=>response({errors:[{message:'Cannot query field hiddenField on type Account'}]}))),/provider_schema_failed/);
     assert.equal(costError(new Error('provider_auth_failed')),'provider_auth_failed');
     assert.equal(costError(new Error('secret-account token=hidden')),'collection_failed');
 });
