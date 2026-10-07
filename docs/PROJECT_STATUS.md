@@ -2,10 +2,11 @@
 
 最後更新：2026-10-07
 
-### 一般口說分數回饋（2026-10-07，尚未部署）
+### 一般口說分數回饋（2026-10-07，已部署／登入畫面待驗）
 
 - 分支 fix/speaking-score-only，從最新 main 建立；移除一般口說／拼讀回饋的辨識全文、逐字色塊、文字建議與最多三字練習區，保留朗讀完整度分數、結果狀態及重試／示範操作。不修改後端判分、通關、額度或 A–Z。
-- 相關檔案：SpeakingPronunciationRecorder.jsx／test.jsx、PROJECT_LOGIC.md、網站使用手冊 v3.61。16 項元件測試通過，涵蓋分數、移除逐字資訊、重試、錄音回聽、技術失敗與辨識不確定提示；不確定仍顯示「不算你答錯」必要說明。只改回饋呈現；不重跑完整測試與本機 production build，正式 Cloudflare build 驗證編譯。正式發布與桌面／412px／iPhone 畫面驗收待完成。
+- 相關檔案：SpeakingPronunciationRecorder.jsx／test.jsx、PROJECT_LOGIC.md、網站使用手冊 v3.61。16 項元件測試、兩檔 ESLint、diff check 通過，涵蓋分數、移除逐字資訊、重試、錄音回聽、技術失敗與辨識不確定提示；不確定仍顯示「不算你答錯」必要說明。局部呈現修改不重跑完整測試與本機 build。
+- PR #447／main 4b7c26f0 已合併，Cloudflare build 1e42d274-d8a1-4717-af8b-5b676a96c4f6 於 17:52:19 台灣時間 success。正式首頁、口說路由、main.5ac80b45.js／113.2bcc889d.chunk.js HTTP 200；口說 chunk 保留分數與不確定提示，沒有辨識全文 UI、逐字結果或三字練習標題。Browser Use 因 saved permissions 無法驗證拒絕正式網址，未繞過；桌面／412px／iPhone 登入畫面仍待補，HTTP 資產檢查不代替 UI 驗收。回復可 revert 本次前端 PR，不需資料庫或 Function 變更。
 
 ### 成本正式發布及寄信欄位修復（2026-10-07）
 
