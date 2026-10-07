@@ -1,4 +1,3 @@
-jest.mock("../../services/localSpeakingRecognizer", () => ({ retainLocalSpeakingRecognizer: () => ({ recognizer: { ready: true, mode: "相容加速模式", prepare: jest.fn().mockResolvedValue(), transcribe: jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2}) }, release: jest.fn() }) }));
 import React from "react";
 import { cleanup, act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -7,6 +6,8 @@ import { SpeakingActivityContext } from "./SpeakingAdventureSession";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
+
+jest.mock("../../services/localSpeakingRecognizer", () => ({ retainLocalSpeakingRecognizer: () => ({ recognizer: { ready: true, mode: "相容加速模式", prepare: jest.fn().mockResolvedValue(), transcribe: jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2}) }, release: jest.fn() }) }));
 
 jest.mock("../../services/pronunciationCoachService", () => ({
     submitSpeakingPronunciationAttempt: jest.fn()
@@ -190,18 +191,14 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
         expect(await screen.findByText("表現良好")).toBeInTheDocument();
         expect(screen.getByRole("status")).toHaveTextContent("本次練習結果");
-        expect(screen.getByText("我聽到")).toBeInTheDocument();
-        expect(screen.getByText("My name is Amy.")).toBeInTheDocument();
+        expect(screen.queryByText("我聽到")).not.toBeInTheDocument();
+        expect(screen.queryByText("My name is Amy.")).not.toBeInTheDocument();
         expect(screen.getByText("88 分")).toBeInTheDocument();
         expect(screen.queryByText("90")).not.toBeInTheDocument();
-        expect(screen.getByText("綠色：有讀到")).toBeInTheDocument();
-        expect(screen.getByText("My")).toHaveClass("word-good");
-        expect(screen.getByText("name")).toHaveClass("word-practice");
-        expect(screen.getByText("Amy")).toHaveClass("word-retry");
-        expect(screen.getByText("句尾再放慢一點。")).toBeInTheDocument();
-        expect(screen.getByText("這次先練這幾個字")).toBeInTheDocument();
-        expect(screen.getByText("name、Amy")).toBeInTheDocument();
-        expect(screen.getByLabelText("name：辨識文字")).toBeInTheDocument();
+        expect(screen.queryByLabelText("逐字朗讀結果")).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("朗讀比對說明")).not.toBeInTheDocument();
+        expect(screen.queryByText("句尾再放慢一點。")).not.toBeInTheDocument();
+        expect(screen.queryByText("這次先練這幾個字")).not.toBeInTheDocument();
         expect(screen.queryByText("查看詳細分析")).not.toBeInTheDocument();
         expect(prepareSpeakingFeedbackSound).toHaveBeenCalledTimes(1);
         await waitFor(() => expect(playSpeakingFeedbackSound).toHaveBeenCalledWith("good"));

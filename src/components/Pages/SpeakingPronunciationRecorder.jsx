@@ -234,7 +234,6 @@ export default function SpeakingPronunciationRecorder({
     const recordingState = submitting ? "assessing" : preparing ? "preparing" : recording ? "recording" : error ? "retry" : recordedBlob ? "ready" : "idle";
     const learningPhase = submitting ? "assessing" : preparing ? "preparing" : recording ? "recording" : result ? "feedback" : recordedBlob ? "review" : "ready";
     useEffect(() => { onPhaseChange?.(learningPhase); }, [learningPhase, onPhaseChange]);
-    const practiceWords = assessmentUncertain ? [] : (result?.words || []).filter(word => ["practice", "retry"].includes(word.status)).slice(0, 3);
 
     return <section aria-busy={preparing || submitting} className={`speaking-pronunciation is-${recordingState} ${voiceDetected ? "has-voice" : ""}`}>
         <p className="speaking-local-mode">{engineInfo}</p>
@@ -264,11 +263,7 @@ export default function SpeakingPronunciationRecorder({
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
             <p className="speaking-completeness-score"><span>朗讀完整度</span><strong>{pronunciationScore} 分</strong></p>
-            {result.recognized_text && <p className="speaking-recognized-answer"><strong>我聽到</strong><span>{result.recognized_text}</span></p>}
-            {!assessmentUncertain && <div className="speaking-pronunciation-legend" aria-label="朗讀比對說明"><span className="word-good">綠色：有讀到</span><span className="word-practice">黃色：辨識文字</span><span className="word-retry">紅色：未讀到</span></div>}
-            {!assessmentUncertain && (result.words || []).length > 0 && <div className="speaking-pronunciation-words" aria-label="逐字朗讀結果">{result.words.map((word, index) => <span key={`${word.text}-${index}`} className={`word-${word.status}`} aria-label={`${word.text}：${word.status === "good" ? "有讀到" : word.status === "practice" ? "辨識文字" : "未讀到"}`}>{word.text}</span>)}</div>}
-            <p className="speaking-pronunciation-feedback"><strong>下一次這樣說會更好</strong><span>{result.feedback || (assessmentUncertain ? "這次沒有聽清楚，靠近麥克風再試一次。" : answerMatched ? "回聽自己的回答，試著把完整句子說得更清楚。" : "重新看清楚題目，再用完整句子回答。")}</span></p>
-            {practiceWords.length > 0 && <p className="speaking-pronunciation-focus"><strong>這次先練這幾個字</strong><span>{practiceWords.map(word => word.text).join("、")}</span></p>}
+            {assessmentUncertain && <p className="speaking-pronunciation-feedback"><span>{result.feedback || "這次沒有聽清楚，不算你答錯，請再試一次。"}</span></p>}
             <div className="speaking-result-actions">
                 {onListenAgain && <button type="button" className="secondary" onClick={onListenAgain} disabled={audioWorking || submitting}><FiVolume2 aria-hidden="true" />{audioWorking ? "示範播放中…" : "再聽示範"}</button>}
                 <button type="button" className="secondary" onClick={() => { reset(); onRetry?.(); }} disabled={submitting}><FiRefreshCw />再練一次</button>
