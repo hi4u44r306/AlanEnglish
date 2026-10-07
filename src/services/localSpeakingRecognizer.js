@@ -1,8 +1,8 @@
-// Reuse one engine between questions; release it when the speaking page leaves.
+// Reuse one engine for the open website, including transitions between questions.
 let shared, users = 0, releaseTimer;
 const failure = (code, message) => Object.assign(new Error(message), { code });
 export class LocalSpeakingRecognizer {
-    constructor() { this.worker = null; this.pending = null; this.ready = false; this.id = 0; this.mode = ""; }
+    constructor() { this.worker = null; this.pending = null; this.ready = false; this.id = 0; this.mode = ""; this.preparation = null; this.progressListeners = new Set(); this.lastProgress = ""; }
     dispose() {
         this.ready = false;
         this.worker?.terminate(); this.worker = null;
@@ -20,7 +20,23 @@ export class LocalSpeakingRecognizer {
             this.worker.postMessage({ id, type, ...payload }, payload.audio ? [payload.audio.buffer] : []);
         });
     }
-    async prepare(onProgress = () => {}) {
+    prepare(onProgress = () => {}) {
+        if (this.ready) { onProgress(this.mode); return Promise.resolve(); }
+        this.progressListeners.add(onProgress);
+        if (this.preparation) {
+            if (this.lastProgress) onProgress(this.lastProgress);
+            return this.preparation;
+        }
+        this.preparation = this.loadEngine(info => {
+            this.lastProgress = info;
+            this.progressListeners.forEach(listener => listener(info));
+        }).finally(() => {
+            this.preparation = null;
+            this.progressListeners.clear();
+        });
+        return this.preparation;
+    }
+    async loadEngine(onProgress) {
         if (this.ready) { onProgress(this.mode); return; }
         if (this.pending) throw failure("local_busy", "語音辨識仍在準備，請稍候。" );
         try { if (navigator.storage?.persist) await navigator.storage.persist(); } catch { /* Browser may decline persistence. */ }

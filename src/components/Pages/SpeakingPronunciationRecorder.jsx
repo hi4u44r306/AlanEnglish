@@ -52,7 +52,7 @@ export default function SpeakingPronunciationRecorder({
     const [budgetBlocked, setBudgetBlocked] = useState(false);
     const [voiceDetected, setVoiceDetected] = useState(false);
     const [engineReady, setEngineReady] = useState(false);
-    const [engineInfo, setEngineInfo] = useState("首次需下載語音模型，建議使用 Wi-Fi。");
+    const [engineInfo, setEngineInfo] = useState("正在背景準備語音辨識…");
     const [waitingSeconds, setWaitingSeconds] = useState(0);
     const engineRef = useRef(null);
     const generationRef = useRef(0);
@@ -61,9 +61,17 @@ export default function SpeakingPronunciationRecorder({
     useEffect(() => {
         if (practiceOnly) { setEngineReady(true); setEngineInfo("錄音回聽練習，不送出評分。"); return undefined; }
         const lease = retainLocalSpeakingRecognizer(); engineRef.current = lease.recognizer;
+        let active = true;
         setEngineReady(lease.recognizer.ready);
         if (lease.recognizer.ready) setEngineInfo(lease.recognizer.mode);
-        return lease.release;
+        else {
+            setPreparing(true);
+            lease.recognizer.prepare(info => { if (active) setEngineInfo(info); })
+                .then(() => { if (active) setEngineReady(true); })
+                .catch(cause => { if (active) { setEngineReady(false); setError(cause.message); } })
+                .finally(() => { if (active) setPreparing(false); });
+        }
+        return () => { active = false; lease.release(); };
     }, [practiceOnly]);
     useEffect(() => {
         if (!submitting || result) return undefined;
@@ -237,12 +245,12 @@ export default function SpeakingPronunciationRecorder({
 
     return <section aria-busy={preparing || submitting} className={`speaking-pronunciation is-${recordingState} ${voiceDetected ? "has-voice" : ""}`}>
         <p className="speaking-local-mode">{engineInfo}</p>
-        {!practiceOnly && !engineReady && <button type="button" onClick={prepareEngine} disabled={preparing || submitting}>{preparing ? "正在準備語音辨識…" : "準備語音辨識"}</button>}
+        {!practiceOnly && !engineReady && error && <button type="button" onClick={prepareEngine} disabled={preparing || submitting}>重新準備語音辨識</button>}
         {submitting && !result && <p role="timer">正在辨識與儲存，已等待 {waitingSeconds} 秒</p>}
-        {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? "正在準備評分音檔。" : recording ? `錄音進行中，每次最長 ${maxRecordingSeconds} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? practiceOnly ? "錄音完成，可以播放回聽。" : "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
+        {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? engineReady ? "正在準備評分音檔。" : "正在準備語音辨識，完成後就能錄音。" : recording ? `錄音進行中，每次最長 ${maxRecordingSeconds} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? practiceOnly ? "錄音完成，可以播放回聽。" : "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}
         {!result && <>
             <div className="speaking-recording-heading">
-                <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? "正在準備評分音檔…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : practiceOnly ? "啟用麥克風錄音練習" : "啟用麥克風開始挑戰"}</strong>
+                <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? engineReady ? "正在準備評分音檔…" : "正在準備語音辨識…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : practiceOnly ? "啟用麥克風錄音練習" : "啟用麥克風開始挑戰"}</strong>
                 <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按完成錄音。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
             </div>
             {recording && <div className="speaking-recording-countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}><strong>{remainingSeconds}</strong><span>秒</span></div>}

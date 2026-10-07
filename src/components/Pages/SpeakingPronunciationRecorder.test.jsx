@@ -6,8 +6,9 @@ import { SpeakingActivityContext } from "./SpeakingAdventureSession";
 import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
+import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
 
-jest.mock("../../services/localSpeakingRecognizer", () => ({ retainLocalSpeakingRecognizer: () => ({ recognizer: { ready: true, mode: "相容加速模式", prepare: jest.fn().mockResolvedValue(), transcribe: jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2}) }, release: jest.fn() }) }));
+jest.mock("../../services/localSpeakingRecognizer", () => ({ retainLocalSpeakingRecognizer: jest.fn(() => ({ recognizer: { ready: true, mode: "相容加速模式", prepare: jest.fn().mockResolvedValue(), transcribe: jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2}) }, release: jest.fn() })) }));
 
 jest.mock("../../services/pronunciationCoachService", () => ({
     submitSpeakingPronunciationAttempt: jest.fn()
@@ -20,6 +21,28 @@ jest.mock("../../utils/speakingFeedbackSound", () => ({
 }));
 
 describe("SpeakingPronunciationRecorder", () => {
+    it("未就緒時自動接續準備，不要求按準備按鈕，也不開啟麥克風", async () => {
+        let complete;
+        const prepare = jest.fn(() => new Promise(resolve => { complete = resolve; }));
+        retainLocalSpeakingRecognizer.mockReturnValueOnce({recognizer:{ready:false,prepare},release:jest.fn()});
+        render(<SpeakingPronunciationRecorder question={{id:9}} />);
+        expect(prepare).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole("button",{name:"準備語音辨識"})).not.toBeInTheDocument();
+        expect(screen.getByRole("button",{name:"開始錄音"})).toBeDisabled();
+        expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+        await act(async () => { complete(); });
+        expect(screen.getByRole("button",{name:"開始錄音"})).toBeEnabled();
+    });
+    it("背景準備失敗才提供重新準備，重試成功恢復麥克風按鈕", async () => {
+        const prepare=jest.fn().mockRejectedValueOnce(new Error("模型載入失敗")).mockResolvedValueOnce();
+        retainLocalSpeakingRecognizer.mockReturnValueOnce({recognizer:{ready:false,prepare},release:jest.fn()});
+        render(<SpeakingPronunciationRecorder question={{id:9}} />);
+        const retry = await screen.findByRole("button",{name:"重新準備語音辨識"});
+        fireEvent.click(retry);
+        await waitFor(() => expect(screen.getByRole("button",{name:"開始錄音"})).toBeEnabled());
+        expect(prepare).toHaveBeenCalledTimes(2);
+        expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+    });
     const originalTimeout = global.setTimeout;
     const originalMediaRecorder = window.MediaRecorder;
     const originalMediaDevices = navigator.mediaDevices;
@@ -41,6 +64,7 @@ describe("SpeakingPronunciationRecorder", () => {
     });
 
     beforeEach(() => {
+        retainLocalSpeakingRecognizer.mockImplementation(() => ({recognizer:{ready:true,mode:"相容加速模式",prepare:jest.fn().mockResolvedValue(),transcribe:jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2})},release:jest.fn()}));
         const nativeTimeout = originalTimeout;
         global.setTimeout = (fn, ms, ...args) => nativeTimeout(fn, ms === 4000 ? 0 : ms, ...args);
         const track = { stop: jest.fn() };

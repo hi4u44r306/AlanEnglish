@@ -56,6 +56,7 @@ import RoleHomeRedirect from "../auth/RoleHomeRedirect";
 import { StoreProvider } from "../store/StoreContext";
 import publicSeo from "../config/publicSeo.json";
 import RouteScrollToTop from "./RouteScrollToTop";
+import SpeakingRecognizerWarmup from "./SpeakingRecognizerWarmup";
 import { APP_ROUTER_FUTURE } from "./routerFuture";
 
 const ManagementDashboard = lazy(() => import("../components/Pages/ManagementDashboard"));
@@ -111,6 +112,7 @@ const App = () => {
     return (
         <Router future={APP_ROUTER_FUTURE}>
             <RouteScrollToTop />
+            <SpeakingRecognizerWarmup />
             <AuthProvider>
                 <StoreProvider>
                 <ToastContainer
