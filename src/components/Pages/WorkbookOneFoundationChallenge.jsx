@@ -207,12 +207,6 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         return true;
     }, [allAlphabetAudioReady, alphabetSegments, stopAudio]);
 
-    useEffect(() => {
-        if (!retryFeedback) return undefined;
-        const timeout = window.setTimeout(() => setRetryFeedback(null), 3000);
-        return () => window.clearTimeout(timeout);
-    }, [retryFeedback]);
-
     const playIntroFrom = useCallback(async index => {
         setIntroIndex(index);
         setStatusError("");
@@ -432,6 +426,8 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 challengeSessionId={challengeSessionId}
                 allowDemoAssessment={adminScoringPreview}
                 paused={exitDialogOpen || Boolean(retryFeedback)}
+                waitingForRetry={Boolean(retryFeedback)}
+                onRetryReading={exitDialogOpen ? undefined : () => setRetryFeedback(null)}
                 onStatusChange={setAutomaticRecorderStatus}
                 onScored={handleCorrect}
                 onRoundInvalid={handleIncorrect}

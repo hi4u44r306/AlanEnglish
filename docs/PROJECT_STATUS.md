@@ -4,10 +4,10 @@
 
 ### 全服務成本統整（2026-10-07，本機實作／尚未部署）
 
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main 38cf94c2；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC及獨立五分鐘排程。
+- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main b678b89e；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC及獨立五分鐘排程。
 - 總成本／門檻／Email 共用完整月 SQL；沿用 Azure alphabet basic 每小時 1 美元的保守估算，含預留與失敗，本機朗讀不計入。同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源有延遲；未取得完整金額清楚標示缺口。
 - 最終 41 項後端／PostgreSQL／採集器＋17 項 React（共 58）通過；7 檔 ESLint、shared TypeScript 0 diagnostics、Edge 語法、diff check 與 production build main.53a7b691.js 通過；已準備 Cloudflare assets。真實帳務權限、export、Email 投遞、正式 cron 與桌面／412px／iPhone 尚未驗收，未繞過瀏覽器權限拒絕。
-- 本機 checkpoint f216cedd；已推送並建立 Draft PR #440（https://github.com/hi4u44r306/AlanEnglish/pull/440），尚未合併／套用正式 migration／更改 Secret／發布。使用者已於 2026-10-07 明確同意本批直接正式部署及驗收；正在發布。接通來源、間隔、剩餘缺口與回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.58 草稿。
+- 本機 checkpoint f216cedd；已推送並建立 Draft PR #440（https://github.com/hi4u44r306/AlanEnglish/pull/440），尚未合併／套用正式 migration／更改 Secret／發布。使用者已於 2026-10-07 明確同意本批直接正式部署及驗收；正在發布。接通來源、間隔、剩餘缺口與回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.59 草稿。
 
 ### 成本 Email 初版隔離驗證紀錄（2026-10-07，已由上節統整版取代；尚未部署）
 
@@ -19,6 +19,11 @@
 - 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
 - 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
 
+### A–Z 加速換題與手動重唸（2026-10-07，已部署／實機待驗收）
+
+- 基準 origin/main 38cf94c2，分支 codex/alphabet-fast-retry。使用者核准縮短結果等待並要求孩子可按鈕重唸；修改 AlphabetAutomaticRecorder／WorkbookOneFoundationChallenge 與兩支針對性測試、PROJECT_LOGIC／手冊 v3.58。答對約 1 秒換題；可重試答錯不另等待，保留叉號並暂停錄音，按「再唸一次」才恢復同題收音。等待 15 秒加提示，不自動重送 Azure。技術失敗仍沿用錄音回聽／手動重試。
+- 不改後端、SQL、整輪失敗或每日額度；回應遺失自動進度恢復需後端配合，未納入本批。40 項相關 React 測試、四檔 ESLint／diff check 通過；實際 JSX／SCSS 合成狀態預覽於 320／412／1440px 檢查五種狀態，無橫向溢出、訊息欄至少 150px、重唸按鈕至少 44px，412px 截圖已目視確認。測試證明等待重唸不新錄音／送評、按下才恢復同題及麥克風只取得一次；預覽不啟動麥克風／付費 API，非正式學生驗收。本機不重跑 full suite／production build，交 Cloudflare 唯一正式建置。回復可 revert 本批前端，無資料回復需求。
+- PR #441 合併 main `48add591dacd488d65a7c61befc73b7033f2e5af`；Cloudflare build `13375649-5768-4e86-a27d-9b01abfc845b`／check `112658347333` 在 2026-10-07 14:13:32 台灣時間 completed／success，精確對應 main。正式首頁／main.c40db422.js／字母 chunk 113.e71ca74d.chunk.js 均 200，字母 chunk 確認新重唸屬性、按鈕提示、慢速提示及 900ms 回饋已發布。HTTP 資產核對非登入後操作；Browser Use 既有權限驗證限制未繞過，正式學生、iPhone Safari 錄音及弱網實機仍待驗收。手冊 v3.58 已同步部署狀態；純文件發布紀錄不重跑應用驗證／build。
 
 字母勾叉回饋與手機卡片排版（2026-10-07，已正式部署／實機待驗收）：使用者要求 A–Z 不顯示分數，只顯示通過或重唸。AlphabetAutomaticRecorder 改以後端 answer_match 顯示綠色打勾「通過！」／紅色打叉「再唸一次」，不按分數猜通關，保留 4 秒回饋與原有提交、錯題／換題／每日字母額度流程。TextbookSpeakingChallenge.scss 固定圖示第一欄、說明第二欄、倒數及頁腳位置，移除引擎／分數段落造成的 grid 窄欄與卡片過高；採 border-box 並縮短判別提示。不修改後端、Azure、SQL、資料儲存或一般題分數。14 項 recorder 測試、focused ESLint／局部 webpack 編譯通過；實際 JSX／SCSS 的合成初始狀態預覽於 320／412／1440px 驗證判別中、通過、重唸與錄音，無横向溢出、文字欄至少 150px、卡片小於 230px，412px 截圖已目視確認。預覽不啟動實際麥克風或付費 API，非正式登入後／iPhone 實機驗收。production build 由 Cloudflare 執行，本機不重跑全套或完整 build。 PR #438 已合併 main `4044747313601ccf4a87be2a8a18b68a853221c6`；Cloudflare 唯一 production build `b0199871-22bc-456c-b865-852aa22abf3d`／check `112635480474` 於 2026-10-07 12:45:11 台灣時間 completed／success，精確對應 main。正式 Browser Use 權限檢查仍受限制，未繞過；登入後全關卡／iPhone 實機尚未驗收，請重新整理確認。手冊 v3.57 同步正式狀態，純文件紀錄不重跑應用測試或觸發第二次前端 build。回復可 revert 此批前端 merge，無 SQL／資料回復需求。
 
