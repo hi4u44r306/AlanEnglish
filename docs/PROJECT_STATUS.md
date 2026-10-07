@@ -2,12 +2,12 @@
 
 最後更新：2026-10-07
 
-### 括號替代答案完整度修正（2026-10-07，隔離驗證完成／尚未部署）
+### 括號替代答案完整度修正（2026-10-07，已部署／實機朗讀待驗）
 
 - 分支 fix/speaking-parenthetical-alternatives，基準 main 063b2da6。重現 P.11 完整肯定回答被計為 14/18＝78 分；將句尾括號 Yes／No 改為前一回覆的替代選項，保留共同句子，各自比對完整度及既有答案規則。一般句、文字／圖片問答與填空各自測試；其他括號不猜成答案。只改新送評，不回填、改題庫或資料表。
 - 修改 speaking-completeness.ts、speaking-completeness.test.mjs、speaking-local-handler.test.mjs、PROJECT_LOGIC.md 與使用手冊 v3.62。使用者已同意正式部署，並補充兩種回答都唸也不扣分；肯定、否定、兩種都唸（兩個順序）完整回答均測得 100 分。32 項本機評分／真實 handler 隔離替身／流程與權限測試、shared TypeScript 0 diagnostics、Edge helper 語法及 diff check 通過；handler 忽略前端分數並保存後端重算值。只唸選項／無關回答仍拒絕。既有兒童辨識容錯規則未修改。
 - 舊 test-speaking-foundation-answer.mjs 在 main 也使用已淘汰 reserveChallengeSession 原始碼正則，測試在該契約斷言失敗；本批未改那份舊測試或 pronunciation-coach handler。未跑全套或前端 build：無前端程式變更；相關後端隔離測試及型別／語法驗證如上。
-- 本批已取得正式 pronunciation-coach Function 部署同意；尚未合併／部署。回復可重部署 main 063b2da6 的既有 Function，不刪除歷史紀錄。正式帳號及 iPhone 實際朗讀待驗。
+- 本批已取得正式部署同意，PR #449 合併 main b87e16ba；從此 main 部署 pronunciation-coach v35 ACTIVE，保留 Firebase 自訂驗證，未登入送評 401，正式首頁／口說路由 HTTP 200。Cloudflare build dfdeb5ad-2ab6-4785-818c-4dc36d032deb 在 20:01:37 台灣時間 success。沒有 migration、题庫修改或歷史回填；回復可重部署 main 063b2da6 的既有 Function。官方 get_edge_function 讀取原始碼工具回 UNAVAILABLE，未宣稱已遠端重跑評分；登入真實錄音／iPhone 仍待驗，隔離 handler 測試與部署狀態是目前證據。
 
 ### 一般口說分數回饋（2026-10-07，已部署／登入畫面待驗）
 
