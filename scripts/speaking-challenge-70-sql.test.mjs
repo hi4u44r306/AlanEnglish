@@ -36,7 +36,7 @@ before(async()=>{
   insert into speaking_questions values(100,10),(101,10),(102,11);
  `);
  await db.exec(read('20260918063338_speaking_challenge_daily_sessions.sql'));
- await db.exec(read('20261007150657_speaking_challenge_only_reassessment.sql'));
+ await db.exec(read('20261007155958_speaking_challenge_only_reassessment.sql'));
 });
 after(()=>db.close());
 test('69 分拒絕，70 分接受；沒有評分、不同回合、答案錯誤及提示不能通關',async()=>{

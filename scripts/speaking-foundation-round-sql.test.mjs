@@ -609,7 +609,6 @@ test("A–Z 基本 Azure 沒有個人月額度及 160 次日上限；只計 Azur
     assert.equal(first.challenge_usage.daily_limit,10);
     await db.exec("update public.speaking_audio_budget_policy set student_monthly_seconds=1,global_monthly_seconds=1");
     assert.equal((await reserve()).allowed,true);
-    await db.exec("update public.speaking_pronunciation_requests set created_at=now()-interval '1 hour' where student_id=93");
     assert.equal((await reserve()).allowed,true);
     assert.equal((await reserve()).code,'alphabet_letter_daily_limit_reached');
     await db.exec("update public.speaking_pronunciation_requests set created_at=now()-interval '2 days' where student_id=93");
@@ -624,7 +623,7 @@ test("A–Z 基本 Azure 沒有個人月額度及 160 次日上限；只計 Azur
 });
 
 test("新 migration 與既有 claim、獎勵、月額度真實 SQL 整合：70 分挑戰才通關，練習及重送不發獎勵", async () => {
-    await db.exec(read("supabase/migrations/20261007150657_speaking_challenge_only_reassessment.sql"));
+    await db.exec(read("supabase/migrations/20261007155958_speaking_challenge_only_reassessment.sql"));
     await db.exec("insert into public.students(id) values(171),(172); insert into public.speaking_question_sets(id,status,version,generation_metadata) values(51,'published',1,'{}'); insert into public.speaking_questions(id,question_set_id,model_answer) values(5101,51,'I like apples.'),(5102,51,'I like pears.')");
     const run = '00000000-0000-4000-8000-000000000171';
     const save=async(q,mode)=>db.query("insert into public.speaking_pronunciation_attempts(student_id,question_set_id,question_id,client_session_id,challenge_mode,pronunciation_score,accuracy_score,fluency_score,prosody_score,completeness_score,answer_match) values(171,51,$1,$2,$3,null,null,null,null,70,true)",[q,run,mode]);

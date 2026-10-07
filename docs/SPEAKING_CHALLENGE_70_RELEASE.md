@@ -14,7 +14,7 @@
 
 ## 正式變更範圍
 
-1. 只執行 `20261007150657_speaking_challenge_only_reassessment.sql`，不執行歷史整批 db push。新增 server-only 本次回合完成表、完成 RPC、A–Z wrapper、Azure 拼字用量 wrapper；在新 migration 替換日輪次 reservation，移除每日已通關阻擋，Azure A–Z 的付費限制仍由自己的字母與 round RPC 管理。
+1. 只執行 `20261007155958_speaking_challenge_only_reassessment.sql`，不執行歷史整批 db push。新增 server-only 本次回合完成表、完成 RPC、A–Z wrapper、Azure 拼字用量 wrapper；在新 migration 替換日輪次 reservation，移除每日已通關阻擋，Azure A–Z 的付費限制仍由自己的字母與 round RPC 管理。
 2. 從已測試最新 main 發布 `pronunciation-coach` 與 `speaking-challenge`，維持內部 Firebase 驗證與原有 Secret 名稱，不更改 Firebase／RLS 角色／Secret 設定。
 3. 合併前端及文件，同一次 Cloudflare production build 後驗收。
 4. 不刪學生紀錄、不自動回填挑戰進度、不追回或重發舊獎勵，不更改題庫／教材資料。

@@ -5,7 +5,7 @@
 ### 70 分挑戰規則與 Azure 拼字（2026-10-07，隔離驗證完成／尚未部署）
 
 - 基準 main 1982d0af；分支 codex/speaking-challenge-70-review。移除一般題顯示結果後 4 秒保存前等待；只有挑戰可算正式通關、發首次獎勵與解鎖，練習可評分但隔離正式進度。一般門檻改為 70，題意／字母順序與提示規則仍驗證。A–Z 與拼字使用 Azure，拼字顯示實際發音分數；句子本機辨識，不再受每日已通關阻擋或 Azure 輪次限制。
-- 新增 migration 20261007150657_speaking_challenge_only_reassessment.sql：server-only 回合完成紀錄、70 分完成 RPC、A–Z 原子 writer wrapper、拼字月額度／費用 wrapper，以及在增量 migration 更新日輪次 reservation。未執行正式 migration；未部署兩個 Function 或 Cloudflare。舊紀錄及獎勵保留、不回填；地圖改讀挑戰進度，舊簡單模式解鎖可能暫時鎖回，須補挑戰前關。
+- 新增 migration 20261007155958_speaking_challenge_only_reassessment.sql：server-only 回合完成紀錄、70 分完成 RPC、A–Z 原子 writer wrapper、拼字月額度／費用 wrapper，以及在增量 migration 更新日輪次 reservation。未執行正式 migration；未部署兩個 Function 或 Cloudflare。舊紀錄及獎勵保留、不回填；地圖改讀挑戰進度，舊簡單模式解鎖可能暫時鎖回，須補挑戰前關。
 - 驗證：40 項後端判分／Azure helper／真實 handler VM／流程／權限測試、8 項新 PostgreSQL transition／ACL 測試、15 項既有 A–Z SQL（含新增新 migration 與真實 claim／reward／monthly budget 整合）通過；既有月額度 11 項在首批通過。錄音元件 17、一般頁 52、foundation 25、完成動畫 8、服務 4 項 React 通過；AlphabetAutomaticRecorder 與地圖摘要回歸亦通過。main 原本一項音訊測試因未等背景準備完成就點擊而失敗，新增 await enabled 後通過，未改示範音訊邏輯。十檔 ESLint、shared TypeScript 0 diagnostics、production build、diff check 通過；未執行無關全套測試。
 - 用量政策唯讀核對：正式個人月 7200 秒、全站 360000 秒，未更改。Azure 使用合成回應／WAV 測試，沒有付費真實兒童聲音驗證；不能宣稱 0 分問題已在實機解除。實際 JSX／SCSS 入口靜態預覽在 output/speaking-70-entry-preview.html；桌面／412px／iPhone 真實瀏覽器、登入保存、跨裝置及新正式版本仍待驗。
 - PROJECT_LOGIC／手冊 v3.64 草稿已同步。正式發布與回復細節見 docs/SPEAKING_CHALLENGE_70_RELEASE.md；依 AGENTS 第 13／14／16 節，正式 migration 與進度／獎勵變更待本批明確同意。新服務仍有 Azure 付費額度；只移除句子本機題的完成後回聽限制。
