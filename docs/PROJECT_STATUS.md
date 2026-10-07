@@ -2,10 +2,11 @@
 
 最後更新：2026-10-07
 
-### A–Z 加速換題與手動重唸（2026-10-07，尚未部署）
+### A–Z 加速換題與手動重唸（2026-10-07，已部署／實機待驗收）
 
 - 基準 origin/main 38cf94c2，分支 codex/alphabet-fast-retry。使用者核准縮短結果等待並要求孩子可按鈕重唸；修改 AlphabetAutomaticRecorder／WorkbookOneFoundationChallenge 與兩支針對性測試、PROJECT_LOGIC／手冊 v3.58。答對約 1 秒換題；可重試答錯不另等待，保留叉號並暂停錄音，按「再唸一次」才恢復同題收音。等待 15 秒加提示，不自動重送 Azure。技術失敗仍沿用錄音回聽／手動重試。
-- 不改後端、SQL、整輪失敗或每日額度；回應遺失自動進度恢復需後端配合，未納入本批。40 項相關 React 測試、四檔 ESLint／diff check 通過；實際 JSX／SCSS 合成狀態預覽於 320／412／1440px 檢查五種狀態，無橫向溢出、訊息欄至少 150px、重唸按鈕至少 44px，412px 截圖已目視確認。測試證明等待重唸不新錄音／送評、按下才恢復同題及麥克風只取得一次；預覽不啟動麥克風／付費 API，非正式學生驗收。本機不重跑 full suite／production build，交 Cloudflare 唯一正式建置。發布待補，正式學生、iPhone Safari 錄音及弱網實機待驗收。回復可 revert 本批前端，無資料回復需求。
+- 不改後端、SQL、整輪失敗或每日額度；回應遺失自動進度恢復需後端配合，未納入本批。40 項相關 React 測試、四檔 ESLint／diff check 通過；實際 JSX／SCSS 合成狀態預覽於 320／412／1440px 檢查五種狀態，無橫向溢出、訊息欄至少 150px、重唸按鈕至少 44px，412px 截圖已目視確認。測試證明等待重唸不新錄音／送評、按下才恢復同題及麥克風只取得一次；預覽不啟動麥克風／付費 API，非正式學生驗收。本機不重跑 full suite／production build，交 Cloudflare 唯一正式建置。回復可 revert 本批前端，無資料回復需求。
+- PR #441 合併 main `48add591dacd488d65a7c61befc73b7033f2e5af`；Cloudflare build `13375649-5768-4e86-a27d-9b01abfc845b`／check `112658347333` 在 2026-10-07 14:13:32 台灣時間 completed／success，精確對應 main。正式首頁／main.c40db422.js／字母 chunk 113.e71ca74d.chunk.js 均 200，字母 chunk 確認新重唸屬性、按鈕提示、慢速提示及 900ms 回饋已發布。HTTP 資產核對非登入後操作；Browser Use 既有權限驗證限制未繞過，正式學生、iPhone Safari 錄音及弱網實機仍待驗收。手冊 v3.58 已同步部署狀態；純文件發布紀錄不重跑應用驗證／build。
 
 字母勾叉回饋與手機卡片排版（2026-10-07，已正式部署／實機待驗收）：使用者要求 A–Z 不顯示分數，只顯示通過或重唸。AlphabetAutomaticRecorder 改以後端 answer_match 顯示綠色打勾「通過！」／紅色打叉「再唸一次」，不按分數猜通關，保留 4 秒回饋與原有提交、錯題／換題／每日字母額度流程。TextbookSpeakingChallenge.scss 固定圖示第一欄、說明第二欄、倒數及頁腳位置，移除引擎／分數段落造成的 grid 窄欄與卡片過高；採 border-box 並縮短判別提示。不修改後端、Azure、SQL、資料儲存或一般題分數。14 項 recorder 測試、focused ESLint／局部 webpack 編譯通過；實際 JSX／SCSS 的合成初始狀態預覽於 320／412／1440px 驗證判別中、通過、重唸與錄音，無横向溢出、文字欄至少 150px、卡片小於 230px，412px 截圖已目視確認。預覽不啟動實際麥克風或付費 API，非正式登入後／iPhone 實機驗收。production build 由 Cloudflare 執行，本機不重跑全套或完整 build。 PR #438 已合併 main `4044747313601ccf4a87be2a8a18b68a853221c6`；Cloudflare 唯一 production build `b0199871-22bc-456c-b865-852aa22abf3d`／check `112635480474` 於 2026-10-07 12:45:11 台灣時間 completed／success，精確對應 main。正式 Browser Use 權限檢查仍受限制，未繞過；登入後全關卡／iPhone 實機尚未驗收，請重新整理確認。手冊 v3.57 同步正式狀態，純文件紀錄不重跑應用測試或觸發第二次前端 build。回復可 revert 此批前端 merge，無 SQL／資料回復需求。
 
