@@ -54,6 +54,7 @@ test('Cloudflare uses analytics and does not label usage or bytes as a bill',asy
         payload=JSON.parse(opts.body);return response({data:{viewer:{accounts:[{workersInvocationsAdaptive:[{sum:{requests:12,errors:1}}],r2OperationsAdaptiveGroups:[{sum:{requests:10},dimensions:{actionType:'GetObject'}}],r2StorageAdaptiveGroups:[{max:{payloadSize:1000,metadataSize:100,objectCount:3}}]}]}}});
     }));
     assert.equal(rows[0].cost_usd,null);assert.equal(rows[1].metrics[1].used,1100);assert.equal(payload.variables.script,'alanenglish');assert.equal(payload.variables.bucket,'alanenglish-audio');
+    assert.match(payload.query,/r2OperationsAdaptiveGroups[^}]+datetime_leq:\$end/);assert.match(payload.query,/r2StorageAdaptiveGroups[^}]+datetime_leq:\$end/);assert.doesNotMatch(payload.query,/r2(?:Operations|Storage)AdaptiveGroups[^}]+datetime_lt:/);
 });
 test('collection errors reveal no raw tokens or response bodies',()=>{
     assert.equal(costError(new Error('token=secret PII response')),'collection_failed');
