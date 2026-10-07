@@ -30,6 +30,12 @@
 - 相關檔案：SpeakingPronunciationRecorder.jsx／test.jsx、PROJECT_LOGIC.md、網站使用手冊 v3.61。16 項元件測試、兩檔 ESLint、diff check 通過，涵蓋分數、移除逐字資訊、重試、錄音回聽、技術失敗與辨識不確定提示；不確定仍顯示「不算你答錯」必要說明。局部呈現修改不重跑完整測試與本機 build。
 - PR #447／main 4b7c26f0 已合併，Cloudflare build 1e42d274-d8a1-4717-af8b-5b676a96c4f6 於 17:52:19 台灣時間 success。正式首頁、口說路由、main.5ac80b45.js／113.2bcc889d.chunk.js HTTP 200；口說 chunk 保留分數與不確定提示，沒有辨識全文 UI、逐字結果或三字練習標題。Browser Use 因 saved permissions 無法驗證拒絕正式網址，未繞過；桌面／412px／iPhone 登入畫面仍待補，HTTP 資產檢查不代替 UI 驗收。回復可 revert 本次前端 PR，不需資料庫或 Function 變更。
 
+### Cloudflare 成本用量接通（2026-10-08，已部署）
+
+- Cloudflare 正式 Account ID 與唯讀 `Account Analytics` Token 已接入 Supabase Secret；沒有讀取、輸出或提交 Token 值。Workers 與 R2 改為獨立查詢，R2 只保留現行權限可取得的指定 bucket 操作量，不要求 R2 物件讀取權限。儲存 GB-month 及完整 Cloudflare 帳單仍由管理員依帳單填寫本月總額，成本頁與手冊已標明資料邊界。
+- PR #454～#461 已依序修正 R2 時間篩選、加入安全錯誤分類、拆分 Workers／R2 與 R2 資料集查詢，最後以 PR #461／main `1b9c4310` 發布最小唯讀方案；`cost-alert-manager` 已從該 main 重新部署。針對採集器 14 項測試、shared TypeScript 語法及 `git diff --check` 通過；既有全套 edge syntax 曾在無關的 speaking lock 舊斷言失敗，本批未修改該流程。
+- 2026-10-08 00:43 台灣時間正式同步成功：Workers 20,769 次請求；R2 `ListObjects` 1、`GetObject` 108、`HeadBucket` 84，兩筆 snapshot 的 `error_code` 均為 null。供應商用量有延遲，數字不是即時最終帳單；Cloudflare production 前端 build 與登入後成本頁顯示仍屬不同驗證邊界。
+
 ### 成本正式發布及寄信欄位修復（2026-10-07）
 
 - 使用者已同意本批正式部署。PR #440 合併 main `321a5feb`；Cloudflare build `b69aa42d-d41b-479e-b0bb-8cb7219e75d0`／check `112664462725` 在 14:34:53 台灣時間 success，對應此 main。成本路由與 main.ac2fca7f.js HTTP 200；HTTP 資產核對不等於登入後操作驗收。
