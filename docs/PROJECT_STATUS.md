@@ -9,10 +9,11 @@
 - 14:35 首次背景採集成功記錄缺口：OpenAI／Azure／Google／Cloudflare／GitHub 缺帳務設定，Stripe test_mode_only，Resend Usage API 回 401。其後寄信設定 SELECT 誤用 reply_to_email（實際 reply_to），run_due 回 500；本批立即修復欄位及 PostgreSQL fixture，增加實際 Reply-To 投遞內容斷言。41 項後端／SQL／採集器與 shared TS 0 diagnostics 再次通過。PR #444 已合併 main b6924ae2，cost-alert-manager v2 已重新部署；14:40 正式 cron succeeded，實際 Edge HTTP 200／success=true／sent=0／failed=0，已排除原 500。尚無收件人，因此這不是實際投遞證據。Cloudflare 修復版 build 791e7f7d-a1b5-4a55-ba0b-eb80f30533f6／check 112666852584 在 14:42:55 台灣時間 success，精確對應 b6924ae2；正式 service_role 成本聚合及既有 sender 欄位讀取驗證通過。
 - 尚無收件管理員，須本人進成本頁按「使用我的 Email 接收提醒」；未啟用通知，實際收信／下一五分鐘重送／確認停止尚未驗證。所有供應商帳單尚未自動接通；不宣稱完整即時監測。瀏覽器工具初始化缺少 runtime 路徑，桌面／412px／iPhone 未驗收，未繞過。原主目錄草稿保留。
 
-### A–Z 原地重開麥克風（2026-10-07，尚未部署）
+### A–Z 原地重開麥克風（2026-10-07，已部署／實機待驗收）
 
 - 分支 codex/alphabet-reopen-microphone，基準 origin/main b678b89e；發布前已合併最新 main 321a5feb，兩份文件衝突保留雙方內容，應用程式無衝突。使用者要求切到背景後留在原回合按鈕開啟；修改 AlphabetAutomaticRecorder 與測試、PROJECT_LOGIC／手冊 v3.60。背景釋放 stream／AudioContext，停止半段錄音不送評；回來顯示「麥克風已暫停」與重開按鈕，不再錯顯已開啟。重新取得麥克風保留原題／round／session，防連點；已開始送評不取消原回覆、不自動重送。過期／真正離開頁面／reload 不承諾復原。
-- 45 項相關 React 測試通過，涵蓋背景→可見→重開、保留 round／session、半段丟棄、已送評晚到回覆只處理一次、拒絕權限後原地重試及晚到 permission stream 立即停止；兩檔 ESLint／diff check 通過。實際 JSX／SCSS 合成預覽於 320／412／1440px 六狀態無溢出，重開按鈕至少 44px，412px 截圖已目視確認，預覽不啟動麥克風或付費 API。不改後端／SQL／每日額度，本機不重跑 full suite／production build，交 Cloudflare main 建置。發布待補；iPhone Safari／正式登入實機仍待驗收，回復可 revert 前端，無資料回復需求。
+- 45 項相關 React 測試通過，涵蓋背景→可見→重開、保留 round／session、半段丟棄、已送評晚到回覆只處理一次、拒絕權限後原地重試及晚到 permission stream 立即停止；兩檔 ESLint／diff check 通過。實際 JSX／SCSS 合成預覽於 320／412／1440px 六狀態無溢出，重開按鈕至少 44px，412px 截圖已目視確認，預覽不啟動麥克風或付費 API。不改後端／SQL／每日額度，本機不重跑 full suite／production build，交 Cloudflare main 建置。iPhone Safari／正式登入實機仍待驗收，回復可 revert 前端，無資料回復需求。
+- PR #443 合併 main `2f8d9b490d45fa1fa05dae4be34c9c222104669d`；Cloudflare build `43f278f4-f645-4401-9ec9-35f8bb596e7c`／check `112665753266` 在 2026-10-07 14:39:12 台灣時間 completed／success，精確對應 main。正式首頁與字母 chunk `/static/js/113.da0b00aa.chunk.js` 都 200，確認重開按鈕、暫停提示、保留本輪說明已發布，舊強制退出文案已移除；當時 main asset 為 main.0ac212cc.js。HTTP 資產核對不是登入後錄音操作；Browser Use 既有權限限制未繞過，實機待補。手冊 v3.60 同步已部署；純文件發布紀錄不重跑應用驗證／建置。發布後同步 main b6924ae2 的無關成本 hotfix，沒有改本批字母程式。
 
 ### 全服務成本統整開發驗證紀錄（2026-10-07，正式發布狀態見上節）
 
