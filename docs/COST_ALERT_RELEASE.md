@@ -1,6 +1,13 @@
 # 網站成本統整與持續提醒發布／回復
 
-2026-10-07；本機功能分支 `feature/cost-alert-email-ack`，已同步 main `b678b89e`。使用者已同意直接正式部署與驗收，發布進行中。
+2026-10-07；PR #440／#444 已合併；正式後端基準 main `b6924ae2`。使用者已同意直接正式部署與驗收，兩個 migration 與成本頁已發布；帳務權限、收件啟用及實際投遞驗收待補。
+
+## 正式驗收紀錄
+
+- 五張表 RLS 與六個 service-only RPC、兩個 migration 原版本 history、獨立五分鐘 cron 已核對；原家長排程維持。六個未登入 action 401，OPTIONS 200。
+- 初版發生 Reply-To 欄位不相容，PR #444 修正並補 PostgreSQL 真實欄位及投遞內容斷言；41 項後端／採集器回歸再次通過。cost-alert-manager v2 部署後，14:40 正式 cron succeeded／Edge HTTP 200／sent=0／failed=0。尚無收件人，不是實際投遞驗收。
+- Secret 僅核對名稱，未讀取或建立帳務 reader；OpenAI／Azure／Google／Cloudflare／GitHub 顯示 missing_configuration，Resend Usage 401，Stripe test_mode_only。Supabase 完整帳單與舊訂閱尚缺金額；網站估算及目前 DB 大小可查。
+- PR #440 的 Cloudflare build 在 14:34:53、PR #444 的修復 build 791e7f7d-a1b5-4a55-ba0b-eb80f30533f6 在 14:42:55 台灣時間 success；後者精確對應 main b6924ae2。正式路由與新資產 200，已核對成本標題／服務設定／我已經看到按鈕程式。瀏覽器 runtime 初始化失敗，登入後操作、桌面／412px／iPhone 仍未驗收；沒有繞過工具限制。
 
 ## 範圍與驗證界線
 

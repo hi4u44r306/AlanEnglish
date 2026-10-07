@@ -6,7 +6,7 @@
 
 - 使用者已同意本批正式部署。PR #440 合併 main `321a5feb`；Cloudflare build `b69aa42d-d41b-479e-b0bb-8cb7219e75d0`／check `112664462725` 在 14:34:53 台灣時間 success，對應此 main。成本路由與 main.ac2fca7f.js HTTP 200；HTTP 資產核對不等於登入後操作驗收。
 - 兩個 additive migrations 已成功套用，歷史校正為原版本 `20261007024653`／`20261007041718`；五張表 RLS 啟用、anon／authenticated 無 SELECT，六個 RPC 只有 service_role 可執行。成本獨立 cron `*/5 * * * *` active，原家長每小時排程維持；cost-alert-manager v1 ACTIVE。六個未登入 action 皆 401，CORS OPTIONS 200。
-- 14:35 首次背景採集成功記錄缺口：OpenAI／Azure／Google／Cloudflare／GitHub 缺帳務設定，Stripe test_mode_only，Resend Usage API 回 401。其後寄信設定 SELECT 誤用 reply_to_email（實際 reply_to），run_due 回 500；本批立即修復欄位及 PostgreSQL fixture，增加實際 Reply-To 投遞內容斷言。41 項後端／SQL／採集器與 shared TS 0 diagnostics 再次通過。修復發布及下一排程驗證進行中。
+- 14:35 首次背景採集成功記錄缺口：OpenAI／Azure／Google／Cloudflare／GitHub 缺帳務設定，Stripe test_mode_only，Resend Usage API 回 401。其後寄信設定 SELECT 誤用 reply_to_email（實際 reply_to），run_due 回 500；本批立即修復欄位及 PostgreSQL fixture，增加實際 Reply-To 投遞內容斷言。41 項後端／SQL／採集器與 shared TS 0 diagnostics 再次通過。PR #444 已合併 main b6924ae2，cost-alert-manager v2 已重新部署；14:40 正式 cron succeeded，實際 Edge HTTP 200／success=true／sent=0／failed=0，已排除原 500。尚無收件人，因此這不是實際投遞證據。Cloudflare 修復版 build 791e7f7d-a1b5-4a55-ba0b-eb80f30533f6／check 112666852584 在 14:42:55 台灣時間 success，精確對應 b6924ae2；正式 service_role 成本聚合及既有 sender 欄位讀取驗證通過。
 - 尚無收件管理員，須本人進成本頁按「使用我的 Email 接收提醒」；未啟用通知，實際收信／下一五分鐘重送／確認停止尚未驗證。所有供應商帳單尚未自動接通；不宣稱完整即時監測。瀏覽器工具初始化缺少 runtime 路徑，桌面／412px／iPhone 未驗收，未繞過。原主目錄草稿保留。
 
 ### A–Z 原地重開麥克風（2026-10-07，尚未部署）
@@ -14,7 +14,7 @@
 - 分支 codex/alphabet-reopen-microphone，基準 origin/main b678b89e；發布前已合併最新 main 321a5feb，兩份文件衝突保留雙方內容，應用程式無衝突。使用者要求切到背景後留在原回合按鈕開啟；修改 AlphabetAutomaticRecorder 與測試、PROJECT_LOGIC／手冊 v3.60。背景釋放 stream／AudioContext，停止半段錄音不送評；回來顯示「麥克風已暫停」與重開按鈕，不再錯顯已開啟。重新取得麥克風保留原題／round／session，防連點；已開始送評不取消原回覆、不自動重送。過期／真正離開頁面／reload 不承諾復原。
 - 45 項相關 React 測試通過，涵蓋背景→可見→重開、保留 round／session、半段丟棄、已送評晚到回覆只處理一次、拒絕權限後原地重試及晚到 permission stream 立即停止；兩檔 ESLint／diff check 通過。實際 JSX／SCSS 合成預覽於 320／412／1440px 六狀態無溢出，重開按鈕至少 44px，412px 截圖已目視確認，預覽不啟動麥克風或付費 API。不改後端／SQL／每日額度，本機不重跑 full suite／production build，交 Cloudflare main 建置。發布待補；iPhone Safari／正式登入實機仍待驗收，回復可 revert 前端，無資料回復需求。
 
-### 全服務成本統整（2026-10-07，本機實作／尚未部署）
+### 全服務成本統整開發驗證紀錄（2026-10-07，正式發布狀態見上節）
 
 - 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main b678b89e；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC及獨立五分鐘排程。
 - 總成本／門檻／Email 共用完整月 SQL；沿用 Azure alphabet basic 每小時 1 美元的保守估算，含預留與失敗，本機朗讀不計入。同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源有延遲；未取得完整金額清楚標示缺口。
